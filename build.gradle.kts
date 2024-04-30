@@ -145,6 +145,7 @@ dependencies {
     compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
     implementation(project(path = ":core"))
     SUPPORTED_VERSIONS.forEach { implementation(project(path = ":${it.nmsVersion}", configuration = "reobf")) }
+    CURRENT_NMS_VERSION.forEach { implementation(project(path = ":${it.nmsVersion}")) }
 }
 
 java {

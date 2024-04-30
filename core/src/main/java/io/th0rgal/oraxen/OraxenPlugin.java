@@ -92,13 +92,13 @@ public class OraxenPlugin extends JavaPlugin {
         soundManager = new SoundManager(configsManager.getSounds());
         breakerManager = new BreakerManager(new ConcurrentHashMap<>());
 
+        NMSHandlers.setupHandler();
         if (Settings.KEEP_UP_TO_DATE.toBool())
             new SettingsUpdater().handleSettingsUpdate();
         final PluginManager pluginManager = Bukkit.getPluginManager();
         NMSHandlers.handler().addPacketListener(PacketListenerType.TITLE);
         NMSHandlers.handler().addPacketListener(PacketListenerType.INVENTORY);
         pluginManager.registerEvents(new CustomArmorListener(), this);
-        NMSHandlers.setupHandler();
         packGenerator = new PackGenerator();
 
         MechanicsManager.registerNativeMechanics();

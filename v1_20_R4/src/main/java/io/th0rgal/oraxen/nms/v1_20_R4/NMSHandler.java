@@ -103,17 +103,20 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     private record ConnectionCodec(StreamCodec<ByteBuf, Packet<?>> codec, ProtocolInfo<?> protocol, int id) {
     }
 
+    private record NamedPacketType(String name, PacketType<?> type) {
+
+    }
     private static class PacketList {
-        private final List<PacketType<?>> clientbounds = new ArrayList<>();
-        private final List<PacketType<?>> serverbounds = new ArrayList<>();
+        private final List<NamedPacketType> clientbounds = new ArrayList<>();
+        private final List<NamedPacketType> serverbounds = new ArrayList<>();
         private PacketList(Class<?>... classes) {
             for (Class<?> aClass : classes) {
                 for (Field field : aClass.getFields()) {
                     try {
                         PacketType<?> type = (PacketType<?>) field.get(null);
                         switch (type.flow()) {
-                            case CLIENTBOUND -> clientbounds.add(type);
-                            case SERVERBOUND -> serverbounds.add(type);
+                            case CLIENTBOUND -> clientbounds.add(new NamedPacketType(field.getName(), type));
+                            case SERVERBOUND -> serverbounds.add(new NamedPacketType(field.getName(), type));
                         }
                     } catch (Exception ignored) {}
                 }
@@ -123,10 +126,12 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     private static class PacketProtocol {
         private final ProtocolInfo<?> clientboundInfo;
         private final ProtocolInfo<?> serverboundInfo;
+        private final String name;
 
-        public PacketProtocol(ProtocolInfo<?> clientbound, ProtocolInfo<?> serverbound) {
+        public PacketProtocol(ProtocolInfo<?> clientbound, ProtocolInfo<?> serverbound, String name) {
             clientboundInfo = clientbound;
             serverboundInfo = serverbound;
+            this.name = name;
         }
     }
 
@@ -154,13 +159,13 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         );
 
         for (PacketProtocol packetProtocol : List.of(
-                new PacketProtocol(GameProtocols.CLIENTBOUND.bind(RegistryFriendlyByteBuf.decorator(RegistryAccess.EMPTY)), GameProtocols.SERVERBOUND.bind(RegistryFriendlyByteBuf.decorator(RegistryAccess.EMPTY))),
-                new PacketProtocol(StatusProtocols.CLIENTBOUND, StatusProtocols.SERVERBOUND),
-                new PacketProtocol(LoginProtocols.CLIENTBOUND, LoginProtocols.SERVERBOUND),
-                new PacketProtocol(ConfigurationProtocols.CLIENTBOUND, ConfigurationProtocols.SERVERBOUND),
-                new PacketProtocol(null, HandshakeProtocols.SERVERBOUND)
+                new PacketProtocol(GameProtocols.CLIENTBOUND.bind(RegistryFriendlyByteBuf.decorator(RegistryAccess.EMPTY)), GameProtocols.SERVERBOUND.bind(RegistryFriendlyByteBuf.decorator(RegistryAccess.EMPTY)), "game"),
+                new PacketProtocol(StatusProtocols.CLIENTBOUND, StatusProtocols.SERVERBOUND, "status"),
+                new PacketProtocol(LoginProtocols.CLIENTBOUND, LoginProtocols.SERVERBOUND, "login"),
+                new PacketProtocol(ConfigurationProtocols.CLIENTBOUND, ConfigurationProtocols.SERVERBOUND, "configuration"),
+                new PacketProtocol(null, HandshakeProtocols.SERVERBOUND, "handshake")
         )) {
-            for (PacketType<?> clientbound : list.clientbounds) {
+            for (NamedPacketType clientbound : list.clientbounds) {
                 if (packetProtocol.clientboundInfo == null) break;
                 IdDispatchCodec<ByteBuf, ?, ?> codec = (IdDispatchCodec<ByteBuf, ? ,?>) packetProtocol.clientboundInfo.codec();
                 try {
@@ -168,22 +173,27 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                     List<?> objects = (List<?>) getById.get(codec);
                     for (Object object : objects) {
                         if (getType.get(object).equals(clientbound)) {
-                            StreamCodec<ByteBuf, Packet<?>> packetCodec = (StreamCodec<ByteBuf, Packet<?>>) getCodec.get(object);
-                            StreamCodec<ByteBuf, Packet<?>> finalCodec = Arrays.stream(packetCodec.decode(new DummyByteBuf()).getClass().getFields()).filter(f -> StreamCodec.class.isAssignableFrom(f.getType())).findFirst().map(f -> {
+                            StringBuilder classNameBuilder = new StringBuilder("net.minecraft.network.protocol.").append(packetProtocol.name).append(".ClientBound");
+                            for (String s : clientbound.name.split("_")) {
+                                if (s.equals("CLIENTBOUND")) continue;
+                                classNameBuilder.append(capitalize(s));
+                            }
+                            Class<?> packetClass = Class.forName(classNameBuilder.append("Packet").toString());
+                            StreamCodec<ByteBuf, Packet<?>> finalCodec = Arrays.stream(packetClass.getFields()).filter(f -> StreamCodec.class.isAssignableFrom(f.getType())).findFirst().map(f -> {
                                 try {
                                     return (StreamCodec<ByteBuf, Packet<?>>) f.get(null);
                                 } catch (Exception e) {
                                     return null;
                                 }
                             }).orElseThrow();
-                            CODEC_MAP.put(clientbound, new ConnectionCodec(finalCodec, packetProtocol.clientboundInfo, object2IntMap.getInt(clientbound)));
+                            CODEC_MAP.put(clientbound.type, new ConnectionCodec(finalCodec, packetProtocol.clientboundInfo, object2IntMap.getInt(clientbound)));
                         }
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
-            for (PacketType<?> serverbound : list.serverbounds) {
+            for (NamedPacketType serverbound : list.serverbounds) {
                 if (packetProtocol.serverboundInfo == null) break;
                 IdDispatchCodec<ByteBuf, ?, ?> codec = (IdDispatchCodec<ByteBuf, ? ,?>) packetProtocol.serverboundInfo.codec();
                 try {
@@ -191,15 +201,20 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                     List<?> objects = (List<?>) getById.get(codec);
                     for (Object object : objects) {
                         if (getType.get(object).equals(serverbound)) {
-                            StreamCodec<ByteBuf, Packet<?>> packetCodec = (StreamCodec<ByteBuf, Packet<?>>) getCodec.get(object);
-                            StreamCodec<ByteBuf, Packet<?>> finalCodec = Arrays.stream(packetCodec.decode(new DummyByteBuf()).getClass().getFields()).filter(f -> StreamCodec.class.isAssignableFrom(f.getType())).findFirst().map(f -> {
+                            StringBuilder classNameBuilder = new StringBuilder("net.minecraft.network.protocol.").append(packetProtocol.name).append(".ServerBound");
+                            for (String s : serverbound.name.split("_")) {
+                                if (s.equals("SERVERBOUND")) continue;
+                                classNameBuilder.append(capitalize(s));
+                            }
+                            Class<?> packetClass = Class.forName(classNameBuilder.append("Packet").toString());
+                            StreamCodec<ByteBuf, Packet<?>> finalCodec = Arrays.stream(packetClass.getFields()).filter(f -> StreamCodec.class.isAssignableFrom(f.getType())).findFirst().map(f -> {
                                 try {
                                     return (StreamCodec<ByteBuf, Packet<?>>) f.get(null);
                                 } catch (Exception e) {
                                     return null;
                                 }
                             }).orElseThrow();
-                            CODEC_MAP.put(serverbound, new ConnectionCodec(finalCodec, packetProtocol.serverboundInfo, object2IntMap.getInt(serverbound)));
+                            CODEC_MAP.put(serverbound.type, new ConnectionCodec(finalCodec, packetProtocol.serverboundInfo, object2IntMap.getInt(serverbound)));
                         }
                     }
                 } catch (Exception e) {
@@ -207,6 +222,9 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                 }
             }
         }
+    }
+    private static String capitalize(String name) {
+        return name.substring(0, 1).toUpperCase() + name.substring(1).toLowerCase();
     }
 
     @Override

@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.nms;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.utils.ReflectionUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
@@ -40,6 +41,7 @@ public class NMSHandlers {
             if (!VersionUtil.NMSVersion.matchesServer(selectedVersion)) continue;
 
             version = selectedVersion.name();
+
             try {
                 handler = (NMSHandler) Class.forName("io.th0rgal.oraxen.nms." + version + ".NMSHandler").getConstructor().newInstance();
                 Logs.logSuccess("Version " + version + " has been detected.");
