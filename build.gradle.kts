@@ -28,6 +28,7 @@ val SUPPORTED_VERSIONS: List<NMSVersion> = listOf(
 
 SUPPORTED_VERSIONS.forEach {
     project(":${it.nmsVersion}") {
+        val javaVersion = if (it.nmsVersion == "v1_20_R4") 21 else 17
 
         apply(plugin = "java")
         apply(plugin = "io.papermc.paperweight.userdev")
@@ -38,14 +39,20 @@ SUPPORTED_VERSIONS.forEach {
         }
 
         dependencies {
-            compileOnly("io.papermc.paper:paper-api:" + it.serverVersion)
+            //compileOnly("io.papermc.paper:paper-api:" + it.serverVersion)
             implementation(project(":core"))
             paperDevBundle(it.serverVersion)
         }
 
+        tasks {
+            compileJava {
+                options.encoding = Charsets.UTF_8.name()
+                options.release.set(javaVersion)
+            }
+        }
+
         java {
-            val javaVersion = if (it.nmsVersion == "v1_20_R4") 21 else 17
-            toolchain.languageVersion.set(JavaLanguageVersion.of(javaVersion))
+            toolchain.languageVersion.set(JavaLanguageVersion.of(21))
         }
     }
 }
@@ -149,7 +156,7 @@ tasks {
 
     compileJava {
         options.encoding = Charsets.UTF_8.name()
-        options.release.set(21)
+        options.release.set(17)
     }
 
     javadoc {

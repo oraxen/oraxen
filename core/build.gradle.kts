@@ -14,13 +14,13 @@ tasks {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.20.6-R0.1-SNAPSHOT")
     //paperweight.paperDevBundle("1.20.4-R0.1-SNAPSHOT")
     implementation("org.apache.commons:commons-lang3:3.14.0")
 }
 
 java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
 }
 
 publishing {
