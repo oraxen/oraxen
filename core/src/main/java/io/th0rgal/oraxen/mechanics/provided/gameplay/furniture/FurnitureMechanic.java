@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
-import com.comphenix.protocol.wrappers.BlockPosition;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import com.ticxo.modelengine.api.ModelEngineAPI;
 import com.ticxo.modelengine.api.model.ActiveModel;
@@ -38,6 +37,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Transformation;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
@@ -349,19 +349,19 @@ public class FurnitureMechanic extends Mechanic {
     @Nullable
     public Entity baseEntity(Block block) {
         if (block == null) return null;
-        BlockPosition blockPosition = new BlockPosition(block.getX(), block.getY(), block.getZ());
+        Vector blockPosition = new Vector(block.getX(), block.getY(), block.getZ());
         return FurnitureFactory.instance.packetManager().baseEntityFromHitbox(blockPosition);
     }
 
     @Nullable
     public Entity baseEntity(Location location) {
         if (location == null) return null;
-        BlockPosition blockPosition = new BlockPosition(location.getBlockX(), location.getBlockY(), location.getBlockZ());
+        Vector blockPosition = new Vector(location.getBlockX(), location.getBlockY(), location.getBlockZ());
         return FurnitureFactory.instance.packetManager().baseEntityFromHitbox(blockPosition);
     }
 
     @Nullable
-    Entity baseEntity(BlockPosition blockPosition) {
+    Entity baseEntity(Vector blockPosition) {
         return FurnitureFactory.instance.packetManager().baseEntityFromHitbox(blockPosition);
     }
 

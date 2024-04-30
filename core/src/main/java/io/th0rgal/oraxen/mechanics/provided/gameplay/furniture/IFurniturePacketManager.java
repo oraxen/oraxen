@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
-import com.comphenix.protocol.wrappers.BlockPosition;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -8,6 +7,7 @@ import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,7 +19,7 @@ public interface IFurniturePacketManager {
     BlockData AIR_DATA = Material.AIR.createBlockData();
 
     Set<FurnitureBaseEntity> furnitureBaseMap = new HashSet<>();
-    Map<UUID, Set<BlockPosition>> barrierHitboxPositionMap = new HashMap<>();
+    Map<UUID, Set<Vector>> barrierHitboxPositionMap = new HashMap<>();
     Set<FurnitureSubEntity> interactionHitboxIdMap = new HashSet<>();
 
     default Optional<FurnitureBaseEntity> furnitureBaseFromBaseEntity(@NotNull Entity baseEntity) {
@@ -39,8 +39,8 @@ public interface IFurniturePacketManager {
     }
 
     @Nullable
-    default Entity baseEntityFromHitbox(BlockPosition barrierPosition) {
-        for (Map.Entry<UUID, Set<BlockPosition>> entry : barrierHitboxPositionMap.entrySet()) {
+    default Entity baseEntityFromHitbox(Vector barrierPosition) {
+        for (Map.Entry<UUID, Set<Vector>> entry : barrierHitboxPositionMap.entrySet()) {
             if (entry.getValue().contains(barrierPosition)) return Bukkit.getEntity(entry.getKey());
         }
         return null;

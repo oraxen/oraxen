@@ -6,8 +6,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.MessageToByteEncoder;
-import io.netty.util.Attribute;
-import io.netty.util.AttributeKey;
 import io.papermc.paper.adventure.PaperAdventure;
 import io.papermc.paper.configuration.GlobalConfiguration;
 import io.th0rgal.oraxen.OraxenPlugin;
@@ -89,34 +87,37 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
-@SuppressWarnings("unused")
+ @SuppressWarnings("unused")
 public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
     FurniturePacketManager furniturePacketManager = new FurniturePacketManager();
 
 
     private static final Map<PacketType<?>, ConnectionCodec> CODEC_MAP = new HashMap<>();
-    private static final AttributeKey<ConnectionCodec> CODEC_ATTRIBUTE_KEY = AttributeKey.newInstance("oraxen.attribute.codec.key");
+    private static final Map<Integer, List<ConnectionCodec>> INT_MAP = new HashMap<>();
 
-    private record ConnectionCodec(StreamCodec<ByteBuf, Packet<?>> codec, ProtocolInfo<?> protocol, int id) {
+    private record ConnectionCodec(StreamCodec<FriendlyByteBuf, Packet<?>> codec, ProtocolInfo<?> protocol, int id) {
     }
 
-    private record NamedPacketType(String name, PacketType<?> type) {
+    private record NamedPacketType(String parent, String name, PacketType<?> type) {
 
+    }
+    private record NamedClass(String name, Class<?> aClass) {
     }
     private static class PacketList {
         private final List<NamedPacketType> clientbounds = new ArrayList<>();
         private final List<NamedPacketType> serverbounds = new ArrayList<>();
-        private PacketList(Class<?>... classes) {
-            for (Class<?> aClass : classes) {
-                for (Field field : aClass.getFields()) {
+        private final Map<PacketType<?>, String> typeStringMap = new HashMap<>();
+        private PacketList(NamedClass... classes) {
+            for (NamedClass aClass : classes) {
+                for (Field field : aClass.aClass.getFields()) {
                     try {
                         PacketType<?> type = (PacketType<?>) field.get(null);
+                        typeStringMap.put(type, field.getName());
                         switch (type.flow()) {
-                            case CLIENTBOUND -> clientbounds.add(new NamedPacketType(field.getName(), type));
-                            case SERVERBOUND -> serverbounds.add(new NamedPacketType(field.getName(), type));
+                            case CLIENTBOUND -> clientbounds.add(new NamedPacketType(aClass.name, field.getName(), type));
+                            case SERVERBOUND -> serverbounds.add(new NamedPacketType(aClass.name, field.getName(), type));
                         }
                     } catch (Exception ignored) {}
                 }
@@ -126,12 +127,10 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     private static class PacketProtocol {
         private final ProtocolInfo<?> clientboundInfo;
         private final ProtocolInfo<?> serverboundInfo;
-        private final String name;
 
-        public PacketProtocol(ProtocolInfo<?> clientbound, ProtocolInfo<?> serverbound, String name) {
+        public PacketProtocol(ProtocolInfo<?> clientbound, ProtocolInfo<?> serverbound) {
             clientboundInfo = clientbound;
             serverboundInfo = serverbound;
-            this.name = name;
         }
     }
 
@@ -148,22 +147,22 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         getType.setAccessible(true);
 
         PacketList list = new PacketList(
-                CommonPacketTypes.class,
-                ConfigurationPacketTypes.class,
-                CookiePacketTypes.class,
-                GamePacketTypes.class,
-                HandshakePacketTypes.class,
-                LoginPacketTypes.class,
-                PingPacketTypes.class,
-                StatusPacketTypes.class
+                new NamedClass("common", CommonPacketTypes.class),
+                new NamedClass("configuration", ConfigurationPacketTypes.class),
+                new NamedClass("cookie", CookiePacketTypes.class),
+                new NamedClass("game", GamePacketTypes.class),
+                new NamedClass("handshake", HandshakePacketTypes.class),
+                new NamedClass("login", LoginPacketTypes.class),
+                new NamedClass("ping", PingPacketTypes.class),
+                new NamedClass("status", StatusPacketTypes.class)
         );
 
         for (PacketProtocol packetProtocol : List.of(
-                new PacketProtocol(GameProtocols.CLIENTBOUND.bind(RegistryFriendlyByteBuf.decorator(RegistryAccess.EMPTY)), GameProtocols.SERVERBOUND.bind(RegistryFriendlyByteBuf.decorator(RegistryAccess.EMPTY)), "game"),
-                new PacketProtocol(StatusProtocols.CLIENTBOUND, StatusProtocols.SERVERBOUND, "status"),
-                new PacketProtocol(LoginProtocols.CLIENTBOUND, LoginProtocols.SERVERBOUND, "login"),
-                new PacketProtocol(ConfigurationProtocols.CLIENTBOUND, ConfigurationProtocols.SERVERBOUND, "configuration"),
-                new PacketProtocol(null, HandshakeProtocols.SERVERBOUND, "handshake")
+                new PacketProtocol(GameProtocols.CLIENTBOUND.bind(RegistryFriendlyByteBuf.decorator(RegistryAccess.EMPTY)), GameProtocols.SERVERBOUND.bind(RegistryFriendlyByteBuf.decorator(RegistryAccess.EMPTY))),
+                new PacketProtocol(StatusProtocols.CLIENTBOUND, StatusProtocols.SERVERBOUND),
+                new PacketProtocol(LoginProtocols.CLIENTBOUND, LoginProtocols.SERVERBOUND),
+                new PacketProtocol(ConfigurationProtocols.CLIENTBOUND, ConfigurationProtocols.SERVERBOUND),
+                new PacketProtocol(null, HandshakeProtocols.SERVERBOUND)
         )) {
             for (NamedPacketType clientbound : list.clientbounds) {
                 if (packetProtocol.clientboundInfo == null) break;
@@ -172,21 +171,10 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                     Object2IntMap<?> object2IntMap = (Object2IntMap<?>) getToId.get(codec);
                     List<?> objects = (List<?>) getById.get(codec);
                     for (Object object : objects) {
-                        if (getType.get(object).equals(clientbound)) {
-                            StringBuilder classNameBuilder = new StringBuilder("net.minecraft.network.protocol.").append(packetProtocol.name).append(".ClientBound");
-                            for (String s : clientbound.name.split("_")) {
-                                if (s.equals("CLIENTBOUND")) continue;
-                                classNameBuilder.append(capitalize(s));
-                            }
-                            Class<?> packetClass = Class.forName(classNameBuilder.append("Packet").toString());
-                            StreamCodec<ByteBuf, Packet<?>> finalCodec = Arrays.stream(packetClass.getFields()).filter(f -> StreamCodec.class.isAssignableFrom(f.getType())).findFirst().map(f -> {
-                                try {
-                                    return (StreamCodec<ByteBuf, Packet<?>>) f.get(null);
-                                } catch (Exception e) {
-                                    return null;
-                                }
-                            }).orElseThrow();
-                            CODEC_MAP.put(clientbound.type, new ConnectionCodec(finalCodec, packetProtocol.clientboundInfo, object2IntMap.getInt(clientbound)));
+                        if (getType.get(object).equals(clientbound.type)) {
+                            ConnectionCodec codec1 = new ConnectionCodec(searchPacketClass(clientbound.parent, true, clientbound.name), packetProtocol.clientboundInfo, object2IntMap.getInt(clientbound));
+                            CODEC_MAP.put(clientbound.type, codec1);
+                            break;
                         }
                     }
                 } catch (Exception e) {
@@ -200,21 +188,12 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                     Object2IntMap<?> object2IntMap = (Object2IntMap<?>) getToId.get(codec);
                     List<?> objects = (List<?>) getById.get(codec);
                     for (Object object : objects) {
-                        if (getType.get(object).equals(serverbound)) {
-                            StringBuilder classNameBuilder = new StringBuilder("net.minecraft.network.protocol.").append(packetProtocol.name).append(".ServerBound");
-                            for (String s : serverbound.name.split("_")) {
-                                if (s.equals("SERVERBOUND")) continue;
-                                classNameBuilder.append(capitalize(s));
-                            }
-                            Class<?> packetClass = Class.forName(classNameBuilder.append("Packet").toString());
-                            StreamCodec<ByteBuf, Packet<?>> finalCodec = Arrays.stream(packetClass.getFields()).filter(f -> StreamCodec.class.isAssignableFrom(f.getType())).findFirst().map(f -> {
-                                try {
-                                    return (StreamCodec<ByteBuf, Packet<?>>) f.get(null);
-                                } catch (Exception e) {
-                                    return null;
-                                }
-                            }).orElseThrow();
-                            CODEC_MAP.put(serverbound.type, new ConnectionCodec(finalCodec, packetProtocol.serverboundInfo, object2IntMap.getInt(serverbound)));
+                        if (getType.get(object).equals(serverbound.type)) {
+                            StringBuilder classNameBuilder = new StringBuilder();
+                            ConnectionCodec codec1 = new ConnectionCodec(searchPacketClass(serverbound.parent, false, serverbound.name), packetProtocol.serverboundInfo, object2IntMap.getInt(serverbound));
+                            CODEC_MAP.put(serverbound.type, codec1);
+                            INT_MAP.computeIfAbsent(codec1.id, t -> new ArrayList<>()).add(codec1);
+                            break;
                         }
                     }
                 } catch (Exception e) {
@@ -225,6 +204,64 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     }
     private static String capitalize(String name) {
         return name.substring(0, 1).toUpperCase() + name.substring(1).toLowerCase();
+    }
+
+    private static StreamCodec<FriendlyByteBuf, Packet<?>> searchPacketClass(String parent, boolean isClientbound, String name) {
+        StringBuilder sb = new StringBuilder();
+        Class<?> clazz;
+        int i = 0;
+        String[] split = name.split("_");
+        for (String s : split) {
+            i++;
+            sb.append(capitalize(s));
+            clazz = findClass(parent, isClientbound, sb.toString());
+            if (clazz != null) {
+                if (i < split.length) {
+                    for (int t = i; t < split.length; t++) {
+                        for (Class<?> declaredClass : clazz.getDeclaredClasses()) {
+                            if (declaredClass.getName().equals(split[t])) {
+                                clazz = declaredClass;
+                                break;
+                            }
+                        }
+                    }
+                }
+                return findCodec(clazz);
+            }
+        }
+        throw new RuntimeException();
+    }
+
+
+    private static StreamCodec<FriendlyByteBuf, Packet<?>> findCodec(Class<?> clazz) {
+        try {
+            return (StreamCodec<FriendlyByteBuf, Packet<?>>) Arrays.stream(clazz.getFields()).filter(f -> StreamCodec.class.isAssignableFrom(f.getType())).findFirst().map(f -> {
+                try {
+                    return f.get(null);
+                } catch (IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                }
+            }).orElse(null);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    private static Class<?> findClass(String parent, boolean isClientbound, String name) {
+        Class<?> clazz;
+        String bound = isClientbound ? "Clientbound" : "Serverbound";
+        String loc = "net.minecraft.network.protocol." + parent + ".";
+        clazz = findClass(loc + bound + name + "Packet");
+        if (clazz == null) clazz = findClass(loc  + name + "Packet");
+        if (clazz == null) clazz = findClass(loc + bound + name);
+        if (clazz == null) clazz = findClass(loc + name);
+        return clazz;
+    }
+    private static Class<?> findClass(String clazz) {
+        try {
+            return Class.forName(clazz);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     @Override
@@ -348,7 +385,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         List<ChannelFuture> channelFutures;
 
         try {
-            Field channelFutureField = ServerConnectionListener.class.getDeclaredField("f");
+            Field channelFutureField = ServerConnectionListener.class.getDeclaredField("channels");
             channelFutureField.setAccessible(true);
 
             channelFutures = (List<ChannelFuture>) channelFutureField.get(MinecraftServer.getServer().getConnection());
@@ -469,13 +506,14 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     }
 
     private void inject(Channel channel, @Nullable Player player) {
+        CustomPacketHandler handler = new CustomPacketHandler(player);
         // Replace the vanilla PacketEncoder with our own
-        if (!(channel.pipeline().get("encoder") instanceof CustomPacketEncoder))
-            encoder.putIfAbsent(channel, channel.pipeline().replace("encoder", "encoder", new CustomPacketEncoder(player)));
+        if (!(channel.pipeline().get("encoder") instanceof CustomPacketHandler.CustomPacketEncoder))
+            encoder.putIfAbsent(channel, channel.pipeline().replace("encoder", "encoder", handler.encoder));
 
         // Replace the vanilla PacketDecoder with our own
-        if (!(channel.pipeline().get("decoder") instanceof CustomPacketDecoder))
-            decoder.putIfAbsent(channel, channel.pipeline().replace("decoder", "decoder", new CustomPacketDecoder(player)));
+        if (!(channel.pipeline().get("decoder") instanceof CustomPacketHandler.CustomPacketDecoder))
+            decoder.putIfAbsent(channel, channel.pipeline().replace("decoder", "decoder", handler.decoder));
     }
 
     private void bind(List<ChannelFuture> channelFutures, ChannelInboundHandlerAdapter serverChannelHandler) {
@@ -488,11 +526,11 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         }
     }
 
-    private static class CustomDataSerializer extends FriendlyByteBuf {
+    private static class CustomDataSerializer extends RegistryFriendlyByteBuf {
         @Nullable private final Player player;
 
         public CustomDataSerializer(@Nullable Player player, ByteBuf bytebuf) {
-            super(bytebuf);
+            super(bytebuf, RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
             this.player = player;
         }
 
@@ -562,114 +600,99 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         }
     }
 
-    private static class CustomPacketEncoder extends MessageToByteEncoder<Packet<?>> {
+    private static class CustomPacketHandler {
         @Nullable private final Player player;
 
-        private CustomPacketEncoder(@Nullable Player player) {
-            super();
+        private volatile ConnectionCodec encodeCodec;
+
+        private final CustomPacketEncoder encoder = new CustomPacketEncoder();
+        private final CustomPacketDecoder decoder = new CustomPacketDecoder();
+
+        private CustomPacketHandler(@Nullable Player player) {
             this.player = player;
         }
 
-        @Override
-        public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-            if (player != null) {
-                ServerPlayer serverPlayer = ((CraftPlayer) player).getHandle();
-                for (PacketListener value : LISTENER_MAP.values()) {
-                    if (!value.listen(serverPlayer, msg)) return;
+        private class CustomPacketEncoder extends MessageToByteEncoder<Packet<?>> {
+            @Override
+            public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+                if (player != null) {
+                    ServerPlayer serverPlayer = ((CraftPlayer) player).getHandle();
+                    for (PacketListener value : LISTENER_MAP.values()) {
+                        if (!value.listen(serverPlayer, msg)) return;
+                    }
+                }
+                synchronized (CustomPacketHandler.this) {
+                    if (msg instanceof Packet<?> packet) {
+                        ConnectionCodec codec = CODEC_MAP.get(packet.type());
+                        if (codec != null) encodeCodec = codec;
+                    }
+                    super.write(ctx, msg, promise);
                 }
             }
-            if (msg instanceof Packet<?> packet) {
-                ConnectionCodec codec = CODEC_MAP.get(packet.type());
-                if (codec != null) ctx.channel().attr(CODEC_ATTRIBUTE_KEY).set(codec);
-            }
-            super.write(ctx, msg, promise);
-        }
 
-        @Override
-        public void encode(ChannelHandlerContext ctx, Packet<?> packet, ByteBuf byteBuf) {
-            if (ctx.channel() == null) throw new RuntimeException("Channel is null");
+            @Override
+            public void encode(ChannelHandlerContext ctx, Packet<?> packet, ByteBuf byteBuf) {
+                if (ctx.channel() == null) throw new RuntimeException("Channel is null");
 
-            Attribute<ConnectionCodec> attribute = ctx.channel().attr(CODEC_ATTRIBUTE_KEY);
-            ConnectionCodec codecData = attribute.get();
-            int packetId = codecData.id;
+                ConnectionCodec codecData = encodeCodec;
+                int packetId = codecData.id;
+                if (packetId < 0) return;
 
-            FriendlyByteBuf packetDataSerializer = new CustomDataSerializer(player, byteBuf);
-            packetDataSerializer.writeVarInt(packetId);
+                FriendlyByteBuf packetDataSerializer = new CustomDataSerializer(player, byteBuf);
+                packetDataSerializer.writeVarInt(packetId);
 
-            try {
-                int integer2 = packetDataSerializer.writerIndex();
-                codecData.codec.encode(packetDataSerializer, packet);
-                int integer3 = packetDataSerializer.writerIndex() - integer2;
-                if (integer3 > 8388608) {
-                    throw new IllegalArgumentException("Packet too big (is " + integer3 + ", should be less than 8388608): " + packet);
-                }
-                swapProtocolIfNeeded(attribute, packet);
-            } catch (Exception e) {
-                if (packet.isSkippable()) throw new SkipPacketException(e);
-                throw e;
-            }
-            swapProtocolIfNeeded(attribute, packet);
-        }
-    }
-
-    private static class CustomPacketDecoder extends ByteToMessageDecoder {
-        @Nullable private final Player player;
-
-        private CustomPacketDecoder(@Nullable Player player) {
-            this.player = player;
-        }
-
-
-        @Override
-        public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-            if (player != null) {
-                ServerPlayer serverPlayer = ((CraftPlayer) player).getHandle();
-                for (PacketListener value : LISTENER_MAP.values()) {
-                    if (!value.listen(serverPlayer, msg)) return;
+                try {
+                    int integer2 = packetDataSerializer.writerIndex();
+                    codecData.codec.encode(packetDataSerializer, packet);
+                    int integer3 = packetDataSerializer.writerIndex() - integer2;
+                    if (integer3 > 8388608) {
+                        throw new IllegalArgumentException("Packet too big (is " + integer3 + ", should be less than 8388608): " + packet);
+                    }
+                } catch (Exception e) {
+                    if (packet.isSkippable()) throw new SkipPacketException(e);
+                    throw e;
                 }
             }
-            if (msg instanceof Packet<?> packet) {
-                ConnectionCodec codec = CODEC_MAP.get(packet.type());
-                if (codec != null) ctx.channel().attr(CODEC_ATTRIBUTE_KEY).set(codec);
-            }
-            super.channelRead(ctx, msg);
         }
 
-        @Override
-        protected void decode(ChannelHandlerContext ctx, ByteBuf buffer, List<Object> out) throws IOException {
-            final ByteBuf bufferCopy = buffer.copy();
-            if (buffer.readableBytes() == 0) return;
-
-            CustomDataSerializer dataSerializer = new CustomDataSerializer(player, buffer);
-            int packetID = dataSerializer.readVarInt();
-            Attribute<ConnectionCodec> attribute = ctx.channel().attr(CODEC_ATTRIBUTE_KEY);
-            Packet<?> packet = attribute.get().codec().decode(dataSerializer);
-
-            if (dataSerializer.readableBytes() > 0) {
-                throw new IOException("Packet " + packetID + " " + packet + " was larger than expected, found " + dataSerializer.readableBytes() + " bytes extra whiløst reading the packet " + packetID);
-            } else if (packet instanceof ServerboundChatPacket) {
-                FriendlyByteBuf baseSerializer = new FriendlyByteBuf(bufferCopy);
-                int basePacketID = baseSerializer.readVarInt();
-                packet = attribute.get().codec.decode(baseSerializer);
+        private class CustomPacketDecoder extends ByteToMessageDecoder {
+            @Override
+            public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+                if (player != null) {
+                    ServerPlayer serverPlayer = ((CraftPlayer) player).getHandle();
+                    for (PacketListener value : LISTENER_MAP.values()) {
+                        if (!value.listen(serverPlayer, msg)) return;
+                    }
+                }
+                super.channelRead(ctx, msg);
             }
 
-            out.add(packet);
-            swapProtocolIfNeeded(attribute, packet);
-        }
-    }
-    private static void swapProtocolIfNeeded(Attribute<ConnectionCodec> protocolAttribute, Packet<?> packet) {
-        ConnectionCodec codec = CODEC_MAP.get(packet.type());
-        ProtocolInfo<?> connectionProtocol = codec.protocol;
-        if (connectionProtocol != null) {
-            ConnectionCodec codecData = protocolAttribute.get();
-            ProtocolInfo<?> connectionProtocol2 = codecData.protocol;
-            if (connectionProtocol.id() != connectionProtocol2.id()) {
-                StreamCodec<ByteBuf, Packet<?>> codecData2 = (StreamCodec<ByteBuf, Packet<?>>) connectionProtocol.codec();
-                protocolAttribute.set(new ConnectionCodec(codecData2, connectionProtocol, codec.id));
+            @Override
+            protected void decode(ChannelHandlerContext ctx, ByteBuf buffer, List<Object> out) throws IOException {
+                final ByteBuf bufferCopy = buffer.copy();
+                if (buffer.copy().readableBytes() == 0) return;
+
+                CustomDataSerializer dataSerializer = new CustomDataSerializer(player, buffer.copy());
+                int packetID = dataSerializer.readVarInt();
+
+                List<ConnectionCodec> codecs = INT_MAP.get(packetID);
+                if (codecs == null) return;
+                for (ConnectionCodec codec : codecs) {
+                    try {
+                        Packet<?> packet = codec.codec.decode(dataSerializer);
+
+                        if (packet instanceof ServerboundChatPacket) {
+                            FriendlyByteBuf baseSerializer = new FriendlyByteBuf(bufferCopy);
+                            int basePacketID = baseSerializer.readVarInt();
+                            packet = codec.codec.decode(baseSerializer);
+                        }
+
+                        out.add(packet);
+                    } catch (Exception ignored) {}
+                }
             }
         }
     }
-
     @Override
     public boolean getSupported() {
         return true;

@@ -17,6 +17,7 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.craftbukkit.v1_19_R2.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
@@ -81,8 +82,8 @@ public class FurniturePacketManager implements IFurniturePacketManager {
 
         for (Location location : positions.keySet()) {
             barrierHitboxPositionMap.compute(baseEntity.getUniqueId(), (d, blockPos) -> {
-                Set<com.comphenix.protocol.wrappers.BlockPosition> newBlockPos = new HashSet<>();
-                com.comphenix.protocol.wrappers.BlockPosition newPos = new com.comphenix.protocol.wrappers.BlockPosition(location.getBlockX(), location.getBlockY(), location.getBlockZ());
+                Set<Vector> newBlockPos = new HashSet<>();
+                Vector newPos = new Vector(location.getBlockX(), location.getBlockY(), location.getBlockZ());
                 newBlockPos.add(newPos);
                 if (blockPos != null) newBlockPos.addAll(blockPos);
                 return newBlockPos;
