@@ -25,12 +25,12 @@ import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.PotionUtils;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.drops.Drop;
+import io.th0rgal.oraxen.utils.wrappers.EnchantmentWrapper;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.enchantments.EnchantmentWrapper;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
@@ -148,7 +148,7 @@ public class BreakerSystem {
                             return;
                         }
 
-                        if (item.getEnchantmentLevel(EnchantmentWrapper.DIG_SPEED) >= 5)
+                        if (item.getEnchantmentLevel(EnchantmentWrapper.EFFICIENCY) >= 5)
                             value = 10;
 
                         for (final Entity entity : world.getNearbyEntities(location, 16, 16, 16)) {
