@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.utils;
 
 import io.th0rgal.oraxen.utils.drops.Drop;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.Tag;
@@ -8,10 +9,20 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
 
 public class ItemUtils {
+
+    @Nullable
+    public static Component itemName(@NotNull ItemMeta itemMeta) {
+        if (!VersionUtil.atOrAbove("1.20.5")) return null;
+        if (!itemMeta.hasItemName()) return null;
+        if (VersionUtil.isPaperServer()) return itemMeta.itemName();
+        else return AdventureUtils.LEGACY_SERIALIZER.deserialize(itemMeta.getItemName());
+    }
 
     public static boolean isEmpty(ItemStack itemStack) {
         return itemStack == null || itemStack.getType() == Material.AIR || itemStack.getAmount() == 0;

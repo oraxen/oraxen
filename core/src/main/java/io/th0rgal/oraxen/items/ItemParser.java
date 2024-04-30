@@ -11,6 +11,7 @@ import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.PotionUtils;
 import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -93,6 +94,12 @@ public class ItemParser {
         return AdventureUtils.LEGACY_SERIALIZER.serialize(component.colorIfAbsent(NamedTextColor.WHITE));
     }
 
+    public static Component parseComponentItemName(String miniString) {
+        Component component = AdventureUtils.MINI_MESSAGE.deserialize(miniString);
+        // If it has no formatting, set color to WHITE to prevent Italic
+        return component.colorIfAbsent(NamedTextColor.WHITE);
+    }
+
     public static String parseComponentLore(String miniString) {
         Component component = AdventureUtils.MINI_MESSAGE.deserialize(miniString);
         // If it has no formatting, set color to WHITE to prevent Italic
@@ -112,7 +119,9 @@ public class ItemParser {
     }
 
     private ItemBuilder applyConfig(ItemBuilder item) {
-        item.setDisplayName(parseComponentDisplayName(section.getString("displayname", "")));
+        if (VersionUtil.atOrAbove("1.20.5"))
+            item.setItemName(parseComponentItemName(section.getString("displayname", "")));
+        else item.setDisplayName(parseComponentDisplayName(section.getString("displayname", "")));
 
         //if (section.contains("type")) item.setType(Material.getMaterial(section.getString("type", "PAPER")));
         if (section.contains("lore")) item.setLore(section.getStringList("lore").stream().map(ItemParser::parseComponentLore).toList());
@@ -121,6 +130,13 @@ public class ItemParser {
         if (section.contains("unstackable")) item.setUnstackable(section.getBoolean("unstackable", false));
         if (section.contains("color")) item.setColor(Utils.toColor(section.getString("color", "#FFFFFF")));
         if (section.contains("trim_pattern")) item.setTrimPattern(Key.key(section.getString("trim_pattern", "")));
+
+        if (VersionUtil.atOrAbove("1.20.5")) {
+            if (section.contains("max_stack_size")) item.setMaxStackSize(section.getInt("max_stack_size"));
+            if (section.contains("enchantment_glint_override")) item.setEnchantmentGlindOverride(section.getBoolean("enchantment_glint_override"));
+            if (section.contains("itemname")) item.setItemName(parseComponentItemName(section.getString("itemname", "")));
+            //if (section.contains("food"))
+        }
 
         parseMiscOptions(item);
         parseVanillaSections(item);

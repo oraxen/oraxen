@@ -10,9 +10,11 @@ import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.text.Component;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
@@ -22,6 +24,7 @@ import org.bukkit.entity.TropicalFish;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
+import org.bukkit.inventory.meta.components.FoodComponent;
 import org.bukkit.inventory.meta.trim.ArmorTrim;
 import org.bukkit.inventory.meta.trim.TrimMaterial;
 import org.bukkit.inventory.meta.trim.TrimPattern;
@@ -67,6 +70,12 @@ public class ItemBuilder {
     private int customModelData;
     private List<String> lore;
     private ItemStack finalItemStack;
+
+    // 1.20.5+ properties
+    @Nullable private FoodComponent foodComponent;
+    @Nullable private Boolean enchantmentGlintOverride;
+    @Nullable private Integer maxStackSize;
+    @Nullable private Component itemName;
 
     public ItemBuilder(final Material material) {
         this(new ItemStack(material));
@@ -149,6 +158,14 @@ public class ItemBuilder {
 
         enchantments = new HashMap<>();
 
+        if (VersionUtil.atOrAbove("1.20.5")) {
+            itemName = ItemUtils.itemName(itemMeta);
+            foodComponent = itemMeta.hasFood() ? itemMeta.getFood() : null;
+            enchantmentGlintOverride = itemMeta.hasEnchantmentGlintOverride() ? itemMeta.getEnchantmentGlintOverride() : null;
+            maxStackSize = itemMeta.hasMaxStackSize() ? itemMeta.getMaxStackSize() : null;
+            if (maxStackSize == 1) unstackable = true;
+        }
+
     }
 
     public Material getType() {
@@ -173,6 +190,20 @@ public class ItemBuilder {
 
     public ItemBuilder setDisplayName(final String displayName) {
         this.displayName = displayName;
+        return this;
+    }
+
+    public boolean hasItemName() {
+        return itemName != null;
+    }
+
+    @Nullable
+    public Component getItemName() {
+        return itemName;
+    }
+
+    public ItemBuilder setItemName(Component itemName) {
+        this.itemName = itemName;
         return this;
     }
 
@@ -250,6 +281,49 @@ public class ItemBuilder {
         if (!VersionUtil.atOrAbove("1.20")) return this;
         if (!Tag.ITEMS_TRIMMABLE_ARMOR.isTagged(type)) return this;
         this.trimPattern = trimKey;
+        return this;
+    }
+
+    public boolean hasFoodComponent() {
+        return VersionUtil.atOrAbove("1.20.5") && foodComponent != null;
+    }
+
+    @Nullable
+    public FoodComponent getFoodComponent() {
+        return foodComponent;
+    }
+
+    public ItemBuilder setFoodComponent(FoodComponent foodComponent) {
+        this.foodComponent = foodComponent;
+        return this;
+    }
+
+    public boolean hasEnchantmentGlindOverride() {
+        return VersionUtil.atOrAbove("1.20.5") && enchantmentGlintOverride != null;
+    }
+
+    @Nullable
+    public Boolean getEnchantmentGlindOverride() {
+        return enchantmentGlintOverride;
+    }
+
+    public ItemBuilder setEnchantmentGlindOverride(@Nullable boolean enchantmentGlintOverride) {
+        this.enchantmentGlintOverride = enchantmentGlintOverride;
+        return this;
+    }
+
+    public boolean hasMaxStackSize() {
+        return VersionUtil.atOrAbove("1.20.5") && foodComponent != null;
+    }
+
+    @Nullable
+    public Integer getMaxStackSize() {
+        return maxStackSize;
+    }
+
+
+    public ItemBuilder setMaxStackSize(@Nullable int maxStackSize) {
+        this.maxStackSize = maxStackSize;
         return this;
     }
 
@@ -541,13 +615,9 @@ public class ItemBuilder {
         return tropicalFishBucketMeta;
     }
 
-    public int getMaxStackSize() {
-        return unstackable ? 1 : type != null ? type.getMaxStackSize() : itemStack.getType().getMaxStackSize();
-    }
-
     public ItemStack[] buildArray(final int amount) {
         final ItemStack built = build();
-        final int max = getMaxStackSize();
+        final int max = hasMaxStackSize() ? maxStackSize : type != null ? type.getMaxStackSize() : itemStack.getType().getMaxStackSize();
         final int rest = max == amount ? amount : amount % max;
         final int iterations = amount > max ? (amount - rest) / max : 0;
         final ItemStack[] output = new ItemStack[iterations + (rest > 0 ? 1 : 0)];
