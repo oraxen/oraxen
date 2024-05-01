@@ -144,12 +144,12 @@ public class ItemParser {
         if (!VersionUtil.atOrAbove("1.20.5")) return;
 
         if (section.contains("unstackable")) item.setMaxStackSize(1);
-        else if (section.contains("max_stack_size")) item.setMaxStackSize(section.getInt("max_stack_size"));
+        else if (section.contains("max_stack_size")) item.setMaxStackSize(Math.clamp(section.getInt("max_stack_size"), 1, 99));
         if (item.hasMaxStackSize() && item.getMaxStackSize() == 1) item.setUnstackable(true);
 
         if (section.contains("enchantment_glint_override")) item.setEnchantmentGlindOverride(section.getBoolean("enchantment_glint_override"));
         if (section.contains("itemname")) item.setItemName(parseComponentItemName(section.getString("itemname", "")));
-        if (section.contains("durability")) item.setDurability(section.getInt("durability"));
+        if (section.contains("durability")) item.setDurability(Math.min(section.getInt("durability"), 1));
         item.setFireResistant(section.getBoolean("fire_resistant"));
         item.setHideToolTips(section.getBoolean("hide_tooltips"));
 
