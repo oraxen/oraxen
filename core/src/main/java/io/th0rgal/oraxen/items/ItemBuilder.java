@@ -10,11 +10,9 @@ import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
-import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import net.kyori.adventure.key.Key;
-import net.kyori.adventure.text.Component;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
@@ -75,7 +73,7 @@ public class ItemBuilder {
     @Nullable private FoodComponent foodComponent;
     @Nullable private Boolean enchantmentGlintOverride;
     @Nullable private Integer maxStackSize;
-    @Nullable private Component itemName;
+    @Nullable private String itemName;
 
     public ItemBuilder(final Material material) {
         this(new ItemStack(material));
@@ -159,11 +157,11 @@ public class ItemBuilder {
         enchantments = new HashMap<>();
 
         if (VersionUtil.atOrAbove("1.20.5")) {
-            itemName = ItemUtils.itemName(itemMeta);
+            itemName = itemMeta.getItemName();
             foodComponent = itemMeta.hasFood() ? itemMeta.getFood() : null;
             enchantmentGlintOverride = itemMeta.hasEnchantmentGlintOverride() ? itemMeta.getEnchantmentGlintOverride() : null;
             maxStackSize = itemMeta.hasMaxStackSize() ? itemMeta.getMaxStackSize() : null;
-            if (maxStackSize == 1) unstackable = true;
+            if (maxStackSize != null && maxStackSize == 1) unstackable = true;
         }
 
     }
@@ -198,11 +196,11 @@ public class ItemBuilder {
     }
 
     @Nullable
-    public Component getItemName() {
+    public String getItemName() {
         return itemName;
     }
 
-    public ItemBuilder setItemName(Component itemName) {
+    public ItemBuilder setItemName(String itemName) {
         this.itemName = itemName;
         return this;
     }
@@ -322,8 +320,9 @@ public class ItemBuilder {
     }
 
 
-    public ItemBuilder setMaxStackSize(@Nullable int maxStackSize) {
+    public ItemBuilder setMaxStackSize(@Nullable Integer maxStackSize) {
         this.maxStackSize = maxStackSize;
+        this.setUnstackable(maxStackSize != null && maxStackSize == 1);
         return this;
     }
 
@@ -452,10 +451,6 @@ public class ItemBuilder {
     @SuppressWarnings("unchecked")
     public ItemBuilder regen() {
         final ItemStack itemStack = this.itemStack;
-
-        /*
-         * CHANGING ITEM
-         */
         if (type != null)
             itemStack.setType(type);
         if (amount != itemStack.getAmount())
@@ -467,18 +462,20 @@ public class ItemBuilder {
         ItemMeta itemMeta = handleVariousMeta(itemStack.getItemMeta());
         assert itemMeta != null;
         PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
-        if (displayName != null) {
-            pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, displayName);
-            itemMeta.setDisplayName(displayName);
-        }
 
         itemMeta.setUnbreakable(unbreakable);
 
-        /*if (isUnstackable()) {
-            // This needs to be set in the final build() and buildArray() methods
-            // Otherwise it will set the tag for the entire stack and you can have stacks
-            // This should prevent that
-        }*/
+        if (VersionUtil.atOrAbove("1.20.5")) {
+            itemMeta.setItemName(itemName);
+            itemMeta.setMaxStackSize(maxStackSize);
+            itemMeta.setEnchantmentGlintOverride(enchantmentGlintOverride);
+            itemMeta.setFood(foodComponent);
+        } else {
+            if (displayName != null) {
+                pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, displayName);
+                itemMeta.setDisplayName(displayName);
+            }
+        }
 
         if (itemFlags != null)
             itemMeta.addItemFlags(itemFlags.toArray(new ItemFlag[0]));
@@ -645,6 +642,9 @@ public class ItemBuilder {
     private ItemStack handleUnstackable(ItemStack item) {
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return item;
+        // handled via maxStackSize component
+        if (VersionUtil.atOrAbove("1.20.5")) return item;
+
         meta.getPersistentDataContainer().set(UNSTACKABLE_KEY, DataType.UUID, UUID.randomUUID());
         item.setItemMeta(meta);
         item.setAmount(1);
