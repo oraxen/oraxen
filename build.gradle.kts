@@ -67,6 +67,7 @@ val commandApiVersion = "9.4.0"
 val adventureVersion = "4.15.0"
 val platformVersion = "4.3.2"
 val googleGsonVersion = "2.10.1"
+val apacheLang3Version = "3.14.0"
 group = "io.th0rgal"
 version = pluginVersion
 
@@ -127,6 +128,7 @@ allprojects {
         compileOnly("com.willfp:eco:6.65.5")
         compileOnly("com.willfp:libreforge:4.36.0")
         compileOnly("nl.rutgerkok:blocklocker:1.10.4-SNAPSHOT")
+        compileOnly("org.apache.commons:commons-lang3:$apacheLang3Version")
 
         implementation("org.bstats:bstats-bukkit:3.0.0")
         implementation("io.th0rgal:protectionlib:1.5.1")
@@ -237,6 +239,7 @@ bukkit {
         "net.kyori:adventure-text-serializer-ansi:$adventureVersion",
         "net.kyori:adventure-platform-bukkit:$platformVersion",
         "com.google.code.gson:gson:$googleGsonVersion",
+        "org.apache.commons:commons-lang3:$apacheLang3Version",
         "gs.mclo:java:2.2.1",
     )
 }
