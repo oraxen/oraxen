@@ -74,7 +74,8 @@ public class ItemBuilder {
     @Nullable private Integer maxStackSize;
     @Nullable private String itemName;
     @Nullable private Integer durability;
-    private Boolean fireResistant;
+    private boolean fireResistant;
+    private boolean hideToolTips;
 
 
     public ItemBuilder(final Material material) {
@@ -159,6 +160,7 @@ public class ItemBuilder {
             itemName = itemMeta.getItemName();
             durability = itemMeta instanceof Damageable damageable && damageable.hasMaxDamage() ? damageable.getMaxDamage() : null;
             fireResistant = itemMeta.isFireResistant();
+            hideToolTips = itemMeta.isHideTooltip();
             foodComponent = itemMeta.hasFood() ? itemMeta.getFood() : null;
             enchantmentGlintOverride = itemMeta.hasEnchantmentGlintOverride() ? itemMeta.getEnchantmentGlintOverride() : null;
             maxStackSize = itemMeta.hasMaxStackSize() ? itemMeta.getMaxStackSize() : null;
@@ -313,6 +315,11 @@ public class ItemBuilder {
 
     public ItemBuilder setFireResistant(boolean fireResistant) {
         this.fireResistant = fireResistant;
+        return this;
+    }
+
+    public ItemBuilder setHideToolTips(boolean hideToolTips) {
+        this.hideToolTips = hideToolTips;
         return this;
     }
 
@@ -477,6 +484,7 @@ public class ItemBuilder {
             itemMeta.setEnchantmentGlintOverride(enchantmentGlintOverride);
             itemMeta.setFood(foodComponent);
             itemMeta.setFireResistant(fireResistant);
+            itemMeta.setHideTooltip(hideToolTips);
         } else {
             if (displayName != null) {
                 pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, displayName);
