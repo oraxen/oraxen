@@ -46,22 +46,18 @@ public class ItemsView {
                 ? Gui.scrolling(ScrollType.VERTICAL).pageSize((rows - 1) * 9)
                 : Gui.gui()))).rows(rows).title(Settings.ORAXEN_INV_TITLE.toComponent()).create();
 
-        // Make a list of all slots to allow using mainGui.addItem easier
-        List<GuiItem> pageItems = new ArrayList<>(Collections.nCopies(files.size(), null));
-        // Make a list of all used slots to avoid using them later
         for (Map.Entry<File, PaginatedGui> entry : files.entrySet()) {
             int slot = getItemStack(entry.getKey()).getRight();
             if (slot == -1) continue;
-            pageItems.add(slot, new GuiItem(getItemStack(entry.getKey()).getLeft(), e -> entry.getValue().open(e.getWhoClicked())));
+            mainGui.setItem(slot, new GuiItem(getItemStack(entry.getKey()).getLeft(), e -> entry.getValue().open(e.getWhoClicked())));
         }
 
         // Add all items without a specified slot to the earliest available slot
         for (Map.Entry<File, PaginatedGui> entry : files.entrySet()) {
-            if (getItemStack(entry.getKey()).getRight() != -1) continue;
-            pageItems.add(new GuiItem(getItemStack(entry.getKey()).getLeft(), e -> entry.getValue().open(e.getWhoClicked())));
+            int slot = getItemStack(entry.getKey()).getRight();
+            if (slot != -1) continue;
+            mainGui.addItem(new GuiItem(getItemStack(entry.getKey()).getLeft(), e -> entry.getValue().open(e.getWhoClicked())));
         }
-
-        mainGui.addItem(pageItems.stream().filter(Objects::nonNull).toArray(GuiItem[]::new));
 
         ItemStack nextPage = (Settings.ORAXEN_INV_NEXT_ICON.getValue() == null
                 ? new ItemBuilder(Material.ARROW) : OraxenItems.getItemById(Settings.ORAXEN_INV_NEXT_ICON.toString()))
