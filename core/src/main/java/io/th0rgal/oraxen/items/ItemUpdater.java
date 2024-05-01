@@ -162,20 +162,44 @@ public class ItemUpdater implements Listener {
                 armorMeta.setTrim(oldArmorMeta.getTrim());
             }
 
-            // Parsing with legacy here to fix any inconsistensies caused by server serializers etc
-            String oldDisplayName = AdventureUtils.parseLegacy(oldMeta.getDisplayName());
-            String originalName = AdventureUtils.parseLegacy(oldPdc.getOrDefault(ORIGINAL_NAME_KEY, DataType.STRING, ""));
-            if (Settings.OVERRIDE_RENAMED_ITEMS.toBool()) {
-                itemMeta.setDisplayName(newMeta.getDisplayName());
-            } else if (!originalName.equals(oldDisplayName)) {
-                itemMeta.setDisplayName(oldMeta.getDisplayName());
-            } else {
-                itemMeta.setDisplayName(newMeta.getDisplayName());
+            if (VersionUtil.atOrAbove("1.20.5")) {
+                if (newMeta.hasFood()) itemMeta.setFood(newMeta.getFood());
+                else if (oldMeta.hasFood()) itemMeta.setFood(oldMeta.getFood());
+
+                if (newMeta.hasEnchantmentGlintOverride()) itemMeta.setEnchantmentGlintOverride(newMeta.getEnchantmentGlintOverride());
+                else if (oldMeta.hasEnchantmentGlintOverride()) itemMeta.setEnchantmentGlintOverride(oldMeta.getEnchantmentGlintOverride());
+
+                if (newMeta.hasMaxStackSize()) itemMeta.setMaxStackSize(newMeta.getMaxStackSize());
+                else if (oldMeta.hasMaxStackSize()) itemMeta.setMaxStackSize(oldMeta.getMaxStackSize());
+
+                if (VersionUtil.isPaperServer()) {
+                    if (newMeta.hasItemName()) itemMeta.itemName(newMeta.itemName());
+                    else if (oldMeta.hasItemName()) itemMeta.itemName(oldMeta.itemName());
+                } else {
+                    if (newMeta.hasItemName()) itemMeta.setItemName(newMeta.getItemName());
+                    else if (oldMeta.hasItemName()) itemMeta.setItemName(oldMeta.getItemName());
+                }
+            }
+
+            // On 1.20.5+ we use ItemName which is different from userchanged displaynames
+            // Thus removing the need for this logic
+            if (!VersionUtil.atOrAbove("1.20.5")) {
+                // Parsing with legacy here to fix any inconsistensies caused by server serializers etc
+                String oldDisplayName = AdventureUtils.parseLegacy(oldMeta.getDisplayName());
+                String originalName = AdventureUtils.parseLegacy(oldPdc.getOrDefault(ORIGINAL_NAME_KEY, DataType.STRING, ""));
+                if (Settings.OVERRIDE_RENAMED_ITEMS.toBool()) {
+                    itemMeta.setDisplayName(newMeta.getDisplayName());
+                } else if (!originalName.equals(oldDisplayName)) {
+                    itemMeta.setDisplayName(oldMeta.getDisplayName());
+                } else {
+                    itemMeta.setDisplayName(newMeta.getDisplayName());
+                }
             }
 
             itemPdc.set(ORIGINAL_NAME_KEY, DataType.STRING, newMeta.getDisplayName());
             // If the item is not unstackable, we should remove the unstackable tag
-            if (!newItemBuilder.isUnstackable()) itemPdc.remove(UNSTACKABLE_KEY);
+            // Also remove it on 1.20.5+ due to maxStackSize component
+            if (VersionUtil.atOrAbove("1.20.5") || !newItemBuilder.isUnstackable()) itemPdc.remove(UNSTACKABLE_KEY);
         });
 
         return newItem;

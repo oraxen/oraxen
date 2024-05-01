@@ -5,8 +5,8 @@ import com.comphenix.protocol.events.ListenerPriority;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
+import io.papermc.paper.scoreboard.numbers.NumberFormat;
 import io.th0rgal.oraxen.OraxenPlugin;
-import net.minecraft.network.chat.numbers.BlankFormat;
 
 public class ScoreboardPacketListener extends PacketAdapter {
 
@@ -19,7 +19,7 @@ public class ScoreboardPacketListener extends PacketAdapter {
         PacketContainer packet = event.getPacket();
         try {
             if (packet.getIntegers().read(0) == 1) return;
-            packet.getModifier().write(3, new BlankFormat());
+            packet.getModifier().write(3, NumberFormat.blank());
         } catch (Exception ignored) {
             ignored.printStackTrace();
         }

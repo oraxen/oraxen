@@ -11,9 +11,12 @@ import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.PotionUtils;
 import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
@@ -21,9 +24,13 @@ import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.EnchantmentWrapper;
 import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemRarity;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.components.FoodComponent;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Function;
@@ -86,7 +93,9 @@ public class ItemParser {
         return templateItem != null;
     }
 
-    public static String parseComponentDisplayName(String miniString) {
+    @Nullable
+    public static String parseComponentItemName(@Nullable String miniString) {
+        if (miniString == null) return null;
         if (miniString.isEmpty()) return miniString;
         Component component = AdventureUtils.MINI_MESSAGE.deserialize(miniString);
         // If it has no formatting, set color to WHITE to prevent Italic
@@ -112,21 +121,67 @@ public class ItemParser {
     }
 
     private ItemBuilder applyConfig(ItemBuilder item) {
-        item.setDisplayName(parseComponentDisplayName(section.getString("displayname", "")));
+        if (VersionUtil.atOrAbove("1.20.5"))
+            item.setItemName(parseComponentItemName(section.getString("displayname", "")));
+        else item.setDisplayName(parseComponentItemName(section.getString("displayname", "")));
 
         //if (section.contains("type")) item.setType(Material.getMaterial(section.getString("type", "PAPER")));
         if (section.contains("lore")) item.setLore(section.getStringList("lore").stream().map(ItemParser::parseComponentLore).toList());
-        if (section.contains("durability")) item.setDurability((short) section.getInt("durability"));
         if (section.contains("unbreakable")) item.setUnbreakable(section.getBoolean("unbreakable", false));
         if (section.contains("unstackable")) item.setUnstackable(section.getBoolean("unstackable", false));
         if (section.contains("color")) item.setColor(Utils.toColor(section.getString("color", "#FFFFFF")));
         if (section.contains("trim_pattern")) item.setTrimPattern(Key.key(section.getString("trim_pattern", "")));
+
+        parse_1_20_5_Properties(item);
 
         parseMiscOptions(item);
         parseVanillaSections(item);
         parseOraxenSections(item);
         item.setOraxenMeta(oraxenMeta);
         return item;
+    }
+
+    private void parse_1_20_5_Properties(ItemBuilder item) {
+        if (!VersionUtil.atOrAbove("1.20.5")) return;
+
+        if (section.contains("unstackable")) item.setMaxStackSize(1);
+        else if (section.contains("max_stack_size")) item.setMaxStackSize(Math.clamp(section.getInt("max_stack_size"), 1, 99));
+        if (item.hasMaxStackSize() && item.getMaxStackSize() == 1) item.setUnstackable(true);
+
+        if (section.contains("enchantment_glint_override")) item.setEnchantmentGlindOverride(section.getBoolean("enchantment_glint_override"));
+        if (section.contains("itemname")) item.setItemName(parseComponentItemName(section.getString("itemname", "")));
+        if (section.contains("durability")) item.setDurability(Math.min(section.getInt("durability"), 1));
+        if (section.contains("rarity")) item.setRarity(Arrays.stream(ItemRarity.values()).filter(r -> r.name().equalsIgnoreCase(section.getString("rarity"))).findFirst().orElse(null));
+        item.setFireResistant(section.getBoolean("fire_resistant"));
+        item.setHideToolTips(section.getBoolean("hide_tooltips"));
+
+        ConfigurationSection foodSection = section.getConfigurationSection("food");
+        if (foodSection != null) {
+            FoodComponent foodComponent = new ItemStack(Material.PAPER).getItemMeta().getFood();
+            foodComponent.setNutrition(foodSection.getInt("nutrition"));
+            foodComponent.setSaturation((float) foodSection.getDouble("saturation", 0.0));
+            foodComponent.setCanAlwaysEat(foodSection.getBoolean("can_always_eat"));
+            foodComponent.setEatSeconds((float) foodSection.getDouble("eat_seconds", 1.6));
+
+            ConfigurationSection effectsSection = foodSection.getConfigurationSection("effects");
+            if (effectsSection != null) for (String effect : effectsSection.getKeys(false)) {
+                PotionEffectType effectType = PotionUtils.getEffectType(effect);
+                if (effectType == null)
+                    Logs.logError("Invalid potion effect: " + effect + ", in " + StringUtils.substringBefore(effectsSection.getCurrentPath(), ".") + " food-property!");
+                else {
+                    foodComponent.addEffect(
+                            new PotionEffect(effectType,
+                                    foodSection.getInt("duration", 1) * 20,
+                                    foodSection.getInt("amplifier", 0),
+                                    foodSection.getBoolean("ambient", true),
+                                    foodSection.getBoolean("show_particles", true),
+                                    foodSection.getBoolean("show_icon", true)),
+                            (float) foodSection.getDouble("probability", 1.0)
+                    );
+                }
+            }
+            item.setFoodComponent(foodComponent);
+        }
     }
 
     private void parseMiscOptions(ItemBuilder item) {
@@ -211,8 +266,8 @@ public class ItemParser {
             if (factory != null) {
                 ConfigurationSection mechanicSection = mechanicsSection.getConfigurationSection(mechanicID);
                 if (mechanicSection == null) continue;
-                //if (mechanicID.equals("furniture") && !FurnitureFactory.setDefaultType(mechanicSection)) configUpdated = true;
                 Mechanic mechanic = factory.parse(mechanicSection);
+                if (mechanic == null) continue;
                 // Apply item modifiers
                 for (Function<ItemBuilder, ItemBuilder> itemModifier : mechanic.getItemModifiers())
                     item = itemModifier.apply(item);

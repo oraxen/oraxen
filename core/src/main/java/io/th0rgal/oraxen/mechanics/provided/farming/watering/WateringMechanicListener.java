@@ -7,9 +7,9 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.farmblock.FarmBlockDryout;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.wrappers.ParticleWrapper;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Material;
-import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Levelled;
@@ -83,7 +83,7 @@ public class WateringMechanicListener implements Listener {
         } else return;
 
         player.getInventory().setItemInMainHand(OraxenItems.getItemById(mechanic.getEmptyCanItem()).build());
-        player.getWorld().spawnParticle(Particle.WATER_SPLASH, block.getLocation().add(0.5, 1, 0.5), 40);
+        player.getWorld().spawnParticle(ParticleWrapper.SPLASH, block.getLocation().add(0.5, 1, 0.5), 40);
         player.getWorld().playSound(block.getLocation(), Sound.ITEM_BUCKET_EMPTY, 1.0f, 1.0f);
     }
 }

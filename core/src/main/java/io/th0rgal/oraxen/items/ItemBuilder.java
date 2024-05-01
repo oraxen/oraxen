@@ -20,15 +20,17 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.TropicalFish;
 import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemRarity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
+import org.bukkit.inventory.meta.components.FoodComponent;
 import org.bukkit.inventory.meta.trim.ArmorTrim;
 import org.bukkit.inventory.meta.trim.TrimMaterial;
 import org.bukkit.inventory.meta.trim.TrimPattern;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,10 +50,9 @@ public class ItemBuilder {
     private OraxenMeta oraxenMeta;
     private Material type;
     private int amount;
-    private int durability; // Damageable
     private Color color; // LeatherArmorMeta, PotionMeta, MapMeta & FireWorkEffectMeta
     private Key trimPattern; // TrimPattern
-    private PotionData potionData;
+    private PotionType potionType;
     private List<PotionEffect> potionEffects;
     private OfflinePlayer owningPlayer; // SkullMeta
     private DyeColor bodyColor; // TropicalFishBucketMeta
@@ -67,6 +68,17 @@ public class ItemBuilder {
     private int customModelData;
     private List<String> lore;
     private ItemStack finalItemStack;
+
+    // 1.20.5+ properties
+    @Nullable private FoodComponent foodComponent;
+    @Nullable private Boolean enchantmentGlintOverride;
+    @Nullable private Integer maxStackSize;
+    @Nullable private String itemName;
+    @Nullable private Integer durability;
+    private boolean fireResistant;
+    private boolean hideToolTips;
+    @Nullable private ItemRarity rarity;
+
 
     public ItemBuilder(final Material material) {
         this(new ItemStack(material));
@@ -95,15 +107,12 @@ public class ItemBuilder {
         final ItemMeta itemMeta = itemStack.getItemMeta();
         assert itemMeta != null;
 
-        if (itemMeta instanceof Damageable damageable)
-            durability = damageable.getDamage();
-
         if (itemMeta instanceof LeatherArmorMeta leatherArmorMeta)
             color = leatherArmorMeta.getColor();
 
         if (itemMeta instanceof PotionMeta potionMeta) {
             color = potionMeta.getColor();
-            potionData = potionMeta.getBasePotionData();
+            potionType = potionMeta.getBasePotionType();
             potionEffects = new ArrayList<>(potionMeta.getCustomEffects());
         }
 
@@ -149,6 +158,18 @@ public class ItemBuilder {
 
         enchantments = new HashMap<>();
 
+        if (VersionUtil.atOrAbove("1.20.5")) {
+            itemName = itemMeta.getItemName();
+            durability = itemMeta instanceof Damageable damageable && damageable.hasMaxDamage() ? damageable.getMaxDamage() : null;
+            fireResistant = itemMeta.isFireResistant();
+            hideToolTips = itemMeta.isHideTooltip();
+            foodComponent = itemMeta.hasFood() ? itemMeta.getFood() : null;
+            enchantmentGlintOverride = itemMeta.hasEnchantmentGlintOverride() ? itemMeta.getEnchantmentGlintOverride() : null;
+            rarity = itemMeta.hasRarity() ? itemMeta.getRarity() : null;
+            maxStackSize = itemMeta.hasMaxStackSize() ? itemMeta.getMaxStackSize() : null;
+            if (maxStackSize != null && maxStackSize == 1) unstackable = true;
+        }
+
     }
 
     public Material getType() {
@@ -173,6 +194,20 @@ public class ItemBuilder {
 
     public ItemBuilder setDisplayName(final String displayName) {
         this.displayName = displayName;
+        return this;
+    }
+
+    public boolean hasItemName() {
+        return itemName != null;
+    }
+
+    @Nullable
+    public String getItemName() {
+        return itemName;
+    }
+
+    public ItemBuilder setItemName(String itemName) {
+        this.itemName = itemName;
         return this;
     }
 
@@ -203,7 +238,7 @@ public class ItemBuilder {
         return this;
     }
 
-    public ItemBuilder setDurability(final int durability) {
+    public ItemBuilder setDurability(@Nullable Integer durability) {
         this.durability = durability;
         return this;
     }
@@ -253,8 +288,76 @@ public class ItemBuilder {
         return this;
     }
 
-    public ItemBuilder setBasePotionData(final PotionData potionData) {
-        this.potionData = potionData;
+    public boolean hasFoodComponent() {
+        return VersionUtil.atOrAbove("1.20.5") && foodComponent != null;
+    }
+
+    @Nullable
+    public FoodComponent getFoodComponent() {
+        return foodComponent;
+    }
+
+    public ItemBuilder setFoodComponent(FoodComponent foodComponent) {
+        this.foodComponent = foodComponent;
+        return this;
+    }
+
+    public boolean hasEnchantmentGlindOverride() {
+        return VersionUtil.atOrAbove("1.20.5") && enchantmentGlintOverride != null;
+    }
+
+    @Nullable
+    public Boolean getEnchantmentGlindOverride() {
+        return enchantmentGlintOverride;
+    }
+
+    public ItemBuilder setEnchantmentGlindOverride(@Nullable Boolean enchantmentGlintOverride) {
+        this.enchantmentGlintOverride = enchantmentGlintOverride;
+        return this;
+    }
+
+    public boolean hasRarity() {
+        return VersionUtil.atOrAbove("1.20.5") && rarity != null;
+    }
+
+    @Nullable
+    public ItemRarity getRarity() {
+        return rarity;
+    }
+
+    public ItemBuilder setRarity(@Nullable ItemRarity rarity) {
+        this.rarity = rarity;
+        return this;
+    }
+
+    public ItemBuilder setFireResistant(boolean fireResistant) {
+        this.fireResistant = fireResistant;
+        return this;
+    }
+
+    public ItemBuilder setHideToolTips(boolean hideToolTips) {
+        this.hideToolTips = hideToolTips;
+        return this;
+    }
+
+    public boolean hasMaxStackSize() {
+        return VersionUtil.atOrAbove("1.20.5") && foodComponent != null;
+    }
+
+    @Nullable
+    public Integer getMaxStackSize() {
+        return maxStackSize;
+    }
+
+
+    public ItemBuilder setMaxStackSize(@Nullable Integer maxStackSize) {
+        this.maxStackSize = maxStackSize;
+        this.setUnstackable(maxStackSize != null && maxStackSize == 1);
+        return this;
+    }
+
+    public ItemBuilder setBasePotionType(final PotionType potionType) {
+        this.potionType = potionType;
         return this;
     }
 
@@ -378,10 +481,6 @@ public class ItemBuilder {
     @SuppressWarnings("unchecked")
     public ItemBuilder regen() {
         final ItemStack itemStack = this.itemStack;
-
-        /*
-         * CHANGING ITEM
-         */
         if (type != null)
             itemStack.setType(type);
         if (amount != itemStack.getAmount())
@@ -393,18 +492,23 @@ public class ItemBuilder {
         ItemMeta itemMeta = handleVariousMeta(itemStack.getItemMeta());
         assert itemMeta != null;
         PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
-        if (displayName != null) {
-            pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, displayName);
-            itemMeta.setDisplayName(displayName);
-        }
 
         itemMeta.setUnbreakable(unbreakable);
 
-        /*if (isUnstackable()) {
-            // This needs to be set in the final build() and buildArray() methods
-            // Otherwise it will set the tag for the entire stack and you can have stacks
-            // This should prevent that
-        }*/
+        if (VersionUtil.atOrAbove("1.20.5")) {
+            itemMeta.setItemName(itemName);
+            itemMeta.setMaxStackSize(maxStackSize);
+            itemMeta.setEnchantmentGlintOverride(enchantmentGlintOverride);
+            itemMeta.setRarity(rarity);
+            itemMeta.setFood(foodComponent);
+            itemMeta.setFireResistant(fireResistant);
+            itemMeta.setHideTooltip(hideToolTips);
+        } else {
+            if (displayName != null) {
+                pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, displayName);
+                itemMeta.setDisplayName(displayName);
+            }
+        }
 
         if (itemFlags != null)
             itemMeta.addItemFlags(itemFlags.toArray(new ItemFlag[0]));
@@ -460,10 +564,8 @@ public class ItemBuilder {
 
     private ItemMeta handleVariousMeta(ItemMeta itemMeta) {
         // durability
-        if (itemMeta instanceof Damageable damageable && durability != damageable.getDamage()) {
-            damageable.setDamage(durability);
-            return damageable;
-        }
+        if (VersionUtil.atOrAbove("1.20.5") && itemMeta instanceof Damageable damageable)
+            damageable.setMaxDamage(durability);
 
         if (itemMeta instanceof LeatherArmorMeta leatherArmorMeta && color != null && !color.equals(leatherArmorMeta.getColor())) {
             leatherArmorMeta.setColor(color);
@@ -514,8 +616,8 @@ public class ItemBuilder {
         if (color != null && !color.equals(potionMeta.getColor()))
             potionMeta.setColor(color);
 
-        if (!potionData.equals(potionMeta.getBasePotionData()))
-            potionMeta.setBasePotionData(potionData);
+        if (potionType != null && !potionType.equals(potionMeta.getBasePotionType()))
+            potionMeta.setBasePotionType(potionType);
 
         if (!potionEffects.equals(potionMeta.getCustomEffects()))
             for (final PotionEffect potionEffect : potionEffects)
@@ -541,13 +643,9 @@ public class ItemBuilder {
         return tropicalFishBucketMeta;
     }
 
-    public int getMaxStackSize() {
-        return unstackable ? 1 : type != null ? type.getMaxStackSize() : itemStack.getType().getMaxStackSize();
-    }
-
     public ItemStack[] buildArray(final int amount) {
         final ItemStack built = build();
-        final int max = getMaxStackSize();
+        final int max = hasMaxStackSize() ? maxStackSize : type != null ? type.getMaxStackSize() : itemStack.getType().getMaxStackSize();
         final int rest = max == amount ? amount : amount % max;
         final int iterations = amount > max ? (amount - rest) / max : 0;
         final ItemStack[] output = new ItemStack[iterations + (rest > 0 ? 1 : 0)];
@@ -575,6 +673,9 @@ public class ItemBuilder {
     private ItemStack handleUnstackable(ItemStack item) {
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return item;
+        // handled via maxStackSize component
+        if (VersionUtil.atOrAbove("1.20.5")) return item;
+
         meta.getPersistentDataContainer().set(UNSTACKABLE_KEY, DataType.UUID, UUID.randomUUID());
         item.setItemMeta(meta);
         item.setAmount(1);

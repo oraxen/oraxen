@@ -1,3 +1,20 @@
+/*
+ *  ProtocolLib - Bukkit server library that allows access to the Minecraft protocol.
+ *  Copyright (C) 2012 Kristian S. Stangeland
+ *
+ *  This program is free software; you can redistribute it and/or modify it under the terms of the
+ *  GNU General Public License as published by the Free Software Foundation; either version 2 of
+ *  the License, or (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ *  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *  See the GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License along with this program;
+ *  if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+ *  02111-1307 USA
+ */
+
 package io.th0rgal.oraxen.utils;
 
 import com.comphenix.protocol.ProtocolLibrary;
@@ -13,8 +30,26 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Determine the current Minecraft version.
+ *
+ * @author Kristian
+ */
 public final class MinecraftVersion implements Comparable<MinecraftVersion>, Serializable {
+    /**
+     * Version 1.20.5 - the cookie and transfer packet update
+     */
+    public static final MinecraftVersion v1_20_5 = new MinecraftVersion("1.20.5");
 
+    /**
+     * Version 1.20.4 - the decorated pot update
+     */
+    public static final MinecraftVersion v1_20_4 = new MinecraftVersion("1.20.4");
+
+    /**
+     * Version 1.20.2 - the update that added the configuration protocol phase.
+     */
+    public static final MinecraftVersion CONFIG_PHASE_PROTOCOL_UPDATE = new MinecraftVersion("1.20.2");
     /**
      * Version 1.20 - the trails and tails update
      */
@@ -109,7 +144,7 @@ public final class MinecraftVersion implements Comparable<MinecraftVersion>, Ser
     /**
      * The latest release version of minecraft.
      */
-    public static final MinecraftVersion LATEST = TRAILS_AND_TAILS;
+    public static final MinecraftVersion LATEST = v1_20_5;
 
     // used when serializing
     private static final long serialVersionUID = -8695133558996459770L;
