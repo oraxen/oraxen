@@ -24,6 +24,7 @@ import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.EnchantmentWrapper;
 import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemRarity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.components.FoodComponent;
 import org.bukkit.persistence.PersistentDataType;
@@ -150,6 +151,7 @@ public class ItemParser {
         if (section.contains("enchantment_glint_override")) item.setEnchantmentGlindOverride(section.getBoolean("enchantment_glint_override"));
         if (section.contains("itemname")) item.setItemName(parseComponentItemName(section.getString("itemname", "")));
         if (section.contains("durability")) item.setDurability(Math.min(section.getInt("durability"), 1));
+        if (section.contains("rarity")) item.setRarity(Arrays.stream(ItemRarity.values()).filter(r -> r.name().equalsIgnoreCase(section.getString("rarity"))).findFirst().orElse(null));
         item.setFireResistant(section.getBoolean("fire_resistant"));
         item.setHideToolTips(section.getBoolean("hide_tooltips"));
 

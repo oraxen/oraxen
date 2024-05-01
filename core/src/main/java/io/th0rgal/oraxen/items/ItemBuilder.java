@@ -20,6 +20,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.TropicalFish;
 import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemRarity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
 import org.bukkit.inventory.meta.components.FoodComponent;
@@ -76,6 +77,7 @@ public class ItemBuilder {
     @Nullable private Integer durability;
     private boolean fireResistant;
     private boolean hideToolTips;
+    @Nullable private ItemRarity rarity;
 
 
     public ItemBuilder(final Material material) {
@@ -163,6 +165,7 @@ public class ItemBuilder {
             hideToolTips = itemMeta.isHideTooltip();
             foodComponent = itemMeta.hasFood() ? itemMeta.getFood() : null;
             enchantmentGlintOverride = itemMeta.hasEnchantmentGlintOverride() ? itemMeta.getEnchantmentGlintOverride() : null;
+            rarity = itemMeta.hasRarity() ? itemMeta.getRarity() : null;
             maxStackSize = itemMeta.hasMaxStackSize() ? itemMeta.getMaxStackSize() : null;
             if (maxStackSize != null && maxStackSize == 1) unstackable = true;
         }
@@ -310,6 +313,20 @@ public class ItemBuilder {
 
     public ItemBuilder setEnchantmentGlindOverride(@Nullable Boolean enchantmentGlintOverride) {
         this.enchantmentGlintOverride = enchantmentGlintOverride;
+        return this;
+    }
+
+    public boolean hasRarity() {
+        return VersionUtil.atOrAbove("1.20.5") && rarity != null;
+    }
+
+    @Nullable
+    public ItemRarity getRarity() {
+        return rarity;
+    }
+
+    public ItemBuilder setRarity(@Nullable ItemRarity rarity) {
+        this.rarity = rarity;
         return this;
     }
 
@@ -482,6 +499,7 @@ public class ItemBuilder {
             itemMeta.setItemName(itemName);
             itemMeta.setMaxStackSize(maxStackSize);
             itemMeta.setEnchantmentGlintOverride(enchantmentGlintOverride);
+            itemMeta.setRarity(rarity);
             itemMeta.setFood(foodComponent);
             itemMeta.setFireResistant(fireResistant);
             itemMeta.setHideTooltip(hideToolTips);
