@@ -119,7 +119,6 @@ allprojects {
         compileOnly("com.ticxo.modelengine:ModelEngine:R4.0.4")
         compileOnly("com.ticxo.modelengine:api:R3.1.8")
         compileOnly(files("../libs/compile/BSP.jar"))
-        compileOnly("dev.jorel:commandapi-bukkit-shade-mojang-mapped:$commandApiVersion")
         compileOnly("io.lumine:MythicLib:1.1.6") // Remove and add deps needed for Polymath
         compileOnly("io.lumine:MythicLib-dist:1.6.2-SNAPSHOT")
         compileOnly("net.Indyuce:MMOItems-API:6.9.5-SNAPSHOT")
@@ -130,6 +129,7 @@ allprojects {
         compileOnly("nl.rutgerkok:blocklocker:1.10.4-SNAPSHOT")
         compileOnly("org.apache.commons:commons-lang3:$apacheLang3Version")
 
+        implementation("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
         implementation("org.bstats:bstats-bukkit:3.0.0")
         implementation("io.th0rgal:protectionlib:1.5.1")
         implementation("com.github.stefvanschie.inventoryframework:IF:0.10.12")
@@ -189,6 +189,7 @@ tasks {
         relocate("org.jetbrains.annotations", "io.th0rgal.oraxen.shaded.jetbrains.annotations")
         relocate("com.udojava.evalex", "io.th0rgal.oraxen.shaded.evalex")
         relocate("com.ticxo.playeranimator", "io.th0rgal.oraxen.shaded.playeranimator")
+        relocate("dev.jorel", "io.th0rgal.oraxen.shaded")
 
         manifest {
             attributes(
@@ -220,6 +221,7 @@ bukkit {
     apiVersion = "1.18"
     authors = listOf("th0rgal", "boy0000")
     softDepend = listOf(
+        "ProtocolLib",
         "LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "MythicMobs", "BossShopPro",
         "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared",
         "NBTAPI", "ModelEngine", "CrashClaim", "ViaBackwards", "HuskClaims", "BentoBox"
@@ -232,7 +234,7 @@ bukkit {
     libraries = listOf(
         "org.springframework:spring-expression:6.0.6",
         "org.apache.httpcomponents:httpmime:4.5.13",
-        "dev.jorel:commandapi-bukkit-shade-mojang-mapped:$commandApiVersion",
+        //"dev.jorel:commandapi-bukkit-shade-mojang-mapped:$commandApiVersion",
         "org.joml:joml:1.10.5",
         "net.kyori:adventure-text-minimessage:$adventureVersion",
         "net.kyori:adventure-text-serializer-plain:$adventureVersion",
