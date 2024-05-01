@@ -63,7 +63,7 @@ val devPluginPath = project.findProperty("oraxen_dev_plugin_path")?.toString()
 val foliaPluginPath = project.findProperty("oraxen_folia_plugin_path")?.toString()
 val spigotPluginPath = project.findProperty("oraxen_spigot_plugin_path")?.toString()
 val pluginVersion: String by project
-val commandApiVersion = "9.4.0-SNAPSHOT"
+val commandApiVersion = "9.4.0"
 val adventureVersion = "4.15.0"
 val platformVersion = "4.3.2"
 val googleGsonVersion = "2.10.1"
@@ -137,7 +137,6 @@ allprojects {
         implementation("org.jetbrains:annotations:24.1.0") { isTransitive = false }
         implementation("dev.triumphteam:triumph-gui:3.1.7") { exclude("net.kyori") }
         implementation("com.ticxo:PlayerAnimator:R1.2.8") { isChanging = true }
-        implementation("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
 
         implementation("me.gabytm.util:actions-spigot:$actionsVersion") { exclude(group = "com.google.guava") }
     }
@@ -231,7 +230,7 @@ bukkit {
     libraries = listOf(
         "org.springframework:spring-expression:6.0.6",
         "org.apache.httpcomponents:httpmime:4.5.13",
-        //"dev.jorel:commandapi-bukkit-shade:$commandApiVersion",
+        "dev.jorel:commandapi-bukkit-shade:$commandApiVersion",
         "org.joml:joml:1.10.5",
         "net.kyori:adventure-text-minimessage:$adventureVersion",
         "net.kyori:adventure-text-serializer-plain:$adventureVersion",

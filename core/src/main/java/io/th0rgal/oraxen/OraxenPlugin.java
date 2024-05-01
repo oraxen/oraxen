@@ -146,6 +146,7 @@ public class OraxenPlugin extends JavaPlugin {
             if (GlyphHandlers.isNms()) NMSHandlers.getHandler().glyphHandler().uninject(player);
 
         CompatibilitiesManager.disableCompatibilities();
+        CommandAPI.onDisable();
         Message.PLUGIN_UNLOADED.log();
     }
 
