@@ -171,9 +171,9 @@ public class ItemParser {
                             new PotionEffect(effectType,
                                     foodSection.getInt("duration", 1) * 20,
                                     foodSection.getInt("amplifier", 0),
-                                    foodSection.getBoolean("is_ambient", true),
-                                    foodSection.getBoolean("has_particles", true),
-                                    foodSection.getBoolean("has_icon", true)),
+                                    foodSection.getBoolean("ambient", true),
+                                    foodSection.getBoolean("show_particles", true),
+                                    foodSection.getBoolean("show_icon", true)),
                             (float) foodSection.getDouble("probability", 1.0)
                     );
                 }
