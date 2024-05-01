@@ -25,6 +25,7 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Function;
@@ -87,7 +88,9 @@ public class ItemParser {
         return templateItem != null;
     }
 
-    public static String parseComponentItemName(String miniString) {
+    @Nullable
+    public static String parseComponentItemName(@Nullable String miniString) {
+        if (miniString == null) return null;
         if (miniString.isEmpty()) return miniString;
         Component component = AdventureUtils.MINI_MESSAGE.deserialize(miniString);
         // If it has no formatting, set color to WHITE to prevent Italic
@@ -119,7 +122,6 @@ public class ItemParser {
 
         //if (section.contains("type")) item.setType(Material.getMaterial(section.getString("type", "PAPER")));
         if (section.contains("lore")) item.setLore(section.getStringList("lore").stream().map(ItemParser::parseComponentLore).toList());
-        if (section.contains("durability")) item.setDurability((short) section.getInt("durability"));
         if (section.contains("unbreakable")) item.setUnbreakable(section.getBoolean("unbreakable", false));
         if (section.contains("unstackable")) item.setUnstackable(section.getBoolean("unstackable", false));
         if (section.contains("color")) item.setColor(Utils.toColor(section.getString("color", "#FFFFFF")));
@@ -132,6 +134,8 @@ public class ItemParser {
 
             if (section.contains("enchantment_glint_override")) item.setEnchantmentGlindOverride(section.getBoolean("enchantment_glint_override"));
             if (section.contains("itemname")) item.setItemName(parseComponentItemName(section.getString("itemname", "")));
+            if (section.contains("durability")) item.setDurability(section.getInt("durability"));
+            item.setFireResistant(section.getBoolean("fire_resistant"));
             //if (section.contains("food"))
         }
 

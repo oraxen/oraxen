@@ -49,7 +49,6 @@ public class ItemBuilder {
     private OraxenMeta oraxenMeta;
     private Material type;
     private int amount;
-    private int durability; // Damageable
     private Color color; // LeatherArmorMeta, PotionMeta, MapMeta & FireWorkEffectMeta
     private Key trimPattern; // TrimPattern
     private PotionType potionType;
@@ -74,6 +73,9 @@ public class ItemBuilder {
     @Nullable private Boolean enchantmentGlintOverride;
     @Nullable private Integer maxStackSize;
     @Nullable private String itemName;
+    @Nullable private Integer durability;
+    private Boolean fireResistant;
+
 
     public ItemBuilder(final Material material) {
         this(new ItemStack(material));
@@ -101,9 +103,6 @@ public class ItemBuilder {
 
         final ItemMeta itemMeta = itemStack.getItemMeta();
         assert itemMeta != null;
-
-        if (itemMeta instanceof Damageable damageable)
-            durability = damageable.getDamage();
 
         if (itemMeta instanceof LeatherArmorMeta leatherArmorMeta)
             color = leatherArmorMeta.getColor();
@@ -158,6 +157,8 @@ public class ItemBuilder {
 
         if (VersionUtil.atOrAbove("1.20.5")) {
             itemName = itemMeta.getItemName();
+            durability = itemMeta instanceof Damageable damageable && damageable.hasMaxDamage() ? damageable.getMaxDamage() : null;
+            fireResistant = itemMeta.isFireResistant();
             foodComponent = itemMeta.hasFood() ? itemMeta.getFood() : null;
             enchantmentGlintOverride = itemMeta.hasEnchantmentGlintOverride() ? itemMeta.getEnchantmentGlintOverride() : null;
             maxStackSize = itemMeta.hasMaxStackSize() ? itemMeta.getMaxStackSize() : null;
@@ -232,7 +233,7 @@ public class ItemBuilder {
         return this;
     }
 
-    public ItemBuilder setDurability(final int durability) {
+    public ItemBuilder setDurability(@Nullable Integer durability) {
         this.durability = durability;
         return this;
     }
@@ -305,8 +306,13 @@ public class ItemBuilder {
         return enchantmentGlintOverride;
     }
 
-    public ItemBuilder setEnchantmentGlindOverride(@Nullable boolean enchantmentGlintOverride) {
+    public ItemBuilder setEnchantmentGlindOverride(@Nullable Boolean enchantmentGlintOverride) {
         this.enchantmentGlintOverride = enchantmentGlintOverride;
+        return this;
+    }
+
+    public ItemBuilder setFireResistant(boolean fireResistant) {
+        this.fireResistant = fireResistant;
         return this;
     }
 
@@ -531,10 +537,8 @@ public class ItemBuilder {
 
     private ItemMeta handleVariousMeta(ItemMeta itemMeta) {
         // durability
-        if (itemMeta instanceof Damageable damageable && durability != damageable.getDamage()) {
-            damageable.setDamage(durability);
-            return damageable;
-        }
+        if (VersionUtil.atOrAbove("1.20.5") && itemMeta instanceof Damageable damageable)
+            damageable.setMaxDamage(durability);
 
         if (itemMeta instanceof LeatherArmorMeta leatherArmorMeta && color != null && !color.equals(leatherArmorMeta.getColor())) {
             leatherArmorMeta.setColor(color);
