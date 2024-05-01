@@ -7,7 +7,7 @@ plugins {
     //id("com.github.johnrengelman.shadow") version "8.1.1"
     id("xyz.jpenilla.run-paper") version "2.2.4"
     id("net.minecrell.plugin-yml.bukkit") version "0.6.0" // Generates plugin.yml
-    id("io.papermc.paperweight.userdev") version "1.6.3" apply false
+    id("io.papermc.paperweight.userdev") version "1.7.0" apply false
     id("io.github.goooler.shadow") version "8.1.7"
     alias(libs.plugins.mia.publication)
 }
