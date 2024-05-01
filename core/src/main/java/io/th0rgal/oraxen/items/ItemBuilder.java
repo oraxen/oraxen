@@ -476,6 +476,7 @@ public class ItemBuilder {
             itemMeta.setMaxStackSize(maxStackSize);
             itemMeta.setEnchantmentGlintOverride(enchantmentGlintOverride);
             itemMeta.setFood(foodComponent);
+            itemMeta.setFireResistant(fireResistant);
         } else {
             if (displayName != null) {
                 pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, displayName);

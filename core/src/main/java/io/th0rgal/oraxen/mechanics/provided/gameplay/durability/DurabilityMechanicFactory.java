@@ -22,7 +22,7 @@ public class DurabilityMechanicFactory extends MechanicFactory {
     @Override
     public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
         Mechanic mechanic = new DurabilityMechanic(this, itemMechanicConfiguration);
-        if (VersionUtil.atOrAbove("1.20.5") && itemMechanicConfiguration.getParent().getBoolean("fire_resistant") == true) {
+        if (VersionUtil.atOrAbove("1.20.5") && itemMechanicConfiguration.getParent().getParent().contains("durability")) {
             Logs.logWarning(mechanic.getItemID() + " is using deprecated DurabilityMechanic...");
             Logs.logWarning("It is heavily advised to swap to the new `durability`-property on 1.20.5+ servers...");
         }
