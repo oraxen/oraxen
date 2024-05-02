@@ -218,7 +218,7 @@ public class NoteBlockMechanicListener implements Listener {
         if (type == Material.AIR) return;
 
         BlockData newData = type.isBlock() ? type.createBlockData() : null;
-        makePlayerPlaceBlock(player, event.getHand(), item, block, event.getBlockFace(), newData);
+        makePlayerPlaceBlock(player, event.getHand(), item, block, blockFace, newData);
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -439,6 +439,7 @@ public class NoteBlockMechanicListener implements Listener {
 
         if (BlockHelpers.isReplaceable(type)) target = placedAgainst;
         else target = placedAgainst.getRelative(face);
+        if (!BlockHelpers.isReplaceable(target.getType())) return;
 
         final NoteBlockMechanic againstMechanic = OraxenBlocks.getNoteBlockMechanic(placedAgainst);
         // Store oldData incase event(s) is cancelled, set the target blockData

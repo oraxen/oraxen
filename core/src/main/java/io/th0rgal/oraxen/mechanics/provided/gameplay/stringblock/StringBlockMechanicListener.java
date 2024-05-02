@@ -407,10 +407,8 @@ public class StringBlockMechanicListener implements Listener {
         final Block target;
         final Material type = placedAgainst.getType();
         if (BlockHelpers.isReplaceable(type)) target = placedAgainst;
-        else {
-            target = placedAgainst.getRelative(face);
-            if (!target.getType().isAir() && !target.isLiquid() && target.getType() != Material.LIGHT) return;
-        }
+        else target = placedAgainst.getRelative(face);
+        if (!BlockHelpers.isReplaceable(target.getType())) return;
 
         StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(newData);
         // Store oldData incase event(s) is cancelled, set the target blockData
