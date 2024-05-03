@@ -46,7 +46,8 @@ public class ItemsView {
                 ? Gui.scrolling(ScrollType.VERTICAL).pageSize((rows - 1) * 9)
                 : Gui.gui()))).rows(rows).title(Settings.ORAXEN_INV_TITLE.toComponent()).create();
 
-        int highestUsedSlot = files.entrySet().stream().map(e -> getItemStack(e.getKey()).getValue()).sorted().toList().getLast();
+        List<Integer> usedSlots = files.entrySet().stream().map(e -> getItemStack(e.getKey()).getValue()).sorted().toList();
+        int highestUsedSlot = usedSlots.get(usedSlots.size() - 1);
 
         List<GuiItem> guiItems = new ArrayList<>(Collections.nCopies(highestUsedSlot + 1, new GuiItem(Material.AIR)));
 

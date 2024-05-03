@@ -162,7 +162,7 @@ public class ItemUpdater implements Listener {
                 armorMeta.setTrim(oldArmorMeta.getTrim());
             }
 
-            if (VersionUtil.atOrAbove("1.20.5")) {
+            /*if (VersionUtil.atOrAbove("1.20.5")) {
                 if (newMeta.hasFood()) itemMeta.setFood(newMeta.getFood());
                 else if (oldMeta.hasFood()) itemMeta.setFood(oldMeta.getFood());
 
@@ -179,7 +179,7 @@ public class ItemUpdater implements Listener {
                     if (newMeta.hasItemName()) itemMeta.setItemName(newMeta.getItemName());
                     else if (oldMeta.hasItemName()) itemMeta.setItemName(oldMeta.getItemName());
                 }
-            }
+            }*/
 
             // On 1.20.5+ we use ItemName which is different from userchanged displaynames
             // Thus removing the need for this logic
