@@ -20,10 +20,10 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.TropicalFish;
 import org.bukkit.inventory.ItemFlag;
-//import org.bukkit.inventory.ItemRarity;
+import org.bukkit.inventory.ItemRarity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
-//import org.bukkit.inventory.meta.components.FoodComponent;
+import org.bukkit.inventory.meta.components.FoodComponent;
 import org.bukkit.inventory.meta.trim.ArmorTrim;
 import org.bukkit.inventory.meta.trim.TrimMaterial;
 import org.bukkit.inventory.meta.trim.TrimPattern;
@@ -70,14 +70,14 @@ public class ItemBuilder {
     private ItemStack finalItemStack;
 
     // 1.20.5+ properties
-    /*@Nullable private FoodComponent foodComponent;
+    @Nullable private FoodComponent foodComponent;
     @Nullable private Boolean enchantmentGlintOverride;
     @Nullable private Integer maxStackSize;
     @Nullable private String itemName;
     @Nullable private Integer durability;
     private boolean fireResistant;
     private boolean hideToolTips;
-    @Nullable private ItemRarity rarity;*/
+    @Nullable private ItemRarity rarity;
 
 
     public ItemBuilder(final Material material) {
@@ -158,7 +158,7 @@ public class ItemBuilder {
 
         enchantments = new HashMap<>();
 
-        /*if (VersionUtil.atOrAbove("1.20.5")) {
+        if (VersionUtil.atOrAbove("1.20.5")) {
             itemName = itemMeta.getItemName();
             durability = itemMeta instanceof Damageable damageable && damageable.hasMaxDamage() ? damageable.getMaxDamage() : null;
             fireResistant = itemMeta.isFireResistant();
@@ -168,7 +168,7 @@ public class ItemBuilder {
             rarity = itemMeta.hasRarity() ? itemMeta.getRarity() : null;
             maxStackSize = itemMeta.hasMaxStackSize() ? itemMeta.getMaxStackSize() : null;
             if (maxStackSize != null && maxStackSize == 1) unstackable = true;
-        }*/
+        }
 
     }
 
@@ -197,7 +197,7 @@ public class ItemBuilder {
         return this;
     }
 
-    /*public boolean hasItemName() {
+    public boolean hasItemName() {
         return itemName != null;
     }
 
@@ -209,7 +209,7 @@ public class ItemBuilder {
     public ItemBuilder setItemName(String itemName) {
         this.itemName = itemName;
         return this;
-    }*/
+    }
 
     public boolean hasLores() {
         return lore != null && !lore.isEmpty();
@@ -238,10 +238,10 @@ public class ItemBuilder {
         return this;
     }
 
-   /* public ItemBuilder setDurability(@Nullable Integer durability) {
+    public ItemBuilder setDurability(@Nullable Integer durability) {
         this.durability = durability;
         return this;
-    }*/
+    }
 
     /**
      * Check if the ItemBuilder has color.
@@ -288,7 +288,7 @@ public class ItemBuilder {
         return this;
     }
 
-    /*public boolean hasFoodComponent() {
+    public boolean hasFoodComponent() {
         return VersionUtil.atOrAbove("1.20.5") && foodComponent != null;
     }
 
@@ -354,7 +354,7 @@ public class ItemBuilder {
         this.maxStackSize = maxStackSize;
         this.setUnstackable(maxStackSize != null && maxStackSize == 1);
         return this;
-    }*/
+    }
 
     public ItemBuilder setBasePotionType(final PotionType potionType) {
         this.potionType = potionType;
@@ -495,7 +495,7 @@ public class ItemBuilder {
 
         itemMeta.setUnbreakable(unbreakable);
 
-        /*if (VersionUtil.atOrAbove("1.20.5")) {
+        if (VersionUtil.atOrAbove("1.20.5")) {
             itemMeta.setItemName(itemName);
             itemMeta.setMaxStackSize(maxStackSize);
             itemMeta.setEnchantmentGlintOverride(enchantmentGlintOverride);
@@ -503,12 +503,12 @@ public class ItemBuilder {
             itemMeta.setFood(foodComponent);
             itemMeta.setFireResistant(fireResistant);
             itemMeta.setHideTooltip(hideToolTips);
-        } else {*/
+        } else {
             if (displayName != null) {
                 pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, displayName);
                 itemMeta.setDisplayName(displayName);
             }
-        /*}*/
+        }
 
         if (itemFlags != null)
             itemMeta.addItemFlags(itemFlags.toArray(new ItemFlag[0]));
@@ -564,8 +564,8 @@ public class ItemBuilder {
 
     private ItemMeta handleVariousMeta(ItemMeta itemMeta) {
         // durability
-        /*if (VersionUtil.atOrAbove("1.20.5") && itemMeta instanceof Damageable damageable)
-            damageable.setMaxDamage(durability);*/
+        if (VersionUtil.atOrAbove("1.20.5") && itemMeta instanceof Damageable damageable)
+            damageable.setMaxDamage(durability);
 
         if (itemMeta instanceof LeatherArmorMeta leatherArmorMeta && color != null && !color.equals(leatherArmorMeta.getColor())) {
             leatherArmorMeta.setColor(color);
@@ -645,7 +645,7 @@ public class ItemBuilder {
 
     public ItemStack[] buildArray(final int amount) {
         final ItemStack built = build();
-        final int max = /*hasMaxStackSize() ? maxStackSize : */type != null ? type.getMaxStackSize() : itemStack.getType().getMaxStackSize();
+        final int max = hasMaxStackSize() ? maxStackSize : type != null ? type.getMaxStackSize() : itemStack.getType().getMaxStackSize();
         final int rest = max == amount ? amount : amount % max;
         final int iterations = amount > max ? (amount - rest) / max : 0;
         final ItemStack[] output = new ItemStack[iterations + (rest > 0 ? 1 : 0)];

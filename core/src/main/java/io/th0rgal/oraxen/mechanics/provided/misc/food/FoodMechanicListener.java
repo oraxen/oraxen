@@ -55,10 +55,10 @@ public class FoodMechanicListener implements Listener {
 
             player.setFoodLevel(player.getFoodLevel() + Math.min(mechanic.getHunger(), 20));
             player.setSaturation(player.getSaturation() + Math.min(mechanic.getSaturation(), 20));
-        }/* else {
+        } else {
             if (itemStack.hasItemMeta() && itemStack.getItemMeta().hasFood() && player.getGameMode() != GameMode.CREATIVE && mechanic.hasReplacement())
                 inventory.addItem(mechanic.getReplacement());
-        }*/
+        }
 
 
     }
