@@ -2,7 +2,10 @@ package io.th0rgal.oraxen.utils;
 
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
+import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.potion.PotionType;
 
 import javax.annotation.Nullable;
 
@@ -32,5 +35,17 @@ public class PotionUtils {
         }
 
         return effectType;
+    }
+
+    public static PotionType getPotionType(PotionMeta potionMeta) {
+        if (VersionUtil.atOrAbove("1.20"))
+            return potionMeta.getBasePotionType();
+        else return potionMeta.getBasePotionData().getType();
+    }
+
+    public static void setPotionType(PotionMeta potionMeta, PotionType potionType) {
+        if (VersionUtil.atOrAbove("1.20"))
+            potionMeta.setBasePotionType(potionType);
+        else potionMeta.setBasePotionData(new PotionData(potionType));
     }
 }

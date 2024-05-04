@@ -11,6 +11,7 @@ import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucible
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.OraxenYaml;
+import io.th0rgal.oraxen.utils.PotionUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import net.kyori.adventure.key.Key;
 import org.bukkit.*;
@@ -20,10 +21,8 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.TropicalFish;
 import org.bukkit.inventory.ItemFlag;
-//import org.bukkit.inventory.ItemRarity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
-//import org.bukkit.inventory.meta.components.FoodComponent;
 import org.bukkit.inventory.meta.trim.ArmorTrim;
 import org.bukkit.inventory.meta.trim.TrimMaterial;
 import org.bukkit.inventory.meta.trim.TrimPattern;
@@ -112,7 +111,7 @@ public class ItemBuilder {
 
         if (itemMeta instanceof PotionMeta potionMeta) {
             color = potionMeta.getColor();
-            potionType = potionMeta.getBasePotionType();
+            potionType = PotionUtils.getPotionType(potionMeta);
             potionEffects = new ArrayList<>(potionMeta.getCustomEffects());
         }
 
@@ -616,8 +615,8 @@ public class ItemBuilder {
         if (color != null && !color.equals(potionMeta.getColor()))
             potionMeta.setColor(color);
 
-        if (potionType != null && !potionType.equals(potionMeta.getBasePotionType()))
-            potionMeta.setBasePotionType(potionType);
+        if (potionType != null && !potionType.equals(PotionUtils.getPotionType(potionMeta)))
+            PotionUtils.setPotionType(potionMeta, potionType);
 
         if (!potionEffects.equals(potionMeta.getCustomEffects()))
             for (final PotionEffect potionEffect : potionEffects)
