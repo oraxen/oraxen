@@ -49,9 +49,7 @@ SUPPORTED_VERSIONS.forEach {
         }
 
         java {
-            sourceCompatibility = if (it.nmsVersion == "v1_20_R4") JavaVersion.VERSION_21 else JavaVersion.VERSION_17
-            targetCompatibility = if (it.nmsVersion == "v1_20_R4") JavaVersion.VERSION_21 else JavaVersion.VERSION_17
-            //toolchain.languageVersion.set(JavaLanguageVersion.of(if (it.nmsVersion == "v1_20_R4") 21 else 17))
+            toolchain.languageVersion.set(JavaLanguageVersion.of(if (it.nmsVersion == "v1_20_R4") 21 else 17))
         }
     }
 }

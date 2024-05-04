@@ -11,12 +11,9 @@ import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.PotionUtils;
 import io.th0rgal.oraxen.utils.Utils;
-import io.th0rgal.oraxen.utils.VersionUtil;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
@@ -24,9 +21,6 @@ import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.EnchantmentWrapper;
 import org.bukkit.inventory.ItemFlag;
-import org.bukkit.inventory.ItemRarity;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.components.FoodComponent;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -121,9 +115,9 @@ public class ItemParser {
     }
 
     private ItemBuilder applyConfig(ItemBuilder item) {
-        if (VersionUtil.atOrAbove("1.20.5"))
+        /*if (VersionUtil.atOrAbove("1.20.5"))
             item.setItemName(parseComponentItemName(section.getString("displayname", "")));
-        else item.setDisplayName(parseComponentItemName(section.getString("displayname", "")));
+        else */item.setDisplayName(parseComponentItemName(section.getString("displayname", "")));
 
         //if (section.contains("type")) item.setType(Material.getMaterial(section.getString("type", "PAPER")));
         if (section.contains("lore")) item.setLore(section.getStringList("lore").stream().map(ItemParser::parseComponentLore).toList());
@@ -142,7 +136,7 @@ public class ItemParser {
     }
 
     private void parse_1_20_5_Properties(ItemBuilder item) {
-        if (!VersionUtil.atOrAbove("1.20.5")) return;
+        /*if (!VersionUtil.atOrAbove("1.20.5")) return;
 
         if (section.contains("unstackable")) item.setMaxStackSize(1);
         else if (section.contains("max_stack_size")) item.setMaxStackSize(Math.clamp(section.getInt("max_stack_size"), 1, 99));
@@ -181,7 +175,7 @@ public class ItemParser {
                 }
             }
             item.setFoodComponent(foodComponent);
-        }
+        }*/
     }
 
     private void parseMiscOptions(ItemBuilder item) {

@@ -100,7 +100,7 @@ public class CommandsManager {
                         return;
                     }
                     int amount = (int) args.get(2);
-                    final int max = itemBuilder.hasMaxStackSize() ? itemBuilder.getMaxStackSize() : itemBuilder.getType().getMaxStackSize();
+                    final int max = /*itemBuilder.hasMaxStackSize() ? itemBuilder.getMaxStackSize() : */itemBuilder.getType().getMaxStackSize();
                     final int slots = amount / max + (max % amount > 0 ? 1 : 0);
                     ItemStack[] items = itemBuilder.buildArray(slots > 36 ? (amount = max * 36) : amount);
 
