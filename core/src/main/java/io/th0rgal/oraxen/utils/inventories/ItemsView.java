@@ -46,10 +46,10 @@ public class ItemsView {
                 ? Gui.scrolling(ScrollType.VERTICAL).pageSize((rows - 1) * 9)
                 : Gui.gui()))).rows(rows).title(Settings.ORAXEN_INV_TITLE.toComponent()).create();
 
-        List<Integer> usedSlots = files.entrySet().stream().map(e -> getItemStack(e.getKey()).getValue()).sorted().toList();
+        List<Integer> usedSlots = files.keySet().stream().map(this::getItemStack).map(Pair::getValue).sorted().toList();
         int highestUsedSlot = usedSlots.get(usedSlots.size() - 1);
-
-        List<GuiItem> guiItems = new ArrayList<>(Collections.nCopies(highestUsedSlot + 1, new GuiItem(Material.AIR)));
+        GuiItem emptyGuiItem = new GuiItem(Material.AIR);
+        List<GuiItem> guiItems = new ArrayList<>(Collections.nCopies(highestUsedSlot + 1, emptyGuiItem));
 
         for (Map.Entry<File, PaginatedGui> entry : files.entrySet()) {
             int slot = getItemStack(entry.getKey()).getRight();
@@ -61,7 +61,7 @@ public class ItemsView {
         for (Map.Entry<File, PaginatedGui> entry : files.entrySet()) {
             int slot = getItemStack(entry.getKey()).getRight();
             if (slot != -1) continue;
-            guiItems.set(guiItems.indexOf(null), new GuiItem(getItemStack(entry.getKey()).getLeft(), e -> entry.getValue().open(e.getWhoClicked())));
+            guiItems.set(guiItems.indexOf(emptyGuiItem), new GuiItem(getItemStack(entry.getKey()).getLeft(), e -> entry.getValue().open(e.getWhoClicked())));
         }
 
         mainGui.addItem(true, guiItems.toArray(new GuiItem[]{}));
