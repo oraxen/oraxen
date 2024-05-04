@@ -5,15 +5,20 @@ import io.th0rgal.oraxen.compatibilities.provided.ecoitems.WrappedEcoItem;
 import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.items.helpers.FoodComponentWrapper;
+import io.th0rgal.oraxen.items.helpers.ItemRarityWrapper;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.PotionUtils;
 import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
@@ -115,9 +120,8 @@ public class ItemParser {
     }
 
     private ItemBuilder applyConfig(ItemBuilder item) {
-        /*if (VersionUtil.atOrAbove("1.20.5"))
-            item.setItemName(parseComponentItemName(section.getString("displayname", "")));
-        else */item.setDisplayName(parseComponentItemName(section.getString("displayname", "")));
+        if (!VersionUtil.atOrAbove("1.20.5"))
+            item.setDisplayName(parseComponentItemName(section.getString("displayname", "")));
 
         //if (section.contains("type")) item.setType(Material.getMaterial(section.getString("type", "PAPER")));
         if (section.contains("lore")) item.setLore(section.getStringList("lore").stream().map(ItemParser::parseComponentLore).toList());
@@ -136,22 +140,24 @@ public class ItemParser {
     }
 
     private void parse_1_20_5_Properties(ItemBuilder item) {
-        /*if (!VersionUtil.atOrAbove("1.20.5")) return;
+        if (!VersionUtil.atOrAbove("1.20.5")) return;
 
         if (section.contains("unstackable")) item.setMaxStackSize(1);
-        else if (section.contains("max_stack_size")) item.setMaxStackSize(Math.clamp(section.getInt("max_stack_size"), 1, 99));
+        else if (section.contains("max_stack_size")) item.setMaxStackSize(Math.min(Math.max(section.getInt("max_stack_size"), 1), 99));
         if (item.hasMaxStackSize() && item.getMaxStackSize() == 1) item.setUnstackable(true);
 
-        if (section.contains("enchantment_glint_override")) item.setEnchantmentGlindOverride(section.getBoolean("enchantment_glint_override"));
         if (section.contains("itemname")) item.setItemName(parseComponentItemName(section.getString("itemname", "")));
+        else item.setItemName(parseComponentItemName(section.getString("displayname", "")));
+
+        if (section.contains("enchantment_glint_override")) item.setEnchantmentGlindOverride(section.getBoolean("enchantment_glint_override"));
         if (section.contains("durability")) item.setDurability(Math.min(section.getInt("durability"), 1));
-        if (section.contains("rarity")) item.setRarity(Arrays.stream(ItemRarity.values()).filter(r -> r.name().equalsIgnoreCase(section.getString("rarity"))).findFirst().orElse(null));
+        if (section.contains("rarity")) item.setRarity(Arrays.stream(ItemRarityWrapper.values()).filter(r -> r.name().equalsIgnoreCase(section.getString("rarity"))).findFirst().orElse(null));
         item.setFireResistant(section.getBoolean("fire_resistant"));
         item.setHideToolTips(section.getBoolean("hide_tooltips"));
 
         ConfigurationSection foodSection = section.getConfigurationSection("food");
         if (foodSection != null) {
-            FoodComponent foodComponent = new ItemStack(Material.PAPER).getItemMeta().getFood();
+            FoodComponentWrapper foodComponent = new FoodComponentWrapper();
             foodComponent.setNutrition(foodSection.getInt("nutrition"));
             foodComponent.setSaturation((float) foodSection.getDouble("saturation", 0.0));
             foodComponent.setCanAlwaysEat(foodSection.getBoolean("can_always_eat"));
@@ -175,7 +181,7 @@ public class ItemParser {
                 }
             }
             item.setFoodComponent(foodComponent);
-        }*/
+        }
     }
 
     private void parseMiscOptions(ItemBuilder item) {

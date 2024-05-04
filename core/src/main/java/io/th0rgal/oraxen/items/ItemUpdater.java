@@ -4,6 +4,8 @@ import com.jeff_media.morepersistentdatatypes.DataType;
 import com.jeff_media.persistentdataserializer.PersistentDataSerializer;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.items.helpers.FoodComponentWrapper;
+import io.th0rgal.oraxen.items.helpers.ItemProperties;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.ItemUtils;
@@ -162,24 +164,34 @@ public class ItemUpdater implements Listener {
                 armorMeta.setTrim(oldArmorMeta.getTrim());
             }
 
-            /*if (VersionUtil.atOrAbove("1.20.5")) {
-                if (newMeta.hasFood()) itemMeta.setFood(newMeta.getFood());
-                else if (oldMeta.hasFood()) itemMeta.setFood(oldMeta.getFood());
+            if (VersionUtil.atOrAbove("1.20.5")) {
+                FoodComponentWrapper newFood = ItemProperties.getFood(newMeta);
+                FoodComponentWrapper oldFood = ItemProperties.getFood(oldMeta);
+                if (newFood != null) ItemProperties.setFood(itemMeta, newFood);
+                else if (oldFood != null) ItemProperties.setFood(itemMeta, oldFood);
 
-                if (newMeta.hasEnchantmentGlintOverride()) itemMeta.setEnchantmentGlintOverride(newMeta.getEnchantmentGlintOverride());
-                else if (oldMeta.hasEnchantmentGlintOverride()) itemMeta.setEnchantmentGlintOverride(oldMeta.getEnchantmentGlintOverride());
+                Boolean newGlint = ItemProperties.getEnchantmentGlintOverride(newMeta);
+                Boolean oldGlint = ItemProperties.getEnchantmentGlintOverride(oldMeta);
+                if (newGlint != null) ItemProperties.setEnchantmentGlintOverride(itemMeta, newGlint);
+                else if (oldGlint != null) ItemProperties.setEnchantmentGlintOverride(itemMeta, oldGlint);
 
-                if (newMeta.hasMaxStackSize()) itemMeta.setMaxStackSize(newMeta.getMaxStackSize());
-                else if (oldMeta.hasMaxStackSize()) itemMeta.setMaxStackSize(oldMeta.getMaxStackSize());
+                Integer newMaxStack = ItemProperties.getMaxStackSize(newMeta);
+                Integer oldMaxStack = ItemProperties.getMaxStackSize(oldMeta);
+                if (newMaxStack != null) ItemProperties.setMaxStackSize(itemMeta, newMaxStack);
+                else if (oldMaxStack != null) ItemProperties.setMaxStackSize(itemMeta, oldMaxStack);
 
                 if (VersionUtil.isPaperServer()) {
-                    if (newMeta.hasItemName()) itemMeta.itemName(newMeta.itemName());
-                    else if (oldMeta.hasItemName()) itemMeta.itemName(oldMeta.itemName());
+                    net.kyori.adventure.text.Component newItemName = ItemProperties.itemName(newMeta);
+                    net.kyori.adventure.text.Component oldItemName = ItemProperties.itemName(oldMeta);
+                    if (newItemName != null) ItemProperties.itemName(itemMeta, newItemName);
+                    else if (oldItemName != null) ItemProperties.itemName(itemMeta, oldItemName);
                 } else {
-                    if (newMeta.hasItemName()) itemMeta.setItemName(newMeta.getItemName());
-                    else if (oldMeta.hasItemName()) itemMeta.setItemName(oldMeta.getItemName());
+                    String newItemName = ItemProperties.getItemName(newMeta);
+                    String oldItemName = ItemProperties.getItemName(oldMeta);
+                    if (newItemName != null) ItemProperties.setItemName(itemMeta, newItemName);
+                    else if (oldItemName != null) ItemProperties.setItemName(itemMeta, oldItemName);
                 }
-            }*/
+            }
 
             // On 1.20.5+ we use ItemName which is different from userchanged displaynames
             // Thus removing the need for this logic

@@ -9,6 +9,9 @@ import io.th0rgal.oraxen.compatibilities.provided.ecoitems.WrappedEcoItem;
 import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.items.helpers.FoodComponentWrapper;
+import io.th0rgal.oraxen.items.helpers.ItemProperties;
+import io.th0rgal.oraxen.items.helpers.ItemRarityWrapper;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.PotionUtils;
@@ -69,14 +72,14 @@ public class ItemBuilder {
     private ItemStack finalItemStack;
 
     // 1.20.5+ properties
-    /*@Nullable private FoodComponent foodComponent;
+    @Nullable private FoodComponentWrapper foodComponent;
     @Nullable private Boolean enchantmentGlintOverride;
     @Nullable private Integer maxStackSize;
     @Nullable private String itemName;
     @Nullable private Integer durability;
     private boolean fireResistant;
     private boolean hideToolTips;
-    @Nullable private ItemRarity rarity;*/
+    @Nullable private ItemRarityWrapper rarity;
 
 
     public ItemBuilder(final Material material) {
@@ -157,17 +160,17 @@ public class ItemBuilder {
 
         enchantments = new HashMap<>();
 
-        /*if (VersionUtil.atOrAbove("1.20.5")) {
-            itemName = itemMeta.getItemName();
-            durability = itemMeta instanceof Damageable damageable && damageable.hasMaxDamage() ? damageable.getMaxDamage() : null;
-            fireResistant = itemMeta.isFireResistant();
-            hideToolTips = itemMeta.isHideTooltip();
-            foodComponent = itemMeta.hasFood() ? itemMeta.getFood() : null;
-            enchantmentGlintOverride = itemMeta.hasEnchantmentGlintOverride() ? itemMeta.getEnchantmentGlintOverride() : null;
-            rarity = itemMeta.hasRarity() ? itemMeta.getRarity() : null;
-            maxStackSize = itemMeta.hasMaxStackSize() ? itemMeta.getMaxStackSize() : null;
+        if (VersionUtil.atOrAbove("1.20.5")) {
+            itemName = ItemProperties.getItemName(itemMeta);
+            durability = ItemProperties.getDurability(itemMeta);
+            fireResistant = ItemProperties.isFireResistant(itemMeta);
+            hideToolTips = ItemProperties.isHideTooltip(itemMeta);
+            foodComponent = ItemProperties.getFood(itemMeta);
+            enchantmentGlintOverride = ItemProperties.getEnchantmentGlintOverride(itemMeta);
+            rarity = ItemProperties.getRarity(itemMeta);
+            maxStackSize = ItemProperties.getMaxStackSize(itemMeta);
             if (maxStackSize != null && maxStackSize == 1) unstackable = true;
-        }*/
+        }
 
     }
 
@@ -196,7 +199,7 @@ public class ItemBuilder {
         return this;
     }
 
-    /*public boolean hasItemName() {
+    public boolean hasItemName() {
         return itemName != null;
     }
 
@@ -208,7 +211,7 @@ public class ItemBuilder {
     public ItemBuilder setItemName(String itemName) {
         this.itemName = itemName;
         return this;
-    }*/
+    }
 
     public boolean hasLores() {
         return lore != null && !lore.isEmpty();
@@ -237,10 +240,10 @@ public class ItemBuilder {
         return this;
     }
 
-   /* public ItemBuilder setDurability(@Nullable Integer durability) {
+   public ItemBuilder setDurability(@Nullable Integer durability) {
         this.durability = durability;
         return this;
-    }*/
+    }
 
     /**
      * Check if the ItemBuilder has color.
@@ -287,16 +290,16 @@ public class ItemBuilder {
         return this;
     }
 
-    /*public boolean hasFoodComponent() {
+    public boolean hasFoodComponent() {
         return VersionUtil.atOrAbove("1.20.5") && foodComponent != null;
     }
 
     @Nullable
-    public FoodComponent getFoodComponent() {
+    public FoodComponentWrapper getFoodComponent() {
         return foodComponent;
     }
 
-    public ItemBuilder setFoodComponent(FoodComponent foodComponent) {
+    public ItemBuilder setFoodComponent(FoodComponentWrapper foodComponent) {
         this.foodComponent = foodComponent;
         return this;
     }
@@ -320,11 +323,11 @@ public class ItemBuilder {
     }
 
     @Nullable
-    public ItemRarity getRarity() {
+    public ItemRarityWrapper getRarity() {
         return rarity;
     }
 
-    public ItemBuilder setRarity(@Nullable ItemRarity rarity) {
+    public ItemBuilder setRarity(@Nullable ItemRarityWrapper rarity) {
         this.rarity = rarity;
         return this;
     }
@@ -353,7 +356,7 @@ public class ItemBuilder {
         this.maxStackSize = maxStackSize;
         this.setUnstackable(maxStackSize != null && maxStackSize == 1);
         return this;
-    }*/
+    }
 
     public ItemBuilder setBasePotionType(final PotionType potionType) {
         this.potionType = potionType;
@@ -494,20 +497,20 @@ public class ItemBuilder {
 
         itemMeta.setUnbreakable(unbreakable);
 
-        /*if (VersionUtil.atOrAbove("1.20.5")) {
-            itemMeta.setItemName(itemName);
-            itemMeta.setMaxStackSize(maxStackSize);
-            itemMeta.setEnchantmentGlintOverride(enchantmentGlintOverride);
-            itemMeta.setRarity(rarity);
-            itemMeta.setFood(foodComponent);
-            itemMeta.setFireResistant(fireResistant);
-            itemMeta.setHideTooltip(hideToolTips);
-        } else {*/
+        if (VersionUtil.atOrAbove("1.20.5")) {
+            ItemProperties.setItemName(itemMeta, itemName);
+            ItemProperties.setMaxStackSize(itemMeta, maxStackSize);
+            ItemProperties.setEnchantmentGlintOverride(itemMeta, enchantmentGlintOverride);
+            ItemProperties.setRarity(itemMeta, rarity);
+            ItemProperties.setFood(itemMeta, foodComponent);
+            ItemProperties.setFireResistant(itemMeta, fireResistant);
+            ItemProperties.setHideTooltip(itemMeta, hideToolTips);
+        } else {
             if (displayName != null) {
                 pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, displayName);
                 itemMeta.setDisplayName(displayName);
             }
-        /*}*/
+        }
 
         if (itemFlags != null)
             itemMeta.addItemFlags(itemFlags.toArray(new ItemFlag[0]));
