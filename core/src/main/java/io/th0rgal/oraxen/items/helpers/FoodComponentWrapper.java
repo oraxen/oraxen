@@ -21,8 +21,8 @@ public class FoodComponentWrapper {
     private List<FoodEffectWrapper> effects;
 
     public FoodComponentWrapper() {
-        nutrition = 0;
-        saturation = 0.0F;
+        nutrition = 1;
+        saturation = 0.1F;
         canAlwaysEat = false;
         eatSeconds = DEFAULT_EAT_SECONDS;
         effects = new ArrayList<>();
@@ -31,12 +31,12 @@ public class FoodComponentWrapper {
     public static FoodComponentWrapper fromVanillaFoodComponent(@Nullable Object foodComponent) {
         FoodComponentWrapper foodWrapper = new FoodComponentWrapper();
         if (foodComponent != null) try {
-            Class<?> foodClass = foodComponent.getClass();
             foodWrapper = foodWrapper
-                    .setNutrition((Integer) foodClass.getDeclaredMethod("getNutrition").invoke(foodComponent))
-                    .setSaturation((Float) foodClass.getDeclaredMethod("getSaturation").invoke(foodComponent))
-                    .setCanAlwaysEat((Boolean) foodClass.getDeclaredMethod("getCanAlwaysEat").invoke(foodComponent))
-                    .setEatSeconds((Float) foodClass.getDeclaredMethod("getEatSeconds").invoke(foodComponent))
+                    .setNutrition((Integer) ItemPropertiesWrapper.getProperty(foodComponent, "getNutrition"))
+                    .setSaturation((Float) ItemPropertiesWrapper.getProperty(foodComponent, "getSaturation"))
+                    .setCanAlwaysEat((Boolean) ItemPropertiesWrapper.getProperty(foodComponent, "canAlwaysEat"))
+                    .setEatSeconds((Float) ItemPropertiesWrapper.getProperty(foodComponent, "getEatSeconds"))
+                    .setEffects(new ArrayList<>())
             //TODO .setEffects(foodClass.getDeclaredMethod("getEffects"))
             ;
         } catch (Exception e) {
@@ -53,12 +53,13 @@ public class FoodComponentWrapper {
         Object foodComponent = new Object();
         try {
             ItemMeta tempMeta = new ItemStack(Material.PAPER).getItemMeta();
-            foodComponent = tempMeta.getClass().getDeclaredMethod("getFood").invoke(tempMeta);
-            foodComponent.getClass().getDeclaredMethod("setNutrition", Integer.class).invoke(foodComponent, nutrition);
-            foodComponent.getClass().getDeclaredMethod("setSaturation", Float.class).invoke(foodComponent, saturation);
-            foodComponent.getClass().getDeclaredMethod("setCanAlwaysEat", Boolean.class).invoke(foodComponent, canAlwaysEat);
-            foodComponent.getClass().getDeclaredMethod("setEatSeconds", Float.class).invoke(foodComponent, eatSeconds);
-            foodComponent.getClass().getDeclaredMethod("setEffects", List.class).invoke(foodComponent, effects);
+            foodComponent = ItemPropertiesWrapper.getProperty(tempMeta, "getFood");
+            if (foodComponent == null) return null;
+            ItemPropertiesWrapper.setProperty(foodComponent, "setNutrition", Integer.class, nutrition);
+            ItemPropertiesWrapper.setProperty(foodComponent, "setSaturation", Integer.class, saturation);
+            ItemPropertiesWrapper.setProperty(foodComponent, "setCanAlwaysEat", Integer.class, canAlwaysEat);
+            ItemPropertiesWrapper.setProperty(foodComponent, "setEatSeconds", Integer.class, eatSeconds);
+            ItemPropertiesWrapper.setProperty(foodComponent, "setEffects", Integer.class, effects);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -71,7 +72,7 @@ public class FoodComponentWrapper {
     }
 
     public FoodComponentWrapper setNutrition(int nutrition) {
-        this.nutrition = nutrition;
+        this.nutrition = Math.max(nutrition, 0);
         return this;
     }
 
@@ -80,7 +81,7 @@ public class FoodComponentWrapper {
     }
 
     public FoodComponentWrapper setSaturation(float saturation) {
-        this.saturation = saturation;
+        this.saturation = Math.max(saturation, 0.0f);
         return this;
     }
 
@@ -98,7 +99,7 @@ public class FoodComponentWrapper {
     }
 
     public FoodComponentWrapper setEatSeconds(float eatSeconds) {
-        this.eatSeconds = eatSeconds;
+        this.eatSeconds = Math.min(eatSeconds, 0.0F);
         return this;
     }
 

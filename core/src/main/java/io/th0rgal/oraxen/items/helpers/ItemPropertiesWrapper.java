@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.items.helpers;
 
-import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -13,21 +12,21 @@ public class ItemPropertiesWrapper {
 
     private static final Map<String, Method> methodCache = new HashMap<>();
 
-    public static void setProperty(ItemMeta itemMeta, String propertyName, @NotNull Object propertyValue) {
-        setProperty(itemMeta, propertyName, propertyValue.getClass(), propertyValue);
+    public static void setProperty(@NotNull Object  object, String propertyName, @NotNull Object propertyValue) {
+        setProperty(object, propertyName, propertyValue.getClass(), propertyValue);
     }
 
-    public static void setProperty(ItemMeta itemMeta, String propertyName, String propertyClass, @Nullable Object propertyValue) throws ClassNotFoundException {
-        setProperty(itemMeta, propertyName, Class.forName(propertyClass), propertyValue);
+    public static void setProperty(@NotNull Object  object, String propertyName, String propertyClass, @Nullable Object propertyValue) throws ClassNotFoundException {
+        setProperty(object, propertyName, Class.forName(propertyClass), propertyValue);
     }
 
-    public static void setProperty(ItemMeta itemMeta, String propertyName, Class<?> propertyClass, @Nullable Object propertyValue) {
-        if (itemMeta == null || propertyName == null) return;
+    public static void setProperty(@NotNull Object object, String propertyName, Class<?> propertyClass, @Nullable Object propertyValue) {
+        if (propertyName == null) return;
 
         try {
             Method method = methodCache.computeIfAbsent(propertyName, key -> {
                 try {
-                    return itemMeta.getClass().getDeclaredMethod(key, propertyClass);
+                    return object.getClass().getDeclaredMethod(key, propertyClass);
                 } catch (NoSuchMethodException e) {
                     return null;
                 }
@@ -35,7 +34,7 @@ public class ItemPropertiesWrapper {
 
             if (method != null) {
                 method.setAccessible(true);
-                method.invoke(itemMeta, propertyValue);
+                method.invoke(object, propertyValue);
             }
         } catch (IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
@@ -43,13 +42,13 @@ public class ItemPropertiesWrapper {
     }
 
     @Nullable
-    public static Object getProperty(ItemMeta itemMeta, String propertyName) {
-        if (itemMeta == null || propertyName == null) return null;
+    public static Object getProperty(@NotNull Object object, String propertyName) {
+        if (propertyName == null) return null;
 
         try {
             Method method = methodCache.computeIfAbsent(propertyName, key -> {
                 try {
-                    return itemMeta.getClass().getDeclaredMethod(key);
+                    return object.getClass().getDeclaredMethod(key);
                 } catch (NoSuchMethodException e) {
                     return null;
                 }
@@ -57,7 +56,7 @@ public class ItemPropertiesWrapper {
 
             if (method != null) {
                 method.setAccessible(true);
-                return method.invoke(itemMeta);
+                return method.invoke(object);
             }
         } catch (IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
