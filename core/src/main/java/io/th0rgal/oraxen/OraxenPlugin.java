@@ -25,6 +25,7 @@ import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.LU;
 import io.th0rgal.oraxen.utils.NoticeUtils;
+import io.th0rgal.oraxen.utils.PluginUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.actions.ClickActionManager;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorEquipEvent;
@@ -38,7 +39,6 @@ import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
-import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.Nullable;
 
@@ -99,14 +99,13 @@ public class OraxenPlugin extends JavaPlugin {
 
         if (Settings.KEEP_UP_TO_DATE.toBool())
             new SettingsUpdater().handleSettingsUpdate();
-        final PluginManager pluginManager = Bukkit.getPluginManager();
-        if (pluginManager.isPluginEnabled("ProtocolLib")) {
+        if (PluginUtils.isEnabled("ProtocolLib")) {
             protocolManager = ProtocolLibrary.getProtocolManager();
             if (Settings.FORMAT_INVENTORY_TITLES.toBool())
-                protocolManager.addPacketListener(new InventoryPacketListener());
-            protocolManager.addPacketListener(new TitlePacketListener());
+                ProtocolLibrary.getProtocolManager().addPacketListener(new InventoryPacketListener());
+            ProtocolLibrary.getProtocolManager().addPacketListener(new TitlePacketListener());
         } else Logs.logWarning("ProtocolLib is not on your server, some features will not work");
-        pluginManager.registerEvents(new CustomArmorListener(), this);
+        Bukkit.getPluginManager().registerEvents(new CustomArmorListener(), this);
         NMSHandlers.setupHandler();
         packGenerator = new PackGenerator();
 
@@ -117,7 +116,7 @@ public class OraxenPlugin extends JavaPlugin {
         hudManager.registerEvents();
         hudManager.registerTask();
         hudManager.parsedHudDisplays = hudManager.generateHudDisplays();
-        pluginManager.registerEvents(new ItemUpdater(), this);
+        Bukkit.getPluginManager().registerEvents(new ItemUpdater(), this);
         RecipesManager.load(this);
         invManager = new InvManager();
         ArmorEquipEvent.registerListener(this);
@@ -147,9 +146,10 @@ public class OraxenPlugin extends JavaPlugin {
         FurnitureFactory.unregisterEvolution();
         FurnitureFactory.removeAllFurniturePackets();
         for (Player player : Bukkit.getOnlinePlayers())
-            if (GlyphHandlers.isNms()) NMSHandlers.getHandler().uninject(player);
+            if (GlyphHandlers.isNms()) NMSHandlers.getHandler().glyphHandler().uninject(player);
 
         CompatibilitiesManager.disableCompatibilities();
+        CommandAPI.onDisable();
         Message.PLUGIN_UNLOADED.log();
     }
 

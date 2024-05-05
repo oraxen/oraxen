@@ -1,8 +1,8 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.efficiency;
 
-import io.th0rgal.oraxen.OraxenPlugin;
+import com.comphenix.protocol.ProtocolLibrary;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
-import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.utils.PluginUtils;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 
@@ -13,7 +13,11 @@ public class EfficiencyMechanicFactory extends MechanicFactory {
     public EfficiencyMechanicFactory(ConfigurationSection section) {
         super(section);
         instance = this;
-        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new EfficiencyMechanicListener());
+        if (PluginUtils.isEnabled("ProtocolLib")) {
+            ProtocolLibrary.getProtocolManager().getPacketListeners().stream().filter(l -> l.getClass().equals(EfficiencyMechanicListener.class))
+                            .findFirst().ifPresent(l -> ProtocolLibrary.getProtocolManager().removePacketListener(l));
+            ProtocolLibrary.getProtocolManager().addPacketListener(new EfficiencyMechanicListener());
+        }
     }
 
     @Override

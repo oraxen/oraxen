@@ -1,0 +1,88 @@
+general:
+  prefix: "<gradient:#9055FF:#13E2DA>Oraxen <gray>| "
+  no_permission: "<prefix><#fa4943>У вас нет разрешения <b><permission></b> на это!"
+  work_in_progress: "<prefix><#facc43>Эта функция находится в процессе разработки!"
+  not_player: "<prefix><#fa4943>Это может сделать только игрок!"
+  cooldown: "<prefix><#facc43>Пожалуйста, подождите ещё <time> сек!"
+  reload: "<prefix><#55ffa4>Успешно перезагружено"
+  pack_uploading: "<prefix><#D5D6D8>Автоматическая выгрузка ресурспака включена, выгрузка..."
+  pack_not_uploaded: "<prefix><#fa4943>Ресурспак не выгружен"
+  pack_uploaded: "<prefix><#55ffa4>Ресурспак выгружен на <url> за <delay> мс"
+  pack_regenerated: "<prefix><#55ffa4>Ресурспак успешно перегенерирован"
+  updating_config: "<prefix><#facc43>Опция конфигурации \"<option>\" не найдена, добавляется!"
+  removing_config: "<prefix><#facc43>Опция конфигурации \"<option>\" помечена для удаления, удаляется!"
+  configs_validation_failed: "<prefix><#fa4943>Проверка конфигураций не удалась, плагин автоматически отключён!"
+  repaired_items: "<prefix><#55ffa4><amount> предмет(ов) успешно отремонтировано!"
+  cannot_be_repaired: "<prefix><#fa4943>Этот предмет не может быть отремонтирован!"
+  cannot_be_repaired_invalid: "<prefix><#fa4943>Вам нужно держать предмет в руке!"
+  updated_items: "<prefix><#55ffa4><amount> предмет(ов) успешно обновлено для <player>!"
+  zip_browse_error: "<prefix><#fa4943>Произошла ошибка при просмотре zip"
+  bad_recipe: "<prefix><#fa4943>Рецепт \"<recipe>\" недействителен, убедитесь, что все его ингредиенты существуют в вашей конфигурации"
+  item_not_found: "<prefix><#fa4943>Предмет \"<item>\" не найден"
+  plugin_hooks: "<prefix><#55ffa4>Обнаружен плагин \"<plugin>\", включение интеграции"
+  plugin_unhooks: "<prefix><#55ffa4>Отключение интеграции для плагина \"<plugin>\""
+  not_enough_exp: "<prefix><#fa4943>Вам нужно больше очков опыта, чтобы сделать это"
+  not_enough_space: "<prefix><#fa4943>Вам нужно больше места, чтобы разместить эту декорацию"
+  exit_menu: "<gradient:#FA7CBB:#F14658>Выход"
+  no_emojis: "<prefix><#fa4943>Эмодзи не найдены"
+
+logs:
+  loaded: "<prefix><#55ffa4>Успешно загружено на <os>"
+  unloaded: "<prefix><#55ffa4>Успешно выгружено"
+  no_armor_item: "<prefix><#fa4943>Не найден предмет, соответствующий <name>. Невозможно использовать <armor_layer_file>"
+  duplicate_armor_color: "<prefix><#fa4943>Комплект брони <first_armor_prefix> использует тот же цвет, что и <second_armor_prefix> с другой текстурой"
+
+command:
+  help: "<prefix><#b8bbc2>Доступные команды
+        \n<hover:show_text:\"<gray>fill reload command\"><click:SUGGEST_COMMAND:/oraxen reload ><#6f737d>/o
+          <#b8bbc2>reload <#fa8943>тип</click></hover>  <#6f737d>»<#b8bbc2> перезагрузить плагин
+        \n<hover:show_text:\"<gray>fill inv command\"><click:SUGGEST_COMMAND:/oraxen inv><#6f737d>/o
+          <#b8bbc2>inventory</click></hover>  <#6f737d>»<#b8bbc2> показать предметы oraxen в инвентаре
+        \n<hover:show_text:\"<gray>fill pack command\"><click:SUGGEST_COMMAND:/oraxen pack ><#6f737d>/o
+          <#b8bbc2>pack <#fa8943>тип <#43c9fa>цель</click></hover>  <#6f737d>»<#b8bbc2> отправить ресурспак игроку
+        \n<hover:show_text:\"<gray>fill repair command\"><click:SUGGEST_COMMAND:/oraxen repair ><#6f737d>/o
+          <#b8bbc2>repair <#fa8943>тип</click></hover>  <#6f737d>»<#b8bbc2> отремонтировать один или все ваши предметы
+        \n<hover:show_text:\"<gray>fill give command\"><click:SUGGEST_COMMAND:/oraxen give ><#6f737d>/o
+          <#b8bbc2>give <#43c9fa>цель <#fa4362>предмет <#43fa8c>количество</click></hover>  <#6f737d>»<#b8bbc2> получить предмет oraxen
+        \n<hover:show_text:\"<gray>fill recipes show command\"><click:SUGGEST_COMMAND:/oraxen recipes show ><#6f737d>/o
+          <#b8bbc2>recipes show <#fa8943>тип</click></hover>  <#6f737d>»<#b8bbc2> показать рецепты
+        \n<hover:show_text:\"<gray>fill recipes builder command\"><click:SUGGEST_COMMAND:/oraxen recipes builder ><#6f737d>/o
+          <#b8bbc2>recipes builder <#fa8943>тип</click></hover>  <#6f737d>»<#b8bbc2> открыть конструктор рецептов
+        \n<hover:show_text:\"<gray>fill recipes save command\"><click:SUGGEST_COMMAND:/oraxen recipes save ><#6f737d>/o
+          <#b8bbc2>recipes save <#faf443>имя</click></hover>  <#6f737d>»<#b8bbc2> сохранить рецепт"
+
+  join: |-
+    <dark_gray><st>                             </st><dark_gray>{<aqua><bold>Ресурспак</bold><dark_gray>}<dark_gray><st>                          </st>
+    <gray><bold>Чтобы увидеть новые предметы, вам нужно использовать специальный ресурспак (но не волнуйтесь, это не мешает вам использовать свои собственные одновременно).</bold>
+    <dark_gray>»<gray> Попробуйте загрузить его прямо в игре, <click:run_command:"oraxen pack send @p"><hover:show_text:"<red>! загрузка ресурспака из игры может вызвать задержки"><red><bold>НАЖМИТЕ ЗДЕСЬ</bold></hover></click>
+    <dark_gray>»<gray> Чтобы скачать его архивом, <hover:show_text:"<pack_url> <green>! установите его в  Настройки/Наборы ресурсов в вашей игре"><green><bold><click:OPEN_URL:"<pack_url>">НАЖМИТЕ ЗДЕСЬ</click></bold></hover>
+
+  recipe:
+    no_builder: "<prefix><#fa4943>Пожалуйста, сначала создайте рецепт!"
+    no_furnace: "<prefix><#fa4943>Эта опция доступна только для Рецептов Переплавки!"
+    no_name: "<prefix><#fa4943>Пожалуйста, <gradient:#FA7CBB:#F14658>укажите имя для рецепта!"
+    no_recipes: "<prefix><#fa4943>Нет рецептов для отображения!"
+    no_item: "<prefix><#fa4943>Пожалуйста, укажите предмет!"
+    save: "<prefix><#55ffa4>Рецепт '<name>' успешно сохранен!"
+
+  give:
+    player: "<prefix><#55ffa4>Вы выдали игроку <#43c9fa><player><#55ffa4> <#43fa8c><amount><#6f737d> × <#fa4362><item><#55ffa4>!"
+    players: "<prefix><#55ffa4>Вы выдали <#43c9fa><count><#55ffa4> игрокам <#43fa8c><amount><#6f737d> × <#fa4362><item><#55ffa4>!"
+
+  dye:
+    success: "<prefix><#55ffa4>Вы успешно изменили цвет этого предмета!"
+    wrong_color: "<prefix><#fa4943>Цвет не распознан, попробуйте шестнадцатеричный цвет, например #FFFFFF!"
+    failed: "<prefix><#fa4943>Вы не можете изменить цвет этого предмета!"
+
+  hud:
+    no_hud: "<prefix><#fa4943>Нет HUD с именем '<hud_id>'!"
+    toggle_on: "<prefix><#55ffa4>HUD '<hud_id>' включён!"
+    toggle_off: "<prefix><#fa4943>HUD '<hud_id>' отключен!"
+
+  debug.toggle: "<prefix><#55ffa4>Режим отладки теперь <#43fa8c><state><#55ffa4>!"
+  version: "<prefix><#55ffa4>Версия Oraxen: <#43fa8c><version><#55ffa4>!"
+
+mechanics:
+  not_enough_exp: "<prefix><#fa4943>Вам нужно больше очков опыта, чтобы сделать это"
+  backpack_stacked: "<prefix><#fa4943>Невозможно открыть стакнутый рюкзак"
+  jukebox_now_playing: "<dark_purple>Сейчас играет: <disc>"

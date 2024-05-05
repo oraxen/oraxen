@@ -5,17 +5,22 @@ import io.th0rgal.oraxen.compatibilities.provided.ecoitems.WrappedEcoItem;
 import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.items.helpers.FoodComponentWrapper;
+import io.th0rgal.oraxen.items.helpers.ItemRarityWrapper;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.PotionUtils;
 import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
@@ -88,7 +93,7 @@ public class ItemParser {
         return templateItem != null;
     }
 
-    public static Component parseComponentDisplayName(String miniString) {
+    public static Component parseComponentItemName(String miniString) {
         if (miniString.isEmpty()) return Component.empty();
         Component displayName = AdventureUtils.MINI_MESSAGE.deserialize(miniString).colorIfAbsent(NamedTextColor.WHITE);
         if (!displayName.style().hasDecoration(TextDecoration.ITALIC))
@@ -113,21 +118,72 @@ public class ItemParser {
     }
 
     private ItemBuilder applyConfig(ItemBuilder item) {
-        item.displayName(parseComponentDisplayName(section.getString("displayname", "")));
+        if (!VersionUtil.atOrAbove("1.20.5"))
+            item.displayName(parseComponentItemName(section.getString("displayname", "")));
 
         //if (section.contains("type")) item.setType(Material.getMaterial(section.getString("type", "PAPER")));
         if (section.contains("lore")) item.lore(section.getStringList("lore").stream().map(ItemParser::parseComponentLore).toList());
-        if (section.contains("durability")) item.setDurability((short) section.getInt("durability"));
         if (section.contains("unbreakable")) item.setUnbreakable(section.getBoolean("unbreakable", false));
         if (section.contains("unstackable")) item.setUnstackable(section.getBoolean("unstackable", false));
         if (section.contains("color")) item.setColor(Utils.toColor(section.getString("color", "#FFFFFF")));
         if (section.contains("trim_pattern")) item.setTrimPattern(Key.key(section.getString("trim_pattern", "")));
+
+        parse_1_20_5_Properties(item);
 
         parseMiscOptions(item);
         parseVanillaSections(item);
         parseOraxenSections(item);
         item.setOraxenMeta(oraxenMeta);
         return item;
+    }
+
+    private void parse_1_20_5_Properties(ItemBuilder item) {
+        if (!VersionUtil.atOrAbove("1.20.5")) return;
+
+        if (section.contains("unstackable")) item.setMaxStackSize(1);
+        else if (section.contains("max_stack_size")) item.setMaxStackSize(Math.min(Math.max(section.getInt("max_stack_size"), 1), 99));
+        if (item.hasMaxStackSize() && item.getMaxStackSize() == 1) item.setUnstackable(true);
+
+        if (section.contains("itemname")) item.itemName(parseComponentItemName(section.getString("itemname", "")));
+        else item.itemName(parseComponentItemName(section.getString("displayname", "")));
+
+        if (section.contains("enchantment_glint_override")) item.setEnchantmentGlindOverride(section.getBoolean("enchantment_glint_override"));
+        if (section.contains("durability")) {
+            item.setDamagedOnBlockBreak(section.getBoolean("durability.damage_block_break"));
+            item.setDamagedOnEntityHit(section.getBoolean("durability.damage_entity_hit"));
+            item.setDurability(Math.max(section.getInt("durability.value"), section.getInt("durability", 1)));
+        }
+        if (section.contains("rarity")) item.setRarity(Arrays.stream(ItemRarityWrapper.values()).filter(r -> r.name().equalsIgnoreCase(section.getString("rarity"))).findFirst().orElse(null));
+        item.setFireResistant(section.getBoolean("fire_resistant"));
+        item.setHideToolTips(section.getBoolean("hide_tooltips"));
+
+        ConfigurationSection foodSection = section.getConfigurationSection("food");
+        if (foodSection != null) {
+            FoodComponentWrapper foodComponent = new FoodComponentWrapper();
+            foodComponent.setNutrition(foodSection.getInt("nutrition"));
+            foodComponent.setSaturation((float) foodSection.getDouble("saturation", 0.0));
+            foodComponent.setCanAlwaysEat(foodSection.getBoolean("can_always_eat"));
+            foodComponent.setEatSeconds((float) foodSection.getDouble("eat_seconds", 1.6));
+
+            ConfigurationSection effectsSection = foodSection.getConfigurationSection("effects");
+            if (effectsSection != null) for (String effect : effectsSection.getKeys(false)) {
+                PotionEffectType effectType = PotionUtils.getEffectType(effect);
+                if (effectType == null)
+                    Logs.logError("Invalid potion effect: " + effect + ", in " + StringUtils.substringBefore(effectsSection.getCurrentPath(), ".") + " food-property!");
+                else {
+                    foodComponent.addEffect(
+                            new PotionEffect(effectType,
+                                    foodSection.getInt("duration", 1) * 20,
+                                    foodSection.getInt("amplifier", 0),
+                                    foodSection.getBoolean("ambient", true),
+                                    foodSection.getBoolean("show_particles", true),
+                                    foodSection.getBoolean("show_icon", true)),
+                            (float) foodSection.getDouble("probability", 1.0)
+                    );
+                }
+            }
+            item.setFoodComponent(foodComponent);
+        }
     }
 
     private void parseMiscOptions(ItemBuilder item) {

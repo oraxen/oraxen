@@ -1,0 +1,90 @@
+general:
+  prefix: "<gradient:#9055FF:#13E2DA>Oraxen <gray>| "
+  no_permission: "<prefix><#fa4943>これを行うための<b><permission></b>権限がありません！"
+  work_in_progress: "<prefix><#facc43>この機能は進行中です！"
+  not_player: "<prefix><#fa4943>これはプレイヤーのみが行えます！"
+  cooldown: "<prefix><#facc43>あと<time>秒お待ちください！"
+  reload: "<prefix><#55ffa4>正常にリロードされました"
+  pack_uploading: "<prefix><#D5D6D8>リソースパックの自動アップロードが有効になっています、アップロード中..."
+  pack_not_uploaded: "<prefix><#fa4943>リソースパックがアップロードされていません"
+  pack_uploaded: "<prefix><#55ffa4>リソースパックが<delay>ミリ秒で<url>にアップロードされました"
+  pack_regenerated: "<prefix><#55ffa4>リソースパックが正常に再生成されました"
+  updating_config: "<prefix><#facc43>設定オプション\"<option>\"が見つかりませんでした、追加しています！"
+  removing_config: "<prefix><#facc43>設定オプション\"<option>\"が削除のマークされました、削除しています！"
+  configs_validation_failed: "<prefix><#fa4943>設定の検証に失敗しました、プラグインが自動的に無効になりました！"
+  repaired_items: "<prefix><#55ffa4><amount>個のアイテムが修復されました！"
+  cannot_be_repaired: "<prefix><#fa4943>このアイテムは修復できません！"
+  cannot_be_repaired_invalid: "<prefix><#fa4943>手に有効なアイテムを持っている必要があります！"
+  updated_items: "<prefix><#55ffa4><amount>個のアイテムが<player>に対して正常に更新されました！"
+  zip_browse_error: "<prefix><#fa4943>ZIPのブラウズ中にエラーが発生しました"
+  bad_recipe: "<prefix><#fa4943>レシピ\"<recipe>\"が無効です、すべての材料が構成ファイルに存在することを確認してください"
+  item_not_found: "<prefix><#fa4943>アイテム\"<item>\"が見つかりません"
+  plugin_hooks: "<prefix><#55ffa4>プラグイン\"<plugin>\"が検出されました、フックを有効にしています"
+  plugin_unhooks: "<prefix><#55ffa4>プラグイン\"<plugin>\"のフックを解除しています"
+  not_enough_exp: "<prefix><#fa4943>これを行うにはもっと経験値が必要です"
+  not_enough_space: "<prefix><#fa4943>この家具を置くためのスペースが足りません"
+  exit_menu: "<gradient:#FA7CBB:#F14658>終了"
+  no_emojis: "<prefix><#fa4943>絵文字が見つかりません"
+
+logs:
+  loaded: "<prefix><#55ffa4><os>で正常に読み込まれました"
+  unloaded: "<prefix><#55ffa4>正常にアンロードされました"
+  no_armor_item: "<prefix><#fa4943><name>に一致するアイテムが見つかりません。 <armor_layer_file>を使用できません"
+  duplicate_armor_color: "<prefix><#fa4943><first_armor_prefix>のアーマーセットが<second_armor_prefix>とは異なるテクスチャを使用して同じ色を使用しています"
+
+command:
+  help: "<prefix><#b8bbc2>利用可能なコマンド
+        \n<hover:show_text:\"<gray>fill reload command\"><click:SUGGEST_COMMAND:/oraxen reload ><#6f737d>/o
+          <#b8bbc2>reload <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> プラグインをリロードします
+        \n<hover:show_text:\"<gray>fill inv command\"><click:SUGGEST_COMMAND:/oraxen inv><#6f737d>/o
+          <#b8bbc2>inventory</click></hover>  <#6f737d>»<#b8bbc2> インベントリ内のoraxenアイテムを表示します
+        \n<hover:show_text:\"<gray>fill pack command\"><click:SUGGEST_COMMAND:/oraxen pack ><#6f737d>/o
+          <#b8bbc2>pack <#fa8943>type <#43c9fa>target</click></hover>  <#6f737d>»<#b8bbc2> oraxenパックを送信します
+        \n<hover:show_text:\"<gray>fill repair command\"><click:SUGGEST_COMMAND:/oraxen repair ><#6f737d>/o
+          <#b8bbc2>repair <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> アイテムを修復します
+        \n<hover:show_text:\"<gray>fill give command\"><click:SUGGEST_COMMAND:/oraxen give ><#6f737d>/o
+          <#b8bbc2>give <#43c9fa>target <#fa4362>item <#43fa8c>amount</click></hover>  <#6f737d>»<#b8bbc2> oraxenアイテムを与えます
+        \n<hover:show_text:\"<gray>fill recipes show command\"><click:SUGGEST_COMMAND:/oraxen recipes show ><#6f737d>/o
+          <#b8bbc2>recipes show <#fa8943>type</
+
+click></hover>  <#6f737d>»<#b8bbc2> レシピを表示します
+        \n<hover:show_text:\"<gray>fill recipes builder command\"><click:SUGGEST_COMMAND:/oraxen recipes builder ><#6f737d>/o
+          <#b8bbc2>recipes builder <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> レシピビルダーを開きます
+        \n<hover:show_text:\"<gray>fill recipes save command\"><click:SUGGEST_COMMAND:/oraxen recipes save ><#6f737d>/o
+          <#b8bbc2>recipes save <#faf443>name</click></hover>  <#6f737d>»<#b8bbc2> レシピを保存します"
+
+  join: |-
+    <dark_gray><st>                           </st><dark_gray>{<aqua><bold>リソースパック</bold><dark_gray>}<dark_gray><st>                        </st>
+    <gray><bold>新しいアイテムを見るには特別なリソースパックを使用する必要があります（ただし、心配しないでください、これにより自分のリソースパックを同時に使用できるようになります）。</bold>
+    <dark_gray>»<gray> ゲームから直接読み込むためには、<click:run_command:"oraxen pack send @p"><hover:show_text:"<red>！ゲームからリソースパックを読み込むと遅延が発生することがあります"><red><bold>ここをクリック</bold></hover></click>
+    <dark_gray>»<gray> インターネットからダウンロードするには、<hover:show_text:"<pack_url> <green>！オプション/リソースパックからゲームにインストールしてください"><green><bold><click:OPEN_URL:"<pack_url>">ここをクリック</click></bold></hover>
+
+  recipe:
+    no_builder: "<prefix><#fa4943>まずレシピを作成してください！"
+    no_furnace: "<prefix><#fa4943>このオプションは、溶鉱炉レシピのみ利用可能です！"
+    no_name: "<prefix><#fa4943>レシピに名前を指定してください！"
+    no_recipes: "<prefix><#fa4943>表示するレシピがありません！"
+    no_item: "<prefix><#fa4943>アイテムを指定してください！"
+    save: "<prefix><#55ffa4>レシピ '<name>' が正常に保存されました！"
+
+  give:
+    player: "<prefix><#55ffa4><player><#55ffa4>に<amount><#6f737d> × <#fa4362><item><#55ffa4>を与えました！"
+    players: "<prefix><#55ffa4><count><#55ffa4>人のプレイヤーに<amount><#6f737d> × <#fa4362><item><#55ffa4>を与えました！"
+
+  dye:
+    success: "<prefix><#55ffa4>このアイテムの色を変更しました！"
+    wrong_color: "<prefix><#fa4943>色が認識されません、#FFFFFFのような16進数の色をお試しください！"
+    failed: "<prefix><#fa4943>このアイテムの色を変更できませんでした！"
+
+  hud:
+    no_hud: "<prefix><#fa4943>'<hud_id>'という名前のHUDはありません！"
+    toggle_on: "<prefix><#55ffa4>'<hud_id>'をオンにしました！"
+    toggle_off: "<prefix><#fa4943>'<hud_id>'をオフにしました！"
+
+  debug.toggle: "<prefix><#55ffa4>デバッグモードが<#43fa8c><state><#55ffa4>になりました！"
+  version: "<prefix><#55ffa4>Oraxenバージョン：<#43fa8c><version><#55ffa4>！"
+
+mechanics:
+  not_enough_exp: "<prefix><#fa4943>これを行うにはもっと経験値が必要です"
+  backpack_stacked: "<prefix><#fa4943>スタックされたバックパックを開くことができません"
+  jukebox_now_playing: "<dark_purple>再生中 <disc>"

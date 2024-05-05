@@ -1,8 +1,8 @@
 plugins {
     id("java")
-    id("io.papermc.paperweight.userdev") version "1.5.15"
+    id("io.papermc.paperweight.userdev") version "1.7.0"
     id("maven-publish")
-    alias(idofrontLibs.plugins.shadowjar)
+    id("io.github.goooler.shadow") version "8.1.7"
     id("org.ajoberstar.grgit.service") version "5.2.0"
 }
 
@@ -14,11 +14,8 @@ tasks {
 }
 
 dependencies {
+    //compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
     paperweight.paperDevBundle("1.20.4-R0.1-SNAPSHOT")
-}
-
-java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 }
 
 publishing {

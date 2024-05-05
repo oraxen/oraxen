@@ -1,10 +1,9 @@
 package io.th0rgal.oraxen.nms;
 
+import io.th0rgal.oraxen.items.helpers.EmptyItemPropertyHandler;
+import io.th0rgal.oraxen.items.helpers.ItemPropertyHandler;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketManager;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.level.ClipContext;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.BlockHitResult;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -17,6 +16,12 @@ public interface NMSHandler {
     default IFurniturePacketManager furniturePacketManager() {
         return new EmptyFurniturePacketManager();
     }
+
+    default ItemPropertyHandler itemPropertyHandler() {
+        return new EmptyItemPropertyHandler();
+    }
+
+    GlyphHandler glyphHandler();
 
     boolean noteblockUpdatesDisabled();
 
@@ -43,7 +48,6 @@ public interface NMSHandler {
      * @return The enum interaction result
      */
     @Nullable Enum<InteractionResult> correctBlockStates(Player player, EquipmentSlot slot, ItemStack itemStack);
-    BlockHitResult getPlayerPOVHitResult(Level world, net.minecraft.world.entity.player.Player player, ClipContext.Fluid fluidHandling);
 
     /**Removes mineable/axe tag from noteblocks for custom blocks */
     void customBlockDefaultTools(Player player);
@@ -60,12 +64,41 @@ public interface NMSHandler {
             "ChargedProjectiles", "Charged", "DebugProperty", "Fireworks", "Explosion", "Flight",
             "map", "map_scale_direction", "map_to_lock", "Decorations", "SkullOwner", "Effects", "BlockEntityTag", "BlockStateTag");
 
-    void setupNmsGlyphs();
-
-    void inject(Player player);
-    void uninject(Player player);
-
     default boolean getSupported() {
         return false;
+    }
+
+    class EmptyNMSHandler implements NMSHandler {
+
+        @Override
+        public GlyphHandler glyphHandler() {
+            return new GlyphHandler.EmptyGlyphHandler();
+        }
+
+        @Override
+        public boolean noteblockUpdatesDisabled() {
+            return false;
+        }
+
+        @Override
+        public boolean tripwireUpdatesDisabled() {
+            return false;
+        }
+
+        @Override
+        public ItemStack copyItemNBTTags(@NotNull ItemStack oldItem, @NotNull ItemStack newItem) {
+            return newItem;
+        }
+
+        @Nullable
+        @Override
+        public Enum<InteractionResult> correctBlockStates(Player player, EquipmentSlot slot, ItemStack itemStack) {
+            return null;
+        }
+
+        @Override
+        public void customBlockDefaultTools(Player player) {
+
+        }
     }
 }

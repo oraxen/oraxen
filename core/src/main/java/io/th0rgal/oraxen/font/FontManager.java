@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.font;
 
+import com.comphenix.protocol.ProtocolLibrary;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -11,6 +12,8 @@ import io.th0rgal.oraxen.font.packets.TitlePacketListener;
 import io.th0rgal.oraxen.nms.GlyphHandlers;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.OraxenYaml;
+import io.th0rgal.oraxen.utils.PluginUtils;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import org.bukkit.Bukkit;
@@ -37,7 +40,7 @@ public class FontManager {
     private final Map<String, Glyph> glyphByPlaceholder;
     private final Map<Character, String> reverse;
     private final FontEvents fontEvents;
-    private final boolean useNmsGlyphs;
+    private boolean useNmsGlyphs;
 
     public FontManager(final ConfigsManager configsManager) {
         final Configuration fontConfiguration = configsManager.getFont();
@@ -62,12 +65,17 @@ public class FontManager {
         loadGlyphs(configsManager.parseGlyphConfigs());
 
         useNmsGlyphs = GlyphHandlers.isNms() && NMSHandlers.getHandler() != null;
-        if (useNmsGlyphs) {
-            NMSHandlers.getHandler().setupNmsGlyphs();
+        if (VersionUtil.atOrAbove("1.20.5") && useNmsGlyphs) {
+            Logs.logError("Oraxens NMS Glyph system is not working for 1.20.5...");
+            useNmsGlyphs = false;
+        } else if (useNmsGlyphs) {
+            NMSHandlers.getHandler().glyphHandler().setupNmsGlyphs();
             Logs.logSuccess("Oraxens NMS Glyph system has been enabled!");
             Logs.logInfo("Disabling packet-based glyph systems", true);
-            OraxenPlugin.get().protocolManager().removePacketListener(new InventoryPacketListener());
-            OraxenPlugin.get().protocolManager().removePacketListener(new TitlePacketListener());
+            if (PluginUtils.isEnabled("ProtocolLib")){
+                ProtocolLibrary.getProtocolManager().removePacketListener(new InventoryPacketListener());
+                ProtocolLibrary.getProtocolManager().removePacketListener(new TitlePacketListener());
+            }
         }
     }
 
