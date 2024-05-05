@@ -10,17 +10,22 @@ import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.enchantment.PrepareItemEnchantEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.PrepareAnvilEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.*;
@@ -84,6 +89,34 @@ public class ItemUpdater implements Listener {
             if (!result.getEnchantments().equals(item.getEnchantments()))
                 event.setResult(null);
         }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onUseMaxDamageItem(BlockBreakEvent event) {
+        Player player = event.getPlayer();
+        ItemStack itemStack = player.getInventory().getItemInMainHand();
+
+        if (!VersionUtil.atOrAbove("1.20.5") || player.getGameMode() == GameMode.CREATIVE) return;
+        if (ItemUtils.isEmpty(itemStack) || ItemUtils.isTool(itemStack)) return;
+        if (NMSHandlers.getHandler().itemPropertyHandler().getDurability(itemStack.getItemMeta()) == null) return;
+
+        Optional.ofNullable(OraxenItems.getBuilderByItem(itemStack)).ifPresent(i -> {
+                if (i.isDamagedOnBlockBreak()) itemStack.damage(1, player);
+        });
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onUseMaxDamageItem(EntityDamageByEntityEvent event) {
+        if (!VersionUtil.atOrAbove("1.20.5") || !(event.getDamager() instanceof LivingEntity entity)) return;
+        ItemStack itemStack = Optional.ofNullable(entity.getEquipment()).map(EntityEquipment::getItemInMainHand).orElse(null);
+
+        if (entity instanceof Player player && player.getGameMode() == GameMode.CREATIVE) return;
+        if (ItemUtils.isEmpty(itemStack) || ItemUtils.isTool(itemStack)) return;
+        if (NMSHandlers.getHandler().itemPropertyHandler().getDurability(itemStack.getItemMeta()) == null) return;
+
+        Optional.ofNullable(OraxenItems.getBuilderByItem(itemStack)).ifPresent(i -> {
+            if (i.isDamagedOnEntityHit()) itemStack.damage(1, entity);
+        });
     }
 
     private static final NamespacedKey IF_UUID = Objects.requireNonNull(NamespacedKey.fromString("oraxen:if-uuid"));

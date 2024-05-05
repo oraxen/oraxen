@@ -81,12 +81,14 @@ public class ItemBuilder {
     private Integer maxStackSize;
     @Nullable
     private String itemName;
-    @Nullable
-    private Integer durability;
     private boolean fireResistant;
     private boolean hideToolTips;
     @Nullable
     private ItemRarityWrapper rarity;
+    @Nullable
+    private Integer durability;
+    private boolean damagedOnBlockBreak;
+    private boolean damagedOnEntityHit;
 
 
     public ItemBuilder(final Material material) {
@@ -170,7 +172,7 @@ public class ItemBuilder {
         if (VersionUtil.atOrAbove("1.20.5")) {
             ItemPropertyHandler itemProperties = NMSHandlers.getHandler().itemPropertyHandler();
             itemName = itemProperties.getItemName(itemMeta);
-            durability = itemProperties.getDurability(itemStack);
+            durability = itemProperties.getDurability(itemMeta);
             fireResistant = itemProperties.isFireResistant(itemMeta);
             hideToolTips = itemProperties.isHideTooltip(itemMeta);
             foodComponent = itemProperties.getFood(itemMeta);
@@ -251,6 +253,22 @@ public class ItemBuilder {
     public ItemBuilder setDurability(@Nullable Integer durability) {
         this.durability = durability;
         return this;
+    }
+
+    public boolean isDamagedOnBlockBreak() {
+        return damagedOnBlockBreak;
+    }
+
+    public void setDamagedOnBlockBreak(boolean damagedOnBlockBreak) {
+        this.damagedOnBlockBreak = damagedOnBlockBreak;
+    }
+
+    public boolean isDamagedOnEntityHit() {
+        return damagedOnEntityHit;
+    }
+
+    public void setDamagedOnEntityHit(boolean damagedOnEntityHit) {
+        this.damagedOnEntityHit = damagedOnEntityHit;
     }
 
     /**
@@ -497,12 +515,11 @@ public class ItemBuilder {
         if (amount != itemStack.getAmount())
             itemStack.setAmount(amount);
 
+        ItemMeta itemMeta = itemStack.getItemMeta();
 
         // 1.20.5+ properties
         ItemPropertyHandler itemProperties = NMSHandlers.getHandler().itemPropertyHandler();
-        // As there is no API for this we set it before handling any other meta
-        itemProperties.setDurability(itemStack, durability);
-        ItemMeta itemMeta = itemStack.getItemMeta();
+        itemProperties.setDurability(itemMeta, durability);
         itemProperties.setItemName(itemMeta, itemName);
         itemProperties.setMaxStackSize(itemMeta, maxStackSize);
         itemProperties.setEnchantmentGlintOverride(itemMeta, enchantmentGlintOverride);
@@ -512,10 +529,9 @@ public class ItemBuilder {
         itemProperties.setHideTooltip(itemMeta, hideToolTips);
 
         handleVariousMeta(itemMeta);
-        PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
-
         itemMeta.setUnbreakable(unbreakable);
 
+        PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
         if (!VersionUtil.atOrAbove("1.20.5") && displayName != null) {
             pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, displayName);
             itemMeta.setDisplayName(displayName);

@@ -5,13 +5,10 @@ import io.th0rgal.oraxen.items.helpers.FoodEffectWrapper;
 import io.th0rgal.oraxen.items.helpers.ItemPropertyHandler;
 import io.th0rgal.oraxen.items.helpers.ItemRarityWrapper;
 import net.kyori.adventure.text.Component;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.food.FoodProperties;
-import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.inventory.components.CraftFoodComponent;
 import org.bukkit.craftbukkit.potion.CraftPotionUtil;
 import org.bukkit.inventory.ItemRarity;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.components.FoodComponent;
@@ -78,19 +75,6 @@ public class ItemProperties implements ItemPropertyHandler {
     public void setDurability(ItemMeta itemMeta, @Nullable Integer durability) {
         if (itemMeta instanceof Damageable damageable)
             damageable.setMaxDamage(durability);
-    }
-
-    @Nullable
-    @Override
-    public Integer getDurability(ItemStack itemStack) {
-        return CraftItemStack.asNMSCopy(itemStack).get(DataComponents.MAX_DAMAGE);
-    }
-
-    @Override
-    public void setDurability(ItemStack itemStack, @Nullable Integer durability) {
-        net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(itemStack);
-        nmsItem.set(DataComponents.MAX_DAMAGE, durability);
-        itemStack.setItemMeta(CraftItemStack.asBukkitCopy(nmsItem).getItemMeta());
     }
 
     @Override

@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.items.helpers;
 
 import net.kyori.adventure.text.Component;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,14 +49,6 @@ public interface ItemPropertyHandler {
     }
 
     default void setDurability(ItemMeta itemMeta, @Nullable Integer durability) {
-
-    }
-    @Nullable
-    default Integer getDurability(ItemStack itemStack) {
-        return null;
-    }
-
-    default void setDurability(ItemStack itemStack, @Nullable Integer durability) {
 
     }
 
