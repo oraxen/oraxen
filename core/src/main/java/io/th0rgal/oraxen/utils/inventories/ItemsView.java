@@ -14,7 +14,6 @@ import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.Utils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemFlag;
@@ -46,22 +45,25 @@ public class ItemsView {
                 ? Gui.scrolling(ScrollType.VERTICAL).pageSize((rows - 1) * 9)
                 : Gui.gui()))).rows(rows).title(Settings.ORAXEN_INV_TITLE.toComponent()).create();
 
-        List<Integer> usedSlots = files.keySet().stream().map(this::getItemStack).map(Pair::getValue).sorted().toList();
+        List<Integer> usedSlots = files.keySet().stream().map(this::getGuiItemSlot).map(GuiItemSlot::slot).sorted().toList();
         int highestUsedSlot = usedSlots.get(usedSlots.size() - 1);
         GuiItem emptyGuiItem = new GuiItem(Material.AIR);
         List<GuiItem> guiItems = new ArrayList<>(Collections.nCopies(highestUsedSlot + 1, emptyGuiItem));
 
         for (Map.Entry<File, PaginatedGui> entry : files.entrySet()) {
-            int slot = getItemStack(entry.getKey()).getRight();
+            int slot = getGuiItemSlot(entry.getKey()).slot();
             if (slot == -1) continue;
-            guiItems.set(slot, new GuiItem(getItemStack(entry.getKey()).getLeft(), e -> entry.getValue().open(e.getWhoClicked())));
+            guiItems.set(slot, new GuiItem(getGuiItemSlot(entry.getKey()).itemStack, e -> entry.getValue().open(e.getWhoClicked())));
         }
 
         // Add all items without a specified slot to the earliest available slot
         for (Map.Entry<File, PaginatedGui> entry : files.entrySet()) {
-            int slot = getItemStack(entry.getKey()).getRight();
-            if (slot != -1) continue;
-            guiItems.set(guiItems.indexOf(emptyGuiItem), new GuiItem(getItemStack(entry.getKey()).getLeft(), e -> entry.getValue().open(e.getWhoClicked())));
+            int slot = getGuiItemSlot(entry.getKey()).slot;
+            slot = slot != -1 ? slot : guiItems.indexOf(emptyGuiItem);
+            GuiItem guiItem = new GuiItem(getGuiItemSlot(entry.getKey()).itemStack(), e -> entry.getValue().open(e.getWhoClicked()));
+
+            if (slot == -1) guiItems.add(guiItem);
+            else guiItems.set(slot, guiItem);
         }
 
         mainGui.addItem(true, guiItems.toArray(new GuiItem[]{}));
@@ -128,7 +130,10 @@ public class ItemsView {
         return gui;
     }
 
-    private Pair<ItemStack, Integer> getItemStack(final File file) {
+    private record GuiItemSlot(ItemStack itemStack, Integer slot) {
+
+    }
+    private GuiItemSlot getGuiItemSlot(final File file) {
         ItemStack itemStack;
         String fileName = Utils.removeExtension(file.getName());
         String material = settings.getString(String.format("oraxen_inventory.menu_layout.%s.icon", fileName), "PAPER");
@@ -155,6 +160,6 @@ public class ItemsView {
         // avoid possible bug if isOraxenItems is available but can't be an itemstack
         if (itemStack == null) itemStack = new ItemBuilder(Material.PAPER).setDisplayName(displayName).build();
         int slot = settings.getInt(String.format("oraxen_inventory.menu_layout.%s.slot", Utils.removeExtension(file.getName())), -1) - 1;
-        return Pair.of(itemStack, Math.max(slot, -1));
+        return new GuiItemSlot(itemStack, slot);
     }
 }
