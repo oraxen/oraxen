@@ -327,7 +327,7 @@ public class DuplicationHandler {
 
         try {
             json = JsonParser.parseString(fileContent).getAsJsonObject();
-            overrides = json.getAsJsonArray("overrides").asList().stream().map(JsonElement::getAsJsonObject).toList();
+            overrides = new ArrayList<>(json.getAsJsonArray("overrides").asList().stream().filter(JsonElement::isJsonObject).map(JsonElement::getAsJsonObject).distinct().toList());
         } catch (JsonParseException | NullPointerException e) {
             Logs.logWarning("Failed to migrate duplicate file-entry, could not parse json");
             if (Settings.DEBUG.toBool()) e.printStackTrace();

@@ -284,15 +284,17 @@ public class TrimArmorDatapack {
     }
 
     private boolean isFirstInstall() {
-        return Bukkit.getDataPackManager().getDataPacks().stream().noneMatch(d -> d.key().equals(datapackKey));
+        return Bukkit.getDataPackManager().getDataPacks().stream().filter(d -> d.key() != null).noneMatch(d -> datapackKey.equals(Key.key(d.getKey().asString())));
     }
 
     private boolean isDatapackEnabled() {
         for (DataPack dataPack : Bukkit.getDataPackManager().getEnabledDataPacks(defaultWorld)) {
+            if (dataPack.key() == null) continue;
             if (dataPack.key().equals(datapackKey)) return true;
         }
         for (DataPack dataPack : Bukkit.getDataPackManager().getDisabledDataPacks(defaultWorld)) {
-            if (dataPack.key().equals(datapackKey)) return false;
+            if (dataPack.key() == null) continue;
+            if (dataPack.key().equals(datapackKey)) return true;
         }
 
         return false;

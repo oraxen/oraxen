@@ -586,6 +586,8 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public void removeSolid(Entity baseEntity, Location rootLocation, float orientation) {
+        if (hasLimitedPlacing() && limitedPlacing.isRoof() && furnitureType == FurnitureType.DISPLAY_ENTITY)
+            orientation = orientation - 180;
         List<BlockLocation> blockLocations = baseEntity.getPersistentDataContainer().getOrDefault(BARRIER_KEY, DataType.asList(BlockLocation.dataType), new ArrayList<>());
         List<Location> barrierLocations = getLocations(orientation, rootLocation, blockLocations.isEmpty() ? getBarriers() : blockLocations);
 

@@ -12,6 +12,7 @@ import io.papermc.paper.adventure.PaperAdventure;
 import io.papermc.paper.configuration.GlobalConfiguration;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.nms.GlyphHandler;
 import io.th0rgal.oraxen.nms.GlyphHandlers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.BlockHelpers;
@@ -71,6 +72,17 @@ import java.util.*;
 import java.util.function.Function;
 
 public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
+
+    private final io.th0rgal.oraxen.nms.GlyphHandler glyphHandler;
+
+    public NMSHandler() {
+        this.glyphHandler = new io.th0rgal.oraxen.nms.v1_20_R2.GlyphHandler();
+    }
+
+    @Override
+    public GlyphHandler glyphHandler() {
+        return glyphHandler;
+    }
 
     @Override
     public boolean tripwireUpdatesDisabled() {
@@ -133,7 +145,6 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         return world.getBlockAt(pos.getX(), pos.getY(), pos.getZ()).getBlockData();
     }
 
-    @Override
     public BlockHitResult getPlayerPOVHitResult(Level world, net.minecraft.world.entity.player.Player player, ClipContext.Fluid fluidHandling) {
         float f = player.getXRot();
         float g = player.getYRot();
@@ -184,292 +195,6 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
             return Map.of(pair.getFirst().location(), list);
         }).collect(HashMap::new, Map::putAll, Map::putAll);
-    }
-
-    private final Map<Channel, ChannelHandler> encoder = Collections.synchronizedMap(new WeakHashMap<>());
-    private final Map<Channel, ChannelHandler> decoder = Collections.synchronizedMap(new WeakHashMap<>());
-    @Override
-    public void setupNmsGlyphs() {
-        if (!GlyphHandlers.isNms()) return;
-        final List<Connection> connections = MinecraftServer.getServer().getConnection().getConnections();
-        List<ChannelFuture> channelFutures;
-
-        try {
-            Field channelFutureField = ServerConnectionListener.class.getDeclaredField("f");
-            channelFutureField.setAccessible(true);
-
-            channelFutures = (List<ChannelFuture>) channelFutureField.get(MinecraftServer.getServer().getConnection());
-        } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e1) {
-            channelFutures = new ArrayList<>();
-            e1.printStackTrace();
-        }
-
-        final List<ChannelFuture> finalChannelFutures = channelFutures;
-
-        // Handle connected channels
-        ChannelInitializer<Channel> endInitProtocol = new ChannelInitializer<>() {
-            @Override
-            protected void initChannel(@NotNull Channel channel) {
-                try {
-                    // This can take a while, so we need to stop the main thread from interfering
-                    synchronized (connections) {
-                        // Stop injecting channels
-                        channel.eventLoop().submit(() -> inject(channel, null));
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        };
-
-        // This is executed before Minecraft's channel handler
-        ChannelInitializer<Channel> beginInitProtocol = new ChannelInitializer<>() {
-            @Override
-            protected void initChannel(Channel channel) throws Exception {
-                ChannelHandler handler = null;
-                for (Map.Entry<String, ChannelHandler> entry : channel.pipeline()) {
-                    if (entry.getValue().getClass().getName().equals("com.viaversion.viaversion.bukkit.handlers.BukkitChannelInitializer")) {
-                        handler = entry.getValue();
-                    }
-                }
-
-                if (handler != null) {
-                    Method initChannel = ChannelInitializer.class.getDeclaredMethod("initChannel", Channel.class);
-                    initChannel.setAccessible(true);
-                    Field original = handler.getClass().getDeclaredField("original");
-                    original.setAccessible(true);
-                    ChannelInitializer<?> initializer = (ChannelInitializer<?>) original.get(handler);
-                    ChannelInitializer<Channel> miniInit = new ChannelInitializer<>() {
-                        @Override
-                        protected void initChannel(@NotNull Channel channel) throws Exception {
-                            initChannel.invoke(initializer, channel);
-                            channel.eventLoop().submit(() -> inject(channel, null));
-                        }
-                    };
-                    original.set(handler, miniInit);
-                } else channel.pipeline().addLast(endInitProtocol);
-            }
-        };
-
-        ChannelInboundHandlerAdapter serverChannelHandler = new ChannelInboundHandlerAdapter() {
-            @Override
-            public void channelRead(ChannelHandlerContext ctx, @NotNull Object msg) {
-                // Prepare to initialize ths channel
-                ((Channel) msg).pipeline().addFirst(beginInitProtocol);
-                ctx.fireChannelRead(msg);
-            }
-        };
-
-        try {
-            bind(channelFutures, serverChannelHandler);
-        } catch (IllegalArgumentException ex) {
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    bind(finalChannelFutures, serverChannelHandler);
-                }
-            }.runTask(OraxenPlugin.get());
-        }
-
-        if (VersionUtil.isPaperServer())
-            Bukkit.getPluginManager().registerEvents(new GlyphListener(), OraxenPlugin.get());
-    }
-
-
-    @Override
-    public void inject(Player player) {
-        if (player == null || !GlyphHandlers.isNms()) return;
-        Channel channel = ((CraftPlayer) player).getHandle().connection.connection.channel;
-
-        channel.eventLoop().submit(() -> inject(channel, player));
-    }
-
-    @Override
-    public void uninject(Player player) {
-        if (player == null || !GlyphHandlers.isNms()) return;
-        Channel channel = ((CraftPlayer) player).getHandle().connection.connection.channel;
-
-        uninject(channel);
-    }
-
-    private void inject(Channel channel, @Nullable Player player) {
-        // Replace the vanilla PacketEncoder with our own
-        if (!(channel.pipeline().get("encoder") instanceof CustomPacketEncoder))
-            encoder.putIfAbsent(channel, channel.pipeline().replace("encoder", "encoder", new CustomPacketEncoder(player)));
-
-        // Replace the vanilla PacketDecoder with our own
-        if (!(channel.pipeline().get("decoder") instanceof CustomPacketDecoder))
-            decoder.putIfAbsent(channel, channel.pipeline().replace("decoder", "decoder", new CustomPacketDecoder(player)));
-    }
-
-    private void uninject(Channel channel) {
-        if (encoder.containsKey(channel)) {
-            // Replace our custom packet encoder with the default one that the player had
-            ChannelHandler previousHandler = encoder.remove(channel);
-            ChannelHandler handler = (previousHandler instanceof PacketEncoder) ? new PacketEncoder(Connection.ATTRIBUTE_CLIENTBOUND_PROTOCOL) : previousHandler;
-            if (handler != null) channel.pipeline().replace("encoder", "encoder", handler);
-        }
-
-        if (decoder.containsKey(channel)) {
-            ChannelHandler previousHandler = decoder.remove(channel);
-            ChannelHandler handler = (previousHandler instanceof PacketDecoder) ? new PacketDecoder(Connection.ATTRIBUTE_SERVERBOUND_PROTOCOL) : previousHandler;
-            if (handler != null) channel.pipeline().replace("decoder", "decoder", handler);
-        }
-    }
-
-    private void bind(List<ChannelFuture> channelFutures, ChannelInboundHandlerAdapter serverChannelHandler) {
-        for (ChannelFuture future : channelFutures) future.channel().pipeline().addFirst(serverChannelHandler);
-        for (Player player : Bukkit.getOnlinePlayers()) inject(player);
-    }
-
-    private static class CustomDataSerializer extends FriendlyByteBuf {
-        @Nullable private final Player player;
-
-        public CustomDataSerializer(@Nullable Player player, ByteBuf bytebuf) {
-            super(bytebuf);
-            this.player = player;
-        }
-
-        @NotNull
-        @Override
-        public FriendlyByteBuf writeComponent(@NotNull Component component) {
-            return super.writeComponent(GlyphHandlers.transform(component, null, false));
-        }
-
-        @NotNull
-        @Override
-        public net.minecraft.network.chat.Component readComponent() {
-            return PaperAdventure.asVanilla((GlyphHandlers.transform(PaperAdventure.asAdventure(super.readComponent()), player, false)));
-        }
-
-        @Override
-        public @NotNull FriendlyByteBuf writeUtf(@NotNull String string, int maxLength) {
-            try {
-                JsonElement element = JsonParser.parseString(string);
-                if (element.isJsonObject())
-                    return super.writeUtf(GlyphHandlers.formatJsonString(element.getAsJsonObject(), null), maxLength);
-            } catch (Exception ignored) {
-            }
-
-            return super.writeUtf(string, maxLength);
-        }
-
-        @Override
-        public @NotNull String readUtf(int i) {
-            String string = super.readUtf(i);
-            Component component;
-            try {
-                component = AdventureUtils.MINI_MESSAGE_EMPTY.deserialize(string);
-            } catch (Exception e) {
-                component = AdventureUtils.LEGACY_SERIALIZER.deserialize(string);
-            }
-
-            return AdventureUtils.MINI_MESSAGE_EMPTY.serialize(GlyphHandlers.transform(component, player, true));
-        }
-
-        @NotNull
-        @Override
-        public FriendlyByteBuf writeNbt(@Nullable Tag tag) {
-            if (tag instanceof CompoundTag compoundTag) transform(compoundTag, GlyphHandlers.transformer(null));
-            return super.writeNbt(tag);
-        }
-
-        @Override
-        public @Nullable CompoundTag readNbt() {
-            CompoundTag compound = super.readNbt();
-            if (compound != null) transform(compound, GlyphHandlers.transformer(player));
-
-            return compound;
-        }
-
-        private void transform(CompoundTag compound, Function<String, String> transformer) {
-            for (String key : compound.getAllKeys()) {
-                Tag base = compound.get(key);
-                if (base instanceof CompoundTag tag) transform(tag, transformer);
-                else if (base instanceof ListTag listTag) transform(listTag, transformer);
-                else if (base instanceof StringTag) compound.put(key, StringTag.valueOf(transformer.apply(base.getAsString())));
-            }
-        }
-
-        private void transform(ListTag list, Function<String, String> transformer) {
-            List<Tag> listCopy = List.copyOf(list);
-            for (Tag base : listCopy) {
-                if (base instanceof CompoundTag tag) transform(tag, transformer);
-                else if (base instanceof ListTag listTag) transform(listTag, transformer);
-                else if (base instanceof StringTag) {
-                    int index = list.indexOf(base);
-                    list.set(index, StringTag.valueOf(transformer.apply(base.getAsString())));
-                }
-            }
-        }
-    }
-
-    private static class CustomPacketEncoder extends MessageToByteEncoder<Packet<?>> {
-        @Nullable private final Player player;
-
-        private CustomPacketEncoder(@Nullable Player player) {
-            super();
-            this.player = player;
-        }
-
-        private final AttributeKey<ConnectionProtocol.CodecData<?>> protocolDirection = Connection.ATTRIBUTE_CLIENTBOUND_PROTOCOL;
-
-        @Override
-        public void encode(ChannelHandlerContext ctx, Packet<?> packet, ByteBuf byteBuf) {
-            if (ctx.channel() == null) throw new RuntimeException("Channel is null");
-            Attribute<ConnectionProtocol.CodecData<?>> attribute = ctx.channel().attr(protocolDirection);
-            ConnectionProtocol.CodecData<?> codecData = attribute.get();
-            int packetId = codecData.packetId(packet);
-
-            FriendlyByteBuf packetDataSerializer = new CustomDataSerializer(player, byteBuf);
-            packetDataSerializer.writeVarInt(packetId);
-
-            try {
-                int integer2 = packetDataSerializer.writerIndex();
-                packet.write(packetDataSerializer);
-                int integer3 = packetDataSerializer.writerIndex() - integer2;
-                if (integer3 > 8388608) {
-                    throw new IllegalArgumentException("Packet too big (is " + integer3 + ", should be less than 8388608): " + packet);
-                }
-                ProtocolSwapHandler.swapProtocolIfNeeded(attribute, packet);
-            } catch (Exception e) {
-                if (packet.isSkippable()) throw new SkipPacketException(e);
-                throw e;
-            }
-            ProtocolSwapHandler.swapProtocolIfNeeded(attribute, packet);
-        }
-    }
-
-    private static class CustomPacketDecoder extends ByteToMessageDecoder {
-        @Nullable private final Player player;
-
-        private CustomPacketDecoder(@Nullable Player player) {
-            this.player = player;
-        }
-
-        @Override
-        protected void decode(ChannelHandlerContext ctx, ByteBuf buffer, List<Object> out) throws IOException {
-            final ByteBuf bufferCopy = buffer.copy();
-            if (buffer.readableBytes() == 0) return;
-
-            CustomDataSerializer dataSerializer = new CustomDataSerializer(player, buffer);
-            int packetID = dataSerializer.readVarInt();
-            Attribute<ConnectionProtocol.CodecData<?>> attribute = ctx.channel().attr(Connection.ATTRIBUTE_SERVERBOUND_PROTOCOL);
-            Packet<?> packet = attribute.get().createPacket(packetID, dataSerializer);
-
-            if (dataSerializer.readableBytes() > 0) {
-                throw new IOException("Packet " + packetID + " " + packet + " was larger than expected, found " + dataSerializer.readableBytes() + " bytes extra whiløst reading the packet " + packetID);
-            } else if (packet instanceof ServerboundChatPacket) {
-                FriendlyByteBuf baseSerializer = new FriendlyByteBuf(bufferCopy);
-                int basePacketID = baseSerializer.readVarInt();
-                packet = attribute.get().createPacket(basePacketID, baseSerializer);
-            }
-
-            if (packet == null) throw new IOException("Bad packet id " + packetID);
-
-            out.add(packet);
-            ProtocolSwapHandler.swapProtocolIfNeeded(attribute, packet);
-        }
     }
 
     @Override

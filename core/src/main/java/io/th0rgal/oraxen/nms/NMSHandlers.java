@@ -1,20 +1,13 @@
 package io.th0rgal.oraxen.nms;
 
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.function.Function;
 
 public class NMSHandlers {
 

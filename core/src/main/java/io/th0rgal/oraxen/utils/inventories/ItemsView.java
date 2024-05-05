@@ -12,6 +12,7 @@ import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemParser;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.Utils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Material;
@@ -45,23 +46,25 @@ public class ItemsView {
                 ? Gui.scrolling(ScrollType.VERTICAL).pageSize((rows - 1) * 9)
                 : Gui.gui()))).rows(rows).title(Settings.ORAXEN_INV_TITLE.toComponent()).create();
 
-        // Make a list of all slots to allow using mainGui.addItem easier
-        List<GuiItem> pageItems = new ArrayList<>(Collections.nCopies(files.size(), null));
-        // Make a list of all used slots to avoid using them later
+        List<Integer> usedSlots = files.keySet().stream().map(this::getItemStack).map(Pair::getValue).sorted().toList();
+        int highestUsedSlot = usedSlots.get(usedSlots.size() - 1);
+        GuiItem emptyGuiItem = new GuiItem(Material.AIR);
+        List<GuiItem> guiItems = new ArrayList<>(Collections.nCopies(highestUsedSlot + 1, emptyGuiItem));
+
         for (Map.Entry<File, PaginatedGui> entry : files.entrySet()) {
             int slot = getItemStack(entry.getKey()).getRight();
             if (slot == -1) continue;
-            GuiItem guiItem = new GuiItem(getItemStack(entry.getKey()).getLeft(), e -> entry.getValue().open(e.getWhoClicked()));
-            pageItems.add(slot, guiItem);
+            guiItems.set(slot, new GuiItem(getItemStack(entry.getKey()).getLeft(), e -> entry.getValue().open(e.getWhoClicked())));
         }
 
         // Add all items without a specified slot to the earliest available slot
         for (Map.Entry<File, PaginatedGui> entry : files.entrySet()) {
-            if (getItemStack(entry.getKey()).getRight() != -1) continue;
-            pageItems.add(new GuiItem(getItemStack(entry.getKey()).getLeft(), e -> entry.getValue().open(e.getWhoClicked())));
+            int slot = getItemStack(entry.getKey()).getRight();
+            if (slot != -1) continue;
+            guiItems.set(guiItems.indexOf(emptyGuiItem), new GuiItem(getItemStack(entry.getKey()).getLeft(), e -> entry.getValue().open(e.getWhoClicked())));
         }
 
-        mainGui.addItem(pageItems.stream().filter(Objects::nonNull).toArray(GuiItem[]::new));
+        mainGui.addItem(true, guiItems.toArray(new GuiItem[]{}));
 
         ItemStack nextPage = (Settings.ORAXEN_INV_NEXT_ICON.getValue() == null
                 ? new ItemBuilder(Material.ARROW) : OraxenItems.getItemById(Settings.ORAXEN_INV_NEXT_ICON.toString()))
@@ -100,11 +103,9 @@ public class ItemsView {
         for (ItemBuilder builder : items) {
             if (builder == null) continue;
             ItemStack itemStack = builder.build();
-            if (itemStack == null || itemStack.getType().isAir()) continue;
+            if (ItemUtils.isEmpty(itemStack)) continue;
 
-            GuiItem guiItem = new GuiItem(itemStack);
-            guiItem.setAction(e -> e.getWhoClicked().getInventory().addItem(ItemUpdater.updateItem(guiItem.getItemStack())));
-            gui.addItem(guiItem);
+            gui.addItem(new GuiItem(itemStack, e -> e.getWhoClicked().getInventory().addItem(ItemUpdater.updateItem(e.getCurrentItem().clone()))));
         }
 
         ItemStack nextPage = (Settings.ORAXEN_INV_NEXT_ICON.getValue() == null
@@ -131,7 +132,7 @@ public class ItemsView {
         ItemStack itemStack;
         String fileName = Utils.removeExtension(file.getName());
         String material = settings.getString(String.format("oraxen_inventory.menu_layout.%s.icon", fileName), "PAPER");
-        String displayName = ItemParser.parseComponentDisplayName(settings.getString(String.format("oraxen_inventory.menu_layout.%s.displayname", fileName), "<green>" + file.getName()));
+        String displayName = ItemParser.parseComponentItemName(settings.getString(String.format("oraxen_inventory.menu_layout.%s.displayname", fileName), "<green>" + file.getName()));
         try {
             itemStack = new ItemBuilder(OraxenItems.getItemById(material).getReferenceClone())
                     .addItemFlags(ItemFlag.HIDE_ATTRIBUTES)

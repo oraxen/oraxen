@@ -5,10 +5,10 @@ import java.util.*
 plugins {
     id("java")
     //id("com.github.johnrengelman.shadow") version "8.1.1"
-    id("xyz.jpenilla.run-paper") version "2.2.0"
+    id("xyz.jpenilla.run-paper") version "2.2.4"
     id("net.minecrell.plugin-yml.bukkit") version "0.6.0" // Generates plugin.yml
-    id("io.papermc.paperweight.userdev") version "1.5.11" apply false
-    alias(libs.plugins.shadowjar)
+    id("io.papermc.paperweight.userdev") version "1.7.0" apply false
+    id("io.github.goooler.shadow") version "8.1.7"
     alias(libs.plugins.mia.publication)
 }
 
@@ -22,12 +22,12 @@ val SUPPORTED_VERSIONS: List<NMSVersion> = listOf(
     "v1_19_R3" toNms "1.19.4-R0.1-SNAPSHOT",
     "v1_20_R1" toNms "1.20.1-R0.1-SNAPSHOT",
     "v1_20_R2" toNms "1.20.2-R0.1-SNAPSHOT",
-    "v1_20_R3" toNms "1.20.4-R0.1-SNAPSHOT"
+    "v1_20_R3" toNms "1.20.4-R0.1-SNAPSHOT",
+    "v1_20_R4" toNms "1.20.6-R0.1-SNAPSHOT"
 )
 
 SUPPORTED_VERSIONS.forEach {
     project(":${it.nmsVersion}") {
-
         apply(plugin = "java")
         apply(plugin = "io.papermc.paperweight.userdev")
 
@@ -37,9 +37,19 @@ SUPPORTED_VERSIONS.forEach {
         }
 
         dependencies {
-            compileOnly("io.papermc.paper:paper-api:" + it.serverVersion)
+            //compileOnly("io.papermc.paper:paper-api:" + it.serverVersion)
             implementation(project(":core"))
             paperDevBundle(it.serverVersion)
+        }
+
+        tasks {
+            compileJava {
+                options.encoding = Charsets.UTF_8.name()
+            }
+        }
+
+        java {
+            toolchain.languageVersion.set(JavaLanguageVersion.of(if (it.nmsVersion == "v1_20_R4") 21 else 17))
         }
     }
 }
@@ -50,10 +60,11 @@ val devPluginPath = project.findProperty("oraxen_dev_plugin_path")?.toString()
 val foliaPluginPath = project.findProperty("oraxen_folia_plugin_path")?.toString()
 val spigotPluginPath = project.findProperty("oraxen_spigot_plugin_path")?.toString()
 val pluginVersion: String by project
-val commandApiVersion = "9.3.0"
+val commandApiVersion = "9.4.0"
 val adventureVersion = "4.15.0"
 val platformVersion = "4.3.2"
 val googleGsonVersion = "2.10.1"
+val apacheLang3Version = "3.14.0"
 group = "io.th0rgal"
 version = pluginVersion
 
@@ -87,14 +98,13 @@ allprojects {
 
     dependencies {
         val actionsVersion = "1.0.0-SNAPSHOT"
-        compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
         compileOnly("gs.mclo:java:2.2.1")
 
         compileOnly("net.kyori:adventure-text-minimessage:$adventureVersion")
         compileOnly("net.kyori:adventure-text-serializer-plain:$adventureVersion")
         compileOnly("net.kyori:adventure-text-serializer-ansi:$adventureVersion")
         compileOnly("net.kyori:adventure-platform-bukkit:$platformVersion")
-        compileOnly("com.comphenix.protocol:ProtocolLib:5.1.0")
+        compileOnly("com.comphenix.protocol:ProtocolLib:5.2.0-SNAPSHOT")
         compileOnly("me.clip:placeholderapi:2.11.4")
         compileOnly("me.gabytm.util:actions-core:$actionsVersion")
         compileOnly("org.springframework:spring-expression:6.0.6")
@@ -106,7 +116,6 @@ allprojects {
         compileOnly("com.ticxo.modelengine:ModelEngine:R4.0.4")
         compileOnly("com.ticxo.modelengine:api:R3.1.8")
         compileOnly(files("../libs/compile/BSP.jar"))
-        compileOnly("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
         compileOnly("io.lumine:MythicLib:1.1.6") // Remove and add deps needed for Polymath
         compileOnly("io.lumine:MythicLib-dist:1.6.2-SNAPSHOT")
         compileOnly("net.Indyuce:MMOItems-API:6.9.5-SNAPSHOT")
@@ -115,9 +124,11 @@ allprojects {
         compileOnly("com.willfp:eco:6.65.5")
         compileOnly("com.willfp:libreforge:4.36.0")
         compileOnly("nl.rutgerkok:blocklocker:1.10.4-SNAPSHOT")
+        compileOnly("org.apache.commons:commons-lang3:$apacheLang3Version")
 
+        implementation("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
         implementation("org.bstats:bstats-bukkit:3.0.0")
-        implementation("io.th0rgal:protectionlib:1.5.0")
+        implementation("io.th0rgal:protectionlib:1.5.1")
         implementation("com.github.stefvanschie.inventoryframework:IF:0.10.12")
         implementation("com.jeff-media:custom-block-data:2.2.2")
         implementation("com.jeff_media:MorePersistentDataTypes:2.4.0")
@@ -143,7 +154,6 @@ tasks {
 
     compileJava {
         options.encoding = Charsets.UTF_8.name()
-        options.release.set(17)
     }
 
     javadoc {
@@ -175,6 +185,7 @@ tasks {
         relocate("org.jetbrains.annotations", "io.th0rgal.oraxen.shaded.jetbrains.annotations")
         relocate("com.udojava.evalex", "io.th0rgal.oraxen.shaded.evalex")
         relocate("com.ticxo.playeranimator", "io.th0rgal.oraxen.shaded.playeranimator")
+        relocate("dev.jorel", "io.th0rgal.oraxen.shaded")
 
         manifest {
             attributes(
@@ -206,11 +217,11 @@ bukkit {
     apiVersion = "1.18"
     authors = listOf("th0rgal", "boy0000")
     softDepend = listOf(
+        "ProtocolLib",
         "LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "MythicMobs", "BossShopPro",
         "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared",
         "NBTAPI", "ModelEngine", "CrashClaim", "ViaBackwards", "HuskClaims", "BentoBox"
     )
-    depend = listOf("ProtocolLib")
     loadBefore = listOf("Realistic_World")
     permissions.create("oraxen.command") {
         description = "Allows the player to use the /oraxen command"
@@ -219,13 +230,14 @@ bukkit {
     libraries = listOf(
         "org.springframework:spring-expression:6.0.6",
         "org.apache.httpcomponents:httpmime:4.5.13",
-        "dev.jorel:commandapi-bukkit-shade:$commandApiVersion",
+        //"dev.jorel:commandapi-bukkit-shade-mojang-mapped:$commandApiVersion",
         "org.joml:joml:1.10.5",
         "net.kyori:adventure-text-minimessage:$adventureVersion",
         "net.kyori:adventure-text-serializer-plain:$adventureVersion",
         "net.kyori:adventure-text-serializer-ansi:$adventureVersion",
         "net.kyori:adventure-platform-bukkit:$platformVersion",
         "com.google.code.gson:gson:$googleGsonVersion",
+        "org.apache.commons:commons-lang3:$apacheLang3Version",
         "gs.mclo:java:2.2.1",
     )
 }

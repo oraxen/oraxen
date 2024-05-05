@@ -14,7 +14,7 @@ public enum CustomArmorType {
     public static CustomArmorType fromString(String type) {
         try {
             CustomArmorType customArmorType = CustomArmorType.valueOf(type.toUpperCase());
-            if (!VersionUtil.atOrAbove("1.20")) {
+            if (!VersionUtil.atOrAbove("1.20") && customArmorType == CustomArmorType.TRIMS) {
                 Logs.logError("Trim based custom armor is only supported in 1.20 and above.");
                 throw new IllegalArgumentException();
             }
