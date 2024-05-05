@@ -1,5 +1,7 @@
 package io.th0rgal.oraxen.nms;
 
+import io.th0rgal.oraxen.items.helpers.EmptyItemPropertyHandler;
+import io.th0rgal.oraxen.items.helpers.ItemPropertyHandler;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
@@ -10,6 +12,10 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Set;
 
 public interface NMSHandler {
+
+    default ItemPropertyHandler itemPropertyHandler() {
+        return new EmptyItemPropertyHandler();
+    }
 
     GlyphHandler glyphHandler();
 

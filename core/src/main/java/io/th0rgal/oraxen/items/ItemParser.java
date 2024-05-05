@@ -150,7 +150,7 @@ public class ItemParser {
         else item.setItemName(parseComponentItemName(section.getString("displayname", "")));
 
         if (section.contains("enchantment_glint_override")) item.setEnchantmentGlindOverride(section.getBoolean("enchantment_glint_override"));
-        if (section.contains("durability")) item.setDurability(Math.min(section.getInt("durability"), 1));
+        if (section.contains("durability")) item.setDurability(Math.max(section.getInt("durability"), 1));
         if (section.contains("rarity")) item.setRarity(Arrays.stream(ItemRarityWrapper.values()).filter(r -> r.name().equalsIgnoreCase(section.getString("rarity"))).findFirst().orElse(null));
         item.setFireResistant(section.getBoolean("fire_resistant"));
         item.setHideToolTips(section.getBoolean("hide_tooltips"));

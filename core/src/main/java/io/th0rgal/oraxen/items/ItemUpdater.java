@@ -5,7 +5,7 @@ import com.jeff_media.persistentdataserializer.PersistentDataSerializer;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.items.helpers.FoodComponentWrapper;
-import io.th0rgal.oraxen.items.helpers.ItemProperties;
+import io.th0rgal.oraxen.items.helpers.ItemPropertyHandler;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.ItemUtils;
@@ -165,31 +165,33 @@ public class ItemUpdater implements Listener {
             }
 
             if (VersionUtil.atOrAbove("1.20.5")) {
-                FoodComponentWrapper newFood = ItemProperties.getFood(newMeta);
-                FoodComponentWrapper oldFood = ItemProperties.getFood(oldMeta);
-                if (newFood != null) ItemProperties.setFood(itemMeta, newFood);
-                else if (oldFood != null) ItemProperties.setFood(itemMeta, oldFood);
+                ItemPropertyHandler itemProperties = NMSHandlers.getHandler().itemPropertyHandler();
 
-                Boolean newGlint = ItemProperties.getEnchantmentGlintOverride(newMeta);
-                Boolean oldGlint = ItemProperties.getEnchantmentGlintOverride(oldMeta);
-                if (newGlint != null) ItemProperties.setEnchantmentGlintOverride(itemMeta, newGlint);
-                else if (oldGlint != null) ItemProperties.setEnchantmentGlintOverride(itemMeta, oldGlint);
+                FoodComponentWrapper newFood = itemProperties.getFood(newMeta);
+                FoodComponentWrapper oldFood = itemProperties.getFood(oldMeta);
+                if (newFood != null) itemProperties.setFood(itemMeta, newFood);
+                else if (oldFood != null) itemProperties.setFood(itemMeta, oldFood);
 
-                Integer newMaxStack = ItemProperties.getMaxStackSize(newMeta);
-                Integer oldMaxStack = ItemProperties.getMaxStackSize(oldMeta);
-                if (newMaxStack != null) ItemProperties.setMaxStackSize(itemMeta, newMaxStack);
-                else if (oldMaxStack != null) ItemProperties.setMaxStackSize(itemMeta, oldMaxStack);
+                Boolean newGlint = itemProperties.getEnchantmentGlintOverride(newMeta);
+                Boolean oldGlint = itemProperties.getEnchantmentGlintOverride(oldMeta);
+                if (newGlint != null) itemProperties.setEnchantmentGlintOverride(itemMeta, newGlint);
+                else if (oldGlint != null) itemProperties.setEnchantmentGlintOverride(itemMeta, oldGlint);
+
+                Integer newMaxStack = itemProperties.getMaxStackSize(newMeta);
+                Integer oldMaxStack = itemProperties.getMaxStackSize(oldMeta);
+                if (newMaxStack != null) itemProperties.setMaxStackSize(itemMeta, newMaxStack);
+                else if (oldMaxStack != null) itemProperties.setMaxStackSize(itemMeta, oldMaxStack);
 
                 if (VersionUtil.isPaperServer()) {
-                    net.kyori.adventure.text.Component newItemName = ItemProperties.itemName(newMeta);
-                    net.kyori.adventure.text.Component oldItemName = ItemProperties.itemName(oldMeta);
-                    if (newItemName != null) ItemProperties.itemName(itemMeta, newItemName);
-                    else if (oldItemName != null) ItemProperties.itemName(itemMeta, oldItemName);
+                    net.kyori.adventure.text.Component newItemName = itemProperties.itemName(newMeta);
+                    net.kyori.adventure.text.Component oldItemName = itemProperties.itemName(oldMeta);
+                    if (newItemName != null) itemProperties.itemName(itemMeta, newItemName);
+                    else if (oldItemName != null) itemProperties.itemName(itemMeta, oldItemName);
                 } else {
-                    String newItemName = ItemProperties.getItemName(newMeta);
-                    String oldItemName = ItemProperties.getItemName(oldMeta);
-                    if (newItemName != null) ItemProperties.setItemName(itemMeta, newItemName);
-                    else if (oldItemName != null) ItemProperties.setItemName(itemMeta, oldItemName);
+                    String newItemName = itemProperties.getItemName(newMeta);
+                    String oldItemName = itemProperties.getItemName(oldMeta);
+                    if (newItemName != null) itemProperties.setItemName(itemMeta, newItemName);
+                    else if (oldItemName != null) itemProperties.setItemName(itemMeta, oldItemName);
                 }
             }
 

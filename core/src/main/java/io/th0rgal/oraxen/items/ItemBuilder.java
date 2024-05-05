@@ -10,8 +10,9 @@ import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.items.helpers.FoodComponentWrapper;
-import io.th0rgal.oraxen.items.helpers.ItemProperties;
+import io.th0rgal.oraxen.items.helpers.ItemPropertyHandler;
 import io.th0rgal.oraxen.items.helpers.ItemRarityWrapper;
+import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.PotionUtils;
@@ -72,14 +73,20 @@ public class ItemBuilder {
     private ItemStack finalItemStack;
 
     // 1.20.5+ properties
-    @Nullable private FoodComponentWrapper foodComponent;
-    @Nullable private Boolean enchantmentGlintOverride;
-    @Nullable private Integer maxStackSize;
-    @Nullable private String itemName;
-    @Nullable private Integer durability;
+    @Nullable
+    private FoodComponentWrapper foodComponent;
+    @Nullable
+    private Boolean enchantmentGlintOverride;
+    @Nullable
+    private Integer maxStackSize;
+    @Nullable
+    private String itemName;
+    @Nullable
+    private Integer durability;
     private boolean fireResistant;
     private boolean hideToolTips;
-    @Nullable private ItemRarityWrapper rarity;
+    @Nullable
+    private ItemRarityWrapper rarity;
 
 
     public ItemBuilder(final Material material) {
@@ -161,14 +168,15 @@ public class ItemBuilder {
         enchantments = new HashMap<>();
 
         if (VersionUtil.atOrAbove("1.20.5")) {
-            itemName = ItemProperties.getItemName(itemMeta);
-            durability = ItemProperties.getDurability(itemMeta);
-            fireResistant = ItemProperties.isFireResistant(itemMeta);
-            hideToolTips = ItemProperties.isHideTooltip(itemMeta);
-            foodComponent = ItemProperties.getFood(itemMeta);
-            enchantmentGlintOverride = ItemProperties.getEnchantmentGlintOverride(itemMeta);
-            rarity = ItemProperties.getRarity(itemMeta);
-            maxStackSize = ItemProperties.getMaxStackSize(itemMeta);
+            ItemPropertyHandler itemProperties = NMSHandlers.getHandler().itemPropertyHandler();
+            itemName = itemProperties.getItemName(itemMeta);
+            durability = itemProperties.getDurability(itemStack);
+            fireResistant = itemProperties.isFireResistant(itemMeta);
+            hideToolTips = itemProperties.isHideTooltip(itemMeta);
+            foodComponent = itemProperties.getFood(itemMeta);
+            enchantmentGlintOverride = itemProperties.getEnchantmentGlintOverride(itemMeta);
+            rarity = itemProperties.getRarity(itemMeta);
+            maxStackSize = itemProperties.getMaxStackSize(itemMeta);
             if (maxStackSize != null && maxStackSize == 1) unstackable = true;
         }
 
@@ -240,13 +248,14 @@ public class ItemBuilder {
         return this;
     }
 
-   public ItemBuilder setDurability(@Nullable Integer durability) {
+    public ItemBuilder setDurability(@Nullable Integer durability) {
         this.durability = durability;
         return this;
     }
 
     /**
      * Check if the ItemBuilder has color.
+     *
      * @return true if the ItemBuilder has color that is not default LeatherMetaColor
      */
     public boolean hasColor() {
@@ -488,28 +497,28 @@ public class ItemBuilder {
         if (amount != itemStack.getAmount())
             itemStack.setAmount(amount);
 
-        /*
-         * CHANGING ItemBuilder META
-         */
-        ItemMeta itemMeta = handleVariousMeta(itemStack.getItemMeta());
-        assert itemMeta != null;
+
+        // 1.20.5+ properties
+        ItemPropertyHandler itemProperties = NMSHandlers.getHandler().itemPropertyHandler();
+        // As there is no API for this we set it before handling any other meta
+        itemProperties.setDurability(itemStack, durability);
+        ItemMeta itemMeta = itemStack.getItemMeta();
+        itemProperties.setItemName(itemMeta, itemName);
+        itemProperties.setMaxStackSize(itemMeta, maxStackSize);
+        itemProperties.setEnchantmentGlintOverride(itemMeta, enchantmentGlintOverride);
+        itemProperties.setRarity(itemMeta, rarity);
+        itemProperties.setFood(itemMeta, foodComponent);
+        itemProperties.setFireResistant(itemMeta, fireResistant);
+        itemProperties.setHideTooltip(itemMeta, hideToolTips);
+
+        handleVariousMeta(itemMeta);
         PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
 
         itemMeta.setUnbreakable(unbreakable);
 
-        if (VersionUtil.atOrAbove("1.20.5")) {
-            ItemProperties.setItemName(itemMeta, itemName);
-            ItemProperties.setMaxStackSize(itemMeta, maxStackSize);
-            ItemProperties.setEnchantmentGlintOverride(itemMeta, enchantmentGlintOverride);
-            ItemProperties.setRarity(itemMeta, rarity);
-            ItemProperties.setFood(itemMeta, foodComponent);
-            ItemProperties.setFireResistant(itemMeta, fireResistant);
-            ItemProperties.setHideTooltip(itemMeta, hideToolTips);
-        } else {
-            if (displayName != null) {
-                pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, displayName);
-                itemMeta.setDisplayName(displayName);
-            }
+        if (!VersionUtil.atOrAbove("1.20.5") && displayName != null) {
+            pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, displayName);
+            itemMeta.setDisplayName(displayName);
         }
 
         if (itemFlags != null)
@@ -564,25 +573,14 @@ public class ItemBuilder {
         });
     }
 
-    private ItemMeta handleVariousMeta(ItemMeta itemMeta) {
-        // durability
-        /*if (VersionUtil.atOrAbove("1.20.5") && itemMeta instanceof Damageable damageable)
-            damageable.setMaxDamage(durability);*/
-
+    private void handleVariousMeta(ItemMeta itemMeta) {
         if (itemMeta instanceof LeatherArmorMeta leatherArmorMeta && color != null && !color.equals(leatherArmorMeta.getColor())) {
             leatherArmorMeta.setColor(color);
-            return leatherArmorMeta;
-        }
-
-        if (itemMeta instanceof PotionMeta potionMeta)
-            return handlePotionMeta(potionMeta);
-
-        if (itemMeta instanceof MapMeta mapMeta && color != null && !color.equals(mapMeta.getColor())) {
+        } else if (itemMeta instanceof PotionMeta potionMeta) {
+            handlePotionMeta(potionMeta);
+        } else if (itemMeta instanceof MapMeta mapMeta && color != null && !color.equals(mapMeta.getColor())) {
             mapMeta.setColor(color);
-            return mapMeta;
-        }
-
-        if (itemMeta instanceof FireworkEffectMeta effectMeta) {
+        } else if (itemMeta instanceof FireworkEffectMeta effectMeta) {
             FireworkEffect.Builder fireWorkBuilder = effectMeta.clone().hasEffect() ? effectMeta.getEffect().builder() : FireworkEffect.builder();
             if (color != null) fireWorkBuilder.withColor(color);
 
@@ -592,26 +590,15 @@ public class ItemBuilder {
                 effectMeta.setEffect(fireWorkBuilder.build());
             } catch (IllegalStateException ignored) {
             }
-            return effectMeta;
-        }
-
-        if (VersionUtil.atOrAbove("1.20") && itemMeta instanceof ArmorMeta armorMeta && hasTrimPattern()) {
+        } else if (VersionUtil.atOrAbove("1.20") && itemMeta instanceof ArmorMeta armorMeta && hasTrimPattern()) {
             armorMeta.setTrim(new ArmorTrim(TrimMaterial.REDSTONE, getTrimPattern()));
-            return armorMeta;
-        }
-
-        if (itemMeta instanceof SkullMeta skullMeta) {
+        } else if (itemMeta instanceof SkullMeta skullMeta) {
             final OfflinePlayer defaultOwningPlayer = skullMeta.getOwningPlayer();
             if (!Objects.equals(owningPlayer, defaultOwningPlayer)) {
                 skullMeta.setOwningPlayer(owningPlayer);
-                return skullMeta;
             }
-        }
-
-        if (itemMeta instanceof TropicalFishBucketMeta tropicalFishBucketMeta && tropicalFishBucketMeta.hasVariant())
-            return handleTropicalFishBucketMeta(tropicalFishBucketMeta);
-
-        return itemMeta;
+        } else if (itemMeta instanceof TropicalFishBucketMeta tropicalFishBucketMeta && tropicalFishBucketMeta.hasVariant())
+            handleTropicalFishBucketMeta(tropicalFishBucketMeta);
     }
 
     private ItemMeta handlePotionMeta(PotionMeta potionMeta) {

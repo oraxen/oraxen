@@ -1,37 +1,27 @@
 package io.th0rgal.oraxen.items.helpers;
 
-import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.potion.PotionEffect;
-import org.jetbrains.annotations.NotNull;
 
-public interface FoodEffectWrapper extends ConfigurationSerializable {
+public class FoodEffectWrapper {
 
-    /**
-     * Gets the effect which may be applied.
-     *
-     * @return the effect
-     */
-    @NotNull
-    PotionEffect getEffect();
+    private PotionEffect potionEffect;
+    private float probability;
 
-    /**
-     * Sets the effect which may be applied.
-     *
-     * @param effect the new effect
-     */
-    void setEffect(@NotNull PotionEffect effect);
+    public PotionEffect getEffect() {
+        return potionEffect;
+    }
 
-    /**
-     * Gets the probability of this effect being applied.
-     *
-     * @return probability
-     */
-    float getProbability();
+    public FoodEffectWrapper setEffect(PotionEffect potionEffect) {
+        this.potionEffect = potionEffect;
+        return this;
+    }
 
-    /**
-     * Sets the probability of this effect being applied.
-     *
-     * @param probability between 0 and 1 inclusive.
-     */
-    void setProbability(float probability);
+    public float getProbability() {
+        return probability;
+    }
+
+    public FoodEffectWrapper setProbability(float probability) {
+        this.probability = Math.max(0,Math.min(1, probability));
+        return this;
+    }
 }
