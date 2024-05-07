@@ -1,7 +1,3 @@
-import org.gradle.api.attributes.LibraryElements.JAR
-import org.gradle.api.attributes.LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE
-import org.jetbrains.kotlin.cli.jvm.compiler.writeOutput
-import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.util.archivesName
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.util.*
