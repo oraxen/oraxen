@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.api.events.custom_block.stringblock.OraxenStringBlockDa
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock.StringBlockMechanic;
+import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.ItemUtils;
@@ -52,7 +53,7 @@ public class BreakerManager {
         if (!EventUtils.callEvent(customBlockEvent)) return;
 
         int breakTime = mechanic.breakTime(player);
-        PacketHelpers.applyMiningFatigue(player);
+        if (NMSHandlers.handler() != null) NMSHandlers.handler().applyMiningFatigue(player);
         ActiveBreakerData activeBreakerData = new ActiveBreakerData(player, block.getLocation(), mechanic, breakTime, 0, createBreakScheduler(breakTime, player.getUniqueId()), createBreakSoundScheduler(player.getUniqueId()));
         activeBreakerDataMap.put(player.getUniqueId(), activeBreakerData);
     }
@@ -64,7 +65,7 @@ public class BreakerManager {
         activeBreakerData.cancelTasks();
         activeBreakerDataMap.remove(player.getUniqueId());
         if (player.isOnline()) {
-            PacketHelpers.removeMiningFatigue(player);
+            if (NMSHandlers.handler() != null) NMSHandlers.handler().removeMiningFatigue(player);
             activeBreakerData.resetProgress();
             activeBreakerData.sendBreakProgress();
         }
@@ -85,7 +86,7 @@ public class BreakerManager {
                 activeBreakerData.addBreakTimeProgress(blockBreakTime / mechanic.breakTime(player));
                 activeBreakerData.sendBreakProgress();
             } else if (EventUtils.callEvent(new BlockBreakEvent(block, player)) && ProtectionLib.canBreak(player, block.getLocation())) {
-                PacketHelpers.removeMiningFatigue(player);
+                if (NMSHandlers.handler() != null) NMSHandlers.handler().removeMiningFatigue(player);
                 activeBreakerData.resetProgress();
                 activeBreakerData.sendBreakProgress();
 

@@ -5,8 +5,10 @@ import org.bukkit.Particle;
 import org.bukkit.Registry;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
+
 public class ParticleWrapper {
 
-    @NotNull public static final Particle DUST = Registry.PARTICLE_TYPE.get(NamespacedKey.minecraft("dust"));
-    @NotNull public static final Particle SPLASH = Registry.PARTICLE_TYPE.get(NamespacedKey.minecraft("splash"));
+    @NotNull public static final Particle DUST = Objects.requireNonNull(Registry.PARTICLE_TYPE.get(NamespacedKey.minecraft("dust")));
+    @NotNull public static final Particle SPLASH = Objects.requireNonNull(Registry.PARTICLE_TYPE.get(NamespacedKey.minecraft("splash")));
 }

@@ -7,8 +7,6 @@ import org.bukkit.configuration.ConfigurationSection;
 import team.unnamed.creative.model.ModelTexture;
 import team.unnamed.creative.model.ModelTextures;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -22,9 +20,6 @@ public class OraxenMeta {
     private Key fireworkModel;
     private Key castModel;
     private List<Key> damagedModels;
-    private List<ModelTexture> textureLayers;
-    private Map<String, ModelTexture> textureVariables;
-    private ModelTextures modelTextures;
     private Key parentModel;
     private boolean hasPackInfos = false;
     private boolean excludedFromInventory = false;
@@ -81,6 +76,7 @@ public class OraxenMeta {
         if (generator != null) {
             texturesMeta = new OraxenBBModelTexturesMeta(this, generator, section.getIntegerList("animation").stream().mapToInt(i -> i).toArray());
             generateModel = true;
+
         } else {
             texturesMeta = new OraxenKeyTexturesMeta(this, section);
             this.generateModel = section.getString("model") == null;
@@ -183,6 +179,8 @@ public class OraxenMeta {
 
     public void disableEnchanting(boolean disableEnchanting) { this.disableEnchanting = disableEnchanting; }
 
-
+    public ModelTextures modelTextures() {
+        return texturesMeta.modelTextures();
+    }
 }
 
