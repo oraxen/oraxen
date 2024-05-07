@@ -13,10 +13,8 @@ import org.bukkit.inventory.meta.PotionMeta;
 import team.unnamed.creative.base.Vector3Float;
 import team.unnamed.creative.model.*;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class PredicateGenerator {
 
@@ -40,7 +38,7 @@ public class PredicateGenerator {
      */
     private static List<ItemOverride> generateBaseModelOverrides(Material material) {
         List<ItemOverride> overrides = Lists.newArrayList();
-        List<ItemBuilder> itemBuilders = OraxenItems.getItems().stream().filter(i -> i.getType() == material).toList();
+        LinkedHashSet<ItemBuilder> itemBuilders = OraxenItems.getItems().stream().filter(i -> i.getType() == material).collect(Collectors.toCollection(LinkedHashSet::new));
 
         switch (material) {
             case SHIELD -> overrides.add(ItemOverride.of(Key.key("item/shield_blocking"), ItemPredicate.blocking()));
@@ -96,7 +94,7 @@ public class PredicateGenerator {
     public static ModelTextures vanillaModelTextures(Material material) {
         Key baseKey = getVanillaTextureName(material, false);
         List<ModelTexture> layers = Lists.newArrayList();
-        Map<String, ModelTexture> variables = new HashMap<>();
+        Map<String, ModelTexture> variables = new LinkedHashMap<>();
         ItemMeta exampleMeta = new ItemStack(material).getItemMeta();
 
         if (exampleMeta instanceof PotionMeta) {
@@ -131,7 +129,7 @@ public class PredicateGenerator {
     }
 
     private static Map<ItemTransform.Type, ItemTransform> generateBaseModelDisplay(Material material) {
-        Map<ItemTransform.Type, ItemTransform> display = new HashMap<>();
+        Map<ItemTransform.Type, ItemTransform> display = new LinkedHashMap<>();
 
         switch (material) {
             case SHIELD -> {
