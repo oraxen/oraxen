@@ -1,12 +1,15 @@
 package io.th0rgal.oraxen.config;
 
+import com.google.gson.JsonParser;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.bbmodel.BBModelTemplate;
 import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemParser;
 import io.th0rgal.oraxen.items.ItemTemplate;
 import io.th0rgal.oraxen.items.ModelData;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.OraxenJson;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -17,9 +20,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.*;
 
 public class ConfigsManager {
@@ -36,6 +37,7 @@ public class ConfigsManager {
     private YamlConfiguration sounds;
     private YamlConfiguration language;
     private YamlConfiguration hud;
+    private File bbModelFolder;
     private File itemsFolder;
     private File glyphsFolder;
     private File schematicsFolder;
@@ -107,6 +109,15 @@ public class ConfigsManager {
         languagesFolder.mkdir();
         String languageFile = "languages/" + Settings.PLUGIN_LANGUAGE + ".yml";
         language = validate(resourcesManager, languageFile, defaultLanguage);
+
+        // check bbModelFolder
+        bbModelFolder = new File(plugin.getDataFolder(), "bbmodels");
+        if (!bbModelFolder.exists()) {
+            bbModelFolder.mkdirs();
+            if (Settings.GENERATE_DEFAULT_CONFIGS.toBool()) {
+                resourcesManager.extractConfigsInFolder("bbmodels", "bbmodel");
+            }
+        }
 
         // check itemsFolder
         itemsFolder = new File(plugin.getDataFolder(), "items");
@@ -270,6 +281,19 @@ public class ConfigsManager {
         }
     }
 
+    public void parseAllBBModelTemplates() {
+        BBModelTemplate.INSTANCE.clear();
+        for (File bbModelFile : getBBModelFiles()) {
+            try (FileReader fr = new FileReader(bbModelFile); BufferedReader br = new BufferedReader(fr)) {
+                String name = bbModelFile.getName().split("\\.")[0];
+                BBModelTemplate.INSTANCE.register(name, JsonParser.parseReader(br));
+            } catch (IOException e) {
+                Logs.logError("Error loading JSON configuration file: " + bbModelFile.getPath());
+                Logs.logWarning(e.getMessage());
+            }
+        }
+    }
+
     public void parseAllItemTemplates() {
         for (File file : getItemFiles()) {
             if (!file.exists()) continue;
@@ -324,6 +348,11 @@ public class ConfigsManager {
             }
 
         return map;
+    }
+
+    private List<File> getBBModelFiles() {
+        if (bbModelFolder == null || !bbModelFolder.exists()) return new ArrayList<>();
+        return FileUtils.listFiles(bbModelFolder, new String[]{"bbmodel"}, true).stream().filter(OraxenJson::isValidJson).sorted().toList();
     }
 
     private List<File> getItemFiles() {
