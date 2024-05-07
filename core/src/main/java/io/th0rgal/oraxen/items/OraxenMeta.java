@@ -1,12 +1,12 @@
 package io.th0rgal.oraxen.items;
 
-import io.th0rgal.oraxen.bbmodel.BBModelTemplate;
-import io.th0rgal.oraxen.bbmodel.OraxenBBModelGenerator;
 import net.kyori.adventure.key.Key;
 import org.bukkit.configuration.ConfigurationSection;
 import team.unnamed.creative.model.ModelTexture;
 import team.unnamed.creative.model.ModelTextures;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -20,6 +20,9 @@ public class OraxenMeta {
     private Key fireworkModel;
     private Key castModel;
     private List<Key> damagedModels;
+    private List<ModelTexture> textureLayers;
+    private Map<String, ModelTexture> textureVariables;
+    private ModelTextures modelTextures;
     private Key parentModel;
     private boolean hasPackInfos = false;
     private boolean excludedFromInventory = false;
@@ -27,8 +30,6 @@ public class OraxenMeta {
     private boolean noUpdate = false;
     private boolean disableEnchanting = false;
     private boolean generateModel = false;
-
-    private OraxenTexturesMeta texturesMeta;
 
     public void setExcludedFromInventory(boolean excluded) {
         this.excludedFromInventory = excluded;
@@ -67,20 +68,29 @@ public class OraxenMeta {
         if (castModel == null) castModel = Key.key(section.getString("cast_texture", "").replace(".png", ""));
         if (blockingModel == null) blockingModel = Key.key(section.getString("blocking_texture", "").replace(".png", ""));
 
+        ConfigurationSection textureSection = section.getConfigurationSection("textures");
+        if (textureSection != null) {
+            ConfigurationSection texturesSection = section.getConfigurationSection("textures");
+            assert texturesSection != null;
+            Map<String, ModelTexture> variables = new HashMap<>();
+            texturesSection.getKeys(false).forEach(key -> variables.put(key, ModelTexture.ofKey(Key.key(texturesSection.getString(key).replace(".png", "")))));
+            this.textureVariables = variables;
+        }
+        else if (section.isList("textures")) this.textureLayers = section.getStringList("textures").stream().map(t -> ModelTexture.ofKey(Key.key(t.replace(".png", "")))).toList();
+        else if (section.isString("textures")) this.textureLayers = List.of(ModelTexture.ofKey(Key.key(section.getString("textures").replace(".png", ""))));
+        else if (section.isString("texture")) this.textureLayers = List.of(ModelTexture.ofKey(Key.key(section.getString("texture").replace(".png", ""))));
+
+        this.textureVariables = textureVariables != null ? textureVariables : new HashMap<>();
+        this.textureLayers = textureLayers != null ? textureLayers : new ArrayList<>();
+
+        this.modelTextures = ModelTextures.builder()
+                .particle(textureVariables.get("particle"))
+                .variables(textureVariables)
+                .layers(textureLayers)
+                .build();
 
         this.parentModel = Key.key(section.getString("parent_model", "item/generated"));
-
-        String bbmodel = section.getString("bbmodel");
-        OraxenBBModelGenerator generator = bbmodel != null ? BBModelTemplate.INSTANCE.get(bbmodel) : null;
-
-        if (generator != null) {
-            texturesMeta = new OraxenBBModelTexturesMeta(this, generator, section.getIntegerList("animation").stream().mapToInt(i -> i).toArray());
-            generateModel = true;
-
-        } else {
-            texturesMeta = new OraxenKeyTexturesMeta(this, section);
-            this.generateModel = section.getString("model") == null;
-        }
+        this.generateModel = section.getString("model") == null;
     }
 
     // this might not be a very good function name
@@ -155,6 +165,10 @@ public class OraxenMeta {
         return damagedModels;
     }
 
+    public ModelTextures modelTextures() {
+        return modelTextures;
+    }
+
     public Key parentModelKey() {
         return parentModel;
     }
@@ -171,16 +185,11 @@ public class OraxenMeta {
         this.noUpdate = noUpdate;
     }
 
-    public OraxenTexturesMeta texturesMeta() {
-        return texturesMeta;
-    }
 
     public boolean disableEnchanting() { return disableEnchanting; }
 
     public void disableEnchanting(boolean disableEnchanting) { this.disableEnchanting = disableEnchanting; }
 
-    public ModelTextures modelTextures() {
-        return texturesMeta.modelTextures();
-    }
+
 }
 

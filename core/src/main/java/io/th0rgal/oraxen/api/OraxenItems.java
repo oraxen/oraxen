@@ -31,7 +31,6 @@ public class OraxenItems {
         ItemParser.MODEL_DATAS_BY_ID.clear();
         ModelData.DATAS.clear();
         OraxenPlugin.get().configsManager().assignAllUsedModelDatas();
-        OraxenPlugin.get().configsManager().parseAllBBModelTemplates();
         OraxenPlugin.get().configsManager().parseAllItemTemplates();
         map = OraxenPlugin.get().configsManager().parseItemConfig();
         items = new HashSet<>();
