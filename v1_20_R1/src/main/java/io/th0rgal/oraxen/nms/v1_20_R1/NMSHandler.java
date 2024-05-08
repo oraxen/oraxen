@@ -192,14 +192,11 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
     @Override
     public void applyMiningFatigue(Player player) {
-        ((CraftPlayer) player).getHandle().connection.send(new ClientboundUpdateMobEffectPacket(player.getEntityId(), new MobEffectInstance(
-                MobEffects.DIG_SLOWDOWN,
-                0,
-                -1,
-                true,
-                false,
-                false
-        )));
+        ((CraftPlayer) player).getHandle().connection.send(
+                new ClientboundUpdateMobEffectPacket(player.getEntityId(),
+                        new MobEffectInstance(MobEffects.DIG_SLOWDOWN, 0, -1,
+                                true, false, false))
+        );
     }
 
     @Override
