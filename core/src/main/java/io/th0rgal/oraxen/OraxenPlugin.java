@@ -140,7 +140,7 @@ public class OraxenPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        unregisterListeners();
+        HandlerList.unregisterAll(this);
         FurnitureFactory.unregisterEvolution();
         for (Player player : Bukkit.getOnlinePlayers())
             if (GlyphHandlers.isNms()) NMSHandlers.getHandler().glyphHandler().uninject(player);
@@ -148,13 +148,6 @@ public class OraxenPlugin extends JavaPlugin {
         CompatibilitiesManager.disableCompatibilities();
         CommandAPI.onDisable();
         Message.PLUGIN_UNLOADED.log();
-    }
-
-    private void unregisterListeners() {
-        fontManager.unregisterEvents();
-        hudManager.unregisterEvents();
-        MechanicsManager.unloadListeners();
-        HandlerList.unregisterAll(this);
     }
 
     public ResourcesManager getResourceManager() {
