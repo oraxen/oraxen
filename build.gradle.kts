@@ -1,3 +1,5 @@
+import xyz.jpenilla.resourcefactory.bukkit.BukkitPluginYaml
+import xyz.jpenilla.resourcefactory.bukkit.Permission
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.util.*
@@ -6,23 +8,21 @@ plugins {
     id("java")
     //id("com.github.johnrengelman.shadow") version "8.1.1"
     id("xyz.jpenilla.run-paper") version "2.2.4"
-    id("net.minecrell.plugin-yml.bukkit") version "0.6.0" // Generates plugin.yml
+    id("xyz.jpenilla.resource-factory-bukkit-convention") version "1.1.1" // Generates plugin.yml based on the Gradle config
     id("io.papermc.paperweight.userdev") version "1.7.0" apply false
     id("io.github.goooler.shadow") version "8.1.7"
     alias(idofrontLibs.plugins.mia.publication)
 }
 
 class NMSVersion(val nmsVersion: String, val serverVersion: String, val javaVersion: Int)
-
+infix fun String.toNms(that: String) = Pair(this, that)
+infix fun Pair<String, String>.withJava(javaVersion: Int): NMSVersion = NMSVersion(first, second, javaVersion)
 val SUPPORTED_VERSIONS: List<NMSVersion> = listOf(
-    NMSVersion("v1_20_R1", "1.20.1-R0.1-SNAPSHOT", 17),
-    NMSVersion("v1_20_R2", "1.20.2-R0.1-SNAPSHOT", 17),
-    NMSVersion("v1_20_R3", "1.20.4-R0.1-SNAPSHOT", 17),
-    NMSVersion("v1_20_R4", "1.20.6-R0.1-SNAPSHOT", 21),
+    "v1_20_R1" toNms "1.20.1-R0.1-SNAPSHOT" withJava 17,
+    "v1_20_R2" toNms "1.20.2-R0.1-SNAPSHOT" withJava 17,
+    "v1_20_R3" toNms "1.20.4-R0.1-SNAPSHOT" withJava 17,
+    "v1_20_R4" toNms "1.20.6-R0.1-SNAPSHOT" withJava 21
 )
-
-val latest = "1.20.6"
-val runJavaVersion = 21
 
 SUPPORTED_VERSIONS.forEach {
     project(":${it.nmsVersion}") {
@@ -37,7 +37,6 @@ SUPPORTED_VERSIONS.forEach {
         configurations.create("mojmap")
 
         dependencies {
-            //compileOnly("io.papermc.paper:paper-api:" + it.serverVersion)
             compileOnly(project(":core"))
             paperDevBundle(it.serverVersion)
         }
@@ -84,7 +83,7 @@ allprojects {
         maven("https://hub.jeff-media.com/nexus/repository/jeff-media-public/") // CustomBlockData
         maven("https://repo.triumphteam.dev/snapshots") // actions-code, actions-spigot
         maven("https://mvn.lumine.io/repository/maven-public/") { metadataSources { artifact() } }// MythicMobs
-        maven("https://repo.mineinabyss.com/releases") // PlayerAnimator
+        maven("https://repo.mineinabyss.com/releases")
         maven("https://s01.oss.sonatype.org/content/repositories/snapshots") // commandAPI snapshots
         maven("https://repo.auxilor.io/repository/maven-public/") // EcoItems
         maven("https://maven.enginehub.org/repo/")
@@ -146,7 +145,7 @@ allprojects {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:$latest-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.20.6-R0.1-SNAPSHOT")
     implementation(project(path = ":core"))
     SUPPORTED_VERSIONS.forEach {
         implementation(project(path = ":${it.nmsVersion}", configuration = "reobf"))
@@ -154,22 +153,22 @@ dependencies {
 }
 
 project.java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(runJavaVersion))
+    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
 }
 
 tasks {
 
     compileJava {
+        dependsOn(clean)
         options.encoding = Charsets.UTF_8.name()
     }
 
     runServer {
         pluginJars(fileTree("plugins"))
-        minecraftVersion(latest)
+        minecraftVersion("1.20.6")
     }
 
     jar {
-        dependsOn(clean)
         finalizedBy(shadowJar)
     }
     shadowJar {
@@ -177,17 +176,17 @@ tasks {
             dependsOn(":${it.nmsVersion}:${if (it.javaVersion <= 17) "reobfJar" else "jar"}")
         }
 
-        //archiveClassifier = null
-        relocate("org.bstats", "io.th0rgal.oraxen.shaded.bstats")
-        relocate("dev.triumphteam.gui", "io.th0rgal.oraxen.shaded.triumphteam.gui")
-        relocate("com.jeff_media", "io.th0rgal.oraxen.shaded.jeff_media")
-        relocate("com.github.stefvanschie.inventoryframework", "io.th0rgal.oraxen.shaded.inventoryframework")
-        relocate("me.gabytm.util.actions", "io.th0rgal.oraxen.shaded.actions")
-        relocate("org.intellij.lang.annotations", "io.th0rgal.oraxen.shaded.intellij.annotations")
-        relocate("org.jetbrains.annotations", "io.th0rgal.oraxen.shaded.jetbrains.annotations")
-        relocate("com.udojava.evalex", "io.th0rgal.oraxen.shaded.evalex")
-        relocate("com.ticxo.playeranimator", "io.th0rgal.oraxen.shaded.playeranimator")
-        relocate("dev.jorel", "io.th0rgal.oraxen.shaded")
+        fun shade(pattern: String) = relocate(pattern, "io.th0rgal.oraxen.shaded." + pattern.substringAfter("."))
+
+        shade("org.bstats")
+        shade("dev.triumphteam.gui")
+        shade("com.jeff_media")
+        shade("com.github.stefvanschie.inventoryframework")
+        shade("me.gabytm.util.actions")
+        shade("org.intellij.lang.annotations")
+        shade("org.jetbrains.annotations")
+        shade("com.udojava.evalex")
+        shade("dev.jorel")
 
         manifest {
             attributes(
@@ -204,31 +203,30 @@ tasks {
                 )
             )
         }
+        exclude("LICENSE")
         archiveFileName.set("oraxen-${pluginVersion}.jar")
         archiveClassifier.set("")
     }
 
-    build.get().dependsOn(publishToMavenLocal)
+    build.get().dependsOn(publishToMavenLocal, shadowJar)
 }
 
-bukkit {
-    load = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.PluginLoadOrder.POSTWORLD
+bukkitPluginYaml {
     main = "io.th0rgal.oraxen.OraxenPlugin"
-    version = pluginVersion
-    name = "Oraxen"
+    load = BukkitPluginYaml.PluginLoadOrder.POSTWORLD
+    authors.add("boy0000")
     apiVersion = "1.20"
-    authors = listOf("th0rgal", "boy0000")
+
+    permissions.create("oraxen.command") {
+        description = "Allows the player to use the /oraxen command"
+        default = Permission.Default.TRUE
+    }
     softDepend = listOf(
         "ProtocolLib",
         "LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "MythicMobs",
         "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared",
         "ModelEngine", "CrashClaim", "HuskClaims", "BentoBox", "AxiomPaper"
     )
-    loadBefore = listOf("Realistic_World")
-    permissions.create("oraxen.command") {
-        description = "Allows the player to use the /oraxen command"
-        default = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission.Default.TRUE
-    }
     libraries = listOf(
         "org.springframework:spring-expression:6.0.6",
         "org.apache.httpcomponents:httpmime:4.5.13",
