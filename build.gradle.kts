@@ -12,14 +12,17 @@ plugins {
     alias(idofrontLibs.plugins.mia.publication)
 }
 
-class NMSVersion(val nmsVersion: String, val serverVersion: String)
-infix fun String.toNms(that: String): NMSVersion = NMSVersion(this, that)
+class NMSVersion(val nmsVersion: String, val serverVersion: String, val javaVersion: Int)
+
 val SUPPORTED_VERSIONS: List<NMSVersion> = listOf(
-    "v1_20_R1" toNms "1.20.1-R0.1-SNAPSHOT",
-    "v1_20_R2" toNms "1.20.2-R0.1-SNAPSHOT",
-    "v1_20_R3" toNms "1.20.4-R0.1-SNAPSHOT",
-    "v1_20_R4" toNms "1.20.6-R0.1-SNAPSHOT"
+    NMSVersion("v1_20_R1", "1.20.1-R0.1-SNAPSHOT", 17),
+    NMSVersion("v1_20_R2", "1.20.2-R0.1-SNAPSHOT", 17),
+    NMSVersion("v1_20_R3", "1.20.4-R0.1-SNAPSHOT", 17),
+    NMSVersion("v1_20_R4", "1.20.6-R0.1-SNAPSHOT", 21),
 )
+
+val latest = "1.20.6"
+val runJavaVersion = 21
 
 SUPPORTED_VERSIONS.forEach {
     project(":${it.nmsVersion}") {
@@ -31,9 +34,11 @@ SUPPORTED_VERSIONS.forEach {
             maven("https://repo.mineinabyss.com/releases")
         }
 
+        configurations.create("mojmap")
+
         dependencies {
             //compileOnly("io.papermc.paper:paper-api:" + it.serverVersion)
-            implementation(project(":core"))
+            compileOnly(project(":core"))
             paperDevBundle(it.serverVersion)
         }
 
@@ -44,7 +49,7 @@ SUPPORTED_VERSIONS.forEach {
         }
 
         java {
-            toolchain.languageVersion.set(JavaLanguageVersion.of(if (it.nmsVersion == "v1_20_R4") 21 else 17))
+            toolchain.languageVersion.set(JavaLanguageVersion.of(it.javaVersion))
         }
     }
 }
@@ -141,13 +146,15 @@ allprojects {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:$latest-R0.1-SNAPSHOT")
     implementation(project(path = ":core"))
-    SUPPORTED_VERSIONS.forEach { implementation(project(path = ":${it.nmsVersion}", configuration = "reobf")) }
+    SUPPORTED_VERSIONS.forEach {
+        implementation(project(path = ":${it.nmsVersion}", configuration = "reobf"))
+    }
 }
 
-java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+project.java {
+    toolchain.languageVersion.set(JavaLanguageVersion.of(runJavaVersion))
 }
 
 tasks {
@@ -157,11 +164,18 @@ tasks {
     }
 
     runServer {
-        minecraftVersion("1.20.4")
+        pluginJars(fileTree("plugins"))
+        minecraftVersion(latest)
     }
 
+    jar {
+        dependsOn(clean)
+        finalizedBy(shadowJar)
+    }
     shadowJar {
-        SUPPORTED_VERSIONS.forEach { dependsOn(":${it.nmsVersion}:reobfJar") }
+        SUPPORTED_VERSIONS.forEach {
+            dependsOn(":${it.nmsVersion}:${if (it.javaVersion <= 17) "reobfJar" else "jar"}")
+        }
 
         //archiveClassifier = null
         relocate("org.bstats", "io.th0rgal.oraxen.shaded.bstats")
@@ -194,8 +208,6 @@ tasks {
         archiveClassifier.set("")
     }
 
-    compileJava.get().dependsOn(clean)
-    build.get().dependsOn(shadowJar)
     build.get().dependsOn(publishToMavenLocal)
 }
 
@@ -236,7 +248,7 @@ bukkit {
 
 if (pluginPath != null) {
     tasks {
-        val defaultPath = findByName("reobfJar") ?: findByName("shadowJar") ?: findByName("jar")
+        val defaultPath = findByName("shadowJar") ?: findByName("jar")
         // Define the main copy task
         val copyJar = register<Copy>("copyJar") {
             this.doNotTrackState("Overwrites the plugin jar to allow for easier reloading")

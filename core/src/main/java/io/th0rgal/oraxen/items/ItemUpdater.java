@@ -10,6 +10,7 @@ import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
+import net.kyori.adventure.text.Component;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -30,6 +31,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.*;
 import org.bukkit.persistence.PersistentDataContainer;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Map;
@@ -243,7 +245,15 @@ public class ItemUpdater implements Listener {
                 }
             }
 
-            itemPdc.set(ORIGINAL_NAME_KEY, DataType.STRING, VersionUtil.isPaperServer() ? AdventureUtils.MINI_MESSAGE.serialize(newMeta.displayName()) : newMeta.getDisplayName());
+            if (VersionUtil.isPaperServer()) {
+                Component display = newMeta.displayName();
+                if (display == null) {
+                    display = translatable(newItem.getType());
+                }
+                itemPdc.set(ORIGINAL_NAME_KEY, DataType.STRING, AdventureUtils.MINI_MESSAGE.serialize(display));
+            } else {
+                itemPdc.set(ORIGINAL_NAME_KEY, DataType.STRING, newMeta.hasDisplayName() ? newMeta.getDisplayName() : AdventureUtils.MINI_MESSAGE.serialize(translatable(newItem.getType())));
+            }
             // If the item is not unstackable, we should remove the unstackable tag
             // Also remove it on 1.20.5+ due to maxStackSize component
             if (VersionUtil.atOrAbove("1.20.5") || !newItemBuilder.isUnstackable()) itemPdc.remove(UNSTACKABLE_KEY);
@@ -251,5 +261,7 @@ public class ItemUpdater implements Listener {
 
         return newItem;
     }
-
+    private static @NotNull Component translatable(@NotNull Material type) {
+        return Component.translatable((type.isBlock() ? "block" : "item") + ".minecraft." + type.name().toLowerCase());
+    }
 }

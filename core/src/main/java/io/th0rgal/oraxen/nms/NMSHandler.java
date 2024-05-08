@@ -1,14 +1,22 @@
 package io.th0rgal.oraxen.nms;
 
+import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.events.PacketContainer;
 import io.th0rgal.oraxen.items.helpers.EmptyItemPropertyHandler;
 import io.th0rgal.oraxen.items.helpers.ItemPropertyHandler;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketManager;
 import net.minecraft.world.InteractionResult;
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.Set;
 
@@ -100,5 +108,30 @@ public interface NMSHandler {
         public void customBlockDefaultTools(Player player) {
 
         }
+
+        @NotNull
+        @Override
+        public @Unmodifiable Set<Material> itemTools() {
+            return Set.of();
+        }
+
+        @Override
+        public void applyMiningFatigue(Player player) {
+            player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, -1, Integer.MAX_VALUE, false, false, false));
+        }
+
+        @Override
+        public void removeMiningFatigue(Player player) {
+            player.removePotionEffect(PotionEffectType.SLOW_DIGGING);
+        }
     }
+
+    @NotNull
+    @Unmodifiable
+    Set<Material> itemTools();
+
+
+    void applyMiningFatigue(Player player);
+
+    void removeMiningFatigue(Player player);
 }

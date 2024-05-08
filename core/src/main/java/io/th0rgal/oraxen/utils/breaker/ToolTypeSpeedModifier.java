@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.utils.breaker;
 
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockMechanic;
+import io.th0rgal.oraxen.nms.NMSHandlers;
 import org.bukkit.Material;
 import org.bukkit.Tag;
 
@@ -15,12 +16,15 @@ public class ToolTypeSpeedModifier {
 
     static {
         VANILLA.add(EMPTY);
-        VANILLA.add(new ToolTypeSpeedModifier(Tag.ITEMS_TOOLS.getValues().stream().filter(m -> m.toString().startsWith("WOODEN_")).collect(Collectors.toSet()), 2));
-        VANILLA.add(new ToolTypeSpeedModifier(Tag.ITEMS_TOOLS.getValues().stream().filter(m -> m.toString().startsWith("STONE_")).collect(Collectors.toSet()), 4));
-        VANILLA.add(new ToolTypeSpeedModifier(Tag.ITEMS_TOOLS.getValues().stream().filter(m -> m.toString().startsWith("IRON_")).collect(Collectors.toSet()), 6));
-        VANILLA.add(new ToolTypeSpeedModifier(Tag.ITEMS_TOOLS.getValues().stream().filter(m -> m.toString().startsWith("DIAMOND_")).collect(Collectors.toSet()), 8));
-        VANILLA.add(new ToolTypeSpeedModifier(Tag.ITEMS_TOOLS.getValues().stream().filter(m -> m.toString().startsWith("NETHERITE_")).collect(Collectors.toSet()), 9));
-        VANILLA.add(new ToolTypeSpeedModifier(Tag.ITEMS_TOOLS.getValues().stream().filter(m -> m.toString().startsWith("GOLDEN_")).collect(Collectors.toSet()), 12));
+
+        Set<Material> itemTools = NMSHandlers.getHandler() != null ? NMSHandlers.getHandler().itemTools(): Set.of();
+
+        VANILLA.add(new ToolTypeSpeedModifier(itemTools.stream().filter(m -> m.toString().startsWith("WOODEN_")).collect(Collectors.toSet()), 2));
+        VANILLA.add(new ToolTypeSpeedModifier(itemTools.stream().filter(m -> m.toString().startsWith("STONE_")).collect(Collectors.toSet()), 4));
+        VANILLA.add(new ToolTypeSpeedModifier(itemTools.stream().filter(m -> m.toString().startsWith("IRON_")).collect(Collectors.toSet()), 6));
+        VANILLA.add(new ToolTypeSpeedModifier(itemTools.stream().filter(m -> m.toString().startsWith("DIAMOND_")).collect(Collectors.toSet()), 8));
+        VANILLA.add(new ToolTypeSpeedModifier(itemTools.stream().filter(m -> m.toString().startsWith("NETHERITE_")).collect(Collectors.toSet()), 9));
+        VANILLA.add(new ToolTypeSpeedModifier(itemTools.stream().filter(m -> m.toString().startsWith("GOLDEN_")).collect(Collectors.toSet()), 12));
 
         VANILLA.add(new ToolTypeSpeedModifier(Set.of(Material.SHEARS), 15, Tag.LEAVES.getValues()));
         VANILLA.add(new ToolTypeSpeedModifier(Set.of(Material.SHEARS), 15, Set.of(Material.COBWEB)));
