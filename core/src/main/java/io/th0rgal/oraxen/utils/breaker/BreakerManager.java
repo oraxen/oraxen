@@ -11,7 +11,6 @@ import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.ItemUtils;
-import io.th0rgal.oraxen.utils.PacketHelpers;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -53,7 +52,7 @@ public class BreakerManager {
         if (!EventUtils.callEvent(customBlockEvent)) return;
 
         int breakTime = mechanic.breakTime(player);
-        if (NMSHandlers.handler() != null) NMSHandlers.handler().applyMiningFatigue(player);
+        NMSHandlers.getHandler().applyMiningFatigue(player);
         ActiveBreakerData activeBreakerData = new ActiveBreakerData(player, block.getLocation(), mechanic, breakTime, 0, createBreakScheduler(breakTime, player.getUniqueId()), createBreakSoundScheduler(player.getUniqueId()));
         activeBreakerDataMap.put(player.getUniqueId(), activeBreakerData);
     }
@@ -65,7 +64,7 @@ public class BreakerManager {
         activeBreakerData.cancelTasks();
         activeBreakerDataMap.remove(player.getUniqueId());
         if (player.isOnline()) {
-            if (NMSHandlers.handler() != null) NMSHandlers.handler().removeMiningFatigue(player);
+            NMSHandlers.getHandler().removeMiningFatigue(player);
             activeBreakerData.resetProgress();
             activeBreakerData.sendBreakProgress();
         }
@@ -86,7 +85,7 @@ public class BreakerManager {
                 activeBreakerData.addBreakTimeProgress(blockBreakTime / mechanic.breakTime(player));
                 activeBreakerData.sendBreakProgress();
             } else if (EventUtils.callEvent(new BlockBreakEvent(block, player)) && ProtectionLib.canBreak(player, block.getLocation())) {
-                if (NMSHandlers.handler() != null) NMSHandlers.handler().removeMiningFatigue(player);
+                NMSHandlers.getHandler().removeMiningFatigue(player);
                 activeBreakerData.resetProgress();
                 activeBreakerData.sendBreakProgress();
 

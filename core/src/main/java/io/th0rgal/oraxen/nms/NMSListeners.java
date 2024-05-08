@@ -11,7 +11,7 @@ public class NMSListeners implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        if (NMSHandlers.getHandler() == null) return;
+        if (NMSHandlers.getHandler().isEmpty()) return;
 
         if (GlyphHandlers.isNms()) NMSHandlers.getHandler().glyphHandler().inject(player);
         if (NoteBlockMechanicFactory.isEnabled() && NoteBlockMechanicFactory.get().removeMineableTag())

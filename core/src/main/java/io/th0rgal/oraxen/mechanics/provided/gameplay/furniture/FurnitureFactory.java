@@ -15,7 +15,6 @@ import io.th0rgal.oraxen.nms.NMSHandlers;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.ItemDisplay;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -54,7 +53,7 @@ public class FurnitureFactory extends MechanicFactory {
     }
 
     public IFurniturePacketManager packetManager() {
-        return Optional.ofNullable(NMSHandlers.handler()).map(NMSHandler::furniturePacketManager).orElse(new EmptyFurniturePacketManager());
+        return Optional.of(NMSHandlers.getHandler()).map(NMSHandler::furniturePacketManager).orElse(new EmptyFurniturePacketManager());
     }
 
     @Override

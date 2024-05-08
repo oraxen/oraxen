@@ -6,7 +6,7 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Optional;
@@ -17,12 +17,8 @@ public class NMSHandlers {
     private static NMSHandler handler;
     private static String version;
 
-    @Nullable
+    @NotNull
     public static NMSHandler getHandler() {
-        return Optional.ofNullable(handler).orElse(setupHandler());
-    }
-
-    public static NMSHandler handler() {
         return Optional.ofNullable(handler).orElse(setupHandler());
     }
 
@@ -51,6 +47,7 @@ public class NMSHandlers {
                 if (Settings.DEBUG.toBool()) e.printStackTrace();
                 Logs.logWarning("Oraxen does not support this version of Minecraft (" + version + ") yet.");
                 Logs.logWarning("NMS features will be disabled...", true);
+                handler = new EmptyNMSHandler();
             }
         }
 

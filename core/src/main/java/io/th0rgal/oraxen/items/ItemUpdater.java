@@ -138,7 +138,7 @@ public class ItemUpdater implements Listener {
         if (optionalBuilder.isEmpty() || optionalBuilder.get().getOraxenMeta().noUpdate()) return oldItem;
         ItemBuilder newItemBuilder = optionalBuilder.get();
 
-        ItemStack newItem = NMSHandlers.getHandler() != null ? NMSHandlers.getHandler().copyItemNBTTags(oldItem, newItemBuilder.build()) : newItemBuilder.build();
+        ItemStack newItem = NMSHandlers.getHandler().copyItemNBTTags(oldItem, newItemBuilder.build());
         newItem.setAmount(oldItem.getAmount());
 
         ItemUtils.editItemMeta(newItem, itemMeta -> {

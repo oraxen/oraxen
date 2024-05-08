@@ -1,13 +1,9 @@
 package io.th0rgal.oraxen.nms;
 
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.events.PacketContainer;
 import io.th0rgal.oraxen.items.helpers.EmptyItemPropertyHandler;
 import io.th0rgal.oraxen.items.helpers.ItemPropertyHandler;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketManager;
 import net.minecraft.world.InteractionResult;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
@@ -21,6 +17,9 @@ import org.jetbrains.annotations.Unmodifiable;
 import java.util.Set;
 
 public interface NMSHandler {
+    default boolean isEmpty() {
+        return this.equals(new io.th0rgal.oraxen.nms.EmptyNMSHandler());
+    }
     default IFurniturePacketManager furniturePacketManager() {
         return new EmptyFurniturePacketManager();
     }

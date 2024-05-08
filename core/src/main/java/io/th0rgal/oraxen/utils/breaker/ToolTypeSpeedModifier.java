@@ -17,7 +17,8 @@ public class ToolTypeSpeedModifier {
     static {
         VANILLA.add(EMPTY);
 
-        Set<Material> itemTools = NMSHandlers.getHandler() != null ? NMSHandlers.getHandler().itemTools(): Set.of();
+        NMSHandlers.getHandler();
+        Set<Material> itemTools = NMSHandlers.getHandler().itemTools();
 
         VANILLA.add(new ToolTypeSpeedModifier(itemTools.stream().filter(m -> m.toString().startsWith("WOODEN_")).collect(Collectors.toSet()), 2));
         VANILLA.add(new ToolTypeSpeedModifier(itemTools.stream().filter(m -> m.toString().startsWith("STONE_")).collect(Collectors.toSet()), 4));
