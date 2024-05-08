@@ -85,6 +85,7 @@ public enum Settings {
     UPDATE_FURNITURE("FurnitureUpdater.update_furniture", true),
     UPDATE_FURNITURE_ON_RELOAD("FurnitureUpdater.update_on_reload", false),
     UPDATE_FURNITURE_ON_LOAD("FurnitureUpdater.update_on_load", false),
+    CONVERT_LEGACY_FURNITURE("FurnitureUpdater.convert_legacy", true),
 
     //Misc
     RESET_RECIPES("Misc.reset_recipes", true),
