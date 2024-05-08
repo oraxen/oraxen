@@ -243,17 +243,13 @@ public class ItemUpdater implements Listener {
                 } else {
                     ItemUtils.displayName(itemMeta, newMeta);
                 }
+
+                itemPdc.set(ORIGINAL_NAME_KEY, DataType.STRING, VersionUtil.isPaperServer() ?
+                        AdventureUtils.MINI_MESSAGE.serialize(newMeta.hasDisplayName() ? newMeta.displayName() : translatable(newItem.getType()))
+                        : newMeta.hasDisplayName() ? newMeta.getDisplayName() : AdventureUtils.MINI_MESSAGE.serialize(translatable(newItem.getType()))
+                );
             }
 
-            if (VersionUtil.isPaperServer()) {
-                Component display = newMeta.displayName();
-                if (display == null) {
-                    display = translatable(newItem.getType());
-                }
-                itemPdc.set(ORIGINAL_NAME_KEY, DataType.STRING, AdventureUtils.MINI_MESSAGE.serialize(display));
-            } else {
-                itemPdc.set(ORIGINAL_NAME_KEY, DataType.STRING, newMeta.hasDisplayName() ? newMeta.getDisplayName() : AdventureUtils.MINI_MESSAGE.serialize(translatable(newItem.getType())));
-            }
             // If the item is not unstackable, we should remove the unstackable tag
             // Also remove it on 1.20.5+ due to maxStackSize component
             if (VersionUtil.atOrAbove("1.20.5") || !newItemBuilder.isUnstackable()) itemPdc.remove(UNSTACKABLE_KEY);
