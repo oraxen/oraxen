@@ -87,10 +87,6 @@ public class FontManager {
         return id != null ? glyphBitMaps.getOrDefault(id, null) : null;
     }
 
-    public void verifyRequired() {
-        OraxenPlugin.get().saveResource("glyphs/required.yml", true);
-    }
-
     public void registerEvents() {
         Bukkit.getPluginManager().registerEvents(fontEvents, OraxenPlugin.get());
         fontEvents.registerChatHandlers();
@@ -106,20 +102,13 @@ public class FontManager {
     }
 
     private void loadGlyphs(Collection<Glyph> glyphs) {
-        verifyRequiredGlyphs();
         for (Glyph glyph : glyphs) {
             if (glyph.character().isBlank()) continue;
-            glyphMap.put(glyph.name(), glyph);
-            reverse.put(glyph.character().charAt(0), glyph.name());
+            glyphMap.put(glyph.id(), glyph);
+            reverse.put(glyph.character().charAt(0), glyph.id());
             for (final String placeholder : glyph.placeholders())
                 glyphByPlaceholder.put(placeholder, glyph);
         }
-    }
-
-    private void verifyRequiredGlyphs() {
-        // Ensure shifts.yml exists as it is required
-        checkYamlKeys(new File(OraxenPlugin.get().getDataFolder() + "/glyphs/shifts.yml"));
-        checkYamlKeys(new File(OraxenPlugin.get().getDataFolder() + "/glyphs/required.yml"));
     }
 
     private void checkYamlKeys(File file) {
@@ -186,21 +175,6 @@ public class FontManager {
 
     public Map<Character, String> getReverseMap() {
         return reverse;
-    }
-
-    public String getShift(int length) {
-        StringBuilder output = new StringBuilder();
-        String prefix = "shift_";
-        if (length < 0) {
-            prefix = "neg_shift_";
-            length = -length;
-        }
-        while (length > 0) {
-            int biggestPower = Integer.highestOneBit(length);
-            output.append(getGlyphFromName(prefix + biggestPower).character());
-            length -= biggestPower;
-        }
-        return output.toString();
     }
 
     private final Map<UUID, List<String>> currentGlyphCompletions = new HashMap<>();

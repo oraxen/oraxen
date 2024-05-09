@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.api.events.resourcepack.OraxenPrePackGenerateEvent;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.font.Glyph;
+import io.th0rgal.oraxen.font.Shift;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockFactory;
 import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmor;
@@ -142,6 +143,15 @@ public class PackGenerator {
             if (entry.getValue().isEmpty()) continue;
             resourcePack.font(Font.font(entry.getKey(), entry.getValue()));
         }
+
+        Key shiftKey = Key.key(Settings.SHIFT_FONT.toString());
+        Font shiftFont = resourcePack.font(shiftKey);
+        FontProvider shiftProvider = FontProvider.space(Arrays.stream(Shift.values())
+                .filter(s -> !s.equals(Shift.NULL))
+                .map(s -> Map.entry(s.toString(), s.toNumber()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+        if (shiftFont == null) resourcePack.font(shiftKey, shiftProvider);
+        else shiftFont.providers().add(shiftProvider);
     }
 
     private void addSoundFile() {

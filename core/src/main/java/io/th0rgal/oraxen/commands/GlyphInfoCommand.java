@@ -15,7 +15,7 @@ public class GlyphInfoCommand {
     CommandAPICommand getGlyphInfoCommand() {
         return new CommandAPICommand("glyphinfo")
                 .withPermission("oraxen.command.glyphinfo")
-                .withArguments(new StringArgument("glyphid").replaceSuggestions(ArgumentSuggestions.strings(OraxenPlugin.get().fontManager().glyphs().stream().map(Glyph::name).toList())))
+                .withArguments(new StringArgument("glyphid").replaceSuggestions(ArgumentSuggestions.strings(OraxenPlugin.get().fontManager().glyphs().stream().map(Glyph::id).toList())))
                 .executes(((sender, args) -> {
                     String glyphId = (String) args.get("glyphid");
                     Glyph glyph = OraxenPlugin.get().fontManager().getGlyphFromID(glyphId);

@@ -2,6 +2,7 @@ farmer_tag:
   texture: default/chat/farmer_tag
   ascent: 9
   height: 10
+  font: oraxen:chat_tags
   chat:
     placeholders:
       - ":farmer:"
@@ -11,6 +12,7 @@ explorer_tag:
   texture: default/chat/explorer_tag
   ascent: 9
   height: 10
+  font: oraxen:chat_tags
   chat:
     placeholders:
       - ":explorer:"
@@ -20,6 +22,7 @@ knight_tag:
   texture: default/chat/knight_tag
   ascent: 9
   height: 10
+  font: oraxen:chat_tags
   chat:
     placeholders:
       - ":knight:"
@@ -29,6 +32,7 @@ lord_tag:
   texture: default/chat/lord_tag
   ascent: 9
   height: 10
+  font: oraxen:chat_tags
   chat:
     placeholders:
       - ":lord:"
@@ -38,6 +42,7 @@ prince_tag:
   texture: default/chat/prince_tag
   ascent: 9
   height: 10
+  font: oraxen:chat_tags
   chat:
     placeholders:
       - ":prince:"
@@ -47,6 +52,7 @@ king_tag:
   texture: default/chat/king_tag
   ascent: 9
   height: 10
+  font: oraxen:chat_tags
   chat:
     placeholders:
       - ":king:"
@@ -56,6 +62,7 @@ hero_tag:
   texture: default/chat/hero_tag
   ascent: 9
   height: 10
+  font: oraxen:chat_tags
   chat:
     placeholders:
       - ":hero:"
@@ -65,6 +72,7 @@ god_tag:
   texture: default/chat/god_tag
   ascent: 9
   height: 10
+  font: oraxen:chat_tags
   chat:
     placeholders:
       - ":god:"

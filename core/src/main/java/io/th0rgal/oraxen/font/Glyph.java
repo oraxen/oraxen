@@ -17,6 +17,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
 import team.unnamed.creative.font.FontProvider;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -28,7 +29,7 @@ public class Glyph {
 
     private boolean fileChanged = false;
 
-    private final String name;
+    private final String id;
     private final Key font;
     private final boolean isEmoji;
     private final boolean tabcomplete;
@@ -42,8 +43,8 @@ public class Glyph {
     public final Pattern baseRegex;
     public final Pattern escapedRegex;
 
-    public Glyph(final String glyphName, final ConfigurationSection glyphSection, char newChars) {
-        name = glyphName;
+    public Glyph(final String id, final ConfigurationSection glyphSection, char newChars) {
+        this.id = id;
 
         isEmoji = glyphSection.getBoolean("is_emoji", false);
 
@@ -53,7 +54,7 @@ public class Glyph {
         tabcomplete = chatSection != null && chatSection.getBoolean("tabcomplete", false);
 
         String placeholderRegex = String.join("|", Arrays.stream(placeholders).map(Pattern::quote).toArray(String[]::new));
-        String baseRegex = "((<(glyph|g):" + name + ")(:(c|colorable))*>" + (placeholders.length > 0 ?  "|" + placeholderRegex : "") + ")";
+        String baseRegex = "((<(glyph|g):" + id + ")(:(c|colorable))*>" + (placeholders.length > 0 ?  "|" + placeholderRegex : "") + ")";
         this.baseRegex = Pattern.compile("(?<!\\\\)" + baseRegex);
         escapedRegex = Pattern.compile("\\\\" + baseRegex);
 
@@ -77,6 +78,25 @@ public class Glyph {
         height = bitmap() != null ? bitmap().height() : glyphSection.getInt("height", 8);
         texture = bitmap() != null ? bitmap().texture() : Key.key(glyphSection.getString("texture", "required/exit_icon").replaceAll("^(?!.*\\.png$)", "") + ".png");
         font = bitmap() != null ? bitmap().font() : Key.key(glyphSection.getString("font", "minecraft:default"));
+    }
+
+    public Glyph(String id, Character character, int ascent, int height, Key texture, Key font, boolean isEmoji, List<String> placeholders, String permission, boolean tabcomplete, BitMapEntry bitmapEntry) {
+        this.id = id;
+        this.ascent = ascent;
+        this.height = height;
+        this.texture = texture;
+        this.font = font;
+        this.character = character;
+        this.isEmoji = isEmoji;
+        this.placeholders = placeholders.toArray(new String[0]);
+        this.permission = permission;
+        this.tabcomplete = tabcomplete;
+        this.bitmapEntry = bitmapEntry;
+
+        String placeholderRegex = String.join("|", placeholders.stream().map(Pattern::quote).toList());
+        String baseRegex = "((<(glyph|g):" + id + ")(:(c|colorable))*>" + (!placeholders.isEmpty() ?  "|" + placeholderRegex : "") + ")";
+        this.baseRegex = Pattern.compile("(?<!\\\\)" + baseRegex);
+        escapedRegex = Pattern.compile("\\\\" + baseRegex);
     }
 
     public record BitMapEntry(String id, int row, int column) {
@@ -106,8 +126,8 @@ public class Glyph {
         return fileChanged;
     }
 
-    public String name() {
-        return name;
+    public String id() {
+        return id;
     }
 
     public String character() {
@@ -175,7 +195,7 @@ public class Glyph {
      * Useful to easily get the MiniMessage-tag for a glyph
      */
     public String glyphTag() {
-        return '<' + "glyph:" + name + '>';
+        return '<' + "glyph:" + id + '>';
     }
 
     public Component glyphComponent() {
@@ -193,5 +213,16 @@ public class Glyph {
 
     public Key font() {
         return font;
+    }
+
+    public boolean isRequired() {
+        return this.id.equals("required");
+    }
+
+    public static class RequiredGlyph extends Glyph {
+
+        public RequiredGlyph(char character) {
+            super("required", character, 8, 8, Key.key("minecraft:required/exit_icon"), Key.key("minecraft:default"), false, new ArrayList<>(), "oraxen.emoji.required", false, null);
+        }
     }
 }

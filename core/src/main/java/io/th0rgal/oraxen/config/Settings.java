@@ -46,6 +46,7 @@ public enum Settings {
     SHOW_PERMISSION_EMOJIS("Glyphs.emoji_list_permission_only", true),
     UNICODE_COMPLETIONS("Glyphs.unicode_completions", true),
     GLYPH_HOVER_TEXT("Glyphs.chat_hover_text", "<glyph_placeholder>"),
+    SHIFT_FONT("Glyphs.shift_font", "minecraft:default"),
 
     // Chat
     CHAT_HANDLER("Chat.chat_handler", VersionUtil.isPaperServer() ? FontEvents.ChatHandler.MODERN.name() : FontEvents.ChatHandler.LEGACY.name()),

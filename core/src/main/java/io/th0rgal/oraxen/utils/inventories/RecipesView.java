@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.font.FontManager;
+import io.th0rgal.oraxen.font.Shift;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.recipes.CustomRecipe;
 import net.kyori.adventure.text.Component;
@@ -21,8 +22,7 @@ public class RecipesView {
 
     private final FontManager fontManager = OraxenPlugin.get().fontManager();
     final String menuTexture = ChatColor.WHITE +
-            fontManager.getShift(-7) +
-            fontManager.getGlyphFromName("menu_recipe").character();
+            Shift.of(-7) + fontManager.getGlyphFromName("menu_recipe").character();
 
     public ChestGui create(final int page, final List<CustomRecipe> filteredRecipes) {
         final ChestGui gui = new ChestGui(6, menuTexture);

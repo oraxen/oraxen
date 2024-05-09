@@ -59,7 +59,7 @@ public class GlyphCommand {
                                 }
                             }
 
-                            pages = pages.append(AdventureUtils.MINI_MESSAGE.deserialize("<glyph:" + emoji.name() + ">")
+                            pages = pages.append(AdventureUtils.MINI_MESSAGE.deserialize("<glyph:" + emoji.id() + ">")
                                     .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.SUGGEST_COMMAND, String.valueOf(emoji.character())))
                                     .hoverEvent(HoverEvent.hoverEvent(HoverEvent.Action.SHOW_TEXT, Component.text(finalString + permissionMessage))));
                         }

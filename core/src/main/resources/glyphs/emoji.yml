@@ -2,6 +2,7 @@ heart:
   texture: default/chat/heart
   ascent: 8
   height: 8
+  font: oraxen:emojis
   chat:
     placeholders:
       - "<3"

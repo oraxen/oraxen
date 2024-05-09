@@ -112,7 +112,6 @@ public class OraxenPlugin extends JavaPlugin {
         MechanicsManager.registerNativeMechanics();
         OraxenItems.loadItems();
         fontManager.registerEvents();
-        fontManager.verifyRequired(); // Verify the required glyph is there
         hudManager.registerEvents();
         hudManager.registerTask();
         hudManager.parsedHudDisplays = hudManager.generateHudDisplays();

@@ -214,6 +214,11 @@ public class ConfigsManager {
                 }
             }
         }
+
+        // add RequiredGlyph
+        char requiredChar = charPerGlyph.getOrDefault("required", Utils.firstEmpty(charPerGlyph, 42000));
+        output.add(new Glyph.RequiredGlyph(requiredChar));
+
         return output;
     }
 
