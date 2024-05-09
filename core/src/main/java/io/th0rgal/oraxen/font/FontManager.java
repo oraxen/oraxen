@@ -11,7 +11,6 @@ import io.th0rgal.oraxen.font.packets.InventoryPacketListener;
 import io.th0rgal.oraxen.font.packets.TitlePacketListener;
 import io.th0rgal.oraxen.nms.GlyphHandlers;
 import io.th0rgal.oraxen.nms.NMSHandlers;
-import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.PluginUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -26,10 +25,6 @@ import org.jetbrains.annotations.Nullable;
 import team.unnamed.creative.font.BitMapFontProvider;
 import team.unnamed.creative.font.FontProvider;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -109,30 +104,6 @@ public class FontManager {
             for (final String placeholder : glyph.placeholders())
                 glyphByPlaceholder.put(placeholder, glyph);
         }
-    }
-
-    private void checkYamlKeys(File file) {
-        File tempFile = new File(OraxenPlugin.get().getDataFolder() + "/glyphs/temp.yml");
-        try {
-            Files.copy(Objects.requireNonNull(OraxenPlugin.get().getResource("glyphs/" + file.getName())), tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            if (!file.exists()) {
-                OraxenPlugin.get().saveResource("glyphs/" + file.getName(), false);
-            }
-            // Check if file is equal to the resource
-            else if (!Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) {
-                List<String> tempKeys = OraxenYaml.loadConfiguration(tempFile).getKeys(false).stream().toList();
-                List<String> requiredKeys = OraxenYaml.loadConfiguration(file).getKeys(false).stream().toList();
-                if (!new HashSet<>(requiredKeys).containsAll(tempKeys)) {
-                    file.renameTo(new File(OraxenPlugin.get().getDataFolder() + "/glyphs/" + file.getName() + ".old"));
-                    OraxenPlugin.get().saveResource("glyphs/" + file.getName(), true);
-                    Logs.logWarning("glyphs/" + file.getName() + " was incorrect, renamed to .old and regenerated the default one");
-                }
-            }
-        } catch (IOException e) {
-            file.renameTo(new File(OraxenPlugin.get().getDataFolder() + "/glyphs/" + file.getName() + ".old"));
-            OraxenPlugin.get().saveResource("glyphs/" + file.getName(), true);
-        }
-        tempFile.delete();
     }
 
     public final Collection<Glyph> glyphs() {

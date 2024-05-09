@@ -15,6 +15,7 @@ public class ShiftTag {
     public static final TagResolver RESOLVER = TagResolver.resolver(Set.of(SHIFT, SHIFT_SHORT), (args, ctx) -> shiftTag(args));
 
     private static Tag shiftTag(final ArgumentQueue args) {
-        return Tag.selfClosingInserting(Component.text(Shift.of(ParseUtils.parseInt(args.popOr("A shift value is required").value(), 0))));
+        int shift = ParseUtils.parseInt(args.popOr("A shift value is required").value(), 0);
+        return Tag.selfClosingInserting(Component.text(Shift.of(shift)));
     }
 }
