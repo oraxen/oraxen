@@ -52,11 +52,13 @@ public class ItemsView {
             slot = slot != -1 ? slot : guiItems.indexOf(emptyGuiItem);
             GuiItem guiItem = new GuiItem(getGuiItemSlot(entry.getKey()).itemStack(), e -> entry.getValue().open(e.getWhoClicked()));
 
-            if (slot == -1) guiItems.add(guiItem);
+            if (slot != -1) continue;
+            slot = guiItems.indexOf(emptyGuiItem);
+            if (slot == -1) guiItems.add(guiItems.size() - 1, guiItem);
             else guiItems.set(slot, guiItem);
         }
 
-        mainGui = Gui.paginated().rows(rows).title(Settings.ORAXEN_INV_TITLE.toComponent()).create();
+        mainGui = Gui.paginated().rows(rows).pageSize((int) Settings.ORAXEN_INV_SIZE.getValue()).title(Settings.ORAXEN_INV_TITLE.toComponent()).create();
         mainGui.addItem(guiItems.toArray(new GuiItem[]{}));
 
         ItemStack previousPage = (Settings.ORAXEN_INV_PREVIOUS_ICON.getValue() == null
