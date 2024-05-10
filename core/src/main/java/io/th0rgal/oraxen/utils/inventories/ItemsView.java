@@ -159,7 +159,7 @@ public class ItemsView {
 
         // avoid possible bug if isOraxenItems is available but can't be an itemstack
         if (itemStack == null) itemStack = new ItemBuilder(Material.PAPER).setDisplayName(displayName).build();
-        int slot = settings.getInt(String.format("oraxen_inventory.menu_layout.%s.slot", Utils.removeExtension(file.getName())), -1) - 1;
+        int slot = settings.getInt(String.format("oraxen_inventory.menu_layout.%s.slot", Utils.removeExtension(file.getName())), 0) - 1;
         return new GuiItemSlot(itemStack, slot);
     }
 }
