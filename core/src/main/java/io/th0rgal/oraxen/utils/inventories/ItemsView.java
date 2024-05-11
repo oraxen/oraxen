@@ -140,30 +140,21 @@ public class ItemsView {
                         .setDisplayName(displayName)
                         .setLore(new ArrayList<>())
                         .build())
-                .orElseGet(() -> icon
-                        .map(String::toUpperCase)
-                        .map(Material::getMaterial)
-                        .map(material -> new ItemBuilder(material)
-                                .addItemFlags(ItemFlag.HIDE_ATTRIBUTES)
+                .orElseGet(() -> {
+                    try {
+                        return new ItemBuilder(OraxenItems.getMap().get(file).entrySet().iterator().next().getValue().getReferenceClone())
                                 .setDisplayName(displayName)
-                                .build())
-                        .orElseGet(() -> {
-                            try {
-                                return new ItemBuilder(OraxenItems.getMap().get(file).entrySet().iterator().next().getValue().getReferenceClone())
-                                        .setDisplayName(displayName)
-                                        .build();
-                            } catch (Exception ignored) {
-                                return new ItemBuilder(Material.PAPER)
-                                        .setDisplayName(displayName)
-                                        .build();
-                            }
-                        })
-                );
+                                .build();
+                    } catch (Exception ignored) {
+                        return new ItemBuilder(Material.PAPER)
+                                .setDisplayName(displayName)
+                                .build();
+                    }
+                });
 
         // avoid possible bug if isOraxenItems is available but can't be an itemstack
         if (itemStack == null) itemStack = new ItemBuilder(Material.PAPER).setDisplayName(displayName).build();
         int slot = settings.getInt(String.format("oraxen_inventory.menu_layout.%s.slot", Utils.removeExtension(file.getName())), 0) - 1;
-        System.out.println("Slot: " + slot + " for item: " + itemStack.displayName());
         return new GuiItemSlot(itemStack, slot);
     }
 }
