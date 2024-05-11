@@ -133,24 +133,9 @@ public class ItemsView {
         Optional<String> icon = Optional.ofNullable(settings.getString(String.format("oraxen_inventory.menu_layout.%s.icon", fileName)));
         String displayName = ItemParser.parseComponentItemName(settings.getString(String.format("oraxen_inventory.menu_layout.%s.displayname", fileName), "<green>" + file.getName()));
 
-        itemStack = icon
-                .map(OraxenItems::getItemById)
-                .map(ib -> new ItemBuilder(ib.getReferenceClone())
-                        .addItemFlags(ItemFlag.HIDE_ATTRIBUTES)
-                        .setDisplayName(displayName)
-                        .setLore(new ArrayList<>())
-                        .build())
-                .orElseGet(() -> {
-                    try {
-                        return new ItemBuilder(OraxenItems.getMap().get(file).entrySet().iterator().next().getValue().getReferenceClone())
-                                .setDisplayName(displayName)
-                                .build();
-                    } catch (Exception ignored) {
-                        return new ItemBuilder(Material.PAPER)
-                                .setDisplayName(displayName)
-                                .build();
-                    }
-                });
+        itemStack = icon.map(OraxenItems::getItemById).map(ItemBuilder::clone)
+                .orElse(OraxenItems.getMap().get(file).values().stream().findFirst().orElse(new ItemBuilder(Material.PAPER)))
+                .clone().addItemFlags(ItemFlag.HIDE_ATTRIBUTES).setDisplayName(displayName).setLore(new ArrayList<>()).build();
 
         // avoid possible bug if isOraxenItems is available but can't be an itemstack
         if (itemStack == null) itemStack = new ItemBuilder(Material.PAPER).setDisplayName(displayName).build();
