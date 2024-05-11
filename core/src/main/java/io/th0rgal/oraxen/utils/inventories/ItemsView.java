@@ -129,7 +129,8 @@ public class ItemsView {
     private GuiItemSlot getGuiItemSlot(final File file) {
         ItemStack itemStack;
         String fileName = Utils.removeExtension(file.getName());
-        String icon = settings.getString(String.format("oraxen_inventory.menu_layout.%s.icon", fileName), "PAPER");
+        //Material of category itemstack. if no material is set, set it to the first item of the category
+        String icon = settings.getString(String.format("oraxen_inventory.menu_layout.%s.icon", fileName), "first");
         String displayName = ItemParser.parseComponentItemName(settings.getString(String.format("oraxen_inventory.menu_layout.%s.displayname", fileName), "<green>" + file.getName()));
         try {
             itemStack = new ItemBuilder(OraxenItems.getItemById(icon).getReferenceClone())
@@ -144,9 +145,16 @@ public class ItemsView {
                         .setDisplayName(displayName)
                         .build();
             } catch (final Exception ignored) {
-                itemStack = new ItemBuilder(Material.PAPER)
-                        .setDisplayName(displayName)
-                        .build();
+                try {//If no material is set, display the first item of the category
+                    itemStack = new ItemBuilder(OraxenItems.getMap().get(file).entrySet()
+                            .iterator().next().getValue().getReferenceClone())
+                            .setDisplayName(displayName)
+                            .build();
+                } catch (final Exception ignored2) {
+                    itemStack = new ItemBuilder(Material.PAPER)
+                            .setDisplayName(displayName)
+                            .build();
+                }
             }
         }
 
