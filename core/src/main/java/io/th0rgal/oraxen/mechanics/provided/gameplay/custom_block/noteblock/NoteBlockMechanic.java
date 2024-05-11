@@ -17,6 +17,7 @@ public class NoteBlockMechanic extends CustomBlockMechanic {
 
     private final boolean canIgnite;
     private final boolean isFalling;
+    private final boolean beaconBaseBlock;
     private final LogStripping logStripping;
     private final DirectionalBlock directionalBlock;
     private final StorageMechanic storage;
@@ -27,6 +28,7 @@ public class NoteBlockMechanic extends CustomBlockMechanic {
 
         canIgnite = section.getBoolean("can_ignite", false);
         isFalling = section.getBoolean("is_falling", false);
+        beaconBaseBlock = section.getBoolean("beacon_base_block", false);
 
         ConfigurationSection logStripSection = section.getConfigurationSection("log_strip");
         logStripping = logStripSection != null ? new LogStripping(logStripSection) : null;
@@ -89,6 +91,11 @@ public class NoteBlockMechanic extends CustomBlockMechanic {
     public boolean canIgnite() {
         NoteBlockMechanic parentMechanic = directionalBlock != null ? directionalBlock.getParentMechanic() : null;
         return parentMechanic != null ? canIgnite || parentMechanic.canIgnite() : canIgnite;
+    }
+
+    public boolean isBeaconBaseBlock() {
+        NoteBlockMechanic parentMechanic = directionalBlock != null ? directionalBlock.getParentMechanic() : null;
+        return parentMechanic != null ? beaconBaseBlock || parentMechanic.isBeaconBaseBlock() : beaconBaseBlock;
     }
 
     public boolean isDirectional() { return directionalBlock != null; }
