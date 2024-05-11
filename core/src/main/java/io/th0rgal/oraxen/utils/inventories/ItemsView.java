@@ -35,8 +35,13 @@ public class ItemsView {
         }
         int rows = (int) Settings.ORAXEN_INV_ROWS.getValue();
 
-        List<Integer> usedSlots = files.keySet().stream().map(this::getGuiItemSlot).map(GuiItemSlot::slot).sorted().toList();
-        int highestUsedSlot = usedSlots.get(usedSlots.size() - 1);
+        //Get max between the highest slot and the number of files
+        int highestUsedSlot = files.keySet().stream()
+                .map(this::getGuiItemSlot)
+                .map(GuiItemSlot::slot)
+                .max(Comparator.naturalOrder())
+                .map(slot -> Math.max(slot, files.keySet().size() - 1))
+                .orElse(files.keySet().size() - 1);
         GuiItem emptyGuiItem = new GuiItem(Material.AIR);
         List<GuiItem> guiItems = new ArrayList<>(Collections.nCopies(highestUsedSlot + 1, emptyGuiItem));
 
@@ -48,14 +53,9 @@ public class ItemsView {
 
         // Add all items without a specified slot to the earliest available slot
         for (Map.Entry<File, PaginatedGui> entry : files.entrySet()) {
-            int slot = getGuiItemSlot(entry.getKey()).slot;
-            slot = slot != -1 ? slot : guiItems.indexOf(emptyGuiItem);
-            GuiItem guiItem = new GuiItem(getGuiItemSlot(entry.getKey()).itemStack(), e -> entry.getValue().open(e.getWhoClicked()));
-
-            if (slot != -1) continue;
-            slot = guiItems.indexOf(emptyGuiItem);
-            if (slot == -1) guiItems.add(guiItems.size() - 1, guiItem);
-            else guiItems.set(slot, guiItem);
+            GuiItemSlot guiItemSlot = getGuiItemSlot(entry.getKey());
+            if (guiItemSlot.slot != -1) continue;
+            guiItems.set(guiItems.indexOf(emptyGuiItem), new GuiItem(guiItemSlot.itemStack(), e -> entry.getValue().open(e.getWhoClicked())));
         }
 
         mainGui = Gui.paginated().rows(rows).pageSize((int) Settings.ORAXEN_INV_SIZE.getValue()).title(Settings.ORAXEN_INV_TITLE.toComponent()).create();
@@ -130,37 +130,40 @@ public class ItemsView {
         ItemStack itemStack;
         String fileName = Utils.removeExtension(file.getName());
         //Material of category itemstack. if no material is set, set it to the first item of the category
-        String icon = settings.getString(String.format("oraxen_inventory.menu_layout.%s.icon", fileName), "first");
+        Optional<String> icon = Optional.ofNullable(settings.getString(String.format("oraxen_inventory.menu_layout.%s.icon", fileName)));
         String displayName = ItemParser.parseComponentItemName(settings.getString(String.format("oraxen_inventory.menu_layout.%s.displayname", fileName), "<green>" + file.getName()));
-        try {
-            itemStack = new ItemBuilder(OraxenItems.getItemById(icon).getReferenceClone())
-                    .addItemFlags(ItemFlag.HIDE_ATTRIBUTES)
-                    .setDisplayName(displayName)
-                    .setLore(new ArrayList<>())
-                    .build();
-        } catch (final Exception e) {
-            try {
-                itemStack = new ItemBuilder(Material.getMaterial(icon.toUpperCase()))
+
+        itemStack = icon
+                .map(OraxenItems::getItemById)
+                .map(ib -> new ItemBuilder(ib.getReferenceClone())
                         .addItemFlags(ItemFlag.HIDE_ATTRIBUTES)
                         .setDisplayName(displayName)
-                        .build();
-            } catch (final Exception ignored) {
-                try {//If no material is set, display the first item of the category
-                    itemStack = new ItemBuilder(OraxenItems.getMap().get(file).entrySet()
-                            .iterator().next().getValue().getReferenceClone())
-                            .setDisplayName(displayName)
-                            .build();
-                } catch (final Exception ignored2) {
-                    itemStack = new ItemBuilder(Material.PAPER)
-                            .setDisplayName(displayName)
-                            .build();
-                }
-            }
-        }
+                        .setLore(new ArrayList<>())
+                        .build())
+                .orElseGet(() -> icon
+                        .map(String::toUpperCase)
+                        .map(Material::getMaterial)
+                        .map(material -> new ItemBuilder(material)
+                                .addItemFlags(ItemFlag.HIDE_ATTRIBUTES)
+                                .setDisplayName(displayName)
+                                .build())
+                        .orElseGet(() -> {
+                            try {
+                                return new ItemBuilder(OraxenItems.getMap().get(file).entrySet().iterator().next().getValue().getReferenceClone())
+                                        .setDisplayName(displayName)
+                                        .build();
+                            } catch (Exception ignored) {
+                                return new ItemBuilder(Material.PAPER)
+                                        .setDisplayName(displayName)
+                                        .build();
+                            }
+                        })
+                );
 
         // avoid possible bug if isOraxenItems is available but can't be an itemstack
         if (itemStack == null) itemStack = new ItemBuilder(Material.PAPER).setDisplayName(displayName).build();
         int slot = settings.getInt(String.format("oraxen_inventory.menu_layout.%s.slot", Utils.removeExtension(file.getName())), 0) - 1;
+        System.out.println("Slot: " + slot + " for item: " + itemStack.displayName());
         return new GuiItemSlot(itemStack, slot);
     }
 }
