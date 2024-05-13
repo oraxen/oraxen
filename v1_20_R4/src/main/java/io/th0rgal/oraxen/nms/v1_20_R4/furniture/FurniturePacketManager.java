@@ -8,11 +8,10 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.*;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.hitbox.InteractionHitbox;
+import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.PluginUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
@@ -65,8 +64,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
 
         FurnitureType type = mechanic.furnitureType(player);
         FurnitureBasePacket basePacket = new FurnitureBasePacket(furnitureBase, baseEntity, type, player);
-        Packet<ClientGamePacketListener> packets = type.entityType() != baseEntity.getType() ? basePacket.bundlePackets() : basePacket.metadataPacket();
-        ((CraftPlayer) player).getHandle().connection.send(packets);
+        ((CraftPlayer) player).getHandle().connection.send(basePacket.bundlePacket());
     }
 
     @Override
@@ -118,7 +116,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
                 int entityId = entityIds.get(i);
 
                 // Furniture is spawned at the center of a block, so offset hitbox down half a block
-                Location loc = baseLoc.clone().subtract(0,0.5,0).add(hitbox.offset(baseEntity.getYaw()));
+                Location loc = BlockHelpers.toCenterBlockLocation(baseLoc).add(hitbox.offset(baseEntity.getYaw()));
                 ClientboundAddEntityPacket addEntityPacket = new ClientboundAddEntityPacket(
                         entityId, UUID.randomUUID(),
                         loc.x(), loc.y(), loc.z(), loc.getPitch(), loc.getYaw(),

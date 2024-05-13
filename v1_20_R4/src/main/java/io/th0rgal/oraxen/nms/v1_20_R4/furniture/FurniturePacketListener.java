@@ -64,7 +64,7 @@ public class FurniturePacketListener implements Listener {
                 packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
                 packetManager.sendBarrierHitboxPacket(baseEntity, mechanic, player);
             }
-        }, 1L);
+        }, 2L);
 
     }
 
@@ -79,11 +79,11 @@ public class FurniturePacketListener implements Listener {
         packetManager.removeInteractionHitboxPacket(baseEntity, mechanic);
         packetManager.removeBarrierHitboxPacket(baseEntity, mechanic);
 
-        for (Player player : baseEntity.getWorld().getNearbyPlayers(baseEntity.getLocation(), FurnitureFactory.get().simulationRadius)) {
-            packetManager.sendFurnitureEntityPacket(baseEntity, mechanic, player);
-            packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
-            packetManager.sendBarrierHitboxPacket(baseEntity, mechanic, player);
-        }
+//        for (Player player : baseEntity.getWorld().getNearbyPlayers(baseEntity.getLocation(), FurnitureFactory.get().simulationRadius)) {
+//            packetManager.sendFurnitureEntityPacket(baseEntity, mechanic, player);
+//            packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
+//            packetManager.sendBarrierHitboxPacket(baseEntity, mechanic, player);
+//        }
     }
 
     @EventHandler
