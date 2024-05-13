@@ -7,9 +7,9 @@ import java.util.*
 plugins {
     id("java")
     //id("com.github.johnrengelman.shadow") version "8.1.1"
-    id("xyz.jpenilla.run-paper") version "2.2.4"
+    id("xyz.jpenilla.run-paper") version "2.3.0"
     id("xyz.jpenilla.resource-factory-bukkit-convention") version "1.1.1" // Generates plugin.yml based on the Gradle config
-    id("io.papermc.paperweight.userdev") version "1.7.0" apply false
+    id("io.papermc.paperweight.userdev") version "1.7.1" apply false
     id("io.github.goooler.shadow") version "8.1.7"
     alias(idofrontLibs.plugins.mia.publication)
 }
@@ -164,7 +164,9 @@ tasks {
     }
 
     runServer {
-        pluginJars(fileTree("plugins"))
+        downloadPlugins {
+            url("https://ci.dmulloy2.net/job/ProtocolLib/lastSuccessfulBuild/artifact/build/libs/ProtocolLib.jar")
+        }
         minecraftVersion("1.20.6")
     }
 
@@ -173,7 +175,7 @@ tasks {
     }
     shadowJar {
         SUPPORTED_VERSIONS.forEach {
-            dependsOn(":${it.nmsVersion}:${if (it.javaVersion <= 17) "reobfJar" else "jar"}")
+            dependsOn(":${it.nmsVersion}:reobfJar")
         }
 
         fun shade(pattern: String) = relocate(pattern, "io.th0rgal.oraxen.shaded." + pattern.substringAfter("."))
@@ -191,6 +193,7 @@ tasks {
         manifest {
             attributes(
                 mapOf(
+                    "paperweight-mappings-namespace" to "spigot",
                     "Built-By" to System.getProperty("user.name"),
                     "Version" to pluginVersion,
                     "Build-Timestamp" to SimpleDateFormat("yyyy-MM-dd' 'HH:mm:ss.SSSZ").format(Date.from(Instant.now())),
