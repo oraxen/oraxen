@@ -5,6 +5,8 @@ import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockType;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.beacon.BeaconListener;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.beacon.BeaconTagDatapack;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.directional.DirectionalBlock;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.logstrip.LogStripListener;
 import io.th0rgal.oraxen.nms.NMSHandlers;
@@ -46,8 +48,11 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
 
         MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(),
                 new NoteBlockMechanicListener(),
-                new LogStripListener());
+                new LogStripListener(),
+                new BeaconListener()
+        );
         if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockSoundListener());
+        BeaconTagDatapack.generateDatapack();
 
         // Physics-related stuff
         if (VersionUtil.isPaperServer())
