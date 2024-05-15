@@ -34,6 +34,7 @@ import io.th0rgal.oraxen.utils.customarmor.CustomArmorListener;
 import io.th0rgal.oraxen.utils.inventories.InvManager;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.protectionlib.ProtectionLib;
+import kr.toxicity.libraries.datacomponent.DataComponentAPIBukkit;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
@@ -97,6 +98,10 @@ public class OraxenPlugin extends JavaPlugin {
         soundManager = new SoundManager(configsManager.getSounds());
         breakerManager = new BreakerManager(new ConcurrentHashMap<>());
 
+        if (VersionUtil.atOrAbove("1.20.5")) {
+            // For 1.20.5+
+            DataComponentAPIBukkit.load();
+        }
         if (Settings.KEEP_UP_TO_DATE.toBool())
             new SettingsUpdater().handleSettingsUpdate();
         if (PluginUtils.isEnabled("ProtocolLib")) {

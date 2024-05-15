@@ -4,12 +4,14 @@ import com.jeff_media.morepersistentdatatypes.DataType;
 import com.jeff_media.persistentdataserializer.PersistentDataSerializer;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Settings;
-import io.th0rgal.oraxen.items.helpers.FoodComponentWrapper;
-import io.th0rgal.oraxen.items.helpers.ItemPropertyHandler;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
+import kr.toxicity.libraries.datacomponent.api.DataComponentAPI;
+import kr.toxicity.libraries.datacomponent.api.DataComponentType;
+import kr.toxicity.libraries.datacomponent.api.ItemAdapter;
+import kr.toxicity.libraries.datacomponent.api.NMS;
 import net.kyori.adventure.text.Component;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -100,7 +102,7 @@ public class ItemUpdater implements Listener {
 
         if (!VersionUtil.atOrAbove("1.20.5") || player.getGameMode() == GameMode.CREATIVE) return;
         if (ItemUtils.isEmpty(itemStack) || ItemUtils.isTool(itemStack)) return;
-        if (NMSHandlers.getHandler().itemPropertyHandler().getDurability(itemStack.getItemMeta()) == null) return;
+        if (DataComponentAdapter.adapt(itemStack).get(NMS.nms().maxDamage()) == null) return;
 
         Optional.ofNullable(OraxenItems.getBuilderByItem(itemStack)).ifPresent(i -> {
                 if (i.isDamagedOnBlockBreak()) itemStack.damage(1, player);
@@ -114,7 +116,7 @@ public class ItemUpdater implements Listener {
 
         if (entity instanceof Player player && player.getGameMode() == GameMode.CREATIVE) return;
         if (ItemUtils.isEmpty(itemStack) || ItemUtils.isTool(itemStack)) return;
-        if (NMSHandlers.getHandler().itemPropertyHandler().getDurability(itemStack.getItemMeta()) == null) return;
+        if (DataComponentAdapter.adapt(itemStack).get(NMS.nms().maxDamage()) == null) return;
 
         Optional.ofNullable(OraxenItems.getBuilderByItem(itemStack)).ifPresent(i -> {
             if (i.isDamagedOnEntityHit()) itemStack.damage(1, entity);
@@ -141,9 +143,20 @@ public class ItemUpdater implements Listener {
         ItemStack newItem = NMSHandlers.getHandler().copyItemNBTTags(oldItem, newItemBuilder.build());
         newItem.setAmount(oldItem.getAmount());
 
-        ItemUtils.editItemMeta(newItem, itemMeta -> {
+        ItemStack targetItem;
+        if (VersionUtil.atOrAbove("1.20.5")) {
+            ItemAdapter oldItemAdapt = DataComponentAPI.api().adapter(newItem);
+            ItemAdapter newItemAdapt = DataComponentAPI.api().adapter(newItem);
+
+            for (DataComponentType<?> value : DataComponentAPI.api().nms().componentRegistry().values()) {
+                newItemAdapt.setToJson(value, oldItemAdapt.getToJson(value));
+            }
+            targetItem = newItemAdapt.build();
+        } else targetItem = newItem;
+
+        ItemUtils.editItemMeta(targetItem, itemMeta -> {
             ItemMeta oldMeta = oldItem.getItemMeta();
-            ItemMeta newMeta = newItem.getItemMeta();
+            ItemMeta newMeta = targetItem.getItemMeta();
             if (oldMeta == null || newMeta == null) return;
             PersistentDataContainer oldPdc = oldMeta.getPersistentDataContainer();
             PersistentDataContainer itemPdc = itemMeta.getPersistentDataContainer();
@@ -199,36 +212,6 @@ public class ItemUpdater implements Listener {
                 armorMeta.setTrim(oldArmorMeta.getTrim());
             }
 
-            if (VersionUtil.atOrAbove("1.20.5")) {
-                ItemPropertyHandler itemProperties = NMSHandlers.getHandler().itemPropertyHandler();
-
-                FoodComponentWrapper newFood = itemProperties.getFood(newMeta);
-                FoodComponentWrapper oldFood = itemProperties.getFood(oldMeta);
-                if (newFood != null) itemProperties.setFood(itemMeta, newFood);
-                else if (oldFood != null) itemProperties.setFood(itemMeta, oldFood);
-
-                Boolean newGlint = itemProperties.getEnchantmentGlintOverride(newMeta);
-                Boolean oldGlint = itemProperties.getEnchantmentGlintOverride(oldMeta);
-                if (newGlint != null) itemProperties.setEnchantmentGlintOverride(itemMeta, newGlint);
-                else if (oldGlint != null) itemProperties.setEnchantmentGlintOverride(itemMeta, oldGlint);
-
-                Integer newMaxStack = itemProperties.getMaxStackSize(newMeta);
-                Integer oldMaxStack = itemProperties.getMaxStackSize(oldMeta);
-                if (newMaxStack != null) itemProperties.setMaxStackSize(itemMeta, newMaxStack);
-                else if (oldMaxStack != null) itemProperties.setMaxStackSize(itemMeta, oldMaxStack);
-
-                if (VersionUtil.isPaperServer()) {
-                    net.kyori.adventure.text.Component newItemName = itemProperties.itemName(newMeta);
-                    net.kyori.adventure.text.Component oldItemName = itemProperties.itemName(oldMeta);
-                    if (newItemName != null) itemProperties.itemName(itemMeta, newItemName);
-                    else if (oldItemName != null) itemProperties.itemName(itemMeta, oldItemName);
-                } else {
-                    String newItemName = itemProperties.getItemName(newMeta);
-                    String oldItemName = itemProperties.getItemName(oldMeta);
-                    if (newItemName != null) itemProperties.setItemName(itemMeta, newItemName);
-                    else if (oldItemName != null) itemProperties.setItemName(itemMeta, oldItemName);
-                }
-            }
 
             // On 1.20.5+ we use ItemName which is different from userchanged displaynames
             // Thus removing the need for this logic
@@ -245,8 +228,8 @@ public class ItemUpdater implements Listener {
                 }
 
                 itemPdc.set(ORIGINAL_NAME_KEY, DataType.STRING, VersionUtil.isPaperServer() ?
-                        AdventureUtils.MINI_MESSAGE.serialize(newMeta.hasDisplayName() ? newMeta.displayName() : translatable(newItem.getType()))
-                        : newMeta.hasDisplayName() ? newMeta.getDisplayName() : AdventureUtils.MINI_MESSAGE.serialize(translatable(newItem.getType()))
+                        AdventureUtils.MINI_MESSAGE.serialize(newMeta.hasDisplayName() ? newMeta.displayName() : translatable(targetItem.getType()))
+                        : newMeta.hasDisplayName() ? newMeta.getDisplayName() : AdventureUtils.MINI_MESSAGE.serialize(translatable(targetItem.getType()))
                 );
             }
 
@@ -255,7 +238,7 @@ public class ItemUpdater implements Listener {
             if (VersionUtil.atOrAbove("1.20.5") || !newItemBuilder.isUnstackable()) itemPdc.remove(UNSTACKABLE_KEY);
         });
 
-        return newItem;
+        return targetItem;
     }
     private static @NotNull Component translatable(@NotNull Material type) {
         return Component.translatable((type.isBlock() ? "block" : "item") + ".minecraft." + type.name().toLowerCase());
