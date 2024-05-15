@@ -202,7 +202,7 @@ public class PackGenerator {
     }
 
     private void importModelEnginePack() {
-        if (!ModelEngineUtils.isModelEngineEnabled()) return;
+        if (!PluginUtils.isEnabled("ModelEngine")) return;
         File megPack = ModelEngineAPI.getAPI().getDataFolder().toPath().resolve("resource pack.zip").toFile();
         if (!megPack.exists()) return;
 

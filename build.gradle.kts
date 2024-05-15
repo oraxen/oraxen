@@ -114,8 +114,7 @@ allprojects {
         compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.9")
         compileOnly("commons-io:commons-io:2.11.0")
         compileOnly("com.google.code.gson:gson:$googleGsonVersion")
-        compileOnly("com.ticxo.modelengine:ModelEngine:R4.0.4")
-        compileOnly("com.ticxo.modelengine:api:R3.1.8")
+        compileOnly("com.ticxo.modelengine:ModelEngine:R4.0.6")
         compileOnly(files("../libs/compile/BSP.jar"))
         compileOnly("io.lumine:MythicLib:1.1.6") // Remove and add deps needed for Polymath
         compileOnly("io.lumine:MythicLib-dist:1.6.2-SNAPSHOT")
