@@ -60,7 +60,7 @@ val devPluginPath = project.findProperty("oraxen_dev_plugin_path")?.toString()
 val foliaPluginPath = project.findProperty("oraxen_folia_plugin_path")?.toString()
 val spigotPluginPath = project.findProperty("oraxen_spigot_plugin_path")?.toString()
 val pluginVersion: String by project
-val commandApiVersion = "9.4.0"
+val commandApiVersion = "9.5.0-SNAPSHOT"
 val adventureVersion = "4.17.0"
 val platformVersion = "4.3.2"
 val googleGsonVersion = "2.10.1"
@@ -126,7 +126,8 @@ allprojects {
         compileOnly("nl.rutgerkok:blocklocker:1.10.4-SNAPSHOT")
         compileOnly("org.apache.commons:commons-lang3:$apacheLang3Version")
 
-        implementation("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
+        implementation(files("../libs/CommandAPI-9.5.0-SNAPSHOT.jar"))
+        //implementation("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
         implementation("org.bstats:bstats-bukkit:3.0.0")
         implementation("io.th0rgal:protectionlib:1.5.7")
         implementation("com.github.stefvanschie.inventoryframework:IF:0.10.12")
