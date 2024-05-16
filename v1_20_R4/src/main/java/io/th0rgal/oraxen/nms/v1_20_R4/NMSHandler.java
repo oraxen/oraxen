@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.nms.v1_20_R4;
 
 import io.papermc.paper.configuration.GlobalConfiguration;
-import io.th0rgal.oraxen.items.helpers.ItemPropertyHandler;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketManager;
 import io.th0rgal.oraxen.nms.GlyphHandler;
 import io.th0rgal.oraxen.nms.v1_20_R4.furniture.FurniturePacketManager;
@@ -55,12 +54,10 @@ import java.util.stream.Collectors;
 public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
     private final GlyphHandler glyphHandler;
-    private final ItemPropertyHandler itemProperties;
     private final FurniturePacketManager furniturePacketManager = new FurniturePacketManager();
 
     public NMSHandler() {
         this.glyphHandler = new io.th0rgal.oraxen.nms.v1_20_R4.GlyphHandler();
-        this.itemProperties = new io.th0rgal.oraxen.nms.v1_20_R4.ItemProperties();
     }
 
     @Override
@@ -71,11 +68,6 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     @Override
     public IFurniturePacketManager furniturePacketManager() {
         return furniturePacketManager;
-    }
-
-    @Override
-    public ItemPropertyHandler itemPropertyHandler() {
-        return itemProperties;
     }
 
     @Override

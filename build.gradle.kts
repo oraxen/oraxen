@@ -59,7 +59,7 @@ val devPluginPath = project.findProperty("oraxen_dev_plugin_path")?.toString()
 val foliaPluginPath = project.findProperty("oraxen_folia_plugin_path")?.toString()
 val spigotPluginPath = project.findProperty("oraxen_spigot_plugin_path")?.toString()
 val pluginVersion: String by project
-val commandApiVersion = "9.4.0"
+val commandApiVersion = "9.5.0-SNAPSHOT"
 val adventureVersion = "4.15.0"
 val platformVersion = "4.3.2"
 val googleGsonVersion = "2.10.1"
@@ -138,6 +138,7 @@ allprojects {
         implementation("com.jeff-media:persistent-data-serializer:1.0")
         implementation("org.jetbrains:annotations:24.1.0") { isTransitive = false }
         implementation("dev.triumphteam:triumph-gui:3.1.7") { exclude("net.kyori") }
+        implementation("com.github.toxicity188:DataComponentAPI:1.0.9")
 
         implementation("me.gabytm.util:actions-spigot:$actionsVersion") { exclude(group = "com.google.guava") }
     }
@@ -188,6 +189,7 @@ tasks {
         shade("org.jetbrains.annotations")
         shade("com.udojava.evalex")
         shade("dev.jorel")
+        shade("kr.toxicity.libraries")
 
         manifest {
             attributes(

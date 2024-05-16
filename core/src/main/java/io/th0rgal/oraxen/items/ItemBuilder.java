@@ -9,13 +9,13 @@ import io.th0rgal.oraxen.compatibilities.provided.ecoitems.WrappedEcoItem;
 import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
 import io.th0rgal.oraxen.config.Settings;
-import io.th0rgal.oraxen.items.helpers.FoodComponentWrapper;
-import io.th0rgal.oraxen.items.helpers.ItemPropertyHandler;
-import io.th0rgal.oraxen.items.helpers.ItemRarityWrapper;
-import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.*;
+import kr.toxicity.libraries.datacomponent.api.DataComponentAPI;
+import kr.toxicity.libraries.datacomponent.api.ItemAdapter;
+import kr.toxicity.libraries.datacomponent.api.NMS;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
@@ -71,18 +71,8 @@ public class ItemBuilder {
     private ItemStack finalItemStack;
 
     // 1.20.5+ properties
-    @Nullable
-    private FoodComponentWrapper foodComponent;
-    @Nullable
-    private Boolean enchantmentGlintOverride;
-    @Nullable
-    private Integer maxStackSize;
-    @Nullable
-    private Component itemName;
-    private boolean fireResistant;
-    private boolean hideToolTips;
-    @Nullable
-    private ItemRarityWrapper rarity;
+    private DataComponentWrapper component;
+
     @Nullable
     private Integer durability;
     private boolean damagedOnBlockBreak;
@@ -172,16 +162,8 @@ public class ItemBuilder {
         enchantments = new HashMap<>();
 
         if (VersionUtil.atOrAbove("1.20.5")) {
-            ItemPropertyHandler itemProperties = NMSHandlers.getHandler().itemPropertyHandler();
-            itemName = itemProperties.itemName(itemMeta);
-            durability = itemProperties.getDurability(itemMeta);
-            fireResistant = itemProperties.isFireResistant(itemMeta);
-            hideToolTips = itemProperties.isHideTooltip(itemMeta);
-            foodComponent = itemProperties.getFood(itemMeta);
-            enchantmentGlintOverride = itemProperties.getEnchantmentGlintOverride(itemMeta);
-            rarity = itemProperties.getRarity(itemMeta);
-            maxStackSize = itemProperties.getMaxStackSize(itemMeta);
-            if (maxStackSize != null && maxStackSize == 1) unstackable = true;
+            setComponent(DataComponentAdapter.adapt(itemStack));
+            if (component.get(DataComponentAPI.api().nms().maxStackSize(), itemStack.getMaxStackSize()) == 1) unstackable = true;
         }
 
     }
@@ -220,26 +202,12 @@ public class ItemBuilder {
         return this;
     }
 
-    public boolean hasItemName() {
-        return itemName != null;
+    public DataComponentWrapper getComponent() {
+        return component;
     }
 
-    @Deprecated
-    public String getItemName() {
-        return itemName != null ? AdventureUtils.MINI_MESSAGE.serialize(itemName) : "";
-    }
-    public Component itemName() {
-        return itemName != null ? itemName : Component.empty();
-    }
-
-    @Deprecated
-    public ItemBuilder setItemName(String itemName) {
-        this.itemName = AdventureUtils.LEGACY_SERIALIZER.deserialize(itemName);
-        return this;
-    }
-    public ItemBuilder itemName(Component itemName) {
-        this.itemName = itemName;
-        return this;
+    public void setComponent(DataComponentWrapper component) {
+        this.component = component;
     }
 
     public boolean hasLores() {
@@ -344,73 +312,6 @@ public class ItemBuilder {
         return this;
     }
 
-    public boolean hasFoodComponent() {
-        return VersionUtil.atOrAbove("1.20.5") && foodComponent != null;
-    }
-
-    @Nullable
-    public FoodComponentWrapper getFoodComponent() {
-        return foodComponent;
-    }
-
-    public ItemBuilder setFoodComponent(FoodComponentWrapper foodComponent) {
-        this.foodComponent = foodComponent;
-        return this;
-    }
-
-    public boolean hasEnchantmentGlindOverride() {
-        return VersionUtil.atOrAbove("1.20.5") && enchantmentGlintOverride != null;
-    }
-
-    @Nullable
-    public Boolean getEnchantmentGlindOverride() {
-        return enchantmentGlintOverride;
-    }
-
-    public ItemBuilder setEnchantmentGlindOverride(@Nullable Boolean enchantmentGlintOverride) {
-        this.enchantmentGlintOverride = enchantmentGlintOverride;
-        return this;
-    }
-
-    public boolean hasRarity() {
-        return VersionUtil.atOrAbove("1.20.5") && rarity != null;
-    }
-
-    @Nullable
-    public ItemRarityWrapper getRarity() {
-        return rarity;
-    }
-
-    public ItemBuilder setRarity(@Nullable ItemRarityWrapper rarity) {
-        this.rarity = rarity;
-        return this;
-    }
-
-    public ItemBuilder setFireResistant(boolean fireResistant) {
-        this.fireResistant = fireResistant;
-        return this;
-    }
-
-    public ItemBuilder setHideToolTips(boolean hideToolTips) {
-        this.hideToolTips = hideToolTips;
-        return this;
-    }
-
-    public boolean hasMaxStackSize() {
-        return VersionUtil.atOrAbove("1.20.5") && foodComponent != null;
-    }
-
-    @Nullable
-    public Integer getMaxStackSize() {
-        return maxStackSize;
-    }
-
-
-    public ItemBuilder setMaxStackSize(@Nullable Integer maxStackSize) {
-        this.maxStackSize = maxStackSize;
-        this.setUnstackable(maxStackSize != null && maxStackSize == 1);
-        return this;
-    }
 
     public ItemBuilder setBasePotionType(final PotionType potionType) {
         this.potionType = potionType;
@@ -536,7 +437,7 @@ public class ItemBuilder {
 
     @SuppressWarnings("unchecked")
     public ItemBuilder regen() {
-        final ItemStack itemStack = this.itemStack;
+        ItemStack itemStack = this.itemStack;
         if (type != null)
             itemStack.setType(type);
         if (amount != itemStack.getAmount())
@@ -544,26 +445,10 @@ public class ItemBuilder {
 
         ItemMeta itemMeta = itemStack.getItemMeta();
 
-        // 1.20.5+ properties
-        ItemPropertyHandler itemProperties = NMSHandlers.getHandler().itemPropertyHandler();
-        itemProperties.setDurability(itemMeta, durability);
-        itemProperties.itemName(itemMeta, itemName);
-        itemProperties.setMaxStackSize(itemMeta, maxStackSize);
-        itemProperties.setEnchantmentGlintOverride(itemMeta, enchantmentGlintOverride);
-        itemProperties.setRarity(itemMeta, rarity);
-        itemProperties.setFood(itemMeta, foodComponent);
-        itemProperties.setFireResistant(itemMeta, fireResistant);
-        itemProperties.setHideTooltip(itemMeta, hideToolTips);
-
         handleVariousMeta(itemMeta);
         itemMeta.setUnbreakable(unbreakable);
 
         PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
-        if (!VersionUtil.atOrAbove("1.20.5") && displayName != null) {
-            pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, AdventureUtils.MINI_MESSAGE.serialize(displayName));
-            ItemUtils.displayName(itemMeta, displayName);
-        }
-
         if (itemFlags != null)
             itemMeta.addItemFlags(itemFlags.toArray(new ItemFlag[0]));
 
@@ -587,9 +472,22 @@ public class ItemBuilder {
 
         ItemUtils.lore(itemMeta, lore);
 
-        itemStack.setItemMeta(itemMeta);
-        finalItemStack = itemStack;
+        // 1.20.5+ component
+        if (displayName != null) {
+            if (!VersionUtil.atOrAbove("1.20.5")) {
+                pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, AdventureUtils.MINI_MESSAGE.serialize(displayName));
+                ItemUtils.displayName(itemMeta, displayName);
+                itemStack.setItemMeta(itemMeta);
+            } else {
+                itemStack.setItemMeta(itemMeta);
+                ItemAdapter adapter = DataComponentAPI.api().adapter(itemStack);
+                adapter.set(NMS.nms().itemName(), displayName);
+                itemStack = adapter.build();
+            }
+        } else itemStack.setItemMeta(itemMeta);
+        if (component != null) itemStack = component.apply(itemStack);
 
+        finalItemStack = itemStack;
         return this;
     }
 

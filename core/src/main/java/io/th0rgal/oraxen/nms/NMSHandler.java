@@ -1,7 +1,5 @@
 package io.th0rgal.oraxen.nms;
 
-import io.th0rgal.oraxen.items.helpers.EmptyItemPropertyHandler;
-import io.th0rgal.oraxen.items.helpers.ItemPropertyHandler;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketManager;
 import net.minecraft.world.InteractionResult;
 import org.bukkit.Material;
@@ -22,10 +20,6 @@ public interface NMSHandler {
     }
     default IFurniturePacketManager furniturePacketManager() {
         return new EmptyFurniturePacketManager();
-    }
-
-    default ItemPropertyHandler itemPropertyHandler() {
-        return new EmptyItemPropertyHandler();
     }
 
     GlyphHandler glyphHandler();
