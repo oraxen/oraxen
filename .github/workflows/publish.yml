@@ -20,10 +20,13 @@ jobs:
         run: ./gradlew build --info
 
       - name: Upload shadowJar to release
-        uses: jasonetco/upload-to-release@v2
+        uses: actions/create-release@v1
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: build/libs/oraxen-${{ github.ref }}-SNAPSHOT.jar
           tag_name: ${{ github.ref }}
-          prerelease: false
+          release_name: Oraxen ${{ github.ref }}  # Optional: customize release name
+          draft: false  # Set to true for draft releases
+          prerelease: false  # Set to true for pre-releases
+          body: |  # Optional release description
+            This is the release for Oraxen version ${{ github.ref }}
+          file: build/libs/oraxen-${{ github.ref }}-SNAPSHOT.jar
           asset_name: oraxen-${{ github.ref }}-SNAPSHOT.jar
