@@ -248,11 +248,10 @@ tasks.register("uploadRelease") {
   description = "Uploads the built JAR to the GitHub release"
 
   doLast {
-    def token = System.getenv("GITHUB_TOKEN") // Replace with your access token
-    def url = "https://api.github.com/repos/BachMacThanh/oraxen/releases" // Replace with your repo URL
-    def releaseVersion = project.findProperty("pluginVersion").toString() // Use your version property
-
-    def archiveFile = "${buildDir}/libs/oraxen-${releaseVersion}.jar" // Adjust path based on your script
+    val token = System.getenv("GITHUB_TOKEN")
+    val url = "https://api.github.com/repos/BachMacThanh/oraxen/releases"
+    val releaseVersion = this.findProperty("pluginVersion").toString()
+    val archiveFile = "${buildDir}/libs/oraxen-${releaseVersion}.jar"
 
     // Use an HTTP client library (e.g., HttpURLConnection) to make a POST request to the releases API
     // with authentication and upload the archive file
