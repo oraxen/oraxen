@@ -55,7 +55,7 @@ public class Glyph {
 
         String placeholderRegex = String.join("|", Arrays.stream(placeholders).map(Pattern::quote).toArray(String[]::new));
         String baseRegex = "((<(glyph|g):" + id + ")(:(c|colorable))*>" + (placeholders.length > 0 ?  "|" + placeholderRegex : "") + ")";
-        this.baseRegex = Pattern.compile("(?<!\\\\)" + baseRegex);
+        this.baseRegex = Pattern.compile("(?<!\\\\)?" + baseRegex);
         escapedRegex = Pattern.compile("\\\\" + baseRegex);
 
         if (glyphSection.contains("code")) {
@@ -95,7 +95,7 @@ public class Glyph {
 
         String placeholderRegex = String.join("|", placeholders.stream().map(Pattern::quote).toList());
         String baseRegex = "((<(glyph|g):" + id + ")(:(c|colorable))*>" + (!placeholders.isEmpty() ?  "|" + placeholderRegex : "") + ")";
-        this.baseRegex = Pattern.compile("(?<!\\\\)" + baseRegex);
+        this.baseRegex = Pattern.compile("(?<!\\\\)?" + baseRegex);
         escapedRegex = Pattern.compile("\\\\" + baseRegex);
     }
 

@@ -78,6 +78,7 @@ public class GlyphHandlers {
         String serialized = AdventureUtils.MINI_MESSAGE_EMPTY.serialize(component);
 
         for (Glyph glyph : OraxenPlugin.get().fontManager().glyphs()) {
+
             Matcher matcher = glyph.baseRegex.matcher(serialized);
             while (matcher.find()) {
                 component = component.replaceText(
@@ -86,7 +87,6 @@ public class GlyphHandlers {
                                 .replacement(glyph.glyphComponent())
                                 .build());
             }
-
             if (isUtf) {
                 matcher = glyph.escapedRegex.matcher(serialized);
                 while (matcher.find()) {
