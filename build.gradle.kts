@@ -204,15 +204,15 @@ tasks {
         archiveFileName.set("oraxen-${pluginVersion}.jar")
         archiveClassifier.set("")
         doLast {
-            val dangDir = new File("${projectDir}/Dang")
+            val dangDir = File("${projectDir}/Dang")
             if (!dangDir.exists()) {
                 dangDir.mkdirs()
             }
             copy {
-                from archiveFile
-                into dangDir
+                from(archiveFile.get())
+                into(dangDir)
             }
-            println "File has been saved to: ${dangDir.absolutePath}"
+            println("File has been saved to: ${dangDir.absolutePath}")
         }
     }
 
