@@ -1,18 +1,24 @@
 package io.th0rgal.oraxen.nms.v1_20_R4;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.papermc.paper.adventure.PaperAdventure;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.nms.GlyphHandlers;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import net.kyori.adventure.text.Component;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.*;
 import net.minecraft.network.*;
 import net.minecraft.network.chat.ComponentSerialization;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.GameProtocols;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
@@ -100,17 +106,29 @@ public class GlyphHandler implements io.th0rgal.oraxen.nms.GlyphHandler {
     }
 
     private static class GlyphBuffer extends RegistryFriendlyByteBuf {
-        private final ByteBuf original;
+        private final Player player;
 
-        private GlyphBuffer(ByteBuf buf) {
+        private GlyphBuffer(ByteBuf buf, Player player) {
             super(buf, access());
-            original = buf;
+            this.player = player;
         }
 
-        @NotNull
         @Override
-        public GlyphBuffer copy() {
-            return new GlyphBuffer(Unpooled.copiedBuffer(original));
+        public @NotNull FriendlyByteBuf writeUtf(@NotNull String string, int maxLength) {
+            try {
+                JsonElement element = JsonParser.parseString(string);
+                if (element.isJsonObject())
+                    return super.writeUtf(GlyphHandlers.formatJsonString(element.getAsJsonObject(), player), maxLength);
+            } catch (Exception ignored) {
+            }
+
+            return super.writeUtf(string, maxLength);
+        }
+
+        @Override
+        public @NotNull String readUtf(int i) {
+            Component component = AdventureUtils.MINI_MESSAGE_EMPTY.deserialize(super.readUtf(i));
+            return AdventureUtils.MINI_MESSAGE_EMPTY.serialize(GlyphHandlers.transform(component, player, true));
         }
 
     }
@@ -123,16 +141,17 @@ public class GlyphHandler implements io.th0rgal.oraxen.nms.GlyphHandler {
         }
 
         private class Encoder extends PacketEncoder<PacketListener> {
-            private final ProtocolInfo<PacketListener> info;
+            private final ProtocolInfo<? extends PacketListener> info;
+
             private Encoder(ProtocolInfo<PacketListener> info) {
                 super(info);
-                this.info = info;
+                this.info = info.id() == ConnectionProtocol.PLAY ? GameProtocols.CLIENTBOUND.bind(f -> new GlyphBuffer(f, null)) : info;
             }
             @Override
             protected void encode(@NotNull ChannelHandlerContext channelHandlerContext, @NotNull Packet<PacketListener> packet, @NotNull ByteBuf byteBuf) throws Exception {
                 if (hasComponent(packet.getClass())) {
                     try {
-                        GlyphBuffer newBuf = new GlyphBuffer(Unpooled.buffer());
+                        GlyphBuffer newBuf = new GlyphBuffer(Unpooled.buffer(), null);
                         info.codec().encode(newBuf, packet);
                         byteBuf.writeBytes(writeNewNbt(newBuf, true));
                         ProtocolSwapHandler.handleOutboundTerminalPacket(channelHandlerContext, packet);
@@ -144,15 +163,15 @@ public class GlyphHandler implements io.th0rgal.oraxen.nms.GlyphHandler {
             }
         }
         private class Decoder extends PacketDecoder<PacketListener> {
-            private final ProtocolInfo<PacketListener> info;
+            private final ProtocolInfo<? extends PacketListener> info;
             private Decoder(ProtocolInfo<PacketListener> info) {
                 super(info);
-                this.info = info;
+                this.info = info.id() == ConnectionProtocol.PLAY ? GameProtocols.SERVERBOUND.bind(f -> new GlyphBuffer(f, player)) : info;
             }
             @Override
             protected void decode(@NotNull ChannelHandlerContext channelHandlerContext, @NotNull ByteBuf byteBuf, @NotNull List<Object> list) throws Exception {
                 try {
-                    Packet<?> packet = info.codec().decode(writeNewNbt(new GlyphBuffer(byteBuf), false));
+                    Packet<?> packet = info.codec().decode(writeNewNbt(new GlyphBuffer(byteBuf, player), false));
                     list.add(packet);
                     ProtocolSwapHandler.handleInboundTerminalPacket(channelHandlerContext, packet);
                 } catch (Exception e) {
@@ -171,7 +190,7 @@ public class GlyphHandler implements io.th0rgal.oraxen.nms.GlyphHandler {
         }
 
         private GlyphBuffer writeNewNbt(GlyphBuffer original, boolean clientbound) {
-            GlyphBuffer newBuffer = new GlyphBuffer(Unpooled.buffer());
+            GlyphBuffer newBuffer = new GlyphBuffer(Unpooled.buffer(), clientbound ? null : player);
             int id = VarInt.read(original);
             VarInt.write(newBuffer, id);
 
