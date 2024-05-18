@@ -14,14 +14,13 @@ plugins {
     alias(idofrontLibs.plugins.mia.publication)
 }
 
-class NMSVersion(val nmsVersion: String, val serverVersion: String, val javaVersion: Int)
-infix fun String.toNms(that: String) = Pair(this, that)
-infix fun Pair<String, String>.withJava(javaVersion: Int): NMSVersion = NMSVersion(first, second, javaVersion)
+class NMSVersion(val nmsVersion: String, val serverVersion: String)
+infix fun String.toNms(that: String) = NMSVersion(this, that)
 val SUPPORTED_VERSIONS: List<NMSVersion> = listOf(
-    "v1_20_R1" toNms "1.20.1-R0.1-SNAPSHOT" withJava 17,
-    "v1_20_R2" toNms "1.20.2-R0.1-SNAPSHOT" withJava 17,
-    "v1_20_R3" toNms "1.20.4-R0.1-SNAPSHOT" withJava 17,
-    "v1_20_R4" toNms "1.20.6-R0.1-SNAPSHOT" withJava 21
+    "v1_20_R1" toNms "1.20.1-R0.1-SNAPSHOT",
+    "v1_20_R2" toNms "1.20.2-R0.1-SNAPSHOT",
+    "v1_20_R3" toNms "1.20.4-R0.1-SNAPSHOT",
+    "v1_20_R4" toNms "1.20.6-R0.1-SNAPSHOT"
 )
 
 SUPPORTED_VERSIONS.forEach {
@@ -34,21 +33,9 @@ SUPPORTED_VERSIONS.forEach {
             maven("https://repo.mineinabyss.com/releases")
         }
 
-        configurations.create("mojmap")
-
         dependencies {
             compileOnly(project(":core"))
             paperDevBundle(it.serverVersion)
-        }
-
-        tasks {
-            compileJava {
-                options.encoding = Charsets.UTF_8.name()
-            }
-        }
-
-        java {
-            toolchain.languageVersion.set(JavaLanguageVersion.of(it.javaVersion))
         }
     }
 }
@@ -138,9 +125,19 @@ allprojects {
         implementation("com.jeff-media:persistent-data-serializer:1.0")
         implementation("org.jetbrains:annotations:24.1.0") { isTransitive = false }
         implementation("dev.triumphteam:triumph-gui:3.1.7") { exclude("net.kyori") }
-        implementation("com.github.toxicity188:DataComponentAPI:1.0.9")
+        implementation("com.github.toxicity188:DataComponentAPI:1.0.10")
 
         implementation("me.gabytm.util:actions-spigot:$actionsVersion") { exclude(group = "com.google.guava") }
+    }
+
+    tasks {
+        compileJava {
+            options.encoding = Charsets.UTF_8.name()
+            options.compilerArgs.addAll(listOf("-source", "17", "-target", "17"))
+        }
+    }
+    java {
+        toolchain.languageVersion = JavaLanguageVersion.of(21)
     }
 }
 
@@ -152,10 +149,6 @@ dependencies {
     }
 }
 
-project.java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
-}
-
 tasks {
 
     compileJava {
@@ -164,6 +157,7 @@ tasks {
     }
 
     runServer {
+        jvmArgs("-Dfile.encoding=UTF-8")
         downloadPlugins {
             url("https://ci.dmulloy2.net/job/ProtocolLib/lastSuccessfulBuild/artifact/build/libs/ProtocolLib.jar")
         }

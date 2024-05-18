@@ -5,6 +5,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 public class NMSListeners implements Listener {
 
@@ -16,5 +17,9 @@ public class NMSListeners implements Listener {
         if (GlyphHandlers.isNms()) NMSHandlers.getHandler().glyphHandler().inject(player);
         if (NoteBlockMechanicFactory.isEnabled() && NoteBlockMechanicFactory.get().removeMineableTag())
             NMSHandlers.getHandler().customBlockDefaultTools(player);
+    }
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        if (GlyphHandlers.isNms()) NMSHandlers.getHandler().glyphHandler().uninject(event.getPlayer());
     }
 }
