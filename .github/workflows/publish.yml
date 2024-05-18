@@ -27,10 +27,14 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
       - uses: actions/download-artifact@v2
         with:
           name: oraxen-plugin
           path: artifact
+      - name: Get the JAR file name
+        id: get_jar_name
+        run: echo "::set-output name=JAR_NAME::$(ls artifact/*.jar)"
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -47,6 +51,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifact/*.jar
-          asset_name: oraxen-plugin.jar
+          asset_path: ./artifact/${{ steps.get_jar_name.outputs.JAR_NAME }}
+          asset_name: ${{ steps.get_jar_name.outputs.JAR_NAME }}
           asset_content_type: application/java-archive
