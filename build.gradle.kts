@@ -242,3 +242,22 @@ bukkit {
         "gs.mclo:java:2.2.1",
     )
 }
+
+tasks.register("uploadRelease") {
+  group = "publishing"
+  description = "Uploads the built JAR to the GitHub release"
+
+  doLast {
+    def token = System.getenv("GITHUB_TOKEN") // Replace with your access token
+    def url = "https://api.github.com/repos/<username>/<repository>/releases" // Replace with your repo URL
+    def releaseVersion = project.findProperty("pluginVersion").toString() // Use your version property
+
+    def archiveFile = "${buildDir}/libs/oraxen-${releaseVersion}.jar" // Adjust path based on your script
+
+    // Use an HTTP client library (e.g., HttpURLConnection) to make a POST request to the releases API
+    // with authentication and upload the archive file
+  }
+}
+
+// Make the upload task depend on building the JAR
+build.get().dependsOn(shadowJar)
