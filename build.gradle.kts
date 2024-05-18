@@ -204,15 +204,15 @@ tasks {
         archiveFileName.set("oraxen-${pluginVersion}.jar")
         archiveClassifier.set("")
         doLast {
-            def dangDir = new File("Dang")
+            def dangDir = new File("${projectDir}/Dang")
             if (!dangDir.exists()) {
-                dangDir.mkdirs() // Create directories if they don't exist
+                dangDir.mkdirs()
             }
             copy {
-                from shadowJar.archiveFile
+                from archiveFile
                 into dangDir
             }
-            println "JAR saved to: ${dangDir.absolutePath}"
+            println "File has been saved to: ${dangDir.absolutePath}"
         }
     }
 
