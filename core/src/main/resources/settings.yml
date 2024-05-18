@@ -344,8 +344,8 @@ Misc:
 
 oraxen_inventory:
   main_menu_title: "<shift:-18><glyph:menu_items><shift:-193>"
-  main_menu_type: PAGINATED # PAGINATED, SCROLL_HORIZONTAL, SCROLL_VERTICAL
-  menu_rows: 6
+  menu_rows: 6 # The rows in the GUI, not slots
+  menu_size: 45 # The amount of slots per page
   #exit_icon: exit_icon
   #next_page_icon: next_page_icon
   #previous_page_icon: previous_page_icon

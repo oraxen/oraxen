@@ -24,15 +24,12 @@ import org.bukkit.packs.DataPack;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class TrimArmorDatapack {
     private static final World defaultWorld = Bukkit.getWorlds().get(0);
-    private static final Key datapackKey = Key.key("minecraft:file/oraxen_custom_armor");
+    public static final Key datapackKey = Key.key("minecraft:file/oraxen_custom_armor");
     private static final File customArmorDatapack = defaultWorld.getWorldFolder().toPath().resolve("datapacks/oraxen_custom_armor").toFile();
     private final boolean isFirstInstall;
     private final boolean datapackEnabled;

@@ -7,7 +7,7 @@ plugins {
     //id("com.github.johnrengelman.shadow") version "8.1.1"
     id("xyz.jpenilla.run-paper") version "2.2.4"
     id("net.minecrell.plugin-yml.bukkit") version "0.6.0" // Generates plugin.yml
-    id("io.papermc.paperweight.userdev") version "1.7.0" apply false
+    id("io.papermc.paperweight.userdev") version "1.7.1" apply false
     id("io.github.goooler.shadow") version "8.1.7"
     alias(libs.plugins.mia.publication)
 }
@@ -60,8 +60,8 @@ val devPluginPath = project.findProperty("oraxen_dev_plugin_path")?.toString()
 val foliaPluginPath = project.findProperty("oraxen_folia_plugin_path")?.toString()
 val spigotPluginPath = project.findProperty("oraxen_spigot_plugin_path")?.toString()
 val pluginVersion: String by project
-val commandApiVersion = "9.4.0"
-val adventureVersion = "4.15.0"
+val commandApiVersion = "9.5.0-SNAPSHOT"
+val adventureVersion = "4.17.0"
 val platformVersion = "4.3.2"
 val googleGsonVersion = "2.10.1"
 val apacheLang3Version = "3.14.0"
@@ -126,15 +126,16 @@ allprojects {
         compileOnly("nl.rutgerkok:blocklocker:1.10.4-SNAPSHOT")
         compileOnly("org.apache.commons:commons-lang3:$apacheLang3Version")
 
-        implementation("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
+        implementation(files("../libs/CommandAPI-9.5.0-SNAPSHOT.jar"))
+        //implementation("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
         implementation("org.bstats:bstats-bukkit:3.0.0")
-        implementation("io.th0rgal:protectionlib:1.5.1")
+        implementation("io.th0rgal:protectionlib:1.5.7")
         implementation("com.github.stefvanschie.inventoryframework:IF:0.10.12")
         implementation("com.jeff-media:custom-block-data:2.2.2")
         implementation("com.jeff_media:MorePersistentDataTypes:2.4.0")
         implementation("com.jeff-media:persistent-data-serializer:1.0")
         implementation("org.jetbrains:annotations:24.1.0") { isTransitive = false }
-        implementation("dev.triumphteam:triumph-gui:3.1.7") { exclude("net.kyori") }
+        implementation("dev.triumphteam:triumph-gui:3.1.8-SNAPSHOT") { exclude("net.kyori") }
         implementation("com.ticxo:PlayerAnimator:R1.2.8") { isChanging = true }
 
         implementation("me.gabytm.util:actions-spigot:$actionsVersion") { exclude(group = "com.google.guava") }

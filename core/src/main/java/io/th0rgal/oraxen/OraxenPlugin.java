@@ -89,6 +89,7 @@ public class OraxenPlugin extends JavaPlugin {
         clickActionManager = new ClickActionManager(this);
         supportsDisplayEntities = VersionUtil.atOrAbove("1.19.4");
         reloadConfigs();
+        ProtectionLib.setDebug(Settings.DEBUG.toBool());
 
         if (Settings.KEEP_UP_TO_DATE.toBool())
             new SettingsUpdater().handleSettingsUpdate();
@@ -140,7 +141,7 @@ public class OraxenPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        unregisterListeners();
+        HandlerList.unregisterAll(this);
         FurnitureFactory.unregisterEvolution();
         for (Player player : Bukkit.getOnlinePlayers())
             if (GlyphHandlers.isNms()) NMSHandlers.getHandler().glyphHandler().uninject(player);
@@ -148,13 +149,6 @@ public class OraxenPlugin extends JavaPlugin {
         CompatibilitiesManager.disableCompatibilities();
         CommandAPI.onDisable();
         Message.PLUGIN_UNLOADED.log();
-    }
-
-    private void unregisterListeners() {
-        fontManager.unregisterEvents();
-        hudManager.unregisterEvents();
-        MechanicsManager.unloadListeners();
-        HandlerList.unregisterAll(this);
     }
 
     public ResourcesManager getResourceManager() {

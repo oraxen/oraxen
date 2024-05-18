@@ -507,6 +507,10 @@ public class ItemBuilder {
         return itemStack.clone();
     }
 
+    public ItemBuilder clone() {
+        return new ItemBuilder(itemStack.clone());
+    }
+
     @SuppressWarnings("unchecked")
     public ItemBuilder regen() {
         final ItemStack itemStack = this.itemStack;
