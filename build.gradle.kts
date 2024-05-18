@@ -203,17 +203,6 @@ tasks {
         }
         archiveFileName.set("oraxen-${pluginVersion}.jar")
         archiveClassifier.set("")
-        doLast {
-            val dangDir = File("${projectDir}/Dang")
-            if (!dangDir.exists()) {
-                dangDir.mkdirs()
-            }
-            copy {
-                from(archiveFile.get())
-                into(dangDir)
-            }
-            println("File has been saved to: ${dangDir.absolutePath}")
-        }
     }
 
     compileJava.get().dependsOn(clean)
@@ -252,4 +241,24 @@ bukkit {
         "org.apache.commons:commons-lang3:$apacheLang3Version",
         "gs.mclo:java:2.2.1",
     )
+}
+
+if (pluginPath != null) {
+    tasks {
+        val defaultPath = findByName("reobfJar") ?: findByName("shadowJar") ?: findByName("jar")
+        // Define the main copy task
+        val copyJarTask = register<Copy>("copyJar") {
+            this.doNotTrackState("Overwrites the plugin jar to allow for easier reloading")
+            dependsOn(shadowJar, jar)
+            from(defaultPath)
+            into(pluginPath)
+            doLast { println("Copied to plugin directory $pluginPath") }
+        }
+
+
+        // Make the build task depend on all individual copy tasks
+        named<DefaultTask>("build").get().dependsOn(
+            copyJarTask
+        )
+    }
 }
