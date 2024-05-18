@@ -9,6 +9,7 @@ import org.bukkit.potion.PotionType;
 
 import javax.annotation.Nullable;
 
+@SuppressWarnings("deprecation")
 public class PotionUtils {
 
     public static PotionEffectType getEffectType(String effect) {
@@ -38,13 +39,13 @@ public class PotionUtils {
     }
 
     public static PotionType getPotionType(PotionMeta potionMeta) {
-        if (VersionUtil.atOrAbove("1.20"))
+        if (VersionUtil.atOrAbove("1.20.2"))
             return potionMeta.getBasePotionType();
         else return potionMeta.getBasePotionData().getType();
     }
 
     public static void setPotionType(PotionMeta potionMeta, PotionType potionType) {
-        if (VersionUtil.atOrAbove("1.20"))
+        if (VersionUtil.atOrAbove("1.20.2"))
             potionMeta.setBasePotionType(potionType);
         else potionMeta.setBasePotionData(new PotionData(potionType));
     }

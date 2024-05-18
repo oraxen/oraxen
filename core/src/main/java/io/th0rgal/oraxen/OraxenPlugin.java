@@ -97,6 +97,7 @@ public class OraxenPlugin extends JavaPlugin {
         fontManager = new FontManager(configsManager);
         soundManager = new SoundManager(configsManager.getSounds());
         breakerManager = new BreakerManager(new ConcurrentHashMap<>());
+        ProtectionLib.setDebug(Settings.DEBUG.toBool());
 
         if (VersionUtil.atOrAbove("1.20.5")) {
             // For 1.20.5+
@@ -146,7 +147,7 @@ public class OraxenPlugin extends JavaPlugin {
     @Override
     public void onDisable() {
         if (packServer != null) packServer.stop();
-        unregisterListeners();
+        HandlerList.unregisterAll(this);
         FurnitureFactory.unregisterEvolution();
         FurnitureFactory.removeAllFurniturePackets();
         for (Player player : Bukkit.getOnlinePlayers())
@@ -155,13 +156,6 @@ public class OraxenPlugin extends JavaPlugin {
         CompatibilitiesManager.disableCompatibilities();
         CommandAPI.onDisable();
         Message.PLUGIN_UNLOADED.log();
-    }
-
-    private void unregisterListeners() {
-        fontManager.unregisterEvents();
-        hudManager.unregisterEvents();
-        MechanicsManager.unloadListeners();
-        HandlerList.unregisterAll(this);
     }
 
     public Path packPath() {

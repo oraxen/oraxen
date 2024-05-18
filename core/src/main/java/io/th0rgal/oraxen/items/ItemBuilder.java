@@ -15,7 +15,6 @@ import kr.toxicity.libraries.datacomponent.api.ItemAdapter;
 import kr.toxicity.libraries.datacomponent.api.NMS;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
@@ -433,6 +432,10 @@ public class ItemBuilder {
 
     public ItemStack getReferenceClone() {
         return itemStack.clone();
+    }
+
+    public ItemBuilder clone() {
+        return new ItemBuilder(itemStack.clone());
     }
 
     @SuppressWarnings("unchecked")

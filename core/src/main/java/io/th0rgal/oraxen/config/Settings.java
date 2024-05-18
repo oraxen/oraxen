@@ -150,8 +150,8 @@ public enum Settings {
 
     )),
     ORAXEN_INV_ROWS("oraxen_inventory.menu_rows", 6),
-    ORAXEN_INV_TITLE("oraxen_inventory.main_menu_title",  "<shift:-18><glyph:menu_items><shift:-193>"),
-    ORAXEN_INV_TYPE("oraxen_inventory.main_menu_type", "PAGINATED"),
+    ORAXEN_INV_SIZE("oraxen_inventory.menu_size",  "<shift:-18><glyph:menu_items><shift:-193>"),
+    ORAXEN_INV_TITLE("oraxen_inventory.main_menu_title", "PAGINATED"),
     ORAXEN_INV_NEXT_ICON("oraxen_inventory.next_page_icon"),
     ORAXEN_INV_PREVIOUS_ICON("oraxen_inventory.previous_page_icon"),
     ORAXEN_INV_EXIT("oraxen_inventory.exit_icon");

@@ -59,6 +59,9 @@ public enum RemovedSettings {
 
     BLOCK_CORRECTION("CustomBlocks.block_correction"),
     DOWNLOAD_DEFAULT_ASSETS("Plugin.default_content.download_resourcepack"),
+    NMS_BLOCK_CORRECTION("Plugin.experimental.nms.block_correction"),
+    SPIGOT_CHAT_FORMATTING("Plugin.experimental.spigot_chat_formatting"),
+    ORAXEN_INV_TYPE("oraxen_inventory.main_menu_type"),
 
     ;
 

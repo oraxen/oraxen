@@ -40,7 +40,7 @@ public class TrimArmorDatapack extends CustomArmor {
     }
 
     private static final World defaultWorld = Bukkit.getWorlds().get(0);
-    private static final Key datapackKey = Key.key("minecraft:file/oraxen_custom_armor");
+    public static final Key datapackKey = Key.key("minecraft:file/oraxen_custom_armor");
     private static final File customArmorDatapack = defaultWorld.getWorldFolder().toPath().resolve("datapacks/oraxen_custom_armor").toFile();
     private final boolean isFirstInstall;
     private final boolean datapackEnabled;
