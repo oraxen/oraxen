@@ -34,7 +34,7 @@ public class AdminCommand {
                     } else {
                         Location loc = (Location) args.getOptional("location").orElse(player.getLocation());
                         String type = (String) args.get("type");
-                        int radius = (int) args.getOptional("radius").orElse(10);
+                        int radius = (int) args.getOptional("radius").orElse(1);
                         boolean isRandom = (boolean) args.getOptional("random").orElse(false);
                         for (Block block : getBlocks(loc, radius, isRandom)) {
                             if (type == null) continue;
