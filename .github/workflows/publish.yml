@@ -30,7 +30,7 @@ jobs:
         with:
           tag_name: ${{ github.ref }}
           release_name: Oraxen ${{ github.ref }}
-          body: ${{ file.README.md }}  # Optional: Replace with path to your release notes file
+          body: ./README.md  # Optional: Replace with path to your release notes file
           draft: false  # Set to true to create a draft release
           prerelease: false  # Set to true for pre-release versions
 
