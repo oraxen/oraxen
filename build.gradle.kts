@@ -249,7 +249,7 @@ tasks.register("uploadRelease") {
 
   doLast {
     def token = System.getenv("GITHUB_TOKEN") // Replace with your access token
-    def url = "https://api.github.com/repos/<username>/<repository>/releases" // Replace with your repo URL
+    def url = "https://api.github.com/repos/BachMacThanh/oraxen/releases" // Replace with your repo URL
     def releaseVersion = project.findProperty("pluginVersion").toString() // Use your version property
 
     def archiveFile = "${buildDir}/libs/oraxen-${releaseVersion}.jar" // Adjust path based on your script
