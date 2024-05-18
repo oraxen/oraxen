@@ -259,4 +259,4 @@ tasks.register("uploadRelease") {
 }
 
 // Make the upload task depend on building the JAR
-build.get().dependsOn(shadowJar)
+build.get().dependsOn(tasks.shadowJar)
