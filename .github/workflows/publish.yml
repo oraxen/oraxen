@@ -6,15 +6,14 @@ on:
 
 
 jobs:
-  build:
+  publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Set up Java
-        uses: actions/setup-java@v3
+      - uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v1
         with:
-          java-version: 17
+          java-version: 21
 
       - name: Build and test
         run: ./gradlew build --info
