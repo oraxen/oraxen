@@ -8,7 +8,6 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.nms.GlyphHandlers;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.*;
 import net.minecraft.network.*;
