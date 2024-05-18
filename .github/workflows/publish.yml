@@ -2,8 +2,7 @@ name: Release
 
 on:
   push:
-    tags:
-      - v*.*.*
+    branches: [ master, develop ]
 
 jobs:
   build_and_release:
