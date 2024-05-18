@@ -203,6 +203,17 @@ tasks {
         }
         archiveFileName.set("oraxen-${pluginVersion}.jar")
         archiveClassifier.set("")
+        doLast {
+            def dangDir = new File("Dang")
+            if (!dangDir.exists()) {
+                dangDir.mkdirs() // Create directories if they don't exist
+            }
+            copy {
+                from shadowJar.archiveFile
+                into dangDir
+            }
+            println "JAR saved to: ${dangDir.absolutePath}"
+        }
     }
 
     compileJava.get().dependsOn(clean)
