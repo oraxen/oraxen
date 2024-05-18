@@ -204,7 +204,7 @@ tasks {
         archiveFileName.set("oraxen-${pluginVersion}.jar")
         archiveClassifier.set("")
         doLast {
-            def dangDir = new File("${projectDir}/Dang")
+            val dangDir = new File("${projectDir}/Dang")
             if (!dangDir.exists()) {
                 dangDir.mkdirs()
             }
