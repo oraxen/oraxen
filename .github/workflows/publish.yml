@@ -32,17 +32,20 @@ jobs:
         with:
           name: oraxen-plugin
           path: artifact
-      - name: Get the JAR file name
+      - name: Determine the JAR file name
         id: get_jar_name
         run: echo "::set-output name=JAR_NAME::$(ls artifact/*.jar)"
+      - name: Create unique tag
+        id: unique_tag
+        run: echo "::set-output name=TAG::$(date +'%Y%m%d%H%M%S')-$(echo $GITHUB_SHA | cut -c1-8)"
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref_name }}
-          release_name: Release ${{ github.ref_name }}
+          tag_name: ${{ steps.unique_tag.outputs.TAG }}
+          release_name: Release ${{ steps.unique_tag.outputs.TAG }}
           draft: false
           prerelease: false
       - name: Upload Release Asset
