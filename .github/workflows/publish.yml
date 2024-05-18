@@ -4,47 +4,26 @@ on:
   push:
     branches: [ master, develop ]
 
+
 jobs:
-  build_and_release:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
 
-      - name: Set up JDK 17
+      - name: Set up Java
         uses: actions/setup-java@v3
         with:
           java-version: 17
 
-      - name: Build with Gradle
-        run: ./gradlew shadowJar
+      - name: Build and test
+        run: ./gradlew build --info
 
-      - name: Upload Release Asset
-        uses: actions/upload-artifact@v3
+      - name: Upload shadowJar to release
+        uses: jasonetco/upload-to-release@v2
         with:
-          name: shadowJar
-
-      - name: Create Release
-        uses: nlopes/release-action@v3
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: build/libs/oraxen-${{ github.ref }}-SNAPSHOT.jar
           tag_name: ${{ github.ref }}
-          release_name: Oraxen ${{ github.ref }}
-          body: ./README.md  # Optional: Replace with path to your release notes file
-          draft: false  # Set to true to create a draft release
-          prerelease: false  # Set to true for pre-release versions
-
-      - name: Upload ShadowJar to Release
-        uses: actions/download-artifact@v3
-        with:
-          name: shadowJar
-
-      - name: Upload artifact to release
-        uses: actions/upload-release-asset@v3
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_name: oraxen-${{ github.ref }}.jar
-          asset_path: ./shadowJar/build/libs/oraxen-${{ github.ref }}.jar
-          content_type: application/java-archive
+          prerelease: false
+          asset_name: oraxen-${{ github.ref }}-SNAPSHOT.jar
