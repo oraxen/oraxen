@@ -1,10 +1,11 @@
-name: Publish project to Maven repository
-# OR, publish per each commit
+name: Create release with built artifact
+
 on:
   push:
     branches: [ master, develop ]
+
 jobs:
-  publish:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -14,8 +15,30 @@ jobs:
           java-version: 21
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
-      - name: Publish with Gradle
-        run: ./gradlew core:build core:publish
+      - name: Build with Gradle
+        run: ./gradlew core:build
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: oraxen-plugin
+          path: core/build/libs/*.jar
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: oraxen-plugin
+          path: artifact
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
         env:
-          MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }} # token name
-          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }} # token secret (password)
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+          files: artifact/*.jar
