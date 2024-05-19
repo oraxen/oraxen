@@ -54,7 +54,7 @@ SUPPORTED_VERSIONS.forEach {
     }
 }
 
-val compiled = (project.findProperty("oraxen_compiled")?.toString() ?: "true").toBoolean()
+val compiled = (project.findProperty("oraxen_compiled")?.toString() ?: "false").toBoolean()
 val pluginPath = project.findProperty("oraxen_plugin_path")?.toString()
 val devPluginPath = project.findProperty("oraxen_dev_plugin_path")?.toString()
 val foliaPluginPath = project.findProperty("oraxen_folia_plugin_path")?.toString()
@@ -197,7 +197,7 @@ tasks {
                     "Created-By" to "Gradle ${gradle.gradleVersion}",
                     "Build-Jdk" to "${System.getProperty("java.version")} ${System.getProperty("java.vendor")} ${System.getProperty("java.vm.version")}",
                     "Build-OS" to "${System.getProperty("os.name")} ${System.getProperty("os.arch")} ${System.getProperty("os.version")}",
-                    "Compiled" to (project.findProperty("oraxen_compiled")?.toString() ?: "true").toBoolean()
+                    "Compiled" to (project.findProperty("oraxen_compiled")?.toString() ?: "false").toBoolean()
                 )
             )
         }
