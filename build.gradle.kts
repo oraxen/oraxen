@@ -40,6 +40,7 @@ SUPPORTED_VERSIONS.forEach {
             //compileOnly("io.papermc.paper:paper-api:" + it.serverVersion)
             implementation(project(":core"))
             paperDevBundle(it.serverVersion)
+
         }
 
         tasks {
