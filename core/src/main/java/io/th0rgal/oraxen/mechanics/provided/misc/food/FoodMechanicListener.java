@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.misc.food;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.api.events.OraxenItemsLoadedEvent;
 import io.th0rgal.oraxen.utils.ItemUtils;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import org.bukkit.GameMode;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -34,21 +35,31 @@ public class FoodMechanicListener implements Listener {
     public void onEatingFood(PlayerItemConsumeEvent event) {
         Player player = event.getPlayer();
         PlayerInventory inventory = player.getInventory();
-        String itemID = OraxenItems.getIdByItem(event.getItem());
+        ItemStack itemStack = event.getItem();
+        String itemID = OraxenItems.getIdByItem(itemStack);
         if (itemID == null || factory.isNotImplementedIn(itemID)) return;
         FoodMechanic mechanic = (FoodMechanic) factory.getMechanic(itemID);
-        event.setCancelled(true);
 
-        if (player.getGameMode() != GameMode.CREATIVE) {
-            ItemStack itemInHand = (event.getHand() == EquipmentSlot.HAND ? inventory.getItemInMainHand() : inventory.getItemInOffHand());
-            ItemUtils.subtract(itemInHand, 1);
-            if (mechanic.hasReplacement()) inventory.addItem(mechanic.getReplacement());
+        // Still let replacement work on 1.20.5+ servers if it has food component due to replacement
+        if (!VersionUtil.atOrAbove("1.20.5")) {
+            event.setCancelled(true);
 
-            if (mechanic.hasEffects() && Math.random() <= mechanic.getEffectProbability())
-                player.addPotionEffects(mechanic.getEffects());
-        }
+            if (player.getGameMode() != GameMode.CREATIVE) {
+                ItemStack itemInHand = (event.getHand() == EquipmentSlot.HAND ? inventory.getItemInMainHand() : inventory.getItemInOffHand());
+                ItemUtils.subtract(itemInHand, 1);
 
-        player.setFoodLevel(player.getFoodLevel() + Math.min(mechanic.getHunger(), 20));
-        player.setSaturation(player.getSaturation() + Math.min(mechanic.getSaturation(), 20));
+
+                if (mechanic.hasEffects() && Math.random() <= mechanic.getEffectProbability())
+                    player.addPotionEffects(mechanic.getEffects());
+            }
+
+            player.setFoodLevel(player.getFoodLevel() + Math.min(mechanic.getHunger(), 20));
+            player.setSaturation(player.getSaturation() + Math.min(mechanic.getSaturation(), 20));
+        }/* else {
+            if (itemStack.hasItemMeta() && itemStack.getItemMeta().hasFood() && player.getGameMode() != GameMode.CREATIVE && mechanic.hasReplacement())
+                inventory.addItem(mechanic.getReplacement());
+        }*/
+
+
     }
 }

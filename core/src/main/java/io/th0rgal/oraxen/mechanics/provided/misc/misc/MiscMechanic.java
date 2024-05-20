@@ -2,6 +2,8 @@ package io.th0rgal.oraxen.mechanics.provided.misc.misc;
 
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.ConfigurationSection;
 
 public class MiscMechanic extends Mechanic {
@@ -25,6 +27,11 @@ public class MiscMechanic extends Mechanic {
         piglinsIgnoreWhenEquipped = section.getBoolean("piglins_ignore_when_equipped", false);
         compostable = section.getBoolean("compostable", false);
         allowInVanillaRecipes = section.getBoolean("allow_in_vanilla_recipes", false);
+
+        if (VersionUtil.atOrAbove("1.20.5") && (burnsInFire || burnsInLava)) {
+            Logs.logWarning(getItemID() + " seems to be using " + (burnsInFire ? "burns_in_fire" : "burns_in_lava") + " which is deprecated....");
+            Logs.logWarning("It is heavily advised to swap to the new fire_resistant-property on all 1.20.5+ servers");
+        }
     }
 
     public boolean breaksFromCactus() { return cactusBreaks; }

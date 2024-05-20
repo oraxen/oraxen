@@ -277,7 +277,8 @@ public class BlockHelpers {
         }
 
         if (block.getState() instanceof Banner banner && item.hasItemMeta() && item.getItemMeta() instanceof BannerMeta bannerItem) {
-            banner.setBaseColor(Objects.requireNonNullElse(DyeColor.getByWoolData(item.getData().getData()), bannerItem.getBaseColor()));
+            //TODO 1.20.5 Fix this
+            //banner.setBaseColor(Objects.requireNonNullElse(DyeColor.getByWoolData(item.getData().getData()), bannerItem.getBaseColor()));
             banner.setPatterns(bannerItem.getPatterns());
             if (!banner.update(false, false)) return null;
         }

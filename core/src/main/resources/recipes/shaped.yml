@@ -24,9 +24,9 @@ obsidian_sword:
     B:
       minecraft_type: STICK
   shape:
-    - _A_
-    - _A_
-    - _B_
+    - A
+    - A
+    - B
 
 obsidian_helmet:
   result:
@@ -37,7 +37,6 @@ obsidian_helmet:
   shape:
     - AAA
     - A_A
-    - ___
 
 obsidian_chestplate:
   result:
@@ -68,7 +67,6 @@ obsidian_boots:
     A:
       minecraft_type: OBSIDIAN
   shape:
-    - ___
     - A_A
     - A_A
 
@@ -81,6 +79,6 @@ glass_sword:
     B:
       minecraft_type: STICK
   shape:
-    - _A_
-    - _A_
-    - _B_
+    - A
+    - A
+    - B

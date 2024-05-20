@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.pack.generation;
 
+import com.comphenix.protocol.ProtocolLibrary;
 import com.google.gson.*;
 import fr.euphyllia.energie.model.SchedulerType;
 import io.th0rgal.oraxen.OraxenPlugin;
@@ -282,6 +283,7 @@ public class ResourcePack {
     private final boolean extractLang = !new File(packFolder, "lang").exists();
     private final boolean extractTextures = !new File(packFolder, "textures").exists();
     private final boolean extractSounds = !new File(packFolder, "sounds").exists();
+
     private void extractDefaultFolders() {
         final ZipInputStream zip = ResourcesManager.browse();
         try {
@@ -535,7 +537,8 @@ public class ResourcePack {
         try {
             final InputStream fis;
             if (file.getName().endsWith(".json")) fis = processJsonFile(file);
-            else if (CustomArmorType.getSetting() == CustomArmorType.SHADER && shaderArmorTextures.registerImage(file)) return;
+            else if (CustomArmorType.getSetting() == CustomArmorType.SHADER && shaderArmorTextures.registerImage(file))
+                return;
             else fis = new FileInputStream(file);
 
             output.add(new VirtualFile(getZipFilePath(file.getParentFile().getCanonicalPath(), newFolder), file.getName(), fis));
@@ -598,17 +601,22 @@ public class ResourcePack {
         switch (customArmorType) {
             case TRIMS -> trimArmorDatapack.generateTrimAssets(output);
             case SHADER -> {
-                if (Settings.CUSTOM_ARMOR_SHADER_GENERATE_CUSTOM_TEXTURES.toBool() && shaderArmorTextures.hasCustomArmors()) try {
-                    String armorPath = "assets/minecraft/textures/models/armor";
-                    output.add(new VirtualFile(armorPath, "leather_layer_1.png", shaderArmorTextures.getLayerOne()));
-                    output.add(new VirtualFile(armorPath, "leather_layer_2.png", shaderArmorTextures.getLayerTwo()));
-                    if (Settings.CUSTOM_ARMOR_SHADER_GENERATE_SHADER_COMPATIBLE_ARMOR.toBool()) {
-                        output.addAll(shaderArmorTextures.getOptifineFiles());
+                if (Settings.CUSTOM_ARMOR_SHADER_GENERATE_CUSTOM_TEXTURES.toBool() && shaderArmorTextures.hasCustomArmors())
+                    try {
+                        String armorPath = "assets/minecraft/textures/models/armor";
+                        output.add(new VirtualFile(armorPath, "leather_layer_1.png", shaderArmorTextures.getLayerOne()));
+                        output.add(new VirtualFile(armorPath, "leather_layer_2.png", shaderArmorTextures.getLayerTwo()));
+                        if (Settings.CUSTOM_ARMOR_SHADER_GENERATE_SHADER_COMPATIBLE_ARMOR.toBool()) {
+                            output.addAll(shaderArmorTextures.getOptifineFiles());
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
             }
+        }
+        if (VersionUtil.isPaperServer()) {
+            Bukkit.getDatapackManager().getPacks().stream().filter(d -> d.getName().equals(TrimArmorDatapack.datapackKey.value()))
+                    .findFirst().ifPresent(d -> d.setEnabled(CustomArmorType.getSetting() == CustomArmorType.TRIMS));
         }
     }
 
@@ -674,8 +682,8 @@ public class ResourcePack {
             "vec_it", "vi_vn", "yi_de", "yo_ng", "zh_cn", "zh_hk", "zh_tw", "zlm_arab"));
 
     private void hideScoreboardNumbers() {
-        if (VersionUtil.atOrAbove("1.20.3")) {
-            OraxenPlugin.get().getProtocolManager().addPacketListener(new ScoreboardPacketListener());
+        if (PluginUtils.isEnabled("ProtocolLib") && VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.20.3")) {
+            ProtocolLibrary.getProtocolManager().addPacketListener(new ScoreboardPacketListener());
         } else { // Pre 1.20.3 rely on shaders
             writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.json", getScoreboardJson());
             writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.vsh", getScoreboardVsh());
