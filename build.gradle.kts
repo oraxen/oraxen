@@ -138,7 +138,7 @@ allprojects {
         implementation("com.jeff-media:persistent-data-serializer:1.0")
         implementation("org.jetbrains:annotations:24.1.0") { isTransitive = false }
         implementation("dev.triumphteam:triumph-gui:3.1.7") { exclude("net.kyori") }
-        implementation("com.github.toxicity188:DataComponentAPI:1.0.9")
+        implementation("com.github.toxicity188:DataComponentAPI:1.0.10")
 
         implementation("me.gabytm.util:actions-spigot:$actionsVersion") { exclude(group = "com.google.guava") }
     }

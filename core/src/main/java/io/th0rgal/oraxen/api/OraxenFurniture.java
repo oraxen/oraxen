@@ -1,9 +1,11 @@
 package io.th0rgal.oraxen.api;
 
 import com.comphenix.protocol.wrappers.BlockPosition;
-import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.items.ItemUpdater;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.*;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureHelpers;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.seats.FurnitureSeat;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
@@ -252,7 +254,6 @@ public class OraxenFurniture {
         if (!FurnitureFactory.isEnabled() || !BlockHelpers.isLoaded(baseEntity.getLocation())) return;
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
         if (mechanic == null) return;
-        if (Settings.CONVERT_LEGACY_FURNITURE.toBool()) FurnitureConverter.convert(baseEntity);
 
         ItemStack newItem = ItemUpdater.updateItem(FurnitureHelpers.furnitureItem(baseEntity));
         FurnitureHelpers.furnitureItem(baseEntity, newItem);
