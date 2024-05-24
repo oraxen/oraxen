@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.items.ItemBuilder;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import org.apache.commons.io.FileUtils;
@@ -29,6 +30,15 @@ import java.util.stream.Collectors;
 
 @SuppressWarnings({"deprecation", "CallToPrintStackTrace", "ResultOfMethodCallIgnored", "UnstableApiUsage"})
 public class TrimArmorDatapack extends CustomArmor {
+
+    public enum TrimArmorMaterial {
+        CHAINMAIL, LEATHER, IRON, GOLD, DIAMOND, NETHERITE;
+
+        public String id() {
+            return toString().toLowerCase(Locale.ENGLISH);
+        }
+    }
+
     private static final World defaultWorld = Bukkit.getWorlds().get(0);
     private static final Key datapackKey = Key.key("minecraft:file/oraxen_custom_armor");
     private static final File customArmorDatapack = defaultWorld.getWorldFolder().toPath().resolve("datapacks/oraxen_custom_armor").toFile();
@@ -58,6 +68,11 @@ public class TrimArmorDatapack extends CustomArmor {
 
         this.isFirstInstall = isFirstInstall();
         this.datapackEnabled = isDatapackEnabled();
+
+        if (VersionUtil.atOrAbove("1.20.5") && Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toEnum(TrimArmorMaterial.class, TrimArmorMaterial.CHAINMAIL) != TrimArmorMaterial.CHAINMAIL) {
+            Logs.logWarning("It is recommended to leave the " + Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.getPath() + " as " + TrimArmorMaterial.CHAINMAIL.name() + " on 1.20.5+ servers,");
+            Logs.logWarning("and make use of the new durability-component + AttributeModifiers to add durability and armor-values");
+        }
     }
 
     @Override
@@ -100,13 +115,14 @@ public class TrimArmorDatapack extends CustomArmor {
     }
 
     private static void writeVanillaTrimPattern() {
-        File vanillaArmorJson = TrimArmorDatapack.customArmorDatapack.toPath().resolve("data/minecraft/trim_pattern/" + Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toLowerCase() + ".json").toFile();
+        TrimArmorMaterial trimMaterial = Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toEnum(TrimArmorMaterial.class, TrimArmorMaterial.CHAINMAIL);
+        File vanillaArmorJson = TrimArmorDatapack.customArmorDatapack.toPath().resolve("data/minecraft/trim_pattern/" + trimMaterial.id() + ".json").toFile();
         vanillaArmorJson.getParentFile().mkdirs();
         JsonObject vanillaTrimPattern = new JsonObject();
         JsonObject description = new JsonObject();
-        description.addProperty("translate", "trim_pattern.minecraft." + Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toLowerCase());
+        description.addProperty("translate", "trim_pattern.minecraft." + trimMaterial.id());
         vanillaTrimPattern.add("description", description);
-        vanillaTrimPattern.addProperty("asset_id", "minecraft:" + Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toLowerCase());
+        vanillaTrimPattern.addProperty("asset_id", "minecraft:" + trimMaterial.id());
         vanillaTrimPattern.addProperty("template_item", "minecraft:debug_stick");
 
         try {
@@ -151,7 +167,7 @@ public class TrimArmorDatapack extends CustomArmor {
                     textures.add(Key.key("oraxen:trims/models/armor/" + armorPrefix + "_leggings"));
                 }
 
-                String trimMat = Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toLowerCase();
+                String trimMat = Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toEnum(TrimArmorMaterial.class, TrimArmorMaterial.CHAINMAIL).id();
                 textures.add(Key.key("minecraft:trims/models/armor/" + trimMat));
                 textures.add(Key.key("minecraft:trims/models/armor/" +  trimMat + "_leggings"));
 
@@ -167,7 +183,7 @@ public class TrimArmorDatapack extends CustomArmor {
                 textures.add(Key.key("oraxen:trims/models/armor/" + armorPrefix + "_leggings"));
             }
 
-            String trimMat = Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toLowerCase();
+            String trimMat = Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toEnum(TrimArmorMaterial.class, TrimArmorMaterial.CHAINMAIL).id();
             textures.add(Key.key("minecraft:trims/models/armor/" + trimMat));
             textures.add(Key.key("minecraft:trims/models/armor/" +  trimMat + "_leggings"));
 
@@ -179,7 +195,7 @@ public class TrimArmorDatapack extends CustomArmor {
         String armorPath = "minecraft:models/armor/";
         String vanillaTrimPath = "minecraft:trims/models/armor/";
         String oraxenTrimPath = "oraxen:trims/models/armor/";
-        String material = Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toLowerCase();
+        String material = Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toEnum(TrimArmorMaterial.class, TrimArmorMaterial.CHAINMAIL).id();
 
         resourcePack.textures().stream().filter(t ->
                 t.key().asString().endsWith("_layer_1.png") || t.key().asString().endsWith("_layer_2.png")
