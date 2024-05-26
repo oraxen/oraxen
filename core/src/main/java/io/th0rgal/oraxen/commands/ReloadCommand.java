@@ -16,6 +16,7 @@ import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.pack.PackGenerator;
+import io.th0rgal.oraxen.pack.server.OraxenPackServer;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
@@ -110,6 +111,7 @@ public class ReloadCommand {
                             MechanicsManager.registerNativeMechanics();
                             NMSHandlers.resetHandler();
                             OraxenPlugin.get().reloadConfigs();
+                            OraxenPackServer.initializeServer();
                             reloadItems(sender);
                             reloadPack(sender);
                             reloadHud(sender);

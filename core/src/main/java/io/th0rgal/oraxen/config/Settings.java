@@ -119,7 +119,7 @@ public enum Settings {
     POLYMATH_SECRET("Pack.server.polymath.secret", "oraxen"),
 
     PACK_SEND_PRE_JOIN("Pack.dispatch.send_pre_join", VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.20.3")),
-    PACK_SEND_ON_JOIN("Pack.dispatch.send_on_join", false),
+    PACK_SEND_ON_JOIN("Pack.dispatch.send_on_join", !VersionUtil.isPaperServer() || VersionUtil.below("1.20.3")),
     PACK_SEND_RELOAD("Pack.dispatch.send_on_reload", true),
     PACK_SEND_DELAY("Pack.dispatch.delay", -1),
     PACK_SEND_MANDATORY("Pack.dispatch.mandatory", true),

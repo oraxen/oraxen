@@ -37,7 +37,7 @@ public class PolymathServer implements OraxenPackServer {
 
     @Override
     public String packUrl() {
-        return serverAddress;
+        return minecraftPackURL;
     }
 
     @Override
