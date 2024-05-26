@@ -5,7 +5,6 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
-import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.resource.ResourcePackInfo;
@@ -34,6 +33,11 @@ public class PolymathServer implements OraxenPackServer {
     public PolymathServer() {
         String address = Settings.POLYMATH_SERVER.toString("atlas.oraxen.com");
         this.serverAddress = (address.startsWith("http://") || address.startsWith("https://") ? "" : "https://") + address + (address.endsWith("/") ? "" : "/");
+    }
+
+    @Override
+    public String packUrl() {
+        return serverAddress;
     }
 
     @Override
@@ -81,19 +85,17 @@ public class PolymathServer implements OraxenPackServer {
 
     @Override
     public void sendPack(Player player) {
-        String prompt = Settings.PACK_SEND_PROMPT.toString();
-        boolean mandatory = Settings.PACK_SEND_MANDATORY.toBool();
         byte[] hashArray = OraxenPackServer.hashArray(hash);
 
         if (VersionUtil.atOrAbove("1.20.3")) {
             if (VersionUtil.isPaperServer()) {
-                ResourcePackRequest request = ResourcePackRequest.resourcePackRequest().required(mandatory).replace(true).prompt(AdventureUtils.MINI_MESSAGE.deserialize(prompt))
+                ResourcePackRequest request = ResourcePackRequest.resourcePackRequest().required(mandatory).replace(true).prompt(prompt)
                         .packs(ResourcePackInfo.resourcePackInfo(packUUID, URI.create(minecraftPackURL), hash)).build();
                 player.sendResourcePacks(request);
             }
-            else player.setResourcePack(packUUID, minecraftPackURL, hashArray, AdventureUtils.parseLegacy(prompt), mandatory);
+            else player.setResourcePack(packUUID, minecraftPackURL, hashArray, legacyPrompt, mandatory);
         }
-        else if (VersionUtil.isPaperServer()) player.setResourcePack(minecraftPackURL, hashArray, AdventureUtils.MINI_MESSAGE.deserialize(prompt), mandatory);
-        else player.setResourcePack(packUrl, hashArray, AdventureUtils.parseLegacy(prompt), mandatory);
+        else if (VersionUtil.isPaperServer()) player.setResourcePack(minecraftPackURL, hashArray, prompt, mandatory);
+        else player.setResourcePack(packUrl, hashArray, legacyPrompt, mandatory);
     }
 }

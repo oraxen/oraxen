@@ -3,17 +3,25 @@ package io.th0rgal.oraxen.pack.server;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.pack.PackListener;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import net.kyori.adventure.resource.ResourcePackInfo;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 
+import java.net.URI;
 import java.util.Arrays;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public interface OraxenPackServer {
 
     PackListener packListener = new PackListener();
+    boolean mandatory = Settings.PACK_SEND_MANDATORY.toBool();
+    Component prompt = AdventureUtils.MINI_MESSAGE.deserialize(Settings.PACK_SEND_PROMPT.toString());
+    String legacyPrompt = AdventureUtils.parseLegacy(Settings.PACK_SEND_PROMPT.toString());
 
     static OraxenPackServer initializeServer() {
         OraxenPlugin.get().packServer().stop();
@@ -53,5 +61,16 @@ public interface OraxenPackServer {
                     + Character.digit(hash.charAt(i + 1), 16));
         }
         return data;
+    }
+
+    String packUrl();
+
+    default ResourcePackInfo packInfo() {
+        String hash = OraxenPlugin.get().packGenerator().builtPack().hash();
+        return ResourcePackInfo.resourcePackInfo()
+                .hash(hash)
+                .id(UUID.nameUUIDFromBytes(OraxenPackServer.hashArray(hash)))
+                .uri(URI.create(packUrl()))
+                .build();
     }
 }

@@ -2,6 +2,8 @@ package io.th0rgal.oraxen.pack;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.nms.NMSHandlers;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -12,9 +14,16 @@ import org.bukkit.event.player.PlayerResourcePackStatusEvent;
 
 public class PackListener implements Listener {
 
+    public PackListener() {
+        if (Settings.PACK_SEND_PRE_JOIN.toBool() && VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.20.3"))
+            NMSHandlers.getHandler().registerConfigurationPacketListener();
+    }
+
     @EventHandler(priority = EventPriority.NORMAL)
     public void onPlayerConnect(PlayerJoinEvent event) {
         if (!Settings.PACK_SEND_ON_JOIN.toBool()) return;
+        if (Settings.PACK_SEND_PRE_JOIN.toBool() && VersionUtil.isPaperServer()) return;
+
         Player player = event.getPlayer();
         int delay = (int) Settings.PACK_SEND_DELAY.getValue();
         if (delay <= 0) OraxenPlugin.get().packServer().sendPack(player);

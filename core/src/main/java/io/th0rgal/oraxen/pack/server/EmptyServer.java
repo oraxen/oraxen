@@ -7,4 +7,9 @@ public class EmptyServer implements OraxenPackServer {
     public void sendPack(Player player) {
 
     }
+
+    @Override
+    public String packUrl() {
+        return "";
+    }
 }

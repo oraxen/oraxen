@@ -48,6 +48,10 @@ public class VersionUtil {
         return new MinecraftVersion(versionString).atOrAbove();
     }
 
+    public static boolean below(String versionString) {
+        return !atOrAbove(versionString);
+    }
+
     /**
      * @return true if the server is Paper or false of not
      * @throws IllegalArgumentException if server is null

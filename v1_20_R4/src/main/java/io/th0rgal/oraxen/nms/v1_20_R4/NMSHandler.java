@@ -1,19 +1,31 @@
 package io.th0rgal.oraxen.nms.v1_20_R4;
 
+import io.netty.channel.ChannelDuplexHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPromise;
+import io.papermc.paper.adventure.PaperAdventure;
 import io.papermc.paper.configuration.GlobalConfiguration;
+import io.papermc.paper.network.ChannelInitializeListenerHolder;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketManager;
 import io.th0rgal.oraxen.nms.GlyphHandler;
 import io.th0rgal.oraxen.nms.v1_20_R4.furniture.FurniturePacketManager;
+import io.th0rgal.oraxen.pack.server.OraxenPackServer;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import net.kyori.adventure.resource.ResourcePackInfo;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.common.ClientboundResourcePackPushPacket;
 import net.minecraft.network.protocol.common.ClientboundUpdateTagsPacket;
+import net.minecraft.network.protocol.common.ServerboundResourcePackPacket;
+import net.minecraft.network.protocol.configuration.ClientboundFinishConfigurationPacket;
 import net.minecraft.network.protocol.game.ClientboundRemoveMobEffectPacket;
 import net.minecraft.network.protocol.game.ClientboundUpdateMobEffectPacket;
 import net.minecraft.resources.ResourceLocation;
@@ -45,10 +57,7 @@ import org.jetbrains.annotations.Unmodifiable;
 import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
@@ -68,6 +77,51 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     @Override
     public IFurniturePacketManager furniturePacketManager() {
         return furniturePacketManager;
+    }
+
+    @Override
+    public void registerConfigurationPacketListener() {
+        NamespacedKey key = NamespacedKey.fromString("configuration_listener", OraxenPlugin.get());
+        ChannelInitializeListenerHolder.addListener(key, channel ->
+                channel.pipeline().addBefore("packet_handler", key.toString(), new ChannelDuplexHandler() {
+                            private final Connection connection = (Connection) channel.pipeline().get("packet_handler");
+
+                            @Override
+                            public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
+                                if (msg instanceof ClientboundFinishConfigurationPacket) {
+                                    OraxenPackServer packServer = OraxenPlugin.get().packServer();
+                                    ResourcePackInfo packInfo = packServer.packInfo();
+
+                                    ClientboundResourcePackPushPacket packet = new ClientboundResourcePackPushPacket(
+                                            packInfo.id(), packServer.packUrl(), packInfo.hash(), packServer.mandatory,
+                                            Optional.of(PaperAdventure.asVanilla(packServer.prompt))
+                                    );
+
+                                    connection.send(packet);
+                                    return;
+                                }
+                                ctx.write(msg, promise);
+                            }
+
+                            @Override
+                            public void channelRead(ChannelHandlerContext ctx, Object msg) {
+                                if (msg instanceof ServerboundResourcePackPacket packet && packet.id().equals(OraxenPlugin.get().packServer().packInfo().id())) {
+                                    if (!finishConfigPhase(packet.action())) return;
+                                    ctx.pipeline().remove(this); // We no longer need to listen or process ClientboundFinishConfigurationPacket that we send ourselves
+                                    connection.send(ClientboundFinishConfigurationPacket.INSTANCE);
+                                    return;
+                                }
+                                ctx.fireChannelRead(msg);
+                            }
+                        }
+                ));
+    }
+
+    private boolean finishConfigPhase(ServerboundResourcePackPacket.Action action) {
+        return action == ServerboundResourcePackPacket.Action.SUCCESSFULLY_LOADED
+                || action == ServerboundResourcePackPacket.Action.FAILED_DOWNLOAD
+                || action == ServerboundResourcePackPacket.Action.FAILED_RELOAD
+                || action == ServerboundResourcePackPacket.Action.DISCARDED;
     }
 
     @Override
@@ -116,7 +170,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         InteractionResult result = blockItem.place(placeContext);
         if (result == InteractionResult.FAIL) return null;
 
-        if(!player.isSneaking()) {
+        if (!player.isSneaking()) {
             World world = player.getWorld();
             BlockPos clickPos = placeContext.getClickedPos();
             Block block = world.getBlockAt(clickPos.getX(), clickPos.getY(), clickPos.getZ());
@@ -135,14 +189,14 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         float f = player.getXRot();
         float g = player.getYRot();
         Vec3 vec3 = player.getEyePosition();
-        float h = Mth.cos(-g * ((float)Math.PI / 180F) - (float)Math.PI);
-        float i = Mth.sin(-g * ((float)Math.PI / 180F) - (float)Math.PI);
-        float j = -Mth.cos(-f * ((float)Math.PI / 180F));
-        float k = Mth.sin(-f * ((float)Math.PI / 180F));
+        float h = Mth.cos(-g * ((float) Math.PI / 180F) - (float) Math.PI);
+        float i = Mth.sin(-g * ((float) Math.PI / 180F) - (float) Math.PI);
+        float j = -Mth.cos(-f * ((float) Math.PI / 180F));
+        float k = Mth.sin(-f * ((float) Math.PI / 180F));
         float l = i * j;
         float n = h * j;
         double d = 5.0D;
-        Vec3 vec32 = vec3.add((double)l * d, (double)k * d, (double)n * d);
+        Vec3 vec32 = vec3.add((double) l * d, (double) k * d, (double) n * d);
         return world.clip(new ClipContext(vec3, vec32, ClipContext.Block.OUTLINE, fluidHandling, player));
     }
 

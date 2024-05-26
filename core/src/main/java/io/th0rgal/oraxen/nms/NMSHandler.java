@@ -24,6 +24,13 @@ public interface NMSHandler {
 
     GlyphHandler glyphHandler();
 
+    /**
+     * Registers a PacketListener to handle ResourcePack-dispatching in Configuration-phase
+     * <p>
+     * Note: Only works for 1.20.3+ Paper-Servers
+     */
+    default void registerConfigurationPacketListener() {}
+
     boolean noteblockUpdatesDisabled();
 
     boolean tripwireUpdatesDisabled();

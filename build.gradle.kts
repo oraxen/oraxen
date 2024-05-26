@@ -226,8 +226,8 @@ bukkitPluginYaml {
         description = "Allows the player to use the /oraxen command"
         default = Permission.Default.TRUE
     }
+    depend = listOf("ProtocolLib")
     softDepend = listOf(
-        "ProtocolLib",
         "LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "MythicMobs",
         "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared",
         "ModelEngine", "CrashClaim", "HuskClaims", "BentoBox", "AxiomPaper"

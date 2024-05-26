@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.pack.server;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
-import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.resource.ResourcePackInfo;
@@ -23,8 +22,6 @@ import java.util.UUID;
 public class SelfHostServer implements OraxenPackServer {
 
     private ResourcePackServer packServer;
-    private final String prompt = Settings.PACK_SEND_PROMPT.toString();
-    private final boolean mandatory = Settings.PACK_SEND_MANDATORY.toBool();
     private final String publicAddress;
 
     public SelfHostServer() {
@@ -47,23 +44,29 @@ public class SelfHostServer implements OraxenPackServer {
     };
 
     @Override
+    public String packUrl() {
+        String hash = OraxenPlugin.get().packGenerator().builtPack().hash();
+        int serverPort = Settings.SELFHOST_PACK_SERVER_PORT.toInt(8082);
+        return "http://" + publicAddress + ":" + serverPort + "/" + hash + ".zip";
+    }
+
+    @Override
     public void sendPack(Player player) {
         String hash = OraxenPlugin.get().packGenerator().builtPack().hash();
         byte[] hashArray = OraxenPackServer.hashArray(hash);
-        int serverPort = Settings.SELFHOST_PACK_SERVER_PORT.toInt(8082);
-        String url = "http://" + publicAddress + ":" + serverPort + "/" + hash + ".zip";
+        String url = packUrl();
         UUID packUUID = UUID.nameUUIDFromBytes(hashArray);
 
         if (VersionUtil.atOrAbove("1.20.3")) {
             if (VersionUtil.isPaperServer()) {
-                ResourcePackRequest request = ResourcePackRequest.resourcePackRequest().required(mandatory).replace(true).prompt(AdventureUtils.MINI_MESSAGE.deserialize(prompt))
+                ResourcePackRequest request = ResourcePackRequest.resourcePackRequest().required(mandatory).replace(true).prompt(prompt)
                         .packs(ResourcePackInfo.resourcePackInfo(packUUID, URI.create(url), hash)).build();
                 player.sendResourcePacks(request);
             }
-            else player.setResourcePack(packUUID, url, hashArray, AdventureUtils.parseLegacy(prompt), mandatory);
+            else player.setResourcePack(packUUID, url, hashArray, legacyPrompt, mandatory);
         }
-        else if (VersionUtil.isPaperServer()) player.setResourcePack(url, hashArray, AdventureUtils.MINI_MESSAGE.deserialize(prompt), mandatory);
-        else player.setResourcePack(url, hashArray, AdventureUtils.parseLegacy(prompt), mandatory);
+        else if (VersionUtil.isPaperServer()) player.setResourcePack(url, hashArray, prompt, mandatory);
+        else player.setResourcePack(url, hashArray, legacyPrompt, mandatory);
     }
 
     @Override
