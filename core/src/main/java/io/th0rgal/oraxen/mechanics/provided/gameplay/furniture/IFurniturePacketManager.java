@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
-import com.comphenix.protocol.wrappers.BlockPosition;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -15,11 +14,13 @@ import java.util.*;
 
 public interface IFurniturePacketManager {
 
+    BlockData LIGHT_DATA = Material.LIGHT.createBlockData();
     BlockData BARRIER_DATA = Material.BARRIER.createBlockData();
     BlockData AIR_DATA = Material.AIR.createBlockData();
 
     Set<FurnitureBaseEntity> furnitureBaseMap = new HashSet<>();
-    Map<UUID, Set<BlockPosition>> barrierHitboxPositionMap = new HashMap<>();
+    Map<UUID, Set<BlockLocation>> barrierHitboxPositionMap = new HashMap<>();
+    Map<UUID, Set<BlockLocation>> lightMechanicPositionMap = new HashMap<>();
     Set<FurnitureSubEntity> interactionHitboxIdMap = new HashSet<>();
 
     default Optional<FurnitureBaseEntity> furnitureBaseFromBaseEntity(@NotNull Entity baseEntity) {
@@ -39,9 +40,9 @@ public interface IFurniturePacketManager {
     }
 
     @Nullable
-    default Entity baseEntityFromHitbox(BlockPosition barrierPosition) {
-        for (Map.Entry<UUID, Set<BlockPosition>> entry : barrierHitboxPositionMap.entrySet()) {
-            if (entry.getValue().contains(barrierPosition)) return Bukkit.getEntity(entry.getKey());
+    default Entity baseEntityFromHitbox(BlockLocation barrierLocation) {
+        for (Map.Entry<UUID, Set<BlockLocation>> entry : barrierHitboxPositionMap.entrySet()) {
+            if (entry.getValue().contains(barrierLocation)) return Bukkit.getEntity(entry.getKey());
         }
         return null;
     }
@@ -58,11 +59,16 @@ public interface IFurniturePacketManager {
     void removeBarrierHitboxPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic);
     void removeBarrierHitboxPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player);
 
+    default void sendLightMechanicPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {}
+    default void removeLightMechanicPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic) {}
+    default void removeLightMechanicPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {}
+
     default void removeAllFurniturePackets() {
         for (World world : Bukkit.getWorlds()) for (Entity entity : world.getEntities()) {
             FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
             if (mechanic == null) continue;
             removeFurnitureEntityPacket(entity, mechanic);
+            removeLightMechanicPacket(entity, mechanic);
             removeInteractionHitboxPacket(entity, mechanic);
             removeBarrierHitboxPacket(entity, mechanic);
         }

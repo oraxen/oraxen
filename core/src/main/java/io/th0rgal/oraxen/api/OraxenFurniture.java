@@ -1,11 +1,7 @@
 package io.th0rgal.oraxen.api;
 
-import com.comphenix.protocol.wrappers.BlockPosition;
 import io.th0rgal.oraxen.items.ItemUpdater;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureHelpers;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketManager;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.*;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.seats.FurnitureSeat;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
@@ -200,7 +196,7 @@ public class OraxenFurniture {
     @Nullable
     public static FurnitureMechanic getFurnitureMechanic(Location location) {
         if (!FurnitureFactory.isEnabled() || location == null) return null;
-        BlockPosition blockPosition = new BlockPosition(location.getBlockX(), location.getBlockY(), location.getBlockZ());
+        BlockLocation blockPosition = new BlockLocation(location);
         Entity baseEntity = FurnitureFactory.instance.packetManager().baseEntityFromHitbox(blockPosition);
         if (baseEntity == null) return null;
         FurnitureMechanic mechanic = getFurnitureMechanic(baseEntity);
@@ -262,11 +258,13 @@ public class OraxenFurniture {
 
         IFurniturePacketManager packetManager = FurnitureFactory.instance.packetManager();
         packetManager.removeFurnitureEntityPacket(baseEntity, mechanic);
+        packetManager.removeLightMechanicPacket(baseEntity, mechanic);
         packetManager.removeInteractionHitboxPacket(baseEntity, mechanic);
         packetManager.removeBarrierHitboxPacket(baseEntity, mechanic);
 
         for (Player player : baseEntity.getLocation().getNearbyPlayers(FurnitureFactory.get().simulationRadius)) {
             packetManager.sendFurnitureEntityPacket(baseEntity, mechanic, player);
+            packetManager.sendLightMechanicPacket(baseEntity, mechanic, player);
             packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
             packetManager.sendBarrierHitboxPacket(baseEntity, mechanic, player);
         }

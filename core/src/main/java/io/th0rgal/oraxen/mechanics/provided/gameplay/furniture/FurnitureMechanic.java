@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
-import com.comphenix.protocol.wrappers.BlockPosition;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import com.ticxo.modelengine.api.ModelEngineAPI;
 import com.ticxo.modelengine.api.model.ActiveModel;
@@ -254,7 +253,6 @@ public class FurnitureMechanic extends Mechanic {
             spawnModelEngineFurniture(baseEntity);
         }
         FurnitureSeat.spawnSeats(baseEntity, this);
-        if (light.hasLightLevel()) light.createBlockLight(baseEntity.getLocation().getBlock());
 
         return baseEntity;
     }
@@ -314,11 +312,11 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public void removeBaseEntity(@NotNull Entity baseEntity) {
-        if (light.hasLightLevel()) light.removeBlockLight(baseEntity.getLocation().getBlock());
         if (hasSeats()) removeFurnitureSeats(baseEntity);
         FurnitureFactory.instance.packetManager().removeFurnitureEntityPacket(baseEntity, this);
         FurnitureFactory.instance.packetManager().removeInteractionHitboxPacket(baseEntity, this);
         FurnitureFactory.instance.packetManager().removeBarrierHitboxPacket(baseEntity, this);
+        FurnitureFactory.instance.packetManager().removeLightMechanicPacket(baseEntity, this);
 
         if (!baseEntity.isDead()) baseEntity.remove();
     }
@@ -349,20 +347,20 @@ public class FurnitureMechanic extends Mechanic {
     @Nullable
     public Entity baseEntity(Block block) {
         if (block == null) return null;
-        BlockPosition blockPosition = new BlockPosition(block.getX(), block.getY(), block.getZ());
-        return FurnitureFactory.instance.packetManager().baseEntityFromHitbox(blockPosition);
+        BlockLocation blockLocation = new BlockLocation(block.getLocation());
+        return FurnitureFactory.instance.packetManager().baseEntityFromHitbox(blockLocation);
     }
 
     @Nullable
     public Entity baseEntity(Location location) {
         if (location == null) return null;
-        BlockPosition blockPosition = new BlockPosition(location.getBlockX(), location.getBlockY(), location.getBlockZ());
-        return FurnitureFactory.instance.packetManager().baseEntityFromHitbox(blockPosition);
+        BlockLocation blockLocation = new BlockLocation(location);
+        return FurnitureFactory.instance.packetManager().baseEntityFromHitbox(blockLocation);
     }
 
     @Nullable
-    Entity baseEntity(BlockPosition blockPosition) {
-        return FurnitureFactory.instance.packetManager().baseEntityFromHitbox(blockPosition);
+    Entity baseEntity(BlockLocation blockLocation) {
+        return FurnitureFactory.instance.packetManager().baseEntityFromHitbox(blockLocation);
     }
 
     @Nullable
@@ -403,10 +401,6 @@ public class FurnitureMechanic extends Mechanic {
 
     public BlockLockerMechanic blocklocker() {
         return blockLocker;
-    }
-
-    public boolean hasLight() {
-        return light.hasLightLevel();
     }
 
     public LightMechanic light() {

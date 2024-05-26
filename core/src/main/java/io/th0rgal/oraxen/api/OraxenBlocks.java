@@ -170,10 +170,6 @@ public class OraxenBlocks {
         NoteBlockMechanic mechanic = getNoteBlockMechanic(block);
         if (mechanic == null) return;
 
-        if (mechanic.hasLight()) {
-            mechanic.light().createBlockLight(block);
-        }
-
         if (mechanic.isStorage() && mechanic.storage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
             pdc.set(StorageMechanic.STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{});
         }
@@ -200,8 +196,6 @@ public class OraxenBlocks {
             else blockAbove.setType(Material.TRIPWIRE);
         }
 
-        if (mechanic.hasLight())
-            mechanic.light().createBlockLight(block);
         if (mechanic.isSapling()) {
             SaplingMechanic sapling = mechanic.sapling();
             if (sapling != null && sapling.canGrowNaturally())
@@ -279,7 +273,6 @@ public class OraxenBlocks {
         }
         if (drop != null) drop.spawns(loc, itemInHand);
 
-        if (mechanic.hasLight()) mechanic.light().removeBlockLight(block);
         if (mechanic.isStorage() && mechanic.storage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
             mechanic.storage().dropStorageContent(block);
         }
@@ -311,7 +304,6 @@ public class OraxenBlocks {
         if (drop != null) drop.spawns(block.getLocation(), itemInHand);
 
         final Block blockAbove = block.getRelative(BlockFace.UP);
-        if (mechanic.hasLight()) mechanic.light().removeBlockLight(block);
         if (mechanic.isTall()) blockAbove.setType(Material.AIR);
         block.setType(Material.AIR);
         Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {

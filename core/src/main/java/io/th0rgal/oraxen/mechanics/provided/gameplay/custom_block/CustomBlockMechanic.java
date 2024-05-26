@@ -145,7 +145,7 @@ public abstract class CustomBlockMechanic extends Mechanic {
     }
 
     public boolean hasLight() {
-        return light.hasLightLevel();
+        return light != null && light.lightBlocks().isEmpty();
     }
 
     public LightMechanic light() {
