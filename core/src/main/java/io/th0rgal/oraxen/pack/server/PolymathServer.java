@@ -8,6 +8,8 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import net.kyori.adventure.resource.ResourcePackInfo;
+import net.kyori.adventure.resource.ResourcePackRequest;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -18,6 +20,7 @@ import org.apache.http.util.EntityUtils;
 import org.bukkit.entity.Player;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.UUID;
 
 public class PolymathServer implements OraxenPackServer {
@@ -83,7 +86,11 @@ public class PolymathServer implements OraxenPackServer {
         byte[] hashArray = OraxenPackServer.hashArray(hash);
 
         if (VersionUtil.atOrAbove("1.20.3")) {
-            if (VersionUtil.isPaperServer()) player.setResourcePack(packUUID, minecraftPackURL, hash, AdventureUtils.MINI_MESSAGE.deserialize(prompt), mandatory);
+            if (VersionUtil.isPaperServer()) {
+                ResourcePackRequest request = ResourcePackRequest.resourcePackRequest().required(mandatory).replace(true).prompt(AdventureUtils.MINI_MESSAGE.deserialize(prompt))
+                        .packs(ResourcePackInfo.resourcePackInfo(packUUID, URI.create(minecraftPackURL), hash)).build();
+                player.sendResourcePacks(request);
+            }
             else player.setResourcePack(packUUID, minecraftPackURL, hashArray, AdventureUtils.parseLegacy(prompt), mandatory);
         }
         else if (VersionUtil.isPaperServer()) player.setResourcePack(minecraftPackURL, hashArray, AdventureUtils.MINI_MESSAGE.deserialize(prompt), mandatory);

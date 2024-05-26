@@ -5,6 +5,8 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import net.kyori.adventure.resource.ResourcePackInfo;
+import net.kyori.adventure.resource.ResourcePackRequest;
 import org.bukkit.entity.Player;
 import team.unnamed.creative.base.Writable;
 import team.unnamed.creative.server.ResourcePackServer;
@@ -13,6 +15,7 @@ import team.unnamed.creative.server.handler.ResourcePackRequestHandler;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URI;
 import java.net.URL;
 import java.util.Collections;
 import java.util.UUID;
@@ -52,7 +55,11 @@ public class SelfHostServer implements OraxenPackServer {
         UUID packUUID = UUID.nameUUIDFromBytes(hashArray);
 
         if (VersionUtil.atOrAbove("1.20.3")) {
-            if (VersionUtil.isPaperServer()) player.setResourcePack(packUUID, url, hash, AdventureUtils.MINI_MESSAGE.deserialize(prompt), mandatory);
+            if (VersionUtil.isPaperServer()) {
+                ResourcePackRequest request = ResourcePackRequest.resourcePackRequest().required(mandatory).replace(true).prompt(AdventureUtils.MINI_MESSAGE.deserialize(prompt))
+                        .packs(ResourcePackInfo.resourcePackInfo(packUUID, URI.create(url), hash)).build();
+                player.sendResourcePacks(request);
+            }
             else player.setResourcePack(packUUID, url, hashArray, AdventureUtils.parseLegacy(prompt), mandatory);
         }
         else if (VersionUtil.isPaperServer()) player.setResourcePack(url, hashArray, AdventureUtils.MINI_MESSAGE.deserialize(prompt), mandatory);
