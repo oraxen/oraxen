@@ -1,8 +1,5 @@
 package io.th0rgal.oraxen.commands;
 
-import dev.jorel.commandapi.CommandAPICommand;
-import dev.jorel.commandapi.arguments.ArgumentSuggestions;
-import dev.jorel.commandapi.arguments.TextArgument;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
@@ -10,7 +7,6 @@ import io.th0rgal.oraxen.api.events.OraxenItemsLoadedEvent;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.font.FontManager;
-import io.th0rgal.oraxen.hud.HudManager;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
@@ -75,17 +71,6 @@ public class ReloadCommand {
             OraxenPlugin.get().packServer().sendPack(player);
     }
 
-    public static void reloadHud(@Nullable CommandSender sender) {
-        Message.RELOAD.send(sender, AdventureUtils.tagResolver("reloaded", "hud"));
-        OraxenPlugin.get().reloadConfigs();
-        HudManager hudManager = new HudManager(OraxenPlugin.get().configsManager());
-        OraxenPlugin.get().hudManager(hudManager);
-        hudManager.loadHuds(hudManager.getHudConfigSection());
-        hudManager.parsedHudDisplays = hudManager.generateHudDisplays();
-        hudManager.reregisterEvents();
-        hudManager.restartTask();
-    }
-
     public static void reloadRecipes(@Nullable CommandSender sender) {
         Message.RELOAD.send(sender, AdventureUtils.tagResolver("reloaded", "recipes"));
         RecipesManager.reload();
@@ -96,10 +81,9 @@ public class ReloadCommand {
                 .withAliases("rl")
                 .withPermission("oraxen.command.reload")
                 .withArguments(new TextArgument("type").replaceSuggestions(
-                        ArgumentSuggestions.strings("items", "pack", "hud", "recipes", "messages", "all")))
+                        ArgumentSuggestions.strings("items", "pack", "recipes", "messages", "all")))
                 .executes((sender, args) -> {
                     switch (((String) args.get("type")).toUpperCase()) {
-                        case "HUD" -> reloadHud(sender);
                         case "ITEMS" -> reloadItems(sender);
                         case "PACK" -> reloadPack(sender);
                         case "RECIPES" -> reloadRecipes(sender);
@@ -114,7 +98,6 @@ public class ReloadCommand {
                             OraxenPackServer.initializeServer();
                             reloadItems(sender);
                             reloadPack(sender);
-                            reloadHud(sender);
                             reloadRecipes(sender);
                         }
                     }

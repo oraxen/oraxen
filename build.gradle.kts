@@ -59,7 +59,7 @@ val devPluginPath = project.findProperty("oraxen_dev_plugin_path")?.toString()
 val foliaPluginPath = project.findProperty("oraxen_folia_plugin_path")?.toString()
 val spigotPluginPath = project.findProperty("oraxen_spigot_plugin_path")?.toString()
 val pluginVersion: String by project
-val commandApiVersion = "9.5.0-SNAPSHOT"
+val commandApiVersion = "9.4.2"
 val adventureVersion = "4.17.0"
 val platformVersion = "4.3.2"
 val googleGsonVersion = "2.10.1"
@@ -115,7 +115,6 @@ allprojects {
         compileOnly("commons-io:commons-io:2.11.0")
         compileOnly("com.google.code.gson:gson:$googleGsonVersion")
         compileOnly("com.ticxo.modelengine:ModelEngine:R4.0.6")
-        compileOnly(files("../libs/compile/BSP.jar"))
         compileOnly("io.lumine:MythicLib:1.1.6") // Remove and add deps needed for Polymath
         compileOnly("io.lumine:MythicLib-dist:1.6.2-SNAPSHOT")
         compileOnly("net.Indyuce:MMOItems-API:6.9.5-SNAPSHOT")
@@ -127,10 +126,9 @@ allprojects {
         compileOnly("team.unnamed:creative-api:$creativeVersion")
         compileOnly("team.unnamed:creative-serializer-minecraft:$creativeVersion")
         compileOnly("team.unnamed:creative-server:$creativeVersion")
-        compileOnly(files("../libs/compile/AxiomPaper-1.5.9.jar"))
+        compileOnly(files("../libs/AxiomPaper-1.5.9.jar"))
 
-        implementation(files("../libs/CommandAPI-9.5.0-SNAPSHOT.jar"))
-        //implementation("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
+        implementation("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
         implementation("org.bstats:bstats-bukkit:3.0.0")
         implementation("io.th0rgal:protectionlib:1.5.7")
         implementation("com.github.stefvanschie.inventoryframework:IF:0.10.12")

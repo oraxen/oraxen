@@ -12,7 +12,6 @@ import io.th0rgal.oraxen.config.*;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.font.packets.InventoryPacketListener;
 import io.th0rgal.oraxen.font.packets.TitlePacketListener;
-import io.th0rgal.oraxen.hud.HudManager;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
@@ -55,7 +54,6 @@ public class OraxenPlugin extends JavaPlugin {
     private ResourcesManager resourceManager;
     private BukkitAudiences audience;
     private FontManager fontManager;
-    private HudManager hudManager;
     private SoundManager soundManager;
     private InvManager invManager;
     private PackGenerator packGenerator;
@@ -93,7 +91,6 @@ public class OraxenPlugin extends JavaPlugin {
         audience = BukkitAudiences.create(this);
         reloadConfigs();
         clickActionManager = new ClickActionManager(this);
-        hudManager = new HudManager(configsManager);
         fontManager = new FontManager(configsManager);
         soundManager = new SoundManager(configsManager.getSounds());
         breakerManager = new BreakerManager(new ConcurrentHashMap<>());
@@ -118,9 +115,6 @@ public class OraxenPlugin extends JavaPlugin {
         MechanicsManager.registerNativeMechanics();
         OraxenItems.loadItems();
         fontManager.registerEvents();
-        hudManager.registerEvents();
-        hudManager.registerTask();
-        hudManager.parsedHudDisplays = hudManager.generateHudDisplays();
         Bukkit.getPluginManager().registerEvents(new ItemUpdater(), this);
         RecipesManager.load(this);
         invManager = new InvManager();
@@ -194,16 +188,6 @@ public class OraxenPlugin extends JavaPlugin {
         this.fontManager.unregisterEvents();
         this.fontManager = fontManager;
         fontManager.registerEvents();
-    }
-
-    public HudManager hudManager() {
-        return hudManager;
-    }
-
-    public void hudManager(final HudManager hudManager) {
-        this.hudManager.unregisterEvents();
-        this.hudManager = hudManager;
-        hudManager.registerEvents();
     }
 
     public SoundManager soundManager() {
