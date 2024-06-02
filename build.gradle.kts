@@ -64,7 +64,7 @@ val spigotPluginPath = project.findProperty("oraxen_spigot_plugin_path")?.toStri
 val pluginVersion: String by project
 val commandApiVersion = "9.5.0-SNAPSHOT"
 val adventureVersion = "4.17.0"
-val platformVersion = "4.3.2"
+val platformVersion = "4.3.3"
 val googleGsonVersion = "2.10.1"
 val apacheLang3Version = "3.14.0"
 group = "io.th0rgal"
