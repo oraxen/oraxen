@@ -131,7 +131,7 @@ public class ItemsView {
         String fileName = Utils.removeExtension(file.getName());
         //Material of category itemstack. if no material is set, set it to the first item of the category
         Optional<String> icon = Optional.ofNullable(settings.getString(String.format("oraxen_inventory.menu_layout.%s.icon", fileName)));
-        String displayName = ItemParser.parseComponentItemName(settings.getString(String.format("oraxen_inventory.menu_layout.%s.displayname", fileName), "<green>" + file.getName()));
+        String displayName = settings.getString(String.format("oraxen_inventory.menu_layout.%s.displayname", fileName), "<green>" + file.getName());
 
         itemStack = icon.map(OraxenItems::getItemById).map(ItemBuilder::clone)
                 .orElse(OraxenItems.getMap().get(file).values().stream().findFirst().orElse(new ItemBuilder(Material.PAPER)))

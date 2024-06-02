@@ -4,6 +4,8 @@ import io.th0rgal.oraxen.items.helpers.FoodComponentWrapper;
 import io.th0rgal.oraxen.items.helpers.FoodEffectWrapper;
 import io.th0rgal.oraxen.items.helpers.ItemPropertyHandler;
 import io.th0rgal.oraxen.items.helpers.ItemRarityWrapper;
+import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import net.kyori.adventure.text.Component;
 import net.minecraft.world.food.FoodProperties;
 import org.bukkit.craftbukkit.inventory.components.CraftFoodComponent;
@@ -39,7 +41,8 @@ public class ItemProperties implements ItemPropertyHandler {
 
     @Override
     public void setItemName(ItemMeta itemMeta, @Nullable String itemName) {
-        itemMeta.setItemName(itemName);
+        if (VersionUtil.isPaperServer()) itemMeta.itemName(itemName != null ? AdventureUtils.MINI_MESSAGE.deserialize(itemName) : null);
+        else itemMeta.setItemName(itemName);
     }
 
     @Override
