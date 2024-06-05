@@ -241,7 +241,7 @@ public class FurnitureMechanic extends Mechanic {
 
     public Entity place(Location location, float yaw, BlockFace facing, boolean checkSpace) {
         if (!location.isWorldLoaded()) return null;
-        if (checkSpace && !this.hasEnoughSpace(location, yaw)) return null;
+        if (checkSpace && !this.hasEnoughSpace(location.clone(), yaw)) return null;
         assert location.getWorld() != null;
 
         ItemStack item = OraxenItems.getItemById(getItemID()).build();

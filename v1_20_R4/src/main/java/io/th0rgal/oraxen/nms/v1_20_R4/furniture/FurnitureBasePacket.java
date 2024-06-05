@@ -1,10 +1,7 @@
 package io.th0rgal.oraxen.nms.v1_20_R4.furniture;
 
 import io.papermc.paper.adventure.PaperAdventure;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.DisplayEntityProperties;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureBaseEntity;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureHelpers;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureType;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.*;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import net.kyori.adventure.text.Component;
@@ -61,11 +58,12 @@ public class FurnitureBasePacket {
         this.entityId = furnitureBase.entityId(type);
         this.uuid = furnitureBase.uuid(type);
         Location baseLoc = baseEntity.getLocation();
+        double x = baseLoc.x(), y = baseLoc.y(), z = baseLoc.z();
+        float pitch = pitch(furnitureBase, baseLoc.getPitch(), player), yaw = yaw(furnitureBase, baseLoc.getYaw(), player);
         EntityType<?> entityType = type == FurnitureType.DISPLAY_ENTITY ? EntityType.ITEM_DISPLAY : type == FurnitureType.ITEM_FRAME ? EntityType.ITEM_FRAME : EntityType.GLOW_ITEM_FRAME;
 
         this.entityPacket = new ClientboundAddEntityPacket(
-                entityId, uuid, baseLoc.x(), baseLoc.y(), baseLoc.z(),
-                pitch(furnitureBase, baseLoc.getPitch(), player), yaw(furnitureBase, baseLoc.getYaw(), player),
+                entityId, uuid, x, y, z, pitch, yaw,
                 entityType, entityData(furnitureBase), Vec3.ZERO, 0.0
         );
 
@@ -90,12 +88,13 @@ public class FurnitureBasePacket {
 
     private float pitch(FurnitureBaseEntity furnitureBase, float initialPitch, Player player) {
         if (type != FurnitureType.DISPLAY_ENTITY) return initialPitch;
-        LimitedPlacing lp = furnitureBase.mechanic().limitedPlacing();
-        boolean isFixed = furnitureBase.mechanic().displayEntityProperties().displayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
+        FurnitureMechanic mechanic = furnitureBase.mechanic();
+        LimitedPlacing lp = mechanic.limitedPlacing();
+        boolean isFixed = mechanic.displayEntityProperties().displayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
 
         if (VersionUtil.atOrAbove(player, 763)) {
-            return lp != null && isFixed ? lp.isFloor() ? -90 : lp.isRoof() ? 90 : initialPitch : initialPitch;
-        } else return lp != null && isFixed ? lp.isFloor() ? 90 : lp.isRoof() ? -90 : initialPitch : initialPitch;
+            return mechanic.hasLimitedPlacing() && isFixed ? lp.isFloor() ? -90 : lp.isRoof() ? 90 : initialPitch : initialPitch;
+        } else return mechanic.hasLimitedPlacing() && isFixed ? lp.isFloor() ? 90 : lp.isRoof() ? -90 : initialPitch : initialPitch;
     }
 
     private float yaw(FurnitureBaseEntity furnitureBase, float initialYaw, Player player) {

@@ -181,15 +181,15 @@ tasks {
         fun shade(pattern: String) = relocate(pattern, "io.th0rgal.oraxen.shaded." + pattern.substringAfter("."))
 
         shade("org.bstats")
-        shade("dev.triumphteam.gui")
-        shade("com.jeff_media")
-        shade("com.github.stefvanschie.inventoryframework")
-        shade("me.gabytm.util.actions")
-        shade("org.intellij.lang.annotations")
-        shade("org.jetbrains.annotations")
-        shade("com.udojava.evalex")
-        shade("dev.jorel")
-        shade("kr.toxicity.libraries")
+        //shade("dev.triumphteam.gui")
+        //shade("com.jeff_media")
+        //shade("com.github.stefvanschie.inventoryframework")
+        //shade("me.gabytm.util.actions")
+        //shade("org.intellij.lang.annotations")
+        //shade("org.jetbrains.annotations")
+        //shade("com.udojava.evalex")
+        //shade("dev.jorel")
+        //shade("kr.toxicity.libraries")
 
         manifest {
             attributes(

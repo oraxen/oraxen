@@ -117,7 +117,8 @@ public class FurniturePacketManager implements IFurniturePacketManager {
                 InteractionHitbox hitbox = interactionHitboxes.get(i);
                 int entityId = entityIds.get(i);
 
-                Location loc = baseLoc.clone().add(hitbox.offset(baseEntity.getYaw()));
+                // Furniture is spawned at the center of a block, so offset hitbox down half a block
+                Location loc = baseLoc.clone().subtract(0,0.5,0).add(hitbox.offset(baseEntity.getYaw()));
                 ClientboundAddEntityPacket addEntityPacket = new ClientboundAddEntityPacket(
                         entityId, UUID.randomUUID(),
                         loc.x(), loc.y(), loc.z(), loc.getPitch(), loc.getYaw(),
