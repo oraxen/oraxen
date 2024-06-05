@@ -134,8 +134,13 @@ public class OraxenPlugin extends JavaPlugin {
     private void postLoading() {
         new Metrics(this, 5371);
         new LU().l();
-        Bukkit.getScheduler().runTask(this, () ->
-                Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent()));
+        if (VersionUtil.isPaperServer()) {
+            Bukkit.getGlobalRegionScheduler().run(this, task ->
+                    Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent()));
+        } else {
+            Bukkit.getScheduler().runTask(this, () ->
+                    Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent()));
+        }
     }
 
     @Override

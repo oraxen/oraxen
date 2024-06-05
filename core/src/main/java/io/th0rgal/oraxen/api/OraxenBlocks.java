@@ -314,11 +314,19 @@ public class OraxenBlocks {
         if (mechanic.hasLight()) mechanic.light().removeBlockLight(block);
         if (mechanic.isTall()) blockAbove.setType(Material.AIR);
         block.setType(Material.AIR);
-        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
-            StringMechanicHelpers.fixClientsideUpdate(block.getLocation());
-            if (blockAbove.getType() == Material.TRIPWIRE)
-                removeStringBlock(blockAbove, player, overrideDrop);
-        }, 1L);
+        if (VersionUtil.isPaperServer()) {
+            Bukkit.getRegionScheduler().runDelayed(OraxenPlugin.get(), block.getLocation(), task -> {
+                StringMechanicHelpers.fixClientsideUpdate(block.getLocation());
+                if (blockAbove.getType() == Material.TRIPWIRE)
+                    removeStringBlock(blockAbove, player, overrideDrop);
+            }, 1L);
+        } else {
+            Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
+                StringMechanicHelpers.fixClientsideUpdate(block.getLocation());
+                if (blockAbove.getType() == Material.TRIPWIRE)
+                    removeStringBlock(blockAbove, player, overrideDrop);
+            }, 1L);
+        }
         return true;
     }
 

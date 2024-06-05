@@ -20,6 +20,7 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock.StringBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -78,11 +79,19 @@ public class WorldEditHandlers {
                 compoundTagMap.put("BukkitValues", new CompoundTag(bukkitValues));
                 baseEntity.setNbtData(new CompoundTag(compoundTagMap));
 
-                Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () -> {
-                    List<ArmorStand> baseEntities = new ArrayList<>(bukkitLocation.getNearbyEntitiesByType(ArmorStand.class, 0.5).stream().toList());
-                    baseEntities.sort(Comparator.comparingDouble(entity -> entity.getLocation().distance(bukkitLocation)));
-                    baseEntities.stream().findFirst().ifPresent(a -> mechanic.setBaseFurnitureData(a, a.getBodyYaw()));
-                }, 1L);
+                if (VersionUtil.isPaperServer()) {
+                    Bukkit.getRegionScheduler().runDelayed(OraxenPlugin.get(), bukkitLocation, task -> {
+                        List<ArmorStand> baseEntities = new ArrayList<>(bukkitLocation.getNearbyEntitiesByType(ArmorStand.class, 0.5).stream().toList());
+                        baseEntities.sort(Comparator.comparingDouble(entity -> entity.getLocation().distance(bukkitLocation)));
+                        baseEntities.stream().findFirst().ifPresent(a -> mechanic.setBaseFurnitureData(a, a.getBodyYaw()));
+                    }, 1L);
+                } else {
+                    Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () -> {
+                        List<ArmorStand> baseEntities = new ArrayList<>(bukkitLocation.getNearbyEntitiesByType(ArmorStand.class, 0.5).stream().toList());
+                        baseEntities.sort(Comparator.comparingDouble(entity -> entity.getLocation().distance(bukkitLocation)));
+                        baseEntities.stream().findFirst().ifPresent(a -> mechanic.setBaseFurnitureData(a, a.getBodyYaw()));
+                    }, 1L);
+                }
 
                 return super.createEntity(location, baseEntity);
             }
@@ -95,11 +104,19 @@ public class WorldEditHandlers {
                 Mechanic mechanic = OraxenBlocks.getCustomBlockMechanic(blockData);
                 if (blockData.getMaterial() == Material.NOTE_BLOCK) {
                     if (mechanic != null && Settings.WORLDEDIT_NOTEBLOCKS.toBool()) {
-                        Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () -> OraxenBlocks.place(mechanic.getItemID(), loc), 1L);
+                        if (VersionUtil.isPaperServer()) {
+                            Bukkit.getRegionScheduler().runDelayed(OraxenPlugin.get(), loc, task -> OraxenBlocks.place(mechanic.getItemID(), loc), 1L);
+                        } else {
+                            Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () -> OraxenBlocks.place(mechanic.getItemID(), loc), 1L);
+                        }
                     }
                 } else if (blockData.getMaterial() == Material.TRIPWIRE) {
                     if (mechanic != null && Settings.WORLDEDIT_STRINGBLOCKS.toBool()) {
-                        Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () -> OraxenBlocks.place(mechanic.getItemID(), loc), 1L);
+                        if (VersionUtil.isPaperServer()) {
+                            Bukkit.getRegionScheduler().runDelayed(OraxenPlugin.get(), loc, task -> OraxenBlocks.place(mechanic.getItemID(), loc), 1L);
+                        } else {
+                            Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () -> OraxenBlocks.place(mechanic.getItemID(), loc), 1L);
+                        }
                     }
                 } else {
                     if (world == null) return super.setBlock(pos, block);
@@ -110,7 +127,11 @@ public class WorldEditHandlers {
                     if (replacingMechanic instanceof NoteBlockMechanic && !Settings.WORLDEDIT_NOTEBLOCKS.toBool())
                         return super.setBlock(pos, block);
 
-                    Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () -> OraxenBlocks.remove(loc, null), 1L);
+                    if (VersionUtil.isPaperServer()) {
+                        Bukkit.getRegionScheduler().runDelayed(OraxenPlugin.get(), loc, task -> OraxenBlocks.remove(loc, null), 1L);
+                    } else {
+                        Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () -> OraxenBlocks.remove(loc, null), 1L);
+                    }
                 }
 
                 return super.setBlock(pos, block);

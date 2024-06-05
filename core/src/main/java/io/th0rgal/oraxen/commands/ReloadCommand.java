@@ -19,6 +19,7 @@ import io.th0rgal.oraxen.pack.server.OraxenPackServer;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -44,14 +45,25 @@ public class ReloadCommand {
             Logs.logInfo("Updating all items in player-inventories...");
             for (Player player : Bukkit.getServer().getOnlinePlayers()) {
                 PlayerInventory inventory = player.getInventory();
-                Bukkit.getScheduler().runTaskAsynchronously(OraxenPlugin.get(), () -> {
-                    for (int i = 0; i < inventory.getSize(); i++) {
-                        ItemStack oldItem = inventory.getItem(i);
-                        ItemStack newItem = ItemUpdater.updateItem(oldItem);
-                        if (oldItem == null || oldItem.equals(newItem)) continue;
-                        inventory.setItem(i, newItem);
-                    }
-                });
+                if (VersionUtil.isPaperServer()) {
+                    Bukkit.getAsyncScheduler().runNow(OraxenPlugin.get(), task -> {
+                        for (int i = 0; i < inventory.getSize(); i++) {
+                            ItemStack oldItem = inventory.getItem(i);
+                            ItemStack newItem = ItemUpdater.updateItem(oldItem);
+                            if (oldItem == null || oldItem.equals(newItem)) continue;
+                            inventory.setItem(i, newItem);
+                        }
+                    });
+                } else {
+                    Bukkit.getScheduler().runTaskAsynchronously(OraxenPlugin.get(), () -> {
+                        for (int i = 0; i < inventory.getSize(); i++) {
+                            ItemStack oldItem = inventory.getItem(i);
+                            ItemStack newItem = ItemUpdater.updateItem(oldItem);
+                            if (oldItem == null || oldItem.equals(newItem)) continue;
+                            inventory.setItem(i, newItem);
+                        }
+                    });
+                }
             }
         }
 

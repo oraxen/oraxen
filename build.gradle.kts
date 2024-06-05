@@ -30,7 +30,7 @@ SUPPORTED_VERSIONS.forEach {
         apply(plugin = "io.papermc.paperweight.userdev")
 
         repositories {
-            maven("https://papermc.io/repo/repository/maven-public/") // Paper
+            maven("https://repo.papermc.io/repository/maven-public/") // Paper
             maven("https://repo.mineinabyss.com/releases")
         }
 
@@ -137,7 +137,7 @@ allprojects {
         implementation("com.jeff_media:MorePersistentDataTypes:2.4.0")
         implementation("com.jeff-media:persistent-data-serializer:1.0")
         implementation("org.jetbrains:annotations:24.1.0") { isTransitive = false }
-        implementation("dev.triumphteam:triumph-gui:3.1.8-SNAPSHOT") { exclude("net.kyori") }
+        implementation("dev.triumphteam:triumph-gui:3.1.8") { exclude("net.kyori") }
         implementation("com.github.toxicity188:DataComponentAPI:1.0.10")
 
         implementation("me.gabytm.util:actions-spigot:$actionsVersion") { exclude(group = "com.google.guava") }
@@ -220,6 +220,7 @@ bukkitPluginYaml {
     load = BukkitPluginYaml.PluginLoadOrder.POSTWORLD
     authors.add("boy0000")
     apiVersion = "1.20"
+    foliaSupported = true
 
     permissions.create("oraxen.command") {
         description = "Allows the player to use the /oraxen command"
