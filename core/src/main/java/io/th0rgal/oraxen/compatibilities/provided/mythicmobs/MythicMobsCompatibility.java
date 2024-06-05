@@ -3,9 +3,9 @@ package io.th0rgal.oraxen.compatibilities.provided.mythicmobs;
 import io.lumine.mythic.bukkit.MythicBukkit;
 import io.lumine.mythic.bukkit.events.MythicDropLoadEvent;
 import io.lumine.mythic.core.drops.Drop;
+import io.lumine.mythic.core.drops.droppables.VanillaItemDrop;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.CompatibilityProvider;
-import io.th0rgal.oraxen.utils.MythicUtil;
 import org.bukkit.event.EventHandler;
 
 public class MythicMobsCompatibility extends CompatibilityProvider<MythicBukkit> {
@@ -21,7 +21,7 @@ public class MythicMobsCompatibility extends CompatibilityProvider<MythicBukkit>
 
         // MythicMobs 5.6.0 SNAPSHOT changed this functionality
         // This is a workaround to support both old and new moving forward
-        Drop drop = MythicUtil.getOraxenDrop(line, event.getConfig(), itemId);
+        Drop drop = new VanillaItemDrop(line, event.getConfig(), itemId);
         event.register(drop);
     }
 }

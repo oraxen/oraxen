@@ -61,9 +61,10 @@ val spigotPluginPath = project.findProperty("oraxen_spigot_plugin_path")?.toStri
 val pluginVersion: String by project
 val commandApiVersion = "9.4.2"
 val adventureVersion = "4.17.0"
-val platformVersion = "4.3.2"
+val platformVersion = "4.3.3"
 val googleGsonVersion = "2.10.1"
 val apacheLang3Version = "3.14.0"
+val apacheHttpMimeVersion = "4.5.14"
 val creativeVersion = "1.7.2"
 group = "io.th0rgal"
 version = pluginVersion
@@ -109,20 +110,20 @@ allprojects {
         compileOnly("me.clip:placeholderapi:2.11.4")
         compileOnly("me.gabytm.util:actions-core:$actionsVersion")
         compileOnly("org.springframework:spring-expression:6.0.6")
-        compileOnly("io.lumine:Mythic-Dist:5.3.5")
-        compileOnly("io.lumine:MythicCrucible:1.6.0-SNAPSHOT")
+        compileOnly("io.lumine:Mythic-Dist:5.6.2")
+        compileOnly("io.lumine:MythicCrucible:2.0.0")
         compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.9")
         compileOnly("commons-io:commons-io:2.11.0")
         compileOnly("com.google.code.gson:gson:$googleGsonVersion")
         compileOnly("com.ticxo.modelengine:ModelEngine:R4.0.6")
-        compileOnly("io.lumine:MythicLib:1.1.6") // Remove and add deps needed for Polymath
         compileOnly("io.lumine:MythicLib-dist:1.6.2-SNAPSHOT")
         compileOnly("net.Indyuce:MMOItems-API:6.9.5-SNAPSHOT")
-        compileOnly("com.willfp:EcoItems:5.23.0")
-        compileOnly("com.willfp:eco:6.65.5")
-        compileOnly("com.willfp:libreforge:4.36.0")
-        compileOnly("nl.rutgerkok:blocklocker:1.10.4-SNAPSHOT")
+        compileOnly("com.willfp:EcoItems:5.43.1")
+        compileOnly("com.willfp:eco:6.70.1")
+        compileOnly("com.willfp:libreforge:4.58.1")
+        compileOnly("nl.rutgerkok:blocklocker:1.12.2")
         compileOnly("org.apache.commons:commons-lang3:$apacheLang3Version")
+        compileOnly("org.apache.httpcomponents:httpmime:$apacheHttpMimeVersion")
         compileOnly("team.unnamed:creative-api:$creativeVersion")
         compileOnly("team.unnamed:creative-serializer-minecraft:$creativeVersion")
         compileOnly("team.unnamed:creative-server:$creativeVersion")
@@ -130,8 +131,8 @@ allprojects {
 
         implementation("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
         implementation("org.bstats:bstats-bukkit:3.0.0")
-        implementation("io.th0rgal:protectionlib:1.5.7")
-        implementation("com.github.stefvanschie.inventoryframework:IF:0.10.12")
+        implementation("io.th0rgal:protectionlib:1.5.8")
+        implementation("com.github.stefvanschie.inventoryframework:IF:0.10.14")
         implementation("com.jeff-media:custom-block-data:2.2.2")
         implementation("com.jeff_media:MorePersistentDataTypes:2.4.0")
         implementation("com.jeff-media:persistent-data-serializer:1.0")
@@ -240,6 +241,7 @@ bukkitPluginYaml {
         "net.kyori:adventure-platform-bukkit:$platformVersion",
         "com.google.code.gson:gson:$googleGsonVersion",
         "org.apache.commons:commons-lang3:$apacheLang3Version",
+        "org.apache.httpcomponents:httpmime:$apacheHttpMimeVersion",
         "gs.mclo:java:2.2.1",
         "team.unnamed:creative-api:$creativeVersion",
         "team.unnamed:creative-serializer-minecraft:$creativeVersion",
