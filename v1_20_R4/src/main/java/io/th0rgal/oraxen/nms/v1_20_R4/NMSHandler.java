@@ -1,17 +1,26 @@
 package io.th0rgal.oraxen.nms.v1_20_R4;
 
+import io.netty.channel.ChannelDuplexHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPromise;
 import io.papermc.paper.configuration.GlobalConfiguration;
+import io.papermc.paper.network.ChannelInitializeListenerHolder;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.helpers.ItemPropertyHandler;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.nms.GlyphHandler;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.common.ClientboundUpdateTagsPacket;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
@@ -27,6 +36,7 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
+import org.bukkit.NamespacedKey;
 import org.bukkit.SoundCategory;
 import org.bukkit.SoundGroup;
 import org.bukkit.World;
@@ -54,6 +64,26 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     public NMSHandler() {
         this.glyphHandler = new io.th0rgal.oraxen.nms.v1_20_R4.GlyphHandler();
         this.itemProperties = new io.th0rgal.oraxen.nms.v1_20_R4.ItemProperties();
+
+        // mineableWith tag handling
+        NamespacedKey tagKey = NamespacedKey.fromString("mineable_with_key", OraxenPlugin.get());
+        if (ChannelInitializeListenerHolder.hasListener(tagKey)) return;
+        ChannelInitializeListenerHolder.addListener(tagKey, (channel ->
+                channel.pipeline().addBefore("packet_handler", tagKey.asString(), new ChannelDuplexHandler() {
+                    Connection connection = (Connection) channel.pipeline().get("packet_handler");
+                    TagNetworkSerialization.NetworkPayload payload = createPayload();
+
+                    @Override
+                    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
+                        if (msg instanceof ClientboundUpdateTagsPacket updateTagsPacket) {
+                            Map<ResourceKey<? extends Registry<?>>, TagNetworkSerialization.NetworkPayload> tags = updateTagsPacket.getTags();
+                            if (NoteBlockMechanicFactory.isEnabled() && NoteBlockMechanicFactory.getInstance().removeMineableTag())
+                                tags.put(Registries.BLOCK, payload);
+                            msg = new ClientboundUpdateTagsPacket(tags);
+                        }
+                        ctx.write(msg, promise);
+                    }
+                })));
     }
 
     @Override
@@ -114,10 +144,11 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         BlockPos pos = hitResult.getBlockPos();
         InteractionResult result = blockItem.place(placeContext);
         if (result == InteractionResult.FAIL) return null;
-        if (placeContext instanceof DirectionalPlaceContext && player.getGameMode() != org.bukkit.GameMode.CREATIVE) itemStack.setAmount(itemStack.getAmount() - 1);
+        if (placeContext instanceof DirectionalPlaceContext && player.getGameMode() != org.bukkit.GameMode.CREATIVE)
+            itemStack.setAmount(itemStack.getAmount() - 1);
         World world = player.getWorld();
 
-        if(!player.isSneaking()) {
+        if (!player.isSneaking()) {
             BlockPos clickPos = placeContext.getClickedPos();
             Block block = world.getBlockAt(clickPos.getX(), clickPos.getY(), clickPos.getZ());
             SoundGroup sound = block.getBlockData().getSoundGroup();
@@ -135,25 +166,20 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         float f = player.getXRot();
         float g = player.getYRot();
         Vec3 vec3 = player.getEyePosition();
-        float h = Mth.cos(-g * ((float)Math.PI / 180F) - (float)Math.PI);
-        float i = Mth.sin(-g * ((float)Math.PI / 180F) - (float)Math.PI);
-        float j = -Mth.cos(-f * ((float)Math.PI / 180F));
-        float k = Mth.sin(-f * ((float)Math.PI / 180F));
+        float h = Mth.cos(-g * ((float) Math.PI / 180F) - (float) Math.PI);
+        float i = Mth.sin(-g * ((float) Math.PI / 180F) - (float) Math.PI);
+        float j = -Mth.cos(-f * ((float) Math.PI / 180F));
+        float k = Mth.sin(-f * ((float) Math.PI / 180F));
         float l = i * j;
         float n = h * j;
         double d = 5.0D;
-        Vec3 vec32 = vec3.add((double)l * d, (double)k * d, (double)n * d);
+        Vec3 vec32 = vec3.add((double) l * d, (double) k * d, (double) n * d);
         return world.clip(new ClipContext(vec3, vec32, ClipContext.Block.OUTLINE, fluidHandling, player));
     }
 
     @Override
     public void customBlockDefaultTools(Player player) {
-        if (player instanceof CraftPlayer craftPlayer) {
-            TagNetworkSerialization.NetworkPayload payload = createPayload();
-            if (payload == null) return;
-            ClientboundUpdateTagsPacket packet = new ClientboundUpdateTagsPacket(Map.of(Registries.BLOCK, payload));
-            craftPlayer.getHandle().connection.send(packet);
-        }
+
     }
 
     private TagNetworkSerialization.NetworkPayload createPayload() {
