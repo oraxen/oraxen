@@ -40,11 +40,6 @@ public class DisplayEntityProperties {
         shadowRadius = (float) configSection.getDouble("shadow_radius");
         displayWidth = (float) configSection.getDouble("displayWidth", 0);
         displayHeight = (float) configSection.getDouble("displayHeight", 0);
-        if (configSection.isConfigurationSection("scale"))
-            scale = new Vector3f((float) configSection.getDouble("scale.x", 1.0),
-                    (float) configSection.getDouble("scale.y", 1.0),
-                    (float) configSection.getDouble("scale.z", 1.0));
-        else scale = null;
 
         if (viewRange == 0) viewRange = null;
         if (interpolationDuration == 0) interpolationDuration = null;
@@ -60,6 +55,13 @@ public class DisplayEntityProperties {
             Logs.logWarning("Setting transform to NONE for furniture: <gold>" + itemID);
             displayTransform = ItemDisplay.ItemDisplayTransform.NONE;
         }
+
+        boolean isFixed = displayTransform == ItemDisplay.ItemDisplayTransform.FIXED;
+        if (configSection.isConfigurationSection("scale"))
+            scale = new Vector3f((float) configSection.getDouble("scale.x", isFixed ? 0.5 : 1.0),
+                    (float) configSection.getDouble("scale.y", isFixed ? 0.5 : 1.0),
+                    (float) configSection.getDouble("scale.z", isFixed ? 0.5 : 1.0));
+        else scale = isFixed ? new Vector3f(0.5f,0.5f,0.5f) : null;
 
         try {
             trackingRotation = Display.Billboard.valueOf(configSection.getString("tracking_rotation", Display.Billboard.FIXED.name()));
