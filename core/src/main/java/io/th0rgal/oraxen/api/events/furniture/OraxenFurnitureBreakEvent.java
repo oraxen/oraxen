@@ -26,7 +26,7 @@ public class OraxenFurnitureBreakEvent extends Event implements Cancellable {
         this.mechanic = mechanic;
         this.player = player;
         this.baseEntity = baseEntity;
-        this.drop = mechanic.drop();
+        this.drop = mechanic.breakable().drop();
     }
 
     /**

@@ -12,4 +12,6 @@ public class EnchantmentWrapper {
     public static final @NotNull Enchantment FORTUNE = Objects.requireNonNull(Registry.ENCHANTMENT.get(NamespacedKey.minecraft("fortune")));
     public static final @NotNull Enchantment EFFICIENCY = Objects.requireNonNull(Registry.ENCHANTMENT.get(NamespacedKey.minecraft("efficiency")));
     public static final @NotNull Enchantment SILK_TOUCH = Objects.requireNonNull(Registry.ENCHANTMENT.get(NamespacedKey.minecraft("silk_touch")));
+    public static final @NotNull Enchantment AQUA_AFFINITY = Objects.requireNonNull(Registry.ENCHANTMENT.get(NamespacedKey.minecraft("aqua_affinity")));
+
 }

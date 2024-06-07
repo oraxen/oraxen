@@ -170,15 +170,17 @@ public class FurniturePacketListener implements Listener {
         Location location = event.getBlock().getLocation();
         if (!ProtectionLib.canBreak(event.getPlayer(), location)) return;
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(location);
-        if (mechanic != null) OraxenFurniture.remove(location, null);
+        if (mechanic == null) return;
+        OraxenPlugin.get().breakerManager().startFurnitureBreak(event.getPlayer(), mechanic.baseEntity(event.getBlock()), mechanic, event.getBlock());
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
-    public void onCreativePlayerBreakBarrierHitbox(BlockBreakEvent event) {
+    public void onPlayerBreakBarrierHitbox(BlockBreakEvent event) {
+        Player player = event.getPlayer();
         Location location = event.getBlock().getLocation();
-        if (!ProtectionLib.canBreak(event.getPlayer(), location)) return;
+        if (!ProtectionLib.canBreak(player, location)) return;
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(location);
-        if (mechanic != null) OraxenFurniture.remove(location, null);
+        if (mechanic != null) OraxenFurniture.remove(location, player);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -197,8 +199,8 @@ public class FurniturePacketListener implements Listener {
 
         if (action == Action.RIGHT_CLICK_BLOCK && ProtectionLib.canInteract(player, baseEntity.getLocation()))
             EventUtils.callEvent(new OraxenFurnitureInteractEvent(mechanic, baseEntity, player, event.getItem(), event.getHand(), interactionPoint));
-        else if (action == Action.LEFT_CLICK_BLOCK && ProtectionLib.canBreak(player, baseEntity.getLocation()))
-            OraxenFurniture.remove(baseEntity, player);
+        //else if (action == Action.LEFT_CLICK_BLOCK && ProtectionLib.canBreak(player, baseEntity.getLocation()))
+            //OraxenFurniture.remove(baseEntity, player);
 
         // Resend the hitbox as client removes the "ghost block"
         Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->

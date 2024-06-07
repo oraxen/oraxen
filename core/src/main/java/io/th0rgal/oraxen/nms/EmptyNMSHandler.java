@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.nms;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketContainer;
+import io.th0rgal.oraxen.utils.wrappers.PotionEffectTypeWrapper;
 import net.minecraft.world.InteractionResult;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -10,7 +11,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
@@ -56,23 +56,23 @@ public class EmptyNMSHandler implements NMSHandler {
     }
 
     @Override
-    public void applyMiningFatigue(Player player) {
+    public void applyMiningEffect(Player player) {
         if (Bukkit.getPluginManager().isPluginEnabled("ProtocolLib")) {
             PacketContainer packet = new PacketContainer(PacketType.Play.Server.ENTITY_EFFECT);
             packet.getIntegers().write(0, player.getEntityId()).write(1, -1);
-            packet.getEffectTypes().write(0, PotionEffectType.SLOW_DIGGING);
+            packet.getEffectTypes().write(0, PotionEffectTypeWrapper.MINING_FATIGUE);
             packet.getBytes().write(0, (byte) -1).write(1, (byte) 0);
             ProtocolLibrary.getProtocolManager().sendServerPacket(player, packet);
-        } else player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, -1, Integer.MAX_VALUE, false, false, false));
+        } else player.addPotionEffect(new PotionEffect(PotionEffectTypeWrapper.MINING_FATIGUE, -1, Integer.MAX_VALUE, false, false, false));
     }
 
     @Override
-    public void removeMiningFatigue(Player player) {
+    public void removeMiningEffect(Player player) {
         if (Bukkit.getPluginManager().isPluginEnabled("ProtocolLib")) {
             PacketContainer packet = new PacketContainer(PacketType.Play.Server.REMOVE_ENTITY_EFFECT);
             packet.getIntegers().write(0, player.getEntityId());
-            packet.getEffectTypes().write(0, PotionEffectType.SLOW_DIGGING);
+            packet.getEffectTypes().write(0, PotionEffectTypeWrapper.MINING_FATIGUE);
             ProtocolLibrary.getProtocolManager().sendServerPacket(player, packet);
-        } else player.removePotionEffect(PotionEffectType.SLOW_DIGGING);
+        } else player.removePotionEffect(PotionEffectTypeWrapper.MINING_FATIGUE);
     }
 }

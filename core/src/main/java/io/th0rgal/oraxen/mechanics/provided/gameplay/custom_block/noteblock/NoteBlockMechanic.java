@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock;
 
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.BreakableMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.directional.DirectionalBlock;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.logstrip.LogStripping;
@@ -102,9 +103,9 @@ public class NoteBlockMechanic extends CustomBlockMechanic {
     public DirectionalBlock directional() { return directionalBlock; }
 
     @Override
-    public int hardness() {
+    public BreakableMechanic breakable() {
         NoteBlockMechanic parentMechanic = directionalBlock != null ? directionalBlock.getParentMechanic() : null;
-        return parentMechanic != null ? parentMechanic.hardness() : super.hardness();
+        return parentMechanic != null ? parentMechanic.breakable() : super.breakable();
     }
 
     @Override

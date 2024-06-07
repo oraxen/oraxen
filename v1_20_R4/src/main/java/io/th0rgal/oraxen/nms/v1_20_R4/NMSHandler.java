@@ -26,8 +26,7 @@ import net.minecraft.network.protocol.common.ClientboundResourcePackPushPacket;
 import net.minecraft.network.protocol.common.ClientboundUpdateTagsPacket;
 import net.minecraft.network.protocol.common.ServerboundResourcePackPacket;
 import net.minecraft.network.protocol.configuration.ClientboundFinishConfigurationPacket;
-import net.minecraft.network.protocol.game.ClientboundRemoveMobEffectPacket;
-import net.minecraft.network.protocol.game.ClientboundUpdateMobEffectPacket;
+import net.minecraft.network.protocol.game.ClientboundUpdateAttributesPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
@@ -35,8 +34,8 @@ import net.minecraft.tags.TagNetworkSerialization;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
@@ -249,16 +248,20 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     }
 
     @Override
-    public void applyMiningFatigue(Player player) {
-        ((CraftPlayer) player).getHandle().connection.send(
-                new ClientboundUpdateMobEffectPacket(player.getEntityId(),
-                        new MobEffectInstance(MobEffects.DIG_SLOWDOWN, 0, -1,
-                                true, false, false), false)
-        );
+    public void applyMiningEffect(Player player) {
+        ServerPlayer serverPlayer = ((CraftPlayer) player).getHandle();
+        Collection<AttributeInstance> attributes = serverPlayer.getAttributes().getSyncableAttributes();
+        attributes.removeIf(a -> a.getAttribute().is(Attributes.BLOCK_BREAK_SPEED.unwrapKey().get()));
+        attributes.add(new AttributeInstance(Attributes.BLOCK_BREAK_SPEED, (instance) -> {
+            instance.setBaseValue(0.0);
+        }));
+        serverPlayer.connection.send(new ClientboundUpdateAttributesPacket(player.getEntityId(), attributes));
     }
 
     @Override
-    public void removeMiningFatigue(Player player) {
-        ((CraftPlayer) player).getHandle().connection.send(new ClientboundRemoveMobEffectPacket(player.getEntityId(), MobEffects.DIG_SLOWDOWN));
+    public void removeMiningEffect(Player player) {
+        ServerPlayer serverPlayer = ((CraftPlayer) player).getHandle();
+        Collection<AttributeInstance> attributes = serverPlayer.getAttributes().getSyncableAttributes();
+        serverPlayer.connection.send(new ClientboundUpdateAttributesPacket(player.getEntityId(), attributes));
     }
 }

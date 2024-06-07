@@ -128,7 +128,7 @@ public class OraxenFurniture {
 
         if (player != null) {
             if (player.getGameMode() != GameMode.CREATIVE)
-                (drop != null ? drop : mechanic.drop()).furnitureSpawns(baseEntity, itemStack);
+                (drop != null ? drop : mechanic.breakable().drop()).furnitureSpawns(baseEntity, itemStack);
             StorageMechanic storage = mechanic.storage();
             if (storage != null && (storage.isStorage() || storage.isShulker()))
                 storage.dropStorageContent(mechanic, baseEntity);
@@ -168,7 +168,7 @@ public class OraxenFurniture {
         if (player != null) {
             ItemStack itemStack = player.getInventory().getItemInMainHand();
             if (player.getGameMode() != GameMode.CREATIVE)
-                (drop != null ? drop : mechanic.drop()).furnitureSpawns(baseEntity, itemStack);
+                (drop != null ? drop : mechanic.breakable().drop()).furnitureSpawns(baseEntity, itemStack);
             StorageMechanic storage = mechanic.storage();
             if (storage != null && (storage.isStorage() || storage.isShulker()))
                 storage.dropStorageContent(mechanic, baseEntity);

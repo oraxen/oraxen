@@ -2,20 +2,27 @@ package io.th0rgal.oraxen.utils.breaker;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
+import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.events.custom_block.noteblock.OraxenNoteBlockDamageEvent;
 import io.th0rgal.oraxen.api.events.custom_block.stringblock.OraxenStringBlockDamageEvent;
+import io.th0rgal.oraxen.api.events.furniture.OraxenFurnitureDamageEvent;
+import io.th0rgal.oraxen.mechanics.Mechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.BreakableMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock.StringBlockMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.ItemUtils;
+import io.th0rgal.oraxen.utils.ParseUtils;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -40,6 +47,18 @@ public class BreakerManager {
         return this.activeBreakerDataMap.get(player.getUniqueId());
     }
 
+    public void startFurnitureBreak(Player player, Entity baseEntity, FurnitureMechanic mechanic, Block block) {
+        OraxenPlugin.get().breakerManager().stopBlockBreak(player);
+
+        OraxenFurnitureDamageEvent damageEvent = new OraxenFurnitureDamageEvent(mechanic, baseEntity, player, block);
+        if (!EventUtils.callEvent(damageEvent)) return;
+
+        int breakTime = mechanic.breakable().breakTime(player);
+        NMSHandlers.getHandler().applyMiningEffect(player);
+        ActiveBreakerData activeBreakerData = new ActiveBreakerData(player, block.getLocation(), mechanic, mechanic.breakable(), breakTime, 0, createBreakScheduler(breakTime, player.getUniqueId()), createBreakSoundScheduler(player.getUniqueId()));
+        activeBreakerDataMap.put(player.getUniqueId(), activeBreakerData);
+    }
+
     public void startBlockBreak(Player player, Block block, CustomBlockMechanic mechanic) {
         OraxenPlugin.get().breakerManager().stopBlockBreak(player);
 
@@ -51,9 +70,9 @@ public class BreakerManager {
         else return;
         if (!EventUtils.callEvent(customBlockEvent)) return;
 
-        int breakTime = mechanic.breakTime(player);
-        NMSHandlers.getHandler().applyMiningFatigue(player);
-        ActiveBreakerData activeBreakerData = new ActiveBreakerData(player, block.getLocation(), mechanic, breakTime, 0, createBreakScheduler(breakTime, player.getUniqueId()), createBreakSoundScheduler(player.getUniqueId()));
+        int breakTime = mechanic.breakable().breakTime(player);
+        NMSHandlers.getHandler().applyMiningEffect(player);
+        ActiveBreakerData activeBreakerData = new ActiveBreakerData(player, block.getLocation(), mechanic, mechanic.breakable(), breakTime, 0, createBreakScheduler(breakTime, player.getUniqueId()), createBreakSoundScheduler(player.getUniqueId()));
         activeBreakerDataMap.put(player.getUniqueId(), activeBreakerData);
     }
 
@@ -64,7 +83,7 @@ public class BreakerManager {
         activeBreakerData.cancelTasks();
         activeBreakerDataMap.remove(player.getUniqueId());
         if (player.isOnline()) {
-            NMSHandlers.getHandler().removeMiningFatigue(player);
+            NMSHandlers.getHandler().removeMiningEffect(player);
             activeBreakerData.resetProgress();
             activeBreakerData.sendBreakProgress();
         }
@@ -77,15 +96,23 @@ public class BreakerManager {
             if (activeBreakerData == null) return;
             Player player = activeBreakerData.breaker;
             final Block block = activeBreakerData.location.getBlock();
-            CustomBlockMechanic mechanic = OraxenBlocks.getCustomBlockMechanic(block.getBlockData());
+            CustomBlockMechanic blockMechanic = OraxenBlocks.getCustomBlockMechanic(block.getBlockData());
+            FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(block);
+            BreakableMechanic breakable = blockMechanic != null ? blockMechanic.breakable() : furnitureMechanic != null ? furnitureMechanic.breakable() : null;
 
-            if (!player.isOnline() || mechanic == null || mechanic.customVariation() != activeBreakerData.mechanic.customVariation()) {
+            if (!player.isOnline() || breakable == null) {
+                OraxenPlugin.get().breakerManager().stopBlockBreak(player);
+            } else if (!activeBreakerData.mechanic.equals(blockMechanic) && !activeBreakerData.mechanic.equals(furnitureMechanic)) {
+                OraxenPlugin.get().breakerManager().stopBlockBreak(player);
+            } else if (blockMechanic != null && activeBreakerData.mechanic instanceof CustomBlockMechanic cm && blockMechanic.customVariation() != cm.customVariation()) {
+                OraxenPlugin.get().breakerManager().stopBlockBreak(player);
+            } else if (furnitureMechanic != null && activeBreakerData.mechanic instanceof FurnitureMechanic fm && !fm.getItemID().equals(furnitureMechanic.getItemID())) {
                 OraxenPlugin.get().breakerManager().stopBlockBreak(player);
             } else if (!activeBreakerData.isBroken()) {
-                activeBreakerData.addBreakTimeProgress(blockBreakTime / mechanic.breakTime(player));
+                activeBreakerData.addBreakTimeProgress(blockBreakTime / breakable.breakTime(player));
                 activeBreakerData.sendBreakProgress();
             } else if (EventUtils.callEvent(new BlockBreakEvent(block, player)) && ProtectionLib.canBreak(player, block.getLocation())) {
-                NMSHandlers.getHandler().removeMiningFatigue(player);
+                NMSHandlers.getHandler().removeMiningEffect(player);
                 activeBreakerData.resetProgress();
                 activeBreakerData.sendBreakProgress();
 
@@ -96,7 +123,7 @@ public class BreakerManager {
                     OraxenPlugin.get().breakerManager().stopBlockBreak(alterBreakerData.breaker);
                 }
 
-                ItemUtils.damageItem(player, mechanic.drop(), player.getInventory().getItemInMainHand());
+                ItemUtils.damageItem(player, breakable.drop(), player.getInventory().getItemInMainHand());
                 block.setType(Material.AIR);
                 activeBreakerData.cancelTasks();
                 this.activeBreakerDataMap.remove(breakerUUID);
@@ -110,28 +137,46 @@ public class BreakerManager {
             if (activeBreakerData == null) return;
             Player player = activeBreakerData.breaker;
             final Block block = activeBreakerData.location.getBlock();
-            CustomBlockMechanic mechanic = OraxenBlocks.getCustomBlockMechanic(block.getBlockData());
+            CustomBlockMechanic blockMechanic = OraxenBlocks.getCustomBlockMechanic(block.getBlockData());
+            FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(block);
 
-            if (!player.isOnline() || mechanic == null || mechanic.customVariation() != activeBreakerData.mechanic.customVariation()) {
+
+            if (!player.isOnline() || (blockMechanic == null && furnitureMechanic == null)) {
                 OraxenPlugin.get().breakerManager().stopBlockBreak(player);
-            } else if (!mechanic.hasBlockSounds() || !mechanic.blockSounds().hasHitSound()) {
-                activeBreakerData.breakerSoundTask.cancel();
+            } else if (blockMechanic != null) {
+                if (!(activeBreakerData.mechanic instanceof CustomBlockMechanic cm)) {
+                    OraxenPlugin.get().breakerManager().stopBlockBreak(player);
+                } else if (blockMechanic.customVariation() != cm.customVariation()) {
+                    OraxenPlugin.get().breakerManager().stopBlockBreak(player);
+                } else if (!blockMechanic.hasBlockSounds() || !blockMechanic.blockSounds().hasHitSound()) {
+                    activeBreakerData.breakerSoundTask.cancel();
+                } else {
+                    String sound = switch (blockMechanic.type()) {
+                        case NOTEBLOCK -> blockMechanic.hasBlockSounds() && blockMechanic.blockSounds().hasHitSound() ? blockMechanic.blockSounds().hitSound() : "required.wood.hit";
+                        case STRINGBLOCK -> blockMechanic.hasBlockSounds() && blockMechanic.blockSounds().hasHitSound() ? blockMechanic.blockSounds().hitSound() : "block.tripwire.detach";
+                    };
+                    BlockHelpers.playCustomBlockSound(block.getLocation(), sound, blockMechanic.blockSounds().hitVolume(), blockMechanic.blockSounds().hitPitch());
+                }
             } else {
-                String sound = switch (mechanic.type()) {
-                    case NOTEBLOCK -> mechanic.blockSounds().hasHitSound() ? mechanic.blockSounds().hitSound() : "required.wood.hit";
-                   case STRINGBLOCK -> mechanic.blockSounds().hasHitSound() ? mechanic.blockSounds().hitSound() : "block.tripwire.detach";
-                };
-                BlockHelpers.playCustomBlockSound(block.getLocation(), sound, mechanic.blockSounds().hitVolume(), mechanic.blockSounds().hitPitch());
+                if (!(activeBreakerData.mechanic instanceof FurnitureMechanic fm)) {
+                    OraxenPlugin.get().breakerManager().stopBlockBreak(player);
+                } else if (!furnitureMechanic.getItemID().equals(fm.getItemID())) {
+                    activeBreakerData.breakerSoundTask.cancel();
+                } else if (furnitureMechanic.hasBlockSounds() && furnitureMechanic.blockSounds().hasHitSound()) {
+                    String sound = furnitureMechanic.blockSounds().hitSound();
+                }
             }
         }, 0, 4L);
     }
 
     public static class ActiveBreakerData {
         public static final float MAX_DAMAGE = 1f;
+        public static final float MIN_DAMAGE = 0f;
         private final int sourceId;
         private final Player breaker;
         private final Location location;
-        private final CustomBlockMechanic mechanic;
+        private final Mechanic mechanic;
+        private final BreakableMechanic breakable;
         private final int totalBreakTime;
         private double breakTimeProgress;
         private final BukkitTask breakerTask;
@@ -140,7 +185,8 @@ public class BreakerManager {
         public ActiveBreakerData(
                 Player breaker,
                 Location location,
-                CustomBlockMechanic mechanic,
+                Mechanic mechanic,
+                BreakableMechanic breakable,
                 int totalBreakTime,
                 int breakTimeProgress,
                 BukkitTask breakerTask,
@@ -150,6 +196,7 @@ public class BreakerManager {
             this.breaker = breaker;
             this.location = location;
             this.mechanic = mechanic;
+            this.breakable = breakable;
             this.totalBreakTime = totalBreakTime;
             this.breakTimeProgress = breakTimeProgress;
             this.breakerTask = breakerTask;
@@ -178,8 +225,8 @@ public class BreakerManager {
 
         public float calculateDamage() {
             final double percentage = this.breakTimeProgress / this.totalBreakTime;
-            final double damage = MAX_DAMAGE * percentage;
-            return (float) (Math.min(damage, MAX_DAMAGE));
+            final float damage = (float) (MAX_DAMAGE * percentage);
+            return ParseUtils.clamp(damage, MIN_DAMAGE, MAX_DAMAGE);
         }
 
         public boolean isBroken() {

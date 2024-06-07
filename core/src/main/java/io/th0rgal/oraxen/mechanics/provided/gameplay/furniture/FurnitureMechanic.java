@@ -9,6 +9,7 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.provided.blocklocker.BlockLockerMechanic;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.BreakableMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolvingFurniture;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.hitbox.FurnitureHitbox;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox.JukeboxBlock;
@@ -19,7 +20,6 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
-import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -52,13 +52,12 @@ public class FurnitureMechanic extends Mechanic {
     public static final NamespacedKey MODELENGINE_KEY = new NamespacedKey(OraxenPlugin.get(), "modelengine");
     public static final NamespacedKey EVOLUTION_KEY = new NamespacedKey(OraxenPlugin.get(), "evolution");
 
-    private final int hardness;
+
     private final LimitedPlacing limitedPlacing;
     private final StorageMechanic storage;
     private final BlockSounds blockSounds;
     private final JukeboxBlock jukebox;
     public final boolean farmlandRequired;
-    private final Drop drop;
     private final EvolvingFurniture evolvingFurniture;
     private final LightMechanic light;
     private final String modelEngineID;
@@ -69,6 +68,8 @@ public class FurnitureMechanic extends Mechanic {
     private final boolean isRotatable;
     private final BlockLockerMechanic blockLocker;
     private final RestrictedRotation restrictedRotation;
+    private final BreakableMechanic breakable;
+
     @NotNull
     private final FurnitureHitbox hitbox;
 
@@ -92,10 +93,10 @@ public class FurnitureMechanic extends Mechanic {
     public FurnitureMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section, itemBuilder -> itemBuilder.setCustomTag(FURNITURE_KEY, PersistentDataType.BYTE, (byte) 1));
 
-        hardness = section.getInt("hardness", 1);
         modelEngineID = section.getString("modelengine_id", null);
         farmlandRequired = section.getBoolean("farmland_required", false);
         light = new LightMechanic(section);
+        breakable = new BreakableMechanic(section);
         restrictedRotation = RestrictedRotation.fromString(section.getString("restricted_rotation", "STRICT"));
         displayEntityProperties = new DisplayEntityProperties(section.getConfigurationSection("display_entity_properties"));
         furnitureType = FurnitureType.getType(section.getString("type", FurnitureFactory.defaultFurnitureType.name()));
@@ -113,9 +114,6 @@ public class FurnitureMechanic extends Mechanic {
         ConfigurationSection evoSection = section.getConfigurationSection("evolution");
         evolvingFurniture = evoSection != null ? new EvolvingFurniture(getItemID(), evoSection) : null;
         if (evolvingFurniture != null) ((FurnitureFactory) getFactory()).registerEvolution();
-
-        ConfigurationSection dropSection = section.getConfigurationSection("drop");
-        drop = dropSection != null ? Drop.createDrop(FurnitureFactory.get().toolTypes, dropSection, getItemID()) : new Drop(new ArrayList<>(), false, false, getItemID());
 
         ConfigurationSection limitedPlacingSection = section.getConfigurationSection("limited_placing");
         limitedPlacing = limitedPlacingSection != null ? new LimitedPlacing(limitedPlacingSection) : null;
@@ -210,8 +208,8 @@ public class FurnitureMechanic extends Mechanic {
         return seats;
     }
 
-    public Drop drop() {
-        return drop;
+    public BreakableMechanic breakable() {
+        return breakable;
     }
 
     public boolean hasEvolution() {
