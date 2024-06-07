@@ -14,7 +14,6 @@ import java.util.*;
 
 public interface IFurniturePacketManager {
 
-    BlockData LIGHT_DATA = Material.LIGHT.createBlockData();
     BlockData BARRIER_DATA = Material.BARRIER.createBlockData();
     BlockData AIR_DATA = Material.AIR.createBlockData();
 
@@ -42,7 +41,7 @@ public interface IFurniturePacketManager {
     @Nullable
     default Entity baseEntityFromHitbox(BlockLocation barrierLocation) {
         for (Map.Entry<UUID, Set<BlockLocation>> entry : barrierHitboxPositionMap.entrySet()) {
-            if (entry.getValue().contains(barrierLocation)) return Bukkit.getEntity(entry.getKey());
+            if (entry.getValue().stream().anyMatch(barrierLocation::equals)) return Bukkit.getEntity(entry.getKey());
         }
         return null;
     }

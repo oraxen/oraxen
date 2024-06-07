@@ -168,19 +168,17 @@ public class FurniturePacketListener implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerDamageBarrierHitbox(BlockDamageEvent event) {
         Location location = event.getBlock().getLocation();
+        if (!ProtectionLib.canBreak(event.getPlayer(), location)) return;
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(location);
-        if (mechanic == null || !ProtectionLib.canBreak(event.getPlayer(), location)) return;
-
-        OraxenFurniture.remove(location, null);
+        if (mechanic != null) OraxenFurniture.remove(location, null);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onCreativePlayerBreakBarrierHitbox(BlockBreakEvent event) {
         Location location = event.getBlock().getLocation();
+        if (!ProtectionLib.canBreak(event.getPlayer(), location)) return;
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(location);
-        if (mechanic == null || !ProtectionLib.canBreak(event.getPlayer(), location)) return;
-
-        OraxenFurniture.remove(location, null);
+        if (mechanic != null) OraxenFurniture.remove(location, null);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)

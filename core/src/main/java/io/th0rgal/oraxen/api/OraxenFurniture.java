@@ -196,8 +196,7 @@ public class OraxenFurniture {
     @Nullable
     public static FurnitureMechanic getFurnitureMechanic(Location location) {
         if (!FurnitureFactory.isEnabled() || location == null) return null;
-        BlockLocation blockPosition = new BlockLocation(location);
-        Entity baseEntity = FurnitureFactory.instance.packetManager().baseEntityFromHitbox(blockPosition);
+        Entity baseEntity = FurnitureFactory.instance.packetManager().baseEntityFromHitbox(new BlockLocation(location));
         if (baseEntity == null) return null;
         FurnitureMechanic mechanic = getFurnitureMechanic(baseEntity);
 
