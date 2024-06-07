@@ -263,7 +263,7 @@ public class FurnitureMechanic extends Mechanic {
         Location correctedLocation = BlockHelpers.toCenterBlockLocation(baseLocation);
         boolean isWall = hasLimitedPlacing() && limitedPlacing.isWall();
         boolean isRoof = hasLimitedPlacing() && limitedPlacing.isRoof();
-        boolean isFixed = hasDisplayEntityProperties() && displayEntityProperties.displayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
+        boolean isFixed = hasDisplayEntityProperties() && displayEntityProperties.isFixedTransform();
         if (furnitureType != FurnitureType.DISPLAY_ENTITY || !hasDisplayEntityProperties()) return correctedLocation;
         if (displayEntityProperties.displayTransform() != ItemDisplay.ItemDisplayTransform.NONE && !isWall && !isRoof)
             return correctedLocation;
@@ -277,7 +277,7 @@ public class FurnitureMechanic extends Mechanic {
     public void setBaseFurnitureData(Entity baseEntity, float yaw) {
         baseEntity.setPersistent(true);
         baseEntity.setInvulnerable(true);
-        baseEntity.setRotation(yaw, 0f);
+        baseEntity.setRotation(yaw, FurnitureHelpers.correctedPitch(this, 0f));
         baseEntity.setSilent(true);
         baseEntity.setCustomNameVisible(false);
         Component customName = OraxenItems.getItemById(this.getItemID()).displayName();

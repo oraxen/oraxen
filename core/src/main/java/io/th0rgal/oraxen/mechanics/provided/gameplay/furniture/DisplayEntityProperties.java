@@ -130,6 +130,10 @@ public class DisplayEntityProperties {
         return displayTransform;
     }
 
+    public boolean isFixedTransform() {
+        return displayTransform == ItemDisplay.ItemDisplayTransform.FIXED;
+    }
+
     public boolean hasTrackingRotation() {
         return trackingRotation != null;
     }

@@ -1,10 +1,10 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
 import io.th0rgal.oraxen.api.OraxenFurniture;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import org.bukkit.Location;
 import org.bukkit.Rotation;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.ItemFrame;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,15 +12,20 @@ import java.util.Arrays;
 
 public class FurnitureHelpers {
 
-    public static float furnitureYaw(Entity baseEntity) {
-        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
-        if (mechanic == null) return baseEntity.getLocation().getYaw();
+    public static float correctedYaw(FurnitureMechanic mechanic, float yaw) {
+        if (mechanic.furnitureType() != FurnitureType.DISPLAY_ENTITY) return yaw;
+        boolean isFixed = mechanic.displayEntityProperties().isFixedTransform();
 
-        if (baseEntity instanceof ItemFrame itemFrame) {
-            if (mechanic.hasLimitedPlacing() && mechanic.limitedPlacing().isWall() && itemFrame.getFacing().getModY() == 0)
-                return baseEntity.getLocation().getYaw();
-            else return rotationToYaw(itemFrame.getRotation());
-        } else return baseEntity.getLocation().getYaw();
+        if (mechanic.hasLimitedPlacing() && !mechanic.limitedPlacing().isRoof()) return yaw;
+        else if (isFixed) return yaw - 180;
+        else return yaw;
+    }
+
+    public static float correctedPitch(FurnitureMechanic mechanic, float initialPitch) {
+        if (mechanic.furnitureType() != FurnitureType.DISPLAY_ENTITY) return initialPitch;
+        LimitedPlacing lp = mechanic.limitedPlacing();
+        boolean isFixed = mechanic.displayEntityProperties().isFixedTransform();
+        return mechanic.hasLimitedPlacing() && isFixed ? lp.isFloor() ? 90 : lp.isRoof() ? -90 : initialPitch : initialPitch;
     }
 
     public static void furnitureYaw(Entity baseEntity, float yaw) {
