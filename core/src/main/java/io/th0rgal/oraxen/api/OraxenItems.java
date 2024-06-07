@@ -68,12 +68,12 @@ public class OraxenItems {
     }
 
     public static List<ItemBuilder> getUnexcludedItems() {
-        return itemStream().filter(item -> !item.getOraxenMeta().isExcludedFromInventory())
+        return itemStream().filter(item -> item.hasOraxenMeta() && !item.getOraxenMeta().isExcludedFromInventory())
                 .toList();
     }
 
     public static List<ItemBuilder> getUnexcludedItems(final File file) {
-        return map.get(file).values().stream().filter(item -> !item.getOraxenMeta().isExcludedFromInventory()).toList();
+        return map.get(file).values().stream().filter(item -> item.hasOraxenMeta() && !item.getOraxenMeta().isExcludedFromInventory()).toList();
     }
 
     public static List<ItemStack> getItemStacksByName(final List<List<String>> lists) {
