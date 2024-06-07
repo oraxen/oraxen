@@ -5,10 +5,15 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class Logs {
 
-    private Logs() {}
+    private Logs() {
+    }
 
     public static void logInfo(String message) {
         if (!message.isEmpty()) logInfo(message, false);
@@ -50,10 +55,59 @@ public class Logs {
         OraxenPlugin.get().audience().console().sendMessage(Component.empty());
     }
 
-    public static void debug(Object object) { if ( Settings.DEBUG.toBool()) Bukkit.broadcastMessage(String.valueOf(object)); }
-    public static void debug(Object object, String prefix) { if ( Settings.DEBUG.toBool()) Bukkit.broadcastMessage(prefix + object); }
-    public static <T> T debugVal(T object) { if ( Settings.DEBUG.toBool()) Bukkit.broadcastMessage(String.valueOf(object)); return object; }
-    public static <T> T debugVal(T object, String prefix) { if ( Settings.DEBUG.toBool()) Bukkit.broadcastMessage(prefix + object); return object; }
-    public static void debug(Component component) { if ( Settings.DEBUG.toBool()) OraxenPlugin.get().audience().console().sendMessage(component != null ? component : Component.text("null")); }
+    public static void debug(Object object) {
+        if (Settings.DEBUG.toBool()) Bukkit.broadcastMessage(String.valueOf(object));
+    }
+
+    public static void debug(Object object, String prefix) {
+        if (Settings.DEBUG.toBool()) Bukkit.broadcastMessage(prefix + object);
+    }
+
+    private static final List<ChatColor> debugColors = List.of(ChatColor.GREEN, ChatColor.BLUE, ChatColor.RED, ChatColor.GOLD, ChatColor.LIGHT_PURPLE);
+    public static void debug(Object... objects) {
+        if (!Settings.DEBUG.toBool()) return;
+        List<Object> objectList = Arrays.asList(objects);
+        StringBuilder builder = new StringBuilder();
+
+        for (int i = 0; i < objectList.size(); i++) {
+            Object object = objectList.get(i);
+            ChatColor color = debugColors.get(i % debugColors.size()); // Wrap around using modulus operator
+            builder.append(color.toString()).append(object);
+            if (i + 1 != objectList.size()) builder.append(ChatColor.WHITE + " | ");
+        }
+
+        Bukkit.broadcastMessage(builder.toString());
+    }
+
+    public static void debug(String prefix, Object... objects) {
+        if (!Settings.DEBUG.toBool()) return;
+        List<Object> objectList = Arrays.asList(objects);
+        StringBuilder builder = new StringBuilder();
+
+        builder.append(prefix);
+        for (int i = 0; i < objectList.size(); i++) {
+            Object object = objectList.get(i);
+            ChatColor color = debugColors.get(i % debugColors.size()); // Wrap around using modulus operator
+            builder.append(color.toString()).append(object);
+            if (i + 1 != objectList.size()) builder.append(ChatColor.WHITE + " | ");
+        }
+
+        Bukkit.broadcastMessage(builder.toString());
+    }
+
+    public static <T> T debugVal(T object) {
+        if (Settings.DEBUG.toBool()) Bukkit.broadcastMessage(String.valueOf(object));
+        return object;
+    }
+
+    public static <T> T debugVal(T object, String prefix) {
+        if (Settings.DEBUG.toBool()) Bukkit.broadcastMessage(prefix + object);
+        return object;
+    }
+
+    public static void debug(Component component) {
+        if (Settings.DEBUG.toBool())
+            OraxenPlugin.get().audience().console().sendMessage(component != null ? component : Component.text("null"));
+    }
 
 }
