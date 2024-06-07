@@ -25,7 +25,7 @@ public class FurnitureHelpers {
         if (mechanic.furnitureType() != FurnitureType.DISPLAY_ENTITY) return initialPitch;
         LimitedPlacing lp = mechanic.limitedPlacing();
         boolean isFixed = mechanic.displayEntityProperties().isFixedTransform();
-        return mechanic.hasLimitedPlacing() && isFixed ? lp.isFloor() ? 90 : lp.isRoof() ? -90 : initialPitch : initialPitch;
+        return mechanic.hasLimitedPlacing() && isFixed ? lp.isFloor() ? -90 : lp.isRoof() ? 90 : initialPitch : initialPitch;
     }
 
     public static void furnitureYaw(Entity baseEntity, float yaw) {

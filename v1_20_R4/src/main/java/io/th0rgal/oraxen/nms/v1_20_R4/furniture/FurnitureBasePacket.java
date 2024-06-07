@@ -4,7 +4,6 @@ import io.papermc.paper.adventure.PaperAdventure;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.*;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.utils.VersionUtil;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.text.Component;
 import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
@@ -62,8 +61,8 @@ public class FurnitureBasePacket {
         this.uuid = furnitureBase.uuid(type);
         Location baseLoc = baseEntity.getLocation();
         double x = baseLoc.x(), y = baseLoc.y(), z = baseLoc.z();
-        Logs.debug(baseLoc.getYaw(), correctedPlayerYaw(baseLoc.getYaw(), player));
-        float pitch = correctedPlayerPitch(furnitureBase, baseLoc.getPitch(), player), yaw = correctedPlayerYaw(baseLoc.getYaw(), player);
+        //Logs.debug(baseLoc.getYaw(), correctedPlayerYaw(baseLoc.getYaw(), player), baseLoc.getPitch(), correctedPlayerPitch(furnitureBase, baseLoc.getPitch(), player));
+        float pitch = correctedPlayerPitch(furnitureBase.mechanic(), baseLoc.getPitch(), player), yaw = correctedPlayerYaw(baseLoc.getYaw(), player);
         EntityType<?> entityType = type == FurnitureType.DISPLAY_ENTITY ? EntityType.ITEM_DISPLAY : type == FurnitureType.ITEM_FRAME ? EntityType.ITEM_FRAME : EntityType.GLOW_ITEM_FRAME;
 
         this.entityPacket = new ClientboundAddEntityPacket(
@@ -95,12 +94,10 @@ public class FurnitureBasePacket {
         return this.uuid;
     }
 
-    private float correctedPlayerPitch(FurnitureBaseEntity furnitureBase, float initialPitch, Player player) {
+    private float correctedPlayerPitch(FurnitureMechanic mechanic, float initialPitch, Player player) {
         if (type != FurnitureType.DISPLAY_ENTITY) return initialPitch;
-        FurnitureMechanic mechanic = furnitureBase.mechanic();
-        LimitedPlacing lp = mechanic.limitedPlacing();
         boolean isFixed = mechanic.displayEntityProperties().isFixedTransform();
-        return VersionUtil.atOrAbove(player, 763) ? mechanic.hasLimitedPlacing() && isFixed ? lp.isFloor() ? -90 : lp.isRoof() ? 90 : initialPitch : initialPitch : initialPitch;
+        return VersionUtil.below(player, 763) && mechanic.hasLimitedPlacing() && isFixed ? initialPitch - 180 : initialPitch;
     }
 
     private float correctedPlayerYaw(float initialYaw, Player player) {
