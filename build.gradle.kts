@@ -178,7 +178,7 @@ tasks {
     shadowJar {
         SUPPORTED_VERSIONS.forEach { dependsOn(":${it.nmsVersion}:reobfJar") }
 
-        //archiveClassifier = null
+        archiveClassifier = null
         relocate("org.bstats", "io.th0rgal.oraxen.shaded.bstats")
         relocate("dev.triumphteam.gui", "io.th0rgal.oraxen.shaded.triumphteam.gui")
         relocate("com.jeff_media", "io.th0rgal.oraxen.shaded.jeff_media")

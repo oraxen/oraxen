@@ -1,7 +1,7 @@
 package io.th0rgal.oraxen.utils.actions;
 
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.utils.logs.Logs;
+import io.th0rgal.oraxen.config.Settings;
 import me.gabytm.util.actions.actions.Action;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -87,7 +87,7 @@ public class ClickAction {
                     return false;
                 }
             } catch (ParseException | SpelEvaluationException e) {
-                e.printStackTrace();
+                if (Settings.DEBUG.toBool()) e.printStackTrace();
             }
         }
 
