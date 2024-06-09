@@ -137,7 +137,7 @@ allprojects {
         implementation("com.jeff_media:MorePersistentDataTypes:2.4.0")
         implementation("com.jeff-media:persistent-data-serializer:1.0")
         implementation("org.jetbrains:annotations:24.1.0") { isTransitive = false }
-        implementation("dev.triumphteam:triumph-gui:3.1.8-SNAPSHOT") { exclude("net.kyori") }
+        implementation("dev.triumphteam:triumph-gui:3.1.10") { exclude("net.kyori") }
         implementation("com.ticxo:PlayerAnimator:R1.2.8") { isChanging = true }
 
         implementation("me.gabytm.util:actions-spigot:$actionsVersion") { exclude(group = "com.google.guava") }
