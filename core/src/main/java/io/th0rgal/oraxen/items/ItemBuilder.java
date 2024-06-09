@@ -145,8 +145,10 @@ public class ItemBuilder {
             patternColor = tropicalFishBucketMeta.getPatternColor();
         }
 
-        if (itemMeta.hasDisplayName())
-            displayName = itemMeta.getDisplayName();
+        if (itemMeta.hasDisplayName()) {
+            if (VersionUtil.isPaperServer()) displayName = AdventureUtils.MINI_MESSAGE.serialize(itemMeta.displayName());
+            else displayName = itemMeta.getDisplayName();
+        }
 
         unbreakable = itemMeta.isUnbreakable();
         unstackable = itemMeta.getPersistentDataContainer().has(UNSTACKABLE_KEY, DataType.UUID);
@@ -162,8 +164,10 @@ public class ItemBuilder {
         if (itemMeta.hasCustomModelData())
             customModelData = itemMeta.getCustomModelData();
 
-        if (itemMeta.hasLore())
-            lore = itemMeta.getLore();
+        if (itemMeta.hasLore()) {
+            if (VersionUtil.isPaperServer()) lore = itemMeta.lore().stream().map(AdventureUtils.MINI_MESSAGE::serialize).toList();
+            else lore = itemMeta.getLore();
+        }
 
         persistentDataContainer = itemMeta.getPersistentDataContainer();
 
@@ -538,7 +542,8 @@ public class ItemBuilder {
         PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
         if (!VersionUtil.atOrAbove("1.20.5") && displayName != null) {
             pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, displayName);
-            itemMeta.setDisplayName(displayName);
+            if (VersionUtil.isPaperServer()) itemMeta.displayName(AdventureUtils.MINI_MESSAGE.deserialize(displayName));
+            else itemMeta.setDisplayName(displayName);
         }
 
         if (itemFlags != null)
@@ -562,7 +567,8 @@ public class ItemBuilder {
             for (final Map.Entry<PersistentDataSpace, Object> dataSpace : persistentDataMap.entrySet())
                 pdc.set(dataSpace.getKey().namespacedKey(), (PersistentDataType<?, Object>) dataSpace.getKey().dataType(), dataSpace.getValue());
 
-        itemMeta.setLore(lore);
+        if (VersionUtil.isPaperServer()) itemMeta.lore(lore != null? lore.stream().map(AdventureUtils.MINI_MESSAGE::deserialize).toList() : null);
+        else itemMeta.setLore(lore);
 
         itemStack.setItemMeta(itemMeta);
         finalItemStack = itemStack;

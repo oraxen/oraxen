@@ -96,7 +96,7 @@ public enum Message {
     public void send(final CommandSender sender, final TagResolver... placeholders) {
         if (sender == null) return;
         String lang = OraxenPlugin.get().getConfigsManager().getLanguage().getString(path);
-        if (lang == null) return;
+        if (lang == null || lang.isEmpty()) return;
         OraxenPlugin.get().getAudience().sender(sender).sendMessage(
                 AdventureUtils.MINI_MESSAGE.deserialize(lang, TagResolver.resolver(placeholders))
         );

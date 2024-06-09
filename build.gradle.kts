@@ -1,6 +1,8 @@
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.util.*
+import kotlin.io.path.Path
+import kotlin.io.path.listDirectoryEntries
 
 plugins {
     id("java")
@@ -62,7 +64,7 @@ val spigotPluginPath = project.findProperty("oraxen_spigot_plugin_path")?.toStri
 val pluginVersion: String by project
 val commandApiVersion = "9.5.0-SNAPSHOT"
 val adventureVersion = "4.17.0"
-val platformVersion = "4.3.2"
+val platformVersion = "4.3.3"
 val googleGsonVersion = "2.10.1"
 val apacheLang3Version = "3.14.0"
 group = "io.th0rgal"
@@ -129,7 +131,7 @@ allprojects {
         implementation(files("../libs/CommandAPI-9.5.0-SNAPSHOT.jar"))
         //implementation("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
         implementation("org.bstats:bstats-bukkit:3.0.0")
-        implementation("io.th0rgal:protectionlib:1.5.7")
+        implementation("io.th0rgal:protectionlib:1.5.8")
         implementation("com.github.stefvanschie.inventoryframework:IF:0.10.12")
         implementation("com.jeff-media:custom-block-data:2.2.2")
         implementation("com.jeff_media:MorePersistentDataTypes:2.4.0")
@@ -170,13 +172,13 @@ tasks {
     }
 
     runServer {
-        minecraftVersion("1.18.2")
+        minecraftVersion("1.19.4")
     }
 
     shadowJar {
         SUPPORTED_VERSIONS.forEach { dependsOn(":${it.nmsVersion}:reobfJar") }
 
-        //archiveClassifier = null
+        archiveClassifier = null
         relocate("org.bstats", "io.th0rgal.oraxen.shaded.bstats")
         relocate("dev.triumphteam.gui", "io.th0rgal.oraxen.shaded.triumphteam.gui")
         relocate("com.jeff_media", "io.th0rgal.oraxen.shaded.jeff_media")
@@ -250,6 +252,10 @@ if (pluginPath != null) {
         val copyJarTask = register<Copy>("copyJar") {
             this.doNotTrackState("Overwrites the plugin jar to allow for easier reloading")
             dependsOn(shadowJar, jar)
+            Path(pluginPath).listDirectoryEntries()
+                .filter { it.fileName.toString().matches("oraxen-.*.jar".toRegex()) }
+                .filterNot { it.fileName.toString().endsWith("$pluginVersion.jar") }
+                .forEach { delete(it) }
             from(defaultPath)
             into(pluginPath)
             doLast { println("Copied to plugin directory $pluginPath") }
