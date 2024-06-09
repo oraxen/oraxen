@@ -1,23 +1,20 @@
 package io.th0rgal.oraxen.utils;
 
-import io.th0rgal.oraxen.utils.logs.Logs;
+import dev.jorel.commandapi.wrappers.IntegerRange;
+import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Color;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.text.DecimalFormat;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.function.Consumer;
 
 public class Utils {
 
@@ -153,5 +150,29 @@ public class Utils {
 
         if (remainder > step / 2) roundedValue += step;
         return Float.parseFloat(String.format("%.2f", roundedValue).replace(",", "."));
+    }
+
+    public static IntegerRange parseToRange(String string) {
+        return parseToRange(string, new IntegerRange(1,1));
+    }
+
+    public static IntegerRange parseToRange(String string, IntegerRange integerRange) {
+        int minAmount, maxAmount;
+        try {
+            minAmount = Integer.parseInt(StringUtils.substringBefore(string, ".."));
+        } catch (NumberFormatException e) {
+            minAmount = 1;
+        }
+
+        try {
+            maxAmount = Integer.parseInt(StringUtils.substringAfter(string, ".."));
+        } catch (NumberFormatException e) {
+            maxAmount = Math.max(minAmount, 1);
+        }
+
+        minAmount = Math.max(0, minAmount);
+        maxAmount = Math.max(0, maxAmount);
+
+        return new IntegerRange(minAmount, maxAmount);
     }
 }

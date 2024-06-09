@@ -96,7 +96,7 @@ public class ItemParser {
     public static String parseComponentItemName(@Nullable String miniString) {
         if (miniString == null) return null;
         if (miniString.isEmpty()) return miniString;
-        Component component = AdventureUtils.MINI_MESSAGE.deserialize(miniString);
+        Component component = AdventureUtils.MINI_MESSAGE.deserialize(miniString.replace("§", "\\§"));
         // If it has no formatting, set color to WHITE to prevent Italic
         return AdventureUtils.LEGACY_SERIALIZER.serialize(component.colorIfAbsent(NamedTextColor.WHITE));
     }
@@ -120,11 +120,10 @@ public class ItemParser {
     }
 
     private ItemBuilder applyConfig(ItemBuilder item) {
-        if (!VersionUtil.atOrAbove("1.20.5"))
-            item.setDisplayName(parseComponentItemName(section.getString("displayname", "")));
+        if (!VersionUtil.atOrAbove("1.20.5")) item.setDisplayName(AdventureUtils.parseMiniMessage(section.getString("displayname", "")));
 
         //if (section.contains("type")) item.setType(Material.getMaterial(section.getString("type", "PAPER")));
-        if (section.contains("lore")) item.setLore(section.getStringList("lore").stream().map(ItemParser::parseComponentLore).toList());
+        if (section.contains("lore")) item.setLore(section.getStringList("lore").stream().map(AdventureUtils::parseMiniMessage).toList());
         if (section.contains("unbreakable")) item.setUnbreakable(section.getBoolean("unbreakable", false));
         if (section.contains("unstackable")) item.setUnstackable(section.getBoolean("unstackable", false));
         if (section.contains("color")) item.setColor(Utils.toColor(section.getString("color", "#FFFFFF")));
@@ -146,8 +145,8 @@ public class ItemParser {
         else if (section.contains("max_stack_size")) item.setMaxStackSize(Math.min(Math.max(section.getInt("max_stack_size"), 1), 99));
         if (item.hasMaxStackSize() && item.getMaxStackSize() == 1) item.setUnstackable(true);
 
-        if (section.contains("itemname")) item.setItemName(parseComponentItemName(section.getString("itemname", "")));
-        else item.setItemName(parseComponentItemName(section.getString("displayname", "")));
+        if (section.contains("itemname")) item.setItemName(AdventureUtils.parseMiniMessage(section.getString("itemname", "")));
+        else item.setItemName(AdventureUtils.parseMiniMessage(section.getString("displayname", "")));
 
         if (section.contains("enchantment_glint_override")) item.setEnchantmentGlindOverride(section.getBoolean("enchantment_glint_override"));
         if (section.contains("durability")) {

@@ -15,6 +15,7 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 
 public class CommandsManager {
 
@@ -157,16 +158,43 @@ public class CommandsManager {
     private CommandAPICommand getTakeCommand() {
         return new CommandAPICommand("take")
                 .withPermission("oraxen.command.take")
-                .withArguments(new EntitySelectorArgument.ManyPlayers("targets"),
-                        new TextArgument("item").replaceSuggestions(ArgumentSuggestions.strings(OraxenItems.getItemNames())))
+                .withArguments(
+                        new EntitySelectorArgument.ManyPlayers("targets"),
+                        new TextArgument("item").replaceSuggestions(ArgumentSuggestions.strings(OraxenItems.getItemNames())),
+                        new IntegerArgument("amount").setOptional(true)
+                )
                 .executes((sender, args) -> {
-                    final Collection<Player> targets = (Collection<Player>) args.get(0);
-                    final String itemID = (String) args.getOrDefault(1, "");
+                    final Collection<Player> targets = (Collection<Player>) args.get("targets");
+                    final String itemID = (String) args.getOrDefault("item", "");
+                    final Optional<Integer> amount = args.getOptionalByClass("amount", Integer.class);
                     if (!OraxenItems.exists(itemID)) {
                         Message.ITEM_NOT_FOUND.send(sender, AdventureUtils.tagResolver("item", itemID));
-                    } else for (final Player target : targets) for (ItemStack itemStack : target.getInventory().getContents())
-                        if (!ItemUtils.isEmpty(itemStack) && itemID.equals(OraxenItems.getIdByItem(itemStack)))
-                            target.getInventory().remove(itemStack);
+                    } else for (final Player target : targets) {
+                        if (amount.isEmpty()) {
+                            for (ItemStack itemStack : target.getInventory().getContents())
+                                if (!ItemUtils.isEmpty(itemStack) && itemID.equals(OraxenItems.getIdByItem(itemStack)))
+                                    target.getInventory().remove(itemStack);
+                        } else {
+                            int toRemove = amount.get();
+                            while (toRemove > 0) {
+                                for (ItemStack itemStack : target.getInventory().getContents()) {
+                                    if (!ItemUtils.isEmpty(itemStack) && itemID.equals(OraxenItems.getIdByItem(itemStack))) {
+                                        if (itemStack.getAmount() <= toRemove) {
+                                            toRemove -= itemStack.getAmount();
+                                            target.getInventory().remove(itemStack);
+                                        } else {
+                                            itemStack.setAmount(itemStack.getAmount() - toRemove);
+                                            toRemove = 0;
+                                        }
+
+                                        if (toRemove == 0) break;
+                                    }
+                                }
+
+                                if (toRemove > 0) break;
+                            }
+                        }
+                    }
                 });
     }
 }
