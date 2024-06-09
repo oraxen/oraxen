@@ -1,5 +1,7 @@
 package io.th0rgal.oraxen.utils;
 
+import dev.jorel.commandapi.wrappers.IntegerRange;
+import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Color;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
@@ -100,5 +102,37 @@ public class Utils {
     public static void swingHand(Player player, EquipmentSlot hand) {
         if (hand == EquipmentSlot.HAND) player.swingMainHand();
         else player.swingOffHand();
+    }
+
+    public static float customRound(double value, float step) {
+        float roundedValue = Math.round(value / step) * step;
+        float remainder = (float) (value % step);
+
+        if (remainder > step / 2) roundedValue += step;
+        return Float.parseFloat(String.format("%.2f", roundedValue).replace(",", "."));
+    }
+
+    public static IntegerRange parseToRange(String string) {
+        return parseToRange(string, new IntegerRange(1,1));
+    }
+
+    public static IntegerRange parseToRange(String string, IntegerRange integerRange) {
+        int minAmount, maxAmount;
+        try {
+            minAmount = Integer.parseInt(StringUtils.substringBefore(string, ".."));
+        } catch (NumberFormatException e) {
+            minAmount = 1;
+        }
+
+        try {
+            maxAmount = Integer.parseInt(StringUtils.substringAfter(string, ".."));
+        } catch (NumberFormatException e) {
+            maxAmount = Math.max(minAmount, 1);
+        }
+
+        minAmount = Math.max(0, minAmount);
+        maxAmount = Math.max(0, maxAmount);
+
+        return new IntegerRange(minAmount, maxAmount);
     }
 }

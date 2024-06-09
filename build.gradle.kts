@@ -3,6 +3,8 @@ import xyz.jpenilla.resourcefactory.bukkit.Permission
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.util.*
+import kotlin.io.path.Path
+import kotlin.io.path.listDirectoryEntries
 
 plugins {
     id("java")
@@ -257,6 +259,10 @@ if (pluginPath != null) {
         val copyJar = register<Copy>("copyJar") {
             this.doNotTrackState("Overwrites the plugin jar to allow for easier reloading")
             dependsOn(shadowJar, jar)
+            Path(pluginPath).listDirectoryEntries()
+                .filter { it.fileName.toString().matches("oraxen-.*.jar".toRegex()) }
+                .filterNot { it.fileName.toString().endsWith("$pluginVersion.jar") }
+                .forEach { delete(it) }
             from(defaultPath)
             into(pluginPath)
             doLast { println("Copied to plugin directory $pluginPath") }

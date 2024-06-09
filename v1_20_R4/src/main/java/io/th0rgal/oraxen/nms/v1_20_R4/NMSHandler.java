@@ -7,6 +7,7 @@ import io.papermc.paper.adventure.PaperAdventure;
 import io.papermc.paper.configuration.GlobalConfiguration;
 import io.papermc.paper.network.ChannelInitializeListenerHolder;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketManager;
 import io.th0rgal.oraxen.nms.GlyphHandler;
 import io.th0rgal.oraxen.nms.v1_20_R4.furniture.FurniturePacketManager;
@@ -17,6 +18,7 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.kyori.adventure.resource.ResourcePackInfo;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -27,6 +29,7 @@ import net.minecraft.network.protocol.common.ClientboundUpdateTagsPacket;
 import net.minecraft.network.protocol.common.ServerboundResourcePackPacket;
 import net.minecraft.network.protocol.configuration.ClientboundFinishConfigurationPacket;
 import net.minecraft.network.protocol.game.ClientboundUpdateAttributesPacket;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
@@ -66,6 +69,26 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
     public NMSHandler() {
         this.glyphHandler = new io.th0rgal.oraxen.nms.v1_20_R4.GlyphHandler();
+
+        // mineableWith tag handling
+        NamespacedKey tagKey = NamespacedKey.fromString("mineable_with_key", OraxenPlugin.get());
+        if (ChannelInitializeListenerHolder.hasListener(tagKey)) return;
+        ChannelInitializeListenerHolder.addListener(tagKey, (channel ->
+                channel.pipeline().addBefore("packet_handler", tagKey.asString(), new ChannelDuplexHandler() {
+                    Connection connection = (Connection) channel.pipeline().get("packet_handler");
+                    TagNetworkSerialization.NetworkPayload payload = createPayload();
+
+                    @Override
+                    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
+                        if (msg instanceof ClientboundUpdateTagsPacket updateTagsPacket) {
+                            Map<ResourceKey<? extends Registry<?>>, TagNetworkSerialization.NetworkPayload> tags = updateTagsPacket.getTags();
+                            if (NoteBlockMechanicFactory.isEnabled() && NoteBlockMechanicFactory.get().removeMineableTag())
+                                tags.put(Registries.BLOCK, payload);
+                            msg = new ClientboundUpdateTagsPacket(tags);
+                        }
+                        ctx.write(msg, promise);
+                    }
+                })));
     }
 
     @Override
@@ -199,12 +222,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
     @Override
     public void customBlockDefaultTools(Player player) {
-        if (player instanceof CraftPlayer craftPlayer) {
-            TagNetworkSerialization.NetworkPayload payload = createPayload();
-            if (payload == null) return;
-            ClientboundUpdateTagsPacket packet = new ClientboundUpdateTagsPacket(Map.of(Registries.BLOCK, payload));
-            craftPlayer.getHandle().connection.send(packet);
-        }
+
     }
 
     private TagNetworkSerialization.NetworkPayload createPayload() {
