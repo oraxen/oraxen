@@ -6,6 +6,10 @@ import org.jetbrains.annotations.Nullable;
 
 public interface ItemPropertyHandler {
 
+    default boolean hasItemName(ItemMeta itemMeta) {
+        return false;
+    }
+
     @Nullable
     default Component itemName(ItemMeta itemMeta) {
         return null;

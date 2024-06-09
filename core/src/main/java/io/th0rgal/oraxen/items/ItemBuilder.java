@@ -175,7 +175,9 @@ public class ItemBuilder {
 
         if (VersionUtil.atOrAbove("1.20.5")) {
             ItemPropertyHandler itemProperties = NMSHandlers.getHandler().itemPropertyHandler();
-            itemName = itemProperties.getItemName(itemMeta);
+            if (VersionUtil.isPaperServer() && itemProperties.hasItemName(itemMeta))
+                itemName = AdventureUtils.MINI_MESSAGE.serialize(itemProperties.itemName(itemMeta));
+            else itemName = itemProperties.getItemName(itemMeta);
             durability = itemProperties.getDurability(itemMeta);
             fireResistant = itemProperties.isFireResistant(itemMeta);
             hideToolTips = itemProperties.isHideTooltip(itemMeta);

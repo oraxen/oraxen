@@ -21,6 +21,11 @@ import java.util.Collections;
 @SuppressWarnings({"CallToPrintStackTrace", "UnstableApiUsage"})
 public class ItemProperties implements ItemPropertyHandler {
 
+    @Override
+    public boolean hasItemName(ItemMeta itemMeta) {
+        return itemMeta.hasItemName();
+    }
+
 
     @Nullable
     @Override
