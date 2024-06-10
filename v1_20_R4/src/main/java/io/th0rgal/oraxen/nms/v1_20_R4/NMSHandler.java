@@ -142,8 +142,6 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             if (!tag.location().getNamespace().equals("minecraft")) return;
             if (vanillaKeys.contains(tag.location().getPath())) return;
 
-            System.out.println(tag.location());
-
             DataComponentType<Object> type = (DataComponentType<Object>) BuiltInRegistries.DATA_COMPONENT_TYPE.get(tag.location());
             if (type != null) newNmsItem.set(type, oldItemStack.get(type));
         });
