@@ -1,3 +1,4 @@
+import io.papermc.paperweight.util.checkJavaVersion
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.util.*
@@ -144,7 +145,10 @@ tasks {
     }
 
     runServer {
-        minecraftVersion("1.19.4")
+        downloadPlugins {
+            url("https://ci.dmulloy2.net/job/ProtocolLib/lastSuccessfulBuild/artifact/build/libs/ProtocolLib.jar")
+        }
+        minecraftVersion("1.20.4")
     }
 
     shadowJar {

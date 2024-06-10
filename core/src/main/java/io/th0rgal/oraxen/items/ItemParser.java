@@ -121,7 +121,7 @@ public class ItemParser {
     }
 
     private ItemBuilder applyConfig(ItemBuilder item) {
-        if (!VersionUtil.atOrAbove("1.20.5")) item.setDisplayName(AdventureUtils.parseMiniMessage(section.getString("displayname", "")));
+        if (!VersionUtil.atOrAbove("1.20.5")) item.setDisplayName(section.getString("displayname", ""));
 
         //if (section.contains("type")) item.setType(Material.getMaterial(section.getString("type", "PAPER")));
         if (section.contains("lore")) item.setLore(section.getStringList("lore").stream().map(AdventureUtils::parseMiniMessage).toList());
@@ -141,9 +141,11 @@ public class ItemParser {
     private void parseDataComponents(ItemBuilder item) {
         if (!VersionUtil.atOrAbove("1.20.5")) return;
 
-        ConfigurationSection components = section.getConfigurationSection("Components");
         if (section.contains("unstackable")) item.setMaxStackSize(1);
-        else if (components.contains("max_stack_size")) item.setMaxStackSize(Math.min(Math.max(components.getInt("max_stack_size"), 1), 99));
+        ConfigurationSection components = section.getConfigurationSection("Components");
+        if (components == null) return;
+
+        if (components.contains("max_stack_size")) item.setMaxStackSize(Math.min(Math.max(components.getInt("max_stack_size"), 1), 99));
         if (item.hasMaxStackSize() && item.getMaxStackSize() == 1) item.setUnstackable(true);
 
         item.setItemName(components.getString("itemname", components.getString("displayname", "")));

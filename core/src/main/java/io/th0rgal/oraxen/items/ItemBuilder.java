@@ -14,6 +14,9 @@ import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.PotionUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
@@ -203,8 +206,9 @@ public class ItemBuilder {
         return this;
     }
 
+    @Nullable
     public String getDisplayName() {
-        return displayName != null ? displayName : AdventureUtils.MINI_MESSAGE.serialize(itemStack.displayName());
+        return displayName;
     }
 
     public ItemBuilder setDisplayName(final String displayName) {
@@ -543,8 +547,12 @@ public class ItemBuilder {
         PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
         if (!VersionUtil.atOrAbove("1.20.5") && displayName != null) {
             pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, displayName);
-            if (VersionUtil.isPaperServer()) itemMeta.displayName(AdventureUtils.MINI_MESSAGE.deserialize(displayName));
-            else itemMeta.setDisplayName(displayName);
+            if (VersionUtil.isPaperServer()) {
+                Component displayName = AdventureUtils.MINI_MESSAGE.deserialize(this.displayName);
+                displayName = displayName.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE);
+                displayName = displayName.colorIfAbsent(NamedTextColor.WHITE);
+                itemMeta.displayName(displayName);
+            } else itemMeta.setDisplayName(displayName);
         }
 
         if (itemFlags != null)
@@ -568,7 +576,11 @@ public class ItemBuilder {
             for (final Map.Entry<PersistentDataSpace, Object> dataSpace : persistentDataMap.entrySet())
                 pdc.set(dataSpace.getKey().namespacedKey(), (PersistentDataType<?, Object>) dataSpace.getKey().dataType(), dataSpace.getValue());
 
-        if (VersionUtil.isPaperServer()) itemMeta.lore(lore != null? lore.stream().map(AdventureUtils.MINI_MESSAGE::deserialize).toList() : null);
+        if (VersionUtil.isPaperServer()) {
+            @Nullable List<Component> loreLines = lore != null? lore.stream().map(AdventureUtils.MINI_MESSAGE::deserialize).toList() : new ArrayList<>();
+            loreLines = loreLines.stream().map(c -> c.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)).toList();
+            itemMeta.lore(lore != null ? loreLines : null);
+        }
         else itemMeta.setLore(lore);
 
         itemStack.setItemMeta(itemMeta);
