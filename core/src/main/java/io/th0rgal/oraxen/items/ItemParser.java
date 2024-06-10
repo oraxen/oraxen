@@ -5,8 +5,6 @@ import io.th0rgal.oraxen.compatibilities.provided.ecoitems.WrappedEcoItem;
 import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
 import io.th0rgal.oraxen.config.Settings;
-import io.th0rgal.oraxen.items.helpers.FoodComponentWrapper;
-import io.th0rgal.oraxen.items.helpers.ItemRarityWrapper;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
@@ -26,6 +24,9 @@ import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.EnchantmentWrapper;
 import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemRarity;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.components.FoodComponent;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -129,8 +130,7 @@ public class ItemParser {
         if (section.contains("color")) item.setColor(Utils.toColor(section.getString("color", "#FFFFFF")));
         if (section.contains("trim_pattern")) item.setTrimPattern(Key.key(section.getString("trim_pattern", "")));
 
-        parse_1_20_5_Properties(item);
-
+        parseDataComponents(item);
         parseMiscOptions(item);
         parseVanillaSections(item);
         parseOraxenSections(item);
@@ -138,29 +138,28 @@ public class ItemParser {
         return item;
     }
 
-    private void parse_1_20_5_Properties(ItemBuilder item) {
+    private void parseDataComponents(ItemBuilder item) {
         if (!VersionUtil.atOrAbove("1.20.5")) return;
 
+        ConfigurationSection components = section.getConfigurationSection("Components");
         if (section.contains("unstackable")) item.setMaxStackSize(1);
-        else if (section.contains("max_stack_size")) item.setMaxStackSize(Math.min(Math.max(section.getInt("max_stack_size"), 1), 99));
+        else if (components.contains("max_stack_size")) item.setMaxStackSize(Math.min(Math.max(components.getInt("max_stack_size"), 1), 99));
         if (item.hasMaxStackSize() && item.getMaxStackSize() == 1) item.setUnstackable(true);
 
-        if (section.contains("itemname")) item.setItemName(AdventureUtils.parseMiniMessage(section.getString("itemname", "")));
-        else item.setItemName(AdventureUtils.parseMiniMessage(section.getString("displayname", "")));
-
-        if (section.contains("enchantment_glint_override")) item.setEnchantmentGlindOverride(section.getBoolean("enchantment_glint_override"));
-        if (section.contains("durability")) {
-            item.setDamagedOnBlockBreak(section.getBoolean("durability.damage_block_break"));
-            item.setDamagedOnEntityHit(section.getBoolean("durability.damage_entity_hit"));
-            item.setDurability(Math.max(section.getInt("durability.value"), section.getInt("durability", 1)));
+        item.setItemName(components.getString("itemname", components.getString("displayname", "")));
+        if (components.contains("enchantment_glint_override")) item.setEnchantmentGlindOverride(components.getBoolean("enchantment_glint_override"));
+        if (components.contains("durability")) {
+            item.setDamagedOnBlockBreak(components.getBoolean("durability.damage_block_break"));
+            item.setDamagedOnEntityHit(components.getBoolean("durability.damage_entity_hit"));
+            item.setDurability(Math.max(components.getInt("durability.value"), components.getInt("durability", 1)));
         }
-        if (section.contains("rarity")) item.setRarity(Arrays.stream(ItemRarityWrapper.values()).filter(r -> r.name().equalsIgnoreCase(section.getString("rarity"))).findFirst().orElse(null));
-        item.setFireResistant(section.getBoolean("fire_resistant"));
-        item.setHideToolTips(section.getBoolean("hide_tooltips"));
+        if (components.contains("rarity")) item.setRarity(ItemRarity.valueOf(components.getString("rarity")));
+        item.setFireResistant(components.getBoolean("fire_resistant"));
+        item.setHideToolTips(components.getBoolean("hide_tooltips"));
 
-        ConfigurationSection foodSection = section.getConfigurationSection("food");
+        ConfigurationSection foodSection = components.getConfigurationSection("food");
         if (foodSection != null) {
-            FoodComponentWrapper foodComponent = new FoodComponentWrapper();
+            FoodComponent foodComponent = new ItemStack(Material.PAPER).getItemMeta().getFood();
             foodComponent.setNutrition(foodSection.getInt("nutrition"));
             foodComponent.setSaturation((float) foodSection.getDouble("saturation", 0.0));
             foodComponent.setCanAlwaysEat(foodSection.getBoolean("can_always_eat"));

@@ -28,34 +28,6 @@ val SUPPORTED_VERSIONS: List<NMSVersion> = listOf(
     "v1_20_R4" toNms "1.20.6-R0.1-SNAPSHOT"
 )
 
-SUPPORTED_VERSIONS.forEach {
-    project(":${it.nmsVersion}") {
-        apply(plugin = "java")
-        apply(plugin = "io.papermc.paperweight.userdev")
-
-        repositories {
-            maven("https://papermc.io/repo/repository/maven-public/") // Paper
-            maven("https://repo.mineinabyss.com/releases")
-        }
-
-        dependencies {
-            //compileOnly("io.papermc.paper:paper-api:" + it.serverVersion)
-            implementation(project(":core"))
-            paperDevBundle(it.serverVersion)
-        }
-
-        tasks {
-            compileJava {
-                options.encoding = Charsets.UTF_8.name()
-            }
-        }
-
-        java {
-            toolchain.languageVersion.set(JavaLanguageVersion.of(if (it.nmsVersion == "v1_20_R4") 21 else 17))
-        }
-    }
-}
-
 val compiled = (project.findProperty("oraxen_compiled")?.toString() ?: "true").toBoolean()
 val pluginPath = project.findProperty("oraxen_plugin_path")?.toString()
 val devPluginPath = project.findProperty("oraxen_dev_plugin_path")?.toString()
@@ -150,7 +122,7 @@ dependencies {
 }
 
 java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
 }
 
 tasks {

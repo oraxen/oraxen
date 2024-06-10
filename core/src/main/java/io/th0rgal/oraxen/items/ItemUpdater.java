@@ -4,8 +4,6 @@ import com.jeff_media.morepersistentdatatypes.DataType;
 import com.jeff_media.persistentdataserializer.PersistentDataSerializer;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Settings;
-import io.th0rgal.oraxen.items.helpers.FoodComponentWrapper;
-import io.th0rgal.oraxen.items.helpers.ItemPropertyHandler;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.ItemUtils;
@@ -98,7 +96,7 @@ public class ItemUpdater implements Listener {
 
         if (!VersionUtil.atOrAbove("1.20.5") || player.getGameMode() == GameMode.CREATIVE) return;
         if (ItemUtils.isEmpty(itemStack) || ItemUtils.isTool(itemStack)) return;
-        if (NMSHandlers.getHandler().itemPropertyHandler().getDurability(itemStack.getItemMeta()) == null) return;
+        if (!(itemStack.getItemMeta() instanceof Damageable damageable) || !damageable.hasMaxDamage()) return;
 
         Optional.ofNullable(OraxenItems.getBuilderByItem(itemStack)).ifPresent(i -> {
                 if (i.isDamagedOnBlockBreak()) itemStack.damage(1, player);
@@ -112,7 +110,7 @@ public class ItemUpdater implements Listener {
 
         if (entity instanceof Player player && player.getGameMode() == GameMode.CREATIVE) return;
         if (ItemUtils.isEmpty(itemStack) || ItemUtils.isTool(itemStack)) return;
-        if (NMSHandlers.getHandler().itemPropertyHandler().getDurability(itemStack.getItemMeta()) == null) return;
+        if (!(itemStack.getItemMeta() instanceof Damageable damageable) || !damageable.hasMaxDamage()) return;
 
         Optional.ofNullable(OraxenItems.getBuilderByItem(itemStack)).ifPresent(i -> {
             if (i.isDamagedOnEntityHit()) itemStack.damage(1, entity);
@@ -198,33 +196,22 @@ public class ItemUpdater implements Listener {
             }
 
             if (VersionUtil.atOrAbove("1.20.5")) {
-                ItemPropertyHandler itemProperties = NMSHandlers.getHandler().itemPropertyHandler();
 
-                FoodComponentWrapper newFood = itemProperties.getFood(newMeta);
-                FoodComponentWrapper oldFood = itemProperties.getFood(oldMeta);
-                if (newFood != null) itemProperties.setFood(itemMeta, newFood);
-                else if (oldFood != null) itemProperties.setFood(itemMeta, oldFood);
+                if (newMeta.hasFood()) itemMeta.setFood(newMeta.getFood());
+                else if (oldMeta.hasFood()) itemMeta.setFood(oldMeta.getFood());
 
-                Boolean newGlint = itemProperties.getEnchantmentGlintOverride(newMeta);
-                Boolean oldGlint = itemProperties.getEnchantmentGlintOverride(oldMeta);
-                if (newGlint != null) itemProperties.setEnchantmentGlintOverride(itemMeta, newGlint);
-                else if (oldGlint != null) itemProperties.setEnchantmentGlintOverride(itemMeta, oldGlint);
+                if (newMeta.hasEnchantmentGlintOverride()) itemMeta.setEnchantmentGlintOverride(newMeta.getEnchantmentGlintOverride());
+                else if (oldMeta.hasEnchantmentGlintOverride()) itemMeta.setEnchantmentGlintOverride(oldMeta.getEnchantmentGlintOverride());
 
-                Integer newMaxStack = itemProperties.getMaxStackSize(newMeta);
-                Integer oldMaxStack = itemProperties.getMaxStackSize(oldMeta);
-                if (newMaxStack != null) itemProperties.setMaxStackSize(itemMeta, newMaxStack);
-                else if (oldMaxStack != null) itemProperties.setMaxStackSize(itemMeta, oldMaxStack);
+                if (newMeta.hasMaxStackSize()) itemMeta.setMaxStackSize(newMeta.getMaxStackSize());
+                else if (oldMeta.hasMaxStackSize()) itemMeta.setMaxStackSize(oldMeta.getMaxStackSize());
 
                 if (VersionUtil.isPaperServer()) {
-                    net.kyori.adventure.text.Component newItemName = itemProperties.itemName(newMeta);
-                    net.kyori.adventure.text.Component oldItemName = itemProperties.itemName(oldMeta);
-                    if (newItemName != null) itemProperties.itemName(itemMeta, newItemName);
-                    else if (oldItemName != null) itemProperties.itemName(itemMeta, oldItemName);
+                    if (newMeta.hasItemName()) itemMeta.itemName(newMeta.itemName());
+                    else if (oldMeta.hasItemName()) itemMeta.itemName(oldMeta.itemName());
                 } else {
-                    String newItemName = itemProperties.getItemName(newMeta);
-                    String oldItemName = itemProperties.getItemName(oldMeta);
-                    if (newItemName != null) itemProperties.setItemName(itemMeta, newItemName);
-                    else if (oldItemName != null) itemProperties.setItemName(itemMeta, oldItemName);
+                    if (newMeta.hasItemName()) itemMeta.setItemName(newMeta.getItemName());
+                    else if (oldMeta.hasItemName()) itemMeta.setItemName(oldMeta.getItemName());
                 }
             }
 

@@ -9,10 +9,6 @@ import io.th0rgal.oraxen.compatibilities.provided.ecoitems.WrappedEcoItem;
 import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
 import io.th0rgal.oraxen.config.Settings;
-import io.th0rgal.oraxen.items.helpers.FoodComponentWrapper;
-import io.th0rgal.oraxen.items.helpers.ItemPropertyHandler;
-import io.th0rgal.oraxen.items.helpers.ItemRarityWrapper;
-import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.PotionUtils;
@@ -25,8 +21,10 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.TropicalFish;
 import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemRarity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
+import org.bukkit.inventory.meta.components.FoodComponent;
 import org.bukkit.inventory.meta.trim.ArmorTrim;
 import org.bukkit.inventory.meta.trim.TrimMaterial;
 import org.bukkit.inventory.meta.trim.TrimPattern;
@@ -74,7 +72,7 @@ public class ItemBuilder {
 
     // 1.20.5+ properties
     @Nullable
-    private FoodComponentWrapper foodComponent;
+    private FoodComponent foodComponent;
     @Nullable
     private Boolean enchantmentGlintOverride;
     @Nullable
@@ -84,7 +82,7 @@ public class ItemBuilder {
     private boolean fireResistant;
     private boolean hideToolTips;
     @Nullable
-    private ItemRarityWrapper rarity;
+    private ItemRarity rarity;
     @Nullable
     private Integer durability;
     private boolean damagedOnBlockBreak;
@@ -174,17 +172,16 @@ public class ItemBuilder {
         enchantments = new HashMap<>();
 
         if (VersionUtil.atOrAbove("1.20.5")) {
-            ItemPropertyHandler itemProperties = NMSHandlers.getHandler().itemPropertyHandler();
-            if (VersionUtil.isPaperServer() && itemProperties.hasItemName(itemMeta))
-                itemName = AdventureUtils.MINI_MESSAGE.serialize(itemProperties.itemName(itemMeta));
-            else itemName = itemProperties.getItemName(itemMeta);
-            durability = itemProperties.getDurability(itemMeta);
-            fireResistant = itemProperties.isFireResistant(itemMeta);
-            hideToolTips = itemProperties.isHideTooltip(itemMeta);
-            foodComponent = itemProperties.getFood(itemMeta);
-            enchantmentGlintOverride = itemProperties.getEnchantmentGlintOverride(itemMeta);
-            rarity = itemProperties.getRarity(itemMeta);
-            maxStackSize = itemProperties.getMaxStackSize(itemMeta);
+            if (VersionUtil.isPaperServer() && itemMeta.hasItemName())
+                itemName = AdventureUtils.MINI_MESSAGE.serialize(itemMeta.itemName());
+            else itemName = itemMeta.getItemName();
+            durability = (itemMeta instanceof Damageable damageable) && damageable.hasMaxDamage() ? damageable.getMaxDamage() : null;
+            fireResistant = itemMeta.isFireResistant();
+            hideToolTips = itemMeta.isHideTooltip();
+            foodComponent = itemMeta.hasFood() ? itemMeta.getFood() : null;
+            enchantmentGlintOverride = itemMeta.hasEnchantmentGlintOverride() ? itemMeta.getEnchantmentGlintOverride() : null;
+            rarity = itemMeta.hasRarity() ? itemMeta.getRarity() : null;
+            maxStackSize = itemMeta.hasMaxStackSize() ? itemMeta.getMaxStackSize() : null;
             if (maxStackSize != null && maxStackSize == 1) unstackable = true;
         }
 
@@ -328,11 +325,11 @@ public class ItemBuilder {
     }
 
     @Nullable
-    public FoodComponentWrapper getFoodComponent() {
+    public FoodComponent getFoodComponent() {
         return foodComponent;
     }
 
-    public ItemBuilder setFoodComponent(FoodComponentWrapper foodComponent) {
+    public ItemBuilder setFoodComponent(FoodComponent foodComponent) {
         this.foodComponent = foodComponent;
         return this;
     }
@@ -356,11 +353,11 @@ public class ItemBuilder {
     }
 
     @Nullable
-    public ItemRarityWrapper getRarity() {
+    public ItemRarity getRarity() {
         return rarity;
     }
 
-    public ItemBuilder setRarity(@Nullable ItemRarityWrapper rarity) {
+    public ItemBuilder setRarity(@Nullable ItemRarity rarity) {
         this.rarity = rarity;
         return this;
     }
@@ -528,15 +525,17 @@ public class ItemBuilder {
         ItemMeta itemMeta = itemStack.getItemMeta();
 
         // 1.20.5+ properties
-        ItemPropertyHandler itemProperties = NMSHandlers.getHandler().itemPropertyHandler();
-        itemProperties.setDurability(itemMeta, durability);
-        itemProperties.setItemName(itemMeta, itemName);
-        itemProperties.setMaxStackSize(itemMeta, maxStackSize);
-        itemProperties.setEnchantmentGlintOverride(itemMeta, enchantmentGlintOverride);
-        itemProperties.setRarity(itemMeta, rarity);
-        itemProperties.setFood(itemMeta, foodComponent);
-        itemProperties.setFireResistant(itemMeta, fireResistant);
-        itemProperties.setHideTooltip(itemMeta, hideToolTips);
+        if (VersionUtil.atOrAbove("1.20.5")) {
+            if (itemMeta instanceof Damageable damageable) damageable.setMaxDamage(durability);
+            if (VersionUtil.isPaperServer()) itemMeta.itemName(AdventureUtils.MINI_MESSAGE.deserialize(itemName));
+            else itemMeta.setItemName(itemName);
+            itemMeta.setMaxStackSize(maxStackSize);
+            itemMeta.setEnchantmentGlintOverride(enchantmentGlintOverride);
+            itemMeta.setRarity(rarity);
+            itemMeta.setFood(foodComponent);
+            itemMeta.setFireResistant(fireResistant);
+            itemMeta.setHideTooltip(hideToolTips);
+        }
 
         handleVariousMeta(itemMeta);
         itemMeta.setUnbreakable(unbreakable);
