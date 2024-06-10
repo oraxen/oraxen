@@ -56,9 +56,9 @@ public class PackObfuscator {
         FILENAME, NAMESPACE, FULL, NONE
     }
 
-    private final File cachedPackZip = OraxenPlugin.get().packPath().resolve("cachedPack.zip").toFile();
-    private final File tempPackFile = OraxenPlugin.get().packPath().resolve("obfuscationCache/tempPack").toFile();
-    private final File cachedPackFile = OraxenPlugin.get().packPath().resolve("obfuscationCache/cachedPack").toFile();
+    private final File cachedPackZip = OraxenPlugin.get().packPath().resolve(".cachedPack.zip").toFile();
+    private final File tempPackFile = OraxenPlugin.get().packPath().resolve(".obfuscationCache/tempPack").toFile();
+    private final File cachedPackFile = OraxenPlugin.get().packPath().resolve(".obfuscationCache/cachedPack").toFile();
     private final File packZip = OraxenPlugin.get().packPath().resolve("pack.zip").toFile();
     private final MinecraftResourcePackReader reader = MinecraftResourcePackReader.minecraft();
     private final MinecraftResourcePackWriter writer = MinecraftResourcePackWriter.minecraft();

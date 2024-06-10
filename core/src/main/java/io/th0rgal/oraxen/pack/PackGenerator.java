@@ -75,7 +75,7 @@ public class PackGenerator {
         resourcePack.removeUnknownFile("pack.zip");
         for (Map.Entry<String, Writable> entry : new LinkedHashSet<>(resourcePack.unknownFiles().entrySet()))
             if (entry.getKey().startsWith("external_packs/")) resourcePack.removeUnknownFile(entry.getKey());
-            else if (entry.getKey().startsWith("obfuscationCache/")) resourcePack.removeUnknownFile(entry.getKey());
+            else if (entry.getKey().startsWith(".obfuscationCache/")) resourcePack.removeUnknownFile(entry.getKey());
 
         CustomBlockFactory.get().blockStates().forEach(resourcePack::blockState);
         addItemPackFiles();
@@ -91,7 +91,7 @@ public class PackGenerator {
 
         PackSlicer.processInputs(resourcePack);
 
-        File cachedZip = OraxenPlugin.get().packPath().resolve("cachedPack.zip").toFile();
+        File cachedZip = OraxenPlugin.get().packPath().resolve(".cachedPack.zip").toFile();
         File packZip = OraxenPlugin.get().packPath().resolve("pack.zip").toFile();
         if (packObfuscator.obfuscationType() != PackObfuscator.PackObfuscationType.NONE) resourcePack = packObfuscator.obfuscatePack();
         else cachedZip.delete();
@@ -183,12 +183,16 @@ public class PackGenerator {
     }
 
     private void importDefaultPack() {
-        File defaultPack = externalPacks.resolve("DefaultPack.zip").toFile();
-        if (!defaultPack.exists()) return;
+        Optional<File> defaultPack = Arrays.stream(Objects.requireNonNullElse(externalPacks.toFile().listFiles(), new File[]{}))
+                .filter(f -> f.getName().startsWith("DefaultPack_")).findFirst();
+        if (defaultPack.isEmpty()) return;
         Logs.logInfo("Importing DefaultPack...");
 
         try {
-            OraxenPack.mergePack(resourcePack, reader.readFromZipFile(defaultPack));
+            OraxenPack.mergePack(resourcePack, defaultPack.get().isDirectory()
+                    ? reader.readFromDirectory(defaultPack.get())
+                    : reader.readFromZipFile(defaultPack.get())
+            );
         } catch (Exception e) {
             Logs.logError("Failed to read Oraxen's DefaultPack...");
             if (!Settings.DEBUG.toBool()) Logs.logError(e.getMessage());
@@ -199,7 +203,7 @@ public class PackGenerator {
 
     private void importExternalPacks() {
         for (File file : Objects.requireNonNullElse(externalPacks.toFile().listFiles(), new File[]{})) {
-            if (file == null || file.getName().equals("DefaultPack.zip")) continue;
+            if (file == null || file.getName().startsWith("DefaultPack_")) continue;
             if (file.isDirectory()) {
                 Logs.logInfo("Importing pack " + file.getName() + "...");
                 try {
