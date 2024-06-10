@@ -16,44 +16,14 @@ plugins {
     alias(idofrontLibs.plugins.mia.publication)
 }
 
-class NMSVersion(val nmsVersion: String, val serverVersion: String, val javaVersion: Int)
-infix fun String.toNms(that: String) = Pair(this, that)
-infix fun Pair<String, String>.withJava(javaVersion: Int): NMSVersion = NMSVersion(first, second, javaVersion)
+class NMSVersion(val nmsVersion: String, val serverVersion: String)
+infix fun String.toNms(that: String) = NMSVersion(this, that)
 val SUPPORTED_VERSIONS: List<NMSVersion> = listOf(
-    "v1_20_R1" toNms "1.20.1-R0.1-SNAPSHOT" withJava 17,
-    "v1_20_R2" toNms "1.20.2-R0.1-SNAPSHOT" withJava 17,
-    "v1_20_R3" toNms "1.20.4-R0.1-SNAPSHOT" withJava 17,
-    "v1_20_R4" toNms "1.20.6-R0.1-SNAPSHOT" withJava 21
+    "v1_20_R1" toNms "1.20.1-R0.1-SNAPSHOT",
+    "v1_20_R2" toNms "1.20.2-R0.1-SNAPSHOT",
+    "v1_20_R3" toNms "1.20.4-R0.1-SNAPSHOT",
+    "v1_20_R4" toNms "1.20.6-R0.1-SNAPSHOT"
 )
-
-SUPPORTED_VERSIONS.forEach {
-    project(":${it.nmsVersion}") {
-        apply(plugin = "java")
-        apply(plugin = "io.papermc.paperweight.userdev")
-
-        repositories {
-            maven("https://papermc.io/repo/repository/maven-public/") // Paper
-            maven("https://repo.mineinabyss.com/releases")
-        }
-
-        configurations.create("mojmap")
-
-        dependencies {
-            compileOnly(project(":core"))
-            paperDevBundle(it.serverVersion)
-        }
-
-        tasks {
-            compileJava {
-                options.encoding = Charsets.UTF_8.name()
-            }
-        }
-
-        java {
-            toolchain.languageVersion.set(JavaLanguageVersion.of(it.javaVersion))
-        }
-    }
-}
 
 val compiled = (project.findProperty("oraxen_compiled")?.toString() ?: "true").toBoolean()
 val pluginPath = project.findProperty("oraxen2_plugin_path")?.toString()
@@ -155,7 +125,7 @@ dependencies {
     }
 }
 
-project.java {
+java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(21))
 }
 

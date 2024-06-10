@@ -1,8 +1,8 @@
 package io.th0rgal.oraxen.nms;
 
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketManager;
+import io.th0rgal.oraxen.utils.InteractionResult;
 import io.th0rgal.oraxen.utils.wrappers.PotionEffectTypeWrapper;
-import net.minecraft.world.InteractionResult;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
@@ -55,7 +55,7 @@ public interface NMSHandler {
      * @param itemStack       The ItemStack the player placed the block with
      * @return The enum interaction result
      */
-    @Nullable Enum<InteractionResult> correctBlockStates(Player player, EquipmentSlot slot, ItemStack itemStack);
+    @Nullable InteractionResult correctBlockStates(Player player, EquipmentSlot slot, ItemStack itemStack);
 
     /**Removes mineable/axe tag from noteblocks for custom blocks */
     void customBlockDefaultTools(Player player);
@@ -100,7 +100,7 @@ public interface NMSHandler {
 
         @Nullable
         @Override
-        public Enum<InteractionResult> correctBlockStates(Player player, EquipmentSlot slot, ItemStack itemStack) {
+        public InteractionResult correctBlockStates(Player player, EquipmentSlot slot, ItemStack itemStack) {
             return null;
         }
 

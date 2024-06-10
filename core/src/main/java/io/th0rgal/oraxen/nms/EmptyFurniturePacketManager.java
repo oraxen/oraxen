@@ -8,6 +8,11 @@ import org.jetbrains.annotations.NotNull;
 
 public class EmptyFurniturePacketManager implements IFurniturePacketManager {
     @Override
+    public int nextEntityId() {
+        return -1;
+    }
+
+    @Override
     public void sendInteractionEntityPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
 
     }

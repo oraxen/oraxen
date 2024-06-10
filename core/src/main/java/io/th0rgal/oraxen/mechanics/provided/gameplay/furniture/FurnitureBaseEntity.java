@@ -24,14 +24,14 @@ public class FurnitureBaseEntity {
     private final Map<FurnitureType, UUID> uuids;
     private final FurnitureMechanic mechanic;
 
-    public FurnitureBaseEntity(Entity baseEntity, FurnitureMechanic mechanic) {
+    public FurnitureBaseEntity(Entity baseEntity, FurnitureMechanic mechanic, IFurniturePacketManager packetManager) {
         this.mechanic = mechanic;
         ItemStack furnitureItem = OraxenItems.getItemById(mechanic.getItemID()).build().clone();
         ItemUtils.displayName(furnitureItem, null);
         this.itemStack = furnitureItem;
         this.baseUuid = baseEntity.getUniqueId();
         this.entityIds = Arrays.stream(FurnitureType.values())
-                .map(type -> Map.entry(type, type.entityType() == baseEntity.getType() ? baseEntity.getEntityId() : net.minecraft.world.entity.Entity.nextEntityId()))
+                .map(type -> Map.entry(type, type.entityType() == baseEntity.getType() ? baseEntity.getEntityId() : packetManager.nextEntityId()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         this.uuids = Arrays.stream(FurnitureType.values())
                 .map(type -> Map.entry(type, type.entityType() == baseEntity.getType() ? baseEntity.getUniqueId() : UUID.randomUUID()))

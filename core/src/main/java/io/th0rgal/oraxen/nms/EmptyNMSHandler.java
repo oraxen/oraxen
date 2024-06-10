@@ -3,8 +3,8 @@ package io.th0rgal.oraxen.nms;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketContainer;
+import io.th0rgal.oraxen.utils.InteractionResult;
 import io.th0rgal.oraxen.utils.wrappers.PotionEffectTypeWrapper;
-import net.minecraft.world.InteractionResult;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -40,7 +40,7 @@ public class EmptyNMSHandler implements NMSHandler {
 
     @Nullable
     @Override
-    public Enum<InteractionResult> correctBlockStates(Player player, EquipmentSlot slot, ItemStack itemStack) {
+    public InteractionResult correctBlockStates(Player player, EquipmentSlot slot, ItemStack itemStack) {
         return null;
     }
 

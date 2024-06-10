@@ -22,6 +22,8 @@ public interface IFurniturePacketManager {
     Map<UUID, Set<BlockLocation>> lightMechanicPositionMap = new HashMap<>();
     Set<FurnitureSubEntity> interactionHitboxIdMap = new HashSet<>();
 
+    int nextEntityId();
+
     default Optional<FurnitureBaseEntity> furnitureBaseFromBaseEntity(@NotNull Entity baseEntity) {
         return furnitureBaseMap.stream().filter(f -> f.baseUUID() == baseEntity.getUniqueId()).findFirst();
     }

@@ -11,6 +11,7 @@ import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.PotionUtils;
 import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
@@ -109,12 +110,22 @@ public class ItemParser {
     private ItemBuilder applyConfig(ItemBuilder item) {
         item.displayName(parseComponentItemName(section.getString("displayname", "")));
 
-        //if (section.contains("type")) item.setType(Material.getMaterial(section.getString("type", "PAPER")));
         if (section.contains("lore")) item.lore(section.getStringList("lore").stream().map(AdventureUtils.MINI_MESSAGE::deserialize).toList());
         if (section.contains("unbreakable")) item.setUnbreakable(section.getBoolean("unbreakable", false));
         if (section.contains("unstackable")) item.setUnstackable(section.getBoolean("unstackable", false));
         if (section.contains("color")) item.setColor(Utils.toColor(section.getString("color", "#FFFFFF")));
         if (section.contains("trim_pattern")) item.setTrimPattern(Key.key(section.getString("trim_pattern", "")));
+
+        ConfigurationSection components = section.getConfigurationSection("Components");
+        if (VersionUtil.atOrAbove("1.20.5") && components != null) {
+            try {
+                item.setComponent(DataComponentAdapter.adapt(components));
+            } catch (Exception e) {
+                Logs.logWarning("Unable to load data component.");
+                if (Settings.DEBUG.toBool()) e.printStackTrace();
+                else Logs.logWarning(e.getMessage());
+            }
+        }
 
         parseMiscOptions(item);
         parseVanillaSections(item);
@@ -122,21 +133,6 @@ public class ItemParser {
         item.setOraxenMeta(oraxenMeta);
         return item;
     }
-
-    private void parse_1_20_5_Properties(ItemBuilder builder) {
-        if (section.contains("Components")) {
-            ConfigurationSection components = section.getConfigurationSection("Components");
-            if (components != null) {
-                try {
-                    builder.setComponent(DataComponentAdapter.adapt(components));
-                } catch (Exception e) {
-                    Logs.logWarning("Unable to load data component.");
-                    if (Settings.DEBUG.toBool()) e.printStackTrace();
-                }
-            }
-        }
-    }
-
 
     private void parseMiscOptions(ItemBuilder item) {
         oraxenMeta.noUpdate(section.getBoolean("no_auto_update", false));

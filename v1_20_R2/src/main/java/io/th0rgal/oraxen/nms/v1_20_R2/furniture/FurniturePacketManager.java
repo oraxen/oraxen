@@ -46,12 +46,17 @@ public class FurniturePacketManager implements IFurniturePacketManager {
     private final Map<UUID, Set<FurnitureInteractionHitboxPacket>> interactionHitboxPacketMap = new HashMap<>();
 
     @Override
+    public int nextEntityId() {
+        return net.minecraft.world.entity.Entity.nextEntityId();
+    }
+
+    @Override
     public void sendFurnitureEntityPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
         if (baseEntity.isDead()) return;
         if (mechanic.isModelEngine() && ModelEngineAPI.getBlueprint(mechanic.getModelEngineID()) != null) return;
 
         FurnitureBaseEntity furnitureBase = furnitureBaseFromBaseEntity(baseEntity).orElseGet(() -> {
-            FurnitureBaseEntity base = new FurnitureBaseEntity(baseEntity, mechanic);
+            FurnitureBaseEntity base = new FurnitureBaseEntity(baseEntity, mechanic, this);
             furnitureBaseMap.add(base);
             return base;
         });
