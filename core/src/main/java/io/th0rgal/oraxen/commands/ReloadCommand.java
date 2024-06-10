@@ -67,7 +67,6 @@ public class ReloadCommand {
         OraxenPlugin.get().soundManager(new SoundManager(OraxenPlugin.get().configsManager().getSounds()));
         OraxenPlugin.get().packGenerator(new PackGenerator());
         OraxenPlugin.get().packGenerator().generatePack();
-        OraxenPlugin.get().packServer().uploadPack();
         if (Settings.PACK_SEND_RELOAD.toBool()) for (Player player : Bukkit.getOnlinePlayers())
             OraxenPlugin.get().packServer().sendPack(player);
     }

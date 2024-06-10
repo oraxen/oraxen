@@ -10,13 +10,17 @@ import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.font.Shift;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockFactory;
-import io.th0rgal.oraxen.utils.*;
+import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.EventUtils;
+import io.th0rgal.oraxen.utils.ParseUtils;
+import io.th0rgal.oraxen.utils.PluginUtils;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmor;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmorType;
 import io.th0rgal.oraxen.utils.customarmor.ShaderArmorTextures;
 import io.th0rgal.oraxen.utils.customarmor.TrimArmorDatapack;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
+import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 import team.unnamed.creative.BuiltResourcePack;
 import team.unnamed.creative.ResourcePack;
@@ -59,50 +63,56 @@ public class PackGenerator {
 
     public void generatePack() {
         EventUtils.callEvent(new OraxenPrePackGenerateEvent(resourcePack));
-        Logs.logInfo("Generating resourcepack...");
-        if (Settings.PACK_IMPORT_DEFAULT.toBool()) importDefaultPack();
-        if (Settings.PACK_IMPORT_EXTERNAL.toBool()) importExternalPacks();
-        if (Settings.PACK_IMPORT_MODEL_ENGINE.toBool()) importModelEnginePack();
+        Bukkit.getScheduler().runTaskAsynchronously(OraxenPlugin.get(), () -> {
+            Logs.logInfo("Generating resourcepack...");
+            if (Settings.PACK_IMPORT_DEFAULT.toBool()) importDefaultPack();
+            if (Settings.PACK_IMPORT_EXTERNAL.toBool()) importExternalPacks();
+            if (Settings.PACK_IMPORT_MODEL_ENGINE.toBool()) importModelEnginePack();
 
-        try {
-            OraxenPack.mergePack(resourcePack, reader.readFromDirectory(OraxenPlugin.get().packPath().toFile()));
-        } catch (Exception e) {
-            Logs.logError("Failed to read Oraxen/pack/assets-folder to a ResourcePack");
-            if (!Settings.DEBUG.toBool()) Logs.logError(e.getMessage());
-            else e.printStackTrace();
-        }
+            try {
+                OraxenPack.mergePack(resourcePack, reader.readFromDirectory(OraxenPlugin.get().packPath().toFile()));
+            } catch (Exception e) {
+                Logs.logError("Failed to read Oraxen/pack/assets-folder to a ResourcePack");
+                if (!Settings.DEBUG.toBool()) Logs.logError(e.getMessage());
+                else e.printStackTrace();
+            }
 
-        resourcePack.removeUnknownFile("pack.zip");
-        for (Map.Entry<String, Writable> entry : new LinkedHashSet<>(resourcePack.unknownFiles().entrySet()))
-            if (entry.getKey().startsWith("external_packs/")) resourcePack.removeUnknownFile(entry.getKey());
-            else if (entry.getKey().startsWith(".obfuscationCache/")) resourcePack.removeUnknownFile(entry.getKey());
+            resourcePack.removeUnknownFile("pack.zip");
+            for (Map.Entry<String, Writable> entry : new LinkedHashSet<>(resourcePack.unknownFiles().entrySet()))
+                if (entry.getKey().startsWith("external_packs/")) resourcePack.removeUnknownFile(entry.getKey());
+                else if (entry.getKey().startsWith(".obfuscationCache/")) resourcePack.removeUnknownFile(entry.getKey());
 
-        CustomBlockFactory.get().blockStates().forEach(resourcePack::blockState);
-        addItemPackFiles();
-        addGlyphFiles();
-        addSoundFile();
-        parseLanguageFiles();
-        customArmorHandler.generateNeededFiles();
-        if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) hideScoreboardNumbers();
-        if (Settings.HIDE_SCOREBOARD_BACKGROUND.toBool()) hideScoreboardBackground();
+            CustomBlockFactory.get().blockStates().forEach(resourcePack::blockState);
+            addItemPackFiles();
+            addGlyphFiles();
+            addSoundFile();
+            parseLanguageFiles();
+            customArmorHandler.generateNeededFiles();
+            if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) hideScoreboardNumbers();
+            if (Settings.HIDE_SCOREBOARD_BACKGROUND.toBool()) hideScoreboardBackground();
 
-        removeExcludedFileExtensions();
-        sortModelOverrides();
+            removeExcludedFileExtensions();
+            sortModelOverrides();
 
-        PackSlicer.processInputs(resourcePack);
+            PackSlicer.processInputs(resourcePack);
 
-        File cachedZip = OraxenPlugin.get().packPath().resolve(".cachedPack.zip").toFile();
-        File packZip = OraxenPlugin.get().packPath().resolve("pack.zip").toFile();
-        if (packObfuscator.obfuscationType() != PackObfuscator.PackObfuscationType.NONE) resourcePack = packObfuscator.obfuscatePack();
-        else cachedZip.delete();
+            File cachedZip = OraxenPlugin.get().packPath().resolve(".cachedPack.zip").toFile();
+            File packZip = OraxenPlugin.get().packPath().resolve("pack.zip").toFile();
+            if (packObfuscator.obfuscationType() != PackObfuscator.PackObfuscationType.NONE) resourcePack = packObfuscator.obfuscatePack();
+            else cachedZip.delete();
 
-        EventUtils.callEvent(new OraxenPostPackGenerateEvent(resourcePack));
+            Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () -> {
+                EventUtils.callEvent(new OraxenPostPackGenerateEvent(resourcePack));
 
-        MinecraftResourcePackWriter.minecraft().writeToZipFile(OraxenPlugin.get().packPath().resolve("pack.zip").toFile(), resourcePack);
+                MinecraftResourcePackWriter.minecraft().writeToZipFile(OraxenPlugin.get().packPath().resolve("pack.zip").toFile(), resourcePack);
 
-        if (Settings.PACK_ZIP.toBool()) writer.writeToZipFile(packZip, resourcePack);
-        builtPack = writer.build(resourcePack);
-        Logs.logSuccess("Finished generating resourcepack!", true);
+                if (Settings.PACK_ZIP.toBool()) writer.writeToZipFile(packZip, resourcePack);
+                builtPack = writer.build(resourcePack);
+                Logs.logSuccess("Finished generating resourcepack!", true);
+
+                OraxenPlugin.get().packServer().uploadPack();
+            });
+        });
     }
 
     private void sortModelOverrides() {

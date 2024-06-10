@@ -124,7 +124,6 @@ public class OraxenPlugin extends JavaPlugin {
         packServer = OraxenPackServer.initializeServer();
         packServer.start();
         packGenerator.generatePack();
-        packServer.uploadPack();
         postLoading();
         CompatibilitiesManager.enableNativeCompatibilities();
         if (VersionUtil.isCompiled()) NoticeUtils.compileNotice();
