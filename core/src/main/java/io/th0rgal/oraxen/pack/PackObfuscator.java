@@ -2,9 +2,9 @@ package io.th0rgal.oraxen.pack;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.utils.FileUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Material;
 import team.unnamed.creative.ResourcePack;
@@ -28,8 +28,6 @@ import team.unnamed.creative.sound.SoundRegistry;
 import team.unnamed.creative.texture.Texture;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -38,14 +36,20 @@ public class PackObfuscator {
 
     private ResourcePack resourcePack;
     private final PackObfuscationType obfuscationType;
+    private final File obfCachedPack;
+    private final boolean cache = Settings.PACK_CACHE_OBFUSCATION.toBool();
 
-    public PackObfuscator(ResourcePack resourcePack) {
-        this.resourcePack = resourcePack;
+    public PackObfuscator(ResourcePack resourcePack, String hash) {
         this.obfuscationType = Settings.PACK_OBFUSCATION_TYPE.toEnumOrGet(PackObfuscationType.class, () -> {
             Logs.logError("Invalid PackObfuscation type: " + Settings.PACK_OBFUSCATION_TYPE + ", defaulting to " + PackObfuscationType.FULL, true);
             Logs.logError("Valid options are: " + StringUtils.join(Arrays.stream(PackObfuscationType.values()).map(Enum::name).toList(), ", "), true);
             return PackObfuscationType.FULL;
         });
+        this.resourcePack = resourcePack;
+        this.obfCachedPack = OraxenPlugin.get().packPath().resolve(".deobfCachedPacks").resolve(hash).toFile();
+
+        this.obfCachedPack.getParentFile().mkdirs();
+        FileUtil.setHidden(obfCachedPack.toPath().getParent());
     }
 
     public PackObfuscationType obfuscationType() {
@@ -53,60 +57,42 @@ public class PackObfuscator {
     }
 
     public enum PackObfuscationType {
-        FILENAME, NAMESPACE, FULL, NONE
+        FILENAME, NAMESPACE, FULL, NONE;
+
+        public boolean isNone() {
+            return this == NONE;
+        }
     }
 
-    private final File cachedPackZip = OraxenPlugin.get().packPath().resolve(".cachedPack.zip").toFile();
-    private final File tempPackFile = OraxenPlugin.get().packPath().resolve(".obfuscationCache/tempPack").toFile();
-    private final File cachedPackFile = OraxenPlugin.get().packPath().resolve(".obfuscationCache/cachedPack").toFile();
-    private final File packZip = OraxenPlugin.get().packPath().resolve("pack.zip").toFile();
-    private final MinecraftResourcePackReader reader = MinecraftResourcePackReader.minecraft();
-    private final MinecraftResourcePackWriter writer = MinecraftResourcePackWriter.minecraft();
-
     public ResourcePack obfuscatePack() {
-        if (!checkCachedPack()) {
-            Logs.logInfo("Obfuscating OraxenPack...");
+        if (obfuscationType.isNone()) return resourcePack;
+
+        Logs.logInfo("Obfuscating OraxenPack...");
+        if (shouldObfuscatePack()) {
             obfuscateModels();
             obfuscateFonts();
             obfuscateTextures();
             obfuscateSounds();
+
+            if (cache) {
+                obfCachedPack.mkdirs();
+                MinecraftResourcePackWriter.minecraft().writeToDirectory(obfCachedPack, resourcePack);
+                Logs.logInfo("Caching obfuscated ResourcePack...");
+            }
         }
 
         return resourcePack;
     }
 
-    private boolean checkCachedPack() {
-        // If we should not cache obfuscation, return
-        if (!Settings.PACK_CACHE_OBFUSCATION.toBool()) {
-            try {
-                Files.deleteIfExists(cachedPackFile.toPath());
-            } catch (IOException ignored) {
-            }
-            return false;
-        }
+    private boolean shouldObfuscatePack() {
+        // We do not want to cache it or use a cached version
+        if (!cache) return true;
+        // We want to use cached version, but it does not exist
+        if (!obfCachedPack.exists()) return true;
 
-        // Write current resourcePack to a directory
-        writer.writeToDirectory(tempPackFile, resourcePack);
-
-        // If the cachedPackZip exists, read it to a pack and write it to a normal directory
-        if (cachedPackZip.exists()) writer.writeToDirectory(cachedPackFile, reader.readFromZipFile(cachedPackZip));
-        // Get hash of cachedPack by reading from directory
-        String cachedHash = cachedPackFile.exists() ? writer.build(reader.readFromDirectory(cachedPackFile)).hash() : "";
-        // Get the hash of the current resourcePack by reading from the temp directory
-        String tempHash = writer.build(reader.readFromDirectory(tempPackFile)).hash();
-        // Compare the hashes
-        if (!tempHash.equals(cachedHash)) writer.writeToZipFile(cachedPackZip, resourcePack);
-            // If they are the same read from packZip
-        else if (packZip.exists()) resourcePack = reader.readFromZipFile(packZip);
-        else return false;
-        // Delete the tempPackDir for next check
-        try {
-            FileUtils.deleteDirectory(tempPackFile.getParentFile());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return tempHash.equals(cachedHash);
+        // We want to use cached version, and it exists, so read it to pack
+        resourcePack = MinecraftResourcePackReader.minecraft().readFromDirectory(obfCachedPack);
+        return false;
     }
 
     private final Set<ObfuscatedModel> obfuscatedModels = new HashSet<>();

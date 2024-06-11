@@ -70,6 +70,8 @@ public class PolymathServer implements OraxenPackServer {
                 minecraftPackURL = packUrl.replace("https://", "http://");
                 hash = jsonOutput.get("sha1").getAsString();
                 packUUID = UUID.nameUUIDFromBytes(OraxenPackServer.hashArray(hash));
+
+                Logs.logSuccess("ResourcePack has been uploaded to " + minecraftPackURL);
                 return;
             }
 

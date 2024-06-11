@@ -48,7 +48,6 @@ public class PackGenerator {
     @NotNull private ResourcePack resourcePack = ResourcePack.resourcePack();
     private BuiltResourcePack builtPack;
     private final CustomArmor customArmorHandler;
-    private final PackObfuscator packObfuscator;
     private final MinecraftResourcePackReader reader = MinecraftResourcePackReader.minecraft();
     private final MinecraftResourcePackWriter writer = MinecraftResourcePackWriter.minecraft();
 
@@ -58,11 +57,11 @@ public class PackGenerator {
         if (CustomArmorType.getSetting().equals(CustomArmorType.SHADER)) customArmorHandler = new ShaderArmorTextures();
         else if (CustomArmorType.getSetting().equals(CustomArmorType.TRIMS)) customArmorHandler = new TrimArmorDatapack();
         else customArmorHandler = new CustomArmor();
-        packObfuscator = new PackObfuscator(resourcePack);
     }
 
     public void generatePack() {
         EventUtils.callEvent(new OraxenPrePackGenerateEvent(resourcePack));
+
         Bukkit.getScheduler().runTaskAsynchronously(OraxenPlugin.get(), () -> {
             Logs.logInfo("Generating resourcepack...");
             if (Settings.PACK_IMPORT_DEFAULT.toBool()) importDefaultPack();
@@ -80,7 +79,7 @@ public class PackGenerator {
             resourcePack.removeUnknownFile("pack.zip");
             for (Map.Entry<String, Writable> entry : new LinkedHashSet<>(resourcePack.unknownFiles().entrySet()))
                 if (entry.getKey().startsWith("external_packs/")) resourcePack.removeUnknownFile(entry.getKey());
-                else if (entry.getKey().startsWith(".obfuscationCache/")) resourcePack.removeUnknownFile(entry.getKey());
+                else if (entry.getKey().startsWith(".deobfCachedPacks")) resourcePack.removeUnknownFile(entry.getKey());
 
             CustomBlockFactory.get().blockStates().forEach(resourcePack::blockState);
             addItemPackFiles();
@@ -96,20 +95,15 @@ public class PackGenerator {
 
             PackSlicer.processInputs(resourcePack);
 
-            File cachedZip = OraxenPlugin.get().packPath().resolve(".cachedPack.zip").toFile();
+            resourcePack = new PackObfuscator(resourcePack, writer.build(resourcePack).hash()).obfuscatePack();
+
             File packZip = OraxenPlugin.get().packPath().resolve("pack.zip").toFile();
-            if (packObfuscator.obfuscationType() != PackObfuscator.PackObfuscationType.NONE) resourcePack = packObfuscator.obfuscatePack();
-            else cachedZip.delete();
+            if (Settings.PACK_ZIP.toBool()) writer.writeToZipFile(packZip, resourcePack);
+            builtPack = writer.build(resourcePack);
 
             Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () -> {
                 EventUtils.callEvent(new OraxenPostPackGenerateEvent(resourcePack));
-
-                MinecraftResourcePackWriter.minecraft().writeToZipFile(OraxenPlugin.get().packPath().resolve("pack.zip").toFile(), resourcePack);
-
-                if (Settings.PACK_ZIP.toBool()) writer.writeToZipFile(packZip, resourcePack);
-                builtPack = writer.build(resourcePack);
                 Logs.logSuccess("Finished generating resourcepack!", true);
-
                 OraxenPlugin.get().packServer().uploadPack();
             });
         });
