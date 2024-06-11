@@ -77,7 +77,7 @@ public class FurnitureBasePacket {
     private float pitch(FurnitureBaseEntity furnitureBase, float initialPitch, Player player) {
         if (type != FurnitureType.DISPLAY_ENTITY) return initialPitch;
         LimitedPlacing lp = furnitureBase.mechanic().limitedPlacing();
-        boolean isFixed = furnitureBase.mechanic().displayEntityProperties().displayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
+        boolean isFixed = furnitureBase.mechanic().displayEntityProperties().isFixedTransform();
 
         if (VersionUtil.atOrAbove(player, 763)) {
             return lp != null && isFixed ? lp.isFloor() ? -90 : lp.isRoof() ? 90 : initialPitch : initialPitch;
@@ -87,7 +87,7 @@ public class FurnitureBasePacket {
     private float yaw(FurnitureBaseEntity furnitureBase, float initialYaw, Player player) {
         if (type != FurnitureType.DISPLAY_ENTITY) return initialYaw;
         LimitedPlacing limitedPlacing = furnitureBase.mechanic().limitedPlacing();
-        boolean isFixed = furnitureBase.mechanic().displayEntityProperties().displayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
+        boolean isFixed = furnitureBase.mechanic().displayEntityProperties().isFixedTransform();
 
         if (VersionUtil.atOrAbove(player, 763) && (limitedPlacing == null || !limitedPlacing.isRoof() || !isFixed))
             return initialYaw;

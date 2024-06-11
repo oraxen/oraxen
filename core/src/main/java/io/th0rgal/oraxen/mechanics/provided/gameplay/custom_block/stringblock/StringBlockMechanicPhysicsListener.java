@@ -58,9 +58,7 @@ public class StringBlockMechanicPhysicsListener implements Listener {
 
             block.setType(Material.AIR, false);
 
-            if (mechanic.hasLight())
-                mechanic.light().removeBlockLight(block);
-            mechanic.drop().spawns(block.getLocation(), new ItemStack(Material.AIR));
+            mechanic.breakable().drop().spawns(block.getLocation(), new ItemStack(Material.AIR));
         }
     }
 

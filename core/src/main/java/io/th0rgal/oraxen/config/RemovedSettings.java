@@ -14,12 +14,15 @@ public enum RemovedSettings {
     MERGE_FONTS("Pack.import.merge_font_files"),
     AUTO_UPDATE_ITEMS("ItemUpdater.auto_update_items"),
     OVERRIDE_LORE("ItemUpdater.override_lore"),
+
+    UPDATE_FURNITURE("FurnitureUpdater.update_furniture"),
     UPDATE_FURNITURE_ON_RELOAD("ItemUpdater.update_furniture_on_reload"),
     UPDATE_FURNITURE_ON_LOAD("ItemUpdater.update_furniture_on_load"),
     FURNITURE_UPDATE_DELAY("ItemUpdater.furniture_update_delay_in_seconds"),
     FURNITURE_UPDATE_DELAY2("FurnitureUpdater.furniture_update_delay_in_seconds"),
     UPDATE_FURNITURE_ON_LOAD2("FurnitureUpdater.update_furniture_on_load"),
     UPDATE_FURNITURE_ON_RELOAD2("FurnitureUpdater.update_furniture_on_reload"),
+
     SEND_PACK_ADVANCED("Pack.dispatch.send_pack_advanced"),
     SHIELD_DISPLAY("Misc.shield_display"),
     BOW_DISPLAY("Misc.bow_display"),

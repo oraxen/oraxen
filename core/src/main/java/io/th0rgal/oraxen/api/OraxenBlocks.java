@@ -4,6 +4,7 @@ import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.events.custom_block.noteblock.OraxenNoteBlockBreakEvent;
 import io.th0rgal.oraxen.api.events.custom_block.stringblock.OraxenStringBlockBreakEvent;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.BreakableMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.NoteBlockMechanicFactory;
@@ -170,10 +171,6 @@ public class OraxenBlocks {
         NoteBlockMechanic mechanic = getNoteBlockMechanic(block);
         if (mechanic == null) return;
 
-        if (mechanic.hasLight()) {
-            mechanic.light().createBlockLight(block);
-        }
-
         if (mechanic.isStorage() && mechanic.storage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
             pdc.set(StorageMechanic.STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{});
         }
@@ -200,8 +197,6 @@ public class OraxenBlocks {
             else blockAbove.setType(Material.TRIPWIRE);
         }
 
-        if (mechanic.hasLight())
-            mechanic.light().createBlockLight(block);
         if (mechanic.isSapling()) {
             SaplingMechanic sapling = mechanic.sapling();
             if (sapling != null && sapling.canGrowNaturally())
@@ -233,7 +228,8 @@ public class OraxenBlocks {
 
         NoteBlockMechanic noteMechanic = getNoteBlockMechanic(block);
         StringBlockMechanic stringMechanic = getStringMechanic(block);
-        Drop overrideDrop = !forceDrop ? null : noteMechanic != null ? noteMechanic.drop() : stringMechanic != null ? stringMechanic.drop() : null;
+        BreakableMechanic breakable = noteMechanic != null ? noteMechanic.breakable() : stringMechanic != null ? stringMechanic.breakable() : null;
+        Drop overrideDrop = !forceDrop ? null : breakable != null ? breakable.drop() : null;
         return remove(location, player, overrideDrop);
     }
 
@@ -262,7 +258,7 @@ public class OraxenBlocks {
 
         Location loc = block.getLocation();
         boolean hasOverrideDrop = overrideDrop != null;
-        Drop drop = hasOverrideDrop ? overrideDrop : mechanic.drop();
+        Drop drop = hasOverrideDrop ? overrideDrop : mechanic.breakable().drop();
         if (player != null) {
             OraxenNoteBlockBreakEvent noteBlockBreakEvent = new OraxenNoteBlockBreakEvent(mechanic, block, player);
             if (!EventUtils.callEvent(noteBlockBreakEvent)) return false;
@@ -279,7 +275,6 @@ public class OraxenBlocks {
         }
         if (drop != null) drop.spawns(loc, itemInHand);
 
-        if (mechanic.hasLight()) mechanic.light().removeBlockLight(block);
         if (mechanic.isStorage() && mechanic.storage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
             mechanic.storage().dropStorageContent(block);
         }
@@ -296,7 +291,7 @@ public class OraxenBlocks {
         if (mechanic == null) return false;
 
         boolean hasDropOverride = overrideDrop != null;
-        Drop drop = hasDropOverride ? overrideDrop : mechanic.drop();
+        Drop drop = hasDropOverride ? overrideDrop : mechanic.breakable().drop();
         if (player != null) {
             OraxenStringBlockBreakEvent wireBlockBreakEvent = new OraxenStringBlockBreakEvent(mechanic, block, player);
             if (!EventUtils.callEvent(wireBlockBreakEvent)) return false;
@@ -311,7 +306,6 @@ public class OraxenBlocks {
         if (drop != null) drop.spawns(block.getLocation(), itemInHand);
 
         final Block blockAbove = block.getRelative(BlockFace.UP);
-        if (mechanic.hasLight()) mechanic.light().removeBlockLight(block);
         if (mechanic.isTall()) blockAbove.setType(Material.AIR);
         block.setType(Material.AIR);
         if (VersionUtil.isPaperServer()) {

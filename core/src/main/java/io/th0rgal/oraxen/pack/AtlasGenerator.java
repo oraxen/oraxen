@@ -5,10 +5,12 @@ import team.unnamed.creative.atlas.Atlas;
 import team.unnamed.creative.atlas.AtlasSource;
 import team.unnamed.creative.atlas.SingleAtlasSource;
 import team.unnamed.creative.model.Model;
+import team.unnamed.creative.model.ModelTexture;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class AtlasGenerator {
@@ -18,7 +20,9 @@ public class AtlasGenerator {
         for (Model model : OraxenPlugin.get().packGenerator().resourcePack().models()) {
             sources.addAll(model.textures().layers().stream().map(t -> AtlasSource.single(t.key())).collect(Collectors.toCollection(LinkedHashSet::new)));
             sources.addAll(model.textures().variables().values().stream().map(t -> AtlasSource.single(t.key())).collect(Collectors.toCollection(LinkedHashSet::new)));
-            if (model.textures().particle() != null) sources.add(AtlasSource.single(model.textures().particle().key()));
+
+            Optional.ofNullable(model.textures().particle()).map(ModelTexture::key)
+                    .ifPresent((key) -> sources.add(AtlasSource.single(key)));
         }
 
         // Remove everything in the item and block folders, as vanilla already has them

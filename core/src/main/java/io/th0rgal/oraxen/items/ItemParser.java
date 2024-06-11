@@ -16,7 +16,6 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -92,14 +91,8 @@ public class ItemParser {
 
     public static Component parseComponentItemName(String miniString) {
         if (miniString.isEmpty()) return Component.empty();
-        Component displayName = AdventureUtils.MINI_MESSAGE.deserialize(miniString).colorIfAbsent(NamedTextColor.WHITE);
-        if (!displayName.style().hasDecoration(TextDecoration.ITALIC))
-            return displayName.mergeStyle(Component.empty().style(Style.style().decoration(TextDecoration.ITALIC, TextDecoration.State.FALSE).build()));
-        return displayName;
-    }
-
-    public static Component parseComponentLore(String miniString) {
-        return AdventureUtils.MINI_MESSAGE.deserialize(miniString);
+        Component displayName = AdventureUtils.MINI_MESSAGE.deserialize(miniString.replace("§", "\\§")).colorIfAbsent(NamedTextColor.WHITE);
+        return displayName.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE);
     }
 
     public ItemBuilder buildItem() {
@@ -116,14 +109,23 @@ public class ItemParser {
 
     private ItemBuilder applyConfig(ItemBuilder item) {
         item.displayName(parseComponentItemName(section.getString("displayname", "")));
-        if (VersionUtil.atOrAbove("1.20.5")) parse_1_20_5_Properties(item);
 
-        //if (section.contains("type")) item.setType(Material.getMaterial(section.getString("type", "PAPER")));
-        if (section.contains("lore")) item.lore(section.getStringList("lore").stream().map(ItemParser::parseComponentLore).toList());
+        if (section.contains("lore")) item.lore(section.getStringList("lore").stream().map(AdventureUtils.MINI_MESSAGE::deserialize).toList());
         if (section.contains("unbreakable")) item.setUnbreakable(section.getBoolean("unbreakable", false));
         if (section.contains("unstackable")) item.setUnstackable(section.getBoolean("unstackable", false));
         if (section.contains("color")) item.setColor(Utils.toColor(section.getString("color", "#FFFFFF")));
         if (section.contains("trim_pattern")) item.setTrimPattern(Key.key(section.getString("trim_pattern", "")));
+
+        ConfigurationSection components = section.getConfigurationSection("Components");
+        if (VersionUtil.atOrAbove("1.20.5") && components != null) {
+            try {
+                item.setComponent(DataComponentAdapter.adapt(components));
+            } catch (Exception e) {
+                Logs.logWarning("Unable to load data component.");
+                if (Settings.DEBUG.toBool()) e.printStackTrace();
+                else Logs.logWarning(e.getMessage());
+            }
+        }
 
         parseMiscOptions(item);
         parseVanillaSections(item);
@@ -131,21 +133,6 @@ public class ItemParser {
         item.setOraxenMeta(oraxenMeta);
         return item;
     }
-
-    private void parse_1_20_5_Properties(ItemBuilder builder) {
-        if (section.contains("Components")) {
-            ConfigurationSection components = section.getConfigurationSection("Components");
-            if (components != null) {
-                try {
-                    builder.setComponent(DataComponentAdapter.adapt(components));
-                } catch (Exception e) {
-                    Logs.logWarning("Unable to load data component.");
-                    if (Settings.DEBUG.toBool()) e.printStackTrace();
-                }
-            }
-        }
-    }
-
 
     private void parseMiscOptions(ItemBuilder item) {
         oraxenMeta.noUpdate(section.getBoolean("no_auto_update", false));

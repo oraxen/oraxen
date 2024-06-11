@@ -82,11 +82,6 @@ public enum Settings {
     OVERRIDE_RENAMED_ITEMS("ItemUpdater.override_renamed_items", false),
     OVERRIDE_ITEM_LORE("ItemUpdater.override_item_lore", false),
 
-    // FurnitureUpdater
-    UPDATE_FURNITURE("FurnitureUpdater.update_furniture", true),
-    UPDATE_FURNITURE_ON_RELOAD("FurnitureUpdater.update_on_reload", false),
-    UPDATE_FURNITURE_ON_LOAD("FurnitureUpdater.update_on_load", false),
-
     //Misc
     RESET_RECIPES("Misc.reset_recipes", true),
     ADD_RECIPES_TO_BOOK("Misc.add_recipes_to_book", true),

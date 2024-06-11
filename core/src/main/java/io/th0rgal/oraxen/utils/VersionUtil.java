@@ -48,6 +48,10 @@ public class VersionUtil {
         return new MinecraftVersion(versionString).atOrAbove();
     }
 
+    public static boolean below(Player player, int protocolVersion) {
+        return !atOrAbove(player, protocolVersion);
+    }
+
     public static boolean below(String versionString) {
         return !atOrAbove(versionString);
     }

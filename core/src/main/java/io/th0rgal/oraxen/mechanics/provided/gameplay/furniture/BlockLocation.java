@@ -81,11 +81,11 @@ public class BlockLocation implements ConfigurationSerializable {
 
     public BlockLocation groundRotate(float angle) {
         BlockLocation output = new BlockLocation(x, y, z);
-        double radians = Math.toRadians(angle);
-
+        float fixedAngle = (360 - angle);
+        double radians = Math.toRadians(fixedAngle);
         output.x = ((int) Math.round(Math.cos(radians) * x - Math.sin(radians) * z));
         output.z = ((int) Math.round(Math.sin(radians) * x - Math.cos(radians) * z));
-
+        if (fixedAngle % 180 > 1) output.z = -output.z;
         return output;
     }
 

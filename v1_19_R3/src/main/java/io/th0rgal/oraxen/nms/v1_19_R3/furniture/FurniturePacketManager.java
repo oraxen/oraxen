@@ -151,8 +151,8 @@ public class FurniturePacketManager implements IFurniturePacketManager {
 
         for (BlockPosition position : positions.keySet().stream().map(Position::toBlock).toList()) {
             barrierHitboxPositionMap.compute(baseEntity.getUniqueId(), (d, blockPos) -> {
-                Set<com.comphenix.protocol.wrappers.BlockPosition> newBlockPos = new HashSet<>();
-                com.comphenix.protocol.wrappers.BlockPosition newPos = new com.comphenix.protocol.wrappers.BlockPosition(position.blockX(), position.blockY(), position.blockZ());
+                Set<BlockPosition> newBlockPos = new HashSet<>();
+                BlockPosition newPos = new BlockPosition(position.blockX(), position.blockY(), position.blockZ());
                 newBlockPos.add(newPos);
                 if (blockPos != null) newBlockPos.addAll(blockPos);
                 return newBlockPos;

@@ -53,9 +53,9 @@ public class FontManager {
                 }
             }, HashMap::putAll);
         }
-        glyphMap = new HashMap<>();
-        glyphByPlaceholder = new HashMap<>();
-        reverse = new HashMap<>();
+        glyphMap = new LinkedHashMap<>();
+        glyphByPlaceholder = new LinkedHashMap<>();
+        reverse = new LinkedHashMap<>();
         fontEvents = new FontEvents(this);
         loadGlyphs(configsManager.parseGlyphConfigs());
 

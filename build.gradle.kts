@@ -3,6 +3,8 @@ import xyz.jpenilla.resourcefactory.bukkit.Permission
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.util.*
+import kotlin.io.path.Path
+import kotlin.io.path.listDirectoryEntries
 
 plugins {
     id("java")
@@ -14,44 +16,14 @@ plugins {
     alias(idofrontLibs.plugins.mia.publication)
 }
 
-class NMSVersion(val nmsVersion: String, val serverVersion: String, val javaVersion: Int)
-infix fun String.toNms(that: String) = Pair(this, that)
-infix fun Pair<String, String>.withJava(javaVersion: Int): NMSVersion = NMSVersion(first, second, javaVersion)
+class NMSVersion(val nmsVersion: String, val serverVersion: String)
+infix fun String.toNms(that: String) = NMSVersion(this, that)
 val SUPPORTED_VERSIONS: List<NMSVersion> = listOf(
-    "v1_20_R1" toNms "1.20.1-R0.1-SNAPSHOT" withJava 17,
-    "v1_20_R2" toNms "1.20.2-R0.1-SNAPSHOT" withJava 17,
-    "v1_20_R3" toNms "1.20.4-R0.1-SNAPSHOT" withJava 17,
-    "v1_20_R4" toNms "1.20.6-R0.1-SNAPSHOT" withJava 21
+    "v1_20_R1" toNms "1.20.1-R0.1-SNAPSHOT",
+    "v1_20_R2" toNms "1.20.2-R0.1-SNAPSHOT",
+    "v1_20_R3" toNms "1.20.4-R0.1-SNAPSHOT",
+    "v1_20_R4" toNms "1.20.6-R0.1-SNAPSHOT"
 )
-
-SUPPORTED_VERSIONS.forEach {
-    project(":${it.nmsVersion}") {
-        apply(plugin = "java")
-        apply(plugin = "io.papermc.paperweight.userdev")
-
-        repositories {
-            maven("https://repo.papermc.io/repository/maven-public/") // Paper
-            maven("https://repo.mineinabyss.com/releases")
-        }
-
-        configurations.create("mojmap")
-
-        dependencies {
-            compileOnly(project(":core"))
-            paperDevBundle(it.serverVersion)
-        }
-
-        tasks {
-            compileJava {
-                options.encoding = Charsets.UTF_8.name()
-            }
-        }
-
-        java {
-            toolchain.languageVersion.set(JavaLanguageVersion.of(it.javaVersion))
-        }
-    }
-}
 
 val compiled = (project.findProperty("oraxen_compiled")?.toString() ?: "true").toBoolean()
 val pluginPath = project.findProperty("oraxen2_plugin_path")?.toString()
@@ -137,8 +109,10 @@ allprojects {
         implementation("com.jeff_media:MorePersistentDataTypes:2.4.0")
         implementation("com.jeff-media:persistent-data-serializer:1.0")
         implementation("org.jetbrains:annotations:24.1.0") { isTransitive = false }
+
         implementation("dev.triumphteam:triumph-gui:3.1.8") { exclude("net.kyori") }
-        implementation("com.github.toxicity188:DataComponentAPI:1.0.10")
+        //implementation("com.github.toxicity188:DataComponentAPI:1.0.10")
+        implementation(files("../libs/DataComponentAPI-1.0.11.jar"))
 
         implementation("me.gabytm.util:actions-spigot:$actionsVersion") { exclude(group = "com.google.guava") }
     }
@@ -152,7 +126,7 @@ dependencies {
     }
 }
 
-project.java {
+java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(21))
 }
 
@@ -181,15 +155,15 @@ tasks {
         fun shade(pattern: String) = relocate(pattern, "io.th0rgal.oraxen.shaded." + pattern.substringAfter("."))
 
         shade("org.bstats")
-        shade("dev.triumphteam.gui")
-        shade("com.jeff_media")
-        shade("com.github.stefvanschie.inventoryframework")
-        shade("me.gabytm.util.actions")
-        shade("org.intellij.lang.annotations")
-        shade("org.jetbrains.annotations")
-        shade("com.udojava.evalex")
-        shade("dev.jorel")
-        shade("kr.toxicity.libraries")
+        //shade("dev.triumphteam.gui")
+        //shade("com.jeff_media")
+        //shade("com.github.stefvanschie.inventoryframework")
+        //shade("me.gabytm.util.actions")
+        //shade("org.intellij.lang.annotations")
+        //shade("org.jetbrains.annotations")
+        //shade("com.udojava.evalex")
+        //shade("dev.jorel")
+        //shade("kr.toxicity.libraries")
 
         manifest {
             attributes(
@@ -257,6 +231,10 @@ if (pluginPath != null) {
         val copyJar = register<Copy>("copyJar") {
             this.doNotTrackState("Overwrites the plugin jar to allow for easier reloading")
             dependsOn(shadowJar, jar)
+            Path(pluginPath).listDirectoryEntries()
+                .filter { it.fileName.toString().matches("oraxen-.*.jar".toRegex()) }
+                .filterNot { it.fileName.toString().endsWith("$pluginVersion.jar") }
+                .forEach { delete(it) }
             from(defaultPath)
             into(pluginPath)
             doLast { println("Copied to plugin directory $pluginPath") }

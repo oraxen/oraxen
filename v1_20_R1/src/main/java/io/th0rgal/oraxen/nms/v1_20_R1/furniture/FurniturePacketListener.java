@@ -43,6 +43,7 @@ public class FurniturePacketListener implements Listener {
             if (mechanic == null) continue;
 
             packetManager.sendFurnitureEntityPacket(baseEntity, mechanic, player);
+            packetManager.sendLightMechanicPacket(baseEntity, mechanic, player);
             packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
             packetManager.sendBarrierHitboxPacket(baseEntity, mechanic, player);
         }
@@ -57,6 +58,7 @@ public class FurniturePacketListener implements Listener {
 
         for (Player player : baseEntity.getWorld().getNearbyPlayers(baseEntity.getLocation(), FurnitureFactory.get().simulationRadius)) {
             packetManager.sendFurnitureEntityPacket(baseEntity, mechanic, player);
+            packetManager.sendLightMechanicPacket(baseEntity, mechanic, player);
             packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
             packetManager.sendBarrierHitboxPacket(baseEntity, mechanic, player);
         }
@@ -71,6 +73,7 @@ public class FurniturePacketListener implements Listener {
         IFurniturePacketManager packetManager = FurnitureFactory.get().packetManager();
 
         packetManager.removeFurnitureEntityPacket(baseEntity, mechanic);
+        packetManager.removeLightMechanicPacket(baseEntity, mechanic);
         packetManager.removeInteractionHitboxPacket(baseEntity, mechanic);
         packetManager.removeBarrierHitboxPacket(baseEntity, mechanic);
     }
@@ -83,6 +86,7 @@ public class FurniturePacketListener implements Listener {
             FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
             if (mechanic == null) return;
             packetManager.sendFurnitureEntityPacket(baseEntity, mechanic, player);
+            packetManager.sendLightMechanicPacket(baseEntity, mechanic, player);
             packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
             packetManager.sendBarrierHitboxPacket(baseEntity, mechanic, player);
         }
@@ -96,6 +100,7 @@ public class FurniturePacketListener implements Listener {
             FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
             if (mechanic == null) return;
             packetManager.removeFurnitureEntityPacket(baseEntity, mechanic, player);
+            packetManager.removeLightMechanicPacket(baseEntity, mechanic, player);
             packetManager.removeInteractionHitboxPacket(baseEntity, mechanic, player);
             packetManager.removeBarrierHitboxPacket(baseEntity, mechanic, player);
         }
@@ -110,6 +115,7 @@ public class FurniturePacketListener implements Listener {
             FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
             if (mechanic == null) return;
             packetManager.removeFurnitureEntityPacket(baseEntity, mechanic, player);
+            packetManager.removeLightMechanicPacket(baseEntity, mechanic, player);
             packetManager.removeInteractionHitboxPacket(baseEntity, mechanic, player);
             packetManager.removeBarrierHitboxPacket(baseEntity, mechanic, player);
         }

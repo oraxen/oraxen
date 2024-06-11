@@ -22,7 +22,7 @@ public class OraxenBlockBreakEvent extends Event implements Cancellable {
         this.mechanic = mechanic;
         this.block = block;
         this.player = player;
-        this.drop = mechanic.drop();
+        this.drop = mechanic.breakable().drop();
         this.isCancelled = false;
     }
 

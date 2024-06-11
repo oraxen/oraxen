@@ -46,6 +46,7 @@ public class FurniturePacketListener implements Listener {
                 if (mechanic == null) continue;
 
                 packetManager.sendFurnitureEntityPacket(baseEntity, mechanic, player);
+                packetManager.sendLightMechanicPacket(baseEntity, mechanic, player);
                 packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
                 packetManager.sendBarrierHitboxPacket(baseEntity, mechanic, player);
             }
@@ -61,10 +62,11 @@ public class FurniturePacketListener implements Listener {
         Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
             for (Player player : baseEntity.getWorld().getNearbyPlayers(baseEntity.getLocation(), FurnitureFactory.get().simulationRadius)) {
                 packetManager.sendFurnitureEntityPacket(baseEntity, mechanic, player);
+                packetManager.sendLightMechanicPacket(baseEntity, mechanic, player);
                 packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
                 packetManager.sendBarrierHitboxPacket(baseEntity, mechanic, player);
             }
-        }, 1L);
+        }, 2L);
 
     }
 
@@ -76,14 +78,15 @@ public class FurniturePacketListener implements Listener {
         IFurniturePacketManager packetManager = FurnitureFactory.get().packetManager();
 
         packetManager.removeFurnitureEntityPacket(baseEntity, mechanic);
+        packetManager.removeLightMechanicPacket(baseEntity, mechanic);
         packetManager.removeInteractionHitboxPacket(baseEntity, mechanic);
         packetManager.removeBarrierHitboxPacket(baseEntity, mechanic);
 
-        for (Player player : baseEntity.getWorld().getNearbyPlayers(baseEntity.getLocation(), FurnitureFactory.get().simulationRadius)) {
-            packetManager.sendFurnitureEntityPacket(baseEntity, mechanic, player);
-            packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
-            packetManager.sendBarrierHitboxPacket(baseEntity, mechanic, player);
-        }
+//        for (Player player : baseEntity.getWorld().getNearbyPlayers(baseEntity.getLocation(), FurnitureFactory.get().simulationRadius)) {
+//            packetManager.sendFurnitureEntityPacket(baseEntity, mechanic, player);
+//            packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
+//            packetManager.sendBarrierHitboxPacket(baseEntity, mechanic, player);
+//        }
     }
 
     @EventHandler
@@ -94,6 +97,7 @@ public class FurniturePacketListener implements Listener {
         IFurniturePacketManager packetManager = FurnitureFactory.get().packetManager();
 
         packetManager.removeFurnitureEntityPacket(baseEntity, mechanic);
+        packetManager.removeLightMechanicPacket(baseEntity, mechanic);
         packetManager.removeInteractionHitboxPacket(baseEntity, mechanic);
         packetManager.removeBarrierHitboxPacket(baseEntity, mechanic);
     }
@@ -106,6 +110,7 @@ public class FurniturePacketListener implements Listener {
             FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
             if (mechanic == null) return;
             packetManager.sendFurnitureEntityPacket(baseEntity, mechanic, player);
+            packetManager.sendLightMechanicPacket(baseEntity, mechanic, player);
             packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
             packetManager.sendBarrierHitboxPacket(baseEntity, mechanic, player);
         }
@@ -119,6 +124,7 @@ public class FurniturePacketListener implements Listener {
             FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
             if (mechanic == null) return;
             packetManager.removeFurnitureEntityPacket(baseEntity, mechanic, player);
+            packetManager.removeLightMechanicPacket(baseEntity, mechanic, player);
             packetManager.removeInteractionHitboxPacket(baseEntity, mechanic, player);
             packetManager.removeBarrierHitboxPacket(baseEntity, mechanic, player);
         }
@@ -133,6 +139,7 @@ public class FurniturePacketListener implements Listener {
             FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
             if (mechanic == null) return;
             packetManager.removeFurnitureEntityPacket(baseEntity, mechanic, player);
+            packetManager.removeLightMechanicPacket(baseEntity, mechanic, player);
             packetManager.removeInteractionHitboxPacket(baseEntity, mechanic, player);
             packetManager.removeBarrierHitboxPacket(baseEntity, mechanic, player);
         }
@@ -161,19 +168,19 @@ public class FurniturePacketListener implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerDamageBarrierHitbox(BlockDamageEvent event) {
         Location location = event.getBlock().getLocation();
+        if (!ProtectionLib.canBreak(event.getPlayer(), location)) return;
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(location);
-        if (mechanic == null || !ProtectionLib.canBreak(event.getPlayer(), location)) return;
-
-        OraxenFurniture.remove(location, null);
+        if (mechanic == null) return;
+        OraxenPlugin.get().breakerManager().startFurnitureBreak(event.getPlayer(), mechanic.baseEntity(event.getBlock()), mechanic, event.getBlock());
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
-    public void onCreativePlayerBreakBarrierHitbox(BlockBreakEvent event) {
+    public void onPlayerBreakBarrierHitbox(BlockBreakEvent event) {
+        Player player = event.getPlayer();
         Location location = event.getBlock().getLocation();
+        if (!ProtectionLib.canBreak(player, location)) return;
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(location);
-        if (mechanic == null || !ProtectionLib.canBreak(event.getPlayer(), location)) return;
-
-        OraxenFurniture.remove(location, null);
+        if (mechanic != null) OraxenFurniture.remove(location, player);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -192,8 +199,8 @@ public class FurniturePacketListener implements Listener {
 
         if (action == Action.RIGHT_CLICK_BLOCK && ProtectionLib.canInteract(player, baseEntity.getLocation()))
             EventUtils.callEvent(new OraxenFurnitureInteractEvent(mechanic, baseEntity, player, event.getItem(), event.getHand(), interactionPoint));
-        else if (action == Action.LEFT_CLICK_BLOCK && ProtectionLib.canBreak(player, baseEntity.getLocation()))
-            OraxenFurniture.remove(baseEntity, player);
+        //else if (action == Action.LEFT_CLICK_BLOCK && ProtectionLib.canBreak(player, baseEntity.getLocation()))
+            //OraxenFurniture.remove(baseEntity, player);
 
         // Resend the hitbox as client removes the "ghost block"
         Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->

@@ -1,90 +1,38 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.light;
 
-import io.th0rgal.oraxen.api.OraxenBlocks;
-import io.th0rgal.oraxen.api.OraxenFurniture;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureHelpers;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.NoteBlockMechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock.StringBlockMechanic;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
-import org.bukkit.block.data.type.Light;
+import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.Entity;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class LightMechanic {
-    private static final BlockFace[] BLOCK_FACES = new BlockFace[]{BlockFace.UP, BlockFace.DOWN, BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST, BlockFace.SELF};
-    private final Light lightData;
-
-    private final int lightLevel;
+    private static final LightMechanic EMPTY = new LightMechanic(List.of());
+    private final List<LightBlock> lightBlocks;
 
     public LightMechanic(ConfigurationSection section) {
-        lightLevel = Math.min(15, section.getInt("light", -1));
-        lightData = lightLevel == -1 ? null : (Light) Material.LIGHT.createBlockData();
-        if (lightData != null) lightData.setLevel(lightLevel);
+        List<LightBlock> lightBlocks = new ArrayList<>();
+        for (String lightString : section.getStringList("lights"))
+            lightBlocks.add(new LightBlock(lightString));
+
+
+        this.lightBlocks = lightBlocks;
     }
 
-    public int getLightLevel() {
-        return lightLevel;
+    public LightMechanic(List<LightBlock> lightBlocks) {
+        this.lightBlocks = lightBlocks;
     }
 
-    public boolean hasLightLevel() {
-        return lightLevel != -1 && lightData != null;
+    public boolean isEmpty() {
+        return lightBlocks.stream().allMatch(l -> l.lightLevel() == 0);
     }
 
-    public void createBlockLight(Block block) {
-        if (!hasLightLevel()) return;
-
-        // If the block attempted placed at is empty, we only place here
-        // This is mainly for furniture with no barrier hitbox
-        if (block.getType().isAir()) block.setBlockData(lightData);
-        else for (BlockFace face : BLOCK_FACES) {
-            Block relative = block.getRelative(face);
-            if (!relative.getType().isAir() && relative.getType() != Material.LIGHT) continue;
-            if (relative.getBlockData() instanceof Light relativeLight && relativeLight.getLevel() > lightLevel) continue;
-
-            relative.setBlockData(lightData);
-        }
+    public List<LightBlock> lightBlocks() {
+        return lightBlocks;
     }
 
-    public void removeBlockLight(Block block) {
-        if (hasLightLevel()) for (BlockFace face : BLOCK_FACES) {
-            Block relative = block.getRelative(face);
-            // If relative is Light we want to remove it
-            if (relative.getType() == Material.LIGHT)
-                relative.setType(Material.AIR);
-            // But also update the surrounding blocks
-            for (BlockFace relativeFace : BLOCK_FACES) {
-                if (relativeFace == face.getOppositeFace()) continue;
-                //refreshBlockLight(relative.getRelative(relativeFace));
-                //refreshBlockLight(relative.getRelative(relativeFace));
-            }
-        }
-    }
-
-    public static void refreshBlockLight(Block block) {
-        if (block.getType() == Material.LIGHT || block.getType().isAir()) return;
-
-        for (BlockFace face : BLOCK_FACES) {
-            block = block.getRelative(face);
-            NoteBlockMechanic noteBlockMechanic = OraxenBlocks.getNoteBlockMechanic(block);
-            if (noteBlockMechanic != null)
-                if (noteBlockMechanic.hasLight()) noteBlockMechanic.light().createBlockLight(block);
-                else continue;
-
-            StringBlockMechanic stringBlockMechanic = OraxenBlocks.getStringMechanic(block);
-            if (stringBlockMechanic != null)
-                if (stringBlockMechanic.hasLight()) stringBlockMechanic.light().createBlockLight(block);
-                else continue;
-
-            /*FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(block.getLocation());
-            if (furnitureMechanic != null) {
-                Entity baseEntity = furnitureMechanic.baseEntity(block);
-                if (!furnitureMechanic.hasLight() || baseEntity == null) continue;
-                furnitureMechanic.setEntityData(baseEntity, FurnitureHelpers.furnitureYaw(baseEntity), baseEntity.getFacing());
-            }*/
-        }
+    public List<Location> lightBlockLocations(Location center, float rotation) {
+        return lightBlocks.stream().map(b -> b.groundRotate(rotation).add(center)).toList();
     }
 
 }

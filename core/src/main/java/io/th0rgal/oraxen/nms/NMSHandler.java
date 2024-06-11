@@ -1,13 +1,13 @@
 package io.th0rgal.oraxen.nms;
 
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketManager;
-import net.minecraft.world.InteractionResult;
+import io.th0rgal.oraxen.utils.InteractionResult;
+import io.th0rgal.oraxen.utils.wrappers.PotionEffectTypeWrapper;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
@@ -55,7 +55,7 @@ public interface NMSHandler {
      * @param itemStack       The ItemStack the player placed the block with
      * @return The enum interaction result
      */
-    @Nullable Enum<InteractionResult> correctBlockStates(Player player, EquipmentSlot slot, ItemStack itemStack);
+    @Nullable InteractionResult correctBlockStates(Player player, EquipmentSlot slot, ItemStack itemStack);
 
     /**Removes mineable/axe tag from noteblocks for custom blocks */
     void customBlockDefaultTools(Player player);
@@ -100,7 +100,7 @@ public interface NMSHandler {
 
         @Nullable
         @Override
-        public Enum<InteractionResult> correctBlockStates(Player player, EquipmentSlot slot, ItemStack itemStack) {
+        public InteractionResult correctBlockStates(Player player, EquipmentSlot slot, ItemStack itemStack) {
             return null;
         }
 
@@ -116,13 +116,13 @@ public interface NMSHandler {
         }
 
         @Override
-        public void applyMiningFatigue(Player player) {
-            player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, -1, Integer.MAX_VALUE, false, false, false));
+        public void applyMiningEffect(Player player) {
+            player.addPotionEffect(new PotionEffect(PotionEffectTypeWrapper.MINING_FATIGUE, -1, Integer.MAX_VALUE, false, false, false));
         }
 
         @Override
-        public void removeMiningFatigue(Player player) {
-            player.removePotionEffect(PotionEffectType.SLOW_DIGGING);
+        public void removeMiningEffect(Player player) {
+            player.removePotionEffect(PotionEffectTypeWrapper.MINING_FATIGUE);
         }
     }
 
@@ -131,7 +131,7 @@ public interface NMSHandler {
     Set<Material> itemTools();
 
 
-    void applyMiningFatigue(Player player);
+    void applyMiningEffect(Player player);
 
-    void removeMiningFatigue(Player player);
+    void removeMiningEffect(Player player);
 }

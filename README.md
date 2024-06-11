@@ -46,7 +46,7 @@ increase oraxen features.
 
 ## Contributing
 If you want to contribute to Oraxen, you can do so by creating a pull request.\
-You should make a pull-request to the `develop` branch.\
+You should make a pull-request to the `develop` branch.
 1. Fork Oraxen on GitHub
 2. Clone your forked repository (`git clone`)
 3. Create your feature branch (`git checkout -b my-feature`)
@@ -152,7 +152,8 @@ compileOnly 'io.th0rgal:oraxen:VERSION'
 </dependency>
 ```
 </details>
-Snapshot builds are also available at [https://repo.oraxen.com/snapshots](https://repo.oraxen.com/snapshots). \
+
+Snapshot builds are also available at [https://repo.oraxen.com/snapshots](https://repo.oraxen.com/snapshots).
 
 ## License
 

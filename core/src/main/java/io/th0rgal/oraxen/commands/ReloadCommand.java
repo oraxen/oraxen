@@ -67,11 +67,9 @@ public class ReloadCommand {
             }
         }
 
-        if (Settings.UPDATE_FURNITURE.toBool() && Settings.UPDATE_FURNITURE_ON_RELOAD.toBool()) {
-            Logs.logInfo("Updating all placed furniture...");
-            for (World world : Bukkit.getServer().getWorlds()) for (Entity baseEntity : world.getEntities())
-                OraxenFurniture.updateFurniture(baseEntity);
-        }
+        Logs.logInfo("Updating all placed furniture...");
+        for (World world : Bukkit.getServer().getWorlds()) for (Entity baseEntity : world.getEntities())
+            OraxenFurniture.updateFurniture(baseEntity);
 
     }
 
@@ -81,7 +79,6 @@ public class ReloadCommand {
         OraxenPlugin.get().soundManager(new SoundManager(OraxenPlugin.get().configsManager().getSounds()));
         OraxenPlugin.get().packGenerator(new PackGenerator());
         OraxenPlugin.get().packGenerator().generatePack();
-        OraxenPlugin.get().packServer().uploadPack();
         if (Settings.PACK_SEND_RELOAD.toBool()) for (Player player : Bukkit.getOnlinePlayers())
             OraxenPlugin.get().packServer().sendPack(player);
     }

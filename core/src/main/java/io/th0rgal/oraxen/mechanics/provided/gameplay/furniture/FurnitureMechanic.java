@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
-import com.comphenix.protocol.wrappers.BlockPosition;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import com.ticxo.modelengine.api.ModelEngineAPI;
 import com.ticxo.modelengine.api.model.ActiveModel;
@@ -10,6 +9,7 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.provided.blocklocker.BlockLockerMechanic;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.BreakableMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolvingFurniture;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.hitbox.FurnitureHitbox;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox.JukeboxBlock;
@@ -20,7 +20,6 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
-import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -53,13 +52,12 @@ public class FurnitureMechanic extends Mechanic {
     public static final NamespacedKey MODELENGINE_KEY = new NamespacedKey(OraxenPlugin.get(), "modelengine");
     public static final NamespacedKey EVOLUTION_KEY = new NamespacedKey(OraxenPlugin.get(), "evolution");
 
-    private final int hardness;
+
     private final LimitedPlacing limitedPlacing;
     private final StorageMechanic storage;
     private final BlockSounds blockSounds;
     private final JukeboxBlock jukebox;
     public final boolean farmlandRequired;
-    private final Drop drop;
     private final EvolvingFurniture evolvingFurniture;
     private final LightMechanic light;
     private final String modelEngineID;
@@ -70,6 +68,8 @@ public class FurnitureMechanic extends Mechanic {
     private final boolean isRotatable;
     private final BlockLockerMechanic blockLocker;
     private final RestrictedRotation restrictedRotation;
+    private final BreakableMechanic breakable;
+
     @NotNull
     private final FurnitureHitbox hitbox;
 
@@ -93,10 +93,10 @@ public class FurnitureMechanic extends Mechanic {
     public FurnitureMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section, itemBuilder -> itemBuilder.setCustomTag(FURNITURE_KEY, PersistentDataType.BYTE, (byte) 1));
 
-        hardness = section.getInt("hardness", 1);
         modelEngineID = section.getString("modelengine_id", null);
         farmlandRequired = section.getBoolean("farmland_required", false);
         light = new LightMechanic(section);
+        breakable = new BreakableMechanic(section);
         restrictedRotation = RestrictedRotation.fromString(section.getString("restricted_rotation", "STRICT"));
         displayEntityProperties = new DisplayEntityProperties(section.getConfigurationSection("display_entity_properties"));
         furnitureType = FurnitureType.getType(section.getString("type", FurnitureFactory.defaultFurnitureType.name()));
@@ -114,9 +114,6 @@ public class FurnitureMechanic extends Mechanic {
         ConfigurationSection evoSection = section.getConfigurationSection("evolution");
         evolvingFurniture = evoSection != null ? new EvolvingFurniture(getItemID(), evoSection) : null;
         if (evolvingFurniture != null) ((FurnitureFactory) getFactory()).registerEvolution();
-
-        ConfigurationSection dropSection = section.getConfigurationSection("drop");
-        drop = dropSection != null ? Drop.createDrop(FurnitureFactory.get().toolTypes, dropSection, getItemID()) : new Drop(new ArrayList<>(), false, false, getItemID());
 
         ConfigurationSection limitedPlacingSection = section.getConfigurationSection("limited_placing");
         limitedPlacing = limitedPlacingSection != null ? new LimitedPlacing(limitedPlacingSection) : null;
@@ -211,8 +208,8 @@ public class FurnitureMechanic extends Mechanic {
         return seats;
     }
 
-    public Drop drop() {
-        return drop;
+    public BreakableMechanic breakable() {
+        return breakable;
     }
 
     public boolean hasEvolution() {
@@ -241,7 +238,7 @@ public class FurnitureMechanic extends Mechanic {
 
     public Entity place(Location location, float yaw, BlockFace facing, boolean checkSpace) {
         if (!location.isWorldLoaded()) return null;
-        if (checkSpace && !this.hasEnoughSpace(location, yaw)) return null;
+        if (checkSpace && !this.hasEnoughSpace(location.clone(), yaw)) return null;
         assert location.getWorld() != null;
 
         ItemStack item = OraxenItems.getItemById(getItemID()).build();
@@ -254,7 +251,6 @@ public class FurnitureMechanic extends Mechanic {
             spawnModelEngineFurniture(baseEntity);
         }
         FurnitureSeat.spawnSeats(baseEntity, this);
-        if (light.hasLightLevel()) light.createBlockLight(baseEntity.getLocation().getBlock());
 
         return baseEntity;
     }
@@ -263,7 +259,7 @@ public class FurnitureMechanic extends Mechanic {
         Location correctedLocation = BlockHelpers.toCenterBlockLocation(baseLocation);
         boolean isWall = hasLimitedPlacing() && limitedPlacing.isWall();
         boolean isRoof = hasLimitedPlacing() && limitedPlacing.isRoof();
-        boolean isFixed = hasDisplayEntityProperties() && displayEntityProperties.displayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
+        boolean isFixed = hasDisplayEntityProperties() && displayEntityProperties.isFixedTransform();
         if (furnitureType != FurnitureType.DISPLAY_ENTITY || !hasDisplayEntityProperties()) return correctedLocation;
         if (displayEntityProperties.displayTransform() != ItemDisplay.ItemDisplayTransform.NONE && !isWall && !isRoof)
             return correctedLocation;
@@ -277,7 +273,7 @@ public class FurnitureMechanic extends Mechanic {
     public void setBaseFurnitureData(Entity baseEntity, float yaw) {
         baseEntity.setPersistent(true);
         baseEntity.setInvulnerable(true);
-        baseEntity.setRotation(yaw, 0f);
+        baseEntity.setRotation(yaw, FurnitureHelpers.correctedPitch(this, 0f));
         baseEntity.setSilent(true);
         baseEntity.setCustomNameVisible(false);
         Component customName = OraxenItems.getItemById(this.getItemID()).displayName();
@@ -314,11 +310,11 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public void removeBaseEntity(@NotNull Entity baseEntity) {
-        if (light.hasLightLevel()) light.removeBlockLight(baseEntity.getLocation().getBlock());
         if (hasSeats()) removeFurnitureSeats(baseEntity);
         FurnitureFactory.instance.packetManager().removeFurnitureEntityPacket(baseEntity, this);
         FurnitureFactory.instance.packetManager().removeInteractionHitboxPacket(baseEntity, this);
         FurnitureFactory.instance.packetManager().removeBarrierHitboxPacket(baseEntity, this);
+        FurnitureFactory.instance.packetManager().removeLightMechanicPacket(baseEntity, this);
 
         if (!baseEntity.isDead()) baseEntity.remove();
     }
@@ -349,20 +345,20 @@ public class FurnitureMechanic extends Mechanic {
     @Nullable
     public Entity baseEntity(Block block) {
         if (block == null) return null;
-        BlockPosition blockPosition = new BlockPosition(block.getX(), block.getY(), block.getZ());
-        return FurnitureFactory.instance.packetManager().baseEntityFromHitbox(blockPosition);
+        BlockLocation blockLocation = new BlockLocation(block.getLocation());
+        return FurnitureFactory.instance.packetManager().baseEntityFromHitbox(blockLocation);
     }
 
     @Nullable
     public Entity baseEntity(Location location) {
         if (location == null) return null;
-        BlockPosition blockPosition = new BlockPosition(location.getBlockX(), location.getBlockY(), location.getBlockZ());
-        return FurnitureFactory.instance.packetManager().baseEntityFromHitbox(blockPosition);
+        BlockLocation blockLocation = new BlockLocation(location);
+        return FurnitureFactory.instance.packetManager().baseEntityFromHitbox(blockLocation);
     }
 
     @Nullable
-    Entity baseEntity(BlockPosition blockPosition) {
-        return FurnitureFactory.instance.packetManager().baseEntityFromHitbox(blockPosition);
+    Entity baseEntity(BlockLocation blockLocation) {
+        return FurnitureFactory.instance.packetManager().baseEntityFromHitbox(blockLocation);
     }
 
     @Nullable
@@ -403,10 +399,6 @@ public class FurnitureMechanic extends Mechanic {
 
     public BlockLockerMechanic blocklocker() {
         return blockLocker;
-    }
-
-    public boolean hasLight() {
-        return light.hasLightLevel();
     }
 
     public LightMechanic light() {
