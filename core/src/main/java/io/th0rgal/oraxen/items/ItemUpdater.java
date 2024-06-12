@@ -196,7 +196,6 @@ public class ItemUpdater implements Listener {
             }
 
             if (VersionUtil.atOrAbove("1.20.5")) {
-
                 if (newMeta.hasFood()) itemMeta.setFood(newMeta.getFood());
                 else if (oldMeta.hasFood()) itemMeta.setFood(oldMeta.getFood());
 
@@ -228,9 +227,10 @@ public class ItemUpdater implements Listener {
                 } else {
                     itemMeta.setDisplayName(newMeta.getDisplayName());
                 }
+                itemPdc.set(ORIGINAL_NAME_KEY, DataType.STRING, newMeta.getDisplayName());
             }
 
-            itemPdc.set(ORIGINAL_NAME_KEY, DataType.STRING, newMeta.getDisplayName());
+
             // If the item is not unstackable, we should remove the unstackable tag
             // Also remove it on 1.20.5+ due to maxStackSize component
             if (VersionUtil.atOrAbove("1.20.5") || !newItemBuilder.isUnstackable()) itemPdc.remove(UNSTACKABLE_KEY);

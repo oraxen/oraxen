@@ -1,4 +1,3 @@
-import io.papermc.paperweight.util.checkJavaVersion
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.util.*
@@ -228,13 +227,15 @@ if (pluginPath != null) {
         val copyJarTask = register<Copy>("copyJar") {
             this.doNotTrackState("Overwrites the plugin jar to allow for easier reloading")
             dependsOn(shadowJar, jar)
-            Path(pluginPath).listDirectoryEntries()
-                .filter { it.fileName.toString().matches("oraxen-.*.jar".toRegex()) }
-                .filterNot { it.fileName.toString().endsWith("$pluginVersion.jar") }
-                .forEach { delete(it) }
             from(defaultPath)
             into(pluginPath)
-            doLast { println("Copied to plugin directory $pluginPath") }
+            doLast {
+                println("Copied to plugin directory $pluginPath")
+                Path(pluginPath).listDirectoryEntries()
+                    .filter { it.fileName.toString().matches("oraxen-.*.jar".toRegex()) }
+                    .filterNot { it.fileName.toString().endsWith("$pluginVersion.jar") }
+                    .forEach { delete(it) }
+            }
         }
 
         // Create individual copy tasks for each destination

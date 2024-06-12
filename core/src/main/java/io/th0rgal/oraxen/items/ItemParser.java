@@ -121,7 +121,8 @@ public class ItemParser {
     }
 
     private ItemBuilder applyConfig(ItemBuilder item) {
-        if (!VersionUtil.atOrAbove("1.20.5")) item.setDisplayName(section.getString("displayname", ""));
+        if (!VersionUtil.atOrAbove("1.20.5") && section.contains("displayname"))
+            item.setDisplayName(section.getString("displayname", ""));
 
         //if (section.contains("type")) item.setType(Material.getMaterial(section.getString("type", "PAPER")));
         if (section.contains("lore")) item.setLore(section.getStringList("lore").stream().map(AdventureUtils::parseMiniMessage).toList());
@@ -139,16 +140,14 @@ public class ItemParser {
     }
 
     private void parseDataComponents(ItemBuilder item) {
-        if (!VersionUtil.atOrAbove("1.20.5")) return;
-
-        if (section.contains("unstackable")) item.setMaxStackSize(1);
         ConfigurationSection components = section.getConfigurationSection("Components");
-        if (components == null) return;
+        if (components == null || !VersionUtil.atOrAbove("1.20.5")) return;
 
-        if (components.contains("max_stack_size")) item.setMaxStackSize(Math.min(Math.max(components.getInt("max_stack_size"), 1), 99));
-        if (item.hasMaxStackSize() && item.getMaxStackSize() == 1) item.setUnstackable(true);
+        if (components.contains("max_stack_size")) item.setMaxStackSize(Math.clamp(components.getInt("max_stack_size"), 1, 99));
 
-        item.setItemName(components.getString("itemname", components.getString("displayname", "")));
+        if (section.contains("itemname")) item.setItemName(components.getString("itemname"));
+        else if (section.contains("displayname")) item.setItemName(components.getString("displayname"));
+
         if (components.contains("enchantment_glint_override")) item.setEnchantmentGlindOverride(components.getBoolean("enchantment_glint_override"));
         if (components.contains("durability")) {
             item.setDamagedOnBlockBreak(components.getBoolean("durability.damage_block_break"));

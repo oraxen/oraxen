@@ -254,6 +254,7 @@ public class ItemBuilder {
 
     public ItemBuilder setUnstackable(final boolean unstackable) {
         this.unstackable = unstackable;
+        if (VersionUtil.atOrAbove("1.20.5")) this.setMaxStackSize(1);
         return this;
     }
 
@@ -377,7 +378,7 @@ public class ItemBuilder {
     }
 
     public boolean hasMaxStackSize() {
-        return VersionUtil.atOrAbove("1.20.5") && foodComponent != null;
+        return VersionUtil.atOrAbove("1.20.5") && maxStackSize != null;
     }
 
     @Nullable
@@ -673,7 +674,7 @@ public class ItemBuilder {
 
     public ItemStack[] buildArray(final int amount) {
         final ItemStack built = build();
-        final int max = /*hasMaxStackSize() ? maxStackSize : */type != null ? type.getMaxStackSize() : itemStack.getType().getMaxStackSize();
+        final int max = hasMaxStackSize() ? maxStackSize : type != null ? type.getMaxStackSize() : itemStack.getType().getMaxStackSize();
         final int rest = max == amount ? amount : amount % max;
         final int iterations = amount > max ? (amount - rest) / max : 0;
         final ItemStack[] output = new ItemStack[iterations + (rest > 0 ? 1 : 0)];
@@ -700,9 +701,7 @@ public class ItemBuilder {
 
     private ItemStack handleUnstackable(ItemStack item) {
         ItemMeta meta = item.getItemMeta();
-        if (meta == null) return item;
-        // handled via maxStackSize component
-        if (VersionUtil.atOrAbove("1.20.5")) return item;
+        if (meta == null || VersionUtil.atOrAbove("1.20.5")) return item;
 
         meta.getPersistentDataContainer().set(UNSTACKABLE_KEY, DataType.UUID, UUID.randomUUID());
         item.setItemMeta(meta);
