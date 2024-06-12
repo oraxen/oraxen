@@ -679,15 +679,15 @@ public class ItemBuilder {
         final int iterations = amount > max ? (amount - rest) / max : 0;
         final ItemStack[] output = new ItemStack[iterations + (rest > 0 ? 1 : 0)];
         for (int index = 0; index < iterations; index++) {
-            final ItemStack clone = built.clone();
+            ItemStack clone = built.clone();
             clone.setAmount(max);
-            if (unstackable) handleUnstackable(clone);
+            if (unstackable) clone = handleUnstackable(clone);
             output[index] = ItemUpdater.updateItem(clone);
         }
         if (rest != 0) {
             ItemStack clone = built.clone();
             clone.setAmount(rest);
-            if (unstackable) handleUnstackable(clone);
+            if (unstackable) clone = handleUnstackable(clone);
             output[iterations] = ItemUpdater.updateItem(clone);
         }
         return output;
@@ -702,7 +702,6 @@ public class ItemBuilder {
     private ItemStack handleUnstackable(ItemStack item) {
         ItemMeta meta = item.getItemMeta();
         if (meta == null || VersionUtil.atOrAbove("1.20.5")) return item;
-
         meta.getPersistentDataContainer().set(UNSTACKABLE_KEY, DataType.UUID, UUID.randomUUID());
         item.setItemMeta(meta);
         item.setAmount(1);
