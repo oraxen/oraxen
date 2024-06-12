@@ -36,6 +36,7 @@ public class Slicer {
 //    }
 
     public static void writeImage(ResourcePack resourcePack, final Key newKey, final BufferedImage image) throws IOException {
+        if (resourcePack.texture(newKey) != null) return;
         try (final ByteArrayOutputStream os = new ByteArrayOutputStream()) {
             ImageIO.write(image, "png", os);
             resourcePack.texture(newKey, Writable.bytes(os.toByteArray()));
