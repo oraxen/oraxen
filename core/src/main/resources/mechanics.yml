@@ -7,12 +7,6 @@ armor_effects:
   enabled: true
   delay_in_ticks: 20
 
-consumable:
-  enabled: true
-
-consumable_potion_effects:
-  enabled: true
-
 custom:
   enabled: true
 

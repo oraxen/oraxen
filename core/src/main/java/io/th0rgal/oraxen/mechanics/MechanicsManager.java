@@ -23,8 +23,6 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.repair.RepairMechanicFactor
 import io.th0rgal.oraxen.mechanics.provided.misc.armor_effects.ArmorEffectsFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.backpack.BackpackMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.commands.CommandsMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.misc.consumable.ConsumableMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.misc.consumablepotioneffects.ConsumablePotionEffectsFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.custom.CustomMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.food.FoodMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanicFactory;
@@ -53,10 +51,8 @@ public class MechanicsManager {
     public static void registerNativeMechanics() {
         // misc
         registerFactory("armor_effects", ArmorEffectsFactory::new);
-        registerFactory("consumable_potion_effects", ConsumablePotionEffectsFactory::new);
         registerFactory("soulbound", SoulBoundMechanicFactory::new);
         registerFactory("itemtype", ItemTypeMechanicFactory::new);
-        registerFactory("consumable", ConsumableMechanicFactory::new);
         registerFactory("custom", CustomMechanicFactory::new);
         registerFactory("commands", CommandsMechanicFactory::new);
         registerFactory("backpack", BackpackMechanicFactory::new);
