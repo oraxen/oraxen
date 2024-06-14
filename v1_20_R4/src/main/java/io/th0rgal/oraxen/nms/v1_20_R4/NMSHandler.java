@@ -111,7 +111,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
                             @Override
                             public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
-                                if (msg instanceof ClientboundFinishConfigurationPacket) {
+                                if (msg instanceof ClientboundFinishConfigurationPacket && connection.getPlayer().getBukkitEntity().getResourcePackStatus() == null) {
                                     OraxenPackServer packServer = OraxenPlugin.get().packServer();
                                     ResourcePackInfo packInfo = packServer.packInfo();
 
@@ -129,10 +129,12 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                             @Override
                             public void channelRead(ChannelHandlerContext ctx, Object msg) {
                                 if (msg instanceof ServerboundResourcePackPacket packet && packet.id().equals(OraxenPlugin.get().packServer().packInfo().id())) {
-                                    if (!finishConfigPhase(packet.action())) return;
-                                    ctx.pipeline().remove(this); // We no longer need to listen or process ClientboundFinishConfigurationPacket that we send ourselves
-                                    connection.send(ClientboundFinishConfigurationPacket.INSTANCE);
-                                    return;
+                                    //TODO Patch this not sending for terminal actions due to throwing an error
+                                    if (packet.action().isTerminal()) {
+                                        ctx.pipeline().remove(this);
+                                        connection.send(ClientboundFinishConfigurationPacket.INSTANCE);
+                                        return;
+                                    }
                                 }
                                 ctx.fireChannelRead(msg);
                             }
@@ -143,13 +145,6 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     @Override
     public void unregisterConfigPhaseListener() {
         ChannelInitializeListenerHolder.removeListener(CONFIG_PHASE_PACKET_LISTENER);
-    }
-
-    private boolean finishConfigPhase(ServerboundResourcePackPacket.Action action) {
-        return action == ServerboundResourcePackPacket.Action.SUCCESSFULLY_LOADED
-                || action == ServerboundResourcePackPacket.Action.FAILED_DOWNLOAD
-                || action == ServerboundResourcePackPacket.Action.FAILED_RELOAD
-                || action == ServerboundResourcePackPacket.Action.DISCARDED;
     }
 
     @Override
