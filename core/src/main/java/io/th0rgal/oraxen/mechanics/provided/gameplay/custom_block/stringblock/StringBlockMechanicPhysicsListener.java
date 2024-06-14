@@ -3,7 +3,10 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
+import io.th0rgal.oraxen.api.events.custom_block.OraxenBlockDropLootEvent;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.EventUtils;
+import io.th0rgal.oraxen.utils.drops.DroppedLoot;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -58,7 +61,8 @@ public class StringBlockMechanicPhysicsListener implements Listener {
 
             block.setType(Material.AIR, false);
 
-            mechanic.breakable().drop().spawns(block.getLocation(), new ItemStack(Material.AIR));
+            List<DroppedLoot> loots = mechanic.breakable().drop().spawns(block.getLocation(), new ItemStack(Material.AIR));
+            EventUtils.callEvent(new OraxenBlockDropLootEvent(mechanic, block, null, loots));
         }
     }
 
