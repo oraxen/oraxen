@@ -2,9 +2,10 @@ package io.th0rgal.oraxen.api;
 
 import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.api.events.custom_block.OraxenBlockDropLootEvent;
 import io.th0rgal.oraxen.api.events.custom_block.noteblock.OraxenNoteBlockBreakEvent;
+import io.th0rgal.oraxen.api.events.custom_block.noteblock.OraxenNoteBlockDropLootEvent;
 import io.th0rgal.oraxen.api.events.custom_block.stringblock.OraxenStringBlockBreakEvent;
+import io.th0rgal.oraxen.api.events.custom_block.stringblock.OraxenStringBlockDropLootEvent;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.BreakableMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.NoteBlockMechanic;
@@ -280,7 +281,7 @@ public class OraxenBlocks {
         if (drop != null) {
             List<DroppedLoot> loots = drop.spawns(loc, itemInHand);
             if (!loots.isEmpty()) {
-                EventUtils.callEvent(new OraxenBlockDropLootEvent(mechanic, block, player, loots));
+                EventUtils.callEvent(new OraxenNoteBlockDropLootEvent(mechanic, block, player, loots));
             }
         }
 
@@ -315,7 +316,7 @@ public class OraxenBlocks {
 
         if (drop != null) {
             List<DroppedLoot> loots = drop.spawns(block.getLocation(), itemInHand);
-            EventUtils.callEvent(new OraxenBlockDropLootEvent(mechanic, block, player, loots));
+            EventUtils.callEvent(new OraxenStringBlockDropLootEvent(mechanic, block, player, loots));
         }
 
         final Block blockAbove = block.getRelative(BlockFace.UP);

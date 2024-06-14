@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class OraxenBlockDropLootEvent extends Event {
+public class OraxenCustomBlockDropLootEvent extends Event {
     private static final HandlerList HANDLERS = new HandlerList();
 
     private final CustomBlockMechanic mechanic;
@@ -19,7 +19,7 @@ public class OraxenBlockDropLootEvent extends Event {
     private final Block block;
     private final List<DroppedLoot> loots;
 
-    public OraxenBlockDropLootEvent(@NotNull final CustomBlockMechanic mechanic, @NotNull final Block block, final Player player, @NotNull List<DroppedLoot> loots) {
+    public OraxenCustomBlockDropLootEvent(@NotNull final CustomBlockMechanic mechanic, @NotNull final Block block, final Player player, @NotNull List<DroppedLoot> loots) {
         this.mechanic = mechanic;
         this.block = block;
         this.player = player;

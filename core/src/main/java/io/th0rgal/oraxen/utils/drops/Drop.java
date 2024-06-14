@@ -2,12 +2,10 @@ package io.th0rgal.oraxen.utils.drops;
 
 import dev.jorel.commandapi.wrappers.IntegerRange;
 import io.th0rgal.oraxen.api.OraxenItems;
-import io.th0rgal.oraxen.api.events.custom_block.OraxenBlockDropLootEvent;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureHelpers;
 import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanic;
 import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
-import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.wrappers.EnchantmentWrapper;
 import org.bukkit.Location;
