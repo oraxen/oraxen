@@ -7,7 +7,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -19,14 +18,13 @@ public class OraxenCustomBlockDropLootEvent extends Event {
     private final Block block;
     private final List<DroppedLoot> loots;
 
-    public OraxenCustomBlockDropLootEvent(@NotNull final CustomBlockMechanic mechanic, @NotNull final Block block, final Player player, @NotNull List<DroppedLoot> loots) {
+    public OraxenCustomBlockDropLootEvent(@NotNull final CustomBlockMechanic mechanic, @NotNull final Block block, @NotNull final Player player, @NotNull List<DroppedLoot> loots) {
         this.mechanic = mechanic;
         this.block = block;
         this.player = player;
         this.loots = loots;
     }
 
-    @Nullable
     public Player getPlayer() {
         return player;
     }
