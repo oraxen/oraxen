@@ -280,7 +280,7 @@ public class OraxenBlocks {
 
         if (drop != null) {
             List<DroppedLoot> loots = drop.spawns(loc, itemInHand);
-            if (!loots.isEmpty()) {
+            if (!loots.isEmpty() && player != null) {
                 EventUtils.callEvent(new OraxenNoteBlockDropLootEvent(mechanic, block, player, loots));
             }
         }
@@ -316,7 +316,9 @@ public class OraxenBlocks {
 
         if (drop != null) {
             List<DroppedLoot> loots = drop.spawns(block.getLocation(), itemInHand);
-            EventUtils.callEvent(new OraxenStringBlockDropLootEvent(mechanic, block, player, loots));
+            if (!loots.isEmpty() && player != null) {
+                EventUtils.callEvent(new OraxenStringBlockDropLootEvent(mechanic, block, player, loots));
+            }
         }
 
         final Block blockAbove = block.getRelative(BlockFace.UP);
