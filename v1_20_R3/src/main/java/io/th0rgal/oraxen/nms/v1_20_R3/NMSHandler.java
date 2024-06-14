@@ -58,6 +58,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
+import static io.th0rgal.oraxen.pack.PackListener.CONFIG_PHASE_PACKET_LISTENER;
+
 @SuppressWarnings("unused")
 public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
@@ -79,10 +81,9 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     }
 
     @Override
-    public void registerConfigurationPacketListener() {
-        NamespacedKey key = NamespacedKey.fromString("configuration_listener", OraxenPlugin.get());
-        ChannelInitializeListenerHolder.addListener(key, channel ->
-                channel.pipeline().addBefore("packet_handler", key.toString(), new ChannelDuplexHandler() {
+    public void registerConfigPhaseListener() {
+        ChannelInitializeListenerHolder.addListener(CONFIG_PHASE_PACKET_LISTENER, channel ->
+                channel.pipeline().addBefore("packet_handler", CONFIG_PHASE_PACKET_LISTENER.toString(), new ChannelDuplexHandler() {
                             private final Connection connection = (Connection) channel.pipeline().get("packet_handler");
 
                             @Override
@@ -114,6 +115,11 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                             }
                         }
                 ));
+    }
+
+    @Override
+    public void unregisterConfigPhaseListener() {
+        ChannelInitializeListenerHolder.removeListener(CONFIG_PHASE_PACKET_LISTENER);
     }
 
     private boolean finishConfigPhase(ServerboundResourcePackPacket.Action action) {

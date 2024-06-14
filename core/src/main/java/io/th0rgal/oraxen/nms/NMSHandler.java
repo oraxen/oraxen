@@ -29,7 +29,8 @@ public interface NMSHandler {
      * <p>
      * Note: Only works for 1.20.3+ Paper-Servers
      */
-    default void registerConfigurationPacketListener() {}
+    default void registerConfigPhaseListener() {}
+    default void unregisterConfigPhaseListener() {}
 
     boolean noteblockUpdatesDisabled();
 

@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -14,9 +15,12 @@ import org.bukkit.event.player.PlayerResourcePackStatusEvent;
 
 public class PackListener implements Listener {
 
+    public static NamespacedKey CONFIG_PHASE_PACKET_LISTENER = NamespacedKey.fromString("configuration_listener", OraxenPlugin.get());
+
     public PackListener() {
+        NMSHandlers.getHandler().unregisterConfigPhaseListener();
         if (Settings.PACK_SEND_PRE_JOIN.toBool() && VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.20.3"))
-            NMSHandlers.getHandler().registerConfigurationPacketListener();
+            NMSHandlers.getHandler().registerConfigPhaseListener();
     }
 
     @EventHandler(priority = EventPriority.NORMAL)
