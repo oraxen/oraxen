@@ -84,6 +84,10 @@ public class Loot {
         return this;
     }
 
+    public String sourceID() {
+        return sourceID;
+    }
+
     public double probability() {
         return probability;
     }
@@ -92,9 +96,11 @@ public class Loot {
         return this.amount;
     }
 
-    public void dropNaturally(Location location, int amountMultiplier) {
-        if (Math.random() <= probability)
-            dropItems(location, amountMultiplier);
+    public int dropNaturally(Location location, int amountMultiplier) {
+        if (Math.random() <= probability) {
+            return dropItems(location, amountMultiplier);
+        }
+        return 0;
     }
 
     public ItemStack getItem(int amountMultiplier) {
@@ -104,7 +110,12 @@ public class Loot {
         return ItemUpdater.updateItem(stack);
     }
 
-    private void dropItems(Location location, int amountMultiplier) {
-        if (location.getWorld() != null) location.getWorld().dropItemNaturally(location, getItem(amountMultiplier));
+    private int dropItems(Location location, int amountMultiplier) {
+        ItemStack item = getItem(amountMultiplier);
+        if (location.getWorld() != null) {
+            location.getWorld().dropItemNaturally(location, item);
+            return item.getAmount();
+        }
+        return 0;
     }
 }

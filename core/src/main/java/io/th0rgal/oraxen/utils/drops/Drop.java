@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.utils.drops;
 
+import dev.jorel.commandapi.wrappers.IntegerRange;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureHelpers;
 import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanic;
@@ -139,13 +140,16 @@ public class Drop {
         return this;
     }
 
-    public void spawns(Location location, ItemStack itemInHand) {
-        if (!canDrop(itemInHand) || !BlockHelpers.isLoaded(location)) return;
+    public List<DroppedLoot> spawns(Location location, ItemStack itemInHand) {
+        if (!canDrop(itemInHand) || !BlockHelpers.isLoaded(location)) return List.of();
         ItemStack baseItem = OraxenItems.getItemById(sourceID).build();
 
-        if (silktouch && itemInHand.hasItemMeta() && itemInHand.getItemMeta().hasEnchant(EnchantmentWrapper.SILK_TOUCH))
+        if (silktouch && itemInHand.hasItemMeta() && itemInHand.getItemMeta().hasEnchant(EnchantmentWrapper.SILK_TOUCH)) {
             location.getWorld().dropItemNaturally(BlockHelpers.toCenterBlockLocation(location), baseItem);
-        else dropLoot(loots, location, getFortuneMultiplier(itemInHand));
+            return List.of(new DroppedLoot(new Loot(sourceID, baseItem, 1, new IntegerRange(1, 1)), 1));
+        } else {
+            return dropLoot(loots, location, getFortuneMultiplier(itemInHand));
+        }
     }
 
     public void furnitureSpawns(Entity baseEntity, ItemStack itemInHand) {
@@ -187,8 +191,17 @@ public class Drop {
         return fortuneMultiplier;
     }
 
-    private void dropLoot(List<Loot> loots, Location location, int fortuneMultiplier) {
-        for (Loot loot : loots) loot.dropNaturally(location, fortuneMultiplier);
+    private List<DroppedLoot> dropLoot(List<Loot> loots, Location location, int fortuneMultiplier) {
+        List<DroppedLoot> droppedLoots = new ArrayList<>();
+
+        for (Loot loot : loots) {
+            int droppedAmount = loot.dropNaturally(location, fortuneMultiplier);
+            if (droppedAmount > 0) {
+                droppedLoots.add(new DroppedLoot(loot, droppedAmount));
+            }
+        }
+
+        return droppedLoots;
     }
 
     /**
