@@ -62,6 +62,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.NoteBlockMechanicFactory.MINEABLE_PACKET_LISTENER;
 import static io.th0rgal.oraxen.pack.PackListener.CONFIG_PHASE_PACKET_LISTENER;
 
 public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
@@ -73,11 +74,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         this.glyphHandler = new io.th0rgal.oraxen.nms.v1_20_R4.GlyphHandler();
 
         // mineableWith tag handling
-        NamespacedKey tagKey = NamespacedKey.fromString("mineable_with_key", OraxenPlugin.get());
-        if (ChannelInitializeListenerHolder.hasListener(tagKey)) return;
-        ChannelInitializeListenerHolder.addListener(tagKey, (channel ->
-                channel.pipeline().addBefore("packet_handler", tagKey.asString(), new ChannelDuplexHandler() {
-                    Connection connection = (Connection) channel.pipeline().get("packet_handler");
+        ChannelInitializeListenerHolder.addListener(MINEABLE_PACKET_LISTENER, (channel ->
+                channel.pipeline().addBefore("packet_handler", MINEABLE_PACKET_LISTENER.asString(), new ChannelDuplexHandler() {
                     TagNetworkSerialization.NetworkPayload payload = createPayload();
 
                     @Override

@@ -15,6 +15,7 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import org.apache.commons.lang3.Range;
 import org.bukkit.Instrument;
+import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.NoteBlock;
 import org.bukkit.configuration.ConfigurationSection;
@@ -29,6 +30,7 @@ import java.util.*;
 
 public class NoteBlockMechanicFactory extends MechanicFactory {
 
+    public static final NamespacedKey MINEABLE_PACKET_LISTENER = NamespacedKey.fromString("mineable_with_key", OraxenPlugin.get());
     private static final Integer MAX_PER_INSTRUMENT = 50;
     public static final Integer MAX_BLOCK_VARIATION = Instrument.values().length * MAX_PER_INSTRUMENT - 1;
     public static final Map<Integer, NoteBlockMechanic> BLOCK_PER_VARIATION = new HashMap<>();
