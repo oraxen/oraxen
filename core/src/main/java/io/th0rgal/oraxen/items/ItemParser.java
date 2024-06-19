@@ -140,13 +140,13 @@ public class ItemParser {
     }
 
     private void parseDataComponents(ItemBuilder item) {
+        if (section.contains("itemname") && VersionUtil.atOrAbove("1.20.5")) item.setItemName(section.getString("itemname"));
+        else if (section.contains("displayname")) item.setItemName(section.getString("displayname"));
+
         ConfigurationSection components = section.getConfigurationSection("Components");
         if (components == null || !VersionUtil.atOrAbove("1.20.5")) return;
 
         if (components.contains("max_stack_size")) item.setMaxStackSize(Math.clamp(components.getInt("max_stack_size"), 1, 99));
-
-        if (section.contains("itemname")) item.setItemName(components.getString("itemname"));
-        else if (section.contains("displayname")) item.setItemName(components.getString("displayname"));
 
         if (components.contains("enchantment_glint_override")) item.setEnchantmentGlindOverride(components.getBoolean("enchantment_glint_override"));
         if (components.contains("durability")) {
