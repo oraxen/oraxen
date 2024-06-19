@@ -28,6 +28,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 
 import javax.annotation.Nullable;
 
+@Deprecated(forRemoval = true, since = "1.21")
 public class MusicDiscListener implements Listener {
 
     private final MusicDiscMechanicFactory factory;
