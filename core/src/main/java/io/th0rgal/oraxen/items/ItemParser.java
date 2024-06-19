@@ -155,8 +155,8 @@ public class ItemParser {
             item.setDurability(Math.max(components.getInt("durability.value"), components.getInt("durability", 1)));
         }
         if (components.contains("rarity")) item.setRarity(ItemRarity.valueOf(components.getString("rarity")));
-        item.setFireResistant(components.getBoolean("fire_resistant"));
-        item.setHideToolTips(components.getBoolean("hide_tooltips"));
+        if (components.contains("fire_resistant")) item.setFireResistant(components.getBoolean("fire_resistant"));
+        if (components.contains("hide_tooltips")) item.setHideToolTips(components.getBoolean("hide_tooltips"));
 
         ConfigurationSection foodSection = components.getConfigurationSection("food");
         if (foodSection != null) {
@@ -246,6 +246,7 @@ public class ItemParser {
             if (attributes != null) for (LinkedHashMap<String, Object> attributeJson : attributes) {
                 attributeJson.putIfAbsent("uuid", UUID.randomUUID().toString());
                 attributeJson.putIfAbsent("name", "oraxen:modifier");
+                attributeJson.putIfAbsent("key", "oraxen:modifier");
                 AttributeModifier attributeModifier = AttributeModifier.deserialize(attributeJson);
                 Attribute attribute = Attribute.valueOf((String) attributeJson.get("attribute"));
                 item.addAttributeModifiers(attribute, attributeModifier);

@@ -82,8 +82,10 @@ public class ItemBuilder {
     private Integer maxStackSize;
     @Nullable
     private String itemName;
-    private boolean fireResistant;
-    private boolean hideToolTips;
+    @Nullable
+    private Boolean fireResistant;
+    @Nullable
+    private Boolean hideToolTips;
     @Nullable
     private ItemRarity rarity;
     @Nullable
@@ -162,7 +164,7 @@ public class ItemBuilder {
             attributeModifiers = itemMeta.getAttributeModifiers();
 
         hasCustomModelData = itemMeta.hasCustomModelData();
-        if (itemMeta.hasCustomModelData())
+        if (hasCustomModelData)
             customModelData = itemMeta.getCustomModelData();
 
         if (itemMeta.hasLore()) {
@@ -175,9 +177,12 @@ public class ItemBuilder {
         enchantments = new HashMap<>();
 
         if (VersionUtil.atOrAbove("1.20.5")) {
-            if (VersionUtil.isPaperServer() && itemMeta.hasItemName())
-                itemName = AdventureUtils.MINI_MESSAGE.serialize(itemMeta.itemName());
-            else itemName = itemMeta.getItemName();
+            if (itemMeta.hasItemName()) {
+                if (VersionUtil.isPaperServer())
+                    itemName = AdventureUtils.MINI_MESSAGE.serialize(itemMeta.itemName());
+                else itemName = itemMeta.getItemName();
+            } else itemName = null;
+
             durability = (itemMeta instanceof Damageable damageable) && damageable.hasMaxDamage() ? damageable.getMaxDamage() : null;
             fireResistant = itemMeta.isFireResistant();
             hideToolTips = itemMeta.isHideTooltip();
@@ -532,14 +537,16 @@ public class ItemBuilder {
         // 1.20.5+ properties
         if (VersionUtil.atOrAbove("1.20.5")) {
             if (itemMeta instanceof Damageable damageable) damageable.setMaxDamage(durability);
-            if (VersionUtil.isPaperServer()) itemMeta.itemName(AdventureUtils.MINI_MESSAGE.deserialize(itemName));
-            else itemMeta.setItemName(itemName);
-            itemMeta.setMaxStackSize(maxStackSize);
-            itemMeta.setEnchantmentGlintOverride(enchantmentGlintOverride);
-            itemMeta.setRarity(rarity);
-            itemMeta.setFood(foodComponent);
-            itemMeta.setFireResistant(fireResistant);
-            itemMeta.setHideTooltip(hideToolTips);
+            if (itemName != null) {
+                if (VersionUtil.isPaperServer()) itemMeta.itemName(AdventureUtils.MINI_MESSAGE.deserialize(itemName));
+                else itemMeta.setItemName(itemName);
+            }
+            if (maxStackSize != null) itemMeta.setMaxStackSize(maxStackSize);
+            if (enchantmentGlintOverride != null) itemMeta.setEnchantmentGlintOverride(enchantmentGlintOverride);
+            if (rarity != null) itemMeta.setRarity(rarity);
+            if (foodComponent != null) itemMeta.setFood(foodComponent);
+            if (fireResistant != null) itemMeta.setFireResistant(fireResistant);
+            if (hideToolTips != null) itemMeta.setHideTooltip(hideToolTips);
         }
 
         handleVariousMeta(itemMeta);

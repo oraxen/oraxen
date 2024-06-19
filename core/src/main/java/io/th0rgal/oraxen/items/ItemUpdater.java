@@ -151,7 +151,7 @@ public class ItemUpdater implements Listener {
             for (Map.Entry<Enchantment, Integer> entry : newMeta.getEnchants().entrySet().stream().filter(e -> !oldMeta.getEnchants().containsKey(e.getKey())).toList())
                 itemMeta.addEnchant(entry.getKey(), entry.getValue(), true);
 
-            int cmd = newMeta.hasCustomModelData() ? newMeta.getCustomModelData() : oldMeta.hasCustomModelData() ? oldMeta.getCustomModelData() : 0;
+            Integer cmd = newMeta.hasCustomModelData() ? (Integer) newMeta.getCustomModelData() : oldMeta.hasCustomModelData() ? (Integer) oldMeta.getCustomModelData() : null;
             itemMeta.setCustomModelData(cmd);
 
             // If OraxenItem has no lore, we should assume that 3rd-party plugin has added lore
@@ -160,7 +160,7 @@ public class ItemUpdater implements Listener {
 
             // Only change AttributeModifiers if the new item has some
             if (newMeta.hasAttributeModifiers()) itemMeta.setAttributeModifiers(newMeta.getAttributeModifiers());
-            else itemMeta.setAttributeModifiers(oldMeta.getAttributeModifiers());
+            else if (oldMeta.hasAttributeModifiers()) itemMeta.setAttributeModifiers(oldMeta.getAttributeModifiers());
 
             // Transfer over durability from old item
             if (itemMeta instanceof Damageable damageable && oldMeta instanceof Damageable oldDmg) {
