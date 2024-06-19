@@ -254,7 +254,7 @@ public class ItemBuilder {
 
     public ItemBuilder setUnstackable(final boolean unstackable) {
         this.unstackable = unstackable;
-        if (VersionUtil.atOrAbove("1.20.5")) this.setMaxStackSize(1);
+        if (VersionUtil.atOrAbove("1.20.5")) maxStackSize = 1;
         return this;
     }
 
