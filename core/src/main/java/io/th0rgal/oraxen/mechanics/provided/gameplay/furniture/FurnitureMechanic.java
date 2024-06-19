@@ -9,6 +9,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.provided.blocklocker.BlockLockerMechanic;
+import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolvingFurniture;
@@ -64,7 +65,6 @@ public class FurnitureMechanic extends Mechanic {
     private final LightMechanic light;
     private final String modelEngineID;
     private final String placedItemId;
-    private ItemStack placedItem;
     private float seatHeight;
     private float seatYaw;
     private final List<ClickAction> clickActions;
@@ -118,7 +118,7 @@ public class FurnitureMechanic extends Mechanic {
         super(mechanicFactory, section, itemBuilder -> itemBuilder.setCustomTag(FURNITURE_KEY, PersistentDataType.BYTE, (byte) 1));
 
         hardness = section.getInt("hardness", 1);
-        placedItemId = section.getString("item", null);
+        placedItemId = section.getString("item", "");
         modelEngineID = section.getString("modelengine_id", null);
         farmlandRequired = section.getBoolean("farmland_required", false);
         farmblockRequired = section.getBoolean("farmblock_required", false);
@@ -352,37 +352,28 @@ public class FurnitureMechanic extends Mechanic {
         return isRotatable || hasSeat || isStorage();
     }
 
-    public void setPlacedItem() {
-        if (placedItem == null) {
-            placedItem = OraxenItems.getItemById(placedItemId != null ? placedItemId : getItemID()).build();
-            //Utils.editItemMeta(placedItem, meta -> meta.setDisplayName(""));
-        }
-    }
-
     public Entity place(Location location) {
-        setPlacedItem();
-        return place(location, placedItem, 0f, BlockFace.NORTH, true);
+
+        return place(location, OraxenItems.getItemById(getItemID()).build(), 0f, BlockFace.NORTH, true);
     }
 
     public Entity place(Location location, Float yaw, BlockFace facing) {
-        setPlacedItem();
-        return place(location, placedItem, yaw, facing, true);
+        return place(location, OraxenItems.getItemById(getItemID()).build(), yaw, facing, true);
     }
 
     public Entity place(Location location, ItemStack originalItem, Float yaw, BlockFace facing, boolean checkSpace) {
         if (!location.isWorldLoaded()) return null;
         if (checkSpace && this.notEnoughSpace(yaw, location)) return null;
         assert location.getWorld() != null;
-        setPlacedItem();
         assert location.getWorld() != null;
 
         Class<? extends Entity> entityClass = getFurnitureEntityType().getEntityClass();
         if (entityClass == null) entityClass = ItemFrame.class;
 
-        ItemStack item;
+        ItemStack item = OraxenItems.getOptionalItemById(placedItemId).map(b -> b.build().clone()).orElse(originalItem);
         if (evolvingFurniture == null) {
-            item = ItemUtils.editItemMeta(originalItem.clone(), meta -> meta.setDisplayName(""));
-        } else item = placedItem;
+            ItemUtils.editItemMeta(item, meta -> meta.setDisplayName(""));
+        }
         item.setAmount(1);
 
         Entity baseEntity = EntityUtils.spawnEntity(correctedSpawnLocation(location, facing), entityClass, (e) -> setEntityData(e, yaw, item, facing));
