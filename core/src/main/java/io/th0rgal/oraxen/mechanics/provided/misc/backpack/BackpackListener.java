@@ -128,7 +128,7 @@ public class BackpackListener implements Listener {
     }
 
     private void closeBackpack(Player player) {
-        InventoryHolder holder = player.getOpenInventory().getTopInventory().getHolder();
+        InventoryHolder holder = InventoryUtils.topInventoryForPlayer(player).getHolder();
         if (!isBackpack(player.getInventory().getItemInMainHand())) return;
         if (holder instanceof StorageGui gui)
             gui.close(player, true);

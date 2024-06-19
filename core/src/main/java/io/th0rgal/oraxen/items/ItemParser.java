@@ -14,8 +14,6 @@ import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -27,10 +25,10 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemRarity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.components.FoodComponent;
+import org.bukkit.inventory.meta.components.JukeboxPlayableComponent;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Function;
@@ -91,21 +89,6 @@ public class ItemParser {
 
     public boolean usesTemplate() {
         return templateItem != null;
-    }
-
-    @Nullable
-    public static String parseComponentItemName(@Nullable String miniString) {
-        if (miniString == null) return null;
-        if (miniString.isEmpty()) return miniString;
-        Component component = AdventureUtils.MINI_MESSAGE.deserialize(miniString.replace("§", "\\§"));
-        // If it has no formatting, set color to WHITE to prevent Italic
-        return AdventureUtils.LEGACY_SERIALIZER.serialize(component.colorIfAbsent(NamedTextColor.WHITE));
-    }
-
-    public static String parseComponentLore(String miniString) {
-        Component component = AdventureUtils.MINI_MESSAGE.deserialize(miniString);
-        // If it has no formatting, set color to WHITE to prevent Italic
-        return AdventureUtils.LEGACY_SERIALIZER.serialize(component);
     }
 
     public ItemBuilder buildItem() {
@@ -184,6 +167,16 @@ public class ItemParser {
                 }
             }
             item.setFoodComponent(foodComponent);
+        }
+
+        if (!VersionUtil.atOrAbove("1.21")) return;
+
+        ConfigurationSection jukeboxSection = components.getConfigurationSection("jukebox_playable");
+        if (jukeboxSection != null) {
+            JukeboxPlayableComponent jukeboxPlayable = new ItemStack(Material.MUSIC_DISC_CREATOR).getItemMeta().getJukeboxPlayable();
+            jukeboxPlayable.setShowInTooltip(jukeboxSection.getBoolean("show_in_tooltip"));
+            jukeboxPlayable.setSongKey(NamespacedKey.fromString(jukeboxSection.getString("song_key")));
+            item.setJukeboxPlayable(jukeboxPlayable);
         }
     }
 

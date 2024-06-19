@@ -211,6 +211,11 @@ public class ItemUpdater implements Listener {
                 }
             }
 
+            if (VersionUtil.atOrAbove("1.21")) {
+                if (newMeta.hasJukeboxPlayable()) itemMeta.setJukeboxPlayable(newMeta.getJukeboxPlayable());
+                else if (oldMeta.hasJukeboxPlayable()) itemMeta.setJukeboxPlayable(oldMeta.getJukeboxPlayable());
+            }
+
             // On 1.20.5+ we use ItemName which is different from userchanged displaynames
             // Thus removing the need for this logic
             if (!VersionUtil.atOrAbove("1.20.5")) {
