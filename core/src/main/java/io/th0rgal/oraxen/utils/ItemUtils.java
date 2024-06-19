@@ -107,4 +107,13 @@ public class ItemUtils {
     public static boolean hasInventoryParent(Material material) {
         return Tag.WALLS.isTagged(material) || Tag.FENCES.isTagged(material) || Tag.BUTTONS.isTagged(material) || material == Material.PISTON || material == Material.STICKY_PISTON || (VersionUtil.atOrAbove("1.20") && material == Material.CHISELED_BOOKSHELF) || material == Material.BROWN_MUSHROOM_BLOCK || material == Material.RED_MUSHROOM_BLOCK || material == Material.MUSHROOM_STEM;
     }
+
+    public static boolean isMusicDisc(ItemStack itemStack) {
+        if (itemStack == null) return false;
+        if (VersionUtil.atOrAbove("1.21")) {
+            return itemStack.hasItemMeta() && itemStack.getItemMeta().hasJukeboxPlayable();
+        } else {
+            return itemStack.getType().name().startsWith("MUSIC_DISC");
+        }
+    }
 }
