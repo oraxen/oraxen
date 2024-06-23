@@ -121,8 +121,10 @@ public class OraxenPlugin extends JavaPlugin {
         RecipesManager.load(this);
         invManager = new InvManager();
         ArmorEquipEvent.registerListener(this);
-        Bukkit.getPluginManager().registerEvents(new TuneBlockListeners(), this);
-        CustomBlockData.registerListener(this);
+        if (Settings.REIMPLEMENT_NOTEBLOCK_FEATURES.toBool()) {
+            Bukkit.getPluginManager().registerEvents(new TuneBlockListeners(), this);
+            CustomBlockData.registerListener(this);
+        }
         new CommandsManager().loadCommands();
 
         packServer = OraxenPackServer.initializeServer();
