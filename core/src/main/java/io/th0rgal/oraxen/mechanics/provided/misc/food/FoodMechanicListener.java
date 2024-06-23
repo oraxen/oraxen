@@ -14,6 +14,7 @@ import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
+@Deprecated(forRemoval = true, since = "1.20.6")
 public class FoodMechanicListener implements Listener {
     private final FoodMechanicFactory factory;
 

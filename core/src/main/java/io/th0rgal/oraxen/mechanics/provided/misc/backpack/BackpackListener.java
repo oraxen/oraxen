@@ -5,6 +5,7 @@ import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.StorageGui;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.InventoryUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
@@ -57,7 +58,7 @@ public class BackpackListener implements Listener {
     public void onPlayerSwapHandItems(final PlayerSwapHandItemsEvent event) {
         Player player = event.getPlayer();
         if (!isBackpack(event.getOffHandItem()) && !isBackpack(event.getMainHandItem())) return;
-        if (!(player.getOpenInventory().getTopInventory().getHolder() instanceof StorageGui gui)) return;
+        if (!(InventoryUtils.topInventoryForPlayer(player).getHolder() instanceof StorageGui gui)) return;
         gui.close(player, true);
     }
 
@@ -65,7 +66,7 @@ public class BackpackListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onPickupItem(final EntityPickupItemEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
-        if (!(player.getOpenInventory().getTopInventory().getHolder() instanceof Gui)) return;
+        if (!(InventoryUtils.topInventoryForPlayer(player).getHolder() instanceof Gui)) return;
         closeBackpack(player);
         openBackpack(player);
     }
@@ -127,7 +128,7 @@ public class BackpackListener implements Listener {
     }
 
     private void closeBackpack(Player player) {
-        InventoryHolder holder = player.getOpenInventory().getTopInventory().getHolder();
+        InventoryHolder holder = InventoryUtils.topInventoryForPlayer(player).getHolder();
         if (!isBackpack(player.getInventory().getItemInMainHand())) return;
         if (holder instanceof StorageGui gui)
             gui.close(player, true);

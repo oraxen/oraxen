@@ -10,13 +10,14 @@ import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.ItemUtils;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.SoundCategory;
-import org.bukkit.Tag;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -25,7 +26,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 
@@ -82,8 +82,7 @@ public class JukeboxListener implements Listener {
         Location loc = BlockHelpers.toCenterLocation(baseEntity.getLocation());
 
         if (furnitureMechanic == null || !furnitureMechanic.isJukebox()) return false;
-        if (pdc.has(MUSIC_DISC_KEY, DataType.ITEM_STACK)) return false;
-        if (disc == null || !Tag.ITEMS_MUSIC_DISCS.isTagged(disc.getType())) return false;
+        if (pdc.has(MUSIC_DISC_KEY, DataType.ITEM_STACK) || !ItemUtils.isMusicDisc(disc)) return false;
         JukeboxBlock jukebox = furnitureMechanic.getJukebox();
         if (!jukebox.hasPermission(player)) return false;
         ItemStack insertedDisc = disc.clone();
@@ -102,8 +101,7 @@ public class JukeboxListener implements Listener {
         Location loc = BlockHelpers.toCenterLocation(baseEntity.getLocation());
 
         if (furnitureMechanic == null || !furnitureMechanic.isJukebox()) return false;
-        if (!pdc.has(MUSIC_DISC_KEY, DataType.ITEM_STACK)) return false;
-        if (item == null || !Tag.ITEMS_MUSIC_DISCS.isTagged(item.getType())) return false;
+        if (!pdc.has(MUSIC_DISC_KEY, DataType.ITEM_STACK) || !ItemUtils.isMusicDisc(item)) return false;
 
         JukeboxBlock jukebox = furnitureMechanic.getJukebox();
         if (!jukebox.hasPermission(player)) return false;
@@ -111,13 +109,24 @@ public class JukeboxListener implements Listener {
         baseEntity.getWorld().getNearbyEntities(loc, 32, 32, 32).stream()
                 .filter(entity -> entity instanceof Player)
                 .map(entity -> (Player) entity)
-                .forEach(p -> OraxenPlugin.get().getAudience().player(p).stopSound(Sound.sound(getSongFromDisc(item), Sound.Source.RECORD, jukebox.getVolume(), jukebox.getPitch())));
+                .forEach(p -> {
+                    Key songKey = getSongFromDisc(item);
+                    if (songKey == null) return;
+                    OraxenPlugin.get().getAudience().player(p).stopSound(Sound.sound(songKey, Sound.Source.RECORD, jukebox.getVolume(), jukebox.getPitch()));
+                });
         baseEntity.getWorld().dropItemNaturally(loc, item);
         pdc.remove(MUSIC_DISC_KEY);
         return true;
     }
 
-    private @NotNull Key getSongFromDisc(ItemStack disc) {
-        return Key.key("minecraft", "music_disc." + disc.getType().toString().toLowerCase().split("music_disc_")[1]);
+    @Nullable
+    private Key getSongFromDisc(ItemStack disc) {
+        if (VersionUtil.atOrAbove("1.21")) {
+            return disc.hasItemMeta() && disc.getItemMeta().hasJukeboxPlayable()
+                    ? disc.getItemMeta().getJukeboxPlayable().getSongKey().key()
+                    : null;
+        } else {
+            return Key.key("minecraft", "music_disc." + disc.getType().toString().toLowerCase().split("music_disc_")[1]);
+        }
     }
 }

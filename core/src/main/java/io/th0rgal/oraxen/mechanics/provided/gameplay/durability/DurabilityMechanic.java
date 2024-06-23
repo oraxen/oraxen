@@ -4,7 +4,6 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.ItemUtils;
-import io.th0rgal.oraxen.utils.Utils;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
@@ -14,6 +13,7 @@ import org.bukkit.persistence.PersistentDataType;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+@Deprecated(forRemoval = true, since = "1.20.6")
 public class DurabilityMechanic extends Mechanic {
 
     private final int itemDurability;

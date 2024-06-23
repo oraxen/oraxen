@@ -463,6 +463,7 @@ public class ResourcePack {
 
     private void generateGestureFiles() {
         GestureManager gestureManager = OraxenPlugin.get().getGesturesManager();
+        if (gestureManager == null) return;
         for (Map.Entry<String, String> entry : gestureManager.getPlayerHeadJsons().entrySet())
             writeStringToVirtual(StringUtils.removeEnd(Utils.getParentDirs(entry.getKey()), "/"), Utils.removeParentDirs(entry.getKey()), entry.getValue());
         writeStringToVirtual("assets/minecraft/models/item", "player_head.json", gestureManager.getSkullJson());

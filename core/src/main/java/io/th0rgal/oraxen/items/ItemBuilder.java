@@ -9,15 +9,14 @@ import io.th0rgal.oraxen.compatibilities.provided.ecoitems.WrappedEcoItem;
 import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
 import io.th0rgal.oraxen.config.Settings;
-import io.th0rgal.oraxen.items.helpers.FoodComponentWrapper;
-import io.th0rgal.oraxen.items.helpers.ItemPropertyHandler;
-import io.th0rgal.oraxen.items.helpers.ItemRarityWrapper;
-import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.PotionUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
@@ -25,8 +24,11 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.TropicalFish;
 import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemRarity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
+import org.bukkit.inventory.meta.components.FoodComponent;
+import org.bukkit.inventory.meta.components.JukeboxPlayableComponent;
 import org.bukkit.inventory.meta.trim.ArmorTrim;
 import org.bukkit.inventory.meta.trim.TrimMaterial;
 import org.bukkit.inventory.meta.trim.TrimPattern;
@@ -74,21 +76,27 @@ public class ItemBuilder {
 
     // 1.20.5+ properties
     @Nullable
-    private FoodComponentWrapper foodComponent;
+    private FoodComponent foodComponent;
     @Nullable
     private Boolean enchantmentGlintOverride;
     @Nullable
     private Integer maxStackSize;
     @Nullable
     private String itemName;
-    private boolean fireResistant;
-    private boolean hideToolTips;
     @Nullable
-    private ItemRarityWrapper rarity;
+    private Boolean fireResistant;
+    @Nullable
+    private Boolean hideToolTips;
+    @Nullable
+    private ItemRarity rarity;
     @Nullable
     private Integer durability;
     private boolean damagedOnBlockBreak;
     private boolean damagedOnEntityHit;
+
+    // 1.21+ properties
+    @Nullable
+    private JukeboxPlayableComponent jukeboxPlayable;
 
 
     public ItemBuilder(final Material material) {
@@ -161,7 +169,7 @@ public class ItemBuilder {
             attributeModifiers = itemMeta.getAttributeModifiers();
 
         hasCustomModelData = itemMeta.hasCustomModelData();
-        if (itemMeta.hasCustomModelData())
+        if (hasCustomModelData)
             customModelData = itemMeta.getCustomModelData();
 
         if (itemMeta.hasLore()) {
@@ -174,16 +182,24 @@ public class ItemBuilder {
         enchantments = new HashMap<>();
 
         if (VersionUtil.atOrAbove("1.20.5")) {
-            ItemPropertyHandler itemProperties = NMSHandlers.getHandler().itemPropertyHandler();
-            itemName = itemProperties.getItemName(itemMeta);
-            durability = itemProperties.getDurability(itemMeta);
-            fireResistant = itemProperties.isFireResistant(itemMeta);
-            hideToolTips = itemProperties.isHideTooltip(itemMeta);
-            foodComponent = itemProperties.getFood(itemMeta);
-            enchantmentGlintOverride = itemProperties.getEnchantmentGlintOverride(itemMeta);
-            rarity = itemProperties.getRarity(itemMeta);
-            maxStackSize = itemProperties.getMaxStackSize(itemMeta);
+            if (itemMeta.hasItemName()) {
+                if (VersionUtil.isPaperServer())
+                    itemName = AdventureUtils.MINI_MESSAGE.serialize(itemMeta.itemName());
+                else itemName = itemMeta.getItemName();
+            } else itemName = null;
+
+            durability = (itemMeta instanceof Damageable damageable) && damageable.hasMaxDamage() ? damageable.getMaxDamage() : null;
+            fireResistant = itemMeta.isFireResistant() ? true : null;
+            hideToolTips = itemMeta.isHideTooltip() ? true : null;
+            foodComponent = itemMeta.hasFood() ? itemMeta.getFood() : null;
+            enchantmentGlintOverride = itemMeta.hasEnchantmentGlintOverride() ? itemMeta.getEnchantmentGlintOverride() : null;
+            rarity = itemMeta.hasRarity() ? itemMeta.getRarity() : null;
+            maxStackSize = itemMeta.hasMaxStackSize() ? itemMeta.getMaxStackSize() : null;
             if (maxStackSize != null && maxStackSize == 1) unstackable = true;
+        }
+
+        if (VersionUtil.atOrAbove("1.21")) {
+            jukeboxPlayable = itemMeta.hasJukeboxPlayable() ? itemMeta.getJukeboxPlayable() : null;
         }
 
     }
@@ -204,8 +220,9 @@ public class ItemBuilder {
         return this;
     }
 
+    @Nullable
     public String getDisplayName() {
-        return displayName != null ? displayName : AdventureUtils.MINI_MESSAGE.serialize(itemStack.displayName());
+        return displayName;
     }
 
     public ItemBuilder setDisplayName(final String displayName) {
@@ -251,6 +268,7 @@ public class ItemBuilder {
 
     public ItemBuilder setUnstackable(final boolean unstackable) {
         this.unstackable = unstackable;
+        if (VersionUtil.atOrAbove("1.20.5")) maxStackSize = 1;
         return this;
     }
 
@@ -326,12 +344,26 @@ public class ItemBuilder {
     }
 
     @Nullable
-    public FoodComponentWrapper getFoodComponent() {
+    public FoodComponent getFoodComponent() {
         return foodComponent;
     }
 
-    public ItemBuilder setFoodComponent(FoodComponentWrapper foodComponent) {
+    public ItemBuilder setFoodComponent(FoodComponent foodComponent) {
         this.foodComponent = foodComponent;
+        return this;
+    }
+
+    public boolean hasJukeboxPlayable() {
+        return VersionUtil.atOrAbove("1.21") && jukeboxPlayable != null;
+    }
+
+    @Nullable
+    public JukeboxPlayableComponent getJukeboxPlayable() {
+        return jukeboxPlayable;
+    }
+
+    public ItemBuilder setJukeboxPlayable(JukeboxPlayableComponent jukeboxPlayable) {
+        this.jukeboxPlayable = jukeboxPlayable;
         return this;
     }
 
@@ -354,11 +386,11 @@ public class ItemBuilder {
     }
 
     @Nullable
-    public ItemRarityWrapper getRarity() {
+    public ItemRarity getRarity() {
         return rarity;
     }
 
-    public ItemBuilder setRarity(@Nullable ItemRarityWrapper rarity) {
+    public ItemBuilder setRarity(@Nullable ItemRarity rarity) {
         this.rarity = rarity;
         return this;
     }
@@ -374,7 +406,7 @@ public class ItemBuilder {
     }
 
     public boolean hasMaxStackSize() {
-        return VersionUtil.atOrAbove("1.20.5") && foodComponent != null;
+        return VersionUtil.atOrAbove("1.20.5") && maxStackSize != null;
     }
 
     @Nullable
@@ -526,15 +558,23 @@ public class ItemBuilder {
         ItemMeta itemMeta = itemStack.getItemMeta();
 
         // 1.20.5+ properties
-        ItemPropertyHandler itemProperties = NMSHandlers.getHandler().itemPropertyHandler();
-        itemProperties.setDurability(itemMeta, durability);
-        itemProperties.setItemName(itemMeta, itemName);
-        itemProperties.setMaxStackSize(itemMeta, maxStackSize);
-        itemProperties.setEnchantmentGlintOverride(itemMeta, enchantmentGlintOverride);
-        itemProperties.setRarity(itemMeta, rarity);
-        itemProperties.setFood(itemMeta, foodComponent);
-        itemProperties.setFireResistant(itemMeta, fireResistant);
-        itemProperties.setHideTooltip(itemMeta, hideToolTips);
+        if (VersionUtil.atOrAbove("1.20.5")) {
+            if (itemMeta instanceof Damageable damageable) damageable.setMaxDamage(durability);
+            if (hasItemName()) {
+                if (VersionUtil.isPaperServer()) itemMeta.itemName(AdventureUtils.MINI_MESSAGE.deserialize(itemName));
+                else itemMeta.setItemName(itemName);
+            }
+            if (hasMaxStackSize()) itemMeta.setMaxStackSize(maxStackSize);
+            if (hasEnchantmentGlindOverride()) itemMeta.setEnchantmentGlintOverride(enchantmentGlintOverride);
+            if (hasRarity()) itemMeta.setRarity(rarity);
+            if (hasFoodComponent()) itemMeta.setFood(foodComponent);
+            if (fireResistant != null) itemMeta.setFireResistant(fireResistant);
+            if (hideToolTips != null) itemMeta.setHideTooltip(hideToolTips);
+        }
+
+        if (VersionUtil.atOrAbove("1.21")) {
+            if (hasJukeboxPlayable()) itemMeta.setJukeboxPlayable(jukeboxPlayable);
+        }
 
         handleVariousMeta(itemMeta);
         itemMeta.setUnbreakable(unbreakable);
@@ -542,8 +582,12 @@ public class ItemBuilder {
         PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
         if (!VersionUtil.atOrAbove("1.20.5") && displayName != null) {
             pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, displayName);
-            if (VersionUtil.isPaperServer()) itemMeta.displayName(AdventureUtils.MINI_MESSAGE.deserialize(displayName));
-            else itemMeta.setDisplayName(displayName);
+            if (VersionUtil.isPaperServer()) {
+                Component displayName = AdventureUtils.MINI_MESSAGE.deserialize(this.displayName);
+                displayName = displayName.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE);
+                displayName = displayName.colorIfAbsent(NamedTextColor.WHITE);
+                itemMeta.displayName(displayName);
+            } else itemMeta.setDisplayName(displayName);
         }
 
         if (itemFlags != null)
@@ -567,7 +611,11 @@ public class ItemBuilder {
             for (final Map.Entry<PersistentDataSpace, Object> dataSpace : persistentDataMap.entrySet())
                 pdc.set(dataSpace.getKey().namespacedKey(), (PersistentDataType<?, Object>) dataSpace.getKey().dataType(), dataSpace.getValue());
 
-        if (VersionUtil.isPaperServer()) itemMeta.lore(lore != null? lore.stream().map(AdventureUtils.MINI_MESSAGE::deserialize).toList() : null);
+        if (VersionUtil.isPaperServer()) {
+            @Nullable List<Component> loreLines = lore != null? lore.stream().map(AdventureUtils.MINI_MESSAGE::deserialize).toList() : new ArrayList<>();
+            loreLines = loreLines.stream().map(c -> c.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)).toList();
+            itemMeta.lore(lore != null ? loreLines : null);
+        }
         else itemMeta.setLore(lore);
 
         itemStack.setItemMeta(itemMeta);
@@ -660,20 +708,20 @@ public class ItemBuilder {
 
     public ItemStack[] buildArray(final int amount) {
         final ItemStack built = build();
-        final int max = /*hasMaxStackSize() ? maxStackSize : */type != null ? type.getMaxStackSize() : itemStack.getType().getMaxStackSize();
+        final int max = hasMaxStackSize() ? maxStackSize : type != null ? type.getMaxStackSize() : itemStack.getType().getMaxStackSize();
         final int rest = max == amount ? amount : amount % max;
         final int iterations = amount > max ? (amount - rest) / max : 0;
         final ItemStack[] output = new ItemStack[iterations + (rest > 0 ? 1 : 0)];
         for (int index = 0; index < iterations; index++) {
-            final ItemStack clone = built.clone();
+            ItemStack clone = built.clone();
             clone.setAmount(max);
-            if (unstackable) handleUnstackable(clone);
+            if (unstackable) clone = handleUnstackable(clone);
             output[index] = ItemUpdater.updateItem(clone);
         }
         if (rest != 0) {
             ItemStack clone = built.clone();
             clone.setAmount(rest);
-            if (unstackable) handleUnstackable(clone);
+            if (unstackable) clone = handleUnstackable(clone);
             output[iterations] = ItemUpdater.updateItem(clone);
         }
         return output;
@@ -687,10 +735,7 @@ public class ItemBuilder {
 
     private ItemStack handleUnstackable(ItemStack item) {
         ItemMeta meta = item.getItemMeta();
-        if (meta == null) return item;
-        // handled via maxStackSize component
-        if (VersionUtil.atOrAbove("1.20.5")) return item;
-
+        if (meta == null || VersionUtil.atOrAbove("1.20.5")) return item;
         meta.getPersistentDataContainer().set(UNSTACKABLE_KEY, DataType.UUID, UUID.randomUUID());
         item.setItemMeta(meta);
         item.setAmount(1);

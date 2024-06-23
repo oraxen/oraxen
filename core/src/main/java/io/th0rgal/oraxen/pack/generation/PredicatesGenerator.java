@@ -58,6 +58,7 @@ public class PredicatesGenerator {
 
         // specific items
         switch (material) {
+            case FISHING_ROD -> overrides.add(getOverride("cast", 1, "item/fishing_rod_cast"));
             case SHIELD -> {
                 overrides.add(getOverride("blocking", 1, "item/shield_blocking"));
                 json.addProperty("gui_light", "front");
