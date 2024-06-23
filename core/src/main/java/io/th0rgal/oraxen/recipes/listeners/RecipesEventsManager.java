@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.recipes.CustomRecipe;
+import io.th0rgal.oraxen.utils.InventoryUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.command.CommandSender;
@@ -58,7 +59,7 @@ public class RecipesEventsManager implements Listener {
     public void onCrafted(PrepareItemCraftEvent event) {
         Recipe recipe = event.getRecipe();
         CustomRecipe customRecipe = CustomRecipe.fromRecipe(recipe);
-        Player player = (Player) event.getView().getPlayer();
+        Player player = InventoryUtils.playerFromView(event);
         if (!hasPermission(player, customRecipe)) event.getInventory().setResult(null);
 
         ItemStack result = event.getInventory().getResult();

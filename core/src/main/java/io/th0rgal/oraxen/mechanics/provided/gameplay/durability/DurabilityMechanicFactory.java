@@ -9,6 +9,7 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 
+@Deprecated(forRemoval = true, since = "1.20.6")
 public class DurabilityMechanicFactory extends MechanicFactory {
 
     private static DurabilityMechanicFactory instance;
@@ -20,10 +21,9 @@ public class DurabilityMechanicFactory extends MechanicFactory {
     }
 
     @Override
-    public Mechanic parse(ConfigurationSection section) {
-        Mechanic mechanic = new DurabilityMechanic(this, section);
-        ConfigurationSection itemSection = section.getParent().getParent();
-        if (VersionUtil.atOrAbove("1.20.5") && itemSection.contains("durability")) {
+    public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
+        Mechanic mechanic = new DurabilityMechanic(this, itemMechanicConfiguration);
+        if (VersionUtil.atOrAbove("1.20.5")) {
             Logs.logWarning(mechanic.getItemID() + " is using deprecated Durability-Mechanic...");
             Logs.logWarning("It is heavily advised to swap to the new `durability`-property on 1.20.5+ servers...");
         }

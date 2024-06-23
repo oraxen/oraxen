@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 
+@Deprecated(forRemoval = true, since = "1.21")
 public class RepairMechanicFactory extends MechanicFactory {
 
     private final boolean oraxenDurabilityOnly;

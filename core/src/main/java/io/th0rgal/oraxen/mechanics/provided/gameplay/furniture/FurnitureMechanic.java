@@ -61,6 +61,7 @@ public class FurnitureMechanic extends Mechanic {
     private final EvolvingFurniture evolvingFurniture;
     private final LightMechanic light;
     private final String modelEngineID;
+    private final String placedItemId;
     private final List<FurnitureSeat> seats = new ArrayList<>();
     private final List<ClickAction> clickActions;
     private FurnitureType furnitureType;
@@ -93,6 +94,7 @@ public class FurnitureMechanic extends Mechanic {
     public FurnitureMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section, itemBuilder -> itemBuilder.setCustomTag(FURNITURE_KEY, PersistentDataType.BYTE, (byte) 1));
 
+        placedItemId = section.getString("item", "");
         modelEngineID = section.getString("modelengine_id", null);
         farmlandRequired = section.getBoolean("farmland_required", false);
         light = new LightMechanic(section);
@@ -227,7 +229,6 @@ public class FurnitureMechanic extends Mechanic {
     public boolean isInteractable() {
         return isRotatable || hasSeats() || isStorage();
     }
-
     public Entity place(Location location) {
         return place(location, 0f, BlockFace.NORTH, true);
     }
@@ -241,7 +242,7 @@ public class FurnitureMechanic extends Mechanic {
         if (checkSpace && !this.hasEnoughSpace(location.clone(), yaw)) return null;
         assert location.getWorld() != null;
 
-        ItemStack item = OraxenItems.getItemById(getItemID()).build();
+        ItemStack item = OraxenItems.getOptionalItemById(placedItemId).orElse(OraxenItems.getItemById(getItemID())).build().clone();
         ItemUtils.editItemMeta(item, meta -> ItemUtils.displayName(meta, Component.empty()));
         item.setAmount(1);
 

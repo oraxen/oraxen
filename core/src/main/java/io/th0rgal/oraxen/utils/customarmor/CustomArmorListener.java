@@ -37,7 +37,7 @@ public class CustomArmorListener implements Listener {
     public void onCustomArmorRepair(PrepareAnvilEvent event) {
         if (!Settings.DISABLE_LEATHER_REPAIR_CUSTOM.toBool()) return;
         AnvilInventory inventory = event.getInventory();
-        Player player = (Player) inventory.getViewers().stream().filter(p -> p.getOpenInventory().getTopInventory() == inventory).findFirst().orElse(null);
+        Player player = (Player) inventory.getViewers().getFirst();
         if (player == null) return;
         ItemStack first = inventory.getItem(0);
         ItemStack second = inventory.getItem(1);

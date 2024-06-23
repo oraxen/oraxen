@@ -20,6 +20,7 @@ import org.bukkit.persistence.PersistentDataType;
 
 public class RepairCommand {
 
+    @Deprecated(forRemoval = true, since = "1.20.6")
     CommandAPICommand getRepairCommand() {
         return new CommandAPICommand("repair")
                 .withPermission("oraxen.command.repair")
@@ -61,8 +62,7 @@ public class RepairCommand {
     private static boolean repairPlayerItem(ItemStack itemStack) {
         String itemId = OraxenItems.getIdByItem(itemStack);
         ItemMeta itemMeta = itemStack.getItemMeta();
-        if (!(itemMeta instanceof Damageable damageable))
-            return true;
+        if (!(itemMeta instanceof Damageable damageable)) return true;
         DurabilityMechanicFactory durabilityFactory = DurabilityMechanicFactory.get();
         if (durabilityFactory.isNotImplementedIn(itemId)) {
             if ((boolean) Settings.REPAIR_COMMAND_ORAXEN_DURABILITY.getValue()) // not oraxen item
@@ -70,7 +70,7 @@ public class RepairCommand {
             if (damageable.getDamage() == 0) // full durability
                 return true;
         } else {
-            DurabilityMechanic durabilityMechanic = (DurabilityMechanic) durabilityFactory.getMechanic(itemId);
+            DurabilityMechanic durabilityMechanic = durabilityFactory.getMechanic(itemId);
             PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
             int realMaxDurability = durabilityMechanic.getItemMaxDurability();
             int damage = realMaxDurability - pdc.get(DurabilityMechanic.DURABILITY_KEY, PersistentDataType.INTEGER);

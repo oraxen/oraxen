@@ -14,9 +14,7 @@ import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
+import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
@@ -24,6 +22,10 @@ import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.EnchantmentWrapper;
 import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemRarity;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.components.FoodComponent;
+import org.bukkit.inventory.meta.components.JukeboxPlayableComponent;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -89,12 +91,6 @@ public class ItemParser {
         return templateItem != null;
     }
 
-    public static Component parseComponentItemName(String miniString) {
-        if (miniString.isEmpty()) return Component.empty();
-        Component displayName = AdventureUtils.MINI_MESSAGE.deserialize(miniString.replace("§", "\\§")).colorIfAbsent(NamedTextColor.WHITE);
-        return displayName.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE);
-    }
-
     public ItemBuilder buildItem() {
         ItemBuilder item;
 
@@ -108,7 +104,8 @@ public class ItemParser {
     }
 
     private ItemBuilder applyConfig(ItemBuilder item) {
-        item.displayName(parseComponentItemName(section.getString("displayname", "")));
+        if (!VersionUtil.atOrAbove("1.20.5") && section.contains("displayname"))
+            item.setDisplayName(section.getString("displayname", ""));
 
         if (section.contains("lore")) item.lore(section.getStringList("lore").stream().map(AdventureUtils.MINI_MESSAGE::deserialize).toList());
         if (section.contains("unbreakable")) item.setUnbreakable(section.getBoolean("unbreakable", false));
@@ -116,22 +113,70 @@ public class ItemParser {
         if (section.contains("color")) item.setColor(Utils.toColor(section.getString("color", "#FFFFFF")));
         if (section.contains("trim_pattern")) item.setTrimPattern(Key.key(section.getString("trim_pattern", "")));
 
-        ConfigurationSection components = section.getConfigurationSection("Components");
-        if (VersionUtil.atOrAbove("1.20.5") && components != null) {
-            try {
-                item.setComponent(DataComponentAdapter.adapt(components));
-            } catch (Exception e) {
-                Logs.logWarning("Unable to load data component.");
-                if (Settings.DEBUG.toBool()) e.printStackTrace();
-                else Logs.logWarning(e.getMessage());
-            }
-        }
-
+        parseDataComponents(item);
         parseMiscOptions(item);
         parseVanillaSections(item);
         parseOraxenSections(item);
         item.setOraxenMeta(oraxenMeta);
         return item;
+    }
+
+    private void parseDataComponents(ItemBuilder item) {
+        if (section.contains("itemname") && VersionUtil.atOrAbove("1.20.5")) item.setItemName(section.getString("itemname"));
+        else if (section.contains("displayname")) item.setItemName(section.getString("displayname"));
+
+        ConfigurationSection components = section.getConfigurationSection("Components");
+        if (components == null || !VersionUtil.atOrAbove("1.20.5")) return;
+
+        if (components.contains("max_stack_size")) item.setMaxStackSize(Math.clamp(components.getInt("max_stack_size"), 1, 99));
+
+        if (components.contains("enchantment_glint_override")) item.setEnchantmentGlindOverride(components.getBoolean("enchantment_glint_override"));
+        if (components.contains("durability")) {
+            item.setDamagedOnBlockBreak(components.getBoolean("durability.damage_block_break"));
+            item.setDamagedOnEntityHit(components.getBoolean("durability.damage_entity_hit"));
+            item.setDurability(Math.max(components.getInt("durability.value"), components.getInt("durability", 1)));
+        }
+        if (components.contains("rarity")) item.setRarity(ItemRarity.valueOf(components.getString("rarity")));
+        if (components.contains("fire_resistant")) item.setFireResistant(components.getBoolean("fire_resistant"));
+        if (components.contains("hide_tooltips")) item.setHideToolTips(components.getBoolean("hide_tooltips"));
+
+        ConfigurationSection foodSection = components.getConfigurationSection("food");
+        if (foodSection != null) {
+            FoodComponent foodComponent = new ItemStack(Material.PAPER).getItemMeta().getFood();
+            foodComponent.setNutrition(foodSection.getInt("nutrition"));
+            foodComponent.setSaturation((float) foodSection.getDouble("saturation", 0.0));
+            foodComponent.setCanAlwaysEat(foodSection.getBoolean("can_always_eat"));
+            foodComponent.setEatSeconds((float) foodSection.getDouble("eat_seconds", 1.6));
+
+            ConfigurationSection effectsSection = foodSection.getConfigurationSection("effects");
+            if (effectsSection != null) for (String effect : effectsSection.getKeys(false)) {
+                PotionEffectType effectType = PotionUtils.getEffectType(effect);
+                if (effectType == null)
+                    Logs.logError("Invalid potion effect: " + effect + ", in " + StringUtils.substringBefore(effectsSection.getCurrentPath(), ".") + " food-property!");
+                else {
+                    foodComponent.addEffect(
+                            new PotionEffect(effectType,
+                                    foodSection.getInt("duration", 1) * 20,
+                                    foodSection.getInt("amplifier", 0),
+                                    foodSection.getBoolean("ambient", true),
+                                    foodSection.getBoolean("show_particles", true),
+                                    foodSection.getBoolean("show_icon", true)),
+                            (float) foodSection.getDouble("probability", 1.0)
+                    );
+                }
+            }
+            item.setFoodComponent(foodComponent);
+        }
+
+        if (!VersionUtil.atOrAbove("1.21")) return;
+
+        ConfigurationSection jukeboxSection = components.getConfigurationSection("jukebox_playable");
+        if (jukeboxSection != null) {
+            JukeboxPlayableComponent jukeboxPlayable = new ItemStack(Material.MUSIC_DISC_CREATOR).getItemMeta().getJukeboxPlayable();
+            jukeboxPlayable.setShowInTooltip(jukeboxSection.getBoolean("show_in_tooltip"));
+            jukeboxPlayable.setSongKey(NamespacedKey.fromString(jukeboxSection.getString("song_key")));
+            item.setJukeboxPlayable(jukeboxPlayable);
+        }
     }
 
     private void parseMiscOptions(ItemBuilder item) {
@@ -193,6 +238,7 @@ public class ItemParser {
             if (attributes != null) for (LinkedHashMap<String, Object> attributeJson : attributes) {
                 attributeJson.putIfAbsent("uuid", UUID.randomUUID().toString());
                 attributeJson.putIfAbsent("name", "oraxen:modifier");
+                attributeJson.putIfAbsent("key", "oraxen:modifier");
                 AttributeModifier attributeModifier = AttributeModifier.deserialize(attributeJson);
                 Attribute attribute = Attribute.valueOf((String) attributeJson.get("attribute"));
                 item.addAttributeModifiers(attribute, attributeModifier);

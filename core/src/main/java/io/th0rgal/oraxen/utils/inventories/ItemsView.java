@@ -7,12 +7,13 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.items.ItemBuilder;
-import io.th0rgal.oraxen.items.ItemParser;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.Utils;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemFlag;
@@ -81,7 +82,7 @@ public class ItemsView {
         ItemStack exitIcon = (Settings.ORAXEN_INV_EXIT.getValue() == null
                 ? new ItemBuilder(Material.BARRIER) : OraxenItems.getItemById(Settings.ORAXEN_INV_EXIT.toString())
         ).displayName(Component.text("Exit")).build();
-        mainGui.setItem(6, 5, new GuiItem(exitIcon, event -> mainGui.open(event.getWhoClicked())));
+        mainGui.setItem(6, 5, new GuiItem(exitIcon, event -> event.getWhoClicked().closeInventory()));
 
         return mainGui;
     }
@@ -129,14 +130,15 @@ public class ItemsView {
         String fileName = Utils.removeExtension(file.getName());
         //Material of category itemstack. if no material is set, set it to the first item of the category
         Optional<String> icon = Optional.ofNullable(settings.getString(String.format("oraxen_inventory.menu_layout.%s.icon", fileName)));
-        Component displayName = ItemParser.parseComponentItemName(settings.getString(String.format("oraxen_inventory.menu_layout.%s.displayname", fileName), "<green>" + file.getName()));
+        Component displayName = AdventureUtils.MINI_MESSAGE.deserialize((settings.getString(String.format("oraxen_inventory.menu_layout.%s.displayname", fileName), file.getName())))
+                .colorIfAbsent(NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE);
 
         itemStack = icon.map(OraxenItems::getItemById).map(ItemBuilder::clone)
                 .orElse(OraxenItems.getMap().get(file).values().stream().findFirst().orElse(new ItemBuilder(Material.PAPER)))
                 .clone().addItemFlags(ItemFlag.HIDE_ATTRIBUTES).displayName(displayName).lore(new ArrayList<>()).build();
 
         // avoid possible bug if isOraxenItems is available but can't be an itemstack
-        if (itemStack == null) itemStack = new ItemBuilder(Material.PAPER).displayName(displayName).build();
+        if (itemStack == null) itemStack = new ItemBuilder(Material.PAPER).itemName(displayName).displayName(displayName).build();
         int slot = settings.getInt(String.format("oraxen_inventory.menu_layout.%s.slot", Utils.removeExtension(file.getName())), 0) - 1;
         return new GuiItemSlot(itemStack, slot);
     }

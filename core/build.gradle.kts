@@ -1,6 +1,5 @@
 plugins {
     id("java")
-    //id("io.papermc.paperweight.userdev") version "1.7.1"
     id("maven-publish")
     id("io.github.goooler.shadow") version "8.1.7"
     id("org.ajoberstar.grgit.service") version "5.2.0"
@@ -18,8 +17,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.20.6-R0.1-SNAPSHOT")
-    //paperweight.paperDevBundle("1.20.6-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.21-R0.1-SNAPSHOT")
 }
 
 java {

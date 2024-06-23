@@ -87,12 +87,11 @@ public class ItemUtils {
      * @param function  The function-block to edit the ItemMeta in
      * @return The original ItemStack with the new ItemMeta
      */
-    public static ItemStack editItemMeta(ItemStack itemStack, Consumer<ItemMeta> function) {
+    public static void editItemMeta(ItemStack itemStack, Consumer<ItemMeta> function) {
         ItemMeta meta = itemStack.getItemMeta();
-        if (meta == null) return itemStack;
+        if (meta == null) return;
         function.accept(meta);
         itemStack.setItemMeta(meta);
-        return itemStack;
     }
 
     /**
@@ -104,11 +103,11 @@ public class ItemUtils {
      * @param itemStack the item in the player's hand
      * @return the itemStack with the correct damage applied
      */
-    public static ItemStack damageItem(Player player, Drop drop, ItemStack itemStack) {
+    public static void damageItem(Player player, Drop drop, ItemStack itemStack) {
 
         // If all are null this is not something Oraxen should handle
         // If the block/furniture has no drop, it returns Drop.emptyDrop() which is handled by the caller
-        if (drop == null) return itemStack;
+        if (drop == null) return;
 
         int damage;
         boolean isToolEnough = drop.isToolEnough(itemStack);
@@ -116,11 +115,12 @@ public class ItemUtils {
         // If the item is not a tool, it will not be damaged, example flint&steel should not be damaged
         damage = isTool(itemStack) ? damage : 0;
 
-        if (damage == 0) return itemStack;
-        if (VersionUtil.isPaperServer()) return player.damageItemStack(itemStack, damage);
+        if (damage == 0) return;
+        if (VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.19"))
+            player.damageItemStack(itemStack, damage);
         else {
             int finalDamage = damage;
-            return editItemMeta(itemStack, meta -> {
+            editItemMeta(itemStack, meta -> {
                 if (meta instanceof Damageable damageable && EventUtils.callEvent(new PlayerItemDamageEvent(player, itemStack, finalDamage))) {
                     damageable.setDamage(damageable.getDamage() + 1);
                 }
@@ -141,5 +141,26 @@ public class ItemUtils {
                 || material.toString().endsWith("_HOE")
                 || material.toString().endsWith("_SWORD")
                 || material == Material.TRIDENT;
+    }
+
+    public static boolean isSkull(Material material) {
+        return switch (material) {
+            case PLAYER_HEAD, PLAYER_WALL_HEAD, SKELETON_SKULL, SKELETON_WALL_SKULL, WITHER_SKELETON_SKULL, WITHER_SKELETON_WALL_SKULL, ZOMBIE_HEAD, ZOMBIE_WALL_HEAD, CREEPER_HEAD, CREEPER_WALL_HEAD, DRAGON_HEAD, DRAGON_WALL_HEAD, PIGLIN_HEAD, PIGLIN_WALL_HEAD ->
+                    true;
+            default -> false;
+        };
+    }
+
+    public static boolean hasInventoryParent(Material material) {
+        return Tag.WALLS.isTagged(material) || Tag.FENCES.isTagged(material) || Tag.BUTTONS.isTagged(material) || material == Material.PISTON || material == Material.STICKY_PISTON || (VersionUtil.atOrAbove("1.20") && material == Material.CHISELED_BOOKSHELF) || material == Material.BROWN_MUSHROOM_BLOCK || material == Material.RED_MUSHROOM_BLOCK || material == Material.MUSHROOM_STEM;
+    }
+
+    public static boolean isMusicDisc(ItemStack itemStack) {
+        if (itemStack == null) return false;
+        if (VersionUtil.atOrAbove("1.21")) {
+            return itemStack.hasItemMeta() && itemStack.getItemMeta().hasJukeboxPlayable();
+        } else {
+            return itemStack.getType().name().startsWith("MUSIC_DISC");
+        }
     }
 }

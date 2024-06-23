@@ -10,11 +10,10 @@ import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.*;
-import kr.toxicity.libraries.datacomponent.api.DataComponentAPI;
-import kr.toxicity.libraries.datacomponent.api.ItemAdapter;
-import kr.toxicity.libraries.datacomponent.api.NMS;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
@@ -22,8 +21,11 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.TropicalFish;
 import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemRarity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
+import org.bukkit.inventory.meta.components.FoodComponent;
+import org.bukkit.inventory.meta.components.JukeboxPlayableComponent;
 import org.bukkit.inventory.meta.trim.ArmorTrim;
 import org.bukkit.inventory.meta.trim.TrimMaterial;
 import org.bukkit.inventory.meta.trim.TrimPattern;
@@ -70,12 +72,28 @@ public class ItemBuilder {
     private ItemStack finalItemStack;
 
     // 1.20.5+ properties
-    private DataComponentWrapper component;
-
+    @Nullable
+    private FoodComponent foodComponent;
+    @Nullable
+    private Boolean enchantmentGlintOverride;
+    @Nullable
+    private Integer maxStackSize;
+    @Nullable
+    private Component itemName;
+    @Nullable
+    private Boolean fireResistant;
+    @Nullable
+    private Boolean hideToolTips;
+    @Nullable
+    private ItemRarity rarity;
     @Nullable
     private Integer durability;
     private boolean damagedOnBlockBreak;
     private boolean damagedOnEntityHit;
+
+    // 1.21+ properties
+    @Nullable
+    private JukeboxPlayableComponent jukeboxPlayable;
 
 
     public ItemBuilder(final Material material) {
@@ -153,7 +171,7 @@ public class ItemBuilder {
             attributeModifiers = itemMeta.getAttributeModifiers();
 
         hasCustomModelData = itemMeta.hasCustomModelData();
-        if (itemMeta.hasCustomModelData())
+        if (hasCustomModelData)
             customModelData = itemMeta.getCustomModelData();
 
         persistentDataContainer = itemMeta.getPersistentDataContainer();
@@ -161,8 +179,23 @@ public class ItemBuilder {
         enchantments = new HashMap<>();
 
         if (VersionUtil.atOrAbove("1.20.5")) {
-            setComponent(DataComponentAdapter.adapt(itemStack));
-            if (component.get(DataComponentAPI.api().nms().maxStackSize(), itemStack.getMaxStackSize()) == 1) unstackable = true;
+            if (itemMeta.hasItemName()) {
+                if (VersionUtil.isPaperServer()) itemName = itemMeta.itemName();
+                else itemName = AdventureUtils.LEGACY_SERIALIZER.deserialize(itemMeta.getItemName());
+            } else itemName = null;
+
+            durability = (itemMeta instanceof Damageable damageable) && damageable.hasMaxDamage() ? damageable.getMaxDamage() : null;
+            fireResistant = itemMeta.isFireResistant() ? true : null;
+            hideToolTips = itemMeta.isHideTooltip() ? true : null;
+            foodComponent = itemMeta.hasFood() ? itemMeta.getFood() : null;
+            enchantmentGlintOverride = itemMeta.hasEnchantmentGlintOverride() ? itemMeta.getEnchantmentGlintOverride() : null;
+            rarity = itemMeta.hasRarity() ? itemMeta.getRarity() : null;
+            maxStackSize = itemMeta.hasMaxStackSize() ? itemMeta.getMaxStackSize() : null;
+            if (maxStackSize != null && maxStackSize == 1) unstackable = true;
+        }
+
+        if (VersionUtil.atOrAbove("1.21")) {
+            jukeboxPlayable = itemMeta.hasJukeboxPlayable() ? itemMeta.getJukeboxPlayable() : null;
         }
 
     }
@@ -183,12 +216,14 @@ public class ItemBuilder {
         return this;
     }
 
-    @Deprecated
+    @Deprecated @Nullable
     public String getDisplayName() {
-        return displayName != null ? AdventureUtils.MINI_MESSAGE.serialize(displayName) : "";
+        return displayName != null ? AdventureUtils.MINI_MESSAGE.serialize(displayName) : null;
     }
+
+    @Nullable
     public Component displayName() {
-        return displayName != null ? displayName : Component.empty();
+        return displayName;
     }
 
     @Deprecated
@@ -201,12 +236,29 @@ public class ItemBuilder {
         return this;
     }
 
-    public DataComponentWrapper getComponent() {
-        return component;
+    public boolean hasItemName() {
+        return itemName != null;
     }
 
-    public void setComponent(DataComponentWrapper component) {
-        this.component = component;
+    @Deprecated @Nullable
+    public String getItemName() {
+        return itemName != null ? AdventureUtils.MINI_MESSAGE.serialize(itemName) : null;
+    }
+
+    @Nullable
+    public Component itemName() {
+        return itemName != null ? itemName : null;
+    }
+
+    @Deprecated
+    public ItemBuilder setItemName(String itemName) {
+        this.itemName = AdventureUtils.LEGACY_SERIALIZER.deserialize(itemName);
+        return this;
+    }
+
+    public ItemBuilder itemName(Component itemName) {
+        this.itemName = itemName;
+        return this;
     }
 
     public boolean hasLores() {
@@ -244,6 +296,7 @@ public class ItemBuilder {
 
     public ItemBuilder setUnstackable(final boolean unstackable) {
         this.unstackable = unstackable;
+        if (VersionUtil.atOrAbove("1.20.5")) maxStackSize = 1;
         return this;
     }
 
@@ -311,6 +364,87 @@ public class ItemBuilder {
         return this;
     }
 
+    public boolean hasFoodComponent() {
+        return VersionUtil.atOrAbove("1.20.5") && foodComponent != null;
+    }
+
+    @Nullable
+    public FoodComponent getFoodComponent() {
+        return foodComponent;
+    }
+
+    public ItemBuilder setFoodComponent(FoodComponent foodComponent) {
+        this.foodComponent = foodComponent;
+        return this;
+    }
+
+    public boolean hasJukeboxPlayable() {
+        return VersionUtil.atOrAbove("1.21") && jukeboxPlayable != null;
+    }
+
+    @Nullable
+    public JukeboxPlayableComponent getJukeboxPlayable() {
+        return jukeboxPlayable;
+    }
+
+    public ItemBuilder setJukeboxPlayable(JukeboxPlayableComponent jukeboxPlayable) {
+        this.jukeboxPlayable = jukeboxPlayable;
+        return this;
+    }
+
+    public boolean hasEnchantmentGlindOverride() {
+        return VersionUtil.atOrAbove("1.20.5") && enchantmentGlintOverride != null;
+    }
+
+    @Nullable
+    public Boolean getEnchantmentGlindOverride() {
+        return enchantmentGlintOverride;
+    }
+
+    public ItemBuilder setEnchantmentGlindOverride(@Nullable Boolean enchantmentGlintOverride) {
+        this.enchantmentGlintOverride = enchantmentGlintOverride;
+        return this;
+    }
+
+    public boolean hasRarity() {
+        return VersionUtil.atOrAbove("1.20.5") && rarity != null;
+    }
+
+    @Nullable
+    public ItemRarity getRarity() {
+        return rarity;
+    }
+
+    public ItemBuilder setRarity(@Nullable ItemRarity rarity) {
+        this.rarity = rarity;
+        return this;
+    }
+
+    public ItemBuilder setFireResistant(boolean fireResistant) {
+        this.fireResistant = fireResistant;
+        return this;
+    }
+
+    public ItemBuilder setHideToolTips(boolean hideToolTips) {
+        this.hideToolTips = hideToolTips;
+        return this;
+    }
+
+    public boolean hasMaxStackSize() {
+        return VersionUtil.atOrAbove("1.20.5") && maxStackSize != null;
+    }
+
+    @Nullable
+    public Integer getMaxStackSize() {
+        return maxStackSize;
+    }
+
+
+    public ItemBuilder setMaxStackSize(@Nullable Integer maxStackSize) {
+        this.maxStackSize = maxStackSize;
+        this.setUnstackable(maxStackSize != null && maxStackSize == 1);
+        return this;
+    }
 
     public ItemBuilder setBasePotionType(final PotionType potionType) {
         this.potionType = potionType;
@@ -440,7 +574,7 @@ public class ItemBuilder {
 
     @SuppressWarnings("unchecked")
     public ItemBuilder regen() {
-        ItemStack itemStack = this.itemStack;
+        final ItemStack itemStack = this.itemStack;
         if (type != null)
             itemStack.setType(type);
         if (amount != itemStack.getAmount())
@@ -448,10 +582,39 @@ public class ItemBuilder {
 
         ItemMeta itemMeta = itemStack.getItemMeta();
 
+        // 1.20.5+ properties
+        if (VersionUtil.atOrAbove("1.20.5")) {
+            if (itemMeta instanceof Damageable damageable) damageable.setMaxDamage(durability);
+            if (itemName != null) {
+                if (VersionUtil.isPaperServer()) itemMeta.itemName(itemName);
+                else itemMeta.setItemName(AdventureUtils.LEGACY_SERIALIZER.serialize(itemName));
+            }
+            if (hasMaxStackSize()) itemMeta.setMaxStackSize(maxStackSize);
+            if (hasEnchantmentGlindOverride()) itemMeta.setEnchantmentGlintOverride(enchantmentGlintOverride);
+            if (hasRarity()) itemMeta.setRarity(rarity);
+            if (hasFoodComponent()) itemMeta.setFood(foodComponent);
+            if (fireResistant != null) itemMeta.setFireResistant(fireResistant);
+            if (hideToolTips != null) itemMeta.setHideTooltip(hideToolTips);
+        }
+
+        if (VersionUtil.atOrAbove("1.21")) {
+            if (hasJukeboxPlayable()) itemMeta.setJukeboxPlayable(jukeboxPlayable);
+        }
+
         handleVariousMeta(itemMeta);
         itemMeta.setUnbreakable(unbreakable);
 
         PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
+        if (!VersionUtil.atOrAbove("1.20.5") && displayName != null) {
+            pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, AdventureUtils.MINI_MESSAGE.serialize(displayName));
+            if (VersionUtil.isPaperServer()) {
+                itemMeta.displayName(displayName
+                        .decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)
+                        .colorIfAbsent(NamedTextColor.WHITE)
+                );
+            } else itemMeta.setDisplayName(AdventureUtils.LEGACY_SERIALIZER.serialize(displayName));
+        }
+
         if (itemFlags != null)
             itemMeta.addItemFlags(itemFlags.toArray(new ItemFlag[0]));
 
@@ -475,21 +638,7 @@ public class ItemBuilder {
 
         ItemUtils.lore(itemMeta, lore);
 
-        // 1.20.5+ component
-        if (displayName != null) {
-            if (!VersionUtil.atOrAbove("1.20.5")) {
-                pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, AdventureUtils.MINI_MESSAGE.serialize(displayName));
-                ItemUtils.displayName(itemMeta, displayName);
-                itemStack.setItemMeta(itemMeta);
-            } else {
-                itemStack.setItemMeta(itemMeta);
-                ItemAdapter adapter = DataComponentAPI.api().adapter(itemStack);
-                adapter.set(NMS.nms().itemName(), displayName);
-                itemStack = adapter.build();
-            }
-        } else itemStack.setItemMeta(itemMeta);
-        if (component != null) itemStack = component.apply(itemStack);
-
+        itemStack.setItemMeta(itemMeta);
         finalItemStack = itemStack;
         return this;
     }
@@ -578,20 +727,20 @@ public class ItemBuilder {
 
     public ItemStack[] buildArray(final int amount) {
         final ItemStack built = build();
-        final int max = /*hasMaxStackSize() ? maxStackSize : */type != null ? type.getMaxStackSize() : itemStack.getType().getMaxStackSize();
+        final int max = hasMaxStackSize() ? maxStackSize : type != null ? type.getMaxStackSize() : itemStack.getType().getMaxStackSize();
         final int rest = max == amount ? amount : amount % max;
         final int iterations = amount > max ? (amount - rest) / max : 0;
         final ItemStack[] output = new ItemStack[iterations + (rest > 0 ? 1 : 0)];
         for (int index = 0; index < iterations; index++) {
-            final ItemStack clone = built.clone();
+            ItemStack clone = built.clone();
             clone.setAmount(max);
-            if (unstackable) handleUnstackable(clone);
+            if (unstackable) clone = handleUnstackable(clone);
             output[index] = ItemUpdater.updateItem(clone);
         }
         if (rest != 0) {
             ItemStack clone = built.clone();
             clone.setAmount(rest);
-            if (unstackable) handleUnstackable(clone);
+            if (unstackable) clone = handleUnstackable(clone);
             output[iterations] = ItemUpdater.updateItem(clone);
         }
         return output;
@@ -605,10 +754,7 @@ public class ItemBuilder {
 
     private ItemStack handleUnstackable(ItemStack item) {
         ItemMeta meta = item.getItemMeta();
-        if (meta == null) return item;
-        // handled via maxStackSize component
-        if (VersionUtil.atOrAbove("1.20.5")) return item;
-
+        if (meta == null || VersionUtil.atOrAbove("1.20.5")) return item;
         meta.getPersistentDataContainer().set(UNSTACKABLE_KEY, DataType.UUID, UUID.randomUUID());
         item.setItemMeta(meta);
         item.setAmount(1);

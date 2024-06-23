@@ -13,6 +13,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
+@Deprecated(forRemoval = true, since = "1.21")
 public class RepairMechanicListener implements Listener {
     private final RepairMechanicFactory factory;
 

@@ -8,10 +8,6 @@ import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
-import kr.toxicity.libraries.datacomponent.api.DataComponentAPI;
-import kr.toxicity.libraries.datacomponent.api.DataComponentType;
-import kr.toxicity.libraries.datacomponent.api.ItemAdapter;
-import kr.toxicity.libraries.datacomponent.api.NMS;
 import net.kyori.adventure.text.Component;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -35,10 +31,7 @@ import org.bukkit.inventory.meta.*;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import static io.th0rgal.oraxen.items.ItemBuilder.ORIGINAL_NAME_KEY;
 import static io.th0rgal.oraxen.items.ItemBuilder.UNSTACKABLE_KEY;
@@ -102,7 +95,7 @@ public class ItemUpdater implements Listener {
 
         if (!VersionUtil.atOrAbove("1.20.5") || player.getGameMode() == GameMode.CREATIVE) return;
         if (ItemUtils.isEmpty(itemStack) || ItemUtils.isTool(itemStack)) return;
-        if (DataComponentAdapter.adapt(itemStack).get(NMS.nms().maxDamage()) == null) return;
+        if (!(itemStack.getItemMeta() instanceof Damageable damageable) || !damageable.hasMaxDamage()) return;
 
         Optional.ofNullable(OraxenItems.getBuilderByItem(itemStack)).ifPresent(i -> {
                 if (i.isDamagedOnBlockBreak()) itemStack.damage(1, player);
@@ -116,7 +109,7 @@ public class ItemUpdater implements Listener {
 
         if (entity instanceof Player player && player.getGameMode() == GameMode.CREATIVE) return;
         if (ItemUtils.isEmpty(itemStack) || ItemUtils.isTool(itemStack)) return;
-        if (DataComponentAdapter.adapt(itemStack).get(NMS.nms().maxDamage()) == null) return;
+        if (!(itemStack.getItemMeta() instanceof Damageable damageable) || !damageable.hasMaxDamage()) return;
 
         Optional.ofNullable(OraxenItems.getBuilderByItem(itemStack)).ifPresent(i -> {
             if (i.isDamagedOnEntityHit()) itemStack.damage(1, entity);
@@ -143,20 +136,9 @@ public class ItemUpdater implements Listener {
         ItemStack newItem = NMSHandlers.getHandler().copyItemNBTTags(oldItem, newItemBuilder.build());
         newItem.setAmount(oldItem.getAmount());
 
-        ItemStack targetItem;
-        if (VersionUtil.atOrAbove("1.20.5")) {
-            ItemAdapter oldItemAdapt = DataComponentAPI.api().adapter(newItem);
-            ItemAdapter newItemAdapt = DataComponentAPI.api().adapter(newItem);
-
-            for (DataComponentType<?> value : DataComponentAPI.api().nms().componentRegistry().values()) {
-                newItemAdapt.setToJson(value, oldItemAdapt.getToJson(value));
-            }
-            targetItem = newItemAdapt.build();
-        } else targetItem = newItem;
-
-        ItemUtils.editItemMeta(targetItem, itemMeta -> {
+        ItemUtils.editItemMeta(newItem, itemMeta -> {
             ItemMeta oldMeta = oldItem.getItemMeta();
-            ItemMeta newMeta = targetItem.getItemMeta();
+            ItemMeta newMeta = newItem.getItemMeta();
             if (oldMeta == null || newMeta == null) return;
             PersistentDataContainer oldPdc = oldMeta.getPersistentDataContainer();
             PersistentDataContainer itemPdc = itemMeta.getPersistentDataContainer();
@@ -171,7 +153,7 @@ public class ItemUpdater implements Listener {
             for (Map.Entry<Enchantment, Integer> entry : newMeta.getEnchants().entrySet().stream().filter(e -> !oldMeta.getEnchants().containsKey(e.getKey())).toList())
                 itemMeta.addEnchant(entry.getKey(), entry.getValue(), true);
 
-            int cmd = newMeta.hasCustomModelData() ? newMeta.getCustomModelData() : oldMeta.hasCustomModelData() ? oldMeta.getCustomModelData() : 0;
+            Integer cmd = newMeta.hasCustomModelData() ? (Integer) newMeta.getCustomModelData() : oldMeta.hasCustomModelData() ? (Integer) oldMeta.getCustomModelData() : null;
             itemMeta.setCustomModelData(cmd);
 
             // If OraxenItem has no lore, we should assume that 3rd-party plugin has added lore
@@ -180,7 +162,7 @@ public class ItemUpdater implements Listener {
 
             // Only change AttributeModifiers if the new item has some
             if (newMeta.hasAttributeModifiers()) itemMeta.setAttributeModifiers(newMeta.getAttributeModifiers());
-            else itemMeta.setAttributeModifiers(oldMeta.getAttributeModifiers());
+            else if (oldMeta.hasAttributeModifiers()) itemMeta.setAttributeModifiers(oldMeta.getAttributeModifiers());
 
             // Transfer over durability from old item
             if (itemMeta instanceof Damageable damageable && oldMeta instanceof Damageable oldDmg) {
@@ -212,6 +194,29 @@ public class ItemUpdater implements Listener {
                 armorMeta.setTrim(oldArmorMeta.getTrim());
             }
 
+            if (VersionUtil.atOrAbove("1.20.5")) {
+                if (newMeta.hasFood()) itemMeta.setFood(newMeta.getFood());
+                else if (oldMeta.hasFood()) itemMeta.setFood(oldMeta.getFood());
+
+                if (newMeta.hasEnchantmentGlintOverride()) itemMeta.setEnchantmentGlintOverride(newMeta.getEnchantmentGlintOverride());
+                else if (oldMeta.hasEnchantmentGlintOverride()) itemMeta.setEnchantmentGlintOverride(oldMeta.getEnchantmentGlintOverride());
+
+                if (newMeta.hasMaxStackSize()) itemMeta.setMaxStackSize(newMeta.getMaxStackSize());
+                else if (oldMeta.hasMaxStackSize()) itemMeta.setMaxStackSize(oldMeta.getMaxStackSize());
+
+                if (VersionUtil.isPaperServer()) {
+                    if (newMeta.hasItemName()) itemMeta.itemName(newMeta.itemName());
+                    else if (oldMeta.hasItemName()) itemMeta.itemName(oldMeta.itemName());
+                } else {
+                    if (newMeta.hasItemName()) itemMeta.setItemName(newMeta.getItemName());
+                    else if (oldMeta.hasItemName()) itemMeta.setItemName(oldMeta.getItemName());
+                }
+            }
+
+            if (VersionUtil.atOrAbove("1.21")) {
+                if (newMeta.hasJukeboxPlayable()) itemMeta.setJukeboxPlayable(newMeta.getJukeboxPlayable());
+                else if (oldMeta.hasJukeboxPlayable()) itemMeta.setJukeboxPlayable(oldMeta.getJukeboxPlayable());
+            }
 
             // On 1.20.5+ we use ItemName which is different from userchanged displaynames
             // Thus removing the need for this logic
@@ -228,19 +233,22 @@ public class ItemUpdater implements Listener {
                 }
 
                 itemPdc.set(ORIGINAL_NAME_KEY, DataType.STRING, VersionUtil.isPaperServer() ?
-                        AdventureUtils.MINI_MESSAGE.serialize(newMeta.hasDisplayName() ? newMeta.displayName() : translatable(targetItem.getType()))
-                        : newMeta.hasDisplayName() ? newMeta.getDisplayName() : AdventureUtils.MINI_MESSAGE.serialize(translatable(targetItem.getType()))
+                        AdventureUtils.MINI_MESSAGE.serialize(newMeta.hasDisplayName() ? newMeta.displayName() : translatable(newItem.getType()))
+                        : newMeta.hasDisplayName() ? newMeta.getDisplayName() : AdventureUtils.MINI_MESSAGE.serialize(translatable(newItem.getType()))
                 );
             }
 
             // If the item is not unstackable, we should remove the unstackable tag
             // Also remove it on 1.20.5+ due to maxStackSize component
             if (VersionUtil.atOrAbove("1.20.5") || !newItemBuilder.isUnstackable()) itemPdc.remove(UNSTACKABLE_KEY);
+            else itemPdc.set(UNSTACKABLE_KEY, DataType.UUID, UUID.randomUUID());
         });
 
-        return targetItem;
+        return newItem;
     }
+
     private static @NotNull Component translatable(@NotNull Material type) {
         return Component.translatable((type.isBlock() ? "block" : "item") + ".minecraft." + type.name().toLowerCase());
     }
+
 }

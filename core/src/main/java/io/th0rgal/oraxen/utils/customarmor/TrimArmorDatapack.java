@@ -293,17 +293,17 @@ public class TrimArmorDatapack extends CustomArmor {
     }
 
     private boolean isFirstInstall() {
-        return Bukkit.getDataPackManager().getDataPacks().stream().filter(d -> d.key() != null).noneMatch(d -> datapackKey.equals(Key.key(d.getKey().asString())));
+        return Bukkit.getDataPackManager().getDataPacks().stream().filter(d -> d.getKey() != null).noneMatch(d -> datapackKey.equals(Key.key(d.getKey().asString())));
     }
 
     private boolean isDatapackEnabled() {
         for (DataPack dataPack : Bukkit.getDataPackManager().getEnabledDataPacks(defaultWorld)) {
-            if (dataPack.key() == null) continue;
-            if (datapackKey.equals(dataPack.key())) return true;
+            if (dataPack.getKey() == null) continue;
+            if (datapackKey.equals(dataPack.getKey())) return true;
         }
         for (DataPack dataPack : Bukkit.getDataPackManager().getDisabledDataPacks(defaultWorld)) {
-            if (dataPack.key() == null) continue;
-            if (datapackKey.equals(dataPack.key())) return true;
+            if (dataPack.getKey() == null) continue;
+            if (datapackKey.equals(dataPack.getKey())) return true;
         }
 
         return false;

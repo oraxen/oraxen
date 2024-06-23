@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.recipes.listeners;
 
 import io.th0rgal.oraxen.recipes.builders.RecipeBuilder;
+import io.th0rgal.oraxen.utils.InventoryUtils;
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -17,7 +18,7 @@ public class RecipesBuilderEvents implements Listener {
     public void setCursor(InventoryClickEvent event) {
 
         RecipeBuilder recipeBuilder = RecipeBuilder.get(event.getWhoClicked().getUniqueId());
-        if (recipeBuilder == null || !event.getView().getTitle().equals(recipeBuilder.getInventoryTitle())
+        if (recipeBuilder == null || !InventoryUtils.getTitleFromView(event).equals(recipeBuilder.getInventoryTitle())
             || event.getSlotType() != InventoryType.SlotType.RESULT)
             return;
         event.setCancelled(true);
@@ -31,7 +32,7 @@ public class RecipesBuilderEvents implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onInventoryClosed(InventoryCloseEvent event) {
         RecipeBuilder recipeBuilder = RecipeBuilder.get(event.getPlayer().getUniqueId());
-        if (recipeBuilder == null || !event.getView().getTitle().equals(recipeBuilder.getInventoryTitle()))
+        if (recipeBuilder == null || !InventoryUtils.getTitleFromView(event).equals(recipeBuilder.getInventoryTitle()))
             return;
 
         recipeBuilder.setInventory(event.getInventory());

@@ -1,18 +1,16 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.durability;
 
 import io.th0rgal.oraxen.api.OraxenItems;
-import io.th0rgal.oraxen.utils.logs.Logs;
-import net.Indyuce.mmoitems.api.event.item.RepairItemEvent;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.PrepareAnvilEvent;
-import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.event.player.PlayerItemMendEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 
+@Deprecated(forRemoval = true, since = "1.20.6")
 public class DurabilityMechanicManager implements Listener {
 
     private final DurabilityMechanicFactory factory;
