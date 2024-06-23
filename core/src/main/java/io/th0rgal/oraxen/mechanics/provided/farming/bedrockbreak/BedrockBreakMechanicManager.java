@@ -15,11 +15,12 @@ public class BedrockBreakMechanicManager {
 
             @Override
             public boolean isTriggered(Player player, Block block, ItemStack tool) {
-                if (block.getType() != Material.BEDROCK) return false;
+                if (block.getType() != Material.BEDROCK) {
+                    return false;
+                }
 
                 String itemID = OraxenItems.getIdByItem(tool);
                 return !factory.isNotImplementedIn(itemID) && (!factory.isDisabledOnFirstLayer() || block.getY() != 0);
-
             }
 
             @Override

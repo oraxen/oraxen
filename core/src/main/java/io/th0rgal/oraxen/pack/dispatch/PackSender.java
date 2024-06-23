@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.pack.dispatch;
 
+import fr.euphyllia.energie.model.SchedulerType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
@@ -30,8 +31,8 @@ public abstract class PackSender {
                     AdventureUtils.tagResolver("pack_url", hostingProvider.getPackURL()),
                     AdventureUtils.tagResolver("player", player.getName()));
         else
-            Bukkit.getScheduler().runTaskLaterAsynchronously(OraxenPlugin.get(),
-                    () -> Message.COMMAND_JOIN_MESSAGE.send(player,
+            OraxenPlugin.getScheduler().runDelayed(SchedulerType.ASYNC,
+                    taskInter -> Message.COMMAND_JOIN_MESSAGE.send(player,
                             AdventureUtils.tagResolver("pack_url", hostingProvider.getPackURL()),
                             AdventureUtils.tagResolver("player", player.getName()))
                     , delay * 20L);

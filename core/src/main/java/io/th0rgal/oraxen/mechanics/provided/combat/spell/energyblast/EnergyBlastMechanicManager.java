@@ -1,5 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.combat.spell.energyblast;
 
+import fr.euphyllia.energie.model.SchedulerType;
+import fr.euphyllia.energie.utils.SchedulerTaskRunnable;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
@@ -25,12 +27,12 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 public class EnergyBlastMechanicManager implements Listener {
 
     private final MechanicFactory factory;
+    private static final int circlePoints = 360;
 
     public EnergyBlastMechanicManager(MechanicFactory factory) {
         this.factory = factory;
@@ -76,7 +78,7 @@ public class EnergyBlastMechanicManager implements Listener {
 
 
     private void playEffect(Player player, EnergyBlastMechanic mechanic) {
-        new BukkitRunnable() {
+        new SchedulerTaskRunnable() {
             final Vector dir = player.getLocation().getDirection().normalize();
             static final int circlePoints = 360;
             double radius = 2;
@@ -136,7 +138,7 @@ public class EnergyBlastMechanicManager implements Listener {
                     }
 
             }
-        }.runTaskTimer(OraxenPlugin.get(), 0, 1);
+        }.runAtFixedRate(OraxenPlugin.get(),  SchedulerType.SYNC, player, null, 0, 1);
     }
 
     private void spawnParticle(World world, Location location, EnergyBlastMechanic mechanic) {

@@ -1,5 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.misc.armor_effects;
 
+import fr.euphyllia.energie.model.SchedulerTaskInter;
+import fr.euphyllia.energie.model.SchedulerType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
@@ -30,8 +32,9 @@ public class ArmorEffectsFactory extends MechanicFactory {
         addToImplemented(mechanic);
         if (armorEffectTask != null) armorEffectTask.cancel();
         armorEffectTask = new ArmorEffectsTask();
-        BukkitTask task = armorEffectTask.runTaskTimer(OraxenPlugin.get(), 0, delay);
+        SchedulerTaskInter task = armorEffectTask.runAtFixedRate(OraxenPlugin.get(), SchedulerType.SYNC, 0, delay);
         MechanicsManager.registerTask(instance.getMechanicID(), task);
+
         return mechanic;
     }
 

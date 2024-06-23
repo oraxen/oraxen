@@ -101,16 +101,18 @@ allprojects {
         compileOnly("nl.rutgerkok:blocklocker:1.10.4-SNAPSHOT")
         compileOnly("org.apache.commons:commons-lang3:$apacheLang3Version")
 
-        implementation("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
-        implementation("org.bstats:bstats-bukkit:3.0.0")
+        implementation(files("../libs/CommandAPI-9.5.0-SNAPSHOT.jar"))
+        //implementation("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
+        //implementation("org.bstats:bstats-bukkit:3.0.0")
         implementation("io.th0rgal:protectionlib:1.5.8")
-        implementation("com.github.stefvanschie.inventoryframework:IF:0.10.12")
-        implementation("com.jeff-media:custom-block-data:2.2.2")
+        implementation("com.github.stefvanschie.inventoryframework:IF_Folia:0.10.14-SNAPSHOT")
+        implementation(files("../libs/compile-folia/custom-block-data-2.2.2.jar")) //implementation("com.jeff_media:CustomBlockData_Folia:2.2.2")
         implementation("com.jeff_media:MorePersistentDataTypes:2.4.0")
         implementation("com.jeff-media:persistent-data-serializer:1.0")
         implementation("org.jetbrains:annotations:24.1.0") { isTransitive = false }
         implementation("dev.triumphteam:triumph-gui:3.1.10") { exclude("net.kyori") }
         implementation("com.ticxo:PlayerAnimator:R1.2.8") { isChanging = true }
+        implementation("com.github.Euphillya:Energie:1.2.0")
 
         implementation("me.gabytm.util:actions-spigot:$actionsVersion") { exclude(group = "com.google.guava") }
     }
@@ -164,6 +166,7 @@ tasks {
         //relocate("com.udojava.evalex", "io.th0rgal.oraxen.shaded.evalex")
         //relocate("com.ticxo.playeranimator", "io.th0rgal.oraxen.shaded.playeranimator")
         //relocate("dev.jorel", "io.th0rgal.oraxen.shaded")
+        relocate("fr.euphyllia.energie", "io.th0rgal.oraxen.shaded.energie")
 
         manifest {
             attributes(
@@ -201,6 +204,7 @@ bukkit {
         "NBTAPI", "ModelEngine", "CrashClaim", "ViaBackwards", "HuskClaims", "BentoBox"
     )
     loadBefore = listOf("Realistic_World")
+    foliaSupported = true
     permissions.create("oraxen.command") {
         description = "Allows the player to use the /oraxen command"
         default = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission.Default.TRUE
