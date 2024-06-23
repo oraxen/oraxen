@@ -29,10 +29,13 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.craftbukkit.v1_20_R1.block.CraftBlock;
 import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
@@ -202,5 +205,21 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     @Override
     public void removeMiningEffect(Player player) {
         ((CraftPlayer) player).getHandle().connection.send(new ClientboundRemoveMobEffectPacket(player.getEntityId(), MobEffects.DIG_SLOWDOWN));
+    }
+
+    @Override
+    public Sound getNoteBlockInstrument(Block block) {
+        Material aboveMaterial = block.getRelative(BlockFace.UP).getType();
+        BlockState blockBelow = ((CraftBlock) block.getRelative(BlockFace.DOWN)).getNMS();
+
+        return switch (aboveMaterial) {
+            case SKELETON_SKULL -> Sound.BLOCK_NOTE_BLOCK_IMITATE_SKELETON;
+            case PIGLIN_HEAD -> Sound.BLOCK_NOTE_BLOCK_IMITATE_PIGLIN;
+            case ZOMBIE_HEAD -> Sound.BLOCK_NOTE_BLOCK_IMITATE_ZOMBIE;
+            case CREEPER_HEAD -> Sound.BLOCK_NOTE_BLOCK_IMITATE_CREEPER;
+            case DRAGON_HEAD -> Sound.BLOCK_NOTE_BLOCK_IMITATE_ENDER_DRAGON;
+            case WITHER_SKELETON_SKULL -> Sound.BLOCK_NOTE_BLOCK_IMITATE_WITHER_SKELETON;
+            default -> Sound.valueOf("BLOCK_NOTE_BLOCK_" + blockBelow.instrument().toString().toUpperCase());
+        };
     }
 }

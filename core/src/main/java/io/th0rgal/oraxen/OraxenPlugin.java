@@ -2,6 +2,7 @@ package io.th0rgal.oraxen;
 
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
+import com.jeff_media.customblockdata.CustomBlockData;
 import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.CommandAPIBukkitConfig;
 import io.th0rgal.oraxen.api.OraxenItems;
@@ -32,6 +33,7 @@ import io.th0rgal.oraxen.utils.breaker.BreakerManager;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmorListener;
 import io.th0rgal.oraxen.utils.inventories.InvManager;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import io.th0rgal.oraxen.utils.tuneblock.TuneBlockListeners;
 import io.th0rgal.protectionlib.ProtectionLib;
 import kr.toxicity.libraries.datacomponent.DataComponentAPIBukkit;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
@@ -119,6 +121,8 @@ public class OraxenPlugin extends JavaPlugin {
         RecipesManager.load(this);
         invManager = new InvManager();
         ArmorEquipEvent.registerListener(this);
+        Bukkit.getPluginManager().registerEvents(new TuneBlockListeners(), this);
+        CustomBlockData.registerListener(this);
         new CommandsManager().loadCommands();
 
         packServer = OraxenPackServer.initializeServer();

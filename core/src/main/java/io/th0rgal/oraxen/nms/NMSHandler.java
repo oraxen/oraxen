@@ -3,7 +3,10 @@ package io.th0rgal.oraxen.nms;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketManager;
 import io.th0rgal.oraxen.utils.InteractionResult;
 import io.th0rgal.oraxen.utils.wrappers.PotionEffectTypeWrapper;
+import org.bukkit.Instrument;
 import org.bukkit.Material;
+import org.bukkit.Sound;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -125,6 +128,11 @@ public interface NMSHandler {
         public void removeMiningEffect(Player player) {
             player.removePotionEffect(PotionEffectTypeWrapper.MINING_FATIGUE);
         }
+
+        @Override
+        public Sound getNoteBlockInstrument(Block block) {
+            return Sound.BLOCK_NOTE_BLOCK_HARP;
+        }
     }
 
     @NotNull
@@ -135,4 +143,6 @@ public interface NMSHandler {
     void applyMiningEffect(Player player);
 
     void removeMiningEffect(Player player);
+
+    Sound getNoteBlockInstrument(Block block);
 }

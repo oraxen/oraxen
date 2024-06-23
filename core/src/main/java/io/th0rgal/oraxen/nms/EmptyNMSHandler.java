@@ -7,6 +7,8 @@ import io.th0rgal.oraxen.utils.InteractionResult;
 import io.th0rgal.oraxen.utils.wrappers.PotionEffectTypeWrapper;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.Sound;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -74,5 +76,10 @@ public class EmptyNMSHandler implements NMSHandler {
             packet.getEffectTypes().write(0, PotionEffectTypeWrapper.MINING_FATIGUE);
             ProtocolLibrary.getProtocolManager().sendServerPacket(player, packet);
         } else player.removePotionEffect(PotionEffectTypeWrapper.MINING_FATIGUE);
+    }
+
+    @Override
+    public Sound getNoteBlockInstrument(Block block) {
+        return Sound.BLOCK_NOTE_BLOCK_HARP;
     }
 }
