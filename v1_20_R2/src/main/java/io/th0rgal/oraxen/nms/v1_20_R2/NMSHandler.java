@@ -1,6 +1,8 @@
 package io.th0rgal.oraxen.nms.v1_20_R2;
 
 import io.papermc.paper.configuration.GlobalConfiguration;
+import io.th0rgal.oraxen.api.OraxenBlocks;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketManager;
 import io.th0rgal.oraxen.nms.GlyphHandler;
 import io.th0rgal.oraxen.nms.v1_20_R2.furniture.FurniturePacketManager;
@@ -205,18 +207,25 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     }
 
     @Override
-    public Sound getNoteBlockInstrument(Block block) {
+    public String getNoteBlockInstrument(Block block) {
         Material aboveMaterial = block.getRelative(BlockFace.UP).getType();
-        BlockState blockBelow = ((CraftBlock) block.getRelative(BlockFace.DOWN)).getNMS();
+        Block blockBelow = block.getRelative(BlockFace.DOWN);
+        BlockState blockStateBelow = ((CraftBlock) blockBelow).getNMS();
 
         return switch (aboveMaterial) {
-            case SKELETON_SKULL -> Sound.BLOCK_NOTE_BLOCK_IMITATE_SKELETON;
-            case PIGLIN_HEAD -> Sound.BLOCK_NOTE_BLOCK_IMITATE_PIGLIN;
-            case ZOMBIE_HEAD -> Sound.BLOCK_NOTE_BLOCK_IMITATE_ZOMBIE;
-            case CREEPER_HEAD -> Sound.BLOCK_NOTE_BLOCK_IMITATE_CREEPER;
-            case DRAGON_HEAD -> Sound.BLOCK_NOTE_BLOCK_IMITATE_ENDER_DRAGON;
-            case WITHER_SKELETON_SKULL -> Sound.BLOCK_NOTE_BLOCK_IMITATE_WITHER_SKELETON;
-            default -> Sound.valueOf("BLOCK_NOTE_BLOCK_" + blockBelow.instrument().toString().toUpperCase());
+            case SKELETON_SKULL -> "block.note_block.imitate.skeleton";
+            case PIGLIN_HEAD -> "block.note_block.imitate.piglin";
+            case ZOMBIE_HEAD -> "block.note_block.imitate.zombie";
+            case CREEPER_HEAD -> "block.note_block.imitate.creeper";
+            case DRAGON_HEAD -> "block.note_block.imitate.ender_dragon";
+            case WITHER_SKELETON_SKULL -> "block.note_block.imitate.wither_skeleton";
+            default -> {
+                if (OraxenBlocks.isCustomBlock(blockBelow)) {
+                    CustomBlockMechanic customBlockMechanic = OraxenBlocks.getCustomBlockMechanic(blockBelow.getBlockData());
+                    if (customBlockMechanic != null) yield customBlockMechanic.getInstrument().toLowerCase();
+                }
+                yield "block.note_block." + blockStateBelow.instrument().toString().toLowerCase();
+            }
         };
     }
 }

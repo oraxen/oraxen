@@ -23,7 +23,7 @@ public class TuneBlock {
     private final boolean isPowered;
     private final byte note;
     private final float pitch;
-    private final Sound sound;
+    private final String sound;
 
     public TuneBlock(Block block, @Nullable Player player) {
         this.container = new CustomBlockData(block, OraxenPlugin.get());
@@ -38,7 +38,7 @@ public class TuneBlock {
         this.sound = NMSHandlers.getHandler().getNoteBlockInstrument(block);
     }
 
-    public Sound getSound() {
+    public String getSound() {
         return sound;
     }
 

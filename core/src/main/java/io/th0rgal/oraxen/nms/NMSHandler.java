@@ -129,8 +129,8 @@ public interface NMSHandler {
         }
 
         @Override
-        public Sound getNoteBlockInstrument(Block block) {
-            return Sound.BLOCK_NOTE_BLOCK_HARP;
+        public String getNoteBlockInstrument(Block block) {
+            return "block.note_block.harp";
         }
     }
 
@@ -143,5 +143,5 @@ public interface NMSHandler {
 
     void removeMiningEffect(Player player);
 
-    Sound getNoteBlockInstrument(Block block);
+    String getNoteBlockInstrument(Block block);
 }

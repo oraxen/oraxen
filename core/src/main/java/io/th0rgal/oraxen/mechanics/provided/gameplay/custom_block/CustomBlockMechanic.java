@@ -30,6 +30,7 @@ public abstract class CustomBlockMechanic extends Mechanic {
     private final BlockLockerMechanic blockLocker;
     private final BreakableMechanic breakable;
     private final boolean blastResistant;
+    private final String instrument;
 
     public CustomBlockMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section);
@@ -43,6 +44,7 @@ public abstract class CustomBlockMechanic extends Mechanic {
         light = new LightMechanic(section);
         breakable = new BreakableMechanic(section);
         blastResistant = section.getBoolean("blast_resistant");
+        instrument = section.getString("instrument");
 
         ConfigurationSection limitedPlacingSection = section.getConfigurationSection("limited_placing");
         limitedPlacing = limitedPlacingSection != null ? new LimitedPlacing(limitedPlacingSection) : null;
@@ -120,5 +122,9 @@ public abstract class CustomBlockMechanic extends Mechanic {
 
     public boolean isBlastResistant() {
         return blastResistant;
+    }
+
+    public String getInstrument() {
+        return instrument;
     }
 }
