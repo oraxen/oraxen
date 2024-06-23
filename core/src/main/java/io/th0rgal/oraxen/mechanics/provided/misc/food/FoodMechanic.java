@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+@Deprecated(forRemoval = true, since = "1.20.6")
 public class FoodMechanic extends Mechanic {
 
     private final Set<PotionEffect> effects = new HashSet<>();

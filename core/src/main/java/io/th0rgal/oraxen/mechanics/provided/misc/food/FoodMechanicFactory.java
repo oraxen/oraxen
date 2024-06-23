@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.ConfigurationSection;
 
+@Deprecated(forRemoval = true, since = "1.20.6")
 public class FoodMechanicFactory extends MechanicFactory {
 
     private static FoodMechanicFactory instance;
@@ -26,7 +27,7 @@ public class FoodMechanicFactory extends MechanicFactory {
     public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
         Mechanic mechanic = new FoodMechanic(this, itemMechanicConfiguration);
 
-        if (VersionUtil.atOrAbove("1.20.5") && itemMechanicConfiguration.getParent().getParent().contains("food")) {
+        if (VersionUtil.atOrAbove("1.20.5")) {
             Logs.logWarning(mechanic.getItemID() + " is using deprecated Food-Mechanic...");
             Logs.logWarning("It is heavily advised to swap to the new `food`-property on 1.20.5+ servers...");
         }
