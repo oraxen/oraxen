@@ -223,10 +223,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             case DRAGON_HEAD -> "block.note_block.imitate.ender_dragon";
             case WITHER_SKELETON_SKULL -> "block.note_block.imitate.wither_skeleton";
             default -> {
-                if (OraxenBlocks.isCustomBlock(blockBelow)) {
-                    CustomBlockMechanic customBlockMechanic = OraxenBlocks.getCustomBlockMechanic(blockBelow.getBlockData());
-                    if (customBlockMechanic != null) yield customBlockMechanic.getInstrument().toLowerCase();
-                }
+                CustomBlockMechanic customBlockMechanic = OraxenBlocks.getCustomBlockMechanic(blockBelow.getBlockData());
+                if (customBlockMechanic != null) yield customBlockMechanic.getInstrument().toLowerCase();
                 yield "block.note_block." + blockStateBelow.instrument().toString().toLowerCase();
             }
         };

@@ -44,7 +44,7 @@ public abstract class CustomBlockMechanic extends Mechanic {
         light = new LightMechanic(section);
         breakable = new BreakableMechanic(section);
         blastResistant = section.getBoolean("blast_resistant");
-        instrument = section.getString("instrument");
+        instrument = section.getString("instrument", "block.note_block.bass");
 
         ConfigurationSection limitedPlacingSection = section.getConfigurationSection("limited_placing");
         limitedPlacing = limitedPlacingSection != null ? new LimitedPlacing(limitedPlacingSection) : null;
