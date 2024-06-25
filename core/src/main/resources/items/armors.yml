@@ -6,15 +6,13 @@
 # Color codes: https://docs.adventure.kyori.net/minimessage.html#format
 
 emerald_helmet:
-  displayname: "<gradient:#89E59D:#37C6BA>Emerald Helmet"
+  itemname: "<gradient:#89E59D:#37C6BA>Emerald Helmet"
   material: LEATHER_HELMET
   lore:
     - "<#6f737d>» <#D5D6D8>Gives 1 extra <glyph:heart>"
-  Mechanics:
-    durability:
-      value: 437 # 20% more than diamond helmet
+  Components:
+    durability: 437 # 20% more than diamond helmet
   AttributeModifiers:
-    # - name: You don't really care about the name but it can be useful for some developers
     # - attribute: Get the list here: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/attribute/Attribute.html
     # - operations: 0 for ADD_NUMBER, 1 for ADD_SCALAR, 2 for MULTIPLY_SCALAR_1;
     # - slot: HAND, OFF_HAND, FEET, LEGS, CHEST or HEAD
@@ -29,13 +27,12 @@ emerald_helmet:
       - default/armors/emerald_helmet
 
 emerald_chestplate:
-  displayname: "<gradient:#89E59D:#37C6BA>Emerald Chestplate"
+  itemname: "<gradient:#89E59D:#37C6BA>Emerald Chestplate"
   material: LEATHER_CHESTPLATE
   lore:
     - "<#6f737d>» <#D5D6D8>Gives 1.5 extra <glyph:heart>"
-  Mechanics:
-    durability:
-      value: 635
+  Components:
+    durability: 635
   AttributeModifiers:
     - { attribute: GENERIC_MAX_HEALTH, amount: 3, operation: 0, slot: CHEST }
     - { attribute: GENERIC_ARMOR, amount: 8, operation: 0, slot: CHEST }
@@ -48,13 +45,12 @@ emerald_chestplate:
       - default/armors/emerald_chestplate
 
 emerald_leggings:
-  displayname: "<gradient:#89E59D:#37C6BA>Emerald Leggings"
+  itemname: "<gradient:#89E59D:#37C6BA>Emerald Leggings"
   material: LEATHER_LEGGINGS
   lore:
     - "<#6f737d>» <#D5D6D8>Gives 1.5 extra <glyph:heart>"
-  Mechanics:
-    durability:
-      value: 595
+  Components:
+    durability: 595
   AttributeModifiers:
     - { attribute: GENERIC_MAX_HEALTH, amount: 3, operation: 0, slot: LEGS }
     - { attribute: GENERIC_ARMOR, amount: 6, operation: 0, slot: LEGS }
@@ -67,13 +63,12 @@ emerald_leggings:
       - default/armors/emerald_leggings
 
 emerald_boots:
-  displayname: "<gradient:#89E59D:#37C6BA>Emerald Boots"
+  itemname: "<gradient:#89E59D:#37C6BA>Emerald Boots"
   material: LEATHER_BOOTS
   lore:
     - "<#6f737d>» <#D5D6D8>Gives 1 extra <glyph:heart>"
-  Mechanics:
-    durability:
-      value: 516
+  Components:
+    durability: 516
   AttributeModifiers:
     - { attribute: GENERIC_MAX_HEALTH, amount: 2, operation: 0, slot: FEET }
     - { attribute: GENERIC_ARMOR, amount: 3, operation: 0, slot: FEET }
@@ -86,13 +81,12 @@ emerald_boots:
       - default/armors/emerald_boots
 
 obsidian_helmet:
-  displayname: "<gradient:#4B36B1:#6699FF>Obsidian Helmet"
+  itemname: "<gradient:#4B36B1:#6699FF>Obsidian Helmet"
   material: LEATHER_HELMET
   lore:
     - "<#6f737d>» <#D5D6D8>Ludicrous durability"
-  Mechanics:
-    durability:
-      value: 4370
+  Components:
+    durability: 4370
   AttributeModifiers:
     - { attribute: GENERIC_ARMOR, amount: 2, operation: 0, slot: HEAD }
   Pack:
@@ -104,13 +98,12 @@ obsidian_helmet:
 
 obsidian_chestplate:
   custom_model_data: 2
-  displayname: "<gradient:#4B36B1:#6699FF>Obsidian Chestplate"
+  itemname: "<gradient:#4B36B1:#6699FF>Obsidian Chestplate"
   material: LEATHER_CHESTPLATE
   lore:
     - "<#6f737d>» <#D5D6D8>Ludicrous durability"
-  Mechanics:
-    durability:
-      value: 6350
+  Components:
+    durability: 6350
   AttributeModifiers:
     - { attribute: GENERIC_ARMOR, amount: 6, operation: 0, slot: CHEST }
   Pack:
@@ -121,13 +114,12 @@ obsidian_chestplate:
       - default/armors/obsidian_chestplate
 
 obsidian_leggings:
-  displayname: "<gradient:#4B36B1:#6699FF>Obsidian Leggings"
+  itemname: "<gradient:#4B36B1:#6699FF>Obsidian Leggings"
   material: LEATHER_LEGGINGS
   lore:
     - "<#6f737d>» <#D5D6D8>Ludicrous durability"
-  Mechanics:
-    durability:
-      value: 5950
+  Components:
+    durability: 5950
   AttributeModifiers:
     - { attribute: GENERIC_ARMOR, amount: 5, operation: 0, slot: LEGS }
   Pack:
@@ -138,13 +130,12 @@ obsidian_leggings:
       - default/armors/obsidian_leggings
 
 obsidian_boots:
-  displayname: "<gradient:#4B36B1:#6699FF>Boots Boots"
+  itemname: "<gradient:#4B36B1:#6699FF>Boots Boots"
   material: LEATHER_BOOTS
   lore:
     - "<#6f737d>» <#D5D6D8>Ludicrous durability"
-  Mechanics:
-    durability:
-      value: 5160
+  Components:
+    durability: 5160
   AttributeModifiers:
     - { attribute: GENERIC_ARMOR, amount: 2, operation: 0, slot: FEET }
   Pack:
@@ -155,11 +146,10 @@ obsidian_boots:
       - default/armors/obsidian_boots
 
 ruby_helmet:
-  displayname: "<gradient:#FA7CBB:#F14658>Ruby Helmet"
+  itemname: "<gradient:#FA7CBB:#F14658>Ruby Helmet"
   material: LEATHER_HELMET
-  Mechanics:
-    durability:
-      value: 547 # 50% more than diamond helmet
+  Components:
+    durability: 547 # 50% more than diamond helmet
   AttributeModifiers:
     - { attribute: GENERIC_ARMOR, amount: 3, operation: 0, slot: HEAD }
     - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: HEAD }
@@ -171,11 +161,10 @@ ruby_helmet:
       - default/armors/ruby_helmet
 
 ruby_chestplate:
-  displayname: "<gradient:#FA7CBB:#F14658>Ruby Chestplate"
+  itemname: "<gradient:#FA7CBB:#F14658>Ruby Chestplate"
   material: LEATHER_CHESTPLATE
-  Mechanics:
-    durability:
-      value: 792
+  Components:
+    durability: 792
   AttributeModifiers:
     - { attribute: GENERIC_ARMOR, amount: 8, operation: 0, slot: CHEST }
     - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: CHEST }
@@ -187,11 +176,10 @@ ruby_chestplate:
       - default/armors/ruby_chestplate
 
 ruby_leggings:
-  displayname: "<gradient:#FA7CBB:#F14658>Ruby Leggings"
+  itemname: "<gradient:#FA7CBB:#F14658>Ruby Leggings"
   material: LEATHER_LEGGINGS
-  Mechanics:
-    durability:
-      value: 742
+  Components:
+    durability: 742
   AttributeModifiers:
     - { attribute: GENERIC_ARMOR, amount: 6, operation: 0, slot: LEGS }
     - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: LEGS }
@@ -203,11 +191,10 @@ ruby_leggings:
       - default/armors/ruby_leggings
 
 ruby_boots:
-  displayname: "<gradient:#FA7CBB:#F14658>Ruby Boots"
+  itemname: "<gradient:#FA7CBB:#F14658>Ruby Boots"
   material: LEATHER_BOOTS
-  Mechanics:
-    durability:
-      value: 643
+  Components:
+    durability: 643
   AttributeModifiers:
     - { attribute: GENERIC_ARMOR, amount: 3, operation: 0, slot: FEET }
     - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: FEET }

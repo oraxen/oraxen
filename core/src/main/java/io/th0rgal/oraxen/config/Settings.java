@@ -26,7 +26,6 @@ public enum Settings {
     DEBUG("debug", false, "test"),
     PLUGIN_LANGUAGE("Plugin.language", "english"),
     KEEP_UP_TO_DATE("Plugin.keep_this_up_to_date", true),
-    REPAIR_COMMAND_ORAXEN_DURABILITY("Plugin.commands.repair.oraxen_durability_only", false),
     FORMAT_INVENTORY_TITLES("Plugin.formatting.inventory_titles", true),
     FORMAT_TITLES("Plugin.formatting.titles", true),
     FORMAT_SUBTITLES("Plugin.formatting.subtitles", true),

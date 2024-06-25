@@ -1,27 +1,17 @@
 # MISCELLANEOUS
-
 commands:
   enabled: true
-
 armor_effects:
   enabled: true
   delay_in_ticks: 20
-
 custom:
   enabled: true
-
 itemtype:
   enabled: true
-
 soulbound:
   enabled: true
-
 backpack:
   enabled: true
-
-music_disc:
-  enabled: true
-
 misc:
   enabled: true
 
@@ -33,7 +23,6 @@ misc:
 custom_block_sounds:
   noteblock: true
   stringblock_and_furniture: true
-
 noteblock:
   tool_types:
     - WOODEN
@@ -46,7 +35,6 @@ noteblock:
   # This is to prevent axes from breaking custom-blocks in normal speed
   remove_mineable_tag: false
   enabled: true
-
 stringblock:
     tool_types:
       - WOODEN
@@ -58,7 +46,6 @@ stringblock:
     sapling_growth_check_delay: 4000
     disable_vanilla_strings: false
     enabled: true
-
 furniture:
   default_furniture_type: DISPLAY_ENTITY # DISPLAY_ENTITY, ITEM_FRAME, GLOW_ITEM_FRAME
   tool_types:
@@ -72,64 +59,39 @@ furniture:
   evolution_check_delay: 200
   enabled: true
 
-durability:
-  enabled: true
-
-efficiency:
-  enabled: true
-
-repair:
-  enabled: true
-  oraxen_durability_only: false
-
-food:
-  enabled: true
-
-
 # COSMETIC
-
 aura:
   enabled: true
-
 hat:
   enabled: true
 
 
 # COMBAT
-
 lifeleech:
   enabled: true
-
 energyblast:
   enabled: true
-
 fireball:
   enabled: true
-
 thor:
   enabled: true
-
 witherskull:
   enabled: true
 
 
 # FARMING
-
 bigmining:
   enabled: true
   # Toggles if Oraxen should call the BlockBreakEvent or just listen to it
   # Known to cause issues with some enchantment-plugins if enabled
   call_events: true
-
 smelting:
   enabled: true
   # To remove an item that should not be cooked, add it here !
   blacklist_cooked:
     - WET_SPONGE
-
 bottledexp:
   enabled: true
   durability_cost: 10
-
 harvesting:
   enabled: true

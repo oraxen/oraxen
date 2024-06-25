@@ -6,21 +6,21 @@
 # Color codes: https://docs.adventure.kyori.net/minimessage.html#format
 
 great_sword:
-  displayname: "<gradient:#3685EC:#72C1E4>Great Sword"
+  itemname: "<gradient:#3685EC:#72C1E4>Great Sword"
   material: DIAMOND_SWORD
   Pack:
     generate_model: false
     model: default/great_sword
 
 bone_sword:
-  displayname: "<gradient:#89E59D:#37C6BA>Bone Sword"
+  itemname: "<gradient:#89E59D:#37C6BA>Bone Sword"
   material: DIAMOND_SWORD
   Pack:
     generate_model: false
     model: default/bone_sword
 
 wood_sword:
-  displayname: "<gradient:#F06966:#FAD6A6>Wood Sword"
+  itemname: "<gradient:#F06966:#FAD6A6>Wood Sword"
   material: DIAMOND_SWORD
   Pack:
     generate_model: false

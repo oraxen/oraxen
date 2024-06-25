@@ -6,42 +6,43 @@
 # Color codes: https://docs.adventure.kyori.net/minimessage.html#format
 
 weed_leaf:
-  displayname: "<gradient:#46EEAA:#2CBFC7>Weed Leaf"
+  itemname: "<gradient:#46EEAA:#2CBFC7>Weed Leaf"
   material: COOKED_BEEF
   Pack:
     generate_model: true
     parent_model: "item/generated"
     textures:
       - default/weed/leaf
-  Mechanics:
-    consumable_potion_effects:
-      confusion:
-        amplifier: 0
-        ambient: true # Makes potion effect produce more, translucent, particles.
-        particles: true # whether this effect has particles or not
-        icon: true # whether this effect has an icon or not
-        duration: 200 # 10 seconds in ticks
-      speed:
-        amplifier: 0
-        ambient: true # Makes potion effect produce more, translucent, particles.
-        particles: true # whether this effect has particles or not
-        icon: true # whether this effect has an icon or not
-        duration: 6000 # 5 minutes
-      saturation:
-        amplifier: 1
-        ambient: true # Makes potion effect produce more, translucent, particles.
-        particles: true # whether this effect has particles or not
-        icon: true # whether this effect has an icon or not
-        duration: 6000 # 5 minutes
-      levitation:
-        amplifier: 0
-        ambient: true # Makes potion effect produce more, translucent, particles.
-        particles: true # whether this effect has particles or not
-        icon: true # whether this effect has an icon or not
-        duration: 5 # 5 ticks
+  Components:
+    food:
+      effects:
+        confusion:
+          amplifier: 0
+          ambient: true # Makes potion effect produce more, translucent, particles.
+          particles: true # whether this effect has particles or not
+          icon: true # whether this effect has an icon or not
+          duration: 200 # 10 seconds in ticks
+        speed:
+          amplifier: 0
+          ambient: true # Makes potion effect produce more, translucent, particles.
+          particles: true # whether this effect has particles or not
+          icon: true # whether this effect has an icon or not
+          duration: 6000 # 5 minutes
+        saturation:
+          amplifier: 1
+          ambient: true # Makes potion effect produce more, translucent, particles.
+          particles: true # whether this effect has particles or not
+          icon: true # whether this effect has an icon or not
+          duration: 6000 # 5 minutes
+        levitation:
+          amplifier: 0
+          ambient: true # Makes potion effect produce more, translucent, particles.
+          particles: true # whether this effect has particles or not
+          icon: true # whether this effect has an icon or not
+          duration: 5 # 5 ticks
 
 weed_seed:
-  displayname: "<gradient:#46EEAA:#2CBFC7>Weed Seed"
+  itemname: "<gradient:#46EEAA:#2CBFC7>Weed Seed"
   material: PAPER
   Mechanics:
     furniture:
@@ -131,7 +132,7 @@ weed_plant_stage3:
     model: default/weed/stage3
 
 grape:
-  displayname: "<gradient:#ED7B84:#9055FF>Grape"
+  itemname: "<gradient:#ED7B84:#9055FF>Grape"
   material: COOKED_BEEF
   Pack:
     generate_model: true
@@ -140,7 +141,7 @@ grape:
       - default/grape
 
 grape_seeds:
-  displayname: "<gradient:#46EEAA:#2CBFC7>Grape Seeds"
+  itemname: "<gradient:#46EEAA:#2CBFC7>Grape Seeds"
   material: PAPER
   Mechanics:
     furniture:

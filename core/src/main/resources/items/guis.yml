@@ -6,7 +6,7 @@
 # Color codes: https://docs.adventure.kyori.net/minimessage.html#format
 
 arrow_next_icon:
-  displayname: "<#D5D6D8>Next page"
+  itemname: "<#D5D6D8>Next page"
   material: PAPER
   excludeFromInventory: true
   Pack:
@@ -16,7 +16,7 @@ arrow_next_icon:
       - required/arrow_next_icon.png # .png extension is not mandatory
 
 arrow_previous_icon:
-  displayname: "<#D5D6D8>Previous page"
+  itemname: "<#D5D6D8>Previous page"
   material: PAPER
   excludeFromInventory: true
   Pack:
@@ -26,7 +26,7 @@ arrow_previous_icon:
       - required/arrow_previous_icon.png # .png extension is not mandatory
 
 exit_icon:
-  displayname: "<gradient:#FA7CBB:#F14658>Back to main menu"
+  itemname: "<gradient:#FA7CBB:#F14658>Back to main menu"
   material: PAPER
   excludeFromInventory: true
   Pack:
