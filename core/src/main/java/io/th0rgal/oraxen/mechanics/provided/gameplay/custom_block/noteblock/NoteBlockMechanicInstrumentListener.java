@@ -7,6 +7,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockPhysicsEvent;
@@ -18,9 +19,10 @@ import org.bukkit.inventory.meta.SkullMeta;
 
 public class NoteBlockMechanicInstrumentListener implements Listener {
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.NORMAL)
     public void onNotePlay(final NotePlayEvent event) {
         Block block = event.getBlock();
+        event.setCancelled(true);
         if (OraxenBlocks.isOraxenNoteBlock(block)) return;
 
         RegularNoteBlock regularNoteBlock = new RegularNoteBlock(block, null);
