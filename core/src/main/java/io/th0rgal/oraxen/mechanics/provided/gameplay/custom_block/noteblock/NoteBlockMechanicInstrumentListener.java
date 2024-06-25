@@ -20,7 +20,10 @@ public class NoteBlockMechanicInstrumentListener implements Listener {
 
     @EventHandler
     public void onNotePlay(final NotePlayEvent event) {
-        RegularNoteBlock regularNoteBlock = new RegularNoteBlock(event.getBlock(), null);
+        Block block = event.getBlock();
+        if (OraxenBlocks.isOraxenNoteBlock(block)) return;
+
+        RegularNoteBlock regularNoteBlock = new RegularNoteBlock(block, null);
         regularNoteBlock.runClickAction(Action.LEFT_CLICK_BLOCK);
         event.setCancelled(true);
     }
@@ -28,7 +31,7 @@ public class NoteBlockMechanicInstrumentListener implements Listener {
     @EventHandler
     public void onNoteBlockPower(final BlockPhysicsEvent event) {
         Block block = event.getBlock();
-        if (OraxenBlocks.isOraxenNoteBlock(block) || block.getType() != Material.NOTE_BLOCK) return;
+        if (block.getType() != Material.NOTE_BLOCK || OraxenBlocks.isOraxenNoteBlock(block)) return;
 
         RegularNoteBlock regularNoteBlock = new RegularNoteBlock(block, null);
         if (!block.isBlockIndirectlyPowered()) {
@@ -45,7 +48,7 @@ public class NoteBlockMechanicInstrumentListener implements Listener {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
 
         Block block = event.getClickedBlock();
-        if (block == null || OraxenBlocks.isOraxenNoteBlock(block) || block.getType() != Material.NOTE_BLOCK) return;
+        if (block == null || block.getType() != Material.NOTE_BLOCK || OraxenBlocks.isOraxenNoteBlock(block)) return;
 
         Player player = event.getPlayer();
         PlayerInventory playerInventory = player.getInventory();
@@ -60,9 +63,8 @@ public class NoteBlockMechanicInstrumentListener implements Listener {
         boolean isOffHandEmpty = offHandItem.isEmpty();
 
         RegularNoteBlock regularNoteBlock = new RegularNoteBlock(block, player);
-
-        if (!(regularNoteBlock.isMobSound() && !(isSneaking && (!isMainHandEmpty || !isOffHandEmpty)) || !(isSneaking && (!isMainHandEmpty || !isOffHandEmpty))))
-            return;
+        boolean isSneakingWithHandOccupied = !(isSneaking && (!isMainHandEmpty || !isOffHandEmpty));
+        if (!(regularNoteBlock.isMobSound() && isSneakingWithHandOccupied || isSneakingWithHandOccupied)) return;
 
         event.setUseInteractedBlock(Event.Result.DENY);
         regularNoteBlock.runClickAction(Action.RIGHT_CLICK_BLOCK);

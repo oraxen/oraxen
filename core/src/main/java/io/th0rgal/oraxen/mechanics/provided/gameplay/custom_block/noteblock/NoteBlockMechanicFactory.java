@@ -37,7 +37,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     private static NoteBlockMechanicFactory instance;
     public final List<String> toolTypes;
     public final boolean customSounds;
-    private final boolean reimplementNoteblockFeatures;
+    private final boolean REIMPLEMENT_NOTEBLOCK_FEATURES;
     private final boolean removeMineableTag;
     private boolean notifyOfDeprecation = true;
 
@@ -48,7 +48,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         toolTypes = section.getStringList("tool_types");
         customSounds = OraxenPlugin.get().configsManager().getMechanics().getBoolean("custom_block_sounds.noteblock", true);
         removeMineableTag = section.getBoolean("remove_mineable_tag", false);
-        reimplementNoteblockFeatures = section.getBoolean("reimplement-noteblock-features", true);
+        REIMPLEMENT_NOTEBLOCK_FEATURES = section.getBoolean("reimplement-noteblock-features", false);
 
         MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(),
                 new NoteBlockMechanicListener(),
@@ -56,7 +56,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
                 new BeaconListener()
         );
         if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockSoundListener());
-        if (reimplementNoteblockFeatures) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockMechanicInstrumentListener());
+        if (REIMPLEMENT_NOTEBLOCK_FEATURES) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockMechanicInstrumentListener());
 
         BeaconTagDatapack.generateDatapack();
 

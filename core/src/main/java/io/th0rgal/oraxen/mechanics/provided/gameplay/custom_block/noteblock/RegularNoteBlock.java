@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.nms.NMSHandlers;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.Skull;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -43,10 +44,16 @@ public class RegularNoteBlock {
             case CREEPER_HEAD -> "block.note_block.imitate.creeper";
             case DRAGON_HEAD -> "block.note_block.imitate.ender_dragon";
             case WITHER_SKELETON_SKULL -> "block.note_block.imitate.wither_skeleton";
+            case PLAYER_HEAD -> {
+                NamespacedKey playerHeadSound = ((Skull) blockAbove.getState()).getNoteBlockSound();
+                yield playerHeadSound != null ? playerHeadSound.value() : null;
+            }
+
             default -> {
-                NoteBlockMechanic noteBlockMechanic = OraxenBlocks.getNoteBlockMechanic(block.getRelative(BlockFace.DOWN));
-                if (noteBlockMechanic != null) yield noteBlockMechanic.getInstrument().toLowerCase();
-                yield "block.note_block." + NMSHandlers.getHandler().getNoteBlockInstrument(block.getRelative(BlockFace.DOWN));
+                Block blockBelow = block.getRelative(BlockFace.DOWN);
+                NoteBlockMechanic noteBlockMechanic = OraxenBlocks.getNoteBlockMechanic(blockBelow);
+                yield noteBlockMechanic != null ? noteBlockMechanic.getInstrument().toLowerCase() :
+                        "block.note_block." + NMSHandlers.getHandler().getNoteBlockInstrument(blockBelow);
             }
         };
     }
@@ -99,7 +106,7 @@ public class RegularNoteBlock {
 
     public boolean isMobSound() {
         return switch (blockAbove.getType()) {
-            case SKELETON_SKULL, ZOMBIE_HEAD, PIGLIN_HEAD, CREEPER_HEAD, DRAGON_HEAD, WITHER_SKELETON_SKULL -> true;
+            case SKELETON_SKULL, ZOMBIE_HEAD, PIGLIN_HEAD, CREEPER_HEAD, DRAGON_HEAD, WITHER_SKELETON_SKULL, PLAYER_HEAD -> true;
             default -> false;
         };
     }
