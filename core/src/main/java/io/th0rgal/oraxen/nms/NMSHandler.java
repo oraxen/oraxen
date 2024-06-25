@@ -4,7 +4,6 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketM
 import io.th0rgal.oraxen.utils.InteractionResult;
 import io.th0rgal.oraxen.utils.wrappers.PotionEffectTypeWrapper;
 import org.bukkit.Material;
-import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
