@@ -5,7 +5,7 @@
 # Random UUID generator: https://www.uuidgenerator.net/
 # Color codes: https://docs.adventure.kyori.net/minimessage.html#format
 brunnera:
-  displayname: "<#34d8eb>Brunnera"
+  itemname: "<#34d8eb>Brunnera"
   material: PAPER
   Pack:
     generate_model: true
@@ -26,7 +26,7 @@ brunnera:
           - { oraxen_item: brunnera, probability: 1.0 }
 
 daffodil:
-  displayname: "<#f5ec42>Daffodil"
+  itemname: "<#f5ec42>Daffodil"
   material: PAPER
   Pack:
     generate_model: true
@@ -47,7 +47,7 @@ daffodil:
           - { oraxen_item: daffodil, probability: 1.0 }
 
 dailily:
-  displayname: "<#bf332c>Dailily"
+  itemname: "<#bf332c>Dailily"
   material: PAPER
   Pack:
     generate_model: true

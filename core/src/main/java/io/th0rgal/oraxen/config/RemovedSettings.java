@@ -66,6 +66,8 @@ public enum RemovedSettings {
     SPIGOT_CHAT_FORMATTING("Plugin.experimental.spigot_chat_formatting"),
     ORAXEN_INV_TYPE("oraxen_inventory.main_menu_type"),
 
+    REPAIR_COMMAND_ORAXEN_DURABILITY("Plugin.commands.repair.oraxen_durability_only"),
+
     ;
 
     private final String path;

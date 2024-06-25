@@ -29,7 +29,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 
 import javax.annotation.Nullable;
 
-import static io.th0rgal.oraxen.mechanics.provided.misc.music_disc.MusicDiscListener.MUSIC_DISC_KEY;
+import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox.JukeboxBlock.MUSIC_DISC_KEY;
 
 public class JukeboxListener implements Listener {
 

@@ -7,7 +7,7 @@
 
 
 amethyst_ore:
-  displayname: '<gradient:#4B36B1:#6699FF>Amethyst Ore'
+  itemname: '<gradient:#4B36B1:#6699FF>Amethyst Ore'
   material: PAPER
   Pack:
     generate_model: true
@@ -34,7 +34,7 @@ amethyst_ore:
             probability: 1.0
 
 ruby_ore:
-  displayname: '<gradient:#FA7CBB:#F14658>Ruby Ore'
+  itemname: '<gradient:#FA7CBB:#F14658>Ruby Ore'
   material: PAPER
   Pack:
     generate_model: true
@@ -62,7 +62,7 @@ ruby_ore:
 
 
 onyx_ore:
-  displayname: '<#6f737d>Onyx Ore'
+  itemname: '<#6f737d>Onyx Ore'
   material: PAPER
   Pack:
     generate_model: true
@@ -89,7 +89,7 @@ onyx_ore:
             probability: 1.0
 
 orax_ore:
-  displayname: '<gradient:#3685EC:#72C1E4>Orax Ore'
+  itemname: '<gradient:#3685EC:#72C1E4>Orax Ore'
   material: PAPER
   Pack:
     generate_model: true

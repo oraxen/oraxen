@@ -26,7 +26,6 @@ public class CommandsManager {
                 .withSubcommands(getDyeCommand(), getInvCommand(), getSimpleGiveCommand(), getGiveCommand(), getTakeCommand(),
                         (new PackCommand()).getPackCommand(),
                         (new UpdateCommand()).getUpdateCommand(),
-                        (new RepairCommand()).getRepairCommand(),
                         (new RecipesCommand()).getRecipesCommand(),
                         (new ReloadCommand()).getReloadCommand(),
                         (new DebugCommand()).getDebugCommand(),

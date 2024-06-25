@@ -1,5 +1,5 @@
 table:
-  displayname: "<gray>Table"
+  itemname: "<gray>Table"
   material: PAPER
   Mechanics:
     furniture:
@@ -21,7 +21,7 @@ table:
     model: default/table
 
 cart:
-  displayname: "<gray>Cart"
+  itemname: "<gray>Cart"
   material: PAPER
   Mechanics:
     furniture:
@@ -44,7 +44,7 @@ cart:
     model: default/cart
 
 chair:
-  displayname: "<gray>Chair"
+  itemname: "<gray>Chair"
   material: PAPER
   Mechanics:
     furniture:
@@ -71,7 +71,7 @@ chair:
     model: default/chair
 
 coach:
-  displayname: "<gray>Coach"
+  itemname: "<gray>Coach"
   material: PAPER
   Mechanics:
     furniture:
@@ -99,7 +99,7 @@ coach:
     model: default/coach
 
 shelf:
-  displayname: "<gray>Shelf"
+  itemname: "<gray>Shelf"
   material: PAPER
   Mechanics:
     furniture:

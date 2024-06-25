@@ -16,20 +16,14 @@ import io.th0rgal.oraxen.mechanics.provided.farming.smelting.SmeltingMechanicFac
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock.StringBlockMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.durability.DurabilityMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.efficiency.EfficiencyMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.repair.RepairMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.armor_effects.ArmorEffectsFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.backpack.BackpackMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.commands.CommandsMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.custom.CustomMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.misc.food.FoodMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.misc.MiscMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.misc.music_disc.MusicDiscMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.soulbound.SoulBoundMechanicFactory;
-import io.th0rgal.oraxen.utils.VersionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -57,14 +51,9 @@ public class MechanicsManager {
         registerFactory("custom", CustomMechanicFactory::new);
         registerFactory("commands", CommandsMechanicFactory::new);
         registerFactory("backpack", BackpackMechanicFactory::new);
-        if (VersionUtil.below("1.21")) registerFactory("music_disc", MusicDiscMechanicFactory::new);
         registerFactory("misc", MiscMechanicFactory::new);
 
         // gameplay
-        if (VersionUtil.below("1.20.5")) registerFactory("food", FoodMechanicFactory::new);
-        if (VersionUtil.below("1.20.5")) registerFactory("repair", RepairMechanicFactory::new);
-        if (VersionUtil.below("1.20.5")) registerFactory("durability", DurabilityMechanicFactory::new);
-        if (VersionUtil.below("1.20.5")) registerFactory("efficiency", EfficiencyMechanicFactory::new);
         registerFactory("furniture", FurnitureFactory::new);
         registerFactory("noteblock", NoteBlockMechanicFactory::new);
         registerFactory("stringblock", StringBlockMechanicFactory::new);
