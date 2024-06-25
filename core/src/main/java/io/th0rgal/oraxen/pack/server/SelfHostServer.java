@@ -57,16 +57,11 @@ public class SelfHostServer implements OraxenPackServer {
         String url = packUrl();
         UUID packUUID = UUID.nameUUIDFromBytes(hashArray);
 
-        if (VersionUtil.atOrAbove("1.20.3")) {
-            if (VersionUtil.isPaperServer()) {
-                ResourcePackRequest request = ResourcePackRequest.resourcePackRequest().required(mandatory).replace(true).prompt(prompt)
-                        .packs(ResourcePackInfo.resourcePackInfo(packUUID, URI.create(url), hash)).build();
-                player.sendResourcePacks(request);
-            }
-            else player.setResourcePack(packUUID, url, hashArray, legacyPrompt, mandatory);
-        }
-        else if (VersionUtil.isPaperServer()) player.setResourcePack(url, hashArray, prompt, mandatory);
-        else player.setResourcePack(url, hashArray, legacyPrompt, mandatory);
+        if (VersionUtil.isPaperServer()) {
+            ResourcePackRequest request = ResourcePackRequest.resourcePackRequest().required(mandatory).replace(true).prompt(prompt)
+                    .packs(ResourcePackInfo.resourcePackInfo(packUUID, URI.create(url), hash)).build();
+            player.sendResourcePacks(request);
+        } else player.setResourcePack(packUUID, url, hashArray, legacyPrompt, mandatory);
     }
 
     @Override

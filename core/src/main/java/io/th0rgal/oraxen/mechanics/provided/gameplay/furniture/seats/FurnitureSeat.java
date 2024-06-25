@@ -4,7 +4,6 @@ import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
-import io.th0rgal.oraxen.utils.EntityUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
@@ -114,7 +113,7 @@ public class FurnitureSeat {
         UUID uuid = baseEntity.getUniqueId();
         List<UUID> seatUUIDs = new ArrayList<>();
         for (FurnitureSeat seat : mechanic.seats()) {
-            ArmorStand armorStand = EntityUtils.spawnEntity(location.clone().add(seat.offset(yaw)),  ArmorStand.class, (ArmorStand stand) -> {
+            ArmorStand armorStand = location.getWorld().spawn(location.clone().add(seat.offset(yaw)), ArmorStand.class, (ArmorStand stand) -> {
                 stand.setVisible(false);
                 stand.setRotation(yaw, 0);
                 stand.setInvulnerable(true);

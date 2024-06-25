@@ -3,6 +3,8 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.efficiency;
 import com.comphenix.protocol.ProtocolLibrary;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.PluginUtils;
+import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 
@@ -23,6 +25,10 @@ public class EfficiencyMechanicFactory extends MechanicFactory {
     @Override
     public EfficiencyMechanic parse(ConfigurationSection section) {
         EfficiencyMechanic mechanic = new EfficiencyMechanic(this, section);
+        if (VersionUtil.atOrAbove("1.20.5")) {
+            Logs.logWarning(mechanic.getItemID() + " is using deprecated Efficiency-Mechanic...");
+            Logs.logWarning("It is heavily advised to swap to the new `tool`-property on 1.20.5+ servers...");
+        }
         addToImplemented(mechanic);
         return mechanic;
     }
