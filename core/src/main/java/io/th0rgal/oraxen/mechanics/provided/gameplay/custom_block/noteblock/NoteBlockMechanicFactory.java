@@ -66,9 +66,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
             MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockMechanicPhysicsListener());
         if (!NMSHandlers.isNoteblockUpdatesDisabled()) {
             Logs.logError("Papers block-updates.disable-noteblock-updates is not enabled.");
-            if (reimplementNoteblockFeatures) {
-                Logs.logError("reimplement_noteblock_feature mechanic will not be enabled");
-            }
+            if (reimplementNoteblockFeatures) Logs.logError("reimplement_noteblock_feature mechanic will not be enabled");
             Logs.logWarning("It is recommended to enable this setting for improved performance and prevent bugs with noteblocks");
             Logs.logWarning("Otherwise Oraxen needs to listen to very taxing events, which also introduces some bugs");
             Logs.logWarning("You can enable this setting in ServerFolder/config/paper-global.yml", true);
