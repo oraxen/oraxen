@@ -29,6 +29,7 @@ import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanicFactor
 import io.th0rgal.oraxen.mechanics.provided.misc.misc.MiscMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.music_disc.MusicDiscMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.soulbound.SoulBoundMechanicFactory;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -56,14 +57,14 @@ public class MechanicsManager {
         registerFactory("custom", CustomMechanicFactory::new);
         registerFactory("commands", CommandsMechanicFactory::new);
         registerFactory("backpack", BackpackMechanicFactory::new);
-        registerFactory("music_disc", MusicDiscMechanicFactory::new);
+        if (VersionUtil.below("1.21")) registerFactory("music_disc", MusicDiscMechanicFactory::new);
         registerFactory("misc", MiscMechanicFactory::new);
 
         // gameplay
-        registerFactory("food", FoodMechanicFactory::new);
-        registerFactory("repair", RepairMechanicFactory::new);
-        registerFactory("durability", DurabilityMechanicFactory::new);
-        registerFactory("efficiency", EfficiencyMechanicFactory::new);
+        if (VersionUtil.below("1.20.5")) registerFactory("food", FoodMechanicFactory::new);
+        if (VersionUtil.below("1.20.5")) registerFactory("repair", RepairMechanicFactory::new);
+        if (VersionUtil.below("1.20.5")) registerFactory("durability", DurabilityMechanicFactory::new);
+        if (VersionUtil.below("1.20.5")) registerFactory("efficiency", EfficiencyMechanicFactory::new);
         registerFactory("furniture", FurnitureFactory::new);
         registerFactory("noteblock", NoteBlockMechanicFactory::new);
         registerFactory("stringblock", StringBlockMechanicFactory::new);

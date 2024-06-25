@@ -89,15 +89,10 @@ public class PolymathServer implements OraxenPackServer {
     public void sendPack(Player player) {
         byte[] hashArray = OraxenPackServer.hashArray(hash);
 
-        if (VersionUtil.atOrAbove("1.20.3")) {
-            if (VersionUtil.isPaperServer()) {
-                ResourcePackRequest request = ResourcePackRequest.resourcePackRequest().required(mandatory).replace(true).prompt(prompt)
-                        .packs(ResourcePackInfo.resourcePackInfo(packUUID, URI.create(minecraftPackURL), hash)).build();
-                player.sendResourcePacks(request);
-            }
-            else player.setResourcePack(packUUID, minecraftPackURL, hashArray, legacyPrompt, mandatory);
-        }
-        else if (VersionUtil.isPaperServer()) player.setResourcePack(minecraftPackURL, hashArray, prompt, mandatory);
-        else player.setResourcePack(packUrl, hashArray, legacyPrompt, mandatory);
+        if (VersionUtil.isPaperServer()) {
+            ResourcePackRequest request = ResourcePackRequest.resourcePackRequest().required(mandatory).replace(true).prompt(prompt)
+                    .packs(ResourcePackInfo.resourcePackInfo(packUUID, URI.create(minecraftPackURL), hash)).build();
+            player.sendResourcePacks(request);
+        } else player.setResourcePack(packUUID, minecraftPackURL, hashArray, legacyPrompt, mandatory);
     }
 }

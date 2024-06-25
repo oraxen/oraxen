@@ -41,7 +41,7 @@ public class FoodMechanicListener implements Listener {
         FoodMechanic mechanic = factory.getMechanic(itemID);
 
         // Still let replacement work on 1.20.5+ servers if it has food component due to replacement
-        if (!VersionUtil.atOrAbove("1.20.5")) {
+        if (VersionUtil.below("1.20.5")) {
             event.setCancelled(true);
 
             if (player.getGameMode() != GameMode.CREATIVE) {

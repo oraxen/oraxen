@@ -116,8 +116,7 @@ public class ItemUtils {
         damage = isTool(itemStack) ? damage : 0;
 
         if (damage == 0) return;
-        if (VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.19"))
-            player.damageItemStack(itemStack, damage);
+        if (VersionUtil.isPaperServer()) player.damageItemStack(itemStack, damage);
         else {
             int finalDamage = damage;
             editItemMeta(itemStack, meta -> {
@@ -133,7 +132,7 @@ public class ItemUtils {
     }
 
     public static boolean isTool(@NotNull Material material) {
-        if (VersionUtil.atOrAbove("1.19.4") && !VersionUtil.atOrAbove("1.20.5"))
+        if (VersionUtil.below("1.20.5"))
             return Tag.ITEMS_TOOLS.isTagged(material);
         else return material.toString().endsWith("_AXE")
                 || material.toString().endsWith("_PICKAXE")
@@ -141,18 +140,6 @@ public class ItemUtils {
                 || material.toString().endsWith("_HOE")
                 || material.toString().endsWith("_SWORD")
                 || material == Material.TRIDENT;
-    }
-
-    public static boolean isSkull(Material material) {
-        return switch (material) {
-            case PLAYER_HEAD, PLAYER_WALL_HEAD, SKELETON_SKULL, SKELETON_WALL_SKULL, WITHER_SKELETON_SKULL, WITHER_SKELETON_WALL_SKULL, ZOMBIE_HEAD, ZOMBIE_WALL_HEAD, CREEPER_HEAD, CREEPER_WALL_HEAD, DRAGON_HEAD, DRAGON_WALL_HEAD, PIGLIN_HEAD, PIGLIN_WALL_HEAD ->
-                    true;
-            default -> false;
-        };
-    }
-
-    public static boolean hasInventoryParent(Material material) {
-        return Tag.WALLS.isTagged(material) || Tag.FENCES.isTagged(material) || Tag.BUTTONS.isTagged(material) || material == Material.PISTON || material == Material.STICKY_PISTON || (VersionUtil.atOrAbove("1.20") && material == Material.CHISELED_BOOKSHELF) || material == Material.BROWN_MUSHROOM_BLOCK || material == Material.RED_MUSHROOM_BLOCK || material == Material.MUSHROOM_STEM;
     }
 
     public static boolean isMusicDisc(ItemStack itemStack) {

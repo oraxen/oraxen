@@ -104,7 +104,7 @@ public class ItemParser {
     }
 
     private ItemBuilder applyConfig(ItemBuilder item) {
-        if (!VersionUtil.atOrAbove("1.20.5") && section.contains("displayname"))
+        if (VersionUtil.below("1.20.5") && section.contains("displayname"))
             item.setDisplayName(section.getString("displayname", ""));
 
         if (section.contains("lore")) item.lore(section.getStringList("lore").stream().map(AdventureUtils.MINI_MESSAGE::deserialize).toList());
@@ -126,7 +126,7 @@ public class ItemParser {
         else if (section.contains("displayname")) item.setItemName(section.getString("displayname"));
 
         ConfigurationSection components = section.getConfigurationSection("Components");
-        if (components == null || !VersionUtil.atOrAbove("1.20.5")) return;
+        if (components == null || VersionUtil.below("1.20.5")) return;
 
         if (components.contains("max_stack_size")) item.setMaxStackSize(Math.clamp(components.getInt("max_stack_size"), 1, 99));
 
@@ -168,7 +168,7 @@ public class ItemParser {
             item.setFoodComponent(foodComponent);
         }
 
-        if (!VersionUtil.atOrAbove("1.21")) return;
+        if (VersionUtil.below("1.21")) return;
 
         ConfigurationSection jukeboxSection = components.getConfigurationSection("jukebox_playable");
         if (jukeboxSection != null) {

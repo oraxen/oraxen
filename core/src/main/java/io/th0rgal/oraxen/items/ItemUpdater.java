@@ -93,7 +93,7 @@ public class ItemUpdater implements Listener {
         Player player = event.getPlayer();
         ItemStack itemStack = player.getInventory().getItemInMainHand();
 
-        if (!VersionUtil.atOrAbove("1.20.5") || player.getGameMode() == GameMode.CREATIVE) return;
+        if (VersionUtil.below("1.20.5") || player.getGameMode() == GameMode.CREATIVE) return;
         if (ItemUtils.isEmpty(itemStack) || ItemUtils.isTool(itemStack)) return;
         if (!(itemStack.getItemMeta() instanceof Damageable damageable) || !damageable.hasMaxDamage()) return;
 
@@ -104,7 +104,7 @@ public class ItemUpdater implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onUseMaxDamageItem(EntityDamageByEntityEvent event) {
-        if (!VersionUtil.atOrAbove("1.20.5") || !(event.getDamager() instanceof LivingEntity entity)) return;
+        if (VersionUtil.below("1.20.5") || !(event.getDamager() instanceof LivingEntity entity)) return;
         ItemStack itemStack = Optional.ofNullable(entity.getEquipment()).map(EntityEquipment::getItemInMainHand).orElse(null);
 
         if (entity instanceof Player player && player.getGameMode() == GameMode.CREATIVE) return;
@@ -220,7 +220,7 @@ public class ItemUpdater implements Listener {
 
             // On 1.20.5+ we use ItemName which is different from userchanged displaynames
             // Thus removing the need for this logic
-            if (!VersionUtil.atOrAbove("1.20.5")) {
+            if (VersionUtil.below("1.20.5")) {
                 // Parsing with legacy here to fix any inconsistensies caused by server serializers etc
                 String oldDisplayName = AdventureUtils.parseLegacy(oldMeta.getDisplayName());
                 String originalName = AdventureUtils.parseLegacy(oldPdc.getOrDefault(ORIGINAL_NAME_KEY, DataType.STRING, ""));

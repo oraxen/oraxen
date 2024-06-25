@@ -605,7 +605,7 @@ public class ItemBuilder {
         itemMeta.setUnbreakable(unbreakable);
 
         PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
-        if (!VersionUtil.atOrAbove("1.20.5") && displayName != null) {
+        if (VersionUtil.below("1.20.5") && displayName != null) {
             pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, AdventureUtils.MINI_MESSAGE.serialize(displayName));
             if (VersionUtil.isPaperServer()) {
                 itemMeta.displayName(displayName
