@@ -53,7 +53,7 @@ public class RegularNoteBlock {
                 Block blockBelow = block.getRelative(BlockFace.DOWN);
                 NoteBlockMechanic noteBlockMechanic = OraxenBlocks.getNoteBlockMechanic(blockBelow);
                 yield noteBlockMechanic != null ? noteBlockMechanic.getInstrument().toLowerCase() :
-                        "block.note_block." + NMSHandlers.getHandler().getNoteBlockInstrument(blockBelow);
+                        "block.note_block." + NMSHandlers.getHandler().getNoteBlockInstrument(blockBelow).toLowerCase();
             }
         };
     }

@@ -282,6 +282,6 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
     @Override
     public String getNoteBlockInstrument(Block block) {
-        return ((CraftBlock) block).getNMS().instrument().toString().toLowerCase();
+        return ((CraftBlock) block).getNMS().instrument().toString();
     }
 }
