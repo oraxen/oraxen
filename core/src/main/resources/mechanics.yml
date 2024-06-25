@@ -31,6 +31,9 @@ noteblock:
     - GOLDEN
     - DIAMOND
     - NETHERITE
+  # Reimplements noteblock features while using custom blocks
+  # Adds instrument option in noteblock mechanics
+  reimplement-noteblock-features: true
   # Removes the mineable/axe tag from noteblocks for player
   # This is to prevent axes from breaking custom-blocks in normal speed
   remove_mineable_tag: false

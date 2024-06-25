@@ -1,7 +1,8 @@
-package io.th0rgal.oraxen.utils.tuneblock;
+package io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock;
 
 import com.jeff_media.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -12,7 +13,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.Nullable;
 
-public class TuneBlock {
+public class RegularNoteBlock {
 
     private final Block block;
     private final Block blockAbove;
@@ -25,7 +26,7 @@ public class TuneBlock {
     private final float pitch;
     private final String sound;
 
-    public TuneBlock(Block block, @Nullable Player player) {
+    public RegularNoteBlock(Block block, @Nullable Player player) {
         this.container = new CustomBlockData(block, OraxenPlugin.get());
         this.block = block;
         this.blockAbove = block.getRelative(BlockFace.UP);
@@ -35,7 +36,19 @@ public class TuneBlock {
         this.isPowered = container.getOrDefault(poweredKey, PersistentDataType.BOOLEAN, false);
         this.note = container.getOrDefault(noteKey, PersistentDataType.BYTE, (byte) 0);
         this.pitch = (float) Math.pow(2.0F, (note - 12F) / 12F);
-        this.sound = NMSHandlers.getHandler().getNoteBlockInstrument(block);
+        this.sound = switch (blockAbove.getType()) {
+            case SKELETON_SKULL -> "block.note_block.imitate.skeleton";
+            case PIGLIN_HEAD -> "block.note_block.imitate.piglin";
+            case ZOMBIE_HEAD -> "block.note_block.imitate.zombie";
+            case CREEPER_HEAD -> "block.note_block.imitate.creeper";
+            case DRAGON_HEAD -> "block.note_block.imitate.ender_dragon";
+            case WITHER_SKELETON_SKULL -> "block.note_block.imitate.wither_skeleton";
+            default -> {
+                NoteBlockMechanic noteBlockMechanic = OraxenBlocks.getNoteBlockMechanic(block.getRelative(BlockFace.DOWN));
+                if (noteBlockMechanic != null) yield noteBlockMechanic.getInstrument().toLowerCase();
+                yield "block.note_block." + NMSHandlers.getHandler().getNoteBlockInstrument(block.getRelative(BlockFace.DOWN));
+            }
+        };
     }
 
     public String getSound() {

@@ -208,22 +208,6 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
     @Override
     public String getNoteBlockInstrument(Block block) {
-        Material aboveMaterial = block.getRelative(BlockFace.UP).getType();
-        Block blockBelow = block.getRelative(BlockFace.DOWN);
-        BlockState blockStateBelow = ((CraftBlock) blockBelow).getNMS();
-
-        return switch (aboveMaterial) {
-            case SKELETON_SKULL -> "block.note_block.imitate.skeleton";
-            case PIGLIN_HEAD -> "block.note_block.imitate.piglin";
-            case ZOMBIE_HEAD -> "block.note_block.imitate.zombie";
-            case CREEPER_HEAD -> "block.note_block.imitate.creeper";
-            case DRAGON_HEAD -> "block.note_block.imitate.ender_dragon";
-            case WITHER_SKELETON_SKULL -> "block.note_block.imitate.wither_skeleton";
-            default -> {
-                CustomBlockMechanic customBlockMechanic = OraxenBlocks.getCustomBlockMechanic(blockBelow.getBlockData());
-                if (customBlockMechanic != null) yield customBlockMechanic.getInstrument().toLowerCase();
-                yield "block.note_block." + blockStateBelow.instrument().toString().toLowerCase();
-            }
-        };
+        return ((CraftBlock) block).getNMS().instrument().toString().toLowerCase();
     }
 }

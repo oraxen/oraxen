@@ -33,7 +33,7 @@ import io.th0rgal.oraxen.utils.breaker.BreakerManager;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmorListener;
 import io.th0rgal.oraxen.utils.inventories.InvManager;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import io.th0rgal.oraxen.utils.tuneblock.TuneBlockListeners;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.NoteBlockMechanicInstrumentListener;
 import io.th0rgal.protectionlib.ProtectionLib;
 import kr.toxicity.libraries.datacomponent.DataComponentAPIBukkit;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
@@ -121,10 +121,8 @@ public class OraxenPlugin extends JavaPlugin {
         RecipesManager.load(this);
         invManager = new InvManager();
         ArmorEquipEvent.registerListener(this);
-        if (Settings.REIMPLEMENT_NOTEBLOCK_FEATURES.toBool()) {
-            Bukkit.getPluginManager().registerEvents(new TuneBlockListeners(), this);
-            CustomBlockData.registerListener(this);
-        }
+        CustomBlockData.registerListener(this);
+
         new CommandsManager().loadCommands();
 
         packServer = OraxenPackServer.initializeServer();

@@ -171,8 +171,4 @@ public class BlockHelpers {
     public static boolean isLoaded(Location loc) {
         return loc.getWorld() != null && isLoaded(loc.getWorld(), loc);
     }
-
-    public static boolean isRegularNoteBlock(Block block) {
-        return !OraxenBlocks.isOraxenNoteBlock(block) && block.getType() == Material.NOTE_BLOCK;
-    }
 }

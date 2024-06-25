@@ -75,9 +75,6 @@ public enum Settings {
     LEGACY_NOTEBLOCKS("CustomBlocks.use_legacy_noteblocks", false),
     LEGACY_STRINGBLOCKS("CustomBlocks.use_legacy_stringblocks", false),
 
-    // Tune Block
-    REIMPLEMENT_NOTEBLOCK_FEATURES("TuneBlock.reimplement-note-block-features", true),
-
     // ItemUpdater
     UPDATE_ITEMS("ItemUpdater.update_items", true),
     UPDATE_ITEMS_ON_RELOAD("ItemUpdater.update_items_on_reload", true),

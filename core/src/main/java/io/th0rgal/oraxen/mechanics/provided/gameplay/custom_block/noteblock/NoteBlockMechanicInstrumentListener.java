@@ -1,6 +1,7 @@
-package io.th0rgal.oraxen.utils.tuneblock;
+package io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock;
 
-import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.api.OraxenBlocks;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
@@ -15,31 +16,28 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.SkullMeta;
 
-public class TuneBlockListeners implements Listener {
+public class NoteBlockMechanicInstrumentListener implements Listener {
 
     @EventHandler
-    public void onNoteBlockPlay(final NotePlayEvent event) {
-        Block block = event.getBlock();
-        if (!BlockHelpers.isRegularNoteBlock(block)) return;
-
-        TuneBlock tuneBlock = new TuneBlock(block, null);
-        tuneBlock.runClickAction(Action.LEFT_CLICK_BLOCK);
+    public void onNotePlay(final NotePlayEvent event) {
+        RegularNoteBlock regularNoteBlock = new RegularNoteBlock(event.getBlock(), null);
+        regularNoteBlock.runClickAction(Action.LEFT_CLICK_BLOCK);
         event.setCancelled(true);
     }
 
     @EventHandler
     public void onNoteBlockPower(final BlockPhysicsEvent event) {
         Block block = event.getBlock();
-        if (!BlockHelpers.isRegularNoteBlock(block)) return;
-        TuneBlock tuneBlock = new TuneBlock(block, null);
+        if (OraxenBlocks.isOraxenNoteBlock(block) || block.getType() != Material.NOTE_BLOCK) return;
 
+        RegularNoteBlock regularNoteBlock = new RegularNoteBlock(block, null);
         if (!block.isBlockIndirectlyPowered()) {
-            tuneBlock.setPowered(false);
+            regularNoteBlock.setPowered(false);
             return;
         }
 
-        if (!tuneBlock.isPowered()) tuneBlock.playSoundNaturally();
-        tuneBlock.setPowered(true);
+        if (!regularNoteBlock.isPowered()) regularNoteBlock.playSoundNaturally();
+        regularNoteBlock.setPowered(true);
     }
 
     @EventHandler
@@ -47,7 +45,7 @@ public class TuneBlockListeners implements Listener {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
 
         Block block = event.getClickedBlock();
-        if (block == null || !BlockHelpers.isRegularNoteBlock(block)) return;
+        if (block == null || OraxenBlocks.isOraxenNoteBlock(block) || block.getType() != Material.NOTE_BLOCK) return;
 
         Player player = event.getPlayer();
         PlayerInventory playerInventory = player.getInventory();
@@ -61,12 +59,12 @@ public class TuneBlockListeners implements Listener {
         boolean isMainHandEmpty = mainHandItem.isEmpty();
         boolean isOffHandEmpty = offHandItem.isEmpty();
 
-        TuneBlock tuneBlock = new TuneBlock(block, player);
+        RegularNoteBlock regularNoteBlock = new RegularNoteBlock(block, player);
 
-        if (!(tuneBlock.isMobSound() && !(isSneaking && (!isMainHandEmpty || !isOffHandEmpty)) || !(isSneaking && (!isMainHandEmpty || !isOffHandEmpty))))
+        if (!(regularNoteBlock.isMobSound() && !(isSneaking && (!isMainHandEmpty || !isOffHandEmpty)) || !(isSneaking && (!isMainHandEmpty || !isOffHandEmpty))))
             return;
 
         event.setUseInteractedBlock(Event.Result.DENY);
-        tuneBlock.runClickAction(Action.RIGHT_CLICK_BLOCK);
+        regularNoteBlock.runClickAction(Action.RIGHT_CLICK_BLOCK);
     }
 }
