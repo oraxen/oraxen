@@ -56,7 +56,6 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
                 new BeaconListener()
         );
         if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockSoundListener());
-        if (reimplementNoteblockFeatures) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockMechanicInstrumentListener());
 
         BeaconTagDatapack.generateDatapack();
 
@@ -68,12 +67,13 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         if (!NMSHandlers.isNoteblockUpdatesDisabled()) {
             Logs.logError("Papers block-updates.disable-noteblock-updates is not enabled.");
             if (reimplementNoteblockFeatures) {
-                Logs.logError("otherwise reimplement_noteblock_feature mechanic will not be enabled");
+                Logs.logError("reimplement_noteblock_feature mechanic will not be enabled");
             }
             Logs.logWarning("It is recommended to enable this setting for improved performance and prevent bugs with noteblocks");
             Logs.logWarning("Otherwise Oraxen needs to listen to very taxing events, which also introduces some bugs");
             Logs.logWarning("You can enable this setting in ServerFolder/config/paper-global.yml", true);
-        }
+        } else if (reimplementNoteblockFeatures)
+            MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockMechanicInstrumentListener());
     }
 
     public static boolean isEnabled() {
