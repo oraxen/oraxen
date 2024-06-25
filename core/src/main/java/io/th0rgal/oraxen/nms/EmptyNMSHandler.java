@@ -79,6 +79,6 @@ public class EmptyNMSHandler implements NMSHandler {
 
     @Override
     public String getNoteBlockInstrument(Block block) {
-        return "BLOCK.NOTE_BLOCK.HARP";
+        return "block.note_block.harp";
     }
 }

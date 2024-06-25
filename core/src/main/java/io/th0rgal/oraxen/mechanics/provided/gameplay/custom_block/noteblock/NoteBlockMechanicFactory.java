@@ -48,7 +48,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         toolTypes = section.getStringList("tool_types");
         customSounds = OraxenPlugin.get().configsManager().getMechanics().getBoolean("custom_block_sounds.noteblock", true);
         removeMineableTag = section.getBoolean("remove_mineable_tag", false);
-        REIMPLEMENT_NOTEBLOCK_FEATURES = section.getBoolean("reimplement-noteblock-features", false);
+        REIMPLEMENT_NOTEBLOCK_FEATURES = section.getBoolean("reimplement_noteblock_features", false);
 
         MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(),
                 new NoteBlockMechanicListener(),
