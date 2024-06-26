@@ -108,14 +108,6 @@ public class CustomBlockHelpers {
                 return;
             }
 
-            BlockData blockBelowData = blockBelow.getBlockData();
-            if (oldData instanceof Bisected && blockBelowData instanceof Bisected) {
-                blockBelow.breakNaturally(true);
-            }
-
-            if (!blockBelow.canPlace(blockBelowData)) blockBelow.breakNaturally(true);
-            if (!blockAbove.canPlace(blockAbove.getBlockData())) blockAbove.breakNaturally(true);
-
             // Handle Falling NoteBlock-Mechanic blocks
             if (newMechanic instanceof NoteBlockMechanic noteMechanic) {
                 if (noteMechanic.isFalling() && blockBelow.getType().isAir()) {
@@ -128,6 +120,11 @@ public class CustomBlockHelpers {
             }
 
             if (player.getGameMode() != GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
+            if (newData != null) {
+                target.setType(Material.AIR);
+                target.setBlockData(newData, true);
+            }
+
             Utils.swingHand(player, hand);
         }
         if (VersionUtil.isPaperServer()) target.getWorld().sendGameEvent(player, GameEvent.BLOCK_PLACE, target.getLocation().toVector());
