@@ -14,8 +14,8 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Sign;
-import org.bukkit.block.data.Bisected;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.type.Snow;
 import org.bukkit.block.sign.Side;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.Player;
@@ -32,12 +32,20 @@ public class CustomBlockHelpers {
         final Block target;
         final Material itemMaterial = item.getType();
         final Material type = placedAgainst.getType();
-        final Range<Integer> worldHeightRange = Range.between(placedAgainst.getWorld().getMinHeight(), placedAgainst.getWorld().getMaxHeight() - 1);
+        final World world = placedAgainst.getWorld();
+        final Range<Integer> worldHeightRange = Range.of(world.getMinHeight(), world.getMaxHeight() - 1);
 
-        if (BlockHelpers.isReplaceable(type)) target = placedAgainst;
+        if (BlockHelpers.isReplaceable(type)) {
+            if (placedAgainst.getBlockData() instanceof Snow snow && snow.getLayers() == 1) target = placedAgainst;
+            else target = placedAgainst.getRelative(face);
+        }
         else {
             target = placedAgainst.getRelative(face);
-            if (newMechanic != null && !BlockHelpers.isReplaceable(target.getType())) return;
+
+            if (newMechanic != null) {
+                if (!BlockHelpers.isReplaceable(target.getType())) return;
+                if (target.getBlockData() instanceof Snow snow && snow.getLayers() > 1) return;
+            }
             else if (Tag.DOORS.isTagged(target.getType())) return;
         }
 
@@ -114,7 +122,7 @@ public class CustomBlockHelpers {
                     Location fallingLocation = BlockHelpers.toCenterBlockLocation(target.getLocation());
                     OraxenBlocks.remove(target.getLocation(), null);
                     if (fallingLocation.getNearbyEntitiesByType(FallingBlock.class, 0.25).isEmpty())
-                        target.getWorld().spawnFallingBlock(fallingLocation, newData);
+                        world.spawnFallingBlock(fallingLocation, newData);
                     NoteMechanicHelpers.handleFallingOraxenBlockAbove(target);
                 }
             }
@@ -127,7 +135,7 @@ public class CustomBlockHelpers {
 
             Utils.swingHand(player, hand);
         }
-        if (VersionUtil.isPaperServer()) target.getWorld().sendGameEvent(player, GameEvent.BLOCK_PLACE, target.getLocation().toVector());
+        if (VersionUtil.isPaperServer()) world.sendGameEvent(player, GameEvent.BLOCK_PLACE, target.getLocation().toVector());
 
     }
 }
