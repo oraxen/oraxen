@@ -11,6 +11,7 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.type.Snow;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -126,10 +127,12 @@ public class BlockHelpers {
     public static final List<Material> REPLACEABLE_BLOCKS;
 
     public static boolean isReplaceable(Block block) {
+        if (block.getBlockData() instanceof Snow snow) return snow.getLayers() == 1;
         return REPLACEABLE_BLOCKS.contains(block.getType());
     }
 
     public static boolean isReplaceable(BlockData blockData) {
+        if (blockData instanceof Snow snow) return snow.getLayers() == 1;
         return REPLACEABLE_BLOCKS.contains(blockData.getMaterial());
     }
 
