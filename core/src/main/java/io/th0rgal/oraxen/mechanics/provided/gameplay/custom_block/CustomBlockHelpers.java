@@ -66,7 +66,7 @@ public class CustomBlockHelpers {
             blockPlaceEvent.setCancelled(true);
 
         if (newMechanic != null) {
-            if (BlockHelpers.isStandingInside(player, target)) blockPlaceEvent.setCancelled(true);
+            if (!(newMechanic instanceof StringBlockMechanic) && BlockHelpers.isStandingInside(player, target)) blockPlaceEvent.setCancelled(true);
         } else {
             if (!itemMaterial.isBlock() && itemMaterial != Material.FLINT_AND_STEEL && itemMaterial != Material.FIRE_CHARGE && itemMaterial != Material.STRING)
                 return;
