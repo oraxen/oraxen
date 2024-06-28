@@ -65,8 +65,8 @@ public class NoteBlockMechanicInstrumentListener implements Listener {
         boolean isOffHandEmpty = offHandItem.isEmpty();
 
         RegularNoteBlock regularNoteBlock = new RegularNoteBlock(block, player);
-        boolean isSneakingWithHandOccupied = !(isSneaking && (!isMainHandEmpty || !isOffHandEmpty));
-        if (!(regularNoteBlock.isMobSound() && isSneakingWithHandOccupied || isSneakingWithHandOccupied)) return;
+        boolean isSneakingWithHandOccupied = (isSneaking && (!isMainHandEmpty || !isOffHandEmpty));
+        if (isSneakingWithHandOccupied) return;
 
         event.setUseInteractedBlock(Event.Result.DENY);
         regularNoteBlock.runClickAction(Action.RIGHT_CLICK_BLOCK);
