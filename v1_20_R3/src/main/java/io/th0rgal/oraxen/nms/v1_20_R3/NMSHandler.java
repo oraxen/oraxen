@@ -45,6 +45,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.craftbukkit.v1_20_R3.block.CraftBlock;
 import org.bukkit.craftbukkit.v1_20_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_20_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
@@ -258,5 +259,10 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     @Override
     public void removeMiningEffect(Player player) {
         ((CraftPlayer) player).getHandle().connection.send(new ClientboundRemoveMobEffectPacket(player.getEntityId(), MobEffects.DIG_SLOWDOWN));
+    }
+
+    @Override
+    public String getNoteBlockInstrument(Block block) {
+        return ((CraftBlock) block).getNMS().instrument().toString();
     }
 }

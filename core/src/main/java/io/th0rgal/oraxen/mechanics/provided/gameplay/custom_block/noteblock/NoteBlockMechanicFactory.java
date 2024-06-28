@@ -37,6 +37,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     private static NoteBlockMechanicFactory instance;
     public final List<String> toolTypes;
     public final boolean customSounds;
+    private final boolean reimplementNoteblockFeatures;
     private final boolean removeMineableTag;
     private boolean notifyOfDeprecation = true;
 
@@ -47,6 +48,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         toolTypes = section.getStringList("tool_types");
         customSounds = OraxenPlugin.get().configsManager().getMechanics().getBoolean("custom_block_sounds.noteblock", true);
         removeMineableTag = section.getBoolean("remove_mineable_tag", false);
+        reimplementNoteblockFeatures = section.getBoolean("reimplement_noteblock_features", false);
 
         MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(),
                 new NoteBlockMechanicListener(),
@@ -54,6 +56,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
                 new BeaconListener()
         );
         if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockSoundListener());
+
         BeaconTagDatapack.generateDatapack();
 
         // Physics-related stuff
@@ -63,10 +66,12 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
             MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockMechanicPhysicsListener());
         if (!NMSHandlers.isNoteblockUpdatesDisabled()) {
             Logs.logError("Papers block-updates.disable-noteblock-updates is not enabled.");
+            if (reimplementNoteblockFeatures) Logs.logError("reimplement_noteblock_feature mechanic will not be enabled");
             Logs.logWarning("It is recommended to enable this setting for improved performance and prevent bugs with noteblocks");
             Logs.logWarning("Otherwise Oraxen needs to listen to very taxing events, which also introduces some bugs");
             Logs.logWarning("You can enable this setting in ServerFolder/config/paper-global.yml", true);
-        }
+        } else if (reimplementNoteblockFeatures)
+            MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockMechanicInstrumentListener());
     }
 
     public static boolean isEnabled() {

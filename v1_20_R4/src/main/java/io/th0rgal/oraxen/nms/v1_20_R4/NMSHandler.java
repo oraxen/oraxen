@@ -48,6 +48,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.craftbukkit.block.CraftBlock;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
@@ -277,5 +278,10 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         ServerPlayer serverPlayer = ((CraftPlayer) player).getHandle();
         Collection<AttributeInstance> attributes = serverPlayer.getAttributes().getSyncableAttributes();
         serverPlayer.connection.send(new ClientboundUpdateAttributesPacket(player.getEntityId(), attributes));
+    }
+
+    @Override
+    public String getNoteBlockInstrument(Block block) {
+        return ((CraftBlock) block).getNMS().instrument().toString();
     }
 }

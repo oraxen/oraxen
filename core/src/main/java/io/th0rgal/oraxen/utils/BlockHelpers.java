@@ -171,5 +171,4 @@ public class BlockHelpers {
     public static boolean isLoaded(Location loc) {
         return loc.getWorld() != null && isLoaded(loc.getWorld(), loc);
     }
-
 }

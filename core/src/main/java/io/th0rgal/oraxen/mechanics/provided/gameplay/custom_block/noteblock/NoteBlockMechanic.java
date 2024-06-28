@@ -19,6 +19,7 @@ public class NoteBlockMechanic extends CustomBlockMechanic {
     private final boolean canIgnite;
     private final boolean isFalling;
     private final boolean beaconBaseBlock;
+    private final String instrument;
     private final LogStripping logStripping;
     private final DirectionalBlock directionalBlock;
     private final StorageMechanic storage;
@@ -30,6 +31,7 @@ public class NoteBlockMechanic extends CustomBlockMechanic {
         canIgnite = section.getBoolean("can_ignite", false);
         isFalling = section.getBoolean("is_falling", false);
         beaconBaseBlock = section.getBoolean("beacon_base_block", false);
+        instrument = section.getString("instrument", "block.note_block.bass");
 
         ConfigurationSection logStripSection = section.getConfigurationSection("log_strip");
         logStripping = logStripSection != null ? new LogStripping(logStripSection) : null;
@@ -99,6 +101,10 @@ public class NoteBlockMechanic extends CustomBlockMechanic {
         return parentMechanic != null ? beaconBaseBlock || parentMechanic.isBeaconBaseBlock() : beaconBaseBlock;
     }
 
+    public String getInstrument() {
+        return instrument;
+    }
+
     public boolean isDirectional() { return directionalBlock != null; }
     public DirectionalBlock directional() { return directionalBlock; }
 
@@ -123,5 +129,4 @@ public class NoteBlockMechanic extends CustomBlockMechanic {
     public boolean isInteractable() {
         return hasClickActions() || isStorage();
     }
-
 }
