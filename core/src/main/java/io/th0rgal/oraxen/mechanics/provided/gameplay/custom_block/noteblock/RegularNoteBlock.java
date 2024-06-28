@@ -4,6 +4,7 @@ import com.jeff_media.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.nms.NMSHandlers;
+import io.th0rgal.oraxen.utils.BlockHelpers;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -78,7 +79,7 @@ public class RegularNoteBlock {
     public void playSoundNaturally() {
         if (!blockAbove.isEmpty() && !isMobSound()) return;
 
-        Location loc = block.getLocation().add(0.5, 0.5, 0.5);
+        Location loc = BlockHelpers.toCenterBlockLocation(block.getLocation());
         World world = block.getWorld();
         double particleColor = (double) note / 24.0;
 

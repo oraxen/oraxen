@@ -37,7 +37,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     private static NoteBlockMechanicFactory instance;
     public final List<String> toolTypes;
     public final boolean customSounds;
-    private final boolean reimplementNoteblockFeatures;
+    public final boolean reimplementNoteblockFeatures;
     private final boolean removeMineableTag;
     private boolean notifyOfDeprecation = true;
 

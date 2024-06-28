@@ -77,7 +77,7 @@ public class NoteBlockMechanicListener implements Listener {
     @EventHandler(priority = EventPriority.NORMAL)
     public void onNotePlayed(final NotePlayEvent event) {
         if (OraxenBlocks.isOraxenNoteBlock(event.getBlock())) event.setCancelled(true);
-        else {
+        else if (!NoteBlockMechanicFactory.get().reimplementNoteblockFeatures) {
             if (instrumentMap.isEmpty()) instrumentMap = getInstrumentMap();
             String blockType = event.getBlock().getRelative(BlockFace.DOWN).getType().toString().toLowerCase();
             Instrument fakeInstrument = instrumentMap.entrySet().stream().filter(e -> e.getValue().contains(blockType)).map(Map.Entry::getKey).findFirst().orElse(Instrument.PIANO);
