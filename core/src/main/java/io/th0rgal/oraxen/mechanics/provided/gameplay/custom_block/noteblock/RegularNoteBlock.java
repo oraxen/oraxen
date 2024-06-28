@@ -85,7 +85,7 @@ public class RegularNoteBlock {
 
         if (!isMobSound()) {
             world.playSound(loc, sound, 1.0F, pitch);
-            world.spawnParticle(Particle.NOTE, loc.add(0, 0.6, 0), 0, particleColor, 0, 0, 1);
+            world.spawnParticle(Particle.NOTE, loc.add(0, 1.2, 0), 0, particleColor, 0, 0, 1);
         } else world.playSound(loc, sound, 1.0F, 1.0F);
 
         world.sendGameEvent(player, GameEvent.NOTE_BLOCK_PLAY, loc.toVector());
