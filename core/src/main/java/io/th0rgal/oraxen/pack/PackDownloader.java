@@ -15,6 +15,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.zip.ZipEntry;
@@ -48,9 +49,10 @@ public class PackDownloader {
                 }
 
                 try {
-                    URL url = new URL(fileUrl);
-                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                    connection.setRequestProperty("Authorization", !token.isEmpty() ? "token " + token : "");
+                    HttpURLConnection connection = (HttpURLConnection) URI.create(fileUrl).toURL().openConnection();
+                    connection.setRequestProperty("Accept", "application/vnd.github+json");
+                    connection.setRequestProperty("Authorization", !token.isEmpty() ? "Bearer " + token : "");
+                    connection.setRequestProperty("X-GitHub-Api-Version", "2022-11-28");
 
                     // Open input stream from the connection
                     ZipInputStream zis = new ZipInputStream(connection.getInputStream());
