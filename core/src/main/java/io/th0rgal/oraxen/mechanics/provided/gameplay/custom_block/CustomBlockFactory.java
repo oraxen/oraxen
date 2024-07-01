@@ -20,11 +20,14 @@ import java.util.List;
 
 public class CustomBlockFactory extends MechanicFactory {
 
+
     private static CustomBlockFactory instance;
 
     public CustomBlockFactory(String mechanicId) {
         super(mechanicId);
         instance = this;
+        CustomBlockRegistry.register(CustomBlockType.NOTEBLOCK);
+        CustomBlockRegistry.register(CustomBlockType.STRINGBLOCK);
         MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new CustomBlockListener(), new CustomBlockMiningListener());
     }
 
@@ -55,7 +58,7 @@ public class CustomBlockFactory extends MechanicFactory {
     @Override
     public CustomBlockMechanic parse(ConfigurationSection section) {
         String itemId = section.getParent().getParent().getName();
-        CustomBlockType type = CustomBlockType.fromMechanicSection(section);
+        CustomBlockType type = CustomBlockRegistry.fromMechanicSection(section);
         CustomBlockMechanic mechanic = null;
         if (type == CustomBlockType.NOTEBLOCK) {
             if (NoteBlockMechanicFactory.isEnabled())

@@ -9,6 +9,7 @@ import io.th0rgal.oraxen.api.events.furniture.OraxenFurnitureDamageEvent;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.BreakableMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockType;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock.StringBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
@@ -151,10 +152,12 @@ public class BreakerManager {
                 } else if (!blockMechanic.hasBlockSounds() || !blockMechanic.blockSounds().hasHitSound()) {
                     activeBreakerData.breakerSoundTask.cancel();
                 } else {
-                    String sound = switch (blockMechanic.type()) {
-                        case NOTEBLOCK -> blockMechanic.hasBlockSounds() && blockMechanic.blockSounds().hasHitSound() ? blockMechanic.blockSounds().hitSound() : "required.wood.hit";
-                        case STRINGBLOCK -> blockMechanic.hasBlockSounds() && blockMechanic.blockSounds().hasHitSound() ? blockMechanic.blockSounds().hitSound() : "block.tripwire.detach";
-                    };
+                    //TODO Allow for third party blocks to handle this somehow
+                    String sound = "";
+                    if (blockMechanic.type() == CustomBlockType.NOTEBLOCK)
+                        sound = blockMechanic.hasBlockSounds() && blockMechanic.blockSounds().hasHitSound() ? blockMechanic.blockSounds().hitSound() : "required.wood.hit";
+                    else if (blockMechanic.type() == CustomBlockType.STRINGBLOCK)
+                        sound = blockMechanic.hasBlockSounds() && blockMechanic.blockSounds().hasHitSound() ? blockMechanic.blockSounds().hitSound() : "block.tripwire.detach";
                     BlockHelpers.playCustomBlockSound(block.getLocation(), sound, blockMechanic.blockSounds().hitVolume(), blockMechanic.blockSounds().hitPitch());
                 }
             } else {
