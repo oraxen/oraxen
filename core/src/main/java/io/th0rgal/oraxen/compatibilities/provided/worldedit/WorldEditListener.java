@@ -8,6 +8,7 @@ import org.bukkit.event.Listener;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 public class WorldEditListener implements Listener {
@@ -24,5 +25,5 @@ public class WorldEditListener implements Listener {
     }
 
     private static final List<String> oraxenBlockIDs = OraxenItems.getEntries().stream()
-            .map(entry -> entry.getKey().toLowerCase()).filter(OraxenBlocks::isOraxenBlock).toList();
+            .map(entry -> entry.getKey().toLowerCase(Locale.ROOT)).filter(OraxenBlocks::isOraxenBlock).toList();
 }

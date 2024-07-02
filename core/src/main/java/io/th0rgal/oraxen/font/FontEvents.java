@@ -229,7 +229,11 @@ public class FontEvents implements Listener {
         }
 
         String finalDisplayName = displayName;
-        ItemUtils.editItemMeta(resultItem, meta -> meta.setDisplayName(finalDisplayName));
+        ItemUtils.editItemMeta(resultItem, meta -> {
+            if (finalDisplayName == null) meta.setDisplayName(null);
+            else if (VersionUtil.isPaperServer()) meta.displayName(MINI_MESSAGE.deserialize(finalDisplayName));
+            else meta.setDisplayName(finalDisplayName);
+        });
     }
 
     @EventHandler

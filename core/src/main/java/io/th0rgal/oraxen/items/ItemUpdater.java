@@ -219,17 +219,26 @@ public class ItemUpdater implements Listener {
             // On 1.20.5+ we use ItemName which is different from userchanged displaynames
             // Thus removing the need for this logic
             if (!VersionUtil.atOrAbove("1.20.5")) {
-                // Parsing with legacy here to fix any inconsistensies caused by server serializers etc
-                String oldDisplayName = AdventureUtils.parseLegacy(oldMeta.getDisplayName());
+
+                String oldDisplayName = AdventureUtils.parseLegacy(VersionUtil.isPaperServer() ? AdventureUtils.MINI_MESSAGE.serialize(oldMeta.displayName()) : AdventureUtils.parseLegacy(oldMeta.getDisplayName()));
                 String originalName = AdventureUtils.parseLegacy(oldPdc.getOrDefault(ORIGINAL_NAME_KEY, DataType.STRING, ""));
+
                 if (Settings.OVERRIDE_RENAMED_ITEMS.toBool()) {
-                    itemMeta.setDisplayName(newMeta.getDisplayName());
+                    if (VersionUtil.isPaperServer()) itemMeta.displayName(newMeta.displayName());
+                    else itemMeta.setDisplayName(newMeta.getDisplayName());
                 } else if (!originalName.equals(oldDisplayName)) {
-                    itemMeta.setDisplayName(oldMeta.getDisplayName());
+                    if (VersionUtil.isPaperServer()) itemMeta.displayName(oldMeta.displayName());
+                    else itemMeta.setDisplayName(oldMeta.getDisplayName());
                 } else {
-                    itemMeta.setDisplayName(newMeta.getDisplayName());
+                    if (VersionUtil.isPaperServer()) itemMeta.displayName(newMeta.displayName());
+                    else itemMeta.setDisplayName(newMeta.getDisplayName());
                 }
-                itemPdc.set(ORIGINAL_NAME_KEY, DataType.STRING, newMeta.getDisplayName());
+
+                originalName = newMeta.hasDisplayName() ? VersionUtil.isPaperServer()
+                        ? AdventureUtils.MINI_MESSAGE.serialize(newMeta.displayName())
+                        : newMeta.getDisplayName()
+                        : null;
+                if (originalName != null) itemPdc.set(ORIGINAL_NAME_KEY, DataType.STRING, originalName);
             }
 
 

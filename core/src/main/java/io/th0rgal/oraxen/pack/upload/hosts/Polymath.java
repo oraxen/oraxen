@@ -21,7 +21,6 @@ public class Polymath implements HostingProvider {
 
     private final String serverAddress;
     private String packUrl;
-    private String minecraftPackURL;
     private String sha1;
     private UUID packUUID;
 
@@ -54,7 +53,6 @@ public class Polymath implements HostingProvider {
             }
             if (jsonOutput.has("url") && jsonOutput.has("sha1")) {
                 packUrl = jsonOutput.get("url").getAsString();
-                minecraftPackURL = packUrl.replace("https://", "http://");
                 sha1 = jsonOutput.get("sha1").getAsString();
                 packUUID = UUID.nameUUIDFromBytes(sha1.getBytes());
                 return true;
@@ -75,11 +73,6 @@ public class Polymath implements HostingProvider {
     @Override
     public String getPackURL() {
         return packUrl;
-    }
-
-    @Override
-    public String getMinecraftPackURL() {
-        return minecraftPackURL;
     }
 
     @Override

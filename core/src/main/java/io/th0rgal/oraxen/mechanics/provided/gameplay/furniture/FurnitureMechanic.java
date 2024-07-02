@@ -370,7 +370,7 @@ public class FurnitureMechanic extends Mechanic {
         Class<? extends Entity> entityClass = getFurnitureEntityType().getEntityClass();
         if (entityClass == null) entityClass = ItemFrame.class;
 
-        ItemStack item = OraxenItems.getOptionalItemById(placedItemId).map(b -> b.build().clone()).orElse(originalItem);
+        ItemStack item = OraxenItems.getOptionalItemById(placedItemId).map(b -> b.build().clone()).orElse(originalItem.clone());
         if (evolvingFurniture == null) {
             ItemUtils.editItemMeta(item, meta -> meta.setDisplayName(""));
         }

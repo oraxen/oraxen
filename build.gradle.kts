@@ -83,7 +83,7 @@ allprojects {
         compileOnly("me.clip:placeholderapi:2.11.4")
         compileOnly("me.gabytm.util:actions-core:$actionsVersion")
         compileOnly("org.springframework:spring-expression:6.0.6")
-        compileOnly("io.lumine:Mythic-Dist:5.3.5")
+        compileOnly("io.lumine:Mythic-Dist:5.7.0-SNAPSHOT")
         compileOnly("io.lumine:MythicCrucible:1.6.0-SNAPSHOT")
         compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.9")
         compileOnly("commons-io:commons-io:2.11.0")

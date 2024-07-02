@@ -19,10 +19,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -31,7 +28,7 @@ public class DuplicationHandler {
 
     public static final String DUPLICATE_FILE_FOLDER = "migrated_duplicates/";
     public static File getDuplicateItemFile(Material material) {
-        return OraxenPlugin.get().getDataFolder().toPath().resolve("items").resolve(DUPLICATE_FILE_FOLDER + "duplicate_" + material.name().toLowerCase() + ".yml").toFile();
+        return OraxenPlugin.get().getDataFolder().toPath().resolve("items").resolve(DUPLICATE_FILE_FOLDER + "duplicate_" + material.name().toLowerCase(Locale.ROOT) + ".yml").toFile();
     }
 
     public static void mergeBaseItemFiles(List<VirtualFile> output) {
@@ -498,7 +495,7 @@ public class DuplicationHandler {
 
         Map<String, List<String>> oldMigrateConfigsSorted = new HashMap<>();
         for (String key : oldMigrateConfig.getKeys(false)) {
-            String material = oldMigrateConfig.getString(key + ".material").toLowerCase();
+            String material = oldMigrateConfig.getString(key + ".material").toLowerCase(Locale.ROOT);
             oldMigrateConfigsSorted.computeIfAbsent(material, k -> new ArrayList<>()).add(key);
         }
 

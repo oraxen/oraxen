@@ -45,9 +45,8 @@ public class FoodMechanicListener implements Listener {
             event.setCancelled(true);
 
             if (player.getGameMode() != GameMode.CREATIVE) {
-                ItemStack itemInHand = event.getItem();
+                ItemStack itemInHand = player.getInventory().getItem(event.getHand());
                 ItemUtils.subtract(itemInHand, 1);
-                event.setItem(itemInHand);
                 if (mechanic.hasReplacement()) inventory.addItem(mechanic.getReplacement());
 
 

@@ -256,7 +256,7 @@ public class NoteBlockMechanicListener implements Listener {
         if (event.getInstrument() != Instrument.PIANO) event.setCancelled(true);
         else {
             if (instrumentMap.isEmpty()) instrumentMap = getInstrumentMap();
-            String blockType = event.getBlock().getRelative(BlockFace.DOWN).getType().toString().toLowerCase();
+            String blockType = event.getBlock().getRelative(BlockFace.DOWN).getType().toString().toLowerCase(Locale.ROOT);
             Instrument fakeInstrument = instrumentMap.entrySet().stream().filter(e -> e.getValue().contains(blockType)).map(Map.Entry::getKey).findFirst().orElse(Instrument.PIANO);
             // This is deprecated, but seems to be without reason
             event.setInstrument(fakeInstrument);

@@ -53,13 +53,13 @@ public class Utils {
     public static List<String> toLowercaseList(final String... values) {
         final ArrayList<String> list = new ArrayList<>();
         for (final String value : values)
-            list.add(value.toLowerCase(Locale.ENGLISH));
+            list.add(value.toLowerCase(Locale.ROOT));
         return list;
     }
 
     public static String[] toLowercase(final String... values) {
         for (int index = 0; index < values.length; index++)
-            values[index] = values[index].toLowerCase();
+            values[index] = values[index].toLowerCase(Locale.ROOT);
         return values;
     }
 
