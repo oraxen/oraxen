@@ -6,7 +6,6 @@ import dev.jorel.commandapi.arguments.TextArgument;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
-import io.th0rgal.oraxen.api.events.OraxenItemsLoadedEvent;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.font.FontManager;
@@ -38,7 +37,6 @@ public class ReloadCommand {
         Optional.ofNullable(FurnitureFactory.get()).ifPresent(p -> p.packetManager().removeAllFurniturePackets());
         OraxenItems.loadItems();
         OraxenPlugin.get().invManager().regen();
-        Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent());
 
         if (Settings.UPDATE_ITEMS.toBool() && Settings.UPDATE_ITEMS_ON_RELOAD.toBool()) {
             Logs.logInfo("Updating all items in player-inventories...");
@@ -67,8 +65,6 @@ public class ReloadCommand {
         OraxenPlugin.get().soundManager(new SoundManager(OraxenPlugin.get().configsManager().getSounds()));
         OraxenPlugin.get().packGenerator(new PackGenerator());
         OraxenPlugin.get().packGenerator().generatePack();
-        if (Settings.PACK_SEND_RELOAD.toBool()) for (Player player : Bukkit.getOnlinePlayers())
-            OraxenPlugin.get().packServer().sendPack(player);
     }
 
     public static void reloadRecipes(@Nullable CommandSender sender) {

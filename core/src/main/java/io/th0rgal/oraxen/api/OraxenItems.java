@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.api;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.events.OraxenItemsLoadedEvent;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemParser;
@@ -36,6 +37,8 @@ public class OraxenItems {
         items = new HashSet<>();
         for (final Map<String, ItemBuilder> subMap : map.values())
             items.addAll(subMap.keySet());
+
+        new OraxenItemsLoadedEvent().callEvent();
     }
 
     public static String getIdByItem(final ItemBuilder item) {

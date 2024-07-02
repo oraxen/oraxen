@@ -40,6 +40,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.Nullable;
 
@@ -121,6 +122,14 @@ public class OraxenPlugin extends JavaPlugin {
         packServer = OraxenPackServer.initializeServer();
         packServer.start();
 
+        Bukkit.getPluginManager().registerEvents(new Listener() {
+            @EventHandler
+            public void onItemsLoaded(OraxenItemsLoadedEvent event) {
+                RecipesManager.load(OraxenPlugin.get());
+                packGenerator.generatePack();
+            }
+        }, this);
+
         postLoading();
         CompatibilitiesManager.enableNativeCompatibilities();
         if (VersionUtil.isCompiled()) NoticeUtils.compileNotice();
@@ -133,14 +142,7 @@ public class OraxenPlugin extends JavaPlugin {
         Bukkit.getScheduler().runTask(this, () -> {
             MechanicsManager.registerNativeMechanics();
             OraxenItems.loadItems();
-            new OraxenItemsLoadedEvent().callEvent();
         });
-    }
-
-    @EventHandler
-    public void onItemsLoaded(OraxenItemsLoadedEvent event) {
-        RecipesManager.load(this);
-        packGenerator.generatePack();
     }
 
     @Override

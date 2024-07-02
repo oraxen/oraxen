@@ -36,8 +36,7 @@ public class CommandsManager {
                         (new BlockInfoCommand()).getBlockInfoCommand(),
                         (new LogDumpCommand().getLogDumpCommand()),
                         (new VersionCommand()).getVersionCommand(),
-                        (new AdminCommand()).getAdminCommand(),
-                        (new NewPackCommand()).getNewPackCommand())
+                        (new AdminCommand()).getAdminCommand())
                 .executes((sender, args) -> {
                     Message.COMMAND_HELP.send(sender);
                 })
