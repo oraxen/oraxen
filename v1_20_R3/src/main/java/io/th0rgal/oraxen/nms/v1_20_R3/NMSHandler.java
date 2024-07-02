@@ -57,7 +57,10 @@ import org.jetbrains.annotations.Unmodifiable;
 import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 import static io.th0rgal.oraxen.pack.PackListener.CONFIG_PHASE_PACKET_LISTENER;
 
@@ -157,7 +160,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         net.minecraft.world.item.ItemStack nmsStack = CraftItemStack.asNMSCopy(itemStack);
         ServerPlayer serverPlayer = ((CraftPlayer) player).getHandle();
         BlockHitResult hitResult = getPlayerPOVHitResult(serverPlayer.level(), serverPlayer, ClipContext.Fluid.NONE);
-        BlockPlaceContext placeContext = new BlockPlaceContext(new UseOnContext(serverPlayer, hand, hitResult));
+        BlockPlaceContext placeContext = new BlockPlaceContext(serverPlayer.level(), serverPlayer, hand, nmsStack, hitResult);
 
         if (!(nmsStack.getItem() instanceof BlockItem blockItem)) {
             InteractionResult result = InteractionResult.fromNms(nmsStack.getItem().useOn(new UseOnContext(serverPlayer, hand, hitResult)));

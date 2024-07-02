@@ -81,7 +81,8 @@ public class PolymathServer implements OraxenPackServer {
             Logs.logError("The resource pack has not been uploaded to the server. Usually this is due to an excessive size.");
         } catch(IllegalStateException | IOException ex) {
             Logs.logError("The resource pack has not been uploaded to the server. Usually this is due to an excessive size.");
-            ex.printStackTrace();
+            if (Settings.DEBUG.toBool()) ex.printStackTrace();
+            else Logs.logWarning(ex.getMessage());
         }
     }
 

@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.FileUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Material;
 import team.unnamed.creative.ResourcePack;
@@ -36,20 +37,16 @@ public class PackObfuscator {
 
     private ResourcePack resourcePack;
     private final PackObfuscationType obfuscationType;
-    private final File obfCachedPack;
+    private File obfCachedPack;
     private final boolean cache = Settings.PACK_CACHE_OBFUSCATION.toBool();
 
-    public PackObfuscator(ResourcePack resourcePack, String hash) {
+    public PackObfuscator(ResourcePack resourcePack) {
         this.obfuscationType = Settings.PACK_OBFUSCATION_TYPE.toEnumOrGet(PackObfuscationType.class, () -> {
             Logs.logError("Invalid PackObfuscation type: " + Settings.PACK_OBFUSCATION_TYPE + ", defaulting to " + PackObfuscationType.FULL, true);
             Logs.logError("Valid options are: " + StringUtils.join(Arrays.stream(PackObfuscationType.values()).map(Enum::name).toList(), ", "), true);
             return PackObfuscationType.FULL;
         });
         this.resourcePack = resourcePack;
-        this.obfCachedPack = OraxenPlugin.get().packPath().resolve(".deobfCachedPacks").resolve(hash).toFile();
-
-        this.obfCachedPack.getParentFile().mkdirs();
-        FileUtil.setHidden(obfCachedPack.toPath().getParent());
     }
 
     public PackObfuscationType obfuscationType() {
@@ -67,6 +64,11 @@ public class PackObfuscator {
     public ResourcePack obfuscatePack() {
         if (obfuscationType.isNone()) return resourcePack;
 
+        String hash = MinecraftResourcePackWriter.minecraft().build(resourcePack).hash();
+        this.obfCachedPack = OraxenPlugin.get().packPath().resolve(".deobfCachedPacks").resolve(hash).toFile();
+        this.obfCachedPack.getParentFile().mkdirs();
+        FileUtil.setHidden(obfCachedPack.toPath().getParent());
+
         Logs.logInfo("Obfuscating OraxenPack...");
         if (shouldObfuscatePack()) {
             obfuscateModels();
@@ -81,10 +83,19 @@ public class PackObfuscator {
             }
         }
 
+        List<File> files = Arrays.stream(Objects.requireNonNullElse(this.obfCachedPack.getParentFile().listFiles(), new File[]{})).toList();
+        for (final File file : files) {
+            if (file.isDirectory() && !file.getName().equals(obfCachedPack.getName())) {
+                try {
+                    FileUtils.deleteDirectory(file);
+                } catch (Exception ignored) {}
+            }
+        }
+
         return resourcePack;
     }
 
-    private boolean shouldObfuscatePack() {
+    public boolean shouldObfuscatePack() {
         // We do not want to cache it or use a cached version
         if (!cache) return true;
         // We want to use cached version, but it does not exist
@@ -191,8 +202,8 @@ public class PackObfuscator {
             List<SoundEvent> obfSoundEvents = soundRegistry.sounds().stream().map(soundEvent -> {
                 List<SoundEntry> obfEntries = soundEvent.sounds().stream().map(soundEntry ->
                         obfuscatedSounds.stream().filter(obf -> obf.containsKey(soundEntry.key())).findFirst()
-                        .map(obf -> soundEntry.toBuilder().key(obf.obfuscatedSound.key()).build())
-                        .orElse(soundEntry)).toList();
+                                .map(obf -> soundEntry.toBuilder().key(obf.obfuscatedSound.key()).build())
+                                .orElse(soundEntry)).toList();
 
                 return soundEvent.toBuilder().sounds(obfEntries).build();
             }).toList();
