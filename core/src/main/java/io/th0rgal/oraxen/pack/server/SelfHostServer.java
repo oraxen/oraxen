@@ -89,7 +89,7 @@ public class SelfHostServer implements OraxenPackServer {
         String urlString = "http://checkip.amazonaws.com/";
         String publicAddress;
         try {
-            URL url = new URL(urlString);
+            URL url = URI.create(urlString).toURL();
             try (BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()))) {
                 publicAddress = br.readLine();
             }

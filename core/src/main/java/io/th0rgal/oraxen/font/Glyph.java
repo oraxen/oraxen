@@ -1,8 +1,6 @@
 package io.th0rgal.oraxen.font;
 
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import net.kyori.adventure.key.Key;
@@ -12,6 +10,7 @@ import net.kyori.adventure.text.event.HoverEventSource;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import org.apache.commons.lang3.StringUtils;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
@@ -76,7 +75,7 @@ public class Glyph {
         bitmapEntry = bitmapSection != null ? new BitMapEntry(bitmapSection.getString("id"), bitmapSection.getInt("row"), bitmapSection.getInt("column")) : null;
         ascent = bitmap() != null ? bitmap().ascent() : glyphSection.getInt("ascent", 8);
         height = bitmap() != null ? bitmap().height() : glyphSection.getInt("height", 8);
-        texture = bitmap() != null ? bitmap().texture() : Key.key(glyphSection.getString("texture", "required/exit_icon").replaceAll("^(?!.*\\.png$)", "") + ".png");
+        texture = bitmap() != null ? bitmap().texture() : Key.key(StringUtils.appendIfMissing(glyphSection.getString("texture", "required/exit_icon"), ".png"));
         font = bitmap() != null ? bitmap().font() : Key.key(glyphSection.getString("font", "minecraft:default"));
     }
 
@@ -166,18 +165,6 @@ public class Glyph {
         return tabcomplete;
     }
 
-    public JsonObject toJson() {
-        final JsonObject output = new JsonObject();
-        final JsonArray chars = new JsonArray();
-        chars.add(character());
-        output.add("chars", chars);
-        output.addProperty("file", texture.asString());
-        output.addProperty("ascent", ascent);
-        output.addProperty("height", height);
-        output.addProperty("type", "bitmap");
-        return output;
-    }
-
     public FontProvider fontProvider() {
         return FontProvider.bitMap()
                 .file(texture)
@@ -222,7 +209,7 @@ public class Glyph {
     public static class RequiredGlyph extends Glyph {
 
         public RequiredGlyph(char character) {
-            super("required", character, 8, 8, Key.key("minecraft:required/exit_icon"), Key.key("minecraft:default"), false, new ArrayList<>(), "oraxen.emoji.required", false, null);
+            super("required", character, 8, 8, Key.key("minecraft:required/exit_icon.png"), Key.key("minecraft:default"), false, new ArrayList<>(), "oraxen.emoji.required", false, null);
         }
     }
 }
