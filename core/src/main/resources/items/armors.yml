@@ -10,9 +10,8 @@ emerald_helmet:
   material: LEATHER_HELMET
   lore:
     - "<#6f737d>» <#D5D6D8>Gives 1 extra <glyph:heart>"
-  Mechanics:
-    durability:
-      value: 437 # 20% more than diamond helmet
+  Components:
+    durability: 437 # 20% more than diamond helmet
   AttributeModifiers:
     # - name: You don't really care about the name but it can be useful for some developers
     # - attribute: Get the list here: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/attribute/Attribute.html
@@ -33,9 +32,8 @@ emerald_chestplate:
   material: LEATHER_CHESTPLATE
   lore:
     - "<#6f737d>» <#D5D6D8>Gives 1.5 extra <glyph:heart>"
-  Mechanics:
-    durability:
-      value: 635
+  Components:
+    durability: 635
   AttributeModifiers:
     - { attribute: GENERIC_MAX_HEALTH, amount: 3, operation: 0, slot: CHEST }
     - { attribute: GENERIC_ARMOR, amount: 8, operation: 0, slot: CHEST }
@@ -52,9 +50,8 @@ emerald_leggings:
   material: LEATHER_LEGGINGS
   lore:
     - "<#6f737d>» <#D5D6D8>Gives 1.5 extra <glyph:heart>"
-  Mechanics:
-    durability:
-      value: 595
+  Components:
+    durability: 595
   AttributeModifiers:
     - { attribute: GENERIC_MAX_HEALTH, amount: 3, operation: 0, slot: LEGS }
     - { attribute: GENERIC_ARMOR, amount: 6, operation: 0, slot: LEGS }
@@ -71,9 +68,8 @@ emerald_boots:
   material: LEATHER_BOOTS
   lore:
     - "<#6f737d>» <#D5D6D8>Gives 1 extra <glyph:heart>"
-  Mechanics:
-    durability:
-      value: 516
+  Components:
+    durability: 516
   AttributeModifiers:
     - { attribute: GENERIC_MAX_HEALTH, amount: 2, operation: 0, slot: FEET }
     - { attribute: GENERIC_ARMOR, amount: 3, operation: 0, slot: FEET }
@@ -90,9 +86,8 @@ obsidian_helmet:
   material: LEATHER_HELMET
   lore:
     - "<#6f737d>» <#D5D6D8>Ludicrous durability"
-  Mechanics:
-    durability:
-      value: 4370
+  Components:
+    durability: 4370
   AttributeModifiers:
     - { attribute: GENERIC_ARMOR, amount: 2, operation: 0, slot: HEAD }
   Pack:
@@ -108,9 +103,8 @@ obsidian_chestplate:
   material: LEATHER_CHESTPLATE
   lore:
     - "<#6f737d>» <#D5D6D8>Ludicrous durability"
-  Mechanics:
-    durability:
-      value: 6350
+  Components:
+    durability: 6350
   AttributeModifiers:
     - { attribute: GENERIC_ARMOR, amount: 6, operation: 0, slot: CHEST }
   Pack:
@@ -125,9 +119,8 @@ obsidian_leggings:
   material: LEATHER_LEGGINGS
   lore:
     - "<#6f737d>» <#D5D6D8>Ludicrous durability"
-  Mechanics:
-    durability:
-      value: 5950
+  Components:
+    durability: 5950
   AttributeModifiers:
     - { attribute: GENERIC_ARMOR, amount: 5, operation: 0, slot: LEGS }
   Pack:
@@ -142,9 +135,8 @@ obsidian_boots:
   material: LEATHER_BOOTS
   lore:
     - "<#6f737d>» <#D5D6D8>Ludicrous durability"
-  Mechanics:
-    durability:
-      value: 5160
+  Components:
+    durability: 5160
   AttributeModifiers:
     - { attribute: GENERIC_ARMOR, amount: 2, operation: 0, slot: FEET }
   Pack:
@@ -157,9 +149,8 @@ obsidian_boots:
 ruby_helmet:
   displayname: "<gradient:#FA7CBB:#F14658>Ruby Helmet"
   material: LEATHER_HELMET
-  Mechanics:
-    durability:
-      value: 547 # 50% more than diamond helmet
+  Components:
+    durability: 547 # 50% more than diamond helmet
   AttributeModifiers:
     - { attribute: GENERIC_ARMOR, amount: 3, operation: 0, slot: HEAD }
     - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: HEAD }
@@ -173,9 +164,8 @@ ruby_helmet:
 ruby_chestplate:
   displayname: "<gradient:#FA7CBB:#F14658>Ruby Chestplate"
   material: LEATHER_CHESTPLATE
-  Mechanics:
-    durability:
-      value: 792
+  Components:
+    durability: 792
   AttributeModifiers:
     - { attribute: GENERIC_ARMOR, amount: 8, operation: 0, slot: CHEST }
     - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: CHEST }
@@ -189,9 +179,8 @@ ruby_chestplate:
 ruby_leggings:
   displayname: "<gradient:#FA7CBB:#F14658>Ruby Leggings"
   material: LEATHER_LEGGINGS
-  Mechanics:
-    durability:
-      value: 742
+  Components:
+    durability: 742
   AttributeModifiers:
     - { attribute: GENERIC_ARMOR, amount: 6, operation: 0, slot: LEGS }
     - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: LEGS }
@@ -205,9 +194,8 @@ ruby_leggings:
 ruby_boots:
   displayname: "<gradient:#FA7CBB:#F14658>Ruby Boots"
   material: LEATHER_BOOTS
-  Mechanics:
-    durability:
-      value: 643
+  Components:
+    durability: 643 # 20% more than diamond helmet
   AttributeModifiers:
     - { attribute: GENERIC_ARMOR, amount: 3, operation: 0, slot: FEET }
     - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: FEET }
