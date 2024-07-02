@@ -211,7 +211,7 @@ public class ShaderArmorTextures {
             ItemBuilder builder = OraxenItems.getItemById(prefix + suffix);
             ItemMeta meta = builder != null ? builder.build().getItemMeta() : null;
 
-            if (!(meta instanceof LeatherArmorMeta) && builder != null && builder.build().getType().toString().toLowerCase().endsWith(suffix)) {
+            if (!(meta instanceof LeatherArmorMeta) && builder != null && builder.build().getType().toString().toLowerCase(Locale.ROOT).endsWith(suffix)) {
                 Logs.logError("Material of " + prefix + suffix + " is not a LeatherArmor material!");
                 Logs.logWarning("Custom Armor requires that the item is LeatherArmor");
                 Logs.logWarning("You can add fake armor values via AttributeModifiers", true);
