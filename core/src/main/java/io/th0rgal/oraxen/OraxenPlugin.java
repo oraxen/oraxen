@@ -38,6 +38,7 @@ import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.Nullable;
@@ -108,11 +109,9 @@ public class OraxenPlugin extends JavaPlugin {
         NMSHandlers.setupHandler();
         packGenerator = new PackGenerator();
 
-        MechanicsManager.registerNativeMechanics();
-        OraxenItems.loadItems();
         fontManager.registerEvents();
         Bukkit.getPluginManager().registerEvents(new ItemUpdater(), this);
-        RecipesManager.load(this);
+
         invManager = new InvManager();
         ArmorEquipEvent.registerListener(this);
         CustomBlockData.registerListener(this);
@@ -121,7 +120,7 @@ public class OraxenPlugin extends JavaPlugin {
 
         packServer = OraxenPackServer.initializeServer();
         packServer.start();
-        packGenerator.generatePack();
+
         postLoading();
         CompatibilitiesManager.enableNativeCompatibilities();
         if (VersionUtil.isCompiled()) NoticeUtils.compileNotice();
@@ -131,8 +130,17 @@ public class OraxenPlugin extends JavaPlugin {
     private void postLoading() {
         new Metrics(this, 5371);
         new LU().l();
-        Bukkit.getScheduler().runTask(this, () ->
-                Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent()));
+        Bukkit.getScheduler().runTask(this, () -> {
+            MechanicsManager.registerNativeMechanics();
+            OraxenItems.loadItems();
+            new OraxenItemsLoadedEvent().callEvent();
+        });
+    }
+
+    @EventHandler
+    public void onItemsLoaded(OraxenItemsLoadedEvent event) {
+        RecipesManager.load(this);
+        packGenerator.generatePack();
     }
 
     @Override

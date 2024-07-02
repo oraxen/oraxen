@@ -24,8 +24,8 @@ public class OraxenItems {
 
     public static final NamespacedKey ITEM_ID = new NamespacedKey(OraxenPlugin.get(), "id");
     // configuration sections : their OraxenItem wrapper
-    private static Map<File, Map<String, ItemBuilder>> map;
-    private static Set<String> items;
+    private static Map<File, Map<String, ItemBuilder>> map = new LinkedHashMap<>();
+    private static Set<String> items = new LinkedHashSet<>();
 
     public static void loadItems() {
         ItemParser.MODEL_DATAS_BY_ID.clear();

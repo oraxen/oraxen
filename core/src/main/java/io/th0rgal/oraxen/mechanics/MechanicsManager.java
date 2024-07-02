@@ -57,7 +57,7 @@ public class MechanicsManager {
         registerFactory("furniture", FurnitureFactory::new);
         registerFactory("noteblock", NoteBlockMechanicFactory::new);
         registerFactory("stringblock", StringBlockMechanicFactory::new);
-        registerMechanicFactory("custom_block", new CustomBlockFactory("custom_block"), NoteBlockMechanicFactory.isEnabled() || StringBlockMechanicFactory.isEnabled());
+        registerMechanicFactory(new CustomBlockFactory("custom_block"), true);
 
         // cosmetic
         registerFactory("aura", AuraMechanicFactory::new);
@@ -76,21 +76,17 @@ public class MechanicsManager {
         registerFactory("bottledexp", BottledExpMechanicFactory::new);
         registerFactory("harvesting", HarvestingMechanicFactory::new);
 
-        Bukkit.getScheduler().callSyncMethod(OraxenPlugin.get(), () -> {
-            Bukkit.getPluginManager().callEvent(new OraxenNativeMechanicsRegisteredEvent());
-            return null;
-        });
+        new OraxenNativeMechanicsRegisteredEvent().callEvent();
     }
 
     /**
      * Register a new MechanicFactory
      *
-     * @param mechanicId the id of the mechanic
      * @param factory    the MechanicFactory of the mechanic
      * @param enabled    if the mechanic should be enabled by default or not
      */
-    public static void registerMechanicFactory(String mechanicId, MechanicFactory factory, boolean enabled) {
-        if (enabled) FACTORIES_BY_MECHANIC_ID.put(mechanicId, factory);
+    public static void registerMechanicFactory(MechanicFactory factory, boolean enabled) {
+        if (enabled) FACTORIES_BY_MECHANIC_ID.put(factory.getMechanicID(), factory);
     }
 
     public static void unregisterMechanicFactory(String mechanicId) {
@@ -101,7 +97,7 @@ public class MechanicsManager {
 
     /**
      * This method is deprecated and will be removed in a future release.<br>
-     * Use {@link #registerMechanicFactory(String, MechanicFactory, boolean)} instead.
+     * Use {@link #registerMechanicFactory(MechanicFactory, boolean)} instead.
      *
      * @param mechanicId  the id of the mechanic
      * @param constructor the constructor of the mechanic
