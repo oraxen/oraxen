@@ -15,9 +15,8 @@ obsidian_pickaxe:
     parent_model: "item/handheld"
     textures:
       - default/obsidian_pickaxe.png
-  Mechanics:
-    durability:
-      value: 15000 #diamond sword is 1561
+  Components:
+    durability: 15000 #diamond sword is 1561
 
 bedrock_pickaxe:
   displayname: "<gradient:#3685EC:#72C1E4>Bedrock Pickaxe"
@@ -28,12 +27,12 @@ bedrock_pickaxe:
     generate_model: false
     model: default/bedrock_pickaxe
   Mechanics:
-    durability:
-      value: 5000 #diamond sword is 1561
     bedrockbreak:
       hardness: 10
       probability: 1
-
+  Components:
+    durability: 5000
+    
 emerald_hammer:
   displayname: "<gradient:#89E59D:#37C6BA>Emerald Hammer"
   material: DIAMOND_PICKAXE
@@ -75,11 +74,11 @@ onyx_hammer:
     textures:
       - default/onyx_hammer.png
   Mechanics:
-    durability:
-      value: 3122
     bigmining:
       radius: 1
       depth: 2
+  Components:
+    durability: 3122
 
 orax_hammer:
   displayname: "<gradient:#3685EC:#72C1E4>Orax Hammer"
@@ -92,11 +91,11 @@ orax_hammer:
     textures:
       - default/orax_hammer.png
   Mechanics:
-    durability:
-      value: 4683
     bigmining:
       radius: 2
       depth: 2
+  Components:
+    durability: 4683
 
 fire_hammer:
   displayname: "<gradient:#F06966:#FAD6A6>Fire Hammer"
@@ -113,11 +112,11 @@ fire_hammer:
     smelting:
       enabled: true
       play_sound: true
-    durability:
-      value: 4683
     bigmining:
       radius: 1
       depth: 1
+  Components:
+    durability: 4683
 
 iron_cog:
   displayname: "<#D5D6D8>Iron Cog"
