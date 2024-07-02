@@ -29,7 +29,7 @@ public class PackDownloader {
         if (VersionUtil.isCompiled()) Logs.logWarning("Skipping download of Oraxen pack, compiled versions do not include assets");
         else if (VersionUtil.isLeaked()) Logs.logError("Skipping download of Oraxen pack, pirated versions do not include assets");
         else {
-            InputStream accessStream = OraxenPlugin.get().getResource("pack/token.secret");
+            InputStream accessStream = OraxenPlugin.get().getResource("token.secret");
             if (accessStream == null) {
                 Logs.logWarning("Failed to download Default-Pack...");
                 Logs.logWarning("Missing token-file, please contact the developer!");

@@ -177,7 +177,7 @@ tasks {
                 )
             )
         }
-        exclude("LICENSE")
+        exclude("LICENSE", "pack/**")
         archiveFileName.set("oraxen-${pluginVersion}.jar")
         archiveClassifier.set("")
     }
