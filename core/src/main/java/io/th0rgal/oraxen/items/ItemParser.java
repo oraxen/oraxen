@@ -258,16 +258,15 @@ public class ItemParser {
         ConfigurationSection mechanicsSection = section.getConfigurationSection("Mechanics");
         if (mechanicsSection != null) for (String mechanicID : mechanicsSection.getKeys(false)) {
             MechanicFactory factory = MechanicsManager.getMechanicFactory(mechanicID);
+            if (factory == null) continue;
 
-            if (factory != null) {
-                ConfigurationSection mechanicSection = mechanicsSection.getConfigurationSection(mechanicID);
-                if (mechanicSection == null) continue;
-                Mechanic mechanic = factory.parse(mechanicSection);
-                if (mechanic == null) continue;
-                // Apply item modifiers
-                for (Function<ItemBuilder, ItemBuilder> itemModifier : mechanic.getItemModifiers())
-                    item = itemModifier.apply(item);
-            }
+            ConfigurationSection mechanicSection = mechanicsSection.getConfigurationSection(mechanicID);
+            if (mechanicSection == null) continue;
+            Mechanic mechanic = factory.parse(mechanicSection);
+            if (mechanic == null) continue;
+            // Apply item modifiers
+            for (Function<ItemBuilder, ItemBuilder> itemModifier : mechanic.getItemModifiers())
+                item = itemModifier.apply(item);
         }
 
         if (oraxenMeta.hasPackInfos()) {

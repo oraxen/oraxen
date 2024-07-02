@@ -24,6 +24,7 @@ import io.th0rgal.oraxen.mechanics.provided.misc.custom.CustomMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.misc.MiscMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.soulbound.SoulBoundMechanicFactory;
+import io.th0rgal.oraxen.utils.EventUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -76,7 +77,7 @@ public class MechanicsManager {
         registerFactory("bottledexp", BottledExpMechanicFactory::new);
         registerFactory("harvesting", HarvestingMechanicFactory::new);
 
-        new OraxenNativeMechanicsRegisteredEvent().callEvent();
+        EventUtils.callEvent(new OraxenNativeMechanicsRegisteredEvent());
     }
 
     /**

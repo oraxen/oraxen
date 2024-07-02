@@ -9,6 +9,7 @@ import io.th0rgal.oraxen.items.ModelData;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.EventUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -38,7 +39,7 @@ public class OraxenItems {
         for (final Map<String, ItemBuilder> subMap : map.values())
             items.addAll(subMap.keySet());
 
-        new OraxenItemsLoadedEvent().callEvent();
+        EventUtils.callEvent(new OraxenItemsLoadedEvent());
     }
 
     public static String getIdByItem(final ItemBuilder item) {
