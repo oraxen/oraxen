@@ -51,9 +51,8 @@ glass_sword:
     parent_model: "item/handheld"
     textures:
       - default/glass_sword.png
-  Mechanics:
-    durability:
-      value: 8
+  Components:
+    durability: 8
 
 obsidian_sword:
   displayname: "<gradient:#4B36B1:#6699FF>Obsidian Sword"
@@ -70,9 +69,8 @@ obsidian_sword:
     parent_model: "item/handheld"
     textures:
       - default/obsidian_sword.png
-  Mechanics:
-    durability:
-      value: 10000
+  Components:
+    durability: 10000
 
 blood_sword:
   displayname: "<gradient:#FA7CBB:#F14658>Blood Sword"
@@ -90,8 +88,8 @@ blood_sword:
   Mechanics:
     lifeleech:
       amount: 2 # the amount of 1/2 hearts that you'll steal to your opponents
-    durability:
-      value: 500 #diamond sword is 1561
+  Components:
+    durability: 500 #diamond sword is 1561
 
 octavia_sword:
   displayname: "<#D5D6D8>Octavia Sword"
@@ -99,9 +97,8 @@ octavia_sword:
   Pack:
     generate_model: false
     model: default/octavia_sword
-  Mechanics:
-    durability:
-      value: 600 #diamond sword is 1561
+  Components:
+    durability: 600 #diamond sword is 1561
 
 dagger:
   displayname: "<gradient:#FA7CBB:#F14658>Dagger"
@@ -109,9 +106,8 @@ dagger:
   Pack:
     generate_model: false
     model: default/dagger
-  Mechanics:
-    durability:
-      value: 10 #diamond sword is 1561
+  Components:
+    durability: 10 #diamond sword is 1561
 
 katana:
   displayname: "<gradient:#F69D84:#FAD98D>Katana"
@@ -124,9 +120,8 @@ katana:
   Pack:
     generate_model: false
     model: default/katana
-  Mechanics:
-    durability:
-      value: 1000 #diamond sword is 1561
+  Components:
+    durability: 1000 #diamond sword is 1561
 
 combat_bow:
   displayname: '<gradient:#F69D84:#FAD98D>Combat Bow'
