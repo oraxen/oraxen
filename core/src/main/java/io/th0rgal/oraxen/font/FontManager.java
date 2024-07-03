@@ -1,19 +1,11 @@
 package io.th0rgal.oraxen.font;
 
-import com.comphenix.protocol.ProtocolLibrary;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.ConfigsManager;
 import io.th0rgal.oraxen.config.Settings;
-import io.th0rgal.oraxen.font.packets.InventoryPacketListener;
-import io.th0rgal.oraxen.font.packets.TitlePacketListener;
-import io.th0rgal.oraxen.nms.GlyphHandlers;
-import io.th0rgal.oraxen.nms.NMSHandlers;
-import io.th0rgal.oraxen.utils.PluginUtils;
-import io.th0rgal.oraxen.utils.VersionUtil;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.Configuration;
@@ -59,23 +51,7 @@ public class FontManager {
         fontEvents = new FontEvents(this);
         loadGlyphs(configsManager.parseGlyphConfigs());
 
-        useNmsGlyphs = GlyphHandlers.isNms() && !NMSHandlers.getHandler().isEmpty();
-        if (VersionUtil.atOrAbove("1.20.5") && useNmsGlyphs) {
-            Logs.logError("Oraxens NMS Glyph system is not working for 1.20.5...");
-            useNmsGlyphs = false;
-        } else if (useNmsGlyphs) {
-            NMSHandlers.getHandler().glyphHandler().setupNmsGlyphs();
-            Logs.logSuccess("Oraxens NMS Glyph system has been enabled!");
-            Logs.logInfo("Disabling packet-based glyph systems", true);
-            if (PluginUtils.isEnabled("ProtocolLib")){
-                ProtocolLibrary.getProtocolManager().removePacketListener(new InventoryPacketListener());
-                ProtocolLibrary.getProtocolManager().removePacketListener(new TitlePacketListener());
-            }
-        }
-    }
 
-    public boolean useNmsGlyphs() {
-        return useNmsGlyphs;
     }
 
     public static GlyphBitMap getGlyphBitMap(String id) {

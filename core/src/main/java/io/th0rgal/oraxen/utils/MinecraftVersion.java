@@ -17,7 +17,6 @@
 
 package io.th0rgal.oraxen.utils;
 
-import com.comphenix.protocol.ProtocolLibrary;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Ordering;
 import org.bukkit.Bukkit;
@@ -212,9 +211,8 @@ public final class MinecraftVersion implements Comparable<MinecraftVersion>, Ser
                 snapshot = new SnapshotVersion(section[0]);
                 SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
 
-                MinecraftVersion latest = new MinecraftVersion(ProtocolLibrary.MAXIMUM_MINECRAFT_VERSION, false);
-                boolean newer = snapshot.getSnapshotDate().compareTo(
-                        format.parse(ProtocolLibrary.MINECRAFT_LAST_RELEASE_DATE)) > 0;
+                MinecraftVersion latest = TRICKY_TRIALS;
+                boolean newer = false;
 
                 numbers[0] = latest.getMajor();
                 numbers[1] = latest.getMinor() + (newer ? 1 : -1);

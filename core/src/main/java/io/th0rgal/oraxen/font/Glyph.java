@@ -189,6 +189,10 @@ public class Glyph {
         return Component.textOfChildren(Component.text(character, NamedTextColor.WHITE).font(font).hoverEvent(glyphHoverText()));
     }
 
+    public Component glyphComponent(boolean colorable) {
+        return Component.textOfChildren(Component.text(character).font(font).hoverEvent(glyphHoverText()));
+    }
+
     @Nullable
     public HoverEventSource glyphHoverText() {
         String hoverText = Settings.GLYPH_HOVER_TEXT.toString();

@@ -1,11 +1,7 @@
 package io.th0rgal.oraxen.nms;
 
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.events.PacketContainer;
 import io.th0rgal.oraxen.utils.InteractionResult;
 import io.th0rgal.oraxen.utils.wrappers.PotionEffectTypeWrapper;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -46,8 +42,8 @@ public class EmptyNMSHandler implements NMSHandler {
     }
 
     @Override
-    public void customBlockDefaultTools(Player player) {
-
+    public int playerProtocolVersion(Player player) {
+        return -1;
     }
 
     @NotNull
@@ -58,23 +54,12 @@ public class EmptyNMSHandler implements NMSHandler {
 
     @Override
     public void applyMiningEffect(Player player) {
-        if (Bukkit.getPluginManager().isPluginEnabled("ProtocolLib")) {
-            PacketContainer packet = new PacketContainer(PacketType.Play.Server.ENTITY_EFFECT);
-            packet.getIntegers().write(0, player.getEntityId()).write(1, -1);
-            packet.getEffectTypes().write(0, PotionEffectTypeWrapper.MINING_FATIGUE);
-            packet.getBytes().write(0, (byte) -1).write(1, (byte) 0);
-            ProtocolLibrary.getProtocolManager().sendServerPacket(player, packet);
-        } else player.addPotionEffect(new PotionEffect(PotionEffectTypeWrapper.MINING_FATIGUE, -1, Integer.MAX_VALUE, false, false, false));
+        player.addPotionEffect(new PotionEffect(PotionEffectTypeWrapper.MINING_FATIGUE, -1, Integer.MAX_VALUE, false, false, false));
     }
 
     @Override
     public void removeMiningEffect(Player player) {
-        if (Bukkit.getPluginManager().isPluginEnabled("ProtocolLib")) {
-            PacketContainer packet = new PacketContainer(PacketType.Play.Server.REMOVE_ENTITY_EFFECT);
-            packet.getIntegers().write(0, player.getEntityId());
-            packet.getEffectTypes().write(0, PotionEffectTypeWrapper.MINING_FATIGUE);
-            ProtocolLibrary.getProtocolManager().sendServerPacket(player, packet);
-        } else player.removePotionEffect(PotionEffectTypeWrapper.MINING_FATIGUE);
+        player.removePotionEffect(PotionEffectTypeWrapper.MINING_FATIGUE);
     }
 
     @Override

@@ -234,8 +234,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     }
 
     @Override
-    public void customBlockDefaultTools(Player player) {
-
+    public int playerProtocolVersion(Player player) {
+        return ((CraftPlayer) player).getHandle().connection.connection.protocolVersion;
     }
 
     private TagNetworkSerialization.NetworkPayload createPayload() {

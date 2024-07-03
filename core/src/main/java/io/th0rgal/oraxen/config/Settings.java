@@ -30,6 +30,7 @@ public enum Settings {
     FORMAT_TITLES("Plugin.formatting.titles", true),
     FORMAT_SUBTITLES("Plugin.formatting.subtitles", true),
     FORMAT_ACTION_BAR("Plugin.formatting.action_bar", true),
+    FORMAT_SCOREBOARD("Plugin.formatting.scoreboard", true),
     FORMAT_ANVIL("Plugin.formatting.anvil", true),
     FORMAT_SIGNS("Plugin.formatting.signs", true),
     FORMAT_CHAT("Plugin.formatting.chat", true),

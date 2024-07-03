@@ -77,7 +77,6 @@ allprojects {
         compileOnly("net.kyori:adventure-text-serializer-plain:$adventureVersion")
         compileOnly("net.kyori:adventure-text-serializer-ansi:$adventureVersion")
         compileOnly("net.kyori:adventure-platform-bukkit:$platformVersion")
-        compileOnly("com.comphenix.protocol:ProtocolLib:5.3.0-SNAPSHOT")
         compileOnly("me.clip:placeholderapi:2.11.4")
         compileOnly("me.gabytm.util:actions-core:$actionsVersion")
         compileOnly("org.springframework:spring-expression:6.0.6")
@@ -195,7 +194,6 @@ bukkitPluginYaml {
         description = "Allows the player to use the /oraxen command"
         default = Permission.Default.TRUE
     }
-    depend = listOf("ProtocolLib")
     softDepend = listOf(
         "LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "MythicMobs",
         "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared",

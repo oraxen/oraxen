@@ -37,6 +37,8 @@ public interface NMSHandler {
 
     boolean tripwireUpdatesDisabled();
 
+    int playerProtocolVersion(Player player);
+
     /**
      * Copies over all NBT-Tags from oldItem to newItem
      * Useful for plugins that might register their own NBT-Tags outside
@@ -58,9 +60,6 @@ public interface NMSHandler {
      * @return The enum interaction result
      */
     @Nullable InteractionResult correctBlockStates(Player player, EquipmentSlot slot, ItemStack itemStack);
-
-    /**Removes mineable/axe tag from noteblocks for custom blocks */
-    void customBlockDefaultTools(Player player);
 
     /**
      * Keys that are used by vanilla Minecraft and should therefore be skipped
@@ -96,6 +95,11 @@ public interface NMSHandler {
         }
 
         @Override
+        public int playerProtocolVersion(Player player) {
+            return 0;
+        }
+
+        @Override
         public ItemStack copyItemNBTTags(@NotNull ItemStack oldItem, @NotNull ItemStack newItem) {
             return newItem;
         }
@@ -104,11 +108,6 @@ public interface NMSHandler {
         @Override
         public InteractionResult correctBlockStates(Player player, EquipmentSlot slot, ItemStack itemStack) {
             return null;
-        }
-
-        @Override
-        public void customBlockDefaultTools(Player player) {
-
         }
 
         @NotNull

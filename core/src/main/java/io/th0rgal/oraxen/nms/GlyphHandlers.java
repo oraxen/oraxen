@@ -1,8 +1,5 @@
 package io.th0rgal.oraxen.nms;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.font.Glyph;
@@ -10,18 +7,20 @@ import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.translation.GlobalTranslator;
 import org.apache.commons.lang3.StringUtils;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class GlyphHandlers {
+
+    @NotNull public static final NamespacedKey GLYPH_HANDLER_KEY = NamespacedKey.fromString("glyph_handler", OraxenPlugin.get());
 
     public enum GlyphHandler {
         NMS, VANILLA
@@ -35,11 +34,8 @@ public class GlyphHandlers {
         }) == GlyphHandler.NMS;
     }
 
-    public static Component transform(Component component, @Nullable Player player, boolean isUtf) {
-        if (player != null) return escapeGlyphs(component, player);
-        else return transformGlyphs(component, isUtf);
-    }
     private static final Key randomKey = Key.key("random");
+    private static final Pattern colorableRegex = Pattern.compile("<glyph:.*:(c|colorable)>");
 
     private static Component escapeGlyphs(Component component, @NotNull Player player) {
         component = GlobalTranslator.render(component, player.locale());
@@ -72,55 +68,38 @@ public class GlyphHandlers {
         return component;
     }
 
-    private static final Pattern colorableRegex = Pattern.compile("<glyph:.*:(c|colorable)>");
-
-    private static Component transformGlyphs(Component component, boolean isUtf) {
-        String serialized = AdventureUtils.MINI_MESSAGE_EMPTY.serialize(component);
+    public static Component unescapeGlyphs(@NotNull Component component) {
+        String serialized = AdventureUtils.MINI_MESSAGE.serialize(component);
 
         for (Glyph glyph : OraxenPlugin.get().fontManager().glyphs()) {
-            Matcher matcher = glyph.baseRegex.matcher(serialized);
+            Matcher matcher = glyph.escapedRegex.matcher(serialized);
             while (matcher.find()) {
                 component = component.replaceText(
                         TextReplacementConfig.builder().once()
                                 .matchLiteral(matcher.group())
-                                .replacement(glyph.glyphComponent())
-                                .build());
-            }
-
-            if (isUtf) {
-                matcher = glyph.escapedRegex.matcher(serialized);
-                while (matcher.find()) {
-                    component = component.replaceText(
-                            TextReplacementConfig.builder().once()
-                                    .matchLiteral(matcher.group())
-                                    .replacement(AdventureUtils.MINI_MESSAGE_EMPTY.deserialize(StringUtils.removeStart(matcher.group(), "\\")))
-                                    .build()
-                    );
-                }
+                                .replacement(AdventureUtils.MINI_MESSAGE_EMPTY.deserialize(StringUtils.removeStart(matcher.group(), "\\")))
+                                .build()
+                );
             }
         }
 
         return component;
     }
 
-    public static String formatJsonString(@NotNull JsonObject obj, @Nullable Player player) {
-        if ((obj.has("args") || obj.has("text") || obj.has("extra") || obj.has("translate"))) {
-            Component component = AdventureUtils.GSON_SERIALIZER.deserialize(obj.toString());
-            component = AdventureUtils.MINI_MESSAGE_EMPTY.deserialize(AdventureUtils.MINI_MESSAGE_EMPTY.serialize(component));
-            component = transform(component, player, false);
-            return AdventureUtils.GSON_SERIALIZER.serialize(component);
-        } else return obj.toString();
-    }
+    public static Component transformGlyphs(Component component) {
+        String serialized = (component instanceof TextComponent textComponent) ? textComponent.content() : AdventureUtils.MINI_MESSAGE.serialize(component);
 
-    public static Function<String, String> transformer(@Nullable Player player) {
-        return string -> {
-            try {
-                JsonElement element = JsonParser.parseString(string);
-                if (element.isJsonObject())
-                    return GlyphHandlers.formatJsonString(element.getAsJsonObject(), player);
-            } catch (Exception ignored) {
+        for (Glyph glyph : OraxenPlugin.get().fontManager().glyphs()) {
+            Matcher matcher = glyph.baseRegex.matcher(serialized);
+            while (matcher.find()) {
+                component = component.replaceText(
+                        TextReplacementConfig.builder()
+                                .match(glyph.baseRegex.pattern())
+                                .replacement(glyph.glyphComponent())
+                                .build());
             }
-            return string;
-        };
+        }
+
+        return component;
     }
 }

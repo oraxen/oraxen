@@ -21,11 +21,9 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import net.kyori.adventure.resource.ResourcePackInfo;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.common.ClientboundResourcePackPushPacket;
-import net.minecraft.network.protocol.common.ClientboundUpdateTagsPacket;
 import net.minecraft.network.protocol.common.ServerboundResourcePackPacket;
 import net.minecraft.network.protocol.configuration.ClientboundFinishConfigurationPacket;
 import net.minecraft.network.protocol.game.ClientboundRemoveMobEffectPacket;
@@ -59,7 +57,10 @@ import org.jetbrains.annotations.Unmodifiable;
 import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 import static io.th0rgal.oraxen.pack.PackListener.CONFIG_PHASE_PACKET_LISTENER;
 
@@ -208,13 +209,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     }
 
     @Override
-    public void customBlockDefaultTools(Player player) {
-        if (player instanceof CraftPlayer craftPlayer) {
-            TagNetworkSerialization.NetworkPayload payload = createPayload();
-            if (payload == null) return;
-            ClientboundUpdateTagsPacket packet = new ClientboundUpdateTagsPacket(Map.of(Registries.BLOCK, payload));
-            craftPlayer.getHandle().connection.send(packet);
-        }
+    public int playerProtocolVersion(Player player) {
+        return ((CraftPlayer) player).getHandle().connection.connection.protocolVersion;
     }
 
     private TagNetworkSerialization.NetworkPayload createPayload() {

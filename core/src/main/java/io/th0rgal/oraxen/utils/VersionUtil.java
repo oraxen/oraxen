@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.utils;
 
-import com.comphenix.protocol.ProtocolLibrary;
+import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.lang3.Validate;
 import org.bukkit.Bukkit;
@@ -39,7 +39,7 @@ public class VersionUtil {
     }
 
     public static boolean atOrAbove(Player player, int protocolVersion) {
-        return ProtocolLibrary.getProtocolManager().getProtocolVersion(player) >= protocolVersion;
+        return NMSHandlers.getHandler().playerProtocolVersion(player) >= protocolVersion;
     }
 
     public static boolean atOrAbove(String versionString) {
