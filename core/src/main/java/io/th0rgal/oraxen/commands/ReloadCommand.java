@@ -91,7 +91,7 @@ public class ReloadCommand {
                             MechanicsManager.registerNativeMechanics();
                             NMSHandlers.resetHandler();
                             OraxenPlugin.get().reloadConfigs();
-                            OraxenPackServer.initializeServer();
+                            OraxenPlugin.get().packServer(OraxenPackServer.initializeServer());
                             reloadItems(sender);
                             reloadPack(sender);
                             reloadRecipes(sender);

@@ -83,6 +83,7 @@ public class SelfHostServer implements OraxenPackServer {
         if (packServer == null) return;
         Logs.logError("Stopping Self-Host Pack-Server...");
         packServer.stop(0);
+        packServer = null;
     }
 
     private String publicAddress() {
