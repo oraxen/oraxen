@@ -122,8 +122,11 @@ public class ItemParser {
     }
 
     private void parseDataComponents(ItemBuilder item) {
-        if (section.contains("itemname") && VersionUtil.atOrAbove("1.20.5")) item.setItemName(section.getString("itemname"));
-        else if (section.contains("displayname")) item.setItemName(section.getString("displayname"));
+        String itemName = section.getString("itemname", section.getString("displayname"));
+        if (itemName != null && VersionUtil.atOrAbove("1.20.5")) {
+            if (VersionUtil.isPaperServer()) item.itemName(AdventureUtils.MINI_MESSAGE.deserialize(itemName));
+            else item.setItemName(itemName);
+        }
 
         ConfigurationSection components = section.getConfigurationSection("Components");
         if (components == null || VersionUtil.below("1.20.5")) return;
