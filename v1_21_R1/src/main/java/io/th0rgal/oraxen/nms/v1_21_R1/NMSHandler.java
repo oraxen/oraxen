@@ -7,6 +7,7 @@ import io.papermc.paper.adventure.PaperAdventure;
 import io.papermc.paper.configuration.GlobalConfiguration;
 import io.papermc.paper.network.ChannelInitializeListenerHolder;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketManager;
 import io.th0rgal.oraxen.nms.GlyphHandler;
@@ -15,6 +16,7 @@ import io.th0rgal.oraxen.pack.server.OraxenPackServer;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.InteractionResult;
 import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.kyori.adventure.resource.ResourcePackInfo;
@@ -113,28 +115,40 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                             @Override
                             public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
                                 if (msg instanceof ClientboundFinishConfigurationPacket && connection.getPlayer().getBukkitEntity().getResourcePackStatus() == null) {
-                                    OraxenPackServer packServer = OraxenPlugin.get().packServer();
-                                    ResourcePackInfo packInfo = packServer.packInfo();
+                                    try {
+                                        OraxenPackServer packServer = OraxenPlugin.get().packServer();
+                                        ResourcePackInfo packInfo = packServer.packInfo();
 
-                                    ClientboundResourcePackPushPacket packet = new ClientboundResourcePackPushPacket(
-                                            packInfo.id(), packServer.packUrl(), packInfo.hash(), packServer.mandatory,
-                                            Optional.of(PaperAdventure.asVanilla(packServer.prompt))
-                                    );
+                                        ClientboundResourcePackPushPacket packet = new ClientboundResourcePackPushPacket(
+                                                packInfo.id(), packServer.packUrl(), packInfo.hash(), packServer.mandatory,
+                                                Optional.of(PaperAdventure.asVanilla(packServer.prompt))
+                                        );
 
-                                    connection.send(packet);
-                                    return;
+                                        connection.send(packet);
+                                        return;
+                                    } catch (Exception e) {
+                                        Logs.logWarning("Failed to send " + connection.getPlayer().displayName + " ResourcePack");
+                                        Logs.logWarning("due to joining before pack had finished generating...");
+                                        if (Settings.DEBUG.toBool()) e.printStackTrace();
+                                    }
                                 }
                                 ctx.write(msg, promise);
                             }
 
                             @Override
                             public void channelRead(ChannelHandlerContext ctx, Object msg) {
-                                if (msg instanceof ServerboundResourcePackPacket packet && packet.id().equals(OraxenPlugin.get().packServer().packInfo().id())) {
-                                    //TODO Patch this not sending for terminal actions due to throwing an error
-                                    if (packet.action().isTerminal()) {
-                                        ctx.pipeline().remove(this);
-                                        connection.send(ClientboundFinishConfigurationPacket.INSTANCE);
-                                        return;
+                                if (msg instanceof ServerboundResourcePackPacket packet) {
+                                    try {
+                                        //TODO Patch this not sending for terminal actions due to throwing an error
+                                        if (packet.id().equals(OraxenPlugin.get().packServer().packInfo().id()) && packet.action().isTerminal()) {
+                                            ctx.pipeline().remove(this);
+                                            connection.send(ClientboundFinishConfigurationPacket.INSTANCE);
+                                            return;
+                                        }
+                                    } catch (Exception e) {
+                                        Logs.logWarning("Failed to send " + connection.getPlayer().displayName + " ResourcePack");
+                                        Logs.logWarning("due to joining before pack had finished generating...");
+                                        if (Settings.DEBUG.toBool()) e.printStackTrace();
                                     }
                                 }
                                 ctx.fireChannelRead(msg);

@@ -26,7 +26,7 @@ public class PackListener implements Listener {
     @EventHandler(priority = EventPriority.NORMAL)
     public void onPlayerConnect(PlayerJoinEvent event) {
         if (!Settings.PACK_SEND_ON_JOIN.toBool()) return;
-        if (Settings.PACK_SEND_PRE_JOIN.toBool() && VersionUtil.isPaperServer()) return;
+        if (Settings.PACK_SEND_PRE_JOIN.toBool() && VersionUtil.isPaperServer() && event.getPlayer().hasResourcePack()) return;
 
         Player player = event.getPlayer();
         int delay = (int) Settings.PACK_SEND_DELAY.getValue();
