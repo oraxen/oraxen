@@ -26,6 +26,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
 import org.bukkit.inventory.meta.components.FoodComponent;
 import org.bukkit.inventory.meta.components.JukeboxPlayableComponent;
+import org.bukkit.inventory.meta.components.ToolComponent;
 import org.bukkit.inventory.meta.trim.ArmorTrim;
 import org.bukkit.inventory.meta.trim.TrimMaterial;
 import org.bukkit.inventory.meta.trim.TrimPattern;
@@ -75,6 +76,8 @@ public class ItemBuilder {
     @Nullable
     private FoodComponent foodComponent;
     @Nullable
+    private ToolComponent toolComponent;
+    @Nullable
     private Boolean enchantmentGlintOverride;
     @Nullable
     private Integer maxStackSize;
@@ -83,7 +86,7 @@ public class ItemBuilder {
     @Nullable
     private Boolean fireResistant;
     @Nullable
-    private Boolean hideToolTips;
+    private Boolean hideToolTip;
     @Nullable
     private ItemRarity rarity;
     @Nullable
@@ -186,8 +189,9 @@ public class ItemBuilder {
 
             durability = (itemMeta instanceof Damageable damageable) && damageable.hasMaxDamage() ? damageable.getMaxDamage() : null;
             fireResistant = itemMeta.isFireResistant() ? true : null;
-            hideToolTips = itemMeta.isHideTooltip() ? true : null;
+            hideToolTip = itemMeta.isHideTooltip() ? true : null;
             foodComponent = itemMeta.hasFood() ? itemMeta.getFood() : null;
+            toolComponent = itemMeta.hasTool() ? itemMeta.getTool() : null;
             enchantmentGlintOverride = itemMeta.hasEnchantmentGlintOverride() ? itemMeta.getEnchantmentGlintOverride() : null;
             rarity = itemMeta.hasRarity() ? itemMeta.getRarity() : null;
             maxStackSize = itemMeta.hasMaxStackSize() ? itemMeta.getMaxStackSize() : null;
@@ -378,6 +382,20 @@ public class ItemBuilder {
         return this;
     }
 
+    public boolean hasToolComponent() {
+        return VersionUtil.atOrAbove("1.20.5") && toolComponent != null;
+    }
+
+    @Nullable
+    public ToolComponent getToolComponent() {
+        return toolComponent;
+    }
+
+    public ItemBuilder setToolComponent(ToolComponent toolComponent) {
+        this.toolComponent = toolComponent;
+        return this;
+    }
+
     public boolean hasJukeboxPlayable() {
         return VersionUtil.atOrAbove("1.21") && jukeboxPlayable != null;
     }
@@ -425,8 +443,8 @@ public class ItemBuilder {
         return this;
     }
 
-    public ItemBuilder setHideToolTips(boolean hideToolTips) {
-        this.hideToolTips = hideToolTips;
+    public ItemBuilder setHideToolTip(boolean hideToolTip) {
+        this.hideToolTip = hideToolTip;
         return this;
     }
 
@@ -593,8 +611,9 @@ public class ItemBuilder {
             if (hasEnchantmentGlindOverride()) itemMeta.setEnchantmentGlintOverride(enchantmentGlintOverride);
             if (hasRarity()) itemMeta.setRarity(rarity);
             if (hasFoodComponent()) itemMeta.setFood(foodComponent);
+            if (hasToolComponent()) itemMeta.setTool(toolComponent);
             if (fireResistant != null) itemMeta.setFireResistant(fireResistant);
-            if (hideToolTips != null) itemMeta.setHideTooltip(hideToolTips);
+            if (hideToolTip != null) itemMeta.setHideTooltip(hideToolTip);
         }
 
         if (VersionUtil.atOrAbove("1.21")) {

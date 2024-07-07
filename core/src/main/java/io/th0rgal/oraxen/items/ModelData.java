@@ -15,12 +15,24 @@ public class ModelData {
     private final int modelData;
     public static final Map<Material, Map<Key, Integer>> DATAS = new HashMap<>();
 
+    public ModelData(Material type, OraxenMeta oraxenMeta, ConfigurationSection packSection) {
+        this.type = type;
+        this.modelData = packSection.getInt("custom_model_data");
+        DATAS.compute(type, (mat, datas) -> {
+           if (datas == null) datas = new HashMap<>();
+           datas.put(oraxenMeta.modelKey(), modelData);
+            return datas;
+        });
+    }
+
     public ModelData(Material type, Key model, int modelData) {
         this.type = type;
         this.modelData = modelData;
-        Map<Key, Integer> usedModelDatas = DATAS.getOrDefault(type, new HashMap<>());
-        usedModelDatas.put(model, modelData);
-        DATAS.put(type, usedModelDatas);
+        DATAS.compute(type, (mat, datas) -> {
+            if (datas == null) datas = new HashMap<>();
+            datas.put(model, modelData);
+            return datas;
+        });
     }
 
     public Material getType() {

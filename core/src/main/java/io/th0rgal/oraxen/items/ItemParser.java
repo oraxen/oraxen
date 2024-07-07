@@ -8,15 +8,14 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
-import io.th0rgal.oraxen.utils.AdventureUtils;
-import io.th0rgal.oraxen.utils.PotionUtils;
-import io.th0rgal.oraxen.utils.Utils;
-import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import org.apache.commons.lang3.StringUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Tag;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.configuration.ConfigurationSection;
@@ -26,9 +25,12 @@ import org.bukkit.inventory.ItemRarity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.components.FoodComponent;
 import org.bukkit.inventory.meta.components.JukeboxPlayableComponent;
+import org.bukkit.inventory.meta.components.ToolComponent;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Function;
@@ -39,6 +41,8 @@ public class ItemParser {
 
     private final OraxenMeta oraxenMeta;
     private final ConfigurationSection section;
+    @Nullable private final ConfigurationSection packSection;
+    private final String itemId;
     private final Material type;
     private WrappedMMOItem mmoItem;
     private WrappedCrucibleItem crucibleItem;
@@ -48,6 +52,8 @@ public class ItemParser {
 
     public ItemParser(ConfigurationSection section) {
         this.section = section;
+        this.packSection = section.getConfigurationSection("Pack");
+        this.itemId = section.getName();
 
         if (section.isString("template")) templateItem = ItemTemplate.getParserTemplate(section.getString("template"));
 
@@ -65,13 +71,10 @@ public class ItemParser {
         type = material;
 
         oraxenMeta = new OraxenMeta();
-        if (section.isConfigurationSection("Pack")) {
-            ConfigurationSection packSection = section.getConfigurationSection("Pack");
+        if (packSection != null) {
             oraxenMeta.setPackInfos(packSection);
-            assert packSection != null;
             if (packSection.isInt("custom_model_data"))
-                MODEL_DATAS_BY_ID.put(section.getName(),
-                        new ModelData(type, oraxenMeta.modelKey(), packSection.getInt("custom_model_data")));
+                MODEL_DATAS_BY_ID.put(itemId, new ModelData(type, oraxenMeta, packSection));
         }
     }
 
@@ -141,35 +144,12 @@ public class ItemParser {
         }
         if (components.contains("rarity")) item.setRarity(ItemRarity.valueOf(components.getString("rarity")));
         if (components.contains("fire_resistant")) item.setFireResistant(components.getBoolean("fire_resistant"));
-        if (components.contains("hide_tooltips")) item.setHideToolTips(components.getBoolean("hide_tooltips"));
+        if (components.contains("hide_tooltip")) item.setHideToolTip(components.getBoolean("hide_tooltip"));
 
         ConfigurationSection foodSection = components.getConfigurationSection("food");
-        if (foodSection != null) {
-            FoodComponent foodComponent = new ItemStack(Material.PAPER).getItemMeta().getFood();
-            foodComponent.setNutrition(foodSection.getInt("nutrition"));
-            foodComponent.setSaturation((float) foodSection.getDouble("saturation", 0.0));
-            foodComponent.setCanAlwaysEat(foodSection.getBoolean("can_always_eat"));
-            foodComponent.setEatSeconds((float) foodSection.getDouble("eat_seconds", 1.6));
-
-            ConfigurationSection effectsSection = foodSection.getConfigurationSection("effects");
-            if (effectsSection != null) for (String effect : effectsSection.getKeys(false)) {
-                PotionEffectType effectType = PotionUtils.getEffectType(effect);
-                if (effectType == null)
-                    Logs.logError("Invalid potion effect: " + effect + ", in " + StringUtils.substringBefore(effectsSection.getCurrentPath(), ".") + " food-property!");
-                else {
-                    foodComponent.addEffect(
-                            new PotionEffect(effectType,
-                                    foodSection.getInt("duration", 1) * 20,
-                                    foodSection.getInt("amplifier", 0),
-                                    foodSection.getBoolean("ambient", true),
-                                    foodSection.getBoolean("show_particles", true),
-                                    foodSection.getBoolean("show_icon", true)),
-                            (float) foodSection.getDouble("probability", 1.0)
-                    );
-                }
-            }
-            item.setFoodComponent(foodComponent);
-        }
+        if (foodSection != null) parseFoodComponent(item, foodSection);
+        ConfigurationSection toolSection = components.getConfigurationSection("tool");
+        if (toolSection != null) parseToolComponent(item, toolSection);
 
         if (VersionUtil.below("1.21")) return;
 
@@ -182,6 +162,102 @@ public class ItemParser {
         }
     }
 
+    @SuppressWarnings({"UnstableApiUsage", "unchecked"})
+    private void parseToolComponent(ItemBuilder item, @NotNull ConfigurationSection toolSection) {
+        ToolComponent toolComponent = new ItemStack(Material.PAPER).getItemMeta().getTool();
+        toolComponent.setDamagePerBlock(Math.min(toolSection.getInt("damage_per_block", 1), 0));
+        toolComponent.setDefaultMiningSpeed(Math.min((float) toolSection.getDouble("default_mining_speed", 1.0), 0f));
+
+        for (Map<?, ?> ruleEntry : toolSection.getMapList("rules")) {
+            float speed = ParseUtils.parseFloat(String.valueOf(ruleEntry.get("speed")), 1.0f);
+            boolean correctForDrops = Boolean.parseBoolean(String.valueOf(ruleEntry.get("correct_for_drops")));
+            Set<Material> materials = new HashSet<>();
+            Set<Tag<Material>> tags = new HashSet<>();
+
+            if (ruleEntry.containsKey("material")) {
+                try {
+                    Material material = Material.valueOf(String.valueOf(ruleEntry.get("material")));
+                    if (material.isBlock()) materials.add(material);
+                } catch (Exception e) {
+                    Logs.logWarning("Error parsing rule-entry in " + itemId);
+                    Logs.logWarning("Malformed \"material\"-section");
+                    if (Settings.DEBUG.toBool()) e.printStackTrace();
+                }
+            }
+
+            if (ruleEntry.containsKey("materials")) {
+                try {
+                    List<String> materialIds = (List<String>) ruleEntry.get("materials");
+                    for (String materialId : materialIds) {
+                        Material material = Material.valueOf(materialId);
+                        if (material.isBlock()) materials.add(material);
+                    }
+                } catch (Exception e) {
+                    Logs.logWarning("Error parsing rule-entry in " + itemId);
+                    Logs.logWarning("Malformed \"materials\"-section");
+                    if (Settings.DEBUG.toBool()) e.printStackTrace();
+                }
+            }
+
+            if (ruleEntry.containsKey("tag")) {
+                try {
+                    NamespacedKey tagKey = NamespacedKey.fromString(String.valueOf(ruleEntry.get("tag")));
+                    if (tagKey != null) tags.add(Bukkit.getTag(Tag.REGISTRY_BLOCKS, tagKey, Material.class));
+                } catch (Exception e) {
+                    Logs.logWarning("Error parsing rule-entry in " + itemId);
+                    Logs.logWarning("Malformed \"tag\"-section");
+                    if (Settings.DEBUG.toBool()) e.printStackTrace();
+                }
+            }
+
+            if (ruleEntry.containsKey("tags")) {
+                try {
+                    for (String tagString : (List<String>) ruleEntry.get("tags")) {
+                        NamespacedKey tagKey = NamespacedKey.fromString(tagString);
+                        if (tagKey != null) tags.add(Bukkit.getTag(Tag.REGISTRY_BLOCKS, tagKey, Material.class));
+                    }
+                } catch (Exception e) {
+                    Logs.logWarning("Error parsing rule-entry in " + itemId);
+                    Logs.logWarning("Malformed \"material\"-section");
+                    if (Settings.DEBUG.toBool()) e.printStackTrace();
+                }
+            }
+
+            if (!materials.isEmpty()) toolComponent.addRule(materials, speed, correctForDrops);
+            for (Tag<Material> tag : tags) toolComponent.addRule(tag, speed, correctForDrops);
+        }
+
+        item.setToolComponent(toolComponent);
+    }
+
+    @SuppressWarnings("UnstableApiUsage")
+    private void parseFoodComponent(ItemBuilder item, @NotNull ConfigurationSection foodSection) {
+        FoodComponent foodComponent = new ItemStack(Material.PAPER).getItemMeta().getFood();
+        foodComponent.setNutrition(foodSection.getInt("nutrition"));
+        foodComponent.setSaturation((float) foodSection.getDouble("saturation", 0.0));
+        foodComponent.setCanAlwaysEat(foodSection.getBoolean("can_always_eat"));
+        foodComponent.setEatSeconds((float) foodSection.getDouble("eat_seconds", 1.6));
+
+        ConfigurationSection effectsSection = foodSection.getConfigurationSection("effects");
+        if (effectsSection != null) for (String effect : effectsSection.getKeys(false)) {
+            PotionEffectType effectType = PotionUtils.getEffectType(effect);
+            if (effectType == null)
+                Logs.logError("Invalid potion effect: " + effect + ", in " + StringUtils.substringBefore(effectsSection.getCurrentPath(), ".") + " food-property!");
+            else {
+                foodComponent.addEffect(
+                        new PotionEffect(effectType,
+                                foodSection.getInt("duration", 1) * 20,
+                                foodSection.getInt("amplifier", 0),
+                                foodSection.getBoolean("ambient", true),
+                                foodSection.getBoolean("show_particles", true),
+                                foodSection.getBoolean("show_icon", true)),
+                        (float) foodSection.getDouble("probability", 1.0)
+                );
+            }
+        }
+        item.setFoodComponent(foodComponent);
+    }
+
     private void parseMiscOptions(ItemBuilder item) {
         oraxenMeta.noUpdate(section.getBoolean("no_auto_update", false));
         oraxenMeta.disableEnchanting(section.getBoolean("disable_enchanting", false));
@@ -189,7 +265,7 @@ public class ItemParser {
         oraxenMeta.setExcludedFromCommands(section.getBoolean("excludeFromCommands", false));
 
         if (section.getBoolean("injectId", true))
-            item.setCustomTag(OraxenItems.ITEM_ID, PersistentDataType.STRING, section.getName());
+            item.setCustomTag(OraxenItems.ITEM_ID, PersistentDataType.STRING, itemId);
     }
 
     @SuppressWarnings({"unchecked", "deprecation"})
@@ -273,15 +349,14 @@ public class ItemParser {
         }
 
         if (oraxenMeta.hasPackInfos()) {
-            int customModelData;
-            if (MODEL_DATAS_BY_ID.containsKey(section.getName())) {
-                customModelData = MODEL_DATAS_BY_ID.get(section.getName()).getModelData();
-            } else {
-                customModelData = ModelData.generateId(oraxenMeta.modelKey(), type);
+            int customModelData = Optional.ofNullable(MODEL_DATAS_BY_ID.get(itemId)).map(ModelData::getModelData).orElseGet(() -> {
+                int cmd = ModelData.generateId(oraxenMeta.modelKey(), type);
                 configUpdated = true;
                 if (!Settings.DISABLE_AUTOMATIC_MODEL_DATA.toBool())
-                    section.getConfigurationSection("Pack").set("custom_model_data", customModelData);
-            }
+                    section.getConfigurationSection("Pack").set("custom_model_data", cmd);
+                return cmd;
+            });
+
             item.setCustomModelData(customModelData);
             oraxenMeta.customModelData(customModelData);
         }
