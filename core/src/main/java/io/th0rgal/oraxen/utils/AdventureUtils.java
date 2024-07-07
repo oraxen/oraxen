@@ -164,4 +164,8 @@ public class AdventureUtils {
     public static TagResolver tagResolver(String string, String tag) {
         return TagResolver.resolver(string, Tag.selfClosingInserting(AdventureUtils.MINI_MESSAGE.deserialize(tag)));
     }
+
+    public static TagResolver tagResolver(String string, Component tag) {
+        return TagResolver.resolver(string, Tag.selfClosingInserting(tag));
+    }
 }
