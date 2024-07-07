@@ -110,9 +110,24 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                 channel.pipeline().addBefore("packet_handler", CONFIG_PHASE_PACKET_LISTENER.toString(), new ChannelDuplexHandler() {
                             private final Connection connection = (Connection) channel.pipeline().get("packet_handler");
 
+                            private ServerPlayer serverPlayer = null;
+
+                            private ServerPlayer serverPlayer() {
+                                if (serverPlayer == null) serverPlayer = connection.getPlayer();
+                                return serverPlayer;
+                            }
+
+                            private Player bukkitPlayer = null;
+
+                            private Player bukkitPlayer() {
+                                if (bukkitPlayer == null) bukkitPlayer = Optional.ofNullable(serverPlayer())
+                                        .map(ServerPlayer::getBukkitEntity).orElse(null);
+                                return bukkitPlayer;
+                            }
+
                             @Override
                             public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
-                                if (msg instanceof ClientboundFinishConfigurationPacket && connection.getPlayer().getBukkitEntity().getResourcePackStatus() == null) {
+                                if (msg instanceof ClientboundFinishConfigurationPacket && bukkitPlayer().getResourcePackStatus() == null) {
                                     try {
                                         OraxenPackServer packServer = OraxenPlugin.get().packServer();
                                         ResourcePackInfo packInfo = packServer.packInfo();
@@ -125,8 +140,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                                         connection.send(packet);
                                         return;
                                     } catch (Exception e) {
-                                        Logs.logWarning("Failed to send " + connection.getPlayer().displayName + " ResourcePack");
-                                        Logs.logWarning("due to joining before pack had finished generating...");
+                                        Logs.logWarning("Failed to send " + serverPlayer().displayName + " ResourcePack due to joining before pack had finished generating...");
                                         if (Settings.DEBUG.toBool()) e.printStackTrace();
                                     }
                                 }
@@ -138,14 +152,16 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                                 if (msg instanceof ServerboundResourcePackPacket packet) {
                                     try {
                                         //TODO Patch this not sending for terminal actions due to throwing an error
-                                        if (packet.id().equals(OraxenPlugin.get().packServer().packInfo().id()) && packet.action().isTerminal()) {
+                                        UUID id = Optional.ofNullable(OraxenPlugin.get().packServer().packInfo())
+                                                .map(ResourcePackInfo::id).orElse(UUID.randomUUID());
+                                        if (packet.id().equals(id) && packet.action().isTerminal()) {
                                             ctx.pipeline().remove(this);
-                                            connection.send(ClientboundFinishConfigurationPacket.INSTANCE);
+                                            if (!bukkitPlayer().isOnline())
+                                                connection.send(ClientboundFinishConfigurationPacket.INSTANCE);
                                             return;
                                         }
                                     } catch (Exception e) {
-                                        Logs.logWarning("Failed to send " + connection.getPlayer().displayName + " ResourcePack");
-                                        Logs.logWarning("due to joining before pack had finished generating...");
+                                        Logs.logWarning("Failed to send " + serverPlayer().displayName + " ResourcePack due to joining before pack had finished generating...");
                                         if (Settings.DEBUG.toBool()) e.printStackTrace();
                                     }
                                 }
@@ -203,7 +219,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         InteractionResult result = InteractionResult.fromNms(blockItem.place(placeContext));
         if (result == InteractionResult.FAIL) return null;
 
-        if(!player.isSneaking()) {
+        if (!player.isSneaking()) {
             World world = player.getWorld();
             BlockPos clickPos = placeContext.getClickedPos();
             Block block = world.getBlockAt(clickPos.getX(), clickPos.getY(), clickPos.getZ());

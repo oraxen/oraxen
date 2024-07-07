@@ -10,9 +10,12 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
+import org.jetbrains.annotations.Nullable;
+import team.unnamed.creative.BuiltResourcePack;
 
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -65,8 +68,10 @@ public interface OraxenPackServer {
 
     String packUrl();
 
+    @Nullable
     default ResourcePackInfo packInfo() {
-        String hash = OraxenPlugin.get().packGenerator().builtPack().hash();
+        String hash = Optional.ofNullable(OraxenPlugin.get().packGenerator().builtPack()).map(BuiltResourcePack::hash).orElse(null);
+        if (hash == null) return null;
         return ResourcePackInfo.resourcePackInfo()
                 .hash(hash)
                 .id(UUID.nameUUIDFromBytes(OraxenPackServer.hashArray(hash)))
