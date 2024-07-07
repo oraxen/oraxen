@@ -27,6 +27,24 @@ public class ItemUtils {
         itemStack.setAmount(Math.max(0, itemStack.getAmount() - amount));
     }
 
+    public static void itemName(ItemMeta itemMeta, ItemMeta otherMeta) {
+        if (itemMeta == null) return;
+        if (VersionUtil.isPaperServer()) itemName(itemMeta, otherMeta.itemName());
+        else itemMeta.setItemName(otherMeta.getItemName());
+    }
+
+    public static void itemName(ItemMeta itemMeta, @Nullable Component component) {
+        component = component != Component.empty() ? component : null;
+        if (VersionUtil.isPaperServer()) itemMeta.itemName(component);
+        else itemMeta.setItemName(AdventureUtils.LEGACY_SERIALIZER.serialize(component));
+    }
+
+    public static void displayName(ItemMeta itemMeta, ItemMeta otherMeta) {
+        if (itemMeta == null) return;
+        if (VersionUtil.isPaperServer()) displayName(itemMeta, otherMeta.displayName());
+        else itemMeta.setDisplayName(otherMeta.getDisplayName());
+    }
+
     public static void displayName(ItemStack itemStack, @Nullable Component component) {
         editItemMeta(itemStack, itemMeta -> {
             if (VersionUtil.isPaperServer()) itemMeta.displayName(component);
@@ -34,15 +52,10 @@ public class ItemUtils {
         });
     }
 
-    public static void displayName(ItemMeta itemMeta, Component component) {
+    public static void displayName(ItemMeta itemMeta, @Nullable Component component) {
+        component = component != Component.empty() ? component : null;
         if (VersionUtil.isPaperServer()) itemMeta.displayName(component);
         else itemMeta.setDisplayName(AdventureUtils.LEGACY_SERIALIZER.serialize(component));
-    }
-
-    public static void displayName(ItemMeta itemMeta, ItemMeta otherMeta) {
-        if (itemMeta == null) return;
-        if (VersionUtil.isPaperServer()) itemMeta.displayName(otherMeta.displayName());
-        else itemMeta.setDisplayName(otherMeta.getDisplayName());
     }
 
     public static void lore(ItemStack itemStack, List<Component> components) {

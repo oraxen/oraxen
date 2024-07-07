@@ -133,7 +133,7 @@ public class ItemUpdater implements Listener {
         if (optionalBuilder.isEmpty() || optionalBuilder.get().getOraxenMeta().noUpdate()) return oldItem;
         ItemBuilder newItemBuilder = optionalBuilder.get();
 
-        ItemStack newItem = NMSHandlers.getHandler().copyItemNBTTags(oldItem, newItemBuilder.build());
+        ItemStack newItem = NMSHandlers.getHandler().copyItemNBTTags(oldItem, newItemBuilder.build().clone());
         newItem.setAmount(oldItem.getAmount());
 
         ItemUtils.editItemMeta(newItem, itemMeta -> {
@@ -204,13 +204,11 @@ public class ItemUpdater implements Listener {
                 if (newMeta.hasMaxStackSize()) itemMeta.setMaxStackSize(newMeta.getMaxStackSize());
                 else if (oldMeta.hasMaxStackSize()) itemMeta.setMaxStackSize(oldMeta.getMaxStackSize());
 
-                if (VersionUtil.isPaperServer()) {
-                    if (newMeta.hasItemName()) itemMeta.itemName(newMeta.itemName());
-                    else if (oldMeta.hasItemName()) itemMeta.itemName(oldMeta.itemName());
-                } else {
-                    if (newMeta.hasItemName()) itemMeta.setItemName(newMeta.getItemName());
-                    else if (oldMeta.hasItemName()) itemMeta.setItemName(oldMeta.getItemName());
-                }
+                if (newMeta.hasItemName()) ItemUtils.itemName(itemMeta, newMeta);
+                else if (oldMeta.hasItemName()) ItemUtils.itemName(oldMeta, newMeta);
+
+                if (newMeta.hasDisplayName()) ItemUtils.displayName(itemMeta, newMeta);
+                else if (oldMeta.hasDisplayName()) ItemUtils.displayName(itemMeta, oldMeta);
             }
 
             if (VersionUtil.atOrAbove("1.21")) {
@@ -221,9 +219,10 @@ public class ItemUpdater implements Listener {
             // On 1.20.5+ we use ItemName which is different from userchanged displaynames
             // Thus removing the need for this logic
             if (VersionUtil.below("1.20.5")) {
-                // Parsing with legacy here to fix any inconsistensies caused by server serializers etc
-                String oldDisplayName = AdventureUtils.parseLegacy(oldMeta.getDisplayName());
+
+                String oldDisplayName = AdventureUtils.parseLegacy(VersionUtil.isPaperServer() ? AdventureUtils.MINI_MESSAGE.serialize(oldMeta.displayName()) : AdventureUtils.parseLegacy(oldMeta.getDisplayName()));
                 String originalName = AdventureUtils.parseLegacy(oldPdc.getOrDefault(ORIGINAL_NAME_KEY, DataType.STRING, ""));
+
                 if (Settings.OVERRIDE_RENAMED_ITEMS.toBool()) {
                     ItemUtils.displayName(itemMeta, newMeta);
                 } else if (!originalName.equals(oldDisplayName)) {

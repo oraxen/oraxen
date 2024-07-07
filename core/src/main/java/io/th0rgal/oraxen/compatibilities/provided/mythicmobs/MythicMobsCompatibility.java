@@ -1,12 +1,17 @@
 package io.th0rgal.oraxen.compatibilities.provided.mythicmobs;
 
 import io.lumine.mythic.bukkit.MythicBukkit;
+import io.lumine.mythic.bukkit.adapters.item.ItemComponentBukkitItemStack;
 import io.lumine.mythic.bukkit.events.MythicDropLoadEvent;
+import io.lumine.mythic.bukkit.utils.numbers.RandomDouble;
 import io.lumine.mythic.core.drops.Drop;
 import io.lumine.mythic.core.drops.droppables.VanillaItemDrop;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.CompatibilityProvider;
 import org.bukkit.event.EventHandler;
+import org.bukkit.inventory.ItemStack;
+
+import java.util.Arrays;
 
 public class MythicMobsCompatibility extends CompatibilityProvider<MythicBukkit> {
 
@@ -17,11 +22,11 @@ public class MythicMobsCompatibility extends CompatibilityProvider<MythicBukkit>
         String line = event.getContainer().getLine();
         String[] lines = line.split(" ");
         String itemId = lines.length == 4 ? lines[1] : lines.length == 3 ? lines[2] : "";
-        if (!OraxenItems.exists(itemId)) return;
+        String amountRange = Arrays.stream(lines).filter(s -> s.contains("-")).findFirst().orElse("1-1");
+        ItemStack oraxenItem = OraxenItems.getItemById(itemId).build();
+        if (oraxenItem == null) return;
 
-        // MythicMobs 5.6.0 SNAPSHOT changed this functionality
-        // This is a workaround to support both old and new moving forward
-        Drop drop = new VanillaItemDrop(line, event.getConfig(), itemId);
+        Drop drop = new VanillaItemDrop(line, event.getConfig(), new ItemComponentBukkitItemStack(oraxenItem), new RandomDouble(amountRange));
         event.register(drop);
     }
 }

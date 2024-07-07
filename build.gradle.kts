@@ -36,7 +36,7 @@ val platformVersion = "4.3.3"
 val googleGsonVersion = "2.10.1"
 val apacheLang3Version = "3.14.0"
 val apacheHttpMimeVersion = "4.5.14"
-val creativeVersion = "1.7.2"
+val creativeVersion = "1.7.3"
 group = "io.th0rgal"
 version = pluginVersion
 
@@ -80,8 +80,8 @@ allprojects {
         compileOnly("me.clip:placeholderapi:2.11.4")
         compileOnly("me.gabytm.util:actions-core:$actionsVersion")
         compileOnly("org.springframework:spring-expression:6.0.6")
-        compileOnly("io.lumine:Mythic-Dist:5.6.2")
-        compileOnly("io.lumine:MythicCrucible:2.0.0")
+        compileOnly("io.lumine:Mythic-Dist:5.7.0-SNAPSHOT")
+        compileOnly("io.lumine:MythicCrucible:2.0.0-SNAPSHOT")
         compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.9")
         compileOnly("commons-io:commons-io:2.11.0")
         compileOnly("com.google.code.gson:gson:$googleGsonVersion")

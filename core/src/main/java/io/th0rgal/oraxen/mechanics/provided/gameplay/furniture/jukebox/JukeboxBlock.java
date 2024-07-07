@@ -9,6 +9,8 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.Locale;
+
 public class JukeboxBlock {
 
     public static final NamespacedKey MUSIC_DISC_KEY = new NamespacedKey(OraxenPlugin.get(), "music_disc");
@@ -27,7 +29,7 @@ public class JukeboxBlock {
         ItemStack disc = baseEntity.getPersistentDataContainer().get(MUSIC_DISC_KEY, DataType.ITEM_STACK);
         if (disc == null) return null;
         if (VersionUtil.below("1.20.5")) {
-            if (disc.getType().isRecord()) return disc.getType().toString().toLowerCase().replace("music_disc_", "minecraft:music_disc.");
+            if (disc.getType().isRecord()) return disc.getType().toString().toLowerCase(Locale.ROOT).replace("music_disc_", "minecraft:music_disc.");
             else return null;
         } else {
             if (disc.hasItemMeta() && disc.getItemMeta().hasJukeboxPlayable())

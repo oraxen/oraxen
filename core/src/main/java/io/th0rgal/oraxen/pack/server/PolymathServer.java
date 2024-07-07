@@ -26,7 +26,6 @@ public class PolymathServer implements OraxenPackServer {
 
     private final String serverAddress;
     private String packUrl;
-    private String minecraftPackURL;
     private String hash;
     private UUID packUUID;
 
@@ -37,7 +36,7 @@ public class PolymathServer implements OraxenPackServer {
 
     @Override
     public String packUrl() {
-        return minecraftPackURL;
+        return packUrl;
     }
 
     @Override
@@ -67,11 +66,10 @@ public class PolymathServer implements OraxenPackServer {
             }
             if (jsonOutput.has("url") && jsonOutput.has("sha1")) {
                 packUrl = jsonOutput.get("url").getAsString();
-                minecraftPackURL = packUrl.replace("https://", "http://");
                 hash = jsonOutput.get("sha1").getAsString();
-                packUUID = UUID.nameUUIDFromBytes(OraxenPackServer.hashArray(hash));
+                packUUID = UUID.nameUUIDFromBytes(hash.getBytes());
 
-                Logs.logSuccess("ResourcePack has been uploaded to " + minecraftPackURL);
+                Logs.logSuccess("ResourcePack has been uploaded to " + packUrl);
                 return;
             }
 
@@ -92,8 +90,8 @@ public class PolymathServer implements OraxenPackServer {
 
         if (VersionUtil.isPaperServer()) {
             ResourcePackRequest request = ResourcePackRequest.resourcePackRequest().required(mandatory).replace(true).prompt(prompt)
-                    .packs(ResourcePackInfo.resourcePackInfo(packUUID, URI.create(minecraftPackURL), hash)).build();
+                    .packs(ResourcePackInfo.resourcePackInfo(packUUID, URI.create(packUrl), hash)).build();
             player.sendResourcePacks(request);
-        } else player.setResourcePack(packUUID, minecraftPackURL, hashArray, legacyPrompt, mandatory);
+        } else player.setResourcePack(packUUID, packUrl, hashArray, legacyPrompt, mandatory);
     }
 }

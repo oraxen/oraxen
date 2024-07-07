@@ -13,6 +13,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 
 public class ArmorEffectsMechanic extends Mechanic {
@@ -29,7 +30,7 @@ public class ArmorEffectsMechanic extends Mechanic {
     }
 
     public void registersEffectFromSection(ConfigurationSection section) {
-        String type = section.getName().toLowerCase();
+        String type = section.getName().toLowerCase(Locale.ROOT);
         PotionEffectType effectType = PotionUtils.getEffectType(type);
         if (effectType == null) {
             Logs.logError("Invalid potion effect: " + section.getName() + ", in " + StringUtils.substringBefore(section.getCurrentPath(), ".") + "!");

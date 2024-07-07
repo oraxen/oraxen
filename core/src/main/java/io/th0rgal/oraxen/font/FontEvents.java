@@ -211,10 +211,10 @@ public class FontEvents implements Listener {
         // If the displayName is null, reset it to the "original" name
         String strippedDownInputDisplay = MINI_MESSAGE.stripTags(AdventureUtils.parseLegacy(inputItem.getItemMeta().getDisplayName()));
         if (((displayName == null || displayName.isEmpty()) && OraxenItems.exists(inputItem)) || strippedDownInputDisplay.equals(displayName)) {
-            displayName = inputItem.getItemMeta().getPersistentDataContainer().getOrDefault(ORIGINAL_NAME_KEY, PersistentDataType.STRING, "");
+            displayName = inputItem.getItemMeta().getPersistentDataContainer().get(ORIGINAL_NAME_KEY, PersistentDataType.STRING);
         }
 
-        ItemUtils.displayName(resultItem, AdventureUtils.MINI_MESSAGE.deserialize(displayName));
+        ItemUtils.displayName(resultItem, displayName != null ? MINI_MESSAGE.deserialize(displayName) : null);
     }
 
     @EventHandler
