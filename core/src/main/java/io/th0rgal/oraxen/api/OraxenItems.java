@@ -82,7 +82,7 @@ public class OraxenItems {
         return lists.stream().flatMap(list -> {
             final ItemStack[] itemStack = new ItemStack[]{new ItemStack(Material.AIR)};
             list.stream().map(line -> line.split(":")).forEach(param -> {
-                switch (param[0].toLowerCase(Locale.ENGLISH)) {
+                switch (param[0].toLowerCase(Locale.ROOT)) {
                     case "type" -> {
                         if (exists(param[1])) itemStack[0] = getItemById(param[1]).build().clone();
                         else Message.ITEM_NOT_FOUND.log(AdventureUtils.tagResolver("item", param[1]));

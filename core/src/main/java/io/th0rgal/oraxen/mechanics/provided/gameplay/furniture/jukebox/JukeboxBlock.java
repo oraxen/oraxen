@@ -9,6 +9,8 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.Locale;
+
 import static io.th0rgal.oraxen.mechanics.provided.misc.music_disc.MusicDiscListener.MUSIC_DISC_KEY;
 
 public class JukeboxBlock {
@@ -30,7 +32,7 @@ public class JukeboxBlock {
         if (disc == null) return null;
         MusicDiscMechanic mechanic = (MusicDiscMechanic) factory.getMechanic(OraxenItems.getIdByItem(disc));
         return (mechanic != null && !mechanic.hasNoSong()) ? mechanic.getSong()
-                : disc.getType().isRecord() ? disc.getType().toString().toLowerCase().replace("music_disc_", "minecraft:music_disc.") : null;
+                : disc.getType().isRecord() ? disc.getType().toString().toLowerCase(Locale.ROOT).replace("music_disc_", "minecraft:music_disc.") : null;
     }
 
     public String getPermission() {

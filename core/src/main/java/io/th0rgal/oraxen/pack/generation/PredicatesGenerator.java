@@ -113,7 +113,7 @@ public class PredicatesGenerator {
         }
         if (material == Material.COMPASS || material == Material.CLOCK || (VersionUtil.atOrAbove("1.19") && material == Material.RECOVERY_COMPASS)) {
             String override = material == Material.CLOCK ? CLOCK_OVERRIDES : COMPASS_OVERRIDES;
-            JsonArray jsonArray = JsonParser.parseString(override.replace("X", material.name().toLowerCase())).getAsJsonArray();
+            JsonArray jsonArray = JsonParser.parseString(override.replace("X", material.name().toLowerCase(Locale.ROOT))).getAsJsonArray();
             for (int i = 0; i < jsonArray.size(); i++) {
                 overrides.add(jsonArray.get(i).getAsJsonObject());
             }
@@ -269,7 +269,7 @@ public class PredicatesGenerator {
     }
 
     public String getVanillaTextureName(final Material material, final boolean model) {
-        String materialName = material.toString().toLowerCase(Locale.ENGLISH);
+        String materialName = material.toString().toLowerCase(Locale.ROOT);
         if (!model) {
             if (material == Material.COMPASS) return "item/compass_16";
             if (material == Material.DEBUG_STICK) return "item/stick";
@@ -291,7 +291,7 @@ public class PredicatesGenerator {
     }
 
     private String getParent(final Material material) {
-        String materialName = material.name().toLowerCase();
+        String materialName = material.name().toLowerCase(Locale.ROOT);
         if (material == Material.SNOW)
             return "block/snow_height2";
         if (material == Material.FISHING_ROD || material == Material.WARPED_FUNGUS_ON_A_STICK || material == Material.CARROT_ON_A_STICK)
