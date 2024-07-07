@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.utils.customarmor;
 
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.utils.InventoryUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorEquipEvent;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -32,13 +33,15 @@ import org.bukkit.inventory.meta.trim.TrimMaterial;
 import org.bukkit.inventory.meta.trim.TrimPattern;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Locale;
+
 public class CustomArmorListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onCustomArmorRepair(PrepareAnvilEvent event) {
         if (!Settings.DISABLE_LEATHER_REPAIR_CUSTOM.toBool()) return;
         AnvilInventory inventory = event.getInventory();
-        Player player = (Player) inventory.getViewers().getFirst();
+        Player player = InventoryUtils.playerFromView(event);
         if (player == null) return;
         ItemStack first = inventory.getItem(0);
         ItemStack second = inventory.getItem(1);
@@ -108,7 +111,7 @@ public class CustomArmorListener implements Listener {
         if (!itemStack.getType().name().startsWith(armorPrefix)) return;
         if (armorMeta.hasTrim() && armorMeta.getTrim().getPattern().key().namespace().equals("oraxen")) return;
 
-        Key vanillaPatternKey = Key.key("minecraft", armorPrefix.toLowerCase());
+        Key vanillaPatternKey = Key.key("minecraft", armorPrefix.toLowerCase(Locale.ROOT));
         @Nullable TrimPattern vanillaPattern = Registry.TRIM_PATTERN.get(NamespacedKey.fromString(vanillaPatternKey.asString()));
         if (vanillaPattern != null && (!armorMeta.hasItemFlag(ItemFlag.HIDE_ARMOR_TRIM) || !armorMeta.hasTrim() || !armorMeta.getTrim().getPattern().key().equals(vanillaPatternKey))) {
             armorMeta.setTrim(new ArmorTrim(TrimMaterial.REDSTONE, vanillaPattern));

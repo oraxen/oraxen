@@ -94,7 +94,7 @@ public class UploadManager {
     }
 
     private HostingProvider createHostingProvider() {
-        HostingProvider provider = switch (Settings.UPLOAD_TYPE.toString().toLowerCase(Locale.ENGLISH)) {
+        HostingProvider provider = switch (Settings.UPLOAD_TYPE.toString().toLowerCase(Locale.ROOT)) {
             case "polymath" -> new Polymath(Settings.POLYMATH_SERVER.toString());
             case "external" -> createExternalProvider();
             default -> null;

@@ -75,13 +75,13 @@ public class TrimArmorDatapack {
     }
 
     private void writeVanillaTrimPattern(File datapack) {
-        File vanillaArmorJson = datapack.toPath().resolve("data/minecraft/trim_pattern/" + Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toLowerCase() + ".json").toFile();
+        File vanillaArmorJson = datapack.toPath().resolve("data/minecraft/trim_pattern/" + Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toLowerCase(Locale.ROOT) + ".json").toFile();
         vanillaArmorJson.getParentFile().mkdirs();
         JsonObject vanillaTrimPattern = new JsonObject();
         JsonObject description = new JsonObject();
-        description.addProperty("translate", "trim_pattern.minecraft." + Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toLowerCase());
+        description.addProperty("translate", "trim_pattern.minecraft." + Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toLowerCase(Locale.ROOT));
         vanillaTrimPattern.add("description", description);
-        vanillaTrimPattern.addProperty("asset_id", "minecraft:" + Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toLowerCase());
+        vanillaTrimPattern.addProperty("asset_id", "minecraft:" + Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toLowerCase(Locale.ROOT));
         vanillaTrimPattern.addProperty("template_item", "minecraft:debug_stick");
 
         try {
@@ -129,8 +129,8 @@ public class TrimArmorDatapack {
                         texturesArray.add("oraxen:trims/models/armor/" + armorPrefix);
                         texturesArray.add("oraxen:trims/models/armor/" + armorPrefix + "_leggings");
                     }
-                    texturesArray.add("minecraft:trims/models/armor/" + Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toLowerCase());
-                    texturesArray.add("minecraft:trims/models/armor/" + Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toLowerCase() + "_leggings");
+                    texturesArray.add("minecraft:trims/models/armor/" + Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toLowerCase(Locale.ROOT));
+                    texturesArray.add("minecraft:trims/models/armor/" + Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toLowerCase(Locale.ROOT) + "_leggings");
 
                     sourceObject.remove("textures");
                     sourceObject.add("textures", texturesArray);
@@ -151,8 +151,8 @@ public class TrimArmorDatapack {
                 texturesArray.add("oraxen:trims/models/armor/" + armorPrefix);
                 texturesArray.add("oraxen:trims/models/armor/" + armorPrefix + "_leggings");
             }
-            texturesArray.add("minecraft:trims/models/armor/" + Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toLowerCase());
-            texturesArray.add("minecraft:trims/models/armor/" + Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toLowerCase() + "_leggings");
+            texturesArray.add("minecraft:trims/models/armor/" + Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toLowerCase(Locale.ROOT));
+            texturesArray.add("minecraft:trims/models/armor/" + Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toLowerCase(Locale.ROOT) + "_leggings");
 
             sourcesObject.add("textures", texturesArray);
             sourcesArray.add(sourcesObject);
@@ -166,7 +166,7 @@ public class TrimArmorDatapack {
         String armorPath = "assets/minecraft/textures/models/armor/";
         String vanillaTrimPath = "assets/minecraft/textures/trims/models/armor/";
         String oraxenTrimPath = "assets/oraxen/textures/trims/models/armor/";
-        String material = Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toLowerCase();
+        String material = Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toLowerCase(Locale.ROOT);
 
         for (VirtualFile virtualFile : output) {
             String path = virtualFile.getPath();

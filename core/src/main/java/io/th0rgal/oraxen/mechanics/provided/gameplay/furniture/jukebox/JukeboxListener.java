@@ -28,6 +28,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 
 import javax.annotation.Nullable;
+import java.util.Locale;
 
 import static io.th0rgal.oraxen.mechanics.provided.misc.music_disc.MusicDiscListener.MUSIC_DISC_KEY;
 
@@ -126,7 +127,7 @@ public class JukeboxListener implements Listener {
                     ? disc.getItemMeta().getJukeboxPlayable().getSongKey().key()
                     : null;
         } else {
-            return Key.key("minecraft", "music_disc." + disc.getType().toString().toLowerCase().split("music_disc_")[1]);
+            return Key.key("minecraft", "music_disc." + disc.getType().toString().toLowerCase(Locale.ROOT).split("music_disc_")[1]);
         }
     }
 }
