@@ -39,6 +39,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @SuppressWarnings("ALL")
 public class ItemBuilder {
@@ -634,9 +636,6 @@ public class ItemBuilder {
             } else itemMeta.setDisplayName(AdventureUtils.LEGACY_SERIALIZER.serialize(displayName));
         }
 
-        if (itemFlags != null)
-            itemMeta.addItemFlags(itemFlags.toArray(new ItemFlag[0]));
-
         if (enchantments.size() > 0) {
             for (final Map.Entry<Enchantment, Integer> enchant : enchantments.entrySet()) {
                 if (enchant.getKey() == null) continue;
@@ -645,11 +644,9 @@ public class ItemBuilder {
             }
         }
 
-        if (hasAttributeModifiers)
-            itemMeta.setAttributeModifiers(attributeModifiers);
-
-        if (hasCustomModelData)
-            itemMeta.setCustomModelData(customModelData);
+        if (itemFlags != null) itemMeta.addItemFlags(itemFlags.toArray(new ItemFlag[0]));
+        if (hasAttributeModifiers) itemMeta.setAttributeModifiers(attributeModifiers);
+        if (hasCustomModelData) itemMeta.setCustomModelData(customModelData);
 
         if (!persistentDataMap.isEmpty())
             for (final Map.Entry<PersistentDataSpace, Object> dataSpace : persistentDataMap.entrySet())
@@ -658,6 +655,18 @@ public class ItemBuilder {
         ItemUtils.lore(itemMeta, lore);
 
         itemStack.setItemMeta(itemMeta);
+
+        if (VersionUtil.atOrAbove("1.20.5") && itemMeta.hasItemFlag(ItemFlag.HIDE_ATTRIBUTES)) {
+            String data = ItemUtils.itemToBase64(itemStack);
+            String regex = "(attribute_modifiers=\\{[^}]*)(?<!show_in_tooltips:true)(\\})";
+
+            Pattern pattern = Pattern.compile(regex);
+            Matcher matcher = pattern.matcher(data);
+
+            data = matcher.replaceAll("$1,show_in_tooltips:true$2");
+            itemStack.setItemMeta(ItemUtils.itemFromBase64(data).getItemMeta());
+        }
+
         finalItemStack = itemStack;
         return this;
     }
