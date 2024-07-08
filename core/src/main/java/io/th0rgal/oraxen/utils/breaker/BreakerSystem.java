@@ -125,7 +125,7 @@ public class BreakerSystem {
                 final List<Location> furnitureBarrierLocations = furnitureBarrierLocations(furnitureMechanic, block);
 
                 OraxenPlugin.getScheduler().runTask(SchedulerType.SYNC, player, playerTask ->
-                            player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING,
+                            player.addPotionEffect(new PotionEffect(PotionUtils.getEffectType("mining_fatigue"),
                                     (int) (period * 11),
                                     Integer.MAX_VALUE,
                                     false, false, false)), null);
