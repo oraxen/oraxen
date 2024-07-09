@@ -39,8 +39,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @SuppressWarnings("ALL")
 public class ItemBuilder {
@@ -656,16 +654,17 @@ public class ItemBuilder {
 
         itemStack.setItemMeta(itemMeta);
 
-        if (VersionUtil.atOrAbove("1.20.5") && itemMeta.hasItemFlag(ItemFlag.HIDE_ATTRIBUTES)) {
-            String data = ItemUtils.itemToBase64(itemStack);
-            String regex = "(attribute_modifiers=\\{[^}]*)(?<!show_in_tooltips:true)(\\})";
+        /*if (VersionUtil.atOrAbove("1.20.5") && itemMeta.hasItemFlag(ItemFlag.HIDE_ATTRIBUTES)) {
+            Optional.ofNullable(ItemUtils.itemToBase64(itemStack)).ifPresent((data) -> {
+                String regex = "(attribute_modifiers=\\{[^}]*)(?<!show_in_tooltips:true)(\\})";
 
-            Pattern pattern = Pattern.compile(regex);
-            Matcher matcher = pattern.matcher(data);
+                Pattern pattern = Pattern.compile(regex);
+                Matcher matcher = pattern.matcher(data);
 
-            data = matcher.replaceAll("$1,show_in_tooltips:true$2");
-            itemStack.setItemMeta(ItemUtils.itemFromBase64(data).getItemMeta());
-        }
+                data = matcher.replaceAll("$1,show_in_tooltips:true$2");
+                itemStack.setItemMeta(ItemUtils.itemFromBase64(data).getItemMeta());
+            });
+        }*/
 
         finalItemStack = itemStack;
         return this;
