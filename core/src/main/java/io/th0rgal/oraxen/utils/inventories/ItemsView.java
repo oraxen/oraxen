@@ -134,8 +134,8 @@ public class ItemsView {
                 .colorIfAbsent(NamedTextColor.GREEN).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE);
 
         itemStack = icon.map(OraxenItems::getItemById).map(ItemBuilder::clone)
-                .orElse(OraxenItems.getMap().get(file).values().stream().findFirst().orElse(new ItemBuilder(Material.PAPER)))
-                .clone().addItemFlags(ItemFlag.HIDE_ATTRIBUTES).displayName(displayName).lore(new ArrayList<>()).build();
+                .orElse(OraxenItems.getMap().get(file).values().stream().findFirst().map(ItemBuilder::clone).orElse(new ItemBuilder(Material.PAPER)))
+                .addItemFlags(ItemFlag.HIDE_ATTRIBUTES).itemName(displayName).displayName(displayName).lore(new ArrayList<>()).build();
 
         // avoid possible bug if isOraxenItems is available but can't be an itemstack
         if (itemStack == null) itemStack = new ItemBuilder(Material.PAPER).itemName(displayName).displayName(displayName).build();
