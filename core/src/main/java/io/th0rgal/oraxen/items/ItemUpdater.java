@@ -164,7 +164,7 @@ public class ItemUpdater implements Listener {
 
             // Transfer over durability from old item
             if (itemMeta instanceof Damageable damageable && oldMeta instanceof Damageable oldDmg) {
-                damageable.setDamage(oldDmg.getDamage());
+                if (oldDmg.hasDamage()) damageable.setDamage(oldDmg.getDamage());
             }
 
             if (oldMeta.isUnbreakable()) itemMeta.setUnbreakable(true);

@@ -148,6 +148,8 @@ public class ItemParser {
             foodComponent.setSaturation((float) foodSection.getDouble("saturation", 0.0));
             foodComponent.setCanAlwaysEat(foodSection.getBoolean("can_always_eat"));
             foodComponent.setEatSeconds((float) foodSection.getDouble("eat_seconds", 1.6));
+            // Handled in {@link OraxenItems#ensureComponentDataHandled}
+            //foodComponent.setUsingConvertsTo(itemStack);
 
             ConfigurationSection effectsSection = foodSection.getConfigurationSection("effects");
             if (effectsSection != null) for (String effect : effectsSection.getKeys(false)) {
