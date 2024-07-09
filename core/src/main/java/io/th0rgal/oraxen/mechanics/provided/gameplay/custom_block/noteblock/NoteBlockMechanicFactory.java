@@ -4,7 +4,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockType;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.beacon.BeaconListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.beacon.BeaconTagDatapack;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.directional.DirectionalBlock;
@@ -86,7 +86,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         return removeMineableTag;
     }
 
-    private final Map<String, MultiVariant> variants = new LinkedHashMap<>();
+    private final LinkedHashMap<String, MultiVariant> variants = new LinkedHashMap<>();
     public BlockState generateBlockStateFile() {
         Key noteKey = Key.key("minecraft:note_block");
         variants.put("instrument=harp,powered=false,note=0", MultiVariant.of(Variant.builder().model(Key.key("block/note_block")).build()));
@@ -130,7 +130,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         if (section.getName().equals(getMechanicID()) && notifyOfDeprecation) {
             notifyOfDeprecation = false;
             Logs.logError(mechanic.getItemID() + " is using Mechanics.noteblock which is deprecated...");
-            Logs.logWarning("It is recommended to use the new format, Mechanics.custom_block.type: " + CustomBlockType.NOTEBLOCK);
+            Logs.logWarning("It is recommended to use the new format, Mechanics.custom_block.type: " + CustomBlockFactory.get().NOTEBLOCK);
         }
 
         if (!Range.between(1, MAX_BLOCK_VARIATION).contains(mechanic.customVariation())) {

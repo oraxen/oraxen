@@ -88,13 +88,13 @@ public class ReloadCommand {
                             Optional.ofNullable(FurnitureFactory.get()).ifPresent(f -> f.packetManager().removeAllFurniturePackets());
                             MechanicsManager.unloadListeners();
                             MechanicsManager.unregisterTasks();
-                            MechanicsManager.registerNativeMechanics();
                             NMSHandlers.resetHandler();
                             OraxenPlugin.get().reloadConfigs();
                             OraxenPlugin.get().packServer(OraxenPackServer.initializeServer());
+                            MechanicsManager.registerNativeMechanics();
                             reloadItems(sender);
-                            reloadPack(sender);
                             reloadRecipes(sender);
+                            reloadPack(sender);
                         }
                     }
                     for (Player player : Bukkit.getOnlinePlayers()) {

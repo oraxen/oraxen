@@ -5,11 +5,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.bukkit.configuration.ConfigurationSection;
 
 import javax.annotation.Nullable;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class CustomBlockRegistry {
-    private static final Map<String, CustomBlockType> registry = new HashMap<>();
+    private static final Map<String, CustomBlockType> registry = new LinkedHashMap<>();
 
     public static void register(CustomBlockType blockType) {
         registry.put(blockType.name(), blockType);
@@ -19,8 +21,16 @@ public class CustomBlockRegistry {
         return registry.get(name);
     }
 
-    public static String[] names() {
-        return registry.keySet().toArray(new String[0]);
+    public static Map<String, CustomBlockType> getRegistry() {
+        return registry;
+    }
+
+    public static List<String> getNames() {
+        return new ArrayList<>(registry.keySet());
+    }
+
+    public static List<CustomBlockType> getTypes() {
+        return new ArrayList<>(registry.values());
     }
 
     @Nullable
@@ -30,7 +40,7 @@ public class CustomBlockRegistry {
         if (type == null) {
             String itemId = section.getParent().getParent().getName();
             Logs.logError("No CustomBlock-type defined in " + itemId);
-            Logs.logError("Valid types are: " + StringUtils.join(CustomBlockRegistry.names(), ", "));
+            Logs.logError("Valid types are: " + StringUtils.join(CustomBlockRegistry.getNames(), ", "));
         }
         return type;
     }

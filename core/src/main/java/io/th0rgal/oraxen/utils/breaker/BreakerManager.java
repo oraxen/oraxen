@@ -8,8 +8,8 @@ import io.th0rgal.oraxen.api.events.custom_block.stringblock.OraxenStringBlockDa
 import io.th0rgal.oraxen.api.events.furniture.OraxenFurnitureDamageEvent;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.BreakableMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockMechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockType;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock.StringBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
@@ -154,9 +154,9 @@ public class BreakerManager {
                 } else {
                     //TODO Allow for third party blocks to handle this somehow
                     String sound = "";
-                    if (blockMechanic.type() == CustomBlockType.NOTEBLOCK)
+                    if (blockMechanic.type() == CustomBlockFactory.get().NOTEBLOCK)
                         sound = blockMechanic.hasBlockSounds() && blockMechanic.blockSounds().hasHitSound() ? blockMechanic.blockSounds().hitSound() : "required.wood.hit";
-                    else if (blockMechanic.type() == CustomBlockType.STRINGBLOCK)
+                    else if (blockMechanic.type() == CustomBlockFactory.get().STRINGBLOCK)
                         sound = blockMechanic.hasBlockSounds() && blockMechanic.blockSounds().hasHitSound() ? blockMechanic.blockSounds().hitSound() : "block.tripwire.detach";
                     BlockHelpers.playCustomBlockSound(block.getLocation(), sound, blockMechanic.blockSounds().hitVolume(), blockMechanic.blockSounds().hitPitch());
                 }

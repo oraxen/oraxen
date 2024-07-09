@@ -20,14 +20,17 @@ import java.util.List;
 
 public class CustomBlockFactory extends MechanicFactory {
 
-
+    public CustomBlockType NOTEBLOCK;
+    public CustomBlockType STRINGBLOCK;
     private static CustomBlockFactory instance;
 
     public CustomBlockFactory(String mechanicId) {
         super(mechanicId);
         instance = this;
-        CustomBlockRegistry.register(CustomBlockType.NOTEBLOCK);
-        CustomBlockRegistry.register(CustomBlockType.STRINGBLOCK);
+        NOTEBLOCK = new DefaultBlockType("NOTEBLOCK", NoteBlockMechanicFactory.isEnabled() ? NoteBlockMechanicFactory.get() : null);
+        STRINGBLOCK = new DefaultBlockType("STRINGBLOCK", StringBlockMechanicFactory.isEnabled() ? StringBlockMechanicFactory.get() : null);
+        CustomBlockRegistry.register(NOTEBLOCK);
+        CustomBlockRegistry.register(STRINGBLOCK);
         MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new CustomBlockListener(), new CustomBlockMiningListener());
     }
 
@@ -41,6 +44,12 @@ public class CustomBlockFactory extends MechanicFactory {
 
     public List<BlockState> blockStates() {
         List<BlockState> blockStates = new ArrayList<>();
+        for (CustomBlockType type : CustomBlockRegistry.getTypes()) {
+            if (type.factory() == null) continue;
+
+            //TODO Implement this by having factories inherit and override CustomBlockFactory
+            //blockStates.add(type.factory().generateBlockStateFile());
+        }
         if (NoteBlockMechanicFactory.isEnabled()) blockStates.add(NoteBlockMechanicFactory.get().generateBlockStateFile());
         if (StringBlockMechanicFactory.isEnabled()) blockStates.add(StringBlockMechanicFactory.get().generateBlockState());
 
@@ -48,9 +57,9 @@ public class CustomBlockFactory extends MechanicFactory {
     }
 
     public List<String> toolTypes(CustomBlockType type) {
-        if (type == CustomBlockType.STRINGBLOCK && StringBlockMechanicFactory.isEnabled())
+        if (type == STRINGBLOCK && type.factory() != null)
             return StringBlockMechanicFactory.get().toolTypes;
-        else if (type == CustomBlockType.NOTEBLOCK && NoteBlockMechanicFactory.isEnabled())
+        else if (type == NOTEBLOCK && type.factory() != null)
             return NoteBlockMechanicFactory.get().toolTypes;
         else return new ArrayList<>();
     }
