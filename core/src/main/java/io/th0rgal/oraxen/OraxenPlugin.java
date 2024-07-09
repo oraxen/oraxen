@@ -197,10 +197,7 @@ public class OraxenPlugin extends JavaPlugin {
     public void packServer(@Nullable OraxenPackServer server) {
         if (packServer != null) packServer.stop();
         packServer = server;
-        if (packServer != null) {
-            packServer.start();
-            packServer.uploadPack();
-        }
+        if (packServer != null) packServer.start();
     }
 
     public ClickActionManager clickActionManager() {

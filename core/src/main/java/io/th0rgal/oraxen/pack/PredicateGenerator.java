@@ -4,13 +4,15 @@ import com.google.common.collect.Lists;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenMeta;
+import io.th0rgal.oraxen.utils.ItemUtils;
+import io.th0rgal.oraxen.utils.KeyUtils;
 import net.kyori.adventure.key.Key;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.PotionMeta;
-import team.unnamed.creative.base.Vector3Float;
+import team.unnamed.creative.ResourcePack;
 import team.unnamed.creative.model.*;
 
 import java.util.*;
@@ -18,14 +20,23 @@ import java.util.stream.Collectors;
 
 public class PredicateGenerator {
 
-    public static Model.Builder generateBaseModelBuilder(Material material) {
-        Key modelKey = PredicateGenerator.vanillaModelKey(material);
-        ModelTextures modelTextures = PredicateGenerator.vanillaModelTextures(material);
+    private final ResourcePack resourcePack;
 
-        return Model.model().key(modelKey).parent(PredicateGenerator.parentModel(material))
-                .textures(modelTextures)
+    public PredicateGenerator(ResourcePack resourcePack) {
+        this.resourcePack = resourcePack;
+    }
+
+    public Key vanillaModelKey(Material material) {
+        return getVanillaTextureName(material, true);
+    }
+
+    public Model.Builder generateBaseModelBuilder(Material material) {
+        Key modelKey = vanillaModelKey(material);
+        ModelTextures modelTextures = vanillaModelTextures(material);
+
+        return Model.model().key(modelKey).parent(parentModel(material)).textures(modelTextures)
                 .guiLight(material == Material.SHIELD ? Model.GuiLight.FRONT : null)
-                .display(generateBaseModelDisplay(material))
+                .display(DisplayProperties.fromMaterial(material))
                 .overrides(generateBaseModelOverrides(material));
     }
 
@@ -36,26 +47,9 @@ public class PredicateGenerator {
      * @param material the material to generate the overrides for
      * @return the generated overrides
      */
-    private static List<ItemOverride> generateBaseModelOverrides(Material material) {
-        List<ItemOverride> overrides = Lists.newArrayList();
+    private List<ItemOverride> generateBaseModelOverrides(Material material) {
         LinkedHashSet<ItemBuilder> itemBuilders = OraxenItems.getItems().stream().filter(i -> i.getType() == material).collect(Collectors.toCollection(LinkedHashSet::new));
-
-        switch (material) {
-            case SHIELD -> overrides.add(ItemOverride.of(Key.key("item/shield_blocking"), ItemPredicate.blocking()));
-            case BOW -> {
-                overrides.add(ItemOverride.of(Key.key("item/bow_pulling_0"), ItemPredicate.pulling()));
-                overrides.add(ItemOverride.of(Key.key("item/bow_pulling_1"), ItemPredicate.pulling(), ItemPredicate.pull(0.65f)));
-                overrides.add(ItemOverride.of(Key.key("item/bow_pulling_2"), ItemPredicate.pulling(), ItemPredicate.pull(0.9f)));
-            }
-            case CROSSBOW -> {
-                overrides.add(ItemOverride.of(Key.key("item/crossbow_pulling_0"), ItemPredicate.pulling()));
-                overrides.add(ItemOverride.of(Key.key("item/crossbow_pulling_1"), ItemPredicate.pulling(), ItemPredicate.pull(0.65f)));
-                overrides.add(ItemOverride.of(Key.key("item/crossbow_pulling_2"), ItemPredicate.pulling(), ItemPredicate.pull(0.9f)));
-
-                overrides.add(ItemOverride.of(Key.key("item/crossbow_arrow"), ItemPredicate.charged()));
-                overrides.add(ItemOverride.of(Key.key("item/crossbow_firework"), ItemPredicate.firework()));
-            }
-        }
+        List<ItemOverride> overrides = OverrideProperties.fromMaterial(material);
 
         for (ItemBuilder itemBuilder : itemBuilders) {
             if (itemBuilder == null) continue;
@@ -64,6 +58,13 @@ public class PredicateGenerator {
             Key itemModelKey = oraxenMeta.modelKey();
             ItemPredicate cmdPredicate = ItemPredicate.customModelData(oraxenMeta.customModelData());
             overrides.add(ItemOverride.of(itemModelKey, cmdPredicate));
+
+            if (oraxenMeta.hasBlockingModel()) addMissingOverrideModel(oraxenMeta.blockingModel(), oraxenMeta.parentModelKey());
+            if (oraxenMeta.hasChargedModel()) addMissingOverrideModel(oraxenMeta.chargedModel(), oraxenMeta.parentModelKey());
+            if (oraxenMeta.hasCastModel()) addMissingOverrideModel(oraxenMeta.castModel(), oraxenMeta.parentModelKey());
+            if (oraxenMeta.hasFireworkModel()) addMissingOverrideModel(oraxenMeta.fireworkModel(), oraxenMeta.parentModelKey());
+            for (Key pullingKey : oraxenMeta.pullingModels()) addMissingOverrideModel(pullingKey, oraxenMeta.parentModelKey());
+            for (Key damagedKey : oraxenMeta.damagedModels()) addMissingOverrideModel(damagedKey, oraxenMeta.parentModelKey());
 
             if (oraxenMeta.hasBlockingModel()) overrides.add(ItemOverride.of(oraxenMeta.blockingModel(), ItemPredicate.blocking(), cmdPredicate));
             if (oraxenMeta.hasChargedModel()) overrides.add(ItemOverride.of(oraxenMeta.chargedModel(), ItemPredicate.charged(), cmdPredicate));
@@ -81,17 +82,20 @@ public class PredicateGenerator {
                 float damage = Math.min((float) i / damagedModels.size(), 0.99f);
                 overrides.add(ItemOverride.of(damagedModels.get(i-1), ItemPredicate.damage(damage), cmdPredicate));
             }
-
         }
 
         return overrides;
     }
 
-    public static Key vanillaModelKey(Material material) {
-        return getVanillaTextureName(material, true);
+    private void addMissingOverrideModel(Key modelKey, Key parentKey) {
+        resourcePack.model(Optional.ofNullable(resourcePack.model(modelKey)).orElse(
+                Model.model().key(modelKey).parent(parentKey)
+                .textures(ModelTextures.builder().layers(ModelTexture.ofKey(KeyUtils.dropPngSuffix(modelKey))).build())
+                .build())
+        );
     }
 
-    public static ModelTextures vanillaModelTextures(Material material) {
+    private ModelTextures vanillaModelTextures(Material material) {
         Key baseKey = getVanillaTextureName(material, false);
         List<ModelTexture> layers = Lists.newArrayList();
         Map<String, ModelTexture> variables = new LinkedHashMap<>();
@@ -103,23 +107,24 @@ public class PredicateGenerator {
         } else if (exampleMeta instanceof LeatherArmorMeta && material != Material.LEATHER_HORSE_ARMOR) {
             variables.put("layer0", ModelTexture.ofKey(baseKey));
             variables.put("layer1", ModelTexture.ofKey(Key.key(baseKey.asString() + "_overlay")));
+        } else if (material == Material.DECORATED_POT) {
+            variables.put("particle", ModelTexture.ofKey(Key.key("entity/decorated_pot/decorated_pot_side")));
         } else variables.put("layer0", ModelTexture.ofKey(baseKey));
 
         return ModelTextures.builder().variables(variables).layers(layers).build();
     }
 
-    public static Key getVanillaTextureName(final Material material, final boolean model) {
+    private Key getVanillaTextureName(final Material material, final boolean model) {
         if (!model)
             if (material.isBlock()) return Key.key("block/" + material.toString().toLowerCase());
             else if (material == Material.CROSSBOW) return Key.key("item/crossbow_standby");
         return Key.key("item/" + material.toString().toLowerCase());
     }
 
-    private static final String[] tools = new String[]{"PICKAXE", "SWORD", "HOE", "AXE", "SHOVEL"};
-    public static Key parentModel(final Material material) {
+    private Key parentModel(final Material material) {
         if (material.isBlock())
             return Key.key("block/cube_all");
-        if (Arrays.stream(tools).anyMatch(tool -> material.toString().contains(tool)))
+        if (ItemUtils.isTool(material))
             return Key.key("item/handheld");
         if (material == Material.FISHING_ROD)
             return Key.key("item/handheld_rod");
@@ -127,34 +132,5 @@ public class PredicateGenerator {
             return Key.key("builtin/entity");
         return Key.key("item/generated");
     }
-
-    private static Map<ItemTransform.Type, ItemTransform> generateBaseModelDisplay(Material material) {
-        Map<ItemTransform.Type, ItemTransform> display = new LinkedHashMap<>();
-
-        switch (material) {
-            case SHIELD -> {
-                display.put(ItemTransform.Type.THIRDPERSON_LEFTHAND, ItemTransform.transform(new Vector3Float(0, 90, 0), new Vector3Float(10, 6, 12), new Vector3Float(1,1,1)));
-                display.put(ItemTransform.Type.THIRDPERSON_RIGHTHAND, ItemTransform.transform(new Vector3Float(0, 90, 0), new Vector3Float(10, 6, -4), new Vector3Float(1,1,1)));
-                display.put(ItemTransform.Type.FIRSTPERSON_LEFTHAND, ItemTransform.transform(new Vector3Float(0, 180, 5), new Vector3Float(10, 0, -10), new Vector3Float(1.25f,1.25f,1.25f)));
-                display.put(ItemTransform.Type.FIRSTPERSON_RIGHTHAND, ItemTransform.transform(new Vector3Float(0, 180, 5), new Vector3Float(-10, 2, -10), new Vector3Float(1.25f,1.25f,1.25f)));
-                display.put(ItemTransform.Type.GUI, ItemTransform.transform(new Vector3Float(15, -25, -5), new Vector3Float(2, 3, 0), new Vector3Float(0.65f,0.65f,0.65f)));
-                display.put(ItemTransform.Type.FIXED, ItemTransform.transform(new Vector3Float(0, 180, 0), new Vector3Float(-4.5f, 4.5f, -5), new Vector3Float(0.55f,0.55f,0.55f)));
-                display.put(ItemTransform.Type.GROUND, ItemTransform.transform(new Vector3Float(0, 0, 0), new Vector3Float(2, 4, 2), new Vector3Float(0.25f,0.25f,0.25f)));
-            }
-            case BOW -> {
-                display.put(ItemTransform.Type.THIRDPERSON_LEFTHAND, ItemTransform.transform(new Vector3Float(-80, -280, 40), new Vector3Float(-1, -2, 2.5f), new Vector3Float(0.9f, 0.9f, 0.9f)));
-                display.put(ItemTransform.Type.THIRDPERSON_RIGHTHAND, ItemTransform.transform(new Vector3Float(-80, 260, -40), new Vector3Float(-1, -2, 2.5f), new Vector3Float(0.9f, 0.9f, 0.9f)));
-                display.put(ItemTransform.Type.FIRSTPERSON_LEFTHAND, ItemTransform.transform(new Vector3Float(0, 90, -25), new Vector3Float(1.13f, 3.2f, 1.13f), new Vector3Float(0.68f, 0.68f, 0.68f)));
-                display.put(ItemTransform.Type.FIRSTPERSON_RIGHTHAND, ItemTransform.transform(new Vector3Float(0, -90, 25), new Vector3Float(1.13f, 3.2f, 1.13f), new Vector3Float(0.68f, 0.68f, 0.68f)));
-            }
-            case CROSSBOW -> {
-                display.put(ItemTransform.Type.THIRDPERSON_LEFTHAND, ItemTransform.transform(new Vector3Float(-90, 0, 30), new Vector3Float(2, 0.1f, -3), new Vector3Float(0.9f, 0.9f, 0.9f)));
-                display.put(ItemTransform.Type.THIRDPERSON_RIGHTHAND, ItemTransform.transform(new Vector3Float(-90, 0, -60), new Vector3Float(2, 0.1f, -3), new Vector3Float(0.9f, 0.9f, 0.9f)));
-                display.put(ItemTransform.Type.FIRSTPERSON_LEFTHAND, ItemTransform.transform(new Vector3Float(-90, 0, 35), new Vector3Float(1.13f, 3.2f, 1.13f), new Vector3Float(0.68f, 0.68f, 0.68f)));
-                display.put(ItemTransform.Type.FIRSTPERSON_RIGHTHAND, ItemTransform.transform(new Vector3Float(-90, 0, -55), new Vector3Float(1.13f, 3.2f, 1.13f), new Vector3Float(0.68f, 0.68f, 0.68f)));
-            }
-        }
-
-        return display;
-    }
 }
+

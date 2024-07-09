@@ -49,6 +49,7 @@ public class PackGenerator {
     @NotNull private ResourcePack resourcePack = ResourcePack.resourcePack();
     private BuiltResourcePack builtPack;
     private final CustomArmor customArmorHandler;
+    private final ModelGenerator modelGenerator;
     private final MinecraftResourcePackReader reader = MinecraftResourcePackReader.minecraft();
     private final MinecraftResourcePackWriter writer = MinecraftResourcePackWriter.minecraft();
 
@@ -58,6 +59,7 @@ public class PackGenerator {
         if (CustomArmorType.getSetting().equals(CustomArmorType.SHADER)) customArmorHandler = new ShaderArmorTextures();
         else if (CustomArmorType.getSetting().equals(CustomArmorType.TRIMS)) customArmorHandler = new TrimArmorDatapack();
         else customArmorHandler = new CustomArmor();
+        this.modelGenerator = new ModelGenerator(resourcePack);
     }
 
     public void generatePack() {
@@ -271,8 +273,8 @@ public class PackGenerator {
     }
 
     private void addItemPackFiles() {
-        ModelGenerator.generateBaseItemModels();
-        ModelGenerator.generateItemModels();
+        modelGenerator.generateBaseItemModels();
+        modelGenerator.generateItemModels();
         AtlasGenerator.generateAtlasFile();
     }
 

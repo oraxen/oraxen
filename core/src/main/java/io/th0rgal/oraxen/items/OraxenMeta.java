@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.items;
 
+import io.th0rgal.oraxen.utils.KeyUtils;
 import net.kyori.adventure.key.Key;
 import org.bukkit.configuration.ConfigurationSection;
 import team.unnamed.creative.model.ModelTexture;
@@ -54,19 +55,19 @@ public class OraxenMeta {
         this.castModel = readModelName(section, "cast_model");
         this.chargedModel = readModelName(section, "charged_model");
         this.fireworkModel = readModelName(section, "firework_model");
-        this.pullingModels = section.getStringList("pulling_models").stream().map(s -> Key.key(s.replace(".png", ""))).toList();
-        this.damagedModels = section.getStringList("damaged_models").stream().map(s -> Key.key(s.replace(".png", ""))).toList();
+        this.pullingModels = section.getStringList("pulling_models").stream().map(KeyUtils::dropPngSuffix).toList();
+        this.damagedModels = section.getStringList("damaged_models").stream().map(KeyUtils::dropPngSuffix).toList();
 
         // By adding the textures to pullingModels aswell,
         // we can use the same code for both pullingModels
         // and pullingTextures to add to the base-bow file predicates
-        if (pullingModels.isEmpty()) pullingModels = section.getStringList("pulling_textures").stream().map(t -> Key.key(t.replace(".png", ""))).toList();
-        if (damagedModels == null) damagedModels = section.getStringList("damaged_textures").stream().map(t -> Key.key(t.replace(".png", ""))).toList();
+        if (pullingModels.isEmpty()) pullingModels = section.getStringList("pulling_textures").stream().map(KeyUtils::dropPngSuffix).toList();
+        if (damagedModels == null) damagedModels = section.getStringList("damaged_textures").stream().map(KeyUtils::dropPngSuffix).toList();
 
-        if (chargedModel == null) chargedModel = Key.key(section.getString("charged_texture", "").replace(".png", ""));
-        if (fireworkModel == null) fireworkModel = Key.key(section.getString("firework_texture", "").replace(".png", ""));
-        if (castModel == null) castModel = Key.key(section.getString("cast_texture", "").replace(".png", ""));
-        if (blockingModel == null) blockingModel = Key.key(section.getString("blocking_texture", "").replace(".png", ""));
+        if (chargedModel == null) chargedModel = KeyUtils.dropPngSuffix(section.getString("charged_texture", ""));
+        if (fireworkModel == null) fireworkModel = KeyUtils.dropPngSuffix(section.getString("firework_texture", ""));
+        if (castModel == null) castModel = KeyUtils.dropPngSuffix(section.getString("cast_texture", ""));
+        if (blockingModel == null) blockingModel = KeyUtils.dropPngSuffix(section.getString("blocking_texture", ""));
 
         ConfigurationSection textureSection = section.getConfigurationSection("textures");
         if (textureSection != null) {
@@ -76,9 +77,9 @@ public class OraxenMeta {
             texturesSection.getKeys(false).forEach(key -> variables.put(key, ModelTexture.ofKey(Key.key(texturesSection.getString(key).replace(".png", "")))));
             this.textureVariables = variables;
         }
-        else if (section.isList("textures")) this.textureLayers = section.getStringList("textures").stream().map(t -> ModelTexture.ofKey(Key.key(t.replace(".png", "")))).toList();
-        else if (section.isString("textures")) this.textureLayers = List.of(ModelTexture.ofKey(Key.key(section.getString("textures").replace(".png", ""))));
-        else if (section.isString("texture")) this.textureLayers = List.of(ModelTexture.ofKey(Key.key(section.getString("texture").replace(".png", ""))));
+        else if (section.isList("textures")) this.textureLayers = section.getStringList("textures").stream().map(t -> ModelTexture.ofKey(KeyUtils.dropPngSuffix(t))).toList();
+        else if (section.isString("textures")) this.textureLayers = List.of(ModelTexture.ofKey(KeyUtils.dropPngSuffix(section.getString("textures", ""))));
+        else if (section.isString("texture")) this.textureLayers = List.of(ModelTexture.ofKey(KeyUtils.dropPngSuffix(section.getString("texture", ""))));
 
         this.textureVariables = textureVariables != null ? textureVariables : new HashMap<>();
         this.textureLayers = textureLayers != null ? textureLayers : new ArrayList<>();
