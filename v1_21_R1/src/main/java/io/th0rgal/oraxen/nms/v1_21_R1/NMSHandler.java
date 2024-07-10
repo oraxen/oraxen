@@ -23,7 +23,6 @@ import net.kyori.adventure.resource.ResourcePackInfo;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.Connection;
@@ -291,7 +290,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     @NotNull
     @Override
     public @Unmodifiable Set<Material> itemTools() {
-        return Arrays.stream(Material.values()).filter(m -> CraftItemStack.asNMSCopy(new ItemStack(m)).has(DataComponents.TOOL)).collect(Collectors.toSet());
+        return Arrays.stream(Material.values()).filter(Material::isItem).map(ItemStack::new).filter(ItemStack::hasItemMeta)
+                .filter(i -> i.getItemMeta().hasTool()).map(ItemStack::getType).collect(Collectors.toSet());
     }
 
     @Override
