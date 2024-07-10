@@ -2,12 +2,14 @@ package io.th0rgal.oraxen.items;
 
 import com.jeff_media.morepersistentdatatypes.DataType;
 import com.jeff_media.persistentdataserializer.PersistentDataSerializer;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -22,6 +24,7 @@ import org.bukkit.event.enchantment.PrepareItemEnchantEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.PrepareAnvilEvent;
+import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
@@ -111,6 +114,29 @@ public class ItemUpdater implements Listener {
 
         Optional.ofNullable(OraxenItems.getBuilderByItem(itemStack)).ifPresent(i -> {
             if (i.isDamagedOnEntityHit()) itemStack.damage(1, entity);
+        });
+    }
+
+    // Until Paper changes getReplacement to use food-component, this is the best way
+    @EventHandler(ignoreCancelled = true)
+    public void onUseConvertedTo(PlayerItemConsumeEvent event) {
+        ItemStack itemStack = event.getItem();
+        if (!itemStack.hasItemMeta() || !itemStack.getItemMeta().hasFood()) return;
+        ItemStack usingConvertsTo = itemStack.getItemMeta().getFood().getUsingConvertsTo();
+        if (usingConvertsTo == null || !itemStack.isSimilar(ItemUpdater.updateItem(usingConvertsTo))) return;
+
+        PlayerInventory inventory = event.getPlayer().getInventory();
+        if (inventory.firstEmpty() == -1) event.setItem(event.getItem().add(usingConvertsTo.getAmount()));
+        else Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> {
+            for (int i = 0; i < inventory.getSize(); i++) {
+                ItemStack oldItem = inventory.getItem(i);
+                ItemStack newItem = ItemUpdater.updateItem(oldItem);
+                if (!itemStack.isSimilar(newItem)) continue;
+
+                // Remove the item and add it to fix stacking
+                inventory.setItem(i, null);
+                inventory.addItem(newItem);
+            }
         });
     }
 
