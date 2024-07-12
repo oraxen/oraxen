@@ -157,14 +157,16 @@ public class ItemParser {
                 if (effectType == null)
                     Logs.logError("Invalid potion effect: " + effect + ", in " + StringUtils.substringBefore(effectsSection.getCurrentPath(), ".") + " food-property!");
                 else {
+                    ConfigurationSection effectSection = effectsSection.getConfigurationSection(effect);
+                    if (effectSection == null) continue;
                     foodComponent.addEffect(
                             new PotionEffect(effectType,
-                                    foodSection.getInt("duration", 1) * 20,
-                                    foodSection.getInt("amplifier", 0),
-                                    foodSection.getBoolean("ambient", true),
-                                    foodSection.getBoolean("show_particles", true),
-                                    foodSection.getBoolean("show_icon", true)),
-                            (float) foodSection.getDouble("probability", 1.0)
+                                    effectSection.getInt("duration", 1) * 20,
+                                    effectSection.getInt("amplifier", 0),
+                                    effectSection.getBoolean("ambient", true),
+                                    effectSection.getBoolean("show_particles", true),
+                                    effectSection.getBoolean("show_icon", true)),
+                            (float) effectSection.getDouble("probability", 1.0)
                     );
                 }
             }
