@@ -7,10 +7,10 @@ import kotlin.io.path.listDirectoryEntries
 plugins {
     id("java")
     //id("com.github.johnrengelman.shadow") version "8.1.1"
-    id("xyz.jpenilla.run-paper") version "2.2.4"
+    id("xyz.jpenilla.run-paper") version "2.3.0"
     id("net.minecrell.plugin-yml.bukkit") version "0.6.0" // Generates plugin.yml
     id("io.papermc.paperweight.userdev") version "1.7.1" apply false
-    id("io.github.goooler.shadow") version "8.1.7"
+    id("io.github.goooler.shadow") version "8.1.8"
     alias(libs.plugins.mia.publication)
 }
 
@@ -114,6 +114,10 @@ allprojects {
 
         implementation("me.gabytm.util:actions-spigot:$actionsVersion") { exclude(group = "com.google.guava") }
     }
+
+    tasks.compileJava {
+        options.compilerArgs.addAll(listOf("-source", "17", "-target", "17")) // Make Oraxen compatible with JDK 17
+    }
 }
 
 dependencies {
@@ -147,7 +151,7 @@ tasks {
         downloadPlugins {
             url("https://ci.dmulloy2.net/job/ProtocolLib/lastSuccessfulBuild/artifact/build/libs/ProtocolLib.jar")
         }
-        minecraftVersion("1.20.4")
+        minecraftVersion("1.21")
     }
 
     shadowJar {
