@@ -291,7 +291,7 @@ public class OraxenMeta {
     }
 
     public List<String> getLayers() {
-        return layers;
+        return layers != null ? layers : new ArrayList<>();
     }
 
     public boolean hasLayersMap() {
