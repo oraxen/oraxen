@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.pack;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenMeta;
+import io.th0rgal.oraxen.utils.Utils;
 import net.kyori.adventure.key.Key;
 import org.bukkit.Material;
 import org.jetbrains.annotations.NotNull;
@@ -54,39 +55,46 @@ public class ModelGenerator {
     private Model.Builder generateModelBuilder(OraxenMeta oraxenMeta) {
         final String parent = oraxenMeta.parentModelKey().value();
         ModelTextures.Builder textures = oraxenMeta.modelTextures().toBuilder();
+        final List<ModelTexture> layers = oraxenMeta.modelTextures().layers();
+        ModelTexture defaultTexture = Utils.getOrDefault(layers, 0, ModelTexture.ofKey(Key.key("")));
 
         if (oraxenMeta.modelTextures().variables().isEmpty()) {
-            final List<ModelTexture> layers = oraxenMeta.modelTextures().layers();
+
             textures.layers(List.of());
             if (parent.equals("block/cube") || parent.equals("block/cube_directional") || parent.equals("block/cube_mirrored")) {
-                textures.addVariable("particle", layers.get(2));
-                textures.addVariable("down", layers.get(0));
-                textures.addVariable("up", layers.get(1));
-                textures.addVariable("north", layers.get(2));
-                textures.addVariable("south", layers.get(3));
-                textures.addVariable("west", layers.get(4));
-                textures.addVariable("east", layers.get(5));
+                textures.addVariable("particle", Utils.getOrDefault(layers, 2, defaultTexture));
+                textures.addVariable("down", defaultTexture);
+                textures.addVariable("up", Utils.getOrDefault(layers, 1, defaultTexture));
+                textures.addVariable("north", Utils.getOrDefault(layers, 2, defaultTexture));
+                textures.addVariable("south", Utils.getOrDefault(layers, 3, defaultTexture));
+                textures.addVariable("west", Utils.getOrDefault(layers, 4, defaultTexture));
+                textures.addVariable("east", Utils.getOrDefault(layers, 5, defaultTexture));
             } else if (parent.equals("block/cube_all") || parent.equals("block/cube_mirrored_all")) {
-                textures.addVariable("all", layers.get(0));
+                textures.addVariable("all", defaultTexture);
             } else if (parent.equals("block/cross")) {
-                textures.addVariable("cross", layers.get(0));
+                textures.addVariable("cross", defaultTexture);
             } else if (parent.startsWith("block/orientable")) {
-                textures.addVariable("front", layers.get(0));
-                textures.addVariable("side", layers.get(1));
+                textures.addVariable("front", defaultTexture);
+                textures.addVariable("side", Utils.getOrDefault(layers, 1, defaultTexture));
                 if (!parent.endsWith("vertical"))
-                    textures.addVariable("top", layers.get(2));
+                    textures.addVariable("top", Utils.getOrDefault(layers, 2, defaultTexture));
                 if (parent.endsWith("with_bottom"))
-                    textures.addVariable("bottom", layers.get(3));
+                    textures.addVariable("bottom", Utils.getOrDefault(layers, 3, defaultTexture));
             } else if (parent.startsWith("block/cube_column")) {
-                textures.addVariable("end", layers.get(0));
-                textures.addVariable("side", layers.get(1));
-            } else if (parent.equals("block/cube_bottom_top")) {
-                textures.addVariable("top", layers.get(0));
-                textures.addVariable("side", layers.get(1));
-                textures.addVariable("bottom", layers.get(2));
+                textures.addVariable("end", defaultTexture);
+                textures.addVariable("side", Utils.getOrDefault(layers, 1, defaultTexture));
+            } else if (parent.equals("block/cube_bottom_top") || parent.contains("block/slab") || parent.endsWith("_stairs")) {
+                textures.addVariable("bottom", defaultTexture);
+                textures.addVariable("side", Utils.getOrDefault(layers, 1, defaultTexture));
+                textures.addVariable("top", Utils.getOrDefault(layers, 2, defaultTexture));
             } else if (parent.equals("block/cube_top")) {
-                textures.addVariable("top", layers.get(0));
-                textures.addVariable("side", layers.get(1));
+                textures.addVariable("top", defaultTexture);
+                textures.addVariable("side", Utils.getOrDefault(layers, 1, defaultTexture));
+            } else if (parent.contains("block/door_")) {
+                textures.addVariable("bottom", defaultTexture);
+                textures.addVariable("top", Utils.getOrDefault(layers, 1, defaultTexture));
+            } else if (parent.contains("trapdoor")) {
+                textures.addVariable("texture", defaultTexture);
             } else textures.layers(layers);
         }
 
