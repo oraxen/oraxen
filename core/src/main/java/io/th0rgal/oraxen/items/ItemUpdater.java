@@ -246,7 +246,7 @@ public class ItemUpdater implements Listener {
             // Thus removing the need for this logic
             if (!VersionUtil.atOrAbove("1.20.5")) {
 
-                String oldDisplayName = AdventureUtils.parseLegacy(VersionUtil.isPaperServer() ? AdventureUtils.MINI_MESSAGE.serialize(oldMeta.displayName()) : AdventureUtils.parseLegacy(oldMeta.getDisplayName()));
+                String oldDisplayName = oldMeta.hasDisplayName() ? AdventureUtils.parseLegacy(VersionUtil.isPaperServer() ? AdventureUtils.MINI_MESSAGE.serialize(oldMeta.displayName()) : AdventureUtils.parseLegacy(oldMeta.getDisplayName())) : null;
                 String originalName = AdventureUtils.parseLegacy(oldPdc.getOrDefault(ORIGINAL_NAME_KEY, DataType.STRING, ""));
 
                 if (Settings.OVERRIDE_RENAMED_ITEMS.toBool()) {
