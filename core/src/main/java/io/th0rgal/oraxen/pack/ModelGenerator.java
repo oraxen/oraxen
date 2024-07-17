@@ -83,7 +83,7 @@ public class ModelGenerator {
             } else if (parent.startsWith("block/cube_column")) {
                 textures.addVariable("end", defaultTexture);
                 textures.addVariable("side", Utils.getOrDefault(layers, 1, defaultTexture));
-            } else if (parent.equals("block/cube_bottom_top") || parent.contains("block/slab") || parent.endsWith("_stairs")) {
+            } else if (parent.equals("block/cube_bottom_top") || parent.contains("block/slab") || parent.endsWith("stairs")) {
                 textures.addVariable("bottom", defaultTexture);
                 textures.addVariable("side", Utils.getOrDefault(layers, 1, defaultTexture));
                 textures.addVariable("top", Utils.getOrDefault(layers, 2, defaultTexture));

@@ -188,6 +188,7 @@ bukkitPluginYaml {
     main = "io.th0rgal.oraxen.OraxenPlugin"
     load = BukkitPluginYaml.PluginLoadOrder.POSTWORLD
     authors.add("boy0000")
+    name = "Oraxen"
     apiVersion = "1.20"
 
     permissions.create("oraxen.command") {

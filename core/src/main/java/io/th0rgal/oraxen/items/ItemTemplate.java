@@ -11,7 +11,7 @@ public class ItemTemplate {
     private static final Map<String, ItemParser> itemTemplates = new HashMap<>();
 
     public ItemTemplate(ConfigurationSection section) {
-        section.set("injectID", false);
+        section.set("injectId", false);
         itemTemplates.put(section.getName(), new ItemParser(section));
     }
 
