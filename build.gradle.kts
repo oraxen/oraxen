@@ -215,6 +215,8 @@ bukkit {
         "net.kyori:adventure-platform-bukkit:$platformVersion",
         "com.google.code.gson:gson:$googleGsonVersion",
         "org.apache.commons:commons-lang3:$apacheLang3Version",
+        "team.unnamed:creative-api:1.7.3",
+        "team.unnamed:creative-serializer-minecraft:1.7.3",
         "gs.mclo:java:2.2.1",
     )
 }
