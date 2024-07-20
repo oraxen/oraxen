@@ -30,12 +30,12 @@ public class InteractionHitbox {
         // Add vector offset
         if (split.size() == 1) split.add("0,0,0");
 
-        List<Double> offsets = new ArrayList<>(Arrays.stream(split.get(1).split(",", 3)).map(s -> ParseUtils.parseDouble(s, 0.0)).toList());
+        List<Double> offsets = new ArrayList<>(Arrays.stream(split.getFirst().split(",", 3)).map(s -> ParseUtils.parseDouble(s, 0.0)).toList());
         while (offsets.size() < 3) offsets.add(0.0);
 
         this.offset = new Vector(offsets.get(0), offsets.get(1), offsets.get(2));
-        this.width = ParseUtils.parseFloat(StringUtils.substringBefore(split.get(0), ","), 1.0f);
-        this.height = ParseUtils.parseFloat(StringUtils.substringAfter(split.get(0), ","), 1.0f);
+        this.width = ParseUtils.parseFloat(StringUtils.substringBefore(split.getLast(), ","), 1.0f);
+        this.height = ParseUtils.parseFloat(StringUtils.substringAfter(split.getLast(), ","), 1.0f);
     }
 
     public InteractionHitbox(Vector offset, double width, double height) {
