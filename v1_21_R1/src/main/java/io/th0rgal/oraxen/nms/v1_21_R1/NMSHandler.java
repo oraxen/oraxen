@@ -7,7 +7,6 @@ import io.papermc.paper.adventure.PaperAdventure;
 import io.papermc.paper.configuration.GlobalConfiguration;
 import io.papermc.paper.network.ChannelInitializeListenerHolder;
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketManager;
 import io.th0rgal.oraxen.nms.GlyphHandler;
@@ -26,14 +25,16 @@ import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.Connection;
-import net.minecraft.network.protocol.common.ClientboundResourcePackPushPacket;
 import net.minecraft.network.protocol.common.ClientboundUpdateTagsPacket;
-import net.minecraft.network.protocol.common.ServerboundResourcePackPacket;
-import net.minecraft.network.protocol.configuration.ClientboundFinishConfigurationPacket;
+import net.minecraft.network.protocol.configuration.ClientboundSelectKnownPacks;
 import net.minecraft.network.protocol.game.ClientboundUpdateAttributesPacket;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ConfigurationTask;
+import net.minecraft.server.network.ServerConfigurationPacketListenerImpl;
+import net.minecraft.server.network.config.ServerResourcePackConfigurationTask;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagNetworkSerialization;
 import net.minecraft.util.Mth;
@@ -60,6 +61,7 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -105,69 +107,48 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         return furniturePacketManager;
     }
 
+    private static Field configurationTasks;
+    static {
+        try {
+            configurationTasks = ServerConfigurationPacketListenerImpl.class.getDeclaredField("configurationTasks");
+            configurationTasks.setAccessible(true);
+        } catch (Exception e) {
+
+        }
+    }
+
     @Override
     public void registerConfigPhaseListener() {
         ChannelInitializeListenerHolder.addListener(CONFIG_PHASE_PACKET_LISTENER, channel ->
                 channel.pipeline().addBefore("packet_handler", CONFIG_PHASE_PACKET_LISTENER.toString(), new ChannelDuplexHandler() {
-                    private final Connection connection = (Connection) channel.pipeline().get("packet_handler");
+                            private final Connection connection = (Connection) channel.pipeline().get("packet_handler");
 
-                    private ServerPlayer serverPlayer = null;
+                            @Override
+                            public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
+                                if (msg instanceof ClientboundSelectKnownPacks && connection.getPacketListener() instanceof ServerConfigurationPacketListenerImpl configListener) {
+                                    try {
+                                        Queue<ConfigurationTask> taskQueue = (Queue<ConfigurationTask>) configurationTasks.get(configListener);
+                                        OraxenPackServer packServer = OraxenPlugin.get().packServer();
+                                        ResourcePackInfo packInfo = packServer.packInfo();
 
-                    private ServerPlayer serverPlayer() {
-                        if (serverPlayer == null) serverPlayer = connection.getPlayer();
-                        return serverPlayer;
-                    }
+                                        ServerResourcePackConfigurationTask rpTask = new ServerResourcePackConfigurationTask(
+                                                new MinecraftServer.ServerResourcePackInfo(
+                                                        packInfo.id(), packServer.packUrl(), packInfo.hash(), packServer.mandatory,
+                                                        PaperAdventure.asVanilla(packServer.prompt)
+                                                )
+                                        );
 
-                    private Player bukkitPlayer = null;
-
-                    private Player bukkitPlayer() {
-                        if (bukkitPlayer == null) bukkitPlayer = Optional.ofNullable(serverPlayer())
-                                .map(ServerPlayer::getBukkitEntity).orElse(null);
-                        return bukkitPlayer;
-                    }
-
-                    @Override
-                    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
-                        if (msg instanceof ClientboundFinishConfigurationPacket && bukkitPlayer().getResourcePackStatus() == null) {
-                            try {
-                                OraxenPackServer packServer = OraxenPlugin.get().packServer();
-                                ResourcePackInfo packInfo = packServer.packInfo();
-
-                                ClientboundResourcePackPushPacket packet = new ClientboundResourcePackPushPacket(
-                                        packInfo.id(), packServer.packUrl(), packInfo.hash(), packServer.mandatory,
-                                        Optional.of(PaperAdventure.asVanilla(packServer.prompt))
-                                );
-
-                                connection.send(packet);
-                                return;
-                            } catch (Exception e) {
-                                Logs.logWarning("Failed to send " + serverPlayer().displayName + " ResourcePack due to joining before pack had finished generating...");
-                                if (Settings.DEBUG.toBool()) e.printStackTrace();
-                            }
-                        }
-                        ctx.write(msg, promise);
-                    }
-
-                    @Override
-                    public void channelRead(ChannelHandlerContext ctx, Object msg) {
-                        if (msg instanceof ServerboundResourcePackPacket packet) {
-                            try {
-                                //TODO Patch this not sending for terminal actions due to throwing an error
-                                UUID id = Optional.ofNullable(OraxenPlugin.get().packServer().packInfo())
-                                        .map(ResourcePackInfo::id).orElse(UUID.randomUUID());
-                                if (packet.id().equals(id) && packet.action().isTerminal()) {
-                                    ctx.pipeline().remove(this);
-                                    if (!bukkitPlayer().isOnline())
-                                        connection.send(ClientboundFinishConfigurationPacket.INSTANCE);
-                                    return;
+                                        @Nullable ConfigurationTask headTask = taskQueue.poll();
+                                        taskQueue.add(rpTask);
+                                        if (headTask != null) taskQueue.add(headTask);
+                                    } catch (Exception e) {
+                                        Logs.logWarning("Failed to send " + connection.getPlayer().displayName + " ResourcePack due to joining before pack had finished generating...");
+                                    }
                                 }
-                            } catch (Exception e) {
-                                Logs.logWarning("Failed to send " + serverPlayer().displayName + " ResourcePack due to joining before pack had finished generating...");
-                                if (Settings.DEBUG.toBool()) e.printStackTrace();
+
+                                ctx.write(msg, promise);
                             }
-                        }
-                        ctx.fireChannelRead(msg);
-                    }
+
                         }
                 ));
     }
