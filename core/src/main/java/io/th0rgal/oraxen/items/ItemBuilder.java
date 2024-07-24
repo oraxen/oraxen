@@ -596,12 +596,11 @@ public class ItemBuilder {
         itemMeta.setUnbreakable(unbreakable);
 
         PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
-        if (!VersionUtil.atOrAbove("1.20.5") && displayName != null) {
-            pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, displayName);
+        if (displayName != null) {
+            if (!VersionUtil.atOrAbove("1.20.5")) pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, displayName);
             if (VersionUtil.isPaperServer()) {
                 Component displayName = AdventureUtils.MINI_MESSAGE.deserialize(this.displayName);
-                displayName = displayName.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE);
-                displayName = displayName.colorIfAbsent(NamedTextColor.WHITE);
+                displayName = displayName.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).colorIfAbsent(NamedTextColor.WHITE);
                 itemMeta.displayName(displayName);
             } else itemMeta.setDisplayName(displayName);
         }
