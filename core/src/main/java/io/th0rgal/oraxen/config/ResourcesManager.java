@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.ReflectionUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmorType;
+import org.apache.commons.io.FileUtils;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -13,6 +14,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.AbstractMap;
 import java.util.Map.Entry;
 import java.util.zip.ZipEntry;
@@ -101,6 +103,7 @@ public class ResourcesManager {
             for (String itemId : itemYaml.getKeys(false)) {
                 ConfigurationSection itemSection = itemYaml.getConfigurationSection(itemId);
                 if (itemSection == null) continue;
+
                 ConfigurationSection mechanicSection = itemSection.getConfigurationSection("Mechanics");
                 if (mechanicSection == null) continue;
 
@@ -115,7 +118,10 @@ public class ResourcesManager {
                 if (componentSection.getKeys(false).isEmpty()) itemSection.set("Components", null);
             }
             File itemFile = plugin.getDataFolder().toPath().resolve(entry.getName()).toFile();
-            itemYaml.save(itemFile);
+
+            if (VersionUtil.atOrAbove("1.20.5"))
+                FileUtils.writeStringToFile(itemFile, itemYaml.saveToString().replace("displayname", "itemname"), StandardCharsets.UTF_8);
+            else itemYaml.save(itemFile);
         } catch (Exception e) {
             plugin.saveResource(entry.getName(), true);
         }
