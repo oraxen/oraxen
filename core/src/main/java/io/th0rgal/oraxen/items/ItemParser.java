@@ -111,6 +111,9 @@ public class ItemParser {
         if (!VersionUtil.atOrAbove("1.20.5") && section.contains("displayname"))
             item.setDisplayName(section.getString("displayname", ""));
 
+        if (VersionUtil.atOrAbove("1.20.5") && section.contains("customname"))
+            item.setDisplayName(section.getString("customname"));
+
         //if (section.contains("type")) item.setType(Material.getMaterial(section.getString("type", "PAPER")));
         if (section.contains("lore")) item.setLore(section.getStringList("lore").stream().map(AdventureUtils::parseMiniMessage).toList());
         if (section.contains("unbreakable")) item.setUnbreakable(section.getBoolean("unbreakable", false));

@@ -306,7 +306,6 @@ public class ConfigsManager {
         Map<String, ItemParser> parseMap = new LinkedHashMap<>();
 
         for (String itemKey : config.getKeys(false)) {
-            //Utils.ensureStringFormat(itemKey);
             ConfigurationSection itemSection = config.getConfigurationSection(itemKey);
             if (itemSection == null || ItemTemplate.isTemplate(itemKey)) continue;
             parseMap.put(itemKey, new ItemParser(itemSection));
