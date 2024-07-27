@@ -61,7 +61,6 @@ public class FurnitureBasePacket {
         this.uuid = furnitureBase.uuid(type);
         Location baseLoc = baseEntity.getLocation();
         double x = baseLoc.x(), y = baseLoc.y(), z = baseLoc.z();
-        //Logs.debug(baseLoc.getYaw(), correctedPlayerYaw(baseLoc.getYaw(), player), baseLoc.getPitch(), correctedPlayerPitch(furnitureBase, baseLoc.getPitch(), player));
         float pitch = correctedPlayerPitch(furnitureBase.mechanic(), baseLoc.getPitch(), player), yaw = correctedPlayerYaw(baseLoc.getYaw(), player);
         EntityType<?> entityType = type == FurnitureType.DISPLAY_ENTITY ? EntityType.ITEM_DISPLAY : type == FurnitureType.ITEM_FRAME ? EntityType.ITEM_FRAME : EntityType.GLOW_ITEM_FRAME;
 

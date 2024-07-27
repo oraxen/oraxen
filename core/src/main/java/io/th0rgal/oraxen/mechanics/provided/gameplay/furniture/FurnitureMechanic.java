@@ -239,7 +239,7 @@ public class FurnitureMechanic extends Mechanic {
 
     public Entity place(Location location, float yaw, BlockFace facing, boolean checkSpace) {
         if (!location.isWorldLoaded()) return null;
-        if (checkSpace && !this.hasEnoughSpace(location.clone(), yaw)) return null;
+        if (checkSpace && this.notEnoughSpace(location.clone(), yaw)) return null;
         assert location.getWorld() != null;
 
         ItemStack item = OraxenItems.getOptionalItemById(placedItemId).orElse(OraxenItems.getItemById(getItemID())).build().clone();
@@ -329,10 +329,10 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
-    public boolean hasEnoughSpace(Location rootLocation, float yaw) {
+    public boolean notEnoughSpace(Location rootLocation, float yaw) {
         List<Location> hitboxLocations = hitbox.hitboxLocations(rootLocation, yaw);
-        if (!hitboxLocations.isEmpty()) return hitboxLocations.stream().allMatch(l -> l.getBlock().isReplaceable());
-        else return true; //TODO Check location for existing entity via BoundingBox
+        if (!hitboxLocations.isEmpty()) return !hitboxLocations.stream().allMatch(l -> l.getBlock().isReplaceable());
+        else return false; //TODO Check location for existing entity via BoundingBox
     }
 
     public void runClickActions(final Player player) {

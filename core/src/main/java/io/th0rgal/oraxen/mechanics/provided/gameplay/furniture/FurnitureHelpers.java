@@ -52,8 +52,6 @@ public class FurnitureHelpers {
     }
 
     public static void furnitureItem(Entity baseEntity, ItemStack itemStack) {
-        FurnitureFactory.instance.packetManager().furnitureBaseFromBaseEntity(baseEntity).ifPresent(furnitureBase -> {
-            furnitureBase.itemStack(itemStack);
-        });
+        FurnitureFactory.instance.packetManager().furnitureBaseFromBaseEntity(baseEntity).ifPresent(furnitureBase -> furnitureBase.itemStack(itemStack));
     }
 }

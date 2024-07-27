@@ -248,7 +248,7 @@ public class OraxenFurniture {
     public static void updateFurniture(@NotNull Entity baseEntity) {
         if (!FurnitureFactory.isEnabled() || !BlockHelpers.isLoaded(baseEntity.getLocation())) return;
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
-        if (mechanic == null) return;
+        if (mechanic == null || FurnitureSeat.isSeat(baseEntity)) return;
 
         ItemStack newItem = ItemUpdater.updateItem(FurnitureHelpers.furnitureItem(baseEntity));
         FurnitureHelpers.furnitureItem(baseEntity, newItem);
