@@ -14,10 +14,7 @@ import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.ParseUtils;
 import io.th0rgal.oraxen.utils.PluginUtils;
-import io.th0rgal.oraxen.utils.customarmor.CustomArmor;
-import io.th0rgal.oraxen.utils.customarmor.CustomArmorType;
-import io.th0rgal.oraxen.utils.customarmor.ShaderArmorTextures;
-import io.th0rgal.oraxen.utils.customarmor.TrimArmorDatapack;
+import io.th0rgal.oraxen.utils.customarmor.CustomArmorDatapack;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import org.bukkit.Bukkit;
@@ -48,7 +45,7 @@ public class PackGenerator {
     private static final Path assetsFolder = OraxenPlugin.get().packPath().resolve("assets");
     @NotNull private ResourcePack resourcePack = ResourcePack.resourcePack();
     private BuiltResourcePack builtPack;
-    private final CustomArmor customArmorHandler;
+    private final CustomArmorDatapack customArmorDatapack;
     private final ModelGenerator modelGenerator;
     private final MinecraftResourcePackReader reader = MinecraftResourcePackReader.minecraft();
     private final MinecraftResourcePackWriter writer = MinecraftResourcePackWriter.minecraft();
@@ -56,9 +53,7 @@ public class PackGenerator {
     public PackGenerator() {
         generateDefaultPaths();
         if (Settings.PACK_IMPORT_DEFAULT.toBool()) PackDownloader.downloadDefaultPack();
-        if (CustomArmorType.getSetting().equals(CustomArmorType.SHADER)) customArmorHandler = new ShaderArmorTextures();
-        else if (CustomArmorType.getSetting().equals(CustomArmorType.TRIMS)) customArmorHandler = new TrimArmorDatapack();
-        else customArmorHandler = new CustomArmor();
+        customArmorDatapack = Settings.CUSTOM_ARMOR_ENABLED.toBool() ? new CustomArmorDatapack() : null;
         this.modelGenerator = new ModelGenerator(resourcePack);
     }
 
@@ -89,7 +84,8 @@ public class PackGenerator {
             addGlyphFiles();
             addSoundFile();
             parseLanguageFiles();
-            customArmorHandler.generateNeededFiles();
+
+            if (Settings.CUSTOM_ARMOR_ENABLED.toBool()) customArmorDatapack.generateTrimAssets();
             if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) hideScoreboardNumbers();
             if (Settings.HIDE_SCOREBOARD_BACKGROUND.toBool()) hideScoreboardBackground();
 

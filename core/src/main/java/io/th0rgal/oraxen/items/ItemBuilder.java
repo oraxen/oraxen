@@ -139,7 +139,7 @@ public class ItemBuilder {
             color = mapMeta.getColor();
 
         if (itemMeta instanceof FireworkEffectMeta effectMeta)
-            color = effectMeta.hasEffect() ? effectMeta.getEffect().getColors().get(0) : Color.WHITE;
+            color = effectMeta.hasEffect() ? Utils.getOrDefault(effectMeta.getEffect().getColors(), 0, Color.WHITE) : Color.WHITE;
 
         if (itemMeta instanceof ArmorMeta armorMeta && armorMeta.hasTrim())
             trimPattern = armorMeta.getTrim().getMaterial().key();
@@ -624,8 +624,8 @@ public class ItemBuilder {
         itemMeta.setUnbreakable(unbreakable);
 
         PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
-        if (VersionUtil.below("1.20.5") && displayName != null) {
-            pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, AdventureUtils.MINI_MESSAGE.serialize(displayName));
+        if (displayName != null) {
+            if (VersionUtil.below("1.20.5")) pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, AdventureUtils.MINI_MESSAGE.serialize(displayName));
             if (VersionUtil.isPaperServer()) {
                 itemMeta.displayName(displayName
                         .decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)

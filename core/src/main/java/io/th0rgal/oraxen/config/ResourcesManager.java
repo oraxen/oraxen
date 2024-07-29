@@ -3,7 +3,6 @@ package io.th0rgal.oraxen.config;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.ReflectionUtils;
-import io.th0rgal.oraxen.utils.customarmor.CustomArmorType;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -76,10 +75,7 @@ public class ResourcesManager {
         if (entry.isDirectory()) return;
         if (isSuitable) plugin.saveResource(entry.getName(), true);
         else if (entry.getName().startsWith("pack/textures/models/armor/")) {
-            CustomArmorType customArmorType = CustomArmorType.getSetting();
             if (OraxenPlugin.get().getDataFolder().toPath().resolve(entry.getName()).toFile().exists()) return;
-            if (customArmorType != CustomArmorType.SHADER) return;
-            if (!Settings.CUSTOM_ARMOR_SHADER_GENERATE_CUSTOM_TEXTURES.toBool() && entry.getName().startsWith("pack/textures/models/armor/leather_layer")) return;
             plugin.saveResource(entry.getName(), false);
         }
     }

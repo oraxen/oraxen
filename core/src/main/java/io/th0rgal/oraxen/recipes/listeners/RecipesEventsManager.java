@@ -68,7 +68,7 @@ public class RecipesEventsManager implements Listener {
         boolean containsOraxenItem = Arrays.stream(event.getInventory().getMatrix()).anyMatch(OraxenItems::exists);
         if (!containsOraxenItem || recipe == null) return;
 
-        if (whitelistedCraftRecipes.stream().anyMatch(customRecipe::equals) || customRecipe.isValidDyeRecipe()) return;
+        if (customRecipe == null || whitelistedCraftRecipes.stream().anyMatch(customRecipe::equals) || customRecipe.isValidDyeRecipe()) return;
 
         event.getInventory().setResult(customRecipe.getResult());
     }

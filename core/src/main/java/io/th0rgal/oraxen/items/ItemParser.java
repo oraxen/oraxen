@@ -100,8 +100,15 @@ public class ItemParser {
     }
 
     private ItemBuilder applyConfig(ItemBuilder item) {
-        if (VersionUtil.below("1.20.5") && section.contains("displayname"))
-            item.setDisplayName(section.getString("displayname", ""));
+        if (section.contains("displayname")) {
+            if (VersionUtil.below("1.20.5")) configUpdated = true;
+            else item.setDisplayName(section.getString("displayname", ""));
+        }
+
+        if (section.contains("customname")) {
+            if (!VersionUtil.atOrAbove("1.20.5")) configUpdated = true;
+            else item.setDisplayName(section.getString("customname", ""));
+        }
 
         if (section.contains("lore")) item.lore(section.getStringList("lore").stream().map(AdventureUtils.MINI_MESSAGE::deserialize).toList());
         if (section.contains("unbreakable")) item.setUnbreakable(section.getBoolean("unbreakable", false));

@@ -7,7 +7,7 @@
 
 emerald_helmet:
   itemname: "<gradient:#89E59D:#37C6BA>Emerald Helmet"
-  material: LEATHER_HELMET
+  material: CHAINMAIL_HELMET
   lore:
     - "<#6f737d>» <#D5D6D8>Gives 1 extra <glyph:heart>"
   Components:
@@ -28,7 +28,7 @@ emerald_helmet:
 
 emerald_chestplate:
   itemname: "<gradient:#89E59D:#37C6BA>Emerald Chestplate"
-  material: LEATHER_CHESTPLATE
+  material: CHAINMAIL_CHESTPLATE
   lore:
     - "<#6f737d>» <#D5D6D8>Gives 1.5 extra <glyph:heart>"
   Components:
@@ -46,7 +46,7 @@ emerald_chestplate:
 
 emerald_leggings:
   itemname: "<gradient:#89E59D:#37C6BA>Emerald Leggings"
-  material: LEATHER_LEGGINGS
+  material: CHAINMAIL_LEGGINGS
   lore:
     - "<#6f737d>» <#D5D6D8>Gives 1.5 extra <glyph:heart>"
   Components:
@@ -64,7 +64,7 @@ emerald_leggings:
 
 emerald_boots:
   itemname: "<gradient:#89E59D:#37C6BA>Emerald Boots"
-  material: LEATHER_BOOTS
+  material: CHAINMAIL_BOOTS
   lore:
     - "<#6f737d>» <#D5D6D8>Gives 1 extra <glyph:heart>"
   Components:
@@ -82,7 +82,7 @@ emerald_boots:
 
 obsidian_helmet:
   itemname: "<gradient:#4B36B1:#6699FF>Obsidian Helmet"
-  material: LEATHER_HELMET
+  material: CHAINMAIL_HELMET
   lore:
     - "<#6f737d>» <#D5D6D8>Ludicrous durability"
   Components:
@@ -99,7 +99,7 @@ obsidian_helmet:
 obsidian_chestplate:
   custom_model_data: 2
   itemname: "<gradient:#4B36B1:#6699FF>Obsidian Chestplate"
-  material: LEATHER_CHESTPLATE
+  material: CHAINMAIL_CHESTPLATE
   lore:
     - "<#6f737d>» <#D5D6D8>Ludicrous durability"
   Components:
@@ -115,7 +115,7 @@ obsidian_chestplate:
 
 obsidian_leggings:
   itemname: "<gradient:#4B36B1:#6699FF>Obsidian Leggings"
-  material: LEATHER_LEGGINGS
+  material: CHAINMAIL_LEGGINGS
   lore:
     - "<#6f737d>» <#D5D6D8>Ludicrous durability"
   Components:
@@ -131,7 +131,7 @@ obsidian_leggings:
 
 obsidian_boots:
   itemname: "<gradient:#4B36B1:#6699FF>Boots Boots"
-  material: LEATHER_BOOTS
+  material: CHAINMAIL_BOOTS
   lore:
     - "<#6f737d>» <#D5D6D8>Ludicrous durability"
   Components:
@@ -147,7 +147,7 @@ obsidian_boots:
 
 ruby_helmet:
   itemname: "<gradient:#FA7CBB:#F14658>Ruby Helmet"
-  material: LEATHER_HELMET
+  material: CHAINMAIL_HELMET
   Components:
     durability: 547 # 50% more than diamond helmet
   AttributeModifiers:
@@ -162,7 +162,7 @@ ruby_helmet:
 
 ruby_chestplate:
   itemname: "<gradient:#FA7CBB:#F14658>Ruby Chestplate"
-  material: LEATHER_CHESTPLATE
+  material: CHAINMAIL_CHESTPLATE
   Components:
     durability: 792
   AttributeModifiers:
@@ -177,7 +177,7 @@ ruby_chestplate:
 
 ruby_leggings:
   itemname: "<gradient:#FA7CBB:#F14658>Ruby Leggings"
-  material: LEATHER_LEGGINGS
+  material: CHAINMAIL_LEGGINGS
   Components:
     durability: 742
   AttributeModifiers:
@@ -192,7 +192,7 @@ ruby_leggings:
 
 ruby_boots:
   itemname: "<gradient:#FA7CBB:#F14658>Ruby Boots"
-  material: LEATHER_BOOTS
+  material: CHAINMAIL_BOOTS
   Components:
     durability: 643
   AttributeModifiers:

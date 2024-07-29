@@ -10,7 +10,6 @@ example_sword:
   itemname: "<gradient:#FA7CBB:#F14658><bold>My Custom Sword"
   material: WOODEN_SWORD
   injectId: false # allow Oraxen to recognise the item if true or not set
-  durability: 10 # Only for 1.20.5+ servers
 
   ItemFlags:
     - HIDE_ENCHANTS
@@ -31,6 +30,8 @@ example_sword:
     protection: 4
     flame: 34
     sharpness: 18
+  Components:
+    durability: 10
 
 example_custom_mechanic:
   itemname: "<gradient:#FA7CBB:#F14658><bold>My Item With A Custom Mechanic"

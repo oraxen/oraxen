@@ -57,10 +57,10 @@ allprojects {
         maven("https://mvn.lumine.io/repository/maven-public/") { metadataSources { artifact() } }// MythicMobs
         maven("https://repo.mineinabyss.com/releases")
         maven("https://s01.oss.sonatype.org/content/repositories/snapshots") // commandAPI snapshots
-        maven("https://repo.auxilor.io/repository/maven-public/") // EcoItems
-        maven("https://maven.enginehub.org/repo/")
         maven("https://repo.oraxen.com/releases")
         maven("https://repo.oraxen.com/snapshots")
+        maven("https://repo.auxilor.io/repository/maven-public/") // EcoItems
+        maven("https://maven.enginehub.org/repo/")
         maven("https://jitpack.io") // JitPack
         maven("https://repo.unnamed.team/repository/unnamed-public/") // Creative
         maven("https://nexus.phoenixdevt.fr/repository/maven-public/") // MMOItems
@@ -101,7 +101,7 @@ allprojects {
 
         implementation("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
         implementation("org.bstats:bstats-bukkit:3.0.0")
-        implementation("io.th0rgal:protectionlib:1.5.8")
+        implementation("io.th0rgal:protectionlib:1.6.0")
         implementation("com.github.stefvanschie.inventoryframework:IF:0.10.14")
         implementation("com.jeff-media:custom-block-data:2.2.2")
         implementation("com.jeff_media:MorePersistentDataTypes:2.4.0")
@@ -198,7 +198,7 @@ bukkitPluginYaml {
     softDepend = listOf(
         "LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "MythicMobs",
         "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared",
-        "ModelEngine", "CrashClaim", "HuskClaims", "BentoBox", "AxiomPaper"
+        "ModelEngine", "HuskTowns", "HuskClaims", "BentoBox", "AxiomPaper"
     )
     libraries = listOf(
         "org.springframework:spring-expression:6.0.6",

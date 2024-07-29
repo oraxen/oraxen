@@ -9,6 +9,7 @@ import io.th0rgal.oraxen.items.ModelData;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import org.apache.commons.io.FileUtils;
@@ -20,6 +21,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class ConfigsManager {
@@ -255,19 +257,17 @@ public class ConfigsManager {
                 ModelData.DATAS.computeIfAbsent(material, k -> new HashMap<>()).put(Key.key(key), modelData);
             }
 
-            if (fileChanged) {
-                try {
-                    configuration.save(file);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            if (fileChanged) try {
+                configuration.save(file);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
 
     public void parseAllItemTemplates() {
         for (File file : getItemFiles()) {
-            if (!file.exists()) continue;
+            if (file == null || !file.exists()) continue;
             YamlConfiguration configuration = OraxenYaml.loadConfiguration(file);
             for (String key : configuration.getKeys(false)) {
                 ConfigurationSection itemSection = configuration.getConfigurationSection(key);
@@ -289,7 +289,6 @@ public class ConfigsManager {
         Map<String, ItemParser> parseMap = new LinkedHashMap<>();
 
         for (String itemKey : config.getKeys(false)) {
-            //Utils.ensureStringFormat(itemKey);
             ConfigurationSection itemSection = config.getConfigurationSection(itemKey);
             if (itemSection == null || ItemTemplate.isTemplate(itemKey)) continue;
             parseMap.put(itemKey, new ItemParser(itemSection));
@@ -311,12 +310,24 @@ public class ConfigsManager {
             if (itemParser.isConfigUpdated())
                 configUpdated = true;
         }
-        if (configUpdated)
+
+        if (configUpdated) {
+            String content = config.saveToString();
+            if (VersionUtil.atOrAbove("1.20.5"))
+                content = content.replace("displayname: ", "itemname: ");
+            else content = content.replace("itemname: ", "displayname: ");
+
             try {
-                config.save(itemFile);
-            } catch (IOException e) {
-                e.printStackTrace();
+                FileUtils.writeStringToFile(itemFile, content, StandardCharsets.UTF_8);
+            } catch (Exception e) {
+                if (Settings.DEBUG.toBool()) e.printStackTrace();
+                try {
+                    config.save(itemFile);
+                } catch (Exception e1) {
+                    if (Settings.DEBUG.toBool()) e1.printStackTrace();
+                }
             }
+        }
 
         return map;
     }
