@@ -10,7 +10,6 @@ example_sword:
   displayname: "<gradient:#FA7CBB:#F14658><bold>My Custom Sword"
   material: WOODEN_SWORD
   injectID: false # allow Oraxen to recognise the item if true or not set
-  durability: 10 # Only for 1.20.5+ servers
 
   ItemFlags:
     - HIDE_ENCHANTS
