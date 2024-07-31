@@ -205,10 +205,8 @@ public class ItemUtils {
 
     public static boolean isMusicDisc(ItemStack itemStack) {
         if (itemStack == null) return false;
-        if (VersionUtil.atOrAbove("1.21")) {
+        if (VersionUtil.atOrAbove("1.21"))
             return itemStack.hasItemMeta() && itemStack.getItemMeta().hasJukeboxPlayable();
-        } else {
-            return itemStack.getType().name().startsWith("MUSIC_DISC");
-        }
+        return itemStack.getType().name().startsWith("MUSIC_DISC");
     }
 }

@@ -54,7 +54,7 @@ public class PackObfuscator {
     }
 
     public enum PackObfuscationType {
-        FILENAME, NAMESPACE, FULL, NONE;
+        SIMPLE, FULL, NONE;
 
         public boolean isNone() {
             return this == NONE;
@@ -342,8 +342,7 @@ public class PackObfuscator {
         return switch (obfuscationType) {
             case NONE -> key;
             case FULL -> Key.key(UUID.randomUUID().toString(), UUID.randomUUID().toString());
-            case NAMESPACE -> Key.key(UUID.randomUUID().toString(), key.value());
-            case FILENAME -> Key.key(key.namespace(), UUID.randomUUID().toString());
+            case SIMPLE -> Key.key(key.namespace(), UUID.randomUUID().toString());
         };
     }
 
