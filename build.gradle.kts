@@ -94,11 +94,11 @@ allprojects {
         compileOnly("nl.rutgerkok:blocklocker:1.12.2")
         compileOnly("org.apache.commons:commons-lang3:$apacheLang3Version")
         compileOnly("org.apache.httpcomponents:httpmime:$apacheHttpMimeVersion")
-        compileOnly("team.unnamed:creative-api:$creativeVersion")
-        compileOnly("team.unnamed:creative-serializer-minecraft:$creativeVersion")
-        compileOnly("team.unnamed:creative-server:$creativeVersion")
         compileOnly(files("../libs/AxiomPaper-1.5.12.jar"))
+        compileOnly("team.unnamed:creative-server:$creativeVersion")
 
+        implementation("team.unnamed:creative-api:$creativeVersion")
+        implementation("team.unnamed:creative-serializer-minecraft:$creativeVersion")
         implementation("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
         implementation("org.bstats:bstats-bukkit:3.0.0")
         implementation("io.th0rgal:protectionlib:1.6.0")
@@ -158,7 +158,7 @@ tasks {
         //shade("org.jetbrains.annotations")
         //shade("com.udojava.evalex")
         //shade("dev.jorel")
-        //shade("kr.toxicity.libraries")
+        //shade("team.unnamed")
 
         manifest {
             attributes(
@@ -211,8 +211,6 @@ bukkitPluginYaml {
         "org.apache.commons:commons-lang3:$apacheLang3Version",
         "org.apache.httpcomponents:httpmime:$apacheHttpMimeVersion",
         "gs.mclo:java:2.2.1",
-        "team.unnamed:creative-api:$creativeVersion",
-        "team.unnamed:creative-serializer-minecraft:$creativeVersion",
         "team.unnamed:creative-server:$creativeVersion",
     )
 }
