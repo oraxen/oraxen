@@ -10,9 +10,7 @@ import io.th0rgal.oraxen.utils.drops.Drop;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Interaction;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.BoundingBox;
@@ -61,7 +59,7 @@ public class OraxenFurniture {
     }
 
     public static boolean isFurniture(Entity entity) {
-        return entity != null && getFurnitureMechanic(entity) != null;
+        return entity != null && entity.getType() == EntityType.ITEM_DISPLAY && getFurnitureMechanic(entity) != null;
     }
 
     /**
@@ -73,7 +71,7 @@ public class OraxenFurniture {
      * @return The Furniture entity that was placed, or null if the Furniture could not be placed
      */
     @Nullable
-    public static Entity place(String itemID, Location location, Rotation rotation, BlockFace blockFace) {
+    public static ItemDisplay place(String itemID, Location location, Rotation rotation, BlockFace blockFace) {
         return place(itemID, location, FurnitureHelpers.rotationToYaw(rotation), blockFace);
     }
 
@@ -86,7 +84,7 @@ public class OraxenFurniture {
      * @return The Furniture entity that was placed, or null if the Furniture could not be placed
      */
     @Nullable
-    public static Entity place(String itemID, Location location, float yaw, BlockFace blockFace) {
+    public static ItemDisplay place(String itemID, Location location, float yaw, BlockFace blockFace) {
         FurnitureMechanic mechanic = getFurnitureMechanic(itemID);
         if (mechanic == null) return null;
         return mechanic.place(location, yaw, blockFace);
@@ -123,7 +121,7 @@ public class OraxenFurniture {
         if (mechanic == null) return false;
         assert entity != null;
 
-        Entity baseEntity = mechanic.baseEntity(location);
+        ItemDisplay baseEntity = mechanic.baseEntity(location);
         if (baseEntity == null) return false;
 
         if (player != null) {
@@ -161,6 +159,7 @@ public class OraxenFurniture {
      */
     public static boolean remove(@NotNull Entity baseEntity, @Nullable Player player, @Nullable Drop drop) {
         if (!FurnitureFactory.isEnabled()) return false;
+        if (!(baseEntity instanceof ItemDisplay itemDisplay)) return false;
         FurnitureMechanic mechanic = getFurnitureMechanic(baseEntity);
         if (mechanic == null) return false;
         // Allows for changing the FurnitureType in config and still remove old entities
@@ -168,15 +167,15 @@ public class OraxenFurniture {
         if (player != null) {
             ItemStack itemStack = player.getInventory().getItemInMainHand();
             if (player.getGameMode() != GameMode.CREATIVE)
-                (drop != null ? drop : mechanic.breakable().drop()).furnitureSpawns(baseEntity, itemStack);
+                (drop != null ? drop : mechanic.breakable().drop()).furnitureSpawns(itemDisplay, itemStack);
             StorageMechanic storage = mechanic.storage();
             if (storage != null && (storage.isStorage() || storage.isShulker()))
-                storage.dropStorageContent(mechanic, baseEntity);
-            if (VersionUtil.isPaperServer()) baseEntity.getWorld().sendGameEvent(player, GameEvent.BLOCK_DESTROY, baseEntity.getLocation().toVector());
+                storage.dropStorageContent(mechanic, itemDisplay);
+            if (VersionUtil.isPaperServer()) itemDisplay.getWorld().sendGameEvent(player, GameEvent.BLOCK_DESTROY, itemDisplay.getLocation().toVector());
         }
 
         // Check if the mechanic or the baseEntity has barriers tied to it
-        mechanic.removeBaseEntity(baseEntity);
+        mechanic.removeBaseEntity(itemDisplay);
         return true;
     }
 
@@ -196,7 +195,7 @@ public class OraxenFurniture {
     @Nullable
     public static FurnitureMechanic getFurnitureMechanic(Location location) {
         if (!FurnitureFactory.isEnabled() || location == null) return null;
-        Entity baseEntity = FurnitureFactory.instance.packetManager().baseEntityFromHitbox(new BlockLocation(location));
+        ItemDisplay baseEntity = FurnitureFactory.instance.packetManager().baseEntityFromHitbox(new BlockLocation(location));
         if (baseEntity == null) return null;
         FurnitureMechanic mechanic = getFurnitureMechanic(baseEntity);
 
@@ -220,7 +219,7 @@ public class OraxenFurniture {
      * @return Returns this entity's FurnitureMechanic, or null if the entity is not tied to a Furniture
      */
     public static FurnitureMechanic getFurnitureMechanic(Entity baseEntity) {
-        if (!FurnitureFactory.isEnabled() || baseEntity == null) return null;
+        if (!FurnitureFactory.isEnabled() || baseEntity == null || baseEntity.getType() != EntityType.ITEM_DISPLAY) return null;
         final String itemID = baseEntity.getPersistentDataContainer().get(FURNITURE_KEY, PersistentDataType.STRING);
         if (!OraxenItems.exists(itemID) || FurnitureSeat.isSeat(baseEntity)) return null;
         // Ignore legacy hitbox entities as they should be removed in FurnitureConverter
@@ -245,15 +244,13 @@ public class OraxenFurniture {
      *
      * @param baseEntity The furniture baseEntity to update
      */
-    public static void updateFurniture(@NotNull Entity baseEntity) {
+    public static void updateFurniture(@NotNull ItemDisplay baseEntity) {
         if (!FurnitureFactory.isEnabled() || !BlockHelpers.isLoaded(baseEntity.getLocation())) return;
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
         if (mechanic == null || FurnitureSeat.isSeat(baseEntity)) return;
 
         ItemStack newItem = ItemUpdater.updateItem(FurnitureHelpers.furnitureItem(baseEntity));
         FurnitureHelpers.furnitureItem(baseEntity, newItem);
-
-        //TODO Update the baseEntity from ArmorStand -> ItemDisplay if server went from 1.19.x to 1.20.x for example
 
         IFurniturePacketManager packetManager = FurnitureFactory.instance.packetManager();
         packetManager.removeFurnitureEntityPacket(baseEntity, mechanic);

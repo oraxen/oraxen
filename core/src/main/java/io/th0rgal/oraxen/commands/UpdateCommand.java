@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -49,8 +50,8 @@ public class UpdateCommand {
                 .withOptionalArguments(new IntegerArgument("radius"))
                 .executesPlayer((player, args) -> {
                     int radius = (int) args.getOptional("radius").orElse(10);
-                    final Collection<Entity> targets = ((Collection<Entity>) args.getOptional("targets").orElse(player.getNearbyEntities(radius, radius, radius))).stream().filter(OraxenFurniture::isFurniture).toList();
-                    for (Entity entity : targets) OraxenFurniture.updateFurniture(entity);
+                    final Collection<ItemDisplay> targets = ((Collection<ItemDisplay>) args.getOptional("targets").orElse(player.getNearbyEntities(radius, radius, radius))).stream().filter(OraxenFurniture::isFurniture).toList();
+                    for (ItemDisplay entity : targets) OraxenFurniture.updateFurniture(entity);
                 });
     }
 }

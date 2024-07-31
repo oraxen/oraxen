@@ -23,7 +23,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -48,7 +48,7 @@ public class BreakerManager {
         return this.activeBreakerDataMap.get(player.getUniqueId());
     }
 
-    public void startFurnitureBreak(Player player, Entity baseEntity, FurnitureMechanic mechanic, Block block) {
+    public void startFurnitureBreak(Player player, ItemDisplay baseEntity, FurnitureMechanic mechanic, Block block) {
         OraxenPlugin.get().breakerManager().stopBlockBreak(player);
 
         OraxenFurnitureDamageEvent damageEvent = new OraxenFurnitureDamageEvent(mechanic, baseEntity, player, block);

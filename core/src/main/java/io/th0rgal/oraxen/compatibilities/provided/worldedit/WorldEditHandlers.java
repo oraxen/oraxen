@@ -25,12 +25,14 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.EntityType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class WorldEditHandlers {
 
@@ -77,12 +79,6 @@ public class WorldEditHandlers {
                 bukkitValues.remove("oraxen:interaction");
                 compoundTagMap.put("BukkitValues", new CompoundTag(bukkitValues));
                 baseEntity.setNbtData(new CompoundTag(compoundTagMap));
-
-                Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () -> {
-                    List<ArmorStand> baseEntities = new ArrayList<>(bukkitLocation.getNearbyEntitiesByType(ArmorStand.class, 0.5).stream().toList());
-                    baseEntities.sort(Comparator.comparingDouble(entity -> entity.getLocation().distance(bukkitLocation)));
-                    baseEntities.stream().findFirst().ifPresent(a -> mechanic.setBaseFurnitureData(a, a.getBodyYaw()));
-                }, 1L);
 
                 return super.createEntity(location, baseEntity);
             }

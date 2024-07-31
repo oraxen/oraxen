@@ -11,7 +11,7 @@ import io.th0rgal.oraxen.utils.wrappers.EnchantmentWrapper;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -152,7 +152,7 @@ public class Drop {
         }
     }
 
-    public void furnitureSpawns(Entity baseEntity, ItemStack itemInHand) {
+    public void furnitureSpawns(ItemDisplay baseEntity, ItemStack itemInHand) {
         ItemStack baseItem = OraxenItems.getItemById(sourceID).build();
         Location location = BlockHelpers.toBlockLocation(baseEntity.getLocation());
         ItemStack furnitureItem = FurnitureHelpers.furnitureItem(baseEntity);

@@ -11,7 +11,11 @@ table:
       hitbox:
         barrierHitboxes:
           - 0,0,0
-      light: 5
+        interactionHitboxes:
+          - 0.5,0,0 1,1
+          - -0.5,0,0 1,1
+      lights:
+        - 0,0,0 5
       drop:
         silktouch: false
         loots:
@@ -53,7 +57,7 @@ chair:
         barrierHitboxes:
           - 0,0,0
         interactionHitboxes:
-          - 1 1 0,1,0 # width height offsetX,offsetY,offsetZ
+          - 0,1,0 1,1 # offsetX,offsetY,offsetZ width,height
       display_entity_properties:
         display_transform: FIXED
       limited_placing:
@@ -106,7 +110,7 @@ shelf:
       type: DISPLAY_ENTITY
       hitbox:
         interactionHitboxes:
-          - 1,1 0,0,0
+          - 0,0,0 1,1
       limited_placing:
         roof: false
         floor: false

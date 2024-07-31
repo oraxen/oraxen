@@ -2,7 +2,7 @@ package io.th0rgal.oraxen.api.events.furniture;
 
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
@@ -21,7 +21,7 @@ public class OraxenFurnitureDamageEvent extends Event implements Cancellable {
     private final Block block;
     private final FurnitureMechanic mechanic;
     private final Player player;
-    private final Entity baseEntity;
+    private final ItemDisplay baseEntity;
     private static final HandlerList HANDLERS = new HandlerList();
 
     /**
@@ -30,14 +30,14 @@ public class OraxenFurnitureDamageEvent extends Event implements Cancellable {
      * @param player The player who damaged this block
      * @param block The block that was damaged
      */
-    public OraxenFurnitureDamageEvent(@NotNull final FurnitureMechanic mechanic, @NotNull final Entity baseEntity, @NotNull final Player player, @Nullable final Block block) {
+    public OraxenFurnitureDamageEvent(@NotNull final FurnitureMechanic mechanic, @NotNull final ItemDisplay baseEntity, @NotNull final Player player, @Nullable final Block block) {
         this.mechanic = mechanic;
         this.player = player;
         this.block = block;
         this.baseEntity = baseEntity;
     }
 
-    public OraxenFurnitureDamageEvent(@NotNull final FurnitureMechanic mechanic, @NotNull final Entity baseEntity, @NotNull final Player player) {
+    public OraxenFurnitureDamageEvent(@NotNull final FurnitureMechanic mechanic, @NotNull final ItemDisplay baseEntity, @NotNull final Player player) {
         this(mechanic, baseEntity, player, null);
     }
 
@@ -66,11 +66,9 @@ public class OraxenFurnitureDamageEvent extends Event implements Cancellable {
         return block;
     }
 
-    /**
-     * @return The ItemFrame the furniture is in
-     */
+
     @NotNull
-    public Entity getBaseEntity() {
+    public ItemDisplay getBaseEntity() {
         return baseEntity;
     }
 

@@ -21,10 +21,7 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.HumanEntity;
-import org.bukkit.entity.ItemFrame;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -65,7 +62,7 @@ public class StorageMechanic {
         STORAGE, PERSONAL, ENDERCHEST, DISPOSAL, SHULKER
     }
 
-    public void openPersonalStorage(Player player, Location location, @Nullable Entity baseEntity) {
+    public void openPersonalStorage(Player player, Location location, @Nullable ItemDisplay baseEntity) {
         if (type != StorageType.PERSONAL) return;
         StorageGui storageGui = createPersonalGui(player, baseEntity);
         storageGui.open(player);
@@ -75,7 +72,7 @@ public class StorageMechanic {
             Objects.requireNonNull(location.getWorld()).playSound(location, openSound, volume, pitch);
     }
 
-    public void openDisposal(Player player, Location location, @Nullable Entity baseEntity) {
+    public void openDisposal(Player player, Location location, @Nullable ItemDisplay baseEntity) {
         if (type != StorageType.DISPOSAL) return;
         StorageGui storageGui = createDisposalGui(location, baseEntity);
         storageGui.open(player);
@@ -87,14 +84,14 @@ public class StorageMechanic {
 
     public void openStorage(Block block, Player player) {
         if (block.getType() != Material.NOTE_BLOCK) return;
-        StorageGui storageGui = (blockStorages.containsKey(block) ? blockStorages.get(block) : createGui(block, null));
+        StorageGui storageGui = (blockStorages.containsKey(block) ? blockStorages.get(block) : createGui(block));
         storageGui.open(player);
         blockStorages.put(block, storageGui);
         if (hasOpenSound() && block.getLocation().isWorldLoaded())
             Objects.requireNonNull(block.getWorld()).playSound(block.getLocation(), openSound, volume, pitch);
     }
 
-    public void openStorage(Entity baseEntity, Player player) {
+    public void openStorage(ItemDisplay baseEntity, Player player) {
         StorageGui storageGui = (frameStorages.containsKey(baseEntity) ? frameStorages.get(baseEntity) : createGui(baseEntity));
         storageGui.open(player);
         frameStorages.put(baseEntity, storageGui);
@@ -103,7 +100,7 @@ public class StorageMechanic {
             Objects.requireNonNull(baseEntity.getWorld()).playSound(baseEntity.getLocation(), openSound, volume, pitch);
     }
 
-    private void playOpenAnimation(Entity baseEntity, String animation) {
+    private void playOpenAnimation(ItemDisplay baseEntity, String animation) {
         if (baseEntity == null || animation == null) return;
         PersistentDataContainer pdc = baseEntity.getPersistentDataContainer();
         if (pdc.has(FurnitureMechanic.MODELENGINE_KEY, DataType.UUID)) {
@@ -151,7 +148,7 @@ public class StorageMechanic {
         blockStorages.remove(block);
     }
 
-    public void dropStorageContent(FurnitureMechanic mechanic, Entity baseEntity) {
+    public void dropStorageContent(FurnitureMechanic mechanic, ItemDisplay baseEntity) {
         StorageGui gui = frameStorages.get(baseEntity);
         PersistentDataContainer pdc = baseEntity.getPersistentDataContainer();
         // If shutdown the gui isn't saved and map is empty, so use pdc storage
@@ -237,7 +234,7 @@ public class StorageMechanic {
         return volume;
     }
 
-    private StorageGui createDisposalGui(Location location, @Nullable Entity baseEntity) {
+    private StorageGui createDisposalGui(Location location, @Nullable ItemDisplay baseEntity) {
         StorageGui gui = Gui.storage().title(AdventureUtils.MINI_MESSAGE.deserialize(title)).rows(rows).create();
 
         gui.setOpenGuiAction(event -> {
@@ -253,7 +250,7 @@ public class StorageMechanic {
         return gui;
     }
 
-    private StorageGui createPersonalGui(Player player, @Nullable Entity baseEntity) {
+    private StorageGui createPersonalGui(Player player, @Nullable ItemDisplay baseEntity) {
         PersistentDataContainer storagePDC = player.getPersistentDataContainer();
         StorageGui gui = Gui.storage().title(AdventureUtils.MINI_MESSAGE.deserialize(title)).rows(rows).create();
 
@@ -282,7 +279,7 @@ public class StorageMechanic {
         return gui;
     }
 
-    private StorageGui createGui(Block block, @Nullable ItemFrame frame) {
+    private StorageGui createGui(Block block) {
         Location location = block.getLocation();
         PersistentDataContainer storagePDC = BlockHelpers.getPDC(block);
         StorageGui gui = Gui.storage().title(AdventureUtils.MINI_MESSAGE.deserialize(title)).rows(rows).create();
@@ -303,13 +300,12 @@ public class StorageMechanic {
             storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents());
             if (hasCloseSound() && BlockHelpers.isLoaded(block.getLocation()))
                 Objects.requireNonNull(location.getWorld()).playSound(location, closeSound, volume, pitch);
-            if (frame != null) playOpenAnimation(frame, closeAnimation);
         });
 
         return gui;
     }
 
-    private StorageGui createGui(Entity baseEntity) {
+    private StorageGui createGui(ItemDisplay baseEntity) {
         Location location = baseEntity.getLocation();
         ItemStack furnitureItem = FurnitureHelpers.furnitureItem(baseEntity);
         if (furnitureItem == null) return null;

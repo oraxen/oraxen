@@ -22,7 +22,7 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -54,7 +54,7 @@ public class ReloadCommand {
         }
 
         Logs.logInfo("Updating all placed furniture...");
-        for (World world : Bukkit.getServer().getWorlds()) for (Entity baseEntity : world.getEntities())
+        for (World world : Bukkit.getServer().getWorlds()) for (ItemDisplay baseEntity : world.getEntitiesByClass(ItemDisplay.class))
             OraxenFurniture.updateFurniture(baseEntity);
 
     }

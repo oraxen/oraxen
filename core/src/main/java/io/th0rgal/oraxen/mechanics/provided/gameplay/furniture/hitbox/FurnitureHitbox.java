@@ -5,11 +5,13 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketManager;
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 public class FurnitureHitbox {
     public static final FurnitureHitbox EMPTY = new FurnitureHitbox(List.of(), List.of());
@@ -42,7 +44,7 @@ public class FurnitureHitbox {
         return interactionHitboxes;
     }
 
-    public void handleHitboxes(Entity baseEntity, FurnitureMechanic mechanic) {
+    public void handleHitboxes(ItemDisplay baseEntity, FurnitureMechanic mechanic) {
         IFurniturePacketManager packetManager = FurnitureFactory.instance.packetManager();
 
         for (Player player : baseEntity.getWorld().getNearbyPlayers(baseEntity.getLocation(), FurnitureFactory.get().simulationRadius)) {

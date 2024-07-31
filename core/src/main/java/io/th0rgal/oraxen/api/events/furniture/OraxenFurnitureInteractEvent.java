@@ -3,7 +3,7 @@ package io.th0rgal.oraxen.api.events.furniture;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
@@ -16,7 +16,7 @@ import org.jetbrains.annotations.Nullable;
 public class OraxenFurnitureInteractEvent extends Event implements Cancellable {
 
     private final FurnitureMechanic mechanic;
-    private final Entity baseEntity;
+    private final ItemDisplay baseEntity;
     private final Player player;
     private final ItemStack itemInHand;
     private final EquipmentSlot hand;
@@ -25,11 +25,11 @@ public class OraxenFurnitureInteractEvent extends Event implements Cancellable {
     private boolean isCancelled;
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public OraxenFurnitureInteractEvent(@NotNull final FurnitureMechanic mechanic, @NotNull final Entity baseEntity, @NotNull final Player player, @Nullable final ItemStack itemInHand, @NotNull final EquipmentSlot hand) {
+    public OraxenFurnitureInteractEvent(@NotNull final FurnitureMechanic mechanic, @NotNull final ItemDisplay baseEntity, @NotNull final Player player, @Nullable final ItemStack itemInHand, @NotNull final EquipmentSlot hand) {
         this(mechanic, baseEntity, player, itemInHand, hand, null);
     }
 
-    public OraxenFurnitureInteractEvent(@NotNull final FurnitureMechanic mechanic, @NotNull final Entity baseEntity, @NotNull final Player player, @Nullable final ItemStack itemInHand, @NotNull final EquipmentSlot hand, @Nullable Location interactionPoint) {
+    public OraxenFurnitureInteractEvent(@NotNull final FurnitureMechanic mechanic, @NotNull final ItemDisplay baseEntity, @NotNull final Player player, @Nullable final ItemStack itemInHand, @NotNull final EquipmentSlot hand, @Nullable Location interactionPoint) {
         this.player = player;
         this.mechanic = mechanic;
         this.baseEntity = baseEntity;
@@ -59,7 +59,7 @@ public class OraxenFurnitureInteractEvent extends Event implements Cancellable {
      * @return The base entity of the furniture
      */
     @NotNull
-    public Entity baseEntity() {
+    public ItemDisplay baseEntity() {
         return baseEntity;
     }
 

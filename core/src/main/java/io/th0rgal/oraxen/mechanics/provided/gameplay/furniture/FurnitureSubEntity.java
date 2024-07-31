@@ -3,7 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemDisplay;
 
 import java.util.Collection;
 import java.util.UUID;
@@ -26,8 +26,8 @@ public class FurnitureSubEntity {
         return baseUuid;
     }
 
-    public Entity baseEntity() {
-        return Bukkit.getEntity(baseUuid);
+    public ItemDisplay baseEntity() {
+        return (ItemDisplay) Bukkit.getEntity(baseUuid);
     }
 
     public IntList entityIds() {

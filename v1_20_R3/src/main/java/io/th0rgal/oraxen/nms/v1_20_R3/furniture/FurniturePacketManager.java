@@ -10,8 +10,6 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.hitbox.Interactio
 import io.th0rgal.oraxen.utils.PluginUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
@@ -25,7 +23,7 @@ import org.bukkit.Location;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.Light;
 import org.bukkit.craftbukkit.v1_20_R3.entity.CraftPlayer;
-import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -58,7 +56,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
     }
 
     @Override
-    public void sendFurnitureEntityPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
+    public void sendFurnitureEntityPacket(@NotNull ItemDisplay baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
         if (baseEntity.isDead()) return;
         if (mechanic.isModelEngine() && ModelEngineAPI.getBlueprint(mechanic.getModelEngineID()) != null) return;
 
@@ -68,32 +66,28 @@ public class FurniturePacketManager implements IFurniturePacketManager {
             return base;
         });
 
-        FurnitureType type = mechanic.furnitureType(player);
-        FurnitureBasePacket basePacket = new FurnitureBasePacket(furnitureBase, baseEntity, type, player);
-        Packet<ClientGamePacketListener> packets = type.entityType() != baseEntity.getType() ? basePacket.bundlePackets() : basePacket.metadataPacket();
-        ((CraftPlayer) player).getHandle().connection.send(packets);
+        FurnitureBasePacket basePacket = new FurnitureBasePacket(furnitureBase, baseEntity, player);
+        ((CraftPlayer) player).getHandle().connection.send(basePacket.bundlePackets());
     }
 
     @Override
-    public void removeFurnitureEntityPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic) {
+    public void removeFurnitureEntityPacket(@NotNull ItemDisplay baseEntity, @NotNull FurnitureMechanic mechanic) {
         for (Player player : Bukkit.getOnlinePlayers())
             removeFurnitureEntityPacket(baseEntity, mechanic, player);
     }
 
     @Override
-    public void removeFurnitureEntityPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
+    public void removeFurnitureEntityPacket(@NotNull ItemDisplay baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
         ServerGamePacketListenerImpl connection = ((CraftPlayer) player).getHandle().connection;
         furnitureBaseMap.stream()
-                .filter(f -> f.baseUUID() == baseEntity.getUniqueId() && f.uuid(player) != baseEntity.getUniqueId())
-                .map(furnitureBase -> furnitureBase.entityId(player))
-                .filter(entityId -> entityId != baseEntity.getEntityId())
-                .map(ClientboundRemoveEntitiesPacket::new)
+                .filter(f -> f.baseUUID() == baseEntity.getUniqueId())
+                .map(base -> new ClientboundRemoveEntitiesPacket(base.baseId()))
                 .findFirst().ifPresent(connection::send);
     }
 
 
     @Override
-    public void sendInteractionEntityPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
+    public void sendInteractionEntityPacket(@NotNull ItemDisplay baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
         List<InteractionHitbox> interactionHitboxes = mechanic.hitbox().interactionHitboxes();
         if (interactionHitboxes.isEmpty() || baseEntity.isDead()) return;
         if (mechanic.isModelEngine()) {
@@ -143,7 +137,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
     }
 
     @Override
-    public void removeInteractionHitboxPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic) {
+    public void removeInteractionHitboxPacket(@NotNull ItemDisplay baseEntity, @NotNull FurnitureMechanic mechanic) {
         for (Player player : baseEntity.getWorld().getPlayers()) {
             removeInteractionHitboxPacket(baseEntity, mechanic, player);
         }
@@ -152,14 +146,14 @@ public class FurniturePacketManager implements IFurniturePacketManager {
     }
 
     @Override
-    public void removeInteractionHitboxPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
+    public void removeInteractionHitboxPacket(@NotNull ItemDisplay baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
         interactionHitboxIdMap.stream().filter(s -> s.baseUUID().equals(baseEntity.getUniqueId())).findFirst().ifPresent(subEntity ->
                 ((CraftPlayer) player).getHandle().connection.send(new ClientboundRemoveEntitiesPacket(subEntity.entityIds()))
         );
     }
 
     @Override
-    public void sendBarrierHitboxPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
+    public void sendBarrierHitboxPacket(@NotNull ItemDisplay baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
         if (baseEntity.isDead()) return;
 
         Map<Position, BlockData> positions = mechanic.hitbox().barrierHitboxes().stream()
@@ -179,7 +173,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
     }
 
     @Override
-    public void removeBarrierHitboxPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic) {
+    public void removeBarrierHitboxPacket(@NotNull ItemDisplay baseEntity, @NotNull FurnitureMechanic mechanic) {
         for (Player player : baseEntity.getWorld().getPlayers()) {
             removeBarrierHitboxPacket(baseEntity, mechanic, player);
         }
@@ -187,7 +181,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
     }
 
     @Override
-    public void removeBarrierHitboxPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
+    public void removeBarrierHitboxPacket(@NotNull ItemDisplay baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
         Map<Position, BlockData> positions = mechanic.hitbox().barrierHitboxes().stream()
                 .map(c -> c.groundRotate(baseEntity.getYaw()).add(baseEntity.getLocation())).collect(Collectors.toSet())
                 .stream().collect(Collectors.toMap(Position::block, l -> AIR_DATA));
@@ -199,7 +193,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
     private record LightPosition(Light lightData, Location lightLocation) {}
 
     @Override
-    public void sendLightMechanicPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
+    public void sendLightMechanicPacket(@NotNull ItemDisplay baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
         if (baseEntity.isDead()) return;
 
         Map<Position, BlockData> positions = mechanic.light().lightBlocks().stream()
@@ -220,7 +214,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
     }
 
     @Override
-    public void removeLightMechanicPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic) {
+    public void removeLightMechanicPacket(@NotNull ItemDisplay baseEntity, @NotNull FurnitureMechanic mechanic) {
         for (Player player : baseEntity.getWorld().getPlayers()) {
             removeLightMechanicPacket(baseEntity, mechanic, player);
         }
@@ -228,7 +222,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
     }
 
     @Override
-    public void removeLightMechanicPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
+    public void removeLightMechanicPacket(@NotNull ItemDisplay baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
         Map<Position, BlockData> positions = mechanic.light().lightBlocks().stream()
                 .map(c -> c.groundRotate(baseEntity.getYaw()).add(baseEntity.getLocation())).collect(Collectors.toSet())
                 .stream().collect(Collectors.toMap(Position::block, l -> AIR_DATA));

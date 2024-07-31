@@ -9,6 +9,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketM
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -21,10 +22,11 @@ public class AxiomCompatibility implements Listener {
 
     @EventHandler
     public void onAxiomManipFurniture(AxiomManipulateEntityEvent event) {
-        Entity baseEntity = event.getEntity();
-        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
+        Entity entity = event.getEntity();
+        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
         IFurniturePacketManager packetManager = FurnitureFactory.get().packetManager();
-        if (baseEntity == null || mechanic == null) return;
+        if (entity == null || mechanic == null) return;
+        if (!(entity instanceof ItemDisplay baseEntity)) return;
 
         packetManager.removeFurnitureEntityPacket(baseEntity, mechanic);
         packetManager.removeInteractionHitboxPacket(baseEntity, mechanic);

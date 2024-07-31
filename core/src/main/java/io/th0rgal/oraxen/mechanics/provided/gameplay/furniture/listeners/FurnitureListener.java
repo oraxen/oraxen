@@ -20,7 +20,7 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
@@ -118,7 +118,7 @@ public class FurnitureListener implements Listener {
             return;
         }
 
-        Entity baseEntity = mechanic.place(block.getLocation(), yaw, event.getBlockFace(), true);
+        ItemDisplay baseEntity = mechanic.place(block.getLocation(), yaw, event.getBlockFace(), true);
         Utils.swingHand(player, event.getHand());
 
         final OraxenFurniturePlaceEvent furniturePlaceEvent = new OraxenFurniturePlaceEvent(mechanic, block, baseEntity, player, item, hand);
@@ -235,7 +235,7 @@ public class FurnitureListener implements Listener {
     public void onFurnitureInteract(OraxenFurnitureInteractEvent event) {
         Player player = event.player();
         FurnitureMechanic mechanic = event.mechanic();
-        Entity baseEntity = event.baseEntity();
+        ItemDisplay baseEntity = event.baseEntity();
         Location interactionPoint = event.interactionPoint();
 
         mechanic.runClickActions(player);
