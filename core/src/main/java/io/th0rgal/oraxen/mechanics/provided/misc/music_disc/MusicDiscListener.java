@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
@@ -48,8 +49,20 @@ public class MusicDiscListener implements Listener {
         boolean playing = insertAndPlayCustomDisc(event.getClickedBlock(), itemStack, player);
         if (!playing) return;
         player.swingMainHand();
-        Component message = AdventureUtils.MINI_MESSAGE.deserialize(Message.MECHANICS_JUKEBOX_NOW_PLAYING.toString(),
-                AdventureUtils.tagResolver("disc", AdventureUtils.parseLegacy(itemStack.getItemMeta().getDisplayName())));
+
+        Component discName = null;
+        if (itemStack.hasItemMeta()) {
+            if (VersionUtil.atOrAbove("1.20.5") && itemStack.getItemMeta().hasItemName()) {
+                if (VersionUtil.isPaperServer()) discName = itemStack.getItemMeta().itemName();
+                else discName = AdventureUtils.LEGACY_SERIALIZER.deserialize(itemStack.getItemMeta().getItemName());
+            } else if (itemStack.getItemMeta().hasDisplayName()) {
+                if (VersionUtil.isPaperServer()) discName = itemStack.getItemMeta().displayName();
+                else discName = AdventureUtils.LEGACY_SERIALIZER.deserialize(itemStack.getItemMeta().getDisplayName());
+            }
+        }
+        if (discName == null) discName = Component.empty();
+
+        Component message = AdventureUtils.MINI_MESSAGE.deserialize(Message.MECHANICS_JUKEBOX_NOW_PLAYING.toString(), AdventureUtils.tagResolver("disc", discName));
         OraxenPlugin.get().getAudience().player(player).sendActionBar(message);
         event.setCancelled(true);
     }

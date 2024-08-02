@@ -134,7 +134,7 @@ public class ItemsView {
 
         itemStack = icon.map(OraxenItems::getItemById).map(ItemBuilder::clone)
                 .orElse(OraxenItems.getMap().get(file).values().stream().findFirst().orElse(new ItemBuilder(Material.PAPER)))
-                .clone().addItemFlags(ItemFlag.HIDE_ATTRIBUTES).setDisplayName(displayName).setLore(new ArrayList<>()).build();
+                .clone().addItemFlags(ItemFlag.HIDE_ATTRIBUTES).setItemName(displayName).setDisplayName(displayName).setLore(new ArrayList<>()).build();
 
         // avoid possible bug if isOraxenItems is available but can't be an itemstack
         if (itemStack == null) itemStack = new ItemBuilder(Material.PAPER).setDisplayName(displayName).build();

@@ -487,6 +487,7 @@ public class DuplicationHandler {
         }
     }
 
+    @Deprecated(forRemoval = true)
     public static void convertOldMigrateItemConfig() {
         File oldMigrateConfigFile = OraxenPlugin.get().getDataFolder().toPath().resolve("items/migrated_duplicates.yml").toFile();
         if (!oldMigrateConfigFile.exists()) return;

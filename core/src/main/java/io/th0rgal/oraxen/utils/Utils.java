@@ -175,4 +175,20 @@ public class Utils {
 
         return new IntegerRange(minAmount, maxAmount);
     }
+
+    public static <T> T getOrNull(List<T> list, int index) {
+        try {
+            return list.get(index);
+        } catch (IndexOutOfBoundsException e) {
+            return null;
+        }
+    }
+
+    public static <T> T getOrDefault(List<T> list, int index, T defaultValue) {
+        try {
+            return list.get(index);
+        } catch (IndexOutOfBoundsException e) {
+            return defaultValue;
+        }
+    }
 }

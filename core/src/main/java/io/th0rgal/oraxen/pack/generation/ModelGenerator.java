@@ -2,7 +2,9 @@ package io.th0rgal.oraxen.pack.generation;
 
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.items.OraxenMeta;
+import io.th0rgal.oraxen.utils.Utils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ModelGenerator {
@@ -12,41 +14,43 @@ public class ModelGenerator {
     public ModelGenerator(OraxenMeta oraxenMeta) {
         JsonObject textures = new JsonObject();
         String parentModel = oraxenMeta.getParentModel();
+        List<String> layers = new ArrayList<>(oraxenMeta.getLayers());
+        String defaultTexture = Utils.getOrDefault(layers, 0, "");
 
         json.addProperty("parent", parentModel);
         if (oraxenMeta.hasLayersMap()) { //Check if oraxen meta uses new texture system
             oraxenMeta.getLayersMap().forEach(textures::addProperty);
         } else if (oraxenMeta.hasLayers()) { //Use old texture system
-            List<String> layers = oraxenMeta.getLayers();
+
             if (parentModel.equals("block/cube") || parentModel.equals("block/cube_directional") || parentModel.equals("block/cube_mirrored")) {
-                textures.addProperty("particle", layers.get(2));
-                textures.addProperty("down", layers.get(0));
-                textures.addProperty("up", layers.get(1));
-                textures.addProperty("north", layers.get(2));
-                textures.addProperty("south", layers.get(3));
-                textures.addProperty("west", layers.get(4));
-                textures.addProperty("east", layers.get(5));
+                textures.addProperty("particle", Utils.getOrDefault(layers, 2, defaultTexture));
+                textures.addProperty("down", defaultTexture);
+                textures.addProperty("up", Utils.getOrDefault(layers, 1, defaultTexture));
+                textures.addProperty("north", Utils.getOrDefault(layers, 2, defaultTexture));
+                textures.addProperty("south", Utils.getOrDefault(layers, 3, defaultTexture));
+                textures.addProperty("west", Utils.getOrDefault(layers, 4, defaultTexture));
+                textures.addProperty("east", Utils.getOrDefault(layers, 5, defaultTexture));
             } else if (parentModel.equals("block/cube_all") || parentModel.equals("block/cube_mirrored_all")) {
-                textures.addProperty("all", layers.get(0));
+                textures.addProperty("all", defaultTexture);
             } else if (parentModel.equals("block/cross")) {
-                textures.addProperty("cross", layers.get(0));
+                textures.addProperty("cross", defaultTexture);
             } else if (parentModel.startsWith("block/orientable")) {
-                textures.addProperty("front", layers.get(0));
-                textures.addProperty("side", layers.get(1));
+                textures.addProperty("front", defaultTexture);
+                textures.addProperty("side", Utils.getOrDefault(layers, 1, defaultTexture));
                 if (!parentModel.endsWith("vertical"))
-                    textures.addProperty("top", layers.get(2));
+                    textures.addProperty("top", Utils.getOrDefault(layers, 2, defaultTexture));
                 if (parentModel.endsWith("with_bottom"))
-                    textures.addProperty("bottom", layers.get(3));
+                    textures.addProperty("bottom", Utils.getOrDefault(layers, 3, defaultTexture));
             } else if (parentModel.startsWith("block/cube_column")) {
-                textures.addProperty("end", layers.get(0));
-                textures.addProperty("side", layers.get(1));
+                textures.addProperty("end", defaultTexture);
+                textures.addProperty("side", Utils.getOrDefault(layers, 1, defaultTexture));
             } else if (parentModel.equals("block/cube_bottom_top")) {
-                textures.addProperty("top", layers.get(0));
-                textures.addProperty("side", layers.get(1));
-                textures.addProperty("bottom", layers.get(2));
+                textures.addProperty("top", defaultTexture);
+                textures.addProperty("side", Utils.getOrDefault(layers, 1, defaultTexture));
+                textures.addProperty("bottom", Utils.getOrDefault(layers, 2, defaultTexture));
             } else if (parentModel.equals("block/cube_top")) {
-                textures.addProperty("top", layers.get(0));
-                textures.addProperty("side", layers.get(1));
+                textures.addProperty("top", defaultTexture);
+                textures.addProperty("side", Utils.getOrDefault(layers, 1, defaultTexture));
             } else {
                 for (int i = 0; i < layers.size(); i++)
                     textures.addProperty("layer" + i, layers.get(i));

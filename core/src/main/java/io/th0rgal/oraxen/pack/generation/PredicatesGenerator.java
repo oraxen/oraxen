@@ -13,10 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.LeatherArmorMeta;
-import org.bukkit.inventory.meta.PotionMeta;
-import org.bukkit.inventory.meta.SpawnEggMeta;
+import org.bukkit.inventory.meta.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -42,6 +39,9 @@ public class PredicatesGenerator {
         if (material == Material.TIPPED_ARROW) {
             textures.addProperty("layer0", "item/tipped_arrow_head");
             textures.addProperty("layer1", "item/tipped_arrow_base");
+        } else if (material == Material.FIREWORK_STAR) {
+            textures.addProperty("layer0", vanillaTextureName);
+            textures.addProperty("layer1", vanillaTextureName + "_overlay");
         } else if (exampleMeta instanceof PotionMeta) {
             textures.addProperty("layer0", "item/potion_overlay");
             textures.addProperty("layer1", vanillaTextureName);
