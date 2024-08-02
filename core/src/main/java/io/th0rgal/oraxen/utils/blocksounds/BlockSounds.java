@@ -91,7 +91,7 @@ public class BlockSounds {
         return placeSound != null;
     }
 
-    public String placeSound() {
+    public String getPlaceSound() {
         return BlockHelpers.validateReplacedSounds(placeSound);
     }
 
@@ -99,7 +99,7 @@ public class BlockSounds {
         return breakSound != null;
     }
 
-    public String breakSound() {
+    public String getBreakSound() {
         return BlockHelpers.validateReplacedSounds(breakSound);
     }
 
@@ -107,7 +107,7 @@ public class BlockSounds {
         return stepSound != null;
     }
 
-    public String stepSound() {
+    public String getStepSound() {
         return BlockHelpers.validateReplacedSounds(stepSound);
     }
 
@@ -115,7 +115,7 @@ public class BlockSounds {
         return hitSound != null;
     }
 
-    public String hitSound() {
+    public String getHitSound() {
         return BlockHelpers.validateReplacedSounds(hitSound);
     }
 
@@ -123,47 +123,47 @@ public class BlockSounds {
         return fallSound != null;
     }
 
-    public String fallSound() {
+    public String getFallSound() {
         return BlockHelpers.validateReplacedSounds(fallSound);
     }
 
-    public float placeVolume() {
+    public float getPlaceVolume() {
         return placeVolume;
     }
 
-    public float breakVolume() {
+    public float getBreakVolume() {
         return breakVolume;
     }
 
-    public float stepVolume() {
+    public float getStepVolume() {
         return stepVolume;
     }
 
-    public float hitVolume() {
+    public float getHitVolume() {
         return hitVolume;
     }
 
-    public float fallVolume() {
+    public float getFallVolume() {
         return fallVolume;
     }
 
-    public float placePitch() {
+    public float getPlacePitch() {
         return placePitch;
     }
 
-    public float breakPitch() {
+    public float getBreakPitch() {
         return breakPitch;
     }
 
-    public float stepPitch() {
+    public float getStepPitch() {
         return stepPitch;
     }
 
-    public float hitPitch() {
+    public float getHitPitch() {
         return hitPitch;
     }
 
-    public float fallPitch() {
+    public float getFallPitch() {
         return fallPitch;
     }
 }

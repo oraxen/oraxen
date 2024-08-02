@@ -155,10 +155,10 @@ public class BreakerManager {
                     //TODO Allow for third party blocks to handle this somehow
                     String sound = "";
                     if (blockMechanic.type() == CustomBlockFactory.get().NOTEBLOCK)
-                        sound = blockMechanic.hasBlockSounds() && blockMechanic.blockSounds().hasHitSound() ? blockMechanic.blockSounds().hitSound() : "required.wood.hit";
+                        sound = blockMechanic.hasBlockSounds() && blockMechanic.blockSounds().hasHitSound() ? blockMechanic.blockSounds().getHitSound() : "required.wood.hit";
                     else if (blockMechanic.type() == CustomBlockFactory.get().STRINGBLOCK)
-                        sound = blockMechanic.hasBlockSounds() && blockMechanic.blockSounds().hasHitSound() ? blockMechanic.blockSounds().hitSound() : "block.tripwire.detach";
-                    BlockHelpers.playCustomBlockSound(block.getLocation(), sound, blockMechanic.blockSounds().hitVolume(), blockMechanic.blockSounds().hitPitch());
+                        sound = blockMechanic.hasBlockSounds() && blockMechanic.blockSounds().hasHitSound() ? blockMechanic.blockSounds().getHitSound() : "block.tripwire.detach";
+                    BlockHelpers.playCustomBlockSound(block.getLocation(), sound, blockMechanic.blockSounds().getHitVolume(), blockMechanic.blockSounds().getHitPitch());
                 }
             } else {
                 if (!(activeBreakerData.mechanic instanceof FurnitureMechanic fm)) {
@@ -166,7 +166,7 @@ public class BreakerManager {
                 } else if (!furnitureMechanic.getItemID().equals(fm.getItemID())) {
                     activeBreakerData.breakerSoundTask.cancel();
                 } else if (furnitureMechanic.hasBlockSounds() && furnitureMechanic.blockSounds().hasHitSound()) {
-                    String sound = furnitureMechanic.blockSounds().hitSound();
+                    String sound = furnitureMechanic.blockSounds().getHitSound();
                 }
             }
         }, 0, 4L);

@@ -35,7 +35,7 @@ public class StringBlockSoundListener implements Listener {
             BlockSounds blockSounds = mechanic.blockSounds();
 
             if (mechanic.hasBlockSounds() && blockSounds.hasBreakSound())
-                BlockHelpers.playCustomBlockSound(block.getLocation(), blockSounds.breakSound(), blockSounds.breakVolume(), blockSounds.breakPitch());
+                BlockHelpers.playCustomBlockSound(block.getLocation(), blockSounds.getBreakSound(), blockSounds.getBreakVolume(), blockSounds.getBreakPitch());
         }
     }
 
@@ -45,7 +45,7 @@ public class StringBlockSoundListener implements Listener {
         if (!mechanic.hasBlockSounds()) return;
         BlockSounds blockSounds = mechanic.blockSounds();
         if (blockSounds.hasPlaceSound())
-            BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), blockSounds.placeSound(), blockSounds.placeVolume(), blockSounds.placePitch());
+            BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), blockSounds.getPlaceSound(), blockSounds.getPlaceVolume(), blockSounds.getPlacePitch());
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -54,7 +54,7 @@ public class StringBlockSoundListener implements Listener {
         if (!mechanic.hasBlockSounds()) return;
         BlockSounds blockSounds = mechanic.blockSounds();
         if (blockSounds.hasBreakSound())
-            BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), blockSounds.breakSound(), blockSounds.breakVolume(), blockSounds.breakPitch());
+            BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), blockSounds.getBreakSound(), blockSounds.getBreakVolume(), blockSounds.getBreakPitch());
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
@@ -77,13 +77,13 @@ public class StringBlockSoundListener implements Listener {
         if (mechanic == null || !mechanic.hasBlockSounds()) return;
         BlockSounds blockSounds = mechanic.blockSounds();
         if (gameEvent == GameEvent.STEP && blockSounds.hasStepSound()) {
-            sound = blockSounds.stepSound();
-            volume = blockSounds.stepVolume();
-            pitch = blockSounds.stepPitch();
+            sound = blockSounds.getStepSound();
+            volume = blockSounds.getStepVolume();
+            pitch = blockSounds.getStepPitch();
         } else if (gameEvent == GameEvent.HIT_GROUND && blockSounds.hasStepSound()) {
-            sound = blockSounds.fallSound();
-            volume = blockSounds.fallVolume();
-            pitch = blockSounds.fallPitch();
+            sound = blockSounds.getFallSound();
+            volume = blockSounds.getFallVolume();
+            pitch = blockSounds.getFallPitch();
         } else return;
         BlockHelpers.playCustomBlockSound(entity.getLocation(), sound, SoundCategory.PLAYERS, volume, pitch);
     }
