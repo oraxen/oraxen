@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class BreakableMechanic {
 
-    private final int hardness;
+    private final double hardness;
     private final Drop drop;
     private final String itemId;
 
@@ -33,7 +33,7 @@ public class BreakableMechanic {
         return drop;
     }
 
-    public int hardness() {
+    public double hardness() {
         return hardness;
     }
 

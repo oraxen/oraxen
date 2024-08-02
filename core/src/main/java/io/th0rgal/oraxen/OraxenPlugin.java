@@ -23,6 +23,8 @@ import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.actions.ClickActionManager;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorEquipEvent;
 import io.th0rgal.oraxen.utils.breaker.BreakerManager;
+import io.th0rgal.oraxen.utils.breaker.LegacyBreakerManager;
+import io.th0rgal.oraxen.utils.breaker.ModernBreakerManager;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmorListener;
 import io.th0rgal.oraxen.utils.inventories.InvManager;
 import io.th0rgal.protectionlib.ProtectionLib;
@@ -83,7 +85,8 @@ public class OraxenPlugin extends JavaPlugin {
         clickActionManager = new ClickActionManager(this);
         fontManager = new FontManager(configsManager);
         soundManager = new SoundManager(configsManager.getSounds());
-        breakerManager = new BreakerManager(new ConcurrentHashMap<>());
+        breakerManager = VersionUtil.atOrAbove("1.20.5") ? new ModernBreakerManager(new ConcurrentHashMap<>())
+                : new LegacyBreakerManager(new ConcurrentHashMap<>());
         ProtectionLib.setDebug(Settings.DEBUG.toBool());
 
         if (Settings.KEEP_UP_TO_DATE.toBool())
