@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen;
 
 import com.comphenix.protocol.ProtocolLibrary;
-import com.ticxo.playeranimator.PlayerAnimatorImpl;
 import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.CommandAPIBukkitConfig;
 import io.th0rgal.oraxen.api.OraxenItems;
@@ -12,7 +11,6 @@ import io.th0rgal.oraxen.config.*;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.font.packets.InventoryPacketListener;
 import io.th0rgal.oraxen.font.packets.TitlePacketListener;
-import io.th0rgal.oraxen.gestures.GestureManager;
 import io.th0rgal.oraxen.hud.HudManager;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
@@ -45,7 +43,6 @@ import java.util.jar.JarFile;
 public class OraxenPlugin extends JavaPlugin {
 
     private static OraxenPlugin oraxen;
-    private static GestureManager gestureManager;
     private ConfigsManager configsManager;
     private ResourcesManager resourceManager;
     private BukkitAudiences audience;
@@ -84,7 +81,6 @@ public class OraxenPlugin extends JavaPlugin {
     public void onEnable() {
         CommandAPI.onEnable();
         ProtectionLib.init(this);
-        if (!VersionUtil.atOrAbove("1.20.3")) PlayerAnimatorImpl.initialize(this);
         audience = BukkitAudiences.create(this);
         clickActionManager = new ClickActionManager(this);
         supportsDisplayEntities = VersionUtil.atOrAbove("1.19.4");
@@ -109,7 +105,6 @@ public class OraxenPlugin extends JavaPlugin {
         hudManager = new HudManager(configsManager);
         fontManager = new FontManager(configsManager);
         soundManager = new SoundManager(configsManager.getSound());
-        if (!VersionUtil.atOrAbove("1.20.3")) gestureManager = new GestureManager();
         OraxenItems.loadItems();
         fontManager.registerEvents();
         fontManager.verifyRequired(); // Verify the required glyph is there
@@ -153,10 +148,6 @@ public class OraxenPlugin extends JavaPlugin {
 
     public ResourcesManager getResourceManager() {
         return resourceManager;
-    }
-
-    public GestureManager getGesturesManager() {
-        return gestureManager;
     }
 
     public BukkitAudiences getAudience() {

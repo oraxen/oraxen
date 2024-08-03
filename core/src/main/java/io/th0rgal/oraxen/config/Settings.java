@@ -61,9 +61,6 @@ public enum Settings {
     CUSTOM_ARMOR_SHADER_GENERATE_CUSTOM_TEXTURES("CustomArmor.shader_settings.generate_custom_armor_textures"),
     CUSTOM_ARMOR_SHADER_GENERATE_SHADER_COMPATIBLE_ARMOR("CustomArmor.shader_settings.generate_shader_compatible_armor"),
 
-
-    GESTURES_ENABLED("Gestures.enabled"),
-
     // Custom Blocks
     BLOCK_CORRECTION("CustomBlocks.block_correction"),
     LEGACY_NOTEBLOCKS("CustomBlocks.use_legacy_noteblocks"),
