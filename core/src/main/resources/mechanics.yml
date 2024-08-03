@@ -34,9 +34,6 @@ noteblock:
   # Reimplements noteblock features while using custom blocks
   # Adds instrument option in noteblock mechanics
   reimplement_noteblock_features: false
-  # Removes the mineable/axe tag from noteblocks for player
-  # This is to prevent axes from breaking custom-blocks in normal speed
-  remove_mineable_tag: false
   enabled: true
 stringblock:
     tool_types:

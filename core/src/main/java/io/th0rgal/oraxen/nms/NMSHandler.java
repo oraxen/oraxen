@@ -137,9 +137,9 @@ public interface NMSHandler {
     Set<Material> itemTools();
 
 
-    void applyMiningEffect(Player player);
+    default void applyMiningEffect(Player player) {}
 
-    void removeMiningEffect(Player player);
+    default void removeMiningEffect(Player player) {}
 
     String getNoteBlockInstrument(Block block);
 }

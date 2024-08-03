@@ -15,24 +15,18 @@ import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.InteractionResult;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
 import net.kyori.adventure.resource.ResourcePackInfo;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.configuration.ClientboundRegistryDataPacket;
 import net.minecraft.network.protocol.game.ClientboundRemoveMobEffectPacket;
 import net.minecraft.network.protocol.game.ClientboundUpdateMobEffectPacket;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ConfigurationTask;
 import net.minecraft.server.network.ServerConfigurationPacketListenerImpl;
 import net.minecraft.server.network.config.ServerResourcePackConfigurationTask;
-import net.minecraft.tags.BlockTags;
-import net.minecraft.tags.TagNetworkSerialization;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -56,10 +50,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
 import javax.annotation.Nullable;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.Queue;
+import java.util.Set;
 
 import static io.th0rgal.oraxen.pack.PackListener.CONFIG_PHASE_PACKET_LISTENER;
 
@@ -205,33 +198,6 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     @Override
     public int playerProtocolVersion(Player player) {
         return ((CraftPlayer) player).getHandle().connection.connection.protocolVersion;
-    }
-
-    private TagNetworkSerialization.NetworkPayload createPayload() {
-        Constructor<?> constructor = Arrays.stream(TagNetworkSerialization.NetworkPayload.class.getDeclaredConstructors()).findFirst().orElse(null);
-        if (constructor == null) return null;
-        constructor.setAccessible(true);
-        try {
-            return (TagNetworkSerialization.NetworkPayload) constructor.newInstance(tagRegistryMap);
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    private final Map<ResourceLocation, IntList> tagRegistryMap = createTagRegistryMap();
-
-    private static Map<ResourceLocation, IntList> createTagRegistryMap() {
-        return BuiltInRegistries.BLOCK.getTags().map(pair -> {
-            IntArrayList list = new IntArrayList(pair.getSecond().size());
-            if (pair.getFirst().location() == BlockTags.MINEABLE_WITH_AXE.location()) {
-                pair.getSecond().stream()
-                        .filter(block -> !block.value().getDescriptionId().endsWith("note_block"))
-                        .forEach(block -> list.add(BuiltInRegistries.BLOCK.getId(block.value())));
-            } else pair.getSecond().forEach(block -> list.add(BuiltInRegistries.BLOCK.getId(block.value())));
-
-            return Map.of(pair.getFirst().location(), list);
-        }).collect(HashMap::new, Map::putAll, Map::putAll);
     }
 
     @Override

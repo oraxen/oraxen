@@ -38,7 +38,6 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     public final List<String> toolTypes;
     public final boolean customSounds;
     public final boolean reimplementNoteblockFeatures;
-    private final boolean removeMineableTag;
     private boolean notifyOfDeprecation = true;
 
     public NoteBlockMechanicFactory(ConfigurationSection section) {
@@ -47,8 +46,9 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
 
         toolTypes = section.getStringList("tool_types");
         customSounds = OraxenPlugin.get().configsManager().getMechanics().getBoolean("custom_block_sounds.noteblock", true);
-        removeMineableTag = section.getBoolean("remove_mineable_tag", false);
         reimplementNoteblockFeatures = section.getBoolean("reimplement_noteblock_features", false);
+
+        if (VersionUtil.isPaperServer()) new NoteBlockDatapack().generateDatapack();
 
         MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(),
                 new NoteBlockMechanicListener(),
@@ -80,10 +80,6 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
 
     public static NoteBlockMechanicFactory get() {
         return instance;
-    }
-
-    public boolean removeMineableTag() {
-        return removeMineableTag;
     }
 
     private final LinkedHashMap<String, MultiVariant> variants = new LinkedHashMap<>();
@@ -214,6 +210,10 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
             variantBuilder.x(180);
 
         return MultiVariant.of(variantBuilder.build());
+    }
+
+    private void generateMineableDatapack() {
+
     }
 
 }
