@@ -42,6 +42,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.util.RayTraceResult;
 
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.rotationToYaw;
 
@@ -56,9 +57,17 @@ public class FurnitureListener implements Listener {
 
             @Override
             public boolean isTriggered(final Player player, final Block block, final ItemStack tool) {
-                FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
+                return isTriggeredFuture(player, block, tool).join();
+            }
 
-                return mechanic != null && mechanic.hasHardness();
+            private CompletableFuture<Boolean> isTriggeredFuture(final Player player, final Block block, final ItemStack tool) {
+                CompletableFuture<Boolean> future = new CompletableFuture<>();
+                Bukkit.getRegionScheduler().execute(OraxenPlugin.get(), block.getLocation(), () -> {
+                    FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
+
+                    future.complete(mechanic != null && mechanic.hasHardness());
+                });
+                return future;
             }
 
             @Override

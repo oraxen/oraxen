@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.api.events.stringblock.OraxenStringBlockInteractEvent;
 import io.th0rgal.oraxen.api.events.stringblock.OraxenStringBlockPlaceEvent;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
@@ -38,6 +39,7 @@ import org.bukkit.util.RayTraceResult;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
 
 public class StringBlockMechanicListener implements Listener {
 
@@ -376,11 +378,20 @@ public class StringBlockMechanicListener implements Listener {
 
             @Override
             public boolean isTriggered(final Player player, final Block block, final ItemStack tool) {
-                if (block.getType() != Material.TRIPWIRE){
-                    return false;
-                }
-                final StringBlockMechanic tripwireMechanic = OraxenBlocks.getStringMechanic(block);
-                return tripwireMechanic != null && tripwireMechanic.hasHardness();
+                return isTriggeredFuture(player, block, tool).join();
+            }
+
+            private CompletableFuture<Boolean> isTriggeredFuture(final Player player, final Block block, final ItemStack tool) {
+                CompletableFuture<Boolean> future = new CompletableFuture<>();
+                Bukkit.getRegionScheduler().execute(OraxenPlugin.get(), block.getLocation(), () -> {
+                    if (block.getType() != Material.TRIPWIRE){
+                        future.complete(false);
+                        return;
+                    }
+                    final StringBlockMechanic tripwireMechanic = OraxenBlocks.getStringMechanic(block);
+                    future.complete(tripwireMechanic != null && tripwireMechanic.hasHardness());
+                });
+                return future;
             }
 
             @Override
