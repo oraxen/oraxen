@@ -101,7 +101,7 @@ allprojects {
         compileOnly("nl.rutgerkok:blocklocker:1.10.4-SNAPSHOT")
         compileOnly("org.apache.commons:commons-lang3:$apacheLang3Version")
 
-        implementation("team.unnamed:creative-api:1.7.3")
+        implementation("team.unnamed:creative-api:1.7.3") { exclude("net.kyori") }
         implementation("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
         implementation("org.bstats:bstats-bukkit:3.0.0")
         implementation("io.th0rgal:protectionlib:1.6.0")
