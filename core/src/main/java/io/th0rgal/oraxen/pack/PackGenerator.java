@@ -42,13 +42,14 @@ import java.util.stream.Collectors;
 public class PackGenerator {
 
     public static Path externalPacks = OraxenPlugin.get().packPath().resolve("external_packs");
+    public static final MinecraftResourcePackReader reader = MinecraftResourcePackReader.builder().lenient(true).build();
+    public static final MinecraftResourcePackWriter writer = MinecraftResourcePackWriter.builder().prettyPrinting(true).build();
+
     private static final Path assetsFolder = OraxenPlugin.get().packPath().resolve("assets");
     @NotNull private ResourcePack resourcePack = ResourcePack.resourcePack();
     private BuiltResourcePack builtPack;
     private final CustomArmorDatapack customArmorDatapack;
     private final ModelGenerator modelGenerator;
-    private final MinecraftResourcePackReader reader = MinecraftResourcePackReader.minecraft();
-    private final MinecraftResourcePackWriter writer = MinecraftResourcePackWriter.minecraft();
 
     public PackGenerator() {
         generateDefaultPaths();

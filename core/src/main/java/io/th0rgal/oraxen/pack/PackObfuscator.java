@@ -20,8 +20,6 @@ import team.unnamed.creative.model.ItemOverride;
 import team.unnamed.creative.model.Model;
 import team.unnamed.creative.model.ModelTexture;
 import team.unnamed.creative.model.ModelTextures;
-import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackReader;
-import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackWriter;
 import team.unnamed.creative.sound.Sound;
 import team.unnamed.creative.sound.SoundEntry;
 import team.unnamed.creative.sound.SoundEvent;
@@ -64,7 +62,7 @@ public class PackObfuscator {
     public ResourcePack obfuscatePack() {
         if (obfuscationType.isNone()) return resourcePack;
 
-        String hash = MinecraftResourcePackWriter.minecraft().build(resourcePack).hash();
+        String hash = PackGenerator.writer.build(resourcePack).hash();
         this.obfCachedPack = OraxenPlugin.get().packPath().resolve(".deobfCachedPacks").resolve(hash).toFile();
         this.obfCachedPack.getParentFile().mkdirs();
         FileUtil.setHidden(obfCachedPack.toPath().getParent());
@@ -78,7 +76,7 @@ public class PackObfuscator {
 
             if (cache) {
                 obfCachedPack.mkdirs();
-                MinecraftResourcePackWriter.minecraft().writeToDirectory(obfCachedPack, resourcePack);
+                PackGenerator.writer.writeToDirectory(obfCachedPack, resourcePack);
                 Logs.logInfo("Caching obfuscated ResourcePack...");
             }
         }
@@ -102,7 +100,7 @@ public class PackObfuscator {
         if (!obfCachedPack.exists()) return true;
 
         // We want to use cached version, and it exists, so read it to pack
-        resourcePack = MinecraftResourcePackReader.minecraft().readFromDirectory(obfCachedPack);
+        resourcePack = PackGenerator.reader.readFromDirectory(obfCachedPack);
         return false;
     }
 

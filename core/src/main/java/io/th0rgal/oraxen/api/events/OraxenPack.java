@@ -1,13 +1,13 @@
 package io.th0rgal.oraxen.api.events;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.pack.PackGenerator;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import team.unnamed.creative.ResourcePack;
 import team.unnamed.creative.atlas.Atlas;
 import team.unnamed.creative.base.Writable;
 import team.unnamed.creative.metadata.pack.PackMeta;
-import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackReader;
 import team.unnamed.creative.sound.SoundEvent;
 import team.unnamed.creative.sound.SoundRegistry;
 
@@ -28,13 +28,13 @@ public class OraxenPack {
 
     public static void mergePackFromZip(@NotNull File zipFile) {
         if (!zipFile.exists()) return;
-        ResourcePack zipPack = MinecraftResourcePackReader.minecraft().readFromZipFile(zipFile);
+        ResourcePack zipPack = PackGenerator.reader.readFromZipFile(zipFile);
         mergePack(resourcePack(), zipPack);
     }
 
     public static void mergePackFromDirectory(@NotNull File directory) {
         if (!directory.exists() || !directory.isDirectory()) return;
-        ResourcePack zipPack = MinecraftResourcePackReader.minecraft().readFromDirectory(directory);
+        ResourcePack zipPack = PackGenerator.reader.readFromDirectory(directory);
         mergePack(resourcePack(), zipPack);
     }
 
