@@ -271,6 +271,8 @@ public class NoteBlockMechanicListener implements Listener {
 
     @EventHandler
     public void onEntityExplosion(EntityExplodeEvent event) {
+        ExplosionResult result = event.getExplosionResult();
+        if (result != ExplosionResult.DESTROY && result != ExplosionResult.DESTROY_WITH_DECAY) return;
         for (Block block : new HashSet<>(event.blockList())) {
             if (!OraxenBlocks.isOraxenNoteBlock(block)) continue;
             OraxenBlocks.remove(block.getLocation(), null);
@@ -280,6 +282,8 @@ public class NoteBlockMechanicListener implements Listener {
 
     @EventHandler
     public void onBlockExplosion(BlockExplodeEvent event) {
+        ExplosionResult result = event.getExplosionResult();
+        if (result != ExplosionResult.DESTROY && result != ExplosionResult.DESTROY_WITH_DECAY) return;
         for (Block block : new HashSet<>(event.blockList())) {
             if (!OraxenBlocks.isOraxenNoteBlock(block)) continue;
             OraxenBlocks.remove(block.getLocation(), null);
