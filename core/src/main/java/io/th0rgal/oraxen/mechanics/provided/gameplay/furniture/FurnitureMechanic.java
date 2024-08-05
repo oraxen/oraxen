@@ -9,7 +9,6 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.provided.blocklocker.BlockLockerMechanic;
-import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolvingFurniture;
@@ -423,7 +422,7 @@ public class FurnitureMechanic extends Mechanic {
                 if (light.hasLightLevel()) light.createBlockLight(block);
             }
         } else if (entity instanceof ItemDisplay itemDisplay) {
-            setItemDisplayData(itemDisplay, item, yaw, displayEntityProperties);
+            setItemDisplayData(itemDisplay, item, yaw, displayEntityProperties, facing);
             float width = hasHitbox() ? hitbox.width : displayEntityProperties.getDisplayWidth();
             float height = hasHitbox() ? hitbox.height : displayEntityProperties.getDisplayHeight();
             boolean isFixed = displayEntityProperties.getDisplayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
@@ -476,16 +475,14 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
-    private void setItemDisplayData(ItemDisplay itemDisplay, ItemStack item, Float yaw, DisplayEntityProperties properties) {
+    private void setItemDisplayData(ItemDisplay itemDisplay, ItemStack item, Float yaw, DisplayEntityProperties properties, BlockFace facing) {
         itemDisplay.setItemDisplayTransform(properties.getDisplayTransform());
         if (properties.hasSpecifiedViewRange()) itemDisplay.setViewRange(properties.getViewRange());
-        if (properties.hasInterpolationDuration())
-            itemDisplay.setInterpolationDuration(properties.getInterpolationDuration());
+        if (properties.hasInterpolationDuration()) itemDisplay.setInterpolationDuration(properties.getInterpolationDuration());
         if (properties.hasInterpolationDelay()) itemDisplay.setInterpolationDelay(properties.getInterpolationDelay());
         if (properties.hasTrackingRotation()) itemDisplay.setBillboard(properties.getTrackingRotation());
         if (properties.hasShadowRadius()) itemDisplay.setShadowRadius(properties.getShadowRadius());
         if (properties.hasShadowStrength()) itemDisplay.setShadowStrength(properties.getShadowStrength());
-        //if (properties.hasGlowColor()) itemDisplay.setGlowColorOverride(properties.getGlowColor());
         if (properties.hasBrightness()) itemDisplay.setBrightness(displayEntityProperties.getBrightness());
 
         itemDisplay.setDisplayWidth(properties.getDisplayWidth());
@@ -502,13 +499,13 @@ public class FurnitureMechanic extends Mechanic {
         // since FIXED is meant to mimic ItemFrames, we rotate it to match the ItemFrame's rotation
         // 1.20 Fixes this, will break for 1.19.4 but added disclaimer in console
         float pitch;
-        yaw = (VersionUtil.atOrAbove("1.20.1") && (!hasLimitedPlacing() || !limitedPlacing.isRoof() || !isFixed)) ? yaw : yaw - 180;
+        yaw = (VersionUtil.atOrAbove("1.20.1") && (hasLimitedPlacing() && isFixed && (limitedPlacing.isRoof() && !limitedPlacing.isWall()))) ? yaw - 180 : yaw;
         if (VersionUtil.atOrAbove("1.20.1")) {
-            if (hasLimitedPlacing() && isFixed)
-                if (limitedPlacing.isFloor()) pitch = -90;
-                else if (limitedPlacing.isRoof()) pitch = 90;
+            if (hasLimitedPlacing() && isFixed) {
+                if (limitedPlacing.isFloor() && facing == BlockFace.UP) pitch = -90;
+                else if (limitedPlacing.isRoof() && facing == BlockFace.DOWN) pitch = 90;
                 else pitch = 0;
-            else pitch = 0;
+            } else pitch = 0;
         }
         else pitch = isFixed && hasLimitedPlacing() ? limitedPlacing.isFloor() ? 90 : limitedPlacing.isWall() ? 0 : limitedPlacing.isRoof() ? -90 : 0 : 0;
 
