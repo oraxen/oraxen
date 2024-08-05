@@ -106,6 +106,8 @@ Pack:
      \nplugin and any complete or partial
      \nuse must comply with the terms and
      \nconditions of Oraxen."
+    merge-other-resource-pack:
+      - ModelEngine/resource pack
 
   import:
     # Merges duplicate font files, most often default.json into the final pack.

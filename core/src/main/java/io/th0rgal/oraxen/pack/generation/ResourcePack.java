@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.pack.generation;
 
 import com.comphenix.protocol.ProtocolLibrary;
 import com.google.gson.*;
+import gs.mclo.java.Log;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.api.events.OraxenPackGeneratedEvent;
@@ -54,8 +55,44 @@ public class ResourcePack {
         outputFiles = new HashMap<>();
     }
 
+    private static void search(int length, Set<VirtualFile> list, File file) {
+        if (file.isDirectory()) {
+            File[] array = file.listFiles();
+            if (array != null) for (File file1 : array) {
+                search(length, list, file1);
+            }
+        } else {
+            VirtualFile virtualFile = VirtualFile.of(file.getParent().substring(length), file);
+            if (virtualFile != null && !list.add(virtualFile)) close(virtualFile);
+        }
+    }
+    private static void close(VirtualFile file) {
+        try {
+            file.getInputStream().close();
+        } catch (Exception e) {
+            Logs.logWarning("Unable to close this file: " + file.getPath());
+        } finally {
+            Logs.logWarning("Duplicated file skipped: " + file.getPath());
+        }
+    }
+
     public void generate() {
         outputFiles.clear();
+
+        Set<VirtualFile> fileSet = new HashSet<>();
+        for (String s : OraxenPlugin.get().getConfigsManager().getSettings().getStringList("Pack.generation.merge-other-resource-pack")) {
+            File pluginFolder = OraxenPlugin.get().getDataFolder().getParentFile();
+            File targetFile = new File(pluginFolder, s.replace("/", File.separator));
+            if (targetFile.exists() && targetFile.isDirectory()) {
+                search(targetFile.getPath().length() + 1, fileSet, targetFile);
+            } else Logs.logWarning("This file is not a directory: " + targetFile.getPath());
+        }
+        for (VirtualFile virtualFile : fileSet) {
+            if (outputFiles.putIfAbsent(virtualFile.getPath(), virtualFile) != null) {
+                close(virtualFile);
+                Logs.logWarning("Duplicated file skipped");
+            }
+        }
 
         makeDirsIfNotExists(packFolder, new File(packFolder, "assets"));
 
