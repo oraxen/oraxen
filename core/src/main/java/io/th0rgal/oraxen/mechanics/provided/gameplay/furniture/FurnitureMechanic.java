@@ -503,12 +503,15 @@ public class FurnitureMechanic extends Mechanic {
         // since FIXED is meant to mimic ItemFrames, we rotate it to match the ItemFrame's rotation
         // 1.20 Fixes this, will break for 1.19.4 but added disclaimer in console
         float pitch;
-        yaw = (VersionUtil.atOrAbove("1.20.1") && (hasLimitedPlacing() && isFixed && (limitedPlacing.isRoof() && !limitedPlacing.isWall()))) ? yaw - 180 : yaw;
         if (VersionUtil.atOrAbove("1.20.1")) {
             if (hasLimitedPlacing() && isFixed) {
                 if (limitedPlacing.isFloor() && facing == BlockFace.UP) pitch = -90;
                 else if (limitedPlacing.isRoof() && facing == BlockFace.DOWN) pitch = 90;
                 else pitch = 0;
+
+                if (limitedPlacing.isRoof() && facing == BlockFace.DOWN)
+                    yaw -= 180;
+                else if (limitedPlacing.isWall() && facing.getModY() == 0) yaw = 90f * facing.ordinal() - 180;
             } else pitch = 0;
         }
         else pitch = isFixed && hasLimitedPlacing() ? limitedPlacing.isFloor() ? 90 : limitedPlacing.isWall() ? 0 : limitedPlacing.isRoof() ? -90 : 0 : 0;
