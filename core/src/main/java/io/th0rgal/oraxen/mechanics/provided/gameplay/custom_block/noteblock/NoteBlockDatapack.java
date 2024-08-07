@@ -4,12 +4,14 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
+import io.papermc.paper.registry.RegistryAccess;
 import io.papermc.paper.registry.RegistryKey;
 import io.papermc.paper.registry.tag.TagKey;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import net.kyori.adventure.key.Key;
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
-import org.bukkit.Registry;
+import org.bukkit.Tag;
 import org.bukkit.World;
 
 import java.io.File;
@@ -57,7 +59,10 @@ public class NoteBlockDatapack {
             JsonObject tagObject = content.isEmpty() ? new JsonObject() : JsonParser.parseString(content).getAsJsonObject();
             JsonArray tagArray = Optional.ofNullable(tagObject.getAsJsonArray("values")).orElseGet(() -> {
                 JsonArray jsonArray = new JsonArray();
-                Registry.BLOCK.getTag(TagKey.create(RegistryKey.BLOCK, Key.key("minecraft:mineable/axe"))).values().forEach(t -> jsonArray.add(t.key().asString()));
+                if (VersionUtil.atOrAbove("1.20.5")) {
+                    RegistryAccess.registryAccess().getRegistry(RegistryKey.BLOCK).getTag(TagKey.create(RegistryKey.BLOCK, Key.key("minecraft:mineable/axe")))
+                            .values().forEach(t -> jsonArray.add(t.key().asString()));
+                } else Tag.MINEABLE_AXE.getValues().forEach(m -> jsonArray.add(m.key().asString()));
                 return jsonArray;
             });
 
