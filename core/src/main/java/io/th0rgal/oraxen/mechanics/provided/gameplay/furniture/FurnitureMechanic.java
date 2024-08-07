@@ -392,9 +392,13 @@ public class FurnitureMechanic extends Mechanic {
         if (displayEntityProperties.getDisplayTransform() != ItemDisplay.ItemDisplayTransform.NONE && !isWall && !isRoof) return correctedLocation;
         float scale = displayEntityProperties.hasScale() ? displayEntityProperties.getScale().y() : 1;
         // Since roof-furniture need to be more or less flipped, we have to add 0.5 (0.49 or it is "inside" the block above) to the Y coordinate
-        if (isFixed && isWall) correctedLocation.add(-facing.getModX() * (0.49 * scale), 0, -facing.getModZ() * (0.49 * scale));
-        float heightCorrection = (hasHitbox() ? hitbox.height : 1) - 1;
-        return correctedLocation.add(0, (0.5 * scale) + (isRoof ? isFixed ? 0.49 : -1 * heightCorrection : 0), 0);
+        if (isFixed && isWall && facing.getModY() == 0) correctedLocation.add(-facing.getModX() * (0.49 * scale), 0, -facing.getModZ() * (0.49 * scale));
+
+        float hitboxOffset = (hasHitbox() ? hitbox.height : 1) - 1;
+        double yCorrection = (facing != BlockFace.UP ? (0.5 * scale) : 0);
+        yCorrection += ((isRoof && facing == BlockFace.DOWN) ? isFixed ? 0.49 : -1 * hitboxOffset : 0);
+
+        return correctedLocation.add(0,  yCorrection, 0);
     }
 
     public void setEntityData(Entity entity, float yaw, BlockFace facing) {
