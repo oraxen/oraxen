@@ -121,6 +121,7 @@ public class ItemUpdater implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onUseConvertedTo(PlayerItemConsumeEvent event) {
         ItemStack itemStack = event.getItem();
+        if (!VersionUtil.atOrAbove("1.21")) return;
         if (!itemStack.hasItemMeta() || !itemStack.getItemMeta().hasFood()) return;
         ItemStack usingConvertsTo = itemStack.getItemMeta().getFood().getUsingConvertsTo();
         if (usingConvertsTo == null || !itemStack.isSimilar(ItemUpdater.updateItem(usingConvertsTo))) return;
