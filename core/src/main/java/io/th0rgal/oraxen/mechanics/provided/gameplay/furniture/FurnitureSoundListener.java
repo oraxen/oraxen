@@ -1,5 +1,8 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
+import fr.euphyllia.energie.model.SchedulerTaskInter;
+import fr.euphyllia.energie.model.SchedulerType;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
@@ -24,7 +27,6 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.world.GenericGameEvent;
 import org.bukkit.event.world.WorldUnloadEvent;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,11 +36,11 @@ import static io.th0rgal.oraxen.utils.blocksounds.BlockSounds.*;
 
 public class FurnitureSoundListener implements Listener {
 
-    private final Map<Location, BukkitTask> breakerPlaySound = new HashMap<>();
+    private final Map<Location, SchedulerTaskInter> breakerPlaySound = new HashMap<>();
 
     @EventHandler
     public void onWorldUnload(WorldUnloadEvent event) {
-        for (Map.Entry<Location, BukkitTask> entry : breakerPlaySound.entrySet()) {
+        for (Map.Entry<Location, SchedulerTaskInter> entry : breakerPlaySound.entrySet()) {
             if (entry.getKey().isWorldLoaded() || entry.getValue().isCancelled()) continue;
             entry.getValue().cancel();
             breakerPlaySound.remove(entry.getKey());
@@ -85,8 +87,9 @@ public class FurnitureSoundListener implements Listener {
         if (block.getType() == Material.BARRIER || soundGroup.getHitSound() != Sound.BLOCK_STONE_HIT) return;
         if (breakerPlaySound.containsKey(location)) return;
 
-        BukkitTask task = Bukkit.getScheduler().runTaskTimer(OraxenPlugin.get(), () ->
-                BlockHelpers.playCustomBlockSound(location, VANILLA_STONE_HIT, VANILLA_HIT_VOLUME, VANILLA_HIT_PITCH), 2L, 4L);
+        SchedulerTaskInter task = OraxenPlugin.getScheduler().runAtFixedRate(SchedulerType.SYNC, location, taskInter -> {
+            BlockHelpers.playCustomBlockSound(location, VANILLA_STONE_HIT, VANILLA_HIT_VOLUME, VANILLA_HIT_PITCH);
+            }, 2L, 4L);
         breakerPlaySound.put(location, task);
     }
 

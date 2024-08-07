@@ -96,10 +96,17 @@ public class FurnitureMechanic extends Mechanic {
     public enum FurnitureType {
         ITEM_FRAME, GLOW_ITEM_FRAME, DISPLAY_ENTITY;//, ARMOR_STAND;
 
+        private static final List<Class<? extends Entity>> furnitureEntityClassWithoutDisplay = List.of(ItemFrame.class, GlowItemFrame.class, ArmorStand.class);
+        private static final List<Class<? extends Entity>> furnitureEntityClassWithDisplay = List.of(ItemFrame.class, GlowItemFrame.class, ArmorStand.class, ItemDisplay.class);
+
+        private static final List<EntityType> furnitureEntityWithoutDisplay = List.of(EntityType.ITEM_FRAME, EntityType.GLOW_ITEM_FRAME, EntityType.ARMOR_STAND);
+        private static final List<EntityType> furnitureEntityWithDisplay = List.of(EntityType.ITEM_FRAME, EntityType.GLOW_ITEM_FRAME, EntityType.ARMOR_STAND, EntityType.ITEM_DISPLAY);
         public static List<Class<? extends Entity>> furnitureEntityClasses() {
-            List<Class<? extends Entity>> list = new ArrayList<>(List.of(ItemFrame.class, GlowItemFrame.class, ArmorStand.class));
-            if (OraxenPlugin.supportsDisplayEntities) list.add(ItemDisplay.class);
-            return list;
+            return OraxenPlugin.supportsDisplayEntities ? furnitureEntityClassWithDisplay : furnitureEntityClassWithoutDisplay;
+        }
+
+        public static List<EntityType> furnitureEntity() {
+            return OraxenPlugin.supportsDisplayEntities ? furnitureEntityWithDisplay : furnitureEntityWithoutDisplay;
         }
 
         public static FurnitureType getType(String type) {

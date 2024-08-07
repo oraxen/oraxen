@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock;
 
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
+import fr.euphyllia.energie.model.SchedulerType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenItems;
@@ -37,6 +38,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.RayTraceResult;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 import static io.th0rgal.oraxen.utils.BlockHelpers.isLoaded;
 
@@ -111,7 +113,7 @@ public class NoteBlockMechanicListener implements Listener {
             if (event.getEvent() != GameEvent.NOTE_BLOCK_PLAY) return;
             if (block.getType() != Material.NOTE_BLOCK) return;
             NoteBlock data = (NoteBlock) block.getBlockData().clone();
-            Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> block.setBlockData(data, false), 1L);
+            OraxenPlugin.getScheduler().runDelayed(SchedulerType.SYNC, eLoc, taskInter -> block.setBlockData(data, false), 1L);
         }
 
         public void updateAndCheck(Block block) {
@@ -395,12 +397,13 @@ public class NoteBlockMechanicListener implements Listener {
 
             @Override
             public boolean isTriggered(final Player player, final Block block, final ItemStack tool) {
-                if (block.getType() != Material.NOTE_BLOCK)
+                if (block.getType() != Material.NOTE_BLOCK) {
                     return false;
-
+                }
                 NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
-                if (mechanic == null) return false;
-
+                if (mechanic == null) {
+                    return false;
+                }
                 if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
                     mechanic = mechanic.getDirectional().getParentMechanic();
 

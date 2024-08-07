@@ -42,6 +42,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.util.RayTraceResult;
 
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.rotationToYaw;
 

@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock;
 
+import fr.euphyllia.energie.model.SchedulerType;
 import io.papermc.paper.event.entity.EntityInsideBlockEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
@@ -7,6 +8,7 @@ import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.api.events.stringblock.OraxenStringBlockInteractEvent;
 import io.th0rgal.oraxen.api.events.stringblock.OraxenStringBlockPlaceEvent;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
@@ -37,6 +39,7 @@ import org.bukkit.util.RayTraceResult;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
 
 public class StringBlockMechanicListener implements Listener {
 
@@ -67,13 +70,13 @@ public class StringBlockMechanicListener implements Listener {
                 if (changed.getType() != Material.TRIPWIRE) continue;
 
                 final BlockData data = changed.getBlockData().clone();
-                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
+                OraxenPlugin.getScheduler().runDelayed(SchedulerType.SYNC, changed.getLocation(), Runnable ->
                         changed.setBlockData(data, false), 1L);
             }
 
             // Stores the pre-change blockdata and applies it on next tick to prevent the block from updating
             final BlockData blockData = block.getBlockData().clone();
-            Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable -> {
+            OraxenPlugin.getScheduler().runDelayed(SchedulerType.SYNC, block.getLocation(), Runnable -> {
                 if (block.getType().isAir()) return;
                 block.setBlockData(blockData, false);
             }, 1L);
@@ -109,8 +112,9 @@ public class StringBlockMechanicListener implements Listener {
                     if (player.getGameMode() != GameMode.CREATIVE) block.breakNaturally(player.getInventory().getItemInMainHand(), true);
                     else block.setType(Material.AIR);
                     if (BlockHelpers.isReplaceable(blockAbove.getType())) blockAbove.breakNaturally(true);
-                    Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
-                            fixClientsideUpdate(block.getLocation()), 1);
+                    final Location blockLocation = block.getLocation();
+                    OraxenPlugin.getScheduler().runDelayed(SchedulerType.SYNC, blockLocation, Runnable ->
+                            fixClientsideUpdate(blockLocation), 1);
                 }
             }
         }
@@ -208,7 +212,7 @@ public class StringBlockMechanicListener implements Listener {
                 if (item.getType().toString().endsWith("SLAB")) continue;
 
                 makePlayerPlaceBlock(player, event.getHand(), item, placedAgainst, event.getBlockFace(), Bukkit.createBlockData(item.getType()));
-                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
+                OraxenPlugin.getScheduler().runDelayed(SchedulerType.SYNC, placedAgainst.getLocation(), Runnable ->
                         fixClientsideUpdate(placedAgainst.getLocation()), 1L);
             }
         }
@@ -374,8 +378,9 @@ public class StringBlockMechanicListener implements Listener {
 
             @Override
             public boolean isTriggered(final Player player, final Block block, final ItemStack tool) {
-                if (block.getType() != Material.TRIPWIRE)
+                if (block.getType() != Material.TRIPWIRE){
                     return false;
+                }
                 final StringBlockMechanic tripwireMechanic = OraxenBlocks.getStringMechanic(block);
                 return tripwireMechanic != null && tripwireMechanic.hasHardness();
             }
@@ -467,7 +472,9 @@ public class StringBlockMechanicListener implements Listener {
                     if (loc.getBlock().getType() == Material.TRIPWIRE) {
                         Location newLoc = new Location(loc.getWorld(), x, y, z);
                         for (Entity e : players) {
-                            ((Player) e).sendBlockChange(newLoc, newLoc.getBlock().getBlockData());
+                            OraxenPlugin.getScheduler().runTask(SchedulerType.SYNC, e, schedulerTaskInter -> {
+                                ((Player) e).sendBlockChange(newLoc, newLoc.getBlock().getBlockData());
+                            }, null);
                         }
                     }
                 }

@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.items;
 
 import com.jeff_media.morepersistentdatatypes.DataType;
 import com.jeff_media.persistentdataserializer.PersistentDataSerializer;
+import fr.euphyllia.energie.model.SchedulerType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Settings;
@@ -127,7 +128,7 @@ public class ItemUpdater implements Listener {
 
         PlayerInventory inventory = event.getPlayer().getInventory();
         if (inventory.firstEmpty() == -1) event.setItem(event.getItem().add(usingConvertsTo.getAmount()));
-        else Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> {
+        else OraxenPlugin.getScheduler().runTask(SchedulerType.SYNC, event.getPlayer(), (task) -> {
             for (int i = 0; i < inventory.getSize(); i++) {
                 ItemStack oldItem = inventory.getItem(i);
                 ItemStack newItem = ItemUpdater.updateItem(oldItem);
@@ -137,7 +138,7 @@ public class ItemUpdater implements Listener {
                 inventory.setItem(i, null);
                 inventory.addItem(newItem);
             }
-        });
+        }, null);
     }
 
     private static final NamespacedKey IF_UUID = Objects.requireNonNull(NamespacedKey.fromString("oraxen:if-uuid"));

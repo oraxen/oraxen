@@ -1,6 +1,8 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock;
 
 import com.google.gson.JsonObject;
+import fr.euphyllia.energie.model.SchedulerTaskInter;
+import fr.euphyllia.energie.model.SchedulerType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.mechanics.Mechanic;
@@ -264,7 +266,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
 //        if (farmblockList.isEmpty()) return;
 
         farmBlockTask = new FarmBlockTask(farmBlockCheckDelay);
-        BukkitTask task = farmBlockTask.runTaskTimer(OraxenPlugin.get(), 0, farmBlockCheckDelay);
+        SchedulerTaskInter task = farmBlockTask.runAtFixedRate(OraxenPlugin.get(),  SchedulerType.SYNC, 0, farmBlockCheckDelay);
         MechanicsManager.registerTask(getMechanicID(), task);
         farmBlock = true;
     }

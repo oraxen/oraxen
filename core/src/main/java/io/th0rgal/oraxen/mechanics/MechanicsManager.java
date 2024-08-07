@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.mechanics;
 
+import fr.euphyllia.energie.model.SchedulerTaskInter;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.events.OraxenNativeMechanicsRegisteredEvent;
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
@@ -100,9 +101,8 @@ public class MechanicsManager {
         if (CompatibilitiesManager.hasPlugin("ProtocolLib"))
             registerFactory("bedrockbreak", BedrockBreakMechanicFactory::new);
 
-        Bukkit.getScheduler().callSyncMethod(OraxenPlugin.get(), () -> {
+        OraxenPlugin.getScheduler().callSyncMethod(task -> {
             Bukkit.getPluginManager().callEvent(new OraxenNativeMechanicsRegisteredEvent());
-            return null;
         });
     }
 
@@ -150,7 +150,7 @@ public class MechanicsManager {
         }
     }
 
-    public static void registerTask(String mechanicId, BukkitTask task) {
+    public static void registerTask(String mechanicId, SchedulerTaskInter task) {
         MECHANIC_TASKS.compute(mechanicId, (key, value) -> {
             if (value == null) value = new ArrayList<>();
             value.add(task.getTaskId());
@@ -159,13 +159,13 @@ public class MechanicsManager {
     }
 
     public static void unregisterTasks() {
-        MECHANIC_TASKS.values().forEach(tasks -> tasks.forEach(Bukkit.getScheduler()::cancelTask));
+        MECHANIC_TASKS.values().forEach(tasks -> tasks.forEach(OraxenPlugin.getScheduler()::cancelTask));
         MECHANIC_TASKS.clear();
     }
 
     public static void unregisterTasks(String mechanicId) {
         MECHANIC_TASKS.computeIfPresent(mechanicId, (key, value) -> {
-            value.forEach(Bukkit.getScheduler()::cancelTask);
+            value.forEach(OraxenPlugin.getScheduler()::cancelTask);
             return Collections.emptyList();
         });
     }
