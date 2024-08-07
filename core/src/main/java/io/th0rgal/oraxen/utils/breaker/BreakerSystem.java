@@ -67,12 +67,12 @@ public class BreakerSystem {
             final StructureModifier<EnumWrappers.Direction> dataDirection = packet.getDirections();
             final StructureModifier<EnumWrappers.PlayerDigType> data = packet
                     .getEnumModifier(EnumWrappers.PlayerDigType.class, 2);
-            EnumWrappers.PlayerDigType type;
+            EnumWrappers.PlayerDigType tempType;
             try {
-                type = data.getValues().getFirst();
+                tempType = data.getValues().getFirst();
             } catch (IllegalArgumentException exception) {
-                type = EnumWrappers.PlayerDigType.SWAP_HELD_ITEMS;
-            }
+                tempType = EnumWrappers.PlayerDigType.SWAP_HELD_ITEMS;
+            } final EnumWrappers.PlayerDigType type = tempType;
 
             final BlockPosition pos = dataTemp.getValues().getFirst();
             final World world = player.getWorld();
@@ -80,7 +80,7 @@ public class BreakerSystem {
             final Location location = block.getLocation();
             final BlockFace blockFace = dataDirection.size() > 0 ?
                     BlockFace.valueOf(dataDirection.read(0).name()) :
-                    BlockFace.UP;
+                    BlockFace.UP; Bukkit.getRegionScheduler().execute(OraxenPlugin.get(), location, () -> {
 
             HardnessModifier triggeredModifier = null;
             for (final HardnessModifier modifier : MODIFIERS) {
@@ -198,7 +198,7 @@ public class BreakerSystem {
                     stopBlockBreaker(location);
                     stopBlockHitSound(location);
                 }, null);
-            }
+            }});
         }
     };
 

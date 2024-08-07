@@ -378,20 +378,11 @@ public class StringBlockMechanicListener implements Listener {
 
             @Override
             public boolean isTriggered(final Player player, final Block block, final ItemStack tool) {
-                return isTriggeredFuture(player, block, tool).join();
-            }
-
-            private CompletableFuture<Boolean> isTriggeredFuture(final Player player, final Block block, final ItemStack tool) {
-                CompletableFuture<Boolean> future = new CompletableFuture<>();
-                Bukkit.getRegionScheduler().execute(OraxenPlugin.get(), block.getLocation(), () -> {
-                    if (block.getType() != Material.TRIPWIRE){
-                        future.complete(false);
-                        return;
-                    }
-                    final StringBlockMechanic tripwireMechanic = OraxenBlocks.getStringMechanic(block);
-                    future.complete(tripwireMechanic != null && tripwireMechanic.hasHardness());
-                });
-                return future;
+                if (block.getType() != Material.TRIPWIRE){
+                    return false;
+                }
+                final StringBlockMechanic tripwireMechanic = OraxenBlocks.getStringMechanic(block);
+                return tripwireMechanic != null && tripwireMechanic.hasHardness();
             }
 
             @Override

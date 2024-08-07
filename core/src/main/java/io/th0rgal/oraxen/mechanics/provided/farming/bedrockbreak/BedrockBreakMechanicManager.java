@@ -1,17 +1,12 @@
 package io.th0rgal.oraxen.mechanics.provided.farming.bedrockbreak;
 
-import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenItems;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-
-import java.util.concurrent.CompletableFuture;
 
 public class BedrockBreakMechanicManager {
 
@@ -20,21 +15,12 @@ public class BedrockBreakMechanicManager {
 
             @Override
             public boolean isTriggered(Player player, Block block, ItemStack tool) {
-                return isTriggeredFuture(player, block, tool).join();
-            }
+                if (block.getType() != Material.BEDROCK) {
+                    return false;
+                }
 
-            private CompletableFuture<Boolean> isTriggeredFuture(final Player player, final Block block, final ItemStack tool) {
-                CompletableFuture<Boolean> future = new CompletableFuture<>();
-                Bukkit.getRegionScheduler().execute(OraxenPlugin.get(), block.getLocation(), () -> {
-                    if (block.getType() != Material.BEDROCK) {
-                        future.complete(false);
-                        return;
-                    }
-
-                    String itemID = OraxenItems.getIdByItem(tool);
-                    future.complete(factory.isNotImplementedIn(itemID) && (!factory.isDisabledOnFirstLayer() || block.getY() != 0));
-                });
-                return future;
+                String itemID = OraxenItems.getIdByItem(tool);
+                return factory.isNotImplementedIn(itemID) && (!factory.isDisabledOnFirstLayer() || block.getY() != 0);
             }
 
             @Override
