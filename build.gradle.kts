@@ -10,7 +10,7 @@ plugins {
     id("xyz.jpenilla.run-paper") version "2.2.4"
     id("net.minecrell.plugin-yml.bukkit") version "0.6.0" // Generates plugin.yml
     id("io.papermc.paperweight.userdev") version "1.7.1" apply false
-    id("io.github.goooler.shadow") version "8.1.7"
+    id("io.github.goooler.shadow") version "8.1.8"
     alias(libs.plugins.mia.publication)
 }
 

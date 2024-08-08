@@ -8,9 +8,9 @@ import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 public class VirtualFile implements Comparable<VirtualFile> {
 
@@ -27,6 +27,14 @@ public class VirtualFile implements Comparable<VirtualFile> {
                 : parentFolder;
         this.name = name;
         this.inputStream = inputStream;
+    }
+
+    public static VirtualFile of(String parent, File file) {
+        try {
+            return new VirtualFile(parent, file.getName(), new BufferedInputStream(new FileInputStream(file)));
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public InputStream getInputStream() {
@@ -49,6 +57,19 @@ public class VirtualFile implements Comparable<VirtualFile> {
                 ? newParent.replace("\\", "/")
                 : newParent;
         this.name = newPath.substring(newPath.lastIndexOf("/") + 1);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        VirtualFile that = (VirtualFile) o;
+        return Objects.equals(getPath(), that.getPath());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(getPath());
     }
 
     @Override
