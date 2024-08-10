@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.durability;
 
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.utils.InventoryUtils;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -22,14 +23,14 @@ public class DurabilityMechanicManager implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onItemDamaged(PlayerItemDamageEvent event) {
         DurabilityMechanic mechanic = factory.getMechanic(event.getItem());
-        if (mechanic == null || !mechanic.changeDurability(event.getItem(), -event.getDamage())) return;
+        if (mechanic == null || !mechanic.changeDurability(event.getPlayer(), event.getItem(), -event.getDamage())) return;
         event.setDamage(0);
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onItemMend(PlayerItemMendEvent event) {
         DurabilityMechanic mechanic = factory.getMechanic(OraxenItems.getIdByItem(event.getItem()));
-        if (mechanic == null || !mechanic.changeDurability(event.getItem(), event.getRepairAmount())) return;
+        if (mechanic == null || !mechanic.changeDurability(event.getPlayer(), event.getItem(), event.getRepairAmount())) return;
         event.setRepairAmount(0);
     }
 
@@ -55,7 +56,7 @@ public class DurabilityMechanicManager implements Listener {
 
         DurabilityMechanic resultMechanic = factory.getMechanic(OraxenItems.getIdByItem(resultItem));
         if (resultMechanic == null) return;
-        resultMechanic.changeDurability(resultItem, repairAmount);
+        resultMechanic.changeDurability(InventoryUtils.playerFromView(event), resultItem, repairAmount);
         event.setResult(resultItem);
     }
 }

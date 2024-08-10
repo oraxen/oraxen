@@ -3,13 +3,17 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.durability;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.ItemUtils;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerItemBreakEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -38,7 +42,7 @@ public class DurabilityMechanic extends Mechanic {
         return damageable.getPersistentDataContainer().getOrDefault(DURABILITY_KEY, PersistentDataType.INTEGER, 0);
     }
 
-    public boolean changeDurability(ItemStack item, int amount) {
+    public boolean changeDurability(@NotNull Player player, ItemStack item, int amount) {
         DurabilityMechanic durabilityMechanic = this;
         AtomicBoolean check = new AtomicBoolean(false);
 
@@ -59,13 +63,16 @@ public class DurabilityMechanic extends Mechanic {
                                 (int) (realMaxDurab - (((double) damageable.getDamage() / (double) baseMaxDurab) * realMaxDurab)));
                         item.setItemMeta(itemMeta);
                         // Call function again to have itemmeta stick and run below part aswell
-                        changeDurability(item, amount);
+                        changeDurability(player, item, amount);
                     } else {
                         realDurabRemain = realDurabRemain + amount;
                         if (realDurabRemain > 0) {
                             pdc.set(DURABILITY_KEY, PersistentDataType.INTEGER, realDurabRemain);
                             (damageable).setDamage((int) ((double) baseMaxDurab - (((double) realDurabRemain / realMaxDurab) * (double) baseMaxDurab)));
-                        } else item.setAmount(0);
+                        } else {
+                            EventUtils.callEvent(new PlayerItemBreakEvent(player, item));
+                            item.setAmount(0);
+                        }
                     }
                 }
             }
