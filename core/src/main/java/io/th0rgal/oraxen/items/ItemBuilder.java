@@ -304,6 +304,11 @@ public class ItemBuilder {
         return this;
     }
 
+    @Nullable
+    public Integer getDurability() {
+        return durability;
+    }
+
     public ItemBuilder setDurability(@Nullable Integer durability) {
         this.durability = durability;
         return this;

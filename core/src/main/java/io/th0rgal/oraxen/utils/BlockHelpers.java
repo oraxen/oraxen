@@ -61,7 +61,7 @@ public class BlockHelpers {
 
     public static String validateReplacedSounds(String sound) {
         ConfigurationSection mechanics = OraxenPlugin.get().configsManager().getMechanics().getConfigurationSection("custom_block_sounds");
-        if (mechanics == null) return sound;
+        if (sound == null || mechanics == null) return sound;
 
         sound = sound.replace("minecraft:", "");
         if (sound.startsWith("block.wood") && mechanics.getBoolean("noteblock")) {

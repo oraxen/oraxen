@@ -30,7 +30,7 @@ val devPluginPath = project.findProperty("oraxen_dev_plugin_path")?.toString()
 val foliaPluginPath = project.findProperty("oraxen_folia_plugin_path")?.toString()
 val spigotPluginPath = project.findProperty("oraxen_spigot_plugin_path")?.toString()
 val pluginVersion: String by project
-val commandApiVersion = "9.5.1"
+val commandApiVersion = "9.5.3"
 val adventureVersion = "4.17.0"
 val platformVersion = "4.3.3"
 val googleGsonVersion = "2.10.1"
@@ -97,8 +97,8 @@ allprojects {
         compileOnly(files("../libs/AxiomPaper-1.5.12.jar"))
         compileOnly("team.unnamed:creative-server:$creativeVersion")
 
-        implementation("team.unnamed:creative-api:$creativeVersion")
-        implementation("team.unnamed:creative-serializer-minecraft:$creativeVersion")
+        implementation("team.unnamed:creative-api:$creativeVersion") { exclude("net.kyori") }
+        implementation("team.unnamed:creative-serializer-minecraft:$creativeVersion") { exclude("net.kyori") }
         implementation("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
         implementation("org.bstats:bstats-bukkit:3.0.0")
         implementation("io.th0rgal:protectionlib:1.6.0")

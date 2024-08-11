@@ -265,6 +265,16 @@ public class FurnitureMechanic extends Mechanic {
         if (isFixed && isWall)
             correctedLocation.add(-facing.getModX() * (0.49 * scale), 0, -facing.getModZ() * (0.49 * scale));
         return correctedLocation.add(0, (0.5 * scale) + (isRoof ? isFixed ? 0.49 : -1 : 0), 0);
+        //TODO fix this
+        /*
+        if (isFixed && isWall && facing.getModY() == 0) correctedLocation.add(-facing.getModX() * (0.49 * scale), 0, -facing.getModZ() * (0.49 * scale));
+
+        float hitboxOffset = (hasHitbox() ? hitbox.height : 1) - 1;
+        double yCorrection = (facing != BlockFace.UP ? (0.5 * scale) : 0);
+        yCorrection += ((isRoof && facing == BlockFace.DOWN) ? isFixed ? 0.49 : -1 * hitboxOffset : 0);
+
+        return correctedLocation.add(0,  yCorrection, 0);
+         */
     }
 
     public void setBaseFurnitureData(@NotNull ItemDisplay baseEntity, float yaw) {

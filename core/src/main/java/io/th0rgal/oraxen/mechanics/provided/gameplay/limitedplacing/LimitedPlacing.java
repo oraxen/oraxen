@@ -131,7 +131,9 @@ public class LimitedPlacing {
         ALLOW, DENY
     }
 
-    public boolean isFloor() { return floor; }
+    public boolean isFloor() {
+        return floor;
+    }
     public boolean isRoof() {
         return roof;
     }
