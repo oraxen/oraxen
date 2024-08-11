@@ -35,7 +35,7 @@ val devPluginPath = project.findProperty("oraxen_dev_plugin_path")?.toString()
 val foliaPluginPath = project.findProperty("oraxen_folia_plugin_path")?.toString()
 val spigotPluginPath = project.findProperty("oraxen_spigot_plugin_path")?.toString()
 val pluginVersion: String by project
-val commandApiVersion = "9.5.1"
+val commandApiVersion = "9.5.3"
 val adventureVersion = "4.17.0"
 val platformVersion = "4.3.3"
 val googleGsonVersion = "2.10.1"
@@ -101,6 +101,7 @@ allprojects {
         compileOnly("nl.rutgerkok:blocklocker:1.10.4-SNAPSHOT")
         compileOnly("org.apache.commons:commons-lang3:$apacheLang3Version")
 
+        implementation("team.unnamed:creative-api:1.7.3") { exclude("net.kyori") }
         implementation("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
         implementation("org.bstats:bstats-bukkit:3.0.0")
         implementation("io.th0rgal:protectionlib:1.6.0")
@@ -110,7 +111,6 @@ allprojects {
         implementation("com.jeff-media:persistent-data-serializer:1.0")
         implementation("org.jetbrains:annotations:24.1.0") { isTransitive = false }
         implementation("dev.triumphteam:triumph-gui:3.1.10") { exclude("net.kyori") }
-        implementation("com.ticxo:PlayerAnimator:R1.2.8") { isChanging = true }
 
         implementation("me.gabytm.util:actions-spigot:$actionsVersion") { exclude(group = "com.google.guava") }
     }
@@ -215,8 +215,6 @@ bukkit {
         "net.kyori:adventure-platform-bukkit:$platformVersion",
         "com.google.code.gson:gson:$googleGsonVersion",
         "org.apache.commons:commons-lang3:$apacheLang3Version",
-        "team.unnamed:creative-api:1.7.3",
-        "team.unnamed:creative-serializer-minecraft:1.7.3",
         "gs.mclo:java:2.2.1",
     )
 }

@@ -63,11 +63,6 @@ CustomBlocks:
   block_correction: NMS # Valid types are NMS and LEGACY
   use_legacy_noteblocks: true # Setting relevant for future changes, for now leave this to true
 
-# This will break Player Heads for all 1.19.4 players and above.
-# Until this issue is resolved, this will be disabled by default
-Gestures:
-  enabled: false # Enabled gesture-mechanic and generates needed files
-
 ItemUpdater:
   # Update the items in player inventory to the latest in config when player joins
   update_items: true

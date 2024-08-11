@@ -30,7 +30,7 @@ public class VersionUtil {
     }
 
     static {
-        versionMap.put(NMSVersion.v1_21_R1, Map.of(15, new MinecraftVersion("1.21")));
+        versionMap.put(NMSVersion.v1_21_R1, Map.of(15, new MinecraftVersion("1.21"), 16, new MinecraftVersion("1.21.1")));
         versionMap.put(NMSVersion.v1_20_R4, Map.of(13, new MinecraftVersion("1.20.5"), 14, new MinecraftVersion("1.20.6")));
         versionMap.put(NMSVersion.v1_20_R3, Map.of(11, new MinecraftVersion("1.20.3"), 12, new MinecraftVersion("1.20.4")));
         versionMap.put(NMSVersion.v1_20_R2, Map.of(10, new MinecraftVersion("1.20.2")));
