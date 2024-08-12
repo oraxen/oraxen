@@ -79,6 +79,7 @@ public class PackGenerator {
             for (Map.Entry<String, Writable> entry : new LinkedHashSet<>(resourcePack.unknownFiles().entrySet()))
                 if (entry.getKey().startsWith("external_packs/")) resourcePack.removeUnknownFile(entry.getKey());
                 else if (entry.getKey().startsWith(".deobfCachedPacks")) resourcePack.removeUnknownFile(entry.getKey());
+                else if (entry.getKey().startsWith(".assetCache")) resourcePack.removeUnknownFile(entry.getKey());
 
             CustomBlockFactory.get().blockStates().forEach(resourcePack::blockState);
             addItemPackFiles();
@@ -267,6 +268,8 @@ public class PackGenerator {
         assetsFolder.resolve("minecraft/sounds").toFile().mkdirs();
         assetsFolder.resolve("minecraft/font").toFile().mkdirs();
         assetsFolder.resolve("minecraft/lang").toFile().mkdirs();
+
+        DefaultResourcePackExtractor.extractLatest(reader);
     }
 
     private void addItemPackFiles() {
