@@ -80,9 +80,9 @@ public enum Settings {
 
     //Pack
     PACK_GENERATE("Pack.generation.generate", true),
+    PACK_ZIP("Pack.generation.generate_zip", true),
     PACK_OBFUSCATION_TYPE("Pack.obfuscation.type", PackObfuscator.PackObfuscationType.SIMPLE.name()),
     PACK_CACHE_OBFUSCATION("Pack.obfuscation.cache", true),
-    PACK_ZIP("Pack.generation.generate_zip", true),
     PACK_IMPORT_DEFAULT("Pack.import.default_assets", true),
     PACK_IMPORT_EXTERNAL("Pack.import.external_packs", true),
     PACK_IMPORT_MODEL_ENGINE("Pack.import.modelengine", true),

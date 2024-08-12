@@ -76,10 +76,11 @@ public class PackGenerator {
             }
 
             resourcePack.removeUnknownFile("pack.zip");
-            for (Map.Entry<String, Writable> entry : new LinkedHashSet<>(resourcePack.unknownFiles().entrySet()))
-                if (entry.getKey().startsWith("external_packs/")) resourcePack.removeUnknownFile(entry.getKey());
-                else if (entry.getKey().startsWith(".deobfCachedPacks")) resourcePack.removeUnknownFile(entry.getKey());
-                else if (entry.getKey().startsWith(".assetCache")) resourcePack.removeUnknownFile(entry.getKey());
+            for (String fileName : new LinkedHashSet<>(resourcePack.unknownFiles().keySet())) {
+                if (fileName.startsWith("external_packs/")) resourcePack.removeUnknownFile(fileName);
+                else if (fileName.startsWith(".deobfCachedPacks")) resourcePack.removeUnknownFile(fileName);
+                else if (fileName.startsWith(".assetCache")) resourcePack.removeUnknownFile(fileName);
+            }
 
             CustomBlockFactory.get().blockStates().forEach(resourcePack::blockState);
             addItemPackFiles();

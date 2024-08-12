@@ -30,14 +30,15 @@ public class PredicateGenerator {
         return getVanillaTextureName(material, true);
     }
 
-    public Model.Builder generateBaseModelBuilder(Material material) {
+    //TODO Remove this when DefaultResourcePackExtractor gets properly implemented
+    public Model generateBaseModel(Material material) {
         Key modelKey = vanillaModelKey(material);
         ModelTextures modelTextures = vanillaModelTextures(material);
 
         return Model.model().key(modelKey).parent(parentModel(material)).textures(modelTextures)
                 .guiLight(material == Material.SHIELD ? Model.GuiLight.FRONT : null)
                 .display(DisplayProperties.fromMaterial(material))
-                .overrides(generateBaseModelOverrides(material));
+                .overrides(generateBaseModelOverrides(material)).build();
     }
 
     /**

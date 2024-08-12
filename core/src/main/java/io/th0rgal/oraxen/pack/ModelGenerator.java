@@ -6,7 +6,6 @@ import io.th0rgal.oraxen.items.OraxenMeta;
 import io.th0rgal.oraxen.utils.Utils;
 import net.kyori.adventure.key.Key;
 import org.bukkit.Material;
-import org.jetbrains.annotations.NotNull;
 import team.unnamed.creative.ResourcePack;
 import team.unnamed.creative.model.Model;
 import team.unnamed.creative.model.ModelTexture;
@@ -30,11 +29,11 @@ public class ModelGenerator {
         // Generate the baseItem model and add all needed overrides
         for (Material baseMaterial : OraxenItems.getItems().stream().map(ItemBuilder::getType).collect(Collectors.toCollection(LinkedHashSet::new))) {
             Key baseModelKey = predicateGenerator.vanillaModelKey(baseMaterial);
-            // Get the baseModel if it exists in the pack
-            Model existingBaseModel = resourcePack.model(baseModelKey);
-            Model.Builder baseModel = predicateGenerator.generateBaseModelBuilder(baseMaterial);
-            if (existingBaseModel != null) mergeBaseItemModels(existingBaseModel, baseModel);
-            resourcePack.model(baseModel.build());
+            Model model = resourcePack.model(baseModelKey);
+            if (model == null) model = DefaultResourcePackExtractor.vanillaResourcePack.model(baseModelKey);
+            if (model == null) model = predicateGenerator.generateBaseModel(baseMaterial);
+
+            if (model != null) model.addTo(resourcePack);
         }
     }
 
@@ -42,24 +41,18 @@ public class ModelGenerator {
         for (ItemBuilder itemBuilder : OraxenItems.getItems()) {
             OraxenMeta oraxenMeta = itemBuilder.getOraxenMeta();
             if (oraxenMeta == null || !oraxenMeta.hasPackInfos() || !oraxenMeta.shouldGenerateModel()) continue;
-            resourcePack.model(generateModelBuilder(oraxenMeta).build());
+            generateModelBuilder(oraxenMeta).addTo(resourcePack);
         }
     }
 
-    private void mergeBaseItemModels(@NotNull Model existing, Model.Builder generated) {
-        existing.overrides().forEach(generated::addOverride);
-        generated.textures(existing.textures());
-        generated.parent(existing.parent());
-    }
-
-    private Model.Builder generateModelBuilder(OraxenMeta oraxenMeta) {
+    //TODO Try and rework this to work dynamically with DefaultResourcePackExtractor#vanillaResourcePack
+    private Model generateModelBuilder(OraxenMeta oraxenMeta) {
         final String parent = oraxenMeta.parentModelKey().value();
         ModelTextures.Builder textures = oraxenMeta.modelTextures().toBuilder();
         final List<ModelTexture> layers = oraxenMeta.modelTextures().layers();
         ModelTexture defaultTexture = Utils.getOrDefault(layers, 0, ModelTexture.ofKey(Key.key("")));
 
         if (oraxenMeta.modelTextures().variables().isEmpty()) {
-
             textures.layers(List.of());
             if (parent.equals("block/cube") || parent.equals("block/cube_directional") || parent.equals("block/cube_mirrored")) {
                 textures.addVariable("particle", Utils.getOrDefault(layers, 2, defaultTexture));
@@ -101,6 +94,7 @@ public class ModelGenerator {
         return Model.model()
                 .key(oraxenMeta.modelKey())
                 .parent(oraxenMeta.parentModelKey())
-                .textures(textures.build());
+                .textures(textures.build())
+                .build();
     }
 }

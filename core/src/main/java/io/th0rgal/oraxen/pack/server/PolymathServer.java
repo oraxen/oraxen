@@ -46,7 +46,7 @@ public class PolymathServer implements OraxenPackServer {
 
             HttpEntity httpEntity = MultipartEntityBuilder
                     .create().addTextBody("id", Settings.POLYMATH_SECRET.toString())
-                    .addBinaryBody("pack", OraxenPlugin.get().packPath().resolve("pack.zip").toFile())
+                    .addBinaryBody("pack", OraxenPlugin.get().packGenerator().builtPack().data().toByteArray())
                     .build();
 
             request.setEntity(httpEntity);
