@@ -7,7 +7,6 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.bukkit.Material;
 import team.unnamed.creative.ResourcePack;
 import team.unnamed.creative.atlas.AtlasSource;
 import team.unnamed.creative.atlas.SingleAtlasSource;
@@ -107,6 +106,7 @@ public class PackObfuscator {
     private final Set<ObfuscatedModel> obfuscatedModels = new HashSet<>();
     private final Set<ObfuscatedTexture> obfuscatedTextures = new HashSet<>();
     private final Set<ObfuscatedSound> obfuscatedSounds = new HashSet<>();
+    private final Map<String, String> obfuscatedNamespaces = new HashMap<>();
 
     private record ObfuscatedModel(Model originalModel, Model obfuscatedModel) {
         public boolean containsKey(Key modelKey) {
@@ -218,7 +218,7 @@ public class PackObfuscator {
         Optional<ObfuscatedModel> obfuscatedModel = obfuscatedModels.stream().filter(obf -> obf.containsKey(model.key())).findFirst();
         if (obfuscatedModel.isPresent()) return obfuscatedModel.get().obfuscatedModel();
 
-        if (VanillaKeys.isVanilla(model)) {
+        if (VanillaKeys.isVanilla(model.key())) {
             List<Key> textureKeys = allTexturesOfModel(model);
             if (obfuscatedTextures.stream().anyMatch(obf -> textureKeys.contains(obf.originalTexture.key())))
                 obfuscate(obfuscateModelTextures(model));
@@ -320,26 +320,16 @@ public class PackObfuscator {
     }
 
     private static class VanillaKeys {
-        public static boolean isVanilla(Model model) {
-            return defaultBlockKeys.contains(model.key()) || defaultItemKeys.contains(model.key());
-        }
-
-        public static boolean isVanilla(Texture texture) {
-            return defaultBlockKeys.contains(texture.key()) || defaultItemKeys.contains(texture.key());
-        }
 
         public static boolean isVanilla(Key key) {
-            return defaultBlockKeys.contains(key) || defaultItemKeys.contains(key);
+            return DefaultResourcePackExtractor.vanillaResourcePack.model(key) != null;
         }
-
-        private final static List<Key> defaultItemKeys = Arrays.stream(Material.values()).filter(m -> !m.isLegacy() && m.isItem()).map(m -> Key.key("minecraft", "item/" + m.getKey().value())).toList();
-        private final static List<Key> defaultBlockKeys = Arrays.stream(Material.values()).filter(m -> !m.isLegacy() && m.isBlock()).map(m -> Key.key("minecraft", "block/" + m.getKey().value())).toList();
     }
 
     private Key obfuscatedKey(Key key) {
         return switch (obfuscationType) {
             case NONE -> key;
-            case FULL -> Key.key(UUID.randomUUID().toString(), UUID.randomUUID().toString());
+            case FULL -> Key.key(obfuscatedNamespaces.computeIfAbsent(key.namespace(), (namespace) -> UUID.randomUUID().toString()), UUID.randomUUID().toString());
             case SIMPLE -> Key.key(key.namespace(), UUID.randomUUID().toString());
         };
     }
