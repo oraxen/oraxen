@@ -12,7 +12,6 @@ import io.th0rgal.oraxen.font.Font;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.font.packets.ScoreboardPacketListener;
-import io.th0rgal.oraxen.gestures.GestureManager;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenMeta;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
@@ -85,7 +84,6 @@ public class ResourcePack {
         // Sorting items to keep only one with models (and generate it if needed)
         generatePredicates(extractTexturedItems());
         generateFont();
-        if (Settings.GESTURES_ENABLED.toBool()) generateGestureFiles();
         if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) hideScoreboardNumbers();
         if (Settings.HIDE_SCOREBOARD_BACKGROUND.toBool()) generateScoreboardHideBackground();
         if (Settings.TEXTURE_SLICER.toBool()) PackSlicer.slicePackFiles();
@@ -459,17 +457,6 @@ public class ResourcePack {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    private void generateGestureFiles() {
-        GestureManager gestureManager = OraxenPlugin.get().getGesturesManager();
-        if (gestureManager == null) return;
-        for (Map.Entry<String, String> entry : gestureManager.getPlayerHeadJsons().entrySet())
-            writeStringToVirtual(StringUtils.removeEnd(Utils.getParentDirs(entry.getKey()), "/"), Utils.removeParentDirs(entry.getKey()), entry.getValue());
-        writeStringToVirtual("assets/minecraft/models/item", "player_head.json", gestureManager.getSkullJson());
-        writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_entity_translucent.vsh", gestureManager.getShaderVsh());
-        writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_entity_translucent.fsh", gestureManager.getShaderFsh());
-        writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_entity_translucent.json", gestureManager.getShaderJson());
     }
 
     private Collection<CustomSound> handleCustomSoundEntries(Collection<CustomSound> sounds) {

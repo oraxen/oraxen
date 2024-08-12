@@ -9,7 +9,6 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.provided.blocklocker.BlockLockerMechanic;
-import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolvingFurniture;
@@ -400,9 +399,13 @@ public class FurnitureMechanic extends Mechanic {
         if (displayEntityProperties.getDisplayTransform() != ItemDisplay.ItemDisplayTransform.NONE && !isWall && !isRoof) return correctedLocation;
         float scale = displayEntityProperties.hasScale() ? displayEntityProperties.getScale().y() : 1;
         // Since roof-furniture need to be more or less flipped, we have to add 0.5 (0.49 or it is "inside" the block above) to the Y coordinate
-        if (isFixed && isWall) correctedLocation.add(-facing.getModX() * (0.49 * scale), 0, -facing.getModZ() * (0.49 * scale));
-        float heightCorrection = (hasHitbox() ? hitbox.height : 1) - 1;
-        return correctedLocation.add(0, (0.5 * scale) + (isRoof ? isFixed ? 0.49 : -1 * heightCorrection : 0), 0);
+        if (isFixed && isWall && facing.getModY() == 0) correctedLocation.add(-facing.getModX() * (0.49 * scale), 0, -facing.getModZ() * (0.49 * scale));
+
+        float hitboxOffset = (hasHitbox() ? hitbox.height : 1) - 1;
+        double yCorrection = (facing != BlockFace.UP ? (0.5 * scale) : 0);
+        yCorrection += ((isRoof && facing == BlockFace.DOWN) ? isFixed ? 0.49 : -1 * hitboxOffset : 0);
+
+        return correctedLocation.add(0,  yCorrection, 0);
     }
 
     public void setEntityData(Entity entity, float yaw, BlockFace facing) {
@@ -430,7 +433,7 @@ public class FurnitureMechanic extends Mechanic {
                 if (light.hasLightLevel()) light.createBlockLight(block);
             }
         } else if (entity instanceof ItemDisplay itemDisplay) {
-            setItemDisplayData(itemDisplay, item, yaw, displayEntityProperties);
+            setItemDisplayData(itemDisplay, item, yaw, displayEntityProperties, facing);
             float width = hasHitbox() ? hitbox.width : displayEntityProperties.getDisplayWidth();
             float height = hasHitbox() ? hitbox.height : displayEntityProperties.getDisplayHeight();
             boolean isFixed = displayEntityProperties.getDisplayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
@@ -483,16 +486,14 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
-    private void setItemDisplayData(ItemDisplay itemDisplay, ItemStack item, Float yaw, DisplayEntityProperties properties) {
+    private void setItemDisplayData(ItemDisplay itemDisplay, ItemStack item, Float yaw, DisplayEntityProperties properties, BlockFace facing) {
         itemDisplay.setItemDisplayTransform(properties.getDisplayTransform());
         if (properties.hasSpecifiedViewRange()) itemDisplay.setViewRange(properties.getViewRange());
-        if (properties.hasInterpolationDuration())
-            itemDisplay.setInterpolationDuration(properties.getInterpolationDuration());
+        if (properties.hasInterpolationDuration()) itemDisplay.setInterpolationDuration(properties.getInterpolationDuration());
         if (properties.hasInterpolationDelay()) itemDisplay.setInterpolationDelay(properties.getInterpolationDelay());
         if (properties.hasTrackingRotation()) itemDisplay.setBillboard(properties.getTrackingRotation());
         if (properties.hasShadowRadius()) itemDisplay.setShadowRadius(properties.getShadowRadius());
         if (properties.hasShadowStrength()) itemDisplay.setShadowStrength(properties.getShadowStrength());
-        //if (properties.hasGlowColor()) itemDisplay.setGlowColorOverride(properties.getGlowColor());
         if (properties.hasBrightness()) itemDisplay.setBrightness(displayEntityProperties.getBrightness());
 
         itemDisplay.setDisplayWidth(properties.getDisplayWidth());
@@ -509,13 +510,16 @@ public class FurnitureMechanic extends Mechanic {
         // since FIXED is meant to mimic ItemFrames, we rotate it to match the ItemFrame's rotation
         // 1.20 Fixes this, will break for 1.19.4 but added disclaimer in console
         float pitch;
-        yaw = (VersionUtil.atOrAbove("1.20.1") && (!hasLimitedPlacing() || !limitedPlacing.isRoof() || !isFixed)) ? yaw : yaw - 180;
         if (VersionUtil.atOrAbove("1.20.1")) {
-            if (hasLimitedPlacing() && isFixed)
-                if (limitedPlacing.isFloor()) pitch = -90;
-                else if (limitedPlacing.isRoof()) pitch = 90;
+            if (hasLimitedPlacing() && isFixed) {
+                if (limitedPlacing.isFloor() && facing == BlockFace.UP) pitch = -90;
+                else if (limitedPlacing.isRoof() && facing == BlockFace.DOWN) pitch = 90;
                 else pitch = 0;
-            else pitch = 0;
+
+                if (limitedPlacing.isRoof() && facing == BlockFace.DOWN)
+                    yaw -= 180;
+                else if (limitedPlacing.isWall() && facing.getModY() == 0) yaw = 90f * facing.ordinal() - 180;
+            } else pitch = 0;
         }
         else pitch = isFixed && hasLimitedPlacing() ? limitedPlacing.isFloor() ? 90 : limitedPlacing.isWall() ? 0 : limitedPlacing.isRoof() ? -90 : 0 : 0;
 
