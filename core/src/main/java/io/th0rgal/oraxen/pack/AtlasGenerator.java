@@ -18,8 +18,8 @@ public class AtlasGenerator {
     public static void generateAtlasFile() {
         List<AtlasSource> sources = new ArrayList<>();
         for (Model model : OraxenPlugin.get().packGenerator().resourcePack().models()) {
-            sources.addAll(model.textures().layers().stream().map(t -> AtlasSource.single(t.key())).collect(Collectors.toCollection(LinkedHashSet::new)));
-            sources.addAll(model.textures().variables().values().stream().map(t -> AtlasSource.single(t.key())).collect(Collectors.toCollection(LinkedHashSet::new)));
+            sources.addAll(model.textures().layers().stream().filter(t -> t.key() != null).map(t -> AtlasSource.single(t.key())).collect(Collectors.toCollection(LinkedHashSet::new)));
+            sources.addAll(model.textures().variables().values().stream().filter(t -> t.key() != null).map(t -> AtlasSource.single(t.key())).collect(Collectors.toCollection(LinkedHashSet::new)));
 
             Optional.ofNullable(model.textures().particle()).map(ModelTexture::key)
                     .ifPresent((key) -> sources.add(AtlasSource.single(key)));
