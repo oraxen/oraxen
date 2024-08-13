@@ -31,7 +31,7 @@ public class ModelGenerator {
             Key baseModelKey = predicateGenerator.vanillaModelKey(baseMaterial);
             Model model = resourcePack.model(baseModelKey);
             if (model == null) model = DefaultResourcePackExtractor.vanillaResourcePack.model(baseModelKey);
-            if (model == null) model = predicateGenerator.generateBaseModel(baseMaterial);
+            //if (model == null) model = predicateGenerator.generateBaseModel(baseMaterial);
 
             if (model != null) model.addTo(resourcePack);
         }

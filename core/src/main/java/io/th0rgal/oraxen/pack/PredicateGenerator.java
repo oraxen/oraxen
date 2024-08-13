@@ -116,9 +116,12 @@ public class PredicateGenerator {
     }
 
     private Key getVanillaTextureName(final Material material, final boolean model) {
-        if (!model)
-            if (material.isBlock()) return Key.key("block/" + material.toString().toLowerCase());
-            else if (material == Material.CROSSBOW) return Key.key("item/crossbow_standby");
+        if (model) return Key.key("item/" + material.toString().toLowerCase());
+
+        if (material.isBlock()) return Key.key("block/" + material.toString().toLowerCase());
+        else if (material == Material.CROSSBOW) return Key.key("item/crossbow_standby");
+        else if (material == Material.SPYGLASS) return Key.key("item/spyglass_in_hand");
+        else if (material == Material.TRIDENT) return Key.key("item/trident_in_hand");
         return Key.key("item/" + material.toString().toLowerCase());
     }
 

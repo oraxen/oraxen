@@ -13,6 +13,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.ByteArrayBody;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
@@ -44,9 +45,9 @@ public class PolymathServer implements OraxenPackServer {
         try(CloseableHttpClient httpClient = HttpClients.createDefault()) {
             HttpPost request = new HttpPost(serverAddress + "upload");
 
-            HttpEntity httpEntity = MultipartEntityBuilder
-                    .create().addTextBody("id", Settings.POLYMATH_SECRET.toString())
-                    .addBinaryBody("pack", OraxenPlugin.get().packGenerator().builtPack().data().toByteArray())
+            HttpEntity httpEntity = MultipartEntityBuilder.create()
+                    .addTextBody("id", Settings.POLYMATH_SECRET.toString())
+                    .addPart("pack", new ByteArrayBody(OraxenPlugin.get().packGenerator().builtPack().data().toByteArray(), "pack"))
                     .build();
 
             request.setEntity(httpEntity);

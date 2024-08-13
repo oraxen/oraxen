@@ -27,7 +27,7 @@ public class AtlasGenerator {
 
         // Remove everything in the item and block folders, as vanilla already has them
         sources.stream().map(SingleAtlasSource.class::cast).filter(r -> {
-            String resource = r.resource().asString().replace("minecraft:", "");
+            String resource = r.resource().asMinimalString();
             return resource.startsWith("item/") || resource.startsWith("block/");
         }).toList().forEach(sources::remove);
 
