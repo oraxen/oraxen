@@ -189,6 +189,7 @@ public class FontEvents implements Listener {
     public void onPlayerRename(final InventoryClickEvent event) {
         if (!(event.getClickedInventory() instanceof AnvilInventory clickedInv)) return;
         if (!Settings.FORMAT_ANVIL.toBool() || manager.useNmsGlyphs() || event.getSlot() != 2) return;
+        if (VersionUtil.atOrAbove("1.20.5")) return;
 
         Player player = (Player) event.getWhoClicked();
         String displayName = clickedInv.getRenameText();
