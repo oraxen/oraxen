@@ -30,17 +30,6 @@ public class PredicateGenerator {
         return getVanillaTextureName(material, true);
     }
 
-    //TODO Remove this when DefaultResourcePackExtractor gets properly implemented
-    public Model generateBaseModel(Material material) {
-        Key modelKey = vanillaModelKey(material);
-        ModelTextures modelTextures = vanillaModelTextures(material);
-
-        return Model.model().key(modelKey).parent(parentModel(material)).textures(modelTextures)
-                .guiLight(material == Material.SHIELD ? Model.GuiLight.FRONT : null)
-                .display(DisplayProperties.fromMaterial(material))
-                .overrides(generateBaseModelOverrides(material)).build();
-    }
-
     /**
      * Generates the base model overrides for the given material
      * This looks up all ItemBuilders using this material and generates the overrides for them
@@ -48,7 +37,7 @@ public class PredicateGenerator {
      * @param material the material to generate the overrides for
      * @return the generated overrides
      */
-    private List<ItemOverride> generateBaseModelOverrides(Material material) {
+    public List<ItemOverride> generateBaseModelOverrides(Material material) {
         LinkedHashSet<ItemBuilder> itemBuilders = OraxenItems.getItems().stream().filter(i -> i.getType() == material).collect(Collectors.toCollection(LinkedHashSet::new));
         List<ItemOverride> overrides = OverrideProperties.fromMaterial(material);
 
