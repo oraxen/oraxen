@@ -13,6 +13,7 @@ import team.unnamed.creative.model.ModelTextures;
 
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class ModelGenerator {
@@ -31,7 +32,11 @@ public class ModelGenerator {
             Key baseModelKey = predicateGenerator.vanillaModelKey(baseMaterial);
             Model model = resourcePack.model(baseModelKey);
             if (model == null) model = DefaultResourcePackExtractor.vanillaResourcePack.model(baseModelKey);
-            if (model != null) model = model.toBuilder().overrides(predicateGenerator.generateBaseModelOverrides(baseMaterial)).build();
+            if (model != null) {
+                Model.Builder builder = model.toBuilder();
+                predicateGenerator.generateBaseModelOverrides(baseMaterial).forEach(builder::addOverride);
+                model = builder.build();
+            }
 
             if (model != null) model.addTo(resourcePack);
         }
@@ -41,7 +46,13 @@ public class ModelGenerator {
         for (ItemBuilder itemBuilder : OraxenItems.getItems()) {
             OraxenMeta oraxenMeta = itemBuilder.getOraxenMeta();
             if (oraxenMeta == null || !oraxenMeta.hasPackInfos() || !oraxenMeta.shouldGenerateModel()) continue;
-            generateModelBuilder(oraxenMeta).addTo(resourcePack);
+            Model model = generateModelBuilder(oraxenMeta);
+
+            Optional.ofNullable(resourcePack.model(model.key())).ifPresentOrElse(base -> {
+                Model.Builder builder = model.toBuilder();
+                base.overrides().forEach(builder::addOverride);
+                builder.build().addTo(resourcePack);
+            }, () -> model.addTo(resourcePack));
         }
     }
 
