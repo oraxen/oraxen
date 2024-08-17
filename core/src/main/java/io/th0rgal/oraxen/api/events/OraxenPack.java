@@ -7,7 +7,9 @@ import org.jetbrains.annotations.NotNull;
 import team.unnamed.creative.ResourcePack;
 import team.unnamed.creative.atlas.Atlas;
 import team.unnamed.creative.base.Writable;
+import team.unnamed.creative.font.Font;
 import team.unnamed.creative.metadata.pack.PackMeta;
+import team.unnamed.creative.model.Model;
 import team.unnamed.creative.sound.SoundEvent;
 import team.unnamed.creative.sound.SoundRegistry;
 
@@ -48,15 +50,18 @@ public class OraxenPack {
         Writable packIcon = importedPack.icon() != null ? importedPack.icon() : resourcePack.icon();
         if (packIcon != null) resourcePack.icon(packIcon);
 
-        importedPack.models().forEach(model -> {
-            Optional.ofNullable(resourcePack.model(model.key())).ifPresent(base -> model.overrides().addAll(base.overrides()));
-            model.addTo(resourcePack);
-        });
+        importedPack.models().forEach(model -> Optional.ofNullable(resourcePack.model(model.key())).ifPresentOrElse(base -> {
+                    Model.Builder builder = model.toBuilder();
+                    base.overrides().forEach(builder::addOverride);
+                    builder.build().addTo(resourcePack);
+                },
+                () -> model.addTo(resourcePack)));
 
-        importedPack.fonts().forEach(font -> {
-            Optional.ofNullable(resourcePack.font(font.key())).ifPresent(base -> font.providers().addAll(base.providers()));
-            font.addTo(resourcePack);
-        });
+        importedPack.fonts().forEach(font -> Optional.ofNullable(resourcePack.font(font.key())).ifPresentOrElse(base -> {
+            Font.Builder builder = font.toBuilder();
+            base.providers().forEach(builder::addProvider);
+            builder.build().addTo(resourcePack);
+        }, () -> font.addTo(resourcePack)));
 
         importedPack.soundRegistries().forEach(soundRegistry -> {
             SoundRegistry baseRegistry = resourcePack.soundRegistry(soundRegistry.namespace());
@@ -67,11 +72,12 @@ public class OraxenPack {
             } else soundRegistry.addTo(resourcePack);
         });
 
-        importedPack.atlases().forEach(atlas -> {
-            Atlas baseAtlas = resourcePack.atlas(atlas.key());
-            if (baseAtlas != null) atlas.sources().forEach(source -> baseAtlas.toBuilder().addSource(source));
-            atlas.addTo(resourcePack);
-        });
+        importedPack.atlases().forEach(atlas -> Optional.ofNullable(resourcePack.atlas(atlas.key())).ifPresentOrElse(base -> {
+                    Atlas.Builder builder = atlas.toBuilder();
+                    base.sources().forEach(builder::addSource);
+                    builder.build().addTo(resourcePack);
+                },
+                () -> atlas.addTo(resourcePack)));
 
         importedPack.languages().forEach(language -> {
             Optional.ofNullable(resourcePack.language(language.key())).ifPresent(base -> language.translations().putAll(base.translations()));
