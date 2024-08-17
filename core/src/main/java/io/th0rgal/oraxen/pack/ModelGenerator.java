@@ -63,6 +63,21 @@ public class ModelGenerator {
         final List<ModelTexture> layers = oraxenMeta.modelTextures().layers();
         ModelTexture defaultTexture = Utils.getOrDefault(layers, 0, ModelTexture.ofKey(Key.key("")));
 
+        /*@Nullable Model parentModel = Optional.ofNullable(DefaultResourcePackExtractor.vanillaResourcePack.model(oraxenMeta.parentModelKey()))
+                .orElse(resourcePack.model(oraxenMeta.parentModelKey()));
+        if (parentModel != null) {
+            if (oraxenMeta.modelTextures().variables().isEmpty() && !parentModel.textures().variables().isEmpty()) {
+                List<String> parentVariables = parentModel.textures().variables().values().stream().map(m -> m.get().toString()).toList();
+                for (int index = 0; index < parentVariables.size(); index++) {
+                    String key = Utils.getOrDefault(parentVariables, index, "#all").replace("#", "");
+                    textures.addVariable(key, Utils.getOrDefault(layers, index, defaultTexture));
+                }
+                textures.particle(defaultTexture);
+            }
+
+            textures.layers(parentModel.textures().layers().isEmpty() ? new ArrayList<>() : layers);
+        }*/
+
         if (oraxenMeta.modelTextures().variables().isEmpty()) {
             textures.layers(List.of());
             if (parent.equals("block/cube") || parent.equals("block/cube_directional") || parent.equals("block/cube_mirrored")) {

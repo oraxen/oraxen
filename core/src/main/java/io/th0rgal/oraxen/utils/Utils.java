@@ -146,8 +146,10 @@ public class Utils {
 
     public static <T> T getOrDefault(List<T> list, int index, T defaultValue) {
         try {
-            return list.get(index);
-        } catch (IndexOutOfBoundsException e) {
+            T object = list.get(index);
+            if (object == null) return defaultValue;
+            else return object;
+        } catch (Exception e) {
             return defaultValue;
         }
     }
