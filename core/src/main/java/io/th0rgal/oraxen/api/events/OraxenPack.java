@@ -8,6 +8,7 @@ import team.unnamed.creative.ResourcePack;
 import team.unnamed.creative.atlas.Atlas;
 import team.unnamed.creative.base.Writable;
 import team.unnamed.creative.font.Font;
+import team.unnamed.creative.metadata.overlays.OverlaysMeta;
 import team.unnamed.creative.metadata.pack.PackMeta;
 import team.unnamed.creative.model.Model;
 import team.unnamed.creative.sound.SoundEvent;
@@ -45,17 +46,18 @@ public class OraxenPack {
         importedPack.sounds().forEach(resourcePack::sound);
         importedPack.unknownFiles().forEach(resourcePack::unknownFile);
 
-        PackMeta packMeta = importedPack.packMeta() != null ? importedPack.packMeta() : resourcePack.packMeta();
+        PackMeta packMeta = Optional.ofNullable(importedPack.packMeta()).orElse(resourcePack.packMeta());
         if (packMeta != null) resourcePack.packMeta(packMeta);
-        Writable packIcon = importedPack.icon() != null ? importedPack.icon() : resourcePack.icon();
+        Writable packIcon = Optional.ofNullable(importedPack.icon()).orElse(resourcePack.icon());
         if (packIcon != null) resourcePack.icon(packIcon);
+        OverlaysMeta overlaysMeta = Optional.ofNullable(importedPack.overlaysMeta()).orElse(resourcePack.overlaysMeta());
+        if (overlaysMeta != null) resourcePack.overlaysMeta(overlaysMeta);
 
         importedPack.models().forEach(model -> Optional.ofNullable(resourcePack.model(model.key())).ifPresentOrElse(base -> {
                     Model.Builder builder = model.toBuilder();
                     base.overrides().forEach(builder::addOverride);
                     builder.build().addTo(resourcePack);
-                },
-                () -> model.addTo(resourcePack)));
+                }, () -> model.addTo(resourcePack)));
 
         importedPack.fonts().forEach(font -> Optional.ofNullable(resourcePack.font(font.key())).ifPresentOrElse(base -> {
             Font.Builder builder = font.toBuilder();
