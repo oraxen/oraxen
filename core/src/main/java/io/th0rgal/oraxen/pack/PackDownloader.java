@@ -24,13 +24,19 @@ public class PackDownloader {
     public static void downloadRequiredPack() {
         if (VersionUtil.isLeaked()) return;
 
-        String hash = checkPackHash("RequiredPack", "");
-        Path zipPath = PackGenerator.externalPacks.resolve("RequiredPack_" + hash + ".zip");
-        String fileUrl = "https://api.github.com/repos/oraxen/RequiredPack/zipball/main";
+        try {
+            String token = readToken();
+            String hash = checkPackHash("RequiredPack", "");
+            Path zipPath = PackGenerator.externalPacks.resolve("RequiredPack_" + hash + ".zip");
+            String fileUrl = "https://api.github.com/repos/oraxen/RequiredPack/zipball/main";
 
-        removeOldHashPack("RequiredPack", hash);
-        if (zipPath.toFile().exists() || zipPath.resolveSibling("RequiredPack_" + hash).toFile().exists()) return;
-        downloadPackFromUrl(fileUrl, "", zipPath);
+            removeOldHashPack("RequiredPack", hash);
+            if (zipPath.toFile().exists() || zipPath.resolveSibling("RequiredPack_" + hash).toFile().exists()) return;
+            downloadPackFromUrl(fileUrl, token, zipPath);
+        } catch (Exception e) {
+            Logs.logWarning("Failed to download RequiredPack...");
+            if (Settings.DEBUG.toBool()) e.printStackTrace();
+        }
     }
 
     public static void downloadDefaultPack() {
@@ -38,20 +44,12 @@ public class PackDownloader {
         if (VersionUtil.isCompiled()) Logs.logWarning("Skipping download of Oraxen pack, compiled versions do not include assets");
         else if (VersionUtil.isLeaked()) Logs.logError("Skipping download of Oraxen pack, pirated versions do not include assets");
         else {
-            InputStream accessStream = OraxenPlugin.get().getResource("token.secret");
-            if (accessStream == null) {
-                Logs.logWarning("Failed to download Default-Pack...");
-                Logs.logWarning("Missing token-file, please contact the developer!");
-                return;
-            }
+            String token = readToken();
+            String fileUrl = "https://api.github.com/repos/oraxen/DefaultPack/zipball/main";
+            String hash = checkPackHash("DefaultPack", token);
+            Path zipPath = PackGenerator.externalPacks.resolve("DefaultPack_" + hash + ".zip");
 
-            try(InputStreamReader accessReader = new InputStreamReader(accessStream)) {
-                YamlConfiguration accessYaml = OraxenYaml.loadConfiguration(accessReader);
-                String fileUrl = "https://api.github.com/repos/oraxen/DefaultPack/zipball/main";
-                String token = accessYaml.getString("token", "");
-                String hash = checkPackHash("DefaultPack", token);
-                Path zipPath = PackGenerator.externalPacks.resolve("DefaultPack_" + hash + ".zip");
-
+            try {
                 removeOldHashPack("DefaultPack", hash);
                 if (zipPath.toFile().exists() || zipPath.resolveSibling("DefaultPack_" + hash).toFile().exists()) {
                     Logs.logSuccess("Skipped downloading DefaultPack as it is up to date!");
@@ -59,15 +57,35 @@ public class PackDownloader {
                 }
 
                 downloadPackFromUrl(fileUrl, token, zipPath);
-
-                accessStream.close();
             } catch (Exception e) {
+                Logs.logWarning("Failed to download DefaultPack");
                 if (Settings.DEBUG.toBool()) e.printStackTrace();
-                else Logs.logWarning(e.getMessage());
-                Logs.logError("Failed to download Oraxen pack...");
-                Logs.logError("Please contact the developer!", true);
             }
         }
+    }
+
+    private static String readToken() {
+        String token = "";
+                InputStream accessStream = OraxenPlugin.get().getResource("token.secret");
+        if (accessStream == null) {
+            Logs.logWarning("Failed to download Default-Pack...");
+            Logs.logWarning("Missing token-file, please contact the developer!");
+            return token;
+        }
+
+        try(InputStreamReader accessReader = new InputStreamReader(accessStream)) {
+            YamlConfiguration accessYaml = OraxenYaml.loadConfiguration(accessReader);
+            token = accessYaml.getString("token", "");
+
+            accessStream.close();
+        } catch (Exception e) {
+            if (Settings.DEBUG.toBool()) e.printStackTrace();
+            else Logs.logWarning(e.getMessage());
+            Logs.logError("Failed to download Oraxen pack...");
+            Logs.logError("Please contact the developer!", true);
+        }
+
+        return token;
     }
 
     private static void removeOldHashPack(String filePrefix, String newHash) {

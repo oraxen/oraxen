@@ -11,10 +11,7 @@ import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.font.Shift;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockFactory;
-import io.th0rgal.oraxen.utils.AdventureUtils;
-import io.th0rgal.oraxen.utils.EventUtils;
-import io.th0rgal.oraxen.utils.ParseUtils;
-import io.th0rgal.oraxen.utils.PluginUtils;
+import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmorDatapack;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
@@ -81,6 +78,8 @@ public class PackGenerator {
 
         packGenerationTask = Bukkit.getScheduler().runTaskAsynchronously(OraxenPlugin.get(), () -> {
             Logs.logInfo("Generating resourcepack...");
+
+            importRequiredPack();
             if (Settings.PACK_IMPORT_DEFAULT.toBool()) importDefaultPack();
             if (Settings.PACK_IMPORT_EXTERNAL.toBool()) importExternalPacks();
             if (Settings.PACK_IMPORT_MODEL_ENGINE.toBool()) importModelEnginePack();
@@ -216,9 +215,19 @@ public class PackGenerator {
     }
 
     private void importRequiredPack() {
-        Optional<File> defaultPack = Arrays.stream(Objects.requireNonNullElse(externalPacks.toFile().listFiles(), new File[]{}))
-                .filter(f -> f.getName().startsWith("RequiredPack_")).findFirst();
-        if (defaultPack.isEmpty()) return;
+        Optional<File> requiredPack = FileUtil.listFiles(externalPacks.toFile()).stream().filter(f -> f.getName().startsWith("RequiredPack_")).findFirst();
+        if (requiredPack.isEmpty()) return;
+
+        try {
+            OraxenPack.mergePack(resourcePack, requiredPack.get().isDirectory()
+                    ? reader.readFromDirectory(requiredPack.get())
+                    : reader.readFromZipFile(requiredPack.get())
+            );
+        } catch (Exception e) {
+            if (!Settings.DEBUG.toBool()) Logs.logError(e.getMessage());
+            else e.printStackTrace();
+        }
+
     }
 
     private void importDefaultPack() {
