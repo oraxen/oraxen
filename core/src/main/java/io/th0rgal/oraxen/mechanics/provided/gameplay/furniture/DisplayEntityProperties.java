@@ -22,8 +22,6 @@ public class DisplayEntityProperties {
     private Display.Billboard trackingRotation;
     private Float shadowStrength;
     private Float shadowRadius;
-    private Integer interpolationDuration;
-    private Integer interpolationDelay;
     private float displayWidth;
     private float displayHeight;
     private Vector3f scale;
@@ -34,16 +32,12 @@ public class DisplayEntityProperties {
         String itemID = configSection.getParent().getParent().getParent().getName();
         glowColor = Utils.toColor(configSection.getString("glow_color", ""));
         viewRange = configSection.getInt("view_range");
-        interpolationDuration = configSection.getInt("interpolation_duration");
-        interpolationDelay = configSection.getInt("interpolation_delay");
         shadowStrength = (float) configSection.getDouble("shadow_strength");
         shadowRadius = (float) configSection.getDouble("shadow_radius");
         displayWidth = (float) configSection.getDouble("displayWidth", 0);
         displayHeight = (float) configSection.getDouble("displayHeight", 0);
 
         if (viewRange == 0) viewRange = null;
-        if (interpolationDuration == 0) interpolationDuration = null;
-        if (interpolationDelay == 0) interpolationDelay = null;
         if (shadowStrength == 0f) shadowStrength = null;
         if (shadowRadius == 0f) shadowRadius = null;
 
@@ -102,22 +96,6 @@ public class DisplayEntityProperties {
         return viewRange;
     }
 
-    public boolean hasInterpolationDuration() {
-        return interpolationDuration != null;
-    }
-
-    public int interpolationDuration() {
-        return interpolationDuration;
-    }
-
-    public boolean hasInterpolationDelay() {
-        return interpolationDelay != null;
-    }
-
-    public int interpolationDelay() {
-        return interpolationDelay;
-    }
-
     public boolean hasBrightness() {
         return brightness != null;
     }
@@ -134,7 +112,7 @@ public class DisplayEntityProperties {
         return displayTransform == ItemDisplay.ItemDisplayTransform.FIXED;
     }
 
-    public boolean hasNoTransform() {
+    public boolean isNoneTransform() {
         return displayTransform == ItemDisplay.ItemDisplayTransform.NONE;
     }
 
@@ -146,16 +124,8 @@ public class DisplayEntityProperties {
         return trackingRotation;
     }
 
-    public boolean hasShadowStrength() {
-        return shadowStrength != null;
-    }
-
     public Float shadowStrength() {
         return shadowStrength;
-    }
-
-    public boolean hasShadowRadius() {
-        return shadowRadius != null;
     }
 
     public Float shadowRadius() {
@@ -186,8 +156,6 @@ public class DisplayEntityProperties {
         itemDisplay.setShadowRadius(Objects.requireNonNullElse(shadowRadius, 0f));
         itemDisplay.setShadowStrength(Objects.requireNonNullElse(shadowStrength, 0f));
         itemDisplay.setViewRange(Objects.requireNonNullElse(viewRange, 0));
-        itemDisplay.setInterpolationDuration(Objects.requireNonNullElse(interpolationDuration, 0));
-        itemDisplay.setInterpolationDelay(Objects.requireNonNullElse(interpolationDelay, 0));
         itemDisplay.getTransformation().getScale().set(Objects.requireNonNullElse(scale, new Vector3f(1,1,1)));
 
         return true;

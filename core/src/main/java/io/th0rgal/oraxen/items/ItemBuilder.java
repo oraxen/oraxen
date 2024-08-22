@@ -251,7 +251,7 @@ public class ItemBuilder {
 
     @Nullable
     public Component itemName() {
-        return itemName != null ? itemName : null;
+        return itemName;
     }
 
     @Deprecated

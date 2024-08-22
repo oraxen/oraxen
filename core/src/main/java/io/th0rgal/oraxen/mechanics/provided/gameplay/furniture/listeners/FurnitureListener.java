@@ -39,6 +39,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.RayTraceResult;
 
 import java.util.Objects;
+import java.util.Optional;
 
 public class FurnitureListener implements Listener {
 
@@ -86,7 +87,9 @@ public class FurnitureListener implements Listener {
     public void onFurniturePlace(final PlayerInteractEvent event) {
         ItemStack item = event.getItem();
         final Player player = event.getPlayer();
-        final Location targetLocation = event.getInteractionPoint();
+        final BlockFace blockFace = event.getBlockFace();
+        final Location targetLocation = Optional.ofNullable(event.getInteractionPoint())
+                .map(l -> blockFace == BlockFace.DOWN ? l.subtract(0,1.0,0) : l).orElse(null);
         final EquipmentSlot hand = event.getHand();
         FurnitureMechanic mechanic = getMechanic(item, player, targetLocation);
 

@@ -62,11 +62,7 @@ public class InteractionHitbox {
      * @return Rotated offset vector
      */
     public Vector offset(float yaw) {
-        return rotateOffset(yaw);
-    }
-
-    private Vector rotateOffset(float angle) {
-        double angleRad = Math.toRadians(angle);
+        double angleRad = Math.toRadians(yaw);
 
         // Get the coordinates relative to the local y-axis
         double x = Math.cos(angleRad) * offset.getX() + Math.sin(angleRad) * offset.getZ();

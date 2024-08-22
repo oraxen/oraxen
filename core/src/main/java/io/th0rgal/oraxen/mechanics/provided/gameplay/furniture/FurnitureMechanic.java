@@ -7,6 +7,7 @@ import com.ticxo.modelengine.api.model.ModeledEntity;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.provided.blocklocker.BlockLockerMechanic;
+import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.BreakableMechanic;
@@ -17,10 +18,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.seats.FurnitureSe
 import io.th0rgal.oraxen.mechanics.provided.gameplay.light.LightMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
-import io.th0rgal.oraxen.utils.BlockHelpers;
-import io.th0rgal.oraxen.utils.EntityUtils;
-import io.th0rgal.oraxen.utils.ItemUtils;
-import io.th0rgal.oraxen.utils.PluginUtils;
+import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -38,15 +36,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.util.Transformation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Vector3f;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public class FurnitureMechanic extends Mechanic {
 
@@ -238,14 +231,14 @@ public class FurnitureMechanic extends Mechanic {
 
     public ItemDisplay place(Location location, float yaw, BlockFace facing, boolean checkSpace) {
         if (!location.isWorldLoaded()) return null;
-        if (checkSpace && this.notEnoughSpace(location.clone(), yaw)) return null;
+        if (checkSpace && this.notEnoughSpace(location, yaw)) return null;
         assert location.getWorld() != null;
 
         ItemStack item = OraxenItems.getOptionalItemById(placedItemId).orElse(OraxenItems.getItemById(getItemID())).build().clone();
         ItemUtils.editItemMeta(item, meta -> ItemUtils.displayName(meta, Component.empty()));
         item.setAmount(1);
 
-        ItemDisplay baseEntity = location.getWorld().spawn(correctedSpawnLocation(location, facing), ItemDisplay.class, e -> setBaseFurnitureData(e, yaw));
+        ItemDisplay baseEntity = location.getWorld().spawn(correctedSpawnLocation(location, facing), ItemDisplay.class, e -> setBaseFurnitureData(e, yaw, facing));
         if (this.isModelEngine() && PluginUtils.isEnabled("ModelEngine")) spawnModelEngineFurniture(baseEntity);
         FurnitureSeat.spawnSeats(baseEntity, this);
 
@@ -253,43 +246,47 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     private Location correctedSpawnLocation(Location baseLocation, BlockFace facing) {
-        Location correctedLocation = BlockHelpers.toCenterBlockLocation(baseLocation);
         boolean isWall = hasLimitedPlacing() && limitedPlacing.isWall();
         boolean isRoof = hasLimitedPlacing() && limitedPlacing.isRoof();
-        boolean isFixed = hasDisplayEntityProperties() && displayEntityProperties.isFixedTransform();
+        boolean isFixed = hasDisplayEntityProperties() && displayEntityProperties.displayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
+        Location correctedLocation = (isFixed && facing == BlockFace.UP) ? BlockHelpers.toCenterBlockLocation(baseLocation) : BlockHelpers.toCenterLocation(baseLocation);
 
         if (!hasDisplayEntityProperties()) return correctedLocation;
-        if (!displayEntityProperties.hasNoTransform() && !isWall && !isRoof) return correctedLocation;
+        if (displayEntityProperties.isNoneTransform() && !isWall && !isRoof) return correctedLocation;
         float scale = displayEntityProperties.hasScale() ? displayEntityProperties.scale().y() : 1;
         // Since roof-furniture need to be more or less flipped, we have to add 0.5 (0.49 or it is "inside" the block above) to the Y coordinate
-        if (isFixed && isWall)
-            correctedLocation.add(-facing.getModX() * (0.49 * scale), 0, -facing.getModZ() * (0.49 * scale));
-        return correctedLocation.add(0, (0.5 * scale) + (isRoof ? isFixed ? 0.49 : -1 : 0), 0);
-        //TODO fix this
-        /*
         if (isFixed && isWall && facing.getModY() == 0) correctedLocation.add(-facing.getModX() * (0.49 * scale), 0, -facing.getModZ() * (0.49 * scale));
 
-        float hitboxOffset = (hasHitbox() ? hitbox.height : 1) - 1;
-        double yCorrection = (facing != BlockFace.UP ? (0.5 * scale) : 0);
-        yCorrection += ((isRoof && facing == BlockFace.DOWN) ? isFixed ? 0.49 : -1 * hitboxOffset : 0);
+        float hitboxOffset = (float) (hitbox().hitboxHeight() - 1);
+        double yCorrection = (isRoof && facing == BlockFace.DOWN ? isFixed ? 0.49 : -1 * hitboxOffset : 0);
 
         return correctedLocation.add(0,  yCorrection, 0);
-         */
     }
 
-    public void setBaseFurnitureData(@NotNull ItemDisplay baseEntity, float yaw) {
+    public void setBaseFurnitureData(@NotNull ItemDisplay baseEntity, float yaw, BlockFace blockFace) {
         baseEntity.setPersistent(true);
         baseEntity.setInvulnerable(true);
-        baseEntity.setRotation(yaw, FurnitureHelpers.correctedPitch(this, 0f));
         baseEntity.setSilent(true);
         baseEntity.setCustomNameVisible(false);
-        Component customName = OraxenItems.getItemById(this.getItemID()).displayName();
-        if (customName == Component.empty()) customName = Component.text(getItemID());
+        ItemBuilder i = OraxenItems.getItemById(getItemID());
+        Component customName = Optional.ofNullable(i.itemName()).orElse(Optional.ofNullable(i.displayName()).orElse(Component.text(getItemID())));
         EntityUtils.customName(baseEntity, customName);
 
-        Transformation transformation = baseEntity.getTransformation();
-        boolean isFixed = baseEntity.getItemDisplayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
-        transformation.getScale().set(isFixed ? new Vector3f(0.5f, 0.5f, 0.5f) : new Vector3f(1f, 1f, 1f));
+        float pitch;
+        if (hasLimitedPlacing() && displayEntityProperties.isFixedTransform()) {
+            if (limitedPlacing.isFloor() && blockFace == BlockFace.UP) pitch = -90;
+            else if (limitedPlacing.isRoof() && blockFace == BlockFace.DOWN) pitch = 90;
+            else pitch = 0;
+
+            if (limitedPlacing.isFloor() && blockFace == BlockFace.UP) yaw -= 180;
+            else if (limitedPlacing.isWall() && blockFace.getModY() == 0) yaw = 90f * blockFace.ordinal() - 180;
+        } else pitch = 0;
+
+        baseEntity.setRotation(yaw, pitch);
+
+        //Transformation transformation = baseEntity.getTransformation();
+        //boolean isFixed = baseEntity.getItemDisplayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
+        //transformation.getScale().set(isFixed ? new Vector3f(0.5f, 0.5f, 0.5f) : new Vector3f(1f, 1f, 1f));
 
         PersistentDataContainer pdc = baseEntity.getPersistentDataContainer();
         pdc.set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
@@ -329,7 +326,7 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public boolean notEnoughSpace(Location rootLocation, float yaw) {
-        List<Location> hitboxLocations = hitbox.hitboxLocations(rootLocation, yaw);
+        List<Location> hitboxLocations = hitbox.hitboxLocations(rootLocation.clone(), yaw);
         if (!hitboxLocations.isEmpty()) return !hitboxLocations.stream().allMatch(l -> l.getBlock().isReplaceable());
         else return false; //TODO Check location for existing entity via BoundingBox
     }

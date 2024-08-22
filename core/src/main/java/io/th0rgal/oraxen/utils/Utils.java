@@ -153,4 +153,15 @@ public class Utils {
             return defaultValue;
         }
     }
+
+    public static <T> T getLastOrDefault(List<T> list, T defaultValue) {
+        if (list.isEmpty()) return defaultValue;
+        try {
+            T object = list.getLast();
+            if (object == null) return defaultValue;
+            else return object;
+        } catch (Exception e) {
+            return defaultValue;
+        }
+    }
 }
