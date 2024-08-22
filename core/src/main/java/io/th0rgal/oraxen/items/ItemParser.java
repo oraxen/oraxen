@@ -171,7 +171,7 @@ public class ItemParser {
     @SuppressWarnings({"UnstableApiUsage", "unchecked"})
     private void parseToolComponent(ItemBuilder item, @NotNull ConfigurationSection toolSection) {
         ToolComponent toolComponent = new ItemStack(Material.PAPER).getItemMeta().getTool();
-        toolComponent.setDamagePerBlock(Math.min(toolSection.getInt("damage_per_block", 1), 0));
+        toolComponent.setDamagePerBlock(Math.max(toolSection.getInt("damage_per_block", 1), 0));
         toolComponent.setDefaultMiningSpeed(Math.min((float) toolSection.getDouble("default_mining_speed", 1.0), 0f));
 
         for (Map<?, ?> ruleEntry : toolSection.getMapList("rules")) {
