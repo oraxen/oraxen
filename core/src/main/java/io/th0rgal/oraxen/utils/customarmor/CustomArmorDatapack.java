@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.items.ItemBuilder;
+import io.th0rgal.oraxen.pack.DefaultResourcePackExtractor;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import org.apache.commons.io.FileUtils;
@@ -173,25 +174,27 @@ public class CustomArmorDatapack {
         String armorPath = "minecraft:models/armor/";
         String vanillaTrimPath = "minecraft:trims/models/armor/";
         String oraxenTrimPath = "oraxen:trims/models/armor/";
+        Key chainmailKey = Key.key(armorPath + "chainmail_layer_1.png"), chainmailKey2 = Key.key(armorPath + "chainmail_layer_2.png");
 
-        resourcePack.textures().stream().filter(t ->
-                t.key().asString().endsWith("_layer_1.png") || t.key().asString().endsWith("_layer_2.png")
-        ).collect(Collectors.toCollection(LinkedHashSet::new)).forEach( armorTexture -> {
+        new LinkedHashSet<>(resourcePack.textures()).forEach(armorTexture -> {
             String armorPrefix = armorPrefix(armorTexture);
             if (armorTexture.key().asString().endsWith("_armor_layer_1.png"))
                 resourcePack.texture(Key.key(oraxenTrimPath + armorPrefix + ".png"), armorTexture.data());
             else if (armorTexture.key().asString().endsWith("_armor_layer_2.png"))
                 resourcePack.texture(Key.key(oraxenTrimPath + armorPrefix + "_leggings.png"), armorTexture.data());
-
-            if (armorTexture.key().asString().equals(armorPath + "chainmail_layer_1.png"))
-                resourcePack.texture(Key.key(vanillaTrimPath + "chainmail.png"), armorTexture.data());
-            else if (armorTexture.key().asString().equals(armorPath + "chainmail_layer_2.png"))
-                resourcePack.texture(Key.key(vanillaTrimPath + "chainmail_leggings.png"), armorTexture.data());
         });
 
+        Texture chainmail = Optional.ofNullable(resourcePack.texture(chainmailKey)).orElse(DefaultResourcePackExtractor.vanillaResourcePack.texture(chainmailKey));
+        Texture chainmail2 = Optional.ofNullable(resourcePack.texture(chainmailKey2)).orElse(DefaultResourcePackExtractor.vanillaResourcePack.texture(chainmailKey2));
+
+        if (chainmail != null) resourcePack.texture(Key.key(vanillaTrimPath + "chainmail.png"), chainmail.data());
+        else Logs.logWarning(String.format("Could not find %s in ResourcePack or VanillaPack", chainmailKey.asString()));
+        if (chainmail2 != null) resourcePack.texture(Key.key(vanillaTrimPath + "chainmail_leggings.png"), chainmail2.data());
+        else Logs.logWarning(String.format("Could not find %s in ResourcePack or VanillaPack", chainmailKey2.asString()));
+
         Optional.ofNullable(resourcePack.texture(Key.key(armorPath + "transparent_layer.png"))).ifPresent(transparent -> {
-            resourcePack.texture(Key.key(armorPath + "chainmail_layer_1.png"), transparent.data());
-            resourcePack.texture(Key.key(armorPath + "chainmail_layer_2.png"), transparent.data());
+            resourcePack.texture(chainmailKey, transparent.data());
+            resourcePack.texture(chainmailKey2, transparent.data());
         });
     }
 
