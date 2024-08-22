@@ -102,10 +102,8 @@ public class ResourcePack {
             // needs to be ordered, forEach cannot be used
             File[] files = packFolder.listFiles();
             if (files != null) for (final File folder : files) {
-                if (folder.isDirectory() && folder.getName().equalsIgnoreCase("assets"))
-                    getAllFiles(folder, output, "");
-                else if (folder.isDirectory())
-                    getAllFiles(folder, output, "assets/minecraft");
+                if (!folder.isDirectory()) continue;
+                getAllFiles(folder, output, folder.getName().matches("models|textures|lang|font|sounds") ? "assets/minecraft" : "");
             }
 
             // Convert the global.json within the lang-folder to all languages
