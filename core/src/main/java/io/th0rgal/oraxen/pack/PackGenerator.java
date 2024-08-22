@@ -61,6 +61,7 @@ public class PackGenerator {
 
     public PackGenerator() {
         generateDefaultPaths();
+        PackDownloader.downloadRequiredPack();
         if (Settings.PACK_IMPORT_DEFAULT.toBool()) PackDownloader.downloadDefaultPack();
         customArmorDatapack = Settings.CUSTOM_ARMOR_ENABLED.toBool() ? new CustomArmorDatapack() : null;
         this.modelGenerator = new ModelGenerator(resourcePack);
@@ -214,19 +215,25 @@ public class PackGenerator {
         resourcePack.unknownFile("assets/minecraft/shaders/core/" + "rendertype_gui.vsh", ShaderUtils.ScoreboardBackground.modernFile());
     }
 
-    private void importDefaultPack() {
+    private void importRequiredPack() {
         Optional<File> defaultPack = Arrays.stream(Objects.requireNonNullElse(externalPacks.toFile().listFiles(), new File[]{}))
-                .filter(f -> f.getName().startsWith("DefaultPack_")).findFirst();
+                .filter(f -> f.getName().startsWith("RequiredPack_")).findFirst();
         if (defaultPack.isEmpty()) return;
+    }
+
+    private void importDefaultPack() {
+        Optional<File> requiredPack = Arrays.stream(Objects.requireNonNullElse(externalPacks.toFile().listFiles(), new File[]{}))
+                .filter(f -> f.getName().startsWith("DefaultPack_")).findFirst();
+        if (requiredPack.isEmpty()) return;
         Logs.logInfo("Importing DefaultPack...");
 
         try {
-            OraxenPack.mergePack(resourcePack, defaultPack.get().isDirectory()
-                    ? reader.readFromDirectory(defaultPack.get())
-                    : reader.readFromZipFile(defaultPack.get())
+            OraxenPack.mergePack(resourcePack, requiredPack.get().isDirectory()
+                    ? reader.readFromDirectory(requiredPack.get())
+                    : reader.readFromZipFile(requiredPack.get())
             );
         } catch (Exception e) {
-            Logs.logError("Failed to read Oraxen's DefaultPack...");
+            Logs.logError("Failed to read Oraxen's RequiredPack...");
             if (!Settings.DEBUG.toBool()) Logs.logError(e.getMessage());
             else e.printStackTrace();
         }
@@ -235,7 +242,7 @@ public class PackGenerator {
 
     private void importExternalPacks() {
         for (File file : Objects.requireNonNullElse(externalPacks.toFile().listFiles(), new File[]{})) {
-            if (file == null || file.getName().startsWith("DefaultPack_")) continue;
+            if (file == null || file.getName().startsWith("DefaultPack_") || file.getName().startsWith("RequiredPack_")) continue;
             if (file.isDirectory()) {
                 Logs.logInfo("Importing pack " + file.getName() + "...");
                 try {
