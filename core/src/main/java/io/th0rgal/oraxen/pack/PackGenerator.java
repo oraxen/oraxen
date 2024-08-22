@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.pack;
 
 import com.ticxo.modelengine.api.ModelEngineAPI;
+import com.ticxo.modelengine.api.events.ModelRegistrationEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.events.OraxenPack;
 import io.th0rgal.oraxen.api.events.resourcepack.OraxenPostPackGenerateEvent;
@@ -19,6 +20,9 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 import team.unnamed.creative.BuiltResourcePack;
 import team.unnamed.creative.ResourcePack;
@@ -37,6 +41,8 @@ import team.unnamed.creative.sound.SoundRegistry;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class PackGenerator {
@@ -50,6 +56,8 @@ public class PackGenerator {
     private BuiltResourcePack builtPack;
     private final CustomArmorDatapack customArmorDatapack;
     private final ModelGenerator modelGenerator;
+    private BukkitTask packGenerationTask;
+    private int packUploadTaskId = -1;
 
     public PackGenerator() {
         generateDefaultPaths();
@@ -58,10 +66,19 @@ public class PackGenerator {
         this.modelGenerator = new ModelGenerator(resourcePack);
     }
 
+    public void stopPackGeneration() {
+        if (packGenerationTask != null) packGenerationTask.cancel();
+        if (packUploadTaskId != -1) Bukkit.getScheduler().cancelTask(packUploadTaskId);
+        packGenerationTask = null;
+        packUploadTaskId = -1;
+    }
+
     public void generatePack() {
+        stopPackGeneration();
+        if (Settings.PACK_IMPORT_MODEL_ENGINE.toBool()) awaitModelEngine();
         EventUtils.callEvent(new OraxenPrePackGenerateEvent(resourcePack));
 
-        Bukkit.getScheduler().runTaskAsynchronously(OraxenPlugin.get(), () -> {
+        packGenerationTask = Bukkit.getScheduler().runTaskAsynchronously(OraxenPlugin.get(), () -> {
             Logs.logInfo("Generating resourcepack...");
             if (Settings.PACK_IMPORT_DEFAULT.toBool()) importDefaultPack();
             if (Settings.PACK_IMPORT_EXTERNAL.toBool()) importExternalPacks();
@@ -111,7 +128,7 @@ public class PackGenerator {
             if (Settings.PACK_ZIP.toBool()) writer.writeToZipFile(packZip, resourcePack);
             builtPack = writer.build(resourcePack);
 
-            Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () -> {
+            packUploadTaskId = Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () -> {
                 Logs.logSuccess("Finished generating resourcepack!", true);
                 OraxenPlugin.get().packServer().uploadPack();
                 if (Settings.PACK_SEND_RELOAD.toBool()) for (Player player : Bukkit.getOnlinePlayers())
@@ -244,6 +261,35 @@ public class PackGenerator {
         }
     }
 
+    private void awaitModelEngine() {
+        if (!PluginUtils.isEnabled("ModelEngine")) return;
+
+        Logs.logInfo("Awaiting ModelEngine ResourcePack...");
+        // Create a CompletableFuture that will be completed when the phase is FINISHED
+        CompletableFuture<Void> future = new CompletableFuture<>();
+
+        try {
+            Listener listener = new Listener() {
+                @EventHandler
+                public void onMegPack(ModelRegistrationEvent event) {
+                    if (event.getPhase() != com.ticxo.modelengine.api.generator.ModelGenerator.Phase.FINISHED) return;
+                    Logs.logInfo("ModelEngine ResourcePack is ready.");
+                    ModelRegistrationEvent.getHandlerList().unregister(this);
+                    future.complete(null);  // Complete the future to signal the event has finished
+                }
+            };
+
+            Bukkit.getPluginManager().registerEvents(listener, OraxenPlugin.get());
+
+            // Wait for the CompletableFuture to complete with a timeout
+            future.get(2, TimeUnit.SECONDS);
+            ModelRegistrationEvent.getHandlerList().unregister(listener);
+        } catch (Exception e) {
+            Logs.logWarning("Failed to await ModelEngine-ResourcePack...");
+        }
+    }
+
+
     private void importModelEnginePack() {
         if (!PluginUtils.isEnabled("ModelEngine")) return;
         File megPack = ModelEngineAPI.getAPI().getDataFolder().toPath().resolve("resource pack.zip").toFile();
@@ -253,8 +299,8 @@ public class PackGenerator {
            OraxenPack.mergePack(resourcePack, reader.readFromZipFile(megPack));
        } catch (Exception e) {
            Logs.logError("Failed to read ModelEngine-ResourcePack...");
-           if (!Settings.DEBUG.toBool()) Logs.logError(e.getMessage());
-           else e.printStackTrace();
+           if (Settings.DEBUG.toBool()) e.printStackTrace();
+           else Logs.logWarning(e.getMessage());
        } finally {
            Logs.logSuccess("Imported ModelEngine pack successfully!");
        }

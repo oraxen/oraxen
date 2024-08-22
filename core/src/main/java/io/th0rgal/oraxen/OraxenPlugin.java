@@ -191,6 +191,7 @@ public class OraxenPlugin extends JavaPlugin {
     }
 
     public void packGenerator(PackGenerator packGenerator) {
+        this.packGenerator.stopPackGeneration();
         this.packGenerator = packGenerator;
     }
 

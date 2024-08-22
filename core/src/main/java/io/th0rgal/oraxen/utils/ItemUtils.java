@@ -6,7 +6,6 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Color;
 import org.bukkit.Material;
-import org.bukkit.Tag;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.inventory.ItemStack;
@@ -193,9 +192,7 @@ public class ItemUtils {
     }
 
     public static boolean isTool(@NotNull Material material) {
-        if (VersionUtil.below("1.20.5"))
-            return Tag.ITEMS_TOOLS.isTagged(material);
-        else return material.toString().endsWith("_AXE")
+        return material.toString().endsWith("_AXE")
                 || material.toString().endsWith("_PICKAXE")
                 || material.toString().endsWith("_SHOVEL")
                 || material.toString().endsWith("_HOE")
