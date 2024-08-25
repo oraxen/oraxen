@@ -11,6 +11,8 @@ import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.font.Shift;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockFactory;
+import io.th0rgal.oraxen.pack.creative.OraxenPackReader;
+import io.th0rgal.oraxen.pack.creative.OraxenPackWriter;
 import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmorDatapack;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -45,12 +47,13 @@ import java.util.stream.Collectors;
 public class PackGenerator {
 
     public static Path externalPacks = OraxenPlugin.get().packPath().resolve("external_packs");
-    public static final MinecraftResourcePackReader reader = MinecraftResourcePackReader.builder().lenient(true).build();
-    public static final MinecraftResourcePackWriter writer = MinecraftResourcePackWriter.builder().prettyPrinting(true).build();
+    public static final MinecraftResourcePackReader reader = new OraxenPackReader();
+    public static final MinecraftResourcePackWriter writer = new OraxenPackWriter();
 
     private static final Path assetsFolder = OraxenPlugin.get().packPath().resolve("assets");
     @NotNull private ResourcePack resourcePack = ResourcePack.resourcePack();
     private BuiltResourcePack builtPack;
+    private PackValidator packValidator = new PackValidator();
     private final CustomArmorDatapack customArmorDatapack;
     private final ModelGenerator modelGenerator;
     private BukkitTask packGenerationTask;
@@ -72,6 +75,7 @@ public class PackGenerator {
     }
 
     public void generatePack() {
+        this.packValidator = new PackValidator();
         stopPackGeneration();
         if (Settings.PACK_IMPORT_MODEL_ENGINE.toBool()) awaitModelEngine();
         EventUtils.callEvent(new OraxenPrePackGenerateEvent(resourcePack));
@@ -251,7 +255,7 @@ public class PackGenerator {
         for (File file : Objects.requireNonNullElse(externalPacks.toFile().listFiles(), new File[]{})) {
             if (file == null || file.getName().startsWith("DefaultPack_") || file.getName().startsWith("RequiredPack_")) continue;
             if (file.isDirectory()) {
-                Logs.logInfo("Importing pack " + file.getName() + "...");
+                Logs.logInfo("Importing external-pack <aqua>" + file.getName() + "</aqua>...");
                 try {
                     OraxenPack.mergePack(resourcePack, reader.readFromDirectory(file));
                 } catch (Exception e) {

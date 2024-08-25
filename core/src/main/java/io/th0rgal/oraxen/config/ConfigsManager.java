@@ -6,10 +6,7 @@ import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemParser;
 import io.th0rgal.oraxen.items.ItemTemplate;
 import io.th0rgal.oraxen.items.ModelData;
-import io.th0rgal.oraxen.utils.AdventureUtils;
-import io.th0rgal.oraxen.utils.OraxenYaml;
-import io.th0rgal.oraxen.utils.Utils;
-import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import org.apache.commons.io.FileUtils;
@@ -244,8 +241,9 @@ public class ConfigsManager {
                 ConfigurationSection packSection = itemSection.getConfigurationSection("Pack");
                 Material material = Material.getMaterial(itemSection.getString("material", ""));
                 if (packSection == null || material == null) continue;
+                validatePackSection(key, packSection);
                 int modelData = packSection.getInt("custom_model_data", -1);
-                Key model = getItemModelFromConfigurationSection(packSection);
+                Key model = getItemModelFromConfigurationSection(key, packSection);
                 if (modelData == -1) continue;
                 if (assignedModelDatas.containsKey(material) && assignedModelDatas.get(material).containsKey(modelData)) {
                     if (assignedModelDatas.get(material).get(modelData).equals(model)) continue;
@@ -276,12 +274,29 @@ public class ConfigsManager {
         }
     }
 
-    private Key getItemModelFromConfigurationSection(ConfigurationSection packSection) {
+    private void validatePackSection(String itemId, ConfigurationSection packSection) {
         String model = packSection.getString("model", "");
-        if (model.isEmpty() && packSection.getBoolean("generate_model", false)) {
-            model = packSection.getParent().getName();
+        if (model.isEmpty()) model = itemId;
+
+        if (!Key.parseable(model)) {
+            Logs.logWarning("Found invalid model in OraxenItem <blue>" + itemId + "</blue>: <aqua>" + model);
+            Logs.logWarning("Model-paths must only contain characters <yellow>[a-z0-9/._-]");
         }
-        return Key.key(model);
+
+        for (String texture : packSection.getStringList("textures")) {
+            if (!Key.parseable(texture)) {
+                Logs.logWarning("Found invalid texture in OraxenItem <blue>" + itemId + "</blue>: <aqua>" + texture);
+                Logs.logWarning("Texture-paths must only contain characters <yellow>[a-z0-9/._-]");
+            }
+        }
+    }
+
+    private Key getItemModelFromConfigurationSection(String itemId, ConfigurationSection packSection) {
+        String model = packSection.getString("model", "");
+        if (model.isEmpty()) model = itemId;
+
+        if (Key.parseable(model)) return Key.key(model);
+        else return KeyUtils.MALFORMED_KEY_PLACEHOLDER;
     }
 
     public Map<String, ItemBuilder> parseItemConfig(File itemFile, ItemBuilder errorItem) {

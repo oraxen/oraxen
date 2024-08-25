@@ -70,7 +70,7 @@ public class PredicateGenerator {
     private void addMissingOverrideModel(Key modelKey, Key parentKey) {
         resourcePack.model(Optional.ofNullable(resourcePack.model(modelKey)).orElse(
                 Model.model().key(modelKey).parent(parentKey)
-                .textures(ModelTextures.builder().layers(ModelTexture.ofKey(KeyUtils.dropPngSuffix(modelKey))).build())
+                .textures(ModelTextures.builder().layers(ModelTexture.ofKey(KeyUtils.dropExtension(modelKey))).build())
                 .build())
         );
     }

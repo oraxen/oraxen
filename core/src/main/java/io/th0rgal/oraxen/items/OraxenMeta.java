@@ -55,31 +55,31 @@ public class OraxenMeta {
         this.castModel = readModelName(section, "cast_model");
         this.chargedModel = readModelName(section, "charged_model");
         this.fireworkModel = readModelName(section, "firework_model");
-        this.pullingModels = section.getStringList("pulling_models").stream().map(KeyUtils::dropPngSuffix).toList();
-        this.damagedModels = section.getStringList("damaged_models").stream().map(KeyUtils::dropPngSuffix).toList();
+        this.pullingModels = section.getStringList("pulling_models").stream().map(KeyUtils::dropExtension).toList();
+        this.damagedModels = section.getStringList("damaged_models").stream().map(KeyUtils::dropExtension).toList();
 
         // By adding the textures to pullingModels aswell,
         // we can use the same code for both pullingModels
         // and pullingTextures to add to the base-bow file predicates
-        if (pullingModels.isEmpty()) pullingModels = section.getStringList("pulling_textures").stream().map(KeyUtils::dropPngSuffix).toList();
-        if (damagedModels == null) damagedModels = section.getStringList("damaged_textures").stream().map(KeyUtils::dropPngSuffix).toList();
+        if (pullingModels.isEmpty()) pullingModels = section.getStringList("pulling_textures").stream().map(KeyUtils::dropExtension).toList();
+        if (damagedModels == null) damagedModels = section.getStringList("damaged_textures").stream().map(KeyUtils::dropExtension).toList();
 
-        if (chargedModel == null) chargedModel = KeyUtils.dropPngSuffix(section.getString("charged_texture", ""));
-        if (fireworkModel == null) fireworkModel = KeyUtils.dropPngSuffix(section.getString("firework_texture", ""));
-        if (castModel == null) castModel = KeyUtils.dropPngSuffix(section.getString("cast_texture", ""));
-        if (blockingModel == null) blockingModel = KeyUtils.dropPngSuffix(section.getString("blocking_texture", ""));
+        if (chargedModel == null) chargedModel = KeyUtils.dropExtension(section.getString("charged_texture", ""));
+        if (fireworkModel == null) fireworkModel = KeyUtils.dropExtension(section.getString("firework_texture", ""));
+        if (castModel == null) castModel = KeyUtils.dropExtension(section.getString("cast_texture", ""));
+        if (blockingModel == null) blockingModel = KeyUtils.dropExtension(section.getString("blocking_texture", ""));
 
         ConfigurationSection textureSection = section.getConfigurationSection("textures");
         if (textureSection != null) {
             ConfigurationSection texturesSection = section.getConfigurationSection("textures");
             assert texturesSection != null;
             Map<String, ModelTexture> variables = new HashMap<>();
-            texturesSection.getKeys(false).forEach(key -> variables.put(key, ModelTexture.ofKey(Key.key(texturesSection.getString(key).replace(".png", "")))));
+            texturesSection.getKeys(false).forEach(key -> variables.put(key, ModelTexture.ofKey(KeyUtils.dropExtension(texturesSection.getString(key)))));
             this.textureVariables = variables;
         }
-        else if (section.isList("textures")) this.textureLayers = section.getStringList("textures").stream().map(t -> ModelTexture.ofKey(KeyUtils.dropPngSuffix(t))).toList();
-        else if (section.isString("textures")) this.textureLayers = List.of(ModelTexture.ofKey(KeyUtils.dropPngSuffix(section.getString("textures", ""))));
-        else if (section.isString("texture")) this.textureLayers = List.of(ModelTexture.ofKey(KeyUtils.dropPngSuffix(section.getString("texture", ""))));
+        else if (section.isList("textures")) this.textureLayers = section.getStringList("textures").stream().map(KeyUtils::dropExtension).map(ModelTexture::ofKey).toList();
+        else if (section.isString("textures")) this.textureLayers = List.of(ModelTexture.ofKey(KeyUtils.dropExtension(section.getString("textures", ""))));
+        else if (section.isString("texture")) this.textureLayers = List.of(ModelTexture.ofKey(KeyUtils.dropExtension(section.getString("texture", ""))));
 
         this.textureVariables = textureVariables != null ? textureVariables : new HashMap<>();
         this.textureLayers = textureLayers != null ? textureLayers : new ArrayList<>();
@@ -97,13 +97,11 @@ public class OraxenMeta {
     // this might not be a very good function name
     private Key readModelName(ConfigurationSection configSection, String configString) {
         String modelName = configSection.getString(configString);
-        ConfigurationSection parent = configSection.getParent();
+        String parent = configSection.getParent().getName();
 
-        if (modelName == null && configString.equals("model") && parent != null)
-            return Key.key(parent.getName());
-        else if (modelName != null)
-            return Key.key(modelName.replace(".json", ""));
-        else return null;
+        if (modelName == null && configString.equals("model") && Key.parseable(parent)) return Key.key(parent);
+        else if (Key.parseable(modelName)) return KeyUtils.dropExtension(modelName);
+        else return KeyUtils.MALFORMED_KEY_PLACEHOLDER;
     }
 
     public boolean hasPackInfos() {
