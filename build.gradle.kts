@@ -147,7 +147,7 @@ tasks {
         downloadPlugins {
             url("https://ci.dmulloy2.net/job/ProtocolLib/lastSuccessfulBuild/artifact/build/libs/ProtocolLib.jar")
         }
-        minecraftVersion("1.20.4")
+        minecraftVersion("1.21.1")
     }
 
     shadowJar {
