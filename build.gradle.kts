@@ -107,7 +107,7 @@ allprojects {
         implementation("io.th0rgal:protectionlib:1.6.0")
         implementation("com.github.stefvanschie.inventoryframework:IF:0.10.12")
         implementation("com.jeff-media:custom-block-data:2.2.2")
-        implementation("com.jeff_media:MorePersistentDataTypes:2.4.0")
+        implementation("com.jeff-media:MorePersistentDataTypes:2.4.0")
         implementation("com.jeff-media:persistent-data-serializer:1.0")
         implementation("org.jetbrains:annotations:24.1.0") { isTransitive = false }
         implementation("dev.triumphteam:triumph-gui:3.1.10") { exclude("net.kyori") }
@@ -147,7 +147,7 @@ tasks {
         downloadPlugins {
             url("https://ci.dmulloy2.net/job/ProtocolLib/lastSuccessfulBuild/artifact/build/libs/ProtocolLib.jar")
         }
-        minecraftVersion("1.20.4")
+        minecraftVersion("1.21.1")
     }
 
     shadowJar {

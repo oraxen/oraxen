@@ -15,6 +15,7 @@ import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -171,16 +172,11 @@ public class ItemParser {
     @SuppressWarnings({"UnstableApiUsage", "unchecked"})
     private void parseToolComponent(ItemBuilder item, @NotNull ConfigurationSection toolSection) {
         ToolComponent toolComponent = new ItemStack(Material.PAPER).getItemMeta().getTool();
-        toolComponent.setDamagePerBlock(Math.min(toolSection.getInt("damage_per_block", 1), 0));
-        toolComponent.setDefaultMiningSpeed(Math.min((float) toolSection.getDouble("default_mining_speed", 1.0), 0f));
+        toolComponent.setDamagePerBlock(Math.max(toolSection.getInt("damage_per_block", 1), 0));
+        toolComponent.setDefaultMiningSpeed(Math.max((float) toolSection.getDouble("default_mining_speed", 1.0), 0f));
 
         for (Map<?, ?> ruleEntry : toolSection.getMapList("rules")) {
-            float speed;
-            try {
-                speed = Float.parseFloat(String.valueOf(ruleEntry.get("speed")));
-            } catch (Exception e) {
-                speed = 1f;
-            }
+            float speed = NumberUtils.toFloat(String.valueOf(ruleEntry.get("speed")), 1f);
             boolean correctForDrops = Boolean.parseBoolean(String.valueOf(ruleEntry.get("correct_for_drops")));
             Set<Material> materials = new HashSet<>();
             Set<Tag<Material>> tags = new HashSet<>();
