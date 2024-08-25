@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.*;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.seats.FurnitureSeat;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import org.bukkit.*;
@@ -251,6 +252,7 @@ public class OraxenFurniture {
 
         ItemStack newItem = ItemUpdater.updateItem(FurnitureHelpers.furnitureItem(baseEntity));
         FurnitureHelpers.furnitureItem(baseEntity, newItem);
+        FurnitureHelpers.furnitureDye(baseEntity, ItemUtils.dyeColor(newItem).orElse(null));
 
         IFurniturePacketManager packetManager = FurnitureFactory.instance.packetManager();
         packetManager.removeFurnitureEntityPacket(baseEntity, mechanic);

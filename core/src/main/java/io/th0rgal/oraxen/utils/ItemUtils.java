@@ -89,6 +89,17 @@ public class ItemUtils {
         else itemMeta.setLore(otherMeta.getLore());
     }
 
+    public static Optional<Color> dyeColor(ItemStack itemStack) {
+        return Optional.ofNullable(
+                switch (itemStack.getItemMeta()) {
+                    case LeatherArmorMeta leatherArmorMeta -> leatherArmorMeta.getColor();
+                    case PotionMeta potionMeta -> potionMeta.getColor();
+                    case MapMeta mapMeta -> mapMeta.getColor();
+                    case null, default -> null;
+                }
+        );
+    }
+
     public static void dyeItem(ItemStack itemStack, Color color) {
         editItemMeta(itemStack, meta -> {
             if (meta instanceof LeatherArmorMeta leatherArmorMeta) {

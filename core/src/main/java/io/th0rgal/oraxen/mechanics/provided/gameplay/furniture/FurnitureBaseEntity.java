@@ -4,7 +4,6 @@ import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.utils.ItemUtils;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.inventory.ItemStack;
 
@@ -18,9 +17,10 @@ public class FurnitureBaseEntity {
     private final int baseId;
     private final FurnitureMechanic mechanic;
 
-    public FurnitureBaseEntity(Entity baseEntity, FurnitureMechanic mechanic, IFurniturePacketManager packetManager) {
+    public FurnitureBaseEntity(ItemDisplay baseEntity, FurnitureMechanic mechanic) {
         this.mechanic = mechanic;
         ItemStack furnitureItem = OraxenItems.getItemById(mechanic.getItemID()).build().clone();
+        ItemUtils.dyeItem(furnitureItem, FurnitureHelpers.furnitureDye(baseEntity));
         ItemUtils.displayName(furnitureItem, null);
         this.itemStack = furnitureItem;
         this.baseUuid = baseEntity.getUniqueId();

@@ -11,10 +11,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.seats.FurnitureSeat;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
-import io.th0rgal.oraxen.utils.BlockHelpers;
-import io.th0rgal.oraxen.utils.EventUtils;
-import io.th0rgal.oraxen.utils.Utils;
-import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -36,20 +33,13 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.RayTraceResult;
 
 import java.util.Objects;
 import java.util.Optional;
 
 public class FurnitureListener implements Listener {
-
-    /*@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onItemFrameRotate(PlayerInteractEntityEvent event) {
-        if (!(event.getRightClicked() instanceof ItemFrame frame)) return;
-        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(frame);
-        if (mechanic == null || mechanic.isRotatable()) return;
-        event.setCancelled(true);
-    }*/
 
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void onLimitedPlacing(final PlayerInteractEvent event) {
@@ -122,6 +112,7 @@ public class FurnitureListener implements Listener {
         }
 
         ItemDisplay baseEntity = mechanic.place(block.getLocation(), yaw, event.getBlockFace(), true);
+        ItemUtils.dyeColor(item).ifPresent(color -> baseEntity.getPersistentDataContainer().set(FurnitureMechanic.FURNITURE_DYE_KEY, PersistentDataType.INTEGER, color.asRGB()));
         Utils.swingHand(player, event.getHand());
 
         final OraxenFurniturePlaceEvent furniturePlaceEvent = new OraxenFurniturePlaceEvent(mechanic, block, baseEntity, player, item, hand);

@@ -18,7 +18,10 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.seats.FurnitureSe
 import io.th0rgal.oraxen.mechanics.provided.gameplay.light.LightMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
-import io.th0rgal.oraxen.utils.*;
+import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.EntityUtils;
+import io.th0rgal.oraxen.utils.ItemUtils;
+import io.th0rgal.oraxen.utils.PluginUtils;
 import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -44,6 +47,7 @@ import java.util.*;
 public class FurnitureMechanic extends Mechanic {
 
     public static final NamespacedKey FURNITURE_KEY = new NamespacedKey(OraxenPlugin.get(), "furniture");
+    public static final NamespacedKey FURNITURE_DYE_KEY = new NamespacedKey(OraxenPlugin.get(), "furniture_dye");
     public static final NamespacedKey MODELENGINE_KEY = new NamespacedKey(OraxenPlugin.get(), "modelengine");
     public static final NamespacedKey EVOLUTION_KEY = new NamespacedKey(OraxenPlugin.get(), "evolution");
 
@@ -239,6 +243,7 @@ public class FurnitureMechanic extends Mechanic {
         item.setAmount(1);
 
         ItemDisplay baseEntity = location.getWorld().spawn(correctedSpawnLocation(location, facing), ItemDisplay.class, e -> setBaseFurnitureData(e, yaw, facing));
+
         if (this.isModelEngine() && PluginUtils.isEnabled("ModelEngine")) spawnModelEngineFurniture(baseEntity);
         FurnitureSeat.spawnSeats(baseEntity, this);
 

@@ -62,7 +62,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
         if (mechanic.isModelEngine() && ModelEngineAPI.getBlueprint(mechanic.getModelEngineID()) != null) return;
 
         FurnitureBaseEntity furnitureBase = furnitureBaseFromBaseEntity(baseEntity).orElseGet(() -> {
-            FurnitureBaseEntity base = new FurnitureBaseEntity(baseEntity, mechanic, this);
+            FurnitureBaseEntity base = new FurnitureBaseEntity(baseEntity, mechanic);
             furnitureBaseMap.add(base);
             return base;
         });
