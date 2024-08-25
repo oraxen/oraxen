@@ -147,14 +147,11 @@ public class ItemUtils {
     public static ItemStack itemFromBase64(String data) {
         try {
             ByteArrayInputStream inputStream = new ByteArrayInputStream(Base64Coder.decodeLines(data));
-            BukkitObjectInputStream dataInput = new BukkitObjectInputStream(inputStream);
-            try {
+            try (BukkitObjectInputStream dataInput = new BukkitObjectInputStream(inputStream)) {
                 return (ItemStack) dataInput.readObject();
             } catch (Exception e) {
                 if (Settings.DEBUG.toBool()) e.printStackTrace();
                 else Logs.logWarning(e.getMessage());
-            } finally {
-                dataInput.close();
             }
         }
         catch (Exception e) {
@@ -172,7 +169,6 @@ public class ItemUtils {
      * @param player    the player that broke the OraxenBlock or OraxenFurniture
      * @param drop      the Drop that will be dropped
      * @param itemStack the item in the player's hand
-     * @return the itemStack with the correct damage applied
      */
     public static void damageItem(Player player, Drop drop, ItemStack itemStack) {
 

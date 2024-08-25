@@ -1,10 +1,8 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
 import io.th0rgal.oraxen.api.OraxenFurniture;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import org.bukkit.Color;
 import org.bukkit.Rotation;
-import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.inventory.ItemStack;
@@ -22,13 +20,6 @@ public class FurnitureHelpers {
         if (mechanic.hasLimitedPlacing() && !mechanic.limitedPlacing().isRoof()) return yaw;
         else if (isFixed) return yaw - 180;
         else return yaw;
-    }
-
-    public static float correctedPitch(FurnitureMechanic mechanic, BlockFace blockFace) {
-        LimitedPlacing lp = mechanic.limitedPlacing();
-        boolean isFixed = mechanic.displayEntityProperties().isFixedTransform();
-        if (!mechanic.hasLimitedPlacing() || !isFixed) return 0;
-        return lp.isFloor() && blockFace == BlockFace.UP ? -90f : lp.isRoof() && blockFace == BlockFace.DOWN ? 90 : 0f;
     }
 
     public static void furnitureYaw(ItemDisplay baseEntity, float yaw) {

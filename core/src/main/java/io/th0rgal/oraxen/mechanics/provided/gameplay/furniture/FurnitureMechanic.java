@@ -88,7 +88,6 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
-    @SuppressWarnings("unchecked")
     public FurnitureMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section, itemBuilder -> itemBuilder.setCustomTag(FURNITURE_KEY, PersistentDataType.BYTE, (byte) 1));
 
@@ -145,21 +144,6 @@ public class FurnitureMechanic extends Mechanic {
 
     public String getModelEngineID() {
         return modelEngineID;
-    }
-
-    public static ArmorStand getSeat(Location location) {
-        Location seatLoc = BlockHelpers.toCenterBlockLocation(location);
-        if (location.getWorld() == null) return null;
-        for (Entity entity : location.getWorld().getNearbyEntities(seatLoc, 0.1, 4, 0.1)) {
-            if (entity instanceof ArmorStand seat
-                    && entity.getLocation().getX() == seatLoc.getX()
-                    && entity.getLocation().getZ() == seatLoc.getZ()
-                    && entity.getPersistentDataContainer().has(FURNITURE_KEY, DataType.STRING)) {
-                return seat;
-            }
-        }
-
-        return null;
     }
 
     public boolean hasLimitedPlacing() {
