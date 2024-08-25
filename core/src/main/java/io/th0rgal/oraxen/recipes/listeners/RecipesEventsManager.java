@@ -3,6 +3,8 @@ package io.th0rgal.oraxen.recipes.listeners;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.mechanics.provided.misc.misc.MiscMechanic;
+import io.th0rgal.oraxen.mechanics.provided.misc.misc.MiscMechanicFactory;
 import io.th0rgal.oraxen.recipes.CustomRecipe;
 import io.th0rgal.oraxen.utils.InventoryUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
@@ -70,6 +72,14 @@ public class RecipesEventsManager implements Listener {
 
         boolean containsOraxenItem = Arrays.stream(event.getInventory().getMatrix()).anyMatch(OraxenItems::exists);
         if (!containsOraxenItem || recipe == null) return;
+
+        if (Arrays.stream(event.getInventory().getMatrix()).anyMatch(item -> {
+            MiscMechanic mechanic = MiscMechanicFactory.get().getMechanic(item);
+            return mechanic != null && !mechanic.isAllowedInVanillaRecipes();
+        })) {
+            event.getInventory().setResult(null);
+            return;
+        }
 
         if (customRecipe == null || whitelistedCraftRecipes.stream().anyMatch(customRecipe::equals) || customRecipe.isValidDyeRecipe()) return;
 

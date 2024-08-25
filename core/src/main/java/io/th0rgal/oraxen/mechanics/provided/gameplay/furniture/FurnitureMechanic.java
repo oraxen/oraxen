@@ -391,10 +391,11 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     private Location correctedSpawnLocation(Location baseLocation, BlockFace facing) {
-        Location correctedLocation = BlockHelpers.toCenterBlockLocation(baseLocation);
         boolean isWall = hasLimitedPlacing() && limitedPlacing.isWall();
         boolean isRoof = hasLimitedPlacing() && limitedPlacing.isRoof();
         boolean isFixed = hasDisplayEntityProperties() && displayEntityProperties.getDisplayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
+        Location correctedLocation = isFixed && facing == BlockFace.UP ? BlockHelpers.toCenterBlockLocation(baseLocation) : BlockHelpers.toCenterLocation(baseLocation);
+
         if (furnitureType != FurnitureType.DISPLAY_ENTITY || !hasDisplayEntityProperties()) return correctedLocation;
         if (displayEntityProperties.getDisplayTransform() != ItemDisplay.ItemDisplayTransform.NONE && !isWall && !isRoof) return correctedLocation;
         float scale = displayEntityProperties.hasScale() ? displayEntityProperties.getScale().y() : 1;
@@ -402,8 +403,7 @@ public class FurnitureMechanic extends Mechanic {
         if (isFixed && isWall && facing.getModY() == 0) correctedLocation.add(-facing.getModX() * (0.49 * scale), 0, -facing.getModZ() * (0.49 * scale));
 
         float hitboxOffset = (hasHitbox() ? hitbox.height : 1) - 1;
-        double yCorrection = (facing != BlockFace.UP ? (0.5 * scale) : 0);
-        yCorrection += ((isRoof && facing == BlockFace.DOWN) ? isFixed ? 0.49 : -1 * hitboxOffset : 0);
+        double yCorrection = ((isRoof && facing == BlockFace.DOWN) ? isFixed ? 0.49 : -1 * hitboxOffset : 0);
 
         return correctedLocation.add(0,  yCorrection, 0);
     }
