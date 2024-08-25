@@ -112,8 +112,6 @@ public class PackGenerator {
             removeExcludedFileExtensions();
             sortModelOverrides();
 
-            PackSlicer.processInputs(resourcePack);
-
             try {
                 resourcePack = Bukkit.getScheduler().callSyncMethod(OraxenPlugin.get(), () -> {
                     OraxenPostPackGenerateEvent event = new OraxenPostPackGenerateEvent(resourcePack);
