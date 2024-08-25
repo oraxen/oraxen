@@ -13,6 +13,7 @@ import team.unnamed.creative.model.ModelTextures;
 
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -29,16 +30,13 @@ public class ModelGenerator {
     public void generateBaseItemModels() {
         // Generate the baseItem model and add all needed overrides
         for (Material baseMaterial : OraxenItems.getItems().stream().map(ItemBuilder::getType).collect(Collectors.toCollection(LinkedHashSet::new))) {
-            Key baseModelKey = predicateGenerator.vanillaModelKey(baseMaterial);
-            Model model = resourcePack.model(baseModelKey);
-            if (model == null) model = DefaultResourcePackExtractor.vanillaResourcePack.model(baseModelKey);
-            if (model != null) {
-                Model.Builder builder = model.toBuilder();
-                predicateGenerator.generateBaseModelOverrides(baseMaterial).forEach(builder::addOverride);
-                model = builder.build();
-            }
+            Key baseModelKey = Key.key("item/" + baseMaterial.toString().toLowerCase(Locale.ENGLISH));
+            Model model = Optional.ofNullable(resourcePack.model(baseModelKey)).orElse(DefaultResourcePackExtractor.vanillaResourcePack.model(baseModelKey));
+            if (model == null) continue;
 
-            if (model != null) model.addTo(resourcePack);
+            Model.Builder builder = model.toBuilder();
+            predicateGenerator.generateBaseModelOverrides(baseMaterial).forEach(builder::addOverride);
+            builder.build().addTo(resourcePack);
         }
     }
 
