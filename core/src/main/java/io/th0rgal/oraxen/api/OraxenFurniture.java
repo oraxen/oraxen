@@ -250,9 +250,11 @@ public class OraxenFurniture {
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
         if (mechanic == null || FurnitureSeat.isSeat(baseEntity)) return;
 
-        ItemStack newItem = ItemUpdater.updateItem(FurnitureHelpers.furnitureItem(baseEntity));
-        FurnitureHelpers.furnitureItem(baseEntity, newItem);
-        FurnitureHelpers.furnitureDye(baseEntity, ItemUtils.dyeColor(newItem).orElse(null));
+        Optional.ofNullable(ItemUpdater.updateItem(FurnitureHelpers.furnitureItem(baseEntity))).ifPresent((newItem) -> {
+            FurnitureHelpers.furnitureItem(baseEntity, newItem);
+            FurnitureHelpers.furnitureDye(baseEntity, ItemUtils.dyeColor(newItem).orElse(null));
+        });
+
 
         IFurniturePacketManager packetManager = FurnitureFactory.instance.packetManager();
         packetManager.removeFurnitureEntityPacket(baseEntity, mechanic);

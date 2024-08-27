@@ -101,7 +101,7 @@ public class JukeboxListener implements Listener {
         FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
         Location loc = BlockHelpers.toCenterLocation(baseEntity.getLocation());
 
-        if (furnitureMechanic == null || !furnitureMechanic.isJukebox()) return false;
+        if (furnitureMechanic == null || !furnitureMechanic.isJukebox() || item == null) return false;
         if (!pdc.has(MUSIC_DISC_KEY, DataType.ITEM_STACK) || !ItemUtils.isMusicDisc(item)) return false;
 
         JukeboxBlock jukebox = furnitureMechanic.jukebox();

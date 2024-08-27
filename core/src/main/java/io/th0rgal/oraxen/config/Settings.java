@@ -273,7 +273,7 @@ public enum Settings {
     public static YamlConfiguration validateSettings() {
         File settingsFile = OraxenPlugin.get().getDataFolder().toPath().resolve("settings.yml").toFile();
         YamlConfiguration settings = settingsFile.exists() ? OraxenYaml.loadConfiguration(settingsFile) : new YamlConfiguration();
-        settings.options().copyDefaults(true).indent(4).parseComments(true);
+        settings.options().copyDefaults(true).indent(2).parseComments(true);
         YamlConfiguration defaults = defaultSettings();
 
         settings.addDefaults(defaults);

@@ -2,10 +2,13 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.utils.ItemUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -19,7 +22,7 @@ public class FurnitureBaseEntity {
 
     public FurnitureBaseEntity(ItemDisplay baseEntity, FurnitureMechanic mechanic) {
         this.mechanic = mechanic;
-        ItemStack furnitureItem = OraxenItems.getItemById(mechanic.getItemID()).build().clone();
+        ItemStack furnitureItem = OraxenItems.getOptionalItemById(mechanic.getItemID()).orElse(new ItemBuilder(Material.BARRIER)).build().clone();
         ItemUtils.dyeItem(furnitureItem, FurnitureHelpers.furnitureDye(baseEntity));
         ItemUtils.displayName(furnitureItem, null);
         this.itemStack = furnitureItem;
@@ -30,7 +33,7 @@ public class FurnitureBaseEntity {
     public ItemStack itemStack() {
         return this.itemStack;
     }
-    public void itemStack(ItemStack itemStack) {
+    public void itemStack(@NotNull ItemStack itemStack) {
         ItemUtils.displayName(itemStack.clone(), null);
         this.itemStack = itemStack;
     }

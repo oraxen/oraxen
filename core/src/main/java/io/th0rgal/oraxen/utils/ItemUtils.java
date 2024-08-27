@@ -1,8 +1,6 @@
 package io.th0rgal.oraxen.utils;
 
-import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.drops.Drop;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Color;
 import org.bukkit.Material;
@@ -10,14 +8,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
-import org.bukkit.util.io.BukkitObjectInputStream;
-import org.bukkit.util.io.BukkitObjectOutputStream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -89,7 +82,7 @@ public class ItemUtils {
         else itemMeta.setLore(otherMeta.getLore());
     }
 
-    public static Optional<Color> dyeColor(ItemStack itemStack) {
+    public static Optional<Color> dyeColor(@NotNull ItemStack itemStack) {
         return Optional.ofNullable(
                 switch (itemStack.getItemMeta()) {
                     case LeatherArmorMeta leatherArmorMeta -> leatherArmorMeta.getColor();
@@ -122,44 +115,6 @@ public class ItemUtils {
         if (meta == null) return;
         function.accept(meta);
         itemStack.setItemMeta(meta);
-    }
-
-    @Nullable
-    public static String itemToBase64(ItemStack stack) {
-        try {
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            BukkitObjectOutputStream dataOutput = new BukkitObjectOutputStream(outputStream);
-            dataOutput.writeObject(stack);
-
-            // Serialize that array
-            dataOutput.close();
-            return Base64Coder.encodeLines(outputStream.toByteArray());
-        }
-        catch (Exception e) {
-            if (Settings.DEBUG.toBool()) e.printStackTrace();
-            else Logs.logWarning(e.getMessage());
-        }
-
-        return null;
-    }
-
-    @Nullable
-    public static ItemStack itemFromBase64(String data) {
-        try {
-            ByteArrayInputStream inputStream = new ByteArrayInputStream(Base64Coder.decodeLines(data));
-            try (BukkitObjectInputStream dataInput = new BukkitObjectInputStream(inputStream)) {
-                return (ItemStack) dataInput.readObject();
-            } catch (Exception e) {
-                if (Settings.DEBUG.toBool()) e.printStackTrace();
-                else Logs.logWarning(e.getMessage());
-            }
-        }
-        catch (Exception e) {
-            if (Settings.DEBUG.toBool()) e.printStackTrace();
-            else Logs.logWarning(e.getMessage());
-        }
-
-        return null;
     }
 
     /**
@@ -207,8 +162,7 @@ public class ItemUtils {
                 || material == Material.TRIDENT;
     }
 
-    public static boolean isMusicDisc(ItemStack itemStack) {
-        if (itemStack == null) return false;
+    public static boolean isMusicDisc(@NotNull ItemStack itemStack) {
         if (VersionUtil.atOrAbove("1.21"))
             return itemStack.hasItemMeta() && itemStack.getItemMeta().hasJukeboxPlayable();
         return itemStack.getType().name().startsWith("MUSIC_DISC");

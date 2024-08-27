@@ -120,6 +120,7 @@ public class OraxenItems {
         return entryStream().filter(entry -> entry.getKey().equals(id)).findFirst().map(Entry::getValue);
     }
 
+    @Nullable
     public static ItemBuilder getItemById(final String id) {
         return getOptionalItemById(id).orElse(null);
     }
