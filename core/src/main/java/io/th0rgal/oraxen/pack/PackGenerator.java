@@ -32,8 +32,6 @@ import team.unnamed.creative.lang.Language;
 import team.unnamed.creative.model.ItemOverride;
 import team.unnamed.creative.model.ItemPredicate;
 import team.unnamed.creative.model.Model;
-import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackReader;
-import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackWriter;
 import team.unnamed.creative.sound.SoundEvent;
 import team.unnamed.creative.sound.SoundRegistry;
 
@@ -47,8 +45,8 @@ import java.util.stream.Collectors;
 public class PackGenerator {
 
     public static Path externalPacks = OraxenPlugin.get().packPath().resolve("external_packs");
-    public static final MinecraftResourcePackReader reader = new OraxenPackReader();
-    public static final MinecraftResourcePackWriter writer = new OraxenPackWriter();
+    static final OraxenPackReader reader = new OraxenPackReader();
+    static final OraxenPackWriter writer = new OraxenPackWriter();
 
     private static final Path assetsFolder = OraxenPlugin.get().packPath().resolve("assets");
     @NotNull private ResourcePack resourcePack = ResourcePack.resourcePack();
@@ -251,20 +249,11 @@ public class PackGenerator {
 
     private void importExternalPacks() {
         for (File file : Objects.requireNonNullElse(externalPacks.toFile().listFiles(), new File[]{})) {
-            if (file == null || file.getName().startsWith("DefaultPack_") || file.getName().startsWith("RequiredPack_")) continue;
-            if (file.isDirectory()) {
+            if (file == null || file.getName().matches("(Default|Required)Pack_.*")) continue;
+            if (file.isDirectory() || file.getName().endsWith(".zip")) {
                 Logs.logInfo("Importing external-pack <aqua>" + file.getName() + "</aqua>...");
                 try {
-                    OraxenPack.mergePack(resourcePack, reader.readFromDirectory(file));
-                } catch (Exception e) {
-                    Logs.logError("Failed to read " + file.getPath() + " to a ResourcePack...");
-                    if (!Settings.DEBUG.toBool()) Logs.logError(e.getMessage());
-                    else e.printStackTrace();
-                }
-            } else if (file.getName().endsWith(".zip")) {
-                Logs.logInfo("Importing zipped pack " + file.getName() + "...");
-                try {
-                    OraxenPack.mergePack(resourcePack, reader.readFromZipFile(file));
+                    OraxenPack.mergePack(resourcePack, reader.readFile(file));
                 } catch (Exception e) {
                     Logs.logError("Failed to read " + file.getPath() + " to a ResourcePack...");
                     if (!Settings.DEBUG.toBool()) Logs.logError(e.getMessage());
@@ -398,5 +387,13 @@ public class PackGenerator {
                 if (entry.getKey().endsWith(extension)) resourcePack.removeUnknownFile(entry.getKey());
             }
         }
+    }
+
+    public OraxenPackReader getPackReader() {
+        return reader;
+    }
+
+    public OraxenPackWriter getPackWriter() {
+        return writer;
     }
 }

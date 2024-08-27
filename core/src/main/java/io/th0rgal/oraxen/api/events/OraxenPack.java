@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.api.events;
 
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.pack.PackGenerator;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import team.unnamed.creative.ResourcePack;
@@ -31,13 +30,13 @@ public class OraxenPack {
 
     public static void mergePackFromZip(@NotNull File zipFile) {
         if (!zipFile.exists()) return;
-        ResourcePack zipPack = PackGenerator.reader.readFromZipFile(zipFile);
+        ResourcePack zipPack = OraxenPlugin.get().packGenerator().getPackReader().readFromZipFile(zipFile);
         mergePack(resourcePack(), zipPack);
     }
 
     public static void mergePackFromDirectory(@NotNull File directory) {
         if (!directory.exists() || !directory.isDirectory()) return;
-        ResourcePack zipPack = PackGenerator.reader.readFromDirectory(directory);
+        ResourcePack zipPack = OraxenPlugin.get().packGenerator().getPackReader().readFromDirectory(directory);
         mergePack(resourcePack(), zipPack);
     }
 

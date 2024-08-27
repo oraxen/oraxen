@@ -27,10 +27,7 @@ import team.unnamed.creative.serialize.minecraft.sound.SoundRegistrySerializer;
 import team.unnamed.creative.texture.Texture;
 import team.unnamed.creative.util.Keys;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UncheckedIOException;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -40,6 +37,19 @@ import static io.th0rgal.oraxen.pack.creative.MinecraftResourcePackStructure.*;
 import static java.util.Objects.requireNonNull;
 
 public class OraxenPackReader implements MinecraftResourcePackReader {
+
+    public @NotNull ResourcePack readFile(@NotNull final File resourcePackFile) {
+        ResourcePack resourcePack = ResourcePack.resourcePack();
+        try {
+            if (resourcePackFile.isDirectory()) resourcePack = readFromDirectory(resourcePackFile);
+            else if (resourcePackFile.getName().endsWith(".zip")) resourcePack = readFromZipFile(resourcePackFile);
+        } catch (Exception e) {
+            Logs.logError(String.format("Failed to read %s resourcePack...", resourcePackFile.getName()));
+            e.printStackTrace();
+        }
+
+        return resourcePack;
+    }
 
     @Override
     @SuppressWarnings("PatternValidation")
