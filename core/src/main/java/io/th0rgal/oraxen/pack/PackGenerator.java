@@ -53,7 +53,6 @@ public class PackGenerator {
     private static final Path assetsFolder = OraxenPlugin.get().packPath().resolve("assets");
     @NotNull private ResourcePack resourcePack = ResourcePack.resourcePack();
     private BuiltResourcePack builtPack;
-    private PackValidator packValidator = new PackValidator();
     private final CustomArmorDatapack customArmorDatapack;
     private final ModelGenerator modelGenerator;
     private BukkitTask packGenerationTask;
@@ -75,7 +74,6 @@ public class PackGenerator {
     }
 
     public void generatePack() {
-        this.packValidator = new PackValidator();
         stopPackGeneration();
         if (Settings.PACK_IMPORT_MODEL_ENGINE.toBool()) awaitModelEngine();
         EventUtils.callEvent(new OraxenPrePackGenerateEvent(resourcePack));
