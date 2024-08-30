@@ -20,14 +20,16 @@ public class KeyUtils {
         else return Key.key(key.substring(0, i));
     }
 
-    public static void parseKey(String namespace, String key, String prefix) {
+    public static Key parseKey(String namespace, String key, String prefix) {
         if (!Key.parseable(String.format("%s:%s", namespace, key))) {
             String oldNamespace = namespace, oldKey = key;
             namespace = namespace.toLowerCase(Locale.ENGLISH).replaceAll("[^a-z0-9._/-]", "_");
             key = key.toLowerCase(Locale.ENGLISH).replaceAll("[^a-z0-9._/-]", "_");
             Logs.logError(String.format("Invalid %s-key: %s:%s", prefix, namespace, key));
             Logs.logWarning("Keys must be all lower-case, without spaces and most special characters");
-            Logs.logWarning(String.format("Example: %s:%s -> %s:%s", oldNamespace, oldKey, oldNamespace, key));
+            Logs.logWarning(String.format("Example: %s:%s -> %s:%s", oldNamespace, oldKey, namespace, key));
         }
+
+        return Key.key(namespace, key);
     }
 }

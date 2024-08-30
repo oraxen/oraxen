@@ -126,12 +126,10 @@ public class PackGenerator {
             if (Settings.PACK_ZIP.toBool()) writer.writeToZipFile(packZip, resourcePack);
             builtPack = writer.build(resourcePack);
 
-            packUploadTaskId = Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () -> {
-                Logs.logSuccess("Finished generating resourcepack!", true);
-                OraxenPlugin.get().packServer().uploadPack();
-                if (Settings.PACK_SEND_RELOAD.toBool()) for (Player player : Bukkit.getOnlinePlayers())
-                    OraxenPlugin.get().packServer().sendPack(player);
-            });
+            Logs.logSuccess("Finished generating resourcepack!", true);
+            OraxenPlugin.get().packServer().uploadPack();
+            if (Settings.PACK_SEND_RELOAD.toBool()) for (Player player : Bukkit.getOnlinePlayers())
+                OraxenPlugin.get().packServer().sendPack(player);
         });
     }
 

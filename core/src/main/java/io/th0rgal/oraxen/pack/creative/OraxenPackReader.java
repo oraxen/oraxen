@@ -191,9 +191,8 @@ public class OraxenPackReader implements MinecraftResourcePackReader {
             if (categoryName.equals(TEXTURES_FOLDER)) {
                 String keyOfMetadata = withoutExtension(categoryPath, METADATA_EXTENSION);
                 if (keyOfMetadata != null) {
-                    KeyUtils.parseKey(namespace, categoryPath, "texture-meta");
                     // found metadata for texture
-                    Key key = Key.key(namespace, keyOfMetadata);
+                    Key key = KeyUtils.parseKey(namespace, keyOfMetadata, "texture-meta");
                     Metadata metadata = MetadataSerializer.INSTANCE.readFromTree(parseJson(reader.stream()));
 
                     Map<Key, Texture> incompleteTexturesThisContainer = incompleteTextures.computeIfAbsent(overlayDir, k -> new LinkedHashMap<>());
@@ -206,9 +205,7 @@ public class OraxenPackReader implements MinecraftResourcePackReader {
                         container.texture(texture.meta(metadata));
                     }
                 } else {
-                    KeyUtils.parseKey(namespace, categoryPath, "texture");
-
-                    Key key = Key.key(namespace, categoryPath);
+                    Key key = KeyUtils.parseKey(namespace, categoryPath, "texture");
                     Writable data = reader.content().asWritable();
                     Map<Key, Texture> incompleteTexturesThisContainer = incompleteTextures.computeIfAbsent(overlayDir, k -> new LinkedHashMap<>());
                     Texture waiting = incompleteTexturesThisContainer.remove(key);
@@ -240,8 +237,7 @@ public class OraxenPackReader implements MinecraftResourcePackReader {
                     continue;
                 }
 
-                KeyUtils.parseKey(namespace, keyValue, "model");
-                Key key = Key.key(namespace, keyValue);
+                Key key = KeyUtils.parseKey(namespace, keyValue, "model");
                 try {
                     ResourceDeserializer<?> deserializer = category.deserializer();
                     Object resource;
