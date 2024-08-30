@@ -7,6 +7,8 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import team.unnamed.creative.ResourcePack;
 import team.unnamed.creative.atlas.AtlasSource;
 import team.unnamed.creative.atlas.SingleAtlasSource;
@@ -175,18 +177,18 @@ public class PackObfuscator {
 
     private void obfuscateAtlases() {
         resourcePack.atlases().stream().map(atlas -> {
-                    List<AtlasSource> nonSingleSources = new ArrayList<>(atlas.sources().stream()
-                            .filter(Predicate.not(s -> s instanceof SingleAtlasSource)).toList());
-                    Set<SingleAtlasSource> obfSources = atlas.sources().stream().filter(s -> s instanceof SingleAtlasSource)
-                            .map(s -> (SingleAtlasSource) s).map(singleSource -> obfuscatedTextures.stream()
-                                    .filter(obf -> obf.containsKey(singleSource.resource()))
-                                    .map(obf -> AtlasSource.single(keyNoPng(obf.obfuscatedTexture.key()))).findFirst()
-                                    .orElse(singleSource)).collect(Collectors.toSet());
+            List<AtlasSource> nonSingleSources = new ArrayList<>(atlas.sources().stream().filter(Predicate.not(s -> s instanceof SingleAtlasSource)).toList());
+            Set<SingleAtlasSource> obfSources = atlas.sources().stream().filter(SingleAtlasSource.class::isInstance)
+                    .map(SingleAtlasSource.class::cast)
+                    .map(singleSource -> obfuscatedTextures.stream()
+                            .filter(obf -> obf.containsKey(singleSource.resource()))
+                            .map(obf -> AtlasSource.single(keyNoPng(obf.obfuscatedTexture.key())))
+                            .findFirst().orElse(singleSource)
+                    ).collect(Collectors.toSet());
 
-                    nonSingleSources.addAll(obfSources);
-                    return atlas.toBuilder().sources(nonSingleSources).build();
-                }
-        ).toList().forEach(resourcePack::atlas);
+            nonSingleSources.addAll(obfSources);
+            return atlas.toBuilder().sources(nonSingleSources).build();
+        }).forEach(resourcePack::atlas);
     }
 
     private void obfuscateSounds() {
@@ -221,11 +223,28 @@ public class PackObfuscator {
         if (VanillaKeys.isVanillaModel(model.key())) {
             List<Key> textureKeys = allTexturesOfModel(model);
             if (obfuscatedTextures.stream().anyMatch(obf -> textureKeys.contains(obf.originalTexture.key())))
-                obfuscate(obfuscateModelTextures(model));
+                obfuscate(obfuscateParentModel(obfuscateModelTextures(model)));
             Model obfVanillaModel = obfuscateModelOverrides(model);
             obfuscatedModels.add(new ObfuscatedModel(model, obfVanillaModel));
             return obfVanillaModel;
         } else return obfuscate(obfuscateModelTextures(model));
+    }
+
+    private Model obfuscateParentModel(Model model) {
+        Key parentKey = model.parent();
+        if (parentKey == null) return model;
+        Optional<ObfuscatedModel> obfuscatedModel = obfuscatedModels.stream().filter(obf -> obf.containsKey(model.key())).findFirst();
+        if (obfuscatedModel.isPresent()) return obfuscatedModel.get().obfuscatedModel();
+
+        Optional<Key> parent = obfuscatedModels.stream().filter(obf -> obf.containsKey(parentKey)).findFirst().map(obf -> obf.obfuscatedModel.key());
+        if (parent.isEmpty()) parent = Optional.ofNullable(DefaultResourcePackExtractor.vanillaResourcePack.model(parentKey)).map(Model::key);
+        if (parent.isEmpty() && !parentKey.equals(model.key())) {
+            Optional<Model> parentModel = Optional.ofNullable(resourcePack.model(parentKey));
+            parentModel.ifPresent(this::obfuscateModel);
+            parent = parentModel.map(Model::key);
+        }
+
+        return model.toBuilder().parent(parent.orElse(parentKey)).build();
     }
 
     private Model obfuscate(Model model) {
@@ -260,20 +279,20 @@ public class PackObfuscator {
         if (VanillaKeys.isVanillaModel(model.key())) return model;
 
         List<ModelTexture> layers = model.textures().layers().stream().filter(l -> l.key() != null).map(modelTexture -> {
-            Texture obfTexture = obfuscateItemTexture(modelTexture);
+            Texture obfTexture = obfuscateModelTexture(modelTexture);
             if (obfTexture == null) return modelTexture;
             else return ModelTexture.ofKey(keyNoPng(obfTexture.key()));
         }).toList();
 
         Map<String, ModelTexture> variables = new HashMap<>();
         model.textures().variables().forEach((key, modelTexture) -> {
-            Texture obfTexture = obfuscateItemTexture(modelTexture);
+            Texture obfTexture = obfuscateModelTexture(modelTexture);
             variables.put(key, obfTexture != null ? ModelTexture.ofKey(keyNoPng(obfTexture.key())) : modelTexture);
         });
 
         ModelTextures.Builder builder = ModelTextures.builder().layers(layers).variables(variables);
         Optional.ofNullable(model.textures().particle()).ifPresentOrElse(
-                p -> Optional.ofNullable(obfuscateItemTexture(p)).ifPresentOrElse(
+                p -> Optional.ofNullable(obfuscateModelTexture(p)).ifPresentOrElse(
                         o -> builder.particle(ModelTexture.ofKey(keyNoPng(o.key()))),
                         () -> builder.particle(model.textures().particle())
                 ),
@@ -293,22 +312,14 @@ public class PackObfuscator {
         return textureKeys.stream().filter(Objects::nonNull).toList();
     }
 
-    private Texture obfuscate(Texture texture, boolean isItemTexture) {
+    private Texture obfuscate(Texture texture) {
         return obfuscatedTextures.stream().filter(obf -> obf.containsKey(texture.key())).findFirst()
                 .map(ObfuscatedTexture::obfuscatedTexture)
                 .orElseGet(() -> {
                     Texture obf = texture.toBuilder().key(keyPng(obfuscatedKey(texture.key()))).build();
-                    obfuscatedTextures.add(new ObfuscatedTexture(texture, obf, isItemTexture));
+                    obfuscatedTextures.add(new ObfuscatedTexture(texture, obf, true));
                     return obf;
                 });
-    }
-
-    private Texture obfuscateItemTexture(ModelTexture modelTexture) {
-        return obfuscatedTextures.stream().filter(obf -> obf.containsKey(modelTexture.key())).findFirst().map(ObfuscatedTexture::obfuscatedTexture)
-                .orElse(DefaultResourcePackExtractor.vanillaResourcePack.textures().stream().filter(t -> t.key().equals(modelTexture.key())).findFirst()
-                        .orElse(resourcePack.textures().stream().filter(t -> t.key().equals(keyPng(modelTexture.key()))).findFirst().map(t -> obfuscate(t, true))
-                                .orElse(null))
-                );
     }
 
     private Variant obfuscateBlockstateVariant(Variant variant) {
@@ -316,11 +327,24 @@ public class PackObfuscator {
         return Variant.builder().model(model).uvLock(variant.uvLock()).weight(variant.weight()).x(variant.x()).y(variant.y()).build();
     }
 
+    @Nullable
+    private Texture obfuscateModelTexture(ModelTexture modelTexture) {
+        Optional<Key> keyNoPng = Optional.ofNullable(modelTexture.key()).map(PackObfuscator::keyNoPng);
+        if (keyNoPng.isEmpty()) return null;
+        Key key = keyNoPng.get();
+
+        Optional<Texture> texture = obfuscatedTextures.stream().filter(obf -> obf.containsKey(key)).findFirst().map(ObfuscatedTexture::obfuscatedTexture);
+        if (texture.isEmpty()) texture = VanillaKeys.getVanillaTexture(key);
+        if (texture.isEmpty()) texture = resourcePack.textures().stream().filter(t -> t.key().equals(key)).findFirst();
+
+        return texture.map(this::obfuscate).orElse(null);
+    }
+
     private Texture obfuscateFontTexture(BitMapFontProvider fontProvider) {
         return obfuscatedTextures.stream().filter(obf -> obf.containsKey(keyPng(fontProvider.file()))).findFirst().map(ObfuscatedTexture::obfuscatedTexture)
-                .orElse(DefaultResourcePackExtractor.vanillaResourcePack.textures().stream().filter(t -> t.key().equals(fontProvider.file())).findFirst()
+                .orElse(VanillaKeys.getVanillaTexture(fontProvider.file())
                         .orElse(resourcePack.textures().stream().filter(t -> t.key().equals(keyPng(fontProvider.file()))).findFirst()
-                                .map(t -> obfuscate(t, true)).orElse(null)));
+                                .map(this::obfuscate).orElse(null)));
     }
 
     private static class VanillaKeys {
@@ -331,6 +355,10 @@ public class PackObfuscator {
 
         public static boolean isVanillaTexture(Key key) {
             return DefaultResourcePackExtractor.vanillaResourcePack.texture(key) != null;
+        }
+
+        public static Optional<Texture> getVanillaTexture(@NotNull Key key) {
+            return Optional.ofNullable(DefaultResourcePackExtractor.vanillaResourcePack.texture(key));
         }
     }
 
