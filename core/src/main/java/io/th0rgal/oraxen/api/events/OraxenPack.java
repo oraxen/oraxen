@@ -84,5 +84,13 @@ public class OraxenPack {
             Optional.ofNullable(resourcePack.language(language.key())).ifPresent(base -> language.translations().putAll(base.translations()));
             language.addTo(resourcePack);
         });
+
+        importedPack.blockStates().forEach(blockState -> {
+            Optional.ofNullable(resourcePack.blockState(blockState.key())).ifPresent(base -> {
+                blockState.multipart().addAll(base.multipart());
+                blockState.variants().putAll(base.variants());
+            });
+            blockState.addTo(resourcePack);
+        });
     }
 }
