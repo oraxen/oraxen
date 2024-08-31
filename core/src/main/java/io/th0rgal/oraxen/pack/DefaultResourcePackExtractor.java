@@ -9,18 +9,19 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.FileUtil;
 import io.th0rgal.oraxen.utils.MinecraftVersion;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import net.kyori.adventure.key.Key;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import team.unnamed.creative.ResourcePack;
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackReader;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.URI;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -28,6 +29,7 @@ public class DefaultResourcePackExtractor {
 
     private static final String VERSION_MANIFEST_URL = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json";
     public static ResourcePack vanillaResourcePack = ResourcePack.resourcePack();
+    public static final List<Key> vanillaSounds = new ArrayList<>();
     private static final File assetPath;
     private static final String version = StringUtils.removeEnd(MinecraftVersion.getCurrentVersion().getVersion(), ".0");
 
@@ -38,6 +40,23 @@ public class DefaultResourcePackExtractor {
     }
 
     public static void extractLatest(MinecraftResourcePackReader reader) {
+        if (!assetPath.toPath().resolve("vanilla-sounds.json").toFile().exists()) {
+            try {
+                JsonObject versionInfo = downloadJson(findVersionInfoUrl());
+                extractVanillaSounds(getAssetIndex(versionInfo));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        try {
+            JsonParser.parseString(Files.readString(assetPath.toPath().resolve("vanilla-sounds.json"))).getAsJsonObject().getAsJsonArray("sounds").forEach(json -> {
+                vanillaSounds.add(Key.key(json.getAsString()));
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         if (assetPath.exists() && !FileUtil.listFiles(assetPath).isEmpty()) {
             readVanillaRP(reader);
             return;
@@ -58,6 +77,10 @@ public class DefaultResourcePackExtractor {
 
         byte[] clientJar = downloadClientJar(versionInfo);
         extractJarAssets(clientJar);
+
+        JsonObject assetIndex = getAssetIndex(versionInfo);
+        extractVanillaSounds(assetIndex);
+
         readVanillaRP(reader);
         Logs.logSuccess("Finished extracting latest vanilla-resourcepack!");
     }
@@ -69,6 +92,42 @@ public class DefaultResourcePackExtractor {
             Logs.logWarning("Failed to read Vanilla ResourcePack-cache...");
             if (Settings.DEBUG.toBool()) e.printStackTrace();
         }
+    }
+
+    private static void extractVanillaSounds(JsonObject assetIndex) {
+        JsonObject objects = assetIndex.getAsJsonObject("objects");
+        JsonArray sounds = new JsonArray();
+
+        for (String key : objects.keySet()) {
+            Key soundKey = Key.key(key.replace("minecraft/sounds/", "").replace(".ogg", ""));
+            if (!key.startsWith("minecraft/sounds/")) continue;
+
+            vanillaSounds.add(soundKey);
+            sounds.add(soundKey.asString());
+        }
+
+        JsonObject soundObject = new JsonObject();
+        soundObject.add("sounds", sounds);
+
+        try {
+            Files.writeString(assetPath.toPath().resolve("vanilla-sounds.json"), soundObject.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static JsonObject getAssetIndex(JsonObject versionInfo) {
+        JsonObject assetIndex = versionInfo.getAsJsonObject("assetIndex");
+        String url = assetIndex.get("url").getAsString();
+
+        try {
+            return downloadJson(url).getAsJsonObject();
+        } catch (Exception e) {
+            Logs.logError("Failed to download asset index");
+            if (!Settings.DEBUG.toBool()) e.printStackTrace();
+        }
+
+        return null;
     }
 
     private static void extractJarAssets(byte[] clientJar) {

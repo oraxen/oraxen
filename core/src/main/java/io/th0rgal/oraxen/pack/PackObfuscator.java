@@ -193,6 +193,7 @@ public class PackObfuscator {
 
     private void obfuscateSounds() {
         resourcePack.sounds().stream().map(sound -> {
+            if (DefaultResourcePackExtractor.vanillaSounds.contains(sound.key())) return sound;
             Sound obfSound = Sound.sound(obfuscatedKey(sound.key()), sound.data());
             obfuscatedSounds.add(new ObfuscatedSound(sound, obfSound));
             return obfSound;
