@@ -110,26 +110,44 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                                     try {
                                         // Ensure pack has uploaded, otherwise send them through
                                         OraxenPackServer packServer = OraxenPlugin.get().packServer();
-                                        if (!packServer.uploadPack().isDone()) return;
+                                        if (packServer.uploadPack().isDone()) {
+                                            Queue<ConfigurationTask> taskQueue = (Queue<ConfigurationTask>) configurationTasks.get(configListener);
+                                            ResourcePackInfo packInfo = packServer.packInfo();
 
-                                        Queue<ConfigurationTask> taskQueue = (Queue<ConfigurationTask>) configurationTasks.get(configListener);
-                                        ResourcePackInfo packInfo = packServer.packInfo();
+                                            ServerResourcePackConfigurationTask rpTask = new ServerResourcePackConfigurationTask(
+                                                    new MinecraftServer.ServerResourcePackInfo(
+                                                            packInfo.id(), packServer.packUrl(), packInfo.hash(), packServer.mandatory,
+                                                            PaperAdventure.asVanilla(packServer.prompt)
+                                                    )
+                                            );
 
-                                        ServerResourcePackConfigurationTask rpTask = new ServerResourcePackConfigurationTask(
-                                                new MinecraftServer.ServerResourcePackInfo(
-                                                        packInfo.id(), packServer.packUrl(), packInfo.hash(), packServer.mandatory,
-                                                        PaperAdventure.asVanilla(packServer.prompt)
-                                                )
-                                        );
+                                            @Nullable ConfigurationTask headTask = taskQueue.poll();
+                                            taskQueue.add(rpTask);
+                                            if (headTask != null) taskQueue.add(headTask);
 
-                                        @Nullable ConfigurationTask headTask = taskQueue.poll();
-                                        taskQueue.add(rpTask);
-                                        if (headTask != null) taskQueue.add(headTask);
+                                            final int[] taskId = new int[1];
+                                            taskId[0] = Bukkit.getScheduler().scheduleSyncRepeatingTask(OraxenPlugin.get(), () -> {
+                                                try {
+                                                    if (!connection.isConnected()) {
+                                                        Bukkit.getScheduler().cancelTask(taskId[0]);
+                                                        return;
+                                                    }
 
-                                        while(currentTask.get(configListener) != null) {}
-                                        startNextTask.invoke(configListener);
+                                                    ConfigurationTask task = (ConfigurationTask) currentTask.get(configListener);
+                                                    if (task == null) {
+                                                        startNextTask.invoke(configListener);
+                                                        Bukkit.getScheduler().cancelTask(taskId[0]);
+                                                    }
+                                                } catch (Exception e) {
+                                                    Bukkit.getScheduler().cancelTask(taskId[0]);
+                                                }
+                                            }, 1L, 1L);
+
+                                        }
+
                                     } catch (Exception e) {
                                         Logs.logWarning("Failed to send " + connection.getPlayer().displayName + " ResourcePack due to joining before pack had finished generating...");
+                                        e.printStackTrace();
                                     }
                                 }
 
