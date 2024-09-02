@@ -1,11 +1,11 @@
 package io.th0rgal.oraxen.pack;
 
 import com.ticxo.modelengine.api.ModelEngineAPI;
-import com.ticxo.modelengine.api.events.ModelRegistrationEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.events.OraxenPack;
 import io.th0rgal.oraxen.api.events.resourcepack.OraxenPostPackGenerateEvent;
 import io.th0rgal.oraxen.api.events.resourcepack.OraxenPrePackGenerateEvent;
+import io.th0rgal.oraxen.compatibilities.provided.modelengine.ModelEngineCompatibility;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.font.Glyph;
@@ -19,9 +19,6 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 import team.unnamed.creative.BuiltResourcePack;
 import team.unnamed.creative.ResourcePack;
@@ -39,7 +36,6 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class PackGenerator {
@@ -53,30 +49,42 @@ public class PackGenerator {
     private BuiltResourcePack builtPack;
     private final CustomArmorDatapack customArmorDatapack;
     private final ModelGenerator modelGenerator;
-    private BukkitTask packGenerationTask;
-    private int packUploadTaskId = -1;
+    private CompletableFuture<Void> packGenFuture;
 
     public PackGenerator() {
+        stopPackGeneration();
         generateDefaultPaths();
+
+        DefaultResourcePackExtractor.extractLatest(reader);
         PackDownloader.downloadRequiredPack();
-        if (Settings.PACK_IMPORT_DEFAULT.toBool()) PackDownloader.downloadDefaultPack();
+        PackDownloader.downloadDefaultPack();
+
         customArmorDatapack = Settings.CUSTOM_ARMOR_ENABLED.toBool() ? new CustomArmorDatapack() : null;
         this.modelGenerator = new ModelGenerator(resourcePack);
     }
 
-    public void stopPackGeneration() {
-        if (packGenerationTask != null) packGenerationTask.cancel();
-        if (packUploadTaskId != -1) Bukkit.getScheduler().cancelTask(packUploadTaskId);
-        packGenerationTask = null;
-        packUploadTaskId = -1;
+    public static void stopPackGeneration() {
+        Optional.ofNullable(OraxenPlugin.get().packGenerator()).ifPresent(packGenerator -> {
+            Optional.ofNullable(packGenerator.packGenFuture).ifPresent(f -> {
+                if (f.isDone()) return;
+                f.cancel(true);
+                Logs.logError("Cancelling generation of Oraxen ResourcePack...");
+            });
+            packGenerator.packGenFuture = null;
+        });
     }
 
     public void generatePack() {
         stopPackGeneration();
-        if (Settings.PACK_IMPORT_MODEL_ENGINE.toBool()) awaitModelEngine();
         EventUtils.callEvent(new OraxenPrePackGenerateEvent(resourcePack));
 
-        packGenerationTask = Bukkit.getScheduler().runTaskAsynchronously(OraxenPlugin.get(), () -> {
+        List<CompletableFuture<?>> futures = new ArrayList<>();
+        futures.add(PackDownloader.downloadRequiredPack());
+        futures.add(PackDownloader.downloadDefaultPack());
+        futures.add(DefaultResourcePackExtractor.extractLatest(reader));
+        futures.add(ModelEngineCompatibility.modelEngineFuture());
+
+        packGenFuture = CompletableFuture.allOf(futures.toArray(new CompletableFuture[]{})).thenRunAsync(() -> {
             Logs.logInfo("Generating resourcepack...");
 
             importRequiredPack();
@@ -127,7 +135,7 @@ public class PackGenerator {
             builtPack = writer.build(resourcePack);
 
             Logs.logSuccess("Finished generating resourcepack!", true);
-            OraxenPlugin.get().packServer().uploadPack();
+            OraxenPlugin.get().packServer().uploadPack().join();
             if (Settings.PACK_SEND_RELOAD.toBool()) for (Player player : Bukkit.getOnlinePlayers())
                 OraxenPlugin.get().packServer().sendPack(player);
         });
@@ -264,35 +272,6 @@ public class PackGenerator {
         }
     }
 
-    private void awaitModelEngine() {
-        if (!PluginUtils.isEnabled("ModelEngine")) return;
-
-        Logs.logInfo("Awaiting ModelEngine ResourcePack...");
-        // Create a CompletableFuture that will be completed when the phase is FINISHED
-        CompletableFuture<Void> future = new CompletableFuture<>();
-
-        try {
-            Listener listener = new Listener() {
-                @EventHandler
-                public void onMegPack(ModelRegistrationEvent event) {
-                    if (event.getPhase() != com.ticxo.modelengine.api.generator.ModelGenerator.Phase.FINISHED) return;
-                    Logs.logInfo("ModelEngine ResourcePack is ready.");
-                    ModelRegistrationEvent.getHandlerList().unregister(this);
-                    future.complete(null);  // Complete the future to signal the event has finished
-                }
-            };
-
-            Bukkit.getPluginManager().registerEvents(listener, OraxenPlugin.get());
-
-            // Wait for the CompletableFuture to complete with a timeout
-            future.get(2, TimeUnit.SECONDS);
-            ModelRegistrationEvent.getHandlerList().unregister(listener);
-        } catch (Exception e) {
-            Logs.logWarning("Failed to await ModelEngine-ResourcePack...");
-        }
-    }
-
-
     private void importModelEnginePack() {
         if (!PluginUtils.isEnabled("ModelEngine")) return;
         File megPack = ModelEngineAPI.getAPI().getDataFolder().toPath().resolve("resource pack.zip").toFile();
@@ -318,8 +297,6 @@ public class PackGenerator {
         assetsFolder.resolve("minecraft/sounds").toFile().mkdirs();
         assetsFolder.resolve("minecraft/font").toFile().mkdirs();
         assetsFolder.resolve("minecraft/lang").toFile().mkdirs();
-
-        DefaultResourcePackExtractor.extractLatest(reader);
     }
 
     private void addItemPackFiles() {

@@ -18,6 +18,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.Collections;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public class SelfHostServer implements OraxenPackServer {
 
@@ -65,10 +66,12 @@ public class SelfHostServer implements OraxenPackServer {
     }
 
     @Override
-    public void uploadPack() {
+    public CompletableFuture<Void> uploadPack() {
         String hashPart = "/" + OraxenPlugin.get().packGenerator().builtPack().hash() + ".zip";
         if (Settings.DEBUG.toBool()) Logs.logSuccess("Resourcepack uploaded and will be dispatched with publicAddress http://" + this.publicAddress + ":" + packServer.address().getPort() + hashPart);
         else Logs.logSuccess("Resourcepack has been uploaded to SelfHost!");
+
+        return CompletableFuture.completedFuture(null);
     }
 
     @Override

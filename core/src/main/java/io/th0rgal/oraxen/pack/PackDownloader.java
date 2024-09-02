@@ -15,53 +15,65 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.concurrent.CompletableFuture;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 public class PackDownloader {
 
-    public static void downloadRequiredPack() {
-        if (VersionUtil.isLeaked()) return;
+    private static CompletableFuture<Void> requiredPackDownload;
+    private static CompletableFuture<Void> defaultPackDownload;
 
-        try {
-            String token = readToken();
-            String hash = checkPackHash("RequiredPack", "");
-            Path zipPath = PackGenerator.externalPacks.resolve("RequiredPack_" + hash + ".zip");
-            String fileUrl = "https://api.github.com/repos/oraxen/RequiredPack/zipball/main";
-
-            removeOldHashPack("RequiredPack", hash);
-            if (zipPath.toFile().exists() || zipPath.resolveSibling("RequiredPack_" + hash).toFile().exists()) return;
-            downloadPackFromUrl(fileUrl, token, zipPath);
-        } catch (Exception e) {
-            Logs.logWarning("Failed to download RequiredPack...");
-            if (Settings.DEBUG.toBool()) e.printStackTrace();
-        }
-    }
-
-    public static void downloadDefaultPack() {
-        Logs.logInfo("Downloading default resourcepack...");
-        if (VersionUtil.isCompiled()) Logs.logWarning("Skipping download of Oraxen pack, compiled versions do not include assets");
-        else if (VersionUtil.isLeaked()) Logs.logError("Skipping download of Oraxen pack, pirated versions do not include assets");
-        else {
-            String token = readToken();
-            String fileUrl = "https://api.github.com/repos/oraxen/DefaultPack/zipball/main";
-            String hash = checkPackHash("DefaultPack", token);
-            Path zipPath = PackGenerator.externalPacks.resolve("DefaultPack_" + hash + ".zip");
-
+    public static CompletableFuture<Void> downloadRequiredPack() {
+        if (requiredPackDownload == null) requiredPackDownload = CompletableFuture.runAsync(() -> {
+            if (VersionUtil.isLeaked()) return;
             try {
-                removeOldHashPack("DefaultPack", hash);
-                if (zipPath.toFile().exists() || zipPath.resolveSibling("DefaultPack_" + hash).toFile().exists()) {
-                    Logs.logSuccess("Skipped downloading DefaultPack as it is up to date!");
-                    return;
-                }
+                String token = readToken();
+                String hash = checkPackHash("RequiredPack", "");
+                Path zipPath = PackGenerator.externalPacks.resolve("RequiredPack_" + hash + ".zip");
+                String fileUrl = "https://api.github.com/repos/oraxen/RequiredPack/zipball/main";
 
+                removeOldHashPack("RequiredPack", hash);
+                if (zipPath.toFile().exists() || zipPath.resolveSibling("RequiredPack_" + hash).toFile().exists()) return;
                 downloadPackFromUrl(fileUrl, token, zipPath);
             } catch (Exception e) {
-                Logs.logWarning("Failed to download DefaultPack");
+                Logs.logWarning("Failed to download RequiredPack...");
                 if (Settings.DEBUG.toBool()) e.printStackTrace();
             }
-        }
+        });
+
+        return requiredPackDownload;
+    }
+
+    public static CompletableFuture<Void> downloadDefaultPack() {
+        if (defaultPackDownload == null) defaultPackDownload = CompletableFuture.runAsync(() -> {
+            if (!Settings.PACK_IMPORT_DEFAULT.toBool()) return;
+            Logs.logInfo("Downloading default resourcepack...");
+            if (VersionUtil.isCompiled()) Logs.logWarning("Skipping download of Oraxen pack, compiled versions do not include assets");
+            else if (VersionUtil.isLeaked()) Logs.logError("Skipping download of Oraxen pack, pirated versions do not include assets");
+            else {
+                String token = readToken();
+                String fileUrl = "https://api.github.com/repos/oraxen/DefaultPack/zipball/main";
+                String hash = checkPackHash("DefaultPack", token);
+                Path zipPath = PackGenerator.externalPacks.resolve("DefaultPack_" + hash + ".zip");
+
+                try {
+                    removeOldHashPack("DefaultPack", hash);
+                    if (zipPath.toFile().exists() || zipPath.resolveSibling("DefaultPack_" + hash).toFile().exists()) {
+                        Logs.logSuccess("Skipped downloading DefaultPack as it is up to date!");
+                        return;
+                    }
+
+                    downloadPackFromUrl(fileUrl, token, zipPath);
+                } catch (Exception e) {
+                    Logs.logWarning("Failed to download DefaultPack");
+                    if (Settings.DEBUG.toBool()) e.printStackTrace();
+                }
+            }
+        });
+
+        return defaultPackDownload;
     }
 
     private static String readToken() {

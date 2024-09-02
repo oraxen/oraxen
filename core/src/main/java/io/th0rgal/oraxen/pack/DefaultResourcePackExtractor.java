@@ -22,6 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -32,6 +33,7 @@ public class DefaultResourcePackExtractor {
     public static final List<Key> vanillaSounds = new ArrayList<>();
     private static final File assetPath;
     private static final String version = StringUtils.removeEnd(MinecraftVersion.getCurrentVersion().getVersion(), ".0");
+    private static CompletableFuture<Void> future;
 
     static {
         assetPath = OraxenPlugin.get().getDataFolder().toPath().resolve("pack/.assetCache/" + version).toFile();
@@ -39,50 +41,52 @@ public class DefaultResourcePackExtractor {
         FileUtil.setHidden(assetPath.getParentFile().toPath());
     }
 
-    public static void extractLatest(MinecraftResourcePackReader reader) {
-        if (!assetPath.toPath().resolve("vanilla-sounds.json").toFile().exists()) {
+    public static CompletableFuture<Void> extractLatest(MinecraftResourcePackReader reader) {
+        if (future == null) future = CompletableFuture.runAsync(() -> {
+            Path vanillaSoundsJson = assetPath.toPath().resolve("vanilla-sounds.json");
+            assetPath.mkdirs();
+
             try {
-                JsonObject versionInfo = downloadJson(findVersionInfoUrl());
-                extractVanillaSounds(getAssetIndex(versionInfo));
+                if (vanillaSoundsJson.toFile().createNewFile()) {
+                    JsonObject versionInfo = downloadJson(findVersionInfoUrl());
+                    extractVanillaSounds(getAssetIndex(versionInfo));
+                }
+
+                JsonParser.parseString(Files.readString(vanillaSoundsJson)).getAsJsonObject().getAsJsonArray("sounds")
+                        .forEach(json -> vanillaSounds.add(Key.key(json.getAsString())));
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }
 
-        try {
-            JsonParser.parseString(Files.readString(assetPath.toPath().resolve("vanilla-sounds.json"))).getAsJsonObject().getAsJsonArray("sounds").forEach(json -> {
-                vanillaSounds.add(Key.key(json.getAsString()));
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+            if (assetPath.exists() && FileUtil.listFiles(assetPath).stream().anyMatch(File::isDirectory)) {
+                readVanillaRP(reader);
+                return;
+            }
 
-        if (assetPath.exists() && !FileUtil.listFiles(assetPath).isEmpty()) {
+            Logs.logInfo("Extracting latest vanilla-resourcepack...");
+
+            JsonObject versionInfo;
+            try {
+                versionInfo = downloadJson(findVersionInfoUrl());
+            } catch (Exception e) {
+                Logs.logWarning("Failed to fetch version-info for vanilla-resourcepack...");
+                if (Settings.DEBUG.toBool()) e.printStackTrace();
+                else Logs.logWarning(e.getMessage());
+                return;
+            }
+            if (versionInfo == null) return;
+
+            byte[] clientJar = downloadClientJar(versionInfo);
+            extractJarAssets(clientJar);
+
+            JsonObject assetIndex = getAssetIndex(versionInfo);
+            extractVanillaSounds(assetIndex);
+
             readVanillaRP(reader);
-            return;
-        }
+            Logs.logSuccess("Finished extracting latest vanilla-resourcepack!");
+        });
 
-        Logs.logInfo("Extracting latest vanilla-resourcepack...");
-
-        JsonObject versionInfo;
-        try {
-            versionInfo = downloadJson(findVersionInfoUrl());
-        } catch (Exception e) {
-            Logs.logWarning("Failed to fetch version-info for vanilla-resourcepack...");
-            if (Settings.DEBUG.toBool()) e.printStackTrace();
-            else Logs.logWarning(e.getMessage());
-            return;
-        }
-        if (versionInfo == null) return;
-
-        byte[] clientJar = downloadClientJar(versionInfo);
-        extractJarAssets(clientJar);
-
-        JsonObject assetIndex = getAssetIndex(versionInfo);
-        extractVanillaSounds(assetIndex);
-
-        readVanillaRP(reader);
-        Logs.logSuccess("Finished extracting latest vanilla-resourcepack!");
+        return future;
     }
 
     private static void readVanillaRP(MinecraftResourcePackReader reader) {

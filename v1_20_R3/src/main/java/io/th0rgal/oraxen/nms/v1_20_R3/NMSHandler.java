@@ -19,7 +19,7 @@ import net.kyori.adventure.resource.ResourcePackInfo;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.Connection;
-import net.minecraft.network.protocol.configuration.ClientboundRegistryDataPacket;
+import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
 import net.minecraft.network.protocol.game.ClientboundRemoveMobEffectPacket;
 import net.minecraft.network.protocol.game.ClientboundUpdateMobEffectPacket;
 import net.minecraft.server.MinecraftServer;
@@ -51,6 +51,7 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.Queue;
 import java.util.Set;
 
@@ -77,13 +78,24 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     }
 
     private static Field configurationTasks;
+    private static Field currentTask;
+    private static Method startNextTask;
+
     static {
         try {
             configurationTasks = ServerConfigurationPacketListenerImpl.class.getDeclaredField("configurationTasks");
             configurationTasks.setAccessible(true);
-        } catch (Exception e) {
+        } catch (Exception ignored) {}
 
-        }
+        try {
+            currentTask = ServerConfigurationPacketListenerImpl.class.getDeclaredField("currentTask");
+            currentTask.setAccessible(true);
+        } catch (Exception ignored) {}
+
+        try {
+            startNextTask = ServerConfigurationPacketListenerImpl.class.getDeclaredMethod("startNextTask");
+            startNextTask.setAccessible(true);
+        } catch (Exception ignored) {}
     }
 
     @Override
@@ -94,10 +106,13 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
                             @Override
                             public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
-                                if (msg instanceof ClientboundRegistryDataPacket && connection.getPacketListener() instanceof ServerConfigurationPacketListenerImpl configListener) {
+                                if (msg instanceof ClientboundCustomPayloadPacket && connection.getPacketListener() instanceof ServerConfigurationPacketListenerImpl configListener) {
                                     try {
-                                        Queue<ConfigurationTask> taskQueue = (Queue<ConfigurationTask>) configurationTasks.get(configListener);
+                                        // Ensure pack has uploaded, otherwise send them through
                                         OraxenPackServer packServer = OraxenPlugin.get().packServer();
+                                        if (!packServer.uploadPack().isDone()) return;
+
+                                        Queue<ConfigurationTask> taskQueue = (Queue<ConfigurationTask>) configurationTasks.get(configListener);
                                         ResourcePackInfo packInfo = packServer.packInfo();
 
                                         ServerResourcePackConfigurationTask rpTask = new ServerResourcePackConfigurationTask(
@@ -110,6 +125,9 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                                         @Nullable ConfigurationTask headTask = taskQueue.poll();
                                         taskQueue.add(rpTask);
                                         if (headTask != null) taskQueue.add(headTask);
+
+                                        while(currentTask.get(configListener) != null) {}
+                                        startNextTask.invoke(configListener);
                                     } catch (Exception e) {
                                         Logs.logWarning("Failed to send " + connection.getPlayer().displayName + " ResourcePack due to joining before pack had finished generating...");
                                     }

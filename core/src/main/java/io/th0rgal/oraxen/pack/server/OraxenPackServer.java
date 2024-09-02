@@ -17,6 +17,7 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public interface OraxenPackServer {
@@ -45,7 +46,8 @@ public interface OraxenPackServer {
         };
     }
 
-    default void uploadPack() {
+    default CompletableFuture<Void> uploadPack() {
+        return CompletableFuture.completedFuture(null);
     }
 
     void sendPack(Player player);
