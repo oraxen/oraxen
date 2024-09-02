@@ -46,7 +46,7 @@ public class BeaconListener implements Listener {
                     }
 
                     NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(blockData);
-                    if (mechanic == null || !mechanic.isBeaconBaseBlock()) {
+                    if (mechanic != null && !mechanic.isBeaconBaseBlock()) {
                         validTier = false;
                         break;
                     }
