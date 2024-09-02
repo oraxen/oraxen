@@ -103,11 +103,6 @@ public enum Message {
         return AdventureUtils.MINI_MESSAGE.deserialize(toString());
     }
 
-    @NotNull
-    public String toSerializedString() {
-        return AdventureUtils.LEGACY_SERIALIZER.serialize(toComponent());
-    }
-
     public void log(final TagResolver... placeholders) {
         send(Bukkit.getConsoleSender(), placeholders);
     }

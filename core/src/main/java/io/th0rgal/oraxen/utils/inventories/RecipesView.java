@@ -21,8 +21,7 @@ import java.util.List;
 public class RecipesView {
 
     private final FontManager fontManager = OraxenPlugin.get().fontManager();
-    final String menuTexture = ChatColor.WHITE +
-            Shift.of(-7) + fontManager.getGlyphFromName("menu_recipe").character();
+    final String menuTexture = String.format("%s%s%s", ChatColor.WHITE, Shift.of(-7), fontManager.getGlyphFromName("menu_recipe").character());
 
     public ChestGui create(final int page, final List<CustomRecipe> filteredRecipes) {
         final ChestGui gui = new ChestGui(6, menuTexture);
@@ -41,33 +40,23 @@ public class RecipesView {
         }
 
         // Close RecipeShowcase inventory button
-        pane.addItem(new GuiItem((OraxenItems.getItemById("exit_icon") == null
-                ? new ItemBuilder(Material.BARRIER)
-                : OraxenItems.getItemById("exit_icon"))
-                .displayName(Message.EXIT_MENU.toComponent()).build(),
-                (event -> event.getWhoClicked().closeInventory())), 4, 5);
+        ItemBuilder exitBuilder = OraxenItems.getOptionalItemById("exit_icon").orElse(new ItemBuilder(Material.BARRIER));
+        ItemStack exitItem = exitBuilder.displayName(Message.EXIT_MENU.toComponent()).build();
+        pane.addItem(new GuiItem(exitItem, event -> event.getWhoClicked().closeInventory()), 4, 5);
 
         // Previous Page button
-        if (page > 0)
-            pane.addItem(new GuiItem((OraxenItems.getItemById("arrow_previous_icon") == null
-                    ? new ItemBuilder(Material.ARROW)
-                    : OraxenItems.getItemById("arrow_previous_icon"))
-                    .setAmount(page)
-                    .displayName(Component.text("Open page " + page, NamedTextColor.YELLOW))
-                    .build(), event -> create(page - 1,
-                    filteredRecipes).show(event.getWhoClicked())), 1, 3);
-
+        if (page > 0) {
+            ItemBuilder builder = OraxenItems.getOptionalItemById("arrow_previous_icon").orElse(new ItemBuilder(Material.ARROW));
+            ItemStack guiItem = builder.setAmount(page).displayName(Component.text("Open page " + page, NamedTextColor.YELLOW)).build();
+            pane.addItem(new GuiItem(guiItem, e -> create(page - 1, filteredRecipes).show(e.getWhoClicked())), 1, 3);
+        }
 
         // Next page button
-        if (!lastPage)
-            pane.addItem(new GuiItem((OraxenItems.getItemById("arrow_next_icon") == null
-                    ? new ItemBuilder(Material.ARROW)
-                    : OraxenItems.getItemById("arrow_next_icon"))
-                    .setAmount(page + 2)
-                    .displayName(Component.text("Open page " + (page + 2), NamedTextColor.YELLOW))
-                    .build(), event ->
-                    create(page + 1, filteredRecipes)
-                            .show(event.getWhoClicked())), 7, 3);
+        if (!lastPage) {
+            ItemBuilder builder = OraxenItems.getOptionalItemById("arrow_next_icon").orElse(new ItemBuilder(Material.ARROW));
+            ItemStack guiItem = builder.setAmount(page + 2).displayName(Component.text("Open page " + (page + 2), NamedTextColor.YELLOW)).build();
+            pane.addItem(new GuiItem(guiItem, e -> create(page + 1, filteredRecipes).show(e.getWhoClicked())), 7, 3);
+        }
 
         gui.addPane(pane);
         gui.setOnGlobalClick(event -> event.setCancelled(true));
