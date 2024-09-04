@@ -45,7 +45,7 @@ public class FurniturePacketListener implements Listener {
             for (ItemDisplay baseEntity : player.getLocation().getNearbyEntitiesByType(ItemDisplay.class, r, r, r)) {
                 FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
                 IFurniturePacketManager packetManager = FurnitureFactory.instance.packetManager();
-                if (mechanic == null || FurnitureSeat.isSeat(baseEntity)) return;
+                if (mechanic == null || FurnitureSeat.isSeat(baseEntity)) continue;
 
                 packetManager.sendFurnitureEntityPacket(baseEntity, mechanic, player);
                 packetManager.sendLightMechanicPacket(baseEntity, mechanic, player);
@@ -61,14 +61,14 @@ public class FurniturePacketListener implements Listener {
         ItemDisplay baseEntity = (ItemDisplay) event.getEntity();
         IFurniturePacketManager packetManager = FurnitureFactory.get().packetManager();
 
-        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
+        Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> {
             for (Player player : baseEntity.getWorld().getNearbyPlayers(baseEntity.getLocation(), FurnitureFactory.get().simulationRadius)) {
                 packetManager.sendFurnitureEntityPacket(baseEntity, mechanic, player);
                 packetManager.sendLightMechanicPacket(baseEntity, mechanic, player);
                 packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
                 packetManager.sendBarrierHitboxPacket(baseEntity, mechanic, player);
             }
-        }, 2L);
+        });
 
     }
 
@@ -83,12 +83,6 @@ public class FurniturePacketListener implements Listener {
         packetManager.removeLightMechanicPacket(baseEntity, mechanic);
         packetManager.removeInteractionHitboxPacket(baseEntity, mechanic);
         packetManager.removeBarrierHitboxPacket(baseEntity, mechanic);
-
-//        for (Player player : baseEntity.getWorld().getNearbyPlayers(baseEntity.getLocation(), FurnitureFactory.get().simulationRadius)) {
-//            packetManager.sendFurnitureEntityPacket(baseEntity, mechanic, player);
-//            packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
-//            packetManager.sendBarrierHitboxPacket(baseEntity, mechanic, player);
-//        }
     }
 
     @EventHandler
@@ -110,13 +104,15 @@ public class FurniturePacketListener implements Listener {
         IFurniturePacketManager packetManager = FurnitureFactory.instance.packetManager();
         for (Entity entity : event.getChunk().getEntities()) {
             FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
-            if (mechanic == null || FurnitureSeat.isSeat(entity)) return;
+            if (mechanic == null || FurnitureSeat.isSeat(entity)) continue;
             ItemDisplay baseEntity = (ItemDisplay) entity;
 
-            packetManager.sendFurnitureEntityPacket(baseEntity, mechanic, player);
-            packetManager.sendLightMechanicPacket(baseEntity, mechanic, player);
-            packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
-            packetManager.sendBarrierHitboxPacket(baseEntity, mechanic, player);
+            Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> {
+                packetManager.sendFurnitureEntityPacket(baseEntity, mechanic, player);
+                packetManager.sendLightMechanicPacket(baseEntity, mechanic, player);
+                packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
+                packetManager.sendBarrierHitboxPacket(baseEntity, mechanic, player);
+            });
         }
     }
 
@@ -126,7 +122,7 @@ public class FurniturePacketListener implements Listener {
         IFurniturePacketManager packetManager = FurnitureFactory.instance.packetManager();
         if (packetManager != null) for (Entity entity : event.getChunk().getEntities()) {
             FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
-            if (mechanic == null || FurnitureSeat.isSeat(entity)) return;
+            if (mechanic == null || FurnitureSeat.isSeat(entity)) continue;
             ItemDisplay baseEntity = (ItemDisplay) entity;
 
             packetManager.removeFurnitureEntityPacket(baseEntity, mechanic, player);
@@ -143,7 +139,7 @@ public class FurniturePacketListener implements Listener {
 
         for (ItemDisplay baseEntity : event.getFrom().getEntitiesByClass(ItemDisplay.class)) {
             FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
-            if (mechanic == null || FurnitureSeat.isSeat(baseEntity)) return;
+            if (mechanic == null || FurnitureSeat.isSeat(baseEntity)) continue;
 
             packetManager.removeFurnitureEntityPacket(baseEntity, mechanic, player);
             packetManager.removeLightMechanicPacket(baseEntity, mechanic, player);
