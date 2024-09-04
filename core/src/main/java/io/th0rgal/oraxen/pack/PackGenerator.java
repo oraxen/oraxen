@@ -49,7 +49,7 @@ public class PackGenerator {
     private BuiltResourcePack builtPack;
     private final CustomArmorDatapack customArmorDatapack;
     private final ModelGenerator modelGenerator;
-    private CompletableFuture<Void> packGenFuture;
+    public CompletableFuture<Void> packGenFuture;
 
     public PackGenerator() {
         stopPackGeneration();
@@ -133,11 +133,12 @@ public class PackGenerator {
             File packZip = OraxenPlugin.get().packPath().resolve("pack.zip").toFile();
             if (Settings.PACK_ZIP.toBool()) writer.writeToZipFile(packZip, resourcePack);
             builtPack = writer.build(resourcePack);
-
+        }).thenRunAsync(() -> {
             Logs.logSuccess("Finished generating resourcepack!", true);
-            OraxenPlugin.get().packServer().uploadPack().join();
-            if (Settings.PACK_SEND_RELOAD.toBool()) for (Player player : Bukkit.getOnlinePlayers())
-                OraxenPlugin.get().packServer().sendPack(player);
+            OraxenPlugin.get().packServer().uploadPack().thenRun(() -> {
+                if (Settings.PACK_SEND_RELOAD.toBool()) for (Player player : Bukkit.getOnlinePlayers())
+                    OraxenPlugin.get().packServer().sendPack(player);
+            });
         });
     }
 

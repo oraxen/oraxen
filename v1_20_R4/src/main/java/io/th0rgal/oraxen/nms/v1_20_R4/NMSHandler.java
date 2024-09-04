@@ -108,7 +108,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                                     try {
                                         // Ensure pack has uploaded, otherwise send them through
                                         OraxenPackServer packServer = OraxenPlugin.get().packServer();
-                                        if (packServer.uploadPack().isDone()) {
+                                        if (packServer.isPackUploaded()) {
                                             Queue<ConfigurationTask> taskQueue = (Queue<ConfigurationTask>) configurationTasks.get(configListener);
                                             ResourcePackInfo packInfo = packServer.packInfo();
 

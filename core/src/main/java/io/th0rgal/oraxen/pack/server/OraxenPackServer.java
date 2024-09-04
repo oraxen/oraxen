@@ -46,8 +46,12 @@ public interface OraxenPackServer {
         };
     }
 
+    default boolean isPackUploaded() {
+        return uploadPack().isDone();
+    }
+
     default CompletableFuture<Void> uploadPack() {
-        return CompletableFuture.completedFuture(null);
+        return CompletableFuture.allOf(OraxenPlugin.get().packGenerator().packGenFuture);
     }
 
     void sendPack(Player player);

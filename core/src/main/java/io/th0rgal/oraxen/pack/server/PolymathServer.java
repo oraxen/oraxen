@@ -31,7 +31,7 @@ public class PolymathServer implements OraxenPackServer {
     private String packUrl;
     private String hash;
     private UUID packUUID;
-    private CompletableFuture<Void> uploadFuture;
+    public CompletableFuture<Void> uploadFuture;
 
     public PolymathServer() {
         String address = Settings.POLYMATH_SERVER.toString("atlas.oraxen.com");
@@ -41,6 +41,11 @@ public class PolymathServer implements OraxenPackServer {
     @Override
     public String packUrl() {
         return packUrl;
+    }
+
+    @Override
+    public boolean isPackUploaded() {
+        return OraxenPlugin.get().packGenerator().packGenFuture.isDone() && uploadFuture != null && uploadFuture.isDone();
     }
 
     @Override
@@ -99,14 +104,14 @@ public class PolymathServer implements OraxenPackServer {
 
     @Override
     public void sendPack(Player player) {
-        if (uploadFuture.isDone()) {
-            byte[] hashArray = OraxenPackServer.hashArray(hash);
+        if (!OraxenPlugin.get().packGenerator().packGenFuture.isDone()) return;
+        if (uploadFuture == null || !uploadFuture.isDone()) return;
 
-            if (VersionUtil.isPaperServer()) {
-                ResourcePackRequest request = ResourcePackRequest.resourcePackRequest().required(mandatory).replace(true).prompt(prompt)
-                        .packs(ResourcePackInfo.resourcePackInfo(packUUID, URI.create(packUrl), hash)).build();
-                player.sendResourcePacks(request);
-            } else player.setResourcePack(packUUID, packUrl, hashArray, legacyPrompt, mandatory);
-        }
+        byte[] hashArray = OraxenPackServer.hashArray(hash);
+        if (VersionUtil.isPaperServer()) {
+            ResourcePackRequest request = ResourcePackRequest.resourcePackRequest().required(mandatory).replace(true).prompt(prompt)
+                    .packs(ResourcePackInfo.resourcePackInfo(packUUID, URI.create(packUrl), hash)).build();
+            player.sendResourcePacks(request);
+        } else player.setResourcePack(packUUID, packUrl, hashArray, legacyPrompt, mandatory);
     }
 }
