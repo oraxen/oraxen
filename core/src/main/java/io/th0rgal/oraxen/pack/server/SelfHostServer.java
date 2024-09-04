@@ -53,16 +53,23 @@ public class SelfHostServer implements OraxenPackServer {
 
     @Override
     public void sendPack(Player player) {
-        String hash = OraxenPlugin.get().packGenerator().builtPack().hash();
-        byte[] hashArray = OraxenPackServer.hashArray(hash);
-        String url = packUrl();
-        UUID packUUID = UUID.nameUUIDFromBytes(hashArray);
+        OraxenPlugin.get().packGenerator().packGenFuture.thenRun(() -> {
+            String hash = OraxenPlugin.get().packGenerator().builtPack().hash();
+            byte[] hashArray = OraxenPackServer.hashArray(hash);
+            String url = packUrl();
+            UUID packUUID = UUID.nameUUIDFromBytes(hashArray);
 
-        if (VersionUtil.isPaperServer()) {
-            ResourcePackRequest request = ResourcePackRequest.resourcePackRequest().required(mandatory).replace(true).prompt(prompt)
-                    .packs(ResourcePackInfo.resourcePackInfo(packUUID, URI.create(url), hash)).build();
-            player.sendResourcePacks(request);
-        } else player.setResourcePack(packUUID, url, hashArray, legacyPrompt, mandatory);
+            if (VersionUtil.isPaperServer()) {
+                ResourcePackRequest request = ResourcePackRequest.resourcePackRequest().required(mandatory).replace(true).prompt(prompt)
+                        .packs(ResourcePackInfo.resourcePackInfo(packUUID, URI.create(url), hash)).build();
+                player.sendResourcePacks(request);
+            } else player.setResourcePack(packUUID, url, hashArray, legacyPrompt, mandatory);
+        });
+    }
+
+    @Override
+    public boolean isPackUploaded() {
+        return true;
     }
 
     @Override
