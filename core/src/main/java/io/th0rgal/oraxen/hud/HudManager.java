@@ -111,18 +111,18 @@ public class HudManager {
 
     public void registerTask() {
         if (hudTaskEnabled) return;
-        if (hudTask != null) hudTask.cancel();
+        if (hudTask != null) hudTask.getAdaptedTask().cancel();
         if (hudUpdateTime == 0) return;
         if (huds.isEmpty()) return;
 
         hudTask = new HudTask();
-        hudTask.runTaskTimer(OraxenPlugin.get(), 0, hudUpdateTime);
+        hudTask.runTaskTimer(0, hudUpdateTime);
         hudTaskEnabled = true;
     }
 
     public void unregisterTask() {
         if (!hudTaskEnabled) return;
-        if (hudTask != null) hudTask.cancel();
+        if (hudTask != null) hudTask.getAdaptedTask().cancel();
         hudTaskEnabled = false;
     }
 

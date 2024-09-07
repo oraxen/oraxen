@@ -9,6 +9,7 @@ import io.netty.handler.codec.MessageToByteEncoder;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.scheduler.AdaptedTaskRunnable;
 import io.th0rgal.oraxen.nms.GlyphHandlers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
@@ -209,12 +210,12 @@ public class GlyphHandler implements io.th0rgal.oraxen.nms.GlyphHandler {
         try {
             bind(futures, serverChannelHandler);
         } catch (IllegalArgumentException ex) {
-            new BukkitRunnable() {
+            new AdaptedTaskRunnable() {
                 @Override
                 public void run() {
                     bind(futures, serverChannelHandler);
                 }
-            }.runTask(OraxenPlugin.get());
+            }.runTask();
         }
 
         if (VersionUtil.isPaperServer())

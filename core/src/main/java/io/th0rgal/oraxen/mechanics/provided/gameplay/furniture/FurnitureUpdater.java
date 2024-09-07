@@ -1,10 +1,10 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
-import com.jeff_media.customblockdata.CustomBlockData;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.libs.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;

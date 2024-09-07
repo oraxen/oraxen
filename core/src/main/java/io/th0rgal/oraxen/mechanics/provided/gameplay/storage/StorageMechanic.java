@@ -258,7 +258,7 @@ public class StorageMechanic {
         // Slight delay to catch stacks sometimes moving too fast
         gui.setDefaultClickAction(event -> {
             if (event.getCursor() != null && event.getCursor().getType() != Material.AIR || event.getCurrentItem() != null) {
-                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->
+                OraxenPlugin.get().getScheduler().runTaskLater(() ->
                         storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents()), 3L);
             }
         });
@@ -288,7 +288,7 @@ public class StorageMechanic {
         // Slight delay to catch stacks sometimes moving too fast
         gui.setDefaultClickAction(event -> {
             if (event.getCursor() != null && event.getCursor().getType() != Material.AIR || event.getCurrentItem() != null) {
-                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->
+                OraxenPlugin.get().getScheduler().runTaskLater(() ->
                         storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents()), 3L);
             }
         });
@@ -320,7 +320,7 @@ public class StorageMechanic {
         // Slight delay to catch stacks sometimes moving too fast
         gui.setDefaultClickAction(event -> {
             if (event.getCursor() != null && event.getCursor().getType() != Material.AIR || event.getCurrentItem() != null) {
-                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->
+                OraxenPlugin.get().getScheduler().runTaskLater(() ->
                         storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents()), 3L);
             }
         });

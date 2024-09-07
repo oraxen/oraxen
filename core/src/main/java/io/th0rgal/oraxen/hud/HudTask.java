@@ -1,14 +1,14 @@
 package io.th0rgal.oraxen.hud;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.scheduler.AdaptedTaskRunnable;
 import io.th0rgal.oraxen.utils.EntityUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.List;
 
-public class HudTask extends BukkitRunnable {
+public class HudTask extends AdaptedTaskRunnable {
 
     private final HudManager manager = OraxenPlugin.get().getHudManager();
 

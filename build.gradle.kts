@@ -17,11 +17,11 @@ plugins {
 class NMSVersion(val nmsVersion: String, val serverVersion: String)
 infix fun String.toNms(that: String): NMSVersion = NMSVersion(this, that)
 val SUPPORTED_VERSIONS: List<NMSVersion> = listOf(
-    "v1_18_R1" toNms "1.18.1-R0.1-SNAPSHOT",
+    /*"v1_18_R1" toNms "1.18.1-R0.1-SNAPSHOT",
     "v1_18_R2" toNms "1.18.2-R0.1-SNAPSHOT",
     "v1_19_R1" toNms "1.19.2-R0.1-SNAPSHOT",
     "v1_19_R2" toNms "1.19.3-R0.1-SNAPSHOT",
-    "v1_19_R3" toNms "1.19.4-R0.1-SNAPSHOT",
+    "v1_19_R3" toNms "1.19.4-R0.1-SNAPSHOT",*/
     "v1_20_R1" toNms "1.20.1-R0.1-SNAPSHOT",
     "v1_20_R2" toNms "1.20.2-R0.1-SNAPSHOT",
     "v1_20_R3" toNms "1.20.4-R0.1-SNAPSHOT",
@@ -103,10 +103,8 @@ allprojects {
 
         implementation("team.unnamed:creative-api:1.7.3") { exclude("net.kyori") }
         implementation("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
-        implementation("org.bstats:bstats-bukkit:3.0.0")
         implementation("io.th0rgal:protectionlib:1.6.0")
-        implementation("com.github.stefvanschie.inventoryframework:IF:0.10.12")
-        implementation("com.jeff-media:custom-block-data:2.2.2")
+        implementation("com.github.stefvanschie.inventoryframework:IF_Folia:0.10.14-SNAPSHOT")
         implementation("com.jeff-media:MorePersistentDataTypes:2.4.0")
         implementation("com.jeff-media:persistent-data-serializer:1.0")
         implementation("org.jetbrains:annotations:24.1.0") { isTransitive = false }
@@ -201,6 +199,7 @@ bukkit {
         "NBTAPI", "ModelEngine", "ViaBackwards", "HuskClaims", "HuskTowns", "BentoBox"
     )
     loadBefore = listOf("Realistic_World")
+    foliaSupported = true
     permissions.create("oraxen.command") {
         description = "Allows the player to use the /oraxen command"
         default = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission.Default.TRUE

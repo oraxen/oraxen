@@ -81,7 +81,7 @@ public class WorldEditHandlers {
                 compoundTagMap.put("BukkitValues", new CompoundTag(bukkitValues));
                 baseEntity.setNbtData(new CompoundTag(compoundTagMap));
 
-                Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () -> {
+                OraxenPlugin.get().getScheduler().runRegionTaskLater(bukkitLocation, () -> {
                     List<org.bukkit.entity.Entity> entities = bukkitLocation.getNearbyEntities(0.5, 0.5, 0.5).stream().toList();
                     List<org.bukkit.entity.Entity> nearbyEntities = entities.stream().sorted(Comparator.comparingDouble(entity -> entity.getLocation().distance(bukkitLocation))).toList();
                     nearbyEntities.stream().findFirst().ifPresent(e ->
@@ -99,11 +99,11 @@ public class WorldEditHandlers {
                 Mechanic mechanic = OraxenBlocks.getOraxenBlock(blockData);
                 if (blockData.getMaterial() == Material.NOTE_BLOCK) {
                     if (mechanic != null && Settings.WORLDEDIT_NOTEBLOCKS.toBool()) {
-                        Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () -> OraxenBlocks.place(mechanic.getItemID(), loc), 1L);
+                        OraxenPlugin.get().getScheduler().runRegionTaskLater(loc, () -> OraxenBlocks.place(mechanic.getItemID(), loc), 1L);
                     }
                 } else if (blockData.getMaterial() == Material.TRIPWIRE) {
                     if (mechanic != null && Settings.WORLDEDIT_STRINGBLOCKS.toBool()) {
-                        Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () -> OraxenBlocks.place(mechanic.getItemID(), loc), 1L);
+                        OraxenPlugin.get().getScheduler().runRegionTaskLater(loc, () -> OraxenBlocks.place(mechanic.getItemID(), loc), 1L);
                     }
                 } else {
                     if (world == null) return super.setBlock(pos, block);
@@ -114,7 +114,7 @@ public class WorldEditHandlers {
                     if (replacingMechanic instanceof NoteBlockMechanic && !Settings.WORLDEDIT_NOTEBLOCKS.toBool())
                         return super.setBlock(pos, block);
 
-                    Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () -> OraxenBlocks.remove(loc, null), 1L);
+                    OraxenPlugin.get().getScheduler().runRegionTaskLater(loc, () -> OraxenBlocks.remove(loc, null), 1L);
                 }
 
                 return super.setBlock(pos, block);

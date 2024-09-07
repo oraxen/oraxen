@@ -3,6 +3,8 @@ package io.th0rgal.oraxen.pack.upload;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.events.OraxenPackPreUploadEvent;
 import io.th0rgal.oraxen.api.events.OraxenPackUploadEvent;
+import io.th0rgal.oraxen.api.scheduler.AdaptedTask;
+import io.th0rgal.oraxen.api.scheduler.AdaptedTaskRunnable;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.pack.dispatch.BukkitPackSender;
@@ -59,7 +61,7 @@ public class UploadManager {
         }
 
         final long time = System.currentTimeMillis();
-        Bukkit.getScheduler().runTaskAsynchronously(OraxenPlugin.get(), () -> {
+        OraxenPlugin.get().getScheduler().runTaskAsynchronously(() -> {
             EventUtils.callEvent(new OraxenPackPreUploadEvent());
 
             Message.PACK_UPLOADING.log();
@@ -69,7 +71,7 @@ public class UploadManager {
             }
 
             OraxenPackUploadEvent uploadEvent = new OraxenPackUploadEvent(hostingProvider);
-            Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () ->
+            OraxenPlugin.get().getScheduler().runTask(() ->
                     Bukkit.getPluginManager().callEvent(uploadEvent));
 
             Message.PACK_UPLOADED.log(

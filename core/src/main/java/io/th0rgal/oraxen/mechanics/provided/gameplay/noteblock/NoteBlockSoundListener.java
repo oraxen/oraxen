@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.events.noteblock.OraxenNoteBlockBreakEvent;
 import io.th0rgal.oraxen.api.events.noteblock.OraxenNoteBlockPlaceEvent;
+import io.th0rgal.oraxen.api.scheduler.AdaptedTask;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.protectionlib.ProtectionLib;
@@ -21,7 +22,6 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.world.GenericGameEvent;
 import org.bukkit.event.world.WorldUnloadEvent;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,11 +30,11 @@ import static io.th0rgal.oraxen.utils.BlockHelpers.isLoaded;
 import static io.th0rgal.oraxen.utils.blocksounds.BlockSounds.*;
 
 public class NoteBlockSoundListener implements Listener {
-    private final Map<Location, BukkitTask> breakerPlaySound = new HashMap<>();
+    private final Map<Location, AdaptedTask> breakerPlaySound = new HashMap<>();
 
     @EventHandler
     public void onWorldUnload(WorldUnloadEvent event) {
-        for (Map.Entry<Location, BukkitTask> entry : breakerPlaySound.entrySet()) {
+        for (Map.Entry<Location, AdaptedTask> entry : breakerPlaySound.entrySet()) {
             if (entry.getKey().isWorldLoaded() || entry.getValue().isCancelled()) continue;
             entry.getValue().cancel();
             breakerPlaySound.remove(entry.getKey());
@@ -75,7 +75,7 @@ public class NoteBlockSoundListener implements Listener {
 
         if (block.getType() == Material.NOTE_BLOCK || block.getType() == Material.MUSHROOM_STEM) {
             if (event.getInstaBreak()) {
-                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->
+                OraxenPlugin.get().getScheduler().runTaskLater(() ->
                         block.setType(Material.AIR, false), 1);
                 return;
             }
@@ -83,7 +83,7 @@ public class NoteBlockSoundListener implements Listener {
         if (soundGroup.getHitSound() != Sound.BLOCK_WOOD_HIT) return;
         if (breakerPlaySound.containsKey(location)) return;
 
-        BukkitTask task = Bukkit.getScheduler().runTaskTimer(OraxenPlugin.get(), () ->
+        AdaptedTask task = OraxenPlugin.get().getScheduler().runTaskTimer(() ->
                 BlockHelpers.playCustomBlockSound(location, VANILLA_WOOD_HIT, VANILLA_HIT_VOLUME, VANILLA_HIT_PITCH), 2L, 4L);
         breakerPlaySound.put(location, task);
     }

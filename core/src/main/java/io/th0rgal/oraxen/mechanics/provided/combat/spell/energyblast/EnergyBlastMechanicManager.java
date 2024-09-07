@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.combat.spell.energyblast;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.api.scheduler.AdaptedTaskRunnable;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.EventUtils;
@@ -76,7 +77,7 @@ public class EnergyBlastMechanicManager implements Listener {
 
 
     private void playEffect(Player player, EnergyBlastMechanic mechanic) {
-        new BukkitRunnable() {
+        new AdaptedTaskRunnable() {
             final Vector dir = player.getLocation().getDirection().normalize();
             static final int circlePoints = 360;
             double radius = 2;
@@ -92,7 +93,7 @@ public class EnergyBlastMechanicManager implements Listener {
             public void run() {
                 beamLength--;
                 if (beamLength < 1) {
-                    this.cancel();
+                    this.getAdaptedTask().cancel();
                     return;
                 }
                 for (int i = 0; i < circlePoints; i++) {
@@ -122,7 +123,7 @@ public class EnergyBlastMechanicManager implements Listener {
                             entity.setLastDamageCause(event);
                             livingEntity.damage(mechanic.getDamage() * 3.0, player);
                         }
-                    this.cancel();
+                    this.getAdaptedTask().cancel();
                     return;
                 }
 
@@ -136,7 +137,7 @@ public class EnergyBlastMechanicManager implements Listener {
                     }
 
             }
-        }.runTaskTimer(OraxenPlugin.get(), 0, 1);
+        }.runEntityTaskTimer(player, null, 0, 1);
     }
 
     private void spawnParticle(World world, Location location, EnergyBlastMechanic mechanic) {

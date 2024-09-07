@@ -67,13 +67,13 @@ public class StringBlockMechanicListener implements Listener {
                 if (changed.getType() != Material.TRIPWIRE) continue;
 
                 final BlockData data = changed.getBlockData().clone();
-                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
+                OraxenPlugin.get().getScheduler().runTaskLater(() ->
                         changed.setBlockData(data, false), 1L);
             }
 
             // Stores the pre-change blockdata and applies it on next tick to prevent the block from updating
             final BlockData blockData = block.getBlockData().clone();
-            Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable -> {
+            OraxenPlugin.get().getScheduler().runTaskLater(() -> {
                 if (block.getType().isAir()) return;
                 block.setBlockData(blockData, false);
             }, 1L);
@@ -109,7 +109,7 @@ public class StringBlockMechanicListener implements Listener {
                     if (player.getGameMode() != GameMode.CREATIVE) block.breakNaturally(player.getInventory().getItemInMainHand(), true);
                     else block.setType(Material.AIR);
                     if (BlockHelpers.isReplaceable(blockAbove.getType())) blockAbove.breakNaturally(true);
-                    Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
+                    OraxenPlugin.get().getScheduler().runTaskLater(() ->
                             fixClientsideUpdate(block.getLocation()), 1);
                 }
             }
@@ -208,7 +208,7 @@ public class StringBlockMechanicListener implements Listener {
                 if (item.getType().toString().endsWith("SLAB")) continue;
 
                 makePlayerPlaceBlock(player, event.getHand(), item, placedAgainst, event.getBlockFace(), Bukkit.createBlockData(item.getType()));
-                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
+                OraxenPlugin.get().getScheduler().runTaskLater(() ->
                         fixClientsideUpdate(placedAgainst.getLocation()), 1L);
             }
         }
