@@ -104,7 +104,7 @@ allprojects {
         implementation("team.unnamed:creative-api:1.7.3") { exclude("net.kyori") }
         implementation("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
         implementation("io.th0rgal:protectionlib:1.6.0")
-        implementation("com.github.stefvanschie.inventoryframework:IF_Folia:0.10.14-SNAPSHOT")
+        implementation(files("../libs/compile/IF-0.10.17.jar"))
         implementation("com.jeff-media:MorePersistentDataTypes:2.4.0")
         implementation("com.jeff-media:persistent-data-serializer:1.0")
         implementation("org.jetbrains:annotations:24.1.0") { isTransitive = false }
