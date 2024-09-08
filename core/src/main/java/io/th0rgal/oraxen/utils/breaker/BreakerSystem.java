@@ -129,7 +129,7 @@ public class BreakerSystem {
                     // However still needs to be called for plugin support.
                     final PlayerInteractEvent playerInteractEvent =
                             new PlayerInteractEvent(player, Action.LEFT_CLICK_BLOCK, player.getInventory().getItemInMainHand(), block, blockFace, EquipmentSlot.HAND);
-                    scheduler.runTask(() -> Bukkit.getPluginManager().callEvent(playerInteractEvent));
+                    scheduler.runEntityTask(event.getPlayer(), () -> Bukkit.getPluginManager().callEvent(playerInteractEvent), null);
 
                     breakerPerLocation.put(location, scheduler);
 
