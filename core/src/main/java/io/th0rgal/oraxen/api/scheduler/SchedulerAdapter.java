@@ -115,7 +115,6 @@ public interface SchedulerAdapter {
      *
      * @param location The location associated with the task.
      * @param task The task to be executed.
-     * @return The {@link AdaptedTask} representing the scheduled task.
      */
     void runRegionTaskNow(Location location, Runnable task);
 
