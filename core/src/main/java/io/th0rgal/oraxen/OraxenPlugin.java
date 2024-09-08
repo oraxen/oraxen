@@ -82,6 +82,7 @@ public class OraxenPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        System.out.println(VersionUtil.isFoliaServer());
         scheduler = VersionUtil.isFoliaServer() ? new FoliaSchedulerAdapter() : new SpigotSchedulerAdapter();
         CommandAPI.onEnable();
         ProtectionLib.init(this);

@@ -12,6 +12,8 @@ import java.util.*;
 
 public class VersionUtil {
     private static final Map<NMSVersion, Map<Integer, MinecraftVersion>> versionMap = new HashMap<>();
+    private static final boolean IS_PAPER;
+    private static final boolean IS_FOLIA;
 
     public enum NMSVersion {
         v1_21_R1,
@@ -25,6 +27,9 @@ public class VersionUtil {
     }
 
     static {
+        IS_PAPER = hasClass("com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent");
+        IS_FOLIA = hasClass("io.papermc.paper.threadedregions.RegionizedServer");
+
         versionMap.put(NMSVersion.v1_21_R1, Map.of(4, new MinecraftVersion("1.21"), 16, new MinecraftVersion("1.21.1")));
         versionMap.put(NMSVersion.v1_20_R4, Map.of(2, new MinecraftVersion("1.20.5"), 3, new MinecraftVersion("1.20.6")));
         versionMap.put(NMSVersion.v1_20_R3, Map.of(1, new MinecraftVersion("1.20.4")));
@@ -59,23 +64,11 @@ public class VersionUtil {
      * @throws IllegalArgumentException if server is null
      */
     public static boolean isPaperServer() {
-        Server server = Bukkit.getServer();
-        Validate.notNull(server, "Server cannot be null");
-        if (server.getName().equalsIgnoreCase("Paper")) return true;
-
-        try {
-            Class.forName("com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent");
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
+        return IS_PAPER;
     }
 
     public static boolean isFoliaServer() {
-        Server server = Bukkit.getServer();
-        Validate.notNull(server, "Server cannot be null");
-
-        return server.getName().equalsIgnoreCase("Folia");
+        return IS_FOLIA;
     }
 
     public static boolean isSupportedVersion(@NotNull NMSVersion serverVersion, @NotNull NMSVersion... supportedVersions) {
