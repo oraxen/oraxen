@@ -93,6 +93,11 @@ public class SpigotSchedulerAdapter implements SchedulerAdapter {
     }
 
     @Override
+    public void runRegionTaskNow(Location location, Runnable task) {
+        runTask(task);
+    }
+
+    @Override
     public AdaptedTask runRegionTask(Chunk chunk, Runnable task) {
         return runTask(task);
     }

@@ -77,7 +77,7 @@ public class BreakerSystem {
                     BlockFace.valueOf(dataDirection.read(0).name()) :
                     BlockFace.UP;
 
-            OraxenPlugin.get().getScheduler().runRegionTask(location, () -> {
+            OraxenPlugin.get().getScheduler().runRegionTaskNow(location, () -> {
                 EnumWrappers.PlayerDigType type;
                 try {
                     type = data.getValues().getFirst();
@@ -242,7 +242,7 @@ public class BreakerSystem {
             case BARRIER -> {
                 try {
                     java.util.concurrent.CompletableFuture<Boolean> future = new java.util.concurrent.CompletableFuture<>();
-                    scheduler.runRegionTask(block.getLocation(), () -> {
+                    scheduler.runRegionTaskNow(block.getLocation(), () -> {
                         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
                         if (mechanic == null) {
                             future.complete(true);
@@ -254,7 +254,7 @@ public class BreakerSystem {
                             return;
                         }
                         OraxenFurnitureDamageEvent event = new OraxenFurnitureDamageEvent(mechanic, baseEntity, player, block);
-                        scheduler.runEntityTask(player, () -> Bukkit.getPluginManager().callEvent(event), null);
+                        Bukkit.getPluginManager().callEvent(event);
                         future.complete(event.isCancelled());
                     });
 

@@ -102,13 +102,22 @@ public interface SchedulerAdapter {
 
 
     /**
-     * Runs a task tied to a specific region (based on Location), executing it immediately.
+     * Runs a task tied to a specific region (based on Location), executing it next tick.
      *
      * @param location The location associated with the task.
      * @param task The task to be executed.
      * @return The {@link AdaptedTask} representing the scheduled task.
      */
     AdaptedTask runRegionTask(Location location, Runnable task);
+
+    /**
+     * Runs a task tied to a specific region (based on Location), executing it immediately.
+     *
+     * @param location The location associated with the task.
+     * @param task The task to be executed.
+     * @return The {@link AdaptedTask} representing the scheduled task.
+     */
+    void runRegionTaskNow(Location location, Runnable task);
 
     /**
      * Runs a task tied to a specific region (based on Location) after a specified delay.
