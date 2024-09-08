@@ -240,28 +240,17 @@ public class BreakerSystem {
                 return event.isCancelled();
             }
             case BARRIER -> {
-                try {
-                    java.util.concurrent.CompletableFuture<Boolean> future = new java.util.concurrent.CompletableFuture<>();
-                    scheduler.runRegionTaskNow(block.getLocation(), () -> {
-                        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
-                        if (mechanic == null) {
-                            future.complete(true);
-                            return;
-                        }
-                        Entity baseEntity = mechanic.getBaseEntity(block);
-                        if (baseEntity == null) {
-                            future.complete(true);
-                            return;
-                        }
-                        OraxenFurnitureDamageEvent event = new OraxenFurnitureDamageEvent(mechanic, baseEntity, player, block);
-                        Bukkit.getPluginManager().callEvent(event);
-                        future.complete(event.isCancelled());
-                    });
-
-                    return future.get(1, TimeUnit.SECONDS);
-                } catch (Exception e) {
-                    return false;
+                FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
+                if (mechanic == null) {
+                    return true;
                 }
+                Entity baseEntity = mechanic.getBaseEntity(block);
+                if (baseEntity == null) {
+                    return true;
+                }
+                OraxenFurnitureDamageEvent event = new OraxenFurnitureDamageEvent(mechanic, baseEntity, player, block);
+                Bukkit.getPluginManager().callEvent(event);
+                return event.isCancelled();
             }
             case BEDROCK -> { // For BedrockBreakMechanic
                 return false;
