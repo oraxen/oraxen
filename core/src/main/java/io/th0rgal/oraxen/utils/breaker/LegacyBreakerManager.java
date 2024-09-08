@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.events.custom_block.noteblock.OraxenNoteBlockDamageEvent;
 import io.th0rgal.oraxen.api.events.custom_block.stringblock.OraxenStringBlockDamageEvent;
 import io.th0rgal.oraxen.api.events.furniture.OraxenFurnitureDamageEvent;
+import io.th0rgal.oraxen.api.scheduler.AdaptedTask;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.BreakableMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockFactory;
@@ -93,9 +94,9 @@ public class LegacyBreakerManager implements BreakerManager {
         }
     }
 
-    private BukkitTask createBreakScheduler(double blockBreakTime, UUID breakerUUID) {
+    private AdaptedTask createBreakScheduler(double blockBreakTime, UUID breakerUUID) {
 
-        return Bukkit.getScheduler().runTaskTimer(OraxenPlugin.get(), () -> {
+        return OraxenPlugin.get().getScheduler().runTaskTimer(() -> {
             final ActiveBreakerData activeBreakerData = this.activeBreakerDataMap.get(breakerUUID);
             if (activeBreakerData == null) return;
             Player player = activeBreakerData.breaker;
@@ -135,8 +136,8 @@ public class LegacyBreakerManager implements BreakerManager {
         }, 1,1);
     }
 
-    private BukkitTask createBreakSoundScheduler(UUID breakerUUID) {
-        return Bukkit.getScheduler().runTaskTimer(OraxenPlugin.get(), () -> {
+    private AdaptedTask createBreakSoundScheduler(UUID breakerUUID) {
+        return OraxenPlugin.get().getScheduler().runTaskTimer(() -> {
             final ActiveBreakerData activeBreakerData = this.activeBreakerDataMap.get(breakerUUID);
             if (activeBreakerData == null) return;
             Player player = activeBreakerData.breaker;
@@ -185,8 +186,8 @@ public class LegacyBreakerManager implements BreakerManager {
         private final BreakableMechanic breakable;
         private final int totalBreakTime;
         private double breakTimeProgress;
-        private final BukkitTask breakerTask;
-        private final BukkitTask breakerSoundTask;
+        private final AdaptedTask breakerTask;
+        private final AdaptedTask breakerSoundTask;
 
         public ActiveBreakerData(
                 Player breaker,
@@ -195,8 +196,8 @@ public class LegacyBreakerManager implements BreakerManager {
                 BreakableMechanic breakable,
                 int totalBreakTime,
                 int breakTimeProgress,
-                BukkitTask breakerTask,
-                BukkitTask breakerSoundTask
+                AdaptedTask breakerTask,
+                AdaptedTask breakerSoundTask
         ) {
             this.sourceId = SOURCE_RANDOM.nextInt();
             this.breaker = breaker;

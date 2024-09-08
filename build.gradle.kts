@@ -100,10 +100,8 @@ allprojects {
         implementation("team.unnamed:creative-api:$creativeVersion") { exclude("net.kyori") }
         implementation("team.unnamed:creative-serializer-minecraft:$creativeVersion") { exclude("net.kyori") }
         implementation("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
-        implementation("org.bstats:bstats-bukkit:3.0.0")
         implementation("io.th0rgal:protectionlib:1.6.0")
-        implementation("com.github.stefvanschie.inventoryframework:IF:0.10.14")
-        implementation("com.jeff-media:custom-block-data:2.2.2")
+        implementation(files("../libs/IF-0.10.17.jar"))
         implementation("com.jeff-media:MorePersistentDataTypes:2.4.0")
         implementation("com.jeff-media:persistent-data-serializer:1.0")
         implementation("org.jetbrains:annotations:24.1.0") { isTransitive = false }
@@ -187,6 +185,7 @@ bukkitPluginYaml {
     authors.add("boy0000")
     name = "Oraxen"
     apiVersion = "1.20"
+    foliaSupported = true
 
     permissions.create("oraxen.command") {
         description = "Allows the player to use the /oraxen command"

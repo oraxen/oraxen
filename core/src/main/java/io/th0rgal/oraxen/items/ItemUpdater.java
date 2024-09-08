@@ -130,7 +130,7 @@ public class ItemUpdater implements Listener {
 
         PlayerInventory inventory = event.getPlayer().getInventory();
         if (inventory.firstEmpty() == -1) event.setItem(event.getItem().add(usingConvertsTo.getAmount()));
-        else Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> {
+        else OraxenPlugin.get().getScheduler().runEntityTask(event.getPlayer(), () -> {
             for (int i = 0; i < inventory.getSize(); i++) {
                 ItemStack oldItem = inventory.getItem(i);
                 ItemStack newItem = ItemUpdater.updateItem(oldItem);
@@ -140,7 +140,7 @@ public class ItemUpdater implements Listener {
                 inventory.setItem(i, null);
                 inventory.addItem(newItem);
             }
-        });
+        }, null);
     }
 
     private static final NamespacedKey IF_UUID = Objects.requireNonNull(NamespacedKey.fromString("oraxen:if-uuid"));

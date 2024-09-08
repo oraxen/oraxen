@@ -31,7 +31,7 @@ public class PackListener implements Listener {
         Player player = event.getPlayer();
         int delay = (int) Settings.PACK_SEND_DELAY.getValue();
         if (delay <= 0) OraxenPlugin.get().packServer().sendPack(player);
-        else Bukkit.getScheduler().runTaskLaterAsynchronously(OraxenPlugin.get(), () ->
+        else OraxenPlugin.get().getScheduler().runTaskLaterAsynchronously(() ->
                 OraxenPlugin.get().packServer().sendPack(player), delay * 20L);
     }
 

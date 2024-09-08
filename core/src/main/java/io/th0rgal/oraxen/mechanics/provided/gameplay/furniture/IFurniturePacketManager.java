@@ -1,7 +1,10 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
+import io.th0rgal.oraxen.utils.EntityUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
@@ -66,7 +69,7 @@ public interface IFurniturePacketManager {
     default void removeLightMechanicPacket(@NotNull ItemDisplay baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {}
 
     default void removeAllFurniturePackets() {
-        for (World world : Bukkit.getWorlds()) for (ItemDisplay entity : world.getEntitiesByClass(ItemDisplay.class)) {
+        for (World world : Bukkit.getWorlds()) for (Chunk chunk : world.getLoadedChunks()) for (ItemDisplay entity : EntityUtils.getEntitiesByClass(chunk, ItemDisplay.class)) {
             FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
             if (mechanic == null) continue;
             removeFurnitureEntityPacket(entity, mechanic);

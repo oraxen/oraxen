@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.events.OraxenNativeMechanicsRegisteredEvent;
+import io.th0rgal.oraxen.api.scheduler.AdaptedTask;
 import io.th0rgal.oraxen.mechanics.provided.combat.lifeleech.LifeLeechMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.combat.spell.energyblast.EnergyBlastMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.combat.spell.fireball.FireballMechanicFactory;
@@ -41,7 +42,7 @@ import java.util.Map.Entry;
 public class MechanicsManager {
 
     private static final Map<String, MechanicFactory> FACTORIES_BY_MECHANIC_ID = new HashMap<>();
-    public static final Map<String, List<Integer>> MECHANIC_TASKS = new HashMap<>();
+    public static final Map<String, List<AdaptedTask>> MECHANIC_TASKS = new HashMap<>();
     private static final Map<String, List<Listener>> MECHANICS_LISTENERS = new HashMap<>();
 
     public static void registerNativeMechanics() {
@@ -123,22 +124,22 @@ public class MechanicsManager {
         }
     }
 
-    public static void registerTask(String mechanicId, BukkitTask task) {
+    public static void registerTask(String mechanicId, AdaptedTask task) {
         MECHANIC_TASKS.compute(mechanicId, (key, value) -> {
             if (value == null) value = new ArrayList<>();
-            value.add(task.getTaskId());
+            value.add(task);
             return value;
         });
     }
 
     public static void unregisterTasks() {
-        MECHANIC_TASKS.values().forEach(tasks -> tasks.forEach(Bukkit.getScheduler()::cancelTask));
+        MECHANIC_TASKS.values().forEach(tasks -> tasks.forEach(AdaptedTask::cancel));
         MECHANIC_TASKS.clear();
     }
 
     public static void unregisterTasks(String mechanicId) {
         MECHANIC_TASKS.computeIfPresent(mechanicId, (key, value) -> {
-            value.forEach(Bukkit.getScheduler()::cancelTask);
+            value.forEach(AdaptedTask::cancel);
             return Collections.emptyList();
         });
     }
