@@ -114,6 +114,11 @@ public class FoliaSchedulerAdapter implements SchedulerAdapter {
     }
 
     @Override
+    public void runRegionTaskNow(Location location, Runnable task) {
+        Bukkit.getRegionScheduler().execute(OraxenPlugin.get(), location, task);
+    }
+
+    @Override
     public AdaptedTask runRegionTaskLater(Location location, Runnable task, long delay) {
         ScheduledTask scheduledTask = Bukkit.getRegionScheduler().runDelayed(OraxenPlugin.get(), location, regionTask -> task.run(), Math.max(1L, delay));
         AdaptedTask adaptedTask = new AdaptedTask(scheduledTask);
