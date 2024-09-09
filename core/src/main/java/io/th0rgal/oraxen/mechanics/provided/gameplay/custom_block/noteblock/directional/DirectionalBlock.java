@@ -9,6 +9,8 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 public class DirectionalBlock {
     private final String parentBlock;
     private final DirectionalType directionalType;
@@ -115,13 +117,13 @@ public class DirectionalBlock {
         double pitch = player.getLocation().getPitch();
         BlockFace face = BlockFace.SELF;
         if (!isLog()) {
-            if (Range.between(0.0, 45.0).contains(yaw) || yaw >= 315.0 || yaw >= -45.0 && yaw <= 0.0 || yaw <= -315.0)
+            if (Range.of(0.0, 45.0).contains(yaw) || yaw >= 315.0 || yaw >= -45.0 && yaw <= 0.0 || yaw <= -315.0)
                 face = BlockFace.NORTH;
-            else if (Range.between(45.0, 135.0).contains(yaw) || Range.between(-315.0, -225.0).contains(yaw))
+            else if (Range.of(45.0, 135.0).contains(yaw) || Range.of(-315.0, -225.0).contains(yaw))
                 face = BlockFace.EAST;
-            else if (Range.between(135.0, 225.0).contains(yaw) || Range.between(-225.0, -135.0).contains(yaw))
+            else if (Range.of(135.0, 225.0).contains(yaw) || Range.of(-225.0, -135.0).contains(yaw))
                 face = BlockFace.SOUTH;
-            else if (Range.between(225.0, 315.0).contains(yaw) || Range.between(-135.0, -45.0).contains(yaw))
+            else if (Range.of(225.0, 315.0).contains(yaw) || Range.of(-135.0, -45.0).contains(yaw))
                 face = BlockFace.WEST;
 
             if (isDropper()) face = (pitch <= -45.0) ? BlockFace.DOWN : (pitch >= 45.0) ? BlockFace.UP : face;
@@ -138,6 +140,19 @@ public class DirectionalBlock {
     }
 
     public Key directionalModel(NoteBlockMechanic mechanic) {
-        return Key.key(mechanic.getSection().getString("model"));
+        return mechanic.model();
+    }
+
+    public boolean anyMatch(String itemId) {
+        if (Objects.equals(xBlock, itemId)) return true;
+        if (Objects.equals(zBlock, itemId)) return true;
+        if (Objects.equals(yBlock, itemId)) return true;
+        if (Objects.equals(upBlock, itemId)) return true;
+        if (Objects.equals(downBlock, itemId)) return true;
+        if (Objects.equals(westBlock, itemId)) return true;
+        if (Objects.equals(eastBlock, itemId)) return true;
+        if (Objects.equals(northBlock, itemId)) return true;
+        if (Objects.equals(southBlock, itemId)) return true;
+        return false;
     }
 }
