@@ -9,6 +9,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.events.OraxenNativeMechanicsRegisteredEvent;
 import io.th0rgal.oraxen.api.events.furniture.OraxenFurnitureInteractEvent;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.BlockLocation;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketManager;
@@ -170,11 +171,17 @@ public class FurniturePacketListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerDamageBarrierHitbox(BlockDamageEvent event) {
-        Location location = event.getBlock().getLocation();
-        if (!ProtectionLib.canBreak(event.getPlayer(), location)) return;
-        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(location);
-        if (mechanic == null) return;
-        OraxenPlugin.get().breakerManager().startFurnitureBreak(event.getPlayer(), mechanic.baseEntity(event.getBlock()), mechanic, event.getBlock());
+        Block block = event.getBlock();
+        Player player = event.getPlayer();
+        Location location = block.getLocation();
+        Entity baseEntity = FurnitureFactory.instance.packetManager().baseEntityFromHitbox(new BlockLocation(location));
+
+        if (baseEntity == null || !ProtectionLib.canBreak(player, location)) return;
+        OraxenFurniture.remove(baseEntity, player);
+        //if (!ProtectionLib.canBreak(player, location)) return;
+        //FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(location);
+        //if (mechanic == null) return;
+        //OraxenPlugin.get().breakerManager().startFurnitureBreak(event.getPlayer(), mechanic.baseEntity(event.getBlock()), mechanic, event.getBlock());
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
