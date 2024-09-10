@@ -11,8 +11,8 @@ plugins {
     //id("com.github.johnrengelman.shadow") version "8.1.1"
     id("xyz.jpenilla.run-paper") version "2.2.4"
     id("xyz.jpenilla.resource-factory-bukkit-convention") version "1.1.1" // Generates plugin.yml based on the Gradle config
-    id("io.papermc.paperweight.userdev") version "1.7.1" apply false
-    id("io.github.goooler.shadow") version "8.1.7"
+    id("io.papermc.paperweight.userdev") version "1.7.2" apply false
+    id("com.gradleup.shadow") version "8.3.0"
     alias(idofrontLibs.plugins.mia.publication)
 }
 

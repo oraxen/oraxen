@@ -1,7 +1,7 @@
 plugins {
     id("java")
     id("maven-publish")
-    id("io.github.goooler.shadow") version "8.1.7"
+    id("com.gradleup.shadow") version "8.3.0"
     id("org.ajoberstar.grgit.service") version "5.2.0"
 }
 
