@@ -62,14 +62,14 @@ public class FurniturePacketListener implements Listener {
         ItemDisplay baseEntity = (ItemDisplay) event.getEntity();
         IFurniturePacketManager packetManager = FurnitureFactory.get().packetManager();
 
-        Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> {
+        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
             for (Player player : baseEntity.getWorld().getNearbyPlayers(baseEntity.getLocation(), FurnitureFactory.get().simulationRadius)) {
                 packetManager.sendFurnitureEntityPacket(baseEntity, mechanic, player);
                 packetManager.sendLightMechanicPacket(baseEntity, mechanic, player);
                 packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
                 packetManager.sendBarrierHitboxPacket(baseEntity, mechanic, player);
             }
-        });
+        }, 2L);
 
     }
 
