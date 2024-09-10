@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.api.events.furniture.OraxenFurnitureInteractEvent;
 import io.th0rgal.oraxen.api.events.furniture.OraxenFurniturePlaceEvent;
 import io.th0rgal.oraxen.config.Message;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.BlockLocation;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureHelpers;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
@@ -125,6 +126,21 @@ public class FurnitureListener implements Listener {
         if (!player.getGameMode().equals(GameMode.CREATIVE)) item.setAmount(item.getAmount() - 1);
         event.setUseInteractedBlock(Event.Result.DENY);
         if (VersionUtil.isPaperServer()) baseEntity.getWorld().sendGameEvent(player, GameEvent.BLOCK_PLACE, baseEntity.getLocation().toVector());
+    }
+
+    @EventHandler
+    public void onPlaceAgainstFurniture(PlayerInteractEvent event) {
+        Player player = event.getPlayer();
+        Block block = event.getClickedBlock();
+        ItemStack itemStack = event.getItem();
+
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || itemStack == null) return;
+        if (!itemStack.getType().isBlock() && !itemStack.getType().name().endsWith("ITEM_FRAME")) return;
+        ItemDisplay baseEntity = FurnitureFactory.instance.packetManager().baseEntityFromHitbox(new BlockLocation(block.getLocation()));
+        if (baseEntity == null) return;
+
+        event.setUseItemInHand(Event.Result.DENY);
+        player.updateInventory();
     }
 
     private FurnitureMechanic getMechanic(ItemStack item, Player player, Location placed) {
