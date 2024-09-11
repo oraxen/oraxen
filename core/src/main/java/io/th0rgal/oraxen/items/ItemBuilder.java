@@ -447,8 +447,7 @@ public class ItemBuilder {
     }
 
     public ItemBuilder addPotionEffect(final PotionEffect potionEffect) {
-        if (potionEffects == null)
-            potionEffects = new ArrayList<>();
+        if (potionEffects == null) potionEffects = new ArrayList<>();
         potionEffects.add(potionEffect);
         return this;
     }
