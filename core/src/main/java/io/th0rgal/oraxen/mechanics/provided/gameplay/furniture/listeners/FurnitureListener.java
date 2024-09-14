@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.api.events.furniture.OraxenFurnitureInteractEvent;
 import io.th0rgal.oraxen.api.events.furniture.OraxenFurniturePlaceEvent;
 import io.th0rgal.oraxen.config.Message;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.BlockLocation;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureHelpers;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
@@ -127,6 +128,21 @@ public class FurnitureListener implements Listener {
         if (VersionUtil.isPaperServer()) baseEntity.getWorld().sendGameEvent(player, GameEvent.BLOCK_PLACE, baseEntity.getLocation().toVector());
     }
 
+    @EventHandler
+    public void onPlaceAgainstFurniture(PlayerInteractEvent event) {
+        Player player = event.getPlayer();
+        Block block = event.getClickedBlock();
+        ItemStack itemStack = event.getItem();
+
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || itemStack == null) return;
+        if (!itemStack.getType().isBlock() && !itemStack.getType().name().endsWith("ITEM_FRAME")) return;
+        ItemDisplay baseEntity = FurnitureFactory.instance.packetManager().baseEntityFromHitbox(new BlockLocation(block.getLocation()));
+        if (baseEntity == null) return;
+
+        event.setUseItemInHand(Event.Result.DENY);
+        player.updateInventory();
+    }
+
     private FurnitureMechanic getMechanic(ItemStack item, Player player, Location placed) {
         final String itemID = OraxenItems.getIdByItem(item);
         if (itemID == null || placed == null) return null;
@@ -144,86 +160,6 @@ public class FurnitureListener implements Listener {
         if (restrictedRotation != FurnitureMechanic.RestrictedRotation.NONE && id % 2 != 0) id -= offset;
         return Rotation.values()[id];
     }
-
-    /**
-     * Prevents ItemFrame based furniture from breaking due to being in a barrier block
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onHangingBreak(final HangingBreakEvent event) {
-        Entity entity = event.getEntity();
-        if (event.getCause() == HangingBreakEvent.RemoveCause.ENTITY) return;
-
-        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
-        if (mechanic == null) return;
-
-        event.setCancelled(true);
-        OraxenFurniture.remove(entity, null);
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onPlayerBreakHanging(final EntityDamageByEntityEvent event) {
-        Entity entity = event.getEntity();
-        if (!(event.getDamager() instanceof Player player)) return;
-        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
-        if (mechanic == null) return;
-
-        event.setCancelled(true);
-        if (!ProtectionLib.canBreak(player, entity.getLocation())) return;
-        OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic, entity, player, entity.getLocation().getBlock());
-        if (!EventUtils.callEvent(furnitureBreakEvent)) return;
-        if (OraxenFurniture.remove(entity, player, furnitureBreakEvent.getDrop())) event.setCancelled(false);
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onProjectileHitFurniture(final ProjectileHitEvent event) {
-        Block hitBlock = event.getHitBlock();
-        Entity hitEntity = event.getHitEntity();
-        Projectile projectile = event.getEntity();
-        Player player = projectile.getShooter() instanceof Player ? (Player) projectile.getShooter() : null;
-        Location hitLocation = hitBlock != null ? hitBlock.getLocation() : hitEntity != null ? hitEntity.getLocation() : null;
-        boolean isFurniture = hitEntity != null ? OraxenFurniture.isFurniture(hitEntity) : hitLocation != null ? OraxenFurniture.isFurniture(hitLocation) : false;
-
-        // Do not break furniture with a hitbox unless its explosive
-        if (hitLocation != null && isFurniture) {
-            if (player != null && !ProtectionLib.canBreak(player, hitLocation))
-                event.setCancelled(true);
-            else if (projectile instanceof Explosive) {
-                event.setCancelled(true);
-                OraxenFurniture.remove(hitLocation, player);
-            }
-        }
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onProjectileDamageFurniture(final EntityDamageByEntityEvent event) {
-        Entity furniture = event.getEntity();
-        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(furniture);
-        if (mechanic == null || !(event.getDamager() instanceof Projectile projectile)) return;
-        Player player = projectile.getShooter() instanceof Player ? (Player) projectile.getShooter() : null;
-
-        event.setCancelled(true);
-        if (!mechanic.hitbox().barrierHitboxes().isEmpty() || !isDamagingProjectile(projectile)) return;
-        if (player != null && !ProtectionLib.canBreak(player, furniture.getLocation())) return;
-
-        OraxenFurniture.remove(furniture, player);
-    }
-
-    private static boolean isDamagingProjectile(Projectile projectile) {
-        return projectile instanceof AbstractArrow || projectile instanceof Fireball;
-    }*/
-
-    /*@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onPlayerInteractFurniture(PlayerInteractEntityEvent event) {
-        Entity baseEntity = event.getRightClicked();
-        final Player player = event.getPlayer();
-        EquipmentSlot hand = event.getHand();
-
-        if (!ProtectionLib.canInteract(player, baseEntity.getLocation())) return;
-        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
-        if (mechanic == null) return;
-
-        ItemStack itemInHand = hand == EquipmentSlot.HAND ? player.getInventory().getItemInMainHand() : player.getInventory().getItemInOffHand();
-        EventUtils.callEvent(new OraxenFurnitureInteractEvent(mechanic, baseEntity, player, itemInHand, hand));
-    }*/
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onFurnitureInteract(OraxenFurnitureInteractEvent event) {

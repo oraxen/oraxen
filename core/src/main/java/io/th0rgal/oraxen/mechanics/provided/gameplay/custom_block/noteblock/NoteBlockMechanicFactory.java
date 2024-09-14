@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
+import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockFactory;
@@ -170,12 +171,15 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     }
 
     private boolean allowedSameVariation(NoteBlockMechanic mechanic, NoteBlockMechanic oldMechanic) {
-        if (oldMechanic == null) return true;
-        if (mechanic.getItemID().equals(oldMechanic.getItemID())) return true;
-        if (!mechanic.isDirectional()) return false;
-        if (!oldMechanic.isDirectional()) return false;
-        if (mechanic.equals(oldMechanic.directional().getParentMechanic())) return true;
-        return oldMechanic.equals(mechanic.directional().getParentMechanic());
+        if (oldMechanic == null || mechanic.getItemID().equals(oldMechanic.getItemID())) return true;
+        if (!mechanic.isDirectional() || !oldMechanic.isDirectional()) return false;
+
+        NoteBlockMechanic oldParent = oldMechanic.directional().getParentMechanic();
+        NoteBlockMechanic currentParent = mechanic.directional().getParentMechanic();
+        if (mechanic.getItemID().equals(Optional.ofNullable(oldParent).map(Mechanic::getItemID).orElse(""))) return true;
+        else if (oldMechanic.getItemID().equals(Optional.ofNullable(currentParent).map(Mechanic::getItemID).orElse(""))) return true;
+        else if (mechanic.equals(oldParent) || oldMechanic.equals(currentParent)) return true;
+        else return mechanic.directional().anyMatch(oldMechanic.getItemID()) || oldMechanic.directional().anyMatch(mechanic.getItemID());
     }
 
     private MultiVariant getDirectionalModelJson(Key modelKey, NoteBlockMechanic mechanic, NoteBlockMechanic parentMechanic) {
@@ -191,7 +195,6 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         if (Objects.equals(parent.getYBlock(), itemId)) return MultiVariant.of(variantBuilder.build());
         else if (Objects.equals(parent.getXBlock(), itemId)) {
             variantBuilder.x(90);
-            //content.addProperty("z", 90);
         } else if (Objects.equals(parent.getZBlock(), itemId)) {
             variantBuilder.x(90);
             variantBuilder.y(90);
@@ -202,18 +205,13 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         } else if (Objects.equals(parent.getSouthBlock(), itemId))
             variantBuilder.y(180);
         else if (Objects.equals(parent.getWestBlock(), itemId)) {
-            //content.addProperty("z", 90);
             variantBuilder.y(270);
         } else if (Objects.equals(parent.getUpBlock(), itemId))
-            variantBuilder.y(270);
+            variantBuilder.x(270);
         else if (Objects.equals(parent.getDownBlock(), itemId))
-            variantBuilder.x(180);
+            variantBuilder.x(90);
 
         return MultiVariant.of(variantBuilder.build());
-    }
-
-    private void generateMineableDatapack() {
-
     }
 
 }

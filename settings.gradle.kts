@@ -27,7 +27,6 @@ dependencyResolutionManagement {
 
     versionCatalogs {
         create("idofrontLibs").from("com.mineinabyss:catalog:$idofrontVersion")
-        create("oraxenLibs").from(files("gradle/oraxenLibs.versions.toml"))
     }
 }
 
