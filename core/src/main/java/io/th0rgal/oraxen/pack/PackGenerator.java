@@ -323,8 +323,7 @@ public class PackGenerator {
         Logs.logInfo("Converting global lang file to individual language files...");
 
         for (Key langKey : availableLanguageCodes) {
-            Language language = resourcePack.language(langKey);
-            if (language == null) language = Language.language(langKey, Map.of());
+            Language language = Optional.ofNullable(resourcePack.language(langKey)).orElse(Language.language(langKey, Map.of()));
             Map<String, String> newTranslations = new LinkedHashMap<>(language.translations());
 
             for (Map.Entry<String, String> globalEntry : new LinkedHashSet<>(globalLanguage.translations().entrySet())) {

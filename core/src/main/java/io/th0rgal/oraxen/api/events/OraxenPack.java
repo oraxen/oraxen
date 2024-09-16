@@ -16,6 +16,7 @@ import team.unnamed.creative.sound.SoundRegistry;
 import java.io.File;
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Optional;
 
 public class OraxenPack {
@@ -74,14 +75,16 @@ public class OraxenPack {
         });
 
         importedPack.atlases().forEach(atlas -> Optional.ofNullable(resourcePack.atlas(atlas.key())).ifPresentOrElse(base -> {
-                    Atlas.Builder builder = atlas.toBuilder();
-                    base.sources().forEach(builder::addSource);
-                    builder.build().addTo(resourcePack);
-                },
-                () -> atlas.addTo(resourcePack)));
+            Atlas.Builder builder = atlas.toBuilder();
+            base.sources().forEach(builder::addSource);
+            builder.build().addTo(resourcePack);
+        }, () -> atlas.addTo(resourcePack)));
 
         importedPack.languages().forEach(language -> {
-            Optional.ofNullable(resourcePack.language(language.key())).ifPresent(base -> language.translations().putAll(base.translations()));
+            Optional.ofNullable(resourcePack.language(language.key())).ifPresent(base -> {
+                for (Map.Entry<String, String> entry : base.translations().entrySet())
+                    language.translations().putIfAbsent(entry.getKey(), entry.getValue());
+            });
             language.addTo(resourcePack);
         });
 
