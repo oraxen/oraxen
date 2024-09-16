@@ -1,9 +1,9 @@
 package io.th0rgal.oraxen;
 
-import com.jeff_media.customblockdata.CustomBlockData;
 import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.CommandAPIBukkitConfig;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.api.scheduler.SchedulerAdapter;
 import io.th0rgal.oraxen.commands.CommandsManager;
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.config.*;
@@ -18,6 +18,7 @@ import io.th0rgal.oraxen.pack.server.OraxenPackServer;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.LU;
+import io.th0rgal.oraxen.utils.Metrics;
 import io.th0rgal.oraxen.utils.NoticeUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.actions.ClickActionManager;
@@ -26,10 +27,12 @@ import io.th0rgal.oraxen.utils.breaker.BreakerManager;
 import io.th0rgal.oraxen.utils.breaker.LegacyBreakerManager;
 import io.th0rgal.oraxen.utils.breaker.ModernBreakerManager;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmorListener;
+import io.th0rgal.oraxen.utils.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.utils.inventories.InvManager;
+import io.th0rgal.oraxen.utils.schedulers.FoliaSchedulerAdapter;
+import io.th0rgal.oraxen.utils.schedulers.SpigotSchedulerAdapter;
 import io.th0rgal.protectionlib.ProtectionLib;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
-import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -43,6 +46,7 @@ import java.util.jar.JarFile;
 public class OraxenPlugin extends JavaPlugin {
 
     private static OraxenPlugin oraxen;
+    private SchedulerAdapter scheduler;
     private ConfigsManager configsManager;
     private ResourcesManager resourceManager;
     private BukkitAudiences audience;
@@ -78,6 +82,7 @@ public class OraxenPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        scheduler = VersionUtil.isFoliaServer() ? new FoliaSchedulerAdapter() : new SpigotSchedulerAdapter();
         CommandAPI.onEnable();
         ProtectionLib.init(this);
         audience = BukkitAudiences.create(this);
@@ -116,7 +121,7 @@ public class OraxenPlugin extends JavaPlugin {
     private void postLoading() {
         new Metrics(this, 5371);
         new LU().l();
-        Bukkit.getScheduler().runTask(this, () -> {
+        OraxenPlugin.get().getScheduler().runTask(() -> {
             MechanicsManager.registerNativeMechanics();
             OraxenItems.loadItems();
             RecipesManager.load(OraxenPlugin.get());
@@ -206,5 +211,9 @@ public class OraxenPlugin extends JavaPlugin {
 
     public ClickActionManager clickActionManager() {
         return clickActionManager;
+    }
+
+    public SchedulerAdapter getScheduler() {
+        return scheduler;
     }
 }

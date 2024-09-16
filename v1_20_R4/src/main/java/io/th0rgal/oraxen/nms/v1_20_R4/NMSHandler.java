@@ -7,6 +7,7 @@ import io.papermc.paper.adventure.PaperAdventure;
 import io.papermc.paper.configuration.GlobalConfiguration;
 import io.papermc.paper.network.ChannelInitializeListenerHolder;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.scheduler.AdaptedTask;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketManager;
 import io.th0rgal.oraxen.nms.GlyphHandler;
 import io.th0rgal.oraxen.nms.v1_20_R4.furniture.FurniturePacketManager;
@@ -123,21 +124,21 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                                             taskQueue.add(rpTask);
                                             if (headTask != null) taskQueue.add(headTask);
 
-                                            final int[] taskId = new int[1];
-                                            taskId[0] = Bukkit.getScheduler().scheduleSyncRepeatingTask(OraxenPlugin.get(), () -> {
+                                            final AdaptedTask[] taskId = new AdaptedTask[1];
+                                            taskId[0] = OraxenPlugin.get().getScheduler().runTaskTimer(() -> {
                                                 try {
                                                     if (!connection.isConnected()) {
-                                                        Bukkit.getScheduler().cancelTask(taskId[0]);
+                                                        taskId[0].cancel();
                                                         return;
                                                     }
 
                                                     ConfigurationTask task = (ConfigurationTask) currentTask.get(configListener);
                                                     if (task == null) {
                                                         startNextTask.invoke(configListener);
-                                                        Bukkit.getScheduler().cancelTask(taskId[0]);
+                                                        taskId[0].cancel();
                                                     }
                                                 } catch (Exception e) {
-                                                    Bukkit.getScheduler().cancelTask(taskId[0]);
+                                                    taskId[0].cancel();
                                                 }
                                             }, 1L, 1L);
 

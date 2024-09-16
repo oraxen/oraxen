@@ -121,11 +121,13 @@ public class PackGenerator {
             sortModelOverrides();
 
             try {
-                resourcePack = Bukkit.getScheduler().callSyncMethod(OraxenPlugin.get(), () -> {
+                CompletableFuture<ResourcePack> future = new CompletableFuture<>();
+                OraxenPlugin.get().getScheduler().runTask(() -> {
                     OraxenPostPackGenerateEvent event = new OraxenPostPackGenerateEvent(resourcePack);
                     EventUtils.callEvent(event);
-                    return event.resourcePack();
-                }).get();
+                    future.complete(event.resourcePack());
+                });
+                resourcePack = future.get();
             } catch (Exception ignored) {}
 
             resourcePack = new PackObfuscator(resourcePack).obfuscatePack();

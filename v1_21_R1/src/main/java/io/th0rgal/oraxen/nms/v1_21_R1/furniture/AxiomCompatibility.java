@@ -32,12 +32,12 @@ public class AxiomCompatibility implements Listener {
         packetManager.removeInteractionHitboxPacket(baseEntity, mechanic);
         packetManager.removeBarrierHitboxPacket(baseEntity, mechanic);
 
-        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
+        OraxenPlugin.get().getScheduler().runEntityTaskLater(baseEntity, () -> {
             for (Player player : baseEntity.getWorld().getNearbyPlayers(baseEntity.getLocation(), FurnitureFactory.get().simulationRadius)) {
                 packetManager.sendFurnitureEntityPacket(baseEntity, mechanic, player);
                 packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
                 packetManager.sendBarrierHitboxPacket(baseEntity, mechanic, player);
             }
-        }, 2L);
+        }, null, 2L);
     }
 }

@@ -15,7 +15,6 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.Note
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.ItemUtils;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -84,7 +83,7 @@ public class StorageMechanic {
 
     public void openStorage(Block block, Player player) {
         if (block.getType() != Material.NOTE_BLOCK) return;
-        StorageGui storageGui = (blockStorages.containsKey(block) ? blockStorages.get(block) : createGui(block));
+        StorageGui storageGui = (blockStorages.containsKey(block) ? blockStorages.get(block) : createGui(player, block));
         storageGui.open(player);
         blockStorages.put(block, storageGui);
         if (hasOpenSound() && block.getLocation().isWorldLoaded())
@@ -92,7 +91,7 @@ public class StorageMechanic {
     }
 
     public void openStorage(ItemDisplay baseEntity, Player player) {
-        StorageGui storageGui = (frameStorages.containsKey(baseEntity) ? frameStorages.get(baseEntity) : createGui(baseEntity));
+        StorageGui storageGui = (frameStorages.containsKey(baseEntity) ? frameStorages.get(baseEntity) : createGui(player, baseEntity));
         storageGui.open(player);
         frameStorages.put(baseEntity, storageGui);
         playOpenAnimation(baseEntity, openAnimation);
@@ -257,8 +256,8 @@ public class StorageMechanic {
         // Slight delay to catch stacks sometimes moving too fast
         gui.setDefaultClickAction(event -> {
             if (event.getCursor() != null && event.getCursor().getType() != Material.AIR || event.getCurrentItem() != null) {
-                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->
-                        storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents()), 3L);
+                OraxenPlugin.get().getScheduler().runEntityTaskLater(player, () ->
+                        storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents()), null, 3L);
             }
         });
 
@@ -279,7 +278,7 @@ public class StorageMechanic {
         return gui;
     }
 
-    private StorageGui createGui(Block block) {
+    private StorageGui createGui(Player player, Block block) {
         Location location = block.getLocation();
         PersistentDataContainer storagePDC = BlockHelpers.getPDC(block);
         StorageGui gui = Gui.storage().title(AdventureUtils.MINI_MESSAGE.deserialize(title)).rows(rows).create();
@@ -287,8 +286,8 @@ public class StorageMechanic {
         // Slight delay to catch stacks sometimes moving too fast
         gui.setDefaultClickAction(event -> {
             if (event.getCursor() != null && event.getCursor().getType() != Material.AIR || event.getCurrentItem() != null) {
-                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->
-                        storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents()), 3L);
+                OraxenPlugin.get().getScheduler().runEntityTaskLater(player, () ->
+                        storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents()), null, 3L);
             }
         });
         gui.setOpenGuiAction(event -> {
@@ -305,7 +304,7 @@ public class StorageMechanic {
         return gui;
     }
 
-    private StorageGui createGui(ItemDisplay baseEntity) {
+    private StorageGui createGui(Player player, ItemDisplay baseEntity) {
         Location location = baseEntity.getLocation();
         ItemStack furnitureItem = FurnitureHelpers.furnitureItem(baseEntity);
         if (furnitureItem == null) return null;
@@ -318,8 +317,8 @@ public class StorageMechanic {
         // Slight delay to catch stacks sometimes moving too fast
         gui.setDefaultClickAction(event -> {
             if (event.getCursor() != null && event.getCursor().getType() != Material.AIR || event.getCurrentItem() != null) {
-                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->
-                        storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents()), 3L);
+                OraxenPlugin.get().getScheduler().runEntityTaskLater(player, () ->
+                        storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents()), null, 3L);
             }
         });
 
