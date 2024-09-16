@@ -15,7 +15,6 @@ import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.InteractionResult;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import net.kyori.adventure.resource.ResourcePackInfo;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -50,6 +49,7 @@ import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -110,37 +110,36 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                                         OraxenPackServer packServer = OraxenPlugin.get().packServer();
                                         if (packServer.isPackUploaded()) {
                                             Queue<ConfigurationTask> taskQueue = (Queue<ConfigurationTask>) configurationTasks.get(configListener);
-                                            ResourcePackInfo packInfo = packServer.packInfo();
+                                            Optional.ofNullable(packServer.packInfo()).ifPresent((packInfo) -> {
+                                                ServerResourcePackConfigurationTask rpTask = new ServerResourcePackConfigurationTask(
+                                                        new MinecraftServer.ServerResourcePackInfo(
+                                                                packInfo.id(), packServer.packUrl(), packInfo.hash(), packServer.mandatory,
+                                                                PaperAdventure.asVanilla(packServer.prompt)
+                                                        )
+                                                );
 
-                                            ServerResourcePackConfigurationTask rpTask = new ServerResourcePackConfigurationTask(
-                                                    new MinecraftServer.ServerResourcePackInfo(
-                                                            packInfo.id(), packServer.packUrl(), packInfo.hash(), packServer.mandatory,
-                                                            PaperAdventure.asVanilla(packServer.prompt)
-                                                    )
-                                            );
+                                                @Nullable ConfigurationTask headTask = taskQueue.poll();
+                                                taskQueue.add(rpTask);
+                                                if (headTask != null) taskQueue.add(headTask);
 
-                                            @Nullable ConfigurationTask headTask = taskQueue.poll();
-                                            taskQueue.add(rpTask);
-                                            if (headTask != null) taskQueue.add(headTask);
+                                                final int[] taskId = new int[1];
+                                                taskId[0] = Bukkit.getScheduler().scheduleSyncRepeatingTask(OraxenPlugin.get(), () -> {
+                                                    try {
+                                                        if (!connection.isConnected()) {
+                                                            Bukkit.getScheduler().cancelTask(taskId[0]);
+                                                            return;
+                                                        }
 
-                                            final int[] taskId = new int[1];
-                                            taskId[0] = Bukkit.getScheduler().scheduleSyncRepeatingTask(OraxenPlugin.get(), () -> {
-                                                try {
-                                                    if (!connection.isConnected()) {
+                                                        ConfigurationTask task = (ConfigurationTask) currentTask.get(configListener);
+                                                        if (task == null) {
+                                                            startNextTask.invoke(configListener);
+                                                            Bukkit.getScheduler().cancelTask(taskId[0]);
+                                                        }
+                                                    } catch (Exception e) {
                                                         Bukkit.getScheduler().cancelTask(taskId[0]);
-                                                        return;
                                                     }
-
-                                                    ConfigurationTask task = (ConfigurationTask) currentTask.get(configListener);
-                                                    if (task == null) {
-                                                        startNextTask.invoke(configListener);
-                                                        Bukkit.getScheduler().cancelTask(taskId[0]);
-                                                    }
-                                                } catch (Exception e) {
-                                                    Bukkit.getScheduler().cancelTask(taskId[0]);
-                                                }
-                                            }, 1L, 1L);
-
+                                                }, 1L, 1L);
+                                            });
                                         }
 
                                     } catch (Exception e) {
