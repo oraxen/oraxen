@@ -140,6 +140,14 @@ public interface SchedulerAdapter {
     AdaptedTask runRegionTaskTimer(Location location, Runnable task, long delay, long period);
 
     /**
+     * Runs a task tied to a specific region (based on Location), executing it immediately.
+     *
+     * @param chunk The chunk associated with the task.
+     * @param task The task to be executed.
+     */
+    void runRegionTaskNow(Chunk chunk, Runnable task);
+
+    /**
      * Runs a task tied to a specific region (based on Chunk), executing it immediately.
      *
      * @param chunk The chunk associated with the task.

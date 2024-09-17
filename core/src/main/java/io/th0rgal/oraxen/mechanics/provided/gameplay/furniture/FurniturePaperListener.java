@@ -25,16 +25,18 @@ public class FurniturePaperListener implements Listener {
         List<Block> barriers = mechanic.getBarriers().stream().map(b -> entity.getLocation().add(b.toLocation(entity.getWorld())).getBlock()).toList();
         // If the baseEntity does not exist, it means furniture is broken
         // and interaction entity was left behind, or furniture is outdated
-        OraxenPlugin.get().getScheduler().runTaskLater(() -> {
+        OraxenPlugin.get().getScheduler().runEntityTaskLater(entity, () -> {
             if (baseEntity == null) {
                 if (!entity.isDead()) entity.remove();
                 barriers.forEach(b -> {
-                    if (b.getType() == Material.BARRIER) {
-                        b.setType(Material.AIR);
-                        new CustomBlockData(b, OraxenPlugin.get()).clear();
-                    }
+                    OraxenPlugin.get().getScheduler().runRegionTaskNow(b.getLocation(), () -> {
+                        if (b.getType() == Material.BARRIER) {
+                            b.setType(Material.AIR);
+                            new CustomBlockData(b, OraxenPlugin.get()).clear();
+                        }
+                    });
                 });
             }
-        }, 1L);
+        }, null, 1L);
     }
 }

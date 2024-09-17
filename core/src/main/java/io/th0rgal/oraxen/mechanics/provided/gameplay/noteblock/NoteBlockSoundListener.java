@@ -75,7 +75,7 @@ public class NoteBlockSoundListener implements Listener {
 
         if (block.getType() == Material.NOTE_BLOCK || block.getType() == Material.MUSHROOM_STEM) {
             if (event.getInstaBreak()) {
-                OraxenPlugin.get().getScheduler().runTaskLater(() ->
+                OraxenPlugin.get().getScheduler().runRegionTaskLater(location, () ->
                         block.setType(Material.AIR, false), 1);
                 return;
             }
@@ -83,7 +83,7 @@ public class NoteBlockSoundListener implements Listener {
         if (soundGroup.getHitSound() != Sound.BLOCK_WOOD_HIT) return;
         if (breakerPlaySound.containsKey(location)) return;
 
-        AdaptedTask task = OraxenPlugin.get().getScheduler().runTaskTimer(() ->
+        AdaptedTask task = OraxenPlugin.get().getScheduler().runRegionTaskTimer(location, () ->
                 BlockHelpers.playCustomBlockSound(location, VANILLA_WOOD_HIT, VANILLA_HIT_VOLUME, VANILLA_HIT_PITCH), 2L, 4L);
         breakerPlaySound.put(location, task);
     }

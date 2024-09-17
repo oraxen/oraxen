@@ -127,4 +127,15 @@ public class SpigotSchedulerAdapter implements SchedulerAdapter {
         return runTaskTimer(task, delay, period);
     }
 
+    /**
+     * Runs a task tied to a specific region (based on Location), executing it immediately.
+     *
+     * @param chunk The chunk associated with the task.
+     * @param task  The task to be executed.
+     */
+    @Override
+    public void runRegionTaskNow(Chunk chunk, Runnable task) {
+        runTask(task);
+    }
+
 }

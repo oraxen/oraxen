@@ -61,7 +61,9 @@ public class FarmBlockTask extends AdaptedTaskRunnable {
     public void run() {
         for (World world : Bukkit.getWorlds())
             for (Chunk chunk : world.getLoadedChunks())
-                CustomBlockData.getBlocksWithCustomData(OraxenPlugin.get(), chunk).forEach(block ->
-                        updateBlock(block, BlockHelpers.getPDC(block)));
+                OraxenPlugin.get().getScheduler().runRegionTaskNow(chunk, () -> {
+                    CustomBlockData.getBlocksWithCustomData(OraxenPlugin.get(), chunk).forEach(block ->
+                            updateBlock(block, BlockHelpers.getPDC(block)));
+                });
     }
 }

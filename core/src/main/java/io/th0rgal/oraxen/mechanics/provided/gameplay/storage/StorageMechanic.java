@@ -258,8 +258,8 @@ public class StorageMechanic {
         // Slight delay to catch stacks sometimes moving too fast
         gui.setDefaultClickAction(event -> {
             if (event.getCursor() != null && event.getCursor().getType() != Material.AIR || event.getCurrentItem() != null) {
-                OraxenPlugin.get().getScheduler().runTaskLater(() ->
-                        storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents()), 3L);
+                OraxenPlugin.get().getScheduler().runEntityTaskLater(player, () ->
+                        storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents()), null, 3L);
             }
         });
 
@@ -285,11 +285,12 @@ public class StorageMechanic {
         PersistentDataContainer storagePDC = BlockHelpers.getPDC(block);
         StorageGui gui = Gui.storage().title(AdventureUtils.MINI_MESSAGE.deserialize(title)).rows(rows).create();
 
+
         // Slight delay to catch stacks sometimes moving too fast
         gui.setDefaultClickAction(event -> {
             if (event.getCursor() != null && event.getCursor().getType() != Material.AIR || event.getCurrentItem() != null) {
-                OraxenPlugin.get().getScheduler().runTaskLater(() ->
-                        storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents()), 3L);
+                OraxenPlugin.get().getScheduler().runEntityTaskLater(event.getWhoClicked(), () ->
+                        storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents()), null, 3L);
             }
         });
         gui.setOpenGuiAction(event -> {
@@ -320,8 +321,8 @@ public class StorageMechanic {
         // Slight delay to catch stacks sometimes moving too fast
         gui.setDefaultClickAction(event -> {
             if (event.getCursor() != null && event.getCursor().getType() != Material.AIR || event.getCurrentItem() != null) {
-                OraxenPlugin.get().getScheduler().runTaskLater(() ->
-                        storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents()), 3L);
+                OraxenPlugin.get().getScheduler().runEntityTaskLater(event.getWhoClicked(), () ->
+                        storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents()), null, 3L);
             }
         });
 

@@ -138,6 +138,17 @@ public class FoliaSchedulerAdapter implements SchedulerAdapter {
         return adaptedTask;
     }
 
+    /**
+     * Runs a task tied to a specific region (based on Location), executing it immediately.
+     *
+     * @param chunk The chunk associated with the task.
+     * @param task  The task to be executed.
+     */
+    @Override
+    public void runRegionTaskNow(Chunk chunk, Runnable task) {
+        Bukkit.getRegionScheduler().execute(OraxenPlugin.get(), chunk.getWorld(), chunk.getX(), chunk.getZ(), task);
+    }
+
     @Override
     public AdaptedTask runRegionTask(Chunk chunk, Runnable task) {
         ScheduledTask scheduledTask = Bukkit.getRegionScheduler().run(OraxenPlugin.get(), chunk.getWorld(), chunk.getX(), chunk.getZ(), regionTask -> task.run());

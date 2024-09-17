@@ -85,7 +85,7 @@ public class FurnitureSoundListener implements Listener {
         if (block.getType() == Material.BARRIER || soundGroup.getHitSound() != Sound.BLOCK_STONE_HIT) return;
         if (breakerPlaySound.containsKey(location)) return;
 
-        AdaptedTask task = OraxenPlugin.get().getScheduler().runTaskTimer(() ->
+        AdaptedTask task = OraxenPlugin.get().getScheduler().runRegionTaskTimer(location, () ->
                 BlockHelpers.playCustomBlockSound(location, VANILLA_STONE_HIT, VANILLA_HIT_VOLUME, VANILLA_HIT_PITCH), 2L, 4L);
         breakerPlaySound.put(location, task);
     }
