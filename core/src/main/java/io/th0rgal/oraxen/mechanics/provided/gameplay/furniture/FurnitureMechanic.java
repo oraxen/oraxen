@@ -317,13 +317,11 @@ public class FurnitureMechanic extends Mechanic {
     public boolean notEnoughSpace(Location rootLocation, float yaw) {
         List<Location> hitboxLocations = hitbox.hitboxLocations(rootLocation.clone(), yaw);
         if (!hitboxLocations.isEmpty()) return !hitboxLocations.stream().allMatch(l -> l.getBlock().isReplaceable());
-        else return false; //TODO Check location for existing entity via BoundingBox
+        else return false;
     }
 
     public void runClickActions(final Player player) {
-        for (final ClickAction action : clickActions) {
-            if (action.canRun(player)) action.performActions(player);
-        }
+        for (final ClickAction action : clickActions) if (action.canRun(player)) action.performActions(player);
     }
 
     @Nullable

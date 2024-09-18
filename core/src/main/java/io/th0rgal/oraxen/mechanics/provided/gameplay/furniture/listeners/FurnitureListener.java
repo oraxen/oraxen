@@ -78,9 +78,8 @@ public class FurnitureListener implements Listener {
     public void onFurniturePlace(final PlayerInteractEvent event) {
         ItemStack item = event.getItem();
         final Player player = event.getPlayer();
-        final BlockFace blockFace = event.getBlockFace();
-        final Location targetLocation = Optional.ofNullable(event.getInteractionPoint())
-                .map(l -> blockFace == BlockFace.DOWN ? l.subtract(0,1.0,0) : l).orElse(null);
+        final Location targetLocation = Optional.ofNullable(event.getClickedBlock())
+                .map(b -> b.getRelative(event.getBlockFace()).getLocation()).orElse(null);
         final EquipmentSlot hand = event.getHand();
         FurnitureMechanic mechanic = getMechanic(item, player, targetLocation);
 
@@ -100,8 +99,8 @@ public class FurnitureListener implements Listener {
 
         final Rotation rotation = getRotation(player.getEyeLocation().getYaw(), mechanic);
         final float yaw = FurnitureHelpers.correctedYaw(mechanic, FurnitureHelpers.rotationToYaw(rotation));
-        if (player.getGameMode() == GameMode.ADVENTURE)
-            blockPlaceEvent.setCancelled(true);
+
+        if (player.getGameMode() == GameMode.ADVENTURE) blockPlaceEvent.setCancelled(true);
         if (mechanic.notEnoughSpace(block.getLocation(), yaw)) {
             blockPlaceEvent.setCancelled(true);
             Message.NOT_ENOUGH_SPACE.send(player);
@@ -112,7 +111,9 @@ public class FurnitureListener implements Listener {
             return;
         }
 
-        ItemDisplay baseEntity = mechanic.place(block.getLocation(), yaw, event.getBlockFace(), true);
+        ItemDisplay baseEntity = mechanic.place(block.getLocation(), yaw, event.getBlockFace(), false);
+        if (baseEntity == null) return;
+
         ItemUtils.dyeColor(item).ifPresent(color -> baseEntity.getPersistentDataContainer().set(FurnitureMechanic.FURNITURE_DYE_KEY, PersistentDataType.INTEGER, color.asRGB()));
         Utils.swingHand(player, event.getHand());
 
