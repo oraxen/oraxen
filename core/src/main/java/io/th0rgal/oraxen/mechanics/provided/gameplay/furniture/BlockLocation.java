@@ -85,7 +85,6 @@ public class BlockLocation implements ConfigurationSerializable {
         double radians = Math.toRadians(fixedAngle);
         output.x = ((int) Math.round(Math.cos(radians) * x - Math.sin(radians) * z));
         output.z = ((int) Math.round(Math.sin(radians) * x - Math.cos(radians) * z));
-        if (fixedAngle % 180 > 1) output.z = -output.z;
         return output;
     }
 

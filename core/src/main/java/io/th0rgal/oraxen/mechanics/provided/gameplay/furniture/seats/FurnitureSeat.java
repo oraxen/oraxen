@@ -10,6 +10,7 @@ import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -98,7 +99,7 @@ public class FurnitureSeat {
         baseEntity.getPersistentDataContainer().set(SEAT_KEY, DataType.asList(DataType.UUID), List.of(seat));
     }
 
-    public static void spawnSeats(Entity baseEntity, FurnitureMechanic mechanic) {
+    public static void spawnSeats(ItemDisplay baseEntity, FurnitureMechanic mechanic) {
         Location location = baseEntity.getLocation();
         float yaw = baseEntity.getLocation().getYaw();
         UUID uuid = baseEntity.getUniqueId();
@@ -119,7 +120,7 @@ public class FurnitureSeat {
                 stand.getPersistentDataContainer().set(FurnitureMechanic.FURNITURE_KEY, PersistentDataType.STRING, mechanic.getItemID());
                 stand.getPersistentDataContainer().set(FurnitureSeat.SEAT_KEY, DataType.UUID, uuid);
             });
-            if (armorStand != null) seatUUIDs.add(armorStand.getUniqueId());
+            seatUUIDs.add(armorStand.getUniqueId());
         }
         baseEntity.getPersistentDataContainer().set(FurnitureSeat.SEAT_KEY, DataType.asList(DataType.UUID), seatUUIDs);
     }
