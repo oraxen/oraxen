@@ -1,8 +1,10 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Entity;
@@ -14,6 +16,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 public interface IFurniturePacketManager {
+
+    @NotNull NamespacedKey FURNITURE_PACKET_LISTENER = NamespacedKey.fromString("furniture_listener", OraxenPlugin.get());
 
     BlockData BARRIER_DATA = Material.BARRIER.createBlockData();
     BlockData AIR_DATA = Material.AIR.createBlockData();

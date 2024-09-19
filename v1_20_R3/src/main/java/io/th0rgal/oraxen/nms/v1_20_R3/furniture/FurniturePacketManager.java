@@ -2,7 +2,11 @@ package io.th0rgal.oraxen.nms.v1_20_R3.furniture;
 
 import com.ticxo.modelengine.api.ModelEngineAPI;
 import com.ticxo.modelengine.api.generator.blueprint.ModelBlueprint;
+import io.netty.channel.ChannelDuplexHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPromise;
 import io.papermc.paper.math.Position;
+import io.papermc.paper.network.ChannelInitializeListenerHolder;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.*;
@@ -10,9 +14,9 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.hitbox.Interactio
 import io.th0rgal.oraxen.utils.PluginUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
-import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
-import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
+import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.*;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
@@ -44,11 +48,65 @@ public class FurniturePacketManager implements IFurniturePacketManager {
             Logs.logWarning("FurnitureHitboxes will not work due to it relying on Paper-only events");
             Logs.logWarning("It is heavily recommended to make the upgrade to Paper");
         }
+
+        ChannelInitializeListenerHolder.removeListener(FURNITURE_PACKET_LISTENER);
+        ChannelInitializeListenerHolder.addListener(FURNITURE_PACKET_LISTENER, channel ->
+                channel.pipeline().addBefore("packet_handler", FURNITURE_PACKET_LISTENER.toString(), new ChannelDuplexHandler() {
+                    private final Connection connection = (Connection) channel.pipeline().get("packet_handler");
+
+                    @Override
+                    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
+
+                        if (msg instanceof Packet<?> packet) handlePacket(packet, connection);
+                        ctx.write(msg, promise);
+                    }
+                })
+        );
     }
 
     private final int INTERACTION_WIDTH_ID = 8;
     private final int INTERACTION_HEIGHT_ID = 9;
     private final Map<UUID, Set<FurnitureInteractionHitboxPacket>> interactionHitboxPacketMap = new HashMap<>();
+
+    private Packet<?> handlePacket(Packet<?> packet, Connection connection) {
+        return switch (packet) {
+            case ClientboundBundlePacket bundlePacket -> {
+                List<Packet<ClientGamePacketListener>> newBundle = new ArrayList<>();
+                bundlePacket.subPackets().forEach(bundle -> newBundle.add((Packet<ClientGamePacketListener>) handlePacket(bundle, connection)));
+                yield new ClientboundBundlePacket(newBundle);
+            }
+            case ClientboundAddEntityPacket entityPacket -> {
+                Player player = connection.getPlayer().getBukkitEntity();
+
+                boolean result = furnitureBaseMap.stream().filter(base -> base.baseUUID() == entityPacket.getUUID()).findFirst().map(baseEntity -> {
+                    Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> {
+                        ItemDisplay furnitureEntity = baseEntity.baseEntity();
+                        FurnitureMechanic mechanic = baseEntity.mechanic();
+                        if (furnitureEntity != null && mechanic != null) Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> {
+                            sendFurnitureEntityPacket(furnitureEntity, mechanic, player);
+                            sendInteractionEntityPacket(furnitureEntity, mechanic, player);
+                            sendBarrierHitboxPacket(furnitureEntity, mechanic, player);
+                            sendLightMechanicPacket(furnitureEntity, mechanic, player);
+                        });
+                    });
+
+                    return true;
+                }).orElse(false);
+
+                yield result ? null : packet;
+            }
+            case ClientboundRemoveEntitiesPacket entitiesPacket -> {
+                entitiesPacket.getEntityIds().intStream().filter(i -> furnitureBaseMap.stream().anyMatch(p -> p.baseId() == i)).forEach(id ->
+                        interactionHitboxIdMap.stream()
+                                .filter(s -> s.baseId() == id).findFirst()
+                                .map(subEntity -> new ClientboundRemoveEntitiesPacket(subEntity.entityIds()))
+                                .ifPresent(connection::send));
+
+                yield packet;
+            }
+            case null, default -> packet;
+        };
+    }
 
     @Override
     public int nextEntityId() {
@@ -106,7 +164,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
                         while (newEntityIds.size() < interactionHitboxes.size())
                             newEntityIds.add(net.minecraft.world.entity.Entity.nextEntityId());
 
-                        FurnitureSubEntity subEntity = new FurnitureSubEntity(baseEntity.getUniqueId(), newEntityIds);
+                        FurnitureSubEntity subEntity = new FurnitureSubEntity(baseEntity, newEntityIds);
                         interactionHitboxIdMap.add(subEntity);
                         return subEntity.entityIds();
                     });

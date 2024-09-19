@@ -1,10 +1,6 @@
 package io.th0rgal.oraxen.nms.v1_20_R3.furniture;
 
-import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
-import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
 import com.destroystokyo.paper.event.player.PlayerUseUnknownEntityEvent;
-import io.papermc.paper.event.packet.PlayerChunkLoadEvent;
-import io.papermc.paper.event.packet.PlayerChunkUnloadEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.events.OraxenNativeMechanicsRegisteredEvent;
@@ -28,8 +24,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDamageEvent;
-import org.bukkit.event.entity.EntityTeleportEvent;
-import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -53,100 +47,6 @@ public class FurniturePacketListener implements Listener {
                 packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
                 packetManager.sendBarrierHitboxPacket(baseEntity, mechanic, player);
             }
-    }
-
-    @EventHandler
-    public void onFurnitureAdded(EntityAddToWorldEvent event) {
-        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(event.getEntity());
-        if (mechanic == null || FurnitureSeat.isSeat(event.getEntity())) return;
-        ItemDisplay baseEntity = (ItemDisplay) event.getEntity();
-        IFurniturePacketManager packetManager = FurnitureFactory.get().packetManager();
-
-        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
-            for (Player player : baseEntity.getWorld().getNearbyPlayers(baseEntity.getLocation(), FurnitureFactory.get().simulationRadius)) {
-                packetManager.sendFurnitureEntityPacket(baseEntity, mechanic, player);
-                packetManager.sendLightMechanicPacket(baseEntity, mechanic, player);
-                packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
-                packetManager.sendBarrierHitboxPacket(baseEntity, mechanic, player);
-            }
-        }, 2L);
-
-    }
-
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void onFurnitureRemoval(EntityRemoveFromWorldEvent event) {
-        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(event.getEntity());
-        if (mechanic == null) return;
-        ItemDisplay baseEntity = (ItemDisplay) event.getEntity();
-        IFurniturePacketManager packetManager = FurnitureFactory.get().packetManager();
-
-        packetManager.removeFurnitureEntityPacket(baseEntity, mechanic);
-        packetManager.removeLightMechanicPacket(baseEntity, mechanic);
-        packetManager.removeInteractionHitboxPacket(baseEntity, mechanic);
-        packetManager.removeBarrierHitboxPacket(baseEntity, mechanic);
-    }
-
-    @EventHandler
-    public void onFurnitureTeleport(EntityTeleportEvent event) {
-        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(event.getEntity());
-        if (mechanic == null) return;
-        ItemDisplay baseEntity = (ItemDisplay) event.getEntity();
-        IFurniturePacketManager packetManager = FurnitureFactory.get().packetManager();
-
-        packetManager.removeFurnitureEntityPacket(baseEntity, mechanic);
-        packetManager.removeLightMechanicPacket(baseEntity, mechanic);
-        packetManager.removeInteractionHitboxPacket(baseEntity, mechanic);
-        packetManager.removeBarrierHitboxPacket(baseEntity, mechanic);
-    }
-
-    @EventHandler
-    public void onPlayerChunkLoad(PlayerChunkLoadEvent event) {
-        Player player = event.getPlayer();
-        IFurniturePacketManager packetManager = FurnitureFactory.instance.packetManager();
-        for (Entity entity : event.getChunk().getEntities()) {
-            FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
-            if (mechanic == null || FurnitureSeat.isSeat(entity)) continue;
-            ItemDisplay baseEntity = (ItemDisplay) entity;
-
-            Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> {
-                packetManager.sendFurnitureEntityPacket(baseEntity, mechanic, player);
-                packetManager.sendLightMechanicPacket(baseEntity, mechanic, player);
-                packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
-                packetManager.sendBarrierHitboxPacket(baseEntity, mechanic, player);
-            });
-        }
-    }
-
-    @EventHandler
-    public void onPlayerChunkUnload(PlayerChunkUnloadEvent event) {
-        Player player = event.getPlayer();
-        IFurniturePacketManager packetManager = FurnitureFactory.instance.packetManager();
-        if (packetManager != null) for (Entity entity : event.getChunk().getEntities()) {
-            FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
-            if (mechanic == null || FurnitureSeat.isSeat(entity)) continue;
-            ItemDisplay baseEntity = (ItemDisplay) entity;
-
-            packetManager.removeFurnitureEntityPacket(baseEntity, mechanic, player);
-            packetManager.removeLightMechanicPacket(baseEntity, mechanic, player);
-            packetManager.removeInteractionHitboxPacket(baseEntity, mechanic, player);
-            packetManager.removeBarrierHitboxPacket(baseEntity, mechanic, player);
-        }
-    }
-
-    @EventHandler
-    public void onPlayerChangeWorld(PlayerChangedWorldEvent event) {
-        Player player = event.getPlayer();
-        IFurniturePacketManager packetManager = FurnitureFactory.instance.packetManager();
-
-        for (ItemDisplay baseEntity : event.getFrom().getEntitiesByClass(ItemDisplay.class)) {
-            FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
-            if (mechanic == null || FurnitureSeat.isSeat(baseEntity)) continue;
-
-            packetManager.removeFurnitureEntityPacket(baseEntity, mechanic, player);
-            packetManager.removeLightMechanicPacket(baseEntity, mechanic, player);
-            packetManager.removeInteractionHitboxPacket(baseEntity, mechanic, player);
-            packetManager.removeBarrierHitboxPacket(baseEntity, mechanic, player);
-        }
     }
 
     @EventHandler

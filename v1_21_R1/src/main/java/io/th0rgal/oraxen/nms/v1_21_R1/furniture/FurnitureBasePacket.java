@@ -17,7 +17,6 @@ import org.bukkit.Location;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemDisplay;
-import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +50,7 @@ public class FurnitureBasePacket {
     private final ClientboundSetEntityDataPacket metadataPacket;
     private final ClientboundBundlePacket bundlePacket;
 
-    public FurnitureBasePacket(FurnitureBaseEntity furnitureBase, Entity baseEntity, Player player) {
+    public FurnitureBasePacket(FurnitureBaseEntity furnitureBase, Entity baseEntity) {
         this.entityId = furnitureBase.baseId();
         this.uuid = furnitureBase.baseUUID();
         Location baseLoc = baseEntity.getLocation();
