@@ -610,6 +610,12 @@ public class ItemBuilder {
             } else itemMeta.setDisplayName(displayName);
         }
 
+        if (hasAttributeModifiers) {
+            itemMeta.setAttributeModifiers(attributeModifiers);
+        } else {
+            itemMeta.setAttributeModifiers(HashMultimap.create());
+        }
+
         if (itemFlags != null)
             itemMeta.addItemFlags(itemFlags.toArray(new ItemFlag[0]));
 
@@ -620,9 +626,6 @@ public class ItemBuilder {
                 itemMeta.addEnchant(enchant.getKey(), lvl, true);
             }
         }
-
-        if (hasAttributeModifiers)
-            itemMeta.setAttributeModifiers(attributeModifiers);
 
         if (hasCustomModelData)
             itemMeta.setCustomModelData(customModelData);
