@@ -23,11 +23,12 @@ public interface IFurniturePacketManager {
     BlockData AIR_DATA = Material.AIR.createBlockData();
 
     Set<FurnitureBaseEntity> furnitureBaseMap = new HashSet<>();
-    Map<UUID, Set<BlockLocation>> barrierHitboxPositionMap = new HashMap<>();
-    Map<UUID, Set<BlockLocation>> lightMechanicPositionMap = new HashMap<>();
+    Map<Integer, Set<BlockLocation>> barrierHitboxPositionMap = new HashMap<>();
+    Map<Integer, Set<BlockLocation>> lightMechanicPositionMap = new HashMap<>();
     Set<FurnitureSubEntity> interactionHitboxIdMap = new HashSet<>();
 
     int nextEntityId();
+    Entity getEntity(int entityId);
 
     default Optional<FurnitureBaseEntity> furnitureBaseFromBaseEntity(@NotNull Entity baseEntity) {
         return furnitureBaseMap.stream().filter(f -> f.baseUUID() == baseEntity.getUniqueId()).findFirst();
@@ -47,8 +48,8 @@ public interface IFurniturePacketManager {
 
     @Nullable
     default ItemDisplay baseEntityFromHitbox(BlockLocation barrierLocation) {
-        for (Map.Entry<UUID, Set<BlockLocation>> entry : barrierHitboxPositionMap.entrySet()) {
-            if (entry.getValue().stream().anyMatch(barrierLocation::equals)) return (ItemDisplay) Bukkit.getEntity(entry.getKey());
+        for (Map.Entry<Integer, Set<BlockLocation>> entry : barrierHitboxPositionMap.entrySet()) {
+            if (entry.getValue().stream().anyMatch(barrierLocation::equals)) return (ItemDisplay) getEntity(entry.getKey());
         }
         return null;
     }

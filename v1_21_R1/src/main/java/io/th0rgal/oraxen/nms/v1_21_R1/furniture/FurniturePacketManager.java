@@ -21,6 +21,7 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.phys.Vec3;
@@ -28,6 +29,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.Light;
+import org.bukkit.craftbukkit.CraftWorld;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemDisplay;
@@ -98,11 +100,19 @@ public class FurniturePacketManager implements IFurniturePacketManager {
                 yield packet;
             }
             case ClientboundRemoveEntitiesPacket entitiesPacket -> {
-                entitiesPacket.getEntityIds().intStream().filter(i -> furnitureBaseMap.stream().anyMatch(p -> p.baseId() == i)).forEach(id ->
-                        interactionHitboxIdMap.stream()
-                                .filter(s -> s.baseId() == id).findFirst()
-                                .map(subEntity -> new ClientboundRemoveEntitiesPacket(subEntity.entityIds()))
-                                .ifPresent(connection::send));
+                Player player = connection.getPlayer().getBukkitEntity();
+                entitiesPacket.getEntityIds().intStream().filter(i -> furnitureBaseMap.stream().anyMatch(p -> p.baseId() == i)).forEach(id -> {
+                    interactionHitboxIdMap.stream()
+                            .filter(s -> s.baseId() == id).findFirst()
+                            .map(subEntity -> new ClientboundRemoveEntitiesPacket(subEntity.entityIds()))
+                            .ifPresent(connection::send);
+                    Optional.ofNullable(barrierHitboxPositionMap.get(id))
+                            .map(pos -> pos.stream().collect(Collectors.toMap(p -> p.toLocation(player.getWorld()), l -> AIR_DATA)))
+                            .ifPresent(player::sendMultiBlockChange);
+                    Optional.ofNullable(lightMechanicPositionMap.get(id))
+                            .map(pos -> pos.stream().collect(Collectors.toMap(p -> p.toLocation(player.getWorld()), l -> AIR_DATA)))
+                            .ifPresent(player::sendMultiBlockChange);
+                });
 
                 yield packet;
             }
@@ -113,6 +123,19 @@ public class FurniturePacketManager implements IFurniturePacketManager {
     @Override
     public int nextEntityId() {
         return net.minecraft.world.entity.Entity.nextEntityId();
+    }
+
+    @Override
+    public Entity getEntity(int entityId) {
+        Entity entity = null;
+        for (ServerLevel level : Bukkit.getWorlds().stream().map(w -> ((CraftWorld) w).getHandle()).toList()) {
+            net.minecraft.world.entity.Entity nmsEntity = level.getEntity(entityId);
+            if (nmsEntity == null) continue;
+            entity = nmsEntity.getBukkitEntity();
+            break;
+        }
+
+        return entity;
     }
 
     @Override
@@ -225,7 +248,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
         player.sendMultiBlockChange(positions);
 
         for (Position position : positions.keySet().stream().toList()) {
-            barrierHitboxPositionMap.compute(baseEntity.getUniqueId(), (d, blockPos) -> {
+            barrierHitboxPositionMap.compute(baseEntity.getEntityId(), (d, blockPos) -> {
                 Set<BlockLocation> newBlockPos = new HashSet<>();
                 newBlockPos.add(new BlockLocation(position.blockX(), position.blockY(), position.blockZ()));
                 if (blockPos != null) newBlockPos.addAll(blockPos);
@@ -263,7 +286,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
                 .distinct().collect(Collectors.toMap(l -> Position.block(l.lightLocation), l -> l.lightData));
 
         for (Position position : positions.keySet().stream().toList()) {
-            lightMechanicPositionMap.compute(baseEntity.getUniqueId(), (d, blockPos) -> {
+            lightMechanicPositionMap.compute(baseEntity.getEntityId(), (d, blockPos) -> {
                 Set<BlockLocation> newBlockPos = new HashSet<>();
                 newBlockPos.add(new BlockLocation(position.blockX(), position.blockY(), position.blockZ()));
                 if (blockPos != null) newBlockPos.addAll(blockPos);
