@@ -295,10 +295,11 @@ public class FurnitureMechanic extends Mechanic {
 
     public void removeBaseEntity(@NotNull ItemDisplay baseEntity) {
         if (hasSeats()) removeFurnitureSeats(baseEntity);
-        FurnitureFactory.instance.packetManager().removeFurnitureEntityPacket(baseEntity, this);
-        FurnitureFactory.instance.packetManager().removeInteractionHitboxPacket(baseEntity, this);
-        FurnitureFactory.instance.packetManager().removeBarrierHitboxPacket(baseEntity, this);
-        FurnitureFactory.instance.packetManager().removeLightMechanicPacket(baseEntity, this);
+        IFurniturePacketManager packetManager = FurnitureFactory.instance.packetManager();
+        packetManager.removeFurnitureEntityPacket(baseEntity, this);
+        packetManager.removeInteractionHitboxPacket(baseEntity, this);
+        packetManager.removeBarrierHitboxPacket(baseEntity, this);
+        packetManager.removeLightMechanicPacket(baseEntity, this);
 
         if (!baseEntity.isDead()) baseEntity.remove();
     }

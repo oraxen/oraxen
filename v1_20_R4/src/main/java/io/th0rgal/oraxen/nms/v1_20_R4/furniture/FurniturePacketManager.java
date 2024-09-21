@@ -197,10 +197,11 @@ public class FurniturePacketManager implements IFurniturePacketManager {
 
     @Override
     public void removeInteractionHitboxPacket(@NotNull ItemDisplay baseEntity, @NotNull FurnitureMechanic mechanic) {
+        Optional<FurnitureSubEntity> subEntity = interactionHitboxIdMap.stream().filter(s -> s.baseUUID().equals(baseEntity.getUniqueId())).findFirst();
         for (Player player : baseEntity.getWorld().getPlayers()) {
-            removeInteractionHitboxPacket(baseEntity, mechanic, player);
+            subEntity.ifPresent(furnitureSubEntity -> ((CraftPlayer) player).getHandle().connection.send(new ClientboundRemoveEntitiesPacket(furnitureSubEntity.entityIds())));
         }
-        interactionHitboxIdMap.removeIf(id -> id.baseUUID().equals(baseEntity.getUniqueId()));
+        //subEntity.ifPresent(interactionHitboxIdMap::remove);
         interactionHitboxPacketMap.remove(baseEntity.getUniqueId());
     }
 
