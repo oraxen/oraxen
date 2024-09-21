@@ -79,6 +79,8 @@ public class FurniturePacketManager implements IFurniturePacketManager {
                 yield new ClientboundBundlePacket(newBundle);
             }
             case ClientboundAddEntityPacket entityPacket -> {
+                if (entityPacket.getData() != 0) yield packet; // Resent addEntity packet to correctly apply metadata
+
                 Player player = connection.getPlayer().getBukkitEntity();
                 Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> {
                     Entity entity = Bukkit.getEntity(entityPacket.getUUID());
@@ -125,7 +127,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
         });
 
         FurnitureBasePacket basePacket = new FurnitureBasePacket(furnitureBase, baseEntity);
-        ((CraftPlayer) player).getHandle().connection.send(basePacket.metadataPacket());
+        ((CraftPlayer) player).getHandle().connection.send(baseEntity.isValid() ? basePacket.bundlePacket() : basePacket.metadataPacket());
     }
 
     @Override

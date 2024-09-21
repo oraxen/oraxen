@@ -58,7 +58,7 @@ public class FurnitureBasePacket {
 
         this.entityPacket = new ClientboundAddEntityPacket(
                 entityId, uuid, x, y, z, baseLoc.getPitch(), baseLoc.getYaw(),
-                EntityType.ITEM_DISPLAY, 0, Vec3.ZERO, 0.0
+                EntityType.ITEM_DISPLAY, 1, Vec3.ZERO, 0.0
         );
 
         this.metadataPacket = new ClientboundSetEntityDataPacket(entityId, dataValues(furnitureBase, (ItemDisplay) baseEntity));
