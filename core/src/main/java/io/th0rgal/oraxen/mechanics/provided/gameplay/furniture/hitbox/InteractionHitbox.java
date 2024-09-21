@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.hitbox;
 import io.th0rgal.oraxen.utils.ParseUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.util.Vector;
+import org.joml.Math;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -58,16 +59,17 @@ public class InteractionHitbox {
 
     /**
      * Offset rotated around the baseEntity's yaw
-     * @param yaw Yaw of baseEntity
+     * @param angle Yaw of baseEntity
      * @return Rotated offset vector
      */
-    public Vector offset(float yaw) {
-        double angleRad = Math.toRadians(yaw);
+    public Vector offset(float angle) {
+        if (angle < 0) angle += 360;  // Ensure yaw is positive
+        double radians = Math.toRadians(angle);
 
         // Get the coordinates relative to the local y-axis
-        double x = Math.cos(angleRad) * offset.getX() + Math.sin(angleRad) * offset.getZ();
+        int x = (int) Math.round(offset.getX() * Math.cos(radians) - (-offset.getZ()) * Math.sin(radians));
+        int z = (int) Math.round(offset.getX() * Math.sin(radians) + (-offset.getZ()) * Math.cos(radians));
         double y = offset.getY();
-        double z = Math.sin(angleRad) * offset.getX() + Math.cos(angleRad) * offset.getZ();
 
         return new Vector(x, y, z);
     }
