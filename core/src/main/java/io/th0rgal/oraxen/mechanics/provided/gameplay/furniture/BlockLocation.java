@@ -7,6 +7,7 @@ import org.bukkit.World;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Math;
 
 import java.util.*;
 
@@ -80,12 +81,15 @@ public class BlockLocation implements ConfigurationSerializable {
     }
 
     public BlockLocation groundRotate(float angle) {
-        BlockLocation output = new BlockLocation(x, y, z);
-        float fixedAngle = (360 - angle);
-        double radians = Math.toRadians(fixedAngle);
-        output.x = ((int) Math.round(Math.cos(radians) * x - Math.sin(radians) * z));
-        output.z = ((int) Math.round(Math.sin(radians) * x - Math.cos(radians) * z));
-        return output;
+        if (angle < 0) angle += 360;  // Ensure angle is positive
+        double radians = Math.toRadians(angle);
+
+        // Standard 2D rotation matrix for counterclockwise rotation
+        int newX = (int) Math.round(x * Math.cos(radians) - (-z) * Math.sin(radians));
+        int newZ = (int) Math.round(x * Math.sin(radians) + (-z) * Math.cos(radians));
+
+        return new BlockLocation(newX, y, newZ);
+
     }
 
     public int getX() {

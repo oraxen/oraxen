@@ -219,8 +219,8 @@ public class FurniturePacketManager implements IFurniturePacketManager {
         if (baseEntity.isDead()) return;
 
         Map<Position, BlockData> positions = mechanic.hitbox().barrierHitboxes().stream()
-                .map(c -> c.groundRotate(baseEntity.getYaw()).add(baseEntity.getLocation())).collect(Collectors.toSet())
-                .stream().collect(Collectors.toMap(Position::block, l -> BARRIER_DATA));
+                .map(c -> c.groundRotate(baseEntity.getYaw()).add(baseEntity.getLocation()))
+                .distinct().collect(Collectors.toMap(Position::block, l -> BARRIER_DATA));
         player.sendMultiBlockChange(positions);
 
         for (Position position : positions.keySet().stream().toList()) {
@@ -258,8 +258,8 @@ public class FurniturePacketManager implements IFurniturePacketManager {
         if (baseEntity.isDead()) return;
 
         Map<Position, BlockData> positions = mechanic.light().lightBlocks().stream()
-                .map(l -> new LightPosition(l.lightData(), l.groundRotate(baseEntity.getYaw()).add(baseEntity.getLocation()))).collect(Collectors.toSet())
-                .stream().collect(Collectors.toMap(l -> Position.block(l.lightLocation), l -> l.lightData));
+                .map(l -> new LightPosition(l.lightData(), l.groundRotate(baseEntity.getYaw()).add(baseEntity.getLocation())))
+                .distinct().collect(Collectors.toMap(l -> Position.block(l.lightLocation), l -> l.lightData));
 
         for (Position position : positions.keySet().stream().toList()) {
             lightMechanicPositionMap.compute(baseEntity.getUniqueId(), (d, blockPos) -> {
