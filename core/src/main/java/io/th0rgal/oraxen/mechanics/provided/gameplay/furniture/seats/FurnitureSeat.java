@@ -16,6 +16,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
+import org.joml.Math;
 
 import java.util.*;
 
@@ -23,27 +24,27 @@ public class FurnitureSeat {
     public static final NamespacedKey SEAT_KEY = new NamespacedKey(OraxenPlugin.get(), "seat");
 
     private final Vector offset;
+
     @SuppressWarnings({"unsafe", "unchecked"})
     public static FurnitureSeat getSeat(Object offset) {
-        if (offset instanceof Map<?,?> seatMap)
-            return new FurnitureSeat((Map<String, Object>) seatMap);
-        else if (offset instanceof Vector seatVector)
-            return new FurnitureSeat(seatVector);
-        else if (offset instanceof String seatString)
-            return new FurnitureSeat(seatString);
-        else if (offset instanceof Double seatString)
-            return new FurnitureSeat(seatString.toString());
-        else if (offset instanceof Integer seatString)
-            return new FurnitureSeat(seatString.toString());
-        else return null;
+        return switch (offset) {
+            case Map<?, ?> seatMap -> new FurnitureSeat((Map<String, Object>) seatMap);
+            case Vector seatVector -> new FurnitureSeat(seatVector);
+            case String seatString -> new FurnitureSeat(seatString);
+            case Double seatString -> new FurnitureSeat(seatString.toString());
+            case Integer seatString -> new FurnitureSeat(seatString.toString());
+            case null, default -> null;
+        };
     }
 
     public FurnitureSeat(Vector offset) {
         this.offset = offset;
     }
+
     public FurnitureSeat(Map<String, Object> offset) {
         this.offset = Vector.deserialize(offset);
     }
+
     public FurnitureSeat(String offset) {
         List<Double> split = new ArrayList<>(Arrays.stream(offset.split(",", 3)).map(s -> ParseUtils.parseDouble(s, 0.0)).toList());
         while (split.size() < 3) split.add(0.0);
@@ -57,6 +58,7 @@ public class FurnitureSeat {
 
     /**
      * Offset rotated around the baseEntity's yaw
+     *
      * @param yaw Yaw of baseEntity
      * @return Rotated offset vector
      */
@@ -74,17 +76,18 @@ public class FurnitureSeat {
         List<Entity> seats = new ArrayList<>(baseEntity.getPersistentDataContainer()
                 .getOrDefault(SEAT_KEY, DataType.asList(DataType.UUID), List.of())
                 .stream().map(Bukkit::getEntity).filter(e -> e instanceof ArmorStand).toList());
-        seats.sort(Comparator.comparingDouble(e ->centeredLoc.distanceSquared(e.getLocation())));
+        seats.sort(Comparator.comparingDouble(e -> centeredLoc.distanceSquared(e.getLocation())));
         seats.stream().findFirst().ifPresent(seat -> seat.addPassenger(player));
     }
 
     private Vector rotateOffset(float angle) {
-        double angleRad = Math.toRadians(angle);
+        if (angle < 0) angle += 360;  // Ensure yaw is positive
+        double radians = Math.toRadians(angle);
 
         // Get the coordinates relative to the local y-axis
-        double x = Math.cos(angleRad) * offset.getX() + Math.sin(angleRad) * offset.getZ();
+        int x = (int) Math.round(offset.getX() * Math.cos(radians) - (-offset.getZ()) * Math.sin(radians));
+        int z = (int) Math.round(offset.getX() * Math.sin(radians) + (-offset.getZ()) * Math.cos(radians));
         double y = offset.getY();
-        double z = Math.sin(angleRad) * offset.getX() + Math.cos(angleRad) * offset.getZ();
 
         return new Vector(x, y, z);
     }
