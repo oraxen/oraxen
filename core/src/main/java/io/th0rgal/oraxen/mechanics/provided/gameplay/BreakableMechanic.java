@@ -48,7 +48,7 @@ public class BreakableMechanic {
         return damage > 1 ? 0 : (int) Math.ceil(1 / damage);
     }
 
-    private double speedMultiplier(Player player) {
+    public double speedMultiplier(Player player) {
         ItemStack itemInMainHand = player.getInventory().getItemInMainHand();
         AtomicReference<Float> speedMultiplier = new AtomicReference<>((float) 1);
 

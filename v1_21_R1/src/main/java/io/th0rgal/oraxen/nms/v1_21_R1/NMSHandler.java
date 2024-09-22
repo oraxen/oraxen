@@ -48,11 +48,10 @@ import org.jetbrains.annotations.Unmodifiable;
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static io.th0rgal.oraxen.pack.PackListener.CONFIG_PHASE_PACKET_LISTENER;
 
@@ -241,13 +240,6 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     @Override
     public boolean getSupported() {
         return true;
-    }
-
-    @NotNull
-    @Override
-    public @Unmodifiable Set<Material> itemTools() {
-        return Arrays.stream(Material.values()).filter(Material::isItem).map(ItemStack::new).filter(ItemStack::hasItemMeta)
-                .filter(i -> i.getItemMeta().hasTool()).map(ItemStack::getType).collect(Collectors.toSet());
     }
 
     @Override

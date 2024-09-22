@@ -47,13 +47,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Unmodifiable;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Queue;
-import java.util.Set;
 
 import static io.th0rgal.oraxen.pack.PackListener.CONFIG_PHASE_PACKET_LISTENER;
 
@@ -239,13 +237,6 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     @Override
     public boolean getSupported() {
         return true;
-    }
-
-
-    @NotNull
-    @Override
-    public @Unmodifiable Set<Material> itemTools() {
-        return Tag.ITEMS_TOOLS.getValues();
     }
 
     @Override

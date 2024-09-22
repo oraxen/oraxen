@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.utils.breaker;
 
+import io.th0rgal.oraxen.mechanics.provided.gameplay.BreakableMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import org.bukkit.GameMode;
@@ -34,7 +35,7 @@ public class ModernBreakerManager implements BreakerManager {
         removeTransientModifier(player);
         if (player.getGameMode() == GameMode.CREATIVE) return;
 
-        addTransientModifier(player, createBreakingModifier(block, mechanic.breakable().hardness()));
+        addTransientModifier(player, createBreakingModifier(player, block, mechanic.breakable()));
     }
 
     @Override
@@ -42,14 +43,14 @@ public class ModernBreakerManager implements BreakerManager {
         removeTransientModifier(player);
     }
 
-    private AttributeModifier createBreakingModifier(Block block, double hardness) {
+    private AttributeModifier createBreakingModifier(Player player, Block block, BreakableMechanic breakable) {
         return AttributeModifier.deserialize(
                 Map.of(
                         "slot", EquipmentSlot.HAND,
                         "uuid", UUID.nameUUIDFromBytes(block.toString().getBytes()).toString(),
                         "name", "oraxen:custom_break_speed",
                         "operation", AttributeModifier.Operation.MULTIPLY_SCALAR_1,
-                        "amount", defaultBlockHardness(block) / hardness - 1
+                        "amount", (defaultBlockHardness(block) / breakable.hardness() * breakable.speedMultiplier(player)) - 1
                 )
         );
     }
