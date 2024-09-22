@@ -383,11 +383,16 @@ public class FurnitureMechanic extends Mechanic {
         return baseEntity;
     }
 
+    private boolean allowWallForLimitedFloor(Location location, BlockFace blockFace) {
+        return blockFace.getModY() == 0 && location.getBlock().getRelative(BlockFace.DOWN).isSolid();
+    }
+
     private Location correctedSpawnLocation(Location baseLocation, BlockFace facing) {
         boolean isWall = hasLimitedPlacing() && limitedPlacing.isWall();
         boolean isRoof = hasLimitedPlacing() && limitedPlacing.isRoof();
         boolean isFixed = hasDisplayEntityProperties() && displayEntityProperties.getDisplayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
-        Location correctedLocation = isFixed && facing == BlockFace.UP ? BlockHelpers.toCenterBlockLocation(baseLocation) : BlockHelpers.toCenterLocation(baseLocation);
+        Location correctedLocation = isFixed && (facing == BlockFace.UP || allowWallForLimitedFloor(baseLocation, facing))
+                ? BlockHelpers.toCenterBlockLocation(baseLocation) : BlockHelpers.toCenterLocation(baseLocation);
 
         if (furnitureType != FurnitureType.DISPLAY_ENTITY || !hasDisplayEntityProperties()) return correctedLocation;
         if (displayEntityProperties.getDisplayTransform() != ItemDisplay.ItemDisplayTransform.NONE && !isWall && !isRoof) return correctedLocation;
@@ -505,12 +510,11 @@ public class FurnitureMechanic extends Mechanic {
         float pitch;
         if (VersionUtil.atOrAbove("1.20.1")) {
             if (hasLimitedPlacing() && isFixed) {
-                if (limitedPlacing.isFloor() && facing == BlockFace.UP) pitch = -90;
+                if (limitedPlacing.isFloor() && (facing == BlockFace.UP || allowWallForLimitedFloor(itemDisplay.getLocation(), facing))) pitch = -90;
                 else if (limitedPlacing.isRoof() && facing == BlockFace.DOWN) pitch = 90;
                 else pitch = 0;
 
-                if (limitedPlacing.isRoof() && facing == BlockFace.DOWN)
-                    yaw -= 180;
+                if (limitedPlacing.isRoof() && facing == BlockFace.DOWN) yaw -= 180;
                 else if (limitedPlacing.isWall() && facing.getModY() == 0) yaw = 90f * facing.ordinal() - 180;
             } else pitch = 0;
         }
