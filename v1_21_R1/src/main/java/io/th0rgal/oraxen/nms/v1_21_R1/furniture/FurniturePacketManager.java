@@ -153,7 +153,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
 
     @Override
     public void sendFurnitureEntityPacket(@NotNull ItemDisplay baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
-        if (baseEntity.isDead()) return;
+        if (!baseEntity.isValid()) return;
         if (mechanic.isModelEngine() && ModelEngineAPI.getBlueprint(mechanic.getModelEngineID()) != null) return;
 
         FurnitureBaseEntity furnitureBase = furnitureBaseFromBaseEntity(baseEntity).orElseGet(() -> {
@@ -186,7 +186,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
     @Override
     public void sendInteractionEntityPacket(@NotNull ItemDisplay baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
         List<InteractionHitbox> interactionHitboxes = mechanic.hitbox().interactionHitboxes();
-        if (interactionHitboxes.isEmpty() || baseEntity.isDead()) return;
+        if (interactionHitboxes.isEmpty() || !baseEntity.isValid()) return;
         if (mechanic.isModelEngine()) {
             ModelBlueprint blueprint = ModelEngineAPI.getBlueprint(mechanic.getModelEngineID());
             if (blueprint != null && blueprint.getMainHitbox() != null) return;
@@ -253,7 +253,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
 
     @Override
     public void sendBarrierHitboxPacket(@NotNull ItemDisplay baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
-        if (baseEntity.isDead()) return;
+        if (!baseEntity.isValid() || barrierHitboxPositionMap.containsKey(baseEntity.getEntityId())) return;
 
         Map<Position, BlockData> positions = mechanic.hitbox().barrierHitboxes().stream()
                 .map(c -> c.groundRotate(baseEntity.getYaw()).add(baseEntity.getLocation()))
@@ -272,27 +272,23 @@ public class FurniturePacketManager implements IFurniturePacketManager {
 
     @Override
     public void removeBarrierHitboxPacket(@NotNull ItemDisplay baseEntity, @NotNull FurnitureMechanic mechanic) {
-        /*for (Player player : baseEntity.getWorld().getPlayers()) {
-            removeBarrierHitboxPacket(baseEntity, mechanic, player);
-        }
-        barrierHitboxPositionMap.remove(baseEntity.getUniqueId());*/
+        for (Player player : baseEntity.getWorld().getPlayers()) removeBarrierHitboxPacket(baseEntity, mechanic, player);
+        barrierHitboxPositionMap.remove(baseEntity.getEntityId());
     }
 
     @Override
     public void removeBarrierHitboxPacket(@NotNull ItemDisplay baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
-        //Map<Position, BlockData> positions = mechanic.hitbox().barrierHitboxes().stream()
-        //        .map(c -> c.groundRotate(baseEntity.getYaw()).add(baseEntity.getLocation()))
-        //        .distinct().collect(Collectors.toMap(Position::block, l -> AIR_DATA));
-        //player.sendMultiBlockChange(positions);
+        Map<Position, BlockData> positions = mechanic.hitbox().barrierHitboxes().stream()
+                .map(c -> c.groundRotate(baseEntity.getYaw()).add(baseEntity.getLocation()))
+                .distinct().collect(Collectors.toMap(Position::block, l -> AIR_DATA));
+        player.sendMultiBlockChange(positions);
     }
-
-
 
     private record LightPosition(Light lightData, Location lightLocation) {}
 
     @Override
     public void sendLightMechanicPacket(@NotNull ItemDisplay baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
-        if (baseEntity.isDead()) return;
+        if (!baseEntity.isValid() || lightMechanicPositionMap.containsKey(baseEntity.getEntityId())) return;
 
         Map<Position, BlockData> positions = mechanic.light().lightBlocks().stream()
                 .map(l -> new LightPosition(l.lightData(), l.groundRotate(baseEntity.getYaw()).add(baseEntity.getLocation())))
@@ -312,17 +308,15 @@ public class FurniturePacketManager implements IFurniturePacketManager {
 
     @Override
     public void removeLightMechanicPacket(@NotNull ItemDisplay baseEntity, @NotNull FurnitureMechanic mechanic) {
-        /*for (Player player : baseEntity.getWorld().getPlayers()) {
-            removeLightMechanicPacket(baseEntity, mechanic, player);
-        }
-        lightMechanicPositionMap.remove(baseEntity.getUniqueId());*/
+        for (Player player : baseEntity.getWorld().getPlayers()) removeLightMechanicPacket(baseEntity, mechanic, player);
+        lightMechanicPositionMap.remove(baseEntity.getEntityId());
     }
 
     @Override
     public void removeLightMechanicPacket(@NotNull ItemDisplay baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
-        //Map<Position, BlockData> positions = mechanic.light().lightBlocks().stream()
-        //        .map(c -> c.groundRotate(baseEntity.getYaw()).add(baseEntity.getLocation()))
-        //        .distinct().collect(Collectors.toMap(Position::block, l -> AIR_DATA));
-        //player.sendMultiBlockChange(positions);
+        Map<Position, BlockData> positions = mechanic.light().lightBlocks().stream()
+                .map(c -> c.groundRotate(baseEntity.getYaw()).add(baseEntity.getLocation()))
+                .distinct().collect(Collectors.toMap(Position::block, l -> AIR_DATA));
+        player.sendMultiBlockChange(positions);
     }
 }
