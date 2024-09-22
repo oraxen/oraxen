@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.utils;
 
-import io.th0rgal.oraxen.utils.drops.Drop;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Color;
 import org.bukkit.Material;
@@ -122,20 +121,11 @@ public class ItemUtils {
      * Only handles it if the block is a OraxenBlock or OraxenFurniture
      *
      * @param player    the player that broke the OraxenBlock or OraxenFurniture
-     * @param drop      the Drop that will be dropped
      * @param itemStack the item in the player's hand
      */
-    public static void damageItem(Player player, Drop drop, ItemStack itemStack) {
-
-        // If all are null this is not something Oraxen should handle
-        // If the block/furniture has no drop, it returns Drop.emptyDrop() which is handled by the caller
-        if (drop == null) return;
-
-        int damage;
-        boolean isToolEnough = drop.isToolEnough(itemStack);
-        damage = isToolEnough ? 1 : 2;
+    public static void damageItem(Player player, ItemStack itemStack) {
         // If the item is not a tool, it will not be damaged, example flint&steel should not be damaged
-        damage = isTool(itemStack) ? damage : 0;
+        int damage = isTool(itemStack) ? 1 : 0;
 
         if (damage == 0) return;
         if (VersionUtil.isPaperServer()) player.damageItemStack(itemStack, damage);

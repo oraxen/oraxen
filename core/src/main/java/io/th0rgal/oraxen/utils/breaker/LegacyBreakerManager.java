@@ -127,7 +127,7 @@ public class LegacyBreakerManager implements BreakerManager {
                     stopBlockBreak(alterBreakerData.breaker);
                 }
 
-                ItemUtils.damageItem(player, breakable.drop(), player.getInventory().getItemInMainHand());
+                ItemUtils.damageItem(player, player.getInventory().getItemInMainHand());
                 block.setType(Material.AIR);
                 activeBreakerData.cancelTasks();
                 this.activeBreakerDataMap.remove(breakerUUID);

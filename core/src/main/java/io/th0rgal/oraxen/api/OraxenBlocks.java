@@ -17,6 +17,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock.sa
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.EventUtils;
+import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.DroppedLoot;
@@ -267,10 +268,8 @@ public class OraxenBlocks {
             OraxenNoteBlockBreakEvent noteBlockBreakEvent = new OraxenNoteBlockBreakEvent(mechanic, block, player);
             if (!EventUtils.callEvent(noteBlockBreakEvent)) return false;
 
-            if (player.getGameMode() == GameMode.CREATIVE)
-                drop = null;
-            else if (hasOverrideDrop || player.getGameMode() != GameMode.CREATIVE)
-                drop = noteBlockBreakEvent.getDrop();
+            if (player.getGameMode() == GameMode.CREATIVE) drop = null;
+            else if (hasOverrideDrop || player.getGameMode() != GameMode.CREATIVE) drop = noteBlockBreakEvent.getDrop();
 
             World world = block.getWorld();
 
@@ -282,13 +281,14 @@ public class OraxenBlocks {
             List<DroppedLoot> loots = drop.spawns(loc, itemInHand);
             if (!loots.isEmpty() && player != null) {
                 EventUtils.callEvent(new OraxenNoteBlockDropLootEvent(mechanic, block, player, loots));
+                ItemUtils.damageItem(player, itemInHand);
+                block.setType(Material.AIR);
             }
         }
 
         if (mechanic.isStorage() && mechanic.storage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
             mechanic.storage().dropStorageContent(block);
         }
-        block.setType(Material.AIR);
         checkNoteBlockAbove(loc);
         return true;
     }

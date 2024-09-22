@@ -37,16 +37,8 @@ public class CustomBlockMiningListener implements Listener {
 
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
-        if (VersionUtil.below("1.20.5")) return;
-        OraxenPlugin.get().breakerManager().stopBlockBreak(event.getPlayer());
+        if (VersionUtil.atOrAbove("1.20.5")) OraxenPlugin.get().breakerManager().stopBlockBreak(event.getPlayer());
     }
-
-    // This has some issues when the client assumes it has broken the block
-    // This will then reset the active task and cause it to run whilst the player isnt mining
-//    @EventHandler(priority = EventPriority.MONITOR)
-//    public void onBlockBreak(BlockBreakEvent event) {
-//        OraxenPlugin.get().breakerManager().stopBlockBreak(event.getPlayer());
-//    }
 
     @EventHandler
     public void onDisconnect(PlayerQuitEvent event) {
