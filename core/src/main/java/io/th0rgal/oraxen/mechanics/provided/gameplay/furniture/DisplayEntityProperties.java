@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
+import io.th0rgal.oraxen.utils.ParseUtils;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Color;
@@ -51,11 +52,20 @@ public class DisplayEntityProperties {
         }
 
         boolean isFixed = displayTransform == ItemDisplay.ItemDisplayTransform.FIXED;
-        if (configSection.isConfigurationSection("scale"))
+        if (configSection.isConfigurationSection("scale")) {
             scale = new Vector3f((float) configSection.getDouble("scale.x", isFixed ? 0.5 : 1.0),
                     (float) configSection.getDouble("scale.y", isFixed ? 0.5 : 1.0),
                     (float) configSection.getDouble("scale.z", isFixed ? 0.5 : 1.0));
-        else scale = isFixed ? new Vector3f(0.5f,0.5f,0.5f) : null;
+        } else if (configSection.isString("scale")) {
+            float[] vector = new float[3];
+            String[] parts = configSection.getString("scale", "").replace(" ", "").split(",");
+            while (parts.length < 3) parts[parts.length - 1] = isFixed ? "0.5": "1";
+
+            for (int i = 0; i < parts.length && i < 3; i++)
+                vector[i] = ParseUtils.parseFloat(parts[i].trim(), isFixed ? 0.5f : 1);
+
+            scale = new Vector3f(vector[0], vector[1], vector[2]);
+        } else scale = isFixed ? new Vector3f(0.5f,0.5f,0.5f) : null;
 
         try {
             trackingRotation = Display.Billboard.valueOf(configSection.getString("tracking_rotation", Display.Billboard.FIXED.name()));
