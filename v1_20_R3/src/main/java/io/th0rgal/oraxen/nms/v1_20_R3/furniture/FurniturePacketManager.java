@@ -14,6 +14,8 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.hitbox.Interactio
 import io.th0rgal.oraxen.utils.PluginUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.*;
@@ -25,6 +27,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.Light;
 import org.bukkit.craftbukkit.v1_20_R3.CraftWorld;
@@ -100,18 +103,28 @@ public class FurniturePacketManager implements IFurniturePacketManager {
             }
             case ClientboundRemoveEntitiesPacket entitiesPacket -> {
                 Player player = connection.getPlayer().getBukkitEntity();
-                entitiesPacket.getEntityIds().intStream().filter(i -> furnitureBaseMap.stream().anyMatch(p -> p.baseId() == i)).forEach(id -> {
+                World world = player.getWorld();
+
+                Set<Integer> furnitureBaseIds = furnitureBaseMap.stream().map(FurnitureBaseEntity::baseId).collect(Collectors.toSet());
+                IntList hitboxEntities = new IntArrayList();
+                Set<Location> hitboxBlockLocations = new HashSet<>();
+
+                entitiesPacket.getEntityIds().intStream().filter(furnitureBaseIds::contains).forEach(id -> {
                     interactionHitboxIdMap.stream()
                             .filter(s -> s.baseId() == id).findFirst()
-                            .map(subEntity -> new ClientboundRemoveEntitiesPacket(subEntity.entityIds()))
-                            .ifPresent(connection::send);
+                            .ifPresent(sub -> hitboxEntities.addAll(sub.entityIds()));
+
                     Optional.ofNullable(barrierHitboxPositionMap.get(id))
-                            .map(pos -> pos.stream().collect(Collectors.toMap(p -> p.toLocation(player.getWorld()), l -> AIR_DATA)))
-                            .ifPresent(player::sendMultiBlockChange);
+                            .map(set -> set.stream().map(p -> p.toLocation(world)).collect(Collectors.toSet()))
+                            .ifPresent(hitboxBlockLocations::addAll);
+
                     Optional.ofNullable(lightMechanicPositionMap.get(id))
-                            .map(pos -> pos.stream().collect(Collectors.toMap(p -> p.toLocation(player.getWorld()), l -> AIR_DATA)))
-                            .ifPresent(player::sendMultiBlockChange);
+                            .map(set -> set.stream().map(p -> p.toLocation(world)).collect(Collectors.toSet()))
+                            .ifPresent(hitboxBlockLocations::addAll);
                 });
+
+                if (!hitboxEntities.isEmpty()) connection.send(new ClientboundRemoveEntitiesPacket(hitboxEntities));
+                if (!hitboxBlockLocations.isEmpty()) player.sendMultiBlockChange(hitboxBlockLocations.stream().collect(Collectors.toMap(l -> l, l -> AIR_DATA)));
 
                 yield packet;
             }
@@ -266,8 +279,8 @@ public class FurniturePacketManager implements IFurniturePacketManager {
     @Override
     public void removeBarrierHitboxPacket(@NotNull ItemDisplay baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
         Map<Position, BlockData> positions = mechanic.hitbox().barrierHitboxes().stream()
-                .map(c -> c.groundRotate(baseEntity.getYaw()).add(baseEntity.getLocation())).collect(Collectors.toSet())
-                .stream().collect(Collectors.toMap(Position::block, l -> AIR_DATA));
+                .map(c -> c.groundRotate(baseEntity.getYaw()).add(baseEntity.getLocation()))
+                .distinct().collect(Collectors.toMap(Position::block, l -> AIR_DATA));
         player.sendMultiBlockChange(positions);
     }
 
@@ -292,7 +305,6 @@ public class FurniturePacketManager implements IFurniturePacketManager {
             });
         }
 
-        positions.entrySet().removeIf(e -> !e.getKey().toBlock().toLocation(baseEntity.getWorld()).getBlock().isEmpty());
         player.sendMultiBlockChange(positions);
     }
 
@@ -307,8 +319,8 @@ public class FurniturePacketManager implements IFurniturePacketManager {
     @Override
     public void removeLightMechanicPacket(@NotNull ItemDisplay baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
         Map<Position, BlockData> positions = mechanic.light().lightBlocks().stream()
-                .map(c -> c.groundRotate(baseEntity.getYaw()).add(baseEntity.getLocation())).collect(Collectors.toSet())
-                .stream().collect(Collectors.toMap(Position::block, l -> AIR_DATA));
+                .map(c -> c.groundRotate(baseEntity.getYaw()).add(baseEntity.getLocation()))
+                .distinct().collect(Collectors.toMap(Position::block, l -> AIR_DATA));
         player.sendMultiBlockChange(positions);
     }
 }
