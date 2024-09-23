@@ -205,6 +205,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
                         interactionHitboxIdMap.add(subEntity);
                         return subEntity.entityIds();
                     });
+            while (entityIds.size() < interactionHitboxes.size()) entityIds.add(nextEntityId());
 
             Set<FurnitureInteractionHitboxPacket> packets = new HashSet<>();
             for (int i = 0; i < interactionHitboxes.size(); i++) {
@@ -250,7 +251,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
 
     @Override
     public void sendBarrierHitboxPacket(@NotNull ItemDisplay baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
-        if (baseEntity.isDead()) return;
+        if (!baseEntity.isValid()) return;
 
         Map<Position, BlockData> positions = mechanic.hitbox().barrierHitboxes().stream()
                 .map(c -> c.groundRotate(baseEntity.getYaw()).add(baseEntity.getLocation()))
@@ -273,7 +274,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
         for (Player player : baseEntity.getWorld().getPlayers()) {
             removeBarrierHitboxPacket(baseEntity, mechanic, player);
         }
-        barrierHitboxPositionMap.remove(baseEntity.getUniqueId());
+        barrierHitboxPositionMap.remove(baseEntity.getEntityId());
     }
 
     @Override
@@ -290,7 +291,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
 
     @Override
     public void sendLightMechanicPacket(@NotNull ItemDisplay baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
-        if (baseEntity.isDead()) return;
+        if (!baseEntity.isValid()) return;
 
         Map<Position, BlockData> positions = mechanic.light().lightBlocks().stream()
                 .map(l -> new LightPosition(l.lightData(), l.groundRotate(baseEntity.getYaw()).add(baseEntity.getLocation())))
@@ -313,7 +314,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
         for (Player player : baseEntity.getWorld().getPlayers()) {
             removeLightMechanicPacket(baseEntity, mechanic, player);
         }
-        lightMechanicPositionMap.remove(baseEntity.getUniqueId());
+        lightMechanicPositionMap.remove(baseEntity.getEntityId());
     }
 
     @Override

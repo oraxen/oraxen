@@ -91,12 +91,12 @@ public class FurniturePacketManager implements IFurniturePacketManager {
                     Entity entity = Bukkit.getEntity(entityPacket.getUUID());
                     FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
                     if (entity instanceof ItemDisplay baseEntity && mechanic != null) {
-                        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
+                        Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> {
                             sendFurnitureEntityPacket(baseEntity, mechanic, player);
                             sendInteractionEntityPacket(baseEntity, mechanic, player);
                             sendBarrierHitboxPacket(baseEntity, mechanic, player);
                             sendLightMechanicPacket(baseEntity, mechanic, player);
-                        }, 1L);
+                        });
                     }
                 });
 
@@ -205,6 +205,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
                         interactionHitboxIdMap.add(subEntity);
                         return subEntity.entityIds();
                     });
+            while (entityIds.size() < interactionHitboxes.size()) entityIds.add(nextEntityId());
 
             Set<FurnitureInteractionHitboxPacket> packets = new HashSet<>();
             for (int i = 0; i < interactionHitboxes.size(); i++) {
@@ -253,7 +254,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
 
     @Override
     public void sendBarrierHitboxPacket(@NotNull ItemDisplay baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
-        if (!baseEntity.isValid() || barrierHitboxPositionMap.containsKey(baseEntity.getEntityId())) return;
+        if (!baseEntity.isValid()) return;
 
         Map<Position, BlockData> positions = mechanic.hitbox().barrierHitboxes().stream()
                 .map(c -> c.groundRotate(baseEntity.getYaw()).add(baseEntity.getLocation()))
@@ -288,7 +289,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
 
     @Override
     public void sendLightMechanicPacket(@NotNull ItemDisplay baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
-        if (!baseEntity.isValid() || lightMechanicPositionMap.containsKey(baseEntity.getEntityId())) return;
+        if (!baseEntity.isValid()) return;
 
         Map<Position, BlockData> positions = mechanic.light().lightBlocks().stream()
                 .map(l -> new LightPosition(l.lightData(), l.groundRotate(baseEntity.getYaw()).add(baseEntity.getLocation())))
