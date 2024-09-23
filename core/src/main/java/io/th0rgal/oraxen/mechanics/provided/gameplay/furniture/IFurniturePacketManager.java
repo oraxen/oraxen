@@ -30,11 +30,10 @@ public interface IFurniturePacketManager {
     Set<FurnitureSubEntity> interactionHitboxIdMap = new HashSet<>();
 
     int nextEntityId();
-    Entity getEntity(int entityId);
+    @Nullable Entity getEntity(int entityId);
 
     default Optional<FurnitureBaseEntity> furnitureBaseFromBaseEntity(@NotNull Entity baseEntity) {
-        for (FurnitureBaseEntity f : furnitureBaseMap)
-            if (f.baseUUID() == baseEntity.getUniqueId()) return Optional.of(f);
+        for (FurnitureBaseEntity f : furnitureBaseMap) if (f.baseUUID() == baseEntity.getUniqueId()) return Optional.of(f);
         return Optional.empty();
     }
 

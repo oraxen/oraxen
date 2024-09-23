@@ -53,4 +53,8 @@ public class FurnitureBaseEntity {
     public FurnitureMechanic mechanic() {
         return Optional.ofNullable(mechanic).orElse(OraxenFurniture.getFurnitureMechanic(baseEntity()));
     }
+
+    public boolean equals(FurnitureBaseEntity baseEntity) {
+        return this.baseUuid.equals(baseEntity.baseUuid) && this.baseId == baseEntity.baseId && mechanic.getItemID().equals(baseEntity.mechanic().getItemID());
+    }
 }

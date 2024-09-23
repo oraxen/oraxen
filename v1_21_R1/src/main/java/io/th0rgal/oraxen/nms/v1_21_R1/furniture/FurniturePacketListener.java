@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.nms.v1_21_R1.furniture;
 
+import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
 import com.destroystokyo.paper.event.player.PlayerUseUnknownEntityEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
@@ -47,6 +48,22 @@ public class FurniturePacketListener implements Listener {
                 packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
                 packetManager.sendBarrierHitboxPacket(baseEntity, mechanic, player);
             }
+    }
+
+    @EventHandler
+    public void onFurnitureUnload(EntityRemoveFromWorldEvent event) {
+        Entity entity = event.getEntity();
+        if (!(entity instanceof ItemDisplay itemDisplay)) return;
+        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(itemDisplay);
+        IFurniturePacketManager packetManager = FurnitureFactory.instance.packetManager();
+        if (mechanic == null) return;
+
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            packetManager.removeFurnitureEntityPacket(itemDisplay, mechanic, player);
+            packetManager.removeInteractionHitboxPacket(itemDisplay, mechanic, player);
+            packetManager.removeBarrierHitboxPacket(itemDisplay, mechanic, player);
+            packetManager.removeLightMechanicPacket(itemDisplay, mechanic, player);
+        }
     }
 
     @EventHandler

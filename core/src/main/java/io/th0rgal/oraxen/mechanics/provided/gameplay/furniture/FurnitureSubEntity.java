@@ -33,6 +33,10 @@ public class FurnitureSubEntity {
         return baseId;
     }
 
+    public boolean equalsBase(ItemDisplay baseEntity) {
+        return baseUuid.equals(baseEntity.getUniqueId()) && baseId == baseEntity.getEntityId();
+    }
+
     public ItemDisplay baseEntity() {
         return (ItemDisplay) Bukkit.getEntity(baseUuid);
     }
