@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.pack;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
-import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
@@ -17,18 +16,11 @@ public class PackListener implements Listener {
 
     public static NamespacedKey CONFIG_PHASE_PACKET_LISTENER = NamespacedKey.fromString("configuration_listener", OraxenPlugin.get());
 
-    public PackListener() {
-        NMSHandlers.getHandler().unregisterConfigPhaseListener();
-        if (Settings.PACK_SEND_PRE_JOIN.toBool() && VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.20.3"))
-            NMSHandlers.getHandler().registerConfigPhaseListener();
-    }
-
     @EventHandler(priority = EventPriority.NORMAL)
     public void onPlayerConnect(PlayerJoinEvent event) {
-        if (!Settings.PACK_SEND_ON_JOIN.toBool()) return;
-        if (Settings.PACK_SEND_PRE_JOIN.toBool() && VersionUtil.isPaperServer() && event.getPlayer().hasResourcePack()) return;
-
         Player player = event.getPlayer();
+        if (!Settings.PACK_SEND_ON_JOIN.toBool() || (Settings.PACK_SEND_PRE_JOIN.toBool() && VersionUtil.isPaperServer() && player.hasResourcePack())) return;
+
         int delay = (int) Settings.PACK_SEND_DELAY.getValue();
         if (delay <= 0) OraxenPlugin.get().packServer().sendPack(player);
         else Bukkit.getScheduler().runTaskLaterAsynchronously(OraxenPlugin.get(), () ->

@@ -11,6 +11,7 @@ import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.font.Shift;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockFactory;
+import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.pack.creative.OraxenPackReader;
 import io.th0rgal.oraxen.pack.creative.OraxenPackWriter;
 import io.th0rgal.oraxen.utils.*;
@@ -136,6 +137,7 @@ public class PackGenerator {
         }).thenRunAsync(() -> {
             Logs.logSuccess("Finished generating resourcepack!", true);
             OraxenPlugin.get().packServer().uploadPack().thenRun(() -> {
+                NMSHandlers.getHandler().setServerResourcePack();
                 if (Settings.PACK_SEND_RELOAD.toBool()) for (Player player : Bukkit.getOnlinePlayers())
                     OraxenPlugin.get().packServer().sendPack(player);
             });

@@ -1,12 +1,9 @@
 package io.th0rgal.oraxen.nms.v1_20_R3;
 
-import io.netty.channel.ChannelDuplexHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelPromise;
 import io.papermc.paper.adventure.PaperAdventure;
 import io.papermc.paper.configuration.GlobalConfiguration;
-import io.papermc.paper.network.ChannelInitializeListenerHolder;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketManager;
 import io.th0rgal.oraxen.nms.GlyphHandler;
 import io.th0rgal.oraxen.nms.v1_20_R3.furniture.FurniturePacketManager;
@@ -15,18 +12,14 @@ import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.InteractionResult;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import net.kyori.adventure.resource.ResourcePackInfo;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.Connection;
-import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
 import net.minecraft.network.protocol.game.ClientboundRemoveMobEffectPacket;
 import net.minecraft.network.protocol.game.ClientboundUpdateMobEffectPacket;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.dedicated.DedicatedServer;
+import net.minecraft.server.dedicated.DedicatedServerProperties;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.network.ConfigurationTask;
-import net.minecraft.server.network.ServerConfigurationPacketListenerImpl;
-import net.minecraft.server.network.config.ServerResourcePackConfigurationTask;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -40,6 +33,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.craftbukkit.v1_20_R3.CraftServer;
 import org.bukkit.craftbukkit.v1_20_R3.block.CraftBlock;
 import org.bukkit.craftbukkit.v1_20_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_20_R3.inventory.CraftItemStack;
@@ -50,10 +44,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.Queue;
-
-import static io.th0rgal.oraxen.pack.PackListener.CONFIG_PHASE_PACKET_LISTENER;
+import java.util.Optional;
 
 @SuppressWarnings("unused")
 public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
@@ -75,90 +66,30 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         return furniturePacketManager;
     }
 
-    private static Field configurationTasks;
-    private static Field currentTask;
-    private static Method startNextTask;
+    private static Field serverResourcePackInfo;
 
     static {
         try {
-            configurationTasks = ServerConfigurationPacketListenerImpl.class.getDeclaredField("configurationTasks");
-            configurationTasks.setAccessible(true);
-        } catch (Exception ignored) {}
-
-        try {
-            currentTask = ServerConfigurationPacketListenerImpl.class.getDeclaredField("currentTask");
-            currentTask.setAccessible(true);
-        } catch (Exception ignored) {}
-
-        try {
-            startNextTask = ServerConfigurationPacketListenerImpl.class.getDeclaredMethod("startNextTask");
-            startNextTask.setAccessible(true);
+            serverResourcePackInfo = DedicatedServerProperties.class.getDeclaredField("serverResourcePackInfo");
+            serverResourcePackInfo.setAccessible(true);
         } catch (Exception ignored) {}
     }
 
     @Override
-    public void registerConfigPhaseListener() {
-        ChannelInitializeListenerHolder.addListener(CONFIG_PHASE_PACKET_LISTENER, channel ->
-                channel.pipeline().addBefore("packet_handler", CONFIG_PHASE_PACKET_LISTENER.toString(), new ChannelDuplexHandler() {
-                            private final Connection connection = (Connection) channel.pipeline().get("packet_handler");
-
-                            @Override
-                            public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
-                                if (msg instanceof ClientboundCustomPayloadPacket && connection.getPacketListener() instanceof ServerConfigurationPacketListenerImpl configListener) {
-                                    try {
-                                        // Ensure pack has uploaded, otherwise send them through
-                                        OraxenPackServer packServer = OraxenPlugin.get().packServer();
-                                        if (packServer.isPackUploaded()) {
-                                            Queue<ConfigurationTask> taskQueue = (Queue<ConfigurationTask>) configurationTasks.get(configListener);
-                                            ResourcePackInfo packInfo = packServer.packInfo();
-
-                                            ServerResourcePackConfigurationTask rpTask = new ServerResourcePackConfigurationTask(
-                                                    new MinecraftServer.ServerResourcePackInfo(
-                                                            packInfo.id(), packServer.packUrl(), packInfo.hash(), packServer.mandatory,
-                                                            PaperAdventure.asVanilla(packServer.prompt)
-                                                    )
-                                            );
-
-                                            @Nullable ConfigurationTask headTask = taskQueue.poll();
-                                            taskQueue.add(rpTask);
-                                            if (headTask != null) taskQueue.add(headTask);
-
-                                            final int[] taskId = new int[1];
-                                            taskId[0] = Bukkit.getScheduler().scheduleSyncRepeatingTask(OraxenPlugin.get(), () -> {
-                                                try {
-                                                    if (!connection.isConnected()) {
-                                                        Bukkit.getScheduler().cancelTask(taskId[0]);
-                                                        return;
-                                                    }
-
-                                                    ConfigurationTask task = (ConfigurationTask) currentTask.get(configListener);
-                                                    if (task == null) {
-                                                        startNextTask.invoke(configListener);
-                                                        Bukkit.getScheduler().cancelTask(taskId[0]);
-                                                    }
-                                                } catch (Exception e) {
-                                                    Bukkit.getScheduler().cancelTask(taskId[0]);
-                                                }
-                                            }, 1L, 1L);
-
-                                        }
-
-                                    } catch (Exception e) {
-                                        Logs.logWarning("Failed to send " + connection.getPlayer().displayName + " ResourcePack due to joining before pack had finished generating...");
-                                        e.printStackTrace();
-                                    }
-                                }
-
-                                ctx.write(msg, promise);
-                            }
-
-                        }
-                ));
-    }
-
-    @Override
-    public void unregisterConfigPhaseListener() {
-        ChannelInitializeListenerHolder.removeListener(CONFIG_PHASE_PACKET_LISTENER);
+    public void setServerResourcePack() {
+        DedicatedServer dedicatedServer = ((CraftServer) Bukkit.getServer()).getHandle().getServer();
+        OraxenPackServer packServer = OraxenPlugin.get().packServer();
+        try {
+            serverResourcePackInfo.set(dedicatedServer.settings.getProperties(), Optional.ofNullable(packServer.packInfo()).map(packInfo ->
+                    new MinecraftServer.ServerResourcePackInfo(
+                            packInfo.id(), packServer.packUrl(), packInfo.hash(), packServer.mandatory,
+                            PaperAdventure.asVanilla(packServer.prompt)
+                    )
+            ));
+        } catch (IllegalAccessException e) {
+            Logs.logWarning("Failed to set ServerResourcePack...");
+            if (Settings.DEBUG.toBool()) e.printStackTrace();
+        }
     }
 
     @Override

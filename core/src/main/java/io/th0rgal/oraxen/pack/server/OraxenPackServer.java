@@ -31,6 +31,7 @@ public interface OraxenPackServer {
         OraxenPlugin.get().packServer().stop();
         HandlerList.unregisterAll(packListener);
         Bukkit.getPluginManager().registerEvents(packListener, OraxenPlugin.get());
+
         PackServerType type = Settings.PACK_SERVER_TYPE.toEnumOrGet(PackServerType.class, () -> {
             Logs.logError("Invalid PackServer-type specified: " + Settings.PACK_SERVER_TYPE);
             Logs.logError("Valid types are: " + Arrays.stream(PackServerType.values()).map(Enum::name).collect(Collectors.joining(", ")));
