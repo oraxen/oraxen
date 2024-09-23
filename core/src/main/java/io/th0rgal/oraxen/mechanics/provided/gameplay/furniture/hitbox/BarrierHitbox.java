@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.hitbox;
 
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.BlockLocation;
+import org.bukkit.Location;
 
 public class BarrierHitbox extends BlockLocation {
 
@@ -12,6 +13,10 @@ public class BarrierHitbox extends BlockLocation {
 
     public BarrierHitbox(String hitboxString) {
         super(hitboxString);
+    }
+
+    public BarrierHitbox(Location location) {
+        super(location);
     }
 
 }

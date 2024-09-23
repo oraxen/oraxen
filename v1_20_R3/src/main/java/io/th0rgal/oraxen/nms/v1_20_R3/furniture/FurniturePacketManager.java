@@ -10,7 +10,9 @@ import io.papermc.paper.network.ChannelInitializeListenerHolder;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.*;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.hitbox.BarrierHitbox;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.hitbox.InteractionHitbox;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.light.LightBlock;
 import io.th0rgal.oraxen.utils.PluginUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -29,7 +31,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.block.data.type.Light;
 import org.bukkit.craftbukkit.v1_20_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_20_R3.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
@@ -244,84 +245,124 @@ public class FurniturePacketManager implements IFurniturePacketManager {
 
     @Override
     public void removeInteractionHitboxPacket(@NotNull ItemDisplay baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
-        interactionHitboxIdMap.stream().filter(s -> s.baseUUID().equals(baseEntity.getUniqueId())).findFirst().ifPresent(subEntity ->
-                ((CraftPlayer) player).getHandle().connection.send(new ClientboundRemoveEntitiesPacket(subEntity.entityIds()))
-        );
+        for (FurnitureSubEntity s : interactionHitboxIdMap) {
+            if (!s.baseUUID().equals(baseEntity.getUniqueId())) continue;
+            ((CraftPlayer) player).getHandle().connection.send(new ClientboundRemoveEntitiesPacket(s.entityIds()));
+            break;
+        }
     }
 
     @Override
     public void sendBarrierHitboxPacket(@NotNull ItemDisplay baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
         if (!baseEntity.isValid()) return;
 
-        Map<Position, BlockData> positions = mechanic.hitbox().barrierHitboxes().stream()
-                .map(c -> c.groundRotate(baseEntity.getYaw()).add(baseEntity.getLocation()))
-                .distinct().collect(Collectors.toMap(Position::block, l -> BARRIER_DATA));
-        player.sendMultiBlockChange(positions);
+        int entityId = baseEntity.getEntityId();
+        float yaw = baseEntity.getYaw();
+        Location loc = baseEntity.getLocation();
+        Map<Position, BlockData> barrierPositions = new HashMap<>();
 
-        for (Position position : positions.keySet().stream().toList()) {
-            barrierHitboxPositionMap.compute(baseEntity.getEntityId(), (d, blockPos) -> {
-                Set<BlockLocation> newBlockPos = new HashSet<>();
-                BlockLocation newLoc = new BlockLocation(position.blockX(), position.blockY(), position.blockZ());
-                newBlockPos.add(newLoc);
-                if (blockPos != null) newBlockPos.addAll(blockPos);
-                return newBlockPos;
-            });
+        if (barrierHitboxPositionMap.containsKey(entityId))  {
+            for (BlockLocation barrier : barrierHitboxPositionMap.get(entityId))
+                barrierPositions.put(Position.block(barrier.getX(), barrier.getY(), barrier.getZ()), BARRIER_DATA);
+        } else {
+            Set<BarrierHitbox> newPositions = new HashSet<>();
+            for (BarrierHitbox barrierHitbox : mechanic.hitbox().barrierHitboxes()) {
+                Location location = barrierHitbox.groundRotate(yaw).add(loc);
+                barrierPositions.put(Position.block(location.getBlockX(), location.getBlockY(), location.getBlockZ()), BARRIER_DATA);
+                newPositions.add(new BarrierHitbox(location));
+            }
+
+            barrierHitboxPositionMap.put(entityId, newPositions);
         }
+
+        player.sendMultiBlockChange(barrierPositions);
     }
 
     @Override
     public void removeBarrierHitboxPacket(@NotNull ItemDisplay baseEntity, @NotNull FurnitureMechanic mechanic) {
-        for (Player player : baseEntity.getWorld().getPlayers()) {
-            removeBarrierHitboxPacket(baseEntity, mechanic, player);
+        int entityId = baseEntity.getEntityId();
+        Map<Position, BlockData> barrierPositions = new HashMap<>();
+
+        if (barrierHitboxPositionMap.containsKey(entityId))  {
+            for (BlockLocation barrier : barrierHitboxPositionMap.get(entityId))
+                barrierPositions.put(Position.block(barrier.getX(), barrier.getY(), barrier.getZ()), AIR_DATA);
+        } else for (Location location : mechanic.hitbox().barrierHitboxLocations(baseEntity.getLocation(), baseEntity.getYaw())) {
+            barrierPositions.put(Position.block(location.getBlockX(), location.getBlockY(), location.getBlockZ()), AIR_DATA);
         }
+
+        for (Player player : baseEntity.getWorld().getPlayers()) player.sendMultiBlockChange(barrierPositions);
         barrierHitboxPositionMap.remove(baseEntity.getEntityId());
     }
 
     @Override
     public void removeBarrierHitboxPacket(@NotNull ItemDisplay baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
-        Map<Position, BlockData> positions = mechanic.hitbox().barrierHitboxes().stream()
-                .map(c -> c.groundRotate(baseEntity.getYaw()).add(baseEntity.getLocation()))
-                .distinct().collect(Collectors.toMap(Position::block, l -> AIR_DATA));
-        player.sendMultiBlockChange(positions);
+        int entityId = baseEntity.getEntityId();
+        Map<Position, BlockData> barrierPositions = new HashMap<>();
+
+        if (barrierHitboxPositionMap.containsKey(entityId))  {
+            for (BlockLocation barrier : barrierHitboxPositionMap.get(entityId))
+                barrierPositions.put(Position.block(barrier.getX(), barrier.getY(), barrier.getZ()), AIR_DATA);
+        } else for (Location location : mechanic.hitbox().barrierHitboxLocations(baseEntity.getLocation(), baseEntity.getYaw())) {
+            barrierPositions.put(Position.block(location.getBlockX(), location.getBlockY(), location.getBlockZ()), AIR_DATA);
+        }
+
+        player.sendMultiBlockChange(barrierPositions);
     }
 
 
-
-    private record LightPosition(Light lightData, Location lightLocation) {}
 
     @Override
     public void sendLightMechanicPacket(@NotNull ItemDisplay baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
         if (!baseEntity.isValid()) return;
 
-        Map<Position, BlockData> positions = mechanic.light().lightBlocks().stream()
-                .map(l -> new LightPosition(l.lightData(), l.groundRotate(baseEntity.getYaw()).add(baseEntity.getLocation())))
-                .distinct().collect(Collectors.toMap(l -> Position.block(l.lightLocation), l -> l.lightData));
+        int entityId = baseEntity.getEntityId();
+        Map<Position, BlockData> lightPositions = new HashMap<>();
 
-        for (Position position : positions.keySet().stream().toList()) {
-            lightMechanicPositionMap.compute(baseEntity.getEntityId(), (d, blockPos) -> {
-                Set<BlockLocation> newBlockPos = new HashSet<>();
-                newBlockPos.add(new BlockLocation(position.blockX(), position.blockY(), position.blockZ()));
-                if (blockPos != null) newBlockPos.addAll(blockPos);
-                return newBlockPos;
-            });
+        if (lightMechanicPositionMap.containsKey(entityId))  {
+            for (LightBlock light : lightMechanicPositionMap.get(entityId))
+                lightPositions.put(Position.block(light.getX(), light.getY(), light.getZ()), light.lightData());
+        } else {
+            Set<LightBlock> newPositions = new HashSet<>();
+            for (LightBlock lightBlock : mechanic.light().lightBlocks()) {
+                Location newLoc = lightBlock.groundRotate(baseEntity.getYaw()).add(baseEntity.getLocation());
+                lightPositions.put(Position.block(lightBlock.getX(), lightBlock.getY(), lightBlock.getZ()), lightBlock.lightData());
+                newPositions.add(new LightBlock(newLoc, lightBlock.lightData()));
+            }
+
+            lightMechanicPositionMap.put(entityId, newPositions);
         }
 
-        player.sendMultiBlockChange(positions);
+        player.sendMultiBlockChange(lightPositions);
     }
 
     @Override
     public void removeLightMechanicPacket(@NotNull ItemDisplay baseEntity, @NotNull FurnitureMechanic mechanic) {
-        for (Player player : baseEntity.getWorld().getPlayers()) {
-            removeLightMechanicPacket(baseEntity, mechanic, player);
+        int entityId = baseEntity.getEntityId();
+        Map<Position, BlockData> lightPositions = new HashMap<>();
+
+        if (lightMechanicPositionMap.containsKey(entityId))  {
+            for (BlockLocation light : lightMechanicPositionMap.get(entityId))
+                lightPositions.put(Position.block(light.getX(), light.getY(), light.getZ()), AIR_DATA);
+        } else for (Location location : mechanic.light().lightBlockLocations(baseEntity.getLocation(), baseEntity.getYaw())) {
+            lightPositions.put(Position.block(location.getBlockX(), location.getBlockY(), location.getBlockZ()), AIR_DATA);
         }
+
+        for (Player player : baseEntity.getWorld().getPlayers()) player.sendMultiBlockChange(lightPositions);
         lightMechanicPositionMap.remove(baseEntity.getEntityId());
     }
 
     @Override
     public void removeLightMechanicPacket(@NotNull ItemDisplay baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
-        Map<Position, BlockData> positions = mechanic.light().lightBlocks().stream()
-                .map(c -> c.groundRotate(baseEntity.getYaw()).add(baseEntity.getLocation()))
-                .distinct().collect(Collectors.toMap(Position::block, l -> AIR_DATA));
-        player.sendMultiBlockChange(positions);
+        int entityId = baseEntity.getEntityId();
+        Map<Position, BlockData> barrierPositions = new HashMap<>();
+
+        if (lightMechanicPositionMap.containsKey(entityId))  {
+            for (BlockLocation barrier : lightMechanicPositionMap.get(entityId))
+                barrierPositions.put(Position.block(barrier.getX(), barrier.getY(), barrier.getZ()), AIR_DATA);
+        } else for (Location location : mechanic.light().lightBlockLocations(baseEntity.getLocation(), baseEntity.getYaw())) {
+            barrierPositions.put(Position.block(location.getBlockX(), location.getBlockY(), location.getBlockZ()), AIR_DATA);
+        }
+
+        player.sendMultiBlockChange(barrierPositions);
     }
 }
