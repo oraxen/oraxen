@@ -201,9 +201,9 @@ public class OraxenFurniture {
         if (baseEntity == null) return null;
         FurnitureMechanic mechanic = getFurnitureMechanic(baseEntity);
 
-        Location centerLoc = BlockHelpers.toCenterBlockLocation(location);
-        BoundingBox boundingBox = BoundingBox.of(centerLoc,0.5,1.0,0.5);
         if (mechanic == null) {
+            Location centerLoc = BlockHelpers.toCenterBlockLocation(location);
+            BoundingBox boundingBox = BoundingBox.of(centerLoc,0.5,1.0,0.5);
             Optional<Entity> entity = centerLoc.getNearbyEntities(2.0,2.0,2.0).stream()
                     .sorted(Comparator.comparingDouble(e -> e.getLocation().distanceSquared(centerLoc)))
                     .filter(e -> e.getBoundingBox().overlaps(boundingBox))

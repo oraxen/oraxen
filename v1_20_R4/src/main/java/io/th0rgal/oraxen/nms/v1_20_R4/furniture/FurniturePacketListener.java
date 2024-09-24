@@ -1,7 +1,8 @@
 package io.th0rgal.oraxen.nms.v1_20_R4.furniture;
 
-import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
 import com.destroystokyo.paper.event.player.PlayerUseUnknownEntityEvent;
+import io.papermc.paper.event.player.PlayerTrackEntityEvent;
+import io.papermc.paper.event.player.PlayerUntrackEntityEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.events.OraxenNativeMechanicsRegisteredEvent;
@@ -12,6 +13,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.seats.FurnitureSeat;
 import io.th0rgal.oraxen.utils.EventUtils;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -35,6 +37,16 @@ import java.util.Optional;
 public class FurniturePacketListener implements Listener {
 
     @EventHandler
+    public void o(PlayerTrackEntityEvent event) {
+        Logs.logSuccess("Tracking: " + event.getEntity().getUniqueId());
+    }
+
+    @EventHandler
+    public void o(PlayerUntrackEntityEvent event) {
+        Logs.logError("Untracking: " + event.getEntity().getUniqueId());
+    }
+
+    @EventHandler
     public void onFurnitureFactory(OraxenNativeMechanicsRegisteredEvent event) {
         double r = FurnitureFactory.get().simulationRadius;
         for (Player player : Bukkit.getOnlinePlayers())
@@ -51,19 +63,33 @@ public class FurniturePacketListener implements Listener {
     }
 
     @EventHandler
-    public void onFurnitureUnload(EntityRemoveFromWorldEvent event) {
-        Entity entity = event.getEntity();
-        if (!(entity instanceof ItemDisplay itemDisplay)) return;
+    public void onPlayerTrackFurniture(PlayerTrackEntityEvent event) {
+        Player player = event.getPlayer();
+        if (!(event.getEntity() instanceof ItemDisplay itemDisplay)) return;
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(itemDisplay);
         IFurniturePacketManager packetManager = FurnitureFactory.instance.packetManager();
         if (mechanic == null) return;
 
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            packetManager.removeFurnitureEntityPacket(itemDisplay, mechanic, player);
-            packetManager.removeInteractionHitboxPacket(itemDisplay, mechanic, player);
-            packetManager.removeBarrierHitboxPacket(itemDisplay, mechanic, player);
-            packetManager.removeLightMechanicPacket(itemDisplay, mechanic, player);
-        }
+        Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> {
+            packetManager.sendFurnitureEntityPacket(itemDisplay, mechanic, player);
+            packetManager.sendInteractionEntityPacket(itemDisplay, mechanic, player);
+            packetManager.sendBarrierHitboxPacket(itemDisplay, mechanic, player);
+            packetManager.sendLightMechanicPacket(itemDisplay, mechanic, player);
+        });
+    }
+
+    @EventHandler
+    public void onPlayerUntrackFurniture(PlayerUntrackEntityEvent event) {
+        Player player = event.getPlayer();
+        if (!(event.getEntity() instanceof ItemDisplay itemDisplay)) return;
+        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(itemDisplay);
+        IFurniturePacketManager packetManager = FurnitureFactory.instance.packetManager();
+        if (mechanic == null) return;
+
+        packetManager.removeFurnitureEntityPacket(itemDisplay, mechanic, player);
+        packetManager.removeInteractionHitboxPacket(itemDisplay, mechanic, player);
+        packetManager.removeBarrierHitboxPacket(itemDisplay, mechanic, player);
+        packetManager.removeLightMechanicPacket(itemDisplay, mechanic, player);
     }
 
     @EventHandler
