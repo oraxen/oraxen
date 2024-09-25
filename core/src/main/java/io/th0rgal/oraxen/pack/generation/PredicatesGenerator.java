@@ -272,6 +272,7 @@ public class PredicatesGenerator {
         String materialName = material.toString().toLowerCase(Locale.ROOT);
         if (!model) {
             if (material == Material.COMPASS) return "item/compass_16";
+            if (VersionUtil.atOrAbove("1.19") && material == Material.RECOVERY_COMPASS) return "item/recovery_compass_16";
             if (material == Material.DEBUG_STICK) return "item/stick";
             if (material == Material.ENCHANTED_GOLDEN_APPLE) return "item/golden_apple";
             if (material == Material.SUNFLOWER) return "block/sunflower_front";

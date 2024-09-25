@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.nms;
 
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
@@ -43,6 +44,7 @@ public class NMSHandlers {
                      IllegalAccessException | NoSuchMethodException e) {
                 Logs.logWarning("Oraxen does not support this version of Minecraft (" + version + ") yet.");
                 Logs.logWarning("NMS features will be disabled...");
+                if (Settings.DEBUG.toBool()) e.printStackTrace();
             }
         }
     }

@@ -1,7 +1,7 @@
 plugins {
     id("java")
-    id("io.papermc.paperweight.userdev") version "1.7.1"
-    id("io.github.goooler.shadow") version "8.1.7"
+    id("io.papermc.paperweight.userdev") version "1.7.2"
+    id("io.github.goooler.shadow") version "8.1.8"
 }
 
 repositories {
@@ -11,7 +11,6 @@ repositories {
 dependencies {
     compileOnly(project(":core"))
     paperweight.paperDevBundle("1.21-R0.1-SNAPSHOT")
-    pluginRemapper("net.fabricmc:tiny-remapper:0.10.3:fat")
 }
 
 tasks {

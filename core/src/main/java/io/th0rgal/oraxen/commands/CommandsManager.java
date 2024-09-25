@@ -176,11 +176,13 @@ public class CommandsManager {
                         } else {
                             int toRemove = amount.get();
                             while (toRemove > 0) {
-                                for (ItemStack itemStack : target.getInventory().getContents()) {
+                                ItemStack[] items = target.getInventory().getStorageContents();
+                                for (int i = 0; i < items.length; i++) {
+                                    ItemStack itemStack = items[i];
                                     if (!ItemUtils.isEmpty(itemStack) && itemID.equals(OraxenItems.getIdByItem(itemStack))) {
                                         if (itemStack.getAmount() <= toRemove) {
                                             toRemove -= itemStack.getAmount();
-                                            target.getInventory().remove(itemStack);
+                                            target.getInventory().clear(i);
                                         } else {
                                             itemStack.setAmount(itemStack.getAmount() - toRemove);
                                             toRemove = 0;
