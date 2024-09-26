@@ -1,10 +1,24 @@
 package io.th0rgal.oraxen.utils;
 
 import org.bukkit.util.Vector;
+import org.joml.Vector3f;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class VectorUtils {
 
-    private VectorUtils() {}
+    public static Vector3f getVector3fFromString(String vector, float defaultValue) {
+        List<Float> floats = new java.util.ArrayList<>(Arrays.stream(vector.replace(" ", "").split(",")).map(s -> ParseUtils.parseFloat(s, defaultValue)).toList());
+        while (floats.size() < 3) floats.add(defaultValue);
+        return new Vector3f(floats.get(0), floats.get(1), floats.get(2));
+    }
+
+    public static Vector getVectorFromString(String vector, float defaultValue) {
+        List<Float> floats = new java.util.ArrayList<>(Arrays.stream(vector.replace(" ", "").split(",")).map(s -> ParseUtils.parseFloat(s, defaultValue)).toList());
+        while (floats.size() < 3) floats.add(defaultValue);
+        return new Vector(floats.get(0), floats.get(1), floats.get(2));
+    }
 
     public static void rotateAroundAxisX(Vector v, double angle) {
         double cos = Math.cos(angle);

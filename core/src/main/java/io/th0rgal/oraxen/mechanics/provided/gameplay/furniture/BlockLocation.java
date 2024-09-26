@@ -8,6 +8,7 @@ import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Math;
+import org.joml.Vector3f;
 
 import java.util.*;
 
@@ -62,6 +63,10 @@ public class BlockLocation implements ConfigurationSerializable {
     @Override
     public String toString() {
         return x + "," + y + "," + z;
+    }
+
+    public Vector3f toVector3f() {
+        return new Vector3f(x, y, z);
     }
 
     public BlockLocation add(BlockLocation blockLocation) {

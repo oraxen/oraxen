@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.config;
 
+import io.th0rgal.oraxen.EnumUtils;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.font.FontEvents;
 import io.th0rgal.oraxen.nms.GlyphHandlers;
@@ -16,7 +17,9 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
 public enum Settings {
@@ -109,16 +112,6 @@ public enum Settings {
     PACK_SEND_DELAY("Pack.dispatch.delay", -1),
     PACK_SEND_MANDATORY("Pack.dispatch.mandatory", true),
     PACK_SEND_PROMPT("Pack.dispatch.prompt", "<#fa4943>Accept the pack to enjoy a full <b><gradient:#9055FF:#13E2DA>Oraxen</b><#fa4943> experience"),
-
-    //RECEIVE_ENABLED("Pack.receive.enabled", true),
-    //RECEIVE_ALLOWED_ACTIONS("Pack.receive.accepted.actions", new SoundAction()),
-    //RECEIVE_LOADED_ACTIONS("Pack.receive.loaded.actions"),
-    //RECEIVE_FAILED_ACTIONS("Pack.receive.failed_download.actions"),
-    //RECEIVE_DENIED_ACTIONS("Pack.receive.denied.actions"),
-    //RECEIVE_FAILED_RELOAD_ACTIONS("Pack.receive.failed_reload.actions"),
-    //RECEIVE_DOWNLOADED_ACTIONS("Pack.receive.downloaded.actions"),
-    //RECEIVE_INVALID_URL_ACTIONS("Pack.receive.invalid_url.actions"),
-    //RECEIVE_DISCARDED_ACTIONS("Pack.receive.discarded.actions"),
 
 
     // Inventory
@@ -224,14 +217,12 @@ public enum Settings {
         T handle(String value);
     }
 
-    public <T extends Enum<T>> T toEnum(Class<T> enumClass, T defaultValue) {
-        Optional<T> enumValue = Arrays.stream(enumClass.getEnumConstants()).filter(e -> e.name().equals(toString())).findFirst();
-        return enumValue.orElse(defaultValue);
+    public <E extends Enum<E>> E toEnum(Class<E> enumClass, E defaultValue) {
+        return EnumUtils.getEnum(enumClass, toString(), defaultValue);
     }
 
-    public <T extends Enum<T>> T toEnumOrGet(Class<T> enumClass, Supplier<? extends T> supplier) {
-        Optional<T> enumValue = Arrays.stream(enumClass.getEnumConstants()).filter(e -> e.name().equals(toString())).findFirst();
-        return enumValue.orElseGet(supplier);
+    public <E extends Enum<E>> E toEnumOrGet(Class<E> enumClass, Supplier<? extends E> supplier) {
+        return EnumUtils.getEnumOrElse(enumClass, toString(), supplier);
     }
 
     public Component toComponent() {

@@ -1,12 +1,12 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.hitbox;
 
 import io.th0rgal.oraxen.utils.ParseUtils;
+import io.th0rgal.oraxen.utils.VectorUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.util.Vector;
 import org.joml.Math;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class InteractionHitbox {
@@ -29,12 +29,9 @@ public class InteractionHitbox {
     public InteractionHitbox(String hitboxString) {
         List<String> split = new ArrayList<>(List.of(hitboxString.split(" ", 2)));
         // Add vector offset
-        if (split.size() == 1) split.add("0,0,0");
+        if (split.size() == 1) split.add("1,1");
 
-        List<Double> offsets = new ArrayList<>(Arrays.stream(split.getFirst().split(",", 3)).map(s -> ParseUtils.parseDouble(s, 0.0)).toList());
-        while (offsets.size() < 3) offsets.add(0.0);
-
-        this.offset = new Vector(offsets.get(0), offsets.get(1), offsets.get(2));
+        this.offset = VectorUtils.getVectorFromString(split.getFirst(), 0);
         this.width = ParseUtils.parseFloat(StringUtils.substringBefore(split.getLast(), ","), 1.0f);
         this.height = ParseUtils.parseFloat(StringUtils.substringAfter(split.getLast(), ","), 1.0f);
     }

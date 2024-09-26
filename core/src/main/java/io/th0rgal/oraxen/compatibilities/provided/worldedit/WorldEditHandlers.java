@@ -29,28 +29,15 @@ import org.bukkit.entity.EntityType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class WorldEditHandlers {
 
 
     public WorldEditHandlers(boolean register) {
-        if (register) {
-            WorldEdit.getInstance().getEventBus().register(this);
-        } else {
-            WorldEdit.getInstance().getEventBus().unregister(this);
-        }
-    }
-
-    private static final List<com.sk89q.worldedit.world.entity.EntityType> furnitureTypes = new ArrayList<>();
-
-    static {
-        furnitureTypes.add(BukkitAdapter.adapt(EntityType.ITEM_FRAME));
-        furnitureTypes.add(BukkitAdapter.adapt(EntityType.ITEM_DISPLAY));
-        furnitureTypes.add(BukkitAdapter.adapt(EntityType.INTERACTION));
+        if (register) WorldEdit.getInstance().getEventBus().register(this);
+        else WorldEdit.getInstance().getEventBus().unregister(this);
     }
 
 
@@ -64,7 +51,7 @@ public class WorldEditHandlers {
             public Entity createEntity(com.sk89q.worldedit.util.Location location, BaseEntity baseEntity) {
                 if (!Settings.WORLDEDIT_FURNITURE.toBool()) return super.createEntity(location, baseEntity);
                 if (baseEntity == null || baseEntity.getType() == BukkitAdapter.adapt(EntityType.INTERACTION)) return null;
-                if (!baseEntity.hasNbtData() || !furnitureTypes.contains(baseEntity.getType()))
+                if (!baseEntity.hasNbtData() || baseEntity.getType() != BukkitAdapter.adapt(EntityType.ITEM_DISPLAY))
                     return super.createEntity(location, baseEntity);
 
                 Location bukkitLocation = BukkitAdapter.adapt(BukkitAdapter.adapt(event.getWorld()), location);
@@ -114,7 +101,7 @@ public class WorldEditHandlers {
 
             @Nullable @SuppressWarnings("unchecked")
             private FurnitureMechanic getFurnitureMechanic(@NotNull BaseEntity entity) {
-                if (!entity.hasNbtData() || !furnitureTypes.contains(entity.getType())) return null;
+                if (!entity.hasNbtData() || entity.getType() != BukkitAdapter.adapt(EntityType.ITEM_DISPLAY)) return null;
                 CompoundTag tag = entity.getNbtData();
                 if (tag == null) return null;
                 Map<String, Tag> bukkitValues = null;

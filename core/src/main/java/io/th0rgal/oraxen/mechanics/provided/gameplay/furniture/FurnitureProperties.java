@@ -1,7 +1,8 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
-import io.th0rgal.oraxen.utils.ParseUtils;
+import io.th0rgal.oraxen.EnumUtils;
 import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.VectorUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Color;
 import org.bukkit.configuration.ConfigurationSection;
@@ -14,6 +15,7 @@ import org.joml.Vector3f;
 
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Optional;
 
 public class FurnitureProperties {
     private Color glowColor;
@@ -26,6 +28,7 @@ public class FurnitureProperties {
     private float displayWidth;
     private float displayHeight;
     private Vector3f scale;
+    private Vector3f translation;
 
     public FurnitureProperties(@Nullable ConfigurationSection configSection) {
         this();
@@ -42,39 +45,25 @@ public class FurnitureProperties {
         if (shadowStrength == 0f) shadowStrength = null;
         if (shadowRadius == 0f) shadowRadius = null;
 
-        try {
-            displayTransform = ItemDisplay.ItemDisplayTransform.valueOf(configSection.getString("display_transform", ItemDisplay.ItemDisplayTransform.NONE.name()));
-        } catch (IllegalArgumentException e) {
+        displayTransform = EnumUtils.getEnumOrElse(ItemDisplay.ItemDisplayTransform.class, configSection.getString("display_transform"), () -> {
             Logs.logError("Use of illegal ItemDisplayTransform in furniture: <gold>" + itemID);
             Logs.logWarning("Allowed ones are: <gold>" + Arrays.stream(ItemDisplay.ItemDisplayTransform.values()).map(Enum::name).toList());
             Logs.logWarning("Setting transform to NONE for furniture: <gold>" + itemID);
-            displayTransform = ItemDisplay.ItemDisplayTransform.NONE;
-        }
+            return ItemDisplay.ItemDisplayTransform.NONE;
+        });
 
         boolean isFixed = displayTransform == ItemDisplay.ItemDisplayTransform.FIXED;
-        if (configSection.isConfigurationSection("scale")) {
-            scale = new Vector3f((float) configSection.getDouble("scale.x", isFixed ? 0.5 : 1.0),
-                    (float) configSection.getDouble("scale.y", isFixed ? 0.5 : 1.0),
-                    (float) configSection.getDouble("scale.z", isFixed ? 0.5 : 1.0));
-        } else if (configSection.isString("scale")) {
-            float[] vector = new float[3];
-            String[] parts = configSection.getString("scale", "").replace(" ", "").split(",");
-            while (parts.length < 3) parts[parts.length - 1] = isFixed ? "0.5": "1";
+        Optional.ofNullable(configSection.getString("scale")).ifPresentOrElse(
+                (string) -> scale = VectorUtils.getVector3fFromString(string, isFixed ? 0.5f : 1),
+                () -> scale = isFixed ? new Vector3f(0.5f, 0.5f, 0.5f) : null
+        );
 
-            for (int i = 0; i < parts.length && i < 3; i++)
-                vector[i] = ParseUtils.parseFloat(parts[i].trim(), isFixed ? 0.5f : 1);
-
-            scale = new Vector3f(vector[0], vector[1], vector[2]);
-        } else scale = isFixed ? new Vector3f(0.5f,0.5f,0.5f) : null;
-
-        try {
-            trackingRotation = Display.Billboard.valueOf(configSection.getString("tracking_rotation", Display.Billboard.FIXED.name()));
-        } catch (IllegalArgumentException e) {
+        trackingRotation = EnumUtils.getEnumOrElse(Display.Billboard.class, configSection.getString("tracking_rotation"), () -> {
             Logs.logError("Use of illegal tracking-rotation in " + itemID + " furniture.");
-            Logs.logError("Allowed ones are: " + Arrays.stream(ItemDisplay.ItemDisplayTransform.values()).toList().stream().map(Enum::name));
+            Logs.logError("Allowed ones are: " + Arrays.stream(ItemDisplay.ItemDisplayTransform.values()).map(Enum::name).toList());
             Logs.logWarning("Set tracking-rotation to FIXED for " + itemID);
-            trackingRotation = Display.Billboard.FIXED;
-        }
+            return Display.Billboard.FIXED;
+        });
 
         ConfigurationSection brightnessSection = configSection.getConfigurationSection("brightness");
         if (brightnessSection != null)

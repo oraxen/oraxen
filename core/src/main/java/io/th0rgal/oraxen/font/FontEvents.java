@@ -56,21 +56,18 @@ public class FontEvents implements Listener {
         }
 
         public static ChatHandler get() {
-            try {
-                return valueOf(Settings.CHAT_HANDLER.toString());
-            } catch (IllegalArgumentException e) {
+            return Settings.CHAT_HANDLER.toEnumOrGet(ChatHandler.class, () -> {
                 ChatHandler chatHandler = VersionUtil.isPaperServer() ? MODERN : LEGACY;
                 Logs.logError("Invalid chat-handler defined in settings.yml, defaulting to " + chatHandler, true);
                 Logs.logError("Valid options are: " + Arrays.toString(values()), true);
                 return chatHandler;
-            }
+            });
         }
     }
 
     public FontEvents(FontManager manager) {
         this.manager = manager;
-        if (VersionUtil.isPaperServer())
-            paperChatHandler = new PaperChatHandler();
+        if (VersionUtil.isPaperServer()) paperChatHandler = new PaperChatHandler();
         spigotChatHandler = new SpigotChatHandler();
     }
 

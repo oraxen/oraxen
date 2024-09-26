@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.ParseUtils;
+import io.th0rgal.oraxen.utils.VectorUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
@@ -46,10 +47,7 @@ public class FurnitureSeat {
     }
 
     public FurnitureSeat(String offset) {
-        List<Double> split = new ArrayList<>(Arrays.stream(offset.split(",", 3)).map(s -> ParseUtils.parseDouble(s, 0.0)).toList());
-        while (split.size() < 3) split.add(0.0);
-
-        this.offset = Vector.deserialize(Map.of("x", split.get(0), "y", split.get(1), "z", split.get(2)));
+        this.offset = VectorUtils.getVectorFromString(offset, 0);
     }
 
     public Vector offset() {
