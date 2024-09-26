@@ -44,7 +44,7 @@ public class StringBlockMechanicFactory extends MechanicFactory {
         toolTypes = section.getStringList("tool_types");
         saplingGrowthCheckDelay = section.getInt("sapling_growth_check_delay");
         sapling = false;
-        customSounds = OraxenPlugin.get().configsManager().getMechanics().getBoolean("custom_block_sounds.stringblock_and_furniture", true);
+        customSounds = section.getBoolean("custom_block_sounds", true);
         disableVanillaString = section.getBoolean("disable_vanilla_strings", true);
 
         MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new StringBlockMechanicListener(), new SaplingListener());

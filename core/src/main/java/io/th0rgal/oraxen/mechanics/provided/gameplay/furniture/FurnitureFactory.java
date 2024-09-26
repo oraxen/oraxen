@@ -27,7 +27,6 @@ public class FurnitureFactory extends MechanicFactory {
     public final int evolutionCheckDelay;
     private boolean evolvingFurnitures;
     private static EvolutionTask evolutionTask;
-    public final boolean customSounds;
     public double simulationRadius = Math.pow((Bukkit.getServer().getSimulationDistance() * 16.0), 2.0);
 
     public FurnitureFactory(ConfigurationSection section) {
@@ -41,9 +40,8 @@ public class FurnitureFactory extends MechanicFactory {
                 new JukeboxListener()
         );
         evolvingFurnitures = false;
-        customSounds = OraxenPlugin.get().configsManager().getMechanics().getBoolean("custom_block_sounds.stringblock_and_furniture", true);
 
-        if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new FurnitureSoundListener());
+        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new FurnitureSoundListener());
     }
 
     public IFurniturePacketManager packetManager() {

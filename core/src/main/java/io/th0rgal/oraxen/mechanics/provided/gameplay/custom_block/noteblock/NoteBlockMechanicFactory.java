@@ -46,7 +46,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         instance = this;
 
         toolTypes = section.getStringList("tool_types");
-        customSounds = OraxenPlugin.get().configsManager().getMechanics().getBoolean("custom_block_sounds.noteblock", true);
+        customSounds = section.getBoolean("custom_block_sounds", true);
         reimplementNoteblockFeatures = section.getBoolean("reimplement_noteblock_features", false);
 
         if (VersionUtil.isPaperServer()) new NoteBlockDatapack().generateDatapack();

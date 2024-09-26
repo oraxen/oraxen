@@ -17,12 +17,6 @@ misc:
 
 
 # GAMEPLAY
-
-# Specify if custom block sounds should be enabled for the below mechanics
-# If both mechanics are disabled, this will force the sound system for those off
-custom_block_sounds:
-  noteblock: true
-  stringblock_and_furniture: true
 noteblock:
   tool_types:
     - WOODEN
@@ -34,6 +28,7 @@ noteblock:
   # Reimplements noteblock features while using custom blocks
   # Adds instrument option in noteblock mechanics
   reimplement_noteblock_features: false
+  custom_block_sounds: true
   enabled: true
 stringblock:
     tool_types:
@@ -45,6 +40,7 @@ stringblock:
       - NETHERITE
     sapling_growth_check_delay: 4000
     disable_vanilla_strings: false
+    custom_block_sounds: true
     enabled: true
 furniture:
   default_furniture_type: DISPLAY_ENTITY # DISPLAY_ENTITY, ITEM_FRAME, GLOW_ITEM_FRAME
