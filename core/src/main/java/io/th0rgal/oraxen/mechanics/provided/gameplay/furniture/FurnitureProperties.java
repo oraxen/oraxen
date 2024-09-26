@@ -15,7 +15,7 @@ import org.joml.Vector3f;
 import java.util.Arrays;
 import java.util.Objects;
 
-public class DisplayEntityProperties {
+public class FurnitureProperties {
     private Color glowColor;
     private Integer viewRange;
     private Display.Brightness brightness;
@@ -27,7 +27,7 @@ public class DisplayEntityProperties {
     private float displayHeight;
     private Vector3f scale;
 
-    public DisplayEntityProperties(@Nullable ConfigurationSection configSection) {
+    public FurnitureProperties(@Nullable ConfigurationSection configSection) {
         this();
         if (configSection == null) return;
         String itemID = configSection.getParent().getParent().getParent().getName();
@@ -35,8 +35,8 @@ public class DisplayEntityProperties {
         viewRange = configSection.getInt("view_range");
         shadowStrength = (float) configSection.getDouble("shadow_strength");
         shadowRadius = (float) configSection.getDouble("shadow_radius");
-        displayWidth = (float) configSection.getDouble("displayWidth", 0);
-        displayHeight = (float) configSection.getDouble("displayHeight", 0);
+        displayWidth = (float) configSection.getDouble("display_width", 0);
+        displayHeight = (float) configSection.getDouble("display_height", 0);
 
         if (viewRange == 0) viewRange = null;
         if (shadowStrength == 0f) shadowStrength = null;
@@ -83,7 +83,7 @@ public class DisplayEntityProperties {
 
     }
 
-    public DisplayEntityProperties() {
+    public FurnitureProperties() {
         this.displayWidth = 0f;
         this.displayHeight = 0f;
         this.displayTransform = ItemDisplay.ItemDisplayTransform.NONE;

@@ -16,7 +16,7 @@ import java.util.Optional;
 public class FurnitureHelpers {
 
     public static float correctedYaw(@NotNull FurnitureMechanic mechanic, float yaw) {
-        boolean isFixed = mechanic.displayEntityProperties().isFixedTransform();
+        boolean isFixed = mechanic.properties().isFixedTransform();
 
         if (mechanic.hasLimitedPlacing() && !mechanic.limitedPlacing().isRoof()) return yaw;
         else if (isFixed) return yaw - 180;

@@ -1,8 +1,8 @@
 package io.th0rgal.oraxen.nms.v1_21_R1.furniture;
 
 import io.papermc.paper.adventure.PaperAdventure;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.DisplayEntityProperties;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureBaseEntity;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureProperties;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import net.kyori.adventure.text.Component;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
@@ -93,7 +93,7 @@ public class FurnitureBasePacket {
         data.add(dataValue(2, EntityDataSerializers.OPTIONAL_COMPONENT, Optional.of(PaperAdventure.asVanilla(Component.empty()))));
         data.add(dataValue(3, EntityDataSerializers.BOOLEAN, false));
 
-        DisplayEntityProperties displayProp = furnitureBase.mechanic().displayEntityProperties();
+        FurnitureProperties displayProp = furnitureBase.mechanic().properties();
 
         data.add(dataValue(9, EntityDataSerializers.INT, 0));
         data.add(dataValue(DISPLAY_WIDTH_ID, EntityDataSerializers.FLOAT, displayProp.displayWidth()));

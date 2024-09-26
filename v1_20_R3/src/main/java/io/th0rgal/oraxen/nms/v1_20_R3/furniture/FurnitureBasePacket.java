@@ -1,8 +1,8 @@
 package io.th0rgal.oraxen.nms.v1_20_R3.furniture;
 
 import io.papermc.paper.adventure.PaperAdventure;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.DisplayEntityProperties;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureBaseEntity;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureProperties;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import net.kyori.adventure.text.Component;
@@ -82,7 +82,7 @@ public class FurnitureBasePacket {
 
     private float pitch(FurnitureBaseEntity furnitureBase, float initialPitch, Player player) {
         LimitedPlacing lp = furnitureBase.mechanic().limitedPlacing();
-        boolean isFixed = furnitureBase.mechanic().displayEntityProperties().isFixedTransform();
+        boolean isFixed = furnitureBase.mechanic().properties().isFixedTransform();
 
         if (VersionUtil.atOrAbove(player, 763)) {
             return lp != null && isFixed ? lp.isFloor() ? -90 : lp.isRoof() ? 90 : initialPitch : initialPitch;
@@ -91,7 +91,7 @@ public class FurnitureBasePacket {
 
     private float yaw(FurnitureBaseEntity furnitureBase, float initialYaw, Player player) {
         LimitedPlacing limitedPlacing = furnitureBase.mechanic().limitedPlacing();
-        boolean isFixed = furnitureBase.mechanic().displayEntityProperties().isFixedTransform();
+        boolean isFixed = furnitureBase.mechanic().properties().isFixedTransform();
 
         if (VersionUtil.atOrAbove(player, 763) && (limitedPlacing == null || !limitedPlacing.isRoof() || !isFixed))
             return initialYaw;
@@ -106,7 +106,7 @@ public class FurnitureBasePacket {
         data.add(new SynchedEntityData.DataValue<>(2, EntityDataSerializers.OPTIONAL_COMPONENT, Optional.of(PaperAdventure.asVanilla(Component.empty()))));
         data.add(new SynchedEntityData.DataValue<>(3, EntityDataSerializers.BOOLEAN, false));
 
-        DisplayEntityProperties displayProp = furnitureBase.mechanic().displayEntityProperties();
+        FurnitureProperties displayProp = furnitureBase.mechanic().properties();
 
         data.add(new SynchedEntityData.DataValue<>(9, EntityDataSerializers.INT, 0));
         data.add(new SynchedEntityData.DataValue<>(DISPLAY_WIDTH_ID, EntityDataSerializers.FLOAT, displayProp.displayWidth()));

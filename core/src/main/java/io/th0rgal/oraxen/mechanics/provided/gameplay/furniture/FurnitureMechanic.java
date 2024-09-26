@@ -63,7 +63,7 @@ public class FurnitureMechanic extends Mechanic {
     private final String placedItemId;
     private final List<FurnitureSeat> seats = new ArrayList<>();
     private final List<ClickAction> clickActions;
-    private final DisplayEntityProperties displayEntityProperties;
+    private final FurnitureProperties furnitureProperties;
     private final boolean isRotatable;
     private final BlockLockerMechanic blockLocker;
     private final RestrictedRotation restrictedRotation;
@@ -97,7 +97,7 @@ public class FurnitureMechanic extends Mechanic {
         light = new LightMechanic(section);
         breakable = new BreakableMechanic(section);
         restrictedRotation = RestrictedRotation.fromString(section.getString("restricted_rotation", "STRICT"));
-        displayEntityProperties = new DisplayEntityProperties(section.getConfigurationSection("display_entity_properties"));
+        furnitureProperties = new FurnitureProperties(section.getConfigurationSection("properties"));
 
         ConfigurationSection hitboxSection = section.getConfigurationSection("hitbox");
         hitbox = hitboxSection != null ? new FurnitureHitbox(hitboxSection) : FurnitureHitbox.EMPTY;
@@ -237,12 +237,12 @@ public class FurnitureMechanic extends Mechanic {
     private Location correctedSpawnLocation(Location baseLocation, BlockFace facing) {
         boolean isWall = hasLimitedPlacing() && limitedPlacing.isWall();
         boolean isRoof = hasLimitedPlacing() && limitedPlacing.isRoof();
-        boolean isFixed = hasDisplayEntityProperties() && displayEntityProperties.displayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
+        boolean isFixed = hasSpecifiedProperties() && furnitureProperties.displayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
         Location correctedLocation = (isFixed && facing == BlockFace.UP) ? BlockHelpers.toCenterBlockLocation(baseLocation) : BlockHelpers.toCenterLocation(baseLocation);
 
-        if (!hasDisplayEntityProperties()) return correctedLocation;
-        if (displayEntityProperties.isNoneTransform() && !isWall && !isRoof) return correctedLocation;
-        float scale = displayEntityProperties.hasScale() ? displayEntityProperties.scale().y() : 1;
+        if (!hasSpecifiedProperties()) return correctedLocation;
+        if (furnitureProperties.isNoneTransform() && !isWall && !isRoof) return correctedLocation;
+        float scale = furnitureProperties.hasScale() ? furnitureProperties.scale().y() : 1;
         // Since roof-furniture need to be more or less flipped, we have to add 0.5 (0.49 or it is "inside" the block above) to the Y coordinate
         if (isFixed && isWall && facing.getModY() == 0) correctedLocation.add(-facing.getModX() * (0.49 * scale), 0, -facing.getModZ() * (0.49 * scale));
 
@@ -262,7 +262,7 @@ public class FurnitureMechanic extends Mechanic {
         EntityUtils.customName(baseEntity, customName);
 
         float pitch;
-        if (hasLimitedPlacing() && displayEntityProperties.isFixedTransform()) {
+        if (hasLimitedPlacing() && furnitureProperties.isFixedTransform()) {
             if (limitedPlacing.isFloor() && blockFace == BlockFace.UP) pitch = -90;
             else if (limitedPlacing.isRoof() && blockFace == BlockFace.DOWN) pitch = 90;
             else pitch = 0;
@@ -348,12 +348,12 @@ public class FurnitureMechanic extends Mechanic {
         return FurnitureFactory.instance.packetManager().baseEntityFromHitbox(interactionId);
     }
 
-    public boolean hasDisplayEntityProperties() {
-        return displayEntityProperties != null;
+    public boolean hasSpecifiedProperties() {
+        return furnitureProperties != null;
     }
 
-    public DisplayEntityProperties displayEntityProperties() {
-        return displayEntityProperties;
+    public FurnitureProperties properties() {
+        return furnitureProperties;
     }
 
     public RestrictedRotation restrictedRotation() {
