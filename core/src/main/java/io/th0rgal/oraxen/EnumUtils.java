@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen;
 
-import java.util.function.Supplier;
+import java.util.function.Function;
 
 public class EnumUtils {
 
@@ -13,12 +13,12 @@ public class EnumUtils {
         }
     }
 
-    public static <E extends Enum<E>> E getEnumOrElse(final Class<E> enumClass, final String enumName, Supplier<? extends E> supplier) {
-        if (enumName == null) return supplier.get();
+    public static <E extends Enum<E>> E getEnumOrElse(final Class<E> enumClass, final String enumName, Function<String, ? extends E> supplier) {
+        if (enumName == null) return supplier.apply(null);
         try {
             return Enum.valueOf(enumClass, enumName);
         } catch (final IllegalArgumentException ex) {
-            return supplier.get();
+            return supplier.apply(enumName);
         }
     }
 }

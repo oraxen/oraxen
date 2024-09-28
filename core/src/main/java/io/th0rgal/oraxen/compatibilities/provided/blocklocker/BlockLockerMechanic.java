@@ -11,8 +11,8 @@ public class BlockLockerMechanic {
 
     public BlockLockerMechanic(ConfigurationSection section) {
         this.canProtect = section.getBoolean("can_protect", true);
-        this.protectionType = EnumUtils.getEnumOrElse(ProtectionType.class, section.getString("protection_type"), () -> {
-            Logs.logError("Invalid protection type for BlockLocker mechanic in item " + section.getParent().getParent().toString() + ", defaulting to CONTAINER");
+        this.protectionType = EnumUtils.getEnumOrElse(ProtectionType.class, section.getString("protection_type"), (protType) -> {
+            Logs.logError("Invalid protection type " + protType + " for BlockLocker mechanic in item " + section.getParent().getParent().toString() + ", defaulting to CONTAINER");
             return ProtectionType.CONTAINER;
         });
     }

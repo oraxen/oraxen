@@ -40,8 +40,8 @@ public class PackObfuscator {
     private final boolean cache = Settings.PACK_CACHE_OBFUSCATION.toBool();
 
     public PackObfuscator(ResourcePack resourcePack) {
-        this.obfuscationType = Settings.PACK_OBFUSCATION_TYPE.toEnumOrGet(PackObfuscationType.class, () -> {
-            Logs.logError("Invalid PackObfuscation type: " + Settings.PACK_OBFUSCATION_TYPE + ", defaulting to " + PackObfuscationType.FULL, true);
+        this.obfuscationType = Settings.PACK_OBFUSCATION_TYPE.toEnumOrGet(PackObfuscationType.class, (obfType) -> {
+            Logs.logError("Invalid PackObfuscation type: " + obfType + ", defaulting to " + PackObfuscationType.FULL, true);
             Logs.logError("Valid options are: " + StringUtils.join(Arrays.stream(PackObfuscationType.values()).map(Enum::name).toList(), ", "), true);
             return PackObfuscationType.FULL;
         });

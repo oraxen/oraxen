@@ -45,10 +45,12 @@ public class FurnitureProperties {
         if (shadowStrength == 0f) shadowStrength = null;
         if (shadowRadius == 0f) shadowRadius = null;
 
-        displayTransform = EnumUtils.getEnumOrElse(ItemDisplay.ItemDisplayTransform.class, configSection.getString("display_transform"), () -> {
-            Logs.logError("Use of illegal ItemDisplayTransform in furniture: <gold>" + itemID);
-            Logs.logWarning("Allowed ones are: <gold>" + Arrays.stream(ItemDisplay.ItemDisplayTransform.values()).map(Enum::name).toList());
-            Logs.logWarning("Setting transform to NONE for furniture: <gold>" + itemID);
+        displayTransform = EnumUtils.getEnumOrElse(ItemDisplay.ItemDisplayTransform.class, configSection.getString("display_transform"), (transform) -> {
+            if (transform != null) {
+                Logs.logError("Use of illegal ItemDisplayTransform " + transform + " in furniture: <gold>" + itemID);
+                Logs.logWarning("Allowed ones are: <gold>" + Arrays.stream(ItemDisplay.ItemDisplayTransform.values()).map(Enum::name).toList());
+                Logs.logWarning("Setting transform to NONE for furniture: <gold>" + itemID);
+            }
             return ItemDisplay.ItemDisplayTransform.NONE;
         });
 
@@ -58,10 +60,12 @@ public class FurnitureProperties {
                 () -> scale = isFixed ? new Vector3f(0.5f, 0.5f, 0.5f) : null
         );
 
-        trackingRotation = EnumUtils.getEnumOrElse(Display.Billboard.class, configSection.getString("tracking_rotation"), () -> {
-            Logs.logError("Use of illegal tracking-rotation in " + itemID + " furniture.");
-            Logs.logError("Allowed ones are: " + Arrays.stream(ItemDisplay.ItemDisplayTransform.values()).map(Enum::name).toList());
-            Logs.logWarning("Set tracking-rotation to FIXED for " + itemID);
+        trackingRotation = EnumUtils.getEnumOrElse(Display.Billboard.class, configSection.getString("tracking_rotation"), (billboard) -> {
+            if (configSection.getString("tracking_rotation") != null) {
+                Logs.logError("Use of illegal tracking-rotation " + billboard + " in " + itemID + " furniture.");
+                Logs.logError("Allowed ones are: " + Arrays.stream(ItemDisplay.ItemDisplayTransform.values()).map(Enum::name).toList());
+                Logs.logWarning("Set tracking-rotation to FIXED for " + itemID);
+            }
             return Display.Billboard.FIXED;
         });
 

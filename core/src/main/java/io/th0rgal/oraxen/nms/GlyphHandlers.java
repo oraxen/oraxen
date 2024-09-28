@@ -27,8 +27,8 @@ public class GlyphHandlers {
     }
 
     public static boolean isNms() {
-        return Settings.GLYPH_HANDLER.toEnumOrGet(GlyphHandler.class, () -> {
-            Logs.logError("Invalid glyph handler: " + Settings.GLYPH_HANDLER + ", defaulting to VANILLA", true);
+        return Settings.GLYPH_HANDLER.toEnumOrGet(GlyphHandler.class, (handler) -> {
+            Logs.logError("Invalid glyph handler: " + handler + ", defaulting to VANILLA", true);
             Logs.logError("Valid options are: NMS, VANILLA", true);
             return GlyphHandler.VANILLA;
         }) == GlyphHandler.NMS;

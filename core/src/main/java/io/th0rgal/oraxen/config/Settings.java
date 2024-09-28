@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
+import java.util.function.Function;
 
 public enum Settings {
     // Generic Plugin stuff
@@ -221,8 +221,8 @@ public enum Settings {
         return EnumUtils.getEnum(enumClass, toString(), defaultValue);
     }
 
-    public <E extends Enum<E>> E toEnumOrGet(Class<E> enumClass, Supplier<? extends E> supplier) {
-        return EnumUtils.getEnumOrElse(enumClass, toString(), supplier);
+    public <E extends Enum<E>> E toEnumOrGet(Class<E> enumClass, Function<String, ? extends E> function) {
+        return EnumUtils.getEnumOrElse(enumClass, toString(), function);
     }
 
     public Component toComponent() {
