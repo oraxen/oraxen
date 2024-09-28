@@ -19,9 +19,11 @@ public class FurnitureBaseEntity {
     private final UUID baseUuid;
     private final int baseId;
     private final FurnitureMechanic mechanic;
+    private final String furnitureId;
 
     public FurnitureBaseEntity(ItemDisplay baseEntity, FurnitureMechanic mechanic) {
         this.mechanic = mechanic;
+        this.furnitureId = mechanic.getItemID();
         ItemStack furnitureItem = OraxenItems.getOptionalItemById(mechanic.getItemID()).orElse(new ItemBuilder(Material.BARRIER)).build().clone();
         ItemUtils.dyeItem(furnitureItem, FurnitureHelpers.furnitureDye(baseEntity));
         ItemUtils.displayName(furnitureItem, null);
@@ -51,7 +53,7 @@ public class FurnitureBaseEntity {
     }
 
     public FurnitureMechanic mechanic() {
-        return Optional.ofNullable(mechanic).orElse(OraxenFurniture.getFurnitureMechanic(baseEntity()));
+        return Optional.ofNullable(OraxenFurniture.getFurnitureMechanic(furnitureId)).orElse(Optional.ofNullable(mechanic).orElse(OraxenFurniture.getFurnitureMechanic(baseEntity())));
     }
 
     public boolean equals(FurnitureBaseEntity baseEntity) {

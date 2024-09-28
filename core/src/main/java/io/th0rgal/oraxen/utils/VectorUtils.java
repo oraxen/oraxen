@@ -1,12 +1,19 @@
 package io.th0rgal.oraxen.utils;
 
 import org.bukkit.util.Vector;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.Arrays;
 import java.util.List;
 
 public class VectorUtils {
+
+    public static Quaternionf getQuaternionfFromString(String quaternion, float defaultValue) {
+        List<Float> floats = new java.util.ArrayList<>(Arrays.stream(quaternion.replace(" ", "").split(",")).map(s -> ParseUtils.parseFloat(s, defaultValue)).toList());
+        while (floats.size() < 4) floats.add(defaultValue);
+        return new Quaternionf(floats.get(0), floats.get(1), floats.get(2), floats.get(3));
+    }
 
     public static Vector3f getVector3fFromString(String vector, float defaultValue) {
         List<Float> floats = new java.util.ArrayList<>(Arrays.stream(vector.replace(" ", "").split(",")).map(s -> ParseUtils.parseFloat(s, defaultValue)).toList());

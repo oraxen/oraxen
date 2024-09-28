@@ -242,7 +242,7 @@ public class FurnitureMechanic extends Mechanic {
 
         if (!hasSpecifiedProperties()) return correctedLocation;
         if (furnitureProperties.isNoneTransform() && !isWall && !isRoof) return correctedLocation;
-        float scale = furnitureProperties.hasScale() ? furnitureProperties.scale().y() : 1;
+        float scale = furnitureProperties.scale().y();
         // Since roof-furniture need to be more or less flipped, we have to add 0.5 (0.49 or it is "inside" the block above) to the Y coordinate
         if (isFixed && isWall && facing.getModY() == 0) correctedLocation.add(-facing.getModX() * (0.49 * scale), 0, -facing.getModZ() * (0.49 * scale));
 

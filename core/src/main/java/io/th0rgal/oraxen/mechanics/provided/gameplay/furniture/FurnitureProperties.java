@@ -11,6 +11,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemDisplay;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.Arrays;
@@ -29,6 +30,8 @@ public class FurnitureProperties {
     private float displayHeight;
     private Vector3f scale;
     private Vector3f translation;
+    private Quaternionf leftRotation;
+    private Quaternionf rightRotation;
 
     public FurnitureProperties(@Nullable ConfigurationSection configSection) {
         this();
@@ -57,7 +60,22 @@ public class FurnitureProperties {
         boolean isFixed = displayTransform == ItemDisplay.ItemDisplayTransform.FIXED;
         Optional.ofNullable(configSection.getString("scale")).ifPresentOrElse(
                 (string) -> scale = VectorUtils.getVector3fFromString(string, isFixed ? 0.5f : 1),
-                () -> scale = isFixed ? new Vector3f(0.5f, 0.5f, 0.5f) : null
+                () -> scale = isFixed ? new Vector3f(0.5f, 0.5f, 0.5f) : new Vector3f()
+        );
+
+        Optional.ofNullable(configSection.getString("translation")).ifPresentOrElse(
+                (string) -> translation = VectorUtils.getVector3fFromString(string, 0),
+                () -> translation = new Vector3f()
+        );
+
+        Optional.ofNullable(configSection.getString("left_rotation")).ifPresentOrElse(
+                (string) -> leftRotation = VectorUtils.getQuaternionfFromString(string, 0),
+                () -> leftRotation = new Quaternionf()
+        );
+
+        Optional.ofNullable(configSection.getString("right_rotation")).ifPresentOrElse(
+                (string) -> rightRotation = VectorUtils.getQuaternionfFromString(string, 0),
+                () -> rightRotation = new Quaternionf()
         );
 
         trackingRotation = EnumUtils.getEnumOrElse(Display.Billboard.class, configSection.getString("tracking_rotation"), (billboard) -> {
@@ -81,6 +99,7 @@ public class FurnitureProperties {
         this.displayHeight = 0f;
         this.displayTransform = ItemDisplay.ItemDisplayTransform.NONE;
         this.scale = null;
+        this.translation = null;
         this.shadowRadius = null;
         this.shadowStrength = null;
         this.brightness = null;
@@ -89,22 +108,15 @@ public class FurnitureProperties {
         this.glowColor = null;
     }
 
-    public boolean hasGlowColor() { return glowColor != null; }
-    public Color glowColor() { return glowColor; }
-    public boolean hasSpecifiedViewRange() {
-        return viewRange != null;
+    public Optional<Color> glowColor() { return Optional.ofNullable(glowColor); }
+
+    public Optional<Integer> viewRange() {
+        return Optional.ofNullable(viewRange);
     }
 
-    public Integer viewRange() {
-        return viewRange;
-    }
 
-    public boolean hasBrightness() {
-        return brightness != null;
-    }
-
-    public Display.Brightness brightness() {
-        return brightness;
+    public Optional<Display.Brightness> brightness() {
+        return Optional.ofNullable(brightness);
     }
 
     public ItemDisplay.ItemDisplayTransform displayTransform() {
@@ -119,20 +131,17 @@ public class FurnitureProperties {
         return displayTransform == ItemDisplay.ItemDisplayTransform.NONE;
     }
 
-    public boolean hasTrackingRotation() {
-        return trackingRotation != null;
+
+    public Optional<Display.Billboard> trackingRotation() {
+        return Optional.ofNullable(trackingRotation);
     }
 
-    public Display.Billboard trackingRotation() {
-        return trackingRotation;
+    public Optional<Float> shadowStrength() {
+        return Optional.ofNullable(shadowStrength);
     }
 
-    public Float shadowStrength() {
-        return shadowStrength;
-    }
-
-    public Float shadowRadius() {
-        return shadowRadius;
+    public Optional<Float> shadowRadius() {
+        return Optional.ofNullable(shadowRadius);
     }
 
     public Float displayWidth() {
@@ -143,13 +152,22 @@ public class FurnitureProperties {
         return displayHeight;
     }
 
-    public boolean hasScale() {
-        return scale != null;
-    }
-
     public Vector3f scale() {
         return scale;
     }
+
+    public Vector3f translation() {
+        return translation;
+    }
+
+    public Quaternionf leftRotation() {
+        return leftRotation;
+    }
+
+    public Quaternionf rightRotation() {
+        return rightRotation;
+    }
+
 
     public boolean ensureSameDisplayProperties(@NotNull Entity entity) {
         if (!(entity instanceof ItemDisplay itemDisplay)) return false;
@@ -160,6 +178,7 @@ public class FurnitureProperties {
         itemDisplay.setShadowStrength(Objects.requireNonNullElse(shadowStrength, 0f));
         itemDisplay.setViewRange(Objects.requireNonNullElse(viewRange, 0));
         itemDisplay.getTransformation().getScale().set(Objects.requireNonNullElse(scale, new Vector3f(1,1,1)));
+        itemDisplay.getTransformation().getTranslation().set(Objects.requireNonNullElse(translation, new Vector3f()));
 
         return true;
     }
