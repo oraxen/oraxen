@@ -98,8 +98,10 @@ public class FurnitureProperties {
         this.displayWidth = 0f;
         this.displayHeight = 0f;
         this.displayTransform = ItemDisplay.ItemDisplayTransform.NONE;
-        this.scale = null;
-        this.translation = null;
+        this.scale = new Vector3f();
+        this.translation = new Vector3f();
+        this.leftRotation = new Quaternionf();
+        this.rightRotation = new Quaternionf();
         this.shadowRadius = null;
         this.shadowStrength = null;
         this.brightness = null;
