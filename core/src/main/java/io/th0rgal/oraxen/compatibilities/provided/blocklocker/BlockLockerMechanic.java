@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.compatibilities.provided.blocklocker;
 
-import io.th0rgal.oraxen.EnumUtils;
+import io.th0rgal.oraxen.utils.EnumUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import nl.rutgerkok.blocklocker.ProtectionType;
 import org.bukkit.configuration.ConfigurationSection;

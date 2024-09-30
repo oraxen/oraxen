@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
-import io.th0rgal.oraxen.EnumUtils;
+import io.th0rgal.oraxen.utils.EnumUtils;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VectorUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -98,7 +98,7 @@ public class FurnitureProperties {
         this.displayWidth = 0f;
         this.displayHeight = 0f;
         this.displayTransform = ItemDisplay.ItemDisplayTransform.NONE;
-        this.scale = new Vector3f();
+        this.scale = new Vector3f(1,1,1);
         this.translation = new Vector3f();
         this.leftRotation = new Quaternionf();
         this.rightRotation = new Quaternionf();

@@ -58,7 +58,7 @@ public class DefaultResourcePackExtractor {
                 e.printStackTrace();
             }
 
-            if (assetPath.exists() && FileUtil.listFiles(assetPath).stream().anyMatch(File::isDirectory)) {
+            if (assetPath.exists() && FileUtil.fileStream(assetPath).anyMatch(File::isDirectory)) {
                 readVanillaRP(reader);
                 return;
             }

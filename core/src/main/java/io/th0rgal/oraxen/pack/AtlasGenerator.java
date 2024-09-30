@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.pack;
 
-import io.th0rgal.oraxen.OraxenPlugin;
+import team.unnamed.creative.ResourcePack;
 import team.unnamed.creative.atlas.Atlas;
 import team.unnamed.creative.atlas.AtlasSource;
 import team.unnamed.creative.atlas.SingleAtlasSource;
@@ -15,9 +15,9 @@ import java.util.stream.Collectors;
 
 public class AtlasGenerator {
 
-    public static void generateAtlasFile() {
+    public static void generateAtlasFile(ResourcePack resourcePack) {
         List<AtlasSource> sources = new ArrayList<>();
-        for (Model model : OraxenPlugin.get().packGenerator().resourcePack().models()) {
+        for (Model model : resourcePack.models()) {
             sources.addAll(model.textures().layers().stream().filter(t -> t.key() != null).map(t -> AtlasSource.single(t.key())).collect(Collectors.toCollection(LinkedHashSet::new)));
             sources.addAll(model.textures().variables().values().stream().filter(t -> t.key() != null).map(t -> AtlasSource.single(t.key())).collect(Collectors.toCollection(LinkedHashSet::new)));
 
@@ -26,11 +26,14 @@ public class AtlasGenerator {
         }
 
         // Remove everything in the item and block folders, as vanilla already has them
-        sources.stream().map(SingleAtlasSource.class::cast).filter(r -> {
-            String resource = r.resource().asMinimalString();
-            return resource.startsWith("item/") || resource.startsWith("block/");
-        }).toList().forEach(sources::remove);
+        for (AtlasSource source : new ArrayList<>(sources)) {
+            SingleAtlasSource singleAtlasSource = (SingleAtlasSource) source;
+            String resource = singleAtlasSource.resource().asMinimalString();
+            if (resource.startsWith("item/") || resource.startsWith("block/")) {
+                sources.remove(singleAtlasSource);
+            }
+        }
 
-        OraxenPlugin.get().packGenerator().resourcePack().atlas(Atlas.atlas(Atlas.BLOCKS, sources));
+        Atlas.atlas(Atlas.BLOCKS, sources).addTo(resourcePack);
     }
 }

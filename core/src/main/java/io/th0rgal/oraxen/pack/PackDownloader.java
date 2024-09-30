@@ -101,8 +101,7 @@ public class PackDownloader {
     }
 
     private static void removeOldHashPack(String filePrefix, String newHash) {
-        FileUtil.listFiles(PackGenerator.externalPacks.toFile()).stream()
-                .filter(f -> f.getName().startsWith(filePrefix) && !f.getName().endsWith(newHash + ".zip"))
+        FileUtil.listFiles(PackGenerator.externalPacks.toFile(), f -> f.getName().startsWith(filePrefix) && !f.getName().endsWith(newHash + ".zip"))
                 .forEach(File::delete);
     }
 

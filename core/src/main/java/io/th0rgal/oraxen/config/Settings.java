@@ -1,12 +1,12 @@
 package io.th0rgal.oraxen.config;
 
-import io.th0rgal.oraxen.EnumUtils;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.font.FontEvents;
 import io.th0rgal.oraxen.nms.GlyphHandlers;
 import io.th0rgal.oraxen.pack.PackObfuscator;
 import io.th0rgal.oraxen.pack.server.PackServerType;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.EnumUtils;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;

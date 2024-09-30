@@ -55,8 +55,8 @@ public class ItemBuilder {
     private int amount;
     private Color color; // LeatherArmorMeta, PotionMeta, MapMeta & FireWorkEffectMeta
     private Key trimPattern; // TrimPattern
-    private PotionType potionType;
-    private List<PotionEffect> potionEffects;
+    private PotionType basePotionType;
+    private List<PotionEffect> customPotionEffects;
     private OfflinePlayer owningPlayer; // SkullMeta
     private DyeColor bodyColor; // TropicalFishBucketMeta
     private TropicalFish.Pattern pattern;
@@ -131,8 +131,8 @@ public class ItemBuilder {
 
         if (itemMeta instanceof PotionMeta potionMeta) {
             color = potionMeta.getColor();
-            potionType = PotionUtils.getPotionType(potionMeta);
-            potionEffects = new ArrayList<>(potionMeta.getCustomEffects());
+            basePotionType = potionMeta.getBasePotionType();
+            customPotionEffects = new ArrayList<>(potionMeta.getCustomEffects());
         }
 
         if (itemMeta instanceof MapMeta mapMeta)
@@ -470,14 +470,14 @@ public class ItemBuilder {
     }
 
     public ItemBuilder setBasePotionType(final PotionType potionType) {
-        this.potionType = potionType;
+        this.basePotionType = potionType;
         return this;
     }
 
     public ItemBuilder addPotionEffect(final PotionEffect potionEffect) {
-        if (potionEffects == null)
-            potionEffects = new ArrayList<>();
-        potionEffects.add(potionEffect);
+        if (customPotionEffects == null)
+            customPotionEffects = new ArrayList<>();
+        customPotionEffects.add(potionEffect);
         return this;
     }
 
@@ -730,11 +730,11 @@ public class ItemBuilder {
         if (color != null && !color.equals(potionMeta.getColor()))
             potionMeta.setColor(color);
 
-        if (potionType != null && !potionType.equals(PotionUtils.getPotionType(potionMeta)))
-            PotionUtils.setPotionType(potionMeta, potionType);
+        if (basePotionType != null && !basePotionType.equals(potionMeta.getBasePotionType()))
+            potionMeta.setBasePotionType(basePotionType);
 
-        if (!potionEffects.equals(potionMeta.getCustomEffects()))
-            for (final PotionEffect potionEffect : potionEffects)
+        if (!customPotionEffects.equals(potionMeta.getCustomEffects()))
+            for (final PotionEffect potionEffect : customPotionEffects)
                 potionMeta.addCustomEffect(potionEffect, true);
 
         return potionMeta;
