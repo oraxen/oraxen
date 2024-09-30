@@ -218,11 +218,11 @@ public class PackGenerator {
     }
 
     private void hideScoreboardBackground() {
-        resourcePack.unknownFile("assets/minecraft/shaders/core/" + "rendertype_gui.vsh", ShaderUtils.ScoreboardBackground.modernFile());
+        resourcePack.unknownFile("assets/minecraft/shaders/core/rendertype_gui.vsh", ShaderUtils.ScoreboardBackground.modernFile());
     }
 
     private void importRequiredPack() {
-        Optional<File> requiredPack = FileUtil.listFiles(externalPacks.toFile()).stream().filter(f -> f.getName().startsWith("RequiredPack_")).findFirst();
+        Optional<File> requiredPack = FileUtil.fileStream(externalPacks.toFile(), f -> f.getName().startsWith("RequiredPack_")).findFirst();
         if (requiredPack.isEmpty()) return;
 
         try {
@@ -238,8 +238,7 @@ public class PackGenerator {
     }
 
     private void importDefaultPack() {
-        Optional<File> requiredPack = Arrays.stream(Objects.requireNonNullElse(externalPacks.toFile().listFiles(), new File[]{}))
-                .filter(f -> f.getName().startsWith("DefaultPack_")).findFirst();
+        Optional<File> requiredPack = FileUtil.fileStream(externalPacks.toFile(), f -> f.getName().startsWith("DefaultPack_")).findFirst();
         if (requiredPack.isEmpty()) return;
         Logs.logInfo("Importing DefaultPack...");
 
@@ -305,7 +304,7 @@ public class PackGenerator {
     private void addItemPackFiles() {
         modelGenerator.generateBaseItemModels();
         modelGenerator.generateItemModels();
-        AtlasGenerator.generateAtlasFile();
+        AtlasGenerator.generateAtlasFile(resourcePack);
     }
 
     private void parseLanguageFiles() {

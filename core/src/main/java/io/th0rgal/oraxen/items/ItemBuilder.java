@@ -730,8 +730,8 @@ public class ItemBuilder {
         if (color != null && !color.equals(potionMeta.getColor()))
             potionMeta.setColor(color);
 
-        if (potionType != null && !potionType.equals(PotionUtils.getPotionType(potionMeta)))
-            PotionUtils.setPotionType(potionMeta, potionType);
+        if (potionType != null && !potionType.equals(potionMeta.getBasePotionType()))
+            potionMeta.setBasePotionType(potionType);
 
         if (!potionEffects.equals(potionMeta.getCustomEffects()))
             for (final PotionEffect potionEffect : potionEffects)
