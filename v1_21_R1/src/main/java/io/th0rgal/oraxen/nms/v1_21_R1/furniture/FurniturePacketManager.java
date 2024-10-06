@@ -243,7 +243,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
             Set<LightBlock> newPositions = new HashSet<>();
             for (LightBlock lightBlock : mechanic.light().lightBlocks()) {
                 Location newLoc = lightBlock.groundRotate(baseEntity.getYaw()).add(baseEntity.getLocation());
-                lightPositions.put(Position.block(lightBlock.getX(), lightBlock.getY(), lightBlock.getZ()), lightBlock.lightData());
+                lightPositions.put(Position.block(newLoc), lightBlock.lightData());
                 newPositions.add(new LightBlock(newLoc, lightBlock.lightData()));
             }
 
