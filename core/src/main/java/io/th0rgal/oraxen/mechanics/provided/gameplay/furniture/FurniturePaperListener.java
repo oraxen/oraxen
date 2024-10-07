@@ -29,12 +29,10 @@ public class FurniturePaperListener implements Listener {
             if (baseEntity == null) {
                 if (!entity.isDead()) entity.remove();
                 barriers.forEach(b -> {
-                    OraxenPlugin.get().getScheduler().runRegionTaskNow(b.getLocation(), () -> {
-                        if (b.getType() == Material.BARRIER) {
-                            b.setType(Material.AIR);
-                            new CustomBlockData(b, OraxenPlugin.get()).clear();
-                        }
-                    });
+                    if (b.getType() == Material.BARRIER) {
+                        b.setType(Material.AIR);
+                        new CustomBlockData(b, OraxenPlugin.get()).clear();
+                    }
                 });
             }
         }, null, 1L);
