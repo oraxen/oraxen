@@ -5,6 +5,7 @@ import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.CommandAPIBukkitConfig;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.api.events.OraxenItemsLoadedEvent;
+import io.th0rgal.oraxen.api.scheduler.SchedulerAdapter;
 import io.th0rgal.oraxen.commands.CommandsManager;
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.config.*;
@@ -28,9 +29,10 @@ import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmorListener;
 import io.th0rgal.oraxen.utils.inventories.InvManager;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import io.th0rgal.oraxen.utils.schedulers.FoliaSchedulerAdapter;
+import io.th0rgal.oraxen.utils.schedulers.SpigotSchedulerAdapter;
 import io.th0rgal.protectionlib.ProtectionLib;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
-import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
@@ -43,6 +45,7 @@ import java.util.jar.JarFile;
 public class OraxenPlugin extends JavaPlugin {
 
     private static OraxenPlugin oraxen;
+    private SchedulerAdapter scheduler;
     private ConfigsManager configsManager;
     private ResourcesManager resourceManager;
     private BukkitAudiences audience;
@@ -79,6 +82,7 @@ public class OraxenPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        scheduler = VersionUtil.isFoliaServer() ? new FoliaSchedulerAdapter() : new SpigotSchedulerAdapter();
         CommandAPI.onEnable();
         ProtectionLib.init(this);
         audience = BukkitAudiences.create(this);
@@ -130,7 +134,7 @@ public class OraxenPlugin extends JavaPlugin {
     private void postLoading() {
         new Metrics(this, 5371);
         new LU().l();
-        Bukkit.getScheduler().runTask(this, () ->
+        getScheduler().runTask(() ->
                 Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent()));
     }
 
@@ -210,5 +214,9 @@ public class OraxenPlugin extends JavaPlugin {
 
     public ClickActionManager getClickActionManager() {
         return clickActionManager;
+    }
+
+    public SchedulerAdapter getScheduler() {
+        return scheduler;
     }
 }

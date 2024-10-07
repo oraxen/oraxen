@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.misc.armor_effects;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.scheduler.AdaptedTask;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
@@ -28,9 +29,9 @@ public class ArmorEffectsFactory extends MechanicFactory {
     public Mechanic parse(ConfigurationSection configurationSection) {
         Mechanic mechanic = new ArmorEffectsMechanic(this, configurationSection);
         addToImplemented(mechanic);
-        if (armorEffectTask != null) armorEffectTask.cancel();
+        if (armorEffectTask != null) armorEffectTask.getAdaptedTask().cancel();
         armorEffectTask = new ArmorEffectsTask();
-        BukkitTask task = armorEffectTask.runTaskTimer(OraxenPlugin.get(), 0, delay);
+        AdaptedTask task = armorEffectTask.runTaskTimer(0, delay);
         MechanicsManager.registerTask(instance.getMechanicID(), task);
         return mechanic;
     }

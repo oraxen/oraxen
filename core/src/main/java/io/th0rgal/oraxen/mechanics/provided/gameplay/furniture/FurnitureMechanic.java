@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
-import com.jeff_media.customblockdata.CustomBlockData;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import com.ticxo.modelengine.api.ModelEngineAPI;
 import com.ticxo.modelengine.api.model.ActiveModel;
@@ -9,6 +8,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.provided.blocklocker.BlockLockerMechanic;
+import io.th0rgal.oraxen.libs.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolvingFurniture;
@@ -95,10 +95,11 @@ public class FurnitureMechanic extends Mechanic {
     public enum FurnitureType {
         ITEM_FRAME, GLOW_ITEM_FRAME, DISPLAY_ENTITY;//, ARMOR_STAND;
 
-        public static List<Class<? extends Entity>> furnitureEntityClasses() {
-            List<Class<? extends Entity>> list = new ArrayList<>(List.of(ItemFrame.class, GlowItemFrame.class, ArmorStand.class));
-            if (OraxenPlugin.supportsDisplayEntities) list.add(ItemDisplay.class);
-            return list;
+        private static final List<EntityType> furnitureEntityWithoutDisplay = List.of(EntityType.ITEM_FRAME, EntityType.GLOW_ITEM_FRAME, EntityType.ARMOR_STAND);
+        private static final List<EntityType> furnitureEntityWithDisplay = List.of(EntityType.ITEM_FRAME, EntityType.GLOW_ITEM_FRAME, EntityType.ARMOR_STAND, EntityType.ITEM_DISPLAY);
+
+        public static List<EntityType> furnitureEntity() {
+            return OraxenPlugin.supportsDisplayEntities ? furnitureEntityWithDisplay : furnitureEntityWithoutDisplay;
         }
 
         public static FurnitureType getType(String type) {

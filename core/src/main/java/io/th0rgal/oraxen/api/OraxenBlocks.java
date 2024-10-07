@@ -314,7 +314,7 @@ public class OraxenBlocks {
         if (mechanic.hasLight()) mechanic.getLight().removeBlockLight(block);
         if (mechanic.isTall()) blockAbove.setType(Material.AIR);
         block.setType(Material.AIR);
-        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
+        OraxenPlugin.get().getScheduler().runRegionTaskLater(block.getLocation(), () -> {
             StringBlockMechanicListener.fixClientsideUpdate(block.getLocation());
             if (blockAbove.getType() == Material.TRIPWIRE)
                 removeStringBlock(blockAbove, player, overrideDrop);

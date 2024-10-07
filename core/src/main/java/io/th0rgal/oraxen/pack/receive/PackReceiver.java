@@ -35,7 +35,7 @@ public class PackReceiver implements Listener {
             case FAILED_RELOAD -> new PackAction(Settings.RECEIVE_FAILED_RELOAD_ACTIONS.toConfigSection(), playerResolver);
             case DISCARDED -> new PackAction(Settings.RECEIVE_DISCARDED_ACTIONS.toConfigSection(), playerResolver);
         };
-        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
+        OraxenPlugin.get().getScheduler().runTaskLater(() -> {
             if (packAction.hasMessage())
                 sendMessage(event.getPlayer(), packAction.getMessageType(), packAction.getMessageContent());
             if (packAction.hasSound())

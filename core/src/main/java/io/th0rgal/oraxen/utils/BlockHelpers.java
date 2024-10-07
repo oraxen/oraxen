@@ -1,11 +1,11 @@
 package io.th0rgal.oraxen.utils;
 
 import com.google.common.collect.Sets;
-import com.jeff_media.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.libs.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.nms.NMSHandlers;

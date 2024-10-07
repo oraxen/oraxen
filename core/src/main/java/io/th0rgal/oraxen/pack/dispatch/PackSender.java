@@ -30,7 +30,7 @@ public abstract class PackSender {
                     AdventureUtils.tagResolver("pack_url", hostingProvider.getPackURL()),
                     AdventureUtils.tagResolver("player", player.getName()));
         else
-            Bukkit.getScheduler().runTaskLaterAsynchronously(OraxenPlugin.get(),
+            OraxenPlugin.get().getScheduler().runTaskLaterAsynchronously(
                     () -> Message.COMMAND_JOIN_MESSAGE.send(player,
                             AdventureUtils.tagResolver("pack_url", hostingProvider.getPackURL()),
                             AdventureUtils.tagResolver("player", player.getName()))
