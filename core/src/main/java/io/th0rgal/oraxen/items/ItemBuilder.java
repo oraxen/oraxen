@@ -447,8 +447,7 @@ public class ItemBuilder {
     }
 
     public ItemBuilder addPotionEffect(final PotionEffect potionEffect) {
-        if (potionEffects == null)
-            potionEffects = new ArrayList<>();
+        if (potionEffects == null) potionEffects = new ArrayList<>();
         potionEffects.add(potionEffect);
         return this;
     }
@@ -478,7 +477,7 @@ public class ItemBuilder {
 
 
     public <T, Z> void addCustomTag(NamespacedKey key, PersistentDataType<T, Z> type, Z value) {
-        persistentDataContainer.set(key, type, value);
+        persistentDataMap.put(new PersistentDataSpace(key, type), value);
     }
 
     public ItemBuilder removeCustomTag(NamespacedKey key) {
