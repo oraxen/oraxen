@@ -24,7 +24,7 @@ general:
   not_enough_exp: "<prefix><#fa4943>Vous avez besoin de plus d'expérience pour faire ceci"
   not_enough_space: "<prefix><#fa4943>Vous avez besoin de plus de place pour placer cet équipement"
   exit_menu: "<gradient:#FA7CBB:#F14658>Quitter"
-  no_emojis: "<prefix><#fa4943>Aucun émojis trouvés"
+  no_emojis: "<prefix><#fa4943>Aucun émoji trouvé"
 
 logs:
   loaded: "<prefix><#55ffa4>Chargé avec succès sur <os>"
