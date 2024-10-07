@@ -10,7 +10,6 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.hitbox.BarrierHit
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.hitbox.InteractionHitbox;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.light.LightBlock;
 import io.th0rgal.oraxen.utils.BlockHelpers;
-import io.th0rgal.oraxen.utils.PluginUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
@@ -39,10 +38,6 @@ public class FurniturePacketManager implements IFurniturePacketManager {
     public FurniturePacketManager() {
         if (VersionUtil.isPaperServer()) {
             MechanicsManager.registerListeners(OraxenPlugin.get(), "furniture", new FurniturePacketListener());
-
-            if (PluginUtils.isEnabled("AxiomPaper"))
-                MechanicsManager.registerListeners(OraxenPlugin.get(), "furniture", new AxiomCompatibility());
-
         } else {
             Logs.logWarning("Seems that your server is a Spigot-server");
             Logs.logWarning("FurnitureHitboxes will not work due to it relying on Paper-only events");

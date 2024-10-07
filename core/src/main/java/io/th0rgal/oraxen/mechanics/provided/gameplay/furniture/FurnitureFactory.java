@@ -12,6 +12,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.listeners.Furnitu
 import io.th0rgal.oraxen.nms.EmptyFurniturePacketManager;
 import io.th0rgal.oraxen.nms.NMSHandler;
 import io.th0rgal.oraxen.nms.NMSHandlers;
+import io.th0rgal.oraxen.utils.PluginUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
@@ -40,6 +41,9 @@ public class FurnitureFactory extends MechanicFactory {
                 new JukeboxListener()
         );
         evolvingFurnitures = false;
+
+        if (PluginUtils.isEnabled("AxiomPaper"))
+            MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new AxiomCompatibility());
 
         MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new FurnitureSoundListener());
     }
