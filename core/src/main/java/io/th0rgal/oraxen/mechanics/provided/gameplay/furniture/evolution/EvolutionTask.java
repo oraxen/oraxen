@@ -31,7 +31,7 @@ public class EvolutionTask extends AdaptedTaskRunnable {
     public void run() {
         for (World world : Bukkit.getWorlds())
             for (Chunk chunk : world.getLoadedChunks()) {
-                OraxenPlugin.get().getScheduler().runRegionTask(chunk, () -> {
+                OraxenPlugin.get().getScheduler().runRegionTaskNow(chunk, () -> {
                     for (Entity entity : chunk.getEntities()) {
                         if (!FurnitureMechanic.FurnitureType.furnitureEntity().contains(entity.getType())) continue;
                         Location entityLoc = entity.getLocation();
