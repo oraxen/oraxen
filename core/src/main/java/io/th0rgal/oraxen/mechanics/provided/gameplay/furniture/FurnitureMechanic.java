@@ -267,8 +267,7 @@ public class FurnitureMechanic extends Mechanic {
             else if (limitedPlacing.isRoof() && blockFace == BlockFace.DOWN) pitch = 90;
             else pitch = 0;
 
-            if (limitedPlacing.isFloor() && blockFace == BlockFace.UP) yaw -= 180;
-            else if (limitedPlacing.isWall() && blockFace.getModY() == 0) yaw = 90f * blockFace.ordinal() - 180;
+            if (limitedPlacing.isWall() && blockFace.getModY() == 0) yaw = 90f * blockFace.ordinal() - 180;
         } else pitch = 0;
 
         baseEntity.setRotation(yaw, pitch);

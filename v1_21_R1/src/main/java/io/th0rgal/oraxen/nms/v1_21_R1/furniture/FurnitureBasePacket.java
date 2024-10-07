@@ -14,7 +14,6 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.util.Transformation;
 import org.joml.Quaternionf;
@@ -26,9 +25,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class FurnitureBasePacket {
-
-    private final int ITEM_FRAME_ITEM_ID = 8;
-    private final int ITEM_FRAME_ROTATION_ID = 9;
 
     private final int DISPLAY_TRANSLATION = 11;
     private final int DISPLAY_SCALE_ID = 12;
@@ -52,7 +48,7 @@ public class FurnitureBasePacket {
     private final ClientboundSetEntityDataPacket metadataPacket;
     private final ClientboundBundlePacket bundlePacket;
 
-    public FurnitureBasePacket(FurnitureBaseEntity furnitureBase, Entity baseEntity) {
+    public FurnitureBasePacket(FurnitureBaseEntity furnitureBase, ItemDisplay baseEntity) {
         this.entityId = furnitureBase.baseId();
         this.uuid = furnitureBase.baseUUID();
         Location baseLoc = baseEntity.getLocation();
@@ -63,7 +59,7 @@ public class FurnitureBasePacket {
                 EntityType.ITEM_DISPLAY, 1, Vec3.ZERO, 0.0
         );
 
-        this.metadataPacket = new ClientboundSetEntityDataPacket(entityId, dataValues(furnitureBase, (ItemDisplay) baseEntity));
+        this.metadataPacket = new ClientboundSetEntityDataPacket(entityId, dataValues(furnitureBase, baseEntity));
         this.bundlePacket = new ClientboundBundlePacket(List.of(entityPacket, metadataPacket));
     }
 
@@ -89,7 +85,7 @@ public class FurnitureBasePacket {
 
     private List<SynchedEntityData.DataValue<?>> dataValues(FurnitureBaseEntity furnitureBase, ItemDisplay baseEntity) {
         List<SynchedEntityData.DataValue<?>> data = new ArrayList<>();
-        FurnitureProperties displayProp = furnitureBase.mechanic().properties();
+        FurnitureProperties properties = furnitureBase.mechanic().properties();
         Transformation transformation = baseEntity.getTransformation();
 
         data.add(dataValue(0, EntityDataSerializers.BYTE, (byte) 0x20));
@@ -97,23 +93,23 @@ public class FurnitureBasePacket {
         data.add(dataValue(3, EntityDataSerializers.BOOLEAN, false));
 
         data.add(dataValue(9, EntityDataSerializers.INT, 0));
-        data.add(dataValue(DISPLAY_WIDTH_ID, EntityDataSerializers.FLOAT, displayProp.displayWidth()));
-        data.add(dataValue(DISPLAY_HEIGHT_ID, EntityDataSerializers.FLOAT, displayProp.displayHeight()));
+        data.add(dataValue(DISPLAY_WIDTH_ID, EntityDataSerializers.FLOAT, properties.displayWidth()));
+        data.add(dataValue(DISPLAY_HEIGHT_ID, EntityDataSerializers.FLOAT, properties.displayHeight()));
 
-        displayProp.viewRange().ifPresent(viewRange -> data.add(dataValue(DISPLAY_VIEW_RANGE_ID, EntityDataSerializers.FLOAT, (float) viewRange)));
-        displayProp.shadowRadius().ifPresent(shadowRadius -> data.add(dataValue(DISPLAY_SHADOW_RADIUS_ID, EntityDataSerializers.FLOAT, shadowRadius)));
-        displayProp.shadowStrength().ifPresent(shadowStrength -> data.add(dataValue(DISPLAY_SHADOW_STRENGTH_ID, EntityDataSerializers.FLOAT, shadowStrength)));
-        displayProp.trackingRotation().ifPresent(tracking -> data.add(dataValue(DISPLAY_BILLBOARD_ID, EntityDataSerializers.BYTE, (byte) tracking.ordinal())));
-        displayProp.brightness().ifPresent(brightness -> data.add(dataValue(DISPLAY_BRIGHTNESS_ID, EntityDataSerializers.INT, (brightness.getBlockLight() << 4 | brightness.getSkyLight() << 20))));
-        displayProp.glowColor().ifPresent(glow -> data.add(dataValue(DISPLAY_GLOW_ID, EntityDataSerializers.INT, glow.asRGB())));
+        properties.viewRange().ifPresent(viewRange -> data.add(dataValue(DISPLAY_VIEW_RANGE_ID, EntityDataSerializers.FLOAT, (float) viewRange)));
+        properties.shadowRadius().ifPresent(shadowRadius -> data.add(dataValue(DISPLAY_SHADOW_RADIUS_ID, EntityDataSerializers.FLOAT, shadowRadius)));
+        properties.shadowStrength().ifPresent(shadowStrength -> data.add(dataValue(DISPLAY_SHADOW_STRENGTH_ID, EntityDataSerializers.FLOAT, shadowStrength)));
+        properties.trackingRotation().ifPresent(tracking -> data.add(dataValue(DISPLAY_BILLBOARD_ID, EntityDataSerializers.BYTE, (byte) tracking.ordinal())));
+        properties.brightness().ifPresent(brightness -> data.add(dataValue(DISPLAY_BRIGHTNESS_ID, EntityDataSerializers.INT, (brightness.getBlockLight() << 4 | brightness.getSkyLight() << 20))));
+        properties.glowColor().ifPresent(glow -> data.add(dataValue(DISPLAY_GLOW_ID, EntityDataSerializers.INT, glow.asRGB())));
 
-        data.add(dataValue(DISPLAY_TRANSLATION, EntityDataSerializers.VECTOR3, Optional.of(transformation.getTranslation()).filter(v -> !v.equals(new Vector3f())).orElse(displayProp.translation())));
-        data.add(dataValue(DISPLAY_SCALE_ID, EntityDataSerializers.VECTOR3, Optional.of(transformation.getScale()).filter(v -> !v.equals(new Vector3f(1,1,1))).orElse(displayProp.scale())));
-        data.add(dataValue(DISPLAY_QUATERNION_LEFT, EntityDataSerializers.QUATERNION, Optional.of(transformation.getLeftRotation()).filter(q -> !q.equals(new Quaternionf())).orElse(displayProp.leftRotation())));
-        data.add(dataValue(DISPLAY_QUATERNION_RIGHT, EntityDataSerializers.QUATERNION, Optional.of(transformation.getRightRotation()).filter(q -> !q.equals(new Quaternionf())).orElse(displayProp.rightRotation())));
+        data.add(dataValue(DISPLAY_TRANSLATION, EntityDataSerializers.VECTOR3, Optional.of(transformation.getTranslation()).filter(v -> !v.equals(new Vector3f())).orElse(properties.translation())));
+        data.add(dataValue(DISPLAY_SCALE_ID, EntityDataSerializers.VECTOR3, Optional.of(transformation.getScale()).filter(v -> !v.equals(new Vector3f(1,1,1))).orElse(properties.scale())));
+        data.add(dataValue(DISPLAY_QUATERNION_LEFT, EntityDataSerializers.QUATERNION, Optional.of(transformation.getLeftRotation()).filter(q -> !q.equals(new Quaternionf())).orElse(properties.leftRotation())));
+        data.add(dataValue(DISPLAY_QUATERNION_RIGHT, EntityDataSerializers.QUATERNION, Optional.of(transformation.getRightRotation()).filter(q -> !q.equals(new Quaternionf())).orElse(properties.rightRotation())));
 
         data.add(dataValue(ITEM_DISPLAY_ITEM_ID, EntityDataSerializers.ITEM_STACK, CraftItemStack.asNMSCopy(furnitureBase.itemStack())));
-        data.add(dataValue(ITEM_DISPLAY_TRANSFORM_ID, EntityDataSerializers.BYTE, (byte) displayProp.displayTransform().ordinal()));
+        data.add(dataValue(ITEM_DISPLAY_TRANSFORM_ID, EntityDataSerializers.BYTE, (byte) properties.displayTransform().ordinal()));
 
         return data;
     }
