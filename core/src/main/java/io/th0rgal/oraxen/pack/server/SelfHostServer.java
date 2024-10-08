@@ -2,8 +2,8 @@ package io.th0rgal.oraxen.pack.server;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
-import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.resource.ResourcePackInfo;
 import net.kyori.adventure.resource.ResourcePackRequest;
 import org.bukkit.entity.Player;
@@ -17,6 +17,8 @@ import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URL;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -58,12 +60,16 @@ public class SelfHostServer implements OraxenPackServer {
             byte[] hashArray = OraxenPackServer.hashArray(hash);
             String url = packUrl();
             UUID packUUID = UUID.nameUUIDFromBytes(hashArray);
+            OraxenPackServer.allPackUUIDs.add(packUUID);
+            Set<UUID> oldPackUUIDs = new HashSet<>(OraxenPackServer.allPackUUIDs);
+            oldPackUUIDs.remove(packUUID);
 
-            if (VersionUtil.isPaperServer()) {
-                ResourcePackRequest request = ResourcePackRequest.resourcePackRequest().required(mandatory).replace(true).prompt(prompt)
-                        .packs(ResourcePackInfo.resourcePackInfo(packUUID, URI.create(url), hash)).build();
-                player.sendResourcePacks(request);
-            } else player.setResourcePack(packUUID, url, hashArray, legacyPrompt, mandatory);
+            Audience audience = OraxenPlugin.get().audience().player(player);
+            ResourcePackRequest request = ResourcePackRequest.resourcePackRequest()
+                    .required(mandatory).replace(false).prompt(prompt)
+                    .packs(ResourcePackInfo.resourcePackInfo(packUUID, URI.create(url), hash)).build();
+            audience.removeResourcePacks(oldPackUUIDs);
+            audience.sendResourcePacks(request);
         });
     }
 

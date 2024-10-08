@@ -15,6 +15,7 @@ import team.unnamed.creative.BuiltResourcePack;
 
 import java.net.URI;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 
 public interface OraxenPackServer {
 
+    HashSet<UUID> allPackUUIDs = new HashSet<>();
     PackListener packListener = new PackListener();
     boolean mandatory = Settings.PACK_SEND_MANDATORY.toBool();
     Component prompt = AdventureUtils.MINI_MESSAGE.deserialize(Settings.PACK_SEND_PROMPT.toString());
