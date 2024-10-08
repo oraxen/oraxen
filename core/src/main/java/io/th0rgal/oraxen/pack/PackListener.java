@@ -10,7 +10,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerResourcePackStatusEvent;
 
 public class PackListener implements Listener {
 
@@ -25,10 +24,5 @@ public class PackListener implements Listener {
         if (delay <= 0) OraxenPlugin.get().packServer().sendPack(player);
         else Bukkit.getScheduler().runTaskLaterAsynchronously(OraxenPlugin.get(), () ->
                 OraxenPlugin.get().packServer().sendPack(player), delay * 20L);
-    }
-
-    @EventHandler
-    public void onPlayerStatus(PlayerResourcePackStatusEvent event) {
-
     }
 }

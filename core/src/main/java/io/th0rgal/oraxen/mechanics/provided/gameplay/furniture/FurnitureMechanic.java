@@ -272,10 +272,6 @@ public class FurnitureMechanic extends Mechanic {
 
         baseEntity.setRotation(yaw, pitch);
 
-        //Transformation transformation = baseEntity.getTransformation();
-        //boolean isFixed = baseEntity.getItemDisplayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
-        //transformation.getScale().set(isFixed ? new Vector3f(0.5f, 0.5f, 0.5f) : new Vector3f(1f, 1f, 1f));
-
         PersistentDataContainer pdc = baseEntity.getPersistentDataContainer();
         pdc.set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
         if (hasEvolution()) pdc.set(EVOLUTION_KEY, PersistentDataType.INTEGER, 0);

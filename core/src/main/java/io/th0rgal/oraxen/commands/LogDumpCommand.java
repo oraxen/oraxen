@@ -15,6 +15,7 @@ import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -63,7 +64,7 @@ public class LogDumpCommand {
         int postDataLength = postData.length;
 
         String requestURL = "https://hastebin.com/documents";
-        URL url = new URL(requestURL);
+        URL url = URI.create(requestURL).toURL();
         HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
         conn.setDoOutput(true);
         conn.setInstanceFollowRedirects(false);

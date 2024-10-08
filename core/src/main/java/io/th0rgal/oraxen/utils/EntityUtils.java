@@ -4,7 +4,7 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemDisplay;
 
-@SuppressWarnings({"unchecked", "unused", "deprecation"})
+@SuppressWarnings({"unused", "deprecation"})
 public class EntityUtils {
 
     public static boolean isUnderWater(Entity entity) {

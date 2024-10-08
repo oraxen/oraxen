@@ -5,13 +5,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Color;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.util.Vector;
-import org.joml.Vector3f;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Arrays;
+import java.nio.file.FileSystems;
 import java.util.List;
 import java.util.Map;
 
@@ -51,7 +49,7 @@ public class Utils {
      */
     public static String removeExtension(String s) {
 
-        String separator = System.getProperty("file.separator");
+        String separator = FileSystems.getDefault().getSeparator();
         String filename;
 
         // Remove the path upto the filename.
@@ -60,18 +58,13 @@ public class Utils {
         else filename = s.substring(lastSeparatorIndex + 1);
 
         // Remove the extension.
-        int extensionIndex = filename.lastIndexOf(".");
-        if (extensionIndex == -1)
-            return filename;
-
-        return filename.substring(0, extensionIndex);
+        return removeExtensionOnly(filename);
     }
 
     public static String removeExtensionOnly(String s) {
         // Remove the extension.
         int extensionIndex = s.lastIndexOf(".");
-        if (extensionIndex == -1)
-            return s;
+        if (extensionIndex == -1) return s;
 
         return s.substring(0, extensionIndex);
     }

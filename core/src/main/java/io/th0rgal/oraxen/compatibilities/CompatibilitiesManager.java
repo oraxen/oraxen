@@ -55,18 +55,16 @@ public class CompatibilitiesManager {
         return false;
     }
 
-    public static boolean disableCompatibility(final String pluginName) {
+    public static void disableCompatibility(final String pluginName) {
         try {
             if (!ACTIVE_COMPATIBILITY_PROVIDERS.containsKey(pluginName))
-                return false;
+                return;
             if (ACTIVE_COMPATIBILITY_PROVIDERS.get(pluginName).isEnabled())
                 ACTIVE_COMPATIBILITY_PROVIDERS.get(pluginName).disable();
             ACTIVE_COMPATIBILITY_PROVIDERS.remove(pluginName);
             Message.PLUGIN_UNHOOKS.log(AdventureUtils.tagResolver("plugin", pluginName));
-            return true;
         } catch (final Exception e) {
             Logs.logWarning(e.getMessage());
-            return false;
         }
     }
 

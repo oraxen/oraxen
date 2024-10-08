@@ -52,7 +52,6 @@ public class OraxenPackReader implements MinecraftResourcePackReader {
     }
 
     @Override
-    @SuppressWarnings("PatternValidation")
     public @NotNull ResourcePack read(final @NotNull FileTreeReader reader) {
         ResourcePack resourcePack = ResourcePack.resourcePack();
 

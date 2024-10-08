@@ -199,7 +199,7 @@ public class CustomBlockListener implements Listener {
             }
 
             ItemStack item = OraxenItems.getItemById(mechanic.getItemID()).build();
-            ;
+
             if (mechanic instanceof NoteBlockMechanic noteMechanic) {
                 if (noteMechanic.isDirectional() && !noteMechanic.directional().isParentBlock())
                     item = OraxenItems.getItemById(noteMechanic.directional().getParentBlock()).build();

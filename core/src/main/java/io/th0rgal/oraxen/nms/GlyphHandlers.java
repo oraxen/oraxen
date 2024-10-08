@@ -44,7 +44,7 @@ public class GlyphHandlers {
         component = GlobalTranslator.render(component, player.locale());
         String serialized = AdventureUtils.MINI_MESSAGE.serialize(component);
 
-        // Replace raw unicode usage of non-permissed Glyphs with random font
+        // Replace raw unicode usage of non-permitted Glyphs with random font
         // This will always show a white square
         for (Glyph glyph : OraxenPlugin.get().fontManager().glyphs()) {
             if (glyph.hasPermission(player)) continue;

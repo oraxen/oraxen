@@ -12,13 +12,12 @@ import java.util.stream.Stream;
 
 public class FileUtil {
 
-    public static boolean setHidden(Path path) {
+    public static void setHidden(Path path) {
         try {
             Files.setAttribute(path, "dos:hidden", true);
-            return Files.isHidden(path);
+            Files.isHidden(path);
         } catch (Exception e) {
             e.printStackTrace();
-            return false;
         }
     }
 

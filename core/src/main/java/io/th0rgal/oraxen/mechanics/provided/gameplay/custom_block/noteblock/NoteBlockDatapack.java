@@ -55,7 +55,7 @@ public class NoteBlockDatapack {
             tagFile.getParentFile().mkdirs();
             tagFile.createNewFile();
 
-            String content = FileUtils.readFileToString(tagFile);
+            String content = FileUtils.readFileToString(tagFile, StandardCharsets.UTF_8);
             JsonObject tagObject = content.isEmpty() ? new JsonObject() : JsonParser.parseString(content).getAsJsonObject();
             JsonArray tagArray = Optional.ofNullable(tagObject.getAsJsonArray("values")).orElseGet(() -> {
                 JsonArray jsonArray = new JsonArray();
