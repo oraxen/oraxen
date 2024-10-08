@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.listeners;
 
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.api.events.furniture.OraxenFurnitureInteractEvent;
@@ -134,13 +135,19 @@ public class FurnitureListener implements Listener {
         Block block = event.getClickedBlock();
         ItemStack itemStack = event.getItem();
 
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || itemStack == null) return;
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || itemStack == null || block == null) return;
         if (!itemStack.getType().isBlock() && !itemStack.getType().name().endsWith("ITEM_FRAME")) return;
         ItemDisplay baseEntity = FurnitureFactory.instance.packetManager().baseEntityFromHitbox(new BlockLocation(block.getLocation()));
         if (baseEntity == null) return;
+        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
 
-        event.setUseItemInHand(Event.Result.DENY);
-        player.updateInventory();
+        // Since the server-side block is AIR by default, placing blocks acts weird
+        // Temporarily set the block to a barrier, then schedule a task to revert it next tick and resend hitboxes
+        block.setType(Material.BARRIER);
+        Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () -> block.setType(Material.AIR));
+        Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () ->
+                FurnitureFactory.instance.packetManager().sendBarrierHitboxPacket(baseEntity, mechanic, player),2L
+        );
     }
 
     private FurnitureMechanic getMechanic(ItemStack item, Player player, Location placed) {
