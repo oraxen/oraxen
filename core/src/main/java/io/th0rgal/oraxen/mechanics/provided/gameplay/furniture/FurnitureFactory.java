@@ -8,11 +8,14 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.Evoluti
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolutionTask;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox.JukeboxListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.listeners.FurnitureListener;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.listeners.FurniturePacketListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.listeners.FurnitureSoundListener;
 import io.th0rgal.oraxen.nms.EmptyFurniturePacketManager;
 import io.th0rgal.oraxen.nms.NMSHandler;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.PluginUtils;
+import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
@@ -40,6 +43,15 @@ public class FurnitureFactory extends MechanicFactory {
                 new EvolutionListener(),
                 new JukeboxListener()
         );
+
+        if (VersionUtil.isPaperServer()) {
+            MechanicsManager.registerListeners(OraxenPlugin.get(), "furniture", new FurniturePacketListener());
+        } else {
+            Logs.logWarning("Seems that your server is a Spigot-server");
+            Logs.logWarning("FurnitureHitboxes will not work due to it relying on Paper-only events");
+            Logs.logWarning("It is heavily recommended to make the upgrade to Paper");
+        }
+
         evolvingFurnitures = false;
 
         if (PluginUtils.isEnabled("AxiomPaper"))

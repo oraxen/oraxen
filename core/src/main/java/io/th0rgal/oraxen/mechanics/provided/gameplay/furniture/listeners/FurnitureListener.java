@@ -25,7 +25,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryCreativeEvent;
@@ -205,12 +204,6 @@ public class FurnitureListener implements Listener {
             }
         }
         event.setCursor(item);
-    }
-
-    @EventHandler(ignoreCancelled = true)
-    public void updateLightOnBlockBreak(BlockBreakEvent event) {
-        //Block block = event.getBlock();
-        //if (!OraxenFurniture.isFurniture(block)) LightMechanic.refreshBlockLight(block);
     }
 
     @EventHandler
