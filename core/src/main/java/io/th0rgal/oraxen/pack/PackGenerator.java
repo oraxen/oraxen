@@ -104,13 +104,6 @@ public class PackGenerator {
                 else e.printStackTrace();
             }
 
-            resourcePack.removeUnknownFile("pack.zip");
-            for (String fileName : new LinkedHashSet<>(resourcePack.unknownFiles().keySet())) {
-                if (fileName.startsWith("external_packs/")) resourcePack.removeUnknownFile(fileName);
-                else if (fileName.startsWith(".deobfCachedPacks")) resourcePack.removeUnknownFile(fileName);
-                else if (fileName.startsWith(".assetCache")) resourcePack.removeUnknownFile(fileName);
-            }
-
             CustomBlockFactory.get().blockStates().forEach(resourcePack::blockState);
             addItemPackFiles();
             addGlyphFiles();

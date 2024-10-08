@@ -28,10 +28,7 @@ import net.kyori.adventure.key.Keyed;
 import team.unnamed.creative.sound.SoundRegistry;
 import team.unnamed.creative.texture.Texture;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.StringJoiner;
+import java.util.*;
 
 final class MinecraftResourcePackStructure {
 
@@ -61,6 +58,13 @@ final class MinecraftResourcePackStructure {
     // resource categories (assets/<namespace>/<category>/...)
     public static final String TEXTURES_FOLDER = "textures";
     public static final String TEXTS_FOLDER = "texts";
+
+    // Oraxen related folders
+    public static final String PACK_ZIP = "pack.zip";
+    public static final String EXTERNAL_PACKS_FOLDER = "external_packs";
+    public static final String ASSET_CACHE_FOLDER = ".assetCache";
+    public static final String DEOBF_CACHE_FOLDER = ".deobfCachedPacks";
+    public static final Set<String> IGNORED_ORAXEN_FOLDERS = Set.of(PACK_ZIP, EXTERNAL_PACKS_FOLDER, ASSET_CACHE_FOLDER, DEOBF_CACHE_FOLDER);
 
     private MinecraftResourcePackStructure() {
     }

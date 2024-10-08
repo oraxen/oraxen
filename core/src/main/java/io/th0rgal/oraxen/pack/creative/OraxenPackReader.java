@@ -135,6 +135,9 @@ public class OraxenPackReader implements MinecraftResourcePackReader {
                 containerPath = path.substring((OVERLAYS_FOLDER + '/' + overlayDir + '/').length());
             }
 
+            // Skip oraxen-specific folders
+            if (folder != null && IGNORED_ORAXEN_FOLDERS.contains(folder)) continue;
+
             // null check to make ide happy
             if (folder == null || !folder.equals(ASSETS_FOLDER) || tokens.isEmpty()) {
                 // not assets! this is an unknown file
