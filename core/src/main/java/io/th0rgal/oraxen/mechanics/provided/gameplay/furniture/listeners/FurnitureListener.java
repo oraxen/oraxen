@@ -6,6 +6,8 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.api.events.furniture.OraxenFurnitureInteractEvent;
 import io.th0rgal.oraxen.api.events.furniture.OraxenFurniturePlaceEvent;
 import io.th0rgal.oraxen.config.Message;
+import io.th0rgal.oraxen.items.ItemBuilder;
+import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.BlockLocation;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureHelpers;
@@ -64,8 +66,7 @@ public class FurnitureListener implements Listener {
             int radius = radiusLimitation.getRadius();
             int amount = radiusLimitation.getAmount();
             if (block.getWorld().getNearbyEntities(block.getLocation(), radius, radius, radius).stream()
-                    .filter(OraxenFurniture::isFurniture)
-                    .filter(e -> OraxenFurniture.getFurnitureMechanic(e).getItemID().equals(mechanic.getItemID()))
+                    .filter(e -> Optional.ofNullable(OraxenFurniture.getFurnitureMechanic(e)).map(Mechanic::getItemID).orElse("").equals(mechanic.getItemID()))
                     .filter(e -> e.getLocation().distanceSquared(block.getLocation()) <= radius * radius)
                     .count() >= amount) event.setCancelled(true);
         } else if (limitedPlacing.getType() == LimitedPlacing.LimitedPlacingType.ALLOW)
@@ -134,12 +135,21 @@ public class FurnitureListener implements Listener {
         Player player = event.getPlayer();
         Block block = event.getClickedBlock();
         ItemStack itemStack = event.getItem();
+        Material type = Optional.ofNullable(itemStack).map(ItemStack::getType).orElse(Material.AIR);
+        boolean isItemFrame = type.name().contains("ITEM_FRAME"), isArmorStand = type.name().contains("ARMOR_STAND");
 
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK || itemStack == null || block == null) return;
-        if (!itemStack.getType().isBlock() && !itemStack.getType().name().endsWith("ITEM_FRAME")) return;
+        if (!itemStack.getType().isBlock() && !isItemFrame && !isArmorStand) return;
+        if (itemStack.getType().hasGravity() || isItemFrame || isArmorStand) {
+            event.setUseItemInHand(Event.Result.DENY);
+            player.updateInventory();
+            return;
+        }
+
         ItemDisplay baseEntity = FurnitureFactory.instance.packetManager().baseEntityFromHitbox(new BlockLocation(block.getLocation()));
         if (baseEntity == null) return;
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
+        if (mechanic == null) return;
 
         // Since the server-side block is AIR by default, placing blocks acts weird
         // Temporarily set the block to a barrier, then schedule a task to revert it next tick and resend hitboxes
@@ -201,8 +211,10 @@ public class FurnitureListener implements Listener {
         final RayTraceResult rayTraceResult = player.rayTraceBlocks(8.0);
         FurnitureMechanic mechanic = rayTraceResult != null ? OraxenFurniture.getFurnitureMechanic(rayTraceResult.getHitPosition().toLocation(player.getWorld())) : null;
         if (mechanic == null) return;
+        ItemBuilder builder = OraxenItems.getItemById(mechanic.getItemID());
+        if (builder == null) return;
 
-        ItemStack item = OraxenItems.getItemById(mechanic.getItemID()).build();
+        ItemStack item = builder.build();
         for (int i = 0; i <= 8; i++) {
             if (Objects.equals(OraxenItems.getIdByItem(player.getInventory().getItem(i)), mechanic.getItemID())) {
                 player.getInventory().setHeldItemSlot(i);
