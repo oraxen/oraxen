@@ -7,10 +7,12 @@ import net.kyori.adventure.text.minimessage.tag.resolver.ArgumentQueue;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 
 import java.util.Set;
+import java.util.regex.Pattern;
 
 public class ShiftTag {
     private static final String SHIFT = "shift";
     private static final String SHIFT_SHORT = "s";
+    public static final Pattern PATTERN = Pattern.compile("<shift:(-?\\d+)>");
 
     public static final TagResolver RESOLVER = TagResolver.resolver(Set.of(SHIFT, SHIFT_SHORT), (args, ctx) -> shiftTag(args));
 
