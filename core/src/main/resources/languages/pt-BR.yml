@@ -1,61 +1,61 @@
 general:
   prefix: "<gradient:#9055FF:#13E2DA>Oraxen <gray>| "
-  no_permission: "<prefix><#fa4943>Você está sem a permissão <b><permission></b> para fazer isto!"
+  no_permission: "<prefix><#fa4943>Você não tem a permissão <b><permission></b> para fazer isso!"
   work_in_progress: "<prefix><#facc43>Este recurso está em desenvolvimento!"
-  not_player: "<prefix><#fa4943>Isso só pode ser feito como um jogador!"
-  cooldown: "<prefix><#facc43>Por favor espere <time> segundos!"
+  not_player: "<prefix><#fa4943>Isso só pode ser feito por um jogador!"
+  cooldown: "<prefix><#facc43>Por favor, espere <time> segundos!"
   reload: "<prefix><#55ffa4>Recarregado com sucesso!"
-  pack_uploading: "<prefix><#D5D6D8>O upload automático do pacote de recursos está habilitado, enviando..."
-  pack_not_uploaded: "<prefix><#fa4943>Pacote de recursos não enviado."
-  pack_uploaded: "<prefix><#55ffa4>Pacote de Recursos enviado para a url <url> em <delay> ms"
-  pack_regenerated: "<prefix><#55ffa4>Pacote de Recursos regenerado com sucesso."
-  updating_config: "<prefix><#facc43>Opção de configuração \"<option>\" não encontrada, adicionando-a!"
-  removing_config: Configuration option \"<option>\" has been marked for removal, removing it!"
+  pack_uploading: "<prefix><#D5D6D8>O upload automático do pacote de recursos está ativado, enviando..."
+  pack_not_uploaded: "<prefix><#fa4943>O pacote de recursos não foi enviado."
+  pack_uploaded: "<prefix><#55ffa4>Pacote de recursos enviado para a URL <url> em <delay> ms."
+  pack_regenerated: "<prefix><#55ffa4>Pacote de recursos regenerado com sucesso."
+  updating_config: "<prefix><#facc43>A opção de configuração \"<option>\" não foi encontrada, adicionando-a!"
+  removing_config: "A opção de configuração \"<option>\" foi marcada para remoção, removendo-a!"
   configs_validation_failed: "<prefix><#fa4943>Falha na validação das configurações, o plugin foi desabilitado automaticamente!"
   repaired_items: "<prefix><#55ffa4><amount> item(ns) foram reparados com sucesso!"
   cannot_be_repaired: "<prefix><#fa4943>Este item não pode ser reparado!"
-  cannot_be_repaired_invalid: "<prefix><#fa4943>Você precisa segurar um item válido em sua mão!"
+  cannot_be_repaired_invalid: "<prefix><#fa4943>Você precisa segurar um item válido na mão!"
   updated_items: "<prefix><#55ffa4><amount> item(ns) foram atualizados com sucesso para <player>!"
-  zip_browse_error: "<prefix><#fa4943>Ocorreu um erro ao navegar no zip"
-  bad_recipe: "<prefix><#fa4943>A receita \"<recipe>\" é inválido, certifique-se de que todos os seus ingredientes existam em sua configuração"
-  item_not_found: "<prefix><#fa4943>Item \"<item>\" não foi encontrado"
-  plugin_hooks: "<prefix><#55ffa4>Plugin \"<plugin>\" detectado, ativando recursos"
-  plugin_unhooks: "<prefix><#55ffa4>Desconectado do plugin \"<plugin>\""
+  zip_browse_error: "<prefix><#fa4943>Ocorreu um erro ao navegar no arquivo zip."
+  bad_recipe: "<prefix><#fa4943>A receita \"<recipe>\" é inválida, certifique-se de que todos os ingredientes existem na sua configuração."
+  item_not_found: "<prefix><#fa4943>Item \"<item>\" não encontrado."
+  plugin_hooks: "<prefix><#55ffa4>Plugin \"<plugin>\" detectado, ativando recursos."
+  plugin_unhooks: "<prefix><#55ffa4>Desconectado do plugin \"<plugin>\"."
   not_enough_exp: "<prefix><#fa4943>Você precisa de mais experiência para fazer isso!"
   not_enough_space: "<prefix><#fa4943>Você precisa de mais espaço para colocar este móvel!"
   exit_menu: "<gradient:#FA7CBB:#F14658>Sair"
-  no_emojis: "<prefix><#fa4943>Nenhum emoji encontrado"
+  no_emojis: "<prefix><#fa4943>Nenhum emoji encontrado."
 
 logs:
-  loaded: "<prefix><#55ffa4>Carregado com sucesso em <os>"
-  unloaded: "<prefix><#55ffa4>Descarregado com sucesso"
-  no_armor_item: "<prefix><#fa4943>Nenhum item correspondente a <name> encontrado. Não é possível usar <armor_layer_file>"
-  duplicate_armor_color: "<prefix><#fa4943>O conjunto de armadura <first_armor_prefix> usa a mesma cor que <second_armor_prefix> com uma textura diferente"
+  loaded: "<prefix><#55ffa4>Carregado com sucesso em <os>."
+  unloaded: "<prefix><#55ffa4>Descarregado com sucesso."
+  no_armor_item: "<prefix><#fa4943>Nenhum item correspondente a <name> foi encontrado. Não é possível usar <armor_layer_file>."
+  duplicate_armor_color: "<prefix><#fa4943>O conjunto de armadura <first_armor_prefix> usa a mesma cor que <second_armor_prefix> com uma textura diferente."
 
 command:
   help: "<prefix><#b8bbc2>Comandos disponíveis:
         \n<hover:show_text:\"<gray>fill reload command\"><click:SUGGEST_COMMAND:/oraxen reload ><#6f737d>/o
           <#b8bbc2>reload <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> Recarrega o plugin
         \n<hover:show_text:\"<gray>fill inv command\"><click:SUGGEST_COMMAND:/oraxen inv><#6f737d>/o
-          <#b8bbc2>inventory</click></hover>  <#6f737d>»<#b8bbc2> mostra itens do oraxen no inventário
+          <#b8bbc2>inventory</click></hover>  <#6f737d>»<#b8bbc2> Mostra os itens do Oraxen no inventário
         \n<hover:show_text:\"<gray>fill pack command\"><click:SUGGEST_COMMAND:/oraxen pack ><#6f737d>/o
-          <#b8bbc2>pack <#fa8943>type <#43c9fa>target</click></hover>  <#6f737d>»<#b8bbc2> envia a textura para algum jogador
+          <#b8bbc2>pack <#fa8943>type <#43c9fa>target</click></hover>  <#6f737d>»<#b8bbc2> Envia a textura para um jogador
         \n<hover:show_text:\"<gray>fill repair command\"><click:SUGGEST_COMMAND:/oraxen repair ><#6f737d>/o
-          <#b8bbc2>repair <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> repara um ou todos os seus itens
+          <#b8bbc2>repair <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> Repara um ou todos os seus itens
         \n<hover:show_text:\"<gray>fill give command\"><click:SUGGEST_COMMAND:/oraxen give ><#6f737d>/o
-          <#b8bbc2>give <#43c9fa>target <#fa4362>item <#43fa8c>amount</click></hover>  <#6f737d>»<#b8bbc2> dá um item oraxen
+          <#b8bbc2>give <#43c9fa>target <#fa4362>item <#43fa8c>amount</click></hover>  <#6f737d>»<#b8bbc2> Dá um item do Oraxen
         \n<hover:show_text:\"<gray>fill recipes show command\"><click:SUGGEST_COMMAND:/oraxen recipes show ><#6f737d>/o
           <#b8bbc2>recipes show <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> Mostra as receitas
         \n<hover:show_text:\"<gray>fill recipes builder command\"><click:SUGGEST_COMMAND:/oraxen recipes builder ><#6f737d>/o
-          <#b8bbc2>recipes builder <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> abre o construtor de receitas
+          <#b8bbc2>recipes builder <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> Abre o construtor de receitas
         \n<hover:show_text:\"<gray>fill recipes save command\"><click:SUGGEST_COMMAND:/oraxen recipes save ><#6f737d>/o
-          <#b8bbc2>recipes save <#faf443>name</click></hover>  <#6f737d>»<#b8bbc2> salva a receita criada"
+          <#b8bbc2>recipes save <#faf443>name</click></hover>  <#6f737d>»<#b8bbc2> Salva a receita criada."
 
   join: |-
     <dark_gray><st>                           </st><dark_gray>{<aqua><bold>Pacote de Recursos</bold><dark_gray>}<dark_gray><st>                        </st>
     <gray><bold>Para ver os novos itens, você precisa usar um pacote de recursos especial (mas não se preocupe, isso não impede que você use o seu ao mesmo tempo).</bold>
     <dark_gray>»<gray> Para tentar carregá-lo diretamente do jogo, <click:run_command:oraxen pack send @p><hover:show_text:"<red>! carregar o pacote de recursos do jogo pode causar lag"><red><bold>CLIQUE AQUI</bold></hover></click>
-    <dark_gray>»<gray> Para baixá-lo da internet, <hover:show_text:'<pack_url>' <green>! instale-o em Opções/Pacote de Recursos em seu jogo"><green><bold><click:OPEN_URL:'<pack_url>'>CLIQUE AQUI</click></bold></hover>
+    <dark_gray>»<gray> Para baixá-lo da internet, <hover:show_text:'<pack_url>' <green>! instale-o em Opções/Pacote de Recursos em seu jogo"><green><bold><click:OPEN_URL:'<pack_url>'>CLIQUE AQUI</click></bold></hover>."
 
   recipe:
     no_builder: "<prefix><#fa4943>Por favor, crie uma receita primeiro!"
@@ -70,19 +70,19 @@ command:
     players: "<prefix><#55ffa4>Você deu <#43fa8c><amount><#6f737d> × <#fa4362><item><#55ffa4> para <#43c9fa><count><#55ffa4> jogadores!"
 
   dye:
-    success: "<prefix><#55ffa4>Você alterou com sucesso a cor deste item!"
-    wrong_color: "<prefix><#fa4943>Cor não reconhecida, tente uma cor hexadecimal como #FFFFFF!"
-    failed: "<prefix><#fa4943>Você não pode alterar a cor deste item!"
-    
+    success: "<prefix><#55ffa4>Você alterou a cor deste item com sucesso!"
+    wrong_color: "<prefix><#fa4943>Cor não reconhecida, tente usar uma cor hexadecimal como #FFFFFF!"
+    failed: "<prefix><#fa4943>Não é possível alterar a cor deste item!"
+
   hud:
-    no_hud: "<prefix><#fa4943>Não existe nenhuma HUD com o nome de '<hud_id>'!"
+    no_hud: "<prefix><#fa4943>Não existe nenhuma HUD com o nome '<hud_id>'!"
     toggle_on: "<prefix><#55ffa4>HUD '<hud_id>' ativada!"
     toggle_off: "<prefix><#fa4943>HUD '<hud_id>' desativada!"
 
-  debug.toggle: "<prefix><#55ffa4>Debug mode is now <#43fa8c><state><#55ffa4>!"
-  version: "<prefix><#55ffa4>Oraxen version: <#43fa8c><version><#55ffa4>!"
-    
+debug.toggle: "<prefix><#55ffa4>O modo de depuração está agora <#43fa8c><state><#55ffa4>!"
+version: "<prefix><#55ffa4>Versão atual do Oraxen: <#43fa8c><version><#55ffa4>!"
+
 mechanics:
-  not_enough_exp: "<prefix><#fa4943>Você precisa de mais experiência para fazer isso"
-  backpack_stacked: "<prefix><#fa4943>Não é possível abrir backpacks empilhadas!"
-  jukebox_now_playing: "<dark_purple>Tocando agora <disc>"
+  not_enough_exp: "<prefix><#fa4943>Você precisa de mais experiência para realizar esta ação."
+  backpack_stacked: "<prefix><#fa4943>Não é possível abrir mochilas empilhadas!"
+  jukebox_now_playing: "<dark_purple>Tocando agora: <disc>"
