@@ -4,16 +4,14 @@ import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
-import io.th0rgal.oraxen.utils.ParseUtils;
 import io.th0rgal.oraxen.utils.VectorUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
-import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Interaction;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
@@ -68,12 +66,12 @@ public class FurnitureSeat {
         return entity != null && entity.getPersistentDataContainer().has(SEAT_KEY, DataType.UUID);
     }
 
-    public static void sitOnSeat(Entity baseEntity, Player player, Location interactionPoint) {
+    public static void sitOnSeat(ItemDisplay baseEntity, Player player, Location interactionPoint) {
         updateLegacySeats(baseEntity);
         Location centeredLoc = BlockHelpers.toCenterLocation(interactionPoint);
         List<Entity> seats = new ArrayList<>(baseEntity.getPersistentDataContainer()
                 .getOrDefault(SEAT_KEY, DataType.asList(DataType.UUID), List.of())
-                .stream().map(Bukkit::getEntity).filter(e -> e instanceof ArmorStand).toList());
+                .stream().map(Bukkit::getEntity).filter(e -> e instanceof Interaction).toList());
         seats.sort(Comparator.comparingDouble(e -> centeredLoc.distanceSquared(e.getLocation())));
         seats.stream().findFirst().ifPresent(seat -> seat.addPassenger(player));
     }
@@ -83,14 +81,14 @@ public class FurnitureSeat {
         double radians = Math.toRadians(angle);
 
         // Get the coordinates relative to the local y-axis
-        int x = (int) Math.round(offset.getX() * Math.cos(radians) - (-offset.getZ()) * Math.sin(radians));
-        int z = (int) Math.round(offset.getX() * Math.sin(radians) + (-offset.getZ()) * Math.cos(radians));
+        double x = offset.getX() * Math.cos(radians) - (-offset.getZ()) * Math.sin(radians);
+        double z = offset.getX() * Math.sin(radians) + (-offset.getZ()) * Math.cos(radians);
         double y = offset.getY();
 
         return new Vector(x, y, z);
     }
 
-    private static void updateLegacySeats(Entity baseEntity) {
+    private static void updateLegacySeats(ItemDisplay baseEntity) {
         PersistentDataContainer pdc = baseEntity.getPersistentDataContainer();
         UUID seat = pdc.has(SEAT_KEY, DataType.UUID) ? pdc.get(SEAT_KEY, DataType.UUID) : null;
         if (seat == null) return;
@@ -106,22 +104,14 @@ public class FurnitureSeat {
         UUID uuid = baseEntity.getUniqueId();
         List<UUID> seatUUIDs = new ArrayList<>();
         for (FurnitureSeat seat : mechanic.seats()) {
-            ArmorStand armorStand = location.getWorld().spawn(location.clone().add(seat.offset(yaw)), ArmorStand.class, (ArmorStand stand) -> {
-                stand.setVisible(false);
-                stand.setRotation(yaw, 0);
-                stand.setInvulnerable(true);
-                stand.setPersistent(true);
-                stand.setAI(false);
-                stand.setCollidable(false);
-                stand.setGravity(false);
-                stand.setSilent(true);
-                stand.setCustomNameVisible(false);
-                stand.setCanPickupItems(false);
-                stand.setDisabledSlots(EquipmentSlot.values());
-                stand.getPersistentDataContainer().set(FurnitureMechanic.FURNITURE_KEY, PersistentDataType.STRING, mechanic.getItemID());
-                stand.getPersistentDataContainer().set(FurnitureSeat.SEAT_KEY, DataType.UUID, uuid);
+            location.getWorld().spawn(location.clone().add(seat.offset(yaw)), Interaction.class, (Interaction i) -> {
+                i.setInteractionHeight(0.1f);
+                i.setInteractionWidth(0.1f);
+                i.setPersistent(true);
+                i.getPersistentDataContainer().set(FurnitureMechanic.FURNITURE_KEY, PersistentDataType.STRING, mechanic.getItemID());
+                i.getPersistentDataContainer().set(FurnitureSeat.SEAT_KEY, DataType.UUID, uuid);
+                seatUUIDs.add(i.getUniqueId());
             });
-            seatUUIDs.add(armorStand.getUniqueId());
         }
         baseEntity.getPersistentDataContainer().set(FurnitureSeat.SEAT_KEY, DataType.asList(DataType.UUID), seatUUIDs);
     }

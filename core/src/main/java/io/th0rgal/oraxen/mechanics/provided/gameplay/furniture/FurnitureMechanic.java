@@ -32,8 +32,8 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Interaction;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -302,7 +302,7 @@ public class FurnitureMechanic extends Mechanic {
     private void removeFurnitureSeats(ItemDisplay baseEntity) {
         List<Entity> seats = baseEntity.getPersistentDataContainer()
                 .getOrDefault(FurnitureSeat.SEAT_KEY, DataType.asList(DataType.UUID), new ArrayList<>())
-                .stream().map(Bukkit::getEntity).filter(Objects::nonNull).filter(e -> e instanceof ArmorStand).toList();
+                .stream().map(Bukkit::getEntity).filter(Objects::nonNull).filter(e -> e instanceof Interaction).toList();
 
         for (Entity seat : seats) {
             seat.getPassengers().forEach(seat::removePassenger);
