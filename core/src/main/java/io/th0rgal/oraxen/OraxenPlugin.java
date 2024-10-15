@@ -16,7 +16,7 @@ import io.th0rgal.oraxen.pack.PackGenerator;
 import io.th0rgal.oraxen.pack.server.EmptyServer;
 import io.th0rgal.oraxen.pack.server.OraxenPackServer;
 import io.th0rgal.oraxen.recipes.RecipesManager;
-import io.th0rgal.oraxen.sound.SoundManager;
+import io.th0rgal.oraxen.config.SoundManager;
 import io.th0rgal.oraxen.utils.LU;
 import io.th0rgal.oraxen.utils.NoticeUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;

@@ -84,7 +84,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     }
 
     private final LinkedHashMap<String, MultiVariant> variants = new LinkedHashMap<>();
-    public BlockState generateBlockStateFile() {
+    public BlockState generateBlockState() {
         Key noteKey = Key.key("minecraft:note_block");
         variants.put("instrument=harp,powered=false,note=0", MultiVariant.of(Variant.builder().model(Key.key("block/note_block")).build()));
         BlockState noteState = OraxenPlugin.get().packGenerator().resourcePack().blockState(noteKey);

@@ -104,7 +104,8 @@ public class PackGenerator {
                 else e.printStackTrace();
             }
 
-            CustomBlockFactory.get().blockStates().forEach(resourcePack::blockState);
+            CustomBlockFactory.get().blockStates(resourcePack);
+            CustomBlockFactory.get().soundRegistries(resourcePack);
             addItemPackFiles();
             addGlyphFiles();
             addSoundFile();

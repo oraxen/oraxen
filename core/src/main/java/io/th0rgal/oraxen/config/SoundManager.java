@@ -1,6 +1,5 @@
-package io.th0rgal.oraxen.sound;
+package io.th0rgal.oraxen.config;
 
-import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.ParseUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
