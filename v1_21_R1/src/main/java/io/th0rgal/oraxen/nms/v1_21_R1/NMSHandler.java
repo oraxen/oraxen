@@ -128,10 +128,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             else newTag.remove(key);
         }
 
-        //Puts new nbt compound if data component exists.
-        if (newNmsItem.getComponents() instanceof PatchedDataComponentMap patchedMap) {
-            patchedMap.set(type, CustomData.of(newTag));
-        }
+        newNmsItem.set(type, CustomData.of(newTag));
         return CraftItemStack.asBukkitCopy(newNmsItem);
     }
 
