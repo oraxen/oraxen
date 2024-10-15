@@ -14,7 +14,10 @@ import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponentType;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.component.PatchedDataComponentMap;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dedicated.DedicatedServer;
 import net.minecraft.server.dedicated.DedicatedServerProperties;
@@ -22,6 +25,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.ClipContext;
@@ -38,9 +42,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import software.amazon.awssdk.services.s3.endpoints.internal.Value;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
+import java.util.Map;
 import java.util.Optional;
 
 public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
@@ -98,18 +104,34 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         return VersionUtil.isPaperServer() && GlobalConfiguration.get().blockUpdates.disableNoteblockUpdates;
     }
 
-
-    @Override //TODO Fix this
+    @Override
     public ItemStack copyItemNBTTags(@NotNull ItemStack oldItem, @NotNull ItemStack newItem) {
+        //Converts to minecraft ItemStack
         net.minecraft.world.item.ItemStack newNmsItem = CraftItemStack.asNMSCopy(newItem);
         net.minecraft.world.item.ItemStack oldItemStack = CraftItemStack.asNMSCopy(oldItem);
-        CraftItemStack.asNMSCopy(oldItem).getTags().forEach(tag -> {
-            if (!tag.location().getNamespace().equals("minecraft")) return;
-            if (vanillaKeys.contains(tag.location().getPath())) return;
 
-            DataComponentType<Object> type = (DataComponentType<Object>) BuiltInRegistries.DATA_COMPONENT_TYPE.get(tag.location());
-            if (type != null) newNmsItem.set(type, oldItemStack.get(type));
-        });
+        //Gets data component's nbt data.
+        DataComponentType<CustomData> type = DataComponents.CUSTOM_DATA;
+        CustomData oldData = oldItemStack.getComponents().get(type);
+        CustomData newData = newNmsItem.getComponents().get(type);
+
+        //Cancels if null.
+        if (oldData == null || newData == null) return newItem;
+        //Creates new nbt compound.
+        CompoundTag oldTag = oldData.copyTag();
+        CompoundTag newTag = newData.copyTag();
+
+        for (String key : oldTag.getAllKeys()) {
+            if (vanillaKeys.contains(key)) continue;
+            Tag value = oldTag.get(key);
+            if (value != null) newTag.put(key, value);
+            else newTag.remove(key);
+        }
+
+        //Puts new nbt compound if data component exists.
+        if (newNmsItem.getComponents() instanceof PatchedDataComponentMap patchedMap) {
+            patchedMap.set(type, CustomData.of(newTag));
+        }
         return CraftItemStack.asBukkitCopy(newNmsItem);
     }
 
@@ -174,5 +196,10 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     @Override
     public String getNoteBlockInstrument(Block block) {
         return ((CraftBlock) block).getNMS().instrument().toString();
+    }
+
+    @Override
+    public int mcmetaVersion() {
+        return 34;
     }
 }

@@ -126,9 +126,11 @@ public class PackGenerator {
             } catch (Exception ignored) {}
 
             resourcePack = new PackObfuscator(resourcePack).obfuscatePack();
+            if (resourcePack.packMeta() == null) resourcePack.packMeta(NMSHandlers.getHandler().mcmetaVersion(), "Oraxen's default pack.");
 
             File packZip = OraxenPlugin.get().packPath().resolve("pack.zip").toFile();
             if (Settings.PACK_ZIP.toBool()) writer.writeToZipFile(packZip, resourcePack);
+
             builtPack = writer.build(resourcePack);
         }).thenRunAsync(() -> {
             Logs.logSuccess("Finished generating resourcepack!", true);
