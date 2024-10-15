@@ -83,6 +83,7 @@ public class PolymathServer implements OraxenPackServer {
                     packUrl = jsonOutput.get("url").getAsString();
                     hash = jsonOutput.get("sha1").getAsString();
                     packUUID = UUID.nameUUIDFromBytes(hash.getBytes());
+                    OraxenPackServer.allPackUUIDs.add(packUUID);
 
                     Logs.logSuccess("ResourcePack has been uploaded to " + packUrl);
                     return;

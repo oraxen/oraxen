@@ -22,10 +22,10 @@ import java.util.zip.ZipOutputStream;
 
 public class PackDownloader {
 
-    private static CompletableFuture<Void> requiredPackDownload;
-    private static CompletableFuture<Void> defaultPackDownload;
+    private CompletableFuture<Void> requiredPackDownload = null;
+    private CompletableFuture<Void> defaultPackDownload = null;
 
-    public static CompletableFuture<Void> downloadRequiredPack() {
+    public CompletableFuture<Void> downloadRequiredPack() {
         if (requiredPackDownload == null) requiredPackDownload = CompletableFuture.runAsync(() -> {
             if (VersionUtil.isLeaked()) return;
             try {
@@ -46,10 +46,10 @@ public class PackDownloader {
         return requiredPackDownload;
     }
 
-    public static CompletableFuture<Void> downloadDefaultPack() {
+    public CompletableFuture<Void> downloadDefaultPack() {
         if (defaultPackDownload == null) defaultPackDownload = CompletableFuture.runAsync(() -> {
             if (!Settings.PACK_IMPORT_DEFAULT.toBool()) return;
-            Logs.logInfo("Downloading default resourcepack...");
+
             if (VersionUtil.isCompiled()) Logs.logWarning("Skipping download of Oraxen pack, compiled versions do not include assets");
             else if (VersionUtil.isLeaked()) Logs.logError("Skipping download of Oraxen pack, pirated versions do not include assets");
             else {
@@ -62,10 +62,10 @@ public class PackDownloader {
                     removeOldHashPack("DefaultPack", hash);
                     if (zipPath.toFile().exists() || zipPath.resolveSibling("DefaultPack_" + hash).toFile().exists()) {
                         Logs.logSuccess("Skipped downloading DefaultPack as it is up to date!");
-                        return;
+                    } else {
+                        Logs.logInfo("Downloading default resourcepack...");
+                        downloadPackFromUrl(fileUrl, token, zipPath);
                     }
-
-                    downloadPackFromUrl(fileUrl, token, zipPath);
                 } catch (Exception e) {
                     Logs.logWarning("Failed to download DefaultPack");
                     if (Settings.DEBUG.toBool()) e.printStackTrace();

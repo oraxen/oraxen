@@ -46,6 +46,7 @@ public class PackGenerator {
     static final OraxenPackWriter writer = new OraxenPackWriter();
 
     private static final Path assetsFolder = OraxenPlugin.get().packPath().resolve("assets");
+    private final PackDownloader packDownloader;
     @NotNull private ResourcePack resourcePack = ResourcePack.resourcePack();
     private BuiltResourcePack builtPack;
     private final CustomArmorDatapack customArmorDatapack;
@@ -57,8 +58,10 @@ public class PackGenerator {
         generateDefaultPaths();
 
         DefaultResourcePackExtractor.extractLatest(reader);
-        PackDownloader.downloadRequiredPack();
-        PackDownloader.downloadDefaultPack();
+
+        packDownloader = new PackDownloader();
+        packDownloader.downloadRequiredPack();
+        packDownloader.downloadDefaultPack();
 
         customArmorDatapack = Settings.CUSTOM_ARMOR_ENABLED.toBool() ? new CustomArmorDatapack() : null;
         this.modelGenerator = new ModelGenerator(resourcePack);
@@ -80,8 +83,8 @@ public class PackGenerator {
         EventUtils.callEvent(new OraxenPrePackGenerateEvent(resourcePack));
 
         List<CompletableFuture<?>> futures = new ArrayList<>();
-        futures.add(PackDownloader.downloadRequiredPack());
-        futures.add(PackDownloader.downloadDefaultPack());
+        futures.add(packDownloader.downloadRequiredPack());
+        futures.add(packDownloader.downloadDefaultPack());
         futures.add(DefaultResourcePackExtractor.extractLatest(reader));
         futures.add(ModelEngineCompatibility.modelEngineFuture());
 
@@ -99,13 +102,6 @@ public class PackGenerator {
                 Logs.logError("Failed to read Oraxen/pack/assets-folder to a ResourcePack");
                 if (!Settings.DEBUG.toBool()) Logs.logError(e.getMessage());
                 else e.printStackTrace();
-            }
-
-            resourcePack.removeUnknownFile("pack.zip");
-            for (String fileName : new LinkedHashSet<>(resourcePack.unknownFiles().keySet())) {
-                if (fileName.startsWith("external_packs/")) resourcePack.removeUnknownFile(fileName);
-                else if (fileName.startsWith(".deobfCachedPacks")) resourcePack.removeUnknownFile(fileName);
-                else if (fileName.startsWith(".assetCache")) resourcePack.removeUnknownFile(fileName);
             }
 
             CustomBlockFactory.get().blockStates().forEach(resourcePack::blockState);

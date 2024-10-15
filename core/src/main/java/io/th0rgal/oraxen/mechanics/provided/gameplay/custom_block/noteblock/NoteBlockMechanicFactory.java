@@ -130,7 +130,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
             Logs.logWarning("It is recommended to use the new format, Mechanics.custom_block.type: " + CustomBlockFactory.get().NOTEBLOCK);
         }
 
-        if (!Range.between(1, MAX_BLOCK_VARIATION).contains(mechanic.customVariation())) {
+        if (!Range.of(1, MAX_BLOCK_VARIATION).contains(mechanic.customVariation())) {
             Logs.logError("The custom variation of the block " + mechanic.getItemID() + " is not between 1 and " + MAX_BLOCK_VARIATION + "!");
             Logs.logWarning("The item has failed to build for now to prevent bugs and issues.");
             return null;

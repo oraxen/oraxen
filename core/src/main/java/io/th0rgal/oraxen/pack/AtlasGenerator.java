@@ -26,10 +26,13 @@ public class AtlasGenerator {
         }
 
         // Remove everything in the item and block folders, as vanilla already has them
-        sources.stream().map(SingleAtlasSource.class::cast).filter(r -> {
-            String resource = r.resource().asMinimalString();
-            return resource.startsWith("item/") || resource.startsWith("block/");
-        }).forEach(sources::remove);
+        for (AtlasSource source : new ArrayList<>(sources)) {
+            SingleAtlasSource singleAtlasSource = (SingleAtlasSource) source;
+            String resource = singleAtlasSource.resource().asMinimalString();
+            if (resource.startsWith("item/") || resource.startsWith("block/")) {
+                sources.remove(singleAtlasSource);
+            }
+        }
 
         Atlas.atlas(Atlas.BLOCKS, sources).addTo(resourcePack);
     }

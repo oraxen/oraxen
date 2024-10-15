@@ -154,17 +154,6 @@ public class StringBlockMechanicFactory extends MechanicFactory {
         if (sapling) return;
         if (saplingTask != null) saplingTask.cancel();
 
-        // Disabled for abit as OraxenItems.getItems() here
-        // Dont register if there is no sapling in configs
-//        List<String> saplingList = new ArrayList<>();
-//        for (ItemBuilder itemBuilder : OraxenItems.getItems()) {
-//            String id = OraxenItems.getIdByItem(itemBuilder.build());
-//            StringBlockMechanic mechanic = (StringBlockMechanic) StringBlockMechanicFactory.getInstance().getMechanic(id);
-//            if (mechanic == null || !mechanic.isSapling()) continue;
-//            saplingList.add(id);
-//        }
-//        if (saplingList.isEmpty()) return;
-
         saplingTask = new SaplingTask(saplingGrowthCheckDelay);
         saplingTask.runTaskTimer(OraxenPlugin.get(), 0, saplingGrowthCheckDelay);
         sapling = true;

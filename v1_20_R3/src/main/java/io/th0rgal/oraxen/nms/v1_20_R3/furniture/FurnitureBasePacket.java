@@ -16,7 +16,6 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_20_R3.inventory.CraftItemStack;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Transformation;
@@ -29,9 +28,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class FurnitureBasePacket {
-
-    private final int ITEM_FRAME_ITEM_ID = 8;
-    private final int ITEM_FRAME_ROTATION_ID = 9;
 
     private final int DISPLAY_TRANSLATION = 11;
     private final int DISPLAY_SCALE_ID = 12;
@@ -54,7 +50,7 @@ public class FurnitureBasePacket {
     private final ClientboundAddEntityPacket entityPacket;
     private final ClientboundSetEntityDataPacket metadataPacket;
 
-    public FurnitureBasePacket(FurnitureBaseEntity furnitureBase, Entity baseEntity, Player player) {
+    public FurnitureBasePacket(FurnitureBaseEntity furnitureBase, ItemDisplay baseEntity, Player player) {
         this.entityId = furnitureBase.baseId();
         this.uuid = furnitureBase.baseUUID();
         Location baseLoc = baseEntity.getLocation();
@@ -65,7 +61,7 @@ public class FurnitureBasePacket {
                 EntityType.ITEM_DISPLAY, 0, Vec3.ZERO, 0.0
         );
 
-        this.metadataPacket = new ClientboundSetEntityDataPacket(entityId, dataValues(furnitureBase, (ItemDisplay) baseEntity));
+        this.metadataPacket = new ClientboundSetEntityDataPacket(entityId, dataValues(furnitureBase, baseEntity));
     }
 
     public ClientboundAddEntityPacket entityPacket() {

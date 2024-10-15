@@ -68,8 +68,8 @@ public class PackObfuscator {
         this.obfCachedPack.getParentFile().mkdirs();
         FileUtil.setHidden(obfCachedPack.toPath().getParent());
 
-        Logs.logInfo("Obfuscating OraxenPack...");
         if (shouldObfuscatePack()) {
+            Logs.logInfo("Obfuscating OraxenPack...");
             obfuscateModels();
             obfuscateFonts();
             obfuscateTextures();
@@ -82,12 +82,13 @@ public class PackObfuscator {
             }
         }
 
-        List<File> files = Arrays.stream(Objects.requireNonNullElse(this.obfCachedPack.getParentFile().listFiles(), new File[]{})).toList();
+        List<File> files = FileUtil.listFiles(this.obfCachedPack.getParentFile());
         for (final File file : files) {
             if (file.isDirectory() && !file.getName().equals(obfCachedPack.getName())) {
                 try {
                     FileUtils.deleteDirectory(file);
-                } catch (Exception ignored) {}
+                } catch (Exception ignored) {
+                }
             }
         }
 

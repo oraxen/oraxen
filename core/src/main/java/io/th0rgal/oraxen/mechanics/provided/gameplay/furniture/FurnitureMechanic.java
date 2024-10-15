@@ -32,8 +32,8 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Interaction;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -267,15 +267,10 @@ public class FurnitureMechanic extends Mechanic {
             else if (limitedPlacing.isRoof() && blockFace == BlockFace.DOWN) pitch = 90;
             else pitch = 0;
 
-            if (limitedPlacing.isFloor() && blockFace == BlockFace.UP) yaw -= 180;
-            else if (limitedPlacing.isWall() && blockFace.getModY() == 0) yaw = 90f * blockFace.ordinal() - 180;
+            if (limitedPlacing.isWall() && blockFace.getModY() == 0) yaw = 90f * blockFace.ordinal() - 180;
         } else pitch = 0;
 
         baseEntity.setRotation(yaw, pitch);
-
-        //Transformation transformation = baseEntity.getTransformation();
-        //boolean isFixed = baseEntity.getItemDisplayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
-        //transformation.getScale().set(isFixed ? new Vector3f(0.5f, 0.5f, 0.5f) : new Vector3f(1f, 1f, 1f));
 
         PersistentDataContainer pdc = baseEntity.getPersistentDataContainer();
         pdc.set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
@@ -307,7 +302,7 @@ public class FurnitureMechanic extends Mechanic {
     private void removeFurnitureSeats(ItemDisplay baseEntity) {
         List<Entity> seats = baseEntity.getPersistentDataContainer()
                 .getOrDefault(FurnitureSeat.SEAT_KEY, DataType.asList(DataType.UUID), new ArrayList<>())
-                .stream().map(Bukkit::getEntity).filter(Objects::nonNull).filter(e -> e instanceof ArmorStand).toList();
+                .stream().map(Bukkit::getEntity).filter(Objects::nonNull).filter(e -> e instanceof Interaction).toList();
 
         for (Entity seat : seats) {
             seat.getPassengers().forEach(seat::removePassenger);

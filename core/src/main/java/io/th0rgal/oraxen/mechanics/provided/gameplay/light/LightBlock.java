@@ -21,8 +21,7 @@ public class LightBlock extends BlockLocation {
     public LightBlock(String hitboxString) {
         super(hitboxString);
         this.lightLevel = ParseUtils.parseInt(StringUtils.substringAfter(hitboxString, " "), 15);
-        this.lightData = (Light) Material.LIGHT.createBlockData();
-        this.lightData.setLevel(lightLevel);
+        this.lightData = (Light) Material.LIGHT.createBlockData(data -> ((Light) data).setLevel(lightLevel));
     }
 
     public LightBlock(Location location, Light lightData) {

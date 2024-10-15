@@ -61,13 +61,11 @@ public class EvolutionTask extends BukkitRunnable {
                 if (evolution.getNextStage() == null) continue;
                 if (!evolution.bernoulliTest()) continue;
 
-                FurnitureMechanic nextMechanic = (FurnitureMechanic) furnitureFactory.getMechanic(evolution.getNextStage());
+                FurnitureMechanic nextMechanic = furnitureFactory.getMechanic(evolution.getNextStage());
                 if (nextMechanic == null) continue;
 
                 OraxenFurniture.remove(entity, null);
                 nextMechanic.place(entity.getLocation());
-                //OraxenFurniture.place(entity.getLocation(), evolution.getNextStage(), FurnitureMechanic.yawToRotation(entity.getLocation().getYaw()), entity.getFacing());
-                //nextMechanic.place(entityLoc, entityLoc.getYaw(), FurnitureMechanic.yawToRotation(entityLoc.getYaw()), entity.getFacing());
             } else pdc.set(FurnitureMechanic.EVOLUTION_KEY, PersistentDataType.INTEGER, evolutionStep);
         }
     }

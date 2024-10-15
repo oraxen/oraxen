@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.nms.v1_21_R1.furniture;
+package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.listeners;
 
 import com.destroystokyo.paper.event.player.PlayerUseUnknownEntityEvent;
 import io.papermc.paper.event.player.PlayerTrackEntityEvent;

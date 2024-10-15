@@ -9,7 +9,6 @@ import java.util.Collection;
 
 public class PackCommand {
 
-    @SuppressWarnings("unchecked")
     CommandAPICommand getPackCommand() {
         return new CommandAPICommand("pack")
                 .withPermission("oraxen.command.pack")

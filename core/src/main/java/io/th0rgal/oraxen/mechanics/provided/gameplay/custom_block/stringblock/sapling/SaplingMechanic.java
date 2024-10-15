@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock.sapling;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
@@ -79,8 +80,7 @@ public class SaplingMechanic {
     }
 
     public String getSchematicName() {
-        if (schematicName.endsWith(".schem")) return schematicName;
-        else return schematicName + ".schem";
+        return StringUtils.appendIfMissing(schematicName, ".schem");
     }
 
     public File getSchematic() {

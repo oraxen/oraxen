@@ -64,8 +64,8 @@ public class InteractionHitbox {
         double radians = Math.toRadians(angle);
 
         // Get the coordinates relative to the local y-axis
-        int x = (int) Math.round(offset.getX() * Math.cos(radians) - (-offset.getZ()) * Math.sin(radians));
-        int z = (int) Math.round(offset.getX() * Math.sin(radians) + (-offset.getZ()) * Math.cos(radians));
+        double x = offset.getX() * Math.cos(radians) - (-offset.getZ()) * Math.sin(radians);
+        double z = offset.getX() * Math.sin(radians) + (-offset.getZ()) * Math.cos(radians);
         double y = offset.getY();
 
         return new Vector(x, y, z);

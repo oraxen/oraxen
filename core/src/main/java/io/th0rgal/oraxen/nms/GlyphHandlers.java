@@ -3,7 +3,10 @@ package io.th0rgal.oraxen.nms;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.font.Glyph;
+import io.th0rgal.oraxen.font.Shift;
+import io.th0rgal.oraxen.font.ShiftTag;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.ParseUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
@@ -20,7 +23,7 @@ import java.util.regex.Pattern;
 
 public class GlyphHandlers {
 
-    @NotNull public static final NamespacedKey GLYPH_HANDLER_KEY = NamespacedKey.fromString("glyph_handler", OraxenPlugin.get());
+    @NotNull public static final NamespacedKey GLYPH_HANDLER_KEY = new NamespacedKey(OraxenPlugin.get(), "glyph_handler");
 
     public enum GlyphHandler {
         NMS, VANILLA
@@ -41,7 +44,7 @@ public class GlyphHandlers {
         component = GlobalTranslator.render(component, player.locale());
         String serialized = AdventureUtils.MINI_MESSAGE.serialize(component);
 
-        // Replace raw unicode usage of non-permissed Glyphs with random font
+        // Replace raw unicode usage of non-permitted Glyphs with random font
         // This will always show a white square
         for (Glyph glyph : OraxenPlugin.get().fontManager().glyphs()) {
             if (glyph.hasPermission(player)) continue;
@@ -98,6 +101,18 @@ public class GlyphHandlers {
                                 .replacement(glyph.glyphComponent())
                                 .build());
             }
+        }
+
+
+        Matcher shiftMatcher = ShiftTag.PATTERN.matcher(serialized);
+        while (shiftMatcher.find()) {
+            int shift = ParseUtils.parseInt(shiftMatcher.group(1), 0);
+            component = component.replaceText(
+                    TextReplacementConfig.builder()
+                            .matchLiteral("<shift:" + shift + ">")
+                            .replacement(Component.text(Shift.of(shift)))
+                            .build()
+            );
         }
 
         return component;

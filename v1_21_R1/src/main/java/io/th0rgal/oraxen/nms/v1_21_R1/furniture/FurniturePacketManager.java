@@ -3,16 +3,11 @@ package io.th0rgal.oraxen.nms.v1_21_R1.furniture;
 import com.ticxo.modelengine.api.ModelEngineAPI;
 import com.ticxo.modelengine.api.generator.blueprint.ModelBlueprint;
 import io.papermc.paper.math.Position;
-import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.*;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.hitbox.BarrierHitbox;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.hitbox.InteractionHitbox;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.light.LightBlock;
 import io.th0rgal.oraxen.utils.BlockHelpers;
-import io.th0rgal.oraxen.utils.PluginUtils;
-import io.th0rgal.oraxen.utils.VersionUtil;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
@@ -35,20 +30,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 public class FurniturePacketManager implements IFurniturePacketManager {
-
-    public FurniturePacketManager() {
-        if (VersionUtil.isPaperServer()) {
-            MechanicsManager.registerListeners(OraxenPlugin.get(), "furniture", new FurniturePacketListener());
-
-            if (PluginUtils.isEnabled("AxiomPaper"))
-                MechanicsManager.registerListeners(OraxenPlugin.get(), "furniture", new AxiomCompatibility());
-
-        } else {
-            Logs.logWarning("Seems that your server is a Spigot-server");
-            Logs.logWarning("FurnitureHitboxes will not work due to it relying on Paper-only events");
-            Logs.logWarning("It is heavily recommended to make the upgrade to Paper");
-        }
-    }
 
     private final int INTERACTION_WIDTH_ID = 8;
     private final int INTERACTION_HEIGHT_ID = 9;
@@ -243,7 +224,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
             Set<LightBlock> newPositions = new HashSet<>();
             for (LightBlock lightBlock : mechanic.light().lightBlocks()) {
                 Location newLoc = lightBlock.groundRotate(baseEntity.getYaw()).add(baseEntity.getLocation());
-                lightPositions.put(Position.block(lightBlock.getX(), lightBlock.getY(), lightBlock.getZ()), lightBlock.lightData());
+                lightPositions.put(Position.block(newLoc), lightBlock.lightData());
                 newPositions.add(new LightBlock(newLoc, lightBlock.lightData()));
             }
 
