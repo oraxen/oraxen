@@ -15,7 +15,6 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.core.component.PatchedDataComponentMap;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.MinecraftServer;
@@ -42,11 +41,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import software.amazon.awssdk.services.s3.endpoints.internal.Value;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
-import java.util.Map;
 import java.util.Optional;
 
 public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
