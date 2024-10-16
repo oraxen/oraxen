@@ -5,23 +5,25 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
-import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.resource.ResourcePackInfo;
 import net.kyori.adventure.resource.ResourcePackRequest;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.entity.mime.content.ByteArrayBody;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.entity.mime.ByteArrayBody;
+import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.bukkit.entity.Player;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -93,7 +95,7 @@ public class PolymathServer implements OraxenPackServer {
                     Logs.logError("Error: " + jsonOutput.get("error").getAsString());
                 Logs.logError("Response: " + jsonOutput);
                 Logs.logError("The resource pack has not been uploaded to the server. Usually this is due to an excessive size.");
-            } catch(IllegalStateException | IOException ex) {
+            } catch(IllegalStateException | IOException | HttpException ex) {
                 Logs.logError("The resource pack has not been uploaded to the server. Usually this is due to an excessive size.");
                 if (Settings.DEBUG.toBool()) ex.printStackTrace();
                 else Logs.logWarning(ex.getMessage());
@@ -108,11 +110,14 @@ public class PolymathServer implements OraxenPackServer {
         if (!OraxenPlugin.get().packGenerator().packGenFuture.isDone()) return;
         if (uploadFuture == null || !uploadFuture.isDone()) return;
 
-        byte[] hashArray = OraxenPackServer.hashArray(hash);
-        if (VersionUtil.isPaperServer()) {
-            ResourcePackRequest request = ResourcePackRequest.resourcePackRequest().required(mandatory).replace(true).prompt(prompt)
-                    .packs(ResourcePackInfo.resourcePackInfo(packUUID, URI.create(packUrl), hash)).build();
-            player.sendResourcePacks(request);
-        } else player.setResourcePack(packUUID, packUrl, hashArray, legacyPrompt, mandatory);
+        OraxenPackServer.allPackUUIDs.add(packUUID);
+        Set<UUID> oldPackUUIDs = new HashSet<>(OraxenPackServer.allPackUUIDs);
+        oldPackUUIDs.remove(packUUID);
+
+        ResourcePackRequest request = ResourcePackRequest.resourcePackRequest()
+                .required(mandatory).replace(false).prompt(prompt)
+                .packs(ResourcePackInfo.resourcePackInfo(packUUID, URI.create(packUrl), hash)).build();
+        player.removeResourcePacks(oldPackUUIDs);
+        player.sendResourcePacks(request);
     }
 }

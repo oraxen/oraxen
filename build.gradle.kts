@@ -32,10 +32,10 @@ val spigotPluginPath = project.findProperty("oraxen_spigot_plugin_path")?.toStri
 val pluginVersion: String by project
 val commandApiVersion = "9.5.3"
 val adventureVersion = "4.17.0"
-val platformVersion = "4.3.3"
-val googleGsonVersion = "2.10.1"
-val apacheLang3Version = "3.14.0"
-val apacheHttpMimeVersion = "4.5.14"
+val platformVersion = "4.3.4"
+val googleGsonVersion = "2.11.0"
+val apacheLang3Version = "3.17.0"
+val apacheHttpClientVersion = "5.4"
 val creativeVersion = "1.7.3"
 group = "io.th0rgal"
 version = pluginVersion
@@ -93,20 +93,20 @@ allprojects {
         compileOnly("com.willfp:libreforge:4.58.1")
         compileOnly("nl.rutgerkok:blocklocker:1.12.2")
         compileOnly("org.apache.commons:commons-lang3:$apacheLang3Version")
-        compileOnly("org.apache.httpcomponents:httpmime:$apacheHttpMimeVersion")
+        compileOnly("org.apache.httpcomponents.client5:httpclient5:$apacheHttpClientVersion")
         compileOnly(files("../libs/AxiomPaper-1.5.12.jar"))
         compileOnly("team.unnamed:creative-server:$creativeVersion")
 
         implementation("team.unnamed:creative-api:$creativeVersion") { exclude("net.kyori") }
         implementation("team.unnamed:creative-serializer-minecraft:$creativeVersion") { exclude("net.kyori") }
         implementation("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
-        implementation("org.bstats:bstats-bukkit:3.0.0")
-        implementation("io.th0rgal:protectionlib:1.6.0")
-        implementation("com.github.stefvanschie.inventoryframework:IF:0.10.14")
+        implementation("org.bstats:bstats-bukkit:3.1.0")
+        implementation("io.th0rgal:protectionlib:1.6.1")
+        implementation("com.github.stefvanschie.inventoryframework:IF:0.10.17")
         implementation("com.jeff-media:custom-block-data:2.2.2")
         implementation("com.jeff-media:MorePersistentDataTypes:2.4.0")
         implementation("com.jeff-media:persistent-data-serializer:1.0")
-        implementation("org.jetbrains:annotations:24.1.0") { isTransitive = false }
+        implementation("org.jetbrains:annotations:26.0.1") { isTransitive = false }
         implementation("dev.triumphteam:triumph-gui:3.1.10") { exclude("net.kyori") }
 
         implementation("me.gabytm.util:actions-spigot:$actionsVersion") { exclude(group = "com.google.guava") }
@@ -114,7 +114,7 @@ allprojects {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.20.6-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT")
     implementation(project(path = ":core"))
     SUPPORTED_VERSIONS.forEach {
         implementation(project(path = ":${it.nmsVersion}", configuration = "reobf"))
@@ -199,14 +199,13 @@ bukkitPluginYaml {
     )
     libraries = listOf(
         "org.springframework:spring-expression:6.0.6",
-        "org.apache.httpcomponents:httpmime:4.5.13",
         "net.kyori:adventure-text-minimessage:$adventureVersion",
         "net.kyori:adventure-text-serializer-plain:$adventureVersion",
         "net.kyori:adventure-text-serializer-ansi:$adventureVersion",
         "net.kyori:adventure-platform-bukkit:$platformVersion",
         "com.google.code.gson:gson:$googleGsonVersion",
         "org.apache.commons:commons-lang3:$apacheLang3Version",
-        "org.apache.httpcomponents:httpmime:$apacheHttpMimeVersion",
+        "org.apache.httpcomponents.client5:httpclient5:$apacheHttpClientVersion",
         "gs.mclo:java:2.2.1",
         "team.unnamed:creative-server:$creativeVersion",
     )

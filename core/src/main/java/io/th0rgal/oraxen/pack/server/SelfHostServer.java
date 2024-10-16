@@ -3,7 +3,6 @@ package io.th0rgal.oraxen.pack.server;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.resource.ResourcePackInfo;
 import net.kyori.adventure.resource.ResourcePackRequest;
 import org.bukkit.entity.Player;
@@ -39,11 +38,13 @@ public class SelfHostServer implements OraxenPackServer {
         }
     }
 
+    private byte[] builtPackArray = null;
     private final ResourcePackRequestHandler handler = (request, exchange) -> {
         Writable packData = OraxenPlugin.get().packGenerator().builtPack().data();
+        if (builtPackArray == null) builtPackArray = packData.toByteArray();
         exchange.getResponseHeaders().put("Content-Type", Collections.singletonList("application/zip"));
-        exchange.sendResponseHeaders(200, packData.toByteArray().length);
-        exchange.getResponseBody().write(packData.toByteArray());
+        exchange.sendResponseHeaders(200, builtPackArray.length);
+        exchange.getResponseBody().write(builtPackArray);
     };
 
     @Override
@@ -64,12 +65,11 @@ public class SelfHostServer implements OraxenPackServer {
             Set<UUID> oldPackUUIDs = new HashSet<>(OraxenPackServer.allPackUUIDs);
             oldPackUUIDs.remove(packUUID);
 
-            Audience audience = OraxenPlugin.get().audience().player(player);
             ResourcePackRequest request = ResourcePackRequest.resourcePackRequest()
                     .required(mandatory).replace(false).prompt(prompt)
                     .packs(ResourcePackInfo.resourcePackInfo(packUUID, URI.create(url), hash)).build();
-            audience.removeResourcePacks(oldPackUUIDs);
-            audience.sendResourcePacks(request);
+            player.removeResourcePacks(oldPackUUIDs);
+            player.sendResourcePacks(request);
         });
     }
 
