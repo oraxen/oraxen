@@ -18,9 +18,11 @@ public class SoundManager {
 
     public SoundManager(YamlConfiguration soundConfig) {
         generateSounds = soundConfig.getBoolean("settings.generate_sounds");
-        customSoundRegistries = generateSounds
-                ? parseCustomSounds(Objects.requireNonNull(soundConfig.getConfigurationSection("sounds")))
-                : new ArrayList<>();
+        if (generateSounds) {
+            ConfigurationSection soundsSection = soundConfig.getConfigurationSection("sounds");
+            if (soundsSection != null) customSoundRegistries = parseCustomSounds(soundsSection);
+            else customSoundRegistries = Collections.emptyList();
+        } else customSoundRegistries = Collections.emptyList();
     }
 
     public Collection<SoundRegistry> parseCustomSounds(ConfigurationSection section) {
