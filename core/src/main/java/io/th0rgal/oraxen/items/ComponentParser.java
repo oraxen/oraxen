@@ -81,8 +81,8 @@ public class ComponentParser {
         if (toolSection == null) return;
 
         ToolComponent toolComponent = new ItemStack(Material.PAPER).getItemMeta().getTool();
-        toolComponent.setDamagePerBlock(Math.min(toolSection.getInt("damage_per_block", 1), 0));
-        toolComponent.setDefaultMiningSpeed(Math.min((float) toolSection.getDouble("default_mining_speed", 1.0), 0f));
+        toolComponent.setDamagePerBlock(Math.max(toolSection.getInt("damage_per_block", 1), 0));
+        toolComponent.setDefaultMiningSpeed(Math.max((float) toolSection.getDouble("default_mining_speed", 1.0), 0f));
 
         for (Map<?, ?> ruleEntry : toolSection.getMapList("rules")) {
             float speed = ParseUtils.parseFloat(String.valueOf(ruleEntry.get("speed")), 1.0f);
