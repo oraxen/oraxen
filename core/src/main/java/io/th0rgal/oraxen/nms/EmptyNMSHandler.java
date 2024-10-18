@@ -56,4 +56,9 @@ public class EmptyNMSHandler implements NMSHandler {
     public String getNoteBlockInstrument(Block block) {
         return "block.note_block.harp";
     }
+
+    @Override
+    public int mcmetaVersion() {
+        return 34;
+    }
 }
