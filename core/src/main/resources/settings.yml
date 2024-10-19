@@ -238,6 +238,8 @@ Misc:
   hide_scoreboard_numbers: false
   # This will hide the background of scoreboards
   hide_scoreboard_background: false
+  # This will hide the background of the tablist (1.21+ only)
+  hide_tablist_background: false
 
   # All blocks with an inventory or any blocks that when right clicked shouldn't equip armor.
   armor_equip_event_bypass:
