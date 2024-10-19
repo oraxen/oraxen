@@ -182,8 +182,13 @@ public class ItemUpdater implements Listener {
             itemMeta.setCustomModelData(cmd);
 
             // If OraxenItem has no lore, we should assume that 3rd-party plugin has added lore
-            if (Settings.OVERRIDE_ITEM_LORE.toBool()) itemMeta.setLore(newMeta.getLore());
-            else itemMeta.setLore(oldMeta.getLore());
+            if (Settings.OVERRIDE_ITEM_LORE.toBool()) {
+                if (VersionUtil.isPaperServer()) itemMeta.lore(newMeta.lore());
+                else itemMeta.setLore(newMeta.getLore());
+            } else {
+                if (VersionUtil.isPaperServer()) itemMeta.lore(oldMeta.lore());
+                else itemMeta.setLore(oldMeta.getLore());
+            }
 
             // Only change AttributeModifiers if the new item has some
             if (newMeta.hasAttributeModifiers()) itemMeta.setAttributeModifiers(newMeta.getAttributeModifiers());
