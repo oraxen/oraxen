@@ -69,11 +69,11 @@ public class FurnitureSeat {
     public static void sitOnSeat(ItemDisplay baseEntity, Player player, Location interactionPoint) {
         updateLegacySeats(baseEntity);
         Location centeredLoc = BlockHelpers.toCenterLocation(interactionPoint);
-        List<Entity> seats = new ArrayList<>(baseEntity.getPersistentDataContainer()
+        baseEntity.getPersistentDataContainer()
                 .getOrDefault(SEAT_KEY, DataType.asList(DataType.UUID), List.of())
-                .stream().map(Bukkit::getEntity).filter(e -> e instanceof Interaction).toList());
-        seats.sort(Comparator.comparingDouble(e -> centeredLoc.distanceSquared(e.getLocation())));
-        seats.stream().findFirst().ifPresent(seat -> seat.addPassenger(player));
+                .stream().map(Bukkit::getEntity).filter(e -> e instanceof Interaction && e.getPassengers().isEmpty())
+                .min(Comparator.comparingDouble(e -> centeredLoc.distanceSquared(e.getLocation())))
+                .ifPresent(seat -> seat.addPassenger(player));
     }
 
     private Vector rotateOffset(float angle) {
