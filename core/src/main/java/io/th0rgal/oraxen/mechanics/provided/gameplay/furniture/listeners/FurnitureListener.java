@@ -137,15 +137,16 @@ public class FurnitureListener implements Listener {
         ItemStack itemStack = event.getItem();
         Material type = Optional.ofNullable(itemStack).map(ItemStack::getType).orElse(Material.AIR);
         boolean isItemFrame = type.name().contains("ITEM_FRAME"), isArmorStand = type.name().contains("ARMOR_STAND");
+        boolean isPainting = type.name().contains("PAINTING");
 
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK || itemStack == null || block == null) return;
-        if (!itemStack.getType().isBlock() && !isItemFrame && !isArmorStand) return;
+        if (!itemStack.getType().isBlock() && !isItemFrame && !isArmorStand && !isPainting) return;
 
         ItemDisplay baseEntity = FurnitureFactory.instance.packetManager().baseEntityFromHitbox(new BlockLocation(block.getLocation()));
         if (baseEntity == null) return;
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
         if (mechanic == null) return;
-        if (itemStack.getType().hasGravity() || isItemFrame || isArmorStand) {
+        if (itemStack.getType().hasGravity() || isItemFrame || isArmorStand || isPainting) {
             event.setUseItemInHand(Event.Result.DENY);
             player.updateInventory();
             return;
@@ -154,8 +155,8 @@ public class FurnitureListener implements Listener {
 
         // Since the server-side block is AIR by default, placing blocks acts weird
         // Temporarily set the block to a barrier, then schedule a task to revert it next tick and resend hitboxes
-        block.setType(Material.BARRIER);
-        Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () -> block.setType(Material.AIR));
+        block.setType(Material.BARRIER, false);
+        Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () -> block.setType(Material.AIR, false));
         Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () ->
                 FurnitureFactory.instance.packetManager().sendBarrierHitboxPacket(baseEntity, mechanic, player),2L
         );
