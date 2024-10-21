@@ -9,8 +9,8 @@ import kotlin.io.path.listDirectoryEntries
 plugins {
     id("java")
     //id("com.github.johnrengelman.shadow") version "8.1.1"
-    id("xyz.jpenilla.run-paper") version "2.2.4"
-    id("xyz.jpenilla.resource-factory-bukkit-convention") version "1.1.1" // Generates plugin.yml based on the Gradle config
+    id("xyz.jpenilla.run-paper") version "2.3.1"
+    id("net.minecrell.plugin-yml.bukkit") version "1.1.1" // Generates plugin.yml
     id("io.papermc.paperweight.userdev") version "1.7.2" apply false
     id("com.gradleup.shadow") version "8.3.0"
     alias(idofrontLibs.plugins.mia.publication)
@@ -101,8 +101,8 @@ allprojects {
         implementation("team.unnamed:creative-serializer-minecraft:$creativeVersion") { exclude("net.kyori") }
         implementation("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
         implementation("org.bstats:bstats-bukkit:3.1.0")
-        implementation("io.th0rgal:protectionlib:1.6.1")
-        implementation("com.github.stefvanschie.inventoryframework:IF:0.10.17")
+        implementation("io.th0rgal:protectionlib:1.6.2")
+        implementation("com.github.stefvanschie.inventoryframework:IF:0.10.12")
         implementation("com.jeff-media:custom-block-data:2.2.2")
         implementation("com.jeff-media:MorePersistentDataTypes:2.4.0")
         implementation("com.jeff-media:persistent-data-serializer:1.0")

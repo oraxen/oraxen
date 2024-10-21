@@ -114,8 +114,7 @@ public class PackGenerator {
             parseLanguageFiles();
 
             if (Settings.CUSTOM_ARMOR_ENABLED.toBool()) customArmorDatapack.generateTrimAssets();
-            if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) hideScoreboardNumbers();
-            if (Settings.HIDE_SCOREBOARD_BACKGROUND.toBool()) hideScoreboardBackground();
+            handleScoreboardTablist();
 
             removeExcludedFileExtensions();
             sortModelOverrides();
@@ -213,12 +212,7 @@ public class PackGenerator {
         }
     }
 
-    private void hideScoreboardNumbers() {
-        resourcePack.unknownFile("assets/minecraft/shaders/core/rendertype_text.json", ShaderUtils.ScoreboardNumbers.json());
-        resourcePack.unknownFile("assets/minecraft/shaders/post/deferred_text.vsh", ShaderUtils.ScoreboardNumbers.vsh());
-    }
-
-    private void hideScoreboardBackground() {
+    private void handleScoreboardTablist() {
         resourcePack.unknownFile("assets/minecraft/shaders/core/rendertype_gui.vsh", ShaderUtils.ScoreboardBackground.modernFile());
     }
 

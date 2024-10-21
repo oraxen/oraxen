@@ -80,6 +80,7 @@ public enum Settings {
     ADD_RECIPES_TO_BOOK("Misc.add_recipes_to_book", true),
     HIDE_SCOREBOARD_NUMBERS("Misc.hide_scoreboard_numbers", false),
     HIDE_SCOREBOARD_BACKGROUND("Misc.hide_scoreboard_background", false),
+    HIDE_TABLIST_BACKGROUND("Misc.hide_tablist_background"),
 
     //Pack
     PACK_GENERATE("Pack.generation.generate", true),

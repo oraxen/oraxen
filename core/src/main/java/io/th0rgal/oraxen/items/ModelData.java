@@ -44,17 +44,14 @@ public class ModelData {
     }
 
     public static int generateId(Key model, Material type) {
-        Map<Key, Integer> usedModelDatas;
+        Map<Key, Integer> usedModelDatas = new HashMap<>();
         if (!DATAS.containsKey(type) && !getSkippedCustomModelData(type).contains(STARTING_CMD)) {
-            usedModelDatas = new HashMap<>();
             usedModelDatas.put(model, STARTING_CMD);
             DATAS.put(type, usedModelDatas);
             return STARTING_CMD;
-        } else usedModelDatas = DATAS.get(type);
+        } else usedModelDatas = DATAS.getOrDefault(type, new HashMap<>());
 
-        if (usedModelDatas.containsKey(model)) {
-            return usedModelDatas.get(model);
-        }
+        if (usedModelDatas.containsKey(model)) return usedModelDatas.get(model);
 
         int currentHighestModelData = Collections.max(usedModelDatas.values());
         for (int i = STARTING_CMD; i < currentHighestModelData; i++) {

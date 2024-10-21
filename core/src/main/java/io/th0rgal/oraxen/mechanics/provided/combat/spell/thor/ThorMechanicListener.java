@@ -30,7 +30,12 @@ public class ThorMechanicListener implements Listener {
         String itemID = OraxenItems.getIdByItem(item);
         ThorMechanic mechanic = factory.getMechanic(item);
         Block block = event.getClickedBlock();
-        Location targetBlock = player.getTargetBlock(null, 50).getLocation();
+        Location targetBlock;
+        try {
+            targetBlock = player.getTargetBlock(null, 50).getLocation();
+        } catch (Exception e) {
+            return;
+        }
 
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (event.useItemInHand() == Event.Result.DENY) return;
