@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.pack;
 import com.ticxo.modelengine.api.ModelEngineAPI;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.events.OraxenPack;
+import io.th0rgal.oraxen.api.events.resourcepack.OraxenPackUploadEvent;
 import io.th0rgal.oraxen.api.events.resourcepack.OraxenPostPackGenerateEvent;
 import io.th0rgal.oraxen.api.events.resourcepack.OraxenPrePackGenerateEvent;
 import io.th0rgal.oraxen.compatibilities.provided.modelengine.ModelEngineCompatibility;
@@ -135,6 +136,7 @@ public class PackGenerator {
         }).thenRunAsync(() -> {
             Logs.logSuccess("Finished generating resourcepack!", true);
             OraxenPlugin.get().packServer().uploadPack().thenRun(() -> {
+                Bukkit.getScheduler().callSyncMethod(OraxenPlugin.get(), () -> EventUtils.callEvent(new OraxenPackUploadEvent(builtPack, OraxenPlugin.get().packServer().packUrl())));
                 NMSHandlers.getHandler().setServerResourcePack();
                 if (Settings.PACK_SEND_RELOAD.toBool()) for (Player player : Bukkit.getOnlinePlayers())
                     OraxenPlugin.get().packServer().sendPack(player);
