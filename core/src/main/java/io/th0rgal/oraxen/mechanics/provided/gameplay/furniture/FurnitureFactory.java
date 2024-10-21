@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.scheduler.AdaptedTask;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
@@ -75,16 +76,16 @@ public class FurnitureFactory extends MechanicFactory {
         if (evolvingFurnitures)
             return;
         if (evolutionTask != null)
-            evolutionTask.cancel();
+            evolutionTask.getAdaptedTask().cancel();
         evolutionTask = new EvolutionTask(this, evolutionCheckDelay);
-        BukkitTask task = evolutionTask.runTaskTimer(OraxenPlugin.get(), 0, evolutionCheckDelay);
+        AdaptedTask task = evolutionTask.runTaskTimer(0, evolutionCheckDelay);
         MechanicsManager.registerTask(getMechanicID(), task);
         evolvingFurnitures = true;
     }
 
     public static void unregisterEvolution() {
         if (evolutionTask != null)
-            evolutionTask.cancel();
+            evolutionTask.getAdaptedTask().cancel();
     }
 
     @Override

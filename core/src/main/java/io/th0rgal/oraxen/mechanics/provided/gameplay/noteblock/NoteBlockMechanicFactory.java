@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock;
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
+import io.th0rgal.oraxen.api.scheduler.AdaptedTask;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
@@ -21,7 +22,6 @@ import org.bukkit.block.Block;
 import org.bukkit.block.data.type.NoteBlock;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.HashMap;
 import java.util.List;
@@ -251,7 +251,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
 
     public void registerFarmBlock() {
         if (farmBlock) return;
-        if (farmBlockTask != null) farmBlockTask.cancel();
+        if (farmBlockTask != null) farmBlockTask.getAdaptedTask().cancel();
 
 //        // Dont register if there is no farmblocks in configs
 //        List<String> farmblockList = new ArrayList<>();
@@ -264,7 +264,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
 //        if (farmblockList.isEmpty()) return;
 
         farmBlockTask = new FarmBlockTask(farmBlockCheckDelay);
-        BukkitTask task = farmBlockTask.runTaskTimer(OraxenPlugin.get(), 0, farmBlockCheckDelay);
+        AdaptedTask task = farmBlockTask.runTaskTimer(0, farmBlockCheckDelay);
         MechanicsManager.registerTask(getMechanicID(), task);
         farmBlock = true;
     }

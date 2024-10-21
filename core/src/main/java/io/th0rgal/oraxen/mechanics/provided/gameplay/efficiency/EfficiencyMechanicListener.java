@@ -44,13 +44,13 @@ public class EfficiencyMechanicListener extends PacketAdapter {
             type = EnumWrappers.PlayerDigType.SWAP_HELD_ITEMS;
         }
         if (type == EnumWrappers.PlayerDigType.START_DESTROY_BLOCK)
-            Bukkit.getScheduler().runTask(OraxenPlugin.get(), () ->
+            OraxenPlugin.get().getScheduler().runTask(() ->
                     player.addPotionEffect(new PotionEffect(mechanic.getType(),
                             20 * 60 * 5,
                             mechanic.getAmount() - 1,
                             false, false, false)));
         else
-            Bukkit.getScheduler().runTask(OraxenPlugin.get(), () ->
+            OraxenPlugin.get().getScheduler().runTask(() ->
                     player.removePotionEffect(mechanic.getType()));
     }
 
