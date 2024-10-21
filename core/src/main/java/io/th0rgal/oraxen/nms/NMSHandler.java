@@ -30,6 +30,7 @@ public interface NMSHandler {
     boolean tripwireUpdatesDisabled();
 
     int playerProtocolVersion(Player player);
+    int mcmetaVersion();
 
     /**
      * Copies over all NBT-Tags from oldItem to newItem
@@ -115,6 +116,11 @@ public interface NMSHandler {
         @Override
         public String getNoteBlockInstrument(Block block) {
             return "block.note_block.harp";
+        }
+
+        @Override
+        public int mcmetaVersion() {
+            return 34;
         }
     }
 
