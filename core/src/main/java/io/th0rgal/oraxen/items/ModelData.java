@@ -29,13 +29,12 @@ public class ModelData {
     }
 
     public static int generateId(String model, Material type) {
-        Map<String, Integer> usedModelDatas;
+        Map<String, Integer> usedModelDatas = new HashMap<>();
         if (!DATAS.containsKey(type) && !getSkippedCustomModelData().contains(STARTING_CMD)) {
-            usedModelDatas = new HashMap<>();
             usedModelDatas.put(model, STARTING_CMD);
             DATAS.put(type, usedModelDatas);
             return STARTING_CMD;
-        } else usedModelDatas = DATAS.get(type);
+        } else usedModelDatas = DATAS.getOrDefault(type, new HashMap<>());
 
         if (usedModelDatas.containsKey(model)) {
             return usedModelDatas.get(model);

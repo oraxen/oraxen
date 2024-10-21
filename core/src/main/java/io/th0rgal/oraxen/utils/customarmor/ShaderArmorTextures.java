@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.lang3.StringUtils;
@@ -313,7 +314,7 @@ public class ShaderArmorTextures {
         return getInputStream(layer2Width, layer2Height, layer2, layers2);
     }
 
-    private final String OPTIFINE_ARMOR_PATH = "assets/minecraft/optifine/cit/armors/";
+    private final String OPTIFINE_ARMOR_PATH = "assets/minecraft/optifine/%s/armors/".formatted(VersionUtil.atOrAbove("1.21") ? "cit_single" : "cit");
     private final String OPTIFINE_ARMOR_ANIMATION_PATH = "assets/minecraft/optifine/anim/";
 
     private InputStream rescaleArmorImage(File original) {

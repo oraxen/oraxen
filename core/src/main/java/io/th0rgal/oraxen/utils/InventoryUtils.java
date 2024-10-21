@@ -72,7 +72,7 @@ public class InventoryUtils {
     public static Inventory topInventoryForPlayer(Player player) {
         if (VersionUtil.atOrAbove("1.21")) return player.getOpenInventory().getTopInventory();
         try {
-            return (Inventory) topInventoryMethod.invoke(player);
+            return (Inventory) topInventoryMethod.invoke(player.getOpenInventory());
         } catch (Exception e) {
             if (Settings.DEBUG.toBool()) e.printStackTrace();
             return player.getInventory();
