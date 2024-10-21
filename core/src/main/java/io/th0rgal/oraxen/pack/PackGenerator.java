@@ -21,6 +21,7 @@ import net.kyori.adventure.key.Key;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import team.unnamed.creative.BuiltResourcePack;
 import team.unnamed.creative.ResourcePack;
 import team.unnamed.creative.base.Writable;
@@ -48,7 +49,7 @@ public class PackGenerator {
     private static final Path assetsFolder = OraxenPlugin.get().packPath().resolve("assets");
     private final PackDownloader packDownloader;
     @NotNull private ResourcePack resourcePack = ResourcePack.resourcePack();
-    private BuiltResourcePack builtPack;
+    private BuiltResourcePack builtPack = null;
     private final CustomArmorDatapack customArmorDatapack;
     private final ModelGenerator modelGenerator;
     public CompletableFuture<Void> packGenFuture;
@@ -159,6 +160,7 @@ public class PackGenerator {
         this.resourcePack = resourcePack;
     }
 
+    @Nullable
     public BuiltResourcePack builtPack() {
         return builtPack;
     }

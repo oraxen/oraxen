@@ -3,6 +3,8 @@ package io.th0rgal.oraxen.api.events;
 import io.th0rgal.oraxen.OraxenPlugin;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import team.unnamed.creative.BuiltResourcePack;
 import team.unnamed.creative.ResourcePack;
 import team.unnamed.creative.atlas.Atlas;
 import team.unnamed.creative.base.Writable;
@@ -27,6 +29,11 @@ public class OraxenPack {
 
     public static ResourcePack resourcePack() {
         return OraxenPlugin.get().packGenerator().resourcePack();
+    }
+
+    @Nullable
+    public static BuiltResourcePack builtResourcePack() {
+        return OraxenPlugin.get().packGenerator().builtPack();
     }
 
     public static void mergePackFromZip(@NotNull File zipFile) {
