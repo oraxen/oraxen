@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.font.packets;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.*;
+import com.comphenix.protocol.wrappers.WrappedChatComponent;
 import com.comphenix.protocol.wrappers.WrappedNumberFormat;
 import io.th0rgal.oraxen.OraxenPlugin;
 
@@ -13,7 +14,7 @@ public class ScoreboardPacketListener extends PacketAdapter {
         super(OraxenPlugin.get(), ListenerPriority.MONITOR, PacketType.Play.Server.SCOREBOARD_OBJECTIVE);
     }
 
-    private final Optional<InternalStructure> numberFormat = Optional.of(InternalStructure.getConverter().getSpecific(WrappedNumberFormat.blank().getHandle()));
+    private final Optional<InternalStructure> numberFormat = Optional.of(InternalStructure.getConverter().getSpecific(WrappedNumberFormat.fixed(WrappedChatComponent.fromText("test")).getHandle()));
     @Override
     public void onPacketSending(PacketEvent event) {
         PacketContainer packet = event.getPacket();

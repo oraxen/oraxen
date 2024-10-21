@@ -10,12 +10,12 @@ general:
   pack_uploaded: "<prefix><#55ffa4>Pack de ressources téléversé à l'url <url> en <delay> ms"
   pack_regenerated: "<prefix><#55ffa4>Pack de ressources régénéré avec succès"
   updating_config: "<prefix><#facc43>Option de configuration \"<option>\" introuvable, ajout en cours !"
-  removing_config: "<prefix><#facc43>Option de configuration "<option>" a été marquée pour suppression, la supprimer !"
+  removing_config: "<prefix><#facc43>Option de configuration \"<option>\" a été marquée pour suppression, la supprimer !"
   configs_validation_failed: "<prefix><#fa4943>Échec de la validation des configurations, plugin automatiquement désactivé !"
   repaired_items: "<prefix><#55ffa4><amount> item(s) ont été réparés avec succès !"
   cannot_be_repaired: "<prefix><#fa4943>Cet item ne peut pas être réparé !"
   cannot_be_repaired_invalid: "<prefix><#fa4943>Vous devez tenir un item valide dans votre main !"
-  updated_items: "<prefix><#55ffa4><amount> item(s) were successfully updated for <player>!"
+  updated_items: "<prefix><#55ffa4><amount> item(s) ont été mis à jour pour <player>!"
   zip_browse_error: "<prefix><#fa4943>Une erreur s'est produite en parcourant le zip"
   bad_recipe: "<prefix><#fa4943>La recette \"<recipe>\" n'est pas valide, veuillez vous assurer que tous ses ingrédients existent dans votre config"
   item_not_found: "<prefix><#fa4943>Item \"<item>\" introuvable"
@@ -24,7 +24,7 @@ general:
   not_enough_exp: "<prefix><#fa4943>Vous avez besoin de plus d'expérience pour faire ceci"
   not_enough_space: "<prefix><#fa4943>Vous avez besoin de plus de place pour placer cet équipement"
   exit_menu: "<gradient:#FA7CBB:#F14658>Quitter"
-  no_emojis: "<prefix><#fa4943>No emojis found"
+  no_emojis: "<prefix><#fa4943>Aucun émoji trouvé"
 
 logs:
   loaded: "<prefix><#55ffa4>Chargé avec succès sur <os>"
@@ -78,14 +78,14 @@ command:
     failed: "<prefix><#fa4943>Cet item ne peut pas changer de couleur !"
 
   hud: #If someone could translate this, I would be very happy!
-    no_hud: "<prefix><#fa4943>There is no HUD by the name '<hud_id>'!"
-    toggle_on: "<prefix><#55ffa4>Toggled '<hud_id>' on!"
-    toggle_off: "<prefix><#fa4943>Toggled '<hud_id>' off!"
+    no_hud: "<prefix><#fa4943>Il n'y pas d'ATH pour l'id '<hud_id>'!"
+    toggle_on: "<prefix><#55ffa4>L'ATH '<hud_id>' a été basculé sur activé!"
+    toggle_off: "<prefix><#fa4943>L'ATH '<hud_id>' a été basculé sur désactivé!"
 
-  debug.toggle: "<prefix><#55ffa4>Debug mode is now <#43fa8c><state><#55ffa4>!"
-  version: "<prefix><#55ffa4>Oraxen version: <#43fa8c><version><#55ffa4>!"
+  debug.toggle: "<prefix><#55ffa4>Mode de débogage basculé sur <#43fa8c><state><#55ffa4>!"
+  version: "<prefix><#55ffa4>Version d'Oraxen: <#43fa8c><version><#55ffa4>!"
 
 mechanics:
   not_enough_exp: "<prefix><#fa4943>Vous avez besoin de plus d'expérience pour faire ceci"
-  backpack_stacked: "<prefix><#fa4943>Cannot open stacked backpack"
+  backpack_stacked: "<prefix><#fa4943>Impossible d'ouvrir un sac à dos empilé"
   jukebox_now_playing: "<dark_purple>Lecture en cours <disc>"

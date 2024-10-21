@@ -79,7 +79,7 @@ allprojects {
         compileOnly("net.kyori:adventure-text-serializer-plain:$adventureVersion")
         compileOnly("net.kyori:adventure-text-serializer-ansi:$adventureVersion")
         compileOnly("net.kyori:adventure-platform-bukkit:$platformVersion")
-        compileOnly("com.comphenix.protocol:ProtocolLib:5.3.0-SNAPSHOT")
+        compileOnly("com.comphenix.protocol:ProtocolLib:5.3.0")
         compileOnly("me.clip:placeholderapi:2.11.6")
         compileOnly("me.gabytm.util:actions-core:$actionsVersion")
         compileOnly("org.springframework:spring-expression:6.0.6")
@@ -103,7 +103,7 @@ allprojects {
 
         implementation("team.unnamed:creative-api:1.7.3") { exclude("net.kyori") }
         implementation("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
-        implementation("io.th0rgal:protectionlib:1.6.1")
+        implementation("io.th0rgal:protectionlib:1.6.2")
         implementation(files("../libs/compile/IF-0.10.17.jar"))
         implementation("com.jeff-media:MorePersistentDataTypes:2.4.0")
         implementation("com.jeff-media:persistent-data-serializer:1.0")
