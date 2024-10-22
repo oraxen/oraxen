@@ -6,6 +6,7 @@ import io.papermc.paper.event.player.PlayerUntrackEntityEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.events.OraxenNativeMechanicsRegisteredEvent;
+import io.th0rgal.oraxen.api.events.furniture.OraxenFurnitureBreakEvent;
 import io.th0rgal.oraxen.api.events.furniture.OraxenFurnitureInteractEvent;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
@@ -91,9 +92,10 @@ public class FurniturePacketListener implements Listener {
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
         if (mechanic == null || FurnitureSeat.isSeat(baseEntity)) return;
 
-        if (ProtectionLib.canBreak(player, baseEntity.getLocation()) && event.isAttack())
+        if (ProtectionLib.canBreak(player, baseEntity.getLocation()) && event.isAttack()) {
             OraxenFurniture.remove(baseEntity, player);
-        else if (ProtectionLib.canInteract(player, baseEntity.getLocation()))
+            EventUtils.callEvent(new OraxenFurnitureBreakEvent(mechanic, baseEntity, player, null));
+        } else if (ProtectionLib.canInteract(player, baseEntity.getLocation()))
             EventUtils.callEvent(new OraxenFurnitureInteractEvent(mechanic, baseEntity, player, itemInHand, hand, interactionPoint));
     }
 
@@ -113,9 +115,10 @@ public class FurniturePacketListener implements Listener {
 
         if (action == Action.RIGHT_CLICK_BLOCK && ProtectionLib.canInteract(player, baseEntity.getLocation()))
             EventUtils.callEvent(new OraxenFurnitureInteractEvent(mechanic, baseEntity, player, event.getItem(), event.getHand(), interactionPoint));
-        else if (action == Action.LEFT_CLICK_BLOCK && ProtectionLib.canBreak(player, baseEntity.getLocation()))
+        else if (action == Action.LEFT_CLICK_BLOCK && ProtectionLib.canBreak(player, baseEntity.getLocation())) {
             OraxenFurniture.remove(baseEntity, player);
-
+            EventUtils.callEvent(new OraxenFurnitureBreakEvent(mechanic, baseEntity, player, event.getClickedBlock()));
+        }
         // Resend the hitbox as client removes the "ghost block"
         Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->
                 FurnitureFactory.instance.packetManager().sendBarrierHitboxPacket(baseEntity, mechanic, player), 1L);
