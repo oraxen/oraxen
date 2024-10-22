@@ -4,6 +4,7 @@ import com.comphenix.protocol.ProtocolLibrary;
 import com.google.gson.*;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.api.events.OraxenPackCreateEvent;
 import io.th0rgal.oraxen.api.events.OraxenPackGeneratedEvent;
 import io.th0rgal.oraxen.config.ResourcesManager;
 import io.th0rgal.oraxen.config.Settings;
@@ -144,15 +145,18 @@ public class ResourcePack {
         Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () -> {
             OraxenPackGeneratedEvent event = new OraxenPackGeneratedEvent(output);
             EventUtils.callEvent(event);
-            ZipUtils.writeZipFile(pack, event.getOutput());
-
-            UploadManager uploadManager = OraxenPlugin.get().getUploadManager();
-            if (uploadManager != null) { // If the uploadManager isnt null, this was triggered by a pack-reload
-                uploadManager.uploadAsyncAndSendToPlayers(OraxenPlugin.get().getResourcePack(), true, true);
-            } else { // Otherwise this is was triggered on server-startup
-                uploadManager = new UploadManager(OraxenPlugin.get());
-                OraxenPlugin.get().setUploadManager(uploadManager);
-                uploadManager.uploadAsyncAndSendToPlayers(OraxenPlugin.get().getResourcePack(), false, false);
+            boolean zipCreated = ZipUtils.writeZipFile(pack, event.getOutput());
+            if (zipCreated) {
+                OraxenPackCreateEvent packCreateEvent = new OraxenPackCreateEvent(output);
+                EventUtils.callEvent(packCreateEvent);
+                UploadManager uploadManager = OraxenPlugin.get().getUploadManager();
+                if (uploadManager != null) { // If the uploadManager isnt null, this was triggered by a pack-reload
+                    uploadManager.uploadAsyncAndSendToPlayers(OraxenPlugin.get().getResourcePack(), true, true);
+                } else { // Otherwise this is was triggered on server-startup
+                    uploadManager = new UploadManager(OraxenPlugin.get());
+                    OraxenPlugin.get().setUploadManager(uploadManager);
+                    uploadManager.uploadAsyncAndSendToPlayers(OraxenPlugin.get().getResourcePack(), false, false);
+                }
             }
         });
     }

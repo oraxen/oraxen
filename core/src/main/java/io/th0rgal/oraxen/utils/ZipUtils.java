@@ -20,7 +20,7 @@ public class ZipUtils {
     private ZipUtils() {
     }
 
-    public static void writeZipFile(final File outputFile,
+    public static boolean writeZipFile(final File outputFile,
                                     final List<VirtualFile> fileList) {
 
         try (final FileOutputStream fos = new FileOutputStream(outputFile);
@@ -31,9 +31,10 @@ public class ZipUtils {
             for (final VirtualFile file : fileList) {
                 addToZip(file.getPath(), file.getInputStream(), zos);
             }
-
+            return true;
         } catch (final IOException | NoSuchFieldException | IllegalAccessException ex) {
             ex.printStackTrace();
+            return false;
         }
     }
 
