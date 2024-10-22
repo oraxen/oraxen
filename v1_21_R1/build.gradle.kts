@@ -1,7 +1,7 @@
 plugins {
     id("java")
-    id("io.papermc.paperweight.userdev") version "1.7.2"
-    id("com.gradleup.shadow") version "8.3.0"
+    id("io.papermc.paperweight.userdev") version "1.7.3"
+    id("com.gradleup.shadow") version "8.3.3"
 }
 
 repositories {
