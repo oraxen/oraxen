@@ -8,10 +8,7 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
-import io.th0rgal.oraxen.utils.AdventureUtils;
-import io.th0rgal.oraxen.utils.PotionUtils;
-import io.th0rgal.oraxen.utils.Utils;
-import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import org.apache.commons.lang3.StringUtils;
@@ -23,6 +20,7 @@ import org.bukkit.Tag;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.EnchantmentWrapper;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemRarity;
@@ -69,7 +67,7 @@ public class ItemParser {
         if (material == null) material = usesTemplate() ? templateItem.type : Material.PAPER;
         type = material;
 
-        oraxenMeta = new OraxenMeta();
+        oraxenMeta = templateItem != null ? templateItem.oraxenMeta : new OraxenMeta();
         if (section.isConfigurationSection("Pack")) {
             ConfigurationSection packSection = section.getConfigurationSection("Pack");
             oraxenMeta.setPackInfos(packSection);
@@ -135,6 +133,7 @@ public class ItemParser {
     }
 
     private void parseDataComponents(ItemBuilder item) {
+        ConfigurationSection section = mergeWithTemplateSection();
         if (section.contains("itemname") && VersionUtil.atOrAbove("1.20.5")) item.setItemName(section.getString("itemname"));
         else if (section.contains("displayname")) item.setItemName(section.getString("displayname"));
 
@@ -267,6 +266,7 @@ public class ItemParser {
     }
 
     private void parseMiscOptions(ItemBuilder item) {
+        ConfigurationSection section = mergeWithTemplateSection();
         oraxenMeta.setNoUpdate(section.getBoolean("no_auto_update", false));
         oraxenMeta.setDisableEnchanting(section.getBoolean("disable_enchanting", false));
         oraxenMeta.setExcludedFromInventory(section.getBoolean("excludeFromInventory", false));
@@ -278,7 +278,7 @@ public class ItemParser {
 
     @SuppressWarnings({"unchecked", "deprecation"})
     private void parseVanillaSections(ItemBuilder item) {
-
+        ConfigurationSection section = mergeWithTemplateSection();
         if (section.contains("ItemFlags")) {
             List<String> itemFlags = section.getStringList("ItemFlags");
             for (String itemFlag : itemFlags)
@@ -341,8 +341,8 @@ public class ItemParser {
     }
 
     private void parseOraxenSections(ItemBuilder item) {
-
-        ConfigurationSection mechanicsSection = section.getConfigurationSection("Mechanics");
+        ConfigurationSection merged = mergeWithTemplateSection();
+        ConfigurationSection mechanicsSection = merged.getConfigurationSection("Mechanics");
         if (mechanicsSection != null) for (String mechanicID : mechanicsSection.getKeys(false)) {
             MechanicFactory factory = MechanicsManager.getMechanicFactory(mechanicID);
 
@@ -365,11 +365,22 @@ public class ItemParser {
                 customModelData = ModelData.generateId(oraxenMeta.getModelName(), type);
                 configUpdated = true;
                 if (!Settings.DISABLE_AUTOMATIC_MODEL_DATA.toBool())
-                    section.getConfigurationSection("Pack").set("custom_model_data", customModelData);
+                    Optional.ofNullable(section.getConfigurationSection("Pack"))
+                            .ifPresent(c -> c.set("custom_model_data", customModelData));
             }
             item.setCustomModelData(customModelData);
             oraxenMeta.setCustomModelData(customModelData);
         }
+    }
+
+    private ConfigurationSection mergeWithTemplateSection() {
+        if (section == null || templateItem == null || templateItem.section == null) return section;
+
+        ConfigurationSection merged = new YamlConfiguration().createSection(section.getName());
+        OraxenYaml.copyConfigurationSection(templateItem.section, merged);
+        OraxenYaml.copyConfigurationSection(section, merged);
+
+        return merged;
     }
 
     public boolean isConfigUpdated() {
