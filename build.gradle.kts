@@ -9,7 +9,7 @@ plugins {
     //id("com.github.johnrengelman.shadow") version "8.1.1"
     id("xyz.jpenilla.run-paper") version "2.3.1"
     id("net.minecrell.plugin-yml.bukkit") version "0.6.0" // Generates plugin.yml
-    id("io.papermc.paperweight.userdev") version "1.7.3" apply false
+    id("io.papermc.paperweight.userdev") version "1.7.4" apply false
     id("io.github.goooler.shadow") version "8.1.8"
     alias(libs.plugins.mia.publication)
 }
@@ -27,7 +27,7 @@ val SUPPORTED_VERSIONS: List<NMSVersion> = listOf(
     "v1_20_R3" toNms "1.20.4-R0.1-SNAPSHOT",
     "v1_20_R4" toNms "1.20.6-R0.1-SNAPSHOT",
     "v1_21_R1" toNms "1.21.1-R0.1-SNAPSHOT",
-    "v1_21_R2" toNms "1.21.2-R0.1-SNAPSHOT"
+    "v1_21_R2" toNms "1.21.3-R0.1-SNAPSHOT"
 )
 
 val compiled = (project.findProperty("oraxen_compiled")?.toString() ?: "true").toBoolean()

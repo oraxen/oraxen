@@ -1,6 +1,6 @@
 plugins {
     id("java")
-    id("io.papermc.paperweight.userdev") version "1.7.3"
+    id("io.papermc.paperweight.userdev") version "1.7.4"
     id("io.github.goooler.shadow") version "8.1.8"
 }
 
@@ -10,7 +10,7 @@ repositories {
 
 dependencies {
     compileOnly(project(":core"))
-    paperweight.paperDevBundle("1.21.2-R0.1-SNAPSHOT")
+    paperweight.paperDevBundle("1.21.3-R0.1-SNAPSHOT")
 }
 
 tasks {

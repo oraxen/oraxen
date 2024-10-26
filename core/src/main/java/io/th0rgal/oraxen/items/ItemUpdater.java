@@ -105,7 +105,8 @@ public class ItemUpdater implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onUseMaxDamageItem(EntityDamageByEntityEvent event) {
-        if (!VersionUtil.atOrAbove("1.20.5") || !(event.getDamager() instanceof LivingEntity entity)) return;
+        if (!VersionUtil.atOrAbove("1.20.5") || VersionUtil.atOrAbove("1.21.2")) return;
+        if (!(event.getDamager() instanceof LivingEntity entity)) return;
         ItemStack itemStack = Optional.ofNullable(entity.getEquipment()).map(EntityEquipment::getItemInMainHand).orElse(null);
 
         if (entity instanceof Player player && player.getGameMode() == GameMode.CREATIVE) return;
@@ -121,9 +122,9 @@ public class ItemUpdater implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onUseConvertedTo(PlayerItemConsumeEvent event) {
         ItemStack itemStack = event.getItem();
-        if (!VersionUtil.atOrAbove("1.21")) return;
-        if (!itemStack.hasItemMeta() || !itemStack.getItemMeta().hasFood()) return;
-        ItemStack usingConvertsTo = itemStack.getItemMeta().getFood().getUsingConvertsTo();
+        ItemMeta itemMeta = itemStack.getItemMeta();
+        if (!VersionUtil.atOrAbove("1.21") && itemMeta == null) return;
+        ItemStack usingConvertsTo = ItemUtils.getUsingConvertsTo(itemMeta);
         if (usingConvertsTo == null || !itemStack.isSimilar(ItemUpdater.updateItem(usingConvertsTo))) return;
 
         PlayerInventory inventory = event.getPlayer().getInventory();

@@ -18,15 +18,14 @@ import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.damage.DamageType;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.TropicalFish;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemRarity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
-import org.bukkit.inventory.meta.components.FoodComponent;
-import org.bukkit.inventory.meta.components.JukeboxPlayableComponent;
-import org.bukkit.inventory.meta.components.ToolComponent;
+import org.bukkit.inventory.meta.components.*;
 import org.bukkit.inventory.meta.trim.ArmorTrim;
 import org.bukkit.inventory.meta.trim.TrimMaterial;
 import org.bukkit.inventory.meta.trim.TrimPattern;
@@ -97,6 +96,22 @@ public class ItemBuilder {
     // 1.21+ properties
     @Nullable
     private JukeboxPlayableComponent jukeboxPlayable;
+
+    // 1.21.2+ properties
+    @Nullable
+    private EquippableComponent equippableComponent;
+    @Nullable
+    private Boolean isGlider;
+    @Nullable
+    private UseCooldownComponent useCooldownComponent;
+    @Nullable
+    private ItemStack useRemainder;
+    @Nullable
+    private Tag<DamageType> damageResistant;
+    @Nullable
+    private NamespacedKey tooltipStyle;
+    @Nullable
+    private NamespacedKey itemModel;
 
 
     public ItemBuilder(final Material material) {
@@ -201,6 +216,15 @@ public class ItemBuilder {
 
         if (VersionUtil.atOrAbove("1.21")) {
             jukeboxPlayable = itemMeta.hasJukeboxPlayable() ? itemMeta.getJukeboxPlayable() : null;
+        }
+
+        if (VersionUtil.atOrAbove("1.21.2")) {
+            equippableComponent = itemMeta.hasEquippable() ? itemMeta.getEquippable() : null;
+            useCooldownComponent = itemMeta.hasUseCooldown() ? itemMeta.getUseCooldown() : null;
+            useRemainder = itemMeta.getUseRemainder();
+            isGlider = itemMeta.isGlider() ? true : null;
+            damageResistant = itemMeta.hasDamageResistant() ? itemMeta.getDamageResistant() : null;
+            itemModel = itemMeta.hasItemModel() ? itemMeta.getItemModel() : null;
         }
 
     }
@@ -345,6 +369,93 @@ public class ItemBuilder {
         return this;
     }
 
+    public boolean hasItemModel() {
+        return VersionUtil.atOrAbove("1.21.2") && itemModel != null;
+    }
+
+    @Nullable
+    public NamespacedKey getItemModel() {
+        return itemModel;
+    }
+
+    public ItemBuilder setItemModel(final NamespacedKey itemModel) {
+        this.itemModel = itemModel;
+        return this;
+    }
+
+    public boolean hasTooltipStyle() {
+        return VersionUtil.atOrAbove("1.21.2") && tooltipStyle != null;
+    }
+
+    public NamespacedKey getTooltipStyle() {
+        return tooltipStyle;
+    }
+
+    public ItemBuilder setTooltipStyle(NamespacedKey tooltipStyle) {
+        this.tooltipStyle = tooltipStyle;
+        return this;
+    }
+
+    public boolean hasDamageResistant() {
+        return VersionUtil.atOrAbove("1.21.2") && damageResistant != null;
+    }
+
+    public Tag<DamageType> getDamageResistant() {
+        return damageResistant;
+    }
+
+    public ItemBuilder setDamageResistant(final Tag<DamageType> damageResistant) {
+        this.damageResistant = damageResistant;
+        return this;
+    }
+
+    public ItemBuilder setGlider(final boolean glider) {
+        this.isGlider = glider;
+        return this;
+    }
+
+    public boolean hasUseRemainder() {
+        return VersionUtil.atOrAbove("1.21.2") && useRemainder != null;
+    }
+
+    @Nullable
+    public ItemStack getUseRemainder() {
+        return useRemainder;
+    }
+
+    public ItemBuilder setUseRemainder(@Nullable final ItemStack itemStack) {
+        this.useRemainder = itemStack;
+        return this;
+    }
+
+    public boolean hasUseCooldownComponent() {
+        return VersionUtil.atOrAbove("1.21.2") && useCooldownComponent != null;
+    }
+
+    @Nullable
+    public UseCooldownComponent getUseCooldownComponent() {
+        return useCooldownComponent;
+    }
+
+    public ItemBuilder setUseCooldownComponent(@Nullable final UseCooldownComponent useCooldownComponent) {
+        this.useCooldownComponent = useCooldownComponent;
+        return this;
+    }
+
+    public boolean hasEquippableComponent() {
+        return VersionUtil.atOrAbove("1.21.2") && equippableComponent != null;
+    }
+
+    @Nullable
+    public EquippableComponent getEquippableComponent() {
+        return equippableComponent;
+    }
+
+    public ItemBuilder setEquippableComponent(@Nullable final EquippableComponent equippableComponent) {
+        this.equippableComponent = equippableComponent;
+        return this;
+    }
+
     public boolean hasFoodComponent() {
         return VersionUtil.atOrAbove("1.20.5") && foodComponent != null;
     }
@@ -354,7 +465,7 @@ public class ItemBuilder {
         return foodComponent;
     }
 
-    public ItemBuilder setFoodComponent(FoodComponent foodComponent) {
+    public ItemBuilder setFoodComponent(@Nullable FoodComponent foodComponent) {
         this.foodComponent = foodComponent;
         return this;
     }
@@ -368,7 +479,7 @@ public class ItemBuilder {
         return toolComponent;
     }
 
-    public ItemBuilder setToolComponent(ToolComponent toolComponent) {
+    public ItemBuilder setToolComponent(@Nullable ToolComponent toolComponent) {
         this.toolComponent = toolComponent;
         return this;
     }
@@ -382,7 +493,7 @@ public class ItemBuilder {
         return jukeboxPlayable;
     }
 
-    public ItemBuilder setJukeboxPlayable(JukeboxPlayableComponent jukeboxPlayable) {
+    public ItemBuilder setJukeboxPlayable(@Nullable JukeboxPlayableComponent jukeboxPlayable) {
         this.jukeboxPlayable = jukeboxPlayable;
         return this;
     }
@@ -594,6 +705,15 @@ public class ItemBuilder {
 
         if (VersionUtil.atOrAbove("1.21")) {
             if (hasJukeboxPlayable()) itemMeta.setJukeboxPlayable(jukeboxPlayable);
+        }
+
+        if (VersionUtil.atOrAbove("1.21.2")) {
+            if (hasEquippableComponent()) itemMeta.setEquippable(equippableComponent);
+            if (hasUseCooldownComponent()) itemMeta.setUseCooldown(useCooldownComponent);
+            if (hasDamageResistant()) itemMeta.setDamageResistant(damageResistant);
+            if (hasTooltipStyle()) itemMeta.setTooltipStyle(tooltipStyle);
+            if (itemModel != null) itemMeta.setItemModel(itemModel);
+            if (isGlider != null) itemMeta.setGlider(isGlider);
         }
 
         handleVariousMeta(itemMeta);
