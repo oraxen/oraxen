@@ -188,6 +188,14 @@ public class ItemParser {
 
         NamespacedKey toolTipStyle = Optional.ofNullable(components.getString("tooltip_style")).map(NamespacedKey::fromString).orElse(null);
         if (toolTipStyle != null) item.setTooltipStyle(toolTipStyle);
+
+        NamespacedKey itemModel = Optional.ofNullable(components.getString("item_model")).map(NamespacedKey::fromString)
+                .orElseGet(() -> {
+                    if (oraxenMeta == null || !oraxenMeta.hasPackInfos()) return null;
+                    if (oraxenMeta.getCustomModelData() != null) return null;
+                    return NamespacedKey.fromString(components.getString("item_model", ""));
+                });
+        if (itemModel != null) item.setItemModel(itemModel);
     }
 
     private void parseUseRemainderComponent(ItemBuilder item, @NotNull ConfigurationSection useRemainderSection) {
@@ -435,18 +443,21 @@ public class ItemParser {
         }
 
         if (oraxenMeta.hasPackInfos()) {
-            int customModelData;
+            Integer customModelData;
             if (MODEL_DATAS_BY_ID.containsKey(section.getName())) {
                 customModelData = MODEL_DATAS_BY_ID.get(section.getName()).getModelData();
-            } else {
+            } else if (!item.hasItemModel()) {
                 customModelData = ModelData.generateId(oraxenMeta.getModelName(), type);
                 configUpdated = true;
                 if (!Settings.DISABLE_AUTOMATIC_MODEL_DATA.toBool())
                     Optional.ofNullable(section.getConfigurationSection("Pack"))
                             .ifPresent(c -> c.set("custom_model_data", customModelData));
+            } else customModelData = null;
+
+            if (customModelData != null) {
+                item.setCustomModelData(customModelData);
+                oraxenMeta.setCustomModelData(customModelData);
             }
-            item.setCustomModelData(customModelData);
-            oraxenMeta.setCustomModelData(customModelData);
         }
     }
 

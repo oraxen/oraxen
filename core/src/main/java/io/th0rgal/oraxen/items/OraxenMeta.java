@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.ConfigurationSection;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -143,12 +144,13 @@ public class OraxenMeta {
         return hasPackInfos;
     }
 
-    public OraxenMeta setCustomModelData(int customModelData) {
+    public OraxenMeta setCustomModelData(Integer customModelData) {
         this.customModelData = customModelData;
         return this;
     }
 
-    public int getCustomModelData() {
+    @Nullable
+    public Integer getCustomModelData() {
         return customModelData;
     }
 

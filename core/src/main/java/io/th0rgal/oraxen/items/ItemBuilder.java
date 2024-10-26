@@ -66,8 +66,7 @@ public class ItemBuilder {
     private Set<ItemFlag> itemFlags;
     private boolean hasAttributeModifiers;
     private Multimap<Attribute, AttributeModifier> attributeModifiers;
-    private boolean hasCustomModelData;
-    private int customModelData;
+    @Nullable private Integer customModelData;
     private List<String> lore;
     private ItemStack finalItemStack;
 
@@ -183,9 +182,8 @@ public class ItemBuilder {
         if (hasAttributeModifiers)
             attributeModifiers = itemMeta.getAttributeModifiers();
 
-        hasCustomModelData = itemMeta.hasCustomModelData();
-        if (hasCustomModelData)
-            customModelData = itemMeta.getCustomModelData();
+
+        customModelData = itemMeta.hasCustomModelData() ? itemMeta.getCustomModelData() : null;
 
         if (itemMeta.hasLore()) {
             if (VersionUtil.isPaperServer()) lore = itemMeta.lore().stream().map(AdventureUtils.MINI_MESSAGE::serialize).toList();
@@ -597,8 +595,6 @@ public class ItemBuilder {
     }
 
     public ItemBuilder setCustomModelData(final int customModelData) {
-        if (!hasCustomModelData)
-            hasCustomModelData = true;
         this.customModelData = customModelData;
         return this;
     }
@@ -743,8 +739,7 @@ public class ItemBuilder {
         if (hasAttributeModifiers)
             itemMeta.setAttributeModifiers(attributeModifiers);
 
-        if (hasCustomModelData)
-            itemMeta.setCustomModelData(customModelData);
+        itemMeta.setCustomModelData(customModelData);
 
         if (!persistentDataMap.isEmpty())
             for (final Map.Entry<PersistentDataSpace, Object> dataSpace : persistentDataMap.entrySet())
