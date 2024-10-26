@@ -89,6 +89,7 @@ public enum Settings {
     PACK_CACHE_OBFUSCATION("Pack.obfuscation.cache", true),
     PACK_IMPORT_DEFAULT("Pack.import.default_assets", true),
     PACK_IMPORT_EXTERNAL("Pack.import.external_packs", true),
+    PACK_IMPORT_EXTERNAL_PACK_ORDER("Pack.import.external_pack_order", List.of()),
     PACK_IMPORT_MODEL_ENGINE("Pack.import.modelengine", true),
     PACK_EXCLUDED_FILE_EXTENSIONS("Pack.generation.excluded_file_extensions", List.of(".zip")),
     FIX_FORCE_UNICODE_GLYPHS("Pack.generation.fix_force_unicode_glyphs", true),

@@ -251,7 +251,15 @@ public class PackGenerator {
     }
 
     private void importExternalPacks() {
-        for (File file : Objects.requireNonNullElse(externalPacks.toFile().listFiles(), new File[]{})) {
+        List<File> externalPacks = new ArrayList<>(Optional.ofNullable(PackGenerator.externalPacks.toFile().listFiles())
+                .map(a -> Arrays.stream(a).toList()).orElse(List.of()));
+        List<String> externalOrder = Settings.PACK_IMPORT_EXTERNAL_PACK_ORDER.toStringList();
+        externalPacks.sort(Comparator.comparingInt((File f) -> {
+            int index = externalOrder.indexOf(f.getName());
+            return index == -1 ? Integer.MAX_VALUE : index;
+        }).thenComparing(File::getName));
+
+        for (File file : externalPacks) {
             if (file == null || file.getName().matches("(Default|Required)Pack_.*")) continue;
             if (file.isDirectory() || file.getName().endsWith(".zip")) {
                 Logs.logInfo("Importing external-pack <aqua>" + file.getName() + "</aqua>...");
