@@ -249,6 +249,29 @@ public class ItemUpdater implements Listener {
                 else if (oldMeta.hasJukeboxPlayable()) itemMeta.setJukeboxPlayable(oldMeta.getJukeboxPlayable());
             }
 
+            if (VersionUtil.atOrAbove("1.21.2")) {
+                if (newMeta.hasEquippable()) itemMeta.setEquippable(newMeta.getEquippable());
+                else if (oldMeta.hasEquippable()) itemMeta.setEquippable(newMeta.getEquippable());
+
+                if (newMeta.isGlider()) itemMeta.setGlider(true);
+                else if (oldMeta.isGlider()) itemMeta.setGlider(true);
+
+                if (newMeta.hasItemModel()) itemMeta.setItemModel(newMeta.getItemModel());
+                else if (oldMeta.hasItemModel()) itemMeta.setItemModel(oldMeta.getItemModel());
+
+                if (newMeta.hasUseCooldown()) itemMeta.setUseCooldown(newMeta.getUseCooldown());
+                else if (oldMeta.hasUseCooldown()) itemMeta.setUseCooldown(oldMeta.getUseCooldown());
+
+                if (newMeta.hasUseRemainder()) itemMeta.setUseRemainder(newMeta.getUseRemainder());
+                else if (oldMeta.hasUseRemainder()) itemMeta.setUseRemainder(oldMeta.getUseRemainder());
+
+                if (newMeta.hasDamageResistant()) itemMeta.setDamageResistant(newMeta.getDamageResistant());
+                else if (oldMeta.hasDamageResistant()) itemMeta.setDamageResistant(oldMeta.getDamageResistant());
+
+                if (newMeta.hasTooltipStyle()) itemMeta.setTooltipStyle(newMeta.getTooltipStyle());
+                else if (oldMeta.hasTooltipStyle()) itemMeta.setTooltipStyle(oldMeta.getTooltipStyle());
+            }
+
             // On 1.20.5+ we use ItemName which is different from userchanged displaynames
             if (!VersionUtil.atOrAbove("1.20.5")) {
 
