@@ -188,4 +188,9 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     public String getNoteBlockInstrument(Block block) {
         return ((CraftBlock) block).getNMS().instrument().toString();
     }
+
+    @Override
+    public int mcmetaVersion() {
+        return 22;
+    }
 }
