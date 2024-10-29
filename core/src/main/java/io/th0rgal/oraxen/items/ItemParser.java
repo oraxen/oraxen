@@ -196,6 +196,7 @@ public class ItemParser {
                     return NamespacedKey.fromString(components.getString("item_model", ""));
                 });
         if (itemModel != null) item.setItemModel(itemModel);
+        if (components.contains("enchantable")) item.setEnchantable(components.getInt("enchantable"));
     }
 
     private void parseUseRemainderComponent(ItemBuilder item, @NotNull ConfigurationSection useRemainderSection) {

@@ -270,6 +270,9 @@ public class ItemUpdater implements Listener {
 
                 if (newMeta.hasTooltipStyle()) itemMeta.setTooltipStyle(newMeta.getTooltipStyle());
                 else if (oldMeta.hasTooltipStyle()) itemMeta.setTooltipStyle(oldMeta.getTooltipStyle());
+
+                if (newMeta.hasEnchantable()) itemMeta.setEnchantable(newMeta.getEnchantable());
+                else if (oldMeta.hasEnchantable()) itemMeta.setEnchantable(oldMeta.getEnchantable());
             }
 
             // On 1.20.5+ we use ItemName which is different from userchanged displaynames

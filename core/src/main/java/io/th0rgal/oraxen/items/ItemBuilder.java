@@ -111,6 +111,8 @@ public class ItemBuilder {
     private NamespacedKey tooltipStyle;
     @Nullable
     private NamespacedKey itemModel;
+    @Nullable
+    private Integer enchantable;
 
 
     public ItemBuilder(final Material material) {
@@ -223,6 +225,7 @@ public class ItemBuilder {
             isGlider = itemMeta.isGlider() ? true : null;
             damageResistant = itemMeta.hasDamageResistant() ? itemMeta.getDamageResistant() : null;
             itemModel = itemMeta.hasItemModel() ? itemMeta.getItemModel() : null;
+            enchantable = itemMeta.hasEnchantable() ? itemMeta.getEnchantable() : null;
         }
 
     }
@@ -391,6 +394,20 @@ public class ItemBuilder {
 
     public ItemBuilder setTooltipStyle(NamespacedKey tooltipStyle) {
         this.tooltipStyle = tooltipStyle;
+        return this;
+    }
+
+    public boolean hasEnchantable() {
+        return VersionUtil.atOrAbove("1.21.2") && enchantable != null;
+    }
+
+    @Nullable
+    public Integer getEnchantable() {
+        return enchantable;
+    }
+
+    public ItemBuilder setEnchantable(Integer enchantable) {
+        this.enchantable = enchantable;
         return this;
     }
 
