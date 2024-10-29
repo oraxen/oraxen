@@ -221,11 +221,11 @@ public class ItemBuilder {
         if (VersionUtil.atOrAbove("1.21.2")) {
             equippableComponent = itemMeta.hasEquippable() ? itemMeta.getEquippable() : null;
             useCooldownComponent = itemMeta.hasUseCooldown() ? itemMeta.getUseCooldown() : null;
-            useRemainder = itemMeta.getUseRemainder();
-            isGlider = itemMeta.isGlider() ? true : null;
+            useRemainder = itemMeta.hasUseRemainder() ? itemMeta.getUseRemainder() : null;
             damageResistant = itemMeta.hasDamageResistant() ? itemMeta.getDamageResistant() : null;
             itemModel = itemMeta.hasItemModel() ? itemMeta.getItemModel() : null;
             enchantable = itemMeta.hasEnchantable() ? itemMeta.getEnchantable() : null;
+            isGlider = itemMeta.isGlider() ? true : null;
         }
 
     }
@@ -725,6 +725,8 @@ public class ItemBuilder {
             if (hasUseCooldownComponent()) itemMeta.setUseCooldown(useCooldownComponent);
             if (hasDamageResistant()) itemMeta.setDamageResistant(damageResistant);
             if (hasTooltipStyle()) itemMeta.setTooltipStyle(tooltipStyle);
+            if (hasUseRemainder()) itemMeta.setUseRemainder(useRemainder);
+            if (hasEnchantable()) itemMeta.setEnchantable(enchantable);
             if (itemModel != null) itemMeta.setItemModel(itemModel);
             if (isGlider != null) itemMeta.setGlider(isGlider);
         }

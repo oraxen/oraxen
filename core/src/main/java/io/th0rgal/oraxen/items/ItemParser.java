@@ -194,7 +194,7 @@ public class ItemParser {
                 });
 
         if (components.contains("enchantable")) item.setEnchantable(components.getInt("enchantable"));
-        if (section.contains("glider")) item.setGlider(components.getBoolean("glider"));
+        if (components.contains("glider")) item.setGlider(components.getBoolean("glider"));
 
     }
 
@@ -202,15 +202,15 @@ public class ItemParser {
         ItemStack result;
         int amount = useRemainderSection.getInt("amount", 1);
 
-        if (useRemainderSection.isString("oraxen_item"))
+        if (useRemainderSection.contains("oraxen_item"))
             result = ItemUpdater.updateItem(OraxenItems.getItemById(useRemainderSection.getString("oraxen_item")).build());
-        else if (useRemainderSection.isString("crucible_item"))
+        else if (useRemainderSection.contains("crucible_item"))
             result = new WrappedCrucibleItem(useRemainderSection.getString("crucible_item")).build();
-        else if (useRemainderSection.isString("mmoitems_id") && useRemainderSection.isString("mmoitems_type"))
+        else if (useRemainderSection.contains("mmoitems_id") && useRemainderSection.isString("mmoitems_type"))
             result = MMOItems.plugin.getItem(useRemainderSection.getString("mmoitems_type"), useRemainderSection.getString("mmoitems_id"));
-        else if (useRemainderSection.isString("ecoitem_id"))
+        else if (useRemainderSection.contains("ecoitem_id"))
             result = new WrappedEcoItem(useRemainderSection.getString("ecoitem_id")).build();
-        else if (useRemainderSection.isString("minecraft_type")) {
+        else if (useRemainderSection.contains("minecraft_type")) {
             Material material = Material.getMaterial(useRemainderSection.getString("minecraft_type", "AIR"));
             if (material == null || material.isAir()) return;
             result = new ItemStack(material);
@@ -222,7 +222,7 @@ public class ItemParser {
 
     @SuppressWarnings({"UnstableApiUsage", "unchecked"})
     private void parseToolComponent(ItemBuilder item, @NotNull ConfigurationSection toolSection) {
-        ToolComponent toolComponent = new ItemStack(Material.PAPER).getItemMeta().getTool();
+        ToolComponent toolComponent = new ItemStack(type).getItemMeta().getTool();
         toolComponent.setDamagePerBlock(Math.max(toolSection.getInt("damage_per_block", 1), 0));
         toolComponent.setDefaultMiningSpeed(Math.max((float) toolSection.getDouble("default_mining_speed", 1.0), 0f));
 
@@ -290,7 +290,7 @@ public class ItemParser {
 
     @SuppressWarnings("UnstableApiUsage")
     private void parseFoodComponent(ItemBuilder item, @NotNull ConfigurationSection foodSection) {
-        FoodComponent foodComponent = new ItemStack(Material.PAPER).getItemMeta().getFood();
+        FoodComponent foodComponent = new ItemStack(type).getItemMeta().getFood();
         foodComponent.setNutrition(foodSection.getInt("nutrition"));
         foodComponent.setSaturation((float) foodSection.getDouble("saturation", 0.0));
         foodComponent.setCanAlwaysEat(foodSection.getBoolean("can_always_eat"));
@@ -325,7 +325,7 @@ public class ItemParser {
     }
 
     private void parseEquippableComponent(ItemBuilder item, ConfigurationSection equippableSection) {
-        EquippableComponent equippableComponent = new ItemStack(Material.PAPER).getItemMeta().getEquippable();
+        EquippableComponent equippableComponent = new ItemStack(type).getItemMeta().getEquippable();
 
         String slot = equippableSection.getString("slot");
         try {
@@ -345,7 +345,7 @@ public class ItemParser {
 
         equippableComponent.setModel(Optional.ofNullable(equippableSection.getString("model", null)).map(NamespacedKey::fromString).orElse(null));
         equippableComponent.setEquipSound(EnumUtils.getEnum(Sound.class, equippableSection.getString("equip_sound")));
-        equippableComponent.setCameraOverlay(Optional.ofNullable(equippableSection.getString("camera_overlay", null)).map(NamespacedKey::fromString).orElse(null));
+        equippableComponent.setCameraOverlay(Optional.ofNullable(equippableSection.getString("camera_overlay")).map(NamespacedKey::fromString).orElse(null));
 
         item.setEquippableComponent(equippableComponent);
     }
