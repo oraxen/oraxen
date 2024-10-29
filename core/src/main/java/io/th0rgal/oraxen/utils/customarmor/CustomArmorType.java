@@ -20,6 +20,9 @@ public enum CustomArmorType {
             } else if (!VersionUtil.atOrAbove("1.20") && customArmorType == CustomArmorType.TRIMS) {
                 Logs.logError("Trim based custom armor is only supported in 1.20 and above.");
                 throw new IllegalArgumentException();
+            } else if (VersionUtil.atOrAbove("1.21.2") && customArmorType == CustomArmorType.SHADER) {
+                Logs.logError("SHADER based CustomArmor is currently not supported on 1.21.2 and above.");
+                throw new IllegalArgumentException();
             }
             return customArmorType;
         } catch (IllegalArgumentException e) {
