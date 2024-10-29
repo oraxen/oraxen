@@ -51,6 +51,7 @@ public enum Settings {
 
     // Custom Armor
     CUSTOM_ARMOR_TYPE("CustomArmor.type"),
+    CUSTOM_ARMOR_COMPONENT_ASSIGN("CustomArmor.component_settings.auto_assign_component"),
     DISABLE_LEATHER_REPAIR_CUSTOM("CustomArmor.disable_leather_repair"),
     CUSTOM_ARMOR_TRIMS_MATERIAL("CustomArmor.trims_settings.material_replacement"),
     CUSTOM_ARMOR_TRIMS_ASSIGN("CustomArmor.trims_settings.auto_assign_settings"),

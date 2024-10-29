@@ -17,6 +17,7 @@ import io.th0rgal.oraxen.pack.upload.UploadManager;
 import io.th0rgal.oraxen.sound.CustomSound;
 import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.*;
+import io.th0rgal.oraxen.utils.customarmor.ComponentArmorModels;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmorType;
 import io.th0rgal.oraxen.utils.customarmor.ShaderArmorTextures;
 import io.th0rgal.oraxen.utils.customarmor.TrimArmorDatapack;
@@ -44,6 +45,7 @@ public class ResourcePack {
     private static Map<String, VirtualFile> outputFiles;
     private ShaderArmorTextures shaderArmorTextures;
     private TrimArmorDatapack trimArmorDatapack;
+    private ComponentArmorModels componentArmorModels;
     private static final File packFolder = new File(OraxenPlugin.get().getDataFolder(), "pack");
     private final File pack = new File(packFolder, packFolder.getName() + ".zip");
 
@@ -58,6 +60,7 @@ public class ResourcePack {
 
         makeDirsIfNotExists(packFolder, new File(packFolder, "assets"));
 
+        componentArmorModels = CustomArmorType.getSetting() == CustomArmorType.COMPONENT ? new ComponentArmorModels() : null;
         trimArmorDatapack = CustomArmorType.getSetting() == CustomArmorType.TRIMS ? new TrimArmorDatapack() : null;
         shaderArmorTextures = CustomArmorType.getSetting() == CustomArmorType.SHADER ? new ShaderArmorTextures() : null;
 
@@ -576,6 +579,7 @@ public class ResourcePack {
         TrimArmorDatapack.clearOldDataPacks();
 
         switch (customArmorType) {
+            case COMPONENT -> componentArmorModels.generatePackFiles(output);
             case TRIMS -> trimArmorDatapack.generateTrimAssets(output);
             case SHADER -> {
                 if (Settings.CUSTOM_ARMOR_SHADER_GENERATE_CUSTOM_TEXTURES.toBool() && shaderArmorTextures.hasCustomArmors())
