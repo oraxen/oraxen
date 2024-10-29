@@ -174,8 +174,9 @@ public class ItemParser {
 
         Optional.ofNullable(components.getConfigurationSection("use_cooldown")).ifPresent((cooldownSection) -> {
             UseCooldownComponent useCooldownComponent = new ItemStack(Material.PAPER).getItemMeta().getUseCooldown();
-            useCooldownComponent.setCooldownGroup(Optional.ofNullable(cooldownSection.getString("group")).map(NamespacedKey::fromString).orElse(null));
-            useCooldownComponent.setCooldownSeconds(Float.parseFloat(cooldownSection.getString("seconds")));
+            String group = Optional.ofNullable(cooldownSection.getString("group")).orElse("oraxen:" + OraxenItems.getIdByItem(item));
+            if (!group.isEmpty()) useCooldownComponent.setCooldownGroup(NamespacedKey.fromString(group));
+            useCooldownComponent.setCooldownSeconds((float) Math.max(cooldownSection.getDouble("seconds", 1.0), 0f));
             item.setUseCooldownComponent(useCooldownComponent);
         });
 
@@ -338,14 +339,14 @@ public class ItemParser {
         }
 
         List<EntityType> entityTypes = equippableSection.getStringList("allowed_entity_types").stream().map(e -> EnumUtils.getEnum(EntityType.class, e)).toList();
-        equippableComponent.setAllowedEntities(entityTypes.isEmpty() ? null : entityTypes);
-        equippableComponent.setDamageOnHurt(equippableSection.getBoolean("damage_on_hurt", true));
-        equippableComponent.setDispensable(equippableSection.getBoolean("dispensable", true));
-        equippableComponent.setSwappable(equippableSection.getBoolean("swappable", true));
+        if (equippableSection.contains("allowed_entity_types")) equippableComponent.setAllowedEntities(entityTypes.isEmpty() ? null : entityTypes);
+        if (equippableSection.contains("damage_on_hurt")) equippableComponent.setDamageOnHurt(equippableSection.getBoolean("damage_on_hurt", true));
+        if (equippableSection.contains("dispensable")) equippableComponent.setDispensable(equippableSection.getBoolean("dispensable", true));
+        if (equippableSection.contains("swappable")) equippableComponent.setSwappable(equippableSection.getBoolean("swappable", true));
 
-        equippableComponent.setModel(Optional.ofNullable(equippableSection.getString("model", null)).map(NamespacedKey::fromString).orElse(null));
-        equippableComponent.setEquipSound(EnumUtils.getEnum(Sound.class, equippableSection.getString("equip_sound")));
-        equippableComponent.setCameraOverlay(Optional.ofNullable(equippableSection.getString("camera_overlay")).map(NamespacedKey::fromString).orElse(null));
+        Optional.ofNullable(equippableSection.getString("model", null)).map(NamespacedKey::fromString).ifPresent(equippableComponent::setModel);
+        Optional.ofNullable(equippableSection.getString("camera_overlay")).map(NamespacedKey::fromString).ifPresent(equippableComponent::setCameraOverlay);
+        Optional.ofNullable(equippableSection.getString("equip_sound")).map(Key::key).map(Registry.SOUNDS::get).ifPresent(equippableComponent::setEquipSound);
 
         item.setEquippableComponent(equippableComponent);
     }
