@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.nms.v1_21_R1;
+package io.th0rgal.oraxen.nms.v1_21_R2;
 
 import io.papermc.paper.event.player.AsyncChatDecorateEvent;
 import io.th0rgal.oraxen.nms.GlyphHandlers;

@@ -122,13 +122,13 @@ public class PredicatesGenerator {
         // custom items
         for (final ItemBuilder item : items) {
             OraxenMeta oraxenMeta = item.getOraxenMeta();
-            int customModelData = oraxenMeta.getCustomModelData();
+            Integer customModelData = oraxenMeta.getCustomModelData();
 
             // Skip duplicate
-            if (overrides.contains(getOverride("custom_model_data", customModelData, oraxenMeta.getGeneratedModelPath() + oraxenMeta.getModelName())))
-                continue;
+            JsonObject baseOverride = getOverride("custom_model_data", customModelData, oraxenMeta.getGeneratedModelPath() + oraxenMeta.getModelName());
+            if (overrides.contains(baseOverride)) continue;
 
-            overrides.add(getOverride("custom_model_data", customModelData, oraxenMeta.getGeneratedModelPath() + oraxenMeta.getModelName()));
+            if (!baseOverride.get("predicate").getAsJsonObject().isEmpty()) overrides.add(baseOverride);
             if (oraxenMeta.hasBlockingModel()) {
                 final JsonObject predicate = new JsonObject();
                 predicate.addProperty("blocking", 1);
@@ -248,12 +248,12 @@ public class PredicatesGenerator {
         }
     }
 
-    private JsonObject getOverride(final String property, final int propertyValue, final String model) {
+    private JsonObject getOverride(final String property, final Integer propertyValue, final String model) {
         return getOverride(new JsonObject(), property, propertyValue, model);
     }
 
-    private JsonObject getOverride(final JsonObject predicate, final String property, final int propertyValue, final String model) {
-        predicate.addProperty(property, propertyValue);
+    private JsonObject getOverride(final JsonObject predicate, final String property, final Integer propertyValue, final String model) {
+        if (propertyValue != null) predicate.addProperty(property, propertyValue);
         return getOverride(predicate, model);
     }
 

@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.nms.v1_21_R1;
+package io.th0rgal.oraxen.nms.v1_21_R2;
 
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -61,10 +61,11 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     private final GlyphHandler glyphHandler;
 
     public NMSHandler() {
-        this.glyphHandler = new io.th0rgal.oraxen.nms.v1_21_R1.GlyphHandler();
+        this.glyphHandler = new io.th0rgal.oraxen.nms.v1_21_R2.GlyphHandler();
 
         // mineableWith tag handling
         NamespacedKey tagKey = NamespacedKey.fromString("mineable_with_key", OraxenPlugin.get());
+        if (!VersionUtil.isPaperServer()) return;
         if (ChannelInitializeListenerHolder.hasListener(tagKey)) return;
         ChannelInitializeListenerHolder.addListener(tagKey, (channel ->
                 channel.pipeline().addBefore("packet_handler", tagKey.asString(), new ChannelDuplexHandler() {

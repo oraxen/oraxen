@@ -169,34 +169,33 @@ public class ItemParser {
         }
 
         if (!VersionUtil.atOrAbove("1.21.2")) return;
-        ConfigurationSection equippableSection = components.getConfigurationSection("equippable");
-        if (equippableSection != null) parseEquippableComponent(item, equippableSection);
+        Optional.ofNullable(components.getConfigurationSection("equippable"))
+                .ifPresent(equippable -> parseEquippableComponent(item, equippable));
+
+        Optional.ofNullable(components.getConfigurationSection("use_cooldown")).ifPresent((cooldownSection) -> {
+            UseCooldownComponent useCooldownComponent = new ItemStack(Material.PAPER).getItemMeta().getUseCooldown();
+            useCooldownComponent.setCooldownGroup(Optional.ofNullable(cooldownSection.getString("group")).map(NamespacedKey::fromString).orElse(null));
+            useCooldownComponent.setCooldownSeconds(Float.parseFloat(cooldownSection.getString("seconds")));
+            item.setUseCooldownComponent(useCooldownComponent);
+        });
+
+        Optional.ofNullable(components.getConfigurationSection("use_remainder")).ifPresent(useRemainder -> parseUseRemainderComponent(item, useRemainder));
+        Optional.ofNullable(components.getString("damage_resistant")).map(NamespacedKey::fromString).ifPresent(damageResistantKey ->
+                item.setDamageResistant(Bukkit.getTag(DamageTypeTags.REGISTRY_DAMAGE_TYPES, damageResistantKey, DamageType.class))
+        );
+
+        Optional.ofNullable(components.getString("tooltip_style")).map(NamespacedKey::fromString).ifPresent(item::setTooltipStyle);
+
+        Optional.ofNullable(components.getString("item_model")).map(NamespacedKey::fromString)
+                .ifPresentOrElse(item::setItemModel, () -> {
+                    if (oraxenMeta == null || !oraxenMeta.hasPackInfos()) return;
+                    if (oraxenMeta.getCustomModelData() != null) return;
+                    Optional.ofNullable(components.getString("item_model")).map(NamespacedKey::fromString).ifPresent(item::setItemModel);
+                });
+
+        if (components.contains("enchantable")) item.setEnchantable(components.getInt("enchantable"));
         if (section.contains("glider")) item.setGlider(components.getBoolean("glider"));
 
-        ConfigurationSection useCooldownSection = components.getConfigurationSection("use_cooldown");
-        if (useCooldownSection != null) {
-            UseCooldownComponent useCooldownComponent = new ItemStack(Material.PAPER).getItemMeta().getUseCooldown();
-            useCooldownComponent.setCooldownGroup(Optional.ofNullable(useCooldownSection.getString("group")).map(NamespacedKey::fromString).orElse(null));
-            useCooldownComponent.setCooldownSeconds(Float.parseFloat(useCooldownSection.getString("seconds")));
-            item.setUseCooldownComponent(useCooldownComponent);
-        }
-
-        ConfigurationSection useRemainderSection = components.getConfigurationSection("use_remainder");
-        if (useRemainderSection != null) parseUseRemainderComponent(item, useRemainderSection);
-        NamespacedKey damageResistantKey = NamespacedKey.fromString(components.getString("damage_resistant", ""));
-        if (damageResistantKey != null) item.setDamageResistant(Bukkit.getTag(DamageTypeTags.REGISTRY_DAMAGE_TYPES, damageResistantKey, DamageType.class));
-
-        NamespacedKey toolTipStyle = Optional.ofNullable(components.getString("tooltip_style")).map(NamespacedKey::fromString).orElse(null);
-        if (toolTipStyle != null) item.setTooltipStyle(toolTipStyle);
-
-        NamespacedKey itemModel = Optional.ofNullable(components.getString("item_model")).map(NamespacedKey::fromString)
-                .orElseGet(() -> {
-                    if (oraxenMeta == null || !oraxenMeta.hasPackInfos()) return null;
-                    if (oraxenMeta.getCustomModelData() != null) return null;
-                    return NamespacedKey.fromString(components.getString("item_model", ""));
-                });
-        if (itemModel != null) item.setItemModel(itemModel);
-        if (components.contains("enchantable")) item.setEnchantable(components.getInt("enchantable"));
     }
 
     private void parseUseRemainderComponent(ItemBuilder item, @NotNull ConfigurationSection useRemainderSection) {
@@ -348,7 +347,7 @@ public class ItemParser {
         equippableComponent.setEquipSound(EnumUtils.getEnum(Sound.class, equippableSection.getString("equip_sound")));
         equippableComponent.setCameraOverlay(Optional.ofNullable(equippableSection.getString("camera_overlay", null)).map(NamespacedKey::fromString).orElse(null));
 
-        //item.setFoodComponent()
+        item.setEquippableComponent(equippableComponent);
     }
 
     private void parseMiscOptions(ItemBuilder item) {

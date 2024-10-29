@@ -13,7 +13,7 @@ import java.util.Map;
 
 public class OraxenMeta {
 
-    private int customModelData;
+    private Integer customModelData;
     private String modelName;
     private String blockingModel;
     private String blockingTexture;

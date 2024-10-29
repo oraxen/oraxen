@@ -335,10 +335,11 @@ public class ResourcePack {
             final ItemBuilder item = entry.getValue();
             OraxenMeta oraxenMeta = item.getOraxenMeta();
             if (item.hasOraxenMeta() && oraxenMeta.hasPackInfos()) {
+                String modelName = oraxenMeta.getModelName() + ".json";
+                String modelPath = oraxenMeta.getModelPath();
+                if (item.hasEquippableComponent() && item.getEquippableComponent().getModel() != null) modelPath += "/item/";
                 if (oraxenMeta.shouldGenerateModel()) {
-                    writeStringToVirtual(oraxenMeta.getModelPath(),
-                            item.getOraxenMeta().getModelName() + ".json",
-                            new ModelGenerator(oraxenMeta).getJson().toString());
+                    writeStringToVirtual(modelPath, modelName, new ModelGenerator(oraxenMeta).getJson().toString());
                 }
                 final List<ItemBuilder> items = texturedItems.getOrDefault(item.build().getType(), new ArrayList<>());
                 // todo: could be improved by using
@@ -349,7 +350,9 @@ public class ResourcePack {
                 else
                     // for some reason those breaks are needed to avoid some nasty "memory leak"
                     for (int i = 0; i < items.size(); i++) {
-                        if (items.get(i).getOraxenMeta().getCustomModelData() > item.getOraxenMeta().getCustomModelData()) {
+                        Integer cmd = Optional.ofNullable(items.get(i).getOraxenMeta().getCustomModelData()).orElse(0);
+                        Integer cmd2 = Optional.ofNullable(oraxenMeta.getCustomModelData()).orElse(0);
+                        if (cmd > cmd2) {
                             items.add(i, item);
                             break;
                         } else if (i == items.size() - 1) {

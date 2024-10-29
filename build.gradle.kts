@@ -105,6 +105,7 @@ allprojects {
         implementation("team.unnamed:creative-api:1.7.3") { exclude("net.kyori") }
         implementation("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
         implementation("org.bstats:bstats-bukkit:3.0.0")
+        implementation("org.glassfish:javax.json:1.1.4")
         implementation("io.th0rgal:protectionlib:1.6.2")
         implementation("com.github.stefvanschie.inventoryframework:IF:0.10.12")
         implementation("com.jeff-media:custom-block-data:2.2.2")
@@ -222,7 +223,7 @@ bukkit {
     )
 }
 
-if (pluginPath != null) {
+if (spigotPluginPath != null) {
     tasks {
         val defaultPath = findByName("reobfJar") ?: findByName("shadowJar") ?: findByName("jar")
         // Define the main copy task
@@ -230,10 +231,10 @@ if (pluginPath != null) {
             this.doNotTrackState("Overwrites the plugin jar to allow for easier reloading")
             dependsOn(shadowJar, jar)
             from(defaultPath)
-            into(pluginPath)
+            into(spigotPluginPath)
             doLast {
-                println("Copied to plugin directory $pluginPath")
-                Path(pluginPath).listDirectoryEntries()
+                println("Copied to plugin directory $spigotPluginPath")
+                Path(spigotPluginPath).listDirectoryEntries()
                     .filter { it.fileName.toString().matches("oraxen-.*.jar".toRegex()) }
                     .filterNot { it.fileName.toString().endsWith("$pluginVersion.jar") }
                     .forEach { delete(it) }
