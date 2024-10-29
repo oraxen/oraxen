@@ -2,6 +2,8 @@ package io.th0rgal.oraxen.font;
 
 import io.th0rgal.oraxen.utils.ParseUtils;
 import org.apache.commons.lang3.StringUtils;
+import team.unnamed.creative.font.FontProvider;
+import team.unnamed.creative.font.SpaceFontProvider;
 
 import java.util.List;
 
@@ -64,6 +66,13 @@ public enum Shift {
                 builder.append(powers.get(pow)); // Assuming unicode is directly the string representation
         }
         return builder.reverse().toString();
+    }
+
+    public static SpaceFontProvider fontProvider() {
+        SpaceFontProvider.Builder spaceBuilder = FontProvider.space();
+        for (Shift shift : powers_minus) spaceBuilder.advance(shift.unicode, shift.toNumber());
+        for (Shift shift : powers_plus) spaceBuilder.advance(shift.unicode, shift.toNumber());
+        return spaceBuilder.build();
     }
 
     @Override

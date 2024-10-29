@@ -178,6 +178,7 @@ public class ConfigsManager {
         List<Glyph> output = new ArrayList<>();
         Map<String, Character> charPerGlyph = new HashMap<>();
         for (File file : glyphFiles) {
+            if (file.getName().startsWith("shift")) continue;
             YamlConfiguration configuration = OraxenYaml.loadConfiguration(file);
             for (String key : configuration.getKeys(false)) {
                 ConfigurationSection glyphSection = configuration.getConfigurationSection(key);
@@ -190,6 +191,7 @@ public class ConfigsManager {
         }
 
         for (File file : glyphFiles) {
+            if (file.getName().startsWith("shift")) continue;
             YamlConfiguration configuration = OraxenYaml.loadConfiguration(file);
             boolean fileChanged = false;
             for (String key : configuration.getKeys(false)) {

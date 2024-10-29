@@ -109,6 +109,7 @@ public class PackGenerator {
             CustomBlockFactory.get().blockStates(resourcePack);
             CustomBlockFactory.get().soundRegistries(resourcePack);
             addItemPackFiles();
+            addShiftProvider();
             addGlyphFiles();
             addSoundFile();
             parseLanguageFiles();
@@ -164,6 +165,12 @@ public class PackGenerator {
     @Nullable
     public BuiltResourcePack builtPack() {
         return builtPack;
+    }
+
+    private void addShiftProvider() {
+        Key defaultKey = Key.key("minecraft:default");
+        Font defaultFont = Optional.ofNullable(resourcePack.font(defaultKey)).orElse(Font.font(defaultKey));
+        defaultFont.toBuilder().addProvider(Shift.fontProvider()).build().addTo(resourcePack);
     }
 
     private void addGlyphFiles() {
