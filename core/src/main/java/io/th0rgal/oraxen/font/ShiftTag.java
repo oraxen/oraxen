@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.font;
 
 import io.th0rgal.oraxen.utils.ParseUtils;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.ArgumentQueue;
@@ -18,6 +19,6 @@ public class ShiftTag {
 
     private static Tag shiftTag(final ArgumentQueue args) {
         int shift = ParseUtils.parseInt(args.popOr("A shift value is required").value(), 0);
-        return Tag.selfClosingInserting(Component.text(Shift.of(shift)));
+        return Tag.selfClosingInserting(Component.text(Shift.of(shift)).font(Key.key("default")));
     }
 }

@@ -73,10 +73,11 @@ public class Glyph {
 
         ConfigurationSection bitmapSection = glyphSection.getConfigurationSection("bitmap");
         bitmapEntry = bitmapSection != null ? new BitMapEntry(bitmapSection.getString("id"), bitmapSection.getInt("row"), bitmapSection.getInt("column")) : null;
-        ascent = bitmap() != null ? bitmap().ascent() : glyphSection.getInt("ascent", 8);
-        height = bitmap() != null ? bitmap().height() : glyphSection.getInt("height", 8);
-        texture = bitmap() != null ? bitmap().texture() : Key.key(StringUtils.appendIfMissing(glyphSection.getString("texture", "required/exit_icon"), ".png"));
-        font = bitmap() != null ? bitmap().font() : Key.key(glyphSection.getString("font", "minecraft:default"));
+        FontManager.GlyphBitMap bitmap = bitmap();
+        ascent = bitmap != null ? bitmap.ascent() : glyphSection.getInt("ascent", 8);
+        height = bitmap != null ? bitmap.height() : glyphSection.getInt("height", 8);
+        texture = bitmap != null ? bitmap.texture() : Key.key(StringUtils.appendIfMissing(glyphSection.getString("texture", "required/exit_icon"), ".png"));
+        font = bitmap != null ? bitmap.font() : Key.key(glyphSection.getString("font", "minecraft:default"));
     }
 
     public Glyph(String id, Character character, int ascent, int height, Key texture, Key font, boolean isEmoji, List<String> placeholders, String permission, boolean tabcomplete, BitMapEntry bitmapEntry) {
