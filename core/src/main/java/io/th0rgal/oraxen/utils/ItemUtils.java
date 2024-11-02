@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.utils;
 
+import io.th0rgal.oraxen.items.ItemBuilder;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Color;
 import org.bukkit.Material;
@@ -37,6 +38,12 @@ public class ItemUtils {
         else itemMeta.setItemName(AdventureUtils.LEGACY_SERIALIZER.serialize(component));
     }
 
+    public static void itemName(ItemBuilder itemBuilder, @Nullable Component component) {
+        component = component != Component.empty() ? component : null;
+        if (VersionUtil.isPaperServer()) itemBuilder.itemName(component);
+        else itemBuilder.setItemName(AdventureUtils.LEGACY_SERIALIZER.serialize(component));
+    }
+
     public static void displayName(ItemMeta itemMeta, ItemMeta otherMeta) {
         if (itemMeta == null) return;
         if (VersionUtil.isPaperServer()) displayName(itemMeta, otherMeta.displayName());
@@ -48,6 +55,11 @@ public class ItemUtils {
             if (VersionUtil.isPaperServer()) itemMeta.displayName(component);
             else itemMeta.setDisplayName(Optional.ofNullable(component).map(AdventureUtils.LEGACY_SERIALIZER::serialize).orElse(null));
         });
+    }
+
+    public static void displayName(ItemBuilder itemBuilder, @Nullable Component component) {
+        if (VersionUtil.isPaperServer()) itemBuilder.displayName(component);
+        else itemBuilder.setDisplayName(Optional.ofNullable(component).map(AdventureUtils.LEGACY_SERIALIZER::serialize).orElse(null));
     }
 
     public static void displayName(ItemMeta itemMeta, @Nullable Component component) {
@@ -74,6 +86,16 @@ public class ItemUtils {
     public static void lore(ItemMeta itemMeta, Collection<String> strings) {
         if (VersionUtil.isPaperServer()) itemMeta.lore(strings.stream().map(AdventureUtils.MINI_MESSAGE::deserialize).toList());
         else itemMeta.setLore(strings.stream().toList());
+    }
+
+    public static void lore(ItemBuilder itemBuilder, List<Component> components) {
+        if (VersionUtil.isPaperServer()) itemBuilder.lore(components);
+        else itemBuilder.setLore(components.stream().map(AdventureUtils.LEGACY_SERIALIZER::serialize).toList());
+    }
+
+    public static void lore(ItemBuilder itemBuilder, Collection<String> strings) {
+        if (VersionUtil.isPaperServer()) itemBuilder.lore(strings.stream().map(AdventureUtils.MINI_MESSAGE::deserialize).toList());
+        else itemBuilder.setLore(strings.stream().toList());
     }
 
     public static void lore(ItemMeta itemMeta, ItemMeta otherMeta) {

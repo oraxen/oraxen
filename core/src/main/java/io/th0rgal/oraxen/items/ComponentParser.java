@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.items;
 
 import io.th0rgal.oraxen.config.Settings;
-import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.ParseUtils;
 import io.th0rgal.oraxen.utils.PotionUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
@@ -41,12 +40,6 @@ public class ComponentParser {
     }
 
     public void parseComponents() {
-        String itemName = section.getString("itemname", section.getString("displayname"));
-        if (itemName != null && VersionUtil.atOrAbove("1.20.5")) {
-            if (VersionUtil.isPaperServer()) itemBuilder.itemName(AdventureUtils.MINI_MESSAGE.deserialize(itemName));
-            else itemBuilder.setItemName(itemName);
-        }
-
         if (componentSection == null || VersionUtil.below("1.20.5")) return;
 
         if (componentSection.contains("max_stack_size")) itemBuilder.setMaxStackSize(Math.clamp(componentSection.getInt("max_stack_size"), 1, 99));

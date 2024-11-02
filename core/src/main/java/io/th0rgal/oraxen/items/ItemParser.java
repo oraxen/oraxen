@@ -8,10 +8,7 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
-import io.th0rgal.oraxen.utils.AdventureUtils;
-import io.th0rgal.oraxen.utils.PotionUtils;
-import io.th0rgal.oraxen.utils.Utils;
-import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.*;
 import net.kyori.adventure.key.Key;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -100,15 +97,17 @@ public class ItemParser {
     }
 
     private ItemBuilder applyConfig(ItemBuilder item) {
-        if (section.contains("displayname")) {
-            if (VersionUtil.below("1.20.5")) configUpdated = true;
-            else item.setDisplayName(section.getString("displayname", ""));
-        }
+        Optional.ofNullable(section.getString("itemname", section.getString("displayname"))).map(AdventureUtils.MINI_MESSAGE::deserialize).ifPresent(itemName -> {
+            if (VersionUtil.atOrAbove("1.20.5")) {
+                if (section.contains("displayname")) configUpdated = true;
+                ItemUtils.itemName(item, itemName);
+            } else ItemUtils.displayName(item, itemName);
+        });
 
-        if (section.contains("customname")) {
-            if (!VersionUtil.atOrAbove("1.20.5")) configUpdated = true;
-            else item.setDisplayName(section.getString("customname", ""));
-        }
+        Optional.ofNullable(section.getString("customname")).map(AdventureUtils.MINI_MESSAGE::deserialize).ifPresent(customName -> {
+            if (VersionUtil.below("1.20.5")) configUpdated = true;
+            ItemUtils.displayName(item, customName);
+        });
 
         if (section.contains("lore")) item.lore(section.getStringList("lore").stream().map(AdventureUtils.MINI_MESSAGE::deserialize).toList());
         if (section.contains("unbreakable")) item.setUnbreakable(section.getBoolean("unbreakable", false));
