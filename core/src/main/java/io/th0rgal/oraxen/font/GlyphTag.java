@@ -26,9 +26,9 @@ public class GlyphTag {
         String glyphId = args.popOr("A glyph value is required").value();
         Glyph glyph = OraxenPlugin.get().fontManager().getGlyphFromName(glyphId);
         boolean colorable = args.hasNext() && (args.peek().value().equals("colorable") || args.peek().value().equals("c"));
-        Component glyphComponent = Component.text(glyph.character()).font(glyph.font()).style(Style.empty());
+        Component glyphComponent = Component.text(glyph.character()).style(Style.empty()).font(glyph.font());
 
-        glyphComponent = glyph.hasPermission(player) ? glyphComponent.color(colorable ? null : NamedTextColor.WHITE) : Component.text().content(glyph.glyphTag()).build();
+        glyphComponent = glyph.hasPermission(player) ? glyphComponent.color(colorable ? null : NamedTextColor.WHITE) : Component.text(glyph.glyphTag());
         return Tag.selfClosingInserting(glyphComponent);
     }
 }
