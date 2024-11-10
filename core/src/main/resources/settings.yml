@@ -46,7 +46,7 @@ Chat:
   chat_handler: MODERN # Valid once are MODERN & LEGACY
 
 CustomArmor:
-  type: SHADER # Valid types are SHADER, TRIMS and NONE
+  type: TRIMS # Valid types are SHADER, TRIMS and NONE
   disable_leather_repair: true # Makes custom armor not repairable with leather, only with copies of said custom armor
   component_settings:
     auto_assign_component: true # If true, the equippable-model component will be automatically assigned to the custom armor piece, unless specified

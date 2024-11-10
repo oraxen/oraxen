@@ -7,7 +7,9 @@
 
 emerald_helmet:
   displayname: "<gradient:#89E59D:#37C6BA>Emerald Helmet"
-  material: LEATHER_HELMET
+  material: CHAINMAIL_HELMET
+  ItemFlags:
+    - HIDE_ARMOR_TRIM
   lore:
     - "<#6f737d>» <#D5D6D8>Gives 1 extra <glyph:heart>"
   Mechanics:
@@ -24,13 +26,15 @@ emerald_helmet:
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    textures: # duplicate because we use the overlay of the leather armor
+    textures:
       - default/armors/emerald_helmet
-      - default/armors/emerald_helmet
+  trim_pattern: oraxen:emerald
 
 emerald_chestplate:
   displayname: "<gradient:#89E59D:#37C6BA>Emerald Chestplate"
-  material: LEATHER_CHESTPLATE
+  material: CHAINMAIL_CHESTPLATE
+  ItemFlags:
+    - HIDE_ARMOR_TRIM
   lore:
     - "<#6f737d>» <#D5D6D8>Gives 1.5 extra <glyph:heart>"
   Mechanics:
@@ -43,13 +47,15 @@ emerald_chestplate:
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    textures: # duplicate because we use the overlay of the leather armor
+    textures:
       - default/armors/emerald_chestplate
-      - default/armors/emerald_chestplate
+  trim_pattern: oraxen:emerald
 
 emerald_leggings:
   displayname: "<gradient:#89E59D:#37C6BA>Emerald Leggings"
-  material: LEATHER_LEGGINGS
+  material: CHAINMAIL_LEGGINGS
+  ItemFlags:
+    - HIDE_ARMOR_TRIM
   lore:
     - "<#6f737d>» <#D5D6D8>Gives 1.5 extra <glyph:heart>"
   Mechanics:
@@ -62,13 +68,15 @@ emerald_leggings:
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    textures: # duplicate because we use the overlay of the leather armor
+    textures:
       - default/armors/emerald_leggings
-      - default/armors/emerald_leggings
+  trim_pattern: oraxen:emerald
 
 emerald_boots:
   displayname: "<gradient:#89E59D:#37C6BA>Emerald Boots"
-  material: LEATHER_BOOTS
+  material: CHAINMAIL_BOOTS
+  ItemFlags:
+    - HIDE_ARMOR_TRIM
   lore:
     - "<#6f737d>» <#D5D6D8>Gives 1 extra <glyph:heart>"
   Mechanics:
@@ -81,13 +89,15 @@ emerald_boots:
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    textures: # duplicate because we use the overlay of the leather armor
+    textures:
       - default/armors/emerald_boots
-      - default/armors/emerald_boots
+  trim_pattern: oraxen:emerald
 
 obsidian_helmet:
   displayname: "<gradient:#4B36B1:#6699FF>Obsidian Helmet"
-  material: LEATHER_HELMET
+  material: CHAINMAIL_HELMET
+  ItemFlags:
+    - HIDE_ARMOR_TRIM
   lore:
     - "<#6f737d>» <#D5D6D8>Ludicrous durability"
   Mechanics:
@@ -98,14 +108,16 @@ obsidian_helmet:
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    textures: # duplicate because we use the overlay of the leather armor
+    textures:
       - default/armors/obsidian_helmet
-      - default/armors/obsidian_helmet
+  trim_pattern: oraxen:obsidian
 
 obsidian_chestplate:
   custom_model_data: 2
   displayname: "<gradient:#4B36B1:#6699FF>Obsidian Chestplate"
-  material: LEATHER_CHESTPLATE
+  material: CHAINMAIL_CHESTPLATE
+  ItemFlags:
+    - HIDE_ARMOR_TRIM
   lore:
     - "<#6f737d>» <#D5D6D8>Ludicrous durability"
   Mechanics:
@@ -116,13 +128,15 @@ obsidian_chestplate:
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    textures: # duplicate because we use the overlay of the leather armor
+    textures:
       - default/armors/obsidian_chestplate
-      - default/armors/obsidian_chestplate
+  trim_pattern: oraxen:obsidian
 
 obsidian_leggings:
   displayname: "<gradient:#4B36B1:#6699FF>Obsidian Leggings"
-  material: LEATHER_LEGGINGS
+  material: CHAINMAIL_LEGGINGS
+  ItemFlags:
+    - HIDE_ARMOR_TRIM
   lore:
     - "<#6f737d>» <#D5D6D8>Ludicrous durability"
   Mechanics:
@@ -133,13 +147,15 @@ obsidian_leggings:
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    textures: # duplicate because we use the overlay of the leather armor
+    textures:
       - default/armors/obsidian_leggings
-      - default/armors/obsidian_leggings
+  trim_pattern: oraxen:obsidian
 
 obsidian_boots:
   displayname: "<gradient:#4B36B1:#6699FF>Boots Boots"
-  material: LEATHER_BOOTS
+  material: CHAINMAIL_BOOTS
+  ItemFlags:
+    - HIDE_ARMOR_TRIM
   lore:
     - "<#6f737d>» <#D5D6D8>Ludicrous durability"
   Mechanics:
@@ -150,13 +166,15 @@ obsidian_boots:
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    textures: # duplicate because we use the overlay of the leather armor
+    textures:
       - default/armors/obsidian_boots
-      - default/armors/obsidian_boots
+  trim_pattern: oraxen:obsidian
 
 ruby_helmet:
   displayname: "<gradient:#FA7CBB:#F14658>Ruby Helmet"
-  material: LEATHER_HELMET
+  material: CHAINMAIL_HELMET
+  ItemFlags:
+    - HIDE_ARMOR_TRIM
   Mechanics:
     durability:
       value: 547 # 50% more than diamond helmet
@@ -166,13 +184,15 @@ ruby_helmet:
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    textures: # duplicate because we use the overlay of the leather armor
+    textures:
       - default/armors/ruby_helmet
-      - default/armors/ruby_helmet
+  trim_pattern: oraxen:ruby
 
 ruby_chestplate:
   displayname: "<gradient:#FA7CBB:#F14658>Ruby Chestplate"
-  material: LEATHER_CHESTPLATE
+  material: CHAINMAIL_CHESTPLATE
+  ItemFlags:
+    - HIDE_ARMOR_TRIM
   Mechanics:
     durability:
       value: 792
@@ -182,13 +202,15 @@ ruby_chestplate:
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    textures: # duplicate because we use the overlay of the leather armor
+    textures:
       - default/armors/ruby_chestplate
-      - default/armors/ruby_chestplate
+  trim_pattern: oraxen:ruby
 
 ruby_leggings:
   displayname: "<gradient:#FA7CBB:#F14658>Ruby Leggings"
-  material: LEATHER_LEGGINGS
+  material: CHAINMAIL_LEGGINGS
+  ItemFlags:
+    - HIDE_ARMOR_TRIM
   Mechanics:
     durability:
       value: 742
@@ -198,13 +220,15 @@ ruby_leggings:
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    textures: # duplicate because we use the overlay of the leather armor
+    textures:
       - default/armors/ruby_leggings
-      - default/armors/ruby_leggings
+  trim_pattern: oraxen:ruby
 
 ruby_boots:
   displayname: "<gradient:#FA7CBB:#F14658>Ruby Boots"
-  material: LEATHER_BOOTS
+  material: CHAINMAIL_BOOTS
+  ItemFlags:
+    - HIDE_ARMOR_TRIM
   Mechanics:
     durability:
       value: 643
@@ -214,6 +238,6 @@ ruby_boots:
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    textures: # duplicate because we use the overlay of the leather armor
+    textures:
       - default/armors/ruby_boots
-      - default/armors/ruby_boots
+  trim_pattern: oraxen:ruby

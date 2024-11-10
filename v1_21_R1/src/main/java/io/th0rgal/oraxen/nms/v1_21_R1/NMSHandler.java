@@ -64,18 +64,22 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
         // mineableWith tag handling
         NamespacedKey tagKey = NamespacedKey.fromString("mineable_with_key", OraxenPlugin.get());
-        if (!VersionUtil.isPaperServer()) return;
-        if (ChannelInitializeListenerHolder.hasListener(tagKey)) return;
-        ChannelInitializeListenerHolder.addListener(tagKey, (channel ->
-                channel.pipeline().addBefore("packet_handler", tagKey.asString(), new ChannelDuplexHandler() {
+        if (!VersionUtil.isPaperServer())
+            return;
+        if (ChannelInitializeListenerHolder.hasListener(tagKey))
+            return;
+        ChannelInitializeListenerHolder.addListener(tagKey, (channel -> channel.pipeline().addBefore("packet_handler",
+                tagKey.asString(), new ChannelDuplexHandler() {
                     Connection connection = (Connection) channel.pipeline().get("packet_handler");
                     TagNetworkSerialization.NetworkPayload payload = createPayload();
 
                     @Override
                     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
                         if (msg instanceof ClientboundUpdateTagsPacket updateTagsPacket) {
-                            Map<ResourceKey<? extends Registry<?>>, TagNetworkSerialization.NetworkPayload> tags = updateTagsPacket.getTags();
-                            if (NoteBlockMechanicFactory.isEnabled() && NoteBlockMechanicFactory.getInstance().removeMineableTag())
+                            Map<ResourceKey<? extends Registry<?>>, TagNetworkSerialization.NetworkPayload> tags = updateTagsPacket
+                                    .getTags();
+                            if (NoteBlockMechanicFactory.isEnabled()
+                                    && NoteBlockMechanicFactory.getInstance().removeMineableTag())
                                 tags.put(Registries.BLOCK, payload);
                             msg = new ClientboundUpdateTagsPacket(tags);
                         }
@@ -99,17 +103,20 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         return VersionUtil.isPaperServer() && GlobalConfiguration.get().blockUpdates.disableNoteblockUpdates;
     }
 
-
-    @Override //TODO Fix this
+    @Override // TODO Fix this
     public ItemStack copyItemNBTTags(@NotNull ItemStack oldItem, @NotNull ItemStack newItem) {
         net.minecraft.world.item.ItemStack newNmsItem = CraftItemStack.asNMSCopy(newItem);
         net.minecraft.world.item.ItemStack oldItemStack = CraftItemStack.asNMSCopy(oldItem);
         CraftItemStack.asNMSCopy(oldItem).getTags().forEach(tag -> {
-            if (!tag.location().getNamespace().equals("minecraft")) return;
-            if (vanillaKeys.contains(tag.location().getPath())) return;
+            if (!tag.location().getNamespace().equals("minecraft"))
+                return;
+            if (vanillaKeys.contains(tag.location().getPath()))
+                return;
 
-            DataComponentType<Object> type = (DataComponentType<Object>) BuiltInRegistries.DATA_COMPONENT_TYPE.get(tag.location());
-            if (type != null) newNmsItem.set(type, oldItemStack.get(type));
+            DataComponentType<Object> type = (DataComponentType<Object>) BuiltInRegistries.DATA_COMPONENT_TYPE
+                    .get(tag.location());
+            if (type != null)
+                newNmsItem.set(type, oldItemStack.get(type));
         });
         return CraftItemStack.asBukkitCopy(newNmsItem);
     }
@@ -125,18 +132,21 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
         if (!(nmsStack.getItem() instanceof BlockItem blockItem)) {
             nmsStack.getItem().useOn(new UseOnContext(serverPlayer, hand, hitResult));
-            if (!player.isSneaking()) serverPlayer.gameMode.useItem(serverPlayer, serverPlayer.level(), nmsStack, hand);
+            if (!player.isSneaking())
+                serverPlayer.gameMode.useItem(serverPlayer, serverPlayer.level(), nmsStack, hand);
             return null;
         }
 
         // Shulker-Boxes are DirectionalPlace based unlike other directional-blocks
         if (org.bukkit.Tag.SHULKER_BOXES.isTagged(itemStack.getType())) {
-            placeContext = new DirectionalPlaceContext(serverPlayer.level(), hitResult.getBlockPos(), hitResult.getDirection(), nmsStack, hitResult.getDirection().getOpposite());
+            placeContext = new DirectionalPlaceContext(serverPlayer.level(), hitResult.getBlockPos(),
+                    hitResult.getDirection(), nmsStack, hitResult.getDirection().getOpposite());
         }
 
         BlockPos pos = hitResult.getBlockPos();
         InteractionResult result = blockItem.place(placeContext);
-        if (result == InteractionResult.FAIL) return null;
+        if (result == InteractionResult.FAIL)
+            return null;
         if (placeContext instanceof DirectionalPlaceContext && player.getGameMode() != org.bukkit.GameMode.CREATIVE)
             itemStack.setAmount(itemStack.getAmount() - 1);
         World world = player.getWorld();
@@ -148,14 +158,14 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
             world.playSound(
                     BlockHelpers.toCenterBlockLocation(block.getLocation()), sound.getPlaceSound(),
-                    SoundCategory.BLOCKS, (sound.getVolume() + 1.0F) / 2.0F, sound.getPitch() * 0.8F
-            );
+                    SoundCategory.BLOCKS, (sound.getVolume() + 1.0F) / 2.0F, sound.getPitch() * 0.8F);
         }
 
         return world.getBlockAt(pos.getX(), pos.getY(), pos.getZ()).getBlockData();
     }
 
-    public BlockHitResult getPlayerPOVHitResult(Level world, net.minecraft.world.entity.player.Player player, ClipContext.Fluid fluidHandling) {
+    public BlockHitResult getPlayerPOVHitResult(Level world, net.minecraft.world.entity.player.Player player,
+            ClipContext.Fluid fluidHandling) {
         float f = player.getXRot();
         float g = player.getYRot();
         Vec3 vec3 = player.getEyePosition();
@@ -176,8 +186,11 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     }
 
     private TagNetworkSerialization.NetworkPayload createPayload() {
-        Constructor<?> constructor = Arrays.stream(TagNetworkSerialization.NetworkPayload.class.getDeclaredConstructors()).findFirst().orElse(null);
-        if (constructor == null) return null;
+        Constructor<?> constructor = Arrays
+                .stream(TagNetworkSerialization.NetworkPayload.class.getDeclaredConstructors()).findFirst()
+                .orElse(null);
+        if (constructor == null)
+            return null;
         constructor.setAccessible(true);
         try {
             return (TagNetworkSerialization.NetworkPayload) constructor.newInstance(tagRegistryMap);
@@ -196,7 +209,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                 pair.getSecond().stream()
                         .filter(block -> !block.value().getDescriptionId().endsWith("note_block"))
                         .forEach(block -> list.add(BuiltInRegistries.BLOCK.getId(block.value())));
-            } else pair.getSecond().forEach(block -> list.add(BuiltInRegistries.BLOCK.getId(block.value())));
+            } else
+                pair.getSecond().forEach(block -> list.add(BuiltInRegistries.BLOCK.getId(block.value())));
 
             return Map.of(pair.getFirst().location(), list);
         }).collect(HashMap::new, Map::putAll, Map::putAll);

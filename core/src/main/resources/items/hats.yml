@@ -16,9 +16,11 @@ anubis_head:
   Pack:
     generate_model: false
     model: default/anubis_head # .json extension is not mandatory
+  # before 1.21.2, simply enable hat mechanic
+  Components:
+    equippable:
+      slot: HEAD
   Mechanics:
-    hat:
-      enabled: true
     armor_effects:
       night_vision:
         amplifier: 0
@@ -35,9 +37,9 @@ crown:
   Pack:
     generate_model: false
     model: default/crown
-  Mechanics:
-    hat:
-      enabled: true
+  Components:
+    equippable:
+      slot: HEAD
 
 pharaoh_head:
   displayname: "<gradient:#F06966:#FAD6A6>Pharaoh Head"
@@ -48,9 +50,9 @@ pharaoh_head:
   Pack:
     generate_model: false
     model: default/pharaoh_head
-  Mechanics:
-    hat:
-      enabled: true
+  Components:
+    equippable:
+      slot: HEAD
 
 witch_hat:
   displayname: "<gradient:#DF98FA:#9055FF>Witch Hat"
@@ -61,9 +63,9 @@ witch_hat:
   Pack:
     generate_model: false
     model: default/witch_hat
-  Mechanics:
-    hat:
-      enabled: true
+  Components:
+    equippable:
+      slot: HEAD
 
 space_helmet:
   displayname: "<#D5D6D8>Space Helmet"
@@ -71,6 +73,7 @@ space_helmet:
   Pack:
     generate_model: false
     model: default/space_helmet
-  Mechanics:
-    hat:
-      enabled: true
+  Components:
+    equippable:
+      slot: HEAD
+

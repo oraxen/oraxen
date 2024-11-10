@@ -37,7 +37,7 @@ val foliaPluginPath = project.findProperty("oraxen_folia_plugin_path")?.toString
 val spigotPluginPath = project.findProperty("oraxen_spigot_plugin_path")?.toString()
 val pluginVersion: String by project
 val commandApiVersion = "9.6.1"
-val adventureVersion = "4.17.0"
+val adventureVersion = "4.18.0-SNAPSHOT"
 val platformVersion = "4.3.4"
 val googleGsonVersion = "2.10.1"
 val apacheLang3Version = "3.14.0"
@@ -76,10 +76,10 @@ allprojects {
         val actionsVersion = "1.0.0-SNAPSHOT"
         compileOnly("gs.mclo:java:2.2.1")
 
-        compileOnly("net.kyori:adventure-text-minimessage:$adventureVersion")
-        compileOnly("net.kyori:adventure-text-serializer-plain:$adventureVersion")
-        compileOnly("net.kyori:adventure-text-serializer-ansi:$adventureVersion")
-        compileOnly("net.kyori:adventure-platform-bukkit:$platformVersion")
+        implementation("net.kyori:adventure-text-minimessage:$adventureVersion")
+        implementation("net.kyori:adventure-text-serializer-plain:$adventureVersion")
+        implementation("net.kyori:adventure-text-serializer-ansi:$adventureVersion")
+        implementation("net.kyori:adventure-platform-bukkit:$platformVersion")
         compileOnly("com.comphenix.protocol:ProtocolLib:5.3.0")
         compileOnly("me.clip:placeholderapi:2.11.6")
         compileOnly("me.gabytm.util:actions-core:$actionsVersion")
@@ -213,10 +213,10 @@ bukkit {
         "org.springframework:spring-expression:6.0.6",
         "org.apache.httpcomponents:httpmime:4.5.13",
         "org.joml:joml:1.10.5",
-        "net.kyori:adventure-text-minimessage:$adventureVersion",
-        "net.kyori:adventure-text-serializer-plain:$adventureVersion",
-        "net.kyori:adventure-text-serializer-ansi:$adventureVersion",
-        "net.kyori:adventure-platform-bukkit:$platformVersion",
+        // "net.kyori:adventure-text-minimessage:$adventureVersion",
+        // "net.kyori:adventure-text-serializer-plain:$adventureVersion",
+        // "net.kyori:adventure-text-serializer-ansi:$adventureVersion",
+        // "net.kyori:adventure-platform-bukkit:$platformVersion",
         "com.google.code.gson:gson:$googleGsonVersion",
         "org.apache.commons:commons-lang3:$apacheLang3Version",
         "gs.mclo:java:2.2.1",
