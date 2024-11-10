@@ -10,27 +10,28 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import net.Indyuce.mmoitems.MMOItems;
 import net.kyori.adventure.key.Key;
+import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.Tag;
+import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.damage.DamageType;
 import org.bukkit.enchantments.EnchantmentWrapper;
+import org.bukkit.entity.EntityType;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemRarity;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.components.FoodComponent;
-import org.bukkit.inventory.meta.components.JukeboxPlayableComponent;
-import org.bukkit.inventory.meta.components.ToolComponent;
+import org.bukkit.inventory.meta.components.*;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.tag.DamageTypeTags;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -163,14 +164,66 @@ public class ItemParser {
         if (jukeboxSection != null) {
             JukeboxPlayableComponent jukeboxPlayable = new ItemStack(Material.MUSIC_DISC_CREATOR).getItemMeta().getJukeboxPlayable();
             jukeboxPlayable.setShowInTooltip(jukeboxSection.getBoolean("show_in_tooltip"));
-            jukeboxPlayable.setSongKey(NamespacedKey.fromString(jukeboxSection.getString("song_key")));
+            jukeboxPlayable.setSongKey(NamespacedKey.fromString(jukeboxSection.getString("song_key", "")));
             item.setJukeboxPlayable(jukeboxPlayable);
         }
+
+        if (!VersionUtil.atOrAbove("1.21.2")) return;
+        Optional.ofNullable(components.getConfigurationSection("equippable"))
+                .ifPresent(equippable -> parseEquippableComponent(item, equippable));
+
+        Optional.ofNullable(components.getConfigurationSection("use_cooldown")).ifPresent((cooldownSection) -> {
+            UseCooldownComponent useCooldownComponent = new ItemStack(Material.PAPER).getItemMeta().getUseCooldown();
+            String group = Optional.ofNullable(cooldownSection.getString("group")).orElse("oraxen:" + OraxenItems.getIdByItem(item));
+            if (!group.isEmpty()) useCooldownComponent.setCooldownGroup(NamespacedKey.fromString(group));
+            useCooldownComponent.setCooldownSeconds((float) Math.max(cooldownSection.getDouble("seconds", 1.0), 0f));
+            item.setUseCooldownComponent(useCooldownComponent);
+        });
+
+        Optional.ofNullable(components.getConfigurationSection("use_remainder")).ifPresent(useRemainder -> parseUseRemainderComponent(item, useRemainder));
+        Optional.ofNullable(components.getString("damage_resistant")).map(NamespacedKey::fromString).ifPresent(damageResistantKey ->
+                item.setDamageResistant(Bukkit.getTag(DamageTypeTags.REGISTRY_DAMAGE_TYPES, damageResistantKey, DamageType.class))
+        );
+
+        Optional.ofNullable(components.getString("tooltip_style")).map(NamespacedKey::fromString).ifPresent(item::setTooltipStyle);
+
+        Optional.ofNullable(components.getString("item_model")).map(NamespacedKey::fromString)
+                .ifPresentOrElse(item::setItemModel, () -> {
+                    if (oraxenMeta == null || !oraxenMeta.hasPackInfos()) return;
+                    if (oraxenMeta.getCustomModelData() != null) return;
+                    Optional.ofNullable(components.getString("item_model")).map(NamespacedKey::fromString).ifPresent(item::setItemModel);
+                });
+
+        if (components.contains("enchantable")) item.setEnchantable(components.getInt("enchantable"));
+        if (components.contains("glider")) item.setGlider(components.getBoolean("glider"));
+
+    }
+
+    private void parseUseRemainderComponent(ItemBuilder item, @NotNull ConfigurationSection useRemainderSection) {
+        ItemStack result;
+        int amount = useRemainderSection.getInt("amount", 1);
+
+        if (useRemainderSection.contains("oraxen_item"))
+            result = ItemUpdater.updateItem(OraxenItems.getItemById(useRemainderSection.getString("oraxen_item")).build());
+        else if (useRemainderSection.contains("crucible_item"))
+            result = new WrappedCrucibleItem(useRemainderSection.getString("crucible_item")).build();
+        else if (useRemainderSection.contains("mmoitems_id") && useRemainderSection.isString("mmoitems_type"))
+            result = MMOItems.plugin.getItem(useRemainderSection.getString("mmoitems_type"), useRemainderSection.getString("mmoitems_id"));
+        else if (useRemainderSection.contains("ecoitem_id"))
+            result = new WrappedEcoItem(useRemainderSection.getString("ecoitem_id")).build();
+        else if (useRemainderSection.contains("minecraft_type")) {
+            Material material = Material.getMaterial(useRemainderSection.getString("minecraft_type", "AIR"));
+            if (material == null || material.isAir()) return;
+            result = new ItemStack(material);
+        } else result = useRemainderSection.getItemStack("minecraft_item");
+
+        if (result != null) result.setAmount(amount);
+        item.setUseRemainder(result);
     }
 
     @SuppressWarnings({"UnstableApiUsage", "unchecked"})
     private void parseToolComponent(ItemBuilder item, @NotNull ConfigurationSection toolSection) {
-        ToolComponent toolComponent = new ItemStack(Material.PAPER).getItemMeta().getTool();
+        ToolComponent toolComponent = new ItemStack(type).getItemMeta().getTool();
         toolComponent.setDamagePerBlock(Math.max(toolSection.getInt("damage_per_block", 1), 0));
         toolComponent.setDefaultMiningSpeed(Math.max((float) toolSection.getDouble("default_mining_speed", 1.0), 0f));
 
@@ -238,31 +291,64 @@ public class ItemParser {
 
     @SuppressWarnings("UnstableApiUsage")
     private void parseFoodComponent(ItemBuilder item, @NotNull ConfigurationSection foodSection) {
-        FoodComponent foodComponent = new ItemStack(Material.PAPER).getItemMeta().getFood();
+        FoodComponent foodComponent = new ItemStack(type).getItemMeta().getFood();
         foodComponent.setNutrition(foodSection.getInt("nutrition"));
         foodComponent.setSaturation((float) foodSection.getDouble("saturation", 0.0));
         foodComponent.setCanAlwaysEat(foodSection.getBoolean("can_always_eat"));
-        foodComponent.setEatSeconds((float) foodSection.getDouble("eat_seconds", 1.6));
 
-        ConfigurationSection effectsSection = foodSection.getConfigurationSection("effects");
-        if (effectsSection != null) for (String effect : effectsSection.getKeys(false)) {
-            ConfigurationSection effectSection = effectsSection.getConfigurationSection(effect);
-            PotionEffectType effectType = PotionUtils.getEffectType(effect);
-            if (effectSection == null || effectType == null)
-                Logs.logError("Invalid potion effect: " + effect + ", in " + StringUtils.substringBefore(effectsSection.getCurrentPath(), ".") + " food-property!");
-            else {
-                foodComponent.addEffect(
-                        new PotionEffect(effectType,
-                                effectSection.getInt("duration", 1) * 20,
-                                effectSection.getInt("amplifier", 0),
-                                effectSection.getBoolean("ambient", true),
-                                effectSection.getBoolean("show_particles", true),
-                                effectSection.getBoolean("show_icon", true)),
-                        (float) effectSection.getDouble("probability", 1.0)
-                );
-            }
+        if (!VersionUtil.atOrAbove("1.21.2")) {
+            /*foodComponent.setEatSeconds((float) foodSection.getDouble("eat_seconds", 1.6));
+
+            ConfigurationSection effectsSection = foodSection.getConfigurationSection("effects");
+            if (effectsSection != null) for (String effect : effectsSection.getKeys(false)) {
+                ConfigurationSection effectSection = effectsSection.getConfigurationSection(effect);
+                PotionEffectType effectType = PotionUtils.getEffectType(effect);
+                if (effectSection == null || effectType == null)
+                    Logs.logError("Invalid potion effect: " + effect + ", in " + StringUtils.substringBefore(effectsSection.getCurrentPath(), ".") + " food-property!");
+                else {
+                    foodComponent.addEffect(
+                            new PotionEffect(effectType,
+                                    effectSection.getInt("duration", 1) * 20,
+                                    effectSection.getInt("amplifier", 0),
+                                    effectSection.getBoolean("ambient", true),
+                                    effectSection.getBoolean("show_particles", true),
+                                    effectSection.getBoolean("show_icon", true)),
+                            (float) effectSection.getDouble("probability", 1.0)
+                    );
+                }
+            }*/
         }
+
         item.setFoodComponent(foodComponent);
+    }
+
+    private void parseConsumableComponent(ItemBuilder item, @NotNull ConfigurationSection consumableSection) {
+    }
+
+    private void parseEquippableComponent(ItemBuilder item, ConfigurationSection equippableSection) {
+        EquippableComponent equippableComponent = new ItemStack(type).getItemMeta().getEquippable();
+
+        String slot = equippableSection.getString("slot");
+        try {
+            equippableComponent.setSlot(EquipmentSlot.valueOf(slot));
+        } catch (Exception e) {
+            Logs.logWarning("Error parsing equippable-component in %s...".formatted(section.getName()));
+            Logs.logWarning("Invalid \"slot\"-value %s".formatted(slot));
+            Logs.logWarning("Valid values are: %s".formatted(StringUtils.join(EquipmentSlot.values())));
+            return;
+        }
+
+        List<EntityType> entityTypes = equippableSection.getStringList("allowed_entity_types").stream().map(e -> EnumUtils.getEnum(EntityType.class, e)).toList();
+        if (equippableSection.contains("allowed_entity_types")) equippableComponent.setAllowedEntities(entityTypes.isEmpty() ? null : entityTypes);
+        if (equippableSection.contains("damage_on_hurt")) equippableComponent.setDamageOnHurt(equippableSection.getBoolean("damage_on_hurt", true));
+        if (equippableSection.contains("dispensable")) equippableComponent.setDispensable(equippableSection.getBoolean("dispensable", true));
+        if (equippableSection.contains("swappable")) equippableComponent.setSwappable(equippableSection.getBoolean("swappable", true));
+
+        Optional.ofNullable(equippableSection.getString("model", null)).map(NamespacedKey::fromString).ifPresent(equippableComponent::setModel);
+        Optional.ofNullable(equippableSection.getString("camera_overlay")).map(NamespacedKey::fromString).ifPresent(equippableComponent::setCameraOverlay);
+        Optional.ofNullable(equippableSection.getString("equip_sound")).map(Key::key).map(Registry.SOUNDS::get).ifPresent(equippableComponent::setEquipSound);
+
+        item.setEquippableComponent(equippableComponent);
     }
 
     private void parseMiscOptions(ItemBuilder item) {
@@ -358,18 +444,21 @@ public class ItemParser {
         }
 
         if (oraxenMeta.hasPackInfos()) {
-            int customModelData;
+            Integer customModelData;
             if (MODEL_DATAS_BY_ID.containsKey(section.getName())) {
                 customModelData = MODEL_DATAS_BY_ID.get(section.getName()).getModelData();
-            } else {
+            } else if (!item.hasItemModel()) {
                 customModelData = ModelData.generateId(oraxenMeta.getModelName(), type);
                 configUpdated = true;
                 if (!Settings.DISABLE_AUTOMATIC_MODEL_DATA.toBool())
                     Optional.ofNullable(section.getConfigurationSection("Pack"))
                             .ifPresent(c -> c.set("custom_model_data", customModelData));
+            } else customModelData = null;
+
+            if (customModelData != null) {
+                item.setCustomModelData(customModelData);
+                oraxenMeta.setCustomModelData(customModelData);
             }
-            item.setCustomModelData(customModelData);
-            oraxenMeta.setCustomModelData(customModelData);
         }
     }
 

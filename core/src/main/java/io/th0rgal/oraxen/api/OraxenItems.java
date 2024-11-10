@@ -66,7 +66,7 @@ public class OraxenItems {
 
                 ConfigurationSection section = OraxenYaml.loadConfiguration(entry.getKey()).getConfigurationSection(itemId + ".Components.food.replacement");
                 ItemStack replacementItem = parseFoodComponentReplacement(section);
-                foodComponent.setUsingConvertsTo(replacementItem);
+                //foodComponent.setUsingConvertsTo(replacementItem);
                 itemBuilder.setFoodComponent(foodComponent).regen();
             }
         }

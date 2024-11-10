@@ -17,6 +17,7 @@ import io.th0rgal.oraxen.pack.upload.UploadManager;
 import io.th0rgal.oraxen.sound.CustomSound;
 import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.*;
+import io.th0rgal.oraxen.utils.customarmor.ComponentArmorModels;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmorType;
 import io.th0rgal.oraxen.utils.customarmor.ShaderArmorTextures;
 import io.th0rgal.oraxen.utils.customarmor.TrimArmorDatapack;
@@ -44,6 +45,7 @@ public class ResourcePack {
     private static Map<String, VirtualFile> outputFiles;
     private ShaderArmorTextures shaderArmorTextures;
     private TrimArmorDatapack trimArmorDatapack;
+    private ComponentArmorModels componentArmorModels;
     private static final File packFolder = new File(OraxenPlugin.get().getDataFolder(), "pack");
     private final File pack = new File(packFolder, packFolder.getName() + ".zip");
 
@@ -58,6 +60,7 @@ public class ResourcePack {
 
         makeDirsIfNotExists(packFolder, new File(packFolder, "assets"));
 
+        componentArmorModels = CustomArmorType.getSetting() == CustomArmorType.COMPONENT ? new ComponentArmorModels() : null;
         trimArmorDatapack = CustomArmorType.getSetting() == CustomArmorType.TRIMS ? new TrimArmorDatapack() : null;
         shaderArmorTextures = CustomArmorType.getSetting() == CustomArmorType.SHADER ? new ShaderArmorTextures() : null;
 
@@ -332,10 +335,11 @@ public class ResourcePack {
             final ItemBuilder item = entry.getValue();
             OraxenMeta oraxenMeta = item.getOraxenMeta();
             if (item.hasOraxenMeta() && oraxenMeta.hasPackInfos()) {
+                String modelName = oraxenMeta.getModelName() + ".json";
+                String modelPath = oraxenMeta.getModelPath();
+                if (item.hasEquippableComponent() && item.getEquippableComponent().getModel() != null) modelPath += "/item/";
                 if (oraxenMeta.shouldGenerateModel()) {
-                    writeStringToVirtual(oraxenMeta.getModelPath(),
-                            item.getOraxenMeta().getModelName() + ".json",
-                            new ModelGenerator(oraxenMeta).getJson().toString());
+                    writeStringToVirtual(modelPath, modelName, new ModelGenerator(oraxenMeta).getJson().toString());
                 }
                 final List<ItemBuilder> items = texturedItems.getOrDefault(item.build().getType(), new ArrayList<>());
                 // todo: could be improved by using
@@ -346,7 +350,9 @@ public class ResourcePack {
                 else
                     // for some reason those breaks are needed to avoid some nasty "memory leak"
                     for (int i = 0; i < items.size(); i++) {
-                        if (items.get(i).getOraxenMeta().getCustomModelData() > item.getOraxenMeta().getCustomModelData()) {
+                        Integer cmd = Optional.ofNullable(items.get(i).getOraxenMeta().getCustomModelData()).orElse(0);
+                        Integer cmd2 = Optional.ofNullable(oraxenMeta.getCustomModelData()).orElse(0);
+                        if (cmd > cmd2) {
                             items.add(i, item);
                             break;
                         } else if (i == items.size() - 1) {
@@ -576,6 +582,7 @@ public class ResourcePack {
         TrimArmorDatapack.clearOldDataPacks();
 
         switch (customArmorType) {
+            case COMPONENT -> componentArmorModels.generatePackFiles(output);
             case TRIMS -> trimArmorDatapack.generateTrimAssets(output);
             case SHADER -> {
                 if (Settings.CUSTOM_ARMOR_SHADER_GENERATE_CUSTOM_TEXTURES.toBool() && shaderArmorTextures.hasCustomArmors())

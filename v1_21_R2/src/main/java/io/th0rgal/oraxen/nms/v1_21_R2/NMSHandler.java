@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.nms.v1_21_R1;
+package io.th0rgal.oraxen.nms.v1_21_R2;
 
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -10,24 +10,25 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic
 import io.th0rgal.oraxen.nms.GlyphHandler;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.VersionUtil;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.common.ClientboundUpdateTagsPacket;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagNetworkSerialization;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.DirectionalPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
@@ -60,7 +61,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     private final GlyphHandler glyphHandler;
 
     public NMSHandler() {
-        this.glyphHandler = new io.th0rgal.oraxen.nms.v1_21_R1.GlyphHandler();
+        this.glyphHandler = new io.th0rgal.oraxen.nms.v1_21_R2.GlyphHandler();
 
         // mineableWith tag handling
         NamespacedKey tagKey = NamespacedKey.fromString("mineable_with_key", OraxenPlugin.get());
@@ -104,13 +105,25 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     public ItemStack copyItemNBTTags(@NotNull ItemStack oldItem, @NotNull ItemStack newItem) {
         net.minecraft.world.item.ItemStack newNmsItem = CraftItemStack.asNMSCopy(newItem);
         net.minecraft.world.item.ItemStack oldItemStack = CraftItemStack.asNMSCopy(oldItem);
-        CraftItemStack.asNMSCopy(oldItem).getTags().forEach(tag -> {
-            if (!tag.location().getNamespace().equals("minecraft")) return;
-            if (vanillaKeys.contains(tag.location().getPath())) return;
+        //Gets data component's nbt data.
+        DataComponentType<CustomData> type = DataComponents.CUSTOM_DATA;
+        CustomData oldData = oldItemStack.getComponents().get(type);
+        CustomData newData = newNmsItem.getComponents().get(type);
 
-            DataComponentType<Object> type = (DataComponentType<Object>) BuiltInRegistries.DATA_COMPONENT_TYPE.get(tag.location());
-            if (type != null) newNmsItem.set(type, oldItemStack.get(type));
-        });
+        //Cancels if null.
+        if (oldData == null || newData == null) return newItem;
+        //Creates new nbt compound.
+        CompoundTag oldTag = oldData.copyTag();
+        CompoundTag newTag = newData.copyTag();
+
+        for (String key : oldTag.getAllKeys()) {
+            if (vanillaKeys.contains(key)) continue;
+            Tag value = oldTag.get(key);
+            if (value != null) newTag.put(key, value);
+            else newTag.remove(key);
+        }
+
+        newNmsItem.set(type, CustomData.of(newTag));
         return CraftItemStack.asBukkitCopy(newNmsItem);
     }
 
@@ -187,9 +200,9 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         return null;
     }
 
-    private final Map<ResourceLocation, IntList> tagRegistryMap = createTagRegistryMap();
+    private final Map<ResourceLocation, IntList> tagRegistryMap = new HashMap();//createTagRegistryMap();
 
-    private static Map<ResourceLocation, IntList> createTagRegistryMap() {
+    /*private static Map<ResourceLocation, IntList> createTagRegistryMap() {
         return BuiltInRegistries.BLOCK.getTags().map(pair -> {
             IntArrayList list = new IntArrayList(pair.getSecond().size());
             if (pair.getFirst().location() == BlockTags.MINEABLE_WITH_AXE.location()) {
@@ -200,7 +213,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
             return Map.of(pair.getFirst().location(), list);
         }).collect(HashMap::new, Map::putAll, Map::putAll);
-    }
+    }*/
 
     @Override
     public boolean getSupported() {

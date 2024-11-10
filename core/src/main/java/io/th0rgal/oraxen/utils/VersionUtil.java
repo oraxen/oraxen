@@ -12,6 +12,7 @@ public class VersionUtil {
     private static final Map<NMSVersion, Map<Integer, MinecraftVersion>> versionMap = new HashMap<>();
 
     public enum NMSVersion {
+        v1_21_R2,
         v1_21_R1,
         v1_20_R4,
         v1_20_R3,
@@ -30,6 +31,7 @@ public class VersionUtil {
     }
 
     static {
+        versionMap.put(NMSVersion.v1_21_R2, Map.of(17, new MinecraftVersion("1.21.2"), 18, new MinecraftVersion("1.21.3")));
         versionMap.put(NMSVersion.v1_21_R1, Map.of(15, new MinecraftVersion("1.21"), 16, new MinecraftVersion("1.21.1")));
         versionMap.put(NMSVersion.v1_20_R4, Map.of(13, new MinecraftVersion("1.20.5"), 14, new MinecraftVersion("1.20.6")));
         versionMap.put(NMSVersion.v1_20_R3, Map.of(11, new MinecraftVersion("1.20.3"), 12, new MinecraftVersion("1.20.4")));
