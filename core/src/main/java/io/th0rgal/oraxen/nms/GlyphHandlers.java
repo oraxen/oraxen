@@ -90,31 +90,14 @@ public class GlyphHandlers {
     }
 
     public static Component transformGlyphs(Component component) {
-        String serialized = (component instanceof TextComponent textComponent) ? textComponent.content() : AdventureUtils.MINI_MESSAGE.serialize(component);
-
         for (Glyph glyph : OraxenPlugin.get().fontManager().glyphs()) {
-            Matcher matcher = glyph.baseRegex.matcher(serialized);
-            while (matcher.find()) {
-                component = component.replaceText(
-                        TextReplacementConfig.builder()
-                                .match(glyph.baseRegex.pattern())
-                                .replacement(glyph.glyphComponent())
-                                .build());
-            }
-        }
-
-
-        Matcher shiftMatcher = ShiftTag.PATTERN.matcher(serialized);
-        while (shiftMatcher.find()) {
-            int shift = ParseUtils.parseInt(shiftMatcher.group(1), 0);
             component = component.replaceText(
                     TextReplacementConfig.builder()
-                            .matchLiteral("<shift:" + shift + ">")
-                            .replacement(Component.text(Shift.of(shift)))
-                            .build()
-            );
+                            .match(glyph.baseRegex.pattern())
+                            .replacement(glyph.glyphComponent())
+                            .build());
         }
-
+        component = component.replaceText(ShiftTag.REPLACEMENT_CONFIG);
         return component;
     }
 }
