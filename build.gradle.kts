@@ -159,15 +159,14 @@ tasks {
 
         archiveClassifier = null
         relocate("org.bstats", "io.th0rgal.oraxen.shaded.bstats")
-        //relocate("dev.triumphteam.gui", "io.th0rgal.oraxen.shaded.triumphteam.gui")
-        //relocate("com.jeff_media", "io.th0rgal.oraxen.shaded.jeff_media")
-        //relocate("com.github.stefvanschie.inventoryframework", "io.th0rgal.oraxen.shaded.inventoryframework")
-        //relocate("me.gabytm.util.actions", "io.th0rgal.oraxen.shaded.actions")
-        //relocate("org.intellij.lang.annotations", "io.th0rgal.oraxen.shaded.intellij.annotations")
-        //relocate("org.jetbrains.annotations", "io.th0rgal.oraxen.shaded.jetbrains.annotations")
-        //relocate("com.udojava.evalex", "io.th0rgal.oraxen.shaded.evalex")
-        //relocate("com.ticxo.playeranimator", "io.th0rgal.oraxen.shaded.playeranimator")
-        //relocate("dev.jorel", "io.th0rgal.oraxen.shaded")
+        relocate("dev.triumphteam.gui", "io.th0rgal.oraxen.shaded.triumphteam.gui")
+        relocate("com.jeff_media", "io.th0rgal.oraxen.shaded.jeff_media")
+        relocate("com.github.stefvanschie.inventoryframework", "io.th0rgal.oraxen.shaded.inventoryframework")
+        relocate("me.gabytm.util.actions", "io.th0rgal.oraxen.shaded.actions")
+        relocate("org.intellij.lang.annotations", "io.th0rgal.oraxen.shaded.intellij.annotations")
+        relocate("org.jetbrains.annotations", "io.th0rgal.oraxen.shaded.jetbrains.annotations")
+        relocate("com.ticxo.playeranimator", "io.th0rgal.oraxen.shaded.playeranimator")
+        relocate("dev.jorel", "io.th0rgal.oraxen.shaded")
 
         manifest {
             attributes(
