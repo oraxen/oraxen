@@ -36,7 +36,6 @@ emerald_helmet:
     parent_model: "item/generated"
     textures:
       - default/armors/emerald_helmet
-      - default/armors/emerald_helmet
 
 emerald_chestplate:
   displayname: "<gradient:#89E59D:#37C6BA>Emerald Chestplate"
@@ -64,7 +63,6 @@ emerald_chestplate:
     generate_model: true
     parent_model: "item/generated"
     textures:
-      - default/armors/emerald_chestplate
       - default/armors/emerald_chestplate
 
 emerald_leggings:
@@ -94,7 +92,6 @@ emerald_leggings:
     parent_model: "item/generated"
     textures:
       - default/armors/emerald_leggings
-      - default/armors/emerald_leggings
 
 emerald_boots:
   displayname: "<gradient:#89E59D:#37C6BA>Emerald Boots"
@@ -123,7 +120,6 @@ emerald_boots:
     parent_model: "item/generated"
     textures:
       - default/armors/emerald_boots
-      - default/armors/emerald_boots
 
 obsidian_helmet:
   displayname: "<gradient:#4B36B1:#6699FF>Obsidian Helmet"
@@ -144,7 +140,6 @@ obsidian_helmet:
     generate_model: true
     parent_model: "item/generated"
     textures:
-      - default/armors/obsidian_helmet
       - default/armors/obsidian_helmet
 
 obsidian_chestplate:
@@ -168,7 +163,6 @@ obsidian_chestplate:
     parent_model: "item/generated"
     textures:
       - default/armors/obsidian_chestplate
-      - default/armors/obsidian_chestplate
 
 obsidian_leggings:
   displayname: "<gradient:#4B36B1:#6699FF>Obsidian Leggings"
@@ -190,7 +184,6 @@ obsidian_leggings:
     parent_model: "item/generated"
     textures:
       - default/armors/obsidian_leggings
-      - default/armors/obsidian_leggings
 
 obsidian_boots:
   displayname: "<gradient:#4B36B1:#6699FF>Boots Boots"
@@ -211,7 +204,6 @@ obsidian_boots:
     generate_model: true
     parent_model: "item/generated"
     textures:
-      - default/armors/obsidian_boots
       - default/armors/obsidian_boots
 
 ruby_helmet:
@@ -238,7 +230,6 @@ ruby_helmet:
     parent_model: "item/generated"
     textures:
       - default/armors/ruby_helmet
-      - default/armors/ruby_helmet
 
 ruby_chestplate:
   displayname: "<gradient:#FA7CBB:#F14658>Ruby Chestplate"
@@ -263,7 +254,6 @@ ruby_chestplate:
     generate_model: true
     parent_model: "item/generated"
     textures:
-      - default/armors/ruby_chestplate
       - default/armors/ruby_chestplate
 
 ruby_leggings:
@@ -290,7 +280,6 @@ ruby_leggings:
     parent_model: "item/generated"
     textures:
       - default/armors/ruby_leggings
-      - default/armors/ruby_leggings
 
 ruby_boots:
   displayname: "<gradient:#FA7CBB:#F14658>Ruby Boots"
@@ -315,5 +304,4 @@ ruby_boots:
     generate_model: true
     parent_model: "item/generated"
     textures:
-      - default/armors/ruby_boots
       - default/armors/ruby_boots
