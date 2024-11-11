@@ -51,9 +51,10 @@ public class CustomArmorListener implements Listener {
         }, OraxenPlugin.get());
     }
 
+    @Deprecated(forRemoval = true, since = "1.184.0")
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onCustomArmorRepair(PrepareAnvilEvent event) {
-        if (!Settings.DISABLE_LEATHER_REPAIR_CUSTOM.toBool()) return;
+        if (!Settings.DISABLE_LEATHER_REPAIR_CUSTOM.toBool() || VersionUtil.atOrAbove("1.21.2")) return;
         AnvilInventory inventory = event.getInventory();
         Player player = InventoryUtils.playerFromView(event);
         if (player == null) return;

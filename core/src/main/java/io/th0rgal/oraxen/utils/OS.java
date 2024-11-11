@@ -79,6 +79,8 @@ public class OS {
         macOs.put("11.1", "Big Sur");
         macOs.put("12", "Monterey");
         macOs.put("13", "Ventura");
+        macOs.put("14", "Sonoma");
+        macOs.put("15", "Sequoia");
 
         darwin.put(5, "Puma");
         darwin.put(6, "Jaguar");
@@ -102,7 +104,9 @@ public class OS {
         if (numericVersion < 10)
             this.osInfo = new OsInfo(name, version, arch, "Mac OS " + version);
         else {
-            this.osInfo = new OsInfo(name, version, arch, "macOS " + ((Integer.parseInt(versions[0]) >= 12) ? macOs.get(versions[0]) : macOs.get(version)) + " (" + version + ")");
+            this.osInfo = new OsInfo(name, version, arch,
+                    "macOS " + ((Integer.parseInt(versions[0]) >= 12) ? macOs.get(versions[0]) : macOs.get(version))
+                            + " (" + version + ")");
         }
     }
 
@@ -157,7 +161,7 @@ public class OS {
     }
 
     private OsInfo getPlatformNameFromFile(final String name, final String version, final String arch,
-                                           final String filename) {
+            final String filename) {
         if (filename == null)
             return null;
         File f = new File(filename);

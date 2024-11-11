@@ -10,8 +10,7 @@ repositories {
 
 dependencies {
     compileOnly(project(":core"))
-    paperweight.paperDevBundle("1.19.4-R0.1-SNAPSHOT")
-    pluginRemapper("net.fabricmc:tiny-remapper:0.10.3:fat")
+    paperweight.paperDevBundle("1.21.3-R0.1-SNAPSHOT")
 }
 
 tasks {

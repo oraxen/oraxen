@@ -7,12 +7,17 @@
 
 emerald_helmet:
   displayname: "<gradient:#89E59D:#37C6BA>Emerald Helmet"
-  material: LEATHER_HELMET
+  material: PAPER
   lore:
     - "<#6f737d>» <#D5D6D8>Gives 1 extra <glyph:heart>"
-  Mechanics:
+  Components:
+    max_stack_size: 1
     durability:
-      value: 437 # 20% more than diamond helmet
+      value: 437
+      damage_entity_hit: true
+    equippable:
+      slot: HEAD
+      model: oraxen:emerald
   AttributeModifiers:
     # - name: You don't really care about the name but it can be useful for some developers
     # - attribute: Get the list here: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/attribute/Attribute.html
@@ -20,200 +25,283 @@ emerald_helmet:
     # - slot: HAND, OFF_HAND, FEET, LEGS, CHEST or HEAD
     - { attribute: GENERIC_MAX_HEALTH, amount: 2, operation: 0, slot: HEAD }
     - { attribute: GENERIC_ARMOR, amount: 3, operation: 0, slot: HEAD }
-    - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: HEAD }
+    - {
+        attribute: GENERIC_ARMOR_TOUGHNESS,
+        amount: 2,
+        operation: 0,
+        slot: HEAD,
+      }
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    textures: # duplicate because we use the overlay of the leather armor
-      - default/armors/emerald_helmet
+    textures:
       - default/armors/emerald_helmet
 
 emerald_chestplate:
   displayname: "<gradient:#89E59D:#37C6BA>Emerald Chestplate"
-  material: LEATHER_CHESTPLATE
+  material: PAPER
   lore:
     - "<#6f737d>» <#D5D6D8>Gives 1.5 extra <glyph:heart>"
-  Mechanics:
+  Components:
+    max_stack_size: 1
     durability:
       value: 635
+      damage_entity_hit: true
+    equippable:
+      slot: CHEST
+      model: oraxen:emerald
   AttributeModifiers:
     - { attribute: GENERIC_MAX_HEALTH, amount: 3, operation: 0, slot: CHEST }
     - { attribute: GENERIC_ARMOR, amount: 8, operation: 0, slot: CHEST }
-    - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: CHEST }
+    - {
+        attribute: GENERIC_ARMOR_TOUGHNESS,
+        amount: 2,
+        operation: 0,
+        slot: CHEST,
+      }
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    textures: # duplicate because we use the overlay of the leather armor
-      - default/armors/emerald_chestplate
+    textures:
       - default/armors/emerald_chestplate
 
 emerald_leggings:
   displayname: "<gradient:#89E59D:#37C6BA>Emerald Leggings"
-  material: LEATHER_LEGGINGS
+  material: PAPER
   lore:
     - "<#6f737d>» <#D5D6D8>Gives 1.5 extra <glyph:heart>"
-  Mechanics:
+  Components:
+    max_stack_size: 1
     durability:
       value: 595
+      damage_entity_hit: true
+    equippable:
+      slot: LEGS
+      model: oraxen:emerald
   AttributeModifiers:
     - { attribute: GENERIC_MAX_HEALTH, amount: 3, operation: 0, slot: LEGS }
     - { attribute: GENERIC_ARMOR, amount: 6, operation: 0, slot: LEGS }
-    - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: LEGS }
+    - {
+        attribute: GENERIC_ARMOR_TOUGHNESS,
+        amount: 2,
+        operation: 0,
+        slot: LEGS,
+      }
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    textures: # duplicate because we use the overlay of the leather armor
-      - default/armors/emerald_leggings
+    textures:
       - default/armors/emerald_leggings
 
 emerald_boots:
   displayname: "<gradient:#89E59D:#37C6BA>Emerald Boots"
-  material: LEATHER_BOOTS
+  material: PAPER
   lore:
     - "<#6f737d>» <#D5D6D8>Gives 1 extra <glyph:heart>"
-  Mechanics:
+  Components:
+    max_stack_size: 1
     durability:
       value: 516
+      damage_entity_hit: true
+    equippable:
+      slot: FEET
+      model: oraxen:emerald
   AttributeModifiers:
     - { attribute: GENERIC_MAX_HEALTH, amount: 2, operation: 0, slot: FEET }
     - { attribute: GENERIC_ARMOR, amount: 3, operation: 0, slot: FEET }
-    - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: FEET }
+    - {
+        attribute: GENERIC_ARMOR_TOUGHNESS,
+        amount: 2,
+        operation: 0,
+        slot: FEET,
+      }
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    textures: # duplicate because we use the overlay of the leather armor
-      - default/armors/emerald_boots
+    textures:
       - default/armors/emerald_boots
 
 obsidian_helmet:
   displayname: "<gradient:#4B36B1:#6699FF>Obsidian Helmet"
-  material: LEATHER_HELMET
+  material: PAPER
   lore:
     - "<#6f737d>» <#D5D6D8>Ludicrous durability"
-  Mechanics:
+  Components:
+    max_stack_size: 1
     durability:
       value: 4370
+      damage_entity_hit: true
+    equippable:
+      slot: HEAD
+      model: oraxen:obsidian
   AttributeModifiers:
     - { attribute: GENERIC_ARMOR, amount: 2, operation: 0, slot: HEAD }
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    textures: # duplicate because we use the overlay of the leather armor
-      - default/armors/obsidian_helmet
+    textures:
       - default/armors/obsidian_helmet
 
 obsidian_chestplate:
   custom_model_data: 2
   displayname: "<gradient:#4B36B1:#6699FF>Obsidian Chestplate"
-  material: LEATHER_CHESTPLATE
+  material: PAPER
   lore:
     - "<#6f737d>» <#D5D6D8>Ludicrous durability"
-  Mechanics:
+  Components:
+    max_stack_size: 1
     durability:
       value: 6350
+      damage_entity_hit: true
+    equippable:
+      slot: CHEST
+      model: oraxen:obsidian
   AttributeModifiers:
     - { attribute: GENERIC_ARMOR, amount: 6, operation: 0, slot: CHEST }
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    textures: # duplicate because we use the overlay of the leather armor
-      - default/armors/obsidian_chestplate
+    textures:
       - default/armors/obsidian_chestplate
 
 obsidian_leggings:
   displayname: "<gradient:#4B36B1:#6699FF>Obsidian Leggings"
-  material: LEATHER_LEGGINGS
+  material: PAPER
   lore:
     - "<#6f737d>» <#D5D6D8>Ludicrous durability"
-  Mechanics:
+  Components:
+    max_stack_size: 1
     durability:
       value: 5950
+      damage_entity_hit: true
+    equippable:
+      slot: LEGS
+      model: oraxen:obsidian
   AttributeModifiers:
     - { attribute: GENERIC_ARMOR, amount: 5, operation: 0, slot: LEGS }
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    textures: # duplicate because we use the overlay of the leather armor
-      - default/armors/obsidian_leggings
+    textures:
       - default/armors/obsidian_leggings
 
 obsidian_boots:
   displayname: "<gradient:#4B36B1:#6699FF>Boots Boots"
-  material: LEATHER_BOOTS
+  material: PAPER
   lore:
     - "<#6f737d>» <#D5D6D8>Ludicrous durability"
-  Mechanics:
+  Components:
+    max_stack_size: 1
     durability:
       value: 5160
+      damage_entity_hit: true
+    equippable:
+      slot: FEET
+      model: oraxen:obsidian
   AttributeModifiers:
     - { attribute: GENERIC_ARMOR, amount: 2, operation: 0, slot: FEET }
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    textures: # duplicate because we use the overlay of the leather armor
-      - default/armors/obsidian_boots
+    textures:
       - default/armors/obsidian_boots
 
 ruby_helmet:
   displayname: "<gradient:#FA7CBB:#F14658>Ruby Helmet"
-  material: LEATHER_HELMET
-  Mechanics:
+  material: PAPER
+  Components:
+    max_stack_size: 1
     durability:
-      value: 547 # 50% more than diamond helmet
+      value: 547
+      damage_entity_hit: true
+    equippable:
+      slot: HEAD
+      model: oraxen:ruby
   AttributeModifiers:
     - { attribute: GENERIC_ARMOR, amount: 3, operation: 0, slot: HEAD }
-    - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: HEAD }
+    - {
+        attribute: GENERIC_ARMOR_TOUGHNESS,
+        amount: 2,
+        operation: 0,
+        slot: HEAD,
+      }
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    textures: # duplicate because we use the overlay of the leather armor
-      - default/armors/ruby_helmet
+    textures:
       - default/armors/ruby_helmet
 
 ruby_chestplate:
   displayname: "<gradient:#FA7CBB:#F14658>Ruby Chestplate"
-  material: LEATHER_CHESTPLATE
-  Mechanics:
+  material: PAPER
+  Components:
+    max_stack_size: 1
     durability:
       value: 792
+      damage_entity_hit: true
+    equippable:
+      slot: CHEST
+      model: oraxen:ruby
   AttributeModifiers:
     - { attribute: GENERIC_ARMOR, amount: 8, operation: 0, slot: CHEST }
-    - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: CHEST }
+    - {
+        attribute: GENERIC_ARMOR_TOUGHNESS,
+        amount: 2,
+        operation: 0,
+        slot: CHEST,
+      }
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    textures: # duplicate because we use the overlay of the leather armor
-      - default/armors/ruby_chestplate
+    textures:
       - default/armors/ruby_chestplate
 
 ruby_leggings:
   displayname: "<gradient:#FA7CBB:#F14658>Ruby Leggings"
-  material: LEATHER_LEGGINGS
-  Mechanics:
+  material: PAPER
+  Components:
+    max_stack_size: 1
     durability:
       value: 742
+      damage_entity_hit: true
+    equippable:
+      slot: LEGS
+      model: oraxen:ruby
   AttributeModifiers:
     - { attribute: GENERIC_ARMOR, amount: 6, operation: 0, slot: LEGS }
-    - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: LEGS }
+    - {
+        attribute: GENERIC_ARMOR_TOUGHNESS,
+        amount: 2,
+        operation: 0,
+        slot: LEGS,
+      }
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    textures: # duplicate because we use the overlay of the leather armor
-      - default/armors/ruby_leggings
+    textures:
       - default/armors/ruby_leggings
 
 ruby_boots:
   displayname: "<gradient:#FA7CBB:#F14658>Ruby Boots"
-  material: LEATHER_BOOTS
-  Mechanics:
+  material: PAPER
+  Components:
+    max_stack_size: 1
     durability:
       value: 643
+      damage_entity_hit: true
+    equippable:
+      slot: FEET
+      model: oraxen:ruby
   AttributeModifiers:
     - { attribute: GENERIC_ARMOR, amount: 3, operation: 0, slot: FEET }
-    - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: FEET }
+    - {
+        attribute: GENERIC_ARMOR_TOUGHNESS,
+        amount: 2,
+        operation: 0,
+        slot: FEET,
+      }
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    textures: # duplicate because we use the overlay of the leather armor
-      - default/armors/ruby_boots
+    textures:
       - default/armors/ruby_boots

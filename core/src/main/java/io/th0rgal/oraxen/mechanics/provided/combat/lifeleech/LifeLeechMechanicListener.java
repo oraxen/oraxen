@@ -21,16 +21,22 @@ public class LifeLeechMechanicListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onCall(EntityDamageByEntityEvent event) {
-        if (!(event.getDamager() instanceof Player damager)) return;
-        if (!(event.getEntity() instanceof LivingEntity livingEntity)) return;
-        if (!ProtectionLib.canInteract(damager, event.getEntity().getLocation())) return;
+        if (!(event.getDamager() instanceof Player damager))
+            return;
+        if (!(event.getEntity() instanceof LivingEntity livingEntity))
+            return;
+        if (!ProtectionLib.canInteract(damager, event.getEntity().getLocation()))
+            return;
 
         String itemID = OraxenItems.getIdByItem(damager.getInventory().getItemInMainHand());
-        if (!OraxenItems.exists(itemID)) return;
+        if (!OraxenItems.exists(itemID))
+            return;
         LifeLeechMechanic mechanic = (LifeLeechMechanic) factory.getMechanic(itemID);
-        if (mechanic == null) return;
+        if (mechanic == null)
+            return;
 
-        double maxHealth = damager.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+        // temporary fix for supporting multiple versions
+        double maxHealth = damager.getAttribute(Attribute.valueOf("GENERIC_MAX_HEALTH")).getValue();
         damager.setHealth(Math.min(damager.getHealth() + mechanic.getAmount(), maxHealth));
         livingEntity.setHealth(Math.max(livingEntity.getHealth() - mechanic.getAmount(), 0));
     }
