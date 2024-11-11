@@ -18,7 +18,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.21-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.21.3-R0.1-SNAPSHOT")
 }
 
 java {
@@ -42,8 +42,8 @@ publishing {
         maven {
             authentication {
                 credentials(PasswordCredentials::class) {
-                    username = System.getenv("MAVEN_USERNAME") ?: project.findProperty("oraxenUsername") as? String ?: ""
-                    password = System.getenv("MAVEN_PASSWORD") ?: project.findProperty("oraxenPassword") as? String ?: ""
+                    username = System.getenv("MAVEN_USERNAME") ?: project.findProperty("mavenUser") as? String ?: ""
+                    password = System.getenv("MAVEN_PASSWORD") ?: project.findProperty("mavenPassword") as? String ?: ""
                 }
                 authentication {
                     create<BasicAuthentication>("basic")
@@ -51,7 +51,7 @@ publishing {
             }
 
             url = uri(publishData.getRepository())
-            name = "oraxen"
+            name = "mineinabyss"
         }
     }
 }
@@ -88,9 +88,9 @@ class PublishData(private val project: Project) {
     fun getRepository(): String = type.repo
 
     enum class Type(private val append: String, val repo: String, private val addCommit: Boolean) {
-        RELEASE("", "https://repo.oraxen.com/releases/", false),
-        DEV("-DEV", "https://repo.oraxen.com/development/", true),
-        SNAPSHOT("-SNAPSHOT", "https://repo.oraxen.com/snapshots/", true);
+        RELEASE("", "https://repo.mineinabyss.com/releases/", false),
+        DEV("-DEV", "https://repo.mineinabyss.com/development/", true),
+        SNAPSHOT("-SNAPSHOT", "https://repo.mineinabyss.com/snapshots/", true);
 
         fun append(name: String, appendCommit: Boolean, commitHash: String): String =
             name.plus(append).plus(if (appendCommit && addCommit) "-".plus(commitHash) else "")

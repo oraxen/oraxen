@@ -1,6 +1,8 @@
 package io.th0rgal.oraxen.nms;
 
+import io.th0rgal.oraxen.items.ItemBuilder;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -41,6 +43,14 @@ public interface NMSHandler {
 
     /**Removes mineable/axe tag from noteblocks for custom blocks */
     void customBlockDefaultTools(Player player);
+
+    default void foodComponent(ItemBuilder itemBuilder, ConfigurationSection foodSection) {
+
+    }
+
+    default void consumableComponent(ItemBuilder itemBuilder, ConfigurationSection consumableSection) {
+
+    }
 
     /**
      * Keys that are used by vanilla Minecraft and should therefore be skipped

@@ -6,10 +6,13 @@ import io.netty.channel.ChannelPromise;
 import io.papermc.paper.configuration.GlobalConfiguration;
 import io.papermc.paper.network.ChannelInitializeListenerHolder;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.nms.GlyphHandler;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.PotionUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.core.BlockPos;
@@ -35,17 +38,22 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
+import org.apache.commons.lang3.StringUtils;
 import org.bukkit.NamespacedKey;
 import org.bukkit.SoundCategory;
 import org.bukkit.SoundGroup;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.components.FoodComponent;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -64,6 +72,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
         // mineableWith tag handling
         NamespacedKey tagKey = NamespacedKey.fromString("mineable_with_key", OraxenPlugin.get());
+        if (!VersionUtil.isPaperServer()) return;
         if (ChannelInitializeListenerHolder.hasListener(tagKey)) return;
         ChannelInitializeListenerHolder.addListener(tagKey, (channel ->
                 channel.pipeline().addBefore("packet_handler", tagKey.asString(), new ChannelDuplexHandler() {
@@ -204,5 +213,37 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     @Override
     public boolean getSupported() {
         return true;
+    }
+
+    @SuppressWarnings("UnstableApiUsage")
+    @Override
+    public void foodComponent(ItemBuilder item, ConfigurationSection foodSection) {
+        FoodComponent foodComponent = new ItemStack(item.getType()).getItemMeta().getFood();
+        foodComponent.setNutrition(foodSection.getInt("nutrition"));
+        foodComponent.setSaturation((float) foodSection.getDouble("saturation", 0.0));
+        foodComponent.setCanAlwaysEat(foodSection.getBoolean("can_always_eat"));
+
+        foodComponent.setEatSeconds((float) foodSection.getDouble("eat_seconds", 1.6));
+
+        ConfigurationSection effectsSection = foodSection.getConfigurationSection("effects");
+        if (effectsSection != null) for (String effect : effectsSection.getKeys(false)) {
+            ConfigurationSection effectSection = effectsSection.getConfigurationSection(effect);
+            PotionEffectType effectType = PotionUtils.getEffectType(effect);
+            if (effectSection == null || effectType == null)
+                Logs.logError("Invalid potion effect: " + effect + ", in " + StringUtils.substringBefore(effectsSection.getCurrentPath(), ".") + " food-property!");
+            else {
+                foodComponent.addEffect(
+                        new PotionEffect(effectType,
+                                effectSection.getInt("duration", 1) * 20,
+                                effectSection.getInt("amplifier", 0),
+                                effectSection.getBoolean("ambient", true),
+                                effectSection.getBoolean("show_particles", true),
+                                effectSection.getBoolean("show_icon", true)),
+                        (float) effectSection.getDouble("probability", 1.0)
+                );
+            }
+        }
+
+        item.setFoodComponent(foodComponent);
     }
 }

@@ -1,36 +1,47 @@
-package io.th0rgal.oraxen.nms.v1_21_R1;
+package io.th0rgal.oraxen.nms.v1_21_R2;
 
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 import io.papermc.paper.configuration.GlobalConfiguration;
 import io.papermc.paper.network.ChannelInitializeListenerHolder;
+import io.papermc.paper.registry.RegistryAccess;
+import io.papermc.paper.registry.RegistryKey;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.nms.GlyphHandler;
 import io.th0rgal.oraxen.utils.BlockHelpers;
-import io.th0rgal.oraxen.utils.PotionUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import net.kyori.adventure.key.Key;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.common.ClientboundUpdateTagsPacket;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagNetworkSerialization;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.ItemUseAnimation;
+import net.minecraft.world.item.component.Consumable;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.consume_effects.*;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.DirectionalPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
@@ -38,7 +49,7 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.EnumUtils;
 import org.bukkit.NamespacedKey;
 import org.bukkit.SoundCategory;
 import org.bukkit.SoundGroup;
@@ -46,29 +57,28 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.craftbukkit.CraftSound;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.potion.CraftPotionEffectType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.components.FoodComponent;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
     private final GlyphHandler glyphHandler;
 
     public NMSHandler() {
-        this.glyphHandler = new io.th0rgal.oraxen.nms.v1_21_R1.GlyphHandler();
+        this.glyphHandler = new io.th0rgal.oraxen.nms.v1_21_R2.GlyphHandler();
 
         // mineableWith tag handling
         NamespacedKey tagKey = NamespacedKey.fromString("mineable_with_key", OraxenPlugin.get());
@@ -112,13 +122,25 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     public ItemStack copyItemNBTTags(@NotNull ItemStack oldItem, @NotNull ItemStack newItem) {
         net.minecraft.world.item.ItemStack newNmsItem = CraftItemStack.asNMSCopy(newItem);
         net.minecraft.world.item.ItemStack oldItemStack = CraftItemStack.asNMSCopy(oldItem);
-        CraftItemStack.asNMSCopy(oldItem).getTags().forEach(tag -> {
-            if (!tag.location().getNamespace().equals("minecraft")) return;
-            if (vanillaKeys.contains(tag.location().getPath())) return;
+        //Gets data component's nbt data.
+        DataComponentType<CustomData> type = DataComponents.CUSTOM_DATA;
+        CustomData oldData = oldItemStack.getComponents().get(type);
+        CustomData newData = newNmsItem.getComponents().get(type);
 
-            DataComponentType<Object> type = (DataComponentType<Object>) BuiltInRegistries.DATA_COMPONENT_TYPE.get(tag.location());
-            if (type != null) newNmsItem.set(type, oldItemStack.get(type));
-        });
+        //Cancels if null.
+        if (oldData == null || newData == null) return newItem;
+        //Creates new nbt compound.
+        CompoundTag oldTag = oldData.copyTag();
+        CompoundTag newTag = newData.copyTag();
+
+        for (String key : oldTag.getAllKeys()) {
+            if (vanillaKeys.contains(key)) continue;
+            Tag value = oldTag.get(key);
+            if (value != null) newTag.put(key, value);
+            else newTag.remove(key);
+        }
+
+        newNmsItem.set(type, CustomData.of(newTag));
         return CraftItemStack.asBukkitCopy(newNmsItem);
     }
 
@@ -195,9 +217,9 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         return null;
     }
 
-    private final Map<ResourceLocation, IntList> tagRegistryMap = createTagRegistryMap();
+    private final Map<ResourceLocation, IntList> tagRegistryMap = new HashMap();//createTagRegistryMap();
 
-    private static Map<ResourceLocation, IntList> createTagRegistryMap() {
+    /*private static Map<ResourceLocation, IntList> createTagRegistryMap() {
         return BuiltInRegistries.BLOCK.getTags().map(pair -> {
             IntArrayList list = new IntArrayList(pair.getSecond().size());
             if (pair.getFirst().location() == BlockTags.MINEABLE_WITH_AXE.location()) {
@@ -208,13 +230,12 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
             return Map.of(pair.getFirst().location(), list);
         }).collect(HashMap::new, Map::putAll, Map::putAll);
-    }
+    }*/
 
     @Override
     public boolean getSupported() {
         return true;
     }
-
 
     @SuppressWarnings("UnstableApiUsage")
     @Override
@@ -224,27 +245,77 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         foodComponent.setSaturation((float) foodSection.getDouble("saturation", 0.0));
         foodComponent.setCanAlwaysEat(foodSection.getBoolean("can_always_eat"));
 
-        foodComponent.setEatSeconds((float) foodSection.getDouble("eat_seconds", 1.6));
-
-        ConfigurationSection effectsSection = foodSection.getConfigurationSection("effects");
-        if (effectsSection != null) for (String effect : effectsSection.getKeys(false)) {
-            ConfigurationSection effectSection = effectsSection.getConfigurationSection(effect);
-            PotionEffectType effectType = PotionUtils.getEffectType(effect);
-            if (effectSection == null || effectType == null)
-                Logs.logError("Invalid potion effect: " + effect + ", in " + StringUtils.substringBefore(effectsSection.getCurrentPath(), ".") + " food-property!");
-            else {
-                foodComponent.addEffect(
-                        new PotionEffect(effectType,
-                                effectSection.getInt("duration", 1) * 20,
-                                effectSection.getInt("amplifier", 0),
-                                effectSection.getBoolean("ambient", true),
-                                effectSection.getBoolean("show_particles", true),
-                                effectSection.getBoolean("show_icon", true)),
-                        (float) effectSection.getDouble("probability", 1.0)
-                );
-            }
-        }
-
         item.setFoodComponent(foodComponent);
+    }
+
+    @SuppressWarnings("UnstableApiUsage")
+    @Override
+    public void consumableComponent(ItemBuilder item, ConfigurationSection section) {
+
+        Consumable.Builder consumable = Consumable.builder();
+        Consumable template = Optional.ofNullable(CraftItemStack.asNMSCopy(new ItemStack(item.getType())).getComponents().get(DataComponents.CONSUMABLE)).orElse(Consumable.builder().build());
+
+        consumable.consumeSeconds((float) section.getDouble("consume_seconds", template.consumeSeconds()));
+        consumable.animation(Optional.ofNullable(EnumUtils.getEnum(ItemUseAnimation.class, section.getString("animation"))).orElse(template.animation()));
+        consumable.hasConsumeParticles(section.getBoolean("consume_particles", template.hasConsumeParticles()));
+        consumable.sound(template.sound());
+
+        List<Map<?, ?>> effectsMap = section.getMapList("effects");
+        if (effectsMap.isEmpty()) for (ConsumeEffect effect : template.onConsumeEffects()) consumable.onConsume(effect);
+        else for (Map<?, ?> effectSection : effectsMap) {
+            String type = Optional.ofNullable(effectSection.get("type")).map(Object::toString).orElse("");
+            if (type.equals("APPLY_EFFECTS") && effectSection.getOrDefault("effects", null) instanceof Map<?, ?> effects) {
+                for (Map.Entry<String, ConfigurationSection> effectMap : effects.entrySet().stream().map(o -> (Map.Entry<String, ConfigurationSection>) o).collect(Collectors.toSet())) {
+                    ConfigurationSection applyEffectSection = effectMap.getValue();
+                    Key effect;
+                    try {
+                        effect = Key.key(effectMap.getKey());
+                    } catch (Exception e) {
+                        Logs.logError("Invalid potion effect: " + effectMap.getKey() + ", in consumable-property!");
+                        if (Settings.DEBUG.toBool()) e.printStackTrace();
+                        continue;
+                    }
+
+                    Optional.ofNullable(RegistryAccess.registryAccess().getRegistry(RegistryKey.MOB_EFFECT).get(effect))
+                            .map(CraftPotionEffectType::bukkitToMinecraft)
+                            .map(Holder::direct)
+                            .ifPresentOrElse(mobEffect -> {
+                                int duration = applyEffectSection.getInt("duration", 1) * 20;
+                                int amplifier = applyEffectSection.getInt("amplifier", 0);
+                                boolean ambient = applyEffectSection.getBoolean("ambient", true);
+                                boolean particles = applyEffectSection.getBoolean("show_particles", true);
+                                boolean icon = applyEffectSection.getBoolean("show_icon", true);
+                                float probability = (float) applyEffectSection.getDouble("probability", 1.0);
+                                MobEffectInstance instance = new MobEffectInstance(mobEffect, duration, amplifier, ambient, particles, icon);
+
+                                consumable.onConsume(new ApplyStatusEffectsConsumeEffect(instance, probability));
+                            }, () -> Logs.logError("Invalid potion effect: " + effect.asString() + ", in consumable-property!"));
+                }
+            } else if (type.equals("REMOVE_EFFECTS") && effectSection.getOrDefault("effects", null) instanceof ArrayList<?> effects) {
+                List<Holder<MobEffect>> mobEffects = new ArrayList<>();
+                for (Object object : effects) {
+                    Optional.ofNullable(RegistryAccess.registryAccess().getRegistry(RegistryKey.MOB_EFFECT).get(Key.key(String.valueOf(object))))
+                            .map(CraftPotionEffectType::bukkitToMinecraft)
+                            .map(Holder::direct)
+                            .ifPresent(mobEffects::add);
+                }
+                consumable.onConsume(new RemoveStatusEffectsConsumeEffect(HolderSet.direct(mobEffects)));
+            } else if (type.equals("CLEAR_ALL_EFFECTS")) {
+                consumable.onConsume(new ClearAllStatusEffectsConsumeEffect());
+            } else if (type.equals("TELEPORT_RANDOMLY")) {
+                float diameter = (effectSection.getOrDefault("diameter", null) instanceof Float d) ? d : 16f;
+                consumable.onConsume(new TeleportRandomlyConsumeEffect(diameter));
+            } else if (type.equals("PLAY_SOUND")) {
+                try {
+                    Key soundKey = Key.key(String.valueOf(effectSection.getOrDefault("sound", null)));
+                    Optional.ofNullable(RegistryAccess.registryAccess().getRegistry(RegistryKey.SOUND_EVENT).get(soundKey))
+                            .map(CraftSound::bukkitToMinecraft)
+                            .map(Holder::direct)
+                            .ifPresent(sound -> consumable.onConsume(new PlaySoundConsumeEffect(sound)));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else Logs.logWarning("Invalid ConsumeEffect-Type " + type);
+        }
     }
 }

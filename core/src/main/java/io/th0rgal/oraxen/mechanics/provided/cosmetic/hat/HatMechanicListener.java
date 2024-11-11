@@ -19,6 +19,7 @@ import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.*;
 
+@Deprecated(since = "1.21.2")
 public class HatMechanicListener implements Listener {
 
     private final MechanicFactory factory;
