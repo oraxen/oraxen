@@ -5,10 +5,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 import io.papermc.paper.configuration.GlobalConfiguration;
 import io.papermc.paper.network.ChannelInitializeListenerHolder;
-import io.papermc.paper.registry.RegistryAccess;
-import io.papermc.paper.registry.RegistryKey;
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.nms.GlyphHandler;
@@ -16,13 +13,13 @@ import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import it.unimi.dsi.fastutil.ints.IntList;
-import net.kyori.adventure.key.Key;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
@@ -58,10 +55,8 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.craftbukkit.CraftSound;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
-import org.bukkit.craftbukkit.potion.CraftPotionEffectType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -266,38 +261,34 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         else for (Map<?, ?> effectSection : effectsMap) {
             String type = Optional.ofNullable(effectSection.get("type")).map(Object::toString).orElse("");
             if (type.equals("APPLY_EFFECTS") && effectSection.getOrDefault("effects", null) instanceof Map<?, ?> effects) {
-                for (Map.Entry<String, ConfigurationSection> effectMap : effects.entrySet().stream().map(o -> (Map.Entry<String, ConfigurationSection>) o).collect(Collectors.toSet())) {
-                    ConfigurationSection applyEffectSection = effectMap.getValue();
-                    Key effect;
-                    try {
-                        effect = Key.key(effectMap.getKey());
-                    } catch (Exception e) {
-                        Logs.logError("Invalid potion effect: " + effectMap.getKey() + ", in consumable-property!");
-                        if (Settings.DEBUG.toBool()) e.printStackTrace();
-                        continue;
-                    }
+                for (Map.Entry<String, LinkedHashMap<String, Object>> effectMap : effects.entrySet().stream().map(o -> (Map.Entry<String, LinkedHashMap<String, Object>>) o).collect(Collectors.toSet())) {
+                    LinkedHashMap<String, Object> applyEffectSection = effectMap.getValue();
 
-                    Optional.ofNullable(RegistryAccess.registryAccess().getRegistry(RegistryKey.MOB_EFFECT).get(effect))
-                            .map(CraftPotionEffectType::bukkitToMinecraft)
-                            .map(Holder::direct)
+                    BuiltInRegistries.MOB_EFFECT.getOptional(ResourceLocation.parse(effectMap.getKey()))
+                            .map(BuiltInRegistries.MOB_EFFECT::wrapAsHolder)
                             .ifPresentOrElse(mobEffect -> {
-                                int duration = applyEffectSection.getInt("duration", 1) * 20;
-                                int amplifier = applyEffectSection.getInt("amplifier", 0);
-                                boolean ambient = applyEffectSection.getBoolean("ambient", true);
-                                boolean particles = applyEffectSection.getBoolean("show_particles", true);
-                                boolean icon = applyEffectSection.getBoolean("show_icon", true);
-                                float probability = (float) applyEffectSection.getDouble("probability", 1.0);
+                                int duration = Optional.ofNullable(applyEffectSection.get("duration"))
+                                        .map(s -> Integer.parseInt(s.toString())).orElse(1) * 20;
+                                int amplifier = Optional.ofNullable(applyEffectSection.get("amplifier"))
+                                        .map(s -> Integer.parseInt(s.toString())).orElse(0);
+                                boolean ambient = Optional.ofNullable(applyEffectSection.get("ambient"))
+                                        .map(s -> Boolean.parseBoolean(s.toString())).orElse(true);
+                                boolean particles = Optional.ofNullable(applyEffectSection.get("show_particles"))
+                                        .map(s -> Boolean.parseBoolean(s.toString())).orElse(true);
+                                boolean icon = Optional.ofNullable(applyEffectSection.get("show_icon"))
+                                        .map(s -> Boolean.parseBoolean(s.toString())).orElse(true);
+                                float probability = Optional.ofNullable(applyEffectSection.get("amplifier"))
+                                        .map(s -> Float.parseFloat(s.toString())).orElse(0f);
                                 MobEffectInstance instance = new MobEffectInstance(mobEffect, duration, amplifier, ambient, particles, icon);
 
                                 consumable.onConsume(new ApplyStatusEffectsConsumeEffect(instance, probability));
-                            }, () -> Logs.logError("Invalid potion effect: " + effect.asString() + ", in consumable-property!"));
+                            }, () -> Logs.logError("Invalid potion effect: " + effectMap.getKey() + ", in consumable-property!"));
                 }
             } else if (type.equals("REMOVE_EFFECTS") && effectSection.getOrDefault("effects", null) instanceof ArrayList<?> effects) {
                 List<Holder<MobEffect>> mobEffects = new ArrayList<>();
                 for (Object object : effects) {
-                    Optional.ofNullable(RegistryAccess.registryAccess().getRegistry(RegistryKey.MOB_EFFECT).get(Key.key(String.valueOf(object))))
-                            .map(CraftPotionEffectType::bukkitToMinecraft)
-                            .map(Holder::direct)
+                    BuiltInRegistries.MOB_EFFECT.getOptional(ResourceLocation.parse(String.valueOf(object)))
+                            .map(BuiltInRegistries.MOB_EFFECT::wrapAsHolder)
                             .ifPresent(mobEffects::add);
                 }
                 consumable.onConsume(new RemoveStatusEffectsConsumeEffect(HolderSet.direct(mobEffects)));
@@ -308,11 +299,12 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                 consumable.onConsume(new TeleportRandomlyConsumeEffect(diameter));
             } else if (type.equals("PLAY_SOUND")) {
                 try {
-                    Key soundKey = Key.key(String.valueOf(effectSection.getOrDefault("sound", null)));
-                    Optional.ofNullable(RegistryAccess.registryAccess().getRegistry(RegistryKey.SOUND_EVENT).get(soundKey))
-                            .map(CraftSound::bukkitToMinecraft)
-                            .map(Holder::direct)
-                            .ifPresent(sound -> consumable.onConsume(new PlaySoundConsumeEffect(sound)));
+                    ResourceLocation soundKey = Optional.ofNullable(effectSection.get("sound"))
+                            .map(Objects::toString).map(ResourceLocation::parse).orElse(template.sound().value().location());
+                    BuiltInRegistries.SOUND_EVENT.getOptional(soundKey)
+                            .map(BuiltInRegistries.SOUND_EVENT::wrapAsHolder)
+                            .map(PlaySoundConsumeEffect::new)
+                            .ifPresent(consumable::onConsume);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
