@@ -7,12 +7,11 @@
 
 emerald_helmet:
   displayname: "<gradient:#89E59D:#37C6BA>Emerald Helmet"
-  material: LEATHER_HELMET
+  material: CHAINMAIL_HELMET
   lore:
     - "<#6f737d>» <#D5D6D8>Gives 1 extra <glyph:heart>"
-  Mechanics:
-    durability:
-      value: 437 # 20% more than diamond helmet
+  Components:
+    durability: 437 # 20% more than diamond helmet
   AttributeModifiers:
     # - name: You don't really care about the name but it can be useful for some developers
     # - attribute: Get the list here: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/attribute/Attribute.html
@@ -24,18 +23,16 @@ emerald_helmet:
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    textures: # duplicate because we use the overlay of the leather armor
-      - default/armors/emerald_helmet
+    textures:
       - default/armors/emerald_helmet
 
 emerald_chestplate:
   displayname: "<gradient:#89E59D:#37C6BA>Emerald Chestplate"
-  material: LEATHER_CHESTPLATE
+  material: CHAINMAIL_CHESTPLATE
   lore:
     - "<#6f737d>» <#D5D6D8>Gives 1.5 extra <glyph:heart>"
-  Mechanics:
-    durability:
-      value: 635
+  Components:
+    durability: 635
   AttributeModifiers:
     - { attribute: GENERIC_MAX_HEALTH, amount: 3, operation: 0, slot: CHEST }
     - { attribute: GENERIC_ARMOR, amount: 8, operation: 0, slot: CHEST }
@@ -43,18 +40,16 @@ emerald_chestplate:
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    textures: # duplicate because we use the overlay of the leather armor
-      - default/armors/emerald_chestplate
+    textures:
       - default/armors/emerald_chestplate
 
 emerald_leggings:
   displayname: "<gradient:#89E59D:#37C6BA>Emerald Leggings"
-  material: LEATHER_LEGGINGS
+  material: CHAINMAIL_LEGGINGS
   lore:
     - "<#6f737d>» <#D5D6D8>Gives 1.5 extra <glyph:heart>"
-  Mechanics:
-    durability:
-      value: 595
+  Components:
+    durability: 595
   AttributeModifiers:
     - { attribute: GENERIC_MAX_HEALTH, amount: 3, operation: 0, slot: LEGS }
     - { attribute: GENERIC_ARMOR, amount: 6, operation: 0, slot: LEGS }
@@ -62,18 +57,16 @@ emerald_leggings:
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    textures: # duplicate because we use the overlay of the leather armor
-      - default/armors/emerald_leggings
+    textures:
       - default/armors/emerald_leggings
 
 emerald_boots:
   displayname: "<gradient:#89E59D:#37C6BA>Emerald Boots"
-  material: LEATHER_BOOTS
+  material: CHAINMAIL_BOOTS
   lore:
     - "<#6f737d>» <#D5D6D8>Gives 1 extra <glyph:heart>"
-  Mechanics:
-    durability:
-      value: 516
+  Components:
+    durability: 516
   AttributeModifiers:
     - { attribute: GENERIC_MAX_HEALTH, amount: 2, operation: 0, slot: FEET }
     - { attribute: GENERIC_ARMOR, amount: 3, operation: 0, slot: FEET }
@@ -81,139 +74,121 @@ emerald_boots:
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    textures: # duplicate because we use the overlay of the leather armor
-      - default/armors/emerald_boots
+    textures:
       - default/armors/emerald_boots
 
 obsidian_helmet:
   displayname: "<gradient:#4B36B1:#6699FF>Obsidian Helmet"
-  material: LEATHER_HELMET
+  material: CHAINMAIL_HELMET
   lore:
     - "<#6f737d>» <#D5D6D8>Ludicrous durability"
-  Mechanics:
-    durability:
-      value: 4370
+  Components:
+    durability: 4370
   AttributeModifiers:
     - { attribute: GENERIC_ARMOR, amount: 2, operation: 0, slot: HEAD }
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    textures: # duplicate because we use the overlay of the leather armor
-      - default/armors/obsidian_helmet
+    textures:
       - default/armors/obsidian_helmet
 
 obsidian_chestplate:
-  custom_model_data: 2
   displayname: "<gradient:#4B36B1:#6699FF>Obsidian Chestplate"
-  material: LEATHER_CHESTPLATE
+  material: CHAINMAIL_CHESTPLATE
   lore:
     - "<#6f737d>» <#D5D6D8>Ludicrous durability"
-  Mechanics:
-    durability:
-      value: 6350
+  Components:
+    durability: 6350
   AttributeModifiers:
     - { attribute: GENERIC_ARMOR, amount: 6, operation: 0, slot: CHEST }
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    textures: # duplicate because we use the overlay of the leather armor
-      - default/armors/obsidian_chestplate
+    textures:
       - default/armors/obsidian_chestplate
 
 obsidian_leggings:
   displayname: "<gradient:#4B36B1:#6699FF>Obsidian Leggings"
-  material: LEATHER_LEGGINGS
+  material: CHAINMAIL_LEGGINGS
   lore:
     - "<#6f737d>» <#D5D6D8>Ludicrous durability"
-  Mechanics:
-    durability:
-      value: 5950
+  Components:
+    durability: 5950
   AttributeModifiers:
     - { attribute: GENERIC_ARMOR, amount: 5, operation: 0, slot: LEGS }
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    textures: # duplicate because we use the overlay of the leather armor
-      - default/armors/obsidian_leggings
+    textures:
       - default/armors/obsidian_leggings
 
 obsidian_boots:
   displayname: "<gradient:#4B36B1:#6699FF>Boots Boots"
-  material: LEATHER_BOOTS
+  material: CHAINMAIL_BOOTS
   lore:
     - "<#6f737d>» <#D5D6D8>Ludicrous durability"
-  Mechanics:
-    durability:
-      value: 5160
+  Components:
+    durability: 5160
   AttributeModifiers:
     - { attribute: GENERIC_ARMOR, amount: 2, operation: 0, slot: FEET }
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    textures: # duplicate because we use the overlay of the leather armor
-      - default/armors/obsidian_boots
+    textures:
       - default/armors/obsidian_boots
 
 ruby_helmet:
   displayname: "<gradient:#FA7CBB:#F14658>Ruby Helmet"
-  material: LEATHER_HELMET
-  Mechanics:
-    durability:
-      value: 547 # 50% more than diamond helmet
+  material: CHAINMAIL_HELMET
+  Components:
+    durability: 547 # 50% more than diamond helmet
   AttributeModifiers:
     - { attribute: GENERIC_ARMOR, amount: 3, operation: 0, slot: HEAD }
     - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: HEAD }
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    textures: # duplicate because we use the overlay of the leather armor
-      - default/armors/ruby_helmet
+    textures:
       - default/armors/ruby_helmet
 
 ruby_chestplate:
   displayname: "<gradient:#FA7CBB:#F14658>Ruby Chestplate"
-  material: LEATHER_CHESTPLATE
-  Mechanics:
-    durability:
-      value: 792
+  material: CHAINMAIL_CHESTPLATE
+  Components:
+    durability: 792
   AttributeModifiers:
     - { attribute: GENERIC_ARMOR, amount: 8, operation: 0, slot: CHEST }
     - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: CHEST }
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    textures: # duplicate because we use the overlay of the leather armor
-      - default/armors/ruby_chestplate
+    textures:
       - default/armors/ruby_chestplate
 
 ruby_leggings:
   displayname: "<gradient:#FA7CBB:#F14658>Ruby Leggings"
-  material: LEATHER_LEGGINGS
-  Mechanics:
-    durability:
-      value: 742
+  material: CHAINMAIL_LEGGINGS
+  Components:
+    durability: 742
   AttributeModifiers:
     - { attribute: GENERIC_ARMOR, amount: 6, operation: 0, slot: LEGS }
     - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: LEGS }
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    textures: # duplicate because we use the overlay of the leather armor
-      - default/armors/ruby_leggings
+    textures:
       - default/armors/ruby_leggings
 
 ruby_boots:
   displayname: "<gradient:#FA7CBB:#F14658>Ruby Boots"
-  material: LEATHER_BOOTS
-  Mechanics:
-    durability:
-      value: 643
+  material: CHAINMAIL_BOOTS
+  Components:
+    durability: 643
   AttributeModifiers:
     - { attribute: GENERIC_ARMOR, amount: 3, operation: 0, slot: FEET }
     - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: FEET }
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    textures: # duplicate because we use the overlay of the leather armor
-      - default/armors/ruby_boots
+    textures:
       - default/armors/ruby_boots
