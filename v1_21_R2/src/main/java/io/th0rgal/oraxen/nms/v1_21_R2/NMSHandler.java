@@ -318,5 +318,20 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                 }
             } else Logs.logWarning("Invalid ConsumeEffect-Type " + type);
         }
+
+        item.setConsumableComponent(consumable.build());
+    }
+
+    @Override
+    public ItemStack setConsumableComponent(final ItemStack itemStack, @Nullable Object consumable) {
+        if (consumable == null) return itemStack;
+        try {
+            net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(itemStack);
+            nmsItem.set(DataComponents.CONSUMABLE, (Consumable) consumable);
+            return CraftItemStack.asBukkitCopy(nmsItem);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return itemStack;
     }
 }

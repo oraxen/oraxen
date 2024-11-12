@@ -9,6 +9,7 @@ import io.th0rgal.oraxen.compatibilities.provided.ecoitems.WrappedEcoItem;
 import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.*;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
@@ -73,6 +74,8 @@ public class ItemBuilder {
     // 1.20.5+ properties
     @Nullable
     private FoodComponent foodComponent;
+    @Nullable
+    private Object consumableComponent;
     @Nullable
     private ToolComponent toolComponent;
     @Nullable
@@ -485,6 +488,20 @@ public class ItemBuilder {
         return this;
     }
 
+    public boolean hasConsumableComponent() {
+        return VersionUtil.atOrAbove("1.21.2") && consumableComponent != null;
+    }
+
+    @Nullable
+    public Object getConsumableComponent() {
+        return consumableComponent;
+    }
+
+    public <V> ItemBuilder setConsumableComponent(@Nullable V consumableComponent) {
+        this.consumableComponent = consumableComponent;
+        return this;
+    }
+
     public boolean hasToolComponent() {
         return VersionUtil.atOrAbove("1.20.5") && toolComponent != null;
     }
@@ -772,7 +789,7 @@ public class ItemBuilder {
         else itemMeta.setLore(lore);
 
         itemStack.setItemMeta(itemMeta);
-        finalItemStack = itemStack;
+        finalItemStack = NMSHandlers.getHandler().setConsumableComponent(itemStack, consumableComponent);
 
         return this;
     }
