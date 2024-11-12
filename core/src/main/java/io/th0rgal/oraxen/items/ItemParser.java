@@ -324,14 +324,14 @@ public class ItemParser {
     }
 
     private void parseMiscOptions(ItemBuilder item) {
+        if (section.getBoolean("injectId", true))
+            item.setCustomTag(OraxenItems.ITEM_ID, PersistentDataType.STRING, section.getName());
+
         ConfigurationSection section = mergeWithTemplateSection();
         oraxenMeta.setNoUpdate(section.getBoolean("no_auto_update", false));
         oraxenMeta.setDisableEnchanting(section.getBoolean("disable_enchanting", false));
         oraxenMeta.setExcludedFromInventory(section.getBoolean("excludeFromInventory", false));
         oraxenMeta.setExcludedFromCommands(section.getBoolean("excludeFromCommands", false));
-
-        if (section.getBoolean("injectId", true))
-            item.setCustomTag(OraxenItems.ITEM_ID, PersistentDataType.STRING, section.getName());
     }
 
     @SuppressWarnings({"unchecked", "deprecation"})
@@ -440,6 +440,7 @@ public class ItemParser {
         ConfigurationSection merged = new YamlConfiguration().createSection(section.getName());
         OraxenYaml.copyConfigurationSection(templateItem.section, merged);
         OraxenYaml.copyConfigurationSection(section, merged);
+        merged.set("injectId", true);
 
         return merged;
     }
