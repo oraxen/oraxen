@@ -31,6 +31,7 @@ import net.minecraft.network.protocol.common.ClientboundUpdateTagsPacket;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.tags.TagNetworkSerialization;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
@@ -258,7 +259,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         consumable.consumeSeconds((float) section.getDouble("consume_seconds", template.consumeSeconds()));
         consumable.animation(Optional.ofNullable(EnumUtils.getEnum(ItemUseAnimation.class, section.getString("animation"))).orElse(template.animation()));
         consumable.hasConsumeParticles(section.getBoolean("consume_particles", template.hasConsumeParticles()));
-        consumable.sound(template.sound());
+        consumable.sound(Optional.ofNullable(section.getString("sound")).map(s -> Holder.direct(new SoundEvent(ResourceLocation.parse(s), Optional.empty()))).orElse(template.sound()));
 
         List<Map<?, ?>> effectsMap = section.getMapList("effects");
         if (effectsMap.isEmpty()) for (ConsumeEffect effect : template.onConsumeEffects()) consumable.onConsume(effect);
