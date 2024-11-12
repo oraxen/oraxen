@@ -223,7 +223,7 @@ bukkit {
     )
 }
 
-if (spigotPluginPath != null) {
+if (pluginPath != null) {
     tasks {
         val defaultPath = findByName("reobfJar") ?: findByName("shadowJar") ?: findByName("jar")
         // Define the main copy task
@@ -231,10 +231,10 @@ if (spigotPluginPath != null) {
             this.doNotTrackState("Overwrites the plugin jar to allow for easier reloading")
             dependsOn(shadowJar, jar)
             from(defaultPath)
-            into(spigotPluginPath)
+            into(pluginPath)
             doLast {
-                println("Copied to plugin directory $spigotPluginPath")
-                Path(spigotPluginPath).listDirectoryEntries()
+                println("Copied to plugin directory $pluginPath")
+                Path(pluginPath).listDirectoryEntries()
                     .filter { it.fileName.toString().matches("oraxen-.*.jar".toRegex()) }
                     .filterNot { it.fileName.toString().endsWith("$pluginVersion.jar") }
                     .forEach { delete(it) }
