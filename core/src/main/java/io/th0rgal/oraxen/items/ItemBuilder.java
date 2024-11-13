@@ -746,6 +746,7 @@ public class ItemBuilder {
             if (hasEnchantable()) itemMeta.setEnchantable(enchantable);
             if (itemModel != null) itemMeta.setItemModel(itemModel);
             if (isGlider != null) itemMeta.setGlider(isGlider);
+
         }
 
         handleVariousMeta(itemMeta);
@@ -789,7 +790,7 @@ public class ItemBuilder {
         else itemMeta.setLore(lore);
 
         itemStack.setItemMeta(itemMeta);
-        finalItemStack = NMSHandlers.getHandler().setConsumableComponent(itemStack, consumableComponent);
+        finalItemStack = NMSHandlers.getHandler().consumableComponent(itemStack, consumableComponent);
 
         return this;
     }

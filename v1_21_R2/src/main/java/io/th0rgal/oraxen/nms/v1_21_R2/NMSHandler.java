@@ -315,7 +315,20 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     }
 
     @Override
-    public ItemStack setConsumableComponent(final ItemStack itemStack, @Nullable Object consumable) {
+    @Nullable
+    public Object consumableComponent(final ItemStack itemStack) {
+        if (itemStack == null) return null;
+        try {
+            net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(itemStack);
+            return nmsItem.get(DataComponents.CONSUMABLE);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public ItemStack consumableComponent(final ItemStack itemStack, @Nullable Object consumable) {
         if (consumable == null) return itemStack;
         try {
             net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(itemStack);

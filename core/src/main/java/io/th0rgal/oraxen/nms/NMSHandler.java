@@ -48,7 +48,11 @@ public interface NMSHandler {
 
     }
 
-    default ItemStack setConsumableComponent(ItemStack itemStack, Object consumableComponent) {
+    default Object consumableComponent(ItemStack itemStack) {
+        return itemStack;
+    }
+
+    default ItemStack consumableComponent(ItemStack itemStack, Object consumableComponent) {
         return itemStack;
     }
 
