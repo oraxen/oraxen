@@ -105,7 +105,8 @@ public class ItemUpdater implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onUseMaxDamageItem(EntityDamageByEntityEvent event) {
-        if (!VersionUtil.atOrAbove("1.20.5") || !(event.getDamager() instanceof LivingEntity entity)) return;
+        if (!VersionUtil.atOrAbove("1.20.5") || VersionUtil.atOrAbove("1.21.2")) return;
+        if (!(event.getDamager() instanceof LivingEntity entity)) return;
         ItemStack itemStack = Optional.ofNullable(entity.getEquipment()).map(EntityEquipment::getItemInMainHand).orElse(null);
 
         if (entity instanceof Player player && player.getGameMode() == GameMode.CREATIVE) return;
@@ -121,9 +122,9 @@ public class ItemUpdater implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onUseConvertedTo(PlayerItemConsumeEvent event) {
         ItemStack itemStack = event.getItem();
-        if (!VersionUtil.atOrAbove("1.21")) return;
-        if (!itemStack.hasItemMeta() || !itemStack.getItemMeta().hasFood()) return;
-        ItemStack usingConvertsTo = itemStack.getItemMeta().getFood().getUsingConvertsTo();
+        ItemMeta itemMeta = itemStack.getItemMeta();
+        if (!VersionUtil.atOrAbove("1.21") && itemMeta == null) return;
+        ItemStack usingConvertsTo = ItemUtils.getUsingConvertsTo(itemMeta);
         if (usingConvertsTo == null || !itemStack.isSimilar(ItemUpdater.updateItem(usingConvertsTo))) return;
 
         PlayerInventory inventory = event.getPlayer().getInventory();
@@ -182,8 +183,13 @@ public class ItemUpdater implements Listener {
             itemMeta.setCustomModelData(cmd);
 
             // If OraxenItem has no lore, we should assume that 3rd-party plugin has added lore
-            if (Settings.OVERRIDE_ITEM_LORE.toBool()) itemMeta.setLore(newMeta.getLore());
-            else itemMeta.setLore(oldMeta.getLore());
+            if (Settings.OVERRIDE_ITEM_LORE.toBool()) {
+                if (VersionUtil.isPaperServer()) itemMeta.lore(newMeta.lore());
+                else itemMeta.setLore(newMeta.getLore());
+            } else {
+                if (VersionUtil.isPaperServer()) itemMeta.lore(oldMeta.lore());
+                else itemMeta.setLore(oldMeta.getLore());
+            }
 
             // Only change AttributeModifiers if the new item has some
             if (newMeta.hasAttributeModifiers()) itemMeta.setAttributeModifiers(newMeta.getAttributeModifiers());
@@ -241,6 +247,32 @@ public class ItemUpdater implements Listener {
             if (VersionUtil.atOrAbove("1.21")) {
                 if (newMeta.hasJukeboxPlayable()) itemMeta.setJukeboxPlayable(newMeta.getJukeboxPlayable());
                 else if (oldMeta.hasJukeboxPlayable()) itemMeta.setJukeboxPlayable(oldMeta.getJukeboxPlayable());
+            }
+
+            if (VersionUtil.atOrAbove("1.21.2")) {
+                if (newMeta.hasEquippable()) itemMeta.setEquippable(newMeta.getEquippable());
+                else if (oldMeta.hasEquippable()) itemMeta.setEquippable(newMeta.getEquippable());
+
+                if (newMeta.isGlider()) itemMeta.setGlider(true);
+                else if (oldMeta.isGlider()) itemMeta.setGlider(true);
+
+                if (newMeta.hasItemModel()) itemMeta.setItemModel(newMeta.getItemModel());
+                else if (oldMeta.hasItemModel()) itemMeta.setItemModel(oldMeta.getItemModel());
+
+                if (newMeta.hasUseCooldown()) itemMeta.setUseCooldown(newMeta.getUseCooldown());
+                else if (oldMeta.hasUseCooldown()) itemMeta.setUseCooldown(oldMeta.getUseCooldown());
+
+                if (newMeta.hasUseRemainder()) itemMeta.setUseRemainder(newMeta.getUseRemainder());
+                else if (oldMeta.hasUseRemainder()) itemMeta.setUseRemainder(oldMeta.getUseRemainder());
+
+                if (newMeta.hasDamageResistant()) itemMeta.setDamageResistant(newMeta.getDamageResistant());
+                else if (oldMeta.hasDamageResistant()) itemMeta.setDamageResistant(oldMeta.getDamageResistant());
+
+                if (newMeta.hasTooltipStyle()) itemMeta.setTooltipStyle(newMeta.getTooltipStyle());
+                else if (oldMeta.hasTooltipStyle()) itemMeta.setTooltipStyle(oldMeta.getTooltipStyle());
+
+                if (newMeta.hasEnchantable()) itemMeta.setEnchantable(newMeta.getEnchantable());
+                else if (oldMeta.hasEnchantable()) itemMeta.setEnchantable(oldMeta.getEnchantable());
             }
 
             // On 1.20.5+ we use ItemName which is different from userchanged displaynames

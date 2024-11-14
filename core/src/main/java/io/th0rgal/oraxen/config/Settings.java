@@ -51,6 +51,7 @@ public enum Settings {
 
     // Custom Armor
     CUSTOM_ARMOR_TYPE("CustomArmor.type"),
+    CUSTOM_ARMOR_COMPONENT_ASSIGN("CustomArmor.component_settings.auto_assign_component"),
     DISABLE_LEATHER_REPAIR_CUSTOM("CustomArmor.disable_leather_repair"),
     CUSTOM_ARMOR_TRIMS_MATERIAL("CustomArmor.trims_settings.material_replacement"),
     CUSTOM_ARMOR_TRIMS_ASSIGN("CustomArmor.trims_settings.auto_assign_settings"),
@@ -87,6 +88,7 @@ public enum Settings {
     CROSSBOW_DISPLAY("Misc.crossbow_display"),
     HIDE_SCOREBOARD_NUMBERS("Misc.hide_scoreboard_numbers"),
     HIDE_SCOREBOARD_BACKGROUND("Misc.hide_scoreboard_background"),
+    HIDE_TABLIST_BACKGROUND("Misc.hide_tablist_background"),
 
     //Pack
     GENERATE("Pack.generation.generate"),

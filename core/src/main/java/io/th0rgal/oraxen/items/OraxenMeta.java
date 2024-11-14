@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.ConfigurationSection;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,7 +13,7 @@ import java.util.Map;
 
 public class OraxenMeta {
 
-    private int customModelData;
+    private Integer customModelData;
     private String modelName;
     private String blockingModel;
     private String blockingTexture;
@@ -61,15 +62,18 @@ public class OraxenMeta {
         this.chargedModel = readModelName(section, "charged_model");
         this.fireworkModel = readModelName(section, "firework_model");
         this.pullingModels = section.isList("pulling_models")
-                ? section.getStringList("pulling_models") : null;
+                ? section.getStringList("pulling_models")
+                : null;
         this.damagedModels = section.isList("damaged_models")
-                ? section.getStringList("damaged_models") : null;
+                ? section.getStringList("damaged_models")
+                : null;
 
         // By adding the textures to pullingModels aswell,
         // we can use the same code for both pullingModels
         // and pullingTextures to add to the base-bow file predicates
         if (pullingModels == null && section.isList("pulling_textures")) {
-            pullingTextures = section.getStringList("pulling_textures").stream().map(texture -> texture.replace(".png", "")).toList();
+            pullingTextures = section.getStringList("pulling_textures").stream()
+                    .map(texture -> texture.replace(".png", "")).toList();
             pullingModels = pullingTextures;
         }
 
@@ -94,7 +98,8 @@ public class OraxenMeta {
         }
 
         if (damagedModels == null && section.isList("damaged_textures")) {
-            damagedTextures = section.getStringList("damaged_textures").stream().map(texture -> texture.replace(".png", "")).toList();
+            damagedTextures = section.getStringList("damaged_textures").stream()
+                    .map(texture -> texture.replace(".png", "")).toList();
             damagedModels = damagedTextures;
         }
 
@@ -103,12 +108,12 @@ public class OraxenMeta {
             List<String> layers = new ArrayList<>();
             this.layers.forEach(layer -> layers.add(this.layers.indexOf(layer), layer.replace(".png", "")));
             this.layers = layers;
-        }
-        else if (section.isConfigurationSection("textures")) {
+        } else if (section.isConfigurationSection("textures")) {
             ConfigurationSection texturesSection = section.getConfigurationSection("textures");
             assert texturesSection != null;
             Map<String, String> layersMap = new HashMap<>();
-            texturesSection.getKeys(false).forEach(key -> layersMap.put(key, texturesSection.getString(key).replace(".png", "")));
+            texturesSection.getKeys(false)
+                    .forEach(key -> layersMap.put(key, texturesSection.getString(key).replace(".png", "")));
             this.layersMap = layersMap;
         }
 
@@ -118,7 +123,8 @@ public class OraxenMeta {
         this.parentModel = section.getString("parent_model", "item/generated");
 
         if (generate_model && !modelName.matches("^[a-z0-9-_/]+$")) {
-            Logs.logWarning("Item " + section.getParent().getName() + " is set to generate a model, but ItemID does not adhere to [a-z0-9-_]!");
+            Logs.logWarning("Item " + section.getParent().getName()
+                    + " is set to generate a model, but ItemID does not adhere to [a-z0-9-_]!");
             Logs.logWarning("This will generate a malformed model!");
         }
 
@@ -129,26 +135,30 @@ public class OraxenMeta {
         String modelName = configSection.getString(configString);
         List<String> textures = configSection.getStringList("textures");
         ConfigurationSection parent = configSection.getParent();
-        modelName = modelName != null ? modelName : Settings.GENERATE_MODEL_BASED_ON_TEXTURE_PATH.toBool() && !textures.isEmpty() && parent != null
-                ? Utils.getParentDirs(textures.stream().findFirst().get()) + parent.getName() : null;
+        modelName = modelName != null ? modelName
+                : Settings.GENERATE_MODEL_BASED_ON_TEXTURE_PATH.toBool() && !textures.isEmpty() && parent != null
+                        ? Utils.getParentDirs(textures.stream().findFirst().get()) + parent.getName()
+                        : null;
 
         if (modelName == null && configString.equals("model") && parent != null)
             return parent.getName();
         else if (modelName != null)
             return modelName.replace(".json", "");
-        else return null;
+        else
+            return null;
     }
 
     public boolean hasPackInfos() {
         return hasPackInfos;
     }
 
-    public OraxenMeta setCustomModelData(int customModelData) {
+    public OraxenMeta setCustomModelData(Integer customModelData) {
         this.customModelData = customModelData;
         return this;
     }
 
-    public int getCustomModelData() {
+    @Nullable
+    public Integer getCustomModelData() {
         return customModelData;
     }
 
@@ -162,7 +172,9 @@ public class OraxenMeta {
         return this;
     }
 
-    public void setDisableEnchanting(boolean disableEnchanting) { this.disableEnchanting = disableEnchanting; }
+    public void setDisableEnchanting(boolean disableEnchanting) {
+        this.disableEnchanting = disableEnchanting;
+    }
 
     public String getModelName() {
         return modelName;
@@ -175,7 +187,8 @@ public class OraxenMeta {
             path = "assets/" + pathElements[0] + "/models/" + pathElements[1];
         else
             path = "assets/minecraft/models/" + pathElements[0];
-        if (path.endsWith("/")) path = path.substring(0, path.length() - 1);
+        if (path.endsWith("/"))
+            path = path.substring(0, path.length() - 1);
         return path;
     }
 
@@ -186,7 +199,8 @@ public class OraxenMeta {
             path = "assets/" + pathElements[0] + "/models/" + pathElements[1];
         else
             path = "assets/minecraft/models/" + pathElements[0];
-        if (path.endsWith("/")) path = path.substring(0, path.length() - 1);
+        if (path.endsWith("/"))
+            path = path.substring(0, path.length() - 1);
         return path;
     }
 
@@ -320,7 +334,8 @@ public class OraxenMeta {
         return noUpdate;
     }
 
-    public boolean isDisableEnchanting() { return disableEnchanting; }
+    public boolean isDisableEnchanting() {
+        return disableEnchanting;
+    }
 
 }
-

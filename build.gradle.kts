@@ -9,7 +9,7 @@ plugins {
     //id("com.github.johnrengelman.shadow") version "8.1.1"
     id("xyz.jpenilla.run-paper") version "2.3.1"
     id("net.minecrell.plugin-yml.bukkit") version "0.6.0" // Generates plugin.yml
-    id("io.papermc.paperweight.userdev") version "1.7.2" apply false
+    id("io.papermc.paperweight.userdev") version "1.7.4" apply false
     id("io.github.goooler.shadow") version "8.1.8"
     alias(libs.plugins.mia.publication)
 }
@@ -26,6 +26,7 @@ val SUPPORTED_VERSIONS: List<NMSVersion> = listOf(
     //"v1_20_R2" toNms "1.20.2-R0.1-SNAPSHOT",
     //"v1_20_R3" toNms "1.20.4-R0.1-SNAPSHOT",
     //"v1_20_R4" toNms "1.20.6-R0.1-SNAPSHOT",
+    //"v1_21_R2" toNms "1.21.3-R0.1-SNAPSHOT",
     "v1_21_R1" toNms "1.21-R0.1-SNAPSHOT"
 )
 
@@ -35,7 +36,7 @@ val devPluginPath = project.findProperty("oraxen_dev_plugin_path")?.toString()
 val foliaPluginPath = project.findProperty("oraxen_folia_plugin_path")?.toString()
 val spigotPluginPath = project.findProperty("oraxen_spigot_plugin_path")?.toString()
 val pluginVersion: String by project
-val commandApiVersion = "9.5.3"
+val commandApiVersion = "9.6.1"
 val adventureVersion = "4.17.0"
 val platformVersion = "4.3.4"
 val googleGsonVersion = "2.10.1"
@@ -79,7 +80,7 @@ allprojects {
         compileOnly("net.kyori:adventure-text-serializer-plain:$adventureVersion")
         compileOnly("net.kyori:adventure-text-serializer-ansi:$adventureVersion")
         compileOnly("net.kyori:adventure-platform-bukkit:$platformVersion")
-        compileOnly("com.comphenix.protocol:ProtocolLib:5.3.0-SNAPSHOT")
+        compileOnly("com.comphenix.protocol:ProtocolLib:5.3.0")
         compileOnly("me.clip:placeholderapi:2.11.6")
         compileOnly("me.gabytm.util:actions-core:$actionsVersion")
         compileOnly("org.springframework:spring-expression:6.0.6")
@@ -104,7 +105,8 @@ allprojects {
         implementation("team.unnamed:creative-api:1.7.3") { exclude("net.kyori") }
         implementation("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
         implementation("org.bstats:bstats-bukkit:3.0.0")
-        implementation("io.th0rgal:protectionlib:1.6.1")
+        implementation("org.glassfish:javax.json:1.1.4")
+        implementation("io.th0rgal:protectionlib:1.6.2")
         implementation("com.github.stefvanschie.inventoryframework:IF:0.10.12")
         implementation("com.jeff-media:custom-block-data:2.2.2")
         implementation("com.jeff-media:MorePersistentDataTypes:2.4.0")
@@ -157,15 +159,14 @@ tasks {
 
         archiveClassifier = null
         relocate("org.bstats", "io.th0rgal.oraxen.shaded.bstats")
-        //relocate("dev.triumphteam.gui", "io.th0rgal.oraxen.shaded.triumphteam.gui")
-        //relocate("com.jeff_media", "io.th0rgal.oraxen.shaded.jeff_media")
-        //relocate("com.github.stefvanschie.inventoryframework", "io.th0rgal.oraxen.shaded.inventoryframework")
-        //relocate("me.gabytm.util.actions", "io.th0rgal.oraxen.shaded.actions")
-        //relocate("org.intellij.lang.annotations", "io.th0rgal.oraxen.shaded.intellij.annotations")
-        //relocate("org.jetbrains.annotations", "io.th0rgal.oraxen.shaded.jetbrains.annotations")
-        //relocate("com.udojava.evalex", "io.th0rgal.oraxen.shaded.evalex")
-        //relocate("com.ticxo.playeranimator", "io.th0rgal.oraxen.shaded.playeranimator")
-        //relocate("dev.jorel", "io.th0rgal.oraxen.shaded")
+        relocate("dev.triumphteam.gui", "io.th0rgal.oraxen.shaded.triumphteam.gui")
+        relocate("com.jeff_media", "io.th0rgal.oraxen.shaded.jeff_media")
+        relocate("com.github.stefvanschie.inventoryframework", "io.th0rgal.oraxen.shaded.inventoryframework")
+        relocate("me.gabytm.util.actions", "io.th0rgal.oraxen.shaded.actions")
+        relocate("org.intellij.lang.annotations", "io.th0rgal.oraxen.shaded.intellij.annotations")
+        relocate("org.jetbrains.annotations", "io.th0rgal.oraxen.shaded.jetbrains.annotations")
+        relocate("com.ticxo.playeranimator", "io.th0rgal.oraxen.shaded.playeranimator")
+        relocate("dev.jorel", "io.th0rgal.oraxen.shaded")
 
         manifest {
             attributes(
@@ -221,7 +222,7 @@ bukkit {
     )
 }
 
-if (pluginPath != null) {
+if (spigotPluginPath != null) {
     tasks {
         val defaultPath = findByName("reobfJar") ?: findByName("shadowJar") ?: findByName("jar")
         // Define the main copy task
@@ -229,10 +230,10 @@ if (pluginPath != null) {
             this.doNotTrackState("Overwrites the plugin jar to allow for easier reloading")
             dependsOn(shadowJar, jar)
             from(defaultPath)
-            into(pluginPath)
+            into(spigotPluginPath)
             doLast {
-                println("Copied to plugin directory $pluginPath")
-                Path(pluginPath).listDirectoryEntries()
+                println("Copied to plugin directory $spigotPluginPath")
+                Path(spigotPluginPath).listDirectoryEntries()
                     .filter { it.fileName.toString().matches("oraxen-.*.jar".toRegex()) }
                     .filterNot { it.fileName.toString().endsWith("$pluginVersion.jar") }
                     .forEach { delete(it) }

@@ -6,7 +6,6 @@
 # Color codes: https://docs.adventure.kyori.net/minimessage.html#format
 
 example_sword:
-
   displayname: "<gradient:#FA7CBB:#F14658><bold>My Custom Sword"
   material: WOODEN_SWORD
   injectID: false # allow Oraxen to recognise the item if true or not set
@@ -27,7 +26,12 @@ example_sword:
     # - operations: 0 for ADD_NUMBER, 1 for ADD_SCALAR, 2 for MULTIPLY_SCALAR_1;
     # - generate one here: https://www.uuidgenerator.net/
     # - slot: HAND, OFF_HAND, FEET, LEGS, CHEST or HEAD
-    - { attribute: GENERIC_MOVEMENT_SPEED, amount: 0.1, operation: 0, slot: HAND }
+    - {
+        attribute: GENERIC_MOVEMENT_SPEED,
+        amount: 0.1,
+        operation: 0,
+        slot: HAND,
+      }
 
   Enchantments:
     protection: 4
@@ -50,7 +54,7 @@ example_custom_mechanic:
         conditions:
           - "#player.hasPermission('example.permission')"
         actions:
-          - '[console] give <player> cooked_beef 1'
+          - "[console] give <player> cooked_beef 1"
 
 example_efficient_pickaxe:
   displayname: "<gradient:#59A7EA:#F1D2FF><bold>Turbo Pickaxe"
@@ -78,7 +82,14 @@ example_potion:
     # - ambient: true/false, makes potion effect produce more, translucent, particles.
     # - particles: true/false, whether this effect has particles or not
     # - icon: true/false, whether this effect has an icon or not
-    - { type: WITHER, duration: 200, amplifier: 2, ambient: false, particles: true, icon: true }
+    - {
+        type: wither,
+        duration: 200,
+        amplifier: 2,
+        ambient: false,
+        particles: true,
+        icon: true,
+      }
 
 miner_sandwitch:
   displayname: "<gradient:#F69D84:#FAD98D>Miner's sandwitch"

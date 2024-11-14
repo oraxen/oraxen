@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.utils;
 
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -73,4 +72,19 @@ public class OraxenYaml extends YamlConfiguration {
             // or provide default values and continue.
         }
     }
+
+    public static void copyConfigurationSection(ConfigurationSection source, ConfigurationSection target) {
+        for (String key : source.getKeys(false)) {
+            Object sourceValue = source.get(key), targetValue = target.get(key);
+
+            if (sourceValue instanceof ConfigurationSection sourceSection) {
+                ConfigurationSection targetSection;
+                if (targetValue instanceof ConfigurationSection existingSection) {
+                    targetSection = existingSection;
+                } else targetSection = target.createSection(key);
+                copyConfigurationSection(sourceSection, targetSection);
+            } else target.set(key, sourceValue);
+        }
+    }
+
 }

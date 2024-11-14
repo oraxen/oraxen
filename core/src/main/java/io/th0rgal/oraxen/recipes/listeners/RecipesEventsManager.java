@@ -74,6 +74,7 @@ public class RecipesEventsManager implements Listener {
         if (!containsOraxenItem || recipe == null) return;
 
         if (Arrays.stream(event.getInventory().getMatrix()).anyMatch(item -> {
+            if (MiscMechanicFactory.get() == null) return false;
             MiscMechanic mechanic = MiscMechanicFactory.get().getMechanic(item);
             return mechanic != null && !mechanic.isAllowedInVanillaRecipes();
         })) {

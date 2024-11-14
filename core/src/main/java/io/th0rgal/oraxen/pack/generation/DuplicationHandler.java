@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.io.FileUtils;
@@ -279,7 +280,7 @@ public class DuplicationHandler {
             Logs.logWarning("Failed to migrate duplicate file-entry, file is a language file");
             Logs.logWarning("Please combine this with the duplicate file found in Oraxen/pack/lang folder");
             return false;
-        } else if (name.matches("assets/minecraft/optifine/cit/armors/.*/.*.properties")) {
+        } else if (name.matches("assets/minecraft/optifine/%s/armors/.*/.*.properties".formatted(VersionUtil.atOrAbove("1.21") ? "cit_single" : "cit"))) {
             Logs.logWarning("You are trying to import an Optifine CustomArmor file.");
             Logs.logWarning("Oraxen already generates all these needed files for you. Deleting...");
             return true;

@@ -37,6 +37,7 @@ import java.util.regex.Pattern;
  */
 public final class MinecraftVersion implements Comparable<MinecraftVersion>, Serializable {
 
+    public static final MinecraftVersion v1_21_2 = new MinecraftVersion("1.21.3");
     public static final MinecraftVersion v1_21_1 = new MinecraftVersion("1.21.1");
     public static final MinecraftVersion TRICKY_TRIALS = new MinecraftVersion("1.21");
     /**

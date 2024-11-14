@@ -26,7 +26,7 @@ WorldEdit: # Please note these are both experimental still and should be used wi
 ConfigsTools:
   # list of model data numbers the automatic system will skip
   # List can take ranges like 1-4 as well as normal singular numbers
-  skipped_model_data_numbers: [ ]
+  skipped_model_data_numbers: []
   disable_automatic_model_data: false
   disable_automatic_glyph_code: false
   enable_configs_updater: true
@@ -46,8 +46,10 @@ Chat:
   chat_handler: MODERN # Valid once are MODERN & LEGACY
 
 CustomArmor:
-  type: SHADER # Valid types are SHADER, TRIMS and NONE
+  type: COMPONENT # Valid types are COMPONENT, SHADER, TRIMS and NONE
   disable_leather_repair: true # Makes custom armor not repairable with leather, only with copies of said custom armor
+  component_settings:
+    auto_assign_component: true # If true, the equippable-model component will be automatically assigned to the custom armor piece, unless specified
   trims_settings:
     material_replacement: CHAINMAIL # Valid materials are CHAINMAIL, IRON, GOLD, DIAMOND, NETHERITE and LEATHER
     auto_assign_settings: true # If true, the trim & item-flag will be automatically assigned to the custom armor piece, unless specified
@@ -97,10 +99,10 @@ Pack:
     # the pack, or you might fill your disk.
     protection: true
     comment: "The content of this texture pack
-     \nbelongs to the owner of the Oraxen
-     \nplugin and any complete or partial
-     \nuse must comply with the terms and
-     \nconditions of Oraxen."
+      \nbelongs to the owner of the Oraxen
+      \nplugin and any complete or partial
+      \nuse must comply with the terms and
+      \nconditions of Oraxen."
 
   import:
     # Merges duplicate font files, most often default.json into the final pack.
@@ -116,7 +118,6 @@ Pack:
     # The issue of custom-model-data is still here but it will copy it over no matter what [retain_custom_model_data] is set to
     # [merge_item,_base_models] can be used to merge paper.json etc from imported packs
     merge_item_base_models: false
-
 
   upload:
     enabled: true
@@ -155,9 +156,9 @@ Pack:
           content: "<#55ffa4><bold>ResourcePack loaded"
         # If you need to send commands
         commands:
-          console: [ ]
-          player: [ ]
-          opped_player: [ ]
+          console: []
+          player: []
+          opped_player: []
 
     accepted:
       actions:
@@ -168,9 +169,9 @@ Pack:
           content: "<#55ffa4><bold>ResourcePack accepted"
         # If you need to send commands
         commands:
-          console: [ ]
-          player: [ ]
-          opped_player: [ ]
+          console: []
+          player: []
+          opped_player: []
 
     denied:
       actions:
@@ -182,9 +183,9 @@ Pack:
           content: "<red>You refused the ResourcePack, but you need it in order to see the new items. Please </red><click:run_command:'/oraxen pack send @p'><hover:show_text:'<green>Display more informations'><green><bold>CLICK HERE</bold></hover></click> <red>or type <bold>/oraxen pack send @p"
         # If you need to send commands
         commands:
-          console: [ ]
-          player: [ ]
-          opped_player: [ ]
+          console: []
+          player: []
+          opped_player: []
 
     failed_download:
       actions:
@@ -196,37 +197,37 @@ Pack:
           content: "<red>You failed to download the ResourcePack, but you need it in order to see the new items. Please </red><click:run_command:'/oraxen pack send @p'><hover:show_text:'<red>! loading the resourcepack from the game can cause lags'><red><bold>CLICK HERE</bold></hover></click> <red>to retry or type <bold>/oraxen pack send @p</bold>"
         # If you need to send commands
         commands:
-          console: [ ]
-          player: [ ]
-          opped_player: [ ]
+          console: []
+          player: []
+          opped_player: []
 
     failed_reload: #1.20.3+ only
       actions:
         commands:
-          console: [ ]
-          player: [ ]
-          opped_player: [ ]
+          console: []
+          player: []
+          opped_player: []
 
     downloaded: #1.20.3+ only
       actions:
         commands:
-          console: [ ]
-          player: [ ]
-          opped_player: [ ]
+          console: []
+          player: []
+          opped_player: []
 
     invalid_url: #1.20.3+ only
       actions:
         commands:
-          console: [ ]
-          player: [ ]
-          opped_player: [ ]
+          console: []
+          player: []
+          opped_player: []
 
     discarded: #1.20.3+ only
       actions:
         commands:
-          console: [ ]
-          player: [ ]
-          opped_player: [ ]
+          console: []
+          player: []
+          opped_player: []
 Misc:
   # If this is set to true, Oraxen will reset recipes on reload. This might create conflicts with other plugins
   # but this makes the things easier if you want to try your oraxen recipes.
@@ -238,6 +239,8 @@ Misc:
   hide_scoreboard_numbers: false
   # This will hide the background of scoreboards
   hide_scoreboard_background: false
+  # This will hide the background of the tablist (1.21+ only)
+  hide_tablist_background: false
 
   # All blocks with an inventory or any blocks that when right clicked shouldn't equip armor.
   armor_equip_event_bypass:
@@ -329,13 +332,13 @@ Misc:
     - BELL
 
   # If you want to add shields, Oraxen needs to setup the display options of the default shield, here are the vanilla ones:
-  shield_display: "{\"thirdperson_righthand\":{\"rotation\":[0,90,0],\"translation\":[10,6,-4],\"scale\":[1,1,1]},\"thirdperson_lefthand\":{\"rotation\":[0,90,0],\"translation\":[10,6,12],\"scale\":[1,1,1]},\"firstperson_righthand\":{\"rotation\":[0,180,5],\"translation\":[-10,2,-10],\"scale\":[1.25,1.25,1.25]},\"firstperson_lefthand\":{\"rotation\":[0,180,5],\"translation\":[10,0,-10],\"scale\":[1.25,1.25,1.25]},\"gui\":{\"rotation\":[15,-25,-5],\"translation\":[2,3,0],\"scale\":[0.65,0.65,0.65]},\"fixed\":{\"rotation\":[0,180,0],\"translation\":[-2,4,-5],\"scale\":[0.5,0.5,0.5]},\"ground\":{\"rotation\":[0,0,0],\"translation\":[4,4,2],\"scale\":[0.25,0.25,0.25]}}"
+  shield_display: '{"thirdperson_righthand":{"rotation":[0,90,0],"translation":[10,6,-4],"scale":[1,1,1]},"thirdperson_lefthand":{"rotation":[0,90,0],"translation":[10,6,12],"scale":[1,1,1]},"firstperson_righthand":{"rotation":[0,180,5],"translation":[-10,2,-10],"scale":[1.25,1.25,1.25]},"firstperson_lefthand":{"rotation":[0,180,5],"translation":[10,0,-10],"scale":[1.25,1.25,1.25]},"gui":{"rotation":[15,-25,-5],"translation":[2,3,0],"scale":[0.65,0.65,0.65]},"fixed":{"rotation":[0,180,0],"translation":[-2,4,-5],"scale":[0.5,0.5,0.5]},"ground":{"rotation":[0,0,0],"translation":[4,4,2],"scale":[0.25,0.25,0.25]}}'
 
   # Same for bows:
-  bow_display: "{\"thirdperson_righthand\":{\"rotation\":[-80,260,-40],\"translation\":[-1,-2,2.5],\"scale\":[0.9,0.9,0.9]},\"thirdperson_lefthand\":{\"rotation\":[-80,-280,40],\"translation\":[-1,-2,2.5],\"scale\":[0.9,0.9,0.9]},\"firstperson_righthand\":{\"rotation\":[0,-90,25],\"translation\":[1.13,3.2,1.13],\"scale\":[0.68,0.68,0.68]},\"firstperson_lefthand\":{\"rotation\":[0,90,-25],\"translation\":[1.13,3.2,1.13],\"scale\":[0.68,0.68,0.68]}}"
+  bow_display: '{"thirdperson_righthand":{"rotation":[-80,260,-40],"translation":[-1,-2,2.5],"scale":[0.9,0.9,0.9]},"thirdperson_lefthand":{"rotation":[-80,-280,40],"translation":[-1,-2,2.5],"scale":[0.9,0.9,0.9]},"firstperson_righthand":{"rotation":[0,-90,25],"translation":[1.13,3.2,1.13],"scale":[0.68,0.68,0.68]},"firstperson_lefthand":{"rotation":[0,90,-25],"translation":[1.13,3.2,1.13],"scale":[0.68,0.68,0.68]}}'
 
   # Same for crossbows:
-  crossbow_display: "{\"thirdperson_righthand\":{\"rotation\":[-90,0,-60],\"translation\":[2,0.1,-3],\"scale\":[0.9,0.9,0.9]},\"thirdperson_lefthand\":{\"rotation\":[-90,0,30],\"translation\":[2,0.1,-3],\"scale\":[0.9,0.9,0.9]},\"firstperson_righthand\":{\"rotation\":[-90,0,-55],\"translation\":[1.13,3.2,1.13],\"scale\":[0.68,0.68,0.68]},\"firstperson_lefthand\":{\"rotation\":[-90,0,35],\"translation\":[1.13,3.2,1.13],\"scale\":[0.68,0.68,0.68]}}"
+  crossbow_display: '{"thirdperson_righthand":{"rotation":[-90,0,-60],"translation":[2,0.1,-3],"scale":[0.9,0.9,0.9]},"thirdperson_lefthand":{"rotation":[-90,0,30],"translation":[2,0.1,-3],"scale":[0.9,0.9,0.9]},"firstperson_righthand":{"rotation":[-90,0,-55],"translation":[1.13,3.2,1.13],"scale":[0.68,0.68,0.68]},"firstperson_lefthand":{"rotation":[-90,0,35],"translation":[1.13,3.2,1.13],"scale":[0.68,0.68,0.68]}}'
 
 oraxen_inventory:
   main_menu_title: "<shift:-18><glyph:menu_items><shift:-193>"
