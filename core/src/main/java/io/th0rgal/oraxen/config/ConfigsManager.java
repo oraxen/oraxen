@@ -288,7 +288,7 @@ public class ConfigsManager {
             YamlConfiguration configuration = OraxenYaml.loadConfiguration(file);
             for (String key : configuration.getKeys(false)) {
                 ConfigurationSection itemSection = configuration.getConfigurationSection(key);
-                if (itemSection != null && itemSection.isBoolean("template")) new ItemTemplate(itemSection);
+                if (itemSection != null && itemSection.isBoolean("template")) ItemTemplate.register(itemSection);
             }
         }
     }

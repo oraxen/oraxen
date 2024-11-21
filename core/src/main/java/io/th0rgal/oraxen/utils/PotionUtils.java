@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.utils;
 
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
 import org.bukkit.inventory.meta.PotionMeta;
@@ -38,6 +39,8 @@ public class PotionUtils {
         if (effectType == null && legacyEffect != null && !legacyEffect.isEmpty()) {
             effectType = getEffectType(legacyEffect, null);
         }
+
+        if (effectType == null) Logs.logWarning("Invalid PotionEffectType: " + effect);
 
         return effectType;
     }

@@ -147,6 +147,7 @@ public class PredicatesGenerator {
 
             if (!baseOverride.get("predicate").getAsJsonObject().isEmpty())
                 overrides.add(baseOverride);
+
             if (oraxenMeta.hasBlockingModel()) {
                 final JsonObject predicate = new JsonObject();
                 predicate.addProperty("blocking", 1);
@@ -281,6 +282,7 @@ public class PredicatesGenerator {
     private JsonObject getOverride(final String property, final Integer propertyValue, final String model) {
         return getOverride(new JsonObject(), property, propertyValue, model);
     }
+
 
     private JsonObject getOverride(final JsonObject predicate, final String property, final Integer propertyValue,
             final String model) {

@@ -59,7 +59,6 @@ allprojects {
         maven("https://hub.jeff-media.com/nexus/repository/jeff-media-public/") // CustomBlockData
         maven("https://repo.triumphteam.dev/snapshots") // actions-code, actions-spigot
         maven("https://mvn.lumine.io/repository/maven-public/") { metadataSources { artifact() } }// MythicMobs
-        maven("https://repo.mineinabyss.com/releases") // PlayerAnimator
         maven("https://s01.oss.sonatype.org/content/repositories/snapshots") // commandAPI snapshots
         maven("https://repo.oraxen.com/releases")
         maven("https://repo.oraxen.com/snapshots")
@@ -106,7 +105,7 @@ allprojects {
         implementation("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
         implementation("org.bstats:bstats-bukkit:3.0.0")
         implementation("org.glassfish:javax.json:1.1.4")
-        implementation("io.th0rgal:protectionlib:1.6.2")
+        implementation("io.th0rgal:protectionlib:1.7.0")
         implementation("com.github.stefvanschie.inventoryframework:IF:0.10.12")
         implementation("com.jeff-media:custom-block-data:2.2.2")
         implementation("com.jeff-media:MorePersistentDataTypes:2.4.0")
@@ -126,7 +125,9 @@ dependencies {
 
 
 java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
 }
 
 tasks {
@@ -165,7 +166,6 @@ tasks {
         relocate("me.gabytm.util.actions", "io.th0rgal.oraxen.shaded.actions")
         relocate("org.intellij.lang.annotations", "io.th0rgal.oraxen.shaded.intellij.annotations")
         relocate("org.jetbrains.annotations", "io.th0rgal.oraxen.shaded.jetbrains.annotations")
-        relocate("com.ticxo.playeranimator", "io.th0rgal.oraxen.shaded.playeranimator")
         relocate("dev.jorel", "io.th0rgal.oraxen.shaded")
 
         manifest {
