@@ -59,7 +59,6 @@ allprojects {
         maven("https://hub.jeff-media.com/nexus/repository/jeff-media-public/") // CustomBlockData
         maven("https://repo.triumphteam.dev/snapshots") // actions-code, actions-spigot
         maven("https://mvn.lumine.io/repository/maven-public/") { metadataSources { artifact() } }// MythicMobs
-        maven("https://repo.mineinabyss.com/releases") // PlayerAnimator
         maven("https://s01.oss.sonatype.org/content/repositories/snapshots") // commandAPI snapshots
         maven("https://repo.oraxen.com/releases")
         maven("https://repo.oraxen.com/snapshots")
@@ -165,7 +164,6 @@ tasks {
         relocate("me.gabytm.util.actions", "io.th0rgal.oraxen.shaded.actions")
         relocate("org.intellij.lang.annotations", "io.th0rgal.oraxen.shaded.intellij.annotations")
         relocate("org.jetbrains.annotations", "io.th0rgal.oraxen.shaded.jetbrains.annotations")
-        relocate("com.ticxo.playeranimator", "io.th0rgal.oraxen.shaded.playeranimator")
         relocate("dev.jorel", "io.th0rgal.oraxen.shaded")
 
         manifest {
