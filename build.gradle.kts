@@ -59,7 +59,6 @@ allprojects {
         maven("https://hub.jeff-media.com/nexus/repository/jeff-media-public/") // CustomBlockData
         maven("https://repo.triumphteam.dev/snapshots") // actions-code, actions-spigot
         maven("https://mvn.lumine.io/repository/maven-public/") { metadataSources { artifact() } }// MythicMobs
-        maven("https://repo.mineinabyss.com/releases") // PlayerAnimator
         maven("https://s01.oss.sonatype.org/content/repositories/snapshots") // commandAPI snapshots
         maven("https://repo.oraxen.com/releases")
         maven("https://repo.oraxen.com/snapshots")
@@ -106,7 +105,7 @@ allprojects {
         implementation("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
         implementation("org.bstats:bstats-bukkit:3.0.0")
         implementation("org.glassfish:javax.json:1.1.4")
-        implementation("io.th0rgal:protectionlib:1.6.2")
+        implementation("io.th0rgal:protectionlib:1.7.0")
         implementation("com.github.stefvanschie.inventoryframework:IF:0.10.12")
         implementation("com.jeff-media:custom-block-data:2.2.2")
         implementation("com.jeff-media:MorePersistentDataTypes:2.4.0")
@@ -126,7 +125,9 @@ dependencies {
 
 
 java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
 }
 
 tasks {
@@ -159,15 +160,13 @@ tasks {
 
         archiveClassifier = null
         relocate("org.bstats", "io.th0rgal.oraxen.shaded.bstats")
-        //relocate("dev.triumphteam.gui", "io.th0rgal.oraxen.shaded.triumphteam.gui")
-        //relocate("com.jeff_media", "io.th0rgal.oraxen.shaded.jeff_media")
-        //relocate("com.github.stefvanschie.inventoryframework", "io.th0rgal.oraxen.shaded.inventoryframework")
-        //relocate("me.gabytm.util.actions", "io.th0rgal.oraxen.shaded.actions")
-        //relocate("org.intellij.lang.annotations", "io.th0rgal.oraxen.shaded.intellij.annotations")
-        //relocate("org.jetbrains.annotations", "io.th0rgal.oraxen.shaded.jetbrains.annotations")
-        //relocate("com.udojava.evalex", "io.th0rgal.oraxen.shaded.evalex")
-        //relocate("com.ticxo.playeranimator", "io.th0rgal.oraxen.shaded.playeranimator")
-        //relocate("dev.jorel", "io.th0rgal.oraxen.shaded")
+        relocate("dev.triumphteam.gui", "io.th0rgal.oraxen.shaded.triumphteam.gui")
+        relocate("com.jeff_media", "io.th0rgal.oraxen.shaded.jeff_media")
+        relocate("com.github.stefvanschie.inventoryframework", "io.th0rgal.oraxen.shaded.inventoryframework")
+        relocate("me.gabytm.util.actions", "io.th0rgal.oraxen.shaded.actions")
+        relocate("org.intellij.lang.annotations", "io.th0rgal.oraxen.shaded.intellij.annotations")
+        relocate("org.jetbrains.annotations", "io.th0rgal.oraxen.shaded.jetbrains.annotations")
+        relocate("dev.jorel", "io.th0rgal.oraxen.shaded")
 
         manifest {
             attributes(
@@ -223,7 +222,7 @@ bukkit {
     )
 }
 
-if (pluginPath != null) {
+if (spigotPluginPath != null) {
     tasks {
         val defaultPath = findByName("reobfJar") ?: findByName("shadowJar") ?: findByName("jar")
         // Define the main copy task
@@ -231,10 +230,10 @@ if (pluginPath != null) {
             this.doNotTrackState("Overwrites the plugin jar to allow for easier reloading")
             dependsOn(shadowJar, jar)
             from(defaultPath)
-            into(pluginPath)
+            into(spigotPluginPath)
             doLast {
-                println("Copied to plugin directory $pluginPath")
-                Path(pluginPath).listDirectoryEntries()
+                println("Copied to plugin directory $spigotPluginPath")
+                Path(spigotPluginPath).listDirectoryEntries()
                     .filter { it.fileName.toString().matches("oraxen-.*.jar".toRegex()) }
                     .filterNot { it.fileName.toString().endsWith("$pluginVersion.jar") }
                     .forEach { delete(it) }
