@@ -365,9 +365,6 @@ public class ResourcePack {
             if (item.hasOraxenMeta() && oraxenMeta.hasPackInfos()) {
                 String modelName = oraxenMeta.getModelName() + ".json";
                 String modelPath = oraxenMeta.getModelPath();
-                // if (item.hasEquippableComponent() && item.getEquippableComponent().getModel()
-                // != null)
-                // modelPath += "/item/";
                 if (oraxenMeta.shouldGenerateModel()) {
                     writeStringToVirtual(modelPath, modelName, new ModelGenerator(oraxenMeta).getJson().toString());
                 }

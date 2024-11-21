@@ -26,9 +26,10 @@ public enum CustomArmorType {
             }
             return customArmorType;
         } catch (IllegalArgumentException e) {
+            CustomArmorType defaultType = VersionUtil.atOrAbove("1.21.2") ? COMPONENT : VersionUtil.atOrAbove("1.20") ? TRIMS : NONE;
             Logs.logError("Invalid custom armor type: " + type);
-            Logs.logError("Defaulting to NONE.");
-            return NONE;
+            Logs.logError("Defaulting to %s.".formatted(defaultType));
+            return defaultType;
         }
     }
 }
