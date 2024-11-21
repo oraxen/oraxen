@@ -314,6 +314,10 @@ public class ItemUpdater implements Listener {
             else itemPdc.set(UNSTACKABLE_KEY, DataType.UUID, UUID.randomUUID());
         });
 
+        Optional.ofNullable(NMSHandlers.getHandler()).ifPresent(nmsHandler ->
+            nmsHandler.consumableComponent(newItem, Optional.ofNullable(nmsHandler.consumableComponent(newItem)).orElse(nmsHandler.consumableComponent(oldItem)))
+        );
+
         return newItem;
     }
 

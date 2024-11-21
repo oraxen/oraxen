@@ -2,7 +2,9 @@ package io.th0rgal.oraxen.mechanics.provided.combat.lifeleech;
 
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.utils.wrappers.AttributeWrapper;
 import io.th0rgal.protectionlib.ProtectionLib;
+
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -35,8 +37,8 @@ public class LifeLeechMechanicListener implements Listener {
         if (mechanic == null)
             return;
 
-        // temporary fix for supporting multiple versions
         double maxHealth = damager.getAttribute(Attribute.valueOf("GENERIC_MAX_HEALTH")).getValue();
+
         damager.setHealth(Math.min(damager.getHealth() + mechanic.getAmount(), maxHealth));
         livingEntity.setHealth(Math.max(livingEntity.getHealth() - mechanic.getAmount(), 0));
     }
