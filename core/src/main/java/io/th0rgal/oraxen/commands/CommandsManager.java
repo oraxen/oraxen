@@ -1,7 +1,11 @@
 package io.th0rgal.oraxen.commands;
 
 import dev.jorel.commandapi.CommandAPICommand;
-import dev.jorel.commandapi.arguments.*;
+import dev.jorel.commandapi.arguments.ArgumentSuggestions;
+import dev.jorel.commandapi.arguments.EntitySelectorArgument;
+import dev.jorel.commandapi.arguments.GreedyStringArgument;
+import dev.jorel.commandapi.arguments.IntegerArgument;
+import dev.jorel.commandapi.arguments.TextArgument;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Message;
@@ -45,7 +49,7 @@ public class CommandsManager {
                 .register();
     }
 
-    private Color hex2Rgb(String colorStr) throws NumberFormatException {
+    private Color hex2Rgb(final String colorStr) throws NumberFormatException {
         return Color.fromRGB(
                 Integer.valueOf(colorStr.substring(1, 3), 16),
                 Integer.valueOf(colorStr.substring(3, 5), 16),
@@ -57,11 +61,11 @@ public class CommandsManager {
                 .withPermission("oraxen.command.dye")
                 .withArguments(new GreedyStringArgument("color"))
                 .executes((sender, args) -> {
-                    if (sender instanceof Player player) {
-                        Color hexColor;
+                    if (sender instanceof final Player player) {
+                        final Color hexColor;
                         try {
                             hexColor = hex2Rgb((String) args.get("color"));
-                        } catch (StringIndexOutOfBoundsException | NumberFormatException e) {
+                        } catch (final StringIndexOutOfBoundsException | NumberFormatException e) {
                             Message.DYE_WRONG_COLOR.send(sender);
                             return;
                         }
@@ -77,7 +81,7 @@ public class CommandsManager {
                 .withAliases("inv")
                 .withPermission("oraxen.command.inventory.view")
                 .executes((sender, args) -> {
-                    if (sender instanceof Player player)
+                    if (sender instanceof final Player player)
                         OraxenPlugin.get().getInvManager().getItemsView(player).open(player);
                     else Message.NOT_PLAYER.send(sender);
                 });
@@ -102,12 +106,14 @@ public class CommandsManager {
                     int amount = (int) args.get(2);
                     final int max = itemBuilder.hasMaxStackSize() ? itemBuilder.getMaxStackSize() : itemBuilder.getType().getMaxStackSize();
                     final int slots = amount / max + (max % amount > 0 ? 1 : 0);
-                    ItemStack[] items = itemBuilder.buildArray(slots > 36 ? (amount = max * 36) : amount);
+                    final ItemStack[] items = itemBuilder.buildArray(slots > 36 ? (amount = max * 36) : amount);
 
                     for (final Player target : targets) {
-                        Map<Integer, ItemStack> output = target.getInventory().addItem(items);
-                        for (ItemStack stack : output.values())
-                            target.getWorld().dropItem(target.getLocation(), stack);
+                        final Map<Integer, ItemStack> output = target.getInventory().addItem(items);
+                        if (!output.isEmpty()) {
+                            for (final ItemStack stack : output.values())
+                                target.getWorld().dropItem(target.getLocation(), stack);
+                        }
                     }
 
                     if (targets.size() == 1)
@@ -138,8 +144,15 @@ public class CommandsManager {
                         Message.ITEM_NOT_FOUND.send(sender, AdventureUtils.tagResolver("item", itemID));
                         return;
                     }
-                    for (final Player target : targets)
-                        target.getInventory().addItem(ItemUpdater.updateItem(itemBuilder.build()));
+
+                    for (final Player target : targets) {
+                        final Map<Integer, ItemStack> output = target.getInventory().addItem(ItemUpdater.updateItem(itemBuilder.build()));
+                        if (!output.isEmpty()) {
+                            for (final ItemStack stack : output.values()) {
+                                target.getWorld().dropItem(target.getLocation(), stack);
+                            }
+                        }
+                    }
 
                     if (targets.size() == 1)
                         Message.GIVE_PLAYER
@@ -170,15 +183,15 @@ public class CommandsManager {
                         Message.ITEM_NOT_FOUND.send(sender, AdventureUtils.tagResolver("item", itemID));
                     } else for (final Player target : targets) {
                         if (amount.isEmpty()) {
-                            for (ItemStack itemStack : target.getInventory().getContents())
+                            for (final ItemStack itemStack : target.getInventory().getContents())
                                 if (!ItemUtils.isEmpty(itemStack) && itemID.equals(OraxenItems.getIdByItem(itemStack)))
                                     target.getInventory().remove(itemStack);
                         } else {
                             int toRemove = amount.get();
                             while (toRemove > 0) {
-                                ItemStack[] items = target.getInventory().getStorageContents();
+                                final ItemStack[] items = target.getInventory().getStorageContents();
                                 for (int i = 0; i < items.length; i++) {
-                                    ItemStack itemStack = items[i];
+                                    final ItemStack itemStack = items[i];
                                     if (!ItemUtils.isEmpty(itemStack) && itemID.equals(OraxenItems.getIdByItem(itemStack))) {
                                         if (itemStack.getAmount() <= toRemove) {
                                             toRemove -= itemStack.getAmount();
