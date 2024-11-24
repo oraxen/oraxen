@@ -3,7 +3,7 @@ table:
   material: PAPER
   Mechanics:
     furniture:
-      type: ITEM_FRAME # Valid types are ITEM_FRAME, GLOW_ITEM_FRAME & DISPLAY_ENTITY if server is 1.19.4>
+      type: DISPLAY_ENTITY # Valid types are DISPLAY_ENTITY, GLOW_DISPLAY_ENTITY & DISPLAY_ENTITY if server is 1.19.4>
       limited_placing:
         roof: false
         floor: true
@@ -102,7 +102,7 @@ shelf:
   material: PAPER
   Mechanics:
     furniture:
-      type: ITEM_FRAME
+      type: DISPLAY_ENTITY
       limited_placing:
         roof: false
         floor: false
