@@ -12,7 +12,6 @@ import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
@@ -108,6 +107,11 @@ public class JukeboxListener implements Listener {
         pdc.set(MUSIC_DISC_KEY, DataType.ITEM_STACK, insertedDisc);
         baseEntity.getWorld().playSound(loc, jukebox.getPlayingSong(baseEntity), SoundCategory.RECORDS,
                 jukebox.getVolume(), jukebox.getPitch());
+
+        if (jukebox.active_stage != null) {
+            FurnitureMechanic.setFurnitureItem(baseEntity, OraxenItems.getItemById(jukebox.active_stage).build());
+        }
+
         return true;
     }
 
@@ -137,6 +141,13 @@ public class JukeboxListener implements Listener {
                             Sound.sound(songKey, Sound.Source.RECORD, jukebox.getVolume(), jukebox.getPitch()));
                 });
         baseEntity.getWorld().dropItemNaturally(loc, item);
+
+        // if the active stage was not null we need to reset it because it changed
+        if (jukebox.active_stage != null) {
+            FurnitureMechanic.setFurnitureItem(baseEntity,
+                    OraxenItems.getItemById(furnitureMechanic.getItemID()).build());
+        }
+
         pdc.remove(MUSIC_DISC_KEY);
         return true;
     }

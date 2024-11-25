@@ -135,10 +135,18 @@ turntable:
       drop:
         silktouch: false
         loots:
-          - { oraxen_item: table, probability: 1.0 }
+          - { oraxen_item: turtable, probability: 1.0 }
       jukebox:
+        active_stage: "turtable_active_stage"
         volume: 1.0
         pitch: 1.0
   Pack:
     generate_model: false
     model: default/turntable
+
+turtable_active_stage:
+  material: PAPER
+  excludeFromInventory: true
+  Pack:
+    generate_model: false
+    model: default/weed/stage0
