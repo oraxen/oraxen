@@ -9,9 +9,15 @@ settings:
 # The above are just empty and side-effect of generating the json file.
 sounds:
   welcome:
-    category: record
+    category: records
     sound: welcome.ogg # extension is not mandatory
     stream: true
+    subtitle: "Welcome Song"
+    # This section will automatically generate a datapack
+    jukebox_song:
+      description: "<gold>Welcome <yellow>Song</yellow></gold>"
+      length_in_seconds: 180
+      comparator_output: 12
   block.wood.step: # Required for custom sounds
     replace: true
   block.wood.place:

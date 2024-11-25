@@ -15,6 +15,7 @@ import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenMeta;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
 import io.th0rgal.oraxen.sound.CustomSound;
+import io.th0rgal.oraxen.sound.JukeboxDatapack;
 import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.customarmor.ComponentArmorModels;
@@ -48,6 +49,7 @@ public class ResourcePack {
     private ComponentArmorModels componentArmorModels;
     private static final File packFolder = new File(OraxenPlugin.get().getDataFolder(), "pack");
     private final File pack = new File(packFolder, packFolder.getName() + ".zip");
+    private JukeboxDatapack jukeboxDatapack;
 
     public ResourcePack() {
         // we use maps to avoid duplicate
@@ -657,6 +659,12 @@ public class ResourcePack {
                     .filter(d -> d.getName().equals(TrimArmorDatapack.DATAPACK_KEY.value()))
                     .findFirst()
                     .ifPresent(d -> d.setEnabled(CustomArmorType.getSetting() == CustomArmorType.TRIMS));
+        }
+
+        // Handle jukebox datapack
+        if (jukeboxDatapack != null) {
+            jukeboxDatapack.clearOldDataPack();
+            jukeboxDatapack.generateAssets(output);
         }
     }
 
