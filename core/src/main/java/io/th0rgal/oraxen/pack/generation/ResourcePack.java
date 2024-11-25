@@ -622,16 +622,18 @@ public class ResourcePack {
 
     private void handleCustomArmor(List<VirtualFile> output) {
         CustomArmorType customArmorType = CustomArmorType.getSetting();
-        // Clear out old datapacks before generating new ones, in case type changed or
-        // otherwise
-        TrimArmorDatapack.clearOldDataPacks();
 
         switch (customArmorType) {
             case COMPONENT -> componentArmorModels.generatePackFiles(output);
-            case TRIMS -> trimArmorDatapack.generateTrimAssets(output);
+            case TRIMS -> {
+                if (trimArmorDatapack == null)
+                    trimArmorDatapack = new TrimArmorDatapack();
+                trimArmorDatapack.clearOldDataPack();
+                trimArmorDatapack.generateAssets(output);
+            }
             case SHADER -> {
                 if (Settings.CUSTOM_ARMOR_SHADER_GENERATE_CUSTOM_TEXTURES.toBool()
-                        && shaderArmorTextures.hasCustomArmors())
+                        && shaderArmorTextures.hasCustomArmors()) {
                     try {
                         String armorPath = "assets/minecraft/textures/models/armor";
                         output.add(
@@ -644,12 +646,17 @@ public class ResourcePack {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
+                }
             }
+            default -> {
+            } // Handle NONE
         }
+
         if (VersionUtil.isPaperServer()) {
             Bukkit.getDatapackManager().getPacks().stream()
-                    .filter(d -> d.getName().equals(TrimArmorDatapack.datapackKey.value()))
-                    .findFirst().ifPresent(d -> d.setEnabled(CustomArmorType.getSetting() == CustomArmorType.TRIMS));
+                    .filter(d -> d.getName().equals(TrimArmorDatapack.DATAPACK_KEY.value()))
+                    .findFirst()
+                    .ifPresent(d -> d.setEnabled(CustomArmorType.getSetting() == CustomArmorType.TRIMS));
         }
     }
 

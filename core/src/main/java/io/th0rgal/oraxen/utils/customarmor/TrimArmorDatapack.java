@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.items.ItemBuilder;
+import io.th0rgal.oraxen.pack.generation.OraxenDatapack;
 import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
@@ -19,7 +20,6 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ArmorMeta;
 import org.bukkit.inventory.meta.trim.TrimPattern;
-import org.bukkit.packs.DataPack;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,41 +27,29 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class TrimArmorDatapack {
-    private static final World defaultWorld = Bukkit.getWorlds().get(0);
-    public static final Key datapackKey = Key.key("minecraft:file/oraxen_custom_armor");
-    private static final File customArmorDatapack = defaultWorld.getWorldFolder().toPath()
-            .resolve("datapacks/oraxen_custom_armor").toFile();
-    private final boolean isFirstInstall;
-    private final boolean datapackEnabled;
-    private final JsonObject datapackMeta = new JsonObject();
+public class TrimArmorDatapack extends OraxenDatapack {
+    public static final Key DATAPACK_KEY = Key.key("minecraft:file/oraxen_trim_armor");
     private final JsonObject sourcesObject = new JsonObject();
 
     public TrimArmorDatapack() {
-        JsonObject data = new JsonObject();
-        data.addProperty("description", "Datapack for Oraxens Custom Armor trims");
-        data.addProperty("pack_format", 26);
-        datapackMeta.add("pack", data);
+        super("oraxen_trim_armor",
+                "Datapack for Oraxens Custom Armor trims",
+                26);
         trimSourcesObject();
-
-        this.isFirstInstall = isFirstInstall();
-        this.datapackEnabled = isDatapackEnabled();
     }
 
-    public static void clearOldDataPacks() {
-        try {
-            FileUtils.deleteDirectory(customArmorDatapack);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    @Override
+    protected Key getDatapackKey() {
+        return DATAPACK_KEY;
     }
 
-    public void generateTrimAssets(List<VirtualFile> output) {
+    @Override
+    public void generateAssets(List<VirtualFile> output) {
         Set<String> armorPrefixes = armorPrefixes(output);
-        customArmorDatapack.toPath().resolve("data").toFile().mkdirs();
-        writeMCMeta(customArmorDatapack);
-        writeVanillaTrimPattern(customArmorDatapack);
-        writeCustomTrimPatterns(customArmorDatapack, armorPrefixes);
+        datapackFolder.toPath().resolve("data").toFile().mkdirs();
+        writeMCMeta();
+        writeVanillaTrimPattern();
+        writeCustomTrimPatterns(armorPrefixes);
         writeTrimAtlas(output, armorPrefixes);
         copyArmorLayerTextures(output);
 
@@ -77,8 +65,8 @@ public class TrimArmorDatapack {
             checkOraxenArmorItems();
     }
 
-    private void writeVanillaTrimPattern(File datapack) {
-        File vanillaArmorJson = datapack.toPath().resolve("data/minecraft/trim_pattern/"
+    private void writeVanillaTrimPattern() {
+        File vanillaArmorJson = datapackFolder.toPath().resolve("data/minecraft/trim_pattern/"
                 + Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toLowerCase(Locale.ROOT) + ".json").toFile();
         vanillaArmorJson.getParentFile().mkdirs();
         JsonObject vanillaTrimPattern = new JsonObject();
@@ -98,9 +86,10 @@ public class TrimArmorDatapack {
         }
     }
 
-    private void writeCustomTrimPatterns(File datapack, Set<String> armorPrefixes) {
+    private void writeCustomTrimPatterns(Set<String> armorPrefixes) {
         for (String armorPrefix : armorPrefixes) {
-            File armorJson = datapack.toPath().resolve("data/oraxen/trim_pattern/" + armorPrefix + ".json").toFile();
+            File armorJson = datapackFolder.toPath().resolve("data/oraxen/trim_pattern/" + armorPrefix + ".json")
+                    .toFile();
             armorJson.getParentFile().mkdirs();
             JsonObject trimPattern = new JsonObject();
             JsonObject description = new JsonObject();
@@ -210,16 +199,6 @@ public class TrimArmorDatapack {
                 OraxenPlugin.get().getResource(resourcePath + "transparent_layer_2.png")));
     }
 
-    private void writeMCMeta(File datapack) {
-        try {
-            File packMeta = datapack.toPath().resolve("pack.mcmeta").toFile();
-            packMeta.createNewFile();
-            FileUtils.writeStringToFile(packMeta, datapackMeta.toString(), StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     private void checkOraxenArmorItems() {
         // No need to log for all 4 armor pieces, so skip to minimise log spam
         List<String> skippedArmorType = new ArrayList<>();
@@ -305,27 +284,5 @@ public class TrimArmorDatapack {
                         ? StringUtils.substringAfterLast(
                                 StringUtils.substringBefore(virtualFile.getPath(), "_armor_layer_2.png"), "/")
                         : "";
-    }
-
-    private boolean isFirstInstall() {
-        return Bukkit.getDataPackManager().getDataPacks().stream().filter(d -> d.getKey() != null)
-                .noneMatch(d -> datapackKey.equals(Key.key(d.getKey().toString())));
-    }
-
-    private boolean isDatapackEnabled() {
-        for (DataPack dataPack : Bukkit.getDataPackManager().getEnabledDataPacks(defaultWorld)) {
-            if (dataPack.getKey() == null)
-                continue;
-            if (dataPack.getKey().equals(datapackKey))
-                return true;
-        }
-        for (DataPack dataPack : Bukkit.getDataPackManager().getDisabledDataPacks(defaultWorld)) {
-            if (dataPack.getKey() == null)
-                continue;
-            if (dataPack.getKey().equals(datapackKey))
-                return true;
-        }
-
-        return false;
     }
 }
