@@ -3,7 +3,7 @@ table:
   material: PAPER
   Mechanics:
     furniture:
-      type: DISPLAY_ENTITY # Valid types are DISPLAY_ENTITY, GLOW_DISPLAY_ENTITY & DISPLAY_ENTITY if server is 1.19.4>
+      type: ITEM_FRAME # Valid types are ITEM_FRAME, GLOW_ITEM_FRAME & DISPLAY_ENTITY if server is 1.19.4>
       limited_placing:
         roof: false
         floor: true
@@ -102,7 +102,7 @@ shelf:
   material: PAPER
   Mechanics:
     furniture:
-      type: DISPLAY_ENTITY
+      type: ITEM_FRAME
       limited_placing:
         roof: false
         floor: false
@@ -119,3 +119,26 @@ shelf:
   Pack:
     generate_model: false
     model: default/shelf
+
+turntable:
+  displayname: "<gray>Turntable"
+  material: PAPER
+  Mechanics:
+    furniture:
+      type: DISPLAY_ENTITY
+      limited_placing:
+        roof: false
+        floor: true
+        wall: false
+      barrier: true
+      light: 5
+      drop:
+        silktouch: false
+        loots:
+          - { oraxen_item: table, probability: 1.0 }
+      jukebox:
+        volume: 1.0
+        pitch: 1.0
+  Pack:
+    generate_model: false
+    model: default/turntable

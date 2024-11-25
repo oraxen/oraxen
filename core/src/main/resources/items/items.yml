@@ -150,3 +150,17 @@ fire:
   Pack:
     generate_model: false
     model: block/fire_floor0 # so we use the already existing fire model
+
+welcome_disk:
+  displayname: "<gradient:#9055FF:#13E2DA>Welcome Disk"
+  material: PAPER
+  Components:
+    max_stack_size: 1
+    jukebox_playable:
+      show_in_tooltip: true
+      song_key: "minecraft:welcome"
+  Pack:
+    generate_model: true
+    parent_model: "item/handheld"
+    textures:
+      - default/welcome_disk.png
