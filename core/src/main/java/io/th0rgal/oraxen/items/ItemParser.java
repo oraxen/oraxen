@@ -353,9 +353,6 @@ public class ItemParser {
         item.setToolComponent(toolComponent);
     }
 
-    private void parseConsumableComponent(ItemBuilder item, @NotNull ConfigurationSection consumableSection) {
-    }
-
     private void parseEquippableComponent(ItemBuilder item, ConfigurationSection equippableSection) {
         EquippableComponent equippableComponent = new ItemStack(type).getItemMeta().getEquippable();
 
@@ -411,7 +408,6 @@ public class ItemParser {
         }
 
         if (section.contains("PotionEffects")) {
-            @SuppressWarnings("unchecked") // because this sections must always return a List<LinkedHashMap<String, ?>>
             List<LinkedHashMap<String, Object>> potionEffects = (List<LinkedHashMap<String, Object>>) section
                     .getList("PotionEffects");
             if (potionEffects == null)
@@ -439,7 +435,7 @@ public class ItemParser {
                     final Object persistentDataType = PersistentDataType.class
                             .getDeclaredField((String) attributeJson.get("type")).get(null);
                     item.addCustomTag(new NamespacedKey(keyContent[0], keyContent[1]),
-                            (PersistentDataType) persistentDataType,
+                            (PersistentDataType<Object, Object>) persistentDataType,
                             attributeJson.get("value"));
                 }
             } catch (IllegalAccessException | NoSuchFieldException e) {
@@ -448,7 +444,6 @@ public class ItemParser {
         }
 
         if (section.contains("AttributeModifiers")) {
-            @SuppressWarnings("unchecked") // because this sections must always return a List<LinkedHashMap<String, ?>>
             List<LinkedHashMap<String, Object>> attributes = (List<LinkedHashMap<String, Object>>) section
                     .getList("AttributeModifiers");
             if (attributes != null)
