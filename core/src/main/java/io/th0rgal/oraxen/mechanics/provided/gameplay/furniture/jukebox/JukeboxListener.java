@@ -88,24 +88,19 @@ public class JukeboxListener implements Listener {
         FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
         Location loc = BlockHelpers.toCenterLocation(baseEntity.getLocation());
 
-        Logs.logWarning("alpha");
         if (furnitureMechanic == null || !furnitureMechanic.isJukebox())
             return false;
 
         if (!ItemUtils.isMusicDisc(disc))
             return false;
 
-        Logs.logWarning("beta");
-
         if (pdc.has(MUSIC_DISC_KEY, DataType.ITEM_STACK))
             return false;
 
-        Logs.logWarning("gamma");
         JukeboxBlock jukebox = furnitureMechanic.getJukebox();
         if (!jukebox.hasPermission(player))
             return false;
 
-        Logs.logWarning("delta");
         ItemStack insertedDisc = disc.clone();
         insertedDisc.setAmount(1);
         if (player != null && player.getGameMode() != GameMode.CREATIVE)
