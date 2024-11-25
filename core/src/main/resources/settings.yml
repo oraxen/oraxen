@@ -143,7 +143,7 @@ Pack:
         sound:
           # Disabled by default, just switch to enabled to send
           # the below sound whenever someone joins
-          enabled: false
+          enabled: true
           type: minecraft:welcome
           volume: 1.0
           pitch: 1.0
