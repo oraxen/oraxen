@@ -22,18 +22,25 @@ public class SoundManager {
         final Collection<CustomSound> output = new ArrayList<>();
         for (String soundName : section.getKeys(true)) {
             ConfigurationSection sound = section.getConfigurationSection(soundName);
-            if (sound == null) continue;
+            if (sound == null)
+                continue;
             SoundCategory category = null;
             if (sound.isString("category")) {
                 try {
-                    category = (Objects.requireNonNullElse(SoundCategory.valueOf(sound.getString("category").toUpperCase(Locale.ROOT)), SoundCategory.MASTER));
+                    category = (Objects.requireNonNullElse(
+                            SoundCategory.valueOf(sound.getString("category").toUpperCase(Locale.ROOT)),
+                            SoundCategory.MASTER));
                 } catch (IllegalArgumentException ignored) {
                 }
             }
             List<String> sounds = sound.getStringList("sounds").isEmpty()
-                    ? Collections.singletonList(sound.getString("sound")) : sound.getStringList("sounds");
+                    ? Collections.singletonList(sound.getString("sound"))
+                    : sound.getStringList("sounds");
 
-            output.add(new CustomSound(soundName, sounds, category, sound.getBoolean("replace"), sound.getString("subtitle")));
+            output.add(new CustomSound(soundName, sounds, category, sound.getBoolean("replace"),
+                    sound.getString("subtitle"),
+                    // by default, stream is false
+                    sound.getBoolean("stream", false)));
         }
         return output;
     }

@@ -11,6 +11,7 @@ sounds:
   welcome:
     category: record
     sound: welcome.ogg # extension is not mandatory
+    stream: true
   block.wood.step: # Required for custom sounds
     replace: true
   block.wood.place:

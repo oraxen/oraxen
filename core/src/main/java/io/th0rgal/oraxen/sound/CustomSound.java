@@ -19,18 +19,22 @@ public class CustomSound {
     private final String subtitle;
     private final boolean replace;
     private final List<String> sounds = new ArrayList<>();
+    private final boolean stream;
 
-    public CustomSound(@NotNull String name, @NotNull List<String> sounds, SoundCategory category, boolean replace, String subtitle) {
+    public CustomSound(@NotNull String name, @NotNull List<String> sounds, SoundCategory category, boolean replace,
+            String subtitle, boolean stream) {
         this.name = name;
         List<String> temp = new ArrayList<>();
         for (String sound : sounds) {
-            if (sound == null) continue;
+            if (sound == null)
+                continue;
             temp.add(sound.replace(".ogg", ""));
         }
         this.sounds.addAll(temp);
         this.category = category == null ? SoundCategory.MASTER : category;
         this.replace = replace;
         this.subtitle = subtitle;
+        this.stream = stream;
     }
 
     public void play(@NotNull Player player, @NotNull Location location) {
@@ -41,7 +45,8 @@ public class CustomSound {
         play(player, location, category, volume, pitch);
     }
 
-    public void play(@NotNull Player player, @NotNull Location location, @NotNull SoundCategory category, float volume, float pitch) {
+    public void play(@NotNull Player player, @NotNull Location location, @NotNull SoundCategory category, float volume,
+            float pitch) {
         player.playSound(location, name, category, volume, pitch);
     }
 
@@ -73,16 +78,27 @@ public class CustomSound {
         return new ArrayList<>(sounds);
     }
 
+    public boolean isStream() {
+        return stream;
+    }
+
     public JsonObject toJson() {
         final JsonObject output = new JsonObject();
-        if (category != null) output.addProperty("category", category.toString().toLowerCase(Locale.ROOT));
-        if (replace) output.addProperty("replace", true);
-        if (subtitle != null) output.addProperty("subtitle", subtitle);
+        if (category != null)
+            output.addProperty("category", category.toString().toLowerCase(Locale.ROOT));
+        if (replace)
+            output.addProperty("replace", true);
+        if (subtitle != null)
+            output.addProperty("subtitle", subtitle);
+        if (stream)
+            output.addProperty("stream", true);
         final JsonArray sounds = new JsonArray();
-        if (this.sounds.isEmpty()) sounds.getAsJsonArray();
-        else for (String sound : this.sounds) {
-            sounds.add(sound);
-        }
+        if (this.sounds.isEmpty())
+            sounds.getAsJsonArray();
+        else
+            for (String sound : this.sounds) {
+                sounds.add(sound);
+            }
         output.add("sounds", sounds);
         return output;
     }
