@@ -7,11 +7,14 @@ import com.google.gson.JsonParser;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.pack.generation.OraxenDatapack;
 import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -53,16 +56,14 @@ public class TrimArmorDatapack extends OraxenDatapack {
         writeTrimAtlas(output, armorPrefixes);
         copyArmorLayerTextures(output);
 
-        if (isFirstInstall) {
-            Logs.logError("Oraxen's Custom-Armor datapack could not be found...");
-            Logs.logWarning("The first time CustomArmor.armor_type is set to TRIMS in settings.yml");
-            Logs.logWarning("you need to restart your server so that the DataPack is enabled...");
-            Logs.logWarning("Custom-Armor will not work, please restart your server once!", true);
-        } else if (!datapackEnabled) {
-            Logs.logError("Oraxen's Custom-Armor datapack is not enabled...");
-            Logs.logWarning("Custom-Armor will not work, please restart your server!", true);
-        } else
+        if (isFirstInstall || !datapackEnabled) {
+            Message.DATAPACK_GENERATED.send(Bukkit.getConsoleSender(),
+                    TagResolver.resolver(Placeholder.parsed("datapack_name", "Custom-Armor")));
+        } else {
             checkOraxenArmorItems();
+        }
+
+        enableDatapack(CustomArmorType.getSetting() == CustomArmorType.TRIMS);
     }
 
     private void writeVanillaTrimPattern() {

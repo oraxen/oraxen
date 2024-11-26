@@ -161,12 +161,16 @@ public class CustomSound {
 
         JsonObject songJson = new JsonObject();
 
+        // For custom sounds, we must use the full sound event definition
         JsonObject soundEvent = new JsonObject();
-        soundEvent.addProperty("id", "oraxen:" + name);
+        soundEvent.addProperty("sound_id", "minecraft:" + name);
+        // Optionally add range if needed
+        // soundEvent.addProperty("range", 16);
         songJson.add("sound_event", soundEvent);
 
+        // Add jukebox-specific properties
         JsonObject description = new JsonObject();
-        description.addProperty("text", subtitle != null ? subtitle : "Music Disc");
+        description.addProperty("text", AdventureUtils.LEGACY_SERIALIZER.serialize(getDescription()));
         songJson.add("description", description);
 
         songJson.addProperty("length_in_seconds", getLengthInSeconds());

@@ -158,7 +158,7 @@ welcome_disk:
     max_stack_size: 1
     jukebox_playable:
       show_in_tooltip: true
-      song_key: "minecraft:welcome"
+      song_key: "oraxen:welcome"
   Pack:
     generate_model: true
     parent_model: "item/handheld"

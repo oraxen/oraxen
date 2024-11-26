@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.pack.generation;
 
 import io.th0rgal.oraxen.utils.VirtualFile;
+import io.th0rgal.oraxen.utils.VersionUtil;
 
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
@@ -22,6 +23,7 @@ public abstract class OraxenDatapack {
     protected final JsonObject datapackMeta = new JsonObject();
     protected final boolean isFirstInstall;
     protected final boolean datapackEnabled;
+    protected final String name;
 
     protected OraxenDatapack(String name, String description, int packFormat) {
         this.datapackFolder = defaultWorld.getWorldFolder().toPath()
@@ -32,6 +34,7 @@ public abstract class OraxenDatapack {
         data.addProperty("pack_format", packFormat);
         datapackMeta.add("pack", data);
 
+        this.name = name;
         this.isFirstInstall = isFirstInstall();
         this.datapackEnabled = isDatapackEnabled();
     }
@@ -78,6 +81,15 @@ public abstract class OraxenDatapack {
                 return true;
         }
         return false;
+    }
+
+    protected void enableDatapack(boolean enabled) {
+        if (VersionUtil.isPaperServer()) {
+            Bukkit.getDatapackManager().getPacks().stream()
+                    .filter(d -> d.getName() == this.name)
+                    .findFirst()
+                    .ifPresent(d -> d.setEnabled(enabled));
+        }
     }
 
     public boolean isEnabled() {

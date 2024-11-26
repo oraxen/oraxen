@@ -49,7 +49,6 @@ public class ResourcePack {
     private ComponentArmorModels componentArmorModels;
     private static final File packFolder = new File(OraxenPlugin.get().getDataFolder(), "pack");
     private final File pack = new File(packFolder, packFolder.getName() + ".zip");
-    private JukeboxDatapack jukeboxDatapack;
 
     public ResourcePack() {
         // we use maps to avoid duplicate
@@ -485,7 +484,10 @@ public class ResourcePack {
             output.remove(soundFile);
         }
 
-        for (CustomSound sound : handleCustomSoundEntries(soundManager.getCustomSounds())) {
+        Collection<CustomSound> customSounds = handleCustomSoundEntries(soundManager.getCustomSounds());
+
+        // Add all sounds to the sounds.json
+        for (CustomSound sound : customSounds) {
             outputJson.add(sound.getName(), sound.toJson());
         }
 
@@ -495,6 +497,16 @@ public class ResourcePack {
             soundInput.close();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+
+        // Initialize JukeboxDatapack with jukebox sounds after processing all sounds
+        Collection<CustomSound> jukeboxSounds = customSounds.stream()
+                .filter(CustomSound::isJukeboxSound)
+                .toList();
+        if (!jukeboxSounds.isEmpty()) {
+            JukeboxDatapack jukeboxDatapack = new JukeboxDatapack(jukeboxSounds);
+            jukeboxDatapack.clearOldDataPack();
+            jukeboxDatapack.generateAssets(output);
         }
     }
 
@@ -652,19 +664,6 @@ public class ResourcePack {
             }
             default -> {
             } // Handle NONE
-        }
-
-        if (VersionUtil.isPaperServer()) {
-            Bukkit.getDatapackManager().getPacks().stream()
-                    .filter(d -> d.getName().equals(TrimArmorDatapack.DATAPACK_KEY.value()))
-                    .findFirst()
-                    .ifPresent(d -> d.setEnabled(CustomArmorType.getSetting() == CustomArmorType.TRIMS));
-        }
-
-        // Handle jukebox datapack
-        if (jukeboxDatapack != null) {
-            jukeboxDatapack.clearOldDataPack();
-            jukeboxDatapack.generateAssets(output);
         }
     }
 
