@@ -154,6 +154,10 @@ public class CustomSound {
         return output;
     }
 
+    public String getSoundId() {
+        return "minecraft:" + name;
+    }
+
     public JsonObject toJukeboxJson() {
         if (jukeboxData.isEmpty()) {
             return new JsonObject();
@@ -163,7 +167,7 @@ public class CustomSound {
 
         // For custom sounds, we must use the full sound event definition
         JsonObject soundEvent = new JsonObject();
-        soundEvent.addProperty("sound_id", "minecraft:" + name);
+        soundEvent.addProperty("sound_id", getSoundId());
         // Optionally add range if needed
         // soundEvent.addProperty("range", 16);
         songJson.add("sound_event", soundEvent);

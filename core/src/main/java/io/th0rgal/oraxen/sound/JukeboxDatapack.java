@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.sound;
 
 import io.th0rgal.oraxen.pack.generation.OraxenDatapack;
 import io.th0rgal.oraxen.utils.VirtualFile;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;

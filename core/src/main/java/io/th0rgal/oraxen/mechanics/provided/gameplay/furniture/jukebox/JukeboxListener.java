@@ -104,8 +104,11 @@ public class JukeboxListener implements Listener {
         insertedDisc.setAmount(1);
         if (player != null && player.getGameMode() != GameMode.CREATIVE)
             disc.setAmount(disc.getAmount() - insertedDisc.getAmount());
+        Key songKey = getSongFromDisc(insertedDisc);
         pdc.set(MUSIC_DISC_KEY, DataType.ITEM_STACK, insertedDisc);
-        baseEntity.getWorld().playSound(loc, jukebox.getPlayingSong(baseEntity), SoundCategory.RECORDS,
+        String soundId = OraxenPlugin.get().getSoundManager().songKeyToSoundId(songKey);
+
+        baseEntity.getWorld().playSound(loc, soundId, SoundCategory.RECORDS,
                 jukebox.getVolume(), jukebox.getPitch());
 
         if (jukebox.active_stage != null) {
@@ -155,7 +158,7 @@ public class JukeboxListener implements Listener {
     @Nullable
     private Key getSongFromDisc(ItemStack disc) {
         if (VersionUtil.atOrAbove("1.21") && disc.hasItemMeta() && disc.getItemMeta().hasJukeboxPlayable()) {
-            return disc.getItemMeta().getJukeboxPlayable().getSongKey().key();
+            return disc.getItemMeta().getJukeboxPlayable().getSong().key();
         } else {
             return Key.key("minecraft",
                     "music_disc." + disc.getType().toString().toLowerCase(Locale.ROOT).split("music_disc_")[1]);
