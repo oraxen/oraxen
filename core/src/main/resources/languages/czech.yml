@@ -9,7 +9,7 @@ general:
   pack_not_uploaded: "<prefix><#fa4943>Resourcepack nenahrán"
   pack_uploaded: "<prefix><#55ffa4>Resourcepack nahrán na url <url> za <delay> ms"
   pack_regenerated: "<prefix><#55ffa4>Resourcepack úspěšně regenerován"
-  updating_config: "<prefix><#facc43>Konfigurační možnost \"<option>\" nenalezena, přidávám!"
+  updating_config: '<prefix><#facc43>Konfigurační možnost "<option>" nenalezena, přidávám!'
   removing_config: Configuration option \"<option>\" has been marked for removal, removing it!"
   configs_validation_failed: "<prefix><#fa4943>Validace konfigurace selhala, plugin automaticky vypnut!"
   repaired_items: "<prefix><#55ffa4><amount> předmět(ů) bylo úspěšně opraveno!"
@@ -17,14 +17,15 @@ general:
   cannot_be_repaired_invalid: "<prefix><#fa4943>Musíte držet v ruce vhodný předmět!"
   updated_items: "<prefix><#55ffa4><amount> předmět(ů) bylo úspěšně aktualizováno pro <player>!"
   zip_browse_error: "<prefix><#fa4943>Nastala chyba při procházení zipu"
-  bad_recipe: "<prefix><#fa4943>Recept \"<recipe>\" není validní, ujistěte se, že všechny ingredience existují v konfigu"
-  item_not_found: "<prefix><#fa4943>Předmět \"<item>\" nenalezen"
-  plugin_hooks: "<prefix><#55ffa4>Plugin \"<plugin>\" detekován, zapínám hooky"
-  plugin_unhooks: "<prefix><#55ffa4>Odhookuji plugin \"<plugin>\""
+  bad_recipe: '<prefix><#fa4943>Recept "<recipe>" není validní, ujistěte se, že všechny ingredience existují v konfigu'
+  item_not_found: '<prefix><#fa4943>Předmět "<item>" nenalezen'
+  plugin_hooks: '<prefix><#55ffa4>Plugin "<plugin>" detekován, zapínám hooky'
+  plugin_unhooks: '<prefix><#55ffa4>Odhookuji plugin "<plugin>"'
   not_enough_exp: "<prefix><#fa4943>Na tohle potřebuješ více zkušeností"
   not_enough_space: "<prefix><#fa4943>Potřebuješ více místa pro položení tohoto nábytku"
   exit_menu: "<gradient:#FA7CBB:#F14658>Odejít"
   no_emojis: "<prefix><#fa4943>No emojis found"
+  datapack_generated: "<prefix><#55ffa4>Datapack byl úspěšně vygenerován"
 
 logs:
   loaded: "<prefix><#55ffa4>Úspěšně načten na <os>"
@@ -34,31 +35,31 @@ logs:
 
 command:
   help: "<prefix><#b8bbc2>Dostupné příkazy
-        \n<hover:show_text:\"<gray>fill reload command\"><click:SUGGEST_COMMAND:/oraxen reload ><#6f737d>/o
-          <#b8bbc2>reload <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> reloadne plugin
-        \n<hover:show_text:\"<gray>fill inv command\"><click:SUGGEST_COMMAND:/oraxen inv><#6f737d>/o
-          <#b8bbc2>inventory</click></hover>  <#6f737d>»<#b8bbc2> ukáže oraxen předměty v inventáři
-        \n<hover:show_text:\"<gray>fill pack command\"><click:SUGGEST_COMMAND:/oraxen pack ><#6f737d>/o
-          <#b8bbc2>pack <#fa8943>type <#43c9fa>target</click></hover>  <#6f737d>»<#b8bbc2> odešle oraxen pack
-        \n<hover:show_text:\"<gray>fill repair command\"><click:SUGGEST_COMMAND:/oraxen repair ><#6f737d>/o
-          <#b8bbc2>repair <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> opraví jeden nebo všechny tvé předměty
-        \n<hover:show_text:\"<gray>fill give command\"><click:SUGGEST_COMMAND:/oraxen give ><#6f737d>/o
-          <#b8bbc2>give <#43c9fa>target <#fa4362>item <#43fa8c>amount</click></hover>  <#6f737d>»<#b8bbc2> givne oraxen předmět
-        \n<hover:show_text:\"<gray>fill recipes show command\"><click:SUGGEST_COMMAND:/oraxen recipes show ><#6f737d>/o
-          <#b8bbc2>recipes show <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> ukáže recepty
-        \n<hover:show_text:\"<gray>fill recipes builder command\"><click:SUGGEST_COMMAND:/oraxen recipes builder ><#6f737d>/o
-          <#b8bbc2>recipes builder <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> otevře stavitele receptů
-        \n<hover:show_text:\"<gray>fill recipes save command\"><click:SUGGEST_COMMAND:/oraxen recipes save ><#6f737d>/o
-          <#b8bbc2>recipes save <#faf443>name</click></hover>  <#6f737d>»<#b8bbc2> uloží recept"
+    \n<hover:show_text:\"<gray>fill reload command\"><click:SUGGEST_COMMAND:/oraxen reload ><#6f737d>/o
+    <#b8bbc2>reload <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> reloadne plugin
+    \n<hover:show_text:\"<gray>fill inv command\"><click:SUGGEST_COMMAND:/oraxen inv><#6f737d>/o
+    <#b8bbc2>inventory</click></hover>  <#6f737d>»<#b8bbc2> ukáže oraxen předměty v inventáři
+    \n<hover:show_text:\"<gray>fill pack command\"><click:SUGGEST_COMMAND:/oraxen pack ><#6f737d>/o
+    <#b8bbc2>pack <#fa8943>type <#43c9fa>target</click></hover>  <#6f737d>»<#b8bbc2> odešle oraxen pack
+    \n<hover:show_text:\"<gray>fill repair command\"><click:SUGGEST_COMMAND:/oraxen repair ><#6f737d>/o
+    <#b8bbc2>repair <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> opraví jeden nebo všechny tvé předměty
+    \n<hover:show_text:\"<gray>fill give command\"><click:SUGGEST_COMMAND:/oraxen give ><#6f737d>/o
+    <#b8bbc2>give <#43c9fa>target <#fa4362>item <#43fa8c>amount</click></hover>  <#6f737d>»<#b8bbc2> givne oraxen předmět
+    \n<hover:show_text:\"<gray>fill recipes show command\"><click:SUGGEST_COMMAND:/oraxen recipes show ><#6f737d>/o
+    <#b8bbc2>recipes show <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> ukáže recepty
+    \n<hover:show_text:\"<gray>fill recipes builder command\"><click:SUGGEST_COMMAND:/oraxen recipes builder ><#6f737d>/o
+    <#b8bbc2>recipes builder <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> otevře stavitele receptů
+    \n<hover:show_text:\"<gray>fill recipes save command\"><click:SUGGEST_COMMAND:/oraxen recipes save ><#6f737d>/o
+    <#b8bbc2>recipes save <#faf443>name</click></hover>  <#6f737d>»<#b8bbc2> uloží recept"
   join: "
-        <dark_gray><strikethrough>                           </strikethrough><dark_gray>{<aqua><bold> Resource Pack </bold><dark_gray>}<dark_gray><strikethrough>                        </strikethrough>
+    <dark_gray><strikethrough>                           </strikethrough><dark_gray>{<aqua><bold> Resource Pack </bold><dark_gray>}<dark_gray><strikethrough>                        </strikethrough>
 
-        <gray><bold>Abys viděl nové předměty, musíš mít speciální resourcepack (ale neboj, můžeš používat i vlastní ve stejnou chvíli).</bold>
+    <gray><bold>Abys viděl nové předměty, musíš mít speciální resourcepack (ale neboj, můžeš používat i vlastní ve stejnou chvíli).</bold>
 
-        <dark_gray>»<gray> Abyste jej nahráli přímo ze hry, <click:run_command:/oraxen pack send @p><hover:show_text:\"<red>/!\\ nahrání resourcepacku ze hry může způsobit lagy\"><red><bold>KLIK ZDE</bold></hover></click>
+    <dark_gray>»<gray> Abyste jej nahráli přímo ze hry, <click:run_command:/oraxen pack send @p><hover:show_text:\"<red>/!\\ nahrání resourcepacku ze hry může způsobit lagy\"><red><bold>KLIK ZDE</bold></hover></click>
 
-        <dark_gray>»<gray> Pro stažení z internetu, <click:open_url:<pack_url>><hover:show_text:\"<green>/!\\ instalujte jej z Nastavení/Balíčky modifikací ve hře\"><green><bold>KLIK ZDE</bold></hover></click>
-        "
+    <dark_gray>»<gray> Pro stažení z internetu, <click:open_url:<pack_url>><hover:show_text:\"<green>/!\\ instalujte jej z Nastavení/Balíčky modifikací ve hře\"><green><bold>KLIK ZDE</bold></hover></click>
+    "
 
   recipe:
     no_builder: "<prefix><#fa4943>Nejdřív vytvoř prosím recept!"
@@ -87,5 +88,5 @@ command:
 
 mechanics:
   not_enough_exp: "<prefix><#fa4943>Pro tohle potřebuješ více zkušeností"
-  backpack_stacked: "<prefix><#fa4943>Cannot open stacked backpack"
+  backpack_stacked: "<prefix><#fa4943>Nelze otevřít naskládaný batoh"
   jukebox_now_playing: "<dark_purple>Nyní se přehrává <disc>"

@@ -9,18 +9,18 @@ general:
   pack_not_uploaded: "<prefix><#fa4943>Resourcepack not uploaded"
   pack_uploaded: "<prefix><#55ffa4>Resourcepack uploaded to <url> in <delay> ms"
   pack_regenerated: "<prefix><#55ffa4>Resourcepack successfully regenerated"
-  updating_config: "<prefix><#facc43>Configuration option \"<option>\" not found, adding it!"
-  removing_config: "<prefix><#facc43>Configuration option \"<option>\" has been marked for removal, removing it!"
+  updating_config: '<prefix><#facc43>Configuration option "<option>" not found, adding it!'
+  removing_config: '<prefix><#facc43>Configuration option "<option>" has been marked for removal, removing it!'
   configs_validation_failed: "<prefix><#fa4943>Configurations validation failed, plugin automatically disabled!"
   repaired_items: "<prefix><#55ffa4><amount> item(s) were successfully repaired!"
   cannot_be_repaired: "<prefix><#fa4943>This item cannot be repaired!"
   cannot_be_repaired_invalid: "<prefix><#fa4943>You need to hold a valid Item in your hand!"
   updated_items: "<prefix><#55ffa4><amount> item(s) were successfully updated for <player>!"
   zip_browse_error: "<prefix><#fa4943>An error occured browsing the zip"
-  bad_recipe: "<prefix><#fa4943>The recipe \"<recipe>\" is invalid, please ensure all its ingredients exist in your config"
-  item_not_found: "<prefix><#fa4943>Item \"<item>\" not found"
-  plugin_hooks: "<prefix><#55ffa4>Plugin \"<plugin>\" detected, enabling hooks"
-  plugin_unhooks: "<prefix><#55ffa4>Unhooking plugin \"<plugin>\""
+  bad_recipe: '<prefix><#fa4943>The recipe "<recipe>" is invalid, please ensure all its ingredients exist in your config'
+  item_not_found: '<prefix><#fa4943>Item "<item>" not found'
+  plugin_hooks: '<prefix><#55ffa4>Plugin "<plugin>" detected, enabling hooks'
+  plugin_unhooks: '<prefix><#55ffa4>Unhooking plugin "<plugin>"'
   not_enough_exp: "<prefix><#fa4943>You need more experience to do this"
   not_enough_space: "<prefix><#fa4943>You need more space to place this furniture"
   exit_menu: "<gradient:#FA7CBB:#F14658>Exit"
@@ -31,31 +31,26 @@ logs:
   unloaded: "<prefix><#55ffa4>Successfully unloaded"
   no_armor_item: "<prefix><#fa4943>No item matching <name> found. Unable to use <armor_layer_file>"
   duplicate_armor_color: "<prefix><#fa4943><first_armor_prefix> armor set uses the same color as <second_armor_prefix> with a different texture"
-  datapack_not_found: "<prefix><#fa4943>Oraxen's <datapack_name> datapack could not be found..."
-  datapack_first_install: "<prefix><#facc43>The first time <setting_path> is set to <setting_value> in settings.yml"
-  datapack_restart_required: "<prefix><#facc43>you need to restart your server so that the DataPack is enabled..."
-  datapack_not_working: "<prefix><#facc43><feature_name> will not work, please restart your server once!"
-  datapack_not_enabled: "<prefix><#fa4943>Oraxen's <datapack_name> datapack is not enabled..."
   datapack_generated: "<prefix><#facc43>Generated <datapack_name> datapack. A server restart is required for this feature to work."
 
 command:
   help: "<prefix><#b8bbc2>Available commands
-        \n<hover:show_text:\"<gray>fill reload command\"><click:SUGGEST_COMMAND:/oraxen reload ><#6f737d>/o
-          <#b8bbc2>reload <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> reload the plugin
-        \n<hover:show_text:\"<gray>fill inv command\"><click:SUGGEST_COMMAND:/oraxen inv><#6f737d>/o
-          <#b8bbc2>inventory</click></hover>  <#6f737d>»<#b8bbc2> show oraxen items in inventory
-        \n<hover:show_text:\"<gray>fill pack command\"><click:SUGGEST_COMMAND:/oraxen pack ><#6f737d>/o
-          <#b8bbc2>pack <#fa8943>type <#43c9fa>target</click></hover>  <#6f737d>»<#b8bbc2> send oraxen pack
-        \n<hover:show_text:\"<gray>fill repair command\"><click:SUGGEST_COMMAND:/oraxen repair ><#6f737d>/o
-          <#b8bbc2>repair <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> repair one or all your items
-        \n<hover:show_text:\"<gray>fill give command\"><click:SUGGEST_COMMAND:/oraxen give ><#6f737d>/o
-          <#b8bbc2>give <#43c9fa>target <#fa4362>item <#43fa8c>amount</click></hover>  <#6f737d>»<#b8bbc2> give an oraxen item
-        \n<hover:show_text:\"<gray>fill recipes show command\"><click:SUGGEST_COMMAND:/oraxen recipes show ><#6f737d>/o
-          <#b8bbc2>recipes show <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> show recipes
-        \n<hover:show_text:\"<gray>fill recipes builder command\"><click:SUGGEST_COMMAND:/oraxen recipes builder ><#6f737d>/o
-          <#b8bbc2>recipes builder <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> open recipes builder
-        \n<hover:show_text:\"<gray>fill recipes save command\"><click:SUGGEST_COMMAND:/oraxen recipes save ><#6f737d>/o
-          <#b8bbc2>recipes save <#faf443>name</click></hover>  <#6f737d>»<#b8bbc2> save recipe"
+    \n<hover:show_text:\"<gray>fill reload command\"><click:SUGGEST_COMMAND:/oraxen reload ><#6f737d>/o
+    <#b8bbc2>reload <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> reload the plugin
+    \n<hover:show_text:\"<gray>fill inv command\"><click:SUGGEST_COMMAND:/oraxen inv><#6f737d>/o
+    <#b8bbc2>inventory</click></hover>  <#6f737d>»<#b8bbc2> show oraxen items in inventory
+    \n<hover:show_text:\"<gray>fill pack command\"><click:SUGGEST_COMMAND:/oraxen pack ><#6f737d>/o
+    <#b8bbc2>pack <#fa8943>type <#43c9fa>target</click></hover>  <#6f737d>»<#b8bbc2> send oraxen pack
+    \n<hover:show_text:\"<gray>fill repair command\"><click:SUGGEST_COMMAND:/oraxen repair ><#6f737d>/o
+    <#b8bbc2>repair <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> repair one or all your items
+    \n<hover:show_text:\"<gray>fill give command\"><click:SUGGEST_COMMAND:/oraxen give ><#6f737d>/o
+    <#b8bbc2>give <#43c9fa>target <#fa4362>item <#43fa8c>amount</click></hover>  <#6f737d>»<#b8bbc2> give an oraxen item
+    \n<hover:show_text:\"<gray>fill recipes show command\"><click:SUGGEST_COMMAND:/oraxen recipes show ><#6f737d>/o
+    <#b8bbc2>recipes show <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> show recipes
+    \n<hover:show_text:\"<gray>fill recipes builder command\"><click:SUGGEST_COMMAND:/oraxen recipes builder ><#6f737d>/o
+    <#b8bbc2>recipes builder <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> open recipes builder
+    \n<hover:show_text:\"<gray>fill recipes save command\"><click:SUGGEST_COMMAND:/oraxen recipes save ><#6f737d>/o
+    <#b8bbc2>recipes save <#faf443>name</click></hover>  <#6f737d>»<#b8bbc2> save recipe"
 
   join: |-
     <dark_gray><st>                           </st><dark_gray>{<aqua><bold>Resource Pack</bold><dark_gray>}<dark_gray><st>                        </st>

@@ -25,6 +25,7 @@ general:
   not_enough_space: "<prefix><#fa4943>Sie brauchen mehr Platz, um diese Möbel zu platzieren"
   exit_menu: "<gradient:#FA7CBB:#F14658>Beenden"
   no_emojis: "<prefix><#fa4943>Keine Emojis gefunden"
+  datapack_generated: "<prefix><#55ffa4>Datapack wurde erfolgreich generiert"
 
 logs:
   loaded: "<prefix><#55ffa4>Erfolgreich geladen auf <os>"
@@ -74,13 +75,13 @@ command:
     wrong_color: "<prefix><#fa4943>Farbe nicht erkannt, versuchen Sie eine hexadezimale Farbe wie #FFFFFF!"
     failed: "<prefix><#fa4943>Sie können die Farbe dieses Artikels nicht ändern!"
 
-  hud: #If someone could translate this, I would be very happy!
-    no_hud: "<prefix><#fa4943>There is no HUD by the name '<hud_id>'!"
-    toggle_on: "<prefix><#55ffa4>Toggled '<hud_id>' on!"
-    toggle_off: "<prefix><#fa4943>Toggled '<hud_id>' off!"
+  hud:
+    no_hud: "<prefix><#fa4943>Es gibt kein HUD mit dem Namen '<hud_id>'!"
+    toggle_on: "<prefix><#55ffa4>HUD '<hud_id>' aktiviert!"
+    toggle_off: "<prefix><#fa4943>HUD '<hud_id>' deaktiviert!"
 
-  debug.toggle: "<prefix><#55ffa4>Debug mode is now <#43fa8c><state><#55ffa4>!"
-  version: "<prefix><#55ffa4>Oraxen version: <#43fa8c><version><#55ffa4>!"
+  debug.toggle: "<prefix><#55ffa4>Debug-Modus ist jetzt <#43fa8c><state><#55ffa4>!"
+  version: "<prefix><#55ffa4>Oraxen Version: <#43fa8c><version><#55ffa4>!"
 
 mechanics:
   not_enough_exp: "<prefix><#fa4943>Sie brauchen mehr Erfahrung, um dies zu tun"

@@ -1,7 +1,7 @@
 debug: false
 Plugin:
-  keep_this_up_to_date: true #Oraxen will delete old settings
-  language: "english"
+  keep_this_up_to_date: true # Oraxen will delete old settings
+  language: "english" # Valid options are "czech", "english", "french", "german",  "jpn_JP", "korean", "ru-RU", "zh-CN", "zh-TW"
   commands:
     repair:
       oraxen_durability_only: false # will not repair vanilla items if set to true
@@ -26,7 +26,18 @@ WorldEdit: # Please note these are both experimental still and should be used wi
 ConfigsTools:
   # list of model data numbers the automatic system will skip
   # List can take ranges like 1-4 as well as normal singular numbers
-  skipped_model_data_numbers: []
+  skipped_model_data_numbers:
+    [
+      "czech",
+      "english",
+      "french",
+      "german",
+      "korean",
+      "ru-RU",
+      "zh-CN",
+      "zh-TW",
+      "JPN_JP",
+    ]
   disable_automatic_model_data: false
   disable_automatic_glyph_code: false
   enable_configs_updater: true

@@ -25,6 +25,7 @@ general:
   not_enough_space: "<prefix><#fa4943>この家具を置くためのスペースが足りません"
   exit_menu: "<gradient:#FA7CBB:#F14658>終了"
   no_emojis: "<prefix><#fa4943>絵文字が見つかりません"
+  datapack_generated: "<prefix><#55ffa4>データパックが正常に生成されました"
 
 logs:
   loaded: "<prefix><#55ffa4><os>で正常に読み込まれました"
