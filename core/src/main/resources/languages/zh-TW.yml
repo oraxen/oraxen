@@ -9,7 +9,7 @@ general:
   pack_not_uploaded: "<prefix><#fa4943>材質包上傳失敗"
   pack_uploaded: "<prefix><#55ffa4>材質包上傳至 <url> 用時 <delay> 毫秒"
   pack_regenerated: "<prefix><#55ffa4>材質包重新生成成功"
-  updating_config: "<prefix><#facc43>未找到配置選項 \"<option>\"， 新增中！"
+  updating_config: '<prefix><#facc43>未找到配置選項 "<option>"， 新增中！'
   removing_config: Configuration option \"<option>\" has been marked for removal, removing it!"
   configs_validation_failed: "<prefix><#fa4943>配置檔案驗證失敗，外掛將自動禁用！"
   repaired_items: "<prefix><#55ffa4><amount> 個物品已成功修復！"
@@ -17,14 +17,15 @@ general:
   cannot_be_repaired_invalid: "<prefix><#fa4943>你需要在你的手中持有一個有效的物品！"
   updated_items: "<prefix><#55ffa4>已為 <player> 成功更新 <amount> 個物品！"
   zip_browse_error: "<prefix><#fa4943>瀏覽壓縮檔案時發生了一個錯誤"
-  bad_recipe: "<prefix><#fa4943>配方 \"<recipe>\" 無效，請確保配方配置檔案無誤"
-  item_not_found: "<prefix><#fa4943>無法找到 \"<item>\""
-  plugin_hooks: "<prefix><#55ffa4>找到 \"<plugin>\" 外掛, 貼貼中"
-  plugin_unhooks: "<prefix><#55ffa4>讓 \"<plugin>\" 爬"
+  bad_recipe: '<prefix><#fa4943>配方 "<recipe>" 無效，請確保配方配置檔案無誤'
+  item_not_found: '<prefix><#fa4943>無法找到 "<item>"'
+  plugin_hooks: '<prefix><#55ffa4>找到 "<plugin>" 外掛, 貼貼中'
+  plugin_unhooks: '<prefix><#55ffa4>讓 "<plugin>" 爬'
   not_enough_exp: "<prefix><#fa4943>經驗值好像不夠欸"
   not_enough_space: "<prefix><#fa4943>你需要更多的空間來放置這個傢俱"
   exit_menu: "<gradient:#FA7CBB:#F14658>退出"
   no_emojis: "<prefix><#fa4943>No emojis found"
+  datapack_generated: "<prefix><#55ffa4>資料包生成成功"
 
 logs:
   loaded: "<prefix><#55ffa4>已成功在 <os> 載入"
@@ -34,31 +35,31 @@ logs:
 
 command:
   help: "<prefix><#b8bbc2>可用指令
-        \n<hover:show_text:\"<gray>fill reload command\"><click:SUGGEST_COMMAND:/oraxen reload ><#6f737d>/o
-          <#b8bbc2>reload <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> 過載此外掛
-        \n<hover:show_text:\"<gray>fill inv command\"><click:SUGGEST_COMMAND:/oraxen inv><#6f737d>/o
-          <#b8bbc2>inventory</click></hover>  <#6f737d>»<#b8bbc2> 在揹包中顯示 oraxen 物品
-        \n<hover:show_text:\"<gray>fill pack command\"><click:SUGGEST_COMMAND:/oraxen pack ><#6f737d>/o
-          <#b8bbc2>pack <#fa8943>type <#43c9fa>target</click></hover>  <#6f737d>»<#b8bbc2> 傳送材質包
-        \n<hover:show_text:\"<gray>fill repair command\"><click:SUGGEST_COMMAND:/oraxen repair ><#6f737d>/o
-          <#b8bbc2>repair <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> 修復一個或所有你的物品
-        \n<hover:show_text:\"<gray>fill give command\"><click:SUGGEST_COMMAND:/oraxen give ><#6f737d>/o
-          <#b8bbc2>give <#43c9fa>target <#fa4362>item <#43fa8c>amount</click></hover>  <#6f737d>»<#b8bbc2> 給一個 oraxen 物品
-        \n<hover:show_text:\"<gray>fill recipes show command\"><click:SUGGEST_COMMAND:/oraxen recipes show ><#6f737d>/o
-          <#b8bbc2>recipes show <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> 顯示配方
-        \n<hover:show_text:\"<gray>fill recipes builder command\"><click:SUGGEST_COMMAND:/oraxen recipes builder ><#6f737d>/o
-          <#b8bbc2>recipes builder <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> 開啟配方生成器
-        \n<hover:show_text:\"<gray>fill recipes save command\"><click:SUGGEST_COMMAND:/oraxen recipes save ><#6f737d>/o
-          <#b8bbc2>recipes save <#faf443>name</click></hover>  <#6f737d>»<#b8bbc2> 儲存配方"
+    \n<hover:show_text:\"<gray>fill reload command\"><click:SUGGEST_COMMAND:/oraxen reload ><#6f737d>/o
+    <#b8bbc2>reload <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> 過載此外掛
+    \n<hover:show_text:\"<gray>fill inv command\"><click:SUGGEST_COMMAND:/oraxen inv><#6f737d>/o
+    <#b8bbc2>inventory</click></hover>  <#6f737d>»<#b8bbc2> 在揹包中顯示 oraxen 物品
+    \n<hover:show_text:\"<gray>fill pack command\"><click:SUGGEST_COMMAND:/oraxen pack ><#6f737d>/o
+    <#b8bbc2>pack <#fa8943>type <#43c9fa>target</click></hover>  <#6f737d>»<#b8bbc2> 傳送材質包
+    \n<hover:show_text:\"<gray>fill repair command\"><click:SUGGEST_COMMAND:/oraxen repair ><#6f737d>/o
+    <#b8bbc2>repair <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> 修復一個或所有你的物品
+    \n<hover:show_text:\"<gray>fill give command\"><click:SUGGEST_COMMAND:/oraxen give ><#6f737d>/o
+    <#b8bbc2>give <#43c9fa>target <#fa4362>item <#43fa8c>amount</click></hover>  <#6f737d>»<#b8bbc2> 給一個 oraxen 物品
+    \n<hover:show_text:\"<gray>fill recipes show command\"><click:SUGGEST_COMMAND:/oraxen recipes show ><#6f737d>/o
+    <#b8bbc2>recipes show <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> 顯示配方
+    \n<hover:show_text:\"<gray>fill recipes builder command\"><click:SUGGEST_COMMAND:/oraxen recipes builder ><#6f737d>/o
+    <#b8bbc2>recipes builder <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> 開啟配方生成器
+    \n<hover:show_text:\"<gray>fill recipes save command\"><click:SUGGEST_COMMAND:/oraxen recipes save ><#6f737d>/o
+    <#b8bbc2>recipes save <#faf443>name</click></hover>  <#6f737d>»<#b8bbc2> 儲存配方"
   join: "
-        <dark_gray><strikethrough>                           </strikethrough><dark_gray>{<aqua><bold> 材質包 </bold><dark_gray>}<dark_gray><strikethrough>                        </strikethrough>
+    <dark_gray><strikethrough>                           </strikethrough><dark_gray>{<aqua><bold> 材質包 </bold><dark_gray>}<dark_gray><strikethrough>                        </strikethrough>
 
-        <gray><bold>要看到新的物品，你需要使用一個特殊的材質包包 (不用擔心，你依然可以使用自己的材質包)。</bold>
+    <gray><bold>要看到新的物品，你需要使用一個特殊的材質包包 (不用擔心，你依然可以使用自己的材質包)。</bold>
 
-        <dark_gray>»<gray> 如果你想直接在遊戲內載入它， <click:run_command:/oraxen pack send @p><hover:show_text:\"<red>/!\\ 載入材質包可能會造成卡頓\"><red><bold>點選這裡</bold></hover></click>
+    <dark_gray>»<gray> 如果你想直接在遊戲內載入它， <click:run_command:/oraxen pack send @p><hover:show_text:\"<red>/!\\ 載入材質包可能會造成卡頓\"><red><bold>點選這裡</bold></hover></click>
 
-        <dark_gray>»<gray> 如果想從網上下載， <click:open_url:<pack_url>><hover:show_text:\"<green>/!\\ 自行從遊戲載入此材質包\"><green><bold>點選這裡</bold></hover></click>
-        "
+    <dark_gray>»<gray> 如果想從網上下載， <click:open_url:<pack_url>><hover:show_text:\"<green>/!\\ 自行從遊戲載入此材質包\"><green><bold>點選這裡</bold></hover></click>
+    "
 
   recipe:
     no_builder: "<prefix><#fa4943>請先建立一個配方！"
@@ -77,15 +78,15 @@ command:
     wrong_color: "<prefix><#fa4943>顏色無法識別，請嘗試使用十六進位制的顏色，如 #FFFFFF!"
     failed: "<prefix><#fa4943>你無法改變此物品的顏色！"
 
-  hud: #If someone could translate this, I would be very happy!
-    no_hud: "<prefix><#fa4943>There is no HUD by the name '<hud_id>'!"
-    toggle_on: "<prefix><#55ffa4>Toggled '<hud_id>' on!"
-    toggle_off: "<prefix><#fa4943>Toggled '<hud_id>' off!"
+  hud:
+    no_hud: "<prefix><#fa4943>沒有名為 '<hud_id>' 的HUD!"
+    toggle_on: "<prefix><#55ffa4>已開啟 '<hud_id>' HUD!"
+    toggle_off: "<prefix><#fa4943>已關閉 '<hud_id>' HUD!"
 
-  debug.toggle: "<prefix><#55ffa4>Debug mode is now <#43fa8c><state><#55ffa4>!"
-  version: "<prefix><#55ffa4>Oraxen version: <#43fa8c><version><#55ffa4>!"
+  debug.toggle: "<prefix><#55ffa4>除錯模式現在為 <#43fa8c><state><#55ffa4>!"
+  version: "<prefix><#55ffa4>Oraxen 版本: <#43fa8c><version><#55ffa4>!"
 
 mechanics:
   not_enough_exp: "<prefix><#fa4943>你需要更多經驗欸"
-  backpack_stacked: "<prefix><#fa4943>Cannot open stacked backpack"
-  jukebox_now_playing: "<dark_purple>Now Playing <disc>"
+  backpack_stacked: "<prefix><#fa4943>無法打開堆疊的背包"
+  jukebox_now_playing: "<dark_purple>正在播放 <disc>"

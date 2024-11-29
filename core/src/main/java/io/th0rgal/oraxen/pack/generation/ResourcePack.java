@@ -15,6 +15,7 @@ import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenMeta;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
 import io.th0rgal.oraxen.sound.CustomSound;
+import io.th0rgal.oraxen.sound.JukeboxDatapack;
 import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.customarmor.ComponentArmorModels;
@@ -483,7 +484,10 @@ public class ResourcePack {
             output.remove(soundFile);
         }
 
-        for (CustomSound sound : handleCustomSoundEntries(soundManager.getCustomSounds())) {
+        Collection<CustomSound> customSounds = handleCustomSoundEntries(soundManager.getCustomSounds());
+
+        // Add all sounds to the sounds.json
+        for (CustomSound sound : customSounds) {
             outputJson.add(sound.getName(), sound.toJson());
         }
 
@@ -493,6 +497,16 @@ public class ResourcePack {
             soundInput.close();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+
+        // Initialize JukeboxDatapack with jukebox sounds after processing all sounds
+        Collection<CustomSound> jukeboxSounds = customSounds.stream()
+                .filter(CustomSound::isJukeboxSound)
+                .toList();
+        if (!jukeboxSounds.isEmpty()) {
+            JukeboxDatapack jukeboxDatapack = new JukeboxDatapack(jukeboxSounds);
+            jukeboxDatapack.clearOldDataPack();
+            jukeboxDatapack.generateAssets(output);
         }
     }
 
@@ -622,16 +636,18 @@ public class ResourcePack {
 
     private void handleCustomArmor(List<VirtualFile> output) {
         CustomArmorType customArmorType = CustomArmorType.getSetting();
-        // Clear out old datapacks before generating new ones, in case type changed or
-        // otherwise
-        TrimArmorDatapack.clearOldDataPacks();
 
         switch (customArmorType) {
             case COMPONENT -> componentArmorModels.generatePackFiles(output);
-            case TRIMS -> trimArmorDatapack.generateTrimAssets(output);
+            case TRIMS -> {
+                if (trimArmorDatapack == null)
+                    trimArmorDatapack = new TrimArmorDatapack();
+                trimArmorDatapack.clearOldDataPack();
+                trimArmorDatapack.generateAssets(output);
+            }
             case SHADER -> {
                 if (Settings.CUSTOM_ARMOR_SHADER_GENERATE_CUSTOM_TEXTURES.toBool()
-                        && shaderArmorTextures.hasCustomArmors())
+                        && shaderArmorTextures.hasCustomArmors()) {
                     try {
                         String armorPath = "assets/minecraft/textures/models/armor";
                         output.add(
@@ -644,12 +660,10 @@ public class ResourcePack {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
+                }
             }
-        }
-        if (VersionUtil.isPaperServer()) {
-            Bukkit.getDatapackManager().getPacks().stream()
-                    .filter(d -> d.getName().equals(TrimArmorDatapack.datapackKey.value()))
-                    .findFirst().ifPresent(d -> d.setEnabled(CustomArmorType.getSetting() == CustomArmorType.TRIMS));
+            default -> {
+            } // Handle NONE
         }
     }
 

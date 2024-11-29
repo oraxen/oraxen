@@ -119,3 +119,39 @@ shelf:
   Pack:
     generate_model: false
     model: default/shelf
+
+turntable:
+  displayname: "<gray>Turntable"
+  material: PAPER
+  Mechanics:
+    furniture:
+      type: DISPLAY_ENTITY
+      limited_placing:
+        roof: false
+        floor: true
+        wall: false
+      barrier: true
+      light: 5
+      drop:
+        silktouch: false
+        loots:
+          - { oraxen_item: turntable, probability: 1.0 }
+      display_entity_properties:
+        scale:
+          x: 0.75
+          y: 0.75
+          z: 0.75
+      jukebox:
+        active_stage: "turtable_active_stage"
+        volume: 1.0
+        pitch: 1.0
+  Pack:
+    generate_model: false
+    model: default/turntable_closed
+
+turtable_active_stage:
+  material: PAPER
+  excludeFromInventory: true
+  Pack:
+    generate_model: false
+    model: default/turntable_opened

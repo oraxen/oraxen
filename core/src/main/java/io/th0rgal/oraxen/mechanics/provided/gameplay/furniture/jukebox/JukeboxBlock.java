@@ -19,20 +19,26 @@ public class JukeboxBlock {
     private final String permission;
     private final double volume;
     private final double pitch;
+    public final String active_stage;
 
     public JukeboxBlock(MechanicFactory factory, ConfigurationSection section) {
         this.factory = factory;
         this.volume = section.getDouble("volume", 1);
         this.pitch = section.getDouble("pitch", 1);
         this.permission = section.getString("permission");
+        this.active_stage = section.getString("active_stage");
     }
 
     public String getPlayingSong(Entity baseEntity) {
         ItemStack disc = baseEntity.getPersistentDataContainer().get(MUSIC_DISC_KEY, DataType.ITEM_STACK);
-        if (disc == null) return null;
+        if (disc == null)
+            return null;
         MusicDiscMechanic mechanic = (MusicDiscMechanic) factory.getMechanic(OraxenItems.getIdByItem(disc));
         return (mechanic != null && !mechanic.hasNoSong()) ? mechanic.getSong()
-                : disc.getType().isRecord() ? disc.getType().toString().toLowerCase(Locale.ROOT).replace("music_disc_", "minecraft:music_disc.") : null;
+                : disc.getType().isRecord()
+                        ? disc.getType().toString().toLowerCase(Locale.ROOT).replace("music_disc_",
+                                "minecraft:music_disc.")
+                        : null;
     }
 
     public String getPermission() {

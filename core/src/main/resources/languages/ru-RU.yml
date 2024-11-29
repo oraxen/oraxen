@@ -9,22 +9,23 @@ general:
   pack_not_uploaded: "<prefix><#fa4943>Ресурспак не выгружен"
   pack_uploaded: "<prefix><#55ffa4>Ресурспак выгружен на <url> за <delay> мс"
   pack_regenerated: "<prefix><#55ffa4>Ресурспак успешно перегенерирован"
-  updating_config: "<prefix><#facc43>Опция конфигурации \"<option>\" не найдена, добавляется!"
-  removing_config: "<prefix><#facc43>Опция конфигурации \"<option>\" помечена для удаления, удаляется!"
+  updating_config: '<prefix><#facc43>Опция конфигурации "<option>" не найдена, добавляется!'
+  removing_config: '<prefix><#facc43>Опция конфигурации "<option>" помечена для удаления, удаляется!'
   configs_validation_failed: "<prefix><#fa4943>Проверка конфигураций не удалась, плагин автоматически отключён!"
   repaired_items: "<prefix><#55ffa4><amount> предмет(ов) успешно отремонтировано!"
   cannot_be_repaired: "<prefix><#fa4943>Этот предмет не может быть отремонтирован!"
   cannot_be_repaired_invalid: "<prefix><#fa4943>Вам нужно держать предмет в руке!"
   updated_items: "<prefix><#55ffa4><amount> предмет(ов) успешно обновлено для <player>!"
   zip_browse_error: "<prefix><#fa4943>Произошла ошибка при просмотре zip"
-  bad_recipe: "<prefix><#fa4943>Рецепт \"<recipe>\" недействителен, убедитесь, что все его ингредиенты существуют в вашей конфигурации"
-  item_not_found: "<prefix><#fa4943>Предмет \"<item>\" не найден"
-  plugin_hooks: "<prefix><#55ffa4>Обнаружен плагин \"<plugin>\", включение интеграции"
-  plugin_unhooks: "<prefix><#55ffa4>Отключение интеграции для плагина \"<plugin>\""
+  bad_recipe: '<prefix><#fa4943>Рецепт "<recipe>" недействителен, убедитесь, что все его ингредиенты существуют в вашей конфигурации'
+  item_not_found: '<prefix><#fa4943>Предмет "<item>" не найден'
+  plugin_hooks: '<prefix><#55ffa4>Обнаружен плагин "<plugin>", включение интеграции'
+  plugin_unhooks: '<prefix><#55ffa4>Отключение интеграции для плагина "<plugin>"'
   not_enough_exp: "<prefix><#fa4943>Вам нужно больше очков опыта, чтобы сделать это"
   not_enough_space: "<prefix><#fa4943>Вам нужно больше места, чтобы разместить эту декорацию"
   exit_menu: "<gradient:#FA7CBB:#F14658>Выход"
   no_emojis: "<prefix><#fa4943>Эмодзи не найдены"
+  datapack_generated: "<prefix><#55ffa4>Датапак успешно сгенерирован"
 
 logs:
   loaded: "<prefix><#55ffa4>Успешно загружено на <os>"
@@ -34,22 +35,22 @@ logs:
 
 command:
   help: "<prefix><#b8bbc2>Доступные команды
-        \n<hover:show_text:\"<gray>fill reload command\"><click:SUGGEST_COMMAND:/oraxen reload ><#6f737d>/o
-          <#b8bbc2>reload <#fa8943>тип</click></hover>  <#6f737d>»<#b8bbc2> перезагрузить плагин
-        \n<hover:show_text:\"<gray>fill inv command\"><click:SUGGEST_COMMAND:/oraxen inv><#6f737d>/o
-          <#b8bbc2>inventory</click></hover>  <#6f737d>»<#b8bbc2> показать предметы oraxen в инвентаре
-        \n<hover:show_text:\"<gray>fill pack command\"><click:SUGGEST_COMMAND:/oraxen pack ><#6f737d>/o
-          <#b8bbc2>pack <#fa8943>тип <#43c9fa>цель</click></hover>  <#6f737d>»<#b8bbc2> отправить ресурспак игроку
-        \n<hover:show_text:\"<gray>fill repair command\"><click:SUGGEST_COMMAND:/oraxen repair ><#6f737d>/o
-          <#b8bbc2>repair <#fa8943>тип</click></hover>  <#6f737d>»<#b8bbc2> отремонтировать один или все ваши предметы
-        \n<hover:show_text:\"<gray>fill give command\"><click:SUGGEST_COMMAND:/oraxen give ><#6f737d>/o
-          <#b8bbc2>give <#43c9fa>цель <#fa4362>предмет <#43fa8c>количество</click></hover>  <#6f737d>»<#b8bbc2> получить предмет oraxen
-        \n<hover:show_text:\"<gray>fill recipes show command\"><click:SUGGEST_COMMAND:/oraxen recipes show ><#6f737d>/o
-          <#b8bbc2>recipes show <#fa8943>тип</click></hover>  <#6f737d>»<#b8bbc2> показать рецепты
-        \n<hover:show_text:\"<gray>fill recipes builder command\"><click:SUGGEST_COMMAND:/oraxen recipes builder ><#6f737d>/o
-          <#b8bbc2>recipes builder <#fa8943>тип</click></hover>  <#6f737d>»<#b8bbc2> открыть конструктор рецептов
-        \n<hover:show_text:\"<gray>fill recipes save command\"><click:SUGGEST_COMMAND:/oraxen recipes save ><#6f737d>/o
-          <#b8bbc2>recipes save <#faf443>имя</click></hover>  <#6f737d>»<#b8bbc2> сохранить рецепт"
+    \n<hover:show_text:\"<gray>fill reload command\"><click:SUGGEST_COMMAND:/oraxen reload ><#6f737d>/o
+    <#b8bbc2>reload <#fa8943>тип</click></hover>  <#6f737d>»<#b8bbc2> перезагрузить плагин
+    \n<hover:show_text:\"<gray>fill inv command\"><click:SUGGEST_COMMAND:/oraxen inv><#6f737d>/o
+    <#b8bbc2>inventory</click></hover>  <#6f737d>»<#b8bbc2> показать предметы oraxen в инвентаре
+    \n<hover:show_text:\"<gray>fill pack command\"><click:SUGGEST_COMMAND:/oraxen pack ><#6f737d>/o
+    <#b8bbc2>pack <#fa8943>тип <#43c9fa>цель</click></hover>  <#6f737d>»<#b8bbc2> отправить ресурспак игроку
+    \n<hover:show_text:\"<gray>fill repair command\"><click:SUGGEST_COMMAND:/oraxen repair ><#6f737d>/o
+    <#b8bbc2>repair <#fa8943>тип</click></hover>  <#6f737d>»<#b8bbc2> отремонтировать один или все ваши предметы
+    \n<hover:show_text:\"<gray>fill give command\"><click:SUGGEST_COMMAND:/oraxen give ><#6f737d>/o
+    <#b8bbc2>give <#43c9fa>цель <#fa4362>предмет <#43fa8c>количество</click></hover>  <#6f737d>»<#b8bbc2> получить предмет oraxen
+    \n<hover:show_text:\"<gray>fill recipes show command\"><click:SUGGEST_COMMAND:/oraxen recipes show ><#6f737d>/o
+    <#b8bbc2>recipes show <#fa8943>тип</click></hover>  <#6f737d>»<#b8bbc2> показать рецепты
+    \n<hover:show_text:\"<gray>fill recipes builder command\"><click:SUGGEST_COMMAND:/oraxen recipes builder ><#6f737d>/o
+    <#b8bbc2>recipes builder <#fa8943>тип</click></hover>  <#6f737d>»<#b8bbc2> открыть конструктор рецептов
+    \n<hover:show_text:\"<gray>fill recipes save command\"><click:SUGGEST_COMMAND:/oraxen recipes save ><#6f737d>/o
+    <#b8bbc2>recipes save <#faf443>имя</click></hover>  <#6f737d>»<#b8bbc2> сохранить рецепт"
 
   join: |-
     <dark_gray><st>                             </st><dark_gray>{<aqua><bold>Ресурспак</bold><dark_gray>}<dark_gray><st>                          </st>

@@ -43,6 +43,7 @@ public enum Message {
     PLUGIN_UNLOADED("logs.unloaded"),
     NO_ARMOR_ITEM("logs.no_armor_item"),
     DUPLICATE_ARMOR_COLOR("logs.duplicate_armor_color"),
+    DATAPACK_GENERATED("logs.datapack_generated"),
 
     // command
     COMMAND_HELP("command.help"),
@@ -83,7 +84,6 @@ public enum Message {
         this.path = path;
     }
 
-
     public String getPath() {
         return path;
     }
@@ -94,12 +94,13 @@ public enum Message {
     }
 
     public void send(final CommandSender sender, final TagResolver... placeholders) {
-        if (sender == null) return;
+        if (sender == null)
+            return;
         String lang = OraxenPlugin.get().getConfigsManager().getLanguage().getString(path);
-        if (lang == null || lang.isEmpty()) return;
+        if (lang == null || lang.isEmpty())
+            return;
         OraxenPlugin.get().getAudience().sender(sender).sendMessage(
-                AdventureUtils.MINI_MESSAGE.deserialize(lang, TagResolver.resolver(placeholders))
-        );
+                AdventureUtils.MINI_MESSAGE.deserialize(lang, TagResolver.resolver(placeholders)));
     }
 
     @NotNull

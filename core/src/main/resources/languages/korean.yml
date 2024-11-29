@@ -9,22 +9,23 @@ general:
   pack_not_uploaded: "<prefix><#fa4943>리소스 팩이 업로드되지 않았습니다"
   pack_uploaded: "<prefix><#55ffa4>리소스 팩이 <delay>ms 내에 <url>에 업로드되었습니다"
   pack_regenerated: "<prefix><#55ffa4>리소스 팩이 성공적으로 재생성되었습니다"
-  updating_config: "<prefix><#facc43>구성 옵션 \"<option>\"을(를) 찾을 수 없습니다. 옵션을 추가합니다!"
-  removing_config: "<prefix><#facc43>구성 옵션 \"<option>\"이(가) 제거 대기 상태로 표시되어 삭제됩니다!"
+  updating_config: '<prefix><#facc43>구성 옵션 "<option>"을(를) 찾을 수 없습니다. 옵션을 추가합니다!'
+  removing_config: '<prefix><#facc43>구성 옵션 "<option>"이(가) 제거 ��기 상태로 표시되어 삭제됩니다!'
   configs_validation_failed: "<prefix><#fa4943>구성 유효성 검사에 실패했습니다. 플러그인이 자동으로 비활성화되었습니다!"
   repaired_items: "<prefix><#55ffa4><amount>개의 아이템이 성공적으로 수리되었습니다!"
   cannot_be_repaired: "<prefix><#fa4943>이 아이템은 수리할 수 없습니다!"
   cannot_be_repaired_invalid: "<prefix><#fa4943>손에 유효한 아이템을 들고 있어야 합니다!"
   updated_items: "<prefix><#55ffa4><amount>개의 아이템이 <player>님을 위해 성공적으로 업데이트되었습니다!"
   zip_browse_error: "<prefix><#fa4943>ZIP을 브라우징 하는 중 오류가 발생했습니다"
-  bad_recipe: "<prefix><#fa4943>레시피 \"<recipe>\"가 유효하지 않습니다. 모든 재료가 구성에 존재하는지 확인하세요"
-  item_not_found: "<prefix><#fa4943>아이템 \"<item>\"을(를) 찾을 수 없습니다"
-  plugin_hooks: "<prefix><#55ffa4>플러그인 \"<plugin>\"이 감지되었습니다. 후크를 활성화합니다"
-  plugin_unhooks: "<prefix><#55ffa4>플러그인 \"<plugin>\"의 후크를 비활성화합니다"
+  bad_recipe: '<prefix><#fa4943>레시피 "<recipe>"가 유효하지 않습니다. 모든 재료가 구성에 존재하는지 확인하세요'
+  item_not_found: '<prefix><#fa4943>아이템 "<item>"을(를) 찾을 수 없습니다'
+  plugin_hooks: '<prefix><#55ffa4>플러그인 "<plugin>"이 감지되었습니다. 후크를 활성화합니다'
+  plugin_unhooks: '<prefix><#55ffa4>플러그인 "<plugin>"의 후크를 비활성화합니다'
   not_enough_exp: "<prefix><#fa4943>이 작업을 수행하기에는 더 많은 경험치가 필요합니다"
   not_enough_space: "<prefix><#fa4943>가구를 놓을 공간이 부족합니다"
   exit_menu: "<gradient:#FA7CBB:#F14658>나가기"
   no_emojis: "<prefix><#fa4943>이모지를 찾을 수 없습니다"
+  datapack_generated: "<prefix><#55ffa4>데이터팩이 성공적으로 생성되었습니다"
 
 logs:
   loaded: "<prefix><#55ffa4>성공적으로 <os>에 로드되었습니다"
@@ -34,22 +35,22 @@ logs:
 
 command:
   help: "<prefix><#b8bbc2>사용 가능한 명령어
-        \n<hover:show_text:\"<gray>리로드 명령어\"><click:SUGGEST_COMMAND:/oraxen reload ><#6f737d>/o
-          <#b8bbc2>리로드 <#fa8943>유형</click></hover>  <#6f737d>»<#b8bbc2> 플러그인을 리로드합니다
-        \n<hover:show_text:\"<gray>인벤토리 명령어\"><click:SUGGEST_COMMAND:/oraxen inv><#6f737d>/o
-          <#b8bbc2>인벤토리</click></hover>  <#6f737d>»<#b8bbc2> 인벤토리에 있는 Oraxen 아이템을 표시합니다
-        \n<hover:show_text:\"<gray>팩 명령어\"><click:SUGGEST_COMMAND:/oraxen pack ><#6f737d>/o
-          <#b8bbc2>팩 <#fa8943>유형 <#43c9fa>대상</click></hover>  <#6f737d>»<#b8bbc2> Oraxen 팩을 보냅니다
-        \n<hover:show_text:\"<gray>수리 명령어\"><click:SUGGEST_COMMAND:/oraxen repair ><#6f737d>/o
-          <#b8bbc2>수리 <#fa8943>유형</click></hover>  <#6f737d>»<#b8bbc2> 당신의 아이템 중 하나 또는 모두를 수리합니다
-        \n<hover:show_text:\"<gray>아이템 지급 명령어\"><click:SUGGEST_COMMAND:/oraxen give ><#6f737d>/o
-          <#b8bbc2>지급 <#43c9fa>대상 <#fa4362>아이템 <#43fa8c>수량</click></hover>  <#6f737d>»<#b8bbc2> Oraxen 아이템을 지급합니다
-        \n<hover:show_text:\"<gray>레시피 표시 명령어\"><click:SUGGEST_COMMAND:/oraxen recipes show ><#6f737d>/o
-          <#b8bbc2>레시피 표시 <#fa8943>유형</click></hover>  <#6f737d>»<#b8bbc2> 레시피를 표시합니다
-        \n<hover:show_text:\"<gray>레시피 제작 명령어\"><click:SUGGEST_COMMAND:/oraxen recipes builder ><#6f737d>/o
-          <#b8bbc2>레시피 빌더 <#fa8943>유형</click></hover>  <#6f737d>»<#b8bbc2> 레시피 빌더를 엽니다
-        \n<hover:show_text:\"<gray>레시피 저장 명령어\"><click:SUGGEST_COMMAND:/oraxen recipes save ><#6f737d>/o
-          <#b8bbc2>레시피 저장 <#faf443>이름</click></hover>  <#6f737d>»<#b8bbc2> 레시피를 저장합니다"
+    \n<hover:show_text:\"<gray>리로드 명령어\"><click:SUGGEST_COMMAND:/oraxen reload ><#6f737d>/o
+    <#b8bbc2>리로드 <#fa8943>유형</click></hover>  <#6f737d>»<#b8bbc2> 플러그인을 리로드합니다
+    \n<hover:show_text:\"<gray>인벤토리 명령어\"><click:SUGGEST_COMMAND:/oraxen inv><#6f737d>/o
+    <#b8bbc2>인벤토리</click></hover>  <#6f737d>»<#b8bbc2> 인벤토리에 있는 Oraxen 아이템을 표시합니다
+    \n<hover:show_text:\"<gray>팩 명령어\"><click:SUGGEST_COMMAND:/oraxen pack ><#6f737d>/o
+    <#b8bbc2>팩 <#fa8943>유형 <#43c9fa>대상</click></hover>  <#6f737d>»<#b8bbc2> Oraxen 팩을 보냅니다
+    \n<hover:show_text:\"<gray>수리 명령어\"><click:SUGGEST_COMMAND:/oraxen repair ><#6f737d>/o
+    <#b8bbc2>수리 <#fa8943>유형</click></hover>  <#6f737d>»<#b8bbc2> 당신의 아이템 중 하나 또는 모두를 수리합니다
+    \n<hover:show_text:\"<gray>아이템 지급 명령어\"><click:SUGGEST_COMMAND:/oraxen give ><#6f737d>/o
+    <#b8bbc2>지급 <#43c9fa>대상 <#fa4362>아이템 <#43fa8c>수량</click></hover>  <#6f737d>»<#b8bbc2> Oraxen 아이템을 지급합니다
+    \n<hover:show_text:\"<gray>레시피 표시 명령어\"><click:SUGGEST_COMMAND:/oraxen recipes show ><#6f737d>/o
+    <#b8bbc2>레시피 표시 <#fa8943>유형</click></hover>  <#6f737d>»<#b8bbc2> 레시피를 표시합니다
+    \n<hover:show_text:\"<gray>레시피 제작 명령어\"><click:SUGGEST_COMMAND:/oraxen recipes builder ><#6f737d>/o
+    <#b8bbc2>레시피 빌더 <#fa8943>유형</click></hover>  <#6f737d>»<#b8bbc2> 레시피 빌더를 엽니다
+    \n<hover:show_text:\"<gray>레시피 저장 명령어\"><click:SUGGEST_COMMAND:/oraxen recipes save ><#6f737d>/o
+    <#b8bbc2>레시피 저장 <#faf443>이름</click></hover>  <#6f737d>»<#b8bbc2> 레시피를 저장합니다"
 
   join: |-
     <dark_gray><st>                           </st><dark_gray>{<aqua><bold>리소스 팩</bold><dark_gray>}<dark_gray><st>                        </st>

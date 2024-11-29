@@ -9,22 +9,23 @@ general:
   pack_not_uploaded: "<prefix><#fa4943>Le pack de ressources n'a pas été téléversé"
   pack_uploaded: "<prefix><#55ffa4>Pack de ressources téléversé à l'url <url> en <delay> ms"
   pack_regenerated: "<prefix><#55ffa4>Pack de ressources régénéré avec succès"
-  updating_config: "<prefix><#facc43>Option de configuration \"<option>\" introuvable, ajout en cours !"
-  removing_config: "<prefix><#facc43>Option de configuration \"<option>\" a été marquée pour suppression, la supprimer !"
+  updating_config: '<prefix><#facc43>Option de configuration "<option>" introuvable, ajout en cours !'
+  removing_config: '<prefix><#facc43>Option de configuration "<option>" a été marquée pour suppression, la supprimer !'
   configs_validation_failed: "<prefix><#fa4943>Échec de la validation des configurations, plugin automatiquement désactivé !"
   repaired_items: "<prefix><#55ffa4><amount> item(s) ont été réparés avec succès !"
   cannot_be_repaired: "<prefix><#fa4943>Cet item ne peut pas être réparé !"
   cannot_be_repaired_invalid: "<prefix><#fa4943>Vous devez tenir un item valide dans votre main !"
   updated_items: "<prefix><#55ffa4><amount> item(s) ont été mis à jour pour <player>!"
   zip_browse_error: "<prefix><#fa4943>Une erreur s'est produite en parcourant le zip"
-  bad_recipe: "<prefix><#fa4943>La recette \"<recipe>\" n'est pas valide, veuillez vous assurer que tous ses ingrédients existent dans votre config"
-  item_not_found: "<prefix><#fa4943>Item \"<item>\" introuvable"
-  plugin_hooks: "<prefix><#55ffa4>Plugin \"<plugin>\" détecté, activation des hooks"
-  plugin_unhooks: "<prefix><#55ffa4>Unhooking plugin \"<plugin>\""
+  bad_recipe: '<prefix><#fa4943>La recette "<recipe>" n''est pas valide, veuillez vous assurer que tous ses ingrédients existent dans votre config'
+  item_not_found: '<prefix><#fa4943>Item "<item>" introuvable'
+  plugin_hooks: '<prefix><#55ffa4>Plugin "<plugin>" détecté, activation des hooks'
+  plugin_unhooks: '<prefix><#55ffa4>Unhooking plugin "<plugin>"'
   not_enough_exp: "<prefix><#fa4943>Vous avez besoin de plus d'expérience pour faire ceci"
   not_enough_space: "<prefix><#fa4943>Vous avez besoin de plus de place pour placer cet équipement"
   exit_menu: "<gradient:#FA7CBB:#F14658>Quitter"
   no_emojis: "<prefix><#fa4943>Aucun émoji trouvé"
+  datapack_generated: "<prefix><#55ffa4>Le datapack a été généré avec succès"
 
 logs:
   loaded: "<prefix><#55ffa4>Chargé avec succès sur <os>"
@@ -34,31 +35,31 @@ logs:
 
 command:
   help: "<prefix><#b8bbc2>Commandes disponibles
-        \n<hover:show_text:\"<gray>fill reload command\"><click:SUGGEST_COMMAND:/oraxen reload ><#6f737d>/o
-          <#b8bbc2>reload <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> recharge le plugin
-        \n<hover:show_text:\"<gray>fill inv command\"><click:SUGGEST_COMMAND:/oraxen inv><#6f737d>/o
-          <#b8bbc2>inventory</click></hover>  <#6f737d>»<#b8bbc2> affiche les item oraxen dans un inventaire
-        \n<hover:show_text:\"<gray>fill pack command\"><click:SUGGEST_COMMAND:/oraxen pack ><#6f737d>/o
-          <#b8bbc2>pack <#fa8943>type <#43c9fa>target</click></hover>  <#6f737d>»<#b8bbc2> envoie le pack Oraxen
-        \n<hover:show_text:\"<gray>fill repair command\"><click:SUGGEST_COMMAND:/oraxen repair ><#6f737d>/o
-          <#b8bbc2>repair <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> répare un ou tous vos item(s)
-        \n<hover:show_text:\"<gray>fill give command\"><click:SUGGEST_COMMAND:/oraxen give ><#6f737d>/o
-          <#b8bbc2>give <#43c9fa>target <#fa4362>item <#43fa8c>amount</click></hover>  <#6f737d>»<#b8bbc2> donne un item Oraxen
-        \n<hover:show_text:\"<gray>fill recipes show command\"><click:SUGGEST_COMMAND:/oraxen recipes show ><#6f737d>/o
-          <#b8bbc2>recipes show <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> montre les recettes
-        \n<hover:show_text:\"<gray>fill recipes builder command\"><click:SUGGEST_COMMAND:/oraxen recipes builder ><#6f737d>/o
-          <#b8bbc2>recipes builder <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> ouvre le créateur de recette
-        \n<hover:show_text:\"<gray>fill recipes save command\"><click:SUGGEST_COMMAND:/oraxen recipes save ><#6f737d>/o
-          <#b8bbc2>recipes save <#faf443>name</click></hover>  <#6f737d>»<#b8bbc2> sauvegarde une recette"
+    \n<hover:show_text:\"<gray>fill reload command\"><click:SUGGEST_COMMAND:/oraxen reload ><#6f737d>/o
+    <#b8bbc2>reload <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> recharge le plugin
+    \n<hover:show_text:\"<gray>fill inv command\"><click:SUGGEST_COMMAND:/oraxen inv><#6f737d>/o
+    <#b8bbc2>inventory</click></hover>  <#6f737d>»<#b8bbc2> affiche les item oraxen dans un inventaire
+    \n<hover:show_text:\"<gray>fill pack command\"><click:SUGGEST_COMMAND:/oraxen pack ><#6f737d>/o
+    <#b8bbc2>pack <#fa8943>type <#43c9fa>target</click></hover>  <#6f737d>»<#b8bbc2> envoie le pack Oraxen
+    \n<hover:show_text:\"<gray>fill repair command\"><click:SUGGEST_COMMAND:/oraxen repair ><#6f737d>/o
+    <#b8bbc2>repair <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> répare un ou tous vos item(s)
+    \n<hover:show_text:\"<gray>fill give command\"><click:SUGGEST_COMMAND:/oraxen give ><#6f737d>/o
+    <#b8bbc2>give <#43c9fa>target <#fa4362>item <#43fa8c>amount</click></hover>  <#6f737d>»<#b8bbc2> donne un item Oraxen
+    \n<hover:show_text:\"<gray>fill recipes show command\"><click:SUGGEST_COMMAND:/oraxen recipes show ><#6f737d>/o
+    <#b8bbc2>recipes show <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> montre les recettes
+    \n<hover:show_text:\"<gray>fill recipes builder command\"><click:SUGGEST_COMMAND:/oraxen recipes builder ><#6f737d>/o
+    <#b8bbc2>recipes builder <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> ouvre le créateur de recette
+    \n<hover:show_text:\"<gray>fill recipes save command\"><click:SUGGEST_COMMAND:/oraxen recipes save ><#6f737d>/o
+    <#b8bbc2>recipes save <#faf443>name</click></hover>  <#6f737d>»<#b8bbc2> sauvegarde une recette"
   join: "
-        <dark_gray><strikethrough>                           </strikethrough><dark_gray>{<aqua><bold> Resource Pack </bold><dark_gray>}<dark_gray><strikethrough>                        </strikethrough>
+    <dark_gray><strikethrough>                           </strikethrough><dark_gray>{<aqua><bold> Resource Pack </bold><dark_gray>}<dark_gray><strikethrough>                        </strikethrough>
 
-        <gray><bold>Pour voir les nouveaux items, vous devez utiliser un pack de ressources spécial (mais ne vous inquiétez pas, cela ne vous empêche pas d'utiliser le vôtre en même temps).</bold>
+    <gray><bold>Pour voir les nouveaux items, vous devez utiliser un pack de ressources spécial (mais ne vous inquiétez pas, cela ne vous empêche pas d'utiliser le vôtre en même temps).</bold>
 
-        <dark_gray>»<gray> Pour essayer de le charger directement depuis le jeu, <click:run_command:/oraxen pack send @p><hover:show_text:\"<red>/!\\ charger le pack de ressources depuis le jeu peut provoquer des lags\"><red><bold>CLIQUER ICI</bold></hover></click>
+    <dark_gray>»<gray> Pour essayer de le charger directement depuis le jeu, <click:run_command:/oraxen pack send @p><hover:show_text:\"<red>/!\\ charger le pack de ressources depuis le jeu peut provoquer des lags\"><red><bold>CLIQUER ICI</bold></hover></click>
 
-        <dark_gray>»<gray> Pour le télécharger depuis internet, <click:open_url:<pack_url>><hover:show_text:\"<green>/!\\ installez-le depuis Options/Pack de ressources dans votre jeu\"><green><bold>CLIQUER ICI</bold></hover></click>
-        "
+    <dark_gray>»<gray> Pour le télécharger depuis internet, <click:open_url:<pack_url>><hover:show_text:\"<green>/!\\ installez-le depuis Options/Pack de ressources dans votre jeu\"><green><bold>CLIQUER ICI</bold></hover></click>
+    "
 
   recipe:
     no_builder: "<prefix><#fa4943>Veuillez d'abord créer une recette !"
@@ -77,10 +78,10 @@ command:
     wrong_color: "<prefix><#fa4943>Couleur non reconnue, essayez une couleur hexadécimale comme #FFFFFF !"
     failed: "<prefix><#fa4943>Cet item ne peut pas changer de couleur !"
 
-  hud: #If someone could translate this, I would be very happy!
-    no_hud: "<prefix><#fa4943>Il n'y pas d'ATH pour l'id '<hud_id>'!"
-    toggle_on: "<prefix><#55ffa4>L'ATH '<hud_id>' a été basculé sur activé!"
-    toggle_off: "<prefix><#fa4943>L'ATH '<hud_id>' a été basculé sur désactivé!"
+  hud:
+    no_hud: "<prefix><#fa4943>Il n'y a pas d'ATH nommé '<hud_id>'!"
+    toggle_on: "<prefix><#55ffa4>ATH '<hud_id>' activé!"
+    toggle_off: "<prefix><#fa4943>ATH '<hud_id>' désactivé!"
 
   debug.toggle: "<prefix><#55ffa4>Mode de débogage basculé sur <#43fa8c><state><#55ffa4>!"
   version: "<prefix><#55ffa4>Version d'Oraxen: <#43fa8c><version><#55ffa4>!"
