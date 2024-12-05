@@ -13,7 +13,7 @@ body:
           required: true
         - label: "I am using the latest version of any dependencies"
           required: true
-        - label: "I am using ProtocolLib 5.0"
+        - label: "I am using ProtocolLib 5.0+"
           required: true
         - label: "I have checked if any similar bug reports exist"
           required: true
@@ -32,24 +32,27 @@ body:
     validations:
       required: true
   - type: textarea
-    id: oraxen-version
+    id: system-report
     attributes:
-      label: Plugin Version
-      description: "Run `version Oraxen` in your console and paste the output."
-    validations:
-      required: true
-  - type: textarea
-    id: prtlib-version
-    attributes:
-      label: ProtocolLib Version
-      description: "Run `version ProtocolLib` in your console and paste the output."
-    validations:
-      required: false
-  - type: textarea
-    id: server-version
-    attributes:
-      label: Server Software & Version
-      description: "Run `version` in your console and paste the output."
+      label: System Report
+      description: |
+        Please run `/oraxen report` in your console and paste the output here.
+        If you don't have access to this command (requires permission: oraxen.command.report), 
+        please fill out the information manually in the following format:
+
+        ### System Report
+        **Plugin Versions:**
+        - Oraxen: <version>
+        - ProtocolLib: <version>
+
+        **Server Information:**
+        - Software: <paper/spigot/etc>
+        - Version: <full version>
+
+        **System Information:**
+        - OS: <operating system>
+        - OS Version: <version>
+        - Architecture: <arch>
     validations:
       required: true
   - type: "dropdown"
