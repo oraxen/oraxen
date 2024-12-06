@@ -277,9 +277,9 @@ public class ResourcePack {
 
         if (!malformedTextures.isEmpty() || !malformedModels.isEmpty()) {
             Logs.logError("Pack contains malformed texture(s) and/or model(s)");
-            Logs.logError("These need to be fixed, otherwise the resourcepack will be broken", true);
+            Logs.logError("These need to be fixed, otherwise the resourcepack will be broken");
         } else
-            Logs.logSuccess("No broken models or textures were found in the resourcepack", true);
+            Logs.logSuccess("No broken models or textures were found in the resourcepack");
 
         Set<String> malformedFiles = malformedTextures.stream().map(VirtualFile::getPath).collect(Collectors.toSet());
         malformedFiles.addAll(malformedModels.stream().map(VirtualFile::getPath).collect(Collectors.toSet()));
