@@ -10,7 +10,7 @@ general:
   pack_uploaded: "<prefix><#55ffa4>리소스 팩이 <delay>ms 내에 <url>에 업로드되었습니다"
   pack_regenerated: "<prefix><#55ffa4>리소스 팩이 성공적으로 재생성되었습니다"
   updating_config: '<prefix><#facc43>구성 옵션 "<option>"을(를) 찾을 수 없습니다. 옵션을 추가합니다!'
-  removing_config: '<prefix><#facc43>구성 옵션 "<option>"이(가) 제거 ��기 상태로 표시되어 삭제됩니다!'
+  removing_config: '<prefix><#facc43>구성 옵션 "<option>"이(가) 제거되어 삭제됩니다!'
   configs_validation_failed: "<prefix><#fa4943>구성 유효성 검사에 실패했습니다. 플러그인이 자동으로 비활성화되었습니다!"
   repaired_items: "<prefix><#55ffa4><amount>개의 아이템이 성공적으로 수리되었습니다!"
   cannot_be_repaired: "<prefix><#fa4943>이 아이템은 수리할 수 없습니다!"
@@ -28,10 +28,36 @@ general:
   datapack_generated: "<prefix><#55ffa4>데이터팩이 성공적으로 생성되었습니다"
 
 logs:
+  # Log prefix colors:
+  # Info messages: <prefix><#529ced>message</#529ced>
+  # Success messages: <prefix><#55ffa4>message</#55ffa4>
+  # Error messages: <prefix><#e73f34>message</#e73f34>
+  # Warning messages: <prefix><#f9f178>message</#f9f178>
+
   loaded: "<prefix><#55ffa4>성공적으로 <os>에 로드되었습니다"
   unloaded: "<prefix><#55ffa4>성공적으로 언로드되었습니다"
   no_armor_item: "<prefix><#fa4943><name>과(와) 일치하는 항목을 찾을 수 없습니다. <armor_layer_file>을(를) 사용할 수 없습니다"
   duplicate_armor_color: "<prefix><#fa4943><first_armor_prefix> 갑옷 세트는 다른 텍스처를 사용하지만 <second_armor_prefix>와(과) 동일한 색상을 사용합니다"
+  datapack_generated: "<prefix><#facc43>데이터팩이 생성되었습니다. 이 기능을 사용하려면 서버를 재시작해야 합니다."
+  missing_protocollib: "<prefix><#f9f178>서버에 ProtocolLib가 설치되어 있지 않아 일부 기능이 작동하지 않습니다</#f9f178>"
+  invalid_material: "<prefix><#e73f34>잘못된 재질: <minecraft_type></#e73f34>"
+  io_error_add_pack_file: "<prefix><#e73f34>리소스팩에 파일 <file>을(를) 추가하지 못했습니다</#e73f34>"
+  missing_logs: "<prefix><#e73f34>latest.log를 읽을 수 없습니다. 파일이 누락되었나요?</#e73f34>"
+  logfile_dumped: "<prefix><#55ffa4>로그 파일이 다음 위치에 저장��었습니다: <uri></#55ffa4>"
+  logfile_mclog_error: "<prefix><#f9f178>mclo.gs에 로그 파일을 업로드하지 못했습니다. pastebin 사용을 시도합니다</#f9f178>"
+  logfile_pastebin_error: "<prefix><#f9f178>pastebin을 사용한 백업 솔루션 사용에 실패했습니다</#f9f178>"
+  updating_user_items: "<prefix><#529ced>플레이어 인벤토리의 모든 아이템을 업데이트하는 중...</#529ced>"
+  updating_placed_furnitures: "<prefix><#529ced>설치된 모든 가구를 업데이트하는 중...</#529ced>"
+  invalid_blocklocker_protection_type: "<prefix><#e73f34>아이템 <item>의 BlockLocker 메커닉에 대한 보호 유형이 잘못되었습니다</#e73f34>"
+  mmoitems:
+    not_installed: "<prefix><#e73f34>MMOItems가 설치되어 있지 않습니다</#e73f34>"
+    loading_item_failed: "<prefix><#e73f34>MMOItem <item> 로드에 실패했습니다</#e73f34>"
+    missing_template: "<prefix><#e73f34>템플릿이 존재하지 않습니다</#e73f34>"
+    missing_item: "<prefix><#e73f34>아이템이 존재하지 않습니다</#e73f34>"
+    missing_plugin: "<prefix><#e73f34>MMOItems가 설치되어 있지 않습니다</#e73f34>"
+  mythiccrucible:
+    loading_item_failed: "<prefix><#e73f34>MythicCrucible 아이템 <item> 로드에 실패했습니다</#e73f34>"
+    missing_plugin: "<prefix><#e73f34>MythicCrucible이 설치되어 있지 않습니다</#e73f34>"
 
 command:
   help: "<prefix><#b8bbc2>사용 가능한 명령어
@@ -55,7 +81,7 @@ command:
   join: |-
     <dark_gray><st>                           </st><dark_gray>{<aqua><bold>리소스 팩</bold><dark_gray>}<dark_gray><st>                        </st>
     <gray><bold>새로운 아이템을 보려면 Oraxen전용 리소스 팩을 사용해야합니다 (하지만 걱정하지 마세요, 이것은 동시에 여러분이 사용 중인 리소스 팩을 사용하는 것을 방해하지 않습니다).</bold>
-    <dark_gray>»<gray> 게임에서 직접로드하려면, <click:run_command:"oraxen pack send @p"><hover:show_text:"<red>! 게임에서 리소스 팩을 로드하는 것은 렉을 유발할 수 있습니다"><red><bold>여기를 클릭하세요</bold></hover></click>
+    <dark_gray>»<gray> 게임에서 직접로드하려면, <click:run_command:"oraxen pack send @p"><hover:show_text:"<red>! 게임에서 리소스 팩을 로드��는 것은 렉을 유발할 수 있습니다"><red><bold>여기를 클릭하세요</bold></hover></click>
     <dark_gray>»<gray> 인터넷에서 다운로드하려면, <hover:show_text:"<pack_url> <green>! 게임의 옵션/리소스 팩에서 설치하십시오"><green><bold><click:OPEN_URL:"<pack_url>">여기를 클릭하세요</click></bold></hover>
 
   recipe:

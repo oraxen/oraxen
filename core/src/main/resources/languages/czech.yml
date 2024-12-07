@@ -28,10 +28,36 @@ general:
   datapack_generated: "<prefix><#55ffa4>Datapack byl úspěšně vygenerován"
 
 logs:
+  # Log prefix colors:
+  # Info messages: <prefix><#529ced>message</#529ced>
+  # Success messages: <prefix><#55ffa4>message</#55ffa4>
+  # Error messages: <prefix><#e73f34>message</#e73f34>
+  # Warning messages: <prefix><#f9f178>message</#f9f178>
+
   loaded: "<prefix><#55ffa4>Úspěšně načten na <os>"
   unloaded: "<prefix><#55ffa4>Úspěšně odnačten"
   no_armor_item: "<prefix><#fa4943>Žádný item s názvem <name> nenalezen. Nelze použít <armor_layer_file>"
   duplicate_armor_color: "<prefix><#fa4943><first_armor_prefix> set armoru používá stejnou barvu jako <second_armor_prefix> s jinou texturou"
+  datapack_generated: "<prefix><#facc43>Datapack byl úspěšně vygenerován. Pro fungování této funkce je nutný restart serveru."
+  missing_protocollib: "<prefix><#f9f178>ProtocolLib není na vašem serveru, některé funkce nebudou fungovat</#f9f178>"
+  invalid_material: "<prefix><#e73f34>Neplatný materiál: <minecraft_type></#e73f34>"
+  io_error_add_pack_file: "<prefix><#e73f34>Nepodařilo se přidat soubor <file> do resource packu</#e73f34>"
+  missing_logs: "<prefix><#e73f34>Nepodařilo se přečíst latest.log, chybí?</#e73f34>"
+  logfile_dumped: "<prefix><#55ffa4>Log soubor byl uložen do: <uri></#55ffa4>"
+  logfile_mclog_error: "<prefix><#f9f178>Nepodařilo se nahrát log soubor na mclo.gs, pokus o použití pastebin</#f9f178>"
+  logfile_pastebin_error: "<prefix><#f9f178>Nepodařilo se použít záložní řešení s pastebin</#f9f178>"
+  updating_user_items: "<prefix><#529ced>Aktualizace všech předmětů v inventářích hráčů...</#529ced>"
+  updating_placed_furnitures: "<prefix><#529ced>Aktualizace všech umístěných dekorací...</#529ced>"
+  invalid_blocklocker_protection_type: "<prefix><#e73f34>Neplatný typ ochrany pro BlockLocker mechaniku v předmětu <item></#e73f34>"
+  mmoitems:
+    not_installed: "<prefix><#e73f34>MMOItems není nainstalován</#e73f34>"
+    loading_item_failed: "<prefix><#e73f34>Nepodařilo se načíst MMOItem <item></#e73f34>"
+    missing_template: "<prefix><#e73f34>Šablona neexistuje</#e73f34>"
+    missing_item: "<prefix><#e73f34>Předmět neexistuje</#e73f34>"
+    missing_plugin: "<prefix><#e73f34>MMOItems není nainstalován</#e73f34>"
+  mythiccrucible:
+    loading_item_failed: "<prefix><#e73f34>Nepodařilo se načíst MythicCrucible předmět <item></#e73f34>"
+    missing_plugin: "<prefix><#e73f34>MythicCrucible není nainstalován</#e73f34>"
 
 command:
   help: "<prefix><#b8bbc2>Dostupné příkazy

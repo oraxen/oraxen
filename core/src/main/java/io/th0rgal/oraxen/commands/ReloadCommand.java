@@ -33,14 +33,15 @@ public class ReloadCommand {
         Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent());
 
         if (Settings.UPDATE_ITEMS.toBool() && Settings.UPDATE_ITEMS_ON_RELOAD.toBool()) {
-            Logs.logInfo("Updating all items in player-inventories...");
+            Message.UPDATING_USER_ITEMS.log();
             for (Player player : Bukkit.getServer().getOnlinePlayers()) {
                 PlayerInventory inventory = player.getInventory();
                 Bukkit.getScheduler().runTaskAsynchronously(OraxenPlugin.get(), () -> {
                     for (int i = 0; i < inventory.getSize(); i++) {
                         ItemStack oldItem = inventory.getItem(i);
                         ItemStack newItem = ItemUpdater.updateItem(oldItem);
-                        if (oldItem == null || oldItem.equals(newItem)) continue;
+                        if (oldItem == null || oldItem.equals(newItem))
+                            continue;
                         inventory.setItem(i, newItem);
                     }
                 });
@@ -48,9 +49,10 @@ public class ReloadCommand {
         }
 
         if (Settings.UPDATE_FURNITURE.toBool() && Settings.UPDATE_FURNITURE_ON_RELOAD.toBool()) {
-            Logs.logInfo("Updating all placed furniture...");
+            Message.UPDATING_PLACED_FURNITURES.log();
             for (World world : Bukkit.getServer().getWorlds())
-                world.getEntities().stream().filter(OraxenFurniture::isBaseEntity).forEach(OraxenFurniture::updateFurniture);
+                world.getEntities().stream().filter(OraxenFurniture::isBaseEntity)
+                        .forEach(OraxenFurniture::updateFurniture);
         }
 
     }

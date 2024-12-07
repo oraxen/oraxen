@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.compatibilities.provided.blocklocker;
 
-import io.th0rgal.oraxen.utils.logs.Logs;
+import io.th0rgal.oraxen.config.Message;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import nl.rutgerkok.blocklocker.ProtectionType;
 import org.bukkit.configuration.ConfigurationSection;
 
@@ -14,7 +15,8 @@ public class BlockLockerMechanic {
             protectionType = ProtectionType.valueOf(section.getString("protection_type", "CONTAINER"));
         } catch (IllegalArgumentException e) {
             protectionType = ProtectionType.CONTAINER;
-            Logs.logError("Invalid protection type for BlockLocker mechanic in item " + section.getParent().getParent().toString() + ", defaulting to CONTAINER");
+            Message.INVALID_BLOCKLOCKER_PROTECTION_TYPE
+                    .log(AdventureUtils.tagResolver("item", section.getParent().getParent().toString()));
         }
 
         this.canProtect = section.getBoolean("can_protect", true);

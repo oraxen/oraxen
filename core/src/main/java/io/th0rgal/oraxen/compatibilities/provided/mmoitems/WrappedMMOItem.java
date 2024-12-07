@@ -1,7 +1,8 @@
 package io.th0rgal.oraxen.compatibilities.provided.mmoitems;
 
+import io.th0rgal.oraxen.config.Message;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.PluginUtils;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import net.Indyuce.mmoitems.MMOItems;
 import net.Indyuce.mmoitems.api.ItemTier;
 import net.Indyuce.mmoitems.api.Type;
@@ -18,7 +19,7 @@ public class WrappedMMOItem {
 
     public WrappedMMOItem(ConfigurationSection section) {
         if (!PluginUtils.isEnabled("MMOItems")) {
-            Logs.logError("MMOItems is not installed");
+            Message.MMOITEMS_NOT_INSTALLED.log();
             type = null;
             id = null;
             level = 0;
@@ -29,14 +30,15 @@ public class WrappedMMOItem {
 
             // Check if template exists
             if (!MMOItems.plugin.getTemplates().hasTemplate(type, id)) {
-                Logs.logError("Failed to load MMOItem " + id);
-                Logs.logError("Template does not exist");
+                Message.MMOITEMS_LOADING_ITEM_FAILED.log(AdventureUtils.tagResolver("id", id));
+                Message.MMOITEMS_MISSING_TEMPLATE.log();
             }
 
             // Optional stuff
             level = section.getInt("level", 1);
             String tierId = section.getString("tier");
-            tier = tierId != null && MMOItems.plugin.getTiers().has(tierId) ? MMOItems.plugin.getTiers().get(tierId) : null;
+            tier = tierId != null && MMOItems.plugin.getTiers().has(tierId) ? MMOItems.plugin.getTiers().get(tierId)
+                    : null;
         }
     }
 
@@ -58,8 +60,8 @@ public class WrappedMMOItem {
         if (MMOItems.plugin.getTemplates().hasTemplate(type, id)) {
             return MMOItems.plugin.getTemplates().getTemplate(type, id);
         } else {
-            Logs.logError("Failed to load MMOItem " + id);
-            Logs.logError("Template does not exist");
+            Message.MMOITEMS_LOADING_ITEM_FAILED.log(AdventureUtils.tagResolver("id", id));
+            Message.MMOITEMS_MISSING_TEMPLATE.log();
             return null;
         }
     }
@@ -68,10 +70,12 @@ public class WrappedMMOItem {
         if (PluginUtils.isEnabled("MMOItems")) {
             MMOItemTemplate template = getTemplate();
             if (template == null) {
-                Logs.logError("Failed to load MMOItem " + id);
-                Logs.logError("Item does not exist");
-            } else return template.newBuilder().build().newBuilder().build();
-        } else Logs.logWarning("MMOItems is not installed");
+                Message.MMOITEMS_LOADING_ITEM_FAILED.log(AdventureUtils.tagResolver("id", id));
+                Message.MMOITEMS_MISSING_ITEM.log();
+            } else
+                return template.newBuilder().build().newBuilder().build();
+        } else
+            Message.MMOITEMS_MISSING_PLUGIN.log();
         return null;
     }
 }

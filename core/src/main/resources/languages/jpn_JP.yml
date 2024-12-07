@@ -10,7 +10,7 @@ general:
   pack_uploaded: "<prefix><#55ffa4>リソースパックが<delay>ミリ秒で<url>にアップロードされました"
   pack_regenerated: "<prefix><#55ffa4>リソースパックが正常に再生成されました"
   updating_config: "<prefix><#facc43>設定オプション\"<option>\"が見つかりませんでした、追加しています！"
-  removing_config: "<prefix><#facc43>設定オプション\"<option>\"が削除のマークされました、削除しています！"
+  removing_config: "<prefix><#facc43>設定オプション\"<option>\"が���除のマークされました、削除しています！"
   configs_validation_failed: "<prefix><#fa4943>設定の検証に失敗しました、プラグインが自動的に無効になりました！"
   repaired_items: "<prefix><#55ffa4><amount>個のアイテムが修復されました！"
   cannot_be_repaired: "<prefix><#fa4943>このアイテムは修復できません！"
@@ -28,10 +28,36 @@ general:
   datapack_generated: "<prefix><#55ffa4>データパックが正常に生成されました"
 
 logs:
+  # Log prefix colors:
+  # Info messages: <prefix><#529ced>message</#529ced>
+  # Success messages: <prefix><#55ffa4>message</#55ffa4>
+  # Error messages: <prefix><#e73f34>message</#e73f34>
+  # Warning messages: <prefix><#f9f178>message</#f9f178>
+
   loaded: "<prefix><#55ffa4><os>で正常に読み込まれました"
   unloaded: "<prefix><#55ffa4>正常にアンロードされました"
   no_armor_item: "<prefix><#fa4943><name>に一致するアイテムが見つかりません。 <armor_layer_file>を使用できません"
   duplicate_armor_color: "<prefix><#fa4943><first_armor_prefix>のアーマーセットが<second_armor_prefix>とは異なるテクスチャを使用して同じ色を使用しています"
+  datapack_generated: "<prefix><#facc43>データパックが生成されました。この機能を使用するにはサーバーの再起動が必要です。"
+  missing_protocollib: "<prefix><#f9f178>ProtocolLibがサーバーにインストールされていません。一部の機能が動作しません</#f9f178>"
+  invalid_material: "<prefix><#e73f34>無効な材質：<minecraft_type></#e73f34>"
+  io_error_add_pack_file: "<prefix><#e73f34>ファイル<file>をリソースパックに追加できませんでした</#e73f34>"
+  missing_logs: "<prefix><#e73f34>latest.logを読み取れません。ファイルが存在しませんか？</#e73f34>"
+  logfile_dumped: "<prefix><#55ffa4>ログファイルが出力されました：<uri></#55ffa4>"
+  logfile_mclog_error: "<prefix><#f9f178>mclo.gsへのログファイルのアップロードに失敗しました。pastebinを使用して試行します</#f9f178>"
+  logfile_pastebin_error: "<prefix><#f9f178>pastebinでのバックアップソリューションの使用に失敗しました</#f9f178>"
+  updating_user_items: "<prefix><#529ced>プレイヤーのインベントリ内のすべてのアイテムを更新中...</#529ced>"
+  updating_placed_furnitures: "<prefix><#529ced>設置された家具をすべて更新中...</#529ced>"
+  invalid_blocklocker_protection_type: "<prefix><#e73f34>アイテム<item>のBlockLockerメカニックの保護タイプが無効です</#e73f34>"
+  mmoitems:
+    not_installed: "<prefix><#e73f34>MMOItemsがインストールされていません</#e73f34>"
+    loading_item_failed: "<prefix><#e73f34>MMOItem <item>の読み込みに失敗しました</#e73f34>"
+    missing_template: "<prefix><#e73f34>テンプレートが存在しません</#e73f34>"
+    missing_item: "<prefix><#e73f34>アイテムが存在しません</#e73f34>"
+    missing_plugin: "<prefix><#e73f34>MMOItemsがインストールされていません</#e73f34>"
+  mythiccrucible:
+    loading_item_failed: "<prefix><#e73f34>MythicCrucibleアイテム<item>の読み込みに失敗しました</#e73f34>"
+    missing_plugin: "<prefix><#e73f34>MythicCrucibleがインストールされていません</#e73f34>"
 
 command:
   help: "<prefix><#b8bbc2>利用可能なコマンド
@@ -86,6 +112,6 @@ click></hover>  <#6f737d>»<#b8bbc2> レシピを表示します
   version: "<prefix><#55ffa4>Oraxenバージョン：<#43fa8c><version><#55ffa4>！"
 
 mechanics:
-  not_enough_exp: "<prefix><#fa4943>これを行うにはもっと経験値が必要です"
+  not_enough_exp: "<prefix><#fa4943>これを行うにはもっと経験験値が必要です"
   backpack_stacked: "<prefix><#fa4943>スタックされたバックパックを開くことができません"
   jukebox_now_playing: "<dark_purple>再生中 <disc>"

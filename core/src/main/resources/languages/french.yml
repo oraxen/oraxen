@@ -28,10 +28,36 @@ general:
   datapack_generated: "<prefix><#55ffa4>Le datapack a été généré avec succès"
 
 logs:
+  # Log prefix colors:
+  # Info messages: <prefix><#529ced>message</#529ced>
+  # Success messages: <prefix><#55ffa4>message</#55ffa4>
+  # Error messages: <prefix><#e73f34>message</#e73f34>
+  # Warning messages: <prefix><#f9f178>message</#f9f178>
+
   loaded: "<prefix><#55ffa4>Chargé avec succès sur <os>"
   unloaded: "<prefix><#55ffa4>Déchargé avec succès"
   no_armor_item: "<prefix><#fa4943>Pas d'item de type <name> trouvé. Impossible de charger <armor_layer_file>"
   duplicate_armor_color: "<prefix><#fa4943>L'armure <first_armor_prefix> utilise la même couleur que <second_armor_prefix> avec une texture différente"
+  datapack_generated: "<prefix><#facc43>Le datapack a été généré. Un redémarrage du serveur est nécessaire pour que cette fonctionnalité fonctionne."
+  missing_protocollib: "<prefix><#f9f178>ProtocolLib n'est pas installé sur votre serveur, certaines fonctionnalités ne fonctionneront pas</#f9f178>"
+  invalid_material: "<prefix><#e73f34>Matériau invalide : <minecraft_type></#e73f34>"
+  io_error_add_pack_file: "<prefix><#e73f34>Impossible d'ajouter le fichier <file> au pack de ressources</#e73f34>"
+  missing_logs: "<prefix><#e73f34>Impossible de lire latest.log, est-il manquant ?</#e73f34>"
+  logfile_dumped: "<prefix><#55ffa4>Le fichier de log a été exporté vers : <uri></#55ffa4>"
+  logfile_mclog_error: "<prefix><#f9f178>Échec du téléversement du fichier de log vers mclo.gs, tentative d'utilisation de pastebin</#f9f178>"
+  logfile_pastebin_error: "<prefix><#f9f178>Échec de l'utilisation de la solution de secours avec pastebin</#f9f178>"
+  updating_user_items: "<prefix><#529ced>Mise à jour de tous les items dans les inventaires des joueurs...</#529ced>"
+  updating_placed_furnitures: "<prefix><#529ced>Mise à jour de tous les meubles placés...</#529ced>"
+  invalid_blocklocker_protection_type: "<prefix><#e73f34>Type de protection invalide pour la mécanique BlockLocker dans l'item <item></#e73f34>"
+  mmoitems:
+    not_installed: "<prefix><#e73f34>MMOItems n'est pas installé</#e73f34>"
+    loading_item_failed: "<prefix><#e73f34>Échec du chargement de l'item MMOItem <item></#e73f34>"
+    missing_template: "<prefix><#e73f34>Le modèle n'existe pas</#e73f34>"
+    missing_item: "<prefix><#e73f34>L'item n'existe pas</#e73f34>"
+    missing_plugin: "<prefix><#e73f34>MMOItems n'est pas installé</#e73f34>"
+  mythiccrucible:
+    loading_item_failed: "<prefix><#e73f34>Échec du chargement de l'item MythicCrucible <item></#e73f34>"
+    missing_plugin: "<prefix><#e73f34>MythicCrucible n'est pas installé</#e73f34>"
 
 command:
   help: "<prefix><#b8bbc2>Commandes disponibles

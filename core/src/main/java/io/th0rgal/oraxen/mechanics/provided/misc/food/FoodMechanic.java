@@ -3,10 +3,13 @@ package io.th0rgal.oraxen.mechanics.provided.misc.food;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.provided.ecoitems.WrappedEcoItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
+import io.th0rgal.oraxen.config.Message;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.PotionUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
+
 import net.Indyuce.mmoitems.MMOItems;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Material;
@@ -35,21 +38,25 @@ public class FoodMechanic extends Mechanic {
         saturation = section.getInt("saturation");
         effectProbability = Math.min(section.getDouble("effect_probability", 1.0), 1.0);
 
-        // This must be initialized in OraxenItemsLoadedEvent due to OraxenItems not being loaded yet
+        // This must be initialized in OraxenItemsLoadedEvent due to OraxenItems not
+        // being loaded yet
         replacementItem = section.isConfigurationSection("replacement") ? new ItemStack(Material.AIR) : null;
 
         ConfigurationSection effectsSection = section.getConfigurationSection("effects");
-        if (effectsSection != null) for (String effect : effectsSection.getKeys(false)) {
-            ConfigurationSection effectSection = effectsSection.getConfigurationSection(effect);
-            if (effectSection != null) registerEffects(effectSection);
-        }
+        if (effectsSection != null)
+            for (String effect : effectsSection.getKeys(false)) {
+                ConfigurationSection effectSection = effectsSection.getConfigurationSection(effect);
+                if (effectSection != null)
+                    registerEffects(effectSection);
+            }
     }
 
     private void registerEffects(ConfigurationSection section) {
         String type = section.getName().toLowerCase(Locale.ROOT);
         PotionEffectType effectType = PotionUtils.getEffectType(type);
         if (effectType == null) {
-            Logs.logError("Invalid potion effect: " + section.getName() + ", in " + StringUtils.substringBefore(section.getCurrentPath(), ".") + "!");
+            Logs.logError("Invalid potion effect: " + section.getName() + ", in "
+                    + StringUtils.substringBefore(section.getCurrentPath(), ".") + "!");
             return;
         }
 
@@ -65,18 +72,22 @@ public class FoodMechanic extends Mechanic {
         if (section.isString("minecraft_type")) {
             Material material = Material.getMaterial(Objects.requireNonNull(section.getString("minecraft_type")));
             if (material == null) {
-                Logs.logError("Invalid material: " + section.getString("minecraft_type"));
+                Message.INVALID_MATERIAL
+                        .log(AdventureUtils.tagResolver("minecraft_type", section.getString("minecraft_type")));
                 replacementItem = null;
-            } else replacementItem = new ItemStack(material);
+            } else
+                replacementItem = new ItemStack(material);
         } else if (section.isString("oraxen_item"))
             replacementItem = OraxenItems.getItemById(section.getString("oraxen_item")).build();
         else if (section.isString("crucible_item"))
             replacementItem = new WrappedCrucibleItem(section.getString("crucible_item")).build();
         else if (section.isString("mmoitems_id") && section.isString("mmoitems_type"))
-            replacementItem = MMOItems.plugin.getItem(section.getString("mmoitems_type"), section.getString("mmoitems_id"));
+            replacementItem = MMOItems.plugin.getItem(section.getString("mmoitems_type"),
+                    section.getString("mmoitems_id"));
         else if (section.isString("ecoitem_id"))
             replacementItem = new WrappedEcoItem(section.getString("ecoitem_id")).build();
-        else replacementItem = null;
+        else
+            replacementItem = null;
     }
 
     public int getHunger() {

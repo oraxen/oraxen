@@ -28,10 +28,36 @@ general:
   datapack_generated: "<prefix><#55ffa4>Datapack wurde erfolgreich generiert"
 
 logs:
+  # Log prefix colors:
+  # Info messages: <prefix><#529ced>message</#529ced>
+  # Success messages: <prefix><#55ffa4>message</#55ffa4>
+  # Error messages: <prefix><#e73f34>message</#e73f34>
+  # Warning messages: <prefix><#f9f178>message</#f9f178>
+
   loaded: "<prefix><#55ffa4>Erfolgreich geladen auf <os>"
   unloaded: "<prefix><#55ffa4>Erfolgreich entladen"
   no_armor_item: "<prefix><#fa4943>Gegenstand <name> nicht gefunden. Kann <armor_layer_file> nicht verwenden"
   duplicate_armor_color: "<prefix><#fa4943><first_armor_prefix> Rüstungssatz verwendet dieselbe Farbe wie <second_armor_prefix> mit einer anderen Textur"
+  datapack_generated: "<prefix><#facc43>Datapack wurde generiert. Ein Serverneustart ist erforderlich, damit diese Funktion funktioniert."
+  missing_protocollib: "<prefix><#f9f178>ProtocolLib ist nicht auf Ihrem Server installiert, einige Funktionen werden nicht funktionieren</#f9f178>"
+  invalid_material: "<prefix><#e73f34>Ungültiges Material: <minecraft_type></#e73f34>"
+  io_error_add_pack_file: "<prefix><#e73f34>Datei <file> konnte nicht zum Ressourcenpaket hinzugefügt werden</#e73f34>"
+  missing_logs: "<prefix><#e73f34>Konnte latest.log nicht lesen, fehlt sie?</#e73f34>"
+  logfile_dumped: "<prefix><#55ffa4>Logdatei wurde exportiert nach: <uri></#55ffa4>"
+  logfile_mclog_error: "<prefix><#f9f178>Fehler beim Hochladen der Logdatei zu mclo.gs, versuche pastebin zu verwenden</#f9f178>"
+  logfile_pastebin_error: "<prefix><#f9f178>Fehler bei der Verwendung der Backup-Lösung mit pastebin</#f9f178>"
+  updating_user_items: "<prefix><#529ced>Aktualisiere alle Items in Spieler-Inventaren...</#529ced>"
+  updating_placed_furnitures: "<prefix><#529ced>Aktualisiere alle platzierten Möbel...</#529ced>"
+  invalid_blocklocker_protection_type: "<prefix><#e73f34>Ungültiger Schutztyp für BlockLocker-Mechanik in Item <item></#e73f34>"
+  mmoitems:
+    not_installed: "<prefix><#e73f34>MMOItems ist nicht installiert</#e73f34>"
+    loading_item_failed: "<prefix><#e73f34>Fehler beim Laden von MMOItem <item></#e73f34>"
+    missing_template: "<prefix><#e73f34>Vorlage existiert nicht</#e73f34>"
+    missing_item: "<prefix><#e73f34>Item existiert nicht</#e73f34>"
+    missing_plugin: "<prefix><#e73f34>MMOItems ist nicht installiert</#e73f34>"
+  mythiccrucible:
+    loading_item_failed: "<prefix><#e73f34>Fehler beim Laden von MythicCrucible Item <item></#e73f34>"
+    missing_plugin: "<prefix><#e73f34>MythicCrucible ist nicht installiert</#e73f34>"
 
 command:
   help: "<prefix><#b8bbc2>Available commands

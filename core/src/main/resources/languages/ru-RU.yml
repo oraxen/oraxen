@@ -28,10 +28,36 @@ general:
   datapack_generated: "<prefix><#55ffa4>Датапак успешно сгенерирован"
 
 logs:
+  # Log prefix colors:
+  # Info messages: <prefix><#529ced>message</#529ced>
+  # Success messages: <prefix><#55ffa4>message</#55ffa4>
+  # Error messages: <prefix><#e73f34>message</#e73f34>
+  # Warning messages: <prefix><#f9f178>message</#f9f178>
+
   loaded: "<prefix><#55ffa4>Успешно загружено на <os>"
   unloaded: "<prefix><#55ffa4>Успешно выгружено"
   no_armor_item: "<prefix><#fa4943>Не найден предмет, соответствующий <name>. Невозможно использовать <armor_layer_file>"
   duplicate_armor_color: "<prefix><#fa4943>Комплект брони <first_armor_prefix> использует тот же цвет, что и <second_armor_prefix> с другой текстурой"
+  datapack_generated: "<prefix><#facc43>Датапак сгенерирован. Требуется перезапуск сервера для работы этой функции."
+  missing_protocollib: "<prefix><#f9f178>ProtocolLib не установлен на вашем сервере, некоторые функции не будут работать</#f9f178>"
+  invalid_material: "<prefix><#e73f34>Недопустимый материал: <minecraft_type></#e73f34>"
+  io_error_add_pack_file: "<prefix><#e73f34>Не удалось добавить файл <file> в ресурспак</#e73f34>"
+  missing_logs: "<prefix><#e73f34>Не удалось ��рочитать latest.log, файл отсутствует?</#e73f34>"
+  logfile_dumped: "<prefix><#55ffa4>Лог-файл сохранен в: <uri></#55ffa4>"
+  logfile_mclog_error: "<prefix><#f9f178>Не удалось загрузить лог-файл на mclo.gs, пробуем использовать pastebin</#f9f178>"
+  logfile_pastebin_error: "<prefix><#f9f178>Не удалось использовать резервное решение с pastebin</#f9f178>"
+  updating_user_items: "<prefix><#529ced>Обновление всех предметов в инвентарях игроков...</#529ced>"
+  updating_placed_furnitures: "<prefix><#529ced>Обновление всей размещенной мебели...</#529ced>"
+  invalid_blocklocker_protection_type: "<prefix><#e73f34>Недопустимый тип защиты для механики BlockLocker в предмете <item></#e73f34>"
+  mmoitems:
+    not_installed: "<prefix><#e73f34>MMOItems не установлен</#e73f34>"
+    loading_item_failed: "<prefix><#e73f34>Не удалось загрузить MMOItem <item></#e73f34>"
+    missing_template: "<prefix><#e73f34>Шаблон не существует</#e73f34>"
+    missing_item: "<prefix><#e73f34>Предмет не существует</#e73f34>"
+    missing_plugin: "<prefix><#e73f34>MMOItems не установлен</#e73f34>"
+  mythiccrucible:
+    loading_item_failed: "<prefix><#e73f34>Не удалось загрузить предмет MythicCrucible <item></#e73f34>"
+    missing_plugin: "<prefix><#e73f34>MythicCrucible не установлен</#e73f34>"
 
 command:
   help: "<prefix><#b8bbc2>Доступные команды
@@ -44,7 +70,7 @@ command:
     \n<hover:show_text:\"<gray>fill repair command\"><click:SUGGEST_COMMAND:/oraxen repair ><#6f737d>/o
     <#b8bbc2>repair <#fa8943>тип</click></hover>  <#6f737d>»<#b8bbc2> отремонтировать один или все ваши предметы
     \n<hover:show_text:\"<gray>fill give command\"><click:SUGGEST_COMMAND:/oraxen give ><#6f737d>/o
-    <#b8bbc2>give <#43c9fa>цель <#fa4362>предмет <#43fa8c>количество</click></hover>  <#6f737d>»<#b8bbc2> получить предмет oraxen
+    <#b8bbc2>give <#43c9fa>ц��ль <#fa4362>предмет <#43fa8c>количество</click></hover>  <#6f737d>»<#b8bbc2> получить предмет oraxen
     \n<hover:show_text:\"<gray>fill recipes show command\"><click:SUGGEST_COMMAND:/oraxen recipes show ><#6f737d>/o
     <#b8bbc2>recipes show <#fa8943>тип</click></hover>  <#6f737d>»<#b8bbc2> показать рецепты
     \n<hover:show_text:\"<gray>fill recipes builder command\"><click:SUGGEST_COMMAND:/oraxen recipes builder ><#6f737d>/o
