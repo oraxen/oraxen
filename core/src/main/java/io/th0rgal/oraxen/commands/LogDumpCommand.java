@@ -9,6 +9,8 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.LU;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import io.th0rgal.oraxen.config.Message;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.BufferedReader;
@@ -30,31 +32,35 @@ public class LogDumpCommand {
                     String logfile;
 
                     try {
-                        Path path = OraxenPlugin.get().getDataFolder().getAbsoluteFile().getParentFile().getParentFile().toPath().resolve("logs/latest.log");
+                        Path path = OraxenPlugin.get().getDataFolder().getAbsoluteFile().getParentFile().getParentFile()
+                                .toPath().resolve("logs/latest.log");
                         logfile = Files.readString(path).replaceAll(packUrl, "[REDACTED]");
                         logfile += "\n\n" + new LU().hr();
-                        if (VersionUtil.isLeaked()) logfile = logfile + "\n\nThis server is running a leaked version of Oraxen";
+                        if (VersionUtil.isLeaked())
+                            logfile = logfile + "\n\nThis server is running a leaked version of Oraxen";
                     } catch (Exception e) {
-                        Logs.logError("Failed to read latest.log, is it missing?");
-                        if (Settings.DEBUG.toBool()) e.printStackTrace();
+                        Message.MISSING_LOGS.log();
+                        if (Settings.DEBUG.toBool())
+                            e.printStackTrace();
                         return;
                     }
 
                     try {
                         APIResponse post = MclogsAPI.share(new Log(logfile));
-                        Logs.logSuccess("Logfile has been dumped to: " + post.url);
+                        Message.LOGFILE_DUMPED.log(AdventureUtils.tagResolver("uri", post.url));
                     } catch (IOException e) {
-                        Logs.logWarning("Failed to upload logfile to mclo.gs, attempting to using pastebin - s");
-                        if (Settings.DEBUG.toBool()) e.printStackTrace();
+                        Message.LOGFILE_MCLOG_ERROR.log();
+                        if (Settings.DEBUG.toBool())
+                            e.printStackTrace();
                         try {
-                            Logs.logSuccess("Logfile has been dumped to: " + postToPasteBin(logfile));
+                            Message.LOGFILE_DUMPED.log(AdventureUtils.tagResolver("uri", postToPasteBin(logfile)));
                         } catch (IOException ex) {
-                            Logs.logError("Failed to use backup solution with pastebin");
-                            if (Settings.DEBUG.toBool()) e.printStackTrace();
+                            Message.LOGFILE_PASTEBIN_ERROR.log();
+                            if (Settings.DEBUG.toBool())
+                                e.printStackTrace();
                         }
                     }
                 });
-
 
     }
 
@@ -84,11 +90,15 @@ public class LogDumpCommand {
             response = reader.readLine();
         } catch (IOException e) {
             Logs.logWarning("Failed to read hastebin result");
-            if (Settings.DEBUG.toBool()) e.printStackTrace();
+            if (Settings.DEBUG.toBool())
+                e.printStackTrace();
         } finally {
-            if (inputReader != null) inputReader.close();
-            if (wr != null) wr.close();
-            if (reader != null) reader.close();
+            if (inputReader != null)
+                inputReader.close();
+            if (wr != null)
+                wr.close();
+            if (reader != null)
+                reader.close();
         }
 
         if (response != null && response.contains("key")) {

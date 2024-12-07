@@ -38,7 +38,8 @@ public class AtlasGenerator {
         }
 
         public boolean in(Collection<TexturePath> texturePaths) {
-            return texturePaths.stream().anyMatch(texturePath -> namespace.equals(texturePath.namespace) && path.equals(texturePath.path));
+            return texturePaths.stream()
+                    .anyMatch(texturePath -> namespace.equals(texturePath.namespace) && path.equals(texturePath.path));
         }
     }
 
@@ -50,28 +51,34 @@ public class AtlasGenerator {
         JsonObject atlas = new JsonObject();
         JsonArray atlasContent = new JsonArray();
         LinkedHashMap<VirtualFile, TexturePath> textureSubFolders = new LinkedHashMap<>();
-        for (VirtualFile v : output.stream().filter(v ->
-                v.getPath().split("/").length > 3
-                        && v.getPath().split("/")[2].equals("textures")
-                        && v.getPath().endsWith(".png")
-                        && !v.getPath().endsWith("_layer_1.png")
-                        && !v.getPath().endsWith("_layer_2.png")
-                        && PackSlicer.INPUTS.stream().noneMatch(input -> v.getPath().endsWith(input.path))
-                        && PackSlicer.OUTPUT_PATHS.stream().noneMatch(outPath -> v.getPath().endsWith(outPath))
-        ).sorted().collect(Collectors.toCollection(LinkedHashSet::new))) {
-            textureSubFolders.put(v, new TexturePath(StringUtils.substringBetween(v.getPath(), "assets/", "/textures"), StringUtils.substringAfter(v.getPath(), "textures/")));
+        for (VirtualFile v : output.stream().filter(v -> v.getPath().split("/").length > 3
+                && v.getPath().split("/")[2].equals("textures")
+                && v.getPath().endsWith(".png")
+                && !v.getPath().endsWith("_layer_1.png")
+                && !v.getPath().endsWith("_layer_2.png")
+                && PackSlicer.INPUTS.stream().noneMatch(input -> v.getPath().endsWith(input.path))
+                && PackSlicer.OUTPUT_PATHS.stream().noneMatch(outPath -> v.getPath().endsWith(outPath))).sorted()
+                .collect(Collectors.toCollection(LinkedHashSet::new))) {
+            textureSubFolders.put(v, new TexturePath(StringUtils.substringBetween(v.getPath(), "assets/", "/textures"),
+                    StringUtils.substringAfter(v.getPath(), "textures/")));
         }
 
         Set<TexturePath> itemTextures = new HashSet<>();
-        OraxenItems.getItems().stream().filter(builder -> builder.hasOraxenMeta() && builder.getOraxenMeta().hasLayers())
-                .forEach(builder -> itemTextures.addAll(builder.getOraxenMeta().getLayers().stream().map(TexturePath::new).toList()));
+        OraxenItems.getItems().stream()
+                .filter(builder -> builder.hasOraxenMeta() && builder.getOraxenMeta().hasLayers())
+                .forEach(builder -> itemTextures
+                        .addAll(builder.getOraxenMeta().getLayers().stream().map(TexturePath::new).toList()));
 
         Set<TexturePath> fontTextures = new LinkedHashSet<>();
-        Set<JsonObject> fonts = output.stream().filter(v -> v.getPath().matches("assets/.*/font/.*.json") && v.isJsonObject()).map(VirtualFile::toJsonObject).collect(Collectors.toSet());
+        Set<JsonObject> fonts = output.stream()
+                .filter(v -> v.getPath().matches("assets/.*/font/.*.json") && v.isJsonObject())
+                .map(VirtualFile::toJsonObject).collect(Collectors.toSet());
         for (JsonObject font : fonts) {
-            if (font == null || !font.has("providers")) continue;
+            if (font == null || !font.has("providers"))
+                continue;
             for (JsonElement providerElement : font.getAsJsonArray("providers")) {
-                if (!providerElement.isJsonObject()) continue;
+                if (!providerElement.isJsonObject())
+                    continue;
                 JsonObject provider = providerElement.getAsJsonObject();
                 if (provider.has("file")) {
                     fontTextures.add(new TexturePath(provider.get("file").getAsString()));
@@ -84,11 +91,13 @@ public class AtlasGenerator {
 
             // If a texture is for a font, do not add it to atlas, unless an item uses it
             // Default example is required/exit_icon.png
-            if (texturePath.in(fontTextures) && !texturePath.in(itemTextures)) continue;
+            if (texturePath.in(fontTextures) && !texturePath.in(itemTextures))
+                continue;
 
             JsonObject atlasEntry = new JsonObject();
             String malformPathCheck = "assets/" + texturePath.namespace + "/textures/" + texturePath.path + ".png";
-            if (Settings.EXCLUDE_MALFORMED_ATLAS.toBool() && malformedTextures.stream().anyMatch(malformPathCheck::startsWith)) {
+            if (Settings.EXCLUDE_MALFORMED_ATLAS.toBool()
+                    && malformedTextures.stream().anyMatch(malformPathCheck::startsWith)) {
                 Logs.logWarning("Excluding malformed texture from atlas-file: <gold>" + malformPathCheck);
                 continue;
             }
@@ -111,13 +120,14 @@ public class AtlasGenerator {
         removeChildEntriesInDirectoryAtlas(atlasContent);
 
         atlas.add("sources", atlasContent);
-        VirtualFile atlasFile = new VirtualFile("assets/minecraft/atlases", "blocks.json", new ByteArrayInputStream(atlas.toString().getBytes(StandardCharsets.UTF_8)));
+        VirtualFile atlasFile = new VirtualFile("assets/minecraft/atlases", "blocks.json",
+                new ByteArrayInputStream(atlas.toString().getBytes(StandardCharsets.UTF_8)));
         output.removeIf(v -> v.getPath().equals(atlasFile.getPath()));
         output.add(atlasFile);
-        Logs.newline();
     }
 
-    // If atlas contains entry for "parent"-source, remove following child-directory-entries like "parent/child"
+    // If atlas contains entry for "parent"-source, remove following
+    // child-directory-entries like "parent/child"
     private static void removeChildEntriesInDirectoryAtlas(JsonArray atlasContent) {
         if (Settings.ATLAS_GENERATION_TYPE.toString().equals("DIRECTORY")) {
             Set<JsonElement> remove = new HashSet<>();

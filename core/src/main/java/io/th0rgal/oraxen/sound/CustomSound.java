@@ -49,7 +49,12 @@ public class CustomSound {
 
         // Parse category
         String categoryStr = config.getString("category");
-        this.category = categoryStr != null ? SoundCategory.valueOf(categoryStr.toUpperCase(Locale.ROOT))
+        // TODO: Remove RECORD support as it was deprecated since 1.183.0
+        // fix "No enum constant org.bukkit.SoundCategory.RECORD" for old configs
+        // (1.183.0 or older),
+        this.category = categoryStr != null
+                ? categoryStr.toUpperCase(Locale.ROOT).equals("RECORD") ? SoundCategory.RECORDS
+                        : SoundCategory.valueOf(categoryStr.toUpperCase(Locale.ROOT))
                 : SoundCategory.MASTER;
 
         this.subtitle = config.getString("subtitle");

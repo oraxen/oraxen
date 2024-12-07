@@ -105,7 +105,7 @@ allprojects {
         implementation("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
         implementation("org.bstats:bstats-bukkit:3.0.0")
         implementation("org.glassfish:javax.json:1.1.4")
-        implementation("io.th0rgal:protectionlib:1.7.0")
+        implementation("io.th0rgal:protectionlib:1.8.0")
         implementation("com.github.stefvanschie.inventoryframework:IF:0.10.12")
         implementation("com.jeff-media:custom-block-data:2.2.2")
         implementation("com.jeff-media:MorePersistentDataTypes:2.4.0")
@@ -196,7 +196,7 @@ bukkit {
     version = pluginVersion
     name = "Oraxen"
     apiVersion = "1.18"
-    authors = listOf("th0rgal", "boy0000")
+    authors = listOf("th0rgal", "https://github.com/oraxen/oraxen/blob/master/CONTRIBUTORS.md")
     softDepend = listOf(
         "ProtocolLib",
         "LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "MythicMobs", "BossShopPro",

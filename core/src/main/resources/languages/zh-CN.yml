@@ -28,10 +28,36 @@ general:
   datapack_generated: "<prefix><#55ffa4>数据包生成成功"
 
 logs:
+  # Log prefix colors:
+  # Info messages: <prefix><#529ced>message</#529ced>
+  # Success messages: <prefix><#55ffa4>message</#55ffa4>
+  # Error messages: <prefix><#e73f34>message</#e73f34>
+  # Warning messages: <prefix><#f9f178>message</#f9f178>
+
   loaded: "<prefix><#55ffa4>已成功在 <os> 载入"
   unloaded: "<prefix><#55ffa4>插件已成功禁用"
   no_armor_item: "<prefix><#fa4943>没有找到名叫 <name> 的物品。无法使用 <armor_layer_file>"
   duplicate_armor_color: "<prefix><#fa4943><first_armor_prefix> 盔甲使用与 <second_armor_prefix> 相同的颜色，但材质不同。"
+  datapack_generated: "<prefix><#facc43>数据包已生成。需要重启服务器才能使此功能生效。"
+  missing_protocollib: "<prefix><#f9f178>您的服务器上没有安装 ProtocolLib，某些功能将无法使用</#f9f178>"
+  invalid_material: "<prefix><#e73f34>无效的材质：<minecraft_type></#e73f34>"
+  io_error_add_pack_file: "<prefix><#e73f34>无法将文件 <file> 添加到资源包</#e73f34>"
+  missing_logs: "<prefix><#e73f34>无法读取 latest.log，是否丢失？</#e73f34>"
+  logfile_dumped: "<prefix><#55ffa4>日志文件已导出至：<uri></#55ffa4>"
+  logfile_mclog_error: "<prefix><#f9f178>无法上传日志文件到 mclo.gs，尝试使用 pastebin</#f9f178>"
+  logfile_pastebin_error: "<prefix><#f9f178>使用备用方案 pastebin 失败</#f9f178>"
+  updating_user_items: "<prefix><#529ced>正在更新玩家背包中的所有物品...</#529ced>"
+  updating_placed_furnitures: "<prefix><#529ced>正在更新所有已放置的家具...</#529ced>"
+  invalid_blocklocker_protection_type: "<prefix><#e73f34>物品 <item> 的 BlockLocker 机制保护类型无效</#e73f34>"
+  mmoitems:
+    not_installed: "<prefix><#e73f34>未安装 MMOItems</#e73f34>"
+    loading_item_failed: "<prefix><#e73f34>加载 MMOItem <item> 失败</#e73f34>"
+    missing_template: "<prefix><#e73f34>模板不存在</#e73f34>"
+    missing_item: "<prefix><#e73f34>物品不存在</#e73f34>"
+    missing_plugin: "<prefix><#e73f34>未安装 MMOItems</#e73f34>"
+  mythiccrucible:
+    loading_item_failed: "<prefix><#e73f34>加载 MythicCrucible 物品 <item> 失败</#e73f34>"
+    missing_plugin: "<prefix><#e73f34>未安装 MythicCrucible</#e73f34>"
 
 command:
   help: "<prefix><#b8bbc2>可用指令

@@ -6,7 +6,7 @@
 
 > Developers who have contributed to the source code
 
-* [Boy0000](https://github.com/Boy0000): Main maintainer of plugin, responsible for adding several mechanics, fixing bugs, and improving the code quality.
+* [Boy0000](https://github.com/Boy0000): Maintained the plugin until end of 2024, responsible for adding several mechanics, fixing bugs, and improving the code quality.
 * [AntoineJT](https://github.com/AntoineJT): made great refactors.
 * [yzl210](https://github.com/yzl210): active contributor, introduced mythicmobs support, shapeless+furnace recipes and
   much more
