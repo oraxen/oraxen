@@ -234,8 +234,6 @@ public class ItemParser {
                         return;
                     if (oraxenMeta.getCustomModelData() != null)
                         return;
-                    Optional.ofNullable(components.getString("item_model")).map(NamespacedKey::fromString)
-                            .ifPresent(item::setItemModel);
                 });
 
         if (components.contains("enchantable"))
