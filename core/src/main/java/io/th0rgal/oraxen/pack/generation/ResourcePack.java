@@ -89,7 +89,15 @@ public class ResourcePack {
         extractInPackIfNotExists(new File(packFolder, "pack.png"));
 
         // Sorting items to keep only one with models (and generate it if needed)
-        generatePredicates(extractTexturedItems());
+        final Map<Material, Map<String, ItemBuilder>> texturedItems = extractTexturedItems();
+
+        // after 1.21.4, a model definition is created for each textured item
+        if (VersionUtil.atOrAbove("1.21.4")) {
+            generateModelDefinitions(texturedItems);
+        } else {
+            generatePredicates(texturedItems);
+        }
+
         generateFont();
         if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool())
             hideScoreboardNumbers();
@@ -358,9 +366,10 @@ public class ResourcePack {
         resourcesManager.extractFileIfTrue(entry, isSuitable);
     }
 
-    private Map<Material, List<ItemBuilder>> extractTexturedItems() {
-        final Map<Material, List<ItemBuilder>> texturedItems = new HashMap<>();
+    private Map<Material, Map<String, ItemBuilder>> extractTexturedItems() {
+        final Map<Material, Map<String, ItemBuilder>> texturedItems = new HashMap<>();
         for (final Map.Entry<String, ItemBuilder> entry : OraxenItems.getEntries()) {
+            final String itemId = entry.getKey();
             final ItemBuilder item = entry.getValue();
             OraxenMeta oraxenMeta = item.getOraxenMeta();
             if (item.hasOraxenMeta() && oraxenMeta.hasPackInfos()) {
@@ -369,26 +378,36 @@ public class ResourcePack {
                 if (oraxenMeta.shouldGenerateModel()) {
                     writeStringToVirtual(modelPath, modelName, new ModelGenerator(oraxenMeta).getJson().toString());
                 }
-                final List<ItemBuilder> items = texturedItems.getOrDefault(item.build().getType(), new ArrayList<>());
-                // todo: could be improved by using
-                // items.get(i).getOraxenMeta().getCustomModelData() when
-                // items.add(customModelData, item) with catch when not possible
-                if (items.isEmpty())
-                    items.add(item);
-                else
-                    // for some reason those breaks are needed to avoid some nasty "memory leak"
-                    for (int i = 0; i < items.size(); i++) {
-                        Integer cmd = Optional.ofNullable(items.get(i).getOraxenMeta().getCustomModelData()).orElse(0);
-                        Integer cmd2 = Optional.ofNullable(oraxenMeta.getCustomModelData()).orElse(0);
-                        if (cmd > cmd2) {
-                            items.add(i, item);
-                            break;
-                        } else if (i == items.size() - 1) {
-                            items.add(item);
-                            break;
-                        }
+                final Map<String, ItemBuilder> items = texturedItems.computeIfAbsent(item.build().getType(),
+                        k -> new LinkedHashMap<>());
+
+                // Insert in order of CustomModelData
+                List<Map.Entry<String, ItemBuilder>> sortedItems = new ArrayList<>(items.entrySet());
+                int insertIndex = 0;
+                Integer newCmd = Optional.ofNullable(oraxenMeta.getCustomModelData()).orElse(0);
+
+                for (Map.Entry<String, ItemBuilder> existingEntry : sortedItems) {
+                    Integer existingCmd = Optional
+                            .ofNullable(existingEntry.getValue().getOraxenMeta().getCustomModelData()).orElse(0);
+                    if (existingCmd > newCmd)
+                        break;
+                    insertIndex++;
+                }
+
+                // Rebuild map in correct order
+                Map<String, ItemBuilder> newItems = new LinkedHashMap<>();
+                for (int i = 0; i < sortedItems.size(); i++) {
+                    if (i == insertIndex) {
+                        newItems.put(itemId, item);
                     }
-                texturedItems.put(item.build().getType(), items);
+                    Map.Entry<String, ItemBuilder> existingEntry = sortedItems.get(i);
+                    newItems.put(existingEntry.getKey(), existingEntry.getValue());
+                }
+                if (insertIndex >= sortedItems.size()) {
+                    newItems.put(itemId, item);
+                }
+
+                texturedItems.put(item.build().getType(), newItems);
             }
         }
         return texturedItems;
@@ -423,15 +442,30 @@ public class ResourcePack {
                 folder.mkdirs();
     }
 
-    private void generatePredicates(final Map<Material, List<ItemBuilder>> texturedItems) {
-        for (final Map.Entry<Material, List<ItemBuilder>> texturedItemsEntry : texturedItems.entrySet()) {
+    private void generatePredicates(final Map<Material, Map<String, ItemBuilder>> texturedItems) {
+        for (final Map.Entry<Material, Map<String, ItemBuilder>> texturedItemsEntry : texturedItems.entrySet()) {
             final Material entryMaterial = texturedItemsEntry.getKey();
             final PredicatesGenerator predicatesGenerator = new PredicatesGenerator(entryMaterial,
-                    texturedItemsEntry.getValue());
+                    new ArrayList<>(texturedItemsEntry.getValue().values()));
             final String[] vanillaModelPath = (predicatesGenerator.getVanillaModelName(entryMaterial) + ".json")
                     .split("/");
             writeStringToVirtual("assets/minecraft/models/" + vanillaModelPath[0], vanillaModelPath[1],
                     predicatesGenerator.toJSON().toString());
+        }
+    }
+
+    private void generateModelDefinitions(final Map<Material, Map<String, ItemBuilder>> texturedItems) {
+        for (final Map.Entry<Material, Map<String, ItemBuilder>> materialEntry : texturedItems.entrySet()) {
+            for (final Map.Entry<String, ItemBuilder> entry : materialEntry.getValue().entrySet()) {
+                String itemId = entry.getKey();
+                ItemBuilder texturedItem = entry.getValue();
+                OraxenMeta oraxenMeta = texturedItem.getOraxenMeta();
+                if (oraxenMeta.hasPackInfos()) {
+                    final ModelDefinitionGenerator modelDefinitionGenerator = new ModelDefinitionGenerator(oraxenMeta);
+                    writeStringToVirtual("assets/oraxen/items/", itemId + ".json",
+                            modelDefinitionGenerator.toJSON().toString());
+                }
+            }
         }
     }
 

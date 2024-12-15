@@ -776,6 +776,8 @@ public class ItemBuilder {
                 itemMeta.setUseCooldown(useCooldownComponent);
             if (hasDamageResistant())
                 itemMeta.setDamageResistant(damageResistant);
+            if (hasItemModel())
+                itemMeta.setItemModel(itemModel);
             if (hasTooltipStyle())
                 itemMeta.setTooltipStyle(tooltipStyle);
             if (hasUseRemainder())

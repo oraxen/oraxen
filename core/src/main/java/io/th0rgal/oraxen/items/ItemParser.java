@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.items;
 
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.provided.ecoitems.WrappedEcoItem;
 import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
@@ -227,15 +228,8 @@ public class ItemParser {
 
         Optional.ofNullable(components.getString("tooltip_style")).map(NamespacedKey::fromString)
                 .ifPresent(item::setTooltipStyle);
-
         Optional.ofNullable(components.getString("item_model")).map(NamespacedKey::fromString)
-                .ifPresentOrElse(item::setItemModel, () -> {
-                    if (oraxenMeta == null || !oraxenMeta.hasPackInfos())
-                        return;
-                    if (oraxenMeta.getCustomModelData() != null)
-                        return;
-                });
-
+                .ifPresent(item::setItemModel);
         if (components.contains("enchantable"))
             item.setEnchantable(components.getInt("enchantable"));
         if (components.contains("glider"))
@@ -484,7 +478,15 @@ public class ItemParser {
                 }
             }
 
-        if (oraxenMeta.hasPackInfos()) {
+        // starting from 1.21.4, we no longer use Custom Model Data to set the item
+        // appearance
+        if (oraxenMeta.hasPackInfos() && VersionUtil.atOrAbove("1.21.4")) {
+            // if there is not an item model component overriding it, we set its value
+            // to the automatically created item model definition
+            if (!item.hasItemModel()) {
+                item.setItemModel(new NamespacedKey(OraxenPlugin.get(), section.getName()));
+            }
+        } else {
             Integer customModelData;
             if (MODEL_DATAS_BY_ID.containsKey(section.getName())) {
                 customModelData = MODEL_DATAS_BY_ID.get(section.getName()).getModelData();
