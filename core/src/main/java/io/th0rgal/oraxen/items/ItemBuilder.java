@@ -9,6 +9,7 @@ import io.th0rgal.oraxen.compatibilities.provided.ecoitems.WrappedEcoItem;
 import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.nms.NMSHandler;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.*;
 import net.kyori.adventure.key.Key;
@@ -67,7 +68,8 @@ public class ItemBuilder {
     private Set<ItemFlag> itemFlags;
     private boolean hasAttributeModifiers;
     private Multimap<Attribute, AttributeModifier> attributeModifiers;
-    @Nullable private Integer customModelData;
+    @Nullable
+    private Integer customModelData;
     private List<String> lore;
     private ItemStack finalItemStack;
 
@@ -117,7 +119,6 @@ public class ItemBuilder {
     @Nullable
     private Integer enchantable;
 
-
     public ItemBuilder(final Material material) {
         this(new ItemStack(material));
     }
@@ -158,7 +159,8 @@ public class ItemBuilder {
             color = mapMeta.getColor();
 
         if (itemMeta instanceof FireworkEffectMeta effectMeta)
-            color = effectMeta.hasEffect() ? Utils.getOrDefault(effectMeta.getEffect().getColors(), 0, Color.WHITE) : Color.WHITE;
+            color = effectMeta.hasEffect() ? Utils.getOrDefault(effectMeta.getEffect().getColors(), 0, Color.WHITE)
+                    : Color.WHITE;
 
         if (VersionUtil.atOrAbove("1.20") && itemMeta instanceof ArmorMeta armorMeta && armorMeta.hasTrim())
             trimPattern = armorMeta.getTrim().getMaterial().key();
@@ -173,8 +175,10 @@ public class ItemBuilder {
         }
 
         if (itemMeta.hasDisplayName()) {
-            if (VersionUtil.isPaperServer()) displayName = AdventureUtils.MINI_MESSAGE.serialize(itemMeta.displayName());
-            else displayName = itemMeta.getDisplayName();
+            if (VersionUtil.isPaperServer())
+                displayName = AdventureUtils.MINI_MESSAGE.serialize(itemMeta.displayName());
+            else
+                displayName = itemMeta.getDisplayName();
         }
 
         unbreakable = itemMeta.isUnbreakable();
@@ -187,12 +191,13 @@ public class ItemBuilder {
         if (hasAttributeModifiers)
             attributeModifiers = itemMeta.getAttributeModifiers();
 
-
         customModelData = itemMeta.hasCustomModelData() ? itemMeta.getCustomModelData() : null;
 
         if (itemMeta.hasLore()) {
-            if (VersionUtil.isPaperServer()) lore = itemMeta.lore().stream().map(AdventureUtils.MINI_MESSAGE::serialize).toList();
-            else lore = itemMeta.getLore();
+            if (VersionUtil.isPaperServer())
+                lore = itemMeta.lore().stream().map(AdventureUtils.MINI_MESSAGE::serialize).toList();
+            else
+                lore = itemMeta.getLore();
         }
 
         persistentDataContainer = itemMeta.getPersistentDataContainer();
@@ -203,18 +208,24 @@ public class ItemBuilder {
             if (itemMeta.hasItemName()) {
                 if (VersionUtil.isPaperServer())
                     itemName = AdventureUtils.MINI_MESSAGE.serialize(itemMeta.itemName());
-                else itemName = itemMeta.getItemName();
-            } else itemName = null;
+                else
+                    itemName = itemMeta.getItemName();
+            } else
+                itemName = null;
 
-            durability = (itemMeta instanceof Damageable damageable) && damageable.hasMaxDamage() ? damageable.getMaxDamage() : null;
+            durability = (itemMeta instanceof Damageable damageable) && damageable.hasMaxDamage()
+                    ? damageable.getMaxDamage()
+                    : null;
             fireResistant = itemMeta.isFireResistant() ? true : null;
             hideToolTip = itemMeta.isHideTooltip() ? true : null;
             foodComponent = itemMeta.hasFood() ? itemMeta.getFood() : null;
             toolComponent = itemMeta.hasTool() ? itemMeta.getTool() : null;
-            enchantmentGlintOverride = itemMeta.hasEnchantmentGlintOverride() ? itemMeta.getEnchantmentGlintOverride() : null;
+            enchantmentGlintOverride = itemMeta.hasEnchantmentGlintOverride() ? itemMeta.getEnchantmentGlintOverride()
+                    : null;
             rarity = itemMeta.hasRarity() ? itemMeta.getRarity() : null;
             maxStackSize = itemMeta.hasMaxStackSize() ? itemMeta.getMaxStackSize() : null;
-            if (maxStackSize != null && maxStackSize == 1) unstackable = true;
+            if (maxStackSize != null && maxStackSize == 1)
+                unstackable = true;
         }
 
         if (VersionUtil.atOrAbove("1.21")) {
@@ -297,7 +308,8 @@ public class ItemBuilder {
 
     public ItemBuilder setUnstackable(final boolean unstackable) {
         this.unstackable = unstackable;
-        if (unstackable && VersionUtil.atOrAbove("1.20.5")) maxStackSize = 1;
+        if (unstackable && VersionUtil.atOrAbove("1.20.5"))
+            maxStackSize = 1;
         return this;
     }
 
@@ -330,7 +342,8 @@ public class ItemBuilder {
     /**
      * Check if the ItemBuilder has color.
      *
-     * @return true if the ItemBuilder has color that is not default LeatherMetaColor
+     * @return true if the ItemBuilder has color that is not default
+     *         LeatherMetaColor
      */
     public boolean hasColor() {
         return color != null && !color.equals(Bukkit.getItemFactory().getDefaultLeatherColor());
@@ -351,24 +364,32 @@ public class ItemBuilder {
 
     @Nullable
     public Key getTrimPatternKey() {
-        if (!VersionUtil.atOrAbove("1.20")) return null;
-        if (!Tag.ITEMS_TRIMMABLE_ARMOR.isTagged(type)) return null;
+        if (!VersionUtil.atOrAbove("1.20"))
+            return null;
+        if (!Tag.ITEMS_TRIMMABLE_ARMOR.isTagged(type))
+            return null;
         return trimPattern;
     }
 
     @Nullable
     public TrimPattern getTrimPattern() {
-        if (!VersionUtil.atOrAbove("1.20")) return null;
-        if (!Tag.ITEMS_TRIMMABLE_ARMOR.isTagged(type)) return null;
-        if (trimPattern == null) return null;
+        if (!VersionUtil.atOrAbove("1.20"))
+            return null;
+        if (!Tag.ITEMS_TRIMMABLE_ARMOR.isTagged(type))
+            return null;
+        if (trimPattern == null)
+            return null;
         NamespacedKey key = NamespacedKey.fromString(trimPattern.asString());
-        if (key == null) return null;
+        if (key == null)
+            return null;
         return Registry.TRIM_PATTERN.get(key);
     }
 
     public ItemBuilder setTrimPattern(final Key trimKey) {
-        if (!VersionUtil.atOrAbove("1.20")) return this;
-        if (!Tag.ITEMS_TRIMMABLE_ARMOR.isTagged(type)) return this;
+        if (!VersionUtil.atOrAbove("1.20"))
+            return this;
+        if (!Tag.ITEMS_TRIMMABLE_ARMOR.isTagged(type))
+            return this;
         this.trimPattern = trimKey;
         return this;
     }
@@ -577,7 +598,6 @@ public class ItemBuilder {
         return maxStackSize;
     }
 
-
     public ItemBuilder setMaxStackSize(@Nullable Integer maxStackSize) {
         this.maxStackSize = maxStackSize;
         this.setUnstackable(maxStackSize != null && maxStackSize == 1);
@@ -590,7 +610,8 @@ public class ItemBuilder {
     }
 
     public ItemBuilder addPotionEffect(final PotionEffect potionEffect) {
-        if (potionEffects == null) potionEffects = new ArrayList<>();
+        if (potionEffects == null)
+            potionEffects = new ArrayList<>();
         potionEffects.add(potionEffect);
         return this;
     }
@@ -600,7 +621,8 @@ public class ItemBuilder {
         return this;
     }
 
-    public <T, Z> ItemBuilder setCustomTag(final NamespacedKey namespacedKey, final PersistentDataType<T, Z> dataType, final Z data) {
+    public <T, Z> ItemBuilder setCustomTag(final NamespacedKey namespacedKey, final PersistentDataType<T, Z> dataType,
+            final Z data) {
         persistentDataMap.put(new PersistentDataSpace(namespacedKey, dataType), data);
         return this;
     }
@@ -617,7 +639,6 @@ public class ItemBuilder {
     public boolean hasCustomTag() {
         return !persistentDataContainer.isEmpty();
     }
-
 
     public <T, Z> void addCustomTag(NamespacedKey key, PersistentDataType<T, Z> type, Z value) {
         persistentDataMap.put(new PersistentDataSpace(key, type), value);
@@ -719,33 +740,52 @@ public class ItemBuilder {
 
         // 1.20.5+ properties
         if (VersionUtil.atOrAbove("1.20.5")) {
-            if (itemMeta instanceof Damageable damageable) damageable.setMaxDamage(durability);
+            if (itemMeta instanceof Damageable damageable)
+                damageable.setMaxDamage(durability);
             if (hasItemName()) {
-                if (VersionUtil.isPaperServer()) itemMeta.itemName(AdventureUtils.MINI_MESSAGE.deserialize(itemName));
-                else itemMeta.setItemName(itemName);
+                if (VersionUtil.isPaperServer())
+                    itemMeta.itemName(AdventureUtils.MINI_MESSAGE.deserialize(itemName));
+                else
+                    itemMeta.setItemName(itemName);
             }
-            if (hasMaxStackSize()) itemMeta.setMaxStackSize(maxStackSize);
-            if (hasEnchantmentGlindOverride()) itemMeta.setEnchantmentGlintOverride(enchantmentGlintOverride);
-            if (hasRarity()) itemMeta.setRarity(rarity);
-            if (hasFoodComponent()) itemMeta.setFood(foodComponent);
-            if (hasToolComponent()) itemMeta.setTool(toolComponent);
-            if (fireResistant != null) itemMeta.setFireResistant(fireResistant);
-            if (hideToolTip != null) itemMeta.setHideTooltip(hideToolTip);
+            if (hasMaxStackSize())
+                itemMeta.setMaxStackSize(maxStackSize);
+            if (hasEnchantmentGlindOverride())
+                itemMeta.setEnchantmentGlintOverride(enchantmentGlintOverride);
+            if (hasRarity())
+                itemMeta.setRarity(rarity);
+            if (hasFoodComponent())
+                itemMeta.setFood(foodComponent);
+            if (hasToolComponent())
+                itemMeta.setTool(toolComponent);
+            if (fireResistant != null)
+                itemMeta.setFireResistant(fireResistant);
+            if (hideToolTip != null)
+                itemMeta.setHideTooltip(hideToolTip);
         }
 
         if (VersionUtil.atOrAbove("1.21")) {
-            if (hasJukeboxPlayable()) itemMeta.setJukeboxPlayable(jukeboxPlayable);
+            if (hasJukeboxPlayable())
+                itemMeta.setJukeboxPlayable(jukeboxPlayable);
         }
 
         if (VersionUtil.atOrAbove("1.21.2")) {
-            if (hasEquippableComponent()) itemMeta.setEquippable(equippableComponent);
-            if (hasUseCooldownComponent()) itemMeta.setUseCooldown(useCooldownComponent);
-            if (hasDamageResistant()) itemMeta.setDamageResistant(damageResistant);
-            if (hasTooltipStyle()) itemMeta.setTooltipStyle(tooltipStyle);
-            if (hasUseRemainder()) itemMeta.setUseRemainder(useRemainder);
-            if (hasEnchantable()) itemMeta.setEnchantable(enchantable);
-            if (itemModel != null) itemMeta.setItemModel(itemModel);
-            if (isGlider != null) itemMeta.setGlider(isGlider);
+            if (hasEquippableComponent())
+                itemMeta.setEquippable(equippableComponent);
+            if (hasUseCooldownComponent())
+                itemMeta.setUseCooldown(useCooldownComponent);
+            if (hasDamageResistant())
+                itemMeta.setDamageResistant(damageResistant);
+            if (hasTooltipStyle())
+                itemMeta.setTooltipStyle(tooltipStyle);
+            if (hasUseRemainder())
+                itemMeta.setUseRemainder(useRemainder);
+            if (hasEnchantable())
+                itemMeta.setEnchantable(enchantable);
+            if (itemModel != null)
+                itemMeta.setItemModel(itemModel);
+            if (isGlider != null)
+                itemMeta.setGlider(isGlider);
 
         }
 
@@ -754,12 +794,15 @@ public class ItemBuilder {
 
         PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
         if (displayName != null) {
-            if (!VersionUtil.atOrAbove("1.20.5")) pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, displayName);
+            if (!VersionUtil.atOrAbove("1.20.5"))
+                pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, displayName);
             if (VersionUtil.isPaperServer()) {
                 Component displayName = AdventureUtils.MINI_MESSAGE.deserialize(this.displayName);
-                displayName = displayName.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE).colorIfAbsent(NamedTextColor.WHITE);
+                displayName = displayName.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)
+                        .colorIfAbsent(NamedTextColor.WHITE);
                 itemMeta.displayName(displayName);
-            } else itemMeta.setDisplayName(displayName);
+            } else
+                itemMeta.setDisplayName(displayName);
         }
 
         if (itemFlags != null)
@@ -767,7 +810,8 @@ public class ItemBuilder {
 
         if (enchantments.size() > 0) {
             for (final Map.Entry<Enchantment, Integer> enchant : enchantments.entrySet()) {
-                if (enchant.getKey() == null) continue;
+                if (enchant.getKey() == null)
+                    continue;
                 int lvl = enchant.getValue() != null ? enchant.getValue() : 1;
                 itemMeta.addEnchant(enchant.getKey(), lvl, true);
             }
@@ -780,59 +824,85 @@ public class ItemBuilder {
 
         if (!persistentDataMap.isEmpty())
             for (final Map.Entry<PersistentDataSpace, Object> dataSpace : persistentDataMap.entrySet())
-                pdc.set(dataSpace.getKey().namespacedKey(), (PersistentDataType<?, Object>) dataSpace.getKey().dataType(), dataSpace.getValue());
+                pdc.set(dataSpace.getKey().namespacedKey(),
+                        (PersistentDataType<?, Object>) dataSpace.getKey().dataType(), dataSpace.getValue());
 
         if (VersionUtil.isPaperServer()) {
-            @Nullable List<Component> loreLines = lore != null? lore.stream().map(AdventureUtils.MINI_MESSAGE::deserialize).toList() : new ArrayList<>();
-            loreLines = loreLines.stream().map(c -> c.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)).toList();
+            @Nullable
+            List<Component> loreLines = lore != null
+                    ? lore.stream().map(AdventureUtils.MINI_MESSAGE::deserialize).toList()
+                    : new ArrayList<>();
+            loreLines = loreLines.stream()
+                    .map(c -> c.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)).toList();
             itemMeta.lore(lore != null ? loreLines : null);
-        }
-        else itemMeta.setLore(lore);
+        } else
+            itemMeta.setLore(lore);
 
         itemStack.setItemMeta(itemMeta);
-        finalItemStack = NMSHandlers.getHandler().consumableComponent(itemStack, consumableComponent);
+
+        // Add null check for NMSHandler
+        NMSHandler handler = NMSHandlers.getHandler();
+        if (handler != null) {
+            finalItemStack = handler.consumableComponent(itemStack, consumableComponent);
+        } else {
+            finalItemStack = itemStack;
+            if (Settings.DEBUG.toBool()) {
+                OraxenPlugin.get().getLogger()
+                        .warning("NMSHandler is null - consumableComponent features will not work");
+            }
+        }
 
         return this;
     }
 
     public void save() {
         regen();
-        OraxenItems.getMap().entrySet().stream().filter(entry -> entry.getValue().containsValue(this)).findFirst().ifPresent(entry -> {
-            YamlConfiguration yamlConfiguration = OraxenYaml.loadConfiguration(entry.getKey());
-            String itemId = OraxenItems.getIdByItem(this);
-            if (this.hasColor()) {
-                String color = this.color.getRed() + "," + this.color.getGreen() + "," + this.color.getBlue();
-                yamlConfiguration.set(itemId + ".color", color);
-            }
-            if (this.hasTrimPattern()) {
-                String trimPattern = this.getTrimPatternKey().asString();
-                yamlConfiguration.set(itemId + ".trim_pattern", trimPattern);
-            }
-            if (!getItemFlags().isEmpty()) yamlConfiguration.set(itemId + ".ItemFlags", this.itemFlags.stream().map(ItemFlag::name).toList());
-            if (hasEquippableComponent()) {
-                yamlConfiguration.set(itemId + ".Components.equippable.slot", this.equippableComponent.getSlot().name());
-                yamlConfiguration.set(itemId + ".Components.equippable.model", this.equippableComponent.getModel().toString());
-            }
-            try {
-                yamlConfiguration.save(entry.getKey());
-            } catch (IOException e) {
-                if (Settings.DEBUG.toBool()) e.printStackTrace();
-            }
-        });
+        OraxenItems.getMap().entrySet().stream().filter(entry -> entry.getValue().containsValue(this)).findFirst()
+                .ifPresent(entry -> {
+                    YamlConfiguration yamlConfiguration = OraxenYaml.loadConfiguration(entry.getKey());
+                    String itemId = OraxenItems.getIdByItem(this);
+                    if (this.hasColor()) {
+                        String color = this.color.getRed() + "," + this.color.getGreen() + "," + this.color.getBlue();
+                        yamlConfiguration.set(itemId + ".color", color);
+                    }
+                    if (this.hasTrimPattern()) {
+                        String trimPattern = this.getTrimPatternKey().asString();
+                        yamlConfiguration.set(itemId + ".trim_pattern", trimPattern);
+                    }
+                    if (!getItemFlags().isEmpty())
+                        yamlConfiguration.set(itemId + ".ItemFlags",
+                                this.itemFlags.stream().map(ItemFlag::name).toList());
+                    if (hasEquippableComponent()) {
+                        yamlConfiguration.set(itemId + ".Components.equippable.slot",
+                                this.equippableComponent.getSlot().name());
+                        yamlConfiguration.set(itemId + ".Components.equippable.model",
+                                this.equippableComponent.getModel().toString());
+                    }
+                    try {
+                        yamlConfiguration.save(entry.getKey());
+                    } catch (IOException e) {
+                        if (Settings.DEBUG.toBool())
+                            e.printStackTrace();
+                    }
+                });
     }
 
     private void handleVariousMeta(ItemMeta itemMeta) {
-        if (itemMeta instanceof LeatherArmorMeta leatherArmorMeta && color != null && !color.equals(leatherArmorMeta.getColor())) {
+        if (itemMeta instanceof LeatherArmorMeta leatherArmorMeta && color != null
+                && !color.equals(leatherArmorMeta.getColor())) {
             leatherArmorMeta.setColor(color);
         } else if (itemMeta instanceof PotionMeta potionMeta) {
             handlePotionMeta(potionMeta);
         } else if (itemMeta instanceof MapMeta mapMeta && color != null && !color.equals(mapMeta.getColor())) {
             mapMeta.setColor(color);
         } else if (itemMeta instanceof FireworkEffectMeta effectMeta) {
-            FireworkEffect.Builder fireWorkBuilder = effectMeta.clone().hasEffect() ? effectMeta.getEffect().builder() : FireworkEffect.builder();
-            if (color != null) fireWorkBuilder.withColor(color);
+            FireworkEffect.Builder fireWorkBuilder = effectMeta.clone().hasEffect() ? effectMeta.getEffect().builder()
+                    : FireworkEffect.builder();
+            if (color != null)
+                fireWorkBuilder.withColor(color);
 
-            // If both above fail, the below will throw an exception as builder needs atleast one color
+            // If both above fail, the below will throw an exception as builder needs
+            // atleast one color
             // If so return the base meta
             try {
                 effectMeta.setEffect(fireWorkBuilder.build());
@@ -845,7 +915,8 @@ public class ItemBuilder {
             if (!Objects.equals(owningPlayer, defaultOwningPlayer)) {
                 skullMeta.setOwningPlayer(owningPlayer);
             }
-        } else if (itemMeta instanceof TropicalFishBucketMeta tropicalFishBucketMeta && tropicalFishBucketMeta.hasVariant())
+        } else if (itemMeta instanceof TropicalFishBucketMeta tropicalFishBucketMeta
+                && tropicalFishBucketMeta.hasVariant())
             handleTropicalFishBucketMeta(tropicalFishBucketMeta);
     }
 
@@ -882,34 +953,41 @@ public class ItemBuilder {
 
     public ItemStack[] buildArray(final int amount) {
         final ItemStack built = build();
-        final int max = hasMaxStackSize() ? maxStackSize : type != null ? type.getMaxStackSize() : itemStack.getType().getMaxStackSize();
+        final int max = hasMaxStackSize() ? maxStackSize
+                : type != null ? type.getMaxStackSize() : itemStack.getType().getMaxStackSize();
         final int rest = max == amount ? amount : amount % max;
         final int iterations = amount > max ? (amount - rest) / max : 0;
         final ItemStack[] output = new ItemStack[iterations + (rest > 0 ? 1 : 0)];
         for (int index = 0; index < iterations; index++) {
             ItemStack clone = built.clone();
             clone.setAmount(max);
-            if (unstackable) clone = handleUnstackable(clone);
+            if (unstackable)
+                clone = handleUnstackable(clone);
             output[index] = ItemUpdater.updateItem(clone);
         }
         if (rest != 0) {
             ItemStack clone = built.clone();
             clone.setAmount(rest);
-            if (unstackable) clone = handleUnstackable(clone);
+            if (unstackable)
+                clone = handleUnstackable(clone);
             output[iterations] = ItemUpdater.updateItem(clone);
         }
         return output;
     }
 
     public ItemStack build() {
-        if (finalItemStack == null) regen();
-        if (unstackable) return handleUnstackable(finalItemStack);
-        else return finalItemStack.clone();
+        if (finalItemStack == null)
+            regen();
+        if (unstackable)
+            return handleUnstackable(finalItemStack);
+        else
+            return finalItemStack.clone();
     }
 
     private ItemStack handleUnstackable(ItemStack item) {
         ItemMeta meta = item.getItemMeta();
-        if (meta == null || VersionUtil.atOrAbove("1.20.5")) return item;
+        if (meta == null || VersionUtil.atOrAbove("1.20.5"))
+            return item;
         meta.getPersistentDataContainer().set(UNSTACKABLE_KEY, DataType.UUID, UUID.randomUUID());
         item.setItemMeta(meta);
         item.setAmount(1);

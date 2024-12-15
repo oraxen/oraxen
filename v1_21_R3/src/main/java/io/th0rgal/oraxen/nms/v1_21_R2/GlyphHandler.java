@@ -77,17 +77,14 @@ public class GlyphHandler implements io.th0rgal.oraxen.nms.GlyphHandler {
                         case CLIENTBOUND -> clientbounds.add(type);
                         case SERVERBOUND -> serverbounds.add(type);
                     }
-                } catch (Exception ignored) {
-                }
+                } catch (Exception ignored) {}
             }
         }
     }
 
     static {
-        Field getToId = Arrays.stream(IdDispatchCodec.class.getDeclaredFields())
-                .filter(f -> Object2IntMap.class.isAssignableFrom(f.getType())).findFirst().orElseThrow();
-        Field getById = Arrays.stream(IdDispatchCodec.class.getDeclaredFields())
-                .filter(f -> List.class.isAssignableFrom(f.getType())).findFirst().orElseThrow();
+        Field getToId = Arrays.stream(IdDispatchCodec.class.getDeclaredFields()).filter(f -> Object2IntMap.class.isAssignableFrom(f.getType())).findFirst().orElseThrow();
+        Field getById = Arrays.stream(IdDispatchCodec.class.getDeclaredFields()).filter(f -> List.class.isAssignableFrom(f.getType())).findFirst().orElseThrow();
         Class<?> entryClass = IdDispatchCodec.class.getDeclaredClasses()[0];
         Field getCodec = entryClass.getDeclaredFields()[0];
         Field getType = entryClass.getDeclaredFields()[1];
@@ -97,62 +94,46 @@ public class GlyphHandler implements io.th0rgal.oraxen.nms.GlyphHandler {
         getCodec.setAccessible(true);
         getType.setAccessible(true);
         for (PacketProtocol packetProtocol : List.of(
-                new PacketProtocol(
-                        GameProtocols.CLIENTBOUND_TEMPLATE
-                                .bind(RegistryFriendlyByteBuf.decorator(RegistryAccess.EMPTY)),
-                        GameProtocols.SERVERBOUND_TEMPLATE
-                                .bind(RegistryFriendlyByteBuf.decorator(RegistryAccess.EMPTY)),
-                        GamePacketTypes.class),
+                new PacketProtocol(GameProtocols.CLIENTBOUND_TEMPLATE.bind(RegistryFriendlyByteBuf.decorator(RegistryAccess.EMPTY)), GameProtocols.SERVERBOUND_TEMPLATE.bind(RegistryFriendlyByteBuf.decorator(RegistryAccess.EMPTY)), GamePacketTypes.class),
                 new PacketProtocol(StatusProtocols.CLIENTBOUND, StatusProtocols.SERVERBOUND, StatusPacketTypes.class),
                 new PacketProtocol(LoginProtocols.CLIENTBOUND, LoginProtocols.SERVERBOUND, LoginPacketTypes.class),
-                new PacketProtocol(ConfigurationProtocols.CLIENTBOUND, ConfigurationProtocols.SERVERBOUND,
-                        ConfigurationPacketTypes.class),
-                new PacketProtocol(null, HandshakeProtocols.SERVERBOUND, HandshakeProtocols.class))) {
+                new PacketProtocol(ConfigurationProtocols.CLIENTBOUND, ConfigurationProtocols.SERVERBOUND, ConfigurationPacketTypes.class),
+                new PacketProtocol(null, HandshakeProtocols.SERVERBOUND, HandshakeProtocols.class)
+        )) {
             for (PacketType<?> clientbound : packetProtocol.clientbounds) {
-                if (packetProtocol.clientboundInfo == null)
-                    break;
-                IdDispatchCodec<ByteBuf, ?, ?> codec = (IdDispatchCodec<ByteBuf, ?, ?>) packetProtocol.clientboundInfo
-                        .codec();
+                if (packetProtocol.clientboundInfo == null) break;
+                IdDispatchCodec<ByteBuf, ?, ?> codec = (IdDispatchCodec<ByteBuf, ? ,?>) packetProtocol.clientboundInfo.codec();
                 try {
                     Object2IntMap<?> object2IntMap = (Object2IntMap<?>) getToId.get(codec);
                     List<?> objects = (List<?>) getById.get(codec);
                     for (Object object : objects) {
                         if (getType.get(object).equals(clientbound)) {
-                            CODEC_MAP.put(clientbound,
-                                    new ConnectionCodec((StreamCodec<ByteBuf, Packet<?>>) getCodec.get(object),
-                                            packetProtocol.clientboundInfo));
+                            CODEC_MAP.put(clientbound, new ConnectionCodec((StreamCodec<ByteBuf, Packet<?>>) getCodec.get(object), packetProtocol.clientboundInfo));
                             ID_MAP.put(clientbound, object2IntMap.getInt(clientbound));
                         }
                     }
-                } catch (Exception ignored) {
-                }
+                } catch (Exception ignored) {}
             }
             for (PacketType<?> serverbound : packetProtocol.serverbounds) {
-                if (packetProtocol.serverboundInfo == null)
-                    break;
-                IdDispatchCodec<ByteBuf, ?, ?> codec = (IdDispatchCodec<ByteBuf, ?, ?>) packetProtocol.serverboundInfo
-                        .codec();
+                if (packetProtocol.serverboundInfo == null) break;
+                IdDispatchCodec<ByteBuf, ?, ?> codec = (IdDispatchCodec<ByteBuf, ? ,?>) packetProtocol.serverboundInfo.codec();
                 try {
                     Object2IntMap<?> object2IntMap = (Object2IntMap<?>) getToId.get(codec);
                     List<?> objects = (List<?>) getById.get(codec);
                     for (Object object : objects) {
                         if (getType.get(object).equals(serverbound)) {
-                            CODEC_MAP.put(serverbound,
-                                    new ConnectionCodec((StreamCodec<ByteBuf, Packet<?>>) getCodec.get(object),
-                                            packetProtocol.serverboundInfo));
+                            CODEC_MAP.put(serverbound, new ConnectionCodec((StreamCodec<ByteBuf, Packet<?>>) getCodec.get(object), packetProtocol.serverboundInfo));
                             ID_MAP.put(serverbound, object2IntMap.getInt(serverbound));
                         }
                     }
-                } catch (Exception ignored) {
-                }
+                } catch (Exception ignored) {}
             }
         }
     }
 
     @Override
     public void setupNmsGlyphs() {
-        if (!GlyphHandlers.isNms())
-            return;
+        if (!GlyphHandlers.isNms()) return;
         List<Connection> networkManagers = MinecraftServer.getServer().getConnection().getConnections();
         List<ChannelFuture> channelFutures;
 
@@ -190,8 +171,7 @@ public class GlyphHandler implements io.th0rgal.oraxen.nms.GlyphHandler {
             protected void initChannel(Channel channel) throws Exception {
                 ChannelHandler handler = null;
                 for (Map.Entry<String, ChannelHandler> entry : channel.pipeline()) {
-                    if (entry.getValue().getClass().getName()
-                            .equals("com.viaversion.viaversion.bukkit.handlers.BukkitChannelInitializer")) {
+                    if (entry.getValue().getClass().getName().equals("com.viaversion.viaversion.bukkit.handlers.BukkitChannelInitializer")) {
                         handler = entry.getValue();
                     }
                 }
@@ -241,10 +221,10 @@ public class GlyphHandler implements io.th0rgal.oraxen.nms.GlyphHandler {
             Bukkit.getPluginManager().registerEvents(new GlyphListener(), OraxenPlugin.get());
     }
 
+
     @Override
     public void inject(Player player) {
-        if (player == null || !GlyphHandlers.isNms())
-            return;
+        if (player == null || !GlyphHandlers.isNms()) return;
         Channel channel = ((CraftPlayer) player).getHandle().connection.connection.channel;
 
         channel.eventLoop().submit(() -> inject(channel, player));
@@ -252,8 +232,7 @@ public class GlyphHandler implements io.th0rgal.oraxen.nms.GlyphHandler {
 
     @Override
     public void uninject(Player player) {
-        if (player == null || !GlyphHandlers.isNms())
-            return;
+        if (player == null || !GlyphHandlers.isNms()) return;
         Channel channel = ((CraftPlayer) player).getHandle().connection.connection.channel;
 
         uninject(channel);
@@ -264,19 +243,15 @@ public class GlyphHandler implements io.th0rgal.oraxen.nms.GlyphHandler {
             // Replace our custom packet encoder with the default one that the player had
             ChannelHandler previousHandler = encoder.remove(channel);
             if (previousHandler instanceof PacketEncoder) {
-                // PacketEncoder is not shareable, so we can't re-add it back. Instead, we'll
-                // have to create a new instance
-                channel.pipeline().replace("encoder", "encoder", new PacketEncoder<>(GameProtocols.CLIENTBOUND_TEMPLATE
-                        .bind(RegistryFriendlyByteBuf.decorator(RegistryAccess.EMPTY))));
-            } else
-                channel.pipeline().replace("encoder", "encoder", previousHandler);
+                // PacketEncoder is not shareable, so we can't re-add it back. Instead, we'll have to create a new instance
+                channel.pipeline().replace("encoder", "encoder", new PacketEncoder<>(GameProtocols.CLIENTBOUND_TEMPLATE.bind(RegistryFriendlyByteBuf.decorator(RegistryAccess.EMPTY))));
+            } else channel.pipeline().replace("encoder", "encoder", previousHandler);
         }
 
         if (decoder.containsKey(channel)) {
             ChannelHandler previousHandler = decoder.remove(channel);
             if (previousHandler instanceof PacketDecoder) {
-                channel.pipeline().replace("decoder", "decoder", new PacketDecoder<>(GameProtocols.SERVERBOUND_TEMPLATE
-                        .bind(RegistryFriendlyByteBuf.decorator(RegistryAccess.EMPTY))));
+                channel.pipeline().replace("decoder", "decoder", new PacketDecoder<>(GameProtocols.SERVERBOUND_TEMPLATE.bind(RegistryFriendlyByteBuf.decorator(RegistryAccess.EMPTY))));
             } else {
                 channel.pipeline().replace("decoder", "decoder", previousHandler);
             }
@@ -286,13 +261,11 @@ public class GlyphHandler implements io.th0rgal.oraxen.nms.GlyphHandler {
     private void inject(Channel channel, @Nullable Player player) {
         // Replace the vanilla PacketEncoder with our own
         if (!(channel.pipeline().get("encoder") instanceof CustomPacketEncoder))
-            encoder.putIfAbsent(channel,
-                    channel.pipeline().replace("encoder", "encoder", new CustomPacketEncoder(player, channel)));
+            encoder.putIfAbsent(channel, channel.pipeline().replace("encoder", "encoder", new CustomPacketEncoder(player, channel)));
 
         // Replace the vanilla PacketDecoder with our own
         if (!(channel.pipeline().get("decoder") instanceof CustomPacketDecoder))
-            decoder.putIfAbsent(channel,
-                    channel.pipeline().replace("decoder", "decoder", new CustomPacketDecoder(player)));
+            decoder.putIfAbsent(channel, channel.pipeline().replace("decoder", "decoder", new CustomPacketDecoder(player)));
     }
 
     private void bind(List<ChannelFuture> channelFutures, ChannelInboundHandlerAdapter serverChannelHandler) {
@@ -306,8 +279,7 @@ public class GlyphHandler implements io.th0rgal.oraxen.nms.GlyphHandler {
     }
 
     private static class CustomDataSerializer extends FriendlyByteBuf {
-        @Nullable
-        private final Player player;
+        @Nullable private final Player player;
 
         public CustomDataSerializer(@Nullable Player player, ByteBuf bytebuf) {
             super(bytebuf);
@@ -335,16 +307,14 @@ public class GlyphHandler implements io.th0rgal.oraxen.nms.GlyphHandler {
         @NotNull
         @Override
         public FriendlyByteBuf writeNbt(@Nullable Tag tag) {
-            if (tag instanceof CompoundTag compoundTag)
-                transform(compoundTag, GlyphHandlers.transformer(null));
+            if (tag instanceof CompoundTag compoundTag) transform(compoundTag, GlyphHandlers.transformer(null));
             return super.writeNbt(tag);
         }
 
         @Override
         public @Nullable CompoundTag readNbt() {
             CompoundTag compound = super.readNbt();
-            if (compound != null)
-                transform(compound, GlyphHandlers.transformer(player));
+            if (compound != null) transform(compound, GlyphHandlers.transformer(player));
 
             return compound;
         }
@@ -352,22 +322,17 @@ public class GlyphHandler implements io.th0rgal.oraxen.nms.GlyphHandler {
         private void transform(CompoundTag compound, Function<String, String> transformer) {
             for (String key : compound.getAllKeys()) {
                 Tag base = compound.get(key);
-                if (base instanceof CompoundTag tag)
-                    transform(tag, transformer);
-                else if (base instanceof ListTag listTag)
-                    transform(listTag, transformer);
-                else if (base instanceof StringTag)
-                    compound.put(key, StringTag.valueOf(transformer.apply(base.getAsString())));
+                if (base instanceof CompoundTag tag) transform(tag, transformer);
+                else if (base instanceof ListTag listTag) transform(listTag, transformer);
+                else if (base instanceof StringTag) compound.put(key, StringTag.valueOf(transformer.apply(base.getAsString())));
             }
         }
 
         private void transform(ListTag list, Function<String, String> transformer) {
             List<Tag> listCopy = List.copyOf(list);
             for (Tag base : listCopy) {
-                if (base instanceof CompoundTag tag)
-                    transform(tag, transformer);
-                else if (base instanceof ListTag listTag)
-                    transform(listTag, transformer);
+                if (base instanceof CompoundTag tag) transform(tag, transformer);
+                else if (base instanceof ListTag listTag) transform(listTag, transformer);
                 else if (base instanceof StringTag) {
                     int index = list.indexOf(base);
                     list.set(index, StringTag.valueOf(transformer.apply(base.getAsString())));
@@ -376,12 +341,10 @@ public class GlyphHandler implements io.th0rgal.oraxen.nms.GlyphHandler {
         }
     }
 
-    private static final AttributeKey<ConnectionCodec> CODEC_ATTRIBUTE_KEY = AttributeKey
-            .newInstance("oraxen.codec.key");
+    private static final AttributeKey<ConnectionCodec> CODEC_ATTRIBUTE_KEY = AttributeKey.newInstance("oraxen.codec.key");
 
     private static class CustomPacketEncoder extends MessageToByteEncoder<Packet<?>> {
-        @Nullable
-        private final Player player;
+        @Nullable private final Player player;
         private final Channel channel;
 
         private CustomPacketEncoder(@Nullable Player player, @NotNull Channel channel) {
@@ -394,16 +357,14 @@ public class GlyphHandler implements io.th0rgal.oraxen.nms.GlyphHandler {
         public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
             if (msg instanceof Packet<?> packet) {
                 ConnectionCodec codec = CODEC_MAP.get(packet.type());
-                if (codec != null)
-                    channel.attr(CODEC_ATTRIBUTE_KEY).set(codec);
+                if (codec != null) channel.attr(CODEC_ATTRIBUTE_KEY).set(codec);
             }
             super.write(ctx, msg, promise);
         }
 
         @Override
         public void encode(ChannelHandlerContext ctx, Packet<?> packet, ByteBuf byteBuf) {
-            if (ctx.channel() == null)
-                throw new RuntimeException("Channel is null");
+            if (ctx.channel() == null) throw new RuntimeException("Channel is null");
             StreamCodec<ByteBuf, Packet<?>> codec = CODEC_MAP.get(packet.type()).codec;
             int packetId = ID_MAP.get(packet.type());
 
@@ -415,13 +376,11 @@ public class GlyphHandler implements io.th0rgal.oraxen.nms.GlyphHandler {
                 codec.encode(packetDataSerializer, packet);
                 int integer3 = packetDataSerializer.writerIndex() - integer2;
                 if (integer3 > 8388608) {
-                    throw new IllegalArgumentException(
-                            "Packet too big (is " + integer3 + ", should be less than 8388608): " + packet);
+                    throw new IllegalArgumentException("Packet too big (is " + integer3 + ", should be less than 8388608): " + packet);
                 }
                 swapProtocolIfNeeded(channel.attr(CODEC_ATTRIBUTE_KEY), packet);
             } catch (Exception e) {
-                if (packet.isSkippable())
-                    throw new SkipPacketException(e);
+                if (packet.isSkippable()) throw new SkipPacketException(e);
                 throw e;
             }
             swapProtocolIfNeeded(channel.attr(CODEC_ATTRIBUTE_KEY), packet);
@@ -435,8 +394,7 @@ public class GlyphHandler implements io.th0rgal.oraxen.nms.GlyphHandler {
             ConnectionCodec codecData = protocolAttribute.get();
             ProtocolInfo<?> connectionProtocol2 = codecData.protocol;
             if (connectionProtocol.id() != connectionProtocol2.id()) {
-                StreamCodec<ByteBuf, Packet<?>> codecData2 = (StreamCodec<ByteBuf, Packet<?>>) connectionProtocol
-                        .codec();
+                StreamCodec<ByteBuf, Packet<?>> codecData2 = (StreamCodec<ByteBuf, Packet<?>>) connectionProtocol.codec();
                 protocolAttribute.set(new ConnectionCodec(codecData2, connectionProtocol));
             }
         }
@@ -444,8 +402,7 @@ public class GlyphHandler implements io.th0rgal.oraxen.nms.GlyphHandler {
     }
 
     private static class CustomPacketDecoder extends ByteToMessageDecoder {
-        @Nullable
-        private final Player player;
+        @Nullable private final Player player;
 
         private CustomPacketDecoder(@Nullable Player player) {
             this.player = player;
@@ -454,8 +411,7 @@ public class GlyphHandler implements io.th0rgal.oraxen.nms.GlyphHandler {
         @Override
         protected void decode(ChannelHandlerContext ctx, ByteBuf buffer, List<Object> out) throws IOException {
             final ByteBuf bufferCopy = buffer.copy();
-            if (buffer.readableBytes() == 0)
-                return;
+            if (buffer.readableBytes() == 0) return;
 
             CustomDataSerializer dataSerializer = new CustomDataSerializer(player, buffer);
             int packetID = dataSerializer.readVarInt();
@@ -464,8 +420,7 @@ public class GlyphHandler implements io.th0rgal.oraxen.nms.GlyphHandler {
             Packet<?> packet = codec.codec.decode(dataSerializer);
 
             if (dataSerializer.readableBytes() > 0) {
-                throw new IOException("Packet " + packetID + " " + packet + " was larger than expected, found "
-                        + dataSerializer.readableBytes() + " bytes extra whiløst reading the packet " + packetID);
+                throw new IOException("Packet " + packetID + " " + packet + " was larger than expected, found " + dataSerializer.readableBytes() + " bytes extra whiløst reading the packet " + packetID);
             } else if (packet instanceof ServerboundChatPacket) {
                 FriendlyByteBuf baseSerializer = new FriendlyByteBuf(bufferCopy);
                 packet = codec.codec.decode(baseSerializer);
