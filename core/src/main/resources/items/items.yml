@@ -92,21 +92,33 @@ example_potion:
       }
 
 miner_sandwitch:
-  displayname: "<gradient:#F69D84:#FAD98D>Miner's sandwitch"
-  material: COOKED_BEEF
+  itemname: <gradient:#F69D84:#FAD98D>Miner's sandwitch
+  material: PAPER
   Pack:
     generate_model: true
-    parent_model: "item/generated"
+    parent_model: item/generated
     textures:
-      - default/sandwitch.png # .png extension is not mandatory
-  Mechanics:
-    consumable_potion_effects:
-      fast_digging:
-        amplifier: 0
-        ambient: true # Makes potion effect produce more, translucent, particles.
-        particles: true # whether this effect has particles or not
-        icon: true # whether this effect has an icon or not
-        duration: 72000 # one hour in ticks
+    - default/sandwitch.png
+  Components:
+    food:
+      nutrition: 8 # Same as cooked beef
+      saturation: 12.8 # Same as cooked beef
+      can_always_eat: true # So it can be eaten even when not hungry
+    consumable:
+      consume_seconds: 5
+      animation: eat
+      sound: entity.generic.eat
+      has_consume_particles: true
+      on_consume_effects:
+      - type: apply_effects
+        effects:
+          minecraft:haste:
+            duration: 3600
+            amplifier: 0
+            ambient: true
+            show_particles: true
+            show_icon: true
+        probability: 1.0
 
 amethyst:
   displayname: "<gradient:#4B36B1:#6699FF>Amethyst"

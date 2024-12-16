@@ -12,6 +12,7 @@ public class VersionUtil {
     private static final Map<NMSVersion, Map<Integer, MinecraftVersion>> versionMap = new HashMap<>();
 
     public enum NMSVersion {
+        v1_21_R3,
         v1_21_R2,
         v1_21_R1,
         v1_20_R4,
@@ -31,21 +32,29 @@ public class VersionUtil {
     }
 
     static {
-        versionMap.put(NMSVersion.v1_21_R2, Map.of(17, new MinecraftVersion("1.21.2"), 18, new MinecraftVersion("1.21.3")));
-        versionMap.put(NMSVersion.v1_21_R1, Map.of(15, new MinecraftVersion("1.21"), 16, new MinecraftVersion("1.21.1")));
-        versionMap.put(NMSVersion.v1_20_R4, Map.of(13, new MinecraftVersion("1.20.5"), 14, new MinecraftVersion("1.20.6")));
-        versionMap.put(NMSVersion.v1_20_R3, Map.of(11, new MinecraftVersion("1.20.3"), 12, new MinecraftVersion("1.20.4")));
+        versionMap.put(NMSVersion.v1_21_R3,
+                Map.of(19, new MinecraftVersion("1.21.4")));
+        versionMap.put(NMSVersion.v1_21_R2,
+                Map.of(17, new MinecraftVersion("1.21.2"), 18, new MinecraftVersion("1.21.3")));
+        versionMap.put(NMSVersion.v1_21_R1,
+                Map.of(15, new MinecraftVersion("1.21"), 16, new MinecraftVersion("1.21.1")));
+        versionMap.put(NMSVersion.v1_20_R4,
+                Map.of(13, new MinecraftVersion("1.20.5"), 14, new MinecraftVersion("1.20.6")));
+        versionMap.put(NMSVersion.v1_20_R3,
+                Map.of(11, new MinecraftVersion("1.20.3"), 12, new MinecraftVersion("1.20.4")));
         versionMap.put(NMSVersion.v1_20_R2, Map.of(10, new MinecraftVersion("1.20.2")));
         versionMap.put(NMSVersion.v1_20_R1, Map.of(8, new MinecraftVersion("1.20"), 9, new MinecraftVersion("1.20.1")));
         versionMap.put(NMSVersion.v1_19_R3, Map.of(7, new MinecraftVersion("1.19.4")));
         versionMap.put(NMSVersion.v1_19_R2, Map.of(6, new MinecraftVersion("1.19.3")));
-        versionMap.put(NMSVersion.v1_19_R1, Map.of(3, new MinecraftVersion("1.19"), 4, new MinecraftVersion("1.19.1"), 5, new MinecraftVersion("1.19.2")));
+        versionMap.put(NMSVersion.v1_19_R1, Map.of(3, new MinecraftVersion("1.19"), 4, new MinecraftVersion("1.19.1"),
+                5, new MinecraftVersion("1.19.2")));
         versionMap.put(NMSVersion.v1_18_R2, Map.of(2, new MinecraftVersion("1.18.2")));
         versionMap.put(NMSVersion.v1_18_R1, Map.of(0, new MinecraftVersion("1.18"), 1, new MinecraftVersion("1.18.1")));
     }
 
     public static NMSVersion getNMSVersion(MinecraftVersion version) {
-        return versionMap.entrySet().stream().filter(e -> e.getValue().containsValue(version)).map(Map.Entry::getKey).findFirst().orElse(NMSVersion.UNKNOWN);
+        return versionMap.entrySet().stream().filter(e -> e.getValue().containsValue(version)).map(Map.Entry::getKey)
+                .findFirst().orElse(NMSVersion.UNKNOWN);
     }
 
     public static boolean matchesServer(String server) {
@@ -63,7 +72,8 @@ public class VersionUtil {
     public static boolean isPaperServer() {
         Server server = Bukkit.getServer();
         Validate.notNull(server, "Server cannot be null");
-        if (server.getName().equalsIgnoreCase("Paper")) return true;
+        if (server.getName().equalsIgnoreCase("Paper"))
+            return true;
 
         try {
             Class.forName("com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent");
@@ -80,17 +90,25 @@ public class VersionUtil {
         return server.getName().equalsIgnoreCase("Folia");
     }
 
-    public static boolean isSupportedVersion(@NotNull NMSVersion serverVersion, @NotNull NMSVersion... supportedVersions) {
+    public static boolean isSupportedVersion(@NotNull NMSVersion serverVersion,
+            @NotNull NMSVersion... supportedVersions) {
         for (NMSVersion version : supportedVersions) {
-            if (version.equals(serverVersion)) return true;
+            if (version.equals(serverVersion))
+                return true;
         }
 
-        Logs.logWarning(String.format("The Server version which you are running is unsupported, you are running version '%s'.", serverVersion));
-        Logs.logWarning(String.format("The plugin supports following versions %s.", combineVersions(supportedVersions)));
+        Logs.logWarning(
+                String.format("The Server version which you are running is unsupported, you are running version '%s'.",
+                        serverVersion));
+        Logs.logWarning(
+                String.format("The plugin supports following versions %s.", combineVersions(supportedVersions)));
 
         if (serverVersion == NMSVersion.UNKNOWN) {
-            Logs.logWarning(String.format("The Version '%s' can indicate, that you are using a newer Minecraft version than currently supported.", serverVersion));
-            Logs.logWarning("In this case please update to the newest version of this plugin. If this is the newest Version, than please be patient. It can take a few weeks until the plugin is updated.");
+            Logs.logWarning(String.format(
+                    "The Version '%s' can indicate, that you are using a newer Minecraft version than currently supported.",
+                    serverVersion));
+            Logs.logWarning(
+                    "In this case please update to the newest version of this plugin. If this is the newest Version, than please be patient. It can take a few weeks until the plugin is updated.");
         }
 
         Logs.logWarning("No compatible Server version found!");
@@ -127,6 +145,7 @@ public class VersionUtil {
     }
 
     private static final boolean leaked = JarReader.checkIsLeaked();
+
     public static boolean isLeaked() {
         return leaked;
     }

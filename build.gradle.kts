@@ -27,7 +27,8 @@ val SUPPORTED_VERSIONS: List<NMSVersion> = listOf(
     "v1_20_R3" toNms "1.20.4-R0.1-SNAPSHOT",
     "v1_20_R4" toNms "1.20.6-R0.1-SNAPSHOT",
     "v1_21_R1" toNms "1.21.1-R0.1-SNAPSHOT",
-    "v1_21_R2" toNms "1.21.3-R0.1-SNAPSHOT"
+    "v1_21_R2" toNms "1.21.3-R0.1-SNAPSHOT",
+    "v1_21_R3" toNms "1.21.4-R0.1-SNAPSHOT"
 )
 
 val compiled = (project.findProperty("oraxen_compiled")?.toString() ?: "true").toBoolean()
@@ -36,7 +37,7 @@ val devPluginPath = project.findProperty("oraxen_dev_plugin_path")?.toString()
 val foliaPluginPath = project.findProperty("oraxen_folia_plugin_path")?.toString()
 val spigotPluginPath = project.findProperty("oraxen_spigot_plugin_path")?.toString()
 val pluginVersion: String by project
-val commandApiVersion = "9.6.1"
+val commandApiVersion = "9.7.0"
 val adventureVersion = "4.17.0"
 val platformVersion = "4.3.4"
 val googleGsonVersion = "2.10.1"
