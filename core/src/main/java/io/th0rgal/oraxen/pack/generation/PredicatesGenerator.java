@@ -302,31 +302,32 @@ public class PredicatesGenerator {
     }
 
     public String getVanillaTextureName(final Material material, final boolean model) {
-        String name = material.toString();
-        if (name.equals("GRASS") || name.equals("SHORT_GRASS"))
-            return "block/grass";
-        if (material == Material.TALL_GRASS)
-            return "block/tall_grass_bottom";
-        if (material == Material.SUNFLOWER ||
-                material == Material.LILAC ||
-                material == Material.ROSE_BUSH ||
-                material == Material.PEONY)
-            return "block/" + name.toLowerCase() + "_bottom";
-        if (name.contains("_STEM"))
-            return "block/pumpkin_stem";
-        if (name.equals("SUGAR_CANE"))
-            return "block/sugar_cane";
-        if (material == Material.BAMBOO)
-            return "block/bamboo_stalk";
-        if (material == Material.CHORUS_PLANT)
-            return "block/chorus_plant";
-        if (material == Material.CHORUS_FLOWER)
-            return "block/chorus_flower";
-        if (material == Material.WATER)
-            return "block/water_still";
-        if (material == Material.LAVA)
-            return "block/lava_still";
-        return "block/" + name.toLowerCase();
+        String materialName = material.toString().toLowerCase(Locale.ROOT);
+        if (!model) {
+            if (material == Material.COMPASS)
+                return "item/compass_16";
+            if (VersionUtil.atOrAbove("1.19") && material == Material.RECOVERY_COMPASS)
+                return "item/recovery_compass_16";
+            if (material == Material.DEBUG_STICK)
+                return "item/stick";
+            if (material == Material.ENCHANTED_GOLDEN_APPLE)
+                return "item/golden_apple";
+            if (material == Material.SUNFLOWER)
+                return "block/sunflower_front";
+            if (Tag.TALL_FLOWERS.isTagged(material) && !material.name().equals("PITCHER_PLANT"))
+                return "block/" + materialName + "_top";
+            if (material == Material.LARGE_FERN || material == Material.TALL_GRASS)
+                return "block/" + materialName + "_top";
+            if (material.name().contains("GLASS_PANE"))
+                return "block/" + materialName.replace("_pane", "");
+            if (material == Material.TWISTING_VINES || material == Material.WEEPING_VINES)
+                return "block/" + materialName + "_plant";
+            if (material == Material.IRON_BARS || (material.isBlock() && !has2DBlockIcon(material)))
+                return "block/" + materialName;
+            if (material == Material.CROSSBOW)
+                return "item/crossbow_standby";
+        }
+        return "item/" + materialName;
     }
 
     private String getParent(final Material material) {
