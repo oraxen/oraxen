@@ -1,11 +1,11 @@
 plugins {
     id("java")
-    id("io.papermc.paperweight.userdev") version "1.7.4"
+    id("io.papermc.paperweight.userdev") version "2.0.0-beta.8"
     id("io.github.goooler.shadow") version "8.1.8"
 }
 
 repositories {
-    maven("https://papermc.io/repo/repository/maven-public/")
+    maven("https://repo.papermc.io/repository/maven-public/")
 }
 
 dependencies {
