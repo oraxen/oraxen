@@ -141,7 +141,7 @@ Pack:
     loaded:
       actions:
         sound:
-          # Disabled by default, just switch to enabled to send
+          # Enabled by default, just switch to enabled to send
           # the below sound whenever someone joins
           enabled: true
           type: minecraft:welcome
