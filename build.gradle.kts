@@ -16,11 +16,6 @@ plugins {
 class NMSVersion(val nmsVersion: String, val serverVersion: String)
 infix fun String.toNms(that: String): NMSVersion = NMSVersion(this, that)
 val SUPPORTED_VERSIONS: List<NMSVersion> = listOf(
-    //"v1_18_R1" toNms "1.18.1-R0.1-SNAPSHOT",
-    //"v1_18_R2" toNms "1.18.2-R0.1-SNAPSHOT",
-    //"v1_19_R1" toNms "1.19.2-R0.1-SNAPSHOT",
-    //"v1_19_R2" toNms "1.19.3-R0.1-SNAPSHOT",
-    //"v1_19_R3" toNms "1.19.4-R0.1-SNAPSHOT",
     "v1_20_R1" toNms "1.20.1-R0.1-SNAPSHOT",
     "v1_20_R2" toNms "1.20.2-R0.1-SNAPSHOT",
     "v1_20_R3" toNms "1.20.4-R0.1-SNAPSHOT",
