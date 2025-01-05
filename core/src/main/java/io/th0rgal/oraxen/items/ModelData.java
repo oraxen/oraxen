@@ -34,16 +34,28 @@ public class ModelData {
             usedModelDatas.put(model, STARTING_CMD);
             DATAS.put(type, usedModelDatas);
             return STARTING_CMD;
-        } else usedModelDatas = DATAS.getOrDefault(type, new HashMap<>());
+        } else
+            usedModelDatas = DATAS.getOrDefault(type, new HashMap<>());
 
         if (usedModelDatas.containsKey(model)) {
             return usedModelDatas.get(model);
         }
 
+        if (usedModelDatas.isEmpty()) {
+            int newModelData = STARTING_CMD;
+            while (getSkippedCustomModelData().contains(newModelData)) {
+                newModelData++;
+            }
+            usedModelDatas.put(model, newModelData);
+            DATAS.put(type, usedModelDatas);
+            return newModelData;
+        }
+
         int currentHighestModelData = Collections.max(usedModelDatas.values());
         for (int i = STARTING_CMD; i < currentHighestModelData; i++) {
             if (!usedModelDatas.containsValue(i)) { // if the id is available
-                if (getSkippedCustomModelData().contains(i)) continue; // if the id should be skipped
+                if (getSkippedCustomModelData().contains(i))
+                    continue; // if the id should be skipped
                 usedModelDatas.put(model, i);
                 DATAS.put(type, usedModelDatas);
                 return i;
@@ -76,7 +88,8 @@ public class ModelData {
                 int max = Integer.parseInt(s2[1]);
                 for (int i = min; i <= max; i++)
                     skippedCustomModelData.add(i);
-            } else skippedCustomModelData.add(Integer.parseInt(s));
+            } else
+                skippedCustomModelData.add(Integer.parseInt(s));
         }
         return skippedCustomModelData;
     }
