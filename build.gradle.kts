@@ -9,9 +9,8 @@ plugins {
     //id("com.github.johnrengelman.shadow") version "8.1.1"
     id("xyz.jpenilla.run-paper") version "2.3.1"
     id("net.minecrell.plugin-yml.bukkit") version "0.6.0" // Generates plugin.yml
-    id("io.papermc.paperweight.userdev") version "2.0.0-beta.8" apply false
+    id("io.papermc.paperweight.userdev") version "2.0.0-beta.11" apply false
     id("io.github.goooler.shadow") version "8.1.8"
-    alias(libs.plugins.mia.publication)
 }
 
 class NMSVersion(val nmsVersion: String, val serverVersion: String)
@@ -188,7 +187,6 @@ tasks {
 
     compileJava.get().dependsOn(clean)
     build.get().dependsOn(shadowJar)
-    build.get().dependsOn(publishToMavenLocal)
 }
 
 bukkit {
