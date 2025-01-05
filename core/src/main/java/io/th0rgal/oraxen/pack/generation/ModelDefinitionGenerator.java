@@ -18,8 +18,6 @@ public class ModelDefinitionGenerator {
         JsonObject model = new JsonObject();
 
         model.addProperty("type", "minecraft:model");
-        Bukkit.broadcastMessage(
-                "oraxenMeta.getModelName():" + oraxenMeta.getModelName() + " model_poath:" + oraxenMeta.getModelPath());
         model.addProperty("model", oraxenMeta.getModelName());
 
         root.add("model", model);
