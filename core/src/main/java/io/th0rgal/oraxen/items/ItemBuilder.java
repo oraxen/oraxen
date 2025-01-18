@@ -12,6 +12,8 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.nms.NMSHandler;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.*;
+import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -118,6 +120,9 @@ public class ItemBuilder {
     private NamespacedKey itemModel;
     @Nullable
     private Integer enchantable;
+
+    // Generic components storage using String keys
+    private final Map<String, Object> genericComponents = new HashMap<>();
 
     public ItemBuilder(final Material material) {
         this(new ItemStack(material));
@@ -1000,6 +1005,37 @@ public class ItemBuilder {
     public String toString() {
         // todo
         return super.toString();
+    }
+
+    /**
+     * Sets a generic component on this item
+     * 
+     * @param type      The component type (e.g. "food", "tool", etc.)
+     * @param component The component object
+     */
+    public void setComponent(String type, Object component) {
+        genericComponents.put(type, component);
+    }
+
+    /**
+     * Gets a generic component from this item
+     * 
+     * @param type The component type
+     * @return The component object, or null if not found
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T getComponent(String type) {
+        return (T) genericComponents.get(type);
+    }
+
+    /**
+     * Checks if this item has a specific component
+     * 
+     * @param type The component type
+     * @return true if the component exists
+     */
+    public boolean hasComponent(String type) {
+        return genericComponents.containsKey(type);
     }
 
 }

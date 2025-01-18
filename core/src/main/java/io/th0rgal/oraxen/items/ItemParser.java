@@ -171,6 +171,25 @@ public class ItemParser {
         if (components == null || !VersionUtil.atOrAbove("1.20.5"))
             return;
 
+        // Handle legacy components for backward compatibility
+        handleLegacyComponents(item, components);
+
+        // Handle generic components
+        if (VersionUtil.atOrAbove("1.21.3")) {
+            for (String key : components.getKeys(false)) {
+                // Skip legacy components that are handled separately
+                if (isLegacyComponent(key))
+                    continue;
+
+                Object value = components.get(key);
+                if (value instanceof ConfigurationSection || value instanceof Map) {
+                    NMSHandlers.getHandler().setComponent(item, key, value);
+                }
+            }
+        }
+    }
+
+    private void handleLegacyComponents(ItemBuilder item, ConfigurationSection components) {
         if (components.contains("max_stack_size"))
             item.setMaxStackSize(Math.clamp(components.getInt("max_stack_size"), 1, 99));
 
@@ -237,7 +256,27 @@ public class ItemParser {
 
         Optional.ofNullable(components.getConfigurationSection("consumable"))
                 .ifPresent(consumableSection -> NMSHandlers.getHandler().consumableComponent(item, consumableSection));
+    }
 
+    private boolean isLegacyComponent(String key) {
+        return key.equals("max_stack_size") ||
+                key.equals("enchantment_glint_override") ||
+                key.equals("durability") ||
+                key.equals("rarity") ||
+                key.equals("fire_resistant") ||
+                key.equals("hide_tooltip") ||
+                key.equals("food") ||
+                key.equals("tool") ||
+                key.equals("jukebox_playable") ||
+                key.equals("equippable") ||
+                key.equals("use_cooldown") ||
+                key.equals("use_remainder") ||
+                key.equals("damage_resistant") ||
+                key.equals("tooltip_style") ||
+                key.equals("item_model") ||
+                key.equals("enchantable") ||
+                key.equals("glider") ||
+                key.equals("consumable");
     }
 
     private void parseUseRemainderComponent(ItemBuilder item, @NotNull ConfigurationSection useRemainderSection) {
