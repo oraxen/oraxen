@@ -56,6 +56,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
+import io.th0rgal.oraxen.items.ItemBuilder;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -199,5 +200,12 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     @Override
     public boolean getSupported() {
         return true;
+    }
+
+    @Override
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    public boolean setComponent(ItemBuilder item, String componentKey, Object component) {
+        // Not supported in this version
+        return false;
     }
 }

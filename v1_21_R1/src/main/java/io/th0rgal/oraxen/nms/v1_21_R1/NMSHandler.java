@@ -20,6 +20,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.common.ClientboundUpdateTagsPacket;
 import net.minecraft.resources.ResourceKey;
@@ -58,9 +59,11 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
@@ -204,7 +207,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         constructor.setAccessible(true);
         try {
             return (TagNetworkSerialization.NetworkPayload) constructor.newInstance(tagRegistryMap);
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
@@ -231,7 +234,6 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         return true;
     }
 
-
     @SuppressWarnings("UnstableApiUsage")
     @Override
     public void foodComponent(ItemBuilder item, ConfigurationSection foodSection) {
@@ -243,24 +245,155 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         foodComponent.setEatSeconds((float) foodSection.getDouble("eat_seconds", 1.6));
 
         ConfigurationSection effectsSection = foodSection.getConfigurationSection("effects");
-        if (effectsSection != null) for (String effect : effectsSection.getKeys(false)) {
-            ConfigurationSection effectSection = effectsSection.getConfigurationSection(effect);
-            PotionEffectType effectType = PotionUtils.getEffectType(effect);
-            if (effectSection == null || effectType == null)
-                Logs.logError("Invalid potion effect: " + effect + ", in " + StringUtils.substringBefore(effectsSection.getCurrentPath(), ".") + " food-property!");
-            else {
-                foodComponent.addEffect(
-                        new PotionEffect(effectType,
-                                effectSection.getInt("duration", 1) * 20,
-                                effectSection.getInt("amplifier", 0),
-                                effectSection.getBoolean("ambient", true),
-                                effectSection.getBoolean("show_particles", true),
-                                effectSection.getBoolean("show_icon", true)),
-                        (float) effectSection.getDouble("probability", 1.0)
-                );
+        if (effectsSection != null)
+            for (String effect : effectsSection.getKeys(false)) {
+                ConfigurationSection effectSection = effectsSection.getConfigurationSection(effect);
+                PotionEffectType effectType = PotionUtils.getEffectType(effect);
+                if (effectSection == null || effectType == null)
+                    Logs.logError("Invalid potion effect: " + effect + ", in "
+                            + StringUtils.substringBefore(effectsSection.getCurrentPath(), ".") + " food-property!");
+                else {
+                    foodComponent.addEffect(
+                            new PotionEffect(effectType,
+                                    effectSection.getInt("duration", 1) * 20,
+                                    effectSection.getInt("amplifier", 0),
+                                    effectSection.getBoolean("ambient", true),
+                                    effectSection.getBoolean("show_particles", true),
+                                    effectSection.getBoolean("show_icon", true)),
+                            (float) effectSection.getDouble("probability", 1.0));
+                }
             }
-        }
 
         item.setFoodComponent(foodComponent);
+    }
+
+    @Override
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    public boolean setComponent(ItemBuilder item, String componentKey, Object component) {
+        try {
+            net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(new ItemStack(item.getType()));
+            net.minecraft.resources.ResourceLocation componentLocation = net.minecraft.resources.ResourceLocation
+                    .tryParse("minecraft:" + componentKey.toLowerCase());
+            if (componentLocation == null)
+                return false;
+
+            net.minecraft.core.component.DataComponentType<?> componentType = net.minecraft.core.registries.BuiltInRegistries.DATA_COMPONENT_TYPE
+                    .getOptional(componentLocation)
+                    .orElse(null);
+            if (componentType == null)
+                return false;
+
+            if (component instanceof ConfigurationSection config) {
+                // Handle YAML configuration
+                net.minecraft.nbt.CompoundTag nbt = new net.minecraft.nbt.CompoundTag();
+                convertConfigToNBT(config, nbt);
+
+                // Get default component
+                Object defaultComponent = nmsItem.getComponents().get(componentType);
+                if (defaultComponent == null) {
+                    try {
+                        Class<?> componentClass = componentType.getClass();
+                        if (componentClass.getMethod("builder").getReturnType().getSimpleName().endsWith("Builder")) {
+                            defaultComponent = componentClass.getMethod("builder").invoke(null);
+                            defaultComponent = componentClass.getMethod("build").invoke(defaultComponent);
+                        } else {
+                            Constructor<?> constructor = componentClass.getDeclaredConstructor();
+                            constructor.setAccessible(true);
+                            defaultComponent = constructor.newInstance();
+                        }
+                    } catch (Exception e) {
+                        io.th0rgal.oraxen.utils.logs.Logs
+                                .logWarning("Failed to create default component for " + componentKey);
+                        return false;
+                    }
+                }
+
+                // Apply NBT to component
+                try {
+                    Method fromTag = defaultComponent.getClass().getMethod("fromTag",
+                            net.minecraft.nbt.CompoundTag.class);
+                    fromTag.setAccessible(true);
+                    Object parsedComponent = fromTag.invoke(defaultComponent, nbt);
+
+                    // Use reflection to access and modify the components map
+                    Field componentsField = net.minecraft.world.item.ItemStack.class.getDeclaredField("components");
+                    componentsField.setAccessible(true);
+                    Map components = (Map) componentsField.get(nmsItem);
+                    components.put(componentType, parsedComponent);
+
+                    return true;
+                } catch (Exception e) {
+                    io.th0rgal.oraxen.utils.logs.Logs
+                            .logWarning("Failed to apply NBT data to component " + componentKey);
+                    if (io.th0rgal.oraxen.config.Settings.DEBUG.toBool())
+                        e.printStackTrace();
+                    return false;
+                }
+            } else {
+                // Handle direct component object
+                try {
+                    // Use reflection to access and modify the components map
+                    Field componentsField = net.minecraft.world.item.ItemStack.class.getDeclaredField("components");
+                    componentsField.setAccessible(true);
+                    Map components = (Map) componentsField.get(nmsItem);
+                    components.put(componentType, component);
+
+                    return true;
+                } catch (Exception e) {
+                    io.th0rgal.oraxen.utils.logs.Logs.logWarning("Failed to set component " + componentKey);
+                    if (io.th0rgal.oraxen.config.Settings.DEBUG.toBool())
+                        e.printStackTrace();
+                    return false;
+                }
+            }
+        } catch (Exception e) {
+            io.th0rgal.oraxen.utils.logs.Logs.logWarning("Failed to set component " + componentKey);
+            if (io.th0rgal.oraxen.config.Settings.DEBUG.toBool())
+                e.printStackTrace();
+            return false;
+        }
+    }
+
+    private void convertConfigToNBT(ConfigurationSection config, CompoundTag nbt) {
+        for (String key : config.getKeys(false)) {
+            Object value = config.get(key);
+            if (value instanceof ConfigurationSection section) {
+                CompoundTag compound = new CompoundTag();
+                convertConfigToNBT(section, compound);
+                nbt.put(key, compound);
+            } else if (value instanceof Number number) {
+                if (value instanceof Integer)
+                    nbt.putInt(key, number.intValue());
+                else if (value instanceof Double)
+                    nbt.putDouble(key, number.doubleValue());
+                else if (value instanceof Float)
+                    nbt.putFloat(key, number.floatValue());
+                else if (value instanceof Long)
+                    nbt.putLong(key, number.longValue());
+                else if (value instanceof Byte)
+                    nbt.putByte(key, number.byteValue());
+                else if (value instanceof Short)
+                    nbt.putShort(key, number.shortValue());
+            } else if (value instanceof Boolean) {
+                nbt.putBoolean(key, (Boolean) value);
+            } else if (value instanceof String) {
+                nbt.putString(key, (String) value);
+            } else if (value instanceof List<?> list) {
+                if (!list.isEmpty()) {
+                    Object first = list.get(0);
+                    if (first instanceof String) {
+                        net.minecraft.nbt.ListTag stringList = new net.minecraft.nbt.ListTag();
+                        for (Object s : list) {
+                            stringList.add(net.minecraft.nbt.StringTag.valueOf(s.toString()));
+                        }
+                        nbt.put(key, stringList);
+                    } else if (first instanceof Integer) {
+                        nbt.putIntArray(key, list.stream().mapToInt(i -> (Integer) i).toArray());
+                    } else if (first instanceof Long) {
+                        nbt.putLongArray(key, list.stream().mapToLong(l -> (Long) l).toArray());
+                    }
+                }
+            }
+        }
     }
 }
