@@ -474,18 +474,29 @@ public class ItemParser {
             }
         }
 
-        if (section.contains("AttributeModifiers")) {
-            List<LinkedHashMap<String, Object>> attributes = (List<LinkedHashMap<String, Object>>) section
-                    .getList("AttributeModifiers");
-            if (attributes != null)
-                for (LinkedHashMap<String, Object> attributeJson : attributes) {
+        List<Map<String, Object>> attributes = (List<Map<String, Object>>) section.getList("AttributeModifiers");
+        if (attributes != null) {
+            for (Map<String, Object> attributeJson : attributes) {
+                try {
                     attributeJson.putIfAbsent("uuid", UUID.randomUUID().toString());
                     attributeJson.putIfAbsent("name", "oraxen:modifier");
                     attributeJson.putIfAbsent("key", "oraxen:modifier");
+
                     AttributeModifier attributeModifier = AttributeModifier.deserialize(attributeJson);
                     Attribute attribute = AttributeWrapper.fromString((String) attributeJson.get("attribute"));
-                    item.addAttributeModifiers(attribute, attributeModifier);
+
+                    if (attribute != null) {
+                        item.addAttributeModifiers(attribute, attributeModifier);
+                    } else {
+                        Logs.logWarning("Attribute not found for key: " + attributeJson.get("attribute") + " in item: " + section.getName());
+                    }
+                } catch (Exception e) {
+                    Logs.logWarning("Error parsing AttributeModifiers in " + section.getName());
+                    if (Settings.DEBUG.toBool()) {
+                        e.printStackTrace();
+                    }
                 }
+            }
         }
 
         if (section.contains("Enchantments")) {
