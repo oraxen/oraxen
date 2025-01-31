@@ -23,10 +23,10 @@ emerald_helmet:
     # - attribute: Get the list here: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/attribute/Attribute.html
     # - operations: 0 for ADD_NUMBER, 1 for ADD_SCALAR, 2 for MULTIPLY_SCALAR_1;
     # - slot: HAND, OFF_HAND, FEET, LEGS, CHEST or HEAD
-    - { attribute: GENERIC_MAX_HEALTH, amount: 2, operation: 0, slot: HEAD }
-    - { attribute: GENERIC_ARMOR, amount: 3, operation: 0, slot: HEAD }
+    - { attribute: MAX_HEALTH, amount: 2, operation: 0, slot: HEAD }
+    - { attribute: ARMOR, amount: 3, operation: 0, slot: HEAD }
     - {
-        attribute: GENERIC_ARMOR_TOUGHNESS,
+        attribute: ARMOR_TOUGHNESS,
         amount: 2,
         operation: 0,
         slot: HEAD,
@@ -51,10 +51,10 @@ emerald_chestplate:
       slot: CHEST
       model: oraxen:emerald
   AttributeModifiers:
-    - { attribute: GENERIC_MAX_HEALTH, amount: 3, operation: 0, slot: CHEST }
-    - { attribute: GENERIC_ARMOR, amount: 8, operation: 0, slot: CHEST }
+    - { attribute: MAX_HEALTH, amount: 3, operation: 0, slot: CHEST }
+    - { attribute: ARMOR, amount: 8, operation: 0, slot: CHEST }
     - {
-        attribute: GENERIC_ARMOR_TOUGHNESS,
+        attribute: ARMOR_TOUGHNESS,
         amount: 2,
         operation: 0,
         slot: CHEST,
@@ -79,10 +79,10 @@ emerald_leggings:
       slot: LEGS
       model: oraxen:emerald
   AttributeModifiers:
-    - { attribute: GENERIC_MAX_HEALTH, amount: 3, operation: 0, slot: LEGS }
-    - { attribute: GENERIC_ARMOR, amount: 6, operation: 0, slot: LEGS }
+    - { attribute: MAX_HEALTH, amount: 3, operation: 0, slot: LEGS }
+    - { attribute: ARMOR, amount: 6, operation: 0, slot: LEGS }
     - {
-        attribute: GENERIC_ARMOR_TOUGHNESS,
+        attribute: ARMOR_TOUGHNESS,
         amount: 2,
         operation: 0,
         slot: LEGS,
@@ -107,10 +107,10 @@ emerald_boots:
       slot: FEET
       model: oraxen:emerald
   AttributeModifiers:
-    - { attribute: GENERIC_MAX_HEALTH, amount: 2, operation: 0, slot: FEET }
-    - { attribute: GENERIC_ARMOR, amount: 3, operation: 0, slot: FEET }
+    - { attribute: MAX_HEALTH, amount: 2, operation: 0, slot: FEET }
+    - { attribute: ARMOR, amount: 3, operation: 0, slot: FEET }
     - {
-        attribute: GENERIC_ARMOR_TOUGHNESS,
+        attribute: ARMOR_TOUGHNESS,
         amount: 2,
         operation: 0,
         slot: FEET,
@@ -135,7 +135,7 @@ obsidian_helmet:
       slot: HEAD
       model: oraxen:obsidian
   AttributeModifiers:
-    - { attribute: GENERIC_ARMOR, amount: 2, operation: 0, slot: HEAD }
+    - { attribute: ARMOR, amount: 2, operation: 0, slot: HEAD }
   Pack:
     generate_model: true
     parent_model: "item/generated"
@@ -157,7 +157,7 @@ obsidian_chestplate:
       slot: CHEST
       model: oraxen:obsidian
   AttributeModifiers:
-    - { attribute: GENERIC_ARMOR, amount: 6, operation: 0, slot: CHEST }
+    - { attribute: ARMOR, amount: 6, operation: 0, slot: CHEST }
   Pack:
     generate_model: true
     parent_model: "item/generated"
@@ -178,7 +178,7 @@ obsidian_leggings:
       slot: LEGS
       model: oraxen:obsidian
   AttributeModifiers:
-    - { attribute: GENERIC_ARMOR, amount: 5, operation: 0, slot: LEGS }
+    - { attribute: ARMOR, amount: 5, operation: 0, slot: LEGS }
   Pack:
     generate_model: true
     parent_model: "item/generated"
@@ -199,7 +199,7 @@ obsidian_boots:
       slot: FEET
       model: oraxen:obsidian
   AttributeModifiers:
-    - { attribute: GENERIC_ARMOR, amount: 2, operation: 0, slot: FEET }
+    - { attribute: ARMOR, amount: 2, operation: 0, slot: FEET }
   Pack:
     generate_model: true
     parent_model: "item/generated"
@@ -218,9 +218,9 @@ ruby_helmet:
       slot: HEAD
       model: oraxen:ruby
   AttributeModifiers:
-    - { attribute: GENERIC_ARMOR, amount: 3, operation: 0, slot: HEAD }
+    - { attribute: ARMOR, amount: 3, operation: 0, slot: HEAD }
     - {
-        attribute: GENERIC_ARMOR_TOUGHNESS,
+        attribute: ARMOR_TOUGHNESS,
         amount: 2,
         operation: 0,
         slot: HEAD,
@@ -243,9 +243,9 @@ ruby_chestplate:
       slot: CHEST
       model: oraxen:ruby
   AttributeModifiers:
-    - { attribute: GENERIC_ARMOR, amount: 8, operation: 0, slot: CHEST }
+    - { attribute: ARMOR, amount: 8, operation: 0, slot: CHEST }
     - {
-        attribute: GENERIC_ARMOR_TOUGHNESS,
+        attribute: ARMOR_TOUGHNESS,
         amount: 2,
         operation: 0,
         slot: CHEST,
@@ -268,9 +268,9 @@ ruby_leggings:
       slot: LEGS
       model: oraxen:ruby
   AttributeModifiers:
-    - { attribute: GENERIC_ARMOR, amount: 6, operation: 0, slot: LEGS }
+    - { attribute: ARMOR, amount: 6, operation: 0, slot: LEGS }
     - {
-        attribute: GENERIC_ARMOR_TOUGHNESS,
+        attribute: ARMOR_TOUGHNESS,
         amount: 2,
         operation: 0,
         slot: LEGS,
@@ -293,9 +293,9 @@ ruby_boots:
       slot: FEET
       model: oraxen:ruby
   AttributeModifiers:
-    - { attribute: GENERIC_ARMOR, amount: 3, operation: 0, slot: FEET }
+    - { attribute: ARMOR, amount: 3, operation: 0, slot: FEET }
     - {
-        attribute: GENERIC_ARMOR_TOUGHNESS,
+        attribute: ARMOR_TOUGHNESS,
         amount: 2,
         operation: 0,
         slot: FEET,
