@@ -671,12 +671,12 @@ public class ItemBuilder {
     }
 
     public ItemBuilder addAttributeModifiers(final Attribute attribute, final AttributeModifier attributeModifier) {
-        if (!hasAttributeModifiers) {
-            hasAttributeModifiers = true;
-            attributeModifiers = HashMultimap.create();
-        }
         if (attribute != null && attributeModifier != null) {
+            if (attributeModifiers == null) {
+                attributeModifiers = HashMultimap.create();
+            }
             attributeModifiers.put(attribute, attributeModifier);
+            hasAttributeModifiers = true;
         }
         return this;
     }
@@ -830,8 +830,9 @@ public class ItemBuilder {
             }
         }
 
-        if (hasAttributeModifiers)
+        if (hasAttributeModifiers && attributeModifiers != null) {
             itemMeta.setAttributeModifiers(attributeModifiers);
+        }
 
         itemMeta.setCustomModelData(customModelData);
 

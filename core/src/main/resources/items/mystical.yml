@@ -67,7 +67,7 @@ battle_axe:
   displayname: '<gradient:#F06966:#FAD6A6>Battle Axe'
   material: DIAMOND_AXE
   AttributeModifiers:
-    - attribute: GENERIC_ATTACK_DAMAGE
+    - attribute: ATTACK_DAMAGE
       amount: 7
       operation: 0
       slot: HAND
