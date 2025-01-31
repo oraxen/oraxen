@@ -661,8 +661,8 @@ public class ItemBuilder {
 
     public ItemBuilder addItemFlags(final ItemFlag... itemFlags) {
         if (this.itemFlags == null)
-            this.itemFlags = new HashSet<>();
-        this.itemFlags.addAll(Arrays.asList(itemFlags));
+            this.itemFlags = EnumSet.noneOf(ItemFlag.class); // Use EnumSet for better performance
+        Collections.addAll(this.itemFlags, itemFlags);
         return this;
     }
 
@@ -675,14 +675,20 @@ public class ItemBuilder {
             hasAttributeModifiers = true;
             attributeModifiers = HashMultimap.create();
         }
-        attributeModifiers.put(attribute, attributeModifier);
+        if (attribute != null && attributeModifier != null) {
+            attributeModifiers.put(attribute, attributeModifier);
+        }
         return this;
     }
 
     public ItemBuilder addAllAttributeModifiers(final Multimap<Attribute, AttributeModifier> attributeModifiers) {
-        if (!hasAttributeModifiers)
+        if (!hasAttributeModifiers) {
             hasAttributeModifiers = true;
-        this.attributeModifiers.putAll(attributeModifiers);
+            this.attributeModifiers = HashMultimap.create();
+        }
+        if (attributeModifiers != null) {
+            this.attributeModifiers.putAll(attributeModifiers);
+        }
         return this;
     }
 
