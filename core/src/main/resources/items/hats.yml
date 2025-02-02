@@ -11,8 +11,8 @@ anubis_head:
   lore:
     - "<#6f737d>» <#D5D6D8>NightVision when worn"
   AttributeModifiers:
-    - { attribute: GENERIC_ARMOR, amount: 3, operation: 0, slot: HEAD }
-    - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: HEAD }
+    - { attribute: ARMOR, amount: 3, operation: 0, slot: HEAD }
+    - { attribute: ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: HEAD }
   Pack:
     generate_model: false
     model: default/anubis_head # .json extension is not mandatory
@@ -32,8 +32,8 @@ crown:
   displayname: "<gradient:#F06966:#FAD6A6>Crown"
   material: PAPER
   AttributeModifiers:
-    - { attribute: GENERIC_ARMOR, amount: 3, operation: 0, slot: HEAD }
-    - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: HEAD }
+    - { attribute: ARMOR, amount: 3, operation: 0, slot: HEAD }
+    - { attribute: ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: HEAD }
   Pack:
     generate_model: false
     model: default/crown
@@ -45,8 +45,8 @@ pharaoh_head:
   displayname: "<gradient:#F06966:#FAD6A6>Pharaoh Head"
   material: PAPER
   AttributeModifiers:
-    - { attribute: GENERIC_ARMOR, amount: 3, operation: 0, slot: HEAD }
-    - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: HEAD }
+    - { attribute: ARMOR, amount: 3, operation: 0, slot: HEAD }
+    - { attribute: ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: HEAD }
   Pack:
     generate_model: false
     model: default/pharaoh_head
@@ -58,8 +58,8 @@ witch_hat:
   displayname: "<gradient:#DF98FA:#9055FF>Witch Hat"
   material: PAPER
   AttributeModifiers:
-    - { attribute: GENERIC_ARMOR, amount: 3, operation: 0, slot: HEAD }
-    - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: HEAD }
+    - { attribute: ARMOR, amount: 3, operation: 0, slot: HEAD }
+    - { attribute: ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: HEAD }
   Pack:
     generate_model: false
     model: default/witch_hat
