@@ -10,9 +10,9 @@ storm_sword:
   material: DIAMOND_SWORD
   AttributeModifiers:
     # diamond sword has an attack damage of 7
-    - { attribute: GENERIC_ATTACK_DAMAGE, amount: 10, operation: 0, slot: HAND }
+    - { attribute: ATTACK_DAMAGE, amount: 10, operation: 0, slot: HAND }
     # it has two times more full-strength attacks per second than diamond sword
-    - { attribute: GENERIC_ATTACK_SPEED, amount: 3.2, operation: 0, slot: HAND }
+    - { attribute: ATTACK_SPEED, amount: 3.2, operation: 0, slot: HAND }
   lore:
     - "<#6f737d>» <#D5D6D8>Right click to strike lightning"
   Pack:
@@ -29,9 +29,9 @@ energy_crystal_sword:
   material: DIAMOND_SWORD
   AttributeModifiers:
     # diamond sword has an attack damage of 7
-    - { attribute: GENERIC_ATTACK_DAMAGE, amount: 10, operation: 0, slot: HAND }
+    - { attribute: ATTACK_DAMAGE, amount: 10, operation: 0, slot: HAND }
     # it has as much full-strength attacks per second than diamond sword
-    - { attribute: GENERIC_ATTACK_SPEED, amount: 1.6, operation: 0, slot: HAND }
+    - { attribute: ATTACK_SPEED, amount: 1.6, operation: 0, slot: HAND }
   Pack:
     generate_model: false
     model: default/energy_crystal_sword
@@ -43,9 +43,9 @@ glass_sword:
     - "<#6f737d>» <#D5D6D8>Fragile"
   AttributeModifiers:
     # diamond sword has an attack damage of 7
-    - { attribute: GENERIC_ATTACK_DAMAGE, amount: 10, operation: 0, slot: HAND }
+    - { attribute: ATTACK_DAMAGE, amount: 10, operation: 0, slot: HAND }
     # it has as 5 full-strength attacks per second
-    - { attribute: GENERIC_ATTACK_SPEED, amount: 1.6, operation: 0, slot: HAND }
+    - { attribute: ATTACK_SPEED, amount: 1.6, operation: 0, slot: HAND }
   Pack:
     generate_model: true
     parent_model: "item/handheld"
@@ -62,9 +62,9 @@ obsidian_sword:
     - "<#6f737d>» <#D5D6D8>Ludicrous durability"
   AttributeModifiers:
     # diamond sword has an attack damage of 7
-    - { attribute: GENERIC_ATTACK_DAMAGE, amount: 6, operation: 0, slot: HAND }
+    - { attribute: ATTACK_DAMAGE, amount: 6, operation: 0, slot: HAND }
     # it has as 5 full-strength attacks per second
-    - { attribute: GENERIC_ATTACK_SPEED, amount: 1.6, operation: 0, slot: HAND }
+    - { attribute: ATTACK_SPEED, amount: 1.6, operation: 0, slot: HAND }
   Pack:
     generate_model: true
     parent_model: "item/handheld"
@@ -81,9 +81,9 @@ blood_sword:
     - "<#6f737d>» <#D5D6D8>Steal the life of your enemies"
   AttributeModifiers:
     # diamond sword has an attack damage of 7
-    - { attribute: GENERIC_ATTACK_DAMAGE, amount: 8, operation: 0, slot: HAND }
+    - { attribute: ATTACK_DAMAGE, amount: 8, operation: 0, slot: HAND }
     # it has as much full-strength attacks per second than diamond sword
-    - { attribute: GENERIC_ATTACK_SPEED, amount: 1.6, operation: 0, slot: HAND }
+    - { attribute: ATTACK_SPEED, amount: 1.6, operation: 0, slot: HAND }
   Pack:
     generate_model: false
     model: default/blood_sword
@@ -118,9 +118,9 @@ katana:
   material: DIAMOND_SWORD
   AttributeModifiers:
     # diamond sword has an attack damage of 7
-    - { attribute: GENERIC_ATTACK_DAMAGE, amount: 5, operation: 0, slot: HAND }
+    - { attribute: ATTACK_DAMAGE, amount: 5, operation: 0, slot: HAND }
     # it has as 5 full-strength attacks per second
-    - { attribute: GENERIC_ATTACK_SPEED, amount: 5, operation: 0, slot: HAND }
+    - { attribute: ATTACK_SPEED, amount: 5, operation: 0, slot: HAND }
   Pack:
     generate_model: false
     model: default/katana
@@ -132,7 +132,7 @@ combat_bow:
   displayname: '<gradient:#F69D84:#FAD98D>Combat Bow'
   material: BOW
   AttributeModifiers:
-    - attribute: GENERIC_ATTACK_DAMAGE
+    - attribute: ATTACK_DAMAGE
       amount: 7
       operation: 0
       slot: HAND

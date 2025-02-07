@@ -10,6 +10,8 @@ import java.util.*;
 
 public class VersionUtil {
     private static final Map<NMSVersion, Map<Integer, MinecraftVersion>> versionMap = new HashMap<>();
+    private static final boolean IS_PAPER;
+    private static final boolean IS_FOLIA;
 
     public enum NMSVersion {
         v1_21_R3,
@@ -32,6 +34,8 @@ public class VersionUtil {
     }
 
     static {
+        IS_PAPER = hasClass("com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent");
+        IS_FOLIA = hasClass("io.papermc.paper.threadedregions.RegionizedServer");
         versionMap.put(NMSVersion.v1_21_R3,
                 Map.of(19, new MinecraftVersion("1.21.4")));
         versionMap.put(NMSVersion.v1_21_R2,
@@ -70,24 +74,11 @@ public class VersionUtil {
      * @throws IllegalArgumentException if server is null
      */
     public static boolean isPaperServer() {
-        Server server = Bukkit.getServer();
-        Validate.notNull(server, "Server cannot be null");
-        if (server.getName().equalsIgnoreCase("Paper"))
-            return true;
-
-        try {
-            Class.forName("com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent");
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
+        return IS_PAPER;
     }
 
     public static boolean isFoliaServer() {
-        Server server = Bukkit.getServer();
-        Validate.notNull(server, "Server cannot be null");
-
-        return server.getName().equalsIgnoreCase("Folia");
+        return IS_FOLIA;
     }
 
     public static boolean isSupportedVersion(@NotNull NMSVersion serverVersion,
@@ -153,5 +144,14 @@ public class VersionUtil {
     public static boolean isValidCompiler() {
         List<String> split = Arrays.stream(manifest.split(":|\n")).map(String::trim).toList();
         return Set.of("sivert", "thomas").contains(split.get(split.indexOf("Built-By") + 1).toLowerCase(Locale.ROOT));
+    }
+
+    private static boolean hasClass(String className) {
+        try {
+            Class.forName(className);
+            return true;
+        } catch (ClassNotFoundException var2) {
+            return false;
+        }
     }
 }
