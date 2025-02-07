@@ -190,18 +190,12 @@ public class ItemParser {
     }
 
     private void handleLegacyComponents(ItemBuilder item, ConfigurationSection components) {
-        if (components.contains("max_stack_size"))
-            item.setMaxStackSize(Math.clamp(components.getInt("max_stack_size"), 1, 99));
 
-        if (components.contains("enchantment_glint_override"))
-            item.setEnchantmentGlindOverride(components.getBoolean("enchantment_glint_override"));
         if (components.contains("durability")) {
             item.setDamagedOnBlockBreak(components.getBoolean("durability.damage_block_break"));
             item.setDamagedOnEntityHit(components.getBoolean("durability.damage_entity_hit"));
             item.setDurability(Math.max(components.getInt("durability.value"), components.getInt("durability", 1)));
         }
-        if (components.contains("rarity"))
-            item.setRarity(ItemRarity.valueOf(components.getString("rarity")));
         if (components.contains("fire_resistant"))
             item.setFireResistant(components.getBoolean("fire_resistant"));
         if (components.contains("hide_tooltip"))
@@ -241,28 +235,18 @@ public class ItemParser {
 
         Optional.ofNullable(components.getConfigurationSection("use_remainder"))
                 .ifPresent(useRemainder -> parseUseRemainderComponent(item, useRemainder));
-        Optional.ofNullable(components.getString("damage_resistant")).map(NamespacedKey::fromString)
-                .ifPresent(damageResistantKey -> item.setDamageResistant(
-                        Bukkit.getTag(DamageTypeTags.REGISTRY_DAMAGE_TYPES, damageResistantKey, DamageType.class)));
 
         Optional.ofNullable(components.getString("tooltip_style")).map(NamespacedKey::fromString)
                 .ifPresent(item::setTooltipStyle);
         Optional.ofNullable(components.getString("item_model")).map(NamespacedKey::fromString)
                 .ifPresent(item::setItemModel);
-        if (components.contains("enchantable"))
-            item.setEnchantable(components.getInt("enchantable"));
-        if (components.contains("glider"))
-            item.setGlider(components.getBoolean("glider"));
-
         Optional.ofNullable(components.getConfigurationSection("consumable"))
                 .ifPresent(consumableSection -> NMSHandlers.getHandler().consumableComponent(item, consumableSection));
     }
 
     private boolean isLegacyComponent(String key) {
-        return key.equals("max_stack_size") ||
-                key.equals("enchantment_glint_override") ||
+        return 
                 key.equals("durability") ||
-                key.equals("rarity") ||
                 key.equals("fire_resistant") ||
                 key.equals("hide_tooltip") ||
                 key.equals("food") ||
@@ -271,11 +255,8 @@ public class ItemParser {
                 key.equals("equippable") ||
                 key.equals("use_cooldown") ||
                 key.equals("use_remainder") ||
-                key.equals("damage_resistant") ||
                 key.equals("tooltip_style") ||
                 key.equals("item_model") ||
-                key.equals("enchantable") ||
-                key.equals("glider") ||
                 key.equals("consumable");
     }
 
