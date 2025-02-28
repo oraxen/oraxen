@@ -454,14 +454,23 @@ public class ResourcePack {
         }
     }
 
+    private static boolean needsTinting(Material material) {
+        return material.name().startsWith("LEATHER_")
+                || material == Material.POTION
+                || material == Material.SPLASH_POTION
+                || material == Material.LINGERING_POTION;
+    }
+
     private void generateModelDefinitions(final Map<Material, Map<String, ItemBuilder>> texturedItems) {
         for (final Map.Entry<Material, Map<String, ItemBuilder>> materialEntry : texturedItems.entrySet()) {
             for (final Map.Entry<String, ItemBuilder> entry : materialEntry.getValue().entrySet()) {
+                Material key = materialEntry.getKey();
+
                 String itemId = entry.getKey();
                 ItemBuilder texturedItem = entry.getValue();
                 OraxenMeta oraxenMeta = texturedItem.getOraxenMeta();
                 if (oraxenMeta.hasPackInfos()) {
-                    final ModelDefinitionGenerator modelDefinitionGenerator = new ModelDefinitionGenerator(oraxenMeta);
+                    final ModelDefinitionGenerator modelDefinitionGenerator = new ModelDefinitionGenerator(oraxenMeta,key);
                     writeStringToVirtual("assets/oraxen/items/", itemId + ".json",
                             modelDefinitionGenerator.toJSON().toString());
                 }
