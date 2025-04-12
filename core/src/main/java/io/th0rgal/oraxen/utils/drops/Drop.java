@@ -142,11 +142,13 @@ public class Drop {
 
     public void spawns(Location location, ItemStack itemInHand) {
         if (!canDrop(itemInHand) || !BlockHelpers.isLoaded(location)) return;
-        ItemStack baseItem = OraxenItems.getItemById(sourceID).build();
 
-        if (silktouch && itemInHand.hasItemMeta() && itemInHand.getItemMeta().hasEnchant(EnchantmentWrapper.SILK_TOUCH))
+        if (sourceID != null && silktouch
+                && itemInHand.hasItemMeta()
+                && itemInHand.getItemMeta().hasEnchant(EnchantmentWrapper.SILK_TOUCH)) {
+            ItemStack baseItem = OraxenItems.getItemById(sourceID).build();
             location.getWorld().dropItemNaturally(BlockHelpers.toCenterBlockLocation(location), baseItem);
-        else dropLoot(loots, location, getFortuneMultiplier(itemInHand));
+        } else dropLoot(loots, location, getFortuneMultiplier(itemInHand));
     }
 
     public void furnitureSpawns(Entity baseEntity, ItemStack itemInHand) {
