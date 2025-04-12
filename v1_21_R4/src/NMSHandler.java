@@ -118,7 +118,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         return VersionUtil.isPaperServer() && GlobalConfiguration.get().blockUpdates.disableNoteblockUpdates;
     }
 
-    @Override // TODO Fix this
+    @Override
+    /* This method copies custom NBT data from one item to another */
     public ItemStack copyItemNBTTags(@NotNull ItemStack oldItem, @NotNull ItemStack newItem) {
         net.minecraft.world.item.ItemStack newNmsItem = CraftItemStack.asNMSCopy(newItem);
         net.minecraft.world.item.ItemStack oldItemStack = CraftItemStack.asNMSCopy(oldItem);
@@ -349,42 +350,56 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         for (String key : config.getKeys(false)) {
             Object value = config.get(key);
             if (value instanceof ConfigurationSection section) {
-                net.minecraft.nbt.CompoundTag compound = new net.minecraft.nbt.CompoundTag();
-                convertConfigToNBT(section, compound);
-                nbt.put(key, compound);
+                handleConfigSectionValue(nbt, key, section);
             } else if (value instanceof Number number) {
-                if (value instanceof Integer)
-                    nbt.putInt(key, number.intValue());
-                else if (value instanceof Double)
-                    nbt.putDouble(key, number.doubleValue());
-                else if (value instanceof Float)
-                    nbt.putFloat(key, number.floatValue());
-                else if (value instanceof Long)
-                    nbt.putLong(key, number.longValue());
-                else if (value instanceof Byte)
-                    nbt.putByte(key, number.byteValue());
-                else if (value instanceof Short)
-                    nbt.putShort(key, number.shortValue());
-            } else if (value instanceof Boolean) {
-                nbt.putBoolean(key, (Boolean) value);
-            } else if (value instanceof String) {
-                nbt.putString(key, (String) value);
+                handleNumberValue(nbt, key, number);
+            } else if (value instanceof Boolean boolValue) {
+                nbt.putBoolean(key, boolValue);
+            } else if (value instanceof String stringValue) {
+                nbt.putString(key, stringValue);
             } else if (value instanceof List<?> list) {
-                if (!list.isEmpty()) {
-                    Object first = list.get(0);
-                    if (first instanceof String) {
-                        net.minecraft.nbt.ListTag stringList = new net.minecraft.nbt.ListTag();
-                        for (Object s : list) {
-                            stringList.add(net.minecraft.nbt.StringTag.valueOf(s.toString()));
-                        }
-                        nbt.put(key, stringList);
-                    } else if (first instanceof Integer) {
-                        nbt.putIntArray(key, list.stream().mapToInt(i -> (Integer) i).toArray());
-                    } else if (first instanceof Long) {
-                        nbt.putLongArray(key, list.stream().mapToLong(l -> (Long) l).toArray());
-                    }
-                }
+                handleListValue(nbt, key, list);
             }
+        }
+    }
+    
+    private void handleConfigSectionValue(net.minecraft.nbt.CompoundTag nbt, String key, ConfigurationSection section) {
+        net.minecraft.nbt.CompoundTag compound = new net.minecraft.nbt.CompoundTag();
+        convertConfigToNBT(section, compound);
+        nbt.put(key, compound);
+    }
+    
+    private void handleNumberValue(net.minecraft.nbt.CompoundTag nbt, String key, Number number) {
+        if (number instanceof Integer)
+            nbt.putInt(key, number.intValue());
+        else if (number instanceof Double)
+            nbt.putDouble(key, number.doubleValue());
+        else if (number instanceof Float)
+            nbt.putFloat(key, number.floatValue());
+        else if (number instanceof Long)
+            nbt.putLong(key, number.longValue());
+        else if (number instanceof Byte)
+            nbt.putByte(key, number.byteValue());
+        else if (number instanceof Short)
+            nbt.putShort(key, number.shortValue());
+    }
+    
+    private void handleListValue(net.minecraft.nbt.CompoundTag nbt, String key, List<?> list) {
+        if (list.isEmpty()) {
+            return;
+        }
+        
+        Object first = list.get(0);
+        if (first instanceof String) {
+            net.minecraft.nbt.ListTag stringList = new net.minecraft.nbt.ListTag();
+            for (Object s : list) {
+                stringList.add(net.minecraft.nbt.StringTag.valueOf(s.toString()));
+            }
+            nbt.put(key, stringList);
+        } else if (first instanceof Integer) {
+            nbt.putIntArray(key, list.stream().mapToInt(i -> (Integer) i).toArray());
+        } else if (first instanceof Long) {
+            nbt.putLongArray(key, list.stream().mapToLong(l -> (Long) l).toArray());
         }
     }
 
