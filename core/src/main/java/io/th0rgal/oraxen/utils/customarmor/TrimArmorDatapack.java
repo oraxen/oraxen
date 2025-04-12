@@ -12,6 +12,7 @@ import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.pack.generation.OraxenDatapack;
 import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
@@ -232,10 +233,21 @@ public class TrimArmorDatapack extends OraxenDatapack {
             }
             if (!itemBuilder.hasTrimPattern() && CustomArmorType.getSetting() == CustomArmorType.TRIMS) {
 
-                TrimPattern trimPattern = Registry.TRIM_PATTERN.get(NamespacedKey.fromString("oraxen:" + armorPrefix));
+                TrimPattern trimPattern = null;
+                try {
+                    if (VersionUtil.isPaperServer()) {
+                        trimPattern = Registry.TRIM_PATTERN.get(NamespacedKey.fromString("oraxen:" + armorPrefix));
+                    }
+                } catch (NoSuchMethodError e) {
+                    Logs.logWarning("Registry.TRIM_PATTERN.get is not available in your server version.");
+                    Logs.logWarning("Custom armor with trim patterns requires PaperMC or compatible fork.");
+                    skippedArmorType.add(armorPrefix);
+                    continue;
+                }
+
                 if (trimPattern == null) {
                     Logs.logError("Could not get trim-pattern for " + itemID + ": oraxen:" + armorPrefix);
-                    Logs.logWarning("Ensure that the  DataPack is enabled `/datapack list` and restart your server");
+                    Logs.logWarning("Ensure that the DataPack is enabled `/datapack list` and restart your server");
                     skippedArmorType.add(armorPrefix);
                 } else if (!Settings.CUSTOM_ARMOR_TRIMS_ASSIGN.toBool()) {
                     Logs.logWarning("Item " + itemID + " does not have a trim pattern set.");

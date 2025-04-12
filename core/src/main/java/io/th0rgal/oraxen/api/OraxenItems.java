@@ -4,22 +4,27 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.provided.ecoitems.WrappedEcoItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
 import io.th0rgal.oraxen.config.Message;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemParser;
 import io.th0rgal.oraxen.items.ModelData;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.pack.generation.DuplicationHandler;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import net.Indyuce.mmoitems.MMOItems;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.components.FoodComponent;
+import org.bukkit.inventory.meta.components.JukeboxPlayableComponent;
 import org.bukkit.persistence.PersistentDataType;
 
 import javax.annotation.Nullable;
@@ -36,17 +41,55 @@ public class OraxenItems {
     private static Set<String> items;
 
     public static void loadItems() {
-        ItemParser.MODEL_DATAS_BY_ID.clear();
-        ModelData.DATAS.clear();
-        OraxenPlugin.get().getConfigsManager().assignAllUsedModelDatas();
-        OraxenPlugin.get().getConfigsManager().parseAllItemTemplates();
-        DuplicationHandler.convertOldMigrateItemConfig();
-        map = OraxenPlugin.get().getConfigsManager().parseItemConfig();
-        items = new HashSet<>();
-        for (final Map<String, ItemBuilder> subMap : map.values())
-            items.addAll(subMap.keySet());
+        try {
+            ItemParser.MODEL_DATAS_BY_ID.clear();
+            ModelData.DATAS.clear();
+            OraxenPlugin.get().getConfigsManager().assignAllUsedModelDatas();
+            OraxenPlugin.get().getConfigsManager().parseAllItemTemplates();
+            DuplicationHandler.convertOldMigrateItemConfig();
 
-        ensureComponentDataHandled();
+            // Test the environment for common compatibility issues before proceeding
+            if (Settings.DEBUG.toBool()) {
+                Logs.logInfo("Testing server compatibility before loading items...");
+                Logs.logInfo("  Running on Paper: " + VersionUtil.isPaperServer());
+                Logs.logInfo("  Minecraft version: " + Bukkit.getBukkitVersion());
+
+                // Check if JukeboxPlayableComponent is available
+                try {
+                    if (VersionUtil.atOrAbove("1.21")) {
+                        JukeboxPlayableComponent component = new ItemStack(Material.MUSIC_DISC_CREATOR).getItemMeta()
+                                .getJukeboxPlayable();
+                        component.setShowInTooltip(true); // This will throw on incompatible servers
+                        Logs.logInfo("  JukeboxPlayableComponent: Available");
+                    } else {
+                        Logs.logInfo("  JukeboxPlayableComponent: Not available (MC < 1.21)");
+                    }
+                } catch (NoSuchMethodError | NoClassDefFoundError e) {
+                    Logs.logWarning("  JukeboxPlayableComponent: Not available (Missing method or class)");
+                    Logs.logWarning("  Some features will be disabled: " + e.getMessage());
+                }
+
+                // Check if NMS handler is available
+                if (NMSHandlers.getHandler() == null) {
+                    Logs.logWarning("  NMS handler: Not available - some features won't work");
+                } else {
+                    Logs.logInfo("  NMS handler: Available (" + NMSHandlers.getVersion() + ")");
+                }
+            }
+
+            map = OraxenPlugin.get().getConfigsManager().parseItemConfig();
+            items = new HashSet<>();
+            for (final Map<String, ItemBuilder> subMap : map.values())
+                items.addAll(subMap.keySet());
+
+            ensureComponentDataHandled();
+        } catch (Exception e) {
+            Logs.logError("Failed to load Oraxen items!");
+            Logs.logError("Error: " + e.getMessage());
+            if (Settings.DEBUG.toBool()) {
+                e.printStackTrace();
+            }
+        }
     }
 
     /**

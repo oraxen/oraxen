@@ -135,7 +135,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         CompoundTag oldTag = oldData.copyTag();
         CompoundTag newTag = newData.copyTag();
 
-        for (String key : oldTag.getAllKeys()) {
+        for (String key : oldTag.keySet()) {
             if (vanillaKeys.contains(key))
                 continue;
             Tag value = oldTag.get(key);
@@ -362,13 +362,13 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             }
         }
     }
-    
+
     private void handleConfigSectionValue(net.minecraft.nbt.CompoundTag nbt, String key, ConfigurationSection section) {
         net.minecraft.nbt.CompoundTag compound = new net.minecraft.nbt.CompoundTag();
         convertConfigToNBT(section, compound);
         nbt.put(key, compound);
     }
-    
+
     private void handleNumberValue(net.minecraft.nbt.CompoundTag nbt, String key, Number number) {
         if (number instanceof Integer)
             nbt.putInt(key, number.intValue());
@@ -383,12 +383,12 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         else if (number instanceof Short)
             nbt.putShort(key, number.shortValue());
     }
-    
+
     private void handleListValue(net.minecraft.nbt.CompoundTag nbt, String key, List<?> list) {
         if (list.isEmpty()) {
             return;
         }
-        
+
         Object first = list.get(0);
         if (first instanceof String) {
             net.minecraft.nbt.ListTag stringList = new net.minecraft.nbt.ListTag();

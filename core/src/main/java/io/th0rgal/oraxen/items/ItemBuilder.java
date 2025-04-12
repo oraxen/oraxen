@@ -12,6 +12,7 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.nms.NMSHandler;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.*;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import net.kyori.adventure.key.Key;
@@ -387,7 +388,18 @@ public class ItemBuilder {
         NamespacedKey key = NamespacedKey.fromString(trimPattern.asString());
         if (key == null)
             return null;
-        return Registry.TRIM_PATTERN.get(key);
+
+        // Only try to get trim pattern if running on Paper
+        if (VersionUtil.isPaperServer()) {
+            try {
+                return Registry.TRIM_PATTERN.get(key);
+            } catch (NoSuchMethodError e) {
+                // Registry.TRIM_PATTERN.get not available - this is expected on non-Paper
+                // servers
+                return null;
+            }
+        }
+        return null;
     }
 
     public ItemBuilder setTrimPattern(final Key trimKey) {
@@ -552,7 +564,19 @@ public class ItemBuilder {
     }
 
     public ItemBuilder setJukeboxPlayable(@Nullable JukeboxPlayableComponent jukeboxPlayable) {
-        this.jukeboxPlayable = jukeboxPlayable;
+        if (!VersionUtil.isPaperServer()) {
+            Logs.logWarning("JukeboxPlayable features are only available on Paper servers.");
+            return this;
+        }
+
+        try {
+            this.jukeboxPlayable = jukeboxPlayable;
+        } catch (Exception e) {
+            Logs.logWarning("Error setting JukeboxPlayable: This component is not available in your server version");
+            if (Settings.DEBUG.toBool()) {
+                e.printStackTrace();
+            }
+        }
         return this;
     }
 
@@ -776,8 +800,16 @@ public class ItemBuilder {
         }
 
         if (VersionUtil.atOrAbove("1.21")) {
-            if (hasJukeboxPlayable())
-                itemMeta.setJukeboxPlayable(jukeboxPlayable);
+            if (hasJukeboxPlayable() && VersionUtil.isPaperServer()) {
+                try {
+                    itemMeta.setJukeboxPlayable(jukeboxPlayable);
+                } catch (NoSuchMethodError | UnsupportedOperationException e) {
+                    if (Settings.DEBUG.toBool()) {
+                        Logs.logWarning("Failed to set JukeboxPlayable - this feature requires Paper");
+                        e.printStackTrace();
+                    }
+                }
+            }
         }
 
         if (VersionUtil.atOrAbove("1.21.2")) {

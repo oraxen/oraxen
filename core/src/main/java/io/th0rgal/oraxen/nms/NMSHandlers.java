@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.nms;
 
-
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.VersionUtil;
@@ -18,8 +17,17 @@ public class NMSHandlers {
 
     @Nullable
     public static NMSHandler getHandler() {
-        if (handler != null) return handler;
-        else setup();
+        if (handler != null)
+            return handler;
+        else {
+            setup();
+            if (handler == null && Settings.DEBUG.toBool()) {
+                Logs.logError("Failed to setup NMS handler for server version: " + Bukkit.getVersion());
+                Logs.logError("Supported versions: " + java.util.Arrays.toString(SUPPORTED_VERSION));
+                Logs.logError("Current server implements Paper: " + VersionUtil.isPaperServer());
+                Logs.logError("NMS features will be disabled or limited.");
+            }
+        }
         return handler;
     }
 
@@ -28,26 +36,31 @@ public class NMSHandlers {
     }
 
     public static void setup() {
-        if (handler != null) return;
+        if (handler != null)
+            return;
 
         for (VersionUtil.NMSVersion selectedVersion : SUPPORTED_VERSION) {
-            if (!VersionUtil.NMSVersion.matchesServer(selectedVersion)) continue;
+            if (!VersionUtil.NMSVersion.matchesServer(selectedVersion))
+                continue;
 
             version = selectedVersion.name();
             try {
-                handler = (NMSHandler) Class.forName("io.th0rgal.oraxen.nms." + version + ".NMSHandler").getConstructor().newInstance();
+                handler = (NMSHandler) Class.forName("io.th0rgal.oraxen.nms." + version + ".NMSHandler")
+                        .getConstructor().newInstance();
                 Logs.logSuccess("Version " + version + " has been detected.");
                 Logs.logInfo("Oraxen will use the NMSHandler for this version.");
                 Bukkit.getPluginManager().registerEvents(new NMSListeners(), OraxenPlugin.get());
                 return;
-            } catch (ClassNotFoundException | InvocationTargetException | InstantiationException |
-                     IllegalAccessException | NoSuchMethodException e) {
+            } catch (ClassNotFoundException | InvocationTargetException | InstantiationException
+                    | IllegalAccessException | NoSuchMethodException e) {
                 Logs.logWarning("Oraxen does not support this version of Minecraft (" + version + ") yet.");
                 Logs.logWarning("NMS features will be disabled...");
-                if (Settings.DEBUG.toBool()) e.printStackTrace();
+                if (Settings.DEBUG.toBool())
+                    e.printStackTrace();
             }
         }
     }
+
     public static boolean isTripwireUpdatesDisabled() {
         return handler != null && handler.tripwireUpdatesDisabled();
     }
