@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.nms.v1_21_R3;
+package io.th0rgal.oraxen.nms.v1_21_R4;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -60,6 +60,13 @@ public class GlyphHandler implements io.th0rgal.oraxen.nms.GlyphHandler {
     private record ConnectionCodec(StreamCodec<ByteBuf, Packet<?>> codec, ProtocolInfo<?> protocol) {
     }
 
+    private static final GameProtocols.Context CONTEXT = new GameProtocols.Context() {
+        @Override
+        public boolean hasInfiniteMaterials() {
+            return true;
+        }
+    };
+
     private static class PacketProtocol {
         private final ProtocolInfo<?> clientboundInfo;
         private final ProtocolInfo<?> serverboundInfo;
@@ -101,7 +108,7 @@ public class GlyphHandler implements io.th0rgal.oraxen.nms.GlyphHandler {
                         GameProtocols.CLIENTBOUND_TEMPLATE
                                 .bind(RegistryFriendlyByteBuf.decorator(RegistryAccess.EMPTY)),
                         GameProtocols.SERVERBOUND_TEMPLATE
-                                .bind(RegistryFriendlyByteBuf.decorator(RegistryAccess.EMPTY)),
+                                .bind(RegistryFriendlyByteBuf.decorator(RegistryAccess.EMPTY), CONTEXT),
                         GamePacketTypes.class),
                 new PacketProtocol(StatusProtocols.CLIENTBOUND, StatusProtocols.SERVERBOUND, StatusPacketTypes.class),
                 new PacketProtocol(LoginProtocols.CLIENTBOUND, LoginProtocols.SERVERBOUND, LoginPacketTypes.class),
@@ -276,7 +283,7 @@ public class GlyphHandler implements io.th0rgal.oraxen.nms.GlyphHandler {
             ChannelHandler previousHandler = decoder.remove(channel);
             if (previousHandler instanceof PacketDecoder) {
                 channel.pipeline().replace("decoder", "decoder", new PacketDecoder<>(GameProtocols.SERVERBOUND_TEMPLATE
-                        .bind(RegistryFriendlyByteBuf.decorator(RegistryAccess.EMPTY))));
+                        .bind(RegistryFriendlyByteBuf.decorator(RegistryAccess.EMPTY), CONTEXT)));
             } else {
                 channel.pipeline().replace("decoder", "decoder", previousHandler);
             }
@@ -350,14 +357,14 @@ public class GlyphHandler implements io.th0rgal.oraxen.nms.GlyphHandler {
         }
 
         private void transform(CompoundTag compound, Function<String, String> transformer) {
-            for (String key : compound.getAllKeys()) {
+            for (String key : compound.keySet()) {
                 Tag base = compound.get(key);
                 if (base instanceof CompoundTag tag)
                     transform(tag, transformer);
                 else if (base instanceof ListTag listTag)
                     transform(listTag, transformer);
                 else if (base instanceof StringTag)
-                    compound.put(key, StringTag.valueOf(transformer.apply(base.getAsString())));
+                    compound.put(key, StringTag.valueOf(transformer.apply(base.asString().get())));
             }
         }
 
@@ -370,7 +377,7 @@ public class GlyphHandler implements io.th0rgal.oraxen.nms.GlyphHandler {
                     transform(listTag, transformer);
                 else if (base instanceof StringTag) {
                     int index = list.indexOf(base);
-                    list.set(index, StringTag.valueOf(transformer.apply(base.getAsString())));
+                    list.set(index, StringTag.valueOf(transformer.apply(base.asString().get())));
                 }
             }
         }
@@ -421,7 +428,7 @@ public class GlyphHandler implements io.th0rgal.oraxen.nms.GlyphHandler {
                 swapProtocolIfNeeded(channel.attr(CODEC_ATTRIBUTE_KEY), packet);
             } catch (Exception e) {
                 if (packet.isSkippable())
-                    throw new SkipPacketException(e);
+                    throw new SkipPacketEncoderException(e);
                 throw e;
             }
             swapProtocolIfNeeded(channel.attr(CODEC_ATTRIBUTE_KEY), packet);

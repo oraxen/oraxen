@@ -25,8 +25,11 @@ public class PotionUtils {
             return null;
         PotionEffectType effectType = null;
         try {
-            effectType = Registry.POTION_EFFECT_TYPE.get(NamespacedKey.fromString(effect.toLowerCase()));
-        } catch (NoSuchFieldError ignored) {
+            if (VersionUtil.isPaperServer()) {
+                effectType = Registry.POTION_EFFECT_TYPE.get(NamespacedKey.fromString(effect.toLowerCase()));
+            }
+        } catch (NoSuchFieldError | NoSuchMethodError ignored) {
+            // Ignore errors on non-Paper servers or older versions
         }
         if (effectType == null) {
             effectType = PotionEffectType.getByName(effect);
@@ -40,7 +43,8 @@ public class PotionUtils {
             effectType = getEffectType(legacyEffect, null);
         }
 
-        if (effectType == null) Logs.logWarning("Invalid PotionEffectType: " + effect);
+        if (effectType == null)
+            Logs.logWarning("Invalid PotionEffectType: " + effect);
 
         return effectType;
     }

@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.nms.v1_21_R3;
+package io.th0rgal.oraxen.nms.v1_21_R4;
 
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -75,7 +75,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     private final GlyphHandler glyphHandler;
 
     public NMSHandler() {
-        this.glyphHandler = new io.th0rgal.oraxen.nms.v1_21_R3.GlyphHandler();
+        this.glyphHandler = new io.th0rgal.oraxen.nms.v1_21_R4.GlyphHandler();
 
         // mineableWith tag handling
         NamespacedKey tagKey = NamespacedKey.fromString("mineable_with_key", OraxenPlugin.get());
@@ -118,7 +118,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         return VersionUtil.isPaperServer() && GlobalConfiguration.get().blockUpdates.disableNoteblockUpdates;
     }
 
-    @Override // TODO Fix this
+    @Override
+    /* This method copies custom NBT data from one item to another */
     public ItemStack copyItemNBTTags(@NotNull ItemStack oldItem, @NotNull ItemStack newItem) {
         net.minecraft.world.item.ItemStack newNmsItem = CraftItemStack.asNMSCopy(newItem);
         net.minecraft.world.item.ItemStack oldItemStack = CraftItemStack.asNMSCopy(oldItem);
@@ -134,7 +135,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         CompoundTag oldTag = oldData.copyTag();
         CompoundTag newTag = newData.copyTag();
 
-        for (String key : oldTag.getAllKeys()) {
+        for (String key : oldTag.keySet()) {
             if (vanillaKeys.contains(key))
                 continue;
             Tag value = oldTag.get(key);

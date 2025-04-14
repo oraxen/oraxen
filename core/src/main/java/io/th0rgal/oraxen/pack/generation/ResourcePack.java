@@ -454,14 +454,24 @@ public class ResourcePack {
         }
     }
 
+    private static boolean needsTinting(Material material) {
+        return material.name().startsWith("LEATHER_")
+                || material == Material.POTION
+                || material == Material.SPLASH_POTION
+                || material == Material.LINGERING_POTION;
+    }
+
     private void generateModelDefinitions(final Map<Material, Map<String, ItemBuilder>> texturedItems) {
         for (final Map.Entry<Material, Map<String, ItemBuilder>> materialEntry : texturedItems.entrySet()) {
             for (final Map.Entry<String, ItemBuilder> entry : materialEntry.getValue().entrySet()) {
+                Material key = materialEntry.getKey();
+
                 String itemId = entry.getKey();
                 ItemBuilder texturedItem = entry.getValue();
                 OraxenMeta oraxenMeta = texturedItem.getOraxenMeta();
                 if (oraxenMeta.hasPackInfos()) {
-                    final ModelDefinitionGenerator modelDefinitionGenerator = new ModelDefinitionGenerator(oraxenMeta);
+                    final ModelDefinitionGenerator modelDefinitionGenerator = new ModelDefinitionGenerator(oraxenMeta,
+                            key);
                     writeStringToVirtual("assets/oraxen/items/", itemId + ".json",
                             modelDefinitionGenerator.toJSON().toString());
                 }
@@ -552,36 +562,61 @@ public class ResourcePack {
         ConfigurationSection furniture = mechanic.getConfigurationSection("furniture");
         ConfigurationSection block = mechanic.getConfigurationSection("block");
 
-        if (customSounds == null) {
-            sounds.removeIf(s -> s.getName().startsWith("required.wood") || s.getName().startsWith("block.wood"));
-            sounds.removeIf(s -> s.getName().startsWith("required.stone") || s.getName().startsWith("block.stone"));
-        } else {
-            if (!customSounds.getBoolean("noteblock_and_block", true)) {
-                sounds.removeIf(s -> s.getName().startsWith("required.wood") || s.getName().startsWith("block.wood"));
-            }
-            if (!customSounds.getBoolean("stringblock_and_furniture", true)) {
-                sounds.removeIf(s -> s.getName().startsWith("required.stone") || s.getName().startsWith("block.stone"));
-            }
-            if ((noteblock != null && !noteblock.getBoolean("enabled", true) && block != null
-                    && !block.getBoolean("enabled", false))) {
-                sounds.removeIf(s -> s.getName().startsWith("required.wood") || s.getName().startsWith("block.wood"));
-            }
-            if (stringblock != null && !stringblock.getBoolean("enabled", true) && furniture != null
-                    && !furniture.getBoolean("enabled", true)) {
-                sounds.removeIf(s -> s.getName().startsWith("required.stone") || s.getName().startsWith("block.stone"));
-            }
-        }
+        handleWoodSoundEntries(sounds, customSounds, noteblock, block);
+        handleStoneSoundEntries(sounds, customSounds, stringblock, furniture);
 
         // Clear the sounds.json file of yaml configuration entries that should not be
         // there
+        removeUnwantedSoundEntries(sounds);
+
+        return sounds;
+    }
+
+    private void handleWoodSoundEntries(Collection<CustomSound> sounds,
+            ConfigurationSection customSounds,
+            ConfigurationSection noteblock,
+            ConfigurationSection block) {
+        if (customSounds == null) {
+            sounds.removeIf(s -> s.getName().startsWith("required.wood") || s.getName().startsWith("block.wood"));
+            return;
+        }
+
+        if (!customSounds.getBoolean("noteblock_and_block", true)) {
+            sounds.removeIf(s -> s.getName().startsWith("required.wood") || s.getName().startsWith("block.wood"));
+        }
+
+        if (noteblock != null && !noteblock.getBoolean("enabled", true) &&
+                block != null && !block.getBoolean("enabled", false)) {
+            sounds.removeIf(s -> s.getName().startsWith("required.wood") || s.getName().startsWith("block.wood"));
+        }
+    }
+
+    private void handleStoneSoundEntries(Collection<CustomSound> sounds,
+            ConfigurationSection customSounds,
+            ConfigurationSection stringblock,
+            ConfigurationSection furniture) {
+        if (customSounds == null) {
+            sounds.removeIf(s -> s.getName().startsWith("required.stone") || s.getName().startsWith("block.stone"));
+            return;
+        }
+
+        if (!customSounds.getBoolean("stringblock_and_furniture", true)) {
+            sounds.removeIf(s -> s.getName().startsWith("required.stone") || s.getName().startsWith("block.stone"));
+        }
+
+        if (stringblock != null && !stringblock.getBoolean("enabled", true) &&
+                furniture != null && !furniture.getBoolean("enabled", true)) {
+            sounds.removeIf(s -> s.getName().startsWith("required.stone") || s.getName().startsWith("block.stone"));
+        }
+    }
+
+    private void removeUnwantedSoundEntries(Collection<CustomSound> sounds) {
         sounds.removeIf(s -> s.getName().equals("required") ||
                 s.getName().equals("block") ||
                 s.getName().equals("block.wood") ||
                 s.getName().equals("block.stone") ||
                 s.getName().equals("required.wood") ||
                 s.getName().equals("required.stone"));
-
-        return sounds;
     }
 
     public static void writeStringToVirtual(String folder, String name, String content) {
