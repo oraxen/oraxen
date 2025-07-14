@@ -314,7 +314,8 @@ public class PredicatesGenerator {
                 return "item/golden_apple";
             if (material == Material.SUNFLOWER)
                 return "block/sunflower_front";
-            if (Tag.TALL_FLOWERS.isTagged(material) && !material.name().equals("PITCHER_PLANT"))
+            if (Arrays.asList(Material.LILAC, Material.PEONY, Material.ROSE_BUSH).contains(material)
+                    && !material.name().equals("PITCHER_PLANT"))
                 return "block/" + materialName + "_top";
             if (material == Material.LARGE_FERN || material == Material.TALL_GRASS)
                 return "block/" + materialName + "_top";
