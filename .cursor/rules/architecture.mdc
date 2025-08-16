@@ -1,0 +1,173 @@
+---
+alwaysApply: true
+---
+
+## Oraxen Project Overview
+
+Oraxen is a Gradle-based Java plugin for Minecraft Paper/Spigot servers that delivers data-driven custom items, blocks, HUD, fonts, sounds, and mechanics. It includes a resource-pack generation pipeline and abstracts Minecraft server internals (NMS) via per-version modules.
+
+### Modules
+
+- `core`: Main plugin code and APIs. Contains mechanics, commands, resource-pack generation, font/HUD systems, recipes, configuration, and compatibility layers.
+- NMS version modules: `v1_20_R1` … `v1_21_R5`. Each implements NMS shims for a specific server version (e.g., `io.th0rgal.oraxen.nms.v1_21_R5.NMSHandler`). They are discovered at runtime via reflection and selected based on the running server version.
+- Root project: Aggregates all subprojects, configures build, and produces a shaded plugin JAR.
+
+### Build System
+
+- Gradle (Kotlin DSL) with Java toolchain 21.
+- Key plugins:
+  - `io.github.goooler.shadow`: Produces a shaded plugin artifact.
+  - `net.minecrell.plugin-yml.bukkit`: Generates `plugin.yml` from the Gradle DSL.
+  - `xyz.jpenilla.run-paper`: Local dev server tasks.
+  - `io.papermc.paperweight.userdev`: In each NMS subproject to compile against specific Paper mappings.
+- Repositories: Paper, Spigot, Sonatype snapshots, JitPack, Oraxen’s repos, etc.
+- Version matrix: Root `build.gradle.kts` defines `SUPPORTED_VERSIONS`; `settings.gradle.kts` includes `core` and all `v1_xx_Ry` modules.
+- Outputs:
+  - Root `shadowJar` builds `oraxen-<pluginVersion>.jar` and relocates dependencies.
+  - NMS modules produce reobfuscated artifacts via paperweight; root build wires them into the final shaded JAR.
+  - `plugin.yml` is generated under `build/resources/main`.
+
+### Runtime Architecture
+
+- Entry point: `core/src/main/java/io/th0rgal/oraxen/OraxenPlugin.java` extends `JavaPlugin`.
+  - Initializes CommandAPI, ProtectionLib, Adventure audiences, configuration, and logging.
+  - Loads and wires systems: mechanics, items, HUD, fonts, sounds, recipes, inventories, and commands.
+  - Registers ProtocolLib packet listeners for inventory/title/scoreboard features when available.
+  - Selects and registers an NMS handler via `NMSHandlers.setup()`.
+  - Generates and uploads the resource pack at startup and on reload.
+
+### NMS Adaptation Layer
+
+- Interface: `core/.../nms/NMSHandler.java` declares capabilities (glyph injection, noteblock/tripwire toggles, block-state correction, item component helpers, etc.).
+- Loader: `core/.../nms/NMSHandlers.java` chooses an implementation by server version and registers related listeners. If no match is found, a safe `EmptyNMSHandler` disables NMS features gracefully.
+- Implementations: Each `v1_xx_Ry` module contains `NMSHandler` and `GlyphHandler` classes under `io.th0rgal.oraxen.nms.<version>` compiled against the matching Paper dev bundle.
+
+### Resource Pack Pipeline
+
+- Coordinator: `core/.../pack/generation/ResourcePack.java`.
+- Flow:
+  - Extract required/default assets into the plugin data folder (`pack/`).
+  - Gather textured items from `OraxenItems` and either generate model predicates (pre-1.21.4) or model definitions (1.21.4+).
+  - Generate font providers from glyphs and fonts; optionally hide scoreboard numbers/background via shaders or packets.
+  - Verify, de-duplicate, and optionally slice textures; build atlas if enabled.
+  - Merge and emit `sounds.json`; generate jukebox datapack when needed.
+  - Zip the result and publish via `UploadManager`, sending packs to players on startup or on-demand reload.
+
+### Configuration & Content
+
+- YAML resources under `core/src/main/resources`: `items/`, `recipes/`, `languages/`, `pack/`, `glyphs/`, `hud.yml`, `mechanics.yml`, etc. These drive item definitions, models, sounds, HUD, and mechanics.
+- Generated assets: Pack files are written under `<plugin data>/pack/` and then zipped to `pack.zip`.
+
+### Mechanics & Features
+
+- Located under `core/.../mechanics/provided/` across categories: `gameplay`, `farming`, `combat`, `cosmetic`, `misc`.
+- `MechanicsManager` registers native mechanics; features like furniture, string/note blocks, and custom armor integrate with the resource-pack pipeline and NMS layer.
+
+### Commands & API
+
+- Commands: `core/.../commands` (e.g., `PackCommand`, `ReloadCommand`, `RecipesCommand`).
+- Public API in `core/.../api` and custom events in `core/.../api/events` (e.g., `OraxenItemsLoadedEvent`, `OraxenPackGeneratedEvent`).
+
+### Compatibility Layer
+
+- Integrations under `core/.../compatibilities/provided` for ProtocolLib, PlaceholderAPI, WorldEdit, ModelEngine, MythicMobs, MMOItems, EcoItems, BlockLocker, etc. Compatibility is enabled/disabled at runtime based on detected plugins.
+
+### Development Workflow
+
+- Local run: Use the pre-configured Paper test server in the Docker environment at `/home/appuser/minecraft` (Paper 1.21.8 build #35, ProtocolLib 5.4.0 installed, EULA pre-accepted). Build with `./gradlew build`, copy the resulting JAR to `/home/appuser/minecraft/plugins/`, then launch:
+  - `java -Xms1G -Xmx1G -jar /home/appuser/minecraft/paper.jar --nogui`
+- Build: `./gradlew build` (root wires `build` to `shadowJar`; NMS modules produce reobf jars first). Final artifact: `build/libs/oraxen-<pluginVersion>.jar`.
+- Version & publishing: `gradle.properties` defines `pluginVersion`. Maven publishing is configured with environment credentials (see `core/build.gradle.kts`).
+
+### Maintenance Triggers
+
+Update this document when:
+- Server versions: New Minecraft/Paper versions are supported. Add a new `v1_xx_Ry` module, update `SUPPORTED_VERSIONS` in root `build.gradle.kts`, and include it in `settings.gradle.kts`.
+- NMS API: `NMSHandler` contract changes or new capabilities are added.
+- Resource pack: Generation pipeline behavior or file layout changes.
+- Build: Gradle plugins, Java toolchain version, or repository configuration change.
+- Plugin surface: New major mechanics, commands, or compatibility providers are added/removed.
+## Oraxen Project Overview
+
+Oraxen is a Gradle-based Java plugin for Minecraft Paper/Spigot servers that delivers data-driven custom items, blocks, HUD, fonts, sounds, and mechanics. It includes a resource-pack generation pipeline and abstracts Minecraft server internals (NMS) via per-version modules.
+
+### Modules
+
+- `core`: Main plugin code and APIs. Contains mechanics, commands, resource-pack generation, font/HUD systems, recipes, configuration, and compatibility layers.
+- NMS version modules: `v1_20_R1` … `v1_21_R5`. Each implements NMS shims for a specific server version (e.g., `io.th0rgal.oraxen.nms.v1_21_R5.NMSHandler`). They are discovered at runtime via reflection and selected based on the running server version.
+- Root project: Aggregates all subprojects, configures build, and produces a shaded plugin JAR.
+
+### Build System
+
+- Gradle (Kotlin DSL) with Java toolchain 21.
+- Key plugins:
+  - `io.github.goooler.shadow`: Produces a shaded plugin artifact.
+  - `net.minecrell.plugin-yml.bukkit`: Generates `plugin.yml` from the Gradle DSL.
+  - `xyz.jpenilla.run-paper`: Local dev server tasks.
+  - `io.papermc.paperweight.userdev`: In each NMS subproject to compile against specific Paper mappings.
+- Repositories: Paper, Spigot, Sonatype snapshots, JitPack, Oraxen’s repos, etc.
+- Version matrix: Root `build.gradle.kts` defines `SUPPORTED_VERSIONS`; `settings.gradle.kts` includes `core` and all `v1_xx_Ry` modules.
+- Outputs:
+  - Root `shadowJar` builds `oraxen-<pluginVersion>.jar` and relocates dependencies.
+  - NMS modules produce reobfuscated artifacts via paperweight; root build wires them into the final shaded JAR.
+  - `plugin.yml` is generated under `build/resources/main`.
+
+### Runtime Architecture
+
+- Entry point: `core/src/main/java/io/th0rgal/oraxen/OraxenPlugin.java` extends `JavaPlugin`.
+  - Initializes CommandAPI, ProtectionLib, Adventure audiences, configuration, and logging.
+  - Loads and wires systems: mechanics, items, HUD, fonts, sounds, recipes, inventories, and commands.
+  - Registers ProtocolLib packet listeners for inventory/title/scoreboard features when available.
+  - Selects and registers an NMS handler via `NMSHandlers.setup()`.
+  - Generates and uploads the resource pack at startup and on reload.
+
+### NMS Adaptation Layer
+
+- Interface: `core/.../nms/NMSHandler.java` declares capabilities (glyph injection, noteblock/tripwire toggles, block-state correction, item component helpers, etc.).
+- Loader: `core/.../nms/NMSHandlers.java` chooses an implementation by server version and registers related listeners. If no match is found, a safe `EmptyNMSHandler` disables NMS features gracefully.
+- Implementations: Each `v1_xx_Ry` module contains `NMSHandler` and `GlyphHandler` classes under `io.th0rgal.oraxen.nms.<version>` compiled against the matching Paper dev bundle.
+
+### Resource Pack Pipeline
+
+- Coordinator: `core/.../pack/generation/ResourcePack.java`.
+- Flow:
+  - Extract required/default assets into the plugin data folder (`pack/`).
+  - Gather textured items from `OraxenItems` and either generate model predicates (pre-1.21.4) or model definitions (1.21.4+).
+  - Generate font providers from glyphs and fonts; optionally hide scoreboard numbers/background via shaders or packets.
+  - Verify, de-duplicate, and optionally slice textures; build atlas if enabled.
+  - Merge and emit `sounds.json`; generate jukebox datapack when needed.
+  - Zip the result and publish via `UploadManager`, sending packs to players on startup or on-demand reload.
+
+### Configuration & Content
+
+- YAML resources under `core/src/main/resources`: `items/`, `recipes/`, `languages/`, `pack/`, `glyphs/`, `hud.yml`, `mechanics.yml`, etc. These drive item definitions, models, sounds, HUD, and mechanics.
+- Generated assets: Pack files are written under `<plugin data>/pack/` and then zipped to `pack.zip`.
+
+### Mechanics & Features
+
+- Located under `core/.../mechanics/provided/` across categories: `gameplay`, `farming`, `combat`, `cosmetic`, `misc`.
+- `MechanicsManager` registers native mechanics; features like furniture, string/note blocks, and custom armor integrate with the resource-pack pipeline and NMS layer.
+
+### Commands & API
+
+- Commands: `core/.../commands` (e.g., `PackCommand`, `ReloadCommand`, `RecipesCommand`).
+- Public API in `core/.../api` and custom events in `core/.../api/events` (e.g., `OraxenItemsLoadedEvent`, `OraxenPackGeneratedEvent`).
+
+### Compatibility Layer
+
+- Integrations under `core/.../compatibilities/provided` for ProtocolLib, PlaceholderAPI, WorldEdit, ModelEngine, MythicMobs, MMOItems, EcoItems, BlockLocker, etc. Compatibility is enabled/disabled at runtime based on detected plugins.
+
+### Development Workflow
+
+- Local run: `runServer` (from `xyz.jpenilla.run-paper`) spins up a Paper dev server (root `build.gradle.kts` sets a default like 1.20.4).
+- Build: `./gradlew build` (root wires `build` to `shadowJar`; NMS modules produce reobf jars first). Final artifact: `build/libs/oraxen-<pluginVersion>.jar`.
+- Version & publishing: `gradle.properties` defines `pluginVersion`. Maven publishing is configured with environment credentials (see `core/build.gradle.kts`).
+
+### Maintenance Triggers
+
+Update this document when:
+- Server versions: New Minecraft/Paper versions are supported. Add a new `v1_xx_Ry` module, update `SUPPORTED_VERSIONS` in root `build.gradle.kts`, and include it in `settings.gradle.kts`.
+- NMS API: `NMSHandler` contract changes or new capabilities are added.
+- Resource pack: Generation pipeline behavior or file layout changes.
+- Build: Gradle plugins, Java toolchain version, or repository configuration change.
+- Plugin surface: New major mechanics, commands, or compatibility providers are added/removed.

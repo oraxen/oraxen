@@ -1,0 +1,45 @@
+---
+alwaysApply: true
+---
+
+## Guiding Principles
+
+- **Simplicity and Clarity**: Strive for simple, well-designed code.
+- **Naming Over Comments**: Prefer clear, descriptive naming for classes, methods, and variables. Only add Javadoc to public APIs or when behavior is complex and cannot be conveyed by the name alone.
+
+### Java Conventions
+
+- **Language & Tooling**: Java 21 via the Gradle toolchain. Builds must succeed with `./gradlew build` and produce the shaded plugin.
+- **Nullability**: Use `@NotNull`/`@Nullable` (org.jetbrains) where helpful, especially on public APIs and NMS boundaries.
+- **Exceptions**: Fail fast with guard clauses. Do not swallow exceptions; log via `io.th0rgal.oraxen.utils.logs.Logs` and only print stack traces in debug flows. Surface user-facing issues via `Message` when appropriate.
+- **Logging & Messages**: Use `Logs` for console logging and the `Message` enum for user-visible strings.
+- **Immutability**: Prefer `final` for fields/locals where practical. Avoid mutable public state.
+- **Collections**: Prefer standard Java collections; avoid exposing mutable internals. Avoid excessive `Optional` for fields; prefer null + annotations.
+- **Dependencies**: Keep external dependencies shaded and relocated through Shadow as configured in the root build.
+
+### Code Organization
+
+- **Modules**: Keep public APIs and shared logic in `core`. Place server-version-specific code in the corresponding `v1_xx_Ry` module implementing `io.th0rgal.oraxen.nms.NMSHandler`.
+- **Entry Point**: `OraxenPlugin` is the plugin root. Initialization work is staged in `onLoad`, `onEnable`, and `onDisable` with minimal side effects.
+- **Subsystems**: Resource-pack generation under `core/.../pack/generation`, mechanics under `core/.../mechanics/provided`, and integrations under `core/.../compatibilities/provided`.
+- **Naming**: Classes UpperCamelCase, methods/fields lowerCamelCase, constants UPPER_SNAKE_CASE. Match existing package structure.
+
+### Testing Strategy
+
+- **Unit Tests**: For pure logic (e.g., helpers/serialization-free code), place tests under `src/test/java` within the same module. Keep tests deterministic.
+- **Integration/Manual**: Use `runServer` tasks (Paper dev server) for manual verification of plugin behavior across supported versions. Document steps in PRs for reproducibility.
+
+### Development Environment
+
+- **Java Toolchain**: Java 21. Ensure local JDK matches Gradle’s configured toolchain.
+- **Gradle**: Use the provided wrapper. Do not change plugin versions or repos without updating `build.gradle.kts` and `settings.gradle.kts` coherently.
+- **Docker Dev Server**: A Paper test server is pre-installed in the container at `/home/appuser/minecraft` (Paper 1.21.8 build #35 with ProtocolLib 5.4.0). Build with `./gradlew build`, copy the plugin JAR to `/home/appuser/minecraft/plugins/`, then run:
+  - `java -Xms1G -Xmx1G -jar /home/appuser/minecraft/paper.jar --nogui`
+- **Environment Variables**: Publishing credentials are read from `MAVEN_USERNAME`/`MAVEN_PASSWORD` when publishing artifacts from `core`.
+
+### Style & Formatting
+
+- Match the existing code style and line wrapping. Do not reformat unrelated code in edits.
+- Prefer early returns over deep nesting. Keep methods focused and readable.
+- Avoid catching generic `Exception` unless necessary and always handle meaningfully.
+- Keep imports explicit; avoid wildcard imports.

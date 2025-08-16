@@ -1,0 +1,39 @@
+---
+alwaysApply: true
+---
+
+## Cursor Background Agent: Running the Paper Test Server
+
+This Docker container is configured as a development environment for creating and testing Java-based Minecraft server plugins.
+
+### Environment
+
+- **OS**: Ubuntu (latest)
+- **Java**: OpenJDK 21 (`JAVA_HOME` set, on `PATH`)
+- **User**: `appuser` with home at `/home/appuser`
+- **Shell**: `bash` in `/home/appuser`
+- **Tools**: git, curl, jq, zip/unzip, and common build utilities
+
+### Pre-configured PaperMC Test Server
+
+- **Location**: `/home/appuser/minecraft`
+- **Server**: Paper 1.21.8 (build #35) at `/home/appuser/minecraft/paper.jar`
+- **Plugins**: `/home/appuser/minecraft/plugins` contains ProtocolLib 5.4.0
+- **EULA**: Pre-accepted in `/home/appuser/minecraft/eula.txt`
+
+### Workflow for Building and Running
+
+1. Clone the plugin source into `/home/appuser` and build using Gradle wrapper:
+   - `./gradlew build`
+   - Output jar: `build/libs/oraxen-<version>.jar`
+2. Copy the built jar into the server plugins directory:
+   - `cp build/libs/oraxen-*.jar /home/appuser/minecraft/plugins/`
+3. Start the server (from any directory):
+   - `java -Xms1G -Xmx1G -jar /home/appuser/minecraft/paper.jar --nogui`
+
+### Notes
+
+- The server runs in the foreground; for background execution in automated flows, append `&` or use a process supervisor.
+- When iterating, stop the server with `stop`, replace the plugin jar, and restart.
+- Logs are printed to stdout; server files live under `/home/appuser/minecraft`.
+
