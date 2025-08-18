@@ -57,15 +57,15 @@ public class ItemParser {
     private ItemParser templateItem;
     private boolean configUpdated = false;
 
-    public ItemParser(ConfigurationSection section) {
+    public ItemParser(final ConfigurationSection section) {
         this.section = section;
 
         if (section.isString("template"))
             templateItem = ItemTemplate.getParserTemplate(section.getString("template"));
 
-        ConfigurationSection crucibleSection = section.getConfigurationSection("crucible");
-        ConfigurationSection mmoSection = section.getConfigurationSection("mmoitem");
-        ConfigurationSection ecoItemSection = section.getConfigurationSection("ecoitem");
+        final ConfigurationSection crucibleSection = section.getConfigurationSection("crucible");
+        final ConfigurationSection mmoSection = section.getConfigurationSection("mmoitem");
+        final ConfigurationSection ecoItemSection = section.getConfigurationSection("ecoitem");
         if (crucibleSection != null)
             crucibleItem = new WrappedCrucibleItem(crucibleSection);
         else if (section.isString("crucible_id"))
@@ -84,7 +84,7 @@ public class ItemParser {
 
         oraxenMeta = templateItem != null ? templateItem.oraxenMeta : new OraxenMeta();
         if (section.isConfigurationSection("Pack")) {
-            ConfigurationSection packSection = section.getConfigurationSection("Pack");
+            final ConfigurationSection packSection = section.getConfigurationSection("Pack");
             oraxenMeta.setPackInfos(packSection);
             assert packSection != null;
             if (packSection.isInt("custom_model_data"))
@@ -110,7 +110,7 @@ public class ItemParser {
     }
 
     public ItemBuilder buildItem() {
-        ItemBuilder item;
+        final ItemBuilder item;
 
         if (usesCrucibleItems())
             item = new ItemBuilder(crucibleItem);
@@ -125,7 +125,7 @@ public class ItemParser {
         return applyConfig(usesTemplate() ? templateItem.applyConfig(item) : item);
     }
 
-    private ItemBuilder applyConfig(ItemBuilder item) {
+    private ItemBuilder applyConfig(final ItemBuilder item) {
         try {
             if (section.contains("displayname")) {
                 if (VersionUtil.atOrAbove("1.20.5"))
@@ -160,8 +160,8 @@ public class ItemParser {
             parseOraxenSections(item);
             item.setOraxenMeta(oraxenMeta);
             return item;
-        } catch (Exception e) {
-            String itemId = section != null ? section.getName() : "unknown";
+        } catch (final Exception e) {
+            final String itemId = section != null ? section.getName() : "unknown";
             Logs.logError("Error building item \"" + itemId + "\"");
             Logs.logError(e.getMessage());
             if (Settings.DEBUG.toBool()) {
@@ -172,14 +172,14 @@ public class ItemParser {
         }
     }
 
-    private void parseDataComponents(ItemBuilder item) {
-        ConfigurationSection section = mergeWithTemplateSection();
+    private void parseDataComponents(final ItemBuilder item) {
+        final ConfigurationSection section = mergeWithTemplateSection();
         if (section.contains("itemname") && VersionUtil.atOrAbove("1.20.5"))
             item.setItemName(section.getString("itemname"));
         else if (section.contains("displayname"))
             item.setItemName(section.getString("displayname"));
 
-        ConfigurationSection components = section.getConfigurationSection("Components");
+        final ConfigurationSection components = section.getConfigurationSection("Components");
         if (components == null || !VersionUtil.atOrAbove("1.20.5"))
             return;
 
@@ -188,12 +188,12 @@ public class ItemParser {
 
         // Handle generic components
         if (VersionUtil.atOrAbove("1.21.3")) {
-            for (String key : components.getKeys(false)) {
+            for (final String key : components.getKeys(false)) {
                 // Skip legacy components that are handled separately
                 if (isLegacyComponent(key))
                     continue;
 
-                Object value = components.get(key);
+                final Object value = components.get(key);
                 if (value instanceof ConfigurationSection || value instanceof Map) {
                     NMSHandlers.getHandler().setComponent(item, key, value);
                 }
@@ -201,7 +201,7 @@ public class ItemParser {
         }
     }
 
-    private void handleLegacyComponents(ItemBuilder item, ConfigurationSection components) {
+    private void handleLegacyComponents(final ItemBuilder item, final ConfigurationSection components) {
 
         if (components.contains("durability")) {
             item.setDamagedOnBlockBreak(components.getBoolean("durability.damage_block_break"));
@@ -213,7 +213,7 @@ public class ItemParser {
         if (components.contains("hide_tooltip"))
             item.setHideToolTip(components.getBoolean("hide_tooltip"));
 
-        NMSHandler nmsHandler = NMSHandlers.getHandler();
+        final NMSHandler nmsHandler = NMSHandlers.getHandler();
         if (nmsHandler == null) {
             Logs.logWarning("NMSHandler is null - some components won't work properly");
             if (Settings.DEBUG.toBool()) {
@@ -231,15 +231,15 @@ public class ItemParser {
         if (!VersionUtil.atOrAbove("1.21"))
             return;
 
-        ConfigurationSection jukeboxSection = components.getConfigurationSection("jukebox_playable");
+        final ConfigurationSection jukeboxSection = components.getConfigurationSection("jukebox_playable");
         if (jukeboxSection != null && VersionUtil.isPaperServer()) {
             try {
-                JukeboxPlayableComponent jukeboxPlayable = new ItemStack(Material.MUSIC_DISC_CREATOR).getItemMeta()
+                final JukeboxPlayableComponent jukeboxPlayable = new ItemStack(Material.MUSIC_DISC_CREATOR).getItemMeta()
                         .getJukeboxPlayable();
 
                 try {
                     jukeboxPlayable.setShowInTooltip(jukeboxSection.getBoolean("show_in_tooltip"));
-                } catch (NoSuchMethodError e) {
+                } catch (final NoSuchMethodError e) {
                     Logs.logWarning(
                             "Error setting jukebox show_in_tooltip: This method is not available in your server version");
                     if (Settings.DEBUG.toBool()) {
@@ -249,7 +249,7 @@ public class ItemParser {
 
                 try {
                     jukeboxPlayable.setSongKey(NamespacedKey.fromString(jukeboxSection.getString("song_key", "")));
-                } catch (NoSuchMethodError e) {
+                } catch (final NoSuchMethodError e) {
                     Logs.logWarning(
                             "Error setting jukebox song_key: This method is not available in your server version");
                     if (Settings.DEBUG.toBool()) {
@@ -258,7 +258,7 @@ public class ItemParser {
                 }
 
                 item.setJukeboxPlayable(jukeboxPlayable);
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 Logs.logWarning("Failed to create JukeboxPlayableComponent for item: " + section.getName());
                 if (Settings.DEBUG.toBool()) {
                     e.printStackTrace();
@@ -275,16 +275,16 @@ public class ItemParser {
 
         Optional.ofNullable(components.getConfigurationSection("use_cooldown")).ifPresent((cooldownSection) -> {
             try {
-                UseCooldownComponent useCooldownComponent = new ItemStack(Material.PAPER).getItemMeta()
+                final UseCooldownComponent useCooldownComponent = new ItemStack(Material.PAPER).getItemMeta()
                         .getUseCooldown();
-                String group = Optional.ofNullable(cooldownSection.getString("group"))
+                final String group = Optional.ofNullable(cooldownSection.getString("group"))
                         .orElse("oraxen:" + OraxenItems.getIdByItem(item));
                 if (!group.isEmpty())
                     useCooldownComponent.setCooldownGroup(NamespacedKey.fromString(group));
                 useCooldownComponent
                         .setCooldownSeconds((float) Math.max(cooldownSection.getDouble("seconds", 1.0), 0f));
                 item.setUseCooldownComponent(useCooldownComponent);
-            } catch (NoSuchMethodError | Exception e) {
+            } catch (final NoSuchMethodError | Exception e) {
                 Logs.logWarning(
                         "Error setting UseCooldownComponent: This component is not available in your server version");
                 if (Settings.DEBUG.toBool()) {
@@ -307,7 +307,7 @@ public class ItemParser {
         }
     }
 
-    private boolean isLegacyComponent(String key) {
+    private boolean isLegacyComponent(final String key) {
         return key.equals("durability") ||
                 key.equals("fire_resistant") ||
                 key.equals("hide_tooltip") ||
@@ -322,9 +322,9 @@ public class ItemParser {
                 key.equals("consumable");
     }
 
-    private void parseUseRemainderComponent(ItemBuilder item, @NotNull ConfigurationSection useRemainderSection) {
-        ItemStack result;
-        int amount = useRemainderSection.getInt("amount", 1);
+    private void parseUseRemainderComponent(final ItemBuilder item, @NotNull final ConfigurationSection useRemainderSection) {
+        final ItemStack result;
+        final int amount = useRemainderSection.getInt("amount", 1);
 
         if (useRemainderSection.contains("oraxen_item"))
             result = ItemUpdater
@@ -337,7 +337,7 @@ public class ItemParser {
         else if (useRemainderSection.contains("ecoitem_id"))
             result = new WrappedEcoItem(useRemainderSection.getString("ecoitem_id")).build();
         else if (useRemainderSection.contains("minecraft_type")) {
-            Material material = Material.getMaterial(useRemainderSection.getString("minecraft_type", "AIR"));
+            final Material material = Material.getMaterial(useRemainderSection.getString("minecraft_type", "AIR"));
             if (material == null || material.isAir())
                 return;
             result = new ItemStack(material);
@@ -349,24 +349,24 @@ public class ItemParser {
         item.setUseRemainder(result);
     }
 
-    @SuppressWarnings({ "UnstableApiUsage", "unchecked" })
-    private void parseToolComponent(ItemBuilder item, @NotNull ConfigurationSection toolSection) {
-        ToolComponent toolComponent = new ItemStack(type).getItemMeta().getTool();
+    @SuppressWarnings({"UnstableApiUsage", "unchecked"})
+    private void parseToolComponent(final ItemBuilder item, @NotNull final ConfigurationSection toolSection) {
+        final ToolComponent toolComponent = new ItemStack(type).getItemMeta().getTool();
         toolComponent.setDamagePerBlock(Math.max(toolSection.getInt("damage_per_block", 1), 0));
         toolComponent.setDefaultMiningSpeed(Math.max((float) toolSection.getDouble("default_mining_speed", 1.0), 0f));
 
-        for (Map<?, ?> ruleEntry : toolSection.getMapList("rules")) {
-            float speed = NumberUtils.toFloat(String.valueOf(ruleEntry.get("speed")), 1f);
-            boolean correctForDrops = Boolean.parseBoolean(String.valueOf(ruleEntry.get("correct_for_drops")));
-            Set<Material> materials = new HashSet<>();
-            Set<Tag<Material>> tags = new HashSet<>();
+        for (final Map<?, ?> ruleEntry : toolSection.getMapList("rules")) {
+            final float speed = NumberUtils.toFloat(String.valueOf(ruleEntry.get("speed")), 1f);
+            final boolean correctForDrops = Boolean.parseBoolean(String.valueOf(ruleEntry.get("correct_for_drops")));
+            final Set<Material> materials = new HashSet<>();
+            final Set<Tag<Material>> tags = new HashSet<>();
 
             if (ruleEntry.containsKey("material")) {
                 try {
-                    Material material = Material.valueOf(String.valueOf(ruleEntry.get("material")));
+                    final Material material = Material.valueOf(String.valueOf(ruleEntry.get("material")));
                     if (material.isBlock())
                         materials.add(material);
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     Logs.logWarning("Error parsing rule-entry in " + section.getName());
                     Logs.logWarning("Malformed \"material\"-section");
                     if (Settings.DEBUG.toBool())
@@ -376,13 +376,13 @@ public class ItemParser {
 
             if (ruleEntry.containsKey("materials")) {
                 try {
-                    List<String> materialIds = (List<String>) ruleEntry.get("materials");
-                    for (String materialId : materialIds) {
-                        Material material = Material.valueOf(materialId);
+                    final List<String> materialIds = (List<String>) ruleEntry.get("materials");
+                    for (final String materialId : materialIds) {
+                        final Material material = Material.valueOf(materialId);
                         if (material.isBlock())
                             materials.add(material);
                     }
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     Logs.logWarning("Error parsing rule-entry in " + section.getName());
                     Logs.logWarning("Malformed \"materials\"-section");
                     if (Settings.DEBUG.toBool())
@@ -392,10 +392,10 @@ public class ItemParser {
 
             if (ruleEntry.containsKey("tag")) {
                 try {
-                    NamespacedKey tagKey = NamespacedKey.fromString(String.valueOf(ruleEntry.get("tag")));
+                    final NamespacedKey tagKey = NamespacedKey.fromString(String.valueOf(ruleEntry.get("tag")));
                     if (tagKey != null)
                         tags.add(Bukkit.getTag(Tag.REGISTRY_BLOCKS, tagKey, Material.class));
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     Logs.logWarning("Error parsing rule-entry in " + section.getName());
                     Logs.logWarning("Malformed \"tag\"-section");
                     if (Settings.DEBUG.toBool())
@@ -405,12 +405,12 @@ public class ItemParser {
 
             if (ruleEntry.containsKey("tags")) {
                 try {
-                    for (String tagString : (List<String>) ruleEntry.get("tags")) {
-                        NamespacedKey tagKey = NamespacedKey.fromString(tagString);
+                    for (final String tagString : (List<String>) ruleEntry.get("tags")) {
+                        final NamespacedKey tagKey = NamespacedKey.fromString(tagString);
                         if (tagKey != null)
                             tags.add(Bukkit.getTag(Tag.REGISTRY_BLOCKS, tagKey, Material.class));
                     }
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     Logs.logWarning("Error parsing rule-entry in " + section.getName());
                     Logs.logWarning("Malformed \"material\"-section");
                     if (Settings.DEBUG.toBool())
@@ -420,27 +420,27 @@ public class ItemParser {
 
             if (!materials.isEmpty())
                 toolComponent.addRule(materials, speed, correctForDrops);
-            for (Tag<Material> tag : tags)
+            for (final Tag<Material> tag : tags)
                 toolComponent.addRule(tag, speed, correctForDrops);
         }
 
         item.setToolComponent(toolComponent);
     }
 
-    private void parseEquippableComponent(ItemBuilder item, ConfigurationSection equippableSection) {
-        EquippableComponent equippableComponent = new ItemStack(type).getItemMeta().getEquippable();
+    private void parseEquippableComponent(final ItemBuilder item, final ConfigurationSection equippableSection) {
+        final EquippableComponent equippableComponent = new ItemStack(type).getItemMeta().getEquippable();
 
-        String slot = equippableSection.getString("slot");
+        final String slot = equippableSection.getString("slot");
         try {
             equippableComponent.setSlot(EquipmentSlot.valueOf(slot));
-        } catch (Exception e) {
+        } catch (final Exception e) {
             Logs.logWarning("Error parsing equippable-component in %s...".formatted(section.getName()));
             Logs.logWarning("Invalid \"slot\"-value %s".formatted(slot));
             Logs.logWarning("Valid values are: %s".formatted(StringUtils.join(EquipmentSlot.values())));
             return;
         }
 
-        List<EntityType> entityTypes = equippableSection.getStringList("allowed_entity_types").stream()
+        final List<EntityType> entityTypes = equippableSection.getStringList("allowed_entity_types").stream()
                 .map(e -> EnumUtils.getEnum(EntityType.class, e)).toList();
         if (equippableSection.contains("allowed_entity_types"))
             equippableComponent.setAllowedEntities(entityTypes.isEmpty() ? null : entityTypes);
@@ -463,7 +463,7 @@ public class ItemParser {
                         .map(Key::key)
                         .map(key -> org.bukkit.Registry.SOUNDS.get(key))
                         .ifPresent(equippableComponent::setEquipSound);
-            } catch (NoSuchMethodError e) {
+            } catch (final NoSuchMethodError e) {
                 // This will catch errors on older server versions
                 Logs.logWarning("Error setting equip_sound: Your server version doesn't support this feature.");
             }
@@ -472,72 +472,72 @@ public class ItemParser {
         item.setEquippableComponent(equippableComponent);
     }
 
-    private void parseMiscOptions(ItemBuilder item) {
+    private void parseMiscOptions(final ItemBuilder item) {
         if (section.getBoolean("injectId", true))
             item.setCustomTag(OraxenItems.ITEM_ID, PersistentDataType.STRING, section.getName());
 
-        ConfigurationSection section = mergeWithTemplateSection();
+        final ConfigurationSection section = mergeWithTemplateSection();
         oraxenMeta.setNoUpdate(section.getBoolean("no_auto_update", false));
         oraxenMeta.setDisableEnchanting(section.getBoolean("disable_enchanting", false));
         oraxenMeta.setExcludedFromInventory(section.getBoolean("excludeFromInventory", false));
         oraxenMeta.setExcludedFromCommands(section.getBoolean("excludeFromCommands", false));
     }
 
-    @SuppressWarnings({ "unchecked", "deprecation" })
-    private void parseVanillaSections(ItemBuilder item) {
-        ConfigurationSection section = mergeWithTemplateSection();
+    @SuppressWarnings({"unchecked", "deprecation"})
+    private void parseVanillaSections(final ItemBuilder item) {
+        final ConfigurationSection section = mergeWithTemplateSection();
         if (section.contains("ItemFlags")) {
-            List<String> itemFlags = section.getStringList("ItemFlags");
-            for (String itemFlag : itemFlags)
+            final List<String> itemFlags = section.getStringList("ItemFlags");
+            for (final String itemFlag : itemFlags)
                 item.addItemFlags(ItemFlag.valueOf(itemFlag));
         }
 
         if (section.contains("PotionEffects")) {
-            List<LinkedHashMap<String, Object>> potionEffects = (List<LinkedHashMap<String, Object>>) section
+            final List<LinkedHashMap<String, Object>> potionEffects = (List<LinkedHashMap<String, Object>>) section
                     .getList("PotionEffects");
             if (potionEffects == null)
                 return;
-            for (Map<String, Object> serializedPotionEffect : potionEffects) {
-                PotionEffectType effect = PotionUtils
+            for (final Map<String, Object> serializedPotionEffect : potionEffects) {
+                final PotionEffectType effect = PotionUtils
                         .getEffectType((String) serializedPotionEffect.getOrDefault("type", ""));
                 if (effect == null)
                     return;
-                int duration = (int) serializedPotionEffect.getOrDefault("duration", 60);
-                int amplifier = (int) serializedPotionEffect.getOrDefault("amplifier", 0);
-                boolean ambient = (boolean) serializedPotionEffect.getOrDefault("ambient", true);
-                boolean particles = (boolean) serializedPotionEffect.getOrDefault("particles", true);
-                boolean icon = (boolean) serializedPotionEffect.getOrDefault("icon", true);
+                final int duration = (int) serializedPotionEffect.getOrDefault("duration", 60);
+                final int amplifier = (int) serializedPotionEffect.getOrDefault("amplifier", 0);
+                final boolean ambient = (boolean) serializedPotionEffect.getOrDefault("ambient", true);
+                final boolean particles = (boolean) serializedPotionEffect.getOrDefault("particles", true);
+                final boolean icon = (boolean) serializedPotionEffect.getOrDefault("icon", true);
                 item.addPotionEffect(new PotionEffect(effect, duration, amplifier, ambient, particles, icon));
             }
         }
 
         if (section.contains("PersistentData")) {
             try {
-                List<LinkedHashMap<String, Object>> dataHolder = (List<LinkedHashMap<String, Object>>) section
+                final List<LinkedHashMap<String, Object>> dataHolder = (List<LinkedHashMap<String, Object>>) section
                         .getList("PersistentData");
-                for (LinkedHashMap<String, Object> attributeJson : dataHolder) {
-                    String[] keyContent = ((String) attributeJson.get("key")).split(":");
+                for (final LinkedHashMap<String, Object> attributeJson : dataHolder) {
+                    final String[] keyContent = ((String) attributeJson.get("key")).split(":");
                     final Object persistentDataType = PersistentDataType.class
                             .getDeclaredField((String) attributeJson.get("type")).get(null);
                     item.addCustomTag(new NamespacedKey(keyContent[0], keyContent[1]),
                             (PersistentDataType<Object, Object>) persistentDataType,
                             attributeJson.get("value"));
                 }
-            } catch (IllegalAccessException | NoSuchFieldException e) {
+            } catch (final IllegalAccessException | NoSuchFieldException e) {
                 e.printStackTrace();
             }
         }
 
-        List<Map<String, Object>> attributes = (List<Map<String, Object>>) section.getList("AttributeModifiers");
+        final List<Map<String, Object>> attributes = (List<Map<String, Object>>) section.getList("AttributeModifiers");
         if (attributes != null) {
-            for (Map<String, Object> attributeJson : attributes) {
+            for (final Map<String, Object> attributeJson : attributes) {
                 try {
                     attributeJson.putIfAbsent("uuid", UUID.randomUUID().toString());
                     attributeJson.putIfAbsent("name", "oraxen:modifier");
                     attributeJson.putIfAbsent("key", "oraxen:modifier");
 
-                    AttributeModifier attributeModifier = AttributeModifier.deserialize(attributeJson);
-                    Attribute attribute = AttributeWrapper.fromString((String) attributeJson.get("attribute"));
+                    final AttributeModifier attributeModifier = AttributeModifier.deserialize(attributeJson);
+                    final Attribute attribute = AttributeWrapper.fromString((String) attributeJson.get("attribute"));
 
                     if (attribute != null) {
                         item.addAttributeModifiers(attribute, attributeModifier);
@@ -545,7 +545,7 @@ public class ItemParser {
                         Logs.logWarning("Attribute not found for key: " + attributeJson.get("attribute") + " in item: "
                                 + section.getName());
                     }
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     Logs.logWarning("Error parsing AttributeModifiers in " + section.getName());
                     if (Settings.DEBUG.toBool()) {
                         e.printStackTrace();
@@ -555,30 +555,47 @@ public class ItemParser {
         }
 
         if (section.contains("Enchantments")) {
-            ConfigurationSection enchantSection = section.getConfigurationSection("Enchantments");
-            if (enchantSection != null)
-                for (String enchant : enchantSection.getKeys(false))
-                    item.addEnchant(EnchantmentWrapper.getByKey(NamespacedKey.minecraft(enchant)),
-                            enchantSection.getInt(enchant));
+            final ConfigurationSection enchantSection = section.getConfigurationSection("Enchantments");
+            if (enchantSection == null) return;
+            for (final String enchant : enchantSection.getKeys(false)) {
+                final int level = enchantSection.getInt(enchant, 1);
+                final NamespacedKey namespacedKey = NamespacedKey.fromString(enchant);
+                if (namespacedKey == null) {
+                    Logs.logWarning("Invalid enchantment key: " + enchant + " in item: " + section.getName());
+                    continue;
+                }
+                // Use legacy Enchantment for versions below 1.21
+                final Enchantment enchantment;
+                if (!VersionUtil.atOrAbove("1.21")) {
+                    enchantment = EnchantmentWrapper.getByKey(namespacedKey);
+                } else {
+                    enchantment = Registry.ENCHANTMENT.get(namespacedKey);
+                }
+                if (enchantment == null) {
+                    Logs.logWarning("Enchantment not found for key: " + enchant + " in item: " + section.getName());
+                } else {
+                    item.addEnchant(enchantment, level);
+                }
+            }
         }
     }
 
     private void parseOraxenSections(ItemBuilder item) {
-        ConfigurationSection merged = mergeWithTemplateSection();
-        ConfigurationSection mechanicsSection = merged.getConfigurationSection("Mechanics");
+        final ConfigurationSection merged = mergeWithTemplateSection();
+        final ConfigurationSection mechanicsSection = merged.getConfigurationSection("Mechanics");
         if (mechanicsSection != null)
-            for (String mechanicID : mechanicsSection.getKeys(false)) {
-                MechanicFactory factory = MechanicsManager.getMechanicFactory(mechanicID);
+            for (final String mechanicID : mechanicsSection.getKeys(false)) {
+                final MechanicFactory factory = MechanicsManager.getMechanicFactory(mechanicID);
 
                 if (factory != null) {
-                    ConfigurationSection mechanicSection = mechanicsSection.getConfigurationSection(mechanicID);
+                    final ConfigurationSection mechanicSection = mechanicsSection.getConfigurationSection(mechanicID);
                     if (mechanicSection == null)
                         continue;
-                    Mechanic mechanic = factory.parse(mechanicSection);
+                    final Mechanic mechanic = factory.parse(mechanicSection);
                     if (mechanic == null)
                         continue;
                     // Apply item modifiers
-                    for (Function<ItemBuilder, ItemBuilder> itemModifier : mechanic.getItemModifiers())
+                    for (final Function<ItemBuilder, ItemBuilder> itemModifier : mechanic.getItemModifiers())
                         item = itemModifier.apply(item);
                 }
             }
@@ -592,7 +609,7 @@ public class ItemParser {
                 item.setItemModel(new NamespacedKey(OraxenPlugin.get(), section.getName()));
             }
         } else {
-            Integer customModelData;
+            final Integer customModelData;
             if (MODEL_DATAS_BY_ID.containsKey(section.getName())) {
                 customModelData = MODEL_DATAS_BY_ID.get(section.getName()).getModelData();
             } else if (!item.hasItemModel()) {
@@ -615,7 +632,7 @@ public class ItemParser {
         if (section == null || templateItem == null || templateItem.section == null)
             return section;
 
-        ConfigurationSection merged = new YamlConfiguration().createSection(section.getName());
+        final ConfigurationSection merged = new YamlConfiguration().createSection(section.getName());
         OraxenYaml.copyConfigurationSection(templateItem.section, merged);
         OraxenYaml.copyConfigurationSection(section, merged);
         merged.set("injectId", true);
