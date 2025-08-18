@@ -24,7 +24,7 @@ val SUPPORTED_VERSIONS: List<NMSVersion> = listOf(
     "v1_21_R2" toNms "1.21.3-R0.1-SNAPSHOT",
     "v1_21_R3" toNms "1.21.4-R0.1-SNAPSHOT",
     "v1_21_R4" toNms "1.21.5-R0.1-SNAPSHOT",
-    "v1_21_R5" toNms "1.21.7-R0.1-SNAPSHOT" // also for 1.21.8
+    "v1_21_R5" toNms "1.21.8-R0.1-SNAPSHOT" // also for 1.21.7
 )
 
 val compiled = (project.findProperty("oraxen_compiled")?.toString() ?: "true").toBoolean()
@@ -76,7 +76,7 @@ allprojects {
         compileOnly("net.kyori:adventure-text-serializer-plain:$adventureVersion")
         compileOnly("net.kyori:adventure-text-serializer-ansi:$adventureVersion")
         compileOnly("net.kyori:adventure-platform-bukkit:$platformVersion")
-        compileOnly("com.comphenix.protocol:ProtocolLib:5.3.0")
+        compileOnly("net.dmulloy2:ProtocolLib:5.4.0")
         compileOnly("me.clip:placeholderapi:2.11.6")
         compileOnly("me.gabytm.util:actions-core:$actionsVersion")
         compileOnly("org.springframework:spring-expression:6.0.6")

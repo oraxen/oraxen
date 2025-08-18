@@ -10,7 +10,7 @@ repositories {
 
 dependencies {
     compileOnly(project(":core"))
-    paperweight.paperDevBundle("1.21.7-R0.1-SNAPSHOT")
+    paperweight.paperDevBundle("1.21.8-R0.1-SNAPSHOT")
 }
 
 tasks {
