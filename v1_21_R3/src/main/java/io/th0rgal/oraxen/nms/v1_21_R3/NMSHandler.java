@@ -575,14 +575,18 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     }
 
     @Override
-    public boolean playJukeBoxSong(Location location, ItemStack itemStack) {
+    public boolean supportsJukeboxPlaying() {
+        return true;
+    }
+
+    @Override
+    public void playJukeBoxSong(Location location, ItemStack itemStack) {
         ServerLevel level = ((CraftWorld) location.getWorld()).getHandle().getLevel();
         net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(itemStack);
         Optional<Holder<JukeboxSong>> optional = JukeboxSong.fromStack(level.registryAccess(), nmsItem);
-        if (!optional.isPresent()) return false;
+        if (!optional.isPresent()) return; // should never happen if the itemstack has the jukeboxPlayable component
         int id = level.registryAccess().lookupOrThrow(Registries.JUKEBOX_SONG).getId(optional.get().value());
         level.levelEvent(null, LevelEvent.SOUND_PLAY_JUKEBOX_SONG, new BlockPos(location.getBlockX(), location.getBlockY(), location.getBlockZ()), id);
-        return true;
     }
 
     @Override

@@ -65,8 +65,10 @@ public interface NMSHandler {
 
     }
 
-    default boolean playJukeBoxSong(Location location, ItemStack itemStack) {
+    default boolean supportsJukeboxPlaying() {
         return false;
+    }
+    default void playJukeBoxSong(Location location, ItemStack itemStack) {
     }
 
     default void stopJukeBox(Location location) {
@@ -153,15 +155,6 @@ public interface NMSHandler {
         @Override
         public boolean setComponent(ItemBuilder item, String componentKey, Object component) {
             return false;
-        }
-
-        @Override
-        public boolean playJukeBoxSong(Location location, ItemStack itemStack) {
-            return false;
-        }
-
-        @Override
-        public void stopJukeBox(Location location) {
         }
     }
 }

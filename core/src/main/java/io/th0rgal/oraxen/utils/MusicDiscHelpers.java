@@ -45,7 +45,7 @@ public class MusicDiscHelpers {
 
     public static void setAndPlayMusicDisc(Entity entity, ItemStack record, float volume, float pitch) {
         var pdc = entity.getPersistentDataContainer();
-        if (ItemUtils.isMusicDisc(record) && volume == 1F && pitch == 1F) {
+        if (ItemUtils.isMusicDisc(record) && volume == 1F && pitch == 1F && NMSHandlers.getHandler().supportsJukeboxPlaying()) {
             NMSHandlers.getHandler().playJukeBoxSong(entity.getLocation(), record);
         } else {
             var song = MusicDiscHelpers.getSong(record);
@@ -63,7 +63,7 @@ public class MusicDiscHelpers {
         ItemStack record = getMusicDisc(pdc);
         if(record == null) return null;
         pdc.remove(MUSIC_DISC_KEY);
-        if(ItemUtils.isMusicDisc(record) && volume == 1F && pitch == 1F) {
+        if(ItemUtils.isMusicDisc(record) && volume == 1F && pitch == 1F && NMSHandlers.getHandler().supportsJukeboxPlaying()) {
             NMSHandlers.getHandler().stopJukeBox(entity.getLocation());
         } else {
             var song = MusicDiscHelpers.getSong(record);
