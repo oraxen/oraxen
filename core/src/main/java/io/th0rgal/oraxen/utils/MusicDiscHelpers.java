@@ -45,8 +45,8 @@ public class MusicDiscHelpers {
 
     public static void setAndPlayMusicDisc(Entity entity, ItemStack record, float volume, float pitch) {
         var pdc = entity.getPersistentDataContainer();
-        if (ItemUtils.isMusicDisc(record) && volume == 1F && pitch == 1F && NMSHandlers.getHandler().playJukeBoxSong(entity.getLocation(), record)) {
-            // running via the playJukeBoxSong
+        if (ItemUtils.isMusicDisc(record) && volume == 1F && pitch == 1F) {
+            NMSHandlers.getHandler().playJukeBoxSong(entity.getLocation(), record);
         } else {
             var song = MusicDiscHelpers.getSong(record);
             if (song == null) return;
@@ -58,23 +58,23 @@ public class MusicDiscHelpers {
         pdc.set(MUSIC_DISC_KEY, DataType.ITEM_STACK, record);
     }
 
-    public static ItemStack stopJukeboxAt(Entity entity) {
+    public static ItemStack stopJukeboxAt(Entity entity, float volume, float pitch) {
         var pdc = entity.getPersistentDataContainer();
         ItemStack record = getMusicDisc(pdc);
         if(record == null) return null;
         pdc.remove(MUSIC_DISC_KEY);
-        if(ItemUtils.isMusicDisc(record)) {
+        if(ItemUtils.isMusicDisc(record) && volume == 1F && pitch == 1F) {
             NMSHandlers.getHandler().stopJukeBox(entity.getLocation());
-        }
-        var song = MusicDiscHelpers.getSong(record);
-        if (song == null) return record;
-        Key songKey = Key.key(song);
-        Key soundId = Key.key(OraxenPlugin.get().getSoundManager().songKeyToSoundId(songKey));
+        } else {
+            var song = MusicDiscHelpers.getSong(record);
+            if (song == null) return record;
+            Key songKey = Key.key(song);
+            Key soundId = Key.key(OraxenPlugin.get().getSoundManager().songKeyToSoundId(songKey));
 
-        entity.getWorld().getNearbyEntities(entity.getLocation(), 64, 64, 64, e -> e instanceof Player)
-            .stream().map(Player.class::cast)
-            .forEach(player -> player.stopSound(SoundStop.namedOnSource(soundId, Sound.Source.RECORD)));
-        pdc.remove(MUSIC_DISC_KEY);
+            entity.getWorld().getNearbyEntities(entity.getLocation(), 64, 64, 64, e -> e instanceof Player)
+                .stream().map(Player.class::cast)
+                .forEach(player -> player.stopSound(SoundStop.namedOnSource(soundId, Sound.Source.RECORD)));
+        }
         return record;
     }
 

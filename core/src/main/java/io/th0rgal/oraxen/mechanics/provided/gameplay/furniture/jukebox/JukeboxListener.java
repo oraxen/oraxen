@@ -118,7 +118,7 @@ public class JukeboxListener implements Listener {
         JukeboxBlock jukebox = furnitureMechanic.getJukebox();
         if (!jukebox.hasPermission(player))
             return false;
-        var item = MusicDiscHelpers.stopJukeboxAt(baseEntity);
+        var item = MusicDiscHelpers.stopJukeboxAt(baseEntity, jukebox.getVolume(), jukebox.getPitch());
         if(item == null) return false;
         baseEntity.getWorld().dropItemNaturally(baseEntity.getLocation().toCenterLocation(), item);
 
