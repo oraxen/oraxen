@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.InvocationTargetException;
@@ -15,13 +16,13 @@ public class NMSHandlers {
     private static NMSHandler handler;
     private static String version;
 
-    @Nullable
+    @NotNull
     public static NMSHandler getHandler() {
         if (handler != null)
             return handler;
         else {
             setup();
-            if (handler == null && Settings.DEBUG.toBool()) {
+            if (handler instanceof NMSHandler.EmptyNMSHandler && Settings.DEBUG.toBool()) {
                 Logs.logError("Failed to setup NMS handler for server version: " + Bukkit.getVersion());
                 Logs.logError("Supported versions: " + java.util.Arrays.toString(SUPPORTED_VERSION));
                 Logs.logError("Current server implements Paper: " + VersionUtil.isPaperServer());
@@ -58,6 +59,9 @@ public class NMSHandlers {
                 if (Settings.DEBUG.toBool())
                     e.printStackTrace();
             }
+        }
+        if(handler == null) {
+            handler = new NMSHandler.EmptyNMSHandler();
         }
     }
 

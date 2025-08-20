@@ -30,7 +30,7 @@ import java.util.stream.Stream;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.*;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic.PERSONAL_STORAGE_KEY;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic.STORAGE_KEY;
-import static io.th0rgal.oraxen.mechanics.provided.misc.music_disc.MusicDiscListener.MUSIC_DISC_KEY;
+import static io.th0rgal.oraxen.utils.MusicDiscHelpers.MUSIC_DISC_KEY;
 
 public class OraxenFurniture {
 

@@ -184,6 +184,14 @@ public class BlockHelpers {
         };
     }
 
+    public static BlockState getState(Block block) {
+        if(VersionUtil.isPaperServer()) {
+            return block.getState(false);
+        } else {
+            return block.getState();
+        }
+    }
+
     public enum BlockCorrection {
         NMS, LEGACY;
 

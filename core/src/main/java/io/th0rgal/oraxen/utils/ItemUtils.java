@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.utils;
 
 import io.th0rgal.oraxen.utils.drops.Drop;
-import io.th0rgal.oraxen.utils.logs.Logs;
 
 import org.bukkit.Color;
 import org.bukkit.Material;
@@ -125,13 +124,17 @@ public class ItemUtils {
     }
 
     public static boolean isMusicDisc(ItemStack itemStack) {
-        if (itemStack == null)
-            return false;
+        if (isInvalidItem(itemStack)) return false;
         // native disks don't seem to have jukebox playable set to true
         if (VersionUtil.atOrAbove("1.21") && itemStack.hasItemMeta() && itemStack.getItemMeta().hasJukeboxPlayable()) {
             return true;
+        } else {
+            return itemStack.getType().isRecord();
         }
-        return itemStack.getType().name().startsWith("MUSIC_DISC");
+    }
+
+    public static boolean isInvalidItem(ItemStack itemStack) {
+        return itemStack == null || itemStack.getType().isAir() || itemStack.getAmount() == 0;
     }
 
     @Nullable
