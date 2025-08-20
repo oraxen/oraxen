@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox;
 
-import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
@@ -11,16 +10,12 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.ItemUtils;
-import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.MusicDiscHelpers;
-import net.kyori.adventure.key.Key;
-import net.kyori.adventure.sound.Sound;
-import net.kyori.adventure.sound.SoundStop;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import net.kyori.adventure.text.Component;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
-import org.bukkit.SoundCategory;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -32,8 +27,6 @@ import org.bukkit.persistence.PersistentDataContainer;
 
 import javax.annotation.Nullable;
 import java.util.Locale;
-
-import static io.th0rgal.oraxen.utils.MusicDiscHelpers.MUSIC_DISC_KEY;
 
 public class JukeboxListener implements Listener {
 
@@ -107,7 +100,7 @@ public class JukeboxListener implements Listener {
         insertedDisc.setAmount(1);
         if (player != null && player.getGameMode() != GameMode.CREATIVE)
             disc.setAmount(disc.getAmount() - insertedDisc.getAmount());
-        MusicDiscHelpers.setAndPlayMusicDisc(baseEntity, insertedDisc, SoundCategory.RECORDS, jukebox.getVolume(), jukebox.getPitch());
+        MusicDiscHelpers.setAndPlayMusicDisc(baseEntity, insertedDisc, jukebox.getVolume(), jukebox.getPitch());
 
         if (jukebox.active_stage != null) {
             FurnitureMechanic.setFurnitureItem(baseEntity, OraxenItems.getItemById(jukebox.active_stage).build());
@@ -118,38 +111,22 @@ public class JukeboxListener implements Listener {
 
     private boolean ejectAndStopDisc(Entity baseEntity, @Nullable Player player) {
         PersistentDataContainer pdc = baseEntity.getPersistentDataContainer();
-        ItemStack item = pdc.get(MUSIC_DISC_KEY, DataType.ITEM_STACK);
         FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
-        Location loc = BlockHelpers.toCenterLocation(baseEntity.getLocation());
 
         if (furnitureMechanic == null || !furnitureMechanic.isJukebox())
             return false;
-        if (!pdc.has(MUSIC_DISC_KEY, DataType.ITEM_STACK) || !ItemUtils.isMusicDisc(item))
-            return false;
-
         JukeboxBlock jukebox = furnitureMechanic.getJukebox();
         if (!jukebox.hasPermission(player))
             return false;
-
-        baseEntity.getWorld().getNearbyEntities(loc, 32, 32, 32).stream()
-            .filter(entity -> entity instanceof Player)
-            .map(entity -> (Player) entity)
-            .forEach(p -> {
-                Key songKey = getSongFromDisc(item);
-                if (songKey == null)
-                    return;
-                OraxenPlugin.get().getAudience().player(p).stopSound(
-                    SoundStop.namedOnSource(songKey, Sound.Source.RECORD));
-            });
-        baseEntity.getWorld().dropItemNaturally(loc, item);
+        var item = MusicDiscHelpers.stopJukeboxAt(baseEntity);
+        if(item == null) return false;
+        baseEntity.getWorld().dropItemNaturally(baseEntity.getLocation().toCenterLocation(), item);
 
         // if the active stage was not null we need to reset it because it changed
         if (jukebox.active_stage != null) {
             FurnitureMechanic.setFurnitureItem(baseEntity,
                 OraxenItems.getItemById(furnitureMechanic.getItemID()).build());
         }
-
-        pdc.remove(MUSIC_DISC_KEY);
         return true;
     }
 

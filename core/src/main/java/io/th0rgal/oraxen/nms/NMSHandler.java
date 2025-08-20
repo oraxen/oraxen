@@ -1,7 +1,7 @@
 package io.th0rgal.oraxen.nms;
 
 import io.th0rgal.oraxen.items.ItemBuilder;
-import org.bukkit.World;
+import org.bukkit.Location;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -44,7 +44,9 @@ public interface NMSHandler {
     @Nullable
     BlockData correctBlockStates(Player player, EquipmentSlot slot, ItemStack itemStack);
 
-    /** Removes mineable/axe tag from noteblocks for custom blocks */
+    /**
+     * Removes mineable/axe tag from noteblocks for custom blocks
+     */
     void customBlockDefaultTools(Player player);
 
     default void foodComponent(ItemBuilder itemBuilder, ConfigurationSection foodSection) {
@@ -63,19 +65,25 @@ public interface NMSHandler {
 
     }
 
+    default boolean playJukeBoxSong(Location location, ItemStack itemStack) {
+        return false;
+    }
+
+    default void stopJukeBox(Location location) {
+    }
     /**
      * Keys that are used by vanilla Minecraft and should therefore be skipped
      * Some are accessed through API methods, others are just used internally
      */
     Set<String> vanillaKeys = Set.of("PublicBukkitValues", "display", "CustomModelData", "Damage", "AttributeModifiers",
-            "Unbreakable", "CanDestroy", "slot", "count", "HideFlags", "CanPlaceOn", "Enchantments",
-            "StoredEnchantments",
-            "RepairCost", "CustomPotionEffects", "Potion", "CustomPotionColor", "Trim", "EntityTag",
-            "pages", "filtered_pages", "filtered_title", "resolved", "generation", "author", "title",
-            "BucketVariantTag", "Items", "LodestoneTracked", "LodestoneDimension", "LodestonePos",
-            "ChargedProjectiles", "Charged", "DebugProperty", "Fireworks", "Explosion", "Flight",
-            "map", "map_scale_direction", "map_to_lock", "Decorations", "SkullOwner", "Effects", "BlockEntityTag",
-            "BlockStateTag");
+        "Unbreakable", "CanDestroy", "slot", "count", "HideFlags", "CanPlaceOn", "Enchantments",
+        "StoredEnchantments",
+        "RepairCost", "CustomPotionEffects", "Potion", "CustomPotionColor", "Trim", "EntityTag",
+        "pages", "filtered_pages", "filtered_title", "resolved", "generation", "author", "title",
+        "BucketVariantTag", "Items", "LodestoneTracked", "LodestoneDimension", "LodestonePos",
+        "ChargedProjectiles", "Charged", "DebugProperty", "Fireworks", "Explosion", "Flight",
+        "map", "map_scale_direction", "map_to_lock", "Decorations", "SkullOwner", "Effects", "BlockEntityTag",
+        "BlockStateTag");
 
     default boolean getSupported() {
         return false;
@@ -83,7 +91,7 @@ public interface NMSHandler {
 
     /**
      * Sets a component on an item using the DataComponents registry
-     * 
+     *
      * @param item         The ItemBuilder to modify
      * @param componentKey The component key (e.g. "food", "tool", etc.)
      * @param component    The component data
@@ -145,6 +153,15 @@ public interface NMSHandler {
         @Override
         public boolean setComponent(ItemBuilder item, String componentKey, Object component) {
             return false;
+        }
+
+        @Override
+        public boolean playJukeBoxSong(Location location, ItemStack itemStack) {
+            return false;
+        }
+
+        @Override
+        public void stopJukeBox(Location location) {
         }
     }
 }

@@ -16,6 +16,7 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -25,6 +26,7 @@ import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.common.ClientboundUpdateTagsPacket;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagNetworkSerialization;
@@ -32,14 +34,18 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.JukeboxSong;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.DirectionalPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.LevelEvent;
+import net.minecraft.world.level.block.entity.JukeboxBlockEntity;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.StringUtils;
+import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.SoundCategory;
 import org.bukkit.SoundGroup;
@@ -47,6 +53,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.craftbukkit.CraftWorld;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
@@ -65,6 +72,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
@@ -81,24 +89,24 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         if (ChannelInitializeListenerHolder.hasListener(tagKey))
             return;
         ChannelInitializeListenerHolder.addListener(tagKey, (channel -> channel.pipeline().addBefore("packet_handler",
-                tagKey.asString(), new ChannelDuplexHandler() {
+            tagKey.asString(), new ChannelDuplexHandler() {
 
-                    Connection connection = (Connection) channel.pipeline().get("packet_handler");
-                    TagNetworkSerialization.NetworkPayload payload = createPayload();
+                Connection connection = (Connection) channel.pipeline().get("packet_handler");
+                TagNetworkSerialization.NetworkPayload payload = createPayload();
 
-                    @Override
-                    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
-                        if (msg instanceof ClientboundUpdateTagsPacket updateTagsPacket) {
-                            Map<ResourceKey<? extends Registry<?>>, TagNetworkSerialization.NetworkPayload> tags = updateTagsPacket
-                                    .getTags();
-                            if (NoteBlockMechanicFactory.isEnabled()
-                                    && NoteBlockMechanicFactory.getInstance().removeMineableTag())
-                                tags.put(Registries.BLOCK, payload);
-                            msg = new ClientboundUpdateTagsPacket(tags);
-                        }
-                        ctx.write(msg, promise);
+                @Override
+                public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
+                    if (msg instanceof ClientboundUpdateTagsPacket updateTagsPacket) {
+                        Map<ResourceKey<? extends Registry<?>>, TagNetworkSerialization.NetworkPayload> tags = updateTagsPacket
+                            .getTags();
+                        if (NoteBlockMechanicFactory.isEnabled()
+                            && NoteBlockMechanicFactory.getInstance().removeMineableTag())
+                            tags.put(Registries.BLOCK, payload);
+                        msg = new ClientboundUpdateTagsPacket(tags);
                     }
-                })));
+                    ctx.write(msg, promise);
+                }
+            })));
     }
 
     @Override
@@ -127,7 +135,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                 return;
 
             DataComponentType<Object> type = (DataComponentType<Object>) BuiltInRegistries.DATA_COMPONENT_TYPE
-                    .get(tag.location());
+                .get(tag.location());
             if (type != null)
                 newNmsItem.set(type, oldItemStack.get(type));
         });
@@ -153,7 +161,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         // Shulker-Boxes are DirectionalPlace based unlike other directional-blocks
         if (org.bukkit.Tag.SHULKER_BOXES.isTagged(itemStack.getType())) {
             placeContext = new DirectionalPlaceContext(serverPlayer.level(), hitResult.getBlockPos(),
-                    hitResult.getDirection(), nmsStack, hitResult.getDirection().getOpposite());
+                hitResult.getDirection(), nmsStack, hitResult.getDirection().getOpposite());
         }
 
         BlockPos pos = hitResult.getBlockPos();
@@ -170,15 +178,15 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             SoundGroup sound = block.getBlockData().getSoundGroup();
 
             world.playSound(
-                    BlockHelpers.toCenterBlockLocation(block.getLocation()), sound.getPlaceSound(),
-                    SoundCategory.BLOCKS, (sound.getVolume() + 1.0F) / 2.0F, sound.getPitch() * 0.8F);
+                BlockHelpers.toCenterBlockLocation(block.getLocation()), sound.getPlaceSound(),
+                SoundCategory.BLOCKS, (sound.getVolume() + 1.0F) / 2.0F, sound.getPitch() * 0.8F);
         }
 
         return world.getBlockAt(pos.getX(), pos.getY(), pos.getZ()).getBlockData();
     }
 
     public BlockHitResult getPlayerPOVHitResult(Level world, net.minecraft.world.entity.player.Player player,
-            ClipContext.Fluid fluidHandling) {
+                                                ClipContext.Fluid fluidHandling) {
         float f = player.getXRot();
         float g = player.getYRot();
         Vec3 vec3 = player.getEyePosition();
@@ -200,8 +208,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
     private TagNetworkSerialization.NetworkPayload createPayload() {
         Constructor<?> constructor = Arrays
-                .stream(TagNetworkSerialization.NetworkPayload.class.getDeclaredConstructors()).findFirst()
-                .orElse(null);
+            .stream(TagNetworkSerialization.NetworkPayload.class.getDeclaredConstructors()).findFirst()
+            .orElse(null);
         if (constructor == null)
             return null;
         constructor.setAccessible(true);
@@ -220,8 +228,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             IntArrayList list = new IntArrayList(pair.getSecond().size());
             if (pair.getFirst().location() == BlockTags.MINEABLE_WITH_AXE.location()) {
                 pair.getSecond().stream()
-                        .filter(block -> !block.value().getDescriptionId().endsWith("note_block"))
-                        .forEach(block -> list.add(BuiltInRegistries.BLOCK.getId(block.value())));
+                    .filter(block -> !block.value().getDescriptionId().endsWith("note_block"))
+                    .forEach(block -> list.add(BuiltInRegistries.BLOCK.getId(block.value())));
             } else
                 pair.getSecond().forEach(block -> list.add(BuiltInRegistries.BLOCK.getId(block.value())));
 
@@ -251,16 +259,16 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                 PotionEffectType effectType = PotionUtils.getEffectType(effect);
                 if (effectSection == null || effectType == null)
                     Logs.logError("Invalid potion effect: " + effect + ", in "
-                            + StringUtils.substringBefore(effectsSection.getCurrentPath(), ".") + " food-property!");
+                        + StringUtils.substringBefore(effectsSection.getCurrentPath(), ".") + " food-property!");
                 else {
                     foodComponent.addEffect(
-                            new PotionEffect(effectType,
-                                    effectSection.getInt("duration", 1) * 20,
-                                    effectSection.getInt("amplifier", 0),
-                                    effectSection.getBoolean("ambient", true),
-                                    effectSection.getBoolean("show_particles", true),
-                                    effectSection.getBoolean("show_icon", true)),
-                            (float) effectSection.getDouble("probability", 1.0));
+                        new PotionEffect(effectType,
+                            effectSection.getInt("duration", 1) * 20,
+                            effectSection.getInt("amplifier", 0),
+                            effectSection.getBoolean("ambient", true),
+                            effectSection.getBoolean("show_particles", true),
+                            effectSection.getBoolean("show_icon", true)),
+                        (float) effectSection.getDouble("probability", 1.0));
                 }
             }
 
@@ -268,18 +276,18 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     }
 
     @Override
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public boolean setComponent(ItemBuilder item, String componentKey, Object component) {
         try {
             net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(new ItemStack(item.getType()));
             net.minecraft.resources.ResourceLocation componentLocation = net.minecraft.resources.ResourceLocation
-                    .tryParse("minecraft:" + componentKey.toLowerCase());
+                .tryParse("minecraft:" + componentKey.toLowerCase());
             if (componentLocation == null)
                 return false;
 
             net.minecraft.core.component.DataComponentType<?> componentType = net.minecraft.core.registries.BuiltInRegistries.DATA_COMPONENT_TYPE
-                    .getOptional(componentLocation)
-                    .orElse(null);
+                .getOptional(componentLocation)
+                .orElse(null);
             if (componentType == null)
                 return false;
 
@@ -303,7 +311,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                         }
                     } catch (Exception e) {
                         io.th0rgal.oraxen.utils.logs.Logs
-                                .logWarning("Failed to create default component for " + componentKey);
+                            .logWarning("Failed to create default component for " + componentKey);
                         return false;
                     }
                 }
@@ -311,7 +319,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                 // Apply NBT to component
                 try {
                     Method fromTag = defaultComponent.getClass().getMethod("fromTag",
-                            net.minecraft.nbt.CompoundTag.class);
+                        net.minecraft.nbt.CompoundTag.class);
                     fromTag.setAccessible(true);
                     Object parsedComponent = fromTag.invoke(defaultComponent, nbt);
 
@@ -324,7 +332,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                     return true;
                 } catch (Exception e) {
                     io.th0rgal.oraxen.utils.logs.Logs
-                            .logWarning("Failed to apply NBT data to component " + componentKey);
+                        .logWarning("Failed to apply NBT data to component " + componentKey);
                     if (io.th0rgal.oraxen.config.Settings.DEBUG.toBool())
                         e.printStackTrace();
                     return false;
