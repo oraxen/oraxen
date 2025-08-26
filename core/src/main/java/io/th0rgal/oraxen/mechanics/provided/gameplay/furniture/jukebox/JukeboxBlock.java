@@ -1,17 +1,11 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox;
 
-import com.jeff_media.morepersistentdatatypes.DataType;
-import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.misc.music_disc.MusicDiscMechanic;
+import io.th0rgal.oraxen.utils.MusicDiscHelpers;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-
-import java.util.Locale;
-
-import static io.th0rgal.oraxen.mechanics.provided.misc.music_disc.MusicDiscListener.MUSIC_DISC_KEY;
 
 public class JukeboxBlock {
 
@@ -30,15 +24,8 @@ public class JukeboxBlock {
     }
 
     public String getPlayingSong(Entity baseEntity) {
-        ItemStack disc = baseEntity.getPersistentDataContainer().get(MUSIC_DISC_KEY, DataType.ITEM_STACK);
-        if (disc == null)
-            return null;
-        MusicDiscMechanic mechanic = (MusicDiscMechanic) factory.getMechanic(OraxenItems.getIdByItem(disc));
-        return (mechanic != null && !mechanic.hasNoSong()) ? mechanic.getSong()
-                : disc.getType().isRecord()
-                        ? disc.getType().toString().toLowerCase(Locale.ROOT).replace("music_disc_",
-                                "minecraft:music_disc.")
-                        : null;
+        ItemStack disc = MusicDiscHelpers.getMusicDisc(baseEntity.getPersistentDataContainer());
+        return MusicDiscHelpers.getSong(disc, factory);
     }
 
     public String getPermission() {

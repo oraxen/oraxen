@@ -27,6 +27,7 @@ import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.common.ClientboundUpdateTagsPacket;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.tags.TagNetworkSerialization;
@@ -37,6 +38,7 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemUseAnimation;
+import net.minecraft.world.item.JukeboxSong;
 import net.minecraft.world.item.component.Consumable;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.consume_effects.*;
@@ -45,9 +47,11 @@ import net.minecraft.world.item.context.DirectionalPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.LevelEvent;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.EnumUtils;
+import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.SoundCategory;
 import org.bukkit.SoundGroup;
@@ -55,6 +59,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.craftbukkit.CraftWorld;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
@@ -568,5 +573,26 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             e.printStackTrace();
         }
         return itemStack;
+    }
+
+    @Override
+    public boolean supportsJukeboxPlaying() {
+        return true;
+    }
+
+    @Override
+    public void playJukeBoxSong(Location location, ItemStack itemStack) {
+        ServerLevel level = ((CraftWorld) location.getWorld()).getHandle().getLevel();
+        net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(itemStack);
+        Optional<Holder<JukeboxSong>> optional = JukeboxSong.fromStack(level.registryAccess(), nmsItem);
+        if (!optional.isPresent()) return; // should never happen if the itemstack has the jukeboxPlayable component
+        int id = level.registryAccess().lookupOrThrow(Registries.JUKEBOX_SONG).getId(optional.get().value());
+        level.levelEvent(null, LevelEvent.SOUND_PLAY_JUKEBOX_SONG, new BlockPos(location.getBlockX(), location.getBlockY(), location.getBlockZ()), id);
+    }
+
+    @Override
+    public void stopJukeBox(Location location) {
+        ServerLevel level = ((CraftWorld) location.getWorld()).getHandle().getLevel();
+        level.levelEvent(null, LevelEvent.SOUND_STOP_JUKEBOX_SONG, new BlockPos(location.getBlockX(), location.getBlockY(), location.getBlockZ()), 0);
     }
 }
