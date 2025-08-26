@@ -24,12 +24,11 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.damage.DamageType;
 import org.bukkit.enchantments.EnchantmentWrapper;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemFlag;
-import org.bukkit.inventory.ItemRarity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.components.EquippableComponent;
 import org.bukkit.inventory.meta.components.JukeboxPlayableComponent;
@@ -38,7 +37,6 @@ import org.bukkit.inventory.meta.components.UseCooldownComponent;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.tag.DamageTypeTags;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -234,7 +232,8 @@ public class ItemParser {
         final ConfigurationSection jukeboxSection = components.getConfigurationSection("jukebox_playable");
         if (jukeboxSection != null && VersionUtil.isPaperServer()) {
             try {
-                final JukeboxPlayableComponent jukeboxPlayable = new ItemStack(Material.MUSIC_DISC_CREATOR).getItemMeta()
+                final JukeboxPlayableComponent jukeboxPlayable = new ItemStack(Material.MUSIC_DISC_CREATOR)
+                        .getItemMeta()
                         .getJukeboxPlayable();
 
                 try {
@@ -322,7 +321,8 @@ public class ItemParser {
                 key.equals("consumable");
     }
 
-    private void parseUseRemainderComponent(final ItemBuilder item, @NotNull final ConfigurationSection useRemainderSection) {
+    private void parseUseRemainderComponent(final ItemBuilder item,
+            @NotNull final ConfigurationSection useRemainderSection) {
         final ItemStack result;
         final int amount = useRemainderSection.getInt("amount", 1);
 
@@ -349,7 +349,7 @@ public class ItemParser {
         item.setUseRemainder(result);
     }
 
-    @SuppressWarnings({"UnstableApiUsage", "unchecked"})
+    @SuppressWarnings({ "UnstableApiUsage", "unchecked" })
     private void parseToolComponent(final ItemBuilder item, @NotNull final ConfigurationSection toolSection) {
         final ToolComponent toolComponent = new ItemStack(type).getItemMeta().getTool();
         toolComponent.setDamagePerBlock(Math.max(toolSection.getInt("damage_per_block", 1), 0));
@@ -483,7 +483,7 @@ public class ItemParser {
         oraxenMeta.setExcludedFromCommands(section.getBoolean("excludeFromCommands", false));
     }
 
-    @SuppressWarnings({"unchecked", "deprecation"})
+    @SuppressWarnings({ "unchecked", "deprecation" })
     private void parseVanillaSections(final ItemBuilder item) {
         final ConfigurationSection section = mergeWithTemplateSection();
         if (section.contains("ItemFlags")) {
@@ -556,7 +556,8 @@ public class ItemParser {
 
         if (section.contains("Enchantments")) {
             final ConfigurationSection enchantSection = section.getConfigurationSection("Enchantments");
-            if (enchantSection == null) return;
+            if (enchantSection == null)
+                return;
             for (final String enchant : enchantSection.getKeys(false)) {
                 final int level = enchantSection.getInt(enchant, 1);
                 final NamespacedKey namespacedKey = NamespacedKey.fromString(enchant);
