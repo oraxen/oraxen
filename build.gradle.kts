@@ -34,11 +34,6 @@ val devPluginPath = project.findProperty("oraxen_dev_plugin_path")?.toString()
 val foliaPluginPath = project.findProperty("oraxen_folia_plugin_path")?.toString()
 val spigotPluginPath = project.findProperty("oraxen_spigot_plugin_path")?.toString()
 val pluginVersion: String by project
-val commandApiVersion = "10.1.2"
-val adventureVersion = "4.17.0"
-val platformVersion = "4.3.4"
-val googleGsonVersion = "2.10.1"
-val apacheLang3Version = "3.14.0"
 group = "io.th0rgal"
 version = pluginVersion
 
