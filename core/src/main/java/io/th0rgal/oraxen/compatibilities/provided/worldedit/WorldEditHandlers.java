@@ -75,8 +75,8 @@ public class WorldEditHandlers {
                 // Remove interaction-tag from baseEntity-nbt
                 CompoundTag compoundTag = baseEntity.getNbtData();
                 if (compoundTag == null) return super.createEntity(location, baseEntity);
-                Map<String, Tag> compoundTagMap = new HashMap<>(compoundTag.getValue());
-                Map<String, Tag> bukkitValues = new HashMap<>((Map<String, Tag>) compoundTagMap.get("BukkitValues").getValue());
+                Map<String, Tag<?,?>> compoundTagMap = new HashMap<>(compoundTag.getValue());
+                Map<String, Tag<?,?>> bukkitValues = new HashMap<>((Map<String, Tag<?,?>>) compoundTagMap.get("BukkitValues").getValue());
                 bukkitValues.remove("oraxen:interaction");
                 compoundTagMap.put("BukkitValues", new CompoundTag(bukkitValues));
                 baseEntity.setNbtData(new CompoundTag(compoundTagMap));
@@ -95,7 +95,7 @@ public class WorldEditHandlers {
             public <T extends BlockStateHolder<T>> boolean setBlock(BlockVector3 pos, T block) throws WorldEditException {
                 BlockData blockData = BukkitAdapter.adapt(block);
                 World world = Bukkit.getWorld(event.getWorld().getName());
-                Location loc = new Location(world, pos.getX(), pos.getY(), pos.getZ());
+                Location loc = new Location(world, pos.x(), pos.y(), pos.z());
                 Mechanic mechanic = OraxenBlocks.getOraxenBlock(blockData);
                 if (blockData.getMaterial() == Material.NOTE_BLOCK) {
                     if (mechanic != null && Settings.WORLDEDIT_NOTEBLOCKS.toBool()) {
