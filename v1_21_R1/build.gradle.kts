@@ -4,10 +4,6 @@ plugins {
     id("io.github.goooler.shadow") version "8.1.8"
 }
 
-repositories {
-    maven("https://repo.papermc.io/repository/maven-public/") // Paper
-}
-
 dependencies {
     compileOnly(project(":core"))
     paperweight.paperDevBundle("1.21-R0.1-SNAPSHOT")

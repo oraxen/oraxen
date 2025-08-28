@@ -14,6 +14,7 @@ plugins {
 }
 
 class NMSVersion(val nmsVersion: String, val serverVersion: String)
+
 infix fun String.toNms(that: String): NMSVersion = NMSVersion(this, that)
 val SUPPORTED_VERSIONS: List<NMSVersion> = listOf(
     "v1_20_R1" toNms "1.20.1-R0.1-SNAPSHOT",
@@ -33,84 +34,67 @@ val devPluginPath = project.findProperty("oraxen_dev_plugin_path")?.toString()
 val foliaPluginPath = project.findProperty("oraxen_folia_plugin_path")?.toString()
 val spigotPluginPath = project.findProperty("oraxen_spigot_plugin_path")?.toString()
 val pluginVersion: String by project
-val commandApiVersion = "10.1.2"
-val adventureVersion = "4.17.0"
-val platformVersion = "4.3.4"
-val googleGsonVersion = "2.10.1"
-val apacheLang3Version = "3.14.0"
 group = "io.th0rgal"
 version = pluginVersion
 
+
+
 allprojects {
     apply(plugin = "java")
+
     repositories {
+        maven("https://repo.papermc.io/repository/maven-public/") {
+            content {
+                includeGroup("io.papermc.paper") // Paper
+                // extra stuff required by paper
+                includeGroup("net.md-5")
+                includeGroup("com.mojang")
+            }
+        }
+        maven("https://libraries.minecraft.net/") {
+            content { includeGroup("net.minecraft") } // Minecraft repo (commodore)
+        }
+        maven("https://repo.extendedclip.com/content/repositories/placeholderapi/") {
+            content { includeGroup("me.clip") } // PlaceHolderAPI
+        }
+//        maven("https://maven.elmakers.com/repository/") // EffectLib
+        maven("https://repo.triumphteam.dev/snapshots") {
+            content { includeGroup("me.gabytm.util") } // actions-code, actions-spigot
+        }
+        maven("https://mvn.lumine.io/repository/maven-public/") {
+            metadataSources { artifact() }
+            content {
+                includeModule("io.lumine", "MythicLib")
+                includeModule("io.lumine", "Mythic-Dist")
+                includeModule("io.lumine", "MythicCrucible-API")
+                includeGroup("com.ticxo.modelengine") // ModelEngine
+            }
+        }
+        maven("https://repo.oraxen.com/releases") {
+            content { includeGroup("io.th0rgal") } // protectionlib
+        }
+        maven("https://repo.oraxen.com/snapshots") {
+            content { includeGroup("io.th0rgal") }
+        }
+        maven("https://repo.auxilor.io/repository/maven-public/") {
+            content { includeGroup("com.willfp") } // EcoItems, eco, libreforge
+        }
+        maven("https://maven.enginehub.org/repo/") {
+            content { includeGroupAndSubgroups("com.sk89q.worldedit") } // world edit
+        }
+        maven("https://nexus.phoenixdevt.fr/repository/maven-public/") {
+            content {
+                includeModule("io.lumine", "MythicLib-dist")
+                includeGroup("net.Indyuce") // MMOItems
+            }
+        }
+        maven("https://repo.codemc.org/repository/maven-public/") {
+            content { includeGroup("nl.rutgerkok") } // BlockLocker
+        }
+        maven("https://repo.codemc.io/repository/maven-releases/") {
+            content { includeGroup("com.github.retrooper") }
+        }
         mavenCentral()
-
-        maven("https://repo.papermc.io/repository/maven-public/") // Paper
-        maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") // Spigot
-        maven("https://oss.sonatype.org/content/repositories/snapshots") // Because Spigot depends on Bungeecord ChatComponent-API
-        maven("https://repo.dmulloy2.net/repository/public/") // ProtocolLib
-        maven("https://libraries.minecraft.net/") // Minecraft repo (commodore)
-        maven("https://repo.extendedclip.com/content/repositories/placeholderapi/") // PlaceHolderAPI
-        maven("https://maven.elmakers.com/repository/") // EffectLib
-        maven("https://hub.jeff-media.com/nexus/repository/jeff-media-public/") // CustomBlockData
-        maven("https://repo.triumphteam.dev/snapshots") // actions-code, actions-spigot
-        maven("https://mvn.lumine.io/repository/maven-public/") { metadataSources { artifact() } }// MythicMobs
-        maven("https://s01.oss.sonatype.org/content/repositories/snapshots") // commandAPI snapshots
-        maven("https://repo.oraxen.com/releases")
-        maven("https://repo.oraxen.com/snapshots")
-        maven("https://repo.auxilor.io/repository/maven-public/") // EcoItems
-        maven("https://maven.enginehub.org/repo/")
-        maven("https://jitpack.io") // JitPack
-        maven("https://nexus.phoenixdevt.fr/repository/maven-public/") // MMOItems
-        maven("https://repo.codemc.org/repository/maven-public/") // BlockLocker
-
-        mavenLocal()
-    }
-
-    dependencies {
-        val actionsVersion = "1.0.0-SNAPSHOT"
-        compileOnly("gs.mclo:java:2.2.1")
-
-        compileOnly("net.kyori:adventure-text-minimessage:$adventureVersion")
-        compileOnly("net.kyori:adventure-text-serializer-plain:$adventureVersion")
-        compileOnly("net.kyori:adventure-text-serializer-ansi:$adventureVersion")
-        compileOnly("net.kyori:adventure-platform-bukkit:$platformVersion")
-        compileOnly("net.dmulloy2:ProtocolLib:5.4.0")
-        compileOnly("me.clip:placeholderapi:2.11.6")
-        compileOnly("me.gabytm.util:actions-core:$actionsVersion")
-        compileOnly("org.springframework:spring-expression:6.0.6")
-        compileOnly("io.lumine:Mythic-Dist:5.7.0-SNAPSHOT")
-        compileOnly("io.lumine:MythicCrucible:1.6.0-SNAPSHOT")
-        compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.9")
-        compileOnly("commons-io:commons-io:2.11.0")
-        compileOnly("com.google.code.gson:gson:$googleGsonVersion")
-        compileOnly("com.ticxo.modelengine:ModelEngine:R4.0.4")
-        compileOnly("com.ticxo.modelengine:api:R3.1.8")
-        compileOnly(files("../libs/compile/BSP.jar"))
-        compileOnly("io.lumine:MythicLib:1.1.6") // Remove and add deps needed for Polymath
-        compileOnly("io.lumine:MythicLib-dist:1.6.2-SNAPSHOT")
-        compileOnly("net.Indyuce:MMOItems-API:6.9.5-SNAPSHOT")
-        compileOnly("org.joml:joml:1.10.5") // Because pre 1.19.4 api does not have this in the server-jar
-        compileOnly("com.willfp:EcoItems:5.23.0")
-        compileOnly("com.willfp:eco:6.65.5")
-        compileOnly("com.willfp:libreforge:4.36.0")
-        compileOnly("nl.rutgerkok:blocklocker:1.10.4-SNAPSHOT")
-        compileOnly("org.apache.commons:commons-lang3:$apacheLang3Version")
-
-        implementation("team.unnamed:creative-api:1.7.3") { exclude("net.kyori") }
-        implementation("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
-        implementation("org.bstats:bstats-bukkit:3.0.0")
-        implementation("org.glassfish:javax.json:1.1.4")
-        implementation("io.th0rgal:protectionlib:1.8.0")
-        implementation("com.github.stefvanschie.inventoryframework:IF:0.10.12")
-        implementation("com.jeff-media:custom-block-data:2.2.2")
-        implementation("com.jeff-media:MorePersistentDataTypes:2.4.0")
-        implementation("com.jeff-media:persistent-data-serializer:1.0")
-        implementation("org.jetbrains:annotations:24.1.0") { isTransitive = false }
-        implementation("dev.triumphteam:triumph-gui:3.1.10") { exclude("net.kyori") }
-
-        implementation("me.gabytm.util:actions-spigot:$actionsVersion") { exclude(group = "com.google.guava") }
     }
 }
 
@@ -119,12 +103,18 @@ dependencies {
     SUPPORTED_VERSIONS.forEach { implementation(project(path = ":${it.nmsVersion}", configuration = "reobf")) }
 }
 
-
-
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(21))
     }
+}
+
+tasks.withType(xyz.jpenilla.runtask.task.AbstractRun::class) {
+    javaLauncher = javaToolchains.launcherFor {
+        vendor = JvmVendorSpec.JETBRAINS
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+    jvmArgs("-XX:+AllowEnhancedClassRedefinition")
 }
 
 tasks {
@@ -138,7 +128,16 @@ tasks {
     }
 
     processResources {
-        filesNotMatching(listOf("**/*.png", "**/*.ogg", "**/models/**", "**/textures/**", "**/font/**.json", "**/plugin.yml")) {
+        filesNotMatching(
+            listOf(
+                "**/*.png",
+                "**/*.ogg",
+                "**/models/**",
+                "**/textures/**",
+                "**/font/**.json",
+                "**/plugin.yml"
+            )
+        ) {
             expand(mapOf(project.version.toString() to pluginVersion))
         }
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
@@ -147,23 +146,35 @@ tasks {
 
     runServer {
         downloadPlugins {
-            url("https://ci.dmulloy2.net/job/ProtocolLib/lastSuccessfulBuild/artifact/build/libs/ProtocolLib.jar")
+            hangar("ProtocolLib", "5.4.0")
         }
-        minecraftVersion("1.20.4")
+        minecraftVersion("1.21.8")
+        jvmArgs("-Dcom.mojang.eula.agree=true")
     }
 
     shadowJar {
         SUPPORTED_VERSIONS.forEach { dependsOn(":${it.nmsVersion}:reobfJar") }
 
         archiveClassifier = null
-        relocate("org.bstats", "io.th0rgal.oraxen.shaded.bstats")
-        relocate("dev.triumphteam.gui", "io.th0rgal.oraxen.shaded.triumphteam.gui")
-        relocate("com.jeff_media", "io.th0rgal.oraxen.shaded.jeff_media")
-        relocate("com.github.stefvanschie.inventoryframework", "io.th0rgal.oraxen.shaded.inventoryframework")
-        relocate("me.gabytm.util.actions", "io.th0rgal.oraxen.shaded.actions")
+        oraxenLibs.bundles.libraries.shade.get().forEach {
+            val plugin = it;
+            val group = it.group!!
+                .replace("jeff-media", "jeff_media") // they use a different package than the group...
+            val parts = group
+                .split(".")
+            var relocated = parts[parts.size - 1]
+            if (parts.size > 2) {
+                relocated = parts[parts.size - 2] + "." + relocated
+            }
+            logger.lifecycle("Relocating ${group} to io.th0rgal.oraxen.shaded." + relocated)
+            relocate(group, "io.th0rgal.oraxen.shaded." + relocated) {
+                exclude("io.th0rgal.oraxen.**")
+            }
+        }
+        // exception for this one dunno who includes that...
         relocate("org.intellij.lang.annotations", "io.th0rgal.oraxen.shaded.intellij.annotations")
-        relocate("org.jetbrains.annotations", "io.th0rgal.oraxen.shaded.jetbrains.annotations")
-        relocate("dev.jorel", "io.th0rgal.oraxen.shaded")
+        relocate("com.udojava.evalex", "io.th0rgal.oraxen.shaded.udojava.evalex")
+        relocate("javax.json", "io.th0rgal.oraxen.shaded.javax.json")
 
         manifest {
             attributes(
@@ -172,8 +183,16 @@ tasks {
                     "Version" to pluginVersion,
                     "Build-Timestamp" to SimpleDateFormat("yyyy-MM-dd' 'HH:mm:ss.SSSZ").format(Date.from(Instant.now())),
                     "Created-By" to "Gradle ${gradle.gradleVersion}",
-                    "Build-Jdk" to "${System.getProperty("java.version")} ${System.getProperty("java.vendor")} ${System.getProperty("java.vm.version")}",
-                    "Build-OS" to "${System.getProperty("os.name")} ${System.getProperty("os.arch")} ${System.getProperty("os.version")}",
+                    "Build-Jdk" to "${System.getProperty("java.version")} ${System.getProperty("java.vendor")} ${
+                        System.getProperty(
+                            "java.vm.version"
+                        )
+                    }",
+                    "Build-OS" to "${System.getProperty("os.name")} ${System.getProperty("os.arch")} ${
+                        System.getProperty(
+                            "os.version"
+                        )
+                    }",
                     "Compiled" to (project.findProperty("oraxen_compiled")?.toString() ?: "true").toBoolean()
                 )
             )
@@ -204,18 +223,7 @@ bukkit {
         description = "Allows the player to use the /oraxen command"
         default = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission.Default.TRUE
     }
-    libraries = listOf(
-        "org.springframework:spring-expression:6.0.6",
-        "org.apache.httpcomponents:httpmime:4.5.13",
-        "org.joml:joml:1.10.5",
-        "net.kyori:adventure-text-minimessage:$adventureVersion",
-        "net.kyori:adventure-text-serializer-plain:$adventureVersion",
-        "net.kyori:adventure-text-serializer-ansi:$adventureVersion",
-        "net.kyori:adventure-platform-bukkit:$platformVersion",
-        "com.google.code.gson:gson:$googleGsonVersion",
-        "org.apache.commons:commons-lang3:$apacheLang3Version",
-        "gs.mclo:java:2.2.1",
-    )
+    libraries = oraxenLibs.bundles.libraries.bukkit.get().map { it.toString() }
 }
 
 if (spigotPluginPath != null) {
