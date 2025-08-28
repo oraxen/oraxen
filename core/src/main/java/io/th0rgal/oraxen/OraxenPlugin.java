@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen;
 
-import com.comphenix.protocol.ProtocolLibrary;
 import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.CommandAPIBukkitConfig;
 import io.th0rgal.oraxen.api.OraxenItems;
@@ -9,8 +8,9 @@ import io.th0rgal.oraxen.commands.CommandsManager;
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.config.*;
 import io.th0rgal.oraxen.font.FontManager;
-import io.th0rgal.oraxen.font.packets.InventoryPacketListener;
-import io.th0rgal.oraxen.font.packets.TitlePacketListener;
+import io.th0rgal.oraxen.packets.PacketAdapter;
+import io.th0rgal.oraxen.packets.PacketEventsAdapter;
+import io.th0rgal.oraxen.packets.ProtocolLibAdapter;
 import io.th0rgal.oraxen.hud.HudManager;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
@@ -24,10 +24,10 @@ import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.actions.ClickActionManager;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorEquipEvent;
-import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
+import io.th0rgal.oraxen.utils.breaker.PacketEventsBreakerSystem;
+import io.th0rgal.oraxen.utils.breaker.ProtocolLibBreakerSystem;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmorListener;
 import io.th0rgal.oraxen.utils.inventories.InvManager;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.protectionlib.ProtectionLib;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bstats.bukkit.Metrics;
@@ -53,6 +53,7 @@ public class OraxenPlugin extends JavaPlugin {
     private InvManager invManager;
     private ResourcePack resourcePack;
     private ClickActionManager clickActionManager;
+    private PacketAdapter packetAdapter;
     public static boolean supportsDisplayEntities;
 
     public OraxenPlugin() {
@@ -89,14 +90,22 @@ public class OraxenPlugin extends JavaPlugin {
 
         if (Settings.KEEP_UP_TO_DATE.toBool())
             new SettingsUpdater().handleSettingsUpdate();
-        if (PluginUtils.isEnabled("ProtocolLib")) {
-            new BreakerSystem().registerListener();
-            if (Settings.FORMAT_INVENTORY_TITLES.toBool())
-                ProtocolLibrary.getProtocolManager().addPacketListener(new InventoryPacketListener());
-            ProtocolLibrary.getProtocolManager().addPacketListener(new TitlePacketListener());
+        if (PacketAdapter.isProtocolLibEnabled()) {
+            packetAdapter = new ProtocolLibAdapter();
+            new ProtocolLibBreakerSystem().registerListener();
+        } else if (PacketAdapter.isPacketEventsEnabled()) {
+            packetAdapter = new PacketEventsAdapter();
+            new PacketEventsBreakerSystem().registerListener();
         } else {
+            packetAdapter = new PacketAdapter.EmptyAdapter();
             Message.MISSING_PROTOCOLLIB.log();
         }
+        packetAdapter.whenEnabled(adapter -> {
+            if (Settings.FORMAT_INVENTORY_TITLES.toBool())
+                packetAdapter.registerInventoryListener();
+            packetAdapter.registerTitleListener();
+        });
+
         Bukkit.getPluginManager().registerEvents(new CustomArmorListener(), this);
         NMSHandlers.setup();
 
@@ -214,5 +223,9 @@ public class OraxenPlugin extends JavaPlugin {
 
     public ClickActionManager getClickActionManager() {
         return clickActionManager;
+    }
+
+    public PacketAdapter getPacketAdapter() {
+        return packetAdapter;
     }
 }

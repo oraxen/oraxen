@@ -17,8 +17,6 @@ import org.bukkit.Color;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import com.comphenix.protocol.error.Report;
-
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
