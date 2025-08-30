@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.pack.generation;
 
-import com.comphenix.protocol.ProtocolLibrary;
 import com.google.gson.*;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
@@ -10,7 +9,6 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.font.Font;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.font.Glyph;
-import io.th0rgal.oraxen.font.packets.ScoreboardPacketListener;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenMeta;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
@@ -805,8 +803,8 @@ public class ResourcePack {
             "vec_it", "vi_vn", "yi_de", "yo_ng", "zh_cn", "zh_hk", "zh_tw", "zlm_arab"));
 
     private void hideScoreboardNumbers() {
-        if (PluginUtils.isEnabled("ProtocolLib") && VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.20.3")) {
-            ProtocolLibrary.getProtocolManager().addPacketListener(new ScoreboardPacketListener());
+        if (OraxenPlugin.get().getPacketAdapter().isEnabled() && VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.20.3")) {
+            OraxenPlugin.get().getPacketAdapter().registerScoreboardListener();
         } else { // Pre 1.20.3 rely on shaders
             writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.json", getScoreboardJson());
             writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.vsh", getScoreboardVsh());

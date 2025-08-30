@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.mechanics.provided.gameplay.efficiency;
+package io.th0rgal.oraxen.packets.protocollib.mechanics.provided.gameplay.efficiency;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.ListenerPriority;
@@ -9,6 +9,8 @@ import com.comphenix.protocol.reflect.StructureModifier;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.efficiency.EfficiencyMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.efficiency.EfficiencyMechanicFactory;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;

@@ -178,9 +178,7 @@ public class CustomSound {
         songJson.add("sound_event", soundEvent);
 
         // Add jukebox-specific properties
-        JsonObject description = new JsonObject();
-        description.addProperty("text", AdventureUtils.LEGACY_SERIALIZER.serialize(getDescription()));
-        songJson.add("description", description);
+        songJson.add("description", AdventureUtils.GSON_SERIALIZER.serializeToTree(getDescription()));
 
         songJson.addProperty("length_in_seconds", getLengthInSeconds());
         songJson.addProperty("comparator_output", getComparatorOutput());

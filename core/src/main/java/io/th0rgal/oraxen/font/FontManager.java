@@ -1,18 +1,14 @@
 package io.th0rgal.oraxen.font;
 
-import com.comphenix.protocol.ProtocolLibrary;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.ConfigsManager;
 import io.th0rgal.oraxen.config.Settings;
-import io.th0rgal.oraxen.font.packets.InventoryPacketListener;
-import io.th0rgal.oraxen.font.packets.TitlePacketListener;
 import io.th0rgal.oraxen.nms.GlyphHandlers;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.OraxenYaml;
-import io.th0rgal.oraxen.utils.PluginUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
@@ -74,10 +70,10 @@ public class FontManager {
             NMSHandlers.getHandler().glyphHandler().setupNmsGlyphs();
             Logs.logSuccess("Oraxens NMS Glyph system has been enabled!");
             Logs.logInfo("Disabling packet-based glyph systems", true);
-            if (PluginUtils.isEnabled("ProtocolLib")){
-                ProtocolLibrary.getProtocolManager().removePacketListener(new InventoryPacketListener());
-                ProtocolLibrary.getProtocolManager().removePacketListener(new TitlePacketListener());
-            }
+            OraxenPlugin.get().getPacketAdapter().whenEnabled(adapter -> {
+                adapter.removeInventoryListener();
+                adapter.removeTitleListener();
+            });
         }
     }
 

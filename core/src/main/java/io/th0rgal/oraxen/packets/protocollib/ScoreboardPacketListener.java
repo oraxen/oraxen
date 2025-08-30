@@ -1,7 +1,11 @@
-package io.th0rgal.oraxen.font.packets;
+package io.th0rgal.oraxen.packets.protocollib;
 
 import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.events.*;
+import com.comphenix.protocol.events.InternalStructure;
+import com.comphenix.protocol.events.ListenerPriority;
+import com.comphenix.protocol.events.PacketAdapter;
+import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.WrappedChatComponent;
 import com.comphenix.protocol.wrappers.WrappedNumberFormat;
 import io.th0rgal.oraxen.OraxenPlugin;

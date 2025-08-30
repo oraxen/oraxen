@@ -8,15 +8,22 @@ pluginManagement {
     }
 }
 
+plugins {
+    // allows for better class redefinitions with run-paper
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.9.0"
+}
+
 dependencyResolutionManagement {
-    repositories {
-        maven("https://repo.mineinabyss.com/releases")
-        maven("https://repo.mineinabyss.com/snapshots")
-        mavenLocal()
-    }
+//    repositories {
+//        maven("https://repo.mineinabyss.com/releases")
+//        maven("https://repo.mineinabyss.com/snapshots")
+//        mavenLocal()
+//    }
 
     versionCatalogs {
-        create("oraxenLibs").from(files("gradle/oraxenLibs.versions.toml"))
+        create("oraxenLibs") {
+            from(files("gradle/oraxenLibs.versions.toml"))
+        }
     }
 }
 

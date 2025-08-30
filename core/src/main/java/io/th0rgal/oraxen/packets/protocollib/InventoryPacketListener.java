@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.font.packets;
+package io.th0rgal.oraxen.packets.protocollib;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.ListenerPriority;
