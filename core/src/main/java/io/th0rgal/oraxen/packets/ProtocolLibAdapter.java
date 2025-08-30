@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.packets;
 
 import com.comphenix.protocol.ProtocolLibrary;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.packets.protocollib.InventoryPacketListener;
 import io.th0rgal.oraxen.packets.protocollib.ScoreboardPacketListener;
 import io.th0rgal.oraxen.packets.protocollib.TitlePacketListener;
@@ -13,6 +14,8 @@ import java.text.SimpleDateFormat;
 import java.util.Locale;
 
 public class ProtocolLibAdapter implements PacketAdapter {
+    private ScoreboardPacketListener scoreboardPacketListener;
+
     private InventoryPacketListener inventoryPacketListener;
     private TitlePacketListener titlePacketListener;
 
@@ -25,17 +28,30 @@ public class ProtocolLibAdapter implements PacketAdapter {
 
     @Override
     public void registerInventoryListener() {
+        if(inventoryPacketListener != null) {
+            OraxenPlugin.get().getLogger().severe("[ProtocolLibAdapter]: Inventory Listener is already registered!");
+            return;
+        }
         inventoryPacketListener = new InventoryPacketListener();
         ProtocolLibrary.getProtocolManager().addPacketListener(inventoryPacketListener);
     }
 
     @Override
     public void registerScoreboardListener() {
-        ProtocolLibrary.getProtocolManager().addPacketListener(new ScoreboardPacketListener());
+        if(scoreboardPacketListener != null) {
+            OraxenPlugin.get().getLogger().severe("[ProtocolLibAdapter]: Scoreboard Listener is already registered!");
+            return;
+        }
+        scoreboardPacketListener = new ScoreboardPacketListener();
+        ProtocolLibrary.getProtocolManager().addPacketListener(scoreboardPacketListener);
     }
 
     @Override
     public void registerTitleListener() {
+        if(titlePacketListener != null) {
+            OraxenPlugin.get().getLogger().severe("[ProtocolLibAdapter]: Title Listener is already registered!");
+            return;
+        }
         titlePacketListener = new TitlePacketListener();
         ProtocolLibrary.getProtocolManager().addPacketListener(titlePacketListener);
     }
