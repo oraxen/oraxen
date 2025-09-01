@@ -29,6 +29,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.EntityType;
 import org.enginehub.linbus.tree.LinCompoundTag;
+import org.enginehub.linbus.tree.LinStringTag;
 import org.enginehub.linbus.tree.LinTagType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -133,18 +134,14 @@ public class WorldEditHandlers {
 
     @Nullable
     private static FurnitureMechanic getFurnitureMechanic(@NotNull BaseEntity entity) {
-        if (!entity.hasNbtData() || !furnitureTypes.contains(entity.getType())) return null;
-        CompoundTag tag = entity.getNbtData();
-        Map<String, Tag> bukkitValues = null;
-        try {
-            bukkitValues = (Map<String, Tag>) tag.getValue().get("BukkitValues").getValue();
-        } catch (Exception ignored) {
-        }
+        if (!furnitureTypes.contains(entity.getType())) return null;
+        LinCompoundTag tag = entity.getNbt();
+        if(tag == null) return null;
+        LinCompoundTag bukkitValues = tag.getTag("BukkitValues", LinTagType.compoundTag());
         if (bukkitValues == null) return null;
-        Tag furnitureTag = bukkitValues.get("oraxen:furniture");
+        LinStringTag furnitureTag = bukkitValues.getTag("oraxen:furniture", LinTagType.stringTag());
         if (furnitureTag == null) return null;
-
-        String furnitureId = furnitureTag.getValue().toString();
+        String furnitureId = furnitureTag.value();
         return OraxenFurniture.getFurnitureMechanic(furnitureId);
     }
 }
