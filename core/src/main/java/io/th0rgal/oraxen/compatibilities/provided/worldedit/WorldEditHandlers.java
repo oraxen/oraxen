@@ -88,7 +88,7 @@ public class WorldEditHandlers {
                         .filter(e -> e.getType().equals(type))
                         .min(Comparator.comparingDouble(entity -> entity.getLocation().distanceSquared(bukkitLocation)))
                         .ifPresent(e -> mechanic.setEntityData(e, e.getLocation().getYaw(), BlockFace.NORTH));
-                }, 1L);
+                }, 5L);
 
                 return super.createEntity(location, baseEntity);
             }
