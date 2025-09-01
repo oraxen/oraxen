@@ -48,7 +48,7 @@ public class WorldEditHandlers {
 
     static {
         furnitureTypes.add(BukkitAdapter.adapt(EntityType.ITEM_FRAME));
-        if (VersionUtil.atOrAbove("1.19.4")){
+        if (VersionUtil.atOrAbove("1.19.4")) {
             furnitureTypes.add(BukkitAdapter.adapt(EntityType.ITEM_DISPLAY));
             furnitureTypes.add(BukkitAdapter.adapt(EntityType.INTERACTION));
         }
@@ -82,10 +82,12 @@ public class WorldEditHandlers {
                 baseEntity.setNbtData(new CompoundTag(compoundTagMap));
 
                 Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () -> {
-                    List<org.bukkit.entity.Entity> entities = bukkitLocation.getNearbyEntities(0.5, 0.5, 0.5).stream().toList();
-                    List<org.bukkit.entity.Entity> nearbyEntities = entities.stream().sorted(Comparator.comparingDouble(entity -> entity.getLocation().distance(bukkitLocation))).toList();
-                    nearbyEntities.stream().findFirst().ifPresent(e ->
-                            mechanic.setEntityData(e, e.getLocation().getYaw(), BlockFace.NORTH));
+                    EntityType type = BukkitAdapter.adapt(baseEntity.getType());
+                    bukkitLocation.getNearbyEntities(.5, 0.5, 0.5)
+                        .stream()
+                        .filter(e -> e.getType().equals(type))
+                        .min(Comparator.comparingDouble(entity -> entity.getLocation().distanceSquared(bukkitLocation)))
+                        .ifPresent(e -> mechanic.setEntityData(e, e.getLocation().getYaw(), BlockFace.NORTH));
                 }, 1L);
 
                 return super.createEntity(location, baseEntity);
@@ -94,8 +96,8 @@ public class WorldEditHandlers {
             @Override
             public <T extends BlockStateHolder<T>> boolean setBlock(BlockVector3 pos, T block) throws WorldEditException {
                 BlockData blockData = BukkitAdapter.adapt(block);
-                World world = Bukkit.getWorld(event.getWorld().getName());
-                Location loc = new Location(world, pos.x(), pos.y(), pos.z());
+                World world = BukkitAdapter.adapt(event.getWorld());
+                Location loc = BukkitAdapter.adapt(world, pos);
                 Mechanic mechanic = OraxenBlocks.getOraxenBlock(blockData);
                 if (blockData.getMaterial() == Material.NOTE_BLOCK) {
                     if (mechanic != null && Settings.WORLDEDIT_NOTEBLOCKS.toBool()) {
@@ -119,23 +121,23 @@ public class WorldEditHandlers {
 
                 return super.setBlock(pos, block);
             }
-
-            @Nullable
-            private FurnitureMechanic getFurnitureMechanic(@NotNull BaseEntity entity) {
-                if (!entity.hasNbtData() || !furnitureTypes.contains(entity.getType())) return null;
-                CompoundTag tag = entity.getNbtData();
-                Map<String, Tag> bukkitValues = null;
-                try {
-                    bukkitValues = (Map<String, Tag>) tag.getValue().get("BukkitValues").getValue();
-                } catch (Exception ignored) {
-                }
-                if (bukkitValues == null) return null;
-                Tag furnitureTag = bukkitValues.get("oraxen:furniture");
-                if (furnitureTag == null) return null;
-
-                String furnitureId = furnitureTag.getValue().toString();
-                return OraxenFurniture.getFurnitureMechanic(furnitureId);
-            }
         });
+    }
+
+    @Nullable
+    private static FurnitureMechanic getFurnitureMechanic(@NotNull BaseEntity entity) {
+        if (!entity.hasNbtData() || !furnitureTypes.contains(entity.getType())) return null;
+        CompoundTag tag = entity.getNbtData();
+        Map<String, Tag> bukkitValues = null;
+        try {
+            bukkitValues = (Map<String, Tag>) tag.getValue().get("BukkitValues").getValue();
+        } catch (Exception ignored) {
+        }
+        if (bukkitValues == null) return null;
+        Tag furnitureTag = bukkitValues.get("oraxen:furniture");
+        if (furnitureTag == null) return null;
+
+        String furnitureId = furnitureTag.getValue().toString();
+        return OraxenFurniture.getFurnitureMechanic(furnitureId);
     }
 }
