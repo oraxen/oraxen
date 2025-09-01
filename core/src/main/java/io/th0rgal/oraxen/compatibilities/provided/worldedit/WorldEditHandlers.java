@@ -28,6 +28,8 @@ import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.EntityType;
+import org.enginehub.linbus.tree.LinCompoundTag;
+import org.enginehub.linbus.tree.LinTagType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -73,13 +75,18 @@ public class WorldEditHandlers {
                 if (mechanic == null) return super.createEntity(location, baseEntity);
 
                 // Remove interaction-tag from baseEntity-nbt
-                CompoundTag compoundTag = baseEntity.getNbtData();
+                LinCompoundTag compoundTag = baseEntity.getNbt();
                 if (compoundTag == null) return super.createEntity(location, baseEntity);
-                Map<String, Tag<?,?>> compoundTagMap = new HashMap<>(compoundTag.getValue());
-                Map<String, Tag<?,?>> bukkitValues = new HashMap<>((Map<String, Tag<?,?>>) compoundTagMap.get("BukkitValues").getValue());
-                bukkitValues.remove("oraxen:interaction");
-                compoundTagMap.put("BukkitValues", new CompoundTag(bukkitValues));
-                baseEntity.setNbtData(new CompoundTag(compoundTagMap));
+                LinCompoundTag bukkitValues = compoundTag.getTag("BukkitValues", LinTagType.compoundTag());
+                if(bukkitValues != null){
+                    bukkitValues.toBuilder()
+                        .remove("oraxen:interaction")
+                        .build();
+                    compoundTag = compoundTag.toBuilder()
+                        .put("BukkitValues", bukkitValues)
+                        .build();
+                    baseEntity.setNbt(compoundTag);
+                }
 
                 Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () -> {
                     EntityType type = BukkitAdapter.adapt(baseEntity.getType());
