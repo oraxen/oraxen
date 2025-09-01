@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.recipes.loaders;
 
-import io.lumine.mythiccrucible.MythicCrucible;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.provided.ecoitems.WrappedEcoItem;

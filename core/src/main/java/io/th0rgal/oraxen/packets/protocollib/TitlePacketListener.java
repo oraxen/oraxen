@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.font.packets;
+package io.th0rgal.oraxen.packets.protocollib;
 
 import com.comphenix.protocol.events.ListenerPriority;
 import com.comphenix.protocol.events.PacketAdapter;
@@ -23,7 +23,6 @@ public class TitlePacketListener extends PacketAdapter {
     @Override
     public void onPacketSending(PacketEvent event) {
         PacketContainer packet = event.getPacket();
-
         if (packet.getType() == SET_TITLE_TEXT && Settings.FORMAT_TITLES.toBool()) {
             WrappedChatComponent title = formatTitle(packet);
             if (title != null) packet.getChatComponents().write(0, title);

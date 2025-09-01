@@ -13,12 +13,28 @@ tasks {
     build.get().dependsOn(shadowJar)
 }
 
-repositories {
-    maven("https://repo.papermc.io/repository/maven-public/") // Paper
-}
 
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.8-R0.1-SNAPSHOT")
+    // libraries in plugin.yml > libraries
+    compileOnly(oraxenLibs.bundles.libraries.bukkit) {
+        exclude("org.jetbrains", "annotations")
+    }
+    // things that are included in minecraft but not exposed
+    compileOnly(oraxenLibs.bundles.libraries.included)
+    // Plugin dependencies
+    compileOnly(oraxenLibs.bundles.plugins) {
+        exclude("org.jetbrains", "annotations")
+        exclude("com.google.code.gson", "gson")
+        exclude("net.kyori")
+    }
+    compileOnly(files("../libs/compile/BSP.jar"))
+    // shaded dependencies
+    implementation(oraxenLibs.bundles.libraries.shade) {
+        exclude("com.google.code.gson", "gson")
+        exclude("net.kyori")
+        exclude(group = "com.google.guava")
+    }
 }
 
 java {
@@ -42,8 +58,10 @@ publishing {
         maven {
             authentication {
                 credentials(PasswordCredentials::class) {
-                    username = System.getenv("MAVEN_USERNAME") ?: project.findProperty("oraxenUsername") as? String ?: ""
-                    password = System.getenv("MAVEN_PASSWORD") ?: project.findProperty("oraxenPassword") as? String ?: ""
+                    username =
+                        System.getenv("MAVEN_USERNAME") ?: project.findProperty("oraxenUsername") as? String ?: ""
+                    password =
+                        System.getenv("MAVEN_PASSWORD") ?: project.findProperty("oraxenPassword") as? String ?: ""
                 }
                 authentication {
                     create<BasicAuthentication>("basic")
@@ -75,7 +93,8 @@ class PublishData(private val project: Project) {
         System.getenv("GITHUB_SHA")?.substring(0, hashLength) ?: "local"
 
     private fun getCheckedOutBranch(): String =
-        System.getenv("GITHUB_REF")?.replace("refs/heads/", "") ?: grgitService.service.get().grgit.branch.current().name
+        System.getenv("GITHUB_REF")?.replace("refs/heads/", "")
+            ?: grgitService.service.get().grgit.branch.current().name
 
     fun getVersion(): String = getVersion(false)
 
