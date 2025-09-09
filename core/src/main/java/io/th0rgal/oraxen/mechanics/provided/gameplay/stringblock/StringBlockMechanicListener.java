@@ -41,7 +41,7 @@ import java.util.Random;
 public class StringBlockMechanicListener implements Listener {
 
     public StringBlockMechanicListener() {
-        if (PluginUtils.isEnabled("ProtocolLib"))
+        if (OraxenPlugin.get().getPacketAdapter().isEnabled())
             BreakerSystem.MODIFIERS.add(getHardnessModifier());
     }
 
