@@ -52,6 +52,6 @@ public class PacketEventsBreakerSystem extends BreakerSystem {
 
     @Override
     public void registerListener() {
-        PacketEvents.getAPI().getEventManager().registerListener(listener, PacketListenerPriority.LOWEST);
+        PacketEvents.getAPI().getEventManager().registerListener(listener, PacketListenerPriority.LOW);
     }
 }

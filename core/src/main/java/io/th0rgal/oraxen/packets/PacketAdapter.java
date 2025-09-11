@@ -3,6 +3,8 @@ package io.th0rgal.oraxen.packets;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.efficiency.EfficiencyMechanicFactory;
 import io.th0rgal.oraxen.utils.PluginUtils;
 import io.th0rgal.oraxen.utils.SnapshotVersion;
+import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
 
@@ -28,6 +30,7 @@ public interface PacketAdapter {
 
     String getLatestMCVersion();
     boolean isNewer(SnapshotVersion snapshot);
+    @Nullable Plugin getPlugin();
     public static class EmptyAdapter implements PacketAdapter {
         @Override
         public boolean isEnabled() {
@@ -67,6 +70,12 @@ public interface PacketAdapter {
 
         @Override public boolean isNewer(SnapshotVersion snapshot) {
             return true; // no way to know
+        }
+
+        @Nullable
+        @Override
+        public Plugin getPlugin() {
+            return null;
         }
     }
 }

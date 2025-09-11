@@ -9,52 +9,53 @@ public class ReportCommand {
 
     CommandAPICommand getReportCommand() {
         return new CommandAPICommand("report")
-                .withPermission("oraxen.command.report")
-                .executes((sender, args) -> {
-                    // Get Oraxen version
-                    String oraxenVersion = OraxenPlugin.get().getDescription().getVersion();
+            .withPermission("oraxen.command.report")
+            .executes((sender, args) -> {
+                // Get Oraxen version
+                String oraxenVersion = OraxenPlugin.get().getDescription().getVersion();
 
-                    // Get ProtocolLib version
-                    Plugin protocolLib = Bukkit.getPluginManager().getPlugin("ProtocolLib");
-                    String protocolLibVersion = protocolLib != null ? protocolLib.getDescription().getVersion()
-                            : "Not installed";
+                // Get Protocol Library version
+                Plugin protocolPlugin = OraxenPlugin.get().getPacketAdapter().getPlugin();
+                Bukkit.getPluginManager().getPlugin("ProtocolLib");
+                String protocolLibVersion = protocolPlugin != null ? protocolPlugin.getName() + "-" + protocolPlugin.getDescription().getVersion()
+                    : "Not installed";
 
-                    // Get server info
-                    String serverSoftware = Bukkit.getName();
-                    String serverVersion = Bukkit.getVersion();
+                // Get server info
+                String serverSoftware = Bukkit.getName();
+                String serverVersion = Bukkit.getVersion();
 
-                    // Get OS info
-                    String osName = System.getProperty("os.name");
-                    String osVersion = System.getProperty("os.version");
-                    String osArch = System.getProperty("os.arch");
+                // Get OS info
+                String osName = System.getProperty("os.name");
+                String osVersion = System.getProperty("os.version");
+                String osArch = System.getProperty("os.arch");
 
-                    // Format report
-                    String report = String.format("""
+                // Format report
+                String report = String.format("""
+                        
+                        ### System Report
+                        **Plugin Versions:**
+                        - Oraxen: %s
+                        - ProtocolAPI: %s
+                        
+                        **Server Information:**
+                        - Software: %s
+                        - Version: %s
+                        
+                        **System Information:**
+                        - OS: %s
+                        - OS Version: %s
+                        - Architecture: %s
+                        """,
+                    oraxenVersion,
+                    protocolLibVersion,
+                    serverSoftware,
+                    serverVersion,
+                    osName,
+                    osVersion,
+                    osArch);
 
-                            ### System Report
-                            **Plugin Versions:**
-                            - Oraxen: %s
-                            - ProtocolLib: %s
-
-                            **Server Information:**
-                            - Software: %s
-                            - Version: %s
-
-                            **System Information:**
-                            - OS: %s
-                            - OS Version: %s
-                            - Architecture: %s
-                            """,
-                            oraxenVersion,
-                            protocolLibVersion,
-                            serverSoftware,
-                            serverVersion,
-                            osName,
-                            osVersion,
-                            osArch);
-
-                    // Send report to sender
-                    sender.sendMessage(report);
-                });
+                // Send report to sender
+                sender.sendMessage(report);
+            });
     }
 }

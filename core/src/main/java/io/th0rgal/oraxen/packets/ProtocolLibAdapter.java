@@ -8,6 +8,9 @@ import io.th0rgal.oraxen.packets.protocollib.TitlePacketListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.efficiency.EfficiencyMechanicFactory;
 import io.th0rgal.oraxen.packets.protocollib.mechanics.provided.gameplay.efficiency.EfficiencyMechanicListener;
 import io.th0rgal.oraxen.utils.SnapshotVersion;
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.Nullable;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -90,5 +93,11 @@ public class ProtocolLibAdapter implements PacketAdapter {
             // will never happen we know what format the date has.
             return true;
         }
+    }
+
+    @Nullable
+    @Override
+    public Plugin getPlugin() {
+        return Bukkit.getPluginManager().getPlugin("ProtocolLib");
     }
 }
