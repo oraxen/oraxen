@@ -1,7 +1,5 @@
 package io.th0rgal.oraxen.compatibilities.provided.worldedit;
 
-import com.sk89q.jnbt.CompoundTag;
-import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
@@ -28,6 +26,9 @@ import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.EntityType;
+import org.enginehub.linbus.tree.LinCompoundTag;
+import org.enginehub.linbus.tree.LinStringTag;
+import org.enginehub.linbus.tree.LinTagType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,7 +49,7 @@ public class WorldEditHandlers {
 
     static {
         furnitureTypes.add(BukkitAdapter.adapt(EntityType.ITEM_FRAME));
-        if (VersionUtil.atOrAbove("1.19.4")){
+        if (VersionUtil.atOrAbove("1.19.4")) {
             furnitureTypes.add(BukkitAdapter.adapt(EntityType.ITEM_DISPLAY));
             furnitureTypes.add(BukkitAdapter.adapt(EntityType.INTERACTION));
         }
@@ -65,7 +66,7 @@ public class WorldEditHandlers {
             public Entity createEntity(com.sk89q.worldedit.util.Location location, BaseEntity baseEntity) {
                 if (!Settings.WORLDEDIT_FURNITURE.toBool()) return super.createEntity(location, baseEntity);
                 if (baseEntity == null || baseEntity.getType() == BukkitAdapter.adapt(EntityType.INTERACTION)) return null;
-                if (!baseEntity.hasNbtData() || !furnitureTypes.contains(baseEntity.getType()))
+                if (!furnitureTypes.contains(baseEntity.getType()))
                     return super.createEntity(location, baseEntity);
 
                 Location bukkitLocation = BukkitAdapter.adapt(BukkitAdapter.adapt(event.getWorld()), location);
@@ -73,20 +74,27 @@ public class WorldEditHandlers {
                 if (mechanic == null) return super.createEntity(location, baseEntity);
 
                 // Remove interaction-tag from baseEntity-nbt
-                CompoundTag compoundTag = baseEntity.getNbtData();
+                LinCompoundTag compoundTag = baseEntity.getNbt();
                 if (compoundTag == null) return super.createEntity(location, baseEntity);
-                Map<String, Tag<?,?>> compoundTagMap = new HashMap<>(compoundTag.getValue());
-                Map<String, Tag<?,?>> bukkitValues = new HashMap<>((Map<String, Tag<?,?>>) compoundTagMap.get("BukkitValues").getValue());
-                bukkitValues.remove("oraxen:interaction");
-                compoundTagMap.put("BukkitValues", new CompoundTag(bukkitValues));
-                baseEntity.setNbtData(new CompoundTag(compoundTagMap));
+                LinCompoundTag bukkitValues = compoundTag.getTag("BukkitValues", LinTagType.compoundTag());
+                if(bukkitValues != null){
+                    bukkitValues.toBuilder()
+                        .remove("oraxen:interaction")
+                        .build();
+                    compoundTag = compoundTag.toBuilder()
+                        .put("BukkitValues", bukkitValues)
+                        .build();
+                    baseEntity.setNbt(compoundTag);
+                }
 
                 Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () -> {
-                    List<org.bukkit.entity.Entity> entities = bukkitLocation.getNearbyEntities(0.5, 0.5, 0.5).stream().toList();
-                    List<org.bukkit.entity.Entity> nearbyEntities = entities.stream().sorted(Comparator.comparingDouble(entity -> entity.getLocation().distance(bukkitLocation))).toList();
-                    nearbyEntities.stream().findFirst().ifPresent(e ->
-                            mechanic.setEntityData(e, e.getLocation().getYaw(), BlockFace.NORTH));
-                }, 1L);
+                    EntityType type = BukkitAdapter.adapt(baseEntity.getType());
+                    bukkitLocation.getNearbyEntities(.5, 0.5, 0.5)
+                        .stream()
+                        .filter(e -> e.getType().equals(type))
+                        .min(Comparator.comparingDouble(entity -> entity.getLocation().distanceSquared(bukkitLocation)))
+                        .ifPresent(e -> mechanic.setEntityData(e, e.getLocation().getYaw(), BlockFace.NORTH));
+                }, 5L);
 
                 return super.createEntity(location, baseEntity);
             }
@@ -94,8 +102,8 @@ public class WorldEditHandlers {
             @Override
             public <T extends BlockStateHolder<T>> boolean setBlock(BlockVector3 pos, T block) throws WorldEditException {
                 BlockData blockData = BukkitAdapter.adapt(block);
-                World world = Bukkit.getWorld(event.getWorld().getName());
-                Location loc = new Location(world, pos.x(), pos.y(), pos.z());
+                World world = BukkitAdapter.adapt(event.getWorld());
+                Location loc = BukkitAdapter.adapt(world, pos);
                 Mechanic mechanic = OraxenBlocks.getOraxenBlock(blockData);
                 if (blockData.getMaterial() == Material.NOTE_BLOCK) {
                     if (mechanic != null && Settings.WORLDEDIT_NOTEBLOCKS.toBool()) {
@@ -119,23 +127,19 @@ public class WorldEditHandlers {
 
                 return super.setBlock(pos, block);
             }
-
-            @Nullable
-            private FurnitureMechanic getFurnitureMechanic(@NotNull BaseEntity entity) {
-                if (!entity.hasNbtData() || !furnitureTypes.contains(entity.getType())) return null;
-                CompoundTag tag = entity.getNbtData();
-                Map<String, Tag> bukkitValues = null;
-                try {
-                    bukkitValues = (Map<String, Tag>) tag.getValue().get("BukkitValues").getValue();
-                } catch (Exception ignored) {
-                }
-                if (bukkitValues == null) return null;
-                Tag furnitureTag = bukkitValues.get("oraxen:furniture");
-                if (furnitureTag == null) return null;
-
-                String furnitureId = furnitureTag.getValue().toString();
-                return OraxenFurniture.getFurnitureMechanic(furnitureId);
-            }
         });
+    }
+
+    @Nullable
+    private static FurnitureMechanic getFurnitureMechanic(@NotNull BaseEntity entity) {
+        if (!furnitureTypes.contains(entity.getType())) return null;
+        LinCompoundTag tag = entity.getNbt();
+        if(tag == null) return null;
+        LinCompoundTag bukkitValues = tag.getTag("BukkitValues", LinTagType.compoundTag());
+        if (bukkitValues == null) return null;
+        LinStringTag furnitureTag = bukkitValues.getTag("oraxen:furniture", LinTagType.stringTag());
+        if (furnitureTag == null) return null;
+        String furnitureId = furnitureTag.value();
+        return OraxenFurniture.getFurnitureMechanic(furnitureId);
     }
 }
