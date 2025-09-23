@@ -27,6 +27,7 @@ public class EfficiencyMechanicListener implements PacketListener {
         if (event.getPacketType() != PacketType.Play.Client.PLAYER_DIGGING) return;
 
         final Player player = event.getPlayer();
+        if (player == null) return; // this should never happen to normal players... someone had a problem with it tho...
         if (player.getGameMode() == GameMode.CREATIVE) return;
 
         final var wrapper = new WrapperPlayClientPlayerDigging(event);

@@ -22,6 +22,7 @@ public class PacketEventsBreakerSystem extends BreakerSystem {
             if (!event.getPacketType().equals(PacketType.Play.Client.PLAYER_DIGGING)) return;
             final var wrapper = new WrapperPlayClientPlayerDigging(event);
             final Player player = event.getPlayer();
+            if (player == null) return; // this should never happen to normal players... someone had a problem with it tho...
 
             final Vector3i pos = wrapper.getBlockPosition();
             BlockFace blockFace;
