@@ -23,10 +23,11 @@ public class MiscMechanicFactory extends MechanicFactory {
         MiscMechanic mechanic = new MiscMechanic(this, section);
 
         if (VersionUtil.atOrAbove("1.21.2")) {
-            if (!mechanic.burnsInLava() || !mechanic.burnsInLava()) {
+            if ((!mechanic.burnsInFire() || !mechanic.burnsInLava()) && 
+                (section.contains("burns_in_fire") || section.contains("burns_in_lava"))) {
                 Logs.logWarning(mechanic.getItemID() + " is using deprecated Misc-Mechanic burns_in_fire/lava...");
                 Logs.logWarning("It is heavily advised to swap to the new `damage_resistant`-component on 1.21.2+ servers...");
-            } else if (!mechanic.breaksFromCactus()) {
+            } else if (!mechanic.breaksFromCactus() && section.contains("breaks_from_cactus")) {
                 Logs.logWarning(mechanic.getItemID() + " is using deprecated Misc-Mechanic breaks_from_cactus...");
                 Logs.logWarning("It is heavily advised to swap to the new `damage_resistant`-component on 1.21.2+ servers...");
             }
