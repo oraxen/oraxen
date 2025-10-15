@@ -93,6 +93,30 @@ blood_sword:
     durability:
       value: 500 #diamond sword is 1561
 
+serrated_blade:
+  displayname: "<gradient:#8B0000:#DC143C>Serrated Blade"
+  material: DIAMOND_SWORD
+  lore:
+    - "<#6f737d>» <#D5D6D8>Causes enemies to bleed"
+  AttributeModifiers:
+    # diamond sword has an attack damage of 7
+    - { attribute: ATTACK_DAMAGE, amount: 7, operation: 0, slot: HAND }
+    # it has as much full-strength attacks per second than diamond sword
+    - { attribute: ATTACK_SPEED, amount: 1.6, operation: 0, slot: HAND }
+  Pack:
+    generate_model: true
+    parent_model: "item/handheld"
+    textures:
+      - default/blood_sword.png # reusing blood_sword texture as example
+  Mechanics:
+    bleeding:
+      chance: 0.3 # 30% chance to apply bleeding on hit
+      duration: 100 # bleeding lasts for 100 ticks (5 seconds)
+      damage_per_tick: 0.5 # deals 0.5 damage (1/4 heart) per tick
+      tick_interval: 20 # damage is applied every 20 ticks (1 second)
+    durability:
+      value: 800 #diamond sword is 1561
+
 octavia_sword:
   displayname: "<#D5D6D8>Octavia Sword"
   material: DIAMOND_SWORD
