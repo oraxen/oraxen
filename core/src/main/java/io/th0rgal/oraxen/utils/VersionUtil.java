@@ -1,9 +1,6 @@
 package io.th0rgal.oraxen.utils;
 
 import io.th0rgal.oraxen.utils.logs.Logs;
-import org.apache.commons.lang3.Validate;
-import org.bukkit.Bukkit;
-import org.bukkit.Server;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -39,7 +36,7 @@ public class VersionUtil {
         IS_PAPER = hasClass("com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent");
         IS_FOLIA = hasClass("io.papermc.paper.threadedregions.RegionizedServer");
         versionMap.put(NMSVersion.v1_21_R5,
-                Map.of(22, new MinecraftVersion("1.21.7"),23, new MinecraftVersion("1.21.8")));
+                Map.of(22, new MinecraftVersion("1.21.7"), 23, new MinecraftVersion("1.21.8")));
         versionMap.put(NMSVersion.v1_21_R4,
                 Map.of(20, new MinecraftVersion("1.21.5")));
         versionMap.put(NMSVersion.v1_21_R3,
