@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen;
 
 import dev.jorel.commandapi.CommandAPI;
-import dev.jorel.commandapi.CommandAPIBukkitConfig;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.api.events.OraxenItemsLoadedEvent;
 import io.th0rgal.oraxen.commands.CommandsManager;
@@ -15,6 +14,7 @@ import io.th0rgal.oraxen.hud.HudManager;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
+import io.th0rgal.oraxen.utils.BukkitWrapper;
 import io.th0rgal.oraxen.nms.GlyphHandlers;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
@@ -75,7 +75,7 @@ public class OraxenPlugin extends JavaPlugin {
 
     @Override
     public void onLoad() {
-        CommandAPI.onLoad(new CommandAPIBukkitConfig(this).silentLogs(true).skipReloadDatapacks(true));
+        CommandAPI.onLoad(BukkitWrapper.createCommandApiConfig(this));
     }
 
     @Override
