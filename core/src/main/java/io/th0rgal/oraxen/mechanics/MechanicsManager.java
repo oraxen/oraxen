@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.mechanics;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.events.OraxenNativeMechanicsRegisteredEvent;
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
+import io.th0rgal.oraxen.mechanics.provided.combat.bleeding.BleedingMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.combat.lifeleech.LifeLeechMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.combat.spell.energyblast.EnergyBlastMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.combat.spell.fireball.FireballMechanicFactory;
@@ -90,6 +91,7 @@ public class MechanicsManager {
         registerFactory("energyblast", EnergyBlastMechanicFactory::new);
         registerFactory("witherskull", WitherSkullMechanicFactory::new);
         registerFactory("fireball", FireballMechanicFactory::new);
+        registerFactory("bleeding", BleedingMechanicFactory::new);
 
         // farming
         registerFactory("bigmining", BigMiningMechanicFactory::new);

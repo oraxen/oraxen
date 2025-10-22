@@ -143,3 +143,33 @@ combat_bow:
       - default/combat_bow_pulling_0
       - default/combat_bow_pulling_1
       - default/combat_bow_pulling_2
+
+serrated_blade:
+  itemname: <gradient:#8B0000:#DC143C>Serrated Blade
+  material: DIAMOND_SWORD
+  lore:
+    - <#6f737d>» <#D5D6D8>Causes enemies to bleed
+  AttributeModifiers:
+    - attribute: ATTACK_DAMAGE
+      amount: 7
+      operation: 0
+      slot: HAND
+      uuid: e4341cfb-d4ee-476e-9a9c-948a9949deff
+      name: oraxen:modifier
+      key: oraxen:modifier
+    - attribute: ATTACK_SPEED
+      amount: 1.6
+      operation: 0
+      slot: HAND
+      uuid: bd4616cf-2011-4fb9-ad0e-399357cf6b20
+      name: oraxen:modifier
+      key: oraxen:modifier
+  Pack:
+    generate_model: false
+    model: default/blood_sword
+  Mechanics:
+    bleeding:
+      chance: 0.3 # 30% chance to apply bleeding on hit
+      duration: 100 # bleeding lasts for 100 ticks (5 seconds)
+      damage_per_tick: 0.5 # deals 0.5 damage (1/4 heart) per tick
+      tick_interval: 20 # damage is applied every 20 ticks (1 second)
