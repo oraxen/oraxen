@@ -1,12 +1,11 @@
 package io.th0rgal.oraxen.pack.generation;
 
+import io.th0rgal.oraxen.utils.platform.BukkitWrapper;
 import io.th0rgal.oraxen.utils.VirtualFile;
-import io.th0rgal.oraxen.utils.VersionUtil;
 
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
-import org.bukkit.packs.DataPack;
 
 import com.google.gson.JsonObject;
 
@@ -62,34 +61,15 @@ public abstract class OraxenDatapack {
     public abstract void generateAssets(List<VirtualFile> output);
 
     protected boolean isFirstInstall() {
-        return Bukkit.getDataPackManager().getDataPacks().stream()
-                .filter(d -> d.getKey() != null)
-                .noneMatch(d -> getDatapackKey().equals(Key.key(d.getKey().toString())));
+        return BukkitWrapper.get().isFirstInstall(getDatapackKey());
     }
 
     protected boolean isDatapackEnabled() {
-        for (DataPack dataPack : Bukkit.getDataPackManager().getEnabledDataPacks(defaultWorld)) {
-            if (dataPack.getKey() == null)
-                continue;
-            if (dataPack.getKey().equals(getDatapackKey()))
-                return true;
-        }
-        for (DataPack dataPack : Bukkit.getDataPackManager().getDisabledDataPacks(defaultWorld)) {
-            if (dataPack.getKey() == null)
-                continue;
-            if (dataPack.getKey().equals(getDatapackKey()))
-                return true;
-        }
-        return false;
+        return BukkitWrapper.get().isDatapackEnabled(getDatapackKey(), defaultWorld);
     }
 
     protected void enableDatapack(boolean enabled) {
-        if (VersionUtil.isPaperServer()) {
-            Bukkit.getDatapackManager().getPacks().stream()
-                    .filter(d -> d.getName() == this.name)
-                    .findFirst()
-                    .ifPresent(d -> d.setEnabled(enabled));
-        }
+        BukkitWrapper.get().setDatapackEnabled(this.name, enabled);
     }
 
     public boolean isEnabled() {
