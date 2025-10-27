@@ -45,6 +45,18 @@ public class ModelDefinitionGenerator {
         }
 
         root.add("model", model);
+
+        // Add item model definition properties (1.21.4+)
+        if (oraxenMeta.isOversizedInGui()) {
+            root.addProperty("oversized_in_gui", true);
+        }
+        if (!oraxenMeta.isHandAnimationOnSwap()) {
+            root.addProperty("hand_animation_on_swap", false);
+        }
+        if (oraxenMeta.getSwapAnimationScale() != 1.0f) {
+            root.addProperty("swap_animation_scale", oraxenMeta.getSwapAnimationScale());
+        }
+
         return root;
     }
 }

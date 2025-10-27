@@ -37,6 +37,9 @@ public class OraxenMeta {
     private boolean excludedFromCommands = false;
     private boolean noUpdate = false;
     private boolean disableEnchanting = false;
+    private boolean oversizedInGui = false;
+    private boolean handAnimationOnSwap = true;
+    private float swapAnimationScale = 1.0f;
 
     public void setExcludedFromInventory(boolean excluded) {
         this.excludedFromInventory = excluded;
@@ -122,6 +125,11 @@ public class OraxenMeta {
         this.generatedModelPath = section.getString("generated_model_path", "");
         this.parentModel = section.getString("parent_model", "item/generated");
 
+        // Item model definition settings (1.21.4+)
+        this.oversizedInGui = section.getBoolean("oversized_in_gui", false);
+        this.handAnimationOnSwap = section.getBoolean("hand_animation_on_swap", true);
+        this.swapAnimationScale = (float) section.getDouble("swap_animation_scale", 1.0);
+
         if (generate_model && !modelName.matches("^[a-z0-9-_/]+$")) {
             Logs.logWarning("Item " + section.getParent().getName()
                     + " is set to generate a model, but ItemID does not adhere to [a-z0-9-_]!");
@@ -137,8 +145,8 @@ public class OraxenMeta {
         ConfigurationSection parent = configSection.getParent();
         modelName = modelName != null ? modelName
                 : Settings.GENERATE_MODEL_BASED_ON_TEXTURE_PATH.toBool() && !textures.isEmpty() && parent != null
-                        ? Utils.getParentDirs(textures.stream().findFirst().get()) + parent.getName()
-                        : null;
+                ? Utils.getParentDirs(textures.stream().findFirst().get()) + parent.getName()
+                : null;
 
         if (modelName == null && configString.equals("model") && parent != null)
             return parent.getName();
@@ -336,6 +344,18 @@ public class OraxenMeta {
 
     public boolean isDisableEnchanting() {
         return disableEnchanting;
+    }
+
+    public boolean isOversizedInGui() {
+        return oversizedInGui;
+    }
+
+    public boolean isHandAnimationOnSwap() {
+        return handAnimationOnSwap;
+    }
+
+    public float getSwapAnimationScale() {
+        return swapAnimationScale;
     }
 
 }
