@@ -1,6 +1,6 @@
 <h1 align="center">
   <br>
-  <img src="https://oraxen.com/logo_lowres.png" alt="oraxen.com logo" width="256" style="image-rendering: pixelated; image-rendering: crisp-edges;">
+  <img src="https://oraxen.com/logo.svg" alt="oraxen.com logo" width="256">
   <br>
 </h1>
 
