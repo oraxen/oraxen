@@ -214,6 +214,7 @@ bukkit {
     apiVersion = "1.18"
     authors = listOf("th0rgal", "https://github.com/oraxen/oraxen/blob/master/CONTRIBUTORS.md")
     softDepend = listOf(
+        "CommandAPI",
         "ProtocolLib",
         "LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "MythicMobs", "BossShopPro",
         "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared",
