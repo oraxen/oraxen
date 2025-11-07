@@ -12,9 +12,6 @@
     <a href="https://repo.oraxen.com/#/releases/io/th0rgal/oraxen" alt="version">
         <img src="https://img.shields.io/maven-metadata/v?metadataUrl=https://repo.oraxen.com/releases/io/th0rgal/oraxen/maven-metadata.xml"/>
     </a>
-    <a href="https://repo.oraxen.com/#/snapshots/io/th0rgal/oraxen" alt="version">
-        <img src="https://img.shields.io/maven-metadata/v?metadataUrl=https://repo.oraxen.com/snapshots/io/th0rgal/oraxen/maven-metadata.xml"/>
-    </a>
     <a href="https://www.spigotmc.org/resources/oraxen.72448/">
         <img alt="spigot" src="https://img.shields.io/badge/spigot-oraxen-brightgreen"/>
     </a>
@@ -83,7 +80,7 @@ maven {
   <url>https://repo.oraxen.com/releases</url>
 </repository>
 ```
-### Dependency [![version](https://img.shields.io/maven-metadata/v?metadataUrl=https://repo.oraxen.com/releases/io/th0rgal/oraxen/maven-metadata.xml)](https://repo.oraxen.com/#/releases/io/th0rgal/oraxen) [![version](https://img.shields.io/maven-metadata/v?metadataUrl=https://repo.oraxen.com/snapshots/io/th0rgal/oraxen/maven-metadata.xml)](https://repo.oraxen.com/#/snapshots/io/th0rgal/oraxen)
+### Dependency [![version](https://img.shields.io/maven-metadata/v?metadataUrl=https://repo.oraxen.com/releases/io/th0rgal/oraxen/maven-metadata.xml)](https://repo.oraxen.com/#/releases/io/th0rgal/oraxen)
 The latest version can be found at above.\
 **Gradle Kotlin**:
 ```kts

@@ -25,7 +25,8 @@ val SUPPORTED_VERSIONS: List<NMSVersion> = listOf(
     "v1_21_R2" toNms "1.21.3-R0.1-SNAPSHOT",
     "v1_21_R3" toNms "1.21.4-R0.1-SNAPSHOT",
     "v1_21_R4" toNms "1.21.5-R0.1-SNAPSHOT",
-    "v1_21_R5" toNms "1.21.8-R0.1-SNAPSHOT" // also for 1.21.7
+    "v1_21_R5" toNms "1.21.8-R0.1-SNAPSHOT", // also for 1.21.7
+    "v1_21_R6" toNms "1.21.10-R0.1-SNAPSHOT"
 )
 
 val compiled = (project.findProperty("oraxen_compiled")?.toString() ?: "true").toBoolean()
@@ -148,7 +149,7 @@ tasks {
         downloadPlugins {
             hangar("ProtocolLib", "5.4.0")
         }
-        minecraftVersion("1.21.8")
+        minecraftVersion("1.21.10")
         jvmArgs("-Dcom.mojang.eula.agree=true")
     }
 
@@ -213,6 +214,7 @@ bukkit {
     apiVersion = "1.18"
     authors = listOf("th0rgal", "https://github.com/oraxen/oraxen/blob/master/CONTRIBUTORS.md")
     softDepend = listOf(
+        "CommandAPI",
         "ProtocolLib",
         "LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "MythicMobs", "BossShopPro",
         "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared",
