@@ -15,8 +15,8 @@ public class BleedingMechanic extends Mechanic {
         super(mechanicFactory, section);
         this.chance = section.getDouble("chance", 0.3);
         this.duration = section.getInt("duration", 100);
-        this.damagePerTick = section.getDouble("damage_per_tick", 0.5);
-        this.tickInterval = section.getInt("tick_interval", 20);
+        this.damagePerTick = section.getDouble("damage_per_interval", 0.5);
+        this.tickInterval = section.getInt("interval_as_ticks", 20);
     }
 
     public double getChance() {

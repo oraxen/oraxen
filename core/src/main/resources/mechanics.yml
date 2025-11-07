@@ -138,6 +138,9 @@ thor:
 witherskull:
   enabled: true
 
+bleeding:
+  enabled: true
+
 
 # FARMING
 
