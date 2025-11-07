@@ -96,7 +96,7 @@ blood_sword:
     bleeding:
       chance: 0.3 # 30% chance to apply bleeding on hit
       duration: 100 # bleeding lasts for 100 ticks (5 seconds)
-      damage_per_interval: 0.5 # deals 0.5 damage (1/4 heart) per tick
+      damage_per_interval: 0.5 # deals 0.5 damage (1/4 heart) per interval
       interval: 20 # damage is applied every 20 ticks (1 second)
 
 octavia_sword:
