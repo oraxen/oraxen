@@ -173,11 +173,18 @@ public class ItemUpdater implements Listener {
             List<Map<?, ?>> oldPdcMap = PersistentDataSerializer.toMapList(oldPdc);
             PersistentDataSerializer.fromMapList(oldPdcMap, itemPdc);
 
-            // Add all enchantments from oldItem and add all from newItem aslong as it is not the same Enchantments
-            for (Map.Entry<Enchantment, Integer> entry : oldMeta.getEnchants().entrySet())
-                itemMeta.addEnchant(entry.getKey(), entry.getValue(), true);
-            for (Map.Entry<Enchantment, Integer> entry : newMeta.getEnchants().entrySet().stream().filter(e -> !oldMeta.getEnchants().containsKey(e.getKey())).toList())
-                itemMeta.addEnchant(entry.getKey(), entry.getValue(), true);
+            // If oldItem had all enchantments removed, don't restore configured enchantments
+            if (oldMeta.getEnchants().isEmpty() && !newMeta.getEnchants().isEmpty()) {
+                // Remove all configured enchantments since user intentionally unenchanted the item
+                for (Enchantment enchantment : newMeta.getEnchants().keySet())
+                    itemMeta.removeEnchant(enchantment);
+            } else {
+                // Add all enchantments from oldItem and add all from newItem as long as it is not the same Enchantments
+                for (Map.Entry<Enchantment, Integer> entry : oldMeta.getEnchants().entrySet())
+                    itemMeta.addEnchant(entry.getKey(), entry.getValue(), true);
+                for (Map.Entry<Enchantment, Integer> entry : newMeta.getEnchants().entrySet().stream().filter(e -> !oldMeta.getEnchants().containsKey(e.getKey())).toList())
+                    itemMeta.addEnchant(entry.getKey(), entry.getValue(), true);
+            }
 
             Integer cmd = newMeta.hasCustomModelData() ? (Integer) newMeta.getCustomModelData() : oldMeta.hasCustomModelData() ? (Integer) oldMeta.getCustomModelData() : null;
             itemMeta.setCustomModelData(cmd);
