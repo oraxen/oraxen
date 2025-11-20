@@ -42,7 +42,7 @@ public class RecipesView {
         pane.addItem(new GuiItem((OraxenItems.getItemById("exit_icon") == null
                 ? new ItemBuilder(Material.BARRIER)
                 : OraxenItems.getItemById("exit_icon"))
-                .setDisplayName(Message.EXIT_MENU.toSerializedString()).build(),
+                .setDisplayName(Message.EXIT_MENU).build(),
                 (event -> event.getWhoClicked().closeInventory())), 4, 5);
 
         // Previous Page button
@@ -52,9 +52,10 @@ public class RecipesView {
                     : OraxenItems.getItemById("arrow_previous_icon"))
                     .setAmount(page)
                     .setDisplayName(ChatColor.YELLOW + "Open page " + page)
-                    .build(), event -> create(page - 1,
-                    filteredRecipes).show(event.getWhoClicked())), 1, 3);
-
+                    .build(),
+                    event -> create(page - 1,
+                            filteredRecipes).show(event.getWhoClicked())),
+                    1, 3);
 
         // Next page button
         if (!lastPage)
@@ -63,9 +64,10 @@ public class RecipesView {
                     : OraxenItems.getItemById("arrow_next_icon"))
                     .setAmount(page + 2)
                     .setDisplayName(ChatColor.YELLOW + "Open page " + (page + 2))
-                    .build(), event ->
-                    create(page + 1, filteredRecipes)
-                            .show(event.getWhoClicked())), 7, 3);
+                    .build(),
+                    event -> create(page + 1, filteredRecipes)
+                            .show(event.getWhoClicked())),
+                    7, 3);
 
         gui.addPane(pane);
         gui.setOnGlobalClick(event -> event.setCancelled(true));

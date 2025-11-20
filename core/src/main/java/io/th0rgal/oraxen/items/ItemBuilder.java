@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.provided.ecoitems.WrappedEcoItem;
 import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
+import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.nms.NMSHandler;
 import io.th0rgal.oraxen.nms.NMSHandlers;
@@ -66,6 +67,8 @@ public class ItemBuilder {
     private TropicalFish.Pattern pattern;
     private DyeColor patternColor;
     private String displayName;
+    @Nullable
+    private Message displayNameMessage;
     private boolean unbreakable;
     private boolean unstackable;
     private Set<ItemFlag> itemFlags;
@@ -273,6 +276,13 @@ public class ItemBuilder {
 
     public ItemBuilder setDisplayName(final String displayName) {
         this.displayName = displayName;
+        this.displayNameMessage = null;
+        return this;
+    }
+
+    public ItemBuilder setDisplayName(@NotNull final Message message) {
+        this.displayNameMessage = message;
+        this.displayName = null;
         return this;
     }
 
@@ -838,16 +848,28 @@ public class ItemBuilder {
         itemMeta.setUnbreakable(unbreakable);
 
         PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
-        if (displayName != null) {
+        if (displayName != null || displayNameMessage != null) {
             if (!VersionUtil.atOrAbove("1.20.5"))
-                pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, displayName);
+                pdc.set(ORIGINAL_NAME_KEY, DataType.STRING,
+                        displayNameMessage != null ? displayNameMessage.toString() : displayName);
             if (VersionUtil.isPaperServer()) {
-                Component displayName = AdventureUtils.MINI_MESSAGE.deserialize(this.displayName);
-                displayName = displayName.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)
+                Component nameComponent;
+                if (displayNameMessage != null) {
+                    nameComponent = displayNameMessage.toComponent();
+                } else {
+                    String name = this.displayName;
+                    if (name != null && isLegacyFormatted(name)) {
+                        nameComponent = AdventureUtils.LEGACY_SERIALIZER.deserialize(name);
+                    } else {
+                        nameComponent = AdventureUtils.MINI_MESSAGE.deserialize(name != null ? name : "");
+                    }
+                }
+                nameComponent = nameComponent.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)
                         .colorIfAbsent(NamedTextColor.WHITE);
-                itemMeta.displayName(displayName);
+                itemMeta.displayName(nameComponent);
             } else
-                itemMeta.setDisplayName(displayName);
+                itemMeta.setDisplayName(
+                        displayNameMessage != null ? displayNameMessage.toSerializedString() : displayName);
         }
 
         if (itemFlags != null)
@@ -1044,6 +1066,22 @@ public class ItemBuilder {
     public String toString() {
         // todo
         return super.toString();
+    }
+
+    private boolean isLegacyFormatted(@Nullable String input) {
+        if (input == null || input.isEmpty())
+            return false;
+        if (input.indexOf('§') >= 0)
+            return true;
+        for (int i = 0; i < input.length() - 1; i++) {
+            if (input.charAt(i) == '&') {
+                char next = input.charAt(i + 1);
+                if ("0123456789AaBbCcDdEeFfKkLlMmNnOoRrXx".indexOf(next) >= 0) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
