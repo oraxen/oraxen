@@ -79,6 +79,7 @@ blood_sword:
   material: DIAMOND_SWORD
   lore:
     - "<#6f737d>» <#D5D6D8>Steal the life of your enemies"
+    - "<#6f737d>» <#D5D6D8>Make your enemies bleed"
   AttributeModifiers:
     # diamond sword has an attack damage of 7
     - { attribute: ATTACK_DAMAGE, amount: 8, operation: 0, slot: HAND }
@@ -92,6 +93,11 @@ blood_sword:
       amount: 2 # the amount of 1/2 hearts that you'll steal to your opponents
     durability:
       value: 500 #diamond sword is 1561
+    bleeding:
+      chance: 0.3 # 30% chance to apply bleeding on hit
+      duration: 100 # bleeding lasts for 100 ticks (5 seconds)
+      damage_per_interval: 0.5 # deals 0.5 damage (1/4 heart) per interval
+      interval: 20 # damage is applied every 20 ticks (1 second)
 
 octavia_sword:
   displayname: "<#D5D6D8>Octavia Sword"
