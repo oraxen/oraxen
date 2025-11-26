@@ -601,31 +601,30 @@ public class ItemParser {
                 }
             }
 
-        // starting from 1.21.4, we no longer use Custom Model Data to set the item
-        // appearance
+        // starting from 1.21.4, we use model definitions, but custom_model_data is still supported
         if (oraxenMeta.hasPackInfos() && VersionUtil.atOrAbove("1.21.4")) {
             // if there is not an item model component overriding it, we set its value
             // to the automatically created item model definition
             if (!item.hasItemModel()) {
                 item.setItemModel(new NamespacedKey(OraxenPlugin.get(), section.getName()));
             }
-        } else {
-            final Integer customModelData;
-            if (MODEL_DATAS_BY_ID.containsKey(section.getName())) {
-                customModelData = MODEL_DATAS_BY_ID.get(section.getName()).getModelData();
-            } else if (!item.hasItemModel()) {
-                customModelData = ModelData.generateId(oraxenMeta.getModelName(), type);
-                configUpdated = true;
-                if (!Settings.DISABLE_AUTOMATIC_MODEL_DATA.toBool())
-                    Optional.ofNullable(section.getConfigurationSection("Pack"))
-                            .ifPresent(c -> c.set("custom_model_data", customModelData));
-            } else
-                customModelData = null;
+        }
 
-            if (customModelData != null) {
-                item.setCustomModelData(customModelData);
-                oraxenMeta.setCustomModelData(customModelData);
-            }
+        final Integer customModelData;
+        if (MODEL_DATAS_BY_ID.containsKey(section.getName())) {
+            customModelData = MODEL_DATAS_BY_ID.get(section.getName()).getModelData();
+        } else if (oraxenMeta.hasPackInfos() && !item.hasItemModel()) {
+            customModelData = ModelData.generateId(oraxenMeta.getModelName(), type);
+            configUpdated = true;
+            if (!Settings.DISABLE_AUTOMATIC_MODEL_DATA.toBool())
+                Optional.ofNullable(section.getConfigurationSection("Pack"))
+                        .ifPresent(c -> c.set("custom_model_data", customModelData));
+        } else
+            customModelData = null;
+
+        if (customModelData != null) {
+            item.setCustomModelData(customModelData);
+            oraxenMeta.setCustomModelData(customModelData);
         }
     }
 
