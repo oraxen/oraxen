@@ -14,6 +14,7 @@ public class PackMerger {
 
     private final File uploadsDirectory;
     private static final String UPLOADS_DIR_NAME = "uploads";
+    private final Map<String, String> fileOrigins = new LinkedHashMap<>();
 
     public PackMerger(File packFolder) {
         this.uploadsDirectory = new File(packFolder, UPLOADS_DIR_NAME);
@@ -22,6 +23,7 @@ public class PackMerger {
     @NotNull
     public List<VirtualFile> mergeUploadedPacks() {
         Map<String, VirtualFile> mergedFilesMap = new LinkedHashMap<>();
+        fileOrigins.clear();
 
         if (!uploadsDirectory.exists()) {
             uploadsDirectory.mkdirs();
@@ -55,9 +57,11 @@ public class PackMerger {
     }
 
     private void mergePackZip(File packZip, Map<String, VirtualFile> mergedFilesMap) throws IOException {
-        Logs.logInfo("Merging resource pack: <blue>" + packZip.getName() + "</blue>");
+        String packName = packZip.getName();
+        Logs.logInfo("Processing pack | <blue>" + packName + "</blue>");
 
         int fileCount = 0;
+        int overrideCount = 0;
         try (FileInputStream fis = new FileInputStream(packZip);
              ZipInputStream zis = new ZipInputStream(fis, StandardCharsets.UTF_8)) {
             ZipEntry entry;
@@ -78,17 +82,24 @@ public class PackMerger {
 
                 String filePath = virtualFile.getPath();
                 if (mergedFilesMap.containsKey(filePath)) {
-                    Logs.logWarning("File <yellow>" + filePath + "</yellow> from <blue>" + packZip.getName() + "</blue> will override existing file");
+                    String previousPack = fileOrigins.get(filePath);
+                    Logs.logWarning("<blue>" + packName + "</blue> will override existing file <yellow>" + filePath + "</yellow> from <red>" + previousPack + "</red>");
+                    overrideCount++;
                 }
 
                 mergedFilesMap.put(filePath, virtualFile);
+                fileOrigins.put(filePath, packName);
                 fileCount++;
                 zis.closeEntry();
             }
         }
 
         if (fileCount > 0) {
-            Logs.logSuccess("Added <green>" + fileCount + "</green> files from <blue>" + packZip.getName() + "</blue>");
+            if (overrideCount > 0) {
+                Logs.logSuccess("Added <green>" + (fileCount - overrideCount) + "</green> new files, <yellow>" + overrideCount + "</yellow> overrides from <blue>" + packName + "</blue>");
+            } else {
+                Logs.logSuccess("Added <green>" + fileCount + "</green> files from <blue>" + packName + "</blue>");
+            }
         }
     }
 
