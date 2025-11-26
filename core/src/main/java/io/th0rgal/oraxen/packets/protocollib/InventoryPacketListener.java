@@ -8,7 +8,6 @@ import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.WrappedChatComponent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.utils.PacketHelpers;
-import io.th0rgal.oraxen.utils.VersionUtil;
 
 public class InventoryPacketListener extends PacketAdapter {
 
@@ -18,9 +17,6 @@ public class InventoryPacketListener extends PacketAdapter {
 
     @Override
     public void onPacketSending(PacketEvent event) {
-        if (VersionUtil.atOrAbove("1.21.4")) {
-            return;
-        }
         PacketContainer packet = event.getPacket();
         try {
             String chat = PacketHelpers.readJson(packet.getChatComponents().read(0).getJson());
