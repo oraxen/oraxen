@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.hud;
 
 import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.GameMode;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -23,9 +24,18 @@ public class HudEvents implements Listener {
                 ? hudManager.getActiveHud(player) : hudManager.getDefaultEnabledHuds().stream().findFirst().orElse(null);
         String hudId = hudManager.getHudID(hud);
 
-        if (hud == null || hudId == null) return;
-        if (!player.hasPermission(hud.getPerm())) return;
-        if (!hudManager.getHudState(player)) return;
+        if (hud == null || hudId == null) {
+            Logs.logWarning("[HUD] No default HUD found for player " + player.getName());
+            return;
+        }
+        if (!player.hasPermission(hud.getPerm())) {
+            Logs.logWarning("[HUD] Player " + player.getName() + " doesn't have permission: " + hud.getPerm());
+            return;
+        }
+        if (!hudManager.getHudState(player)) {
+            Logs.logWarning("[HUD] HUD is disabled for player " + player.getName());
+            return;
+        }
 
         pdc.set(hudManager.hudDisplayKey, DataType.STRING, hudManager.getHudID(hud));
         pdc.set(hudManager.hudToggleKey, DataType.BOOLEAN, true);

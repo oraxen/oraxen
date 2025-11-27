@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.packets.protocollib.TitlePacketListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.efficiency.EfficiencyMechanicFactory;
 import io.th0rgal.oraxen.packets.protocollib.mechanics.provided.gameplay.efficiency.EfficiencyMechanicListener;
 import io.th0rgal.oraxen.utils.SnapshotVersion;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Nullable;
@@ -51,12 +52,14 @@ public class ProtocolLibAdapter implements PacketAdapter {
 
     @Override
     public void registerTitleListener() {
+        Logs.logInfo("[ProtocolLibAdapter] registerTitleListener called");
         if(titlePacketListener != null) {
             OraxenPlugin.get().getLogger().severe("[ProtocolLibAdapter]: Title Listener is already registered!");
             return;
         }
         titlePacketListener = new TitlePacketListener();
         ProtocolLibrary.getProtocolManager().addPacketListener(titlePacketListener);
+        Logs.logInfo("[ProtocolLibAdapter] Title Listener registered successfully");
     }
 
     @Override public void removeInventoryListener() {
