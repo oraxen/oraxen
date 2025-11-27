@@ -47,6 +47,9 @@ public class ModelDefinitionGenerator {
         root.add("model", model);
 
         // Add item model definition properties (1.21.4+)
+        if (oraxenMeta.getCustomModelData() != null) {
+            root.addProperty("custom_model_data", oraxenMeta.getCustomModelData());
+        }
         if (oraxenMeta.isOversizedInGui()) {
             root.addProperty("oversized_in_gui", true);
         }
