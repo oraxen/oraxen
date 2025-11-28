@@ -121,10 +121,14 @@ Pack:
 
   upload:
     enabled: true
-    type: polymath #transfer.sh or polymath
+    type: polymath #transfer.sh, polymath, or self-host
     polymath:
       server: atlas.oraxen.com # you can also host your own polymath instance
       secret: "oraxen" # change this if you host your own polymath to limit access to resource pack uploading
+    self-host:
+      host: "0.0.0.0" # The IP address to bind the HTTP server to (0.0.0.0 = listen on all interfaces)
+      port: 8080 # The port the HTTP server will listen on
+      domain: "localhost:8080" # The domain/IP:port that players will use to download the pack (e.g., "my-server.com:8080" or "192.168.1.100:8080")
 
   dispatch:
     send_pack: true
