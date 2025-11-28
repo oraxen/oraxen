@@ -96,6 +96,11 @@ public class UploadManager {
     private HostingProvider createHostingProvider() {
         HostingProvider provider = switch (Settings.UPLOAD_TYPE.toString().toLowerCase(Locale.ROOT)) {
             case "polymath" -> new Polymath(Settings.POLYMATH_SERVER.toString());
+            case "self-host" -> {
+                ConfigurationSection selfHostConfig = OraxenPlugin.get().getConfigsManager().getSettings()
+                        .getConfigurationSection("Pack.upload.self-host");
+                yield new io.th0rgal.oraxen.pack.upload.hosts.SelfHost(selfHostConfig);
+            }
             case "external" -> createExternalProvider();
             default -> null;
         };
