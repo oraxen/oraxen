@@ -126,6 +126,9 @@ public class ResourcePack {
                             folder.getName().matches("models|textures|lang|font|sounds") ? "assets/minecraft" : "");
                 }
 
+            // Merge uploaded resource packs (zips)
+            mergeUploadedPacks(output);
+
             // Convert the global.json within the lang-folder to all languages
             convertGlobalLang(output);
 
@@ -731,6 +734,15 @@ public class ResourcePack {
             }
             default -> {
             } // Handle NONE
+        }
+    }
+
+    private void mergeUploadedPacks(List<VirtualFile> output) {
+        PackMerger packMerger = new PackMerger(packFolder);
+        List<VirtualFile> mergedFiles = packMerger.mergeUploadedPacks();
+
+        if (!mergedFiles.isEmpty()) {
+            output.addAll(mergedFiles);
         }
     }
 
