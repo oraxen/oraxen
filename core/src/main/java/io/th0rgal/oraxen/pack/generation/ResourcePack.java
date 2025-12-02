@@ -122,6 +122,8 @@ public class ResourcePack {
                 for (final File folder : files) {
                     if (!folder.isDirectory())
                         continue;
+                    if (folder.getName().equals("uploads"))
+                        continue;
                     getAllFiles(folder, output,
                             folder.getName().matches("models|textures|lang|font|sounds") ? "assets/minecraft" : "");
                 }
