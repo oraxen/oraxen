@@ -10,7 +10,9 @@ import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class SelfHost implements HostingProvider {
 
@@ -18,6 +20,7 @@ public class SelfHost implements HostingProvider {
     private final int port;
     private final String domain;
     private HttpServer httpServer;
+    private ExecutorService executor;
     private String packUrl;
     private String sha1;
     private UUID packUUID;
@@ -71,41 +74,63 @@ public class SelfHost implements HostingProvider {
 
     private void startServer(File packFile) throws IOException {
         httpServer = HttpServer.create(new InetSocketAddress(host, port), 0);
-        httpServer.setExecutor(Executors.newFixedThreadPool(4));
+        executor = Executors.newFixedThreadPool(4);
+        boolean started = false;
+        try {
+            httpServer.setExecutor(executor);
 
-        HttpHandler packHandler = exchange -> {
-            try {
-                byte[] fileBytes = Files.readAllBytes(packFile.toPath());
-                exchange.getResponseHeaders().set("Content-Type", "application/zip");
-                exchange.getResponseHeaders().set("Content-Length", String.valueOf(fileBytes.length));
-                exchange.sendResponseHeaders(200, fileBytes.length);
-                exchange.getResponseBody().write(fileBytes);
+            HttpHandler packHandler = exchange -> {
+                try {
+                    byte[] fileBytes = Files.readAllBytes(packFile.toPath());
+                    exchange.getResponseHeaders().set("Content-Type", "application/zip");
+                    exchange.getResponseHeaders().set("Content-Length", String.valueOf(fileBytes.length));
+                    exchange.sendResponseHeaders(200, fileBytes.length);
+                    exchange.getResponseBody().write(fileBytes);
+                    exchange.getResponseBody().close();
+                } catch (IOException e) {
+                    exchange.sendResponseHeaders(500, -1);
+                    exchange.close();
+                }
+            };
+
+            httpServer.createContext("/pack.zip", packHandler);
+
+            HttpHandler rootHandler = exchange -> {
+                String response = "Oraxen Resource Pack Server\n";
+                response += "Pack URL: " + packUrl + "\n";
+                exchange.sendResponseHeaders(200, response.getBytes().length);
+                exchange.getResponseBody().write(response.getBytes());
                 exchange.getResponseBody().close();
-            } catch (IOException e) {
-                exchange.sendResponseHeaders(500, -1);
-                exchange.close();
+            };
+            httpServer.createContext("/", rootHandler);
+
+            httpServer.start();
+            started = true;
+            Logs.logSuccess("Self-hosted resource pack server started on " + host + ":" + port);
+        } finally {
+            if (!started && executor != null) {
+                executor.shutdownNow();
+                executor = null;
             }
-        };
-
-        httpServer.createContext("/pack.zip", packHandler);
-
-        HttpHandler rootHandler = exchange -> {
-            String response = "Oraxen Resource Pack Server\n";
-            response += "Pack URL: " + packUrl + "\n";
-            exchange.sendResponseHeaders(200, response.getBytes().length);
-            exchange.getResponseBody().write(response.getBytes());
-            exchange.getResponseBody().close();
-        };
-        httpServer.createContext("/", rootHandler);
-
-        httpServer.start();
-        Logs.logSuccess("Self-hosted resource pack server started on " + host + ":" + port);
+        }
     }
 
     private void stopServer() {
         if (httpServer != null) {
             httpServer.stop(0);
             httpServer = null;
+        }
+        if (executor != null) {
+            executor.shutdown();
+            try {
+                if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
+                    executor.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                executor.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
+            executor = null;
         }
     }
 
