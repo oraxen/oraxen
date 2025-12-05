@@ -582,51 +582,83 @@ public class ItemParser {
     }
 
     private void parseOraxenSections(ItemBuilder item) {
+        applyMechanics(item);
+        applyAppearanceComponents(item);
+    }
+
+    private void applyMechanics(ItemBuilder item) {
         final ConfigurationSection merged = mergeWithTemplateSection();
         final ConfigurationSection mechanicsSection = merged.getConfigurationSection("Mechanics");
-        if (mechanicsSection != null)
-            for (final String mechanicID : mechanicsSection.getKeys(false)) {
-                final MechanicFactory factory = MechanicsManager.getMechanicFactory(mechanicID);
+        if (mechanicsSection == null)
+            return;
 
-                if (factory != null) {
-                    final ConfigurationSection mechanicSection = mechanicsSection.getConfigurationSection(mechanicID);
-                    if (mechanicSection == null)
-                        continue;
-                    final Mechanic mechanic = factory.parse(mechanicSection);
-                    if (mechanic == null)
-                        continue;
-                    // Apply item modifiers
-                    for (final Function<ItemBuilder, ItemBuilder> itemModifier : mechanic.getItemModifiers())
-                        item = itemModifier.apply(item);
-                }
-            }
+        for (final String mechanicID : mechanicsSection.getKeys(false)) {
+            final MechanicFactory factory = MechanicsManager.getMechanicFactory(mechanicID);
+            if (factory == null)
+                continue;
 
-        // starting from 1.21.4, we no longer use Custom Model Data to set the item
-        // appearance
-        if (oraxenMeta.hasPackInfos() && VersionUtil.atOrAbove("1.21.4")) {
-            // if there is not an item model component overriding it, we set its value
-            // to the automatically created item model definition
-            if (!item.hasItemModel()) {
-                item.setItemModel(new NamespacedKey(OraxenPlugin.get(), section.getName()));
-            }
-        } else {
-            final Integer customModelData;
-            if (MODEL_DATAS_BY_ID.containsKey(section.getName())) {
-                customModelData = MODEL_DATAS_BY_ID.get(section.getName()).getModelData();
-            } else if (!item.hasItemModel()) {
-                customModelData = ModelData.generateId(oraxenMeta.getModelName(), type);
-                configUpdated = true;
-                if (!Settings.DISABLE_AUTOMATIC_MODEL_DATA.toBool())
-                    Optional.ofNullable(section.getConfigurationSection("Pack"))
-                            .ifPresent(c -> c.set("custom_model_data", customModelData));
-            } else
-                customModelData = null;
+            final ConfigurationSection mechanicSection = mechanicsSection.getConfigurationSection(mechanicID);
+            if (mechanicSection == null)
+                continue;
 
-            if (customModelData != null) {
-                item.setCustomModelData(customModelData);
-                oraxenMeta.setCustomModelData(customModelData);
+            final Mechanic mechanic = factory.parse(mechanicSection);
+            if (mechanic == null)
+                continue;
+
+            for (final Function<ItemBuilder, ItemBuilder> itemModifier : mechanic.getItemModifiers()) {
+                item = itemModifier.apply(item);
             }
         }
+    }
+
+    private void applyAppearanceComponents(ItemBuilder item) {
+        boolean useItemModel = VersionUtil.atOrAbove("1.21.4") && Settings.APPEARANCE_ITEM_MODEL.toBool();
+        boolean usePredicates = Settings.APPEARANCE_PREDICATES.toBool() || !VersionUtil.atOrAbove("1.21.4");
+
+        if (useItemModel) {
+            applyItemModelComponent(item);
+        }
+        if (usePredicates) {
+            applyCustomModelData(item);
+        }
+    }
+
+    private void applyItemModelComponent(ItemBuilder item) {
+        if (!oraxenMeta.hasPackInfos() || oraxenMeta.isExcludedFromItemModel())
+            return;
+        if (item.hasItemModel())
+            return;
+
+        item.setItemModel(new NamespacedKey(OraxenPlugin.get(), section.getName()));
+    }
+
+    private void applyCustomModelData(ItemBuilder item) {
+        if (oraxenMeta.isExcludedFromPredicates())
+            return;
+
+        final Integer customModelData = resolveCustomModelData(item);
+        if (customModelData != null) {
+            item.setCustomModelData(customModelData);
+            oraxenMeta.setCustomModelData(customModelData);
+        }
+    }
+
+    private Integer resolveCustomModelData(ItemBuilder item) {
+        if (MODEL_DATAS_BY_ID.containsKey(section.getName())) {
+            return MODEL_DATAS_BY_ID.get(section.getName()).getModelData();
+        }
+
+        if (!oraxenMeta.hasPackInfos())
+            return null;
+
+        Integer customModelData = ModelData.generateId(oraxenMeta.getModelName(), type);
+        configUpdated = true;
+
+        if (!Settings.DISABLE_AUTOMATIC_MODEL_DATA.toBool()) {
+            Optional.ofNullable(section.getConfigurationSection("Pack"))
+                    .ifPresent(c -> c.set("custom_model_data", customModelData));
+        }
+        return customModelData;
     }
 
     private ConfigurationSection mergeWithTemplateSection() {

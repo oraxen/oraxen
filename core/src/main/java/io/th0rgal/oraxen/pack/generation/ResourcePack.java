@@ -89,11 +89,15 @@ public class ResourcePack {
         // Sorting items to keep only one with models (and generate it if needed)
         final Map<Material, Map<String, ItemBuilder>> texturedItems = extractTexturedItems();
 
-        // after 1.21.4, a model definition is created for each textured item
-        if (VersionUtil.atOrAbove("1.21.4")) {
-            generateModelDefinitions(texturedItems);
-        } else {
-            generatePredicates(texturedItems);
+        // Dual appearance system: determine which systems to use
+        boolean useItemModel = VersionUtil.atOrAbove("1.21.4") && Settings.APPEARANCE_ITEM_MODEL.toBool();
+        boolean usePredicates = Settings.APPEARANCE_PREDICATES.toBool() || !VersionUtil.atOrAbove("1.21.4");
+
+        if (useItemModel) {
+            generateModelDefinitions(filterForItemModel(texturedItems));
+        }
+        if (usePredicates) {
+            generatePredicates(filterForPredicates(texturedItems));
         }
 
         generateFont();
@@ -480,6 +484,40 @@ public class ResourcePack {
                 }
             }
         }
+    }
+
+    private Map<Material, Map<String, ItemBuilder>> filterForItemModel(Map<Material, Map<String, ItemBuilder>> texturedItems) {
+        Map<Material, Map<String, ItemBuilder>> filtered = new HashMap<>();
+        for (Map.Entry<Material, Map<String, ItemBuilder>> materialEntry : texturedItems.entrySet()) {
+            Map<String, ItemBuilder> filteredItems = new LinkedHashMap<>();
+            for (Map.Entry<String, ItemBuilder> entry : materialEntry.getValue().entrySet()) {
+                OraxenMeta meta = entry.getValue().getOraxenMeta();
+                if (meta != null && !meta.isExcludedFromItemModel()) {
+                    filteredItems.put(entry.getKey(), entry.getValue());
+                }
+            }
+            if (!filteredItems.isEmpty()) {
+                filtered.put(materialEntry.getKey(), filteredItems);
+            }
+        }
+        return filtered;
+    }
+
+    private Map<Material, Map<String, ItemBuilder>> filterForPredicates(Map<Material, Map<String, ItemBuilder>> texturedItems) {
+        Map<Material, Map<String, ItemBuilder>> filtered = new HashMap<>();
+        for (Map.Entry<Material, Map<String, ItemBuilder>> materialEntry : texturedItems.entrySet()) {
+            Map<String, ItemBuilder> filteredItems = new LinkedHashMap<>();
+            for (Map.Entry<String, ItemBuilder> entry : materialEntry.getValue().entrySet()) {
+                OraxenMeta meta = entry.getValue().getOraxenMeta();
+                if (meta != null && !meta.isExcludedFromPredicates()) {
+                    filteredItems.put(entry.getKey(), entry.getValue());
+                }
+            }
+            if (!filteredItems.isEmpty()) {
+                filtered.put(materialEntry.getKey(), filteredItems);
+            }
+        }
+        return filtered;
     }
 
     private void generateFont() {

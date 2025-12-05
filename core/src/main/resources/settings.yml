@@ -84,6 +84,12 @@ Pack:
     generate: true # Unlike Plugin.generation.default_assets, this will enable/disable all pack generation
     # List of file extensions that will not be included in the final zipped ResourcePack
     excluded_file_extensions: []
+    # Which systems to use for item appearance (1.21.4+ only, pre-1.21.4 always uses predicates)
+    appearance:
+      # Generate item model definitions (assets/oraxen/items/*.json) - items get the item_model component
+      item_model: true
+      # Generate predicate overrides in base item models (assets/minecraft/models/item/*.json) - items get custom_model_data
+      predicates: false
     verify_pack_files: true # Checks all textures and models to make sure they abide by valid Resourcepack formatting
     fix_force_unicode_glyphs: true # Fixes glyphs not being shown when Force Unicode is enabled
     texture_slicer: true # Slices default-texture overrides into new 1.20.2 format

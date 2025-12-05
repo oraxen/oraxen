@@ -102,6 +102,8 @@ public enum Settings {
     GENERATE_MODEL_BASED_ON_TEXTURE_PATH("Pack.generation.auto_generated_models_follow_texture_path"),
     COMPRESSION("Pack.generation.compression"),
     PROTECTION("Pack.generation.protection"),
+    APPEARANCE_ITEM_MODEL("Pack.generation.appearance.item_model"),
+    APPEARANCE_PREDICATES("Pack.generation.appearance.predicates"),
     COMMENT("Pack.generation.comment"),
     MERGE_DUPLICATE_FONTS("Pack.import.merge_duplicate_fonts"),
     MERGE_DUPLICATES("Pack.import.merge_duplicates"),
