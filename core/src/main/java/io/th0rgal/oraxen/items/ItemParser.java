@@ -606,7 +606,7 @@ public class ItemParser {
                 continue;
 
             for (final Function<ItemBuilder, ItemBuilder> itemModifier : mechanic.getItemModifiers()) {
-                itemModifier.apply(item);
+                item = itemModifier.apply(item);
             }
         }
     }
@@ -647,6 +647,9 @@ public class ItemParser {
         if (MODEL_DATAS_BY_ID.containsKey(section.getName())) {
             return MODEL_DATAS_BY_ID.get(section.getName()).getModelData();
         }
+
+        if (item.hasItemModel())
+            return null;
 
         Integer customModelData = ModelData.generateId(oraxenMeta.getModelName(), type);
         configUpdated = true;
