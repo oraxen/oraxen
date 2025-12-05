@@ -648,7 +648,7 @@ public class ItemParser {
             return MODEL_DATAS_BY_ID.get(section.getName()).getModelData();
         }
 
-        if (item.hasItemModel())
+        if (!oraxenMeta.hasPackInfos())
             return null;
 
         Integer customModelData = ModelData.generateId(oraxenMeta.getModelName(), type);
