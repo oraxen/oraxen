@@ -601,19 +601,23 @@ public class ItemParser {
                 }
             }
 
-        // starting from 1.21.4, we no longer use Custom Model Data to set the item
-        // appearance
-        if (oraxenMeta.hasPackInfos() && VersionUtil.atOrAbove("1.21.4")) {
-            // if there is not an item model component overriding it, we set its value
-            // to the automatically created item model definition
+        // Dual appearance system: determine which systems to use
+        boolean useItemModel = VersionUtil.atOrAbove("1.21.4") && Settings.APPEARANCE_ITEM_MODEL.toBool();
+        boolean usePredicates = Settings.APPEARANCE_PREDICATES.toBool() || !VersionUtil.atOrAbove("1.21.4");
+
+        // Apply item_model component if enabled and item not excluded
+        if (oraxenMeta.hasPackInfos() && useItemModel && !oraxenMeta.isExcludedFromItemModel()) {
             if (!item.hasItemModel()) {
                 item.setItemModel(new NamespacedKey(OraxenPlugin.get(), section.getName()));
             }
-        } else {
+        }
+
+        // Apply custom_model_data if predicates system is enabled and item not excluded
+        if (usePredicates && !oraxenMeta.isExcludedFromPredicates()) {
             final Integer customModelData;
             if (MODEL_DATAS_BY_ID.containsKey(section.getName())) {
                 customModelData = MODEL_DATAS_BY_ID.get(section.getName()).getModelData();
-            } else if (!item.hasItemModel()) {
+            } else if (!item.hasItemModel() || usePredicates) {
                 customModelData = ModelData.generateId(oraxenMeta.getModelName(), type);
                 configUpdated = true;
                 if (!Settings.DISABLE_AUTOMATIC_MODEL_DATA.toBool())

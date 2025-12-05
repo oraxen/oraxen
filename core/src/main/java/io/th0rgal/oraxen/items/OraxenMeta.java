@@ -40,6 +40,8 @@ public class OraxenMeta {
     private boolean oversizedInGui = false;
     private boolean handAnimationOnSwap = true;
     private float swapAnimationScale = 1.0f;
+    private boolean excludeFromPredicates = false;
+    private boolean excludeFromItemModel = false;
 
     public void setExcludedFromInventory(boolean excluded) {
         this.excludedFromInventory = excluded;
@@ -129,6 +131,10 @@ public class OraxenMeta {
         this.oversizedInGui = section.getBoolean("oversized_in_gui", false);
         this.handAnimationOnSwap = section.getBoolean("hand_animation_on_swap", true);
         this.swapAnimationScale = (float) section.getDouble("swap_animation_scale", 1.0);
+
+        // Per-item appearance system exclusions
+        this.excludeFromPredicates = section.getBoolean("exclude_from_predicates", false);
+        this.excludeFromItemModel = section.getBoolean("exclude_from_item_model", false);
 
         if (generate_model && !modelName.matches("^[a-z0-9-_/]+$")) {
             Logs.logWarning("Item " + section.getParent().getName()
@@ -356,6 +362,14 @@ public class OraxenMeta {
 
     public float getSwapAnimationScale() {
         return swapAnimationScale;
+    }
+
+    public boolean isExcludedFromPredicates() {
+        return excludeFromPredicates;
+    }
+
+    public boolean isExcludedFromItemModel() {
+        return excludeFromItemModel;
     }
 
 }
