@@ -44,8 +44,8 @@ public class SelfHost implements HostingProvider {
             this.packFile = resourcePack;
             stopServer();
             calculateSHA1(resourcePack);
-            startServer(resourcePack);
             this.packUrl = "http://" + domain + "/pack.zip";
+            startServer(resourcePack);
             return true;
         } catch (Exception e) {
             Logs.logError("Failed to self-host the resource pack");
