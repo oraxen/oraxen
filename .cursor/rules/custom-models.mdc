@@ -1,0 +1,225 @@
+---
+description: How Oraxen handles custom item models, including legacy CustomModelData predicates and the new 1.21.4+ item_model component system.
+globs:
+alwaysApply: true
+---
+
+# Oraxen Custom Model System
+
+This document explains how Oraxen generates and manages custom item models for the resource pack.
+
+## Overview
+
+Oraxen supports two model appearance systems that can work in parallel:
+
+1. **Item Model Component** (1.21.4+): Uses the `item_model` data component to reference item model definitions
+2. **CustomModelData Predicates** (Legacy): Uses `custom_model_data` with predicate overrides in base item models
+
+The system is controlled by settings in `settings.yml`:
+- `Pack.appearance.item_model`: Enable item_model component (default: true on 1.21.4+)
+- `Pack.appearance.predicates`: Enable CustomModelData predicates (default: true on <1.21.4)
+
+## File Structure
+
+### Resource Pack Layout
+
+```
+pack/
+├── models/
+│   └── default/              # Custom model files (.json)
+│       ├── my_sword.json
+│       └── my_shield.json
+├── textures/
+│   └── default/              # Custom textures (.png)
+│       └── my_sword.png
+└── items/                    # Auto-generated item model definitions (1.21.4+)
+    └── (generated at runtime)
+```
+
+### Model Files
+
+Place custom model `.json` files in `pack/models/<path>/`. The path becomes part of the model reference.
+
+Example: `pack/models/default/my_sword.json` → referenced as `default/my_sword`
+
+### Texture Files
+
+Place textures in `pack/textures/<path>/`. Reference them in models without the `.png` extension.
+
+Example: `pack/textures/default/my_texture.png` → referenced in model as `default/my_texture`
+
+## Item Configuration
+
+### Basic Item with Custom Model
+
+```yaml
+my_item:
+  material: IRON_SWORD
+  Pack:
+    generate_model: false      # Use existing model file
+    model: default/my_sword    # Path to model (without .json)
+```
+
+### Auto-Generated Model from Texture
+
+```yaml
+my_item:
+  material: PAPER
+  Pack:
+    generate_model: true       # Generate model from texture
+    parent_model: item/generated
+    textures:
+      - default/my_texture     # Layer0 texture
+```
+
+## How Model Generation Works
+
+### 1. Item Model Component System (1.21.4+)
+
+When an item is parsed (`ItemParser.applyItemModelComponent()`):
+1. If the item has `Pack` info, Oraxen sets `item_model` component to `oraxen:<itemId>`
+2. During pack generation (`ResourcePack.generateModelDefinitions()`):
+   - Creates item model definition at `assets/oraxen/items/<itemId>.json`
+   - The definition points to the actual model path from `Pack.model`
+
+**Item Model Definition Format:**
+```json
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "default/my_sword"
+  }
+}
+```
+
+**Resolution Flow:**
+```
+item_model: "oraxen:my_item"
+    ↓
+looks for: assets/oraxen/items/my_item.json
+    ↓
+which points to: assets/minecraft/models/default/my_sword.json
+```
+
+### 2. CustomModelData Predicates (Legacy)
+
+When using predicates (`PredicatesGenerator`):
+1. Each item gets a unique `CustomModelData` value
+2. Oraxen generates/modifies the base item model (e.g., `minecraft:item/iron_sword`)
+3. Adds predicate overrides that switch model based on CustomModelData
+
+## Mechanics with Multiple Models
+
+Mechanics that need to swap models at runtime (like shields with blocking states, bows with pulling states, or custom weapons with charge states) must register additional model definitions.
+
+### Built-in Multi-Model Support (OraxenMeta)
+
+`OraxenMeta` supports these additional model fields in `Pack:`:
+- `blocking_model` / `blocking_texture` - Shield blocking state
+- `pulling_models` / `pulling_textures` - Bow pulling stages
+- `charged_model` / `charged_texture` - Crossbow charged state
+- `firework_model` / `firework_texture` - Crossbow with firework
+- `cast_model` / `cast_texture` - Fishing rod cast state
+- `damaged_models` / `damaged_textures` - Damage-based model stages
+
+### Custom Mechanic Model Registration
+
+For custom mechanics that need additional models, use the `OraxenPackGeneratedEvent`:
+
+```java
+@EventHandler
+public void onPackGeneration(OraxenPackGeneratedEvent event) {
+    if (!VersionUtil.atOrAbove("1.21.4") || !Settings.APPEARANCE_ITEM_MODEL.toBool()) {
+        return;
+    }
+    
+    List<VirtualFile> output = event.getOutput();
+    
+    // Create item model definition for additional model
+    String modelId = "my_item_active";
+    JsonObject definition = new JsonObject();
+    JsonObject model = new JsonObject();
+    model.addProperty("type", "minecraft:model");
+    model.addProperty("model", "default/my_sword_active");  // The actual model path
+    definition.add("model", model);
+    
+    VirtualFile file = new VirtualFile(
+        "assets/oraxen/items",
+        modelId + ".json",
+        new ByteArrayInputStream(definition.toString().getBytes(StandardCharsets.UTF_8))
+    );
+    output.add(file);
+}
+```
+
+### Runtime Model Swapping
+
+To swap models at runtime (1.21.2+):
+
+```java
+// Get original model from item
+NamespacedKey originalModel = itemMeta.getItemModel();
+
+// Set new model
+NamespacedKey activeModel = new NamespacedKey(OraxenPlugin.get(), "my_item_active");
+itemMeta.setItemModel(activeModel);
+item.setItemMeta(itemMeta);
+
+// Later, restore original
+itemMeta.setItemModel(originalModel);
+item.setItemMeta(itemMeta);
+```
+
+## Key Classes
+
+- `ResourcePack` - Coordinates pack generation
+- `ModelDefinitionGenerator` - Creates item model definition JSON (1.21.4+)
+- `PredicatesGenerator` - Creates CustomModelData predicate overrides (legacy)
+- `ModelGenerator` - Generates model JSON from textures
+- `OraxenMeta` - Stores per-item pack metadata
+- `ItemParser` - Parses item configs and applies components
+
+## Best Practices
+
+1. **Use consistent model paths**: Follow the `<category>/<name>` pattern (e.g., `default/my_sword`)
+
+2. **Include particle texture**: Models should define a `particle` texture for break particles:
+   ```json
+   "textures": {
+     "0": "default/my_texture",
+     "particle": "default/my_texture"
+   }
+   ```
+
+3. **For mechanics with model swapping**:
+   - Register additional models during `OraxenPackGeneratedEvent`
+   - Use `oraxen:` namespace for all model keys
+   - Store original model before swapping, restore on cancel/complete
+
+4. **Texture paths**: Always use forward slashes, no `.png` extension, relative to `textures/`
+
+5. **Model paths**: Always use forward slashes, no `.json` extension, relative to `models/`
+
+## Example: SpearLungeMechanic
+
+The `spear_lunge` mechanic demonstrates proper multi-model integration:
+
+**Item Config:**
+```yaml
+my_spear:
+  material: IRON_SWORD
+  Pack:
+    generate_model: false
+    model: default/spear_inactive    # Base model
+  Mechanics:
+    spear_lunge:
+      active_model: default/spear_active  # Model during charge
+      charge_ticks: 12
+      lunge_velocity: 0.8
+```
+
+**How it works:**
+1. Item gets `item_model: oraxen:my_spear` pointing to `default/spear_inactive`
+2. `SpearLungeMechanicFactory` listens to `OraxenPackGeneratedEvent`
+3. Factory adds definition at `assets/oraxen/items/my_spear_active.json` → `default/spear_active`
+4. At runtime, mechanic swaps between `oraxen:my_spear` and `oraxen:my_spear_active`

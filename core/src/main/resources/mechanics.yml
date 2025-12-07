@@ -141,6 +141,9 @@ witherskull:
 bleeding:
   enabled: true
 
+spear_lunge:
+  enabled: true
+
 
 # FARMING
 
