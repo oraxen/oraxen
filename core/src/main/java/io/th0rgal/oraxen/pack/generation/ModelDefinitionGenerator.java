@@ -131,109 +131,104 @@ public class ModelDefinitionGenerator {
     }
 
     private JsonObject createCrossbowModel(JsonObject baseModel, OraxenMeta oraxenMeta) {
-        // Priority: pulling > firework (charged + firework) > charged > base
-        // Build from outside in: check pulling first, then charged/firework
+        // Structure based on craft-engine implementation:
+        // Outer: condition on "using_item" (pulling)
+        //   - on_false: select on "charge_type" (arrow/rocket) or base model (when not pulling)
+        //   - on_true: range_dispatch on "crossbow/pull" (when pulling)
         
-        JsonObject currentModel = baseModel;
-        
-        // Handle charged/firework models first (inner layer)
+        // Build the on_false model (charged/firework or base)
+        JsonObject onFalseModel = baseModel;
         if (oraxenMeta.hasChargedModel() || oraxenMeta.hasFireworkModel()) {
-            JsonObject chargedCondition = new JsonObject();
-            chargedCondition.addProperty("type", "minecraft:condition");
-            chargedCondition.addProperty("property", "minecraft:charged");
+            JsonObject selectModel = new JsonObject();
+            selectModel.addProperty("type", "minecraft:select");
+            selectModel.addProperty("property", "minecraft:charge_type");
             
-            JsonObject chargedModelObj;
+            JsonArray cases = new JsonArray();
+            
+            // Arrow case (charged with arrow)
             if (oraxenMeta.hasChargedModel()) {
-                chargedModelObj = new JsonObject();
-                chargedModelObj.addProperty("type", "minecraft:model");
-                chargedModelObj.addProperty("model", oraxenMeta.getChargedModel());
-            } else {
-                // No charged model, use base when charged (shouldn't happen, but fallback)
-                chargedModelObj = baseModel;
+                JsonObject arrowCase = new JsonObject();
+                arrowCase.addProperty("when", "arrow");
+                JsonObject arrowModelObj = new JsonObject();
+                arrowModelObj.addProperty("type", "minecraft:model");
+                arrowModelObj.addProperty("model", oraxenMeta.getChargedModel());
+                arrowCase.add("model", arrowModelObj);
+                cases.add(arrowCase);
             }
             
-            // If firework model exists, check firework property when charged
+            // Rocket case (charged with firework)
             if (oraxenMeta.hasFireworkModel()) {
-                JsonObject fireworkCondition = new JsonObject();
-                fireworkCondition.addProperty("type", "minecraft:condition");
-                fireworkCondition.addProperty("property", "minecraft:firework");
-                
+                JsonObject rocketCase = new JsonObject();
+                rocketCase.addProperty("when", "rocket");
                 JsonObject fireworkModelObj = new JsonObject();
                 fireworkModelObj.addProperty("type", "minecraft:model");
                 fireworkModelObj.addProperty("model", oraxenMeta.getFireworkModel());
-                
-                // on_true: firework model (when charged AND firework)
-                fireworkCondition.add("on_true", fireworkModelObj);
-                // on_false: charged model (when charged but no firework)
-                fireworkCondition.add("on_false", chargedModelObj);
-                
-                chargedCondition.add("on_true", fireworkCondition);
-            } else {
-                // No firework model, use charged model when charged
-                chargedCondition.add("on_true", chargedModelObj);
+                rocketCase.add("model", fireworkModelObj);
+                cases.add(rocketCase);
             }
             
-            // on_false: base model (when not charged)
-            chargedCondition.add("on_false", baseModel);
-            currentModel = chargedCondition;
+            selectModel.add("cases", cases);
+            selectModel.add("fallback", baseModel);
+            onFalseModel = selectModel;
         }
         
-        // Handle pulling models (outer layer, checked first)
-        if (oraxenMeta.hasPullingModels()) {
-            List<String> pullingModels = oraxenMeta.getPullingModels();
-            if (pullingModels == null || pullingModels.isEmpty()) {
-                // Fallback to current model if pullingModels is null/empty (shouldn't happen due to hasPullingModels check)
-                return currentModel;
-            }
-            
-            JsonObject pullingCondition = new JsonObject();
-            pullingCondition.addProperty("type", "minecraft:condition");
-            pullingCondition.addProperty("property", "minecraft:using_item");
-            
-            // on_true: range_dispatch for pulling states
-            JsonObject rangeDispatch = new JsonObject();
-            rangeDispatch.addProperty("type", "minecraft:range_dispatch");
-            rangeDispatch.addProperty("property", "minecraft:use_duration");
-            rangeDispatch.addProperty("scale", 0.05);
-            
-            JsonArray entries = new JsonArray();
-            
-            // Add entries for pulling_1 and pulling_2 with thresholds
-            if (pullingModels.size() >= 2) {
-                JsonObject entry1 = new JsonObject();
-                entry1.addProperty("threshold", 0.65f);
-                JsonObject model1 = new JsonObject();
-                model1.addProperty("type", "minecraft:model");
-                model1.addProperty("model", pullingModels.get(1));
-                entry1.add("model", model1);
-                entries.add(entry1);
-            }
-            
-            if (pullingModels.size() >= 3) {
-                JsonObject entry2 = new JsonObject();
-                entry2.addProperty("threshold", 0.9f);
-                JsonObject model2 = new JsonObject();
-                model2.addProperty("type", "minecraft:model");
-                model2.addProperty("model", pullingModels.get(2));
-                entry2.add("model", model2);
-                entries.add(entry2);
-            }
-            
-            rangeDispatch.add("entries", entries);
-            
-            // fallback: pulling_0 (first pulling state)
-            JsonObject fallback = new JsonObject();
-            fallback.addProperty("type", "minecraft:model");
-            fallback.addProperty("model", pullingModels.get(0));
-            rangeDispatch.add("fallback", fallback);
-            
-            pullingCondition.add("on_true", rangeDispatch);
-            // on_false: current model (charged/firework or base)
-            pullingCondition.add("on_false", currentModel);
-            currentModel = pullingCondition;
+        // If no pulling models, return the on_false model directly
+        if (!oraxenMeta.hasPullingModels()) {
+            return onFalseModel;
         }
         
-        return currentModel;
+        List<String> pullingModels = oraxenMeta.getPullingModels();
+        if (pullingModels == null || pullingModels.isEmpty()) {
+            return onFalseModel;
+        }
+        
+        // Build the outer condition on "using_item"
+        JsonObject pullingCondition = new JsonObject();
+        pullingCondition.addProperty("type", "minecraft:condition");
+        pullingCondition.addProperty("property", "minecraft:using_item");
+        
+        // on_false: select on charge_type or base model (when not pulling)
+        pullingCondition.add("on_false", onFalseModel);
+        
+        // on_true: range_dispatch for pulling states using crossbow/pull property
+        JsonObject rangeDispatch = new JsonObject();
+        rangeDispatch.addProperty("type", "minecraft:range_dispatch");
+        rangeDispatch.addProperty("property", "minecraft:crossbow/pull");
+        // No scale needed for crossbow/pull property
+        
+        JsonArray entries = new JsonArray();
+        
+        // Add entries for pulling_1 and pulling_2 with thresholds (matching craft-engine: 0.58 and 1.0)
+        if (pullingModels.size() >= 2) {
+            JsonObject entry1 = new JsonObject();
+            entry1.addProperty("threshold", 0.58f);
+            JsonObject model1 = new JsonObject();
+            model1.addProperty("type", "minecraft:model");
+            model1.addProperty("model", pullingModels.get(1));
+            entry1.add("model", model1);
+            entries.add(entry1);
+        }
+        
+        if (pullingModels.size() >= 3) {
+            JsonObject entry2 = new JsonObject();
+            entry2.addProperty("threshold", 1.0f);
+            JsonObject model2 = new JsonObject();
+            model2.addProperty("type", "minecraft:model");
+            model2.addProperty("model", pullingModels.get(2));
+            entry2.add("model", model2);
+            entries.add(entry2);
+        }
+        
+        rangeDispatch.add("entries", entries);
+        
+        // fallback: pulling_0 (first pulling state)
+        JsonObject fallback = new JsonObject();
+        fallback.addProperty("type", "minecraft:model");
+        fallback.addProperty("model", pullingModels.get(0));
+        rangeDispatch.add("fallback", fallback);
+        
+        pullingCondition.add("on_true", rangeDispatch);
+        return pullingCondition;
     }
 
 }
