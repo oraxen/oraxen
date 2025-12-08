@@ -10,13 +10,13 @@ import java.util.List;
 
 public class ModelDefinitionGenerator {
     private final OraxenMeta oraxenMeta;
-    private  Material material;
+    private Material material;
     public ModelDefinitionGenerator(OraxenMeta oraxenMeta) {
         this.oraxenMeta = oraxenMeta;
     }
     public ModelDefinitionGenerator(OraxenMeta oraxenMeta, Material material) {
         this.oraxenMeta = oraxenMeta;
-        this.material=material;
+        this.material = material;
     }
     public JsonObject toJSON() {
         JsonObject root = new JsonObject();
@@ -27,7 +27,7 @@ public class ModelDefinitionGenerator {
         baseModel.addProperty("model", oraxenMeta.getModelName());
 
         //maybe need consider that an itemmodel has multiple tint source
-        if (material != null && material.toString().startsWith("LEATHER_")){
+        if (material != null && material.name().startsWith("LEATHER_")){
             JsonArray tints = new JsonArray();
             JsonObject dye= new JsonObject();
             dye.addProperty("type","minecraft:dye");
