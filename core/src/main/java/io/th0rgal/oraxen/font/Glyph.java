@@ -359,7 +359,7 @@ public class Glyph {
     }
 
     private File resolveTextureFile(Path packFolder, String texturePath) {
-        boolean isMinecraft = StringUtils.substringBefore(texture, ":").equals("minecraft");
+        boolean isMinecraft = !texture.contains(":") || texture.split(":")[0].equals("minecraft");
         if (!isMinecraft || packFolder.resolve(texturePath).toFile().exists()) {
             File file = packFolder.resolve(texturePath).toFile();
             if (!file.exists()) {

@@ -103,9 +103,12 @@ public class GlyphTag {
 
             // Check for shadow color
             if (arg.equals("shadow") || arg.equals("s")) {
-                // Next argument should be the color value
-                if (i + 1 < arguments.size()) {
+                // Only consume next argument if it looks like a color value
+                if (i + 1 < arguments.size() && looksLikeColor(arguments.get(i + 1))) {
                     shadowColor = GlyphAppearance.parseArgbColor(arguments.get(++i));
+                } else {
+                    // Mark that shadow was requested without explicit color (use glyph default)
+                    shadowColor = glyph.getAppearance().shadowColor();
                 }
                 continue;
             }
@@ -209,5 +212,34 @@ public class GlyphTag {
             // Graceful degradation for older Adventure versions
             return component;
         }
+    }
+
+    /**
+     * Checks if a string looks like a hex color value.
+     * Used to determine if an argument should be consumed as a shadow color.
+     *
+     * @param value The string to check
+     * @return true if it looks like a color (starts with # or is valid hex of
+     *         length 3/6/8)
+     */
+    private static boolean looksLikeColor(String value) {
+        if (value == null || value.isBlank())
+            return false;
+
+        // If it starts with #, it's definitely meant to be a color
+        if (value.startsWith("#"))
+            return true;
+
+        // Check if it's a valid hex string of appropriate length
+        String lower = value.toLowerCase();
+        if (lower.length() != 3 && lower.length() != 6 && lower.length() != 8)
+            return false;
+
+        // Verify all characters are hex digits
+        for (char c : lower.toCharArray()) {
+            if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f')))
+                return false;
+        }
+        return true;
     }
 }
