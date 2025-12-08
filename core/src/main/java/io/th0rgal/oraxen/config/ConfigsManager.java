@@ -316,7 +316,13 @@ public class ConfigsManager {
         List<String> unicodeRows = generateGridUnicodes(grid, ctx.usedCodepoints);
         boolean fileChanged = false;
 
-        if (!Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) {
+        if (Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) {
+            Logs.logWarning("Grid glyph '" + key + "' has no 'chars' list defined but " +
+                    Settings.DISABLE_AUTOMATIC_GLYPH_CODE.getPath() + " is enabled.");
+            Logs.logWarning("This glyph's characters will change on every reload, breaking saved references.");
+            Logs.logWarning("Either disable " + Settings.DISABLE_AUTOMATIC_GLYPH_CODE.getPath() +
+                    " or manually add a 'chars' list to this glyph's configuration.", true);
+        } else {
             section.set("chars", unicodeRows);
             fileChanged = true;
         }

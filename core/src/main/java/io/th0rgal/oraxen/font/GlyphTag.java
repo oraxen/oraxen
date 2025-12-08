@@ -172,6 +172,8 @@ public class GlyphTag {
         // Bounds checking
         if (start < 0)
             start = 0;
+        if (end < 0)
+            end = 0;
         if (end >= allChars.length)
             end = allChars.length - 1;
         if (start > end)
