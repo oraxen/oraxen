@@ -50,7 +50,7 @@ public class ModelDefinitionGenerator {
         if (oraxenMeta.hasPullingModels() && material != null && material == Material.BOW) {
             JsonObject conditionModel = new JsonObject();
             conditionModel.addProperty("type", "minecraft:condition");
-            conditionModel.addProperty("property", "using_item");
+            conditionModel.addProperty("property", "minecraft:using_item");
             
             // on_false: base model (when not pulling)
             conditionModel.add("on_false", baseModel);
@@ -58,7 +58,7 @@ public class ModelDefinitionGenerator {
             // on_true: range_dispatch for pulling states
             JsonObject rangeDispatch = new JsonObject();
             rangeDispatch.addProperty("type", "minecraft:range_dispatch");
-            rangeDispatch.addProperty("property", "use_duration");
+            rangeDispatch.addProperty("property", "minecraft:use_duration");
             rangeDispatch.addProperty("scale", 0.05);
             
             List<String> pullingModels = oraxenMeta.getPullingModels();
