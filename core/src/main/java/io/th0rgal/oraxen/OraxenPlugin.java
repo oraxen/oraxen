@@ -29,7 +29,6 @@ import io.th0rgal.oraxen.utils.inventories.InvManager;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.protectionlib.ProtectionLib;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
-import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
@@ -94,7 +93,8 @@ public class OraxenPlugin extends JavaPlugin {
             packetAdapter = new ProtocolLibAdapter();
             new ProtocolLibBreakerSystem().registerListener();
         } else if (PacketAdapter.isPacketEventsEnabled()) {
-            Logs.logInfo("[OraxenPlugin] ProtocolLib is NOT enabled, PacketEvents is enabled, using PacketEventsAdapter");
+            Logs.logInfo(
+                    "[OraxenPlugin] ProtocolLib is NOT enabled, PacketEvents is enabled, using PacketEventsAdapter");
             packetAdapter = new PacketEventsAdapter();
             new PacketEventsBreakerSystem().registerListener();
         } else {
@@ -143,7 +143,7 @@ public class OraxenPlugin extends JavaPlugin {
     }
 
     private void postLoading() {
-        new Metrics(this, 5371);
+        OraxenMetrics.register(this);
         new LU().l();
         Bukkit.getScheduler().runTask(this, () -> Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent()));
     }
