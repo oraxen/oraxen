@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.font;
 
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.OraxenPlugin;
@@ -29,7 +28,6 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
 
 public class Glyph {
 
@@ -62,7 +60,7 @@ public class Glyph {
      * @param grid         The grid configuration
      */
     public Glyph(final String glyphName, final ConfigurationSection glyphSection,
-                 @NotNull List<String> unicodeRows, @NotNull GlyphGrid grid) {
+            @NotNull List<String> unicodeRows, @NotNull GlyphGrid grid) {
         name = glyphName;
         this.unicodeRows = new ArrayList<>(unicodeRows);
         this.grid = grid;
@@ -70,12 +68,15 @@ public class Glyph {
         isEmoji = glyphSection.getBoolean("is_emoji", false);
 
         final ConfigurationSection chatSection = glyphSection.getConfigurationSection("chat");
-        placeholders = chatSection != null ? chatSection.getStringList("placeholders").toArray(new String[0]) : new String[0];
+        placeholders = chatSection != null ? chatSection.getStringList("placeholders").toArray(new String[0])
+                : new String[0];
         permission = chatSection != null ? chatSection.getString("permission", "") : "";
         tabcomplete = chatSection != null && chatSection.getBoolean("tabcomplete", false);
 
-        String placeholderRegex = String.join("|", Arrays.stream(placeholders).map(Pattern::quote).toArray(String[]::new));
-        String baseRegex = "((<(glyph|g):" + name + ")(:(c|colorable|s|shadow)(:[^>]*)?)*>" + (placeholders.length > 0 ? "|" + placeholderRegex : "") + ")";
+        String placeholderRegex = String.join("|",
+                Arrays.stream(placeholders).map(Pattern::quote).toArray(String[]::new));
+        String baseRegex = "((<(glyph|g):" + name + ")(:(c|colorable|s|shadow)(:[^>]*)?)*>"
+                + (placeholders.length > 0 ? "|" + placeholderRegex : "") + ")";
         this.baseRegex = Pattern.compile("(?<!\\\\)" + baseRegex);
         escapedRegex = Pattern.compile("\\\\" + baseRegex);
 
@@ -83,11 +84,16 @@ public class Glyph {
         appearance = GlyphAppearance.fromConfig(glyphSection.getConfigurationSection("appearance"));
 
         ConfigurationSection bitmapSection = glyphSection.getConfigurationSection("bitmap");
-        bitmapEntry = bitmapSection != null ? new BitMapEntry(bitmapSection.getString("id"), bitmapSection.getInt("row"), bitmapSection.getInt("column")) : null;
+        bitmapEntry = bitmapSection != null
+                ? new BitMapEntry(bitmapSection.getString("id"), bitmapSection.getInt("row"),
+                        bitmapSection.getInt("column"))
+                : null;
         ascent = getBitMap() != null ? getBitMap().ascent() : glyphSection.getInt("ascent", 8);
         height = getBitMap() != null ? getBitMap().height() : glyphSection.getInt("height", 8);
-        texture = getBitMap() != null ? getBitMap().texture() : glyphSection.getString("texture", "required/exit_icon.png");
-        if (!texture.endsWith(".png")) texture += ".png";
+        texture = getBitMap() != null ? getBitMap().texture()
+                : glyphSection.getString("texture", "required/exit_icon.png");
+        if (!texture.endsWith(".png"))
+            texture += ".png";
     }
 
     /**
@@ -103,7 +109,8 @@ public class Glyph {
 
         // Handle legacy config migration
         if (glyphSection.contains("code")) {
-            if (glyphSection.isInt("code")) glyphSection.set("char", (char) glyphSection.getInt("code"));
+            if (glyphSection.isInt("code"))
+                glyphSection.set("char", (char) glyphSection.getInt("code"));
             glyphSection.set("code", null);
             fileChanged = true;
         }
@@ -155,7 +162,8 @@ public class Glyph {
      * @return The first character of the first row, or empty string if empty
      */
     public String getCharacter() {
-        if (unicodeRows.isEmpty() || unicodeRows.get(0).isEmpty()) return "";
+        if (unicodeRows.isEmpty() || unicodeRows.get(0).isEmpty())
+            return "";
         return String.valueOf(unicodeRows.get(0).charAt(0));
     }
 
@@ -291,10 +299,12 @@ public class Glyph {
      */
     public void verifyGlyph(List<Glyph> glyphs) {
         Path packFolder = Path.of(OraxenPlugin.get().getDataFolder().getAbsolutePath()).resolve("pack");
-        if (!packFolder.toFile().exists()) return;
+        if (!packFolder.toFile().exists())
+            return;
 
         VerificationContext ctx = buildVerificationContext(packFolder, glyphs);
-        if (ctx == null) return;
+        if (ctx == null)
+            return;
 
         runValidations(ctx);
     }
@@ -310,11 +320,12 @@ public class Glyph {
             boolean hasUpperCase,
             int maxWidth,
             int maxHeight,
-            Set<String> conflictingGlyphs
-    ) {}
+            Set<String> conflictingGlyphs) {
+    }
 
     /**
-     * Builds the verification context by resolving texture paths and loading images.
+     * Builds the verification context by resolving texture paths and loading
+     * images.
      */
     @Nullable
     private VerificationContext buildVerificationContext(Path packFolder, List<Glyph> glyphs) {
@@ -336,8 +347,7 @@ public class Glyph {
         return new VerificationContext(
                 textureFile, texturePath, image,
                 isVanillaTexture, hasUpperCase,
-                maxWidth, maxHeight, conflictingGlyphs
-        );
+                maxWidth, maxHeight, conflictingGlyphs);
     }
 
     private String resolveTexturePath() {
@@ -372,7 +382,8 @@ public class Glyph {
     private Set<String> findConflictingGlyphs(List<Glyph> glyphs) {
         char firstChar = getCharacter().isEmpty() ? Character.MIN_VALUE : getCharacter().charAt(0);
         return glyphs.stream()
-                .filter(g -> !g.name.equals(name) && !g.getCharacter().isBlank() && g.getCharacter().charAt(0) == firstChar)
+                .filter(g -> !g.name.equals(name) && !g.getCharacter().isBlank()
+                        && g.getCharacter().charAt(0) == firstChar)
                 .map(Glyph::getName)
                 .collect(Collectors.toSet());
     }
@@ -385,7 +396,8 @@ public class Glyph {
         if (error != null) {
             setTexture("required/exit_icon");
             Logs.logError(error);
-            Logs.logWarning("It has been temporarily set to a placeholder image. You should edit this in the glyph config.");
+            Logs.logWarning(
+                    "It has been temporarily set to a placeholder image. You should edit this in the glyph config.");
         }
     }
 
@@ -412,11 +424,13 @@ public class Glyph {
         if (!ctx.isVanillaTexture && !isBitMap() && ctx.image != null
                 && (ctx.image.getHeight() > ctx.maxHeight || ctx.image.getWidth() > ctx.maxWidth)) {
             Logs.logWarning("The maximum image size is " + ctx.maxWidth + "x" + ctx.maxHeight + ".");
-            return "The texture specified for " + name + " is larger than the supported size. This will break all your glyphs.";
+            return "The texture specified for " + name
+                    + " is larger than the supported size. This will break all your glyphs.";
         }
         if (Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool() && !ctx.conflictingGlyphs.isEmpty()) {
             Logs.logWarning("You should edit the code of all these glyphs to be unique.");
-            return name + " code is the same as " + String.join(", ", ctx.conflictingGlyphs) + ". This will break all your glyphs.";
+            return name + " code is the same as " + String.join(", ", ctx.conflictingGlyphs)
+                    + ". This will break all your glyphs.";
         }
         return null;
     }
@@ -428,21 +442,25 @@ public class Glyph {
         return '<' + "glyph;" + name + '>';
     }
 
-
     public String getShortGlyphTag() {
         return "<g:" + name + '>';
     }
 
     public Component getGlyphComponent() {
-        return Component.textOfChildren(Component.text(getCharacter(), NamedTextColor.WHITE).font(getFont()).hoverEvent(getGlyphHoverText()));
+        return Component.textOfChildren(
+                Component.text(getCharacter(), NamedTextColor.WHITE).font(getFont()).hoverEvent(getGlyphHoverText()));
     }
 
     @Nullable
     public HoverEventSource getGlyphHoverText() {
         String hoverText = Settings.GLYPH_HOVER_TEXT.toString();
-        TagResolver hoverResolver = TagResolver.builder().tag("glyph_placeholder", Tag.selfClosingInserting(Component.text(Arrays.stream(getPlaceholders()).findFirst().orElse("")))).build();
+        TagResolver hoverResolver = TagResolver.builder()
+                .tag("glyph_placeholder", Tag
+                        .selfClosingInserting(Component.text(Arrays.stream(getPlaceholders()).findFirst().orElse(""))))
+                .build();
         Component hoverComponent = AdventureUtils.MINI_MESSAGE.deserialize(hoverText, hoverResolver);
-        if (hoverText.isEmpty() || hoverComponent == Component.empty()) return null;
+        if (hoverText.isEmpty() || hoverComponent == Component.empty())
+            return null;
         return HoverEvent.showText(hoverComponent);
     }
 }

@@ -27,7 +27,8 @@ public class GlyphTag {
     private static final Pattern INDEX_PATTERN = Pattern.compile("^(\\d+)$");
     private static final Pattern RANGE_PATTERN = Pattern.compile("^(\\d+)\\.\\.(\\d+)$");
 
-    public static final TagResolver RESOLVER = TagResolver.resolver(Set.of(GLYPH, GLYPH_SHORT), (args, ctx) -> glyphTag(null, args));
+    public static final TagResolver RESOLVER = TagResolver.resolver(Set.of(GLYPH, GLYPH_SHORT),
+            (args, ctx) -> glyphTag(null, args));
 
     public static TagResolver getResolverForPlayer(Player player) {
         return TagResolver.resolver(Set.of(GLYPH, GLYPH_SHORT), (args, ctx) -> glyphTag(player, args));
@@ -75,8 +76,8 @@ public class GlyphTag {
             boolean colorable,
             @Nullable Integer shadowColor,
             int startIndex,
-            int endIndex
-    ) {}
+            int endIndex) {
+    }
 
     /**
      * Parses arguments into options.
@@ -112,17 +113,25 @@ public class GlyphTag {
             // Check for index pattern (e.g., "1", "2")
             Matcher indexMatcher = INDEX_PATTERN.matcher(arg);
             if (indexMatcher.matches()) {
-                int index = Integer.parseInt(indexMatcher.group(1));
-                startIndex = index;
-                endIndex = index;
+                try {
+                    int index = Integer.parseInt(indexMatcher.group(1));
+                    startIndex = index;
+                    endIndex = index;
+                } catch (NumberFormatException ignored) {
+                    // Index too large, skip
+                }
                 continue;
             }
 
             // Check for range pattern (e.g., "1..4")
             Matcher rangeMatcher = RANGE_PATTERN.matcher(arg);
             if (rangeMatcher.matches()) {
-                startIndex = Integer.parseInt(rangeMatcher.group(1));
-                endIndex = Integer.parseInt(rangeMatcher.group(2));
+                try {
+                    startIndex = Integer.parseInt(rangeMatcher.group(1));
+                    endIndex = Integer.parseInt(rangeMatcher.group(2));
+                } catch (NumberFormatException ignored) {
+                    // Range values too large, skip
+                }
             }
         }
 
@@ -151,14 +160,22 @@ public class GlyphTag {
             return glyph.getFormattedUnicodes();
         }
 
+        // Handle empty glyph
+        if (allChars.length == 0) {
+            return "";
+        }
+
         // Convert 1-based to 0-based indices
         int start = startIndex - 1;
         int end = endIndex - 1;
 
         // Bounds checking
-        if (start < 0) start = 0;
-        if (end >= allChars.length) end = allChars.length - 1;
-        if (start > end) start = end;
+        if (start < 0)
+            start = 0;
+        if (end >= allChars.length)
+            end = allChars.length - 1;
+        if (start > end)
+            start = end;
 
         // Extract range
         StringBuilder sb = new StringBuilder();
@@ -177,10 +194,12 @@ public class GlyphTag {
      * @return The modified component
      */
     private static Component applyShadowColor(Component component, @Nullable Integer shadowColor) {
-        if (shadowColor == null) return component;
+        if (shadowColor == null)
+            return component;
 
         // ShadowColor was added in 1.21.4
-        if (!VersionUtil.atOrAbove("1.21.4")) return component;
+        if (!VersionUtil.atOrAbove("1.21.4"))
+            return component;
 
         try {
             return component.shadowColor(ShadowColor.shadowColor(shadowColor));

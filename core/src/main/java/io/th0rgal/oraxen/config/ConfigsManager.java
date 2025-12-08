@@ -96,7 +96,8 @@ public class ConfigsManager {
                 inputStreamReader.close();
             } catch (IOException e) {
                 Logs.logError("Failed to extract default file: " + source);
-                if (Settings.DEBUG.toBool()) e.printStackTrace();
+                if (Settings.DEBUG.toBool())
+                    e.printStackTrace();
             }
         }
     }
@@ -127,7 +128,8 @@ public class ConfigsManager {
             glyphsFolder.mkdirs();
             if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
                 tempManager.extractConfigsInFolder("glyphs", "yml");
-            else tempManager.extractConfiguration("glyphs/interface.yml");
+            else
+                tempManager.extractConfiguration("glyphs/interface.yml");
         }
 
         // check schematicsFolder
@@ -148,12 +150,14 @@ public class ConfigsManager {
 
     }
 
-    private YamlConfiguration validate(ResourcesManager resourcesManager, String configName, YamlConfiguration defaultConfiguration) {
+    private YamlConfiguration validate(ResourcesManager resourcesManager, String configName,
+            YamlConfiguration defaultConfiguration) {
         File configurationFile = resourcesManager.extractConfiguration(configName);
         YamlConfiguration configuration = OraxenYaml.loadConfiguration(configurationFile);
         boolean updated = false;
         for (String key : defaultConfiguration.getKeys(true)) {
-            if (!skippedYamlKeys.stream().filter(key::startsWith).toList().isEmpty()) continue;
+            if (!skippedYamlKeys.stream().filter(key::startsWith).toList().isEmpty())
+                continue;
             if (configuration.get(key) == null) {
                 updated = true;
                 Message.UPDATING_CONFIG.log(AdventureUtils.tagResolver("option", key));
@@ -161,33 +165,31 @@ public class ConfigsManager {
             }
         }
 
-        for (String key : configuration.getKeys(false)) if (removedYamlKeys.contains(key)) {
+        for (String key : configuration.getKeys(false))
+            if (removedYamlKeys.contains(key)) {
                 updated = true;
                 Message.REMOVING_CONFIG.log(AdventureUtils.tagResolver("option", key));
                 configuration.set(key, null);
-        }
+            }
 
         if (updated)
             try {
                 configuration.save(configurationFile);
             } catch (IOException e) {
                 Logs.logError("Failed to save updated configuration file: " + configurationFile.getName());
-                if (Settings.DEBUG.toBool()) e.printStackTrace();
+                if (Settings.DEBUG.toBool())
+                    e.printStackTrace();
             }
         return configuration;
     }
 
     // Skip optional keys and subkeys
-    private final List<String> skippedYamlKeys =
-            List.of(
-                    "oraxen_inventory.menu_layout",
-                    "Misc.armor_equip_event_bypass"
-            );
+    private final List<String> skippedYamlKeys = List.of(
+            "oraxen_inventory.menu_layout",
+            "Misc.armor_equip_event_bypass");
 
-    private final List<String> removedYamlKeys =
-            List.of(
-                    "armorpotioneffects"
-            );
+    private final List<String> removedYamlKeys = List.of(
+            "armorpotioneffects");
 
     /**
      * Holds parsing state for glyph configuration processing.
@@ -216,7 +218,8 @@ public class ConfigsManager {
             YamlConfiguration configuration = OraxenYaml.loadConfiguration(file);
             for (String key : configuration.getKeys(false)) {
                 ConfigurationSection glyphSection = configuration.getConfigurationSection(key);
-                if (glyphSection == null) continue;
+                if (glyphSection == null)
+                    continue;
                 collectCodepointsFromSection(key, glyphSection, ctx);
             }
         }
@@ -267,13 +270,15 @@ public class ConfigsManager {
 
         for (String key : configuration.getKeys(false)) {
             ConfigurationSection glyphSection = configuration.getConfigurationSection(key);
-            if (glyphSection == null) continue;
+            if (glyphSection == null)
+                continue;
 
             GlyphParseResult result = createGlyph(key, glyphSection, ctx);
             result.glyph.verifyGlyph(output);
             output.add(result.glyph);
 
-            if (result.fileChanged) fileChanged = true;
+            if (result.fileChanged)
+                fileChanged = true;
         }
 
         return fileChanged;
@@ -282,7 +287,8 @@ public class ConfigsManager {
     /**
      * Result of creating a single glyph.
      */
-    private record GlyphParseResult(Glyph glyph, boolean fileChanged) {}
+    private record GlyphParseResult(Glyph glyph, boolean fileChanged) {
+    }
 
     /**
      * Creates a glyph from a configuration section.
@@ -305,7 +311,8 @@ public class ConfigsManager {
         return new GlyphParseResult(glyph, false);
     }
 
-    private GlyphParseResult createGridGlyph(String key, ConfigurationSection section, GlyphGrid grid, GlyphParseContext ctx) {
+    private GlyphParseResult createGridGlyph(String key, ConfigurationSection section, GlyphGrid grid,
+            GlyphParseContext ctx) {
         List<String> unicodeRows = generateGridUnicodes(grid, ctx.usedCodepoints);
         boolean fileChanged = false;
 
@@ -336,7 +343,8 @@ public class ConfigsManager {
                 configuration.save(file);
             } catch (IOException e) {
                 Logs.logWarning("Failed to save updated glyph file: " + file.getName());
-                if (Settings.DEBUG.toBool()) e.printStackTrace();
+                if (Settings.DEBUG.toBool())
+                    e.printStackTrace();
             }
         }
     }
@@ -372,41 +380,54 @@ public class ConfigsManager {
      * @return The next available character
      */
     private char findNextCodepoint(Set<Integer> usedCodepoints, int min) {
-        while (usedCodepoints.contains(min)) min++;
+        while (usedCodepoints.contains(min))
+            min++;
         return (char) min;
     }
 
     public Map<File, Map<String, ItemBuilder>> parseItemConfig() {
         Map<File, Map<String, ItemBuilder>> parseMap = new LinkedHashMap<>();
         ItemBuilder errorItem = new ItemParser(Settings.ERROR_ITEM.toConfigSection()).buildItem();
-        for (File file : getItemFiles()) parseMap.put(file, parseItemConfig(file, errorItem));
+        for (File file : getItemFiles())
+            parseMap.put(file, parseItemConfig(file, errorItem));
         return parseMap;
     }
 
     public void assignAllUsedModelDatas() {
         Map<Material, Map<Integer, String>> assignedModelDatas = new HashMap<>();
         for (File file : getItemFiles()) {
-            if (!file.exists()) continue;
+            if (!file.exists())
+                continue;
             YamlConfiguration configuration = OraxenYaml.loadConfiguration(file);
             boolean fileChanged = false;
 
             for (String key : configuration.getKeys(false)) {
                 ConfigurationSection itemSection = configuration.getConfigurationSection(key);
-                if (itemSection == null) continue;
+                if (itemSection == null)
+                    continue;
                 ConfigurationSection packSection = itemSection.getConfigurationSection("Pack");
                 Material material = Material.getMaterial(itemSection.getString("material", ""));
-                if (packSection == null || material == null) continue;
+                if (packSection == null || material == null)
+                    continue;
                 int modelData = packSection.getInt("custom_model_data", -1);
                 String model = getItemModelFromConfigurationSection(packSection);
-                if (modelData == -1) continue;
-                if (assignedModelDatas.containsKey(material) && assignedModelDatas.get(material).containsKey(modelData)) {
-                    if (assignedModelDatas.get(material).get(modelData).equals(model)) continue;
-                    Logs.logError("CustomModelData " + modelData + " is already assigned to another item with this material but different model");
-                    if (file.getAbsolutePath().equals(DuplicationHandler.getDuplicateItemFile(material).getAbsolutePath()) && Settings.RETAIN_CUSTOM_MODEL_DATA.toBool()) {
+                if (modelData == -1)
+                    continue;
+                if (assignedModelDatas.containsKey(material)
+                        && assignedModelDatas.get(material).containsKey(modelData)) {
+                    if (assignedModelDatas.get(material).get(modelData).equals(model))
+                        continue;
+                    Logs.logError("CustomModelData " + modelData
+                            + " is already assigned to another item with this material but different model");
+                    if (file.getAbsolutePath()
+                            .equals(DuplicationHandler.getDuplicateItemFile(material).getAbsolutePath())
+                            && Settings.RETAIN_CUSTOM_MODEL_DATA.toBool()) {
                         Logs.logWarning("Due to " + Settings.RETAIN_CUSTOM_MODEL_DATA.getPath() + " being enabled,");
                         Logs.logWarning("the model data will not removed from " + file.getName() + ": " + key + ".");
                         Logs.logWarning("There will still be a conflict which you need to solve yourself.");
-                        Logs.logWarning("Either reset the CustomModelData of this item, or change the CustomModelData of the conflicting item.", true);
+                        Logs.logWarning(
+                                "Either reset the CustomModelData of this item, or change the CustomModelData of the conflicting item.",
+                                true);
                     } else {
                         Logs.logWarning("Removing custom model data from " + file.getName() + ": " + key, true);
                         packSection.set("custom_model_data", null);
@@ -419,21 +440,24 @@ public class ConfigsManager {
                 ModelData.DATAS.computeIfAbsent(material, k -> new HashMap<>()).put(key, modelData);
             }
 
-            if (fileChanged) try {
-                configuration.save(file);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            if (fileChanged)
+                try {
+                    configuration.save(file);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
         }
     }
 
     public void parseAllItemTemplates() {
         for (File file : getItemFiles()) {
-            if (file == null || !file.exists()) continue;
+            if (file == null || !file.exists())
+                continue;
             YamlConfiguration configuration = OraxenYaml.loadConfiguration(file);
             for (String key : configuration.getKeys(false)) {
                 ConfigurationSection itemSection = configuration.getConfigurationSection(key);
-                if (itemSection != null && itemSection.isBoolean("template")) ItemTemplate.register(itemSection);
+                if (itemSection != null && itemSection.isBoolean("template"))
+                    ItemTemplate.register(itemSection);
             }
         }
     }
@@ -452,7 +476,8 @@ public class ConfigsManager {
 
         for (String itemKey : config.getKeys(false)) {
             ConfigurationSection itemSection = config.getConfigurationSection(itemKey);
-            if (itemSection == null || ItemTemplate.isTemplate(itemKey)) continue;
+            if (itemSection == null || ItemTemplate.isTemplate(itemKey))
+                continue;
             parseMap.put(itemKey, new ItemParser(itemSection));
         }
         boolean configUpdated = false;
@@ -466,8 +491,10 @@ public class ConfigsManager {
             } catch (Exception e) {
                 map.put(entry.getKey(), errorItem);
                 Logs.logError("ERROR BUILDING ITEM \"" + entry.getKey() + "\"");
-                if (Settings.DEBUG.toBool()) e.printStackTrace();
-                else Logs.logWarning(e.getMessage());
+                if (Settings.DEBUG.toBool())
+                    e.printStackTrace();
+                else
+                    Logs.logWarning(e.getMessage());
             }
             if (itemParser.isConfigUpdated())
                 configUpdated = true;
@@ -477,16 +504,19 @@ public class ConfigsManager {
             String content = config.saveToString();
             if (VersionUtil.atOrAbove("1.20.5"))
                 content = content.replace("displayname: ", "itemname: ");
-            else content = content.replace("itemname: ", "displayname: ");
+            else
+                content = content.replace("itemname: ", "displayname: ");
 
             try {
                 FileUtils.writeStringToFile(itemFile, content, StandardCharsets.UTF_8);
             } catch (Exception e) {
-                if (Settings.DEBUG.toBool()) e.printStackTrace();
+                if (Settings.DEBUG.toBool())
+                    e.printStackTrace();
                 try {
                     config.save(itemFile);
                 } catch (Exception e1) {
-                    if (Settings.DEBUG.toBool()) e1.printStackTrace();
+                    if (Settings.DEBUG.toBool())
+                        e1.printStackTrace();
                 }
             }
         }
@@ -495,12 +525,16 @@ public class ConfigsManager {
     }
 
     private List<File> getItemFiles() {
-        if (itemsFolder == null || !itemsFolder.exists()) return new ArrayList<>();
-        return FileUtils.listFiles(itemsFolder, new String[]{"yml"}, true).stream().filter(OraxenYaml::isValidYaml).sorted().toList();
+        if (itemsFolder == null || !itemsFolder.exists())
+            return new ArrayList<>();
+        return FileUtils.listFiles(itemsFolder, new String[] { "yml" }, true).stream().filter(OraxenYaml::isValidYaml)
+                .sorted().toList();
     }
 
     private List<File> getGlyphFiles() {
-        if (glyphsFolder == null || !glyphsFolder.exists()) return new ArrayList<>();
-        return FileUtils.listFiles(glyphsFolder, new String[]{"yml"}, true).stream().filter(OraxenYaml::isValidYaml).sorted().toList();
+        if (glyphsFolder == null || !glyphsFolder.exists())
+            return new ArrayList<>();
+        return FileUtils.listFiles(glyphsFolder, new String[] { "yml" }, true).stream().filter(OraxenYaml::isValidYaml)
+                .sorted().toList();
     }
 }
