@@ -52,10 +52,20 @@ public class ModelDefinitionGenerator {
             root.add("model", conditionModel);
         } 
         // Handle crossbows with pulling models, charged model, and firework model
-        else if (material != null && material == Material.CROSSBOW) {
+        else if ((oraxenMeta.hasPullingModels() || oraxenMeta.hasChargedModel() || oraxenMeta.hasFireworkModel()) && material != null && material == Material.CROSSBOW) {
             JsonObject crossbowModel = createCrossbowModel(baseModel, oraxenMeta);
             root.add("model", crossbowModel);
-        } 
+        }
+        // Handle fishing rods with cast model
+        else if (oraxenMeta.hasCastModel() && material != null && material == Material.FISHING_ROD) {
+            JsonObject fishingRodModel = createFishingRodModel(baseModel, oraxenMeta);
+            root.add("model", fishingRodModel);
+        }
+        // Handle shields with blocking model
+        else if (oraxenMeta.hasBlockingModel() && material != null && material == Material.SHIELD) {
+            JsonObject shieldModel = createShieldModel(baseModel, oraxenMeta);
+            root.add("model", shieldModel);
+        }
         else {
             // No special handling, use base model directly
             root.add("model", baseModel);
@@ -229,6 +239,58 @@ public class ModelDefinitionGenerator {
         
         pullingCondition.add("on_true", rangeDispatch);
         return pullingCondition;
+    }
+
+    private JsonObject createFishingRodModel(JsonObject baseModel, OraxenMeta oraxenMeta) {
+        // Structure based on craft-engine implementation:
+        // Condition on "fishing_rod/cast" property
+        //   - on_false: Base model (when not casting)
+        //   - on_true: Cast model (when casting)
+        
+        if (!oraxenMeta.hasCastModel()) {
+            return baseModel;
+        }
+        
+        JsonObject conditionModel = new JsonObject();
+        conditionModel.addProperty("type", "minecraft:condition");
+        conditionModel.addProperty("property", "minecraft:fishing_rod/cast");
+        
+        // on_false: base model (when not casting)
+        conditionModel.add("on_false", baseModel);
+        
+        // on_true: cast model (when casting)
+        JsonObject castModelObj = new JsonObject();
+        castModelObj.addProperty("type", "minecraft:model");
+        castModelObj.addProperty("model", oraxenMeta.getCastModel());
+        conditionModel.add("on_true", castModelObj);
+        
+        return conditionModel;
+    }
+
+    private JsonObject createShieldModel(JsonObject baseModel, OraxenMeta oraxenMeta) {
+        // Structure based on craft-engine implementation:
+        // Condition on "using_item" property
+        //   - on_false: Base model (when not blocking)
+        //   - on_true: Blocking model (when blocking)
+        
+        if (!oraxenMeta.hasBlockingModel()) {
+            return baseModel;
+        }
+        
+        JsonObject conditionModel = new JsonObject();
+        conditionModel.addProperty("type", "minecraft:condition");
+        conditionModel.addProperty("property", "minecraft:using_item");
+        
+        // on_false: base model (when not blocking)
+        conditionModel.add("on_false", baseModel);
+        
+        // on_true: blocking model (when blocking)
+        JsonObject blockingModelObj = new JsonObject();
+        blockingModelObj.addProperty("type", "minecraft:model");
+        blockingModelObj.addProperty("model", oraxenMeta.getBlockingModel());
+        conditionModel.add("on_true", blockingModelObj);
+        
+        return conditionModel;
     }
 
 }
