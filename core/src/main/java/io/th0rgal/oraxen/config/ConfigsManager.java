@@ -189,98 +189,156 @@ public class ConfigsManager {
                     "armorpotioneffects"
             );
 
+    /**
+     * Holds parsing state for glyph configuration processing.
+     */
+    private static class GlyphParseContext {
+        final Map<String, Character> charPerGlyph = new HashMap<>();
+        final Set<Integer> usedCodepoints = new HashSet<>();
+    }
+
     public Collection<Glyph> parseGlyphConfigs() {
         List<File> glyphFiles = getGlyphFiles();
         List<Glyph> output = new ArrayList<>();
-        Map<String, Character> charPerGlyph = new HashMap<>();
-        Set<Integer> usedCodepoints = new HashSet<>();
+        GlyphParseContext ctx = new GlyphParseContext();
 
-        // First pass: collect all existing characters (single and multi-char)
-        for (File file : glyphFiles) {
-            YamlConfiguration configuration = OraxenYaml.loadConfiguration(file);
-            for (String key : configuration.getKeys(false)) {
-                ConfigurationSection glyphSection = configuration.getConfigurationSection(key);
-                if (glyphSection == null) continue;
+        collectExistingCodepoints(glyphFiles, ctx);
+        parseGlyphFiles(glyphFiles, output, ctx);
 
-                // Check for chars list first (multi-char glyphs)
-                if (glyphSection.isList("chars")) {
-                    List<String> charsList = glyphSection.getStringList("chars");
-                    for (String row : charsList) {
-                        for (char c : row.toCharArray()) {
-                            usedCodepoints.add((int) c);
-                        }
-                    }
-                    if (!charsList.isEmpty() && !charsList.get(0).isEmpty()) {
-                        charPerGlyph.put(key, charsList.get(0).charAt(0));
-                    }
-                } else {
-                    // Legacy single char support
-                    String characterString = glyphSection.getString("char", "");
-                    if (!characterString.isBlank()) {
-                        char character = characterString.charAt(0);
-                        charPerGlyph.put(key, character);
-                        usedCodepoints.add((int) character);
-                    }
-                }
-            }
-        }
-
-        // Second pass: create glyphs with unicode generation
-        for (File file : glyphFiles) {
-            YamlConfiguration configuration = OraxenYaml.loadConfiguration(file);
-            boolean fileChanged = false;
-
-            for (String key : configuration.getKeys(false)) {
-                ConfigurationSection glyphSection = configuration.getConfigurationSection(key);
-                if (glyphSection == null) continue;
-
-                // Parse grid configuration
-                GlyphGrid grid = GlyphGrid.fromConfig(glyphSection.getConfigurationSection("grid"));
-                List<String> unicodeRows;
-                Glyph glyph;
-
-                // Check for existing chars list
-                if (glyphSection.isList("chars")) {
-                    unicodeRows = glyphSection.getStringList("chars");
-                    glyph = new Glyph(key, glyphSection, unicodeRows, grid);
-                } else if (grid.isMultiCell()) {
-                    // Generate grid unicodes for multi-cell glyphs
-                    unicodeRows = generateGridUnicodes(grid, usedCodepoints);
-
-                    // Cache the generated chars to config
-                    if (!Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) {
-                        glyphSection.set("chars", unicodeRows);
-                        fileChanged = true;
-                    }
-
-                    glyph = new Glyph(key, glyphSection, unicodeRows, grid);
-                    glyph.setFileChanged(fileChanged);
-                } else {
-                    // Single character glyph (legacy behavior)
-                    char character = charPerGlyph.getOrDefault(key, Character.MIN_VALUE);
-                    if (character == Character.MIN_VALUE) {
-                        character = findNextCodepoint(usedCodepoints, 42000);
-                        charPerGlyph.put(key, character);
-                        usedCodepoints.add((int) character);
-                    }
-                    glyph = new Glyph(key, glyphSection, character);
-                    if (glyph.isFileChanged()) fileChanged = true;
-                }
-
-                glyph.verifyGlyph(output);
-                output.add(glyph);
-            }
-
-            if (fileChanged && !Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) {
-                try {
-                    configuration.save(file);
-                } catch (IOException e) {
-                    Logs.logWarning("Failed to save updated glyph file: " + file.getName());
-                    if (Settings.DEBUG.toBool()) e.printStackTrace();
-                }
-            }
-        }
         return output;
+    }
+
+    /**
+     * First pass: collects all existing codepoints from glyph files.
+     */
+    private void collectExistingCodepoints(List<File> glyphFiles, GlyphParseContext ctx) {
+        for (File file : glyphFiles) {
+            YamlConfiguration configuration = OraxenYaml.loadConfiguration(file);
+            for (String key : configuration.getKeys(false)) {
+                ConfigurationSection glyphSection = configuration.getConfigurationSection(key);
+                if (glyphSection == null) continue;
+                collectCodepointsFromSection(key, glyphSection, ctx);
+            }
+        }
+    }
+
+    /**
+     * Collects codepoints from a single glyph section.
+     */
+    private void collectCodepointsFromSection(String key, ConfigurationSection section, GlyphParseContext ctx) {
+        if (section.isList("chars")) {
+            List<String> charsList = section.getStringList("chars");
+            for (String row : charsList) {
+                for (char c : row.toCharArray()) {
+                    ctx.usedCodepoints.add((int) c);
+                }
+            }
+            if (!charsList.isEmpty() && !charsList.get(0).isEmpty()) {
+                ctx.charPerGlyph.put(key, charsList.get(0).charAt(0));
+            }
+        } else {
+            String characterString = section.getString("char", "");
+            if (!characterString.isBlank()) {
+                char character = characterString.charAt(0);
+                ctx.charPerGlyph.put(key, character);
+                ctx.usedCodepoints.add((int) character);
+            }
+        }
+    }
+
+    /**
+     * Second pass: creates glyphs from all glyph files.
+     */
+    private void parseGlyphFiles(List<File> glyphFiles, List<Glyph> output, GlyphParseContext ctx) {
+        for (File file : glyphFiles) {
+            YamlConfiguration configuration = OraxenYaml.loadConfiguration(file);
+            boolean fileChanged = parseGlyphsFromFile(configuration, output, ctx);
+            saveConfigIfChanged(file, configuration, fileChanged);
+        }
+    }
+
+    /**
+     * Parses all glyphs from a single configuration file.
+     *
+     * @return true if the file was modified
+     */
+    private boolean parseGlyphsFromFile(YamlConfiguration configuration, List<Glyph> output, GlyphParseContext ctx) {
+        boolean fileChanged = false;
+
+        for (String key : configuration.getKeys(false)) {
+            ConfigurationSection glyphSection = configuration.getConfigurationSection(key);
+            if (glyphSection == null) continue;
+
+            GlyphParseResult result = createGlyph(key, glyphSection, ctx);
+            result.glyph.verifyGlyph(output);
+            output.add(result.glyph);
+
+            if (result.fileChanged) fileChanged = true;
+        }
+
+        return fileChanged;
+    }
+
+    /**
+     * Result of creating a single glyph.
+     */
+    private record GlyphParseResult(Glyph glyph, boolean fileChanged) {}
+
+    /**
+     * Creates a glyph from a configuration section.
+     */
+    private GlyphParseResult createGlyph(String key, ConfigurationSection section, GlyphParseContext ctx) {
+        GlyphGrid grid = GlyphGrid.fromConfig(section.getConfigurationSection("grid"));
+
+        if (section.isList("chars")) {
+            return createMultiCharGlyph(key, section, grid);
+        } else if (grid.isMultiCell()) {
+            return createGridGlyph(key, section, grid, ctx);
+        } else {
+            return createSingleCharGlyph(key, section, ctx);
+        }
+    }
+
+    private GlyphParseResult createMultiCharGlyph(String key, ConfigurationSection section, GlyphGrid grid) {
+        List<String> unicodeRows = section.getStringList("chars");
+        Glyph glyph = new Glyph(key, section, unicodeRows, grid);
+        return new GlyphParseResult(glyph, false);
+    }
+
+    private GlyphParseResult createGridGlyph(String key, ConfigurationSection section, GlyphGrid grid, GlyphParseContext ctx) {
+        List<String> unicodeRows = generateGridUnicodes(grid, ctx.usedCodepoints);
+        boolean fileChanged = false;
+
+        if (!Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) {
+            section.set("chars", unicodeRows);
+            fileChanged = true;
+        }
+
+        Glyph glyph = new Glyph(key, section, unicodeRows, grid);
+        glyph.setFileChanged(fileChanged);
+        return new GlyphParseResult(glyph, fileChanged);
+    }
+
+    private GlyphParseResult createSingleCharGlyph(String key, ConfigurationSection section, GlyphParseContext ctx) {
+        char character = ctx.charPerGlyph.getOrDefault(key, Character.MIN_VALUE);
+        if (character == Character.MIN_VALUE) {
+            character = findNextCodepoint(ctx.usedCodepoints, 42000);
+            ctx.charPerGlyph.put(key, character);
+            ctx.usedCodepoints.add((int) character);
+        }
+        Glyph glyph = new Glyph(key, section, character);
+        return new GlyphParseResult(glyph, glyph.isFileChanged());
+    }
+
+    private void saveConfigIfChanged(File file, YamlConfiguration configuration, boolean fileChanged) {
+        if (fileChanged && !Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) {
+            try {
+                configuration.save(file);
+            } catch (IOException e) {
+                Logs.logWarning("Failed to save updated glyph file: " + file.getName());
+                if (Settings.DEBUG.toBool()) e.printStackTrace();
+            }
+        }
     }
 
     /**

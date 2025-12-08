@@ -280,77 +280,145 @@ public class Glyph {
         return player == null || permission.isEmpty() || player.hasPermission(permission);
     }
 
-    private final Set<String> materialNames = Arrays.stream(Material.values()).map(Material::name).collect(Collectors.toSet());
+    private static final Set<String> MATERIAL_NAMES = Arrays.stream(Material.values())
+            .map(Material::name)
+            .collect(Collectors.toSet());
 
+    /**
+     * Verifies the glyph configuration and texture validity.
+     *
+     * @param glyphs List of other glyphs to check for conflicts
+     */
     public void verifyGlyph(List<Glyph> glyphs) {
-        // Return on first run as files aren't generated yet
         Path packFolder = Path.of(OraxenPlugin.get().getDataFolder().getAbsolutePath()).resolve("pack");
         if (!packFolder.toFile().exists()) return;
 
-        String texturePath = texture.contains(":") ? "assets/" + StringUtils.substringBefore(texture, ":") + "/textures/" : "textures/";
-        texturePath = texturePath + (texture.contains(":") ? texture.split(":")[1] : texture);
-        File textureFile;
-        // If using minecraft as a namespace, make sure it is in assets or root pack-dir
-        if (!StringUtils.substringBefore(texture, ":").equals("minecraft") || packFolder.resolve(texturePath).toFile().exists()) {
-            textureFile = packFolder.resolve(texturePath).toFile();
-            if (!textureFile.exists())
-                textureFile = packFolder.resolve("assets/minecraft/" + texturePath).toFile();
-        } else textureFile = packFolder.resolve(texturePath.replace("assets/minecraft/", "")).toFile();
+        VerificationContext ctx = buildVerificationContext(packFolder, glyphs);
+        if (ctx == null) return;
 
-        char firstChar = getCharacter().isEmpty() ? Character.MIN_VALUE : getCharacter().charAt(0);
-        Map<Glyph, Boolean> sameCharMap = glyphs.stream()
-                .filter(g -> !g.name.equals(name) && !g.getCharacter().isBlank() && g.getCharacter().charAt(0) == firstChar)
-                .collect(Collectors.toMap(g -> g, g -> true));
-        // Check if the texture is a vanilla item texture and therefore not in oraxen, but the vanilla pack
+        runValidations(ctx);
+    }
+
+    /**
+     * Context object containing all data needed for glyph verification.
+     */
+    private record VerificationContext(
+            File textureFile,
+            String texturePath,
+            BufferedImage image,
+            boolean isVanillaTexture,
+            boolean hasUpperCase,
+            int maxWidth,
+            int maxHeight,
+            Set<String> conflictingGlyphs
+    ) {}
+
+    /**
+     * Builds the verification context by resolving texture paths and loading images.
+     */
+    @Nullable
+    private VerificationContext buildVerificationContext(Path packFolder, List<Glyph> glyphs) {
+        String texturePath = resolveTexturePath();
+        File textureFile = resolveTextureFile(packFolder, texturePath);
+
         boolean isMinecraftNamespace = !texture.contains(":") || texture.split(":")[0].equals("minecraft");
         String textureName = textureFile.getName().split("\\.")[0].toUpperCase();
-        boolean isVanillaTexture = isMinecraftNamespace && materialNames.stream().anyMatch(textureName::contains);
-        boolean hasUpperCase = false;
-        BufferedImage image = null;
-        for (char c : texturePath.toCharArray()) if (Character.isUpperCase(c)) hasUpperCase = true;
-        try {
-            image = ImageIO.read(textureFile);
-        } catch (IOException ignored) {
-        }
+        boolean isVanillaTexture = isMinecraftNamespace && MATERIAL_NAMES.stream().anyMatch(textureName::contains);
+        boolean hasUpperCase = texturePath.chars().anyMatch(Character::isUpperCase);
 
-        // For grid glyphs, allow larger textures based on grid size
+        BufferedImage image = loadImage(textureFile);
+
         int maxWidth = grid.columns() * 256;
         int maxHeight = grid.rows() * 256;
 
-        if (height < ascent) {
-            this.setTexture("required/exit_icon");
-            Logs.logError("The ascent is bigger than the height for " + name + ". This will break all your glyphs.");
-            Logs.logWarning("It has been temporarily set to a placeholder image. You should edit this in the glyph config.");
-        } else if (!isVanillaTexture && (!textureFile.exists() || image == null)) {
-            this.setTexture("required/exit_icon");
-            Logs.logError("The texture specified for " + name + " does not exist. This will break all your glyphs.");
-            Logs.logWarning("It has been temporarily set to a placeholder image. You should edit this in the glyph config.");
-        } else if (hasUpperCase) {
-            this.setTexture("required/exit_icon");
-            Logs.logError("The filename specified for " + name + " contains capital letters.");
-            Logs.logWarning("This will break all your glyphs. It has been temporarily set to a placeholder image.");
-            Logs.logWarning("You should edit this in the glyph config and your textures filename.");
-        } else if (texturePath.contains(" ")) {
-            this.setTexture("required/exit_icon");
-            Logs.logError("The filename specified for " + name + " contains spaces.");
-            Logs.logWarning("This will break all your glyphs. It has been temporarily set to a placeholder image.");
-            Logs.logWarning("You should replace spaces with _ in your filename and glyph config.");
-        } else if (texturePath.contains("//")) {
-            this.setTexture("required/exit_icon");
-            Logs.logError("The filename specified for " + name + " contains double slashes.");
-            Logs.logWarning("This will break all your glyphs. It has been temporarily set to a placeholder image.");
-            Logs.logWarning("You should make sure that the texture-path you have specified is correct.");
-        } else if (!isVanillaTexture && !isBitMap() && image != null && (image.getHeight() > maxHeight || image.getWidth() > maxWidth)) {
-            this.setTexture("required/exit_icon");
-            Logs.logError("The texture specified for " + name + " is larger than the supported size.");
-            Logs.logWarning("The maximum image size is " + maxWidth + "x" + maxHeight + ". Anything bigger will break all your glyphs.");
-            Logs.logWarning("It has been temporarily set to a placeholder-image. You should edit this in the glyph config.");
-        } else if (Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool() && !sameCharMap.isEmpty()) {
-            this.setTexture("required/exit_icon");
-            Logs.logError(name + " code is the same as " + sameCharMap.keySet().stream().map(Glyph::getName).collect(Collectors.joining(", ")) + ".");
-            Logs.logWarning("This will break all your glyphs. It has been temporarily set to a placeholder image.");
-            Logs.logWarning("You should edit the code of all these glyphs to be unique.");
+        Set<String> conflictingGlyphs = findConflictingGlyphs(glyphs);
+
+        return new VerificationContext(
+                textureFile, texturePath, image,
+                isVanillaTexture, hasUpperCase,
+                maxWidth, maxHeight, conflictingGlyphs
+        );
+    }
+
+    private String resolveTexturePath() {
+        String basePath = texture.contains(":")
+                ? "assets/" + StringUtils.substringBefore(texture, ":") + "/textures/"
+                : "textures/";
+        String textureName = texture.contains(":") ? texture.split(":")[1] : texture;
+        return basePath + textureName;
+    }
+
+    private File resolveTextureFile(Path packFolder, String texturePath) {
+        boolean isMinecraft = StringUtils.substringBefore(texture, ":").equals("minecraft");
+        if (!isMinecraft || packFolder.resolve(texturePath).toFile().exists()) {
+            File file = packFolder.resolve(texturePath).toFile();
+            if (!file.exists()) {
+                file = packFolder.resolve("assets/minecraft/" + texturePath).toFile();
+            }
+            return file;
         }
+        return packFolder.resolve(texturePath.replace("assets/minecraft/", "")).toFile();
+    }
+
+    @Nullable
+    private BufferedImage loadImage(File textureFile) {
+        try {
+            return ImageIO.read(textureFile);
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    private Set<String> findConflictingGlyphs(List<Glyph> glyphs) {
+        char firstChar = getCharacter().isEmpty() ? Character.MIN_VALUE : getCharacter().charAt(0);
+        return glyphs.stream()
+                .filter(g -> !g.name.equals(name) && !g.getCharacter().isBlank() && g.getCharacter().charAt(0) == firstChar)
+                .map(Glyph::getName)
+                .collect(Collectors.toSet());
+    }
+
+    /**
+     * Runs all validation checks and sets placeholder texture if any fail.
+     */
+    private void runValidations(VerificationContext ctx) {
+        String error = findValidationError(ctx);
+        if (error != null) {
+            setTexture("required/exit_icon");
+            Logs.logError(error);
+            Logs.logWarning("It has been temporarily set to a placeholder image. You should edit this in the glyph config.");
+        }
+    }
+
+    @Nullable
+    private String findValidationError(VerificationContext ctx) {
+        if (height < ascent) {
+            return "The ascent is bigger than the height for " + name + ". This will break all your glyphs.";
+        }
+        if (!ctx.isVanillaTexture && (!ctx.textureFile.exists() || ctx.image == null)) {
+            return "The texture specified for " + name + " does not exist. This will break all your glyphs.";
+        }
+        if (ctx.hasUpperCase) {
+            Logs.logWarning("You should edit this in the glyph config and your textures filename.");
+            return "The filename specified for " + name + " contains capital letters. This will break all your glyphs.";
+        }
+        if (ctx.texturePath.contains(" ")) {
+            Logs.logWarning("You should replace spaces with _ in your filename and glyph config.");
+            return "The filename specified for " + name + " contains spaces. This will break all your glyphs.";
+        }
+        if (ctx.texturePath.contains("//")) {
+            Logs.logWarning("You should make sure that the texture-path you have specified is correct.");
+            return "The filename specified for " + name + " contains double slashes. This will break all your glyphs.";
+        }
+        if (!ctx.isVanillaTexture && !isBitMap() && ctx.image != null
+                && (ctx.image.getHeight() > ctx.maxHeight || ctx.image.getWidth() > ctx.maxWidth)) {
+            Logs.logWarning("The maximum image size is " + ctx.maxWidth + "x" + ctx.maxHeight + ".");
+            return "The texture specified for " + name + " is larger than the supported size. This will break all your glyphs.";
+        }
+        if (Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool() && !ctx.conflictingGlyphs.isEmpty()) {
+            Logs.logWarning("You should edit the code of all these glyphs to be unique.");
+            return name + " code is the same as " + String.join(", ", ctx.conflictingGlyphs) + ". This will break all your glyphs.";
+        }
+        return null;
     }
 
     /**
