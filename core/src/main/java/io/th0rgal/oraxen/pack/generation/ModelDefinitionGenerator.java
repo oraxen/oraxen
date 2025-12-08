@@ -36,57 +36,90 @@ public class ModelDefinitionGenerator {
     public JsonObject toJSON() {
         JsonObject root = new JsonObject();
         
-        // Create base model object
+        JsonObject baseModel = createBaseModel();
+        JsonObject itemModel = createItemSpecificModel(baseModel);
+        root.add("model", itemModel);
+        
+        addItemModelProperties(root);
+        return root;
+    }
+    
+    private JsonObject createBaseModel() {
         JsonObject baseModel = new JsonObject();
         baseModel.addProperty("type", "minecraft:model");
         baseModel.addProperty("model", oraxenMeta.getModelName());
-
-        // Maybe need consider that an itemmodel has multiple tint source
-        if (material != null && material.name().startsWith("LEATHER_")) {
-            JsonArray tints = new JsonArray();
-            JsonObject dye = new JsonObject();
-            dye.addProperty("type", "minecraft:dye");
-            // Default color is white
-            dye.addProperty("default", DEFAULT_TINT_COLOR);
-            tints.add(dye);
-            baseModel.add("tints", tints);
+        
+        addTintsIfNeeded(baseModel);
+        return baseModel;
+    }
+    
+    private void addTintsIfNeeded(JsonObject baseModel) {
+        if (material == null) {
+            return;
         }
-        if (material != null && (material == Material.POTION || material == Material.SPLASH_POTION || material == Material.LINGERING_POTION)) {
-            JsonArray tints = new JsonArray();
-            JsonObject dye = new JsonObject();
-            dye.addProperty("type", "minecraft:potion");
-            // Default color is white
-            dye.addProperty("default", DEFAULT_TINT_COLOR);
-            tints.add(dye);
-            baseModel.add("tints", tints);
+        
+        if (material.name().startsWith("LEATHER_")) {
+            addDyeTint(baseModel);
+        } else if (isPotionMaterial(material)) {
+            addPotionTint(baseModel);
         }
-
-        // Handle bows with pulling models
-        if (oraxenMeta.hasPullingModels() && material != null && material == Material.BOW) {
-            JsonObject conditionModel = createBowPullingModel(baseModel, oraxenMeta);
-            root.add("model", conditionModel);
-        } 
-        // Handle crossbows with pulling models, charged model, and firework model
-        else if ((oraxenMeta.hasPullingModels() || oraxenMeta.hasChargedModel() || oraxenMeta.hasFireworkModel()) && material != null && material == Material.CROSSBOW) {
-            JsonObject crossbowModel = createCrossbowModel(baseModel, oraxenMeta);
-            root.add("model", crossbowModel);
+    }
+    
+    private boolean isPotionMaterial(Material material) {
+        return material == Material.POTION 
+            || material == Material.SPLASH_POTION 
+            || material == Material.LINGERING_POTION;
+    }
+    
+    private void addDyeTint(JsonObject baseModel) {
+        JsonArray tints = new JsonArray();
+        JsonObject dye = new JsonObject();
+        dye.addProperty("type", "minecraft:dye");
+        dye.addProperty("default", DEFAULT_TINT_COLOR);
+        tints.add(dye);
+        baseModel.add("tints", tints);
+    }
+    
+    private void addPotionTint(JsonObject baseModel) {
+        JsonArray tints = new JsonArray();
+        JsonObject dye = new JsonObject();
+        dye.addProperty("type", "minecraft:potion");
+        dye.addProperty("default", DEFAULT_TINT_COLOR);
+        tints.add(dye);
+        baseModel.add("tints", tints);
+    }
+    
+    private JsonObject createItemSpecificModel(JsonObject baseModel) {
+        if (material == null) {
+            return baseModel;
         }
-        // Handle fishing rods with cast model
-        else if (oraxenMeta.hasCastModel() && material != null && material == Material.FISHING_ROD) {
-            JsonObject fishingRodModel = createFishingRodModel(baseModel, oraxenMeta);
-            root.add("model", fishingRodModel);
+        
+        if (material == Material.BOW && oraxenMeta.hasPullingModels()) {
+            return createBowPullingModel(baseModel, oraxenMeta);
         }
-        // Handle shields with blocking model
-        else if (oraxenMeta.hasBlockingModel() && material != null && material == Material.SHIELD) {
-            JsonObject shieldModel = createShieldModel(baseModel, oraxenMeta);
-            root.add("model", shieldModel);
+        
+        if (material == Material.CROSSBOW && hasCrossbowSpecialModels()) {
+            return createCrossbowModel(baseModel, oraxenMeta);
         }
-        else {
-            // No special handling, use base model directly
-            root.add("model", baseModel);
+        
+        if (material == Material.FISHING_ROD && oraxenMeta.hasCastModel()) {
+            return createFishingRodModel(baseModel, oraxenMeta);
         }
-
-        // Add item model definition properties (1.21.4+)
+        
+        if (material == Material.SHIELD && oraxenMeta.hasBlockingModel()) {
+            return createShieldModel(baseModel, oraxenMeta);
+        }
+        
+        return baseModel;
+    }
+    
+    private boolean hasCrossbowSpecialModels() {
+        return oraxenMeta.hasPullingModels() 
+            || oraxenMeta.hasChargedModel() 
+            || oraxenMeta.hasFireworkModel();
+    }
+    
+    private void addItemModelProperties(JsonObject root) {
         if (oraxenMeta.isOversizedInGui()) {
             root.addProperty("oversized_in_gui", true);
         }
@@ -96,8 +129,6 @@ public class ModelDefinitionGenerator {
         if (oraxenMeta.getSwapAnimationScale() != 1.0f) {
             root.addProperty("swap_animation_scale", oraxenMeta.getSwapAnimationScale());
         }
-
-        return root;
     }
 
     private JsonObject createBowPullingModel(JsonObject baseModel, OraxenMeta oraxenMeta) {
