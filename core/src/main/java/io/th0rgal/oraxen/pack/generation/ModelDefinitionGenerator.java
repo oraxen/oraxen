@@ -9,11 +9,26 @@ import org.bukkit.Material;
 import java.util.List;
 
 public class ModelDefinitionGenerator {
+    // Threshold constants for bow pulling states
+    private static final float BOW_PULL_THRESHOLD_1 = 0.65f;
+    private static final float BOW_PULL_THRESHOLD_2 = 0.9f;
+    private static final double BOW_USE_DURATION_SCALE = 0.05;
+    
+    // Threshold constants for crossbow pulling states
+    private static final float CROSSBOW_PULL_THRESHOLD_1 = 0.58f;
+    private static final float CROSSBOW_PULL_THRESHOLD_2 = 1.0f;
+    
+    // Default tint color (white)
+    private static final int DEFAULT_TINT_COLOR = 16578808;
+    
     private final OraxenMeta oraxenMeta;
-    private Material material;
+    private final Material material;
+    
     public ModelDefinitionGenerator(OraxenMeta oraxenMeta) {
         this.oraxenMeta = oraxenMeta;
+        this.material = null;
     }
+    
     public ModelDefinitionGenerator(OraxenMeta oraxenMeta, Material material) {
         this.oraxenMeta = oraxenMeta;
         this.material = material;
@@ -26,24 +41,24 @@ public class ModelDefinitionGenerator {
         baseModel.addProperty("type", "minecraft:model");
         baseModel.addProperty("model", oraxenMeta.getModelName());
 
-        //maybe need consider that an itemmodel has multiple tint source
-        if (material != null && material.name().startsWith("LEATHER_")){
+        // Maybe need consider that an itemmodel has multiple tint source
+        if (material != null && material.name().startsWith("LEATHER_")) {
             JsonArray tints = new JsonArray();
-            JsonObject dye= new JsonObject();
-            dye.addProperty("type","minecraft:dye");
-            //default color is white
-            dye.addProperty("default",16578808);
+            JsonObject dye = new JsonObject();
+            dye.addProperty("type", "minecraft:dye");
+            // Default color is white
+            dye.addProperty("default", DEFAULT_TINT_COLOR);
             tints.add(dye);
-            baseModel.add("tints",tints);
+            baseModel.add("tints", tints);
         }
-        if (material != null && (Material.POTION==material||Material.SPLASH_POTION==material||Material.LINGERING_POTION==material)){
+        if (material != null && (material == Material.POTION || material == Material.SPLASH_POTION || material == Material.LINGERING_POTION)) {
             JsonArray tints = new JsonArray();
-            JsonObject dye= new JsonObject();
-            dye.addProperty("type","minecraft:potion");
-            //default color is white
-            dye.addProperty("default",16578808);
+            JsonObject dye = new JsonObject();
+            dye.addProperty("type", "minecraft:potion");
+            // Default color is white
+            dye.addProperty("default", DEFAULT_TINT_COLOR);
             tints.add(dye);
-            baseModel.add("tints",tints);
+            baseModel.add("tints", tints);
         }
 
         // Handle bows with pulling models
@@ -97,7 +112,7 @@ public class ModelDefinitionGenerator {
         JsonObject rangeDispatch = new JsonObject();
         rangeDispatch.addProperty("type", "minecraft:range_dispatch");
         rangeDispatch.addProperty("property", "minecraft:use_duration");
-        rangeDispatch.addProperty("scale", 0.05);
+        rangeDispatch.addProperty("scale", BOW_USE_DURATION_SCALE);
         
         List<String> pullingModels = oraxenMeta.getPullingModels();
         if (pullingModels == null || pullingModels.isEmpty()) {
@@ -110,31 +125,22 @@ public class ModelDefinitionGenerator {
         // Add entries for pulling_1 and pulling_2 with thresholds
         if (pullingModels.size() >= 2) {
             JsonObject entry1 = new JsonObject();
-            entry1.addProperty("threshold", 0.65f);
-            JsonObject model1 = new JsonObject();
-            model1.addProperty("type", "minecraft:model");
-            model1.addProperty("model", pullingModels.get(1));
-            entry1.add("model", model1);
+            entry1.addProperty("threshold", BOW_PULL_THRESHOLD_1);
+            entry1.add("model", createModelObject(pullingModels.get(1)));
             entries.add(entry1);
         }
         
         if (pullingModels.size() >= 3) {
             JsonObject entry2 = new JsonObject();
-            entry2.addProperty("threshold", 0.9f);
-            JsonObject model2 = new JsonObject();
-            model2.addProperty("type", "minecraft:model");
-            model2.addProperty("model", pullingModels.get(2));
-            entry2.add("model", model2);
+            entry2.addProperty("threshold", BOW_PULL_THRESHOLD_2);
+            entry2.add("model", createModelObject(pullingModels.get(2)));
             entries.add(entry2);
         }
         
         rangeDispatch.add("entries", entries);
         
         // fallback: pulling_0 (first pulling state)
-        JsonObject fallback = new JsonObject();
-        fallback.addProperty("type", "minecraft:model");
-        fallback.addProperty("model", pullingModels.get(0));
-        rangeDispatch.add("fallback", fallback);
+        rangeDispatch.add("fallback", createModelObject(pullingModels.get(0)));
         
         conditionModel.add("on_true", rangeDispatch);
         return conditionModel;
@@ -159,10 +165,7 @@ public class ModelDefinitionGenerator {
             if (oraxenMeta.hasChargedModel()) {
                 JsonObject arrowCase = new JsonObject();
                 arrowCase.addProperty("when", "arrow");
-                JsonObject arrowModelObj = new JsonObject();
-                arrowModelObj.addProperty("type", "minecraft:model");
-                arrowModelObj.addProperty("model", oraxenMeta.getChargedModel());
-                arrowCase.add("model", arrowModelObj);
+                arrowCase.add("model", createModelObject(oraxenMeta.getChargedModel()));
                 cases.add(arrowCase);
             }
             
@@ -170,10 +173,7 @@ public class ModelDefinitionGenerator {
             if (oraxenMeta.hasFireworkModel()) {
                 JsonObject rocketCase = new JsonObject();
                 rocketCase.addProperty("when", "rocket");
-                JsonObject fireworkModelObj = new JsonObject();
-                fireworkModelObj.addProperty("type", "minecraft:model");
-                fireworkModelObj.addProperty("model", oraxenMeta.getFireworkModel());
-                rocketCase.add("model", fireworkModelObj);
+                rocketCase.add("model", createModelObject(oraxenMeta.getFireworkModel()));
                 cases.add(rocketCase);
             }
             
@@ -211,31 +211,22 @@ public class ModelDefinitionGenerator {
         // Add entries for pulling_1 and pulling_2 with thresholds (matching craft-engine: 0.58 and 1.0)
         if (pullingModels.size() >= 2) {
             JsonObject entry1 = new JsonObject();
-            entry1.addProperty("threshold", 0.58f);
-            JsonObject model1 = new JsonObject();
-            model1.addProperty("type", "minecraft:model");
-            model1.addProperty("model", pullingModels.get(1));
-            entry1.add("model", model1);
+            entry1.addProperty("threshold", CROSSBOW_PULL_THRESHOLD_1);
+            entry1.add("model", createModelObject(pullingModels.get(1)));
             entries.add(entry1);
         }
         
         if (pullingModels.size() >= 3) {
             JsonObject entry2 = new JsonObject();
-            entry2.addProperty("threshold", 1.0f);
-            JsonObject model2 = new JsonObject();
-            model2.addProperty("type", "minecraft:model");
-            model2.addProperty("model", pullingModels.get(2));
-            entry2.add("model", model2);
+            entry2.addProperty("threshold", CROSSBOW_PULL_THRESHOLD_2);
+            entry2.add("model", createModelObject(pullingModels.get(2)));
             entries.add(entry2);
         }
         
         rangeDispatch.add("entries", entries);
         
         // fallback: pulling_0 (first pulling state)
-        JsonObject fallback = new JsonObject();
-        fallback.addProperty("type", "minecraft:model");
-        fallback.addProperty("model", pullingModels.get(0));
-        rangeDispatch.add("fallback", fallback);
+        rangeDispatch.add("fallback", createModelObject(pullingModels.get(0)));
         
         pullingCondition.add("on_true", rangeDispatch);
         return pullingCondition;
@@ -259,10 +250,7 @@ public class ModelDefinitionGenerator {
         conditionModel.add("on_false", baseModel);
         
         // on_true: cast model (when casting)
-        JsonObject castModelObj = new JsonObject();
-        castModelObj.addProperty("type", "minecraft:model");
-        castModelObj.addProperty("model", oraxenMeta.getCastModel());
-        conditionModel.add("on_true", castModelObj);
+        conditionModel.add("on_true", createModelObject(oraxenMeta.getCastModel()));
         
         return conditionModel;
     }
@@ -285,12 +273,22 @@ public class ModelDefinitionGenerator {
         conditionModel.add("on_false", baseModel);
         
         // on_true: blocking model (when blocking)
-        JsonObject blockingModelObj = new JsonObject();
-        blockingModelObj.addProperty("type", "minecraft:model");
-        blockingModelObj.addProperty("model", oraxenMeta.getBlockingModel());
-        conditionModel.add("on_true", blockingModelObj);
+        conditionModel.add("on_true", createModelObject(oraxenMeta.getBlockingModel()));
         
         return conditionModel;
+    }
+    
+    /**
+     * Creates a model JsonObject with the given model name.
+     *
+     * @param modelName The name of the model
+     * @return A JsonObject representing a minecraft:model type
+     */
+    private JsonObject createModelObject(String modelName) {
+        JsonObject modelObj = new JsonObject();
+        modelObj.addProperty("type", "minecraft:model");
+        modelObj.addProperty("model", modelName);
+        return modelObj;
     }
 
 }
