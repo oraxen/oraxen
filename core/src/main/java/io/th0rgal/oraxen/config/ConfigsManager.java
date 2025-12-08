@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.config;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.font.Glyph;
+import io.th0rgal.oraxen.font.GlyphGrid;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemParser;
 import io.th0rgal.oraxen.items.ItemTemplate;
@@ -192,33 +193,84 @@ public class ConfigsManager {
         List<File> glyphFiles = getGlyphFiles();
         List<Glyph> output = new ArrayList<>();
         Map<String, Character> charPerGlyph = new HashMap<>();
+        Set<Integer> usedCodepoints = new HashSet<>();
+
+        // First pass: collect all existing characters (single and multi-char)
         for (File file : glyphFiles) {
             YamlConfiguration configuration = OraxenYaml.loadConfiguration(file);
             for (String key : configuration.getKeys(false)) {
                 ConfigurationSection glyphSection = configuration.getConfigurationSection(key);
                 if (glyphSection == null) continue;
-                String characterString = glyphSection.getString("char", "");
-                char character = !characterString.isBlank() ? characterString.charAt(0) : Character.MIN_VALUE;
-                if (character != Character.MIN_VALUE)
-                    charPerGlyph.put(key, character);
+
+                // Check for chars list first (multi-char glyphs)
+                if (glyphSection.isList("chars")) {
+                    List<String> charsList = glyphSection.getStringList("chars");
+                    for (String row : charsList) {
+                        for (char c : row.toCharArray()) {
+                            usedCodepoints.add((int) c);
+                        }
+                    }
+                    if (!charsList.isEmpty() && !charsList.get(0).isEmpty()) {
+                        charPerGlyph.put(key, charsList.get(0).charAt(0));
+                    }
+                } else {
+                    // Legacy single char support
+                    String characterString = glyphSection.getString("char", "");
+                    if (!characterString.isBlank()) {
+                        char character = characterString.charAt(0);
+                        charPerGlyph.put(key, character);
+                        usedCodepoints.add((int) character);
+                    }
+                }
             }
         }
 
+        // Second pass: create glyphs with unicode generation
         for (File file : glyphFiles) {
             YamlConfiguration configuration = OraxenYaml.loadConfiguration(file);
             boolean fileChanged = false;
+
             for (String key : configuration.getKeys(false)) {
-                char character = charPerGlyph.getOrDefault(key, Character.MIN_VALUE);
-                if (character == Character.MIN_VALUE) {
-                    character = Utils.firstEmpty(charPerGlyph, 42000);
-                    charPerGlyph.put(key, character);
+                ConfigurationSection glyphSection = configuration.getConfigurationSection(key);
+                if (glyphSection == null) continue;
+
+                // Parse grid configuration
+                GlyphGrid grid = GlyphGrid.fromConfig(glyphSection.getConfigurationSection("grid"));
+                List<String> unicodeRows;
+                Glyph glyph;
+
+                // Check for existing chars list
+                if (glyphSection.isList("chars")) {
+                    unicodeRows = glyphSection.getStringList("chars");
+                    glyph = new Glyph(key, glyphSection, unicodeRows, grid);
+                } else if (grid.isMultiCell()) {
+                    // Generate grid unicodes for multi-cell glyphs
+                    unicodeRows = generateGridUnicodes(grid, usedCodepoints);
+
+                    // Cache the generated chars to config
+                    if (!Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) {
+                        glyphSection.set("chars", unicodeRows);
+                        fileChanged = true;
+                    }
+
+                    glyph = new Glyph(key, glyphSection, unicodeRows, grid);
+                    glyph.setFileChanged(fileChanged);
+                } else {
+                    // Single character glyph (legacy behavior)
+                    char character = charPerGlyph.getOrDefault(key, Character.MIN_VALUE);
+                    if (character == Character.MIN_VALUE) {
+                        character = findNextCodepoint(usedCodepoints, 42000);
+                        charPerGlyph.put(key, character);
+                        usedCodepoints.add((int) character);
+                    }
+                    glyph = new Glyph(key, glyphSection, character);
+                    if (glyph.isFileChanged()) fileChanged = true;
                 }
-                Glyph glyph = new Glyph(key, configuration.getConfigurationSection(key), character);
-                if (glyph.isFileChanged())
-                    fileChanged = true;
+
                 glyph.verifyGlyph(output);
                 output.add(glyph);
             }
+
             if (fileChanged && !Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) {
                 try {
                     configuration.save(file);
@@ -229,6 +281,41 @@ public class ConfigsManager {
             }
         }
         return output;
+    }
+
+    /**
+     * Generates unicode characters for a grid-based glyph.
+     *
+     * @param grid           The grid configuration
+     * @param usedCodepoints Set of already used codepoints (will be modified)
+     * @return List of strings, one per row, each containing columns characters
+     */
+    private List<String> generateGridUnicodes(GlyphGrid grid, Set<Integer> usedCodepoints) {
+        List<String> rows = new ArrayList<>();
+
+        for (int row = 0; row < grid.rows(); row++) {
+            StringBuilder rowBuilder = new StringBuilder();
+            for (int col = 0; col < grid.columns(); col++) {
+                char nextChar = findNextCodepoint(usedCodepoints, 42000);
+                usedCodepoints.add((int) nextChar);
+                rowBuilder.append(nextChar);
+            }
+            rows.add(rowBuilder.toString());
+        }
+
+        return rows;
+    }
+
+    /**
+     * Finds the next unused codepoint starting from a minimum value.
+     *
+     * @param usedCodepoints Set of already used codepoints
+     * @param min            Minimum codepoint value to start searching from
+     * @return The next available character
+     */
+    private char findNextCodepoint(Set<Integer> usedCodepoints, int min) {
+        while (usedCodepoints.contains(min)) min++;
+        return (char) min;
     }
 
     public Map<File, Map<String, ItemBuilder>> parseItemConfig() {

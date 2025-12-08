@@ -18,6 +18,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
@@ -25,10 +26,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -40,10 +38,11 @@ public class Glyph {
     private boolean fileChanged = false;
 
     private final String name;
-    private final Key font = Key.key("default");
     private final boolean isEmoji;
     private final boolean tabcomplete;
-    private final Character character;
+    private final List<String> unicodeRows;
+    private final GlyphGrid grid;
+    private final GlyphAppearance appearance;
     private String texture;
     private final int ascent;
     private final int height;
@@ -54,8 +53,19 @@ public class Glyph {
     public final Pattern baseRegex;
     public final Pattern escapedRegex;
 
-    public Glyph(final String glyphName, final ConfigurationSection glyphSection, char newChars) {
+    /**
+     * Creates a Glyph with multi-character support.
+     *
+     * @param glyphName    The glyph identifier
+     * @param glyphSection The configuration section
+     * @param unicodeRows  List of unicode strings (one per row)
+     * @param grid         The grid configuration
+     */
+    public Glyph(final String glyphName, final ConfigurationSection glyphSection,
+                 @NotNull List<String> unicodeRows, @NotNull GlyphGrid grid) {
         name = glyphName;
+        this.unicodeRows = new ArrayList<>(unicodeRows);
+        this.grid = grid;
 
         isEmoji = glyphSection.getBoolean("is_emoji", false);
 
@@ -65,23 +75,12 @@ public class Glyph {
         tabcomplete = chatSection != null && chatSection.getBoolean("tabcomplete", false);
 
         String placeholderRegex = String.join("|", Arrays.stream(placeholders).map(Pattern::quote).toArray(String[]::new));
-        String baseRegex = "((<(glyph|g):" + name + ")(:(c|colorable))*>" + (placeholders.length > 0 ?  "|" + placeholderRegex : "") + ")";
+        String baseRegex = "((<(glyph|g):" + name + ")(:(c|colorable|s|shadow)(:[^>]*)?)*>" + (placeholders.length > 0 ? "|" + placeholderRegex : "") + ")";
         this.baseRegex = Pattern.compile("(?<!\\\\)" + baseRegex);
         escapedRegex = Pattern.compile("\\\\" + baseRegex);
 
-        if (glyphSection.contains("code")) {
-            if (glyphSection.isInt("code")) glyphSection.set("char", (char) glyphSection.getInt("code"));
-            glyphSection.set("code", null);
-            fileChanged = true;
-        }
-
-        if (!glyphSection.contains("char") && !Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) {
-            glyphSection.set("char", newChars);
-            fileChanged = true;
-        }
-
-        character = glyphSection.get("char") != null ? glyphSection.getString("char", "").charAt(0) : null;
-
+        // Parse appearance configuration
+        appearance = GlyphAppearance.fromConfig(glyphSection.getConfigurationSection("appearance"));
 
         ConfigurationSection bitmapSection = glyphSection.getConfigurationSection("bitmap");
         bitmapEntry = bitmapSection != null ? new BitMapEntry(bitmapSection.getString("id"), bitmapSection.getInt("row"), bitmapSection.getInt("column")) : null;
@@ -89,6 +88,30 @@ public class Glyph {
         height = getBitMap() != null ? getBitMap().height() : glyphSection.getInt("height", 8);
         texture = getBitMap() != null ? getBitMap().texture() : glyphSection.getString("texture", "required/exit_icon.png");
         if (!texture.endsWith(".png")) texture += ".png";
+    }
+
+    /**
+     * Legacy constructor for backward compatibility.
+     * Creates a single-character glyph.
+     *
+     * @param glyphName    The glyph identifier
+     * @param glyphSection The configuration section
+     * @param character    The unicode character
+     */
+    public Glyph(final String glyphName, final ConfigurationSection glyphSection, char character) {
+        this(glyphName, glyphSection, List.of(String.valueOf(character)), GlyphGrid.SINGLE);
+
+        // Handle legacy config migration
+        if (glyphSection.contains("code")) {
+            if (glyphSection.isInt("code")) glyphSection.set("char", (char) glyphSection.getInt("code"));
+            glyphSection.set("code", null);
+            fileChanged = true;
+        }
+
+        if (!glyphSection.contains("char") && !Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) {
+            glyphSection.set("char", character);
+            fileChanged = true;
+        }
     }
 
     public record BitMapEntry(String id, int row, int column) {
@@ -118,12 +141,84 @@ public class Glyph {
         return fileChanged;
     }
 
+    public void setFileChanged(boolean changed) {
+        this.fileChanged = changed;
+    }
+
     public String getName() {
         return name;
     }
 
+    /**
+     * Returns the first character for backward compatibility.
+     *
+     * @return The first character of the first row, or empty string if empty
+     */
     public String getCharacter() {
-        return character != null ? character.toString() : "";
+        if (unicodeRows.isEmpty() || unicodeRows.get(0).isEmpty()) return "";
+        return String.valueOf(unicodeRows.get(0).charAt(0));
+    }
+
+    /**
+     * Returns all unicode rows for multi-character glyphs.
+     *
+     * @return Unmodifiable list of unicode strings (one per row)
+     */
+    @NotNull
+    public List<String> getUnicodeRows() {
+        return Collections.unmodifiableList(unicodeRows);
+    }
+
+    /**
+     * Flattens all rows into a single character array.
+     *
+     * @return All characters from all rows
+     */
+    public char[] getAllChars() {
+        StringBuilder sb = new StringBuilder();
+        for (String row : unicodeRows) {
+            sb.append(row);
+        }
+        return sb.toString().toCharArray();
+    }
+
+    /**
+     * Joins all rows with newlines for display purposes.
+     *
+     * @return Formatted unicode string with newlines between rows
+     */
+    public String getFormattedUnicodes() {
+        return String.join("\n", unicodeRows);
+    }
+
+    /**
+     * Returns the grid configuration for this glyph.
+     *
+     * @return The GlyphGrid configuration
+     */
+    @NotNull
+    public GlyphGrid getGrid() {
+        return grid;
+    }
+
+    /**
+     * Returns the appearance configuration for this glyph.
+     *
+     * @return The GlyphAppearance configuration
+     */
+    @NotNull
+    public GlyphAppearance getAppearance() {
+        return appearance;
+    }
+
+    /**
+     * Returns the font key for this glyph.
+     *
+     * @return The Adventure Key for the font
+     */
+    @NotNull
+    public Key getFont() {
+        return appearance.font();
     }
 
     public String getTexture() {
@@ -158,10 +253,21 @@ public class Glyph {
         return tabcomplete;
     }
 
+    /**
+     * Converts this glyph to JSON for resource pack generation.
+     * Supports multi-character glyphs with multiple rows in the "chars" array.
+     *
+     * @return JsonObject for the font provider
+     */
     public JsonObject toJson() {
         final JsonObject output = new JsonObject();
         final JsonArray chars = new JsonArray();
-        chars.add(getCharacter());
+
+        // Add each row as a separate entry in the chars array
+        for (String row : unicodeRows) {
+            chars.add(row);
+        }
+
         output.add("chars", chars);
         output.addProperty("file", texture);
         output.addProperty("ascent", ascent);
@@ -191,7 +297,10 @@ public class Glyph {
                 textureFile = packFolder.resolve("assets/minecraft/" + texturePath).toFile();
         } else textureFile = packFolder.resolve(texturePath.replace("assets/minecraft/", "")).toFile();
 
-        Map<Glyph, Boolean> sameCharMap = glyphs.stream().filter(g -> !g.name.equals(name) && !g.getCharacter().isBlank() && g.character.equals(character)).collect(Collectors.toMap(g -> g, g -> true));
+        char firstChar = getCharacter().isEmpty() ? Character.MIN_VALUE : getCharacter().charAt(0);
+        Map<Glyph, Boolean> sameCharMap = glyphs.stream()
+                .filter(g -> !g.name.equals(name) && !g.getCharacter().isBlank() && g.getCharacter().charAt(0) == firstChar)
+                .collect(Collectors.toMap(g -> g, g -> true));
         // Check if the texture is a vanilla item texture and therefore not in oraxen, but the vanilla pack
         boolean isMinecraftNamespace = !texture.contains(":") || texture.split(":")[0].equals("minecraft");
         String textureName = textureFile.getName().split("\\.")[0].toUpperCase();
@@ -203,6 +312,10 @@ public class Glyph {
             image = ImageIO.read(textureFile);
         } catch (IOException ignored) {
         }
+
+        // For grid glyphs, allow larger textures based on grid size
+        int maxWidth = grid.columns() * 256;
+        int maxHeight = grid.rows() * 256;
 
         if (height < ascent) {
             this.setTexture("required/exit_icon");
@@ -227,10 +340,10 @@ public class Glyph {
             Logs.logError("The filename specified for " + name + " contains double slashes.");
             Logs.logWarning("This will break all your glyphs. It has been temporarily set to a placeholder image.");
             Logs.logWarning("You should make sure that the texture-path you have specified is correct.");
-        } else if (!isVanillaTexture && !isBitMap() && (image.getHeight() > 256 || image.getWidth() > 256)) {
+        } else if (!isVanillaTexture && !isBitMap() && image != null && (image.getHeight() > maxHeight || image.getWidth() > maxWidth)) {
             this.setTexture("required/exit_icon");
             Logs.logError("The texture specified for " + name + " is larger than the supported size.");
-            Logs.logWarning("The maximum image size is 256x256. Anything bigger will break all your glyphs.");
+            Logs.logWarning("The maximum image size is " + maxWidth + "x" + maxHeight + ". Anything bigger will break all your glyphs.");
             Logs.logWarning("It has been temporarily set to a placeholder-image. You should edit this in the glyph config.");
         } else if (Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool() && !sameCharMap.isEmpty()) {
             this.setTexture("required/exit_icon");
@@ -253,7 +366,7 @@ public class Glyph {
     }
 
     public Component getGlyphComponent() {
-        return Component.textOfChildren(Component.text(getCharacter(), NamedTextColor.WHITE).font(font).hoverEvent(getGlyphHoverText()));
+        return Component.textOfChildren(Component.text(getCharacter(), NamedTextColor.WHITE).font(getFont()).hoverEvent(getGlyphHoverText()));
     }
 
     @Nullable
