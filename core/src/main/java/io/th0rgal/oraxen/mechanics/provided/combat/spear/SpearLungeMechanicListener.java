@@ -204,7 +204,8 @@ public class SpearLungeMechanicListener implements Listener {
         }
     }
 
-    private void applyLungeMovement(Player player, SpearLungeMechanic mechanic, Vector direction, double chargePercent) {
+    private void applyLungeMovement(Player player, SpearLungeMechanic mechanic, Vector direction,
+            double chargePercent) {
         double velocityMultiplier = mechanic.getMinChargePercent()
                 + ((1.0 - mechanic.getMinChargePercent()) * chargePercent);
         double finalVelocity = mechanic.getLungeVelocity() * velocityMultiplier;
