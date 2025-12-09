@@ -10,10 +10,13 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
+import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.togglelight.ToggleLightMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.togglelight.ToggleLightMechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
@@ -37,6 +40,8 @@ import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockM
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic.SAPLING_KEY;
 
 public class OraxenBlocks {
+
+    private static ToggleLightMechanicFactory toggleLightFactory;
 
     /**
      * Get all OraxenItem ID's that have either a NoteBlockMechanic or a StringBlockMechanic
@@ -166,9 +171,7 @@ public class OraxenBlocks {
         NoteBlockMechanic mechanic = getNoteBlockMechanic(block);
         if (mechanic == null) return;
 
-        if (mechanic.hasLight()) {
-            mechanic.getLight().createBlockLight(block);
-        }
+        createInitialLight(block, mechanic.getItemID());
 
         if (mechanic.hasDryout() && mechanic.getDryout().isFarmBlock()) {
             pdc.set(FARMBLOCK_KEY, PersistentDataType.STRING, mechanic.getItemID());
@@ -200,8 +203,7 @@ public class OraxenBlocks {
             else blockAbove.setType(Material.TRIPWIRE);
         }
 
-        if (mechanic.hasLight())
-            mechanic.getLight().createBlockLight(block);
+        createInitialLight(block, mechanic.getItemID());
         if (mechanic.isSapling()) {
             SaplingMechanic sapling = mechanic.getSaplingMechanic();
             if (sapling != null && sapling.canGrowNaturally())
@@ -279,7 +281,7 @@ public class OraxenBlocks {
         }
         if (drop != null) drop.spawns(loc, itemInHand);
 
-        if (mechanic.hasLight()) mechanic.getLight().removeBlockLight(block);
+        removeLight(block, mechanic.getItemID());
         if (mechanic.isStorage() && mechanic.getStorage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
             mechanic.getStorage().dropStorageContent(block);
         }
@@ -311,7 +313,7 @@ public class OraxenBlocks {
         if (drop != null) drop.spawns(block.getLocation(), itemInHand);
 
         final Block blockAbove = block.getRelative(BlockFace.UP);
-        if (mechanic.hasLight()) mechanic.getLight().removeBlockLight(block);
+        removeLight(block, mechanic.getItemID());
         if (mechanic.isTall()) blockAbove.setType(Material.AIR);
         block.setType(Material.AIR);
         Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
@@ -398,5 +400,65 @@ public class OraxenBlocks {
         if (block.getType() == Material.MUSHROOM_STEM) {
             return BlockMechanicFactory.getBlockMechanic(BlockMechanic.getCode(block));
         } else return null;
+    }
+
+    private static void createInitialLight(Block block, String itemID) {
+        ToggleLightMechanic toggleLight = getToggleLightMechanic(itemID);
+        
+        if (toggleLight != null) {
+            int baseLightLevel = toggleLight.getBaseLightLevel();
+            if (toggleLight.hasToggleLight() || baseLightLevel > 0) {
+                toggleLight.updateLight(block, baseLightLevel);
+                return;
+            }
+        }
+        
+        // Fallback to regular light mechanics
+        NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(itemID);
+        if (noteBlockMechanic != null && noteBlockMechanic.hasLight()) {
+            noteBlockMechanic.getLight().createBlockLight(block);
+            return;
+        }
+        
+        StringBlockMechanic stringBlockMechanic = getStringMechanic(itemID);
+        if (stringBlockMechanic != null && stringBlockMechanic.hasLight()) {
+            stringBlockMechanic.getLight().createBlockLight(block);
+        }
+    }
+
+    private static void removeLight(Block block, String itemID) {
+        ToggleLightMechanic toggleLight = getToggleLightMechanic(itemID);
+        
+        if (toggleLight != null && (toggleLight.hasToggleLight() || toggleLight.getBaseLightLevel() > 0)) {
+            toggleLight.updateLight(block, 0);
+            return;
+        }
+        
+        // Fallback to regular light mechanics
+        NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(itemID);
+        if (noteBlockMechanic != null && noteBlockMechanic.hasLight()) {
+            noteBlockMechanic.getLight().removeBlockLight(block);
+            return;
+        }
+        
+        StringBlockMechanic stringBlockMechanic = getStringMechanic(itemID);
+        if (stringBlockMechanic != null && stringBlockMechanic.hasLight()) {
+            stringBlockMechanic.getLight().removeBlockLight(block);
+        }
+    }
+
+    @Nullable
+    private static ToggleLightMechanic getToggleLightMechanic(String itemID) {
+        if (toggleLightFactory == null) {
+            ToggleLightMechanicFactory factory = ToggleLightMechanicFactory.getInstance();
+            if (factory == null) {
+                factory = (ToggleLightMechanicFactory) MechanicsManager.getMechanicFactory("toggle_light");
+            }
+            // Only cache non-null factories to allow retry if factory initializes later
+            if (factory != null) {
+                toggleLightFactory = factory;
+            }
+        }
+        return toggleLightFactory != null ? toggleLightFactory.getMechanic(itemID) : null;
     }
 }

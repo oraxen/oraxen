@@ -280,6 +280,9 @@ public class OraxenFurniture {
         ItemStack newItem = ItemUpdater.updateItem(oldItem);
         FurnitureMechanic.setFurnitureItem(entity, newItem);
 
+        // Refresh light based on current toggle state
+        mechanic.refreshLight(entity);
+
         if (Settings.EXPERIMENTAL_FURNITURE_TYPE_UPDATE.toBool()) {
             final PersistentDataContainer oldPdc = entity.getPersistentDataContainer();
             final BlockFace oldFacing = entity instanceof ItemFrame itemFrame ? itemFrame.getAttachedFace() : BlockFace.UP;
