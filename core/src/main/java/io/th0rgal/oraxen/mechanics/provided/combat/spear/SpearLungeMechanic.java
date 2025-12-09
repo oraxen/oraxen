@@ -1,0 +1,263 @@
+package io.th0rgal.oraxen.mechanics.provided.combat.spear;
+
+import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.mechanics.Mechanic;
+import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Particle;
+import org.bukkit.Registry;
+import org.bukkit.Sound;
+import org.bukkit.configuration.ConfigurationSection;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+/**
+ * A mechanic that enables a spear-style lunge attack with model swapping.
+ * The spear starts in an inactive (vertical) pose and transitions to an active
+ * (horizontal) pose while charging. On release, the player lunges forward.
+ * <p>
+ * This mechanic integrates with Oraxen's resource pack generation system.
+ * The base model is derived from the item's Pack.model setting.
+ * The active model is specified via the "active_model" config and a
+ * corresponding
+ * item model definition is automatically generated during pack creation.
+ */
+public class SpearLungeMechanic extends Mechanic {
+
+    // Model paths (used for pack generation)
+    private final String activeModelPath;
+    private final String[] intermediateModelPaths;
+
+    // The NamespacedKey for the active model (oraxen:<itemId>_active)
+    private final NamespacedKey activeItemModelKey;
+
+    // Gameplay settings
+    private final int chargeTicks;
+    private final double lungeVelocity;
+    private final double maxRange;
+    private final double damage;
+    private final double knockback;
+    private final int smoothFrames;
+    private final NamespacedKey[] intermediateModelKeys;
+
+    // Visual/Audio feedback
+    private final boolean enableParticles;
+    private final Particle chargeParticle;
+    private final Particle lungeParticle;
+    private final Particle hitParticle;
+    private final boolean enableSounds;
+    private final Sound chargeSound;
+    private final Sound lungeSound;
+    private final Sound hitSound;
+
+    // Gameplay modifiers
+    private final boolean piercing;
+    private final int maxTargets;
+    private final double minChargePercent;
+
+    public SpearLungeMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
+        super(mechanicFactory, section);
+
+        // Parse active model path (e.g., "default/lotrpikeactive")
+        // This follows the same format as Pack.model
+        this.activeModelPath = section.getString("active_model", null);
+
+        // Generate the NamespacedKey for the active model
+        // Uses oraxen namespace with format: <itemId>_active
+        String activeModelId = getItemID() + "_active";
+        this.activeItemModelKey = new NamespacedKey(OraxenPlugin.get(), activeModelId);
+
+        this.chargeTicks = section.getInt("charge_ticks", 12);
+        this.lungeVelocity = section.getDouble("lunge_velocity", 0.6);
+        this.maxRange = section.getDouble("max_range", 3.5);
+        this.damage = section.getDouble("damage", 6.0);
+        this.knockback = section.getDouble("knockback", 0.5);
+        this.smoothFrames = section.getInt("smooth_frames", 0);
+
+        // Gameplay modifiers
+        this.piercing = section.getBoolean("piercing", false);
+        this.maxTargets = section.getInt("max_targets", 1);
+        this.minChargePercent = section.getDouble("min_charge_percent", 0.3);
+
+        // Parse intermediate models for smooth animation
+        if (smoothFrames > 0 && section.isList("intermediate_models")) {
+            var modelList = section.getStringList("intermediate_models");
+            int frameCount = Math.min(modelList.size(), smoothFrames);
+            intermediateModelPaths = new String[frameCount];
+            intermediateModelKeys = new NamespacedKey[frameCount];
+            for (int i = 0; i < frameCount; i++) {
+                intermediateModelPaths[i] = modelList.get(i);
+                // Intermediate models use oraxen namespace with format: <itemId>_frame<n>
+                String intermediateId = getItemID() + "_frame" + i;
+                intermediateModelKeys[i] = new NamespacedKey(OraxenPlugin.get(), intermediateId);
+            }
+        } else {
+            intermediateModelPaths = new String[0];
+            intermediateModelKeys = new NamespacedKey[0];
+        }
+
+        // Particle settings
+        ConfigurationSection particleSection = section.getConfigurationSection("particles");
+        if (particleSection != null && particleSection.getBoolean("enabled", true)) {
+            this.enableParticles = true;
+            this.chargeParticle = parseParticle(particleSection.getString("charge", "CRIT"));
+            this.lungeParticle = parseParticle(particleSection.getString("lunge", "SWEEP_ATTACK"));
+            this.hitParticle = parseParticle(particleSection.getString("hit", "DAMAGE_INDICATOR"));
+        } else {
+            this.enableParticles = section.getBoolean("enable_particles", true);
+            this.chargeParticle = Particle.CRIT;
+            this.lungeParticle = Particle.SWEEP_ATTACK;
+            this.hitParticle = Particle.DAMAGE_INDICATOR;
+        }
+
+        // Sound settings
+        ConfigurationSection soundSection = section.getConfigurationSection("sounds");
+        if (soundSection != null && soundSection.getBoolean("enabled", true)) {
+            this.enableSounds = true;
+            this.chargeSound = parseSound(soundSection.getString("charge", "ITEM_TRIDENT_RIPTIDE_1"));
+            this.lungeSound = parseSound(soundSection.getString("lunge", "ENTITY_PLAYER_ATTACK_SWEEP"));
+            this.hitSound = parseSound(soundSection.getString("hit", "ENTITY_PLAYER_ATTACK_STRONG"));
+        } else {
+            this.enableSounds = section.getBoolean("enable_sounds", true);
+            this.chargeSound = Sound.ITEM_TRIDENT_RIPTIDE_1;
+            this.lungeSound = Sound.ENTITY_PLAYER_ATTACK_SWEEP;
+            this.hitSound = Sound.ENTITY_PLAYER_ATTACK_STRONG;
+        }
+    }
+
+    private Particle parseParticle(String name) {
+        try {
+            return Particle.valueOf(name.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return Particle.CRIT;
+        }
+    }
+
+    private Sound parseSound(String name) {
+        try {
+            NamespacedKey key = NamespacedKey.minecraft(name.toLowerCase());
+            Sound sound = Registry.SOUNDS.get(key);
+            return sound != null ? sound : Sound.ENTITY_PLAYER_ATTACK_SWEEP;
+        } catch (Exception e) {
+            return Sound.ENTITY_PLAYER_ATTACK_SWEEP;
+        }
+    }
+
+    /**
+     * Returns true if this mechanic has an active model configured.
+     */
+    public boolean hasActiveModel() {
+        return activeModelPath != null && !activeModelPath.isEmpty();
+    }
+
+    /**
+     * Gets the model path for the active state (e.g., "default/lotrpikeactive").
+     * This is used during pack generation to create the item model definition.
+     */
+    @Nullable
+    public String getActiveModelPath() {
+        return activeModelPath;
+    }
+
+    /**
+     * Gets the NamespacedKey for the active item model.
+     * This is what should be set on the item's item_model component when switching.
+     * Format: oraxen:<itemId>_active
+     */
+    @NotNull
+    public NamespacedKey getActiveItemModelKey() {
+        return activeItemModelKey;
+    }
+
+    public int getChargeTicks() {
+        return chargeTicks;
+    }
+
+    public double getLungeVelocity() {
+        return lungeVelocity;
+    }
+
+    public double getMaxRange() {
+        return maxRange;
+    }
+
+    public double getDamage() {
+        return damage;
+    }
+
+    public double getKnockback() {
+        return knockback;
+    }
+
+    public int getSmoothFrames() {
+        return smoothFrames;
+    }
+
+    public boolean isPiercing() {
+        return piercing;
+    }
+
+    public int getMaxTargets() {
+        return maxTargets;
+    }
+
+    public double getMinChargePercent() {
+        return minChargePercent;
+    }
+
+    @Nullable
+    public NamespacedKey getIntermediateModelKey(int frame) {
+        if (frame < 0 || frame >= intermediateModelKeys.length) {
+            return null;
+        }
+        return intermediateModelKeys[frame];
+    }
+
+    @Nullable
+    public String getIntermediateModelPath(int frame) {
+        if (frame < 0 || frame >= intermediateModelPaths.length) {
+            return null;
+        }
+        return intermediateModelPaths[frame];
+    }
+
+    public int getIntermediateModelCount() {
+        return intermediateModelPaths.length;
+    }
+
+    public boolean hasSmoothAnimation() {
+        return smoothFrames > 0 && intermediateModelKeys.length > 0;
+    }
+
+    public boolean hasParticles() {
+        return enableParticles;
+    }
+
+    public Particle getChargeParticle() {
+        return chargeParticle;
+    }
+
+    public Particle getLungeParticle() {
+        return lungeParticle;
+    }
+
+    public Particle getHitParticle() {
+        return hitParticle;
+    }
+
+    public boolean hasSounds() {
+        return enableSounds;
+    }
+
+    public Sound getChargeSound() {
+        return chargeSound;
+    }
+
+    public Sound getLungeSound() {
+        return lungeSound;
+    }
+
+    public Sound getHitSound() {
+        return hitSound;
+    }
+}

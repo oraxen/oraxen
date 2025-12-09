@@ -111,3 +111,61 @@ magic_book:
       damage: 10.0
       particle:
         type: PORTAL
+
+# ════════════════════════════════════════════════════════════════════════════
+# Pike of the Realm - Spear with charge-and-lunge attack
+# Hold right-click to charge, release or left-click to lunge forward
+# ════════════════════════════════════════════════════════════════════════════
+lotr_pike:
+  displayname: "<gradient:#8B7355:#C4A574>Pike of the Realm"
+  material: IRON_SWORD
+  lore:
+    - "<#6f737d>» <#D5D6D8>Hold right-click to charge"
+    - "<#6f737d>» <#D5D6D8>Release to lunge forward"
+  AttributeModifiers:
+    # Base melee stats when not using the lunge ability
+    - { attribute: ATTACK_DAMAGE, amount: 5, operation: 0, slot: HAND }
+    - { attribute: ATTACK_SPEED, amount: 1.4, operation: 0, slot: HAND }
+  Pack:
+    generate_model: false
+    model: default/lotrpikeinactive
+  Components:
+    # Cooldown between lunge attacks (1.5 seconds)
+    use_cooldown:
+      group: "oraxen:pike_lunge"
+      seconds: 1.5
+    # Rarity indicator
+    rarity: RARE
+  Mechanics:
+    spear_lunge:
+      # The active model path (same format as Pack.model)
+      # Oraxen will auto-generate the item model definition for this
+      active_model: default/lotrpikeactive
+      # Intermediate models for smooth animation (in order)
+      intermediate_models:
+        - default/lotrpike_frame0
+        - default/lotrpike_frame1
+      smooth_frames: 2          # Number of intermediate frames to use
+      charge_ticks: 24          # 1.2 seconds to fully charge (more time for animation)
+      lunge_velocity: 0.8       # Forward velocity on lunge
+      max_range: 3.5            # Hit detection range in blocks
+      damage: 8.0               # Lunge damage at full charge
+      knockback: 0.6            # Knockback applied to targets
+      min_charge_percent: 0.25  # Minimum charge needed to attack (25%)
+      # Piercing allows hitting multiple targets in a line
+      piercing: false
+      max_targets: 1
+      # Visual feedback
+      particles:
+        enabled: true
+        charge: CRIT            # Particles while charging
+        lunge: SWEEP_ATTACK     # Particles on lunge
+        hit: DAMAGE_INDICATOR   # Particles on hit
+      # Audio feedback
+      sounds:
+        enabled: true
+        charge: item.trident.riptide_1
+        lunge: entity.player.attack.sweep
+        hit: entity.player.attack.strong
+    durability:
+      value: 750                # Between iron (250) and diamond (1561)
