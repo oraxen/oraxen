@@ -25,10 +25,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Parameter;
 import java.nio.file.ProviderNotFoundException;
 import java.util.Locale;
+import java.util.Objects;
 
 public class UploadManager {
 
     private static String url;
+    private static String previousSHA1;
+    private static final Object trackingLock = new Object();
     private final Plugin plugin;
     private final boolean enabled;
     private final HostingProvider hostingProvider;
@@ -76,6 +79,20 @@ public class UploadManager {
                     AdventureUtils.tagResolver("url", hostingProvider.getPackURL()),
                     AdventureUtils.tagResolver("delay", String.valueOf(System.currentTimeMillis() - time)));
 
+            // Update tracking variables after successful upload, regardless of send settings
+            // This ensures tracking stays current even if settings are disabled
+            // Synchronize to prevent race conditions when multiple uploads occur concurrently
+            String currentSHA1 = hostingProvider.getOriginalSHA1();
+            String currentURL = hostingProvider.getPackURL();
+            boolean urlChanged;
+            boolean sha1Changed;
+            synchronized (trackingLock) {
+                urlChanged = !Objects.equals(currentURL, url);
+                sha1Changed = !Objects.equals(currentSHA1, previousSHA1);
+                url = currentURL;
+                previousSHA1 = currentSHA1;
+            }
+
             if (packSender == null) packSender = new BukkitPackSender(hostingProvider);
             else if (updatePackSender) {
                 packSender.unregister();
@@ -85,10 +102,11 @@ public class UploadManager {
             if (isReload && !Settings.SEND_ON_RELOAD.toBool() && packSender != null) packSender.unregister();
             else if (Settings.SEND_PACK.toBool() || Settings.SEND_JOIN_MESSAGE.toBool()) {
                 packSender.register();
-                if (!hostingProvider.getPackURL().equals(url))
+                // Send pack if URL changed OR SHA1 changed (for self-hosted packs, URL doesn't change but SHA1 does)
+                if (urlChanged || sha1Changed) {
                     for (Player player : Bukkit.getOnlinePlayers())
                         packSender.sendPack(player);
-                url = hostingProvider.getPackURL();
+                }
             } else if (packSender != null) packSender.unregister();
         });
     }
