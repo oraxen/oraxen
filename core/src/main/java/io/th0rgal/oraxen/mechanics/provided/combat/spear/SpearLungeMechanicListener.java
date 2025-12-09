@@ -190,125 +190,105 @@ public class SpearLungeMechanicListener implements Listener {
     private void performLungeAttack(Player player, SpearLungeMechanic mechanic, double chargePercent) {
         // Suppress default melee damage during lunge
         lungingPlayers.add(player.getUniqueId());
-        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
-            lungingPlayers.remove(player.getUniqueId());
-        }, 5L); // Remove after 5 ticks (0.25 seconds)
+        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(),
+                () -> lungingPlayers.remove(player.getUniqueId()), 5L);
 
-        // Scale velocity by charge percentage
+        Vector direction = player.getLocation().getDirection();
+        applyLungeMovement(player, mechanic, direction, chargePercent);
+
+        List<LivingEntity> targets = findTargetsInCone(player, mechanic, direction);
+        int maxTargets = mechanic.getMaxTargets();
+
+        for (int i = 0; i < Math.min(targets.size(), maxTargets); i++) {
+            applyDamageToTarget(player, mechanic, targets.get(i), direction, chargePercent);
+        }
+    }
+
+    private void applyLungeMovement(Player player, SpearLungeMechanic mechanic, Vector direction, double chargePercent) {
         double velocityMultiplier = mechanic.getMinChargePercent()
                 + ((1.0 - mechanic.getMinChargePercent()) * chargePercent);
         double finalVelocity = mechanic.getLungeVelocity() * velocityMultiplier;
 
-        // Apply lunge velocity
-        Vector direction = player.getLocation().getDirection();
         Vector velocity = direction.clone().multiply(finalVelocity);
-
-        // Preserve some existing vertical velocity to feel natural
         velocity.setY(Math.max(velocity.getY(), 0.15));
         player.setVelocity(velocity);
 
-        // Play lunge sound
         if (mechanic.hasSounds()) {
             player.getWorld().playSound(player.getLocation(), mechanic.getLungeSound(), 1.0f, 1.0f);
         }
-
-        // Show lunge particle trail
         if (mechanic.hasParticles()) {
             Location loc = player.getLocation().add(0, 1, 0);
             player.getWorld().spawnParticle(mechanic.getLungeParticle(), loc, 8, 0.3, 0.3, 0.3, 0.1);
         }
+    }
 
-        // Hit detection using raytrace for better accuracy
+    private List<LivingEntity> findTargetsInCone(Player player, SpearLungeMechanic mechanic, Vector direction) {
         double range = mechanic.getMaxRange();
         Location eyeLocation = player.getEyeLocation();
         Vector lookDirection = direction.clone().normalize();
 
-        // First try raytrace - most accurate for direct hits
+        List<LivingEntity> targets = new ArrayList<>();
+
+        // Raytrace for direct hits
         RayTraceResult rayResult = player.getWorld().rayTraceEntities(
-                eyeLocation,
-                lookDirection,
-                range,
-                0.5, // Ray radius - a bit wider than default for spear thrust
+                eyeLocation, lookDirection, range, 0.5,
                 entity -> entity instanceof LivingEntity && entity != player && !entity.isDead());
 
-        List<LivingEntity> potentialTargets = new ArrayList<>();
-
-        // If raytrace hit something, start with that
         if (rayResult != null && rayResult.getHitEntity() instanceof LivingEntity hitEntity) {
-            potentialTargets.add(hitEntity);
+            targets.add(hitEntity);
         }
 
-        // Also check cone for additional targets (wider cone for spear sweep)
+        // Cone check for additional targets
         for (Entity entity : player.getNearbyEntities(range + 1, range + 1, range + 1)) {
             if (!(entity instanceof LivingEntity target) || entity == player || entity.isDead())
                 continue;
-            if (potentialTargets.contains(target))
+            if (targets.contains(target))
                 continue;
-
-            // Calculate distance to entity center
-            Location entityCenter = target.getLocation().add(0, target.getHeight() / 2, 0);
-            double distance = eyeLocation.distance(entityCenter);
-
-            // Must be within range (with small buffer for hitbox size)
-            if (distance > range + 1.5)
-                continue;
-
-            // Check if entity is in front of the player (wider cone - dot > 0.5 is ~60
-            // degrees)
-            // Use toVector() subtraction to avoid modifying the Location objects
-            Vector toEntity = entityCenter.toVector().subtract(eyeLocation.toVector());
-            if (toEntity.lengthSquared() < 0.01)
-                continue; // Too close to normalize
-            toEntity.normalize();
-            double dot = lookDirection.dot(toEntity);
-
-            // Wider cone for spear (60 degree half-angle)
-            if (dot > 0.5) {
-                potentialTargets.add(target);
+            if (isInAttackCone(target, eyeLocation, lookDirection, range)) {
+                targets.add(target);
             }
         }
 
-        // Sort by distance and limit targets
-        potentialTargets.sort(Comparator.comparingDouble(e -> eyeLocation.distanceSquared(e.getLocation())));
+        targets.sort(Comparator.comparingDouble(e -> eyeLocation.distanceSquared(e.getLocation())));
+        return targets;
+    }
 
-        int targetsHit = 0;
-        int maxTargets = mechanic.getMaxTargets();
+    private boolean isInAttackCone(LivingEntity target, Location eyeLocation, Vector lookDirection, double range) {
+        Location entityCenter = target.getLocation().add(0, target.getHeight() / 2, 0);
+        double distance = eyeLocation.distance(entityCenter);
 
-        for (LivingEntity target : potentialTargets) {
-            if (targetsHit >= maxTargets)
-                break;
+        if (distance > range + 1.5)
+            return false;
 
-            // Mark this entity as an intentional damage target so we don't cancel its
-            // damage event
-            intentionalDamageTargets.add(target.getUniqueId());
+        Vector toEntity = entityCenter.toVector().subtract(eyeLocation.toVector());
+        if (toEntity.lengthSquared() < 0.01)
+            return false;
 
-            // Calculate damage scaled by charge percentage
-            double damage = mechanic.getDamage() * chargePercent;
-            target.damage(damage, player);
+        toEntity.normalize();
+        double dot = lookDirection.dot(toEntity);
+        return dot > 0.5; // ~60 degree cone
+    }
 
-            // Remove from intentional targets after a tick (damage event has been
-            // processed)
-            Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> {
-                intentionalDamageTargets.remove(target.getUniqueId());
-            });
+    private void applyDamageToTarget(Player player, SpearLungeMechanic mechanic, LivingEntity target,
+            Vector direction, double chargePercent) {
+        intentionalDamageTargets.add(target.getUniqueId());
 
-            // Apply knockback in the direction of the attack
-            Vector knockback = lookDirection.clone().multiply(mechanic.getKnockback());
-            knockback.setY(0.2); // Slight upward knockback
-            target.setVelocity(target.getVelocity().add(knockback));
+        double damage = mechanic.getDamage() * chargePercent;
+        target.damage(damage, player);
 
-            // Show hit particle
-            if (mechanic.hasParticles()) {
-                Location hitLoc = target.getLocation().add(0, target.getHeight() / 2, 0);
-                target.getWorld().spawnParticle(mechanic.getHitParticle(), hitLoc, 5, 0.2, 0.2, 0.2, 0.05);
-            }
+        Bukkit.getScheduler().runTask(OraxenPlugin.get(),
+                () -> intentionalDamageTargets.remove(target.getUniqueId()));
 
-            // Play hit sound
-            if (mechanic.hasSounds()) {
-                target.getWorld().playSound(target.getLocation(), mechanic.getHitSound(), 1.0f, 1.0f);
-            }
+        Vector knockback = direction.clone().normalize().multiply(mechanic.getKnockback());
+        knockback.setY(0.2);
+        target.setVelocity(target.getVelocity().add(knockback));
 
-            targetsHit++;
+        if (mechanic.hasParticles()) {
+            Location hitLoc = target.getLocation().add(0, target.getHeight() / 2, 0);
+            target.getWorld().spawnParticle(mechanic.getHitParticle(), hitLoc, 5, 0.2, 0.2, 0.2, 0.05);
+        }
+        if (mechanic.hasSounds()) {
+            target.getWorld().playSound(target.getLocation(), mechanic.getHitSound(), 1.0f, 1.0f);
         }
     }
 
