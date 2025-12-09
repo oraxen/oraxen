@@ -146,12 +146,15 @@ lotr_pike:
         - default/lotrpike_frame0
         - default/lotrpike_frame1
       smooth_frames: 2          # Number of intermediate frames to use
-      charge_ticks: 24          # 1.2 seconds to fully charge (more time for animation)
-      lunge_velocity: 0.8       # Forward velocity on lunge
-      max_range: 3.5            # Hit detection range in blocks
+      charge_ticks: 20          # 1 second to fully charge
+      lunge_velocity: 0.9       # Forward velocity on lunge
+      max_range: 5.0            # Hit detection range in blocks (spear reach)
       damage: 8.0               # Lunge damage at full charge
       knockback: 0.6            # Knockback applied to targets
       min_charge_percent: 0.25  # Minimum charge needed to attack (25%)
+      # Movement while charging
+      charge_slowdown: 0.5      # 50% slower while charging (0.0 = none, 1.0 = frozen)
+      max_hold_ticks: 60        # 3 seconds max hold before auto-cancel to inactive
       # Piercing allows hitting multiple targets in a line
       piercing: false
       max_targets: 1

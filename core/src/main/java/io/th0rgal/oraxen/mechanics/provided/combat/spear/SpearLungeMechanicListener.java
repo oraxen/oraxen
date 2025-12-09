@@ -20,8 +20,11 @@ import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
 import java.util.*;
@@ -50,7 +53,7 @@ public class SpearLungeMechanicListener implements Listener {
 
     /**
      * Stores the state of a charging player, including the original model
-     * so it can be restored after the attack.
+     * and walk speed so they can be restored after the attack.
      */
     private record ChargeState(
             long startTick,
@@ -58,9 +61,10 @@ public class SpearLungeMechanicListener implements Listener {
             EquipmentSlot hand,
             BukkitTask task,
             int lastFrame,
-            NamespacedKey originalModel) {
+            NamespacedKey originalModel,
+            float originalWalkSpeed) {
         ChargeState withLastFrame(int frame) {
-            return new ChargeState(startTick, mechanic, hand, task, frame, originalModel);
+            return new ChargeState(startTick, mechanic, hand, task, frame, originalModel, originalWalkSpeed);
         }
     }
 
@@ -108,6 +112,13 @@ public class SpearLungeMechanicListener implements Listener {
             originalModel = new NamespacedKey(OraxenPlugin.get(), itemId);
         }
 
+        // Store original walk speed and apply slowdown
+        float originalWalkSpeed = player.getWalkSpeed();
+        if (mechanic.getChargeSlowdown() > 0) {
+            float slowedSpeed = originalWalkSpeed * (1.0f - (float) mechanic.getChargeSlowdown());
+            player.setWalkSpeed(Math.max(0.0f, slowedSpeed));
+        }
+
         // Switch to first animation frame if available, otherwise active model
         if (mechanic.hasSmoothAnimation()) {
             NamespacedKey firstFrame = mechanic.getIntermediateModelKey(0);
@@ -128,7 +139,7 @@ public class SpearLungeMechanicListener implements Listener {
         // Start a task to monitor charging state
         BukkitTask task = new ChargeMonitorTask(player, mechanic, hand).runTaskTimer(OraxenPlugin.get(), 1L, 1L);
 
-        ChargeState state = new ChargeState(Bukkit.getCurrentTick(), mechanic, hand, task, 0, originalModel);
+        ChargeState state = new ChargeState(Bukkit.getCurrentTick(), mechanic, hand, task, 0, originalModel, originalWalkSpeed);
         chargingPlayers.put(player.getUniqueId(), state);
     }
 
@@ -138,6 +149,9 @@ public class SpearLungeMechanicListener implements Listener {
             return;
 
         state.task().cancel();
+
+        // Restore walk speed
+        player.setWalkSpeed(state.originalWalkSpeed());
 
         ItemStack item = player.getInventory().getItem(state.hand());
         if (item == null || item.getType().isAir())
@@ -192,28 +206,52 @@ public class SpearLungeMechanicListener implements Listener {
             player.getWorld().spawnParticle(mechanic.getLungeParticle(), loc, 8, 0.3, 0.3, 0.3, 0.1);
         }
 
-        // Hit detection - find entities in a cone in front of player
+        // Hit detection using raytrace for better accuracy
         double range = mechanic.getMaxRange();
         Location eyeLocation = player.getEyeLocation();
         Vector lookDirection = direction.clone().normalize();
 
-        // Collect potential targets
+        // First try raytrace - most accurate for direct hits
+        RayTraceResult rayResult = player.getWorld().rayTraceEntities(
+                eyeLocation,
+                lookDirection,
+                range,
+                0.5, // Ray radius - a bit wider than default for spear thrust
+                entity -> entity instanceof LivingEntity && entity != player && !entity.isDead()
+        );
+
         List<LivingEntity> potentialTargets = new ArrayList<>();
-        for (Entity entity : player.getNearbyEntities(range, range, range)) {
+        
+        // If raytrace hit something, start with that
+        if (rayResult != null && rayResult.getHitEntity() instanceof LivingEntity hitEntity) {
+            potentialTargets.add(hitEntity);
+        }
+
+        // Also check cone for additional targets (wider cone for spear sweep)
+        for (Entity entity : player.getNearbyEntities(range + 1, range + 1, range + 1)) {
             if (!(entity instanceof LivingEntity target) || entity == player || entity.isDead())
                 continue;
+            if (potentialTargets.contains(target))
+                continue;
 
-            // Check if entity is roughly in front of the player (cone check)
-            Vector toEntity = target.getLocation().add(0, target.getHeight() / 2, 0)
-                    .subtract(eyeLocation).toVector().normalize();
+            // Calculate distance to entity center
+            Location entityCenter = target.getLocation().add(0, target.getHeight() / 2, 0);
+            double distance = eyeLocation.distance(entityCenter);
+            
+            // Must be within range (with small buffer for hitbox size)
+            if (distance > range + 1.5)
+                continue;
+
+            // Check if entity is in front of the player (wider cone - dot > 0.5 is ~60 degrees)
+            Vector toEntity = entityCenter.subtract(eyeLocation).toVector();
+            if (toEntity.lengthSquared() < 0.01)
+                continue; // Too close to normalize
+            toEntity.normalize();
             double dot = lookDirection.dot(toEntity);
 
-            // Cone angle check (dot > 0.7 means within ~45 degree cone)
-            if (dot > 0.7) {
-                double distance = eyeLocation.distance(target.getLocation().add(0, target.getHeight() / 2, 0));
-                if (distance <= range) {
-                    potentialTargets.add(target);
-                }
+            // Wider cone for spear (60 degree half-angle)
+            if (dot > 0.5) {
+                potentialTargets.add(target);
             }
         }
 
@@ -321,6 +359,7 @@ public class SpearLungeMechanicListener implements Listener {
         private final SpearLungeMechanic mechanic;
         private final EquipmentSlot hand;
         private int ticksHeld = 0;
+        private boolean fullyCharged = false;
 
         public ChargeMonitorTask(Player player, SpearLungeMechanic mechanic, EquipmentSlot hand) {
             this.player = player;
@@ -358,14 +397,33 @@ public class SpearLungeMechanicListener implements Listener {
                 player.getWorld().spawnParticle(mechanic.getChargeParticle(), particleLoc, 2, 0.1, 0.1, 0.1, 0.02);
             }
 
-            // Handle smooth animation frames
+            // Handle smooth animation frames during charge
             if (mechanic.hasSmoothAnimation() && ticksHeld < mechanic.getChargeTicks()) {
                 updateAnimationFrame(item, ticksHeld);
             }
 
-            // After full charge + grace period, auto-trigger the attack
-            if (ticksHeld >= mechanic.getChargeTicks() + 5) {
-                cancelCharge(player, true);
+            // When fully charged, switch to active model and mark as ready
+            if (!fullyCharged && ticksHeld >= mechanic.getChargeTicks()) {
+                fullyCharged = true;
+                if (mechanic.hasActiveModel()) {
+                    setItemModel(item, mechanic.getActiveItemModelKey());
+                    player.getInventory().setItem(hand, item);
+                    
+                    ChargeState state = chargingPlayers.get(player.getUniqueId());
+                    if (state != null) {
+                        chargingPlayers.put(player.getUniqueId(), state.withLastFrame(mechanic.getSmoothFrames() + 1));
+                    }
+                }
+                // Play a "ready" sound to indicate full charge
+                if (mechanic.hasSounds()) {
+                    player.playSound(player.getLocation(), mechanic.getChargeSound(), 0.5f, 1.8f);
+                }
+            }
+
+            // Max hold timeout - if held too long without attacking, cancel and revert to inactive
+            // This gives the player 3 seconds (60 ticks by default) from charge start to attack
+            if (ticksHeld >= mechanic.getMaxHoldTicks()) {
+                cancelCharge(player, false); // Cancel without attacking
             }
         }
 
