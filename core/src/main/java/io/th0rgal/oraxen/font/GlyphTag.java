@@ -172,15 +172,18 @@ public class GlyphTag {
         int start = startIndex - 1;
         int end = endIndex - 1;
 
+        // Normalize reversed ranges (e.g., 4..1 becomes 1..4)
+        if (start > end) {
+            int temp = start;
+            start = end;
+            end = temp;
+        }
+
         // Bounds checking
         if (start < 0)
             start = 0;
-        if (end < 0)
-            end = 0;
         if (end >= allChars.length)
             end = allChars.length - 1;
-        if (start > end)
-            start = end;
 
         // Extract range
         StringBuilder sb = new StringBuilder();

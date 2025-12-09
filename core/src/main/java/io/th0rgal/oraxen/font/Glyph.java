@@ -75,7 +75,9 @@ public class Glyph {
 
         String placeholderRegex = String.join("|",
                 Arrays.stream(placeholders).map(Pattern::quote).toArray(String[]::new));
-        String baseRegex = "((<(glyph|g):" + name + ")(:(c|colorable|s|shadow)(:[^>]*)?)*>"
+        // Match glyph tags with any colon-separated arguments (c, colorable, s, shadow,
+        // indexes, ranges, hex colors)
+        String baseRegex = "((<(glyph|g):" + name + ")(:[^:>]+)*>"
                 + (placeholders.length > 0 ? "|" + placeholderRegex : "") + ")";
         this.baseRegex = Pattern.compile("(?<!\\\\)" + baseRegex);
         escapedRegex = Pattern.compile("\\\\" + baseRegex);
@@ -380,12 +382,27 @@ public class Glyph {
     }
 
     private Set<String> findConflictingGlyphs(List<Glyph> glyphs) {
-        char firstChar = getCharacter().isEmpty() ? Character.MIN_VALUE : getCharacter().charAt(0);
+        Set<Character> myChars = new HashSet<>();
+        for (char c : getAllChars()) {
+            myChars.add(c);
+        }
+
+        if (myChars.isEmpty())
+            return Collections.emptySet();
+
         return glyphs.stream()
-                .filter(g -> !g.name.equals(name) && !g.getCharacter().isBlank()
-                        && g.getCharacter().charAt(0) == firstChar)
+                .filter(g -> !g.name.equals(name) && sharesAnyCharacter(myChars, g.getAllChars()))
                 .map(Glyph::getName)
                 .collect(Collectors.toSet());
+    }
+
+    private static boolean sharesAnyCharacter(Set<Character> chars, char[] otherChars) {
+        for (char c : otherChars) {
+            if (chars.contains(c)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
