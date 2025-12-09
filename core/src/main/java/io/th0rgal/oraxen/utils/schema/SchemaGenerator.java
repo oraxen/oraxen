@@ -29,7 +29,8 @@ import java.util.Map;
 
 /**
  * Generates JSON schema for Oraxen Studio by extracting enum values
- * from Bukkit API at runtime. Must be run on a server.
+ * from Bukkit API. Requires a running Bukkit server for full registry access.
+ * Use via /oraxen schema command or enable debug mode for auto-generation.
  */
 public class SchemaGenerator {
 

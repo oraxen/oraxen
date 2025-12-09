@@ -13,6 +13,7 @@ plugins {
     id("io.github.goooler.shadow") version "8.1.8"
 }
 
+
 class NMSVersion(val nmsVersion: String, val serverVersion: String)
 
 infix fun String.toNms(that: String): NMSVersion = NMSVersion(this, that)
@@ -37,8 +38,6 @@ val spigotPluginPath = project.findProperty("oraxen_spigot_plugin_path")?.toStri
 val pluginVersion: String by project
 group = "io.th0rgal"
 version = pluginVersion
-
-
 
 allprojects {
     apply(plugin = "java")
@@ -99,10 +98,12 @@ allprojects {
     }
 }
 
+
 dependencies {
     implementation(project(path = ":core"))
     SUPPORTED_VERSIONS.forEach { implementation(project(path = ":${it.nmsVersion}", configuration = "reobf")) }
 }
+
 
 java {
     toolchain {
@@ -110,36 +111,13 @@ java {
     }
 }
 
+
 tasks.withType(xyz.jpenilla.runtask.task.AbstractRun::class) {
     javaLauncher = javaToolchains.launcherFor {
         vendor = JvmVendorSpec.JETBRAINS
         languageVersion = JavaLanguageVersion.of(21)
     }
     jvmArgs("-XX:+AllowEnhancedClassRedefinition")
-}
-
-// Schema generation task - runs without a server using reflection on Bukkit API
-val generateSchema by tasks.registering(JavaExec::class) {
-    group = "oraxen"
-    description = "Generates JSON schema for Oraxen Studio from Bukkit API"
-
-    dependsOn(":core:compileJava", ":core:processResources")
-
-    mainClass.set("io.th0rgal.oraxen.utils.schema.SchemaGenerator")
-
-    // Use core's compile classpath which includes Paper API and all dependencies
-    classpath = project(":core").sourceSets.main.get().output +
-            project(":core").sourceSets.main.get().compileClasspath
-
-    // Output path and version as arguments
-    val outputFile = layout.buildDirectory.file("schema/oraxen-schema.json")
-    args = listOf(outputFile.get().asFile.absolutePath, pluginVersion)
-
-    doFirst {
-        outputFile.get().asFile.parentFile.mkdirs()
-    }
-
-    outputs.file(outputFile)
 }
 
 tasks {
@@ -230,6 +208,7 @@ tasks {
     build.get().dependsOn(shadowJar)
 }
 
+
 bukkit {
     load = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.PluginLoadOrder.POSTWORLD
     main = "io.th0rgal.oraxen.OraxenPlugin"
@@ -251,6 +230,7 @@ bukkit {
     }
     libraries = oraxenLibs.bundles.libraries.bukkit.get().map { it.toString() }
 }
+
 
 if (spigotPluginPath != null) {
     tasks {
