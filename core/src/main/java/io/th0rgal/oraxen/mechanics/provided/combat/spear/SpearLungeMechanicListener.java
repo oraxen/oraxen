@@ -17,6 +17,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -277,8 +278,9 @@ public class SpearLungeMechanicListener implements Listener {
         double damage = mechanic.getDamage() * chargePercent;
         target.damage(damage, player);
 
-        Bukkit.getScheduler().runTask(OraxenPlugin.get(),
-                () -> intentionalDamageTargets.remove(target.getUniqueId()));
+        // Note: intentionalDamageTargets is cleared in onEntityDamage after allowing
+        // the lunge damage. This prevents the melee swing (which fires later in the
+        // same tick) from also being allowed through.
 
         Vector knockback = direction.clone().normalize().multiply(mechanic.getKnockback());
         knockback.setY(0.2);
@@ -347,6 +349,18 @@ public class SpearLungeMechanicListener implements Listener {
             player.setWalkSpeed(state.originalWalkSpeed());
         }
         attackCooldowns.remove(player.getUniqueId());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        // Clean up on death - must restore walk speed before respawn!
+        Player player = event.getEntity();
+        ChargeState state = chargingPlayers.remove(player.getUniqueId());
+        if (state != null) {
+            state.task().cancel();
+            // Restore walk speed so it's correct on respawn
+            player.setWalkSpeed(state.originalWalkSpeed());
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -503,8 +517,9 @@ public class SpearLungeMechanicListener implements Listener {
 
         if (lungingPlayers.contains(player.getUniqueId())) {
             // Allow damage if this is our intentional lunge damage (shows red hurt
-            // animation)
-            if (intentionalDamageTargets.contains(event.getEntity().getUniqueId())) {
+            // animation), then immediately remove from tracking so any subsequent
+            // damage in the same tick (melee swing) gets cancelled
+            if (intentionalDamageTargets.remove(event.getEntity().getUniqueId())) {
                 return; // Don't cancel - this is the lunge damage
             }
             // Cancel any other damage (sword swing from left-click)
