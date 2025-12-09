@@ -146,6 +146,13 @@ public class OraxenPlugin extends JavaPlugin {
         OraxenMetrics.register(this);
         new LU().l();
         Bukkit.getScheduler().runTask(this, () -> Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent()));
+
+        // Auto-generate schema in debug mode (useful for CI/CD)
+        if (Settings.DEBUG.toBool()) {
+            Bukkit.getScheduler().runTaskLater(this, () -> {
+                io.th0rgal.oraxen.utils.schema.SchemaGenerator.generateAndSave();
+            }, 20L); // Small delay to ensure everything is loaded
+        }
     }
 
     @Override

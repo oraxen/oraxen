@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock;
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
+import io.th0rgal.oraxen.mechanics.MechanicConfigProperty;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingListener;
@@ -19,6 +20,8 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.Tripwire;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -208,5 +211,34 @@ public class StringBlockMechanicFactory extends MechanicFactory {
         saplingTask = new SaplingTask(saplingGrowthCheckDelay);
         saplingTask.runTaskTimer(OraxenPlugin.get(), 0, saplingGrowthCheckDelay);
         sapling = true;
+    }
+
+    @Override
+    public @Nullable String getMechanicCategory() {
+        return "gameplay";
+    }
+
+    @Override
+    public @Nullable String getMechanicDescription() {
+        return "Creates custom blocks using tripwire states (up to 127 variations)";
+    }
+
+    @Override
+    public @NotNull List<MechanicConfigProperty> getConfigSchema() {
+        return List.of(
+                MechanicConfigProperty.integer("custom_variation", "Unique variation ID (1-127)", 1, 1, 127),
+                MechanicConfigProperty.string("model", "Block model path"),
+                MechanicConfigProperty.decimal("hardness", "Block break hardness", 1.0, 0.0),
+                MechanicConfigProperty.integer("light", "Light level emitted (0-15)", 0, 0, 15),
+                MechanicConfigProperty.object("drop", "Drop configuration when broken", Map.of(
+                        "silktouch", MechanicConfigProperty.bool("silktouch", "Require silk touch", false),
+                        "loots", MechanicConfigProperty.list("loots", "List of loot entries")
+                )),
+                MechanicConfigProperty.object("sapling", "Sapling growth configuration", Map.of(
+                        "min_light", MechanicConfigProperty.integer("min_light", "Minimum light level to grow", 9, 0, 15),
+                        "grow_block", MechanicConfigProperty.string("grow_block", "Block ID when grown"),
+                        "grow_chance", MechanicConfigProperty.decimal("grow_chance", "Growth chance per check", 0.1, 0.0, 1.0)
+                ))
+        );
     }
 }

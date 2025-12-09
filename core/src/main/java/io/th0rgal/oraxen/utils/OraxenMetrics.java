@@ -140,8 +140,7 @@ public class OraxenMetrics {
                 "soulbound", "consumable", "commands",
                 "hat", "aura", "skin",
                 "thor", "lifeleech", "bleeding",
-                "bigmining", "smelting", "harvesting"
-        );
+                "bigmining", "smelting", "harvesting");
 
         for (String mechanicId : trackedMechanics) {
             if (MechanicsManager.getMechanicFactory(mechanicId) != null) {
@@ -161,39 +160,57 @@ public class OraxenMetrics {
 
         // Packet handling
         Map<String, Integer> packets = new HashMap<>();
-        if (CompatibilitiesManager.hasPlugin("ProtocolLib")) packets.put("ProtocolLib", 1);
-        if (CompatibilitiesManager.hasPlugin("packetevents")) packets.put("PacketEvents", 1);
-        if (!packets.isEmpty()) categories.put("Packet Handling", packets);
+        if (CompatibilitiesManager.hasPlugin("ProtocolLib"))
+            packets.put("ProtocolLib", 1);
+        if (CompatibilitiesManager.hasPlugin("packetevents"))
+            packets.put("PacketEvents", 1);
+        if (!packets.isEmpty())
+            categories.put("Packet Handling", packets);
 
         // World management
         Map<String, Integer> world = new HashMap<>();
-        if (CompatibilitiesManager.hasPlugin("WorldEdit")) world.put("WorldEdit", 1);
-        if (CompatibilitiesManager.hasPlugin("FastAsyncWorldEdit")) world.put("FAWE", 1);
-        if (!world.isEmpty()) categories.put("World Management", world);
+        if (CompatibilitiesManager.hasPlugin("WorldEdit"))
+            world.put("WorldEdit", 1);
+        if (CompatibilitiesManager.hasPlugin("FastAsyncWorldEdit"))
+            world.put("FAWE", 1);
+        if (!world.isEmpty())
+            categories.put("World Management", world);
 
         // Economy/Items
         Map<String, Integer> items = new HashMap<>();
-        if (CompatibilitiesManager.hasPlugin("MMOItems")) items.put("MMOItems", 1);
-        if (CompatibilitiesManager.hasPlugin("MythicMobs")) items.put("MythicMobs", 1);
-        if (CompatibilitiesManager.hasPlugin("MythicCrucible")) items.put("MythicCrucible", 1);
-        if (CompatibilitiesManager.hasPlugin("EcoItems")) items.put("EcoItems", 1);
-        if (CompatibilitiesManager.hasPlugin("ItemsAdder")) items.put("ItemsAdder", 1);
-        if (!items.isEmpty()) categories.put("Custom Items", items);
+        if (CompatibilitiesManager.hasPlugin("MMOItems"))
+            items.put("MMOItems", 1);
+        if (CompatibilitiesManager.hasPlugin("MythicMobs"))
+            items.put("MythicMobs", 1);
+        if (CompatibilitiesManager.hasPlugin("MythicCrucible"))
+            items.put("MythicCrucible", 1);
+        if (CompatibilitiesManager.hasPlugin("EcoItems"))
+            items.put("EcoItems", 1);
+        if (CompatibilitiesManager.hasPlugin("ItemsAdder"))
+            items.put("ItemsAdder", 1);
+        if (!items.isEmpty())
+            categories.put("Custom Items", items);
 
         // Placeholders
         Map<String, Integer> placeholders = new HashMap<>();
-        if (CompatibilitiesManager.hasPlugin("PlaceholderAPI")) placeholders.put("PlaceholderAPI", 1);
-        if (!placeholders.isEmpty()) categories.put("Placeholders", placeholders);
+        if (CompatibilitiesManager.hasPlugin("PlaceholderAPI"))
+            placeholders.put("PlaceholderAPI", 1);
+        if (!placeholders.isEmpty())
+            categories.put("Placeholders", placeholders);
 
         // Model/Entity
         Map<String, Integer> models = new HashMap<>();
-        if (CompatibilitiesManager.hasPlugin("ModelEngine")) models.put("ModelEngine", 1);
-        if (!models.isEmpty()) categories.put("Models", models);
+        if (CompatibilitiesManager.hasPlugin("ModelEngine"))
+            models.put("ModelEngine", 1);
+        if (!models.isEmpty())
+            categories.put("Models", models);
 
         // Protection
         Map<String, Integer> protection = new HashMap<>();
-        if (CompatibilitiesManager.hasPlugin("BlockLocker")) protection.put("BlockLocker", 1);
-        if (!protection.isEmpty()) categories.put("Protection", protection);
+        if (CompatibilitiesManager.hasPlugin("BlockLocker"))
+            protection.put("BlockLocker", 1);
+        if (!protection.isEmpty())
+            categories.put("Protection", protection);
 
         return categories;
     }
@@ -246,4 +263,3 @@ public class OraxenMetrics {
         }
     }
 }
-
