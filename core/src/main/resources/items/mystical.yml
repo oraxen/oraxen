@@ -155,7 +155,8 @@ lotr_pike:
       # Movement while charging
       charge_slowdown: 0.5      # 50% slower while charging (0.0 = none, 1.0 = frozen)
       max_hold_ticks: 60        # 3 seconds max hold before auto-cancel to inactive
-      # Multi-target: how many entities can be hit per lunge
+      # Piercing allows hitting multiple targets in a sweep
+      piercing: true
       max_targets: 3
       # Visual feedback
       particles:

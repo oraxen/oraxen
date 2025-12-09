@@ -272,7 +272,7 @@ public class SpearLungeMechanicListener implements Listener {
         potentialTargets.sort(Comparator.comparingDouble(e -> eyeLocation.distanceSquared(e.getLocation())));
 
         int targetsHit = 0;
-        int maxTargets = mechanic.getMaxTargets(); // Always respect max_targets config
+        int maxTargets = mechanic.isPiercing() ? mechanic.getMaxTargets() : 1;
 
         for (LivingEntity target : potentialTargets) {
             if (targetsHit >= maxTargets)
