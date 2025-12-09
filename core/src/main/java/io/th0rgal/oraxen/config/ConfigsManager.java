@@ -24,8 +24,25 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ConfigsManager {
+
+    /**
+     * Static cache for grid glyph unicodes to preserve across reloads when
+     * DISABLE_AUTOMATIC_GLYPH_CODE is true. This prevents grid glyphs from
+     * getting different character assignments on each plugin reload.
+     */
+    private static final Map<String, List<String>> GRID_GLYPH_UNICODE_CACHE = new ConcurrentHashMap<>();
+
+    /**
+     * Clears the grid glyph unicode cache. Use this to force regeneration of
+     * grid glyph unicodes. Note: This is typically not needed as the cache
+     * automatically resets on server restart.
+     */
+    public static void clearGridGlyphCache() {
+        GRID_GLYPH_UNICODE_CACHE.clear();
+    }
 
     private final JavaPlugin plugin;
     private final YamlConfiguration defaultMechanics;
@@ -313,23 +330,62 @@ public class ConfigsManager {
 
     private GlyphParseResult createGridGlyph(String key, ConfigurationSection section, GlyphGrid grid,
             GlyphParseContext ctx) {
-        List<String> unicodeRows = generateGridUnicodes(grid, ctx.usedCodepoints);
+        List<String> unicodeRows;
         boolean fileChanged = false;
 
-        if (Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) {
-            Logs.logWarning("Grid glyph '" + key + "' has no 'chars' list defined but " +
-                    Settings.DISABLE_AUTOMATIC_GLYPH_CODE.getPath() + " is enabled.");
-            Logs.logWarning("This glyph's characters will change on every reload, breaking saved references.");
-            Logs.logWarning("Either disable " + Settings.DISABLE_AUTOMATIC_GLYPH_CODE.getPath() +
-                    " or manually add a 'chars' list to this glyph's configuration.", true);
+        // Check if we have cached unicodes from a previous load (for
+        // DISABLE_AUTOMATIC_GLYPH_CODE support)
+        List<String> cachedRows = GRID_GLYPH_UNICODE_CACHE.get(key);
+        if (cachedRows != null && isValidForGrid(cachedRows, grid)) {
+            // Reuse cached unicodes to preserve character assignments across reloads
+            unicodeRows = cachedRows;
+            // Mark these codepoints as used to prevent conflicts with other glyphs
+            for (String row : unicodeRows) {
+                for (char c : row.toCharArray()) {
+                    ctx.usedCodepoints.add((int) c);
+                }
+            }
         } else {
-            section.set("chars", unicodeRows);
-            fileChanged = true;
+            // Generate new unicodes
+            unicodeRows = generateGridUnicodes(grid, ctx.usedCodepoints);
+
+            if (Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) {
+                // Cache for future reloads within this server session
+                GRID_GLYPH_UNICODE_CACHE.put(key, unicodeRows);
+                Logs.logWarning("Grid glyph '" + key + "' has no 'chars' list defined but " +
+                        Settings.DISABLE_AUTOMATIC_GLYPH_CODE.getPath() + " is enabled.");
+                Logs.logWarning(
+                        "Characters will be preserved within this server session, but will change on server restart.");
+                Logs.logWarning("To ensure consistent characters across restarts, either disable " +
+                        Settings.DISABLE_AUTOMATIC_GLYPH_CODE.getPath() +
+                        " or manually add a 'chars' list to this glyph's configuration.", true);
+            } else {
+                section.set("chars", unicodeRows);
+                fileChanged = true;
+            }
         }
 
         Glyph glyph = new Glyph(key, section, unicodeRows, grid);
         glyph.setFileChanged(fileChanged);
         return new GlyphParseResult(glyph, fileChanged);
+    }
+
+    /**
+     * Validates that cached unicode rows match the expected grid dimensions.
+     * If the grid size changed in config, cached unicodes are invalid.
+     *
+     * @param rows The cached unicode rows
+     * @param grid The current grid configuration
+     * @return true if the cached rows match the grid dimensions
+     */
+    private boolean isValidForGrid(List<String> rows, GlyphGrid grid) {
+        if (rows.size() != grid.rows())
+            return false;
+        for (String row : rows) {
+            if (row.length() != grid.columns())
+                return false;
+        }
+        return true;
     }
 
     private GlyphParseResult createSingleCharGlyph(String key, ConfigurationSection section, GlyphParseContext ctx) {
