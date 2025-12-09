@@ -244,6 +244,7 @@ public class ConfigsManager {
 
     /**
      * Collects codepoints from a single glyph section.
+     * Also handles legacy 'code' field migration during collection.
      */
     private void collectCodepointsFromSection(String key, ConfigurationSection section, GlyphParseContext ctx) {
         if (section.isList("chars")) {
@@ -257,6 +258,15 @@ public class ConfigsManager {
                 ctx.charPerGlyph.put(key, charsList.get(0).charAt(0));
             }
         } else {
+            // Check for legacy 'code' field first (integer codepoint)
+            // This ensures correct character is used before glyph creation
+            if (section.contains("code") && section.isInt("code")) {
+                char character = (char) section.getInt("code");
+                ctx.charPerGlyph.put(key, character);
+                ctx.usedCodepoints.add((int) character);
+                return;
+            }
+
             String characterString = section.getString("char", "");
             if (!characterString.isBlank()) {
                 char character = characterString.charAt(0);

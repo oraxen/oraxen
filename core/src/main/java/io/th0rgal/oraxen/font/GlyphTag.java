@@ -220,26 +220,29 @@ public class GlyphTag {
     /**
      * Checks if a string looks like a hex color value.
      * Used to determine if an argument should be consumed as a shadow color.
+     * <p>
+     * To avoid ambiguity with numeric indices (e.g., "123" could be index 123 or
+     * color #112233),
+     * this method requires the # prefix for color values.
      *
      * @param value The string to check
-     * @return true if it looks like a color (starts with # or is valid hex of
-     *         length 3/6/8)
+     * @return true if it starts with # and is a valid hex color
      */
     private static boolean looksLikeColor(String value) {
         if (value == null || value.isBlank())
             return false;
 
-        // If it starts with #, it's definitely meant to be a color
-        if (value.startsWith("#"))
-            return true;
+        // Require # prefix to disambiguate from numeric indices
+        if (!value.startsWith("#"))
+            return false;
 
-        // Check if it's a valid hex string of appropriate length
-        String lower = value.toLowerCase();
-        if (lower.length() != 3 && lower.length() != 6 && lower.length() != 8)
+        // Validate hex color format after #
+        String hex = value.substring(1).toLowerCase();
+        if (hex.length() != 3 && hex.length() != 6 && hex.length() != 8)
             return false;
 
         // Verify all characters are hex digits
-        for (char c : lower.toCharArray()) {
+        for (char c : hex.toCharArray()) {
             if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f')))
                 return false;
         }
