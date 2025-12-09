@@ -38,8 +38,10 @@ public class SchemaGenerator {
     /**
      * Generate schema and save to plugin data folder.
      * Called during plugin enable or via command.
+     *
+     * @return true if schema was generated successfully, false on I/O error
      */
-    public static void generateAndSave() {
+    public static boolean generateAndSave() {
         try {
             String version = OraxenPlugin.get().getDescription().getVersion();
             JsonObject schema = generateSchema(version);
@@ -47,8 +49,10 @@ public class SchemaGenerator {
             File outputFile = new File(OraxenPlugin.get().getDataFolder(), "oraxen-schema.json");
             Files.writeString(outputFile.toPath(), GSON.toJson(schema));
             Logs.logSuccess("Schema generated: " + outputFile.getAbsolutePath());
+            return true;
         } catch (IOException e) {
             Logs.logError("Failed to write schema: " + e.getMessage());
+            return false;
         }
     }
 
@@ -633,8 +637,13 @@ public class SchemaGenerator {
             MechanicFactory factory = entry.getValue();
 
             List<MechanicConfigProperty> schema = factory.getConfigSchema();
-            if (!schema.isEmpty()) {
-                // Factory provides its own schema via annotations
+            String category = factory.getMechanicCategory();
+            String description = factory.getMechanicDescription();
+
+            // Include factory if it provides schema, category, or description metadata
+            // This ensures factories with @MechanicInfo (including deprecation warnings)
+            // are included even if they have no @ConfigProperty fields
+            if (!schema.isEmpty() || category != null || description != null) {
                 addMechanicFromFactory(mechanics, mechanicId, factory);
             }
         }

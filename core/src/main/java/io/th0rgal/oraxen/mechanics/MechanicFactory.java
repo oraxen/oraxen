@@ -58,7 +58,8 @@ public abstract class MechanicFactory {
     }
 
     /**
-     * Returns the category of this mechanic (e.g., "combat", "farming", "cosmetic").
+     * Returns the category of this mechanic (e.g., "combat", "farming",
+     * "cosmetic").
      * By default, reads from @MechanicInfo annotation.
      *
      * @return The mechanic category, or null if not categorized
@@ -98,11 +99,14 @@ public abstract class MechanicFactory {
 
         // Scan static fields with @ConfigProperty annotations
         for (Field field : clazz.getDeclaredFields()) {
-            if (!Modifier.isStatic(field.getModifiers())) continue;
-            if (field.getType() != String.class) continue;
+            if (!Modifier.isStatic(field.getModifiers()))
+                continue;
+            if (field.getType() != String.class)
+                continue;
 
             ConfigProperty prop = field.getAnnotation(ConfigProperty.class);
-            if (prop == null) continue;
+            if (prop == null)
+                continue;
 
             try {
                 field.setAccessible(true);
@@ -204,12 +208,17 @@ public abstract class MechanicFactory {
     }
 
     private Object parseDefaultValue(String value, PropertyType type) {
-        return switch (type) {
-            case INTEGER -> Integer.parseInt(value);
-            case DOUBLE -> Double.parseDouble(value);
-            case BOOLEAN -> Boolean.parseBoolean(value);
-            default -> value;
-        };
+        try {
+            return switch (type) {
+                case INTEGER -> Integer.parseInt(value);
+                case DOUBLE -> Double.parseDouble(value);
+                case BOOLEAN -> Boolean.parseBoolean(value);
+                default -> value;
+            };
+        } catch (NumberFormatException e) {
+            // Malformed numeric default in annotation - return string as fallback
+            return value;
+        }
     }
 
     protected void addToImplemented(Mechanic mechanic) {
