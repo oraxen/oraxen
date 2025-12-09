@@ -16,12 +16,11 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.RayTraceResult;
@@ -42,6 +41,12 @@ public class SpearLungeMechanicListener implements Listener {
     private final MechanicFactory factory;
     private final Map<UUID, ChargeState> chargingPlayers = new HashMap<>();
     private final Map<UUID, Long> attackCooldowns = new HashMap<>();
+    // Track players who just triggered a lunge attack - suppress their default
+    // melee damage
+    private final Set<UUID> lungingPlayers = new HashSet<>();
+    // Track entities we're intentionally damaging via lunge - allow their damage
+    // events
+    private final Set<UUID> intentionalDamageTargets = new HashSet<>();
 
     // Cooldown in ticks after an attack before player can charge again (30 ticks =
     // 1.5 seconds)
@@ -139,7 +144,8 @@ public class SpearLungeMechanicListener implements Listener {
         // Start a task to monitor charging state
         BukkitTask task = new ChargeMonitorTask(player, mechanic, hand).runTaskTimer(OraxenPlugin.get(), 1L, 1L);
 
-        ChargeState state = new ChargeState(Bukkit.getCurrentTick(), mechanic, hand, task, 0, originalModel, originalWalkSpeed);
+        ChargeState state = new ChargeState(Bukkit.getCurrentTick(), mechanic, hand, task, 0, originalModel,
+                originalWalkSpeed);
         chargingPlayers.put(player.getUniqueId(), state);
     }
 
@@ -182,6 +188,12 @@ public class SpearLungeMechanicListener implements Listener {
     }
 
     private void performLungeAttack(Player player, SpearLungeMechanic mechanic, double chargePercent) {
+        // Suppress default melee damage during lunge
+        lungingPlayers.add(player.getUniqueId());
+        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
+            lungingPlayers.remove(player.getUniqueId());
+        }, 5L); // Remove after 5 ticks (0.25 seconds)
+
         // Scale velocity by charge percentage
         double velocityMultiplier = mechanic.getMinChargePercent()
                 + ((1.0 - mechanic.getMinChargePercent()) * chargePercent);
@@ -217,11 +229,10 @@ public class SpearLungeMechanicListener implements Listener {
                 lookDirection,
                 range,
                 0.5, // Ray radius - a bit wider than default for spear thrust
-                entity -> entity instanceof LivingEntity && entity != player && !entity.isDead()
-        );
+                entity -> entity instanceof LivingEntity && entity != player && !entity.isDead());
 
         List<LivingEntity> potentialTargets = new ArrayList<>();
-        
+
         // If raytrace hit something, start with that
         if (rayResult != null && rayResult.getHitEntity() instanceof LivingEntity hitEntity) {
             potentialTargets.add(hitEntity);
@@ -237,13 +248,15 @@ public class SpearLungeMechanicListener implements Listener {
             // Calculate distance to entity center
             Location entityCenter = target.getLocation().add(0, target.getHeight() / 2, 0);
             double distance = eyeLocation.distance(entityCenter);
-            
+
             // Must be within range (with small buffer for hitbox size)
             if (distance > range + 1.5)
                 continue;
 
-            // Check if entity is in front of the player (wider cone - dot > 0.5 is ~60 degrees)
-            Vector toEntity = entityCenter.subtract(eyeLocation).toVector();
+            // Check if entity is in front of the player (wider cone - dot > 0.5 is ~60
+            // degrees)
+            // Use toVector() subtraction to avoid modifying the Location objects
+            Vector toEntity = entityCenter.toVector().subtract(eyeLocation.toVector());
             if (toEntity.lengthSquared() < 0.01)
                 continue; // Too close to normalize
             toEntity.normalize();
@@ -259,15 +272,25 @@ public class SpearLungeMechanicListener implements Listener {
         potentialTargets.sort(Comparator.comparingDouble(e -> eyeLocation.distanceSquared(e.getLocation())));
 
         int targetsHit = 0;
-        int maxTargets = mechanic.isPiercing() ? mechanic.getMaxTargets() : 1;
+        int maxTargets = mechanic.getMaxTargets(); // Always respect max_targets config
 
         for (LivingEntity target : potentialTargets) {
             if (targetsHit >= maxTargets)
                 break;
 
+            // Mark this entity as an intentional damage target so we don't cancel its
+            // damage event
+            intentionalDamageTargets.add(target.getUniqueId());
+
             // Calculate damage scaled by charge percentage
             double damage = mechanic.getDamage() * chargePercent;
             target.damage(damage, player);
+
+            // Remove from intentional targets after a tick (damage event has been
+            // processed)
+            Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> {
+                intentionalDamageTargets.remove(target.getUniqueId());
+            });
 
             // Apply knockback in the direction of the attack
             Vector knockback = lookDirection.clone().multiply(mechanic.getKnockback());
@@ -334,11 +357,13 @@ public class SpearLungeMechanicListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerQuit(PlayerQuitEvent event) {
-        // Clean up on disconnect
+        // Clean up on disconnect - must restore walk speed!
         Player player = event.getPlayer();
         ChargeState state = chargingPlayers.remove(player.getUniqueId());
         if (state != null) {
             state.task().cancel();
+            // Restore walk speed before player disconnects
+            player.setWalkSpeed(state.originalWalkSpeed());
         }
         attackCooldowns.remove(player.getUniqueId());
     }
@@ -408,7 +433,7 @@ public class SpearLungeMechanicListener implements Listener {
                 if (mechanic.hasActiveModel()) {
                     setItemModel(item, mechanic.getActiveItemModelKey());
                     player.getInventory().setItem(hand, item);
-                    
+
                     ChargeState state = chargingPlayers.get(player.getUniqueId());
                     if (state != null) {
                         chargingPlayers.put(player.getUniqueId(), state.withLastFrame(mechanic.getSmoothFrames() + 1));
@@ -420,8 +445,10 @@ public class SpearLungeMechanicListener implements Listener {
                 }
             }
 
-            // Max hold timeout - if held too long without attacking, cancel and revert to inactive
-            // This gives the player 3 seconds (60 ticks by default) from charge start to attack
+            // Max hold timeout - if held too long without attacking, cancel and revert to
+            // inactive
+            // This gives the player 3 seconds (60 ticks by default) from charge start to
+            // attack
             if (ticksHeld >= mechanic.getMaxHoldTicks()) {
                 cancelCharge(player, false); // Cancel without attacking
             }
@@ -482,6 +509,24 @@ public class SpearLungeMechanicListener implements Listener {
         // If the player is charging, left-click triggers the attack
         if (chargingPlayers.containsKey(player.getUniqueId())) {
             cancelCharge(player, true);
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onEntityDamage(EntityDamageByEntityEvent event) {
+        // Cancel default melee damage from players who just performed a lunge attack
+        // This prevents the sword's base damage from stacking with the lunge damage
+        if (!(event.getDamager() instanceof Player player))
+            return;
+
+        if (lungingPlayers.contains(player.getUniqueId())) {
+            // Allow damage if this is our intentional lunge damage (shows red hurt
+            // animation)
+            if (intentionalDamageTargets.contains(event.getEntity().getUniqueId())) {
+                return; // Don't cancel - this is the lunge damage
+            }
+            // Cancel any other damage (sword swing from left-click)
             event.setCancelled(true);
         }
     }
