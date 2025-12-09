@@ -51,7 +51,6 @@ public class SpearLungeMechanic extends Mechanic {
     private final Sound hitSound;
 
     // Gameplay modifiers
-    private final boolean piercing;
     private final int maxTargets;
     private final double minChargePercent;
     
@@ -79,7 +78,6 @@ public class SpearLungeMechanic extends Mechanic {
         this.smoothFrames = section.getInt("smooth_frames", 0);
 
         // Gameplay modifiers
-        this.piercing = section.getBoolean("piercing", false);
         this.maxTargets = section.getInt("max_targets", 1);
         this.minChargePercent = section.getDouble("min_charge_percent", 0.3);
         
@@ -201,10 +199,6 @@ public class SpearLungeMechanic extends Mechanic {
 
     public int getSmoothFrames() {
         return smoothFrames;
-    }
-
-    public boolean isPiercing() {
-        return piercing;
     }
 
     public int getMaxTargets() {
