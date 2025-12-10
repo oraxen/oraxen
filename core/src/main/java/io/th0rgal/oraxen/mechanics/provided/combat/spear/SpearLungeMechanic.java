@@ -51,9 +51,12 @@ public class SpearLungeMechanic extends Mechanic {
     private final Sound hitSound;
 
     // Gameplay modifiers
-    private final boolean piercing;
     private final int maxTargets;
     private final double minChargePercent;
+
+    // Movement and timing modifiers
+    private final double chargeSlowdown; // 0.0 to 1.0, percentage of speed reduction while charging
+    private final int maxHoldTicks; // Max time to hold before auto-cancel (without attack)
 
     public SpearLungeMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section);
@@ -75,9 +78,15 @@ public class SpearLungeMechanic extends Mechanic {
         this.smoothFrames = section.getInt("smooth_frames", 0);
 
         // Gameplay modifiers
-        this.piercing = section.getBoolean("piercing", false);
         this.maxTargets = section.getInt("max_targets", 1);
         this.minChargePercent = section.getDouble("min_charge_percent", 0.3);
+
+        // Movement and timing modifiers
+        // charge_slowdown: 0.0 = no slowdown, 0.5 = 50% slower, 1.0 = cannot move
+        this.chargeSlowdown = Math.max(0.0, Math.min(1.0, section.getDouble("charge_slowdown", 0.4)));
+        // max_hold_ticks: how long player can hold before auto-cancel (default 3
+        // seconds = 60 ticks)
+        this.maxHoldTicks = section.getInt("max_hold_ticks", 60);
 
         // Parse intermediate models for smooth animation
         if (smoothFrames > 0 && section.isList("intermediate_models")) {
@@ -193,16 +202,29 @@ public class SpearLungeMechanic extends Mechanic {
         return smoothFrames;
     }
 
-    public boolean isPiercing() {
-        return piercing;
-    }
-
     public int getMaxTargets() {
         return maxTargets;
     }
 
     public double getMinChargePercent() {
         return minChargePercent;
+    }
+
+    /**
+     * Returns the movement slowdown factor while charging (0.0 to 1.0).
+     * 0.0 means no slowdown, 0.5 means 50% speed reduction, 1.0 means cannot move.
+     */
+    public double getChargeSlowdown() {
+        return chargeSlowdown;
+    }
+
+    /**
+     * Returns the maximum number of ticks the player can hold the charge
+     * before it auto-cancels (without performing an attack).
+     * Default is 60 ticks (3 seconds).
+     */
+    public int getMaxHoldTicks() {
+        return maxHoldTicks;
     }
 
     @Nullable
