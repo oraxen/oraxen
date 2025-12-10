@@ -113,8 +113,7 @@ public class ConfigsManager {
                 inputStreamReader.close();
             } catch (IOException e) {
                 Logs.logError("Failed to extract default file: " + source);
-                if (Settings.DEBUG.toBool())
-                    e.printStackTrace();
+                Logs.debug(e);
             }
         }
     }
@@ -194,8 +193,7 @@ public class ConfigsManager {
                 configuration.save(configurationFile);
             } catch (IOException e) {
                 Logs.logError("Failed to save updated configuration file: " + configurationFile.getName());
-                if (Settings.DEBUG.toBool())
-                    e.printStackTrace();
+                Logs.debug(e);
             }
         return configuration;
     }
@@ -415,8 +413,7 @@ public class ConfigsManager {
                 configuration.save(file);
             } catch (IOException e) {
                 Logs.logWarning("Failed to save updated glyph file: " + file.getName());
-                if (Settings.DEBUG.toBool())
-                    e.printStackTrace();
+                Logs.debug(e);
             }
         }
     }
@@ -512,12 +509,13 @@ public class ConfigsManager {
                 ModelData.DATAS.computeIfAbsent(material, k -> new HashMap<>()).put(key, modelData);
             }
 
-            if (fileChanged)
+            if (fileChanged) {
                 try {
                     configuration.save(file);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    Logs.debug(e);
                 }
+            }
         }
     }
 
@@ -563,10 +561,11 @@ public class ConfigsManager {
             } catch (Exception e) {
                 map.put(entry.getKey(), errorItem);
                 Logs.logError("ERROR BUILDING ITEM \"" + entry.getKey() + "\"");
-                if (Settings.DEBUG.toBool())
-                    e.printStackTrace();
-                else
+                if (Settings.DEBUG.toBool()) {
+                    Logs.debug(e);
+                } else {
                     Logs.logWarning(e.getMessage());
+                }
             }
             if (itemParser.isConfigUpdated())
                 configUpdated = true;
@@ -582,8 +581,7 @@ public class ConfigsManager {
             try {
                 FileUtils.writeStringToFile(itemFile, content, StandardCharsets.UTF_8);
             } catch (Exception e) {
-                if (Settings.DEBUG.toBool())
-                    e.printStackTrace();
+                Logs.debug(e);
                 try {
                     config.save(itemFile);
                 } catch (Exception e1) {

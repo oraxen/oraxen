@@ -50,10 +50,20 @@ public class Logs {
         OraxenPlugin.get().getAudience().console().sendMessage(Component.empty());
     }
 
-    public static void debug(Object object) { if ( Settings.DEBUG.toBool()) Bukkit.broadcastMessage(String.valueOf(object)); }
-    public static void debug(Object object, String prefix) { if ( Settings.DEBUG.toBool()) Bukkit.broadcastMessage(prefix + object); }
-    public static <T> T debugVal(T object) { if ( Settings.DEBUG.toBool()) Bukkit.broadcastMessage(String.valueOf(object)); return object; }
-    public static <T> T debugVal(T object, String prefix) { if ( Settings.DEBUG.toBool()) Bukkit.broadcastMessage(prefix + object); return object; }
-    public static void debug(Component component) { if ( Settings.DEBUG.toBool()) OraxenPlugin.get().getAudience().console().sendMessage(component != null ? component : Component.text("null")); }
+    public static void debug(Object object) { if (Settings.DEBUG.toBool()) Bukkit.broadcastMessage(String.valueOf(object)); }
+    public static void debug(Object object, String prefix) { if (Settings.DEBUG.toBool()) Bukkit.broadcastMessage(prefix + object); }
+    public static <T> T debugVal(T object) { if (Settings.DEBUG.toBool()) Bukkit.broadcastMessage(String.valueOf(object)); return object; }
+    public static <T> T debugVal(T object, String prefix) { if (Settings.DEBUG.toBool()) Bukkit.broadcastMessage(prefix + object); return object; }
+    public static void debug(Component component) { if (Settings.DEBUG.toBool()) OraxenPlugin.get().getAudience().console().sendMessage(component != null ? component : Component.text("null")); }
+
+    /**
+     * Logs an exception stack trace when debug mode is enabled.
+     * @param throwable the exception to log
+     */
+    public static void debug(Throwable throwable) {
+        if (Settings.DEBUG.toBool() && throwable != null) {
+            throwable.printStackTrace();
+        }
+    }
 
 }

@@ -87,15 +87,16 @@ public class DuplicationHandler {
     private static JsonObject getItemTextures(List<JsonObject> duplicates) {
         JsonObject newTextures = new JsonObject();
         for (JsonObject itemJsons : duplicates) {
-            // Check if this itemfile has a different parent model than
             if (itemJsons.has("textures")) {
                 JsonObject oldObject = itemJsons.getAsJsonObject("textures");
-                for (Map.Entry<String, JsonElement> entry : oldObject.entrySet())
-                    if (!newTextures.has(entry.getKey()))
+                for (Map.Entry<String, JsonElement> entry : oldObject.entrySet()) {
+                    if (!newTextures.has(entry.getKey())) {
                         newTextures.add(entry.getKey(), entry.getValue());
+                    }
+                }
             }
         }
-        return null;
+        return newTextures;
     }
 
     private static String getItemParent(List<JsonObject> duplicates) {
@@ -368,8 +369,7 @@ public class DuplicationHandler {
             fileContent = Files.readString(path);
         } catch (IOException e) {
             Logs.logWarning("Failed to migrate duplicate file-entry, could not read file");
-            if (Settings.DEBUG.toBool())
-                e.printStackTrace();
+            Logs.debug(e);
             return false;
         }
 
@@ -382,8 +382,7 @@ public class DuplicationHandler {
                     .filter(JsonElement::isJsonObject).map(JsonElement::getAsJsonObject).distinct().toList());
         } catch (JsonParseException | NullPointerException e) {
             Logs.logWarning("Failed to migrate duplicate file-entry, could not parse json");
-            if (Settings.DEBUG.toBool())
-                e.printStackTrace();
+            Logs.debug(e);
             return false;
         }
 
@@ -434,8 +433,7 @@ public class DuplicationHandler {
             migratedYaml.save(DuplicationHandler.getDuplicateItemFile(material));
         } catch (IOException e) {
             Logs.logWarning("Failed to migrate duplicate file-entry, could not save migrated_duplicates.yml");
-            if (Settings.DEBUG.toBool())
-                e.printStackTrace();
+            Logs.debug(e);
             return false;
         }
 
@@ -546,7 +544,8 @@ public class DuplicationHandler {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            Logs.logError("Failed to migrate sounds.json");
+            Logs.debug(e);
             return false;
         }
 
@@ -562,16 +561,14 @@ public class DuplicationHandler {
             try {
                 file.createNewFile();
             } catch (IOException e) {
-                if (Settings.DEBUG.toBool())
-                    e.printStackTrace();
+                Logs.debug(e);
                 return null;
             }
         }
         try {
             return OraxenYaml.loadConfiguration(file);
         } catch (Exception e) {
-            if (Settings.DEBUG.toBool())
-                e.printStackTrace();
+            Logs.debug(e);
             return null;
         }
     }
@@ -603,8 +600,7 @@ public class DuplicationHandler {
                 try {
                     newMigrateConfigFile.createNewFile();
                 } catch (IOException e) {
-                    if (Settings.DEBUG.toBool())
-                        e.printStackTrace();
+                    Logs.debug(e);
                     continue;
                 }
             }
@@ -616,8 +612,7 @@ public class DuplicationHandler {
             try {
                 newMigrateConfig.save(newMigrateConfigFile);
             } catch (IOException e) {
-                if (Settings.DEBUG.toBool())
-                    e.printStackTrace();
+                Logs.debug(e);
             }
         }
 
@@ -625,8 +620,7 @@ public class DuplicationHandler {
             Files.delete(oldMigrateConfigFile.toPath());
             Logs.logSuccess("Successfully converted migrated_duplicates.yml into new format");
         } catch (IOException e) {
-            if (Settings.DEBUG.toBool())
-                e.printStackTrace();
+            Logs.debug(e);
         }
     }
 }
