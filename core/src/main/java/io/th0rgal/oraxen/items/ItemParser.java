@@ -212,7 +212,9 @@ public class ItemParser {
         final NMSHandler nmsHandler = NMSHandlers.getHandler();
         if (nmsHandler == null) {
             Logs.logWarning("NMSHandler is null - some components won't work properly");
-            Logs.debug("Item parsing: " + (section != null ? section.getName() : "unknown section"));
+            if (Settings.DEBUG.toBool()) {
+                Logs.logError("Item parsing: " + (section != null ? section.getName() : "unknown section"));
+            }
         } else {
             Optional.ofNullable(components.getConfigurationSection("food"))
                     .ifPresent(food -> nmsHandler.foodComponent(item, food));
@@ -234,14 +236,16 @@ public class ItemParser {
                 try {
                     jukeboxPlayable.setShowInTooltip(jukeboxSection.getBoolean("show_in_tooltip"));
                 } catch (final NoSuchMethodError e) {
-                    Logs.logWarning("Error setting jukebox show_in_tooltip: This method is not available in your server version");
+                    Logs.logWarning(
+                            "Error setting jukebox show_in_tooltip: This method is not available in your server version");
                     Logs.debug(e);
                 }
 
                 try {
                     jukeboxPlayable.setSongKey(NamespacedKey.fromString(jukeboxSection.getString("song_key", "")));
                 } catch (final NoSuchMethodError e) {
-                    Logs.logWarning("Error setting jukebox song_key: This method is not available in your server version");
+                    Logs.logWarning(
+                            "Error setting jukebox song_key: This method is not available in your server version");
                     Logs.debug(e);
                 }
 
@@ -271,7 +275,8 @@ public class ItemParser {
                         .setCooldownSeconds((float) Math.max(cooldownSection.getDouble("seconds", 1.0), 0f));
                 item.setUseCooldownComponent(useCooldownComponent);
             } catch (final NoSuchMethodError | Exception e) {
-                Logs.logWarning("Error setting UseCooldownComponent: This component is not available in your server version");
+                Logs.logWarning(
+                        "Error setting UseCooldownComponent: This component is not available in your server version");
                 Logs.debug(e);
             }
         });

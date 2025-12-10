@@ -513,6 +513,7 @@ public class ConfigsManager {
                 try {
                     configuration.save(file);
                 } catch (IOException e) {
+                    Logs.logWarning("Failed to save updated item file: " + file.getName());
                     Logs.debug(e);
                 }
             }
