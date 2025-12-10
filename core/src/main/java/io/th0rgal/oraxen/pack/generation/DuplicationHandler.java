@@ -87,15 +87,16 @@ public class DuplicationHandler {
     private static JsonObject getItemTextures(List<JsonObject> duplicates) {
         JsonObject newTextures = new JsonObject();
         for (JsonObject itemJsons : duplicates) {
-            // Check if this itemfile has a different parent model than
             if (itemJsons.has("textures")) {
                 JsonObject oldObject = itemJsons.getAsJsonObject("textures");
-                for (Map.Entry<String, JsonElement> entry : oldObject.entrySet())
-                    if (!newTextures.has(entry.getKey()))
+                for (Map.Entry<String, JsonElement> entry : oldObject.entrySet()) {
+                    if (!newTextures.has(entry.getKey())) {
                         newTextures.add(entry.getKey(), entry.getValue());
+                    }
+                }
             }
         }
-        return null;
+        return newTextures;
     }
 
     private static String getItemParent(List<JsonObject> duplicates) {
@@ -357,36 +358,53 @@ public class DuplicationHandler {
         YamlConfiguration migratedYaml = loadMigrateItemYaml(material);
         if (migratedYaml == null) {
             Logs.logWarning("Failed to migrate duplicate file-entry, failed to load "
-                    + DuplicationHandler.getDuplicateItemFile(material).getPath());
+                    + getDuplicateItemFile(material).getPath());
             return false;
         }
+
+        List<JsonObject> overrides = readOverridesFromFile(name);
+        if (overrides == null) {
+            return false;
+        }
+
+        if (!overrides.isEmpty()) {
+            processOverrides(overrides, migratedYaml, materialName);
+        }
+
+        return saveMigratedYaml(migratedYaml, material);
+    }
+
+    private static List<JsonObject> readOverridesFromFile(String name) {
         Path path = Path.of(OraxenPlugin.get().getDataFolder().getAbsolutePath(), "pack", name);
-        if (!path.toFile().exists())
+        if (!path.toFile().exists()) {
             path = Path.of(path.toString().replace("assets\\minecraft\\", ""));
+        }
+
         String fileContent;
         try {
             fileContent = Files.readString(path);
         } catch (IOException e) {
             Logs.logWarning("Failed to migrate duplicate file-entry, could not read file");
-            if (Settings.DEBUG.toBool())
-                e.printStackTrace();
-            return false;
+            Logs.debug(e);
+            return null;
         }
-
-        JsonObject json;
-        List<JsonObject> overrides;
 
         try {
-            json = JsonParser.parseString(fileContent).getAsJsonObject();
-            overrides = new ArrayList<>(json.getAsJsonArray("overrides").asList().stream()
-                    .filter(JsonElement::isJsonObject).map(JsonElement::getAsJsonObject).distinct().toList());
+            JsonObject json = JsonParser.parseString(fileContent).getAsJsonObject();
+            return new ArrayList<>(json.getAsJsonArray("overrides").asList().stream()
+                    .filter(JsonElement::isJsonObject)
+                    .map(JsonElement::getAsJsonObject)
+                    .distinct()
+                    .toList());
         } catch (JsonParseException | NullPointerException e) {
             Logs.logWarning("Failed to migrate duplicate file-entry, could not parse json");
-            if (Settings.DEBUG.toBool())
-                e.printStackTrace();
-            return false;
+            Logs.debug(e);
+            return null;
         }
+    }
 
+    private static void processOverrides(List<JsonObject> overrides, YamlConfiguration migratedYaml,
+            String materialName) {
         Map<Integer, List<String>> pullingModels = new HashMap<>();
         Map<Integer, String> chargedModels = new HashMap<>();
         Map<Integer, String> blockingModels = new HashMap<>();
@@ -394,52 +412,58 @@ public class DuplicationHandler {
         Map<Integer, List<String>> damagedModels = new HashMap<>();
         List<JsonElement> overridesToRemove = new ArrayList<>();
 
-        if (!overrides.isEmpty()) {
-            handleBowPulling(overrides, overridesToRemove, pullingModels);
-            handleCrossbowPulling(overrides, overridesToRemove, chargedModels);
-            handleShieldBlocking(overrides, overridesToRemove, blockingModels);
-            handleFishingRodCast(overrides, overridesToRemove, castModels);
-            handleDamaged(overrides, overridesToRemove, damagedModels);
+        handleBowPulling(overrides, overridesToRemove, pullingModels);
+        handleCrossbowPulling(overrides, overridesToRemove, chargedModels);
+        handleShieldBlocking(overrides, overridesToRemove, blockingModels);
+        handleFishingRodCast(overrides, overridesToRemove, castModels);
+        handleDamaged(overrides, overridesToRemove, damagedModels);
 
-            overrides.removeIf(overridesToRemove::contains);
+        overrides.removeIf(overridesToRemove::contains);
 
-            for (JsonElement element : overrides) {
-                JsonObject predicate = element.getAsJsonObject().get("predicate").getAsJsonObject();
-                String modelPath = element.getAsJsonObject().get("model").getAsString().replace("\\", "/");
-                String id = "migrated_" + modelPath.replaceAll("[^a-zA-Z0-9]+", "_");
-                // Assume if no cmd is in that it is meant to replace the default model
-                int cmd = predicate.has("custom_model_data") ? predicate.get("custom_model_data").getAsInt() : 0;
+        for (JsonElement element : overrides) {
+            JsonObject predicate = element.getAsJsonObject().get("predicate").getAsJsonObject();
+            String modelPath = element.getAsJsonObject().get("model").getAsString().replace("\\", "/");
+            String id = "migrated_" + modelPath.replaceAll("[^a-zA-Z0-9]+", "_");
+            int cmd = predicate.has("custom_model_data") ? predicate.get("custom_model_data").getAsInt() : 0;
 
-                migratedYaml.set(id + ".material", materialName);
-                migratedYaml.set(id + ".excludeFromInventory", true);
-                migratedYaml.set(id + ".excludeFromCommands", true);
-                migratedYaml.set(id + ".Pack.generate_model", false);
-                migratedYaml.set(id + ".Pack.model", modelPath);
-                if (pullingModels.containsKey(cmd))
-                    migratedYaml.set(id + ".Pack.pulling_models", pullingModels.get(cmd));
-                if (damagedModels.containsKey(cmd))
-                    migratedYaml.set(id + ".Pack.damaged_models", damagedModels.get(cmd));
-                if (chargedModels.containsKey(cmd))
-                    migratedYaml.set(id + ".Pack.charged_model", chargedModels.get(cmd));
-                if (blockingModels.containsKey(cmd))
-                    migratedYaml.set(id + ".Pack.blocking_model", blockingModels.get(cmd));
-                if (castModels.containsKey(cmd))
-                    migratedYaml.set(id + ".Pack.cast_model", castModels.get(cmd));
-                if (Settings.RETAIN_CUSTOM_MODEL_DATA.toBool())
-                    migratedYaml.set(id + ".Pack.custom_model_data", cmd);
-            }
+            setMigratedItemProperties(migratedYaml, id, materialName, modelPath, cmd,
+                    pullingModels, damagedModels, chargedModels, blockingModels, castModels);
         }
+    }
 
+    private static void setMigratedItemProperties(YamlConfiguration yaml, String id, String materialName,
+            String modelPath, int cmd, Map<Integer, List<String>> pullingModels,
+            Map<Integer, List<String>> damagedModels, Map<Integer, String> chargedModels,
+            Map<Integer, String> blockingModels, Map<Integer, String> castModels) {
+        yaml.set(id + ".material", materialName);
+        yaml.set(id + ".excludeFromInventory", true);
+        yaml.set(id + ".excludeFromCommands", true);
+        yaml.set(id + ".Pack.generate_model", false);
+        yaml.set(id + ".Pack.model", modelPath);
+
+        if (pullingModels.containsKey(cmd))
+            yaml.set(id + ".Pack.pulling_models", pullingModels.get(cmd));
+        if (damagedModels.containsKey(cmd))
+            yaml.set(id + ".Pack.damaged_models", damagedModels.get(cmd));
+        if (chargedModels.containsKey(cmd))
+            yaml.set(id + ".Pack.charged_model", chargedModels.get(cmd));
+        if (blockingModels.containsKey(cmd))
+            yaml.set(id + ".Pack.blocking_model", blockingModels.get(cmd));
+        if (castModels.containsKey(cmd))
+            yaml.set(id + ".Pack.cast_model", castModels.get(cmd));
+        if (Settings.RETAIN_CUSTOM_MODEL_DATA.toBool())
+            yaml.set(id + ".Pack.custom_model_data", cmd);
+    }
+
+    private static boolean saveMigratedYaml(YamlConfiguration migratedYaml, Material material) {
         try {
-            migratedYaml.save(DuplicationHandler.getDuplicateItemFile(material));
+            migratedYaml.save(getDuplicateItemFile(material));
+            return true;
         } catch (IOException e) {
             Logs.logWarning("Failed to migrate duplicate file-entry, could not save migrated_duplicates.yml");
-            if (Settings.DEBUG.toBool())
-                e.printStackTrace();
+            Logs.debug(e);
             return false;
         }
-
-        return true;
     }
 
     private static void handleBowPulling(@NotNull List<JsonObject> overrides, List<JsonElement> overridesToRemove,
@@ -546,7 +570,8 @@ public class DuplicationHandler {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            Logs.logError("Failed to migrate sounds.json");
+            Logs.debug(e);
             return false;
         }
 
@@ -562,16 +587,14 @@ public class DuplicationHandler {
             try {
                 file.createNewFile();
             } catch (IOException e) {
-                if (Settings.DEBUG.toBool())
-                    e.printStackTrace();
+                Logs.debug(e);
                 return null;
             }
         }
         try {
             return OraxenYaml.loadConfiguration(file);
         } catch (Exception e) {
-            if (Settings.DEBUG.toBool())
-                e.printStackTrace();
+            Logs.debug(e);
             return null;
         }
     }
@@ -603,8 +626,7 @@ public class DuplicationHandler {
                 try {
                     newMigrateConfigFile.createNewFile();
                 } catch (IOException e) {
-                    if (Settings.DEBUG.toBool())
-                        e.printStackTrace();
+                    Logs.debug(e);
                     continue;
                 }
             }
@@ -616,8 +638,7 @@ public class DuplicationHandler {
             try {
                 newMigrateConfig.save(newMigrateConfigFile);
             } catch (IOException e) {
-                if (Settings.DEBUG.toBool())
-                    e.printStackTrace();
+                Logs.debug(e);
             }
         }
 
@@ -625,8 +646,7 @@ public class DuplicationHandler {
             Files.delete(oldMigrateConfigFile.toPath());
             Logs.logSuccess("Successfully converted migrated_duplicates.yml into new format");
         } catch (IOException e) {
-            if (Settings.DEBUG.toBool())
-                e.printStackTrace();
+            Logs.debug(e);
         }
     }
 }

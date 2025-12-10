@@ -144,53 +144,45 @@ public class WorldEditUtils {
     }
 
     private static List<Block> getBlocksInSchematic(Clipboard clipboard, Location loc) {
-        List<Block> list = new ArrayList<>();
-        World world = loc.getWorld();
-        assert world != null;
-
-        for (int x = clipboard.getMinimumPoint().getX(); x <= clipboard.getMaximumPoint().getX(); x++) {
-            for (int y = clipboard.getMinimumPoint().getY(); y <= clipboard.getMaximumPoint().getY(); y++) {
-                for (int z = clipboard.getMinimumPoint().getZ(); z <= clipboard.getMaximumPoint().getZ(); z++) {
-                    Location offset = new Location(world, x - clipboard.getOrigin().getBlockX(), y - clipboard.getOrigin().getBlockY(), z - clipboard.getOrigin().getBlockZ());
-
-                    Block block = world.getBlockAt(loc.clone().add(offset));
-                    if (BlockHelpers.isReplaceable(block)) continue;
-                    if (BlockHelpers.toBlockLocation(loc).equals(BlockHelpers.toBlockLocation(loc))) continue;
-                    list.add(block);
-                }
-            }
-        }
-        return list;
+        return collectBlocksFromClipboard(clipboard, loc);
     }
 
     public static List<Block> getBlocksInSchematic(Location loc, File schematic) {
-        List<Block> list = new ArrayList<>();
         World world = loc.getWorld();
-        assert world != null;
+        if (world == null) return new ArrayList<>();
 
         ClipboardFormat clipboardFormat = ClipboardFormats.findByFile(schematic);
-        if (clipboardFormat == null) return list;
-        Clipboard clipboard;
+        if (clipboardFormat == null) return new ArrayList<>();
 
-        try (final FileInputStream inputStream = new FileInputStream(schematic); ClipboardReader reader = clipboardFormat.getReader(inputStream)) {
-            clipboard = reader.read();
+        try (FileInputStream inputStream = new FileInputStream(schematic);
+             ClipboardReader reader = clipboardFormat.getReader(inputStream)) {
+            Clipboard clipboard = reader.read();
+            return collectBlocksFromClipboard(clipboard, loc);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
 
-        for (int x = clipboard.getMinimumPoint().getX(); x <= clipboard.getMaximumPoint().getX(); x++) {
-            for (int y = clipboard.getMinimumPoint().getY(); y <= clipboard.getMaximumPoint().getY(); y++) {
-                for (int z = clipboard.getMinimumPoint().getZ(); z <= clipboard.getMaximumPoint().getZ(); z++) {
-                    Location offset = new Location(world, x - clipboard.getOrigin().getBlockX(), y - clipboard.getOrigin().getBlockY(), z - clipboard.getOrigin().getBlockZ());
+    private static List<Block> collectBlocksFromClipboard(Clipboard clipboard, Location loc) {
+        List<Block> list = new ArrayList<>();
+        World world = loc.getWorld();
+        if (world == null) return list;
 
+        BlockVector3 min = clipboard.getMinimumPoint();
+        BlockVector3 max = clipboard.getMaximumPoint();
+        BlockVector3 origin = clipboard.getOrigin();
+
+        for (int x = min.x(); x <= max.x(); x++) {
+            for (int y = min.y(); y <= max.y(); y++) {
+                for (int z = min.z(); z <= max.z(); z++) {
+                    Location offset = new Location(world, x - origin.x(), y - origin.y(), z - origin.z());
                     Block block = world.getBlockAt(loc.clone().add(offset));
                     if (BlockHelpers.isReplaceable(block)) continue;
-                    if (BlockHelpers.toBlockLocation(loc).equals(BlockHelpers.toBlockLocation(loc))) continue;
+                    if (BlockHelpers.toBlockLocation(loc).equals(BlockHelpers.toBlockLocation(block.getLocation()))) continue;
                     list.add(block);
                 }
             }
         }
-
         return list;
     }
 }

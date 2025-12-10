@@ -162,9 +162,7 @@ public class ItemParser {
             final String itemId = section != null ? section.getName() : "unknown";
             Logs.logError("Error building item \"" + itemId + "\"");
             Logs.logError(e.getMessage());
-            if (Settings.DEBUG.toBool()) {
-                e.printStackTrace();
-            }
+            Logs.debug(e);
             // Still return the item to avoid NPE, even if it's not fully configured
             return item;
         }
@@ -216,7 +214,6 @@ public class ItemParser {
             Logs.logWarning("NMSHandler is null - some components won't work properly");
             if (Settings.DEBUG.toBool()) {
                 Logs.logError("Item parsing: " + (section != null ? section.getName() : "unknown section"));
-                new Exception("NMSHandler is null").printStackTrace();
             }
         } else {
             Optional.ofNullable(components.getConfigurationSection("food"))
@@ -241,9 +238,7 @@ public class ItemParser {
                 } catch (final NoSuchMethodError e) {
                     Logs.logWarning(
                             "Error setting jukebox show_in_tooltip: This method is not available in your server version");
-                    if (Settings.DEBUG.toBool()) {
-                        e.printStackTrace();
-                    }
+                    Logs.debug(e);
                 }
 
                 try {
@@ -251,17 +246,13 @@ public class ItemParser {
                 } catch (final NoSuchMethodError e) {
                     Logs.logWarning(
                             "Error setting jukebox song_key: This method is not available in your server version");
-                    if (Settings.DEBUG.toBool()) {
-                        e.printStackTrace();
-                    }
+                    Logs.debug(e);
                 }
 
                 item.setJukeboxPlayable(jukeboxPlayable);
             } catch (final Exception e) {
                 Logs.logWarning("Failed to create JukeboxPlayableComponent for item: " + section.getName());
-                if (Settings.DEBUG.toBool()) {
-                    e.printStackTrace();
-                }
+                Logs.debug(e);
             }
         } else if (jukeboxSection != null) {
             Logs.logInfo("JukeboxPlayableComponent is only supported on Paper servers. Skipping this component.");
@@ -286,9 +277,7 @@ public class ItemParser {
             } catch (final NoSuchMethodError | Exception e) {
                 Logs.logWarning(
                         "Error setting UseCooldownComponent: This component is not available in your server version");
-                if (Settings.DEBUG.toBool()) {
-                    e.printStackTrace();
-                }
+                Logs.debug(e);
             }
         });
 
@@ -369,8 +358,7 @@ public class ItemParser {
                 } catch (final Exception e) {
                     Logs.logWarning("Error parsing rule-entry in " + section.getName());
                     Logs.logWarning("Malformed \"material\"-section");
-                    if (Settings.DEBUG.toBool())
-                        e.printStackTrace();
+                    Logs.debug(e);
                 }
             }
 
@@ -385,8 +373,7 @@ public class ItemParser {
                 } catch (final Exception e) {
                     Logs.logWarning("Error parsing rule-entry in " + section.getName());
                     Logs.logWarning("Malformed \"materials\"-section");
-                    if (Settings.DEBUG.toBool())
-                        e.printStackTrace();
+                    Logs.debug(e);
                 }
             }
 
@@ -398,8 +385,7 @@ public class ItemParser {
                 } catch (final Exception e) {
                     Logs.logWarning("Error parsing rule-entry in " + section.getName());
                     Logs.logWarning("Malformed \"tag\"-section");
-                    if (Settings.DEBUG.toBool())
-                        e.printStackTrace();
+                    Logs.debug(e);
                 }
             }
 
@@ -412,9 +398,8 @@ public class ItemParser {
                     }
                 } catch (final Exception e) {
                     Logs.logWarning("Error parsing rule-entry in " + section.getName());
-                    Logs.logWarning("Malformed \"material\"-section");
-                    if (Settings.DEBUG.toBool())
-                        e.printStackTrace();
+                    Logs.logWarning("Malformed \"tags\"-section");
+                    Logs.debug(e);
                 }
             }
 
@@ -524,7 +509,8 @@ public class ItemParser {
                             attributeJson.get("value"));
                 }
             } catch (final IllegalAccessException | NoSuchFieldException e) {
-                e.printStackTrace();
+                Logs.logWarning("Error parsing CustomTags in " + section.getName());
+                Logs.debug(e);
             }
         }
 
@@ -547,9 +533,7 @@ public class ItemParser {
                     }
                 } catch (final Exception e) {
                     Logs.logWarning("Error parsing AttributeModifiers in " + section.getName());
-                    if (Settings.DEBUG.toBool()) {
-                        e.printStackTrace();
-                    }
+                    Logs.debug(e);
                 }
             }
         }
