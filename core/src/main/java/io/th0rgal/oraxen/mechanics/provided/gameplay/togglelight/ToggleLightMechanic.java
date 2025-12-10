@@ -96,16 +96,19 @@ public class ToggleLightMechanic extends Mechanic {
             return;
         }
 
-        Light lightData = (Light) Material.LIGHT.createBlockData();
-        lightData.setLevel(lightLevel);
-
         if (block.getType().isAir()) {
+            // Create a new Light BlockData for each block to avoid mutating a shared instance
+            Light lightData = (Light) Material.LIGHT.createBlockData();
+            lightData.setLevel(lightLevel);
             block.setBlockData(lightData);
         } else {
             for (BlockFace face : BLOCK_FACES) {
                 Block relative = block.getRelative(face);
                 if (!relative.getType().isAir() && relative.getType() != Material.LIGHT) continue;
                 if (relative.getBlockData() instanceof Light relativeLight && relativeLight.getLevel() > lightLevel) continue;
+                // Create a new Light BlockData for each block to avoid mutating a shared instance
+                Light lightData = (Light) Material.LIGHT.createBlockData();
+                lightData.setLevel(lightLevel);
                 relative.setBlockData(lightData);
             }
         }
@@ -133,7 +136,7 @@ public class ToggleLightMechanic extends Mechanic {
         Location center = BlockHelpers.toCenterBlockLocation(baseEntity.getLocation());
         List<Location> barrierLocations = furnitureMechanic.getLocations(yaw, center, furnitureMechanic.getBarriers(baseEntity));
         
-        int lightLevel = isToggledOn(baseEntity) ? toggleLightLevel : baseLightLevel;
+        int lightLevel = hasToggleLight() && isToggledOn(baseEntity) ? toggleLightLevel : baseLightLevel;
         
         // Collect all blocks that need light updates
         List<Block> blocksToUpdate = new ArrayList<>();

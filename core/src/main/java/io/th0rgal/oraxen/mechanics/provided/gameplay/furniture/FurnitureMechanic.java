@@ -444,12 +444,14 @@ public class FurnitureMechanic extends Mechanic {
                             ? location.clone().subtract(0, 0.5 * displayEntityProperties.getScale().y(), 0) : location;
 
             if (hasBarriers()) setBarrierHitbox(entity, barrierLoc, yaw);
-            else if (hasSeat() && interaction != null) {
-                UUID seatUuid = spawnSeat(location.getBlock(), hasSeatYaw ? seatYaw : yaw);
-                interaction.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
-                itemDisplay.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
+            else {
+                if (hasSeat() && interaction != null) {
+                    UUID seatUuid = spawnSeat(location.getBlock(), hasSeatYaw ? seatYaw : yaw);
+                    interaction.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
+                    itemDisplay.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
+                }
+                createInitialLight(location.getBlock(), entity);
             }
-            createInitialLight(location.getBlock(), entity);
         }
     }
 
@@ -555,7 +557,19 @@ public class FurnitureMechanic extends Mechanic {
             data.set(ROOT_KEY, PersistentDataType.STRING, new BlockLocation(location.clone()).toString());
             data.set(ORIENTATION_KEY, PersistentDataType.FLOAT, yaw);
             data.set(BASE_ENTITY_KEY, DataType.UUID, entity.getUniqueId());
-            createInitialLight(block, entity);
+        }
+        
+        // For toggle light mechanics with barriers, use updateAllBarrierBlocks to handle all barriers collectively
+        // This prevents lights from adjacent barriers from being incorrectly removed
+        ToggleLightMechanic toggleLight = getToggleLightMechanic();
+        if (toggleLight != null && (toggleLight.hasToggleLight() || toggleLight.getBaseLightLevel() > 0)) {
+            toggleLight.updateAllBarrierBlocks(this, entity);
+        } else {
+            // Fallback to per-barrier light creation for regular light mechanics
+            // This is safe because LightMechanic.createBlockLight doesn't remove lights first
+            for (Location barrierLocation : barrierLocations) {
+                createInitialLight(barrierLocation.getBlock(), entity);
+            }
         }
     }
 
@@ -916,6 +930,8 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public void refreshLight(Entity baseEntity) {
+        if (baseEntity == null) return;
+        
         ToggleLightMechanic toggleLight = getToggleLightMechanic();
         if (toggleLight == null || (!toggleLight.hasToggleLight() && toggleLight.getBaseLightLevel() <= 0)) {
             return;
