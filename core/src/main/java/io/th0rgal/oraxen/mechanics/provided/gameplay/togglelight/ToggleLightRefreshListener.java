@@ -14,12 +14,13 @@ public class ToggleLightRefreshListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onMechanicsRegistered(OraxenNativeMechanicsRegisteredEvent event) {
-        // Refresh light for all existing furniture when mechanics are registered (on load/reload)
+        // Refresh light for all existing furniture, noteblocks, and stringblocks when mechanics are registered (on load/reload)
         Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
             ToggleLightMechanicFactory factory = ToggleLightMechanicFactory.getInstance();
             if (factory == null) return;
 
             for (World world : Bukkit.getServer().getWorlds()) {
+                // Refresh furniture entities
                 world.getEntities().stream()
                         .filter(OraxenFurniture::isBaseEntity)
                         .forEach(entity -> {
@@ -30,6 +31,9 @@ public class ToggleLightRefreshListener implements Listener {
                                 furnitureMechanic.refreshLight(entity);
                             }
                         });
+
+                // Note: NoteBlocks and StringBlocks are not refreshed here to avoid expensive chunk iteration.
+                // Their light state persists in PDC and will be refreshed on interaction or when placed.
             }
         }, 20L); // Delay to ensure all mechanics are fully loaded
     }

@@ -17,7 +17,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.List;
+import java.util.*;
 
 public class ToggleLightMechanic extends Mechanic {
 
@@ -29,7 +29,7 @@ public class ToggleLightMechanic extends Mechanic {
 
     public ToggleLightMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section);
-        toggleLightLevel = Math.min(15, section.getInt("toggle_light", 0));
+        toggleLightLevel = Math.min(15, Math.max(0, section.getInt("toggle_light", 0)));
         baseLightLevel = Math.min(15, Math.max(0, section.getInt("light", 0)));
     }
 
@@ -134,12 +134,98 @@ public class ToggleLightMechanic extends Mechanic {
         List<Location> barrierLocations = furnitureMechanic.getLocations(yaw, center, furnitureMechanic.getBarriers(baseEntity));
         
         int lightLevel = isToggledOn(baseEntity) ? toggleLightLevel : baseLightLevel;
+        
+        // Collect all blocks that need light updates
+        List<Block> blocksToUpdate = new ArrayList<>();
+        Block baseBlock = baseEntity.getLocation().getBlock();
+        blocksToUpdate.add(baseBlock);
+        
         for (Location barrierLocation : barrierLocations) {
             Block barrierBlock = barrierLocation.getBlock();
             if (barrierBlock.getType() == Material.BARRIER) {
-                updateLight(barrierBlock, lightLevel);
+                blocksToUpdate.add(barrierBlock);
             }
         }
+        
+        // Collect all light positions that should have lights (with their desired levels)
+        // Use normalized Location (block coordinates only) as key to fix equality issues
+        Map<Location, Integer> desiredLights = new HashMap<>();
+        
+        for (Block block : blocksToUpdate) {
+            if (lightLevel <= 0) continue;
+            
+            if (block.getType().isAir()) {
+                // If block is air, place light directly in it
+                Location blockLoc = normalizeLocation(block.getLocation());
+                desiredLights.put(blockLoc, lightLevel);
+            } else {
+                // Otherwise, place lights in adjacent air/light blocks
+                for (BlockFace face : BLOCK_FACES) {
+                    Block relative = block.getRelative(face);
+                    if (relative.getType().isAir() || relative.getType() == Material.LIGHT) {
+                        // Normalize Location to only compare block coordinates (x, y, z, world)
+                        Location relativeLoc = normalizeLocation(relative.getLocation());
+                        // Use maximum light level if multiple blocks want to light the same position
+                        desiredLights.merge(relativeLoc, lightLevel, Math::max);
+                    }
+                }
+            }
+        }
+        
+        // Remove all existing lights around blocks that need updates
+        // Remove lights that: (1) aren't in desired set, OR (2) are at a higher level than desired
+        for (Block block : blocksToUpdate) {
+            for (BlockFace face : BLOCK_FACES) {
+                Block relative = block.getRelative(face);
+                if (relative.getType() == Material.LIGHT) {
+                    Location relativeLoc = normalizeLocation(relative.getLocation());
+                    Integer desiredLevel = desiredLights.get(relativeLoc);
+                    
+                    // Remove if: not in desired set, OR existing light level is higher than desired
+                    boolean shouldRemove = false;
+                    if (desiredLevel == null) {
+                        // Location not in desired set - remove it
+                        shouldRemove = true;
+                    } else if (relative.getBlockData() instanceof Light existingLight) {
+                        // Location is desired, but check if existing level is too high
+                        if (existingLight.getLevel() > desiredLevel) {
+                            shouldRemove = true;
+                        }
+                    }
+                    
+                    if (shouldRemove) {
+                        relative.setType(Material.AIR);
+                    }
+                }
+            }
+        }
+        
+        // Place all desired lights
+        for (Map.Entry<Location, Integer> entry : desiredLights.entrySet()) {
+            Location lightLoc = entry.getKey();
+            int level = entry.getValue();
+            Block lightBlock = lightLoc.getBlock();
+            
+            // Skip if there's already a light with higher level
+            if (lightBlock.getBlockData() instanceof Light existingLight && existingLight.getLevel() > level) {
+                continue;
+            }
+            
+            // Create a new Light BlockData for each block to avoid mutating a shared instance
+            Light lightData = (Light) Material.LIGHT.createBlockData();
+            lightData.setLevel(level);
+            lightBlock.setBlockData(lightData);
+        }
+    }
+    
+    /**
+     * Normalizes a Location to only include block coordinates (x, y, z, world).
+     * This ensures Location.equals() works correctly for block-based comparisons
+     * by ignoring yaw, pitch, and other non-coordinate properties.
+     */
+    private Location normalizeLocation(Location loc) {
+        Location normalized = new Location(loc.getWorld(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
+        return normalized;
     }
 }
 

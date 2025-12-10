@@ -41,8 +41,6 @@ import static io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.
 
 public class OraxenBlocks {
 
-    private static ToggleLightMechanicFactory toggleLightFactory;
-
     /**
      * Get all OraxenItem ID's that have either a NoteBlockMechanic or a StringBlockMechanic
      *
@@ -449,16 +447,10 @@ public class OraxenBlocks {
 
     @Nullable
     private static ToggleLightMechanic getToggleLightMechanic(String itemID) {
-        if (toggleLightFactory == null) {
-            ToggleLightMechanicFactory factory = ToggleLightMechanicFactory.getInstance();
-            if (factory == null) {
-                factory = (ToggleLightMechanicFactory) MechanicsManager.getMechanicFactory("toggle_light");
-            }
-            // Only cache non-null factories to allow retry if factory initializes later
-            if (factory != null) {
-                toggleLightFactory = factory;
-            }
+        ToggleLightMechanicFactory factory = ToggleLightMechanicFactory.getInstance();
+        if (factory == null) {
+            factory = (ToggleLightMechanicFactory) MechanicsManager.getMechanicFactory("toggle_light");
         }
-        return toggleLightFactory != null ? toggleLightFactory.getMechanic(itemID) : null;
+        return factory != null ? factory.getMechanic(itemID) : null;
     }
 }

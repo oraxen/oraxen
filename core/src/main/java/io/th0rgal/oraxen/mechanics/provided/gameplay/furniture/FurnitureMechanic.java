@@ -922,6 +922,7 @@ public class FurnitureMechanic extends Mechanic {
         }
 
         if (hasBarriers(baseEntity)) {
+            // updateAllBarrierBlocks now handles both barrier blocks and base entity location
             toggleLight.updateAllBarrierBlocks(this, baseEntity);
         } else {
             Block block = baseEntity.getLocation().getBlock();
