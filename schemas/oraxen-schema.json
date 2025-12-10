@@ -2,7 +2,7 @@
   "oraxenVersion": "1.199.0",
   "minecraftVersion": "1.21.4",
   "serverVersion": "1.21.4-R0.1-SNAPSHOT",
-  "generatedAt": "2025-12-09T16:29:23.209133Z",
+  "generatedAt": "2025-12-10T22:12:43.736298497Z",
   "enums": {
     "Material": {
       "values": [
@@ -6884,168 +6884,897 @@
     }
   },
   "mechanics": {
-    "lifeleech": {
-      "category": "combat",
-      "description": "Heals player when dealing damage",
+    "repair": {
+      "category": "gameplay",
+      "description": "Allows items to be repaired with custom materials (deprecated on 1.21+, use repaired_by component)",
+      "_source": "factory",
       "properties": {
-        "amount": {
-          "type": "integer",
-          "description": "Health restored per hit (in half-hearts)",
-          "min": 1
+        "ratio": {
+          "type": "number",
+          "description": "Repair ratio per material consumed",
+          "default": 0.25,
+          "min": 0.0,
+          "max": 1.0
+        },
+        "oraxen_item": {
+          "type": "string",
+          "description": "Oraxen item ID to use as repair material"
+        },
+        "fixed_repair_amount": {
+          "type": "array",
+          "description": "Fixed repair amounts per material"
         }
       }
     },
     "bleeding": {
       "category": "combat",
-      "description": "Causes targets to bleed over time",
+      "description": "Causes targets to bleed over time, dealing damage at intervals",
+      "_source": "factory",
       "properties": {
+        "chance": {
+          "type": "number",
+          "description": "Probability of causing bleeding (0.0-1.0)",
+          "default": 0.3,
+          "min": 0.0,
+          "max": 1.0
+        },
         "duration": {
           "type": "integer",
-          "description": "Duration in ticks",
-          "min": 1,
-          "default": 100
-        },
-        "interval": {
-          "type": "integer",
-          "description": "Ticks between damage",
-          "min": 1,
-          "default": 20
+          "description": "Total duration of bleeding effect in ticks",
+          "default": 100,
+          "min": 1.0
         },
         "damage_per_interval": {
           "type": "number",
-          "description": "Damage per tick",
-          "min": 0,
-          "default": 0.5
+          "description": "Damage dealt each interval (in half-hearts)",
+          "default": 0.5,
+          "min": 0.0,
+          "max": 20.0
         },
-        "chance": {
-          "type": "number",
-          "description": "Chance to apply bleeding (0-1)",
-          "min": 0,
-          "default": 0.3
+        "interval": {
+          "type": "integer",
+          "description": "Ticks between each damage tick",
+          "default": 20,
+          "min": 1.0
         }
       }
     },
-    "thor": {
+    "lifeleech": {
       "category": "combat",
-      "description": "Summons lightning on hit",
+      "description": "Heals the player when dealing damage to entities",
+      "_source": "factory",
       "properties": {
-        "delay": {
+        "amount": {
           "type": "integer",
-          "description": "Cooldown in milliseconds",
-          "min": 0
-        },
-        "lightning_bolts_amount": {
-          "type": "integer",
-          "description": "Number of lightning bolts",
-          "min": 1,
-          "default": 1
-        },
-        "random_location_variation": {
-          "type": "number",
-          "description": "Random offset for bolt position",
-          "min": 0,
-          "default": 1.5
-        }
-      }
-    },
-    "spear_lunge": {
-      "category": "combat",
-      "description": "Charge and lunge attack for spears",
-      "properties": {
-        "active_model": {
-          "type": "string",
-          "description": "Model to show while charging"
-        },
-        "lunge_velocity": {
-          "type": "number",
-          "description": "Velocity multiplier for lunge",
-          "min": 0,
-          "default": 0.8
-        },
-        "cooldown_ticks": {
-          "type": "integer",
-          "description": "Cooldown after lunge in ticks",
-          "min": 0
-        },
-        "charge_ticks": {
-          "type": "integer",
-          "description": "Ticks to charge before lunge",
-          "min": 1,
-          "default": 12
-        }
-      }
-    },
-    "energyblast": {
-      "category": "combat",
-      "description": "Fires an energy blast projectile",
-      "properties": {
-        "delay": {
-          "type": "integer",
-          "description": "Cooldown in milliseconds",
-          "min": 0
-        }
-      }
-    },
-    "fireball": {
-      "category": "combat",
-      "description": "Shoots a fireball",
-      "properties": {
-        "delay": {
-          "type": "integer",
-          "description": "Cooldown in milliseconds",
-          "min": 0
+          "description": "Health restored per hit (in half-hearts)",
+          "default": 1,
+          "min": 1.0
         }
       }
     },
     "witherskull": {
       "category": "combat",
-      "description": "Launches a wither skull",
+      "description": "Launches a wither skull projectile that applies wither effect",
+      "_source": "factory",
       "properties": {
         "delay": {
           "type": "integer",
-          "description": "Cooldown in milliseconds",
-          "min": 0
+          "description": "Cooldown between uses in milliseconds",
+          "default": 0,
+          "min": 0.0
+        },
+        "charged": {
+          "type": "boolean",
+          "description": "Whether the skull is charged (blue, more powerful)",
+          "default": false
         }
       }
     },
-    "bigmining": {
-      "category": "farming",
-      "description": "Mines blocks in an area",
+    "spear_lunge": {
+      "category": "combat",
+      "description": "Enables a charge-and-lunge attack with model swapping for spears",
+      "_source": "factory",
       "properties": {
-        "depth": {
-          "type": "integer",
-          "description": "Depth of mining area",
-          "min": 1
+        "active_model": {
+          "type": "string",
+          "description": "Model path for active/charging state"
         },
-        "radius": {
+        "charge_ticks": {
           "type": "integer",
-          "description": "Horizontal radius",
-          "min": 1
+          "description": "Ticks to fully charge the lunge",
+          "default": 12,
+          "min": 1.0
+        },
+        "lunge_velocity": {
+          "type": "number",
+          "description": "Velocity multiplier for the lunge",
+          "default": 0.6,
+          "min": 0.0,
+          "max": 5.0
+        },
+        "max_range": {
+          "type": "number",
+          "description": "Maximum range to hit targets during lunge",
+          "default": 3.5,
+          "min": 0.0,
+          "max": 10.0
+        },
+        "damage": {
+          "type": "number",
+          "description": "Base damage dealt during lunge",
+          "default": 6.0,
+          "min": 0.0
+        }
+      }
+    },
+    "skin": {
+      "category": "cosmetic",
+      "description": "Defines an item as a skin that can be applied to skinnable items",
+      "_source": "factory",
+      "properties": {
+        "consume": {
+          "type": "boolean",
+          "description": "Whether the skin is consumed when applied",
+          "default": true
+        }
+      }
+    },
+    "consumable_potion_effects": {
+      "category": "misc",
+      "description": "Applies potion effects when the item is consumed",
+      "_source": "factory",
+      "properties": {
+        "effects": {
+          "type": "array",
+          "description": "List of potion effects to apply on consumption"
+        }
+      }
+    },
+    "aura": {
+      "category": "cosmetic",
+      "description": "Creates a particle aura effect around the player when holding the item",
+      "_source": "factory",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Aura type/pattern",
+          "values": [
+            "simple",
+            "ring",
+            "helix"
+          ]
+        },
+        "particle": {
+          "type": "string",
+          "description": "Particle type to display",
+          "enum": "Particle"
+        }
+      }
+    },
+    "skinnable": {
+      "category": "cosmetic",
+      "description": "Marks an item as skinnable, allowing skins to be applied to it",
+      "_source": "factory"
+    },
+    "bottledexp": {
+      "category": "farming",
+      "description": "Stores player experience into experience bottles",
+      "_source": "factory"
+    },
+    "harvesting": {
+      "category": "farming",
+      "description": "Automatically harvests and replants crops when broken",
+      "_source": "factory"
+    },
+    "soulbound": {
+      "category": "misc",
+      "description": "Keeps the item in inventory on death instead of dropping",
+      "_source": "factory",
+      "properties": {
+        "lose_chance": {
+          "type": "number",
+          "description": "Chance to lose item anyway (0-100%)",
+          "default": 0.0,
+          "min": 0.0,
+          "max": 100.0
+        }
+      }
+    },
+    "music_disc": {
+      "category": "misc",
+      "description": "Custom music disc with custom sounds (deprecated on 1.21+, use jukeboxPlayable component)",
+      "_source": "factory",
+      "properties": {
+        "song": {
+          "type": "string",
+          "description": "Sound resource location for the music"
+        }
+      }
+    },
+    "noteblock": {
+      "category": "gameplay",
+      "description": "Creates custom blocks using noteblock states (up to 775 variations)",
+      "_source": "factory",
+      "properties": {
+        "custom_variation": {
+          "type": "integer",
+          "description": "Unique variation ID (0-775)",
+          "default": 0,
+          "min": 0,
+          "max": 775
+        },
+        "model": {
+          "type": "string",
+          "description": "Block model path"
+        },
+        "hardness": {
+          "type": "number",
+          "description": "Block break hardness",
+          "default": 1.0,
+          "min": 0.0
+        },
+        "light": {
+          "type": "integer",
+          "description": "Light level emitted (0-15)",
+          "default": 0,
+          "min": 0,
+          "max": 15
+        },
+        "canIgnite": {
+          "type": "boolean",
+          "description": "Whether the block can be ignited",
+          "default": false
+        },
+        "drop": {
+          "type": "object",
+          "description": "Drop configuration when broken",
+          "properties": {
+            "loots": {
+              "type": "array",
+              "description": "List of loot entries"
+            },
+            "silktouch": {
+              "type": "boolean",
+              "description": "Require silk touch",
+              "default": false
+            }
+          }
+        },
+        "directional": {
+          "type": "object",
+          "description": "Directional block configuration",
+          "properties": {
+            "z_block": {
+              "type": "string",
+              "description": "Z-axis variant ID"
+            },
+            "parent_block": {
+              "type": "string",
+              "description": "Parent block ID"
+            },
+            "y_block": {
+              "type": "string",
+              "description": "Y-axis variant ID"
+            },
+            "x_block": {
+              "type": "string",
+              "description": "X-axis variant ID"
+            }
+          }
+        },
+        "farmblock": {
+          "type": "object",
+          "description": "Farm block configuration",
+          "properties": {
+            "moisture": {
+              "type": "integer",
+              "description": "Moisture level",
+              "default": 0,
+              "min": 0
+            },
+            "dry_block": {
+              "type": "string",
+              "description": "Block ID when dried"
+            }
+          }
+        },
+        "log_strip": {
+          "type": "object",
+          "description": "Log stripping configuration",
+          "properties": {
+            "stripped_log": {
+              "type": "string",
+              "description": "Stripped log block ID"
+            },
+            "drop": {
+              "type": "object",
+              "description": "Item dropped on strip",
+              "properties": {
+                "minecraft_type": {
+                  "type": "string",
+                  "description": "Vanilla item type"
+                },
+                "oraxen_item": {
+                  "type": "string",
+                  "description": "Oraxen item ID"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "furniture": {
+      "category": "gameplay",
+      "description": "Places items as interactive furniture entities in the world",
+      "_source": "factory",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Entity type for the furniture",
+          "values": [
+            "DISPLAY_ENTITY",
+            "ITEM_FRAME",
+            "GLOW_ITEM_FRAME"
+          ]
+        },
+        "hardness": {
+          "type": "integer",
+          "description": "Break hardness (higher \u003d slower to break)",
+          "default": 1,
+          "min": 0
+        },
+        "item": {
+          "type": "string",
+          "description": "Alternative Oraxen item ID to display"
+        },
+        "modelengine_id": {
+          "type": "string",
+          "description": "ModelEngine model ID to use"
+        },
+        "farmland_required": {
+          "type": "boolean",
+          "description": "Whether farmland is required for placement",
+          "default": false
+        },
+        "farmblock_required": {
+          "type": "boolean",
+          "description": "Whether farmblock is required for placement",
+          "default": false
+        },
+        "light": {
+          "type": "integer",
+          "description": "Light level emitted (0-15)",
+          "default": 0,
+          "min": 0,
+          "max": 15
+        },
+        "restricted_rotation": {
+          "type": "string",
+          "description": "Rotation restriction mode",
+          "values": [
+            "NONE",
+            "STRICT",
+            "VERY_STRICT"
+          ]
+        },
+        "rotatable": {
+          "type": "boolean",
+          "description": "Whether furniture can be rotated after placement",
+          "default": true
+        },
+        "hitbox": {
+          "type": "object",
+          "description": "Custom hitbox dimensions",
+          "properties": {
+            "height": {
+              "type": "number",
+              "description": "Hitbox height",
+              "default": 1.0,
+              "min": 0.0,
+              "max": 10.0
+            },
+            "width": {
+              "type": "number",
+              "description": "Hitbox width",
+              "default": 1.0,
+              "min": 0.0,
+              "max": 10.0
+            }
+          }
+        },
+        "seat": {
+          "type": "object",
+          "description": "Seat configuration for sittable furniture",
+          "properties": {
+            "yaw": {
+              "type": "number",
+              "description": "Seat rotation",
+              "default": 0.0
+            },
+            "height": {
+              "type": "number",
+              "description": "Seat height offset",
+              "default": 0.0
+            }
+          }
+        },
+        "barriers": {
+          "type": "array",
+          "description": "List of barrier block positions relative to furniture"
+        },
+        "display_entity_properties": {
+          "type": "object",
+          "description": "Display entity configuration",
+          "properties": {
+            "display_transform": {
+              "type": "string",
+              "description": "Display transform mode",
+              "values": [
+                "NONE",
+                "THIRDPERSON_LEFTHAND",
+                "THIRDPERSON_RIGHTHAND",
+                "FIRSTPERSON_LEFTHAND",
+                "FIRSTPERSON_RIGHTHAND",
+                "HEAD",
+                "GUI",
+                "GROUND",
+                "FIXED"
+              ]
+            },
+            "brightness": {
+              "type": "object",
+              "description": "Light levels",
+              "properties": {
+                "sky": {
+                  "type": "integer",
+                  "description": "Sky light level",
+                  "default": 0,
+                  "min": 0,
+                  "max": 15
+                },
+                "block": {
+                  "type": "integer",
+                  "description": "Block light level",
+                  "default": 0,
+                  "min": 0,
+                  "max": 15
+                }
+              }
+            }
+          }
+        },
+        "drop": {
+          "type": "object",
+          "description": "Drop configuration when broken",
+          "properties": {
+            "loots": {
+              "type": "array",
+              "description": "List of loot entries"
+            },
+            "silktouch": {
+              "type": "boolean",
+              "description": "Require silk touch to drop",
+              "default": false
+            }
+          }
+        },
+        "storage": {
+          "type": "object",
+          "description": "Storage container configuration",
+          "properties": {
+            "title": {
+              "type": "string",
+              "description": "Inventory title"
+            },
+            "type": {
+              "type": "string",
+              "description": "Storage type",
+              "values": [
+                "STORAGE",
+                "PERSONAL",
+                "ENDERCHEST",
+                "DISPOSAL"
+              ]
+            },
+            "rows": {
+              "type": "integer",
+              "description": "Number of inventory rows",
+              "default": 1,
+              "min": 1,
+              "max": 6
+            }
+          }
+        }
+      }
+    },
+    "hat": {
+      "category": "cosmetic",
+      "description": "Allows items to be worn as hats (deprecated on 1.21.2+, use equippable component instead)",
+      "_source": "factory"
+    },
+    "commands": {
+      "category": "misc",
+      "description": "Executes commands when the item is used",
+      "_source": "factory",
+      "properties": {
+        "permission": {
+          "type": "string",
+          "description": "Permission required to use the item"
+        },
+        "cooldown": {
+          "type": "integer",
+          "description": "Cooldown between uses in ticks",
+          "default": 0,
+          "min": 0.0
+        },
+        "one_usage": {
+          "type": "boolean",
+          "description": "Whether the item is consumed on use",
+          "default": false
+        },
+        "console": {
+          "type": "object",
+          "description": "Commands executed as console",
+          "properties": {
+            "commands": {
+              "type": "array",
+              "description": "List of commands to execute"
+            }
+          }
+        },
+        "player": {
+          "type": "object",
+          "description": "Commands executed as player",
+          "properties": {
+            "commands": {
+              "type": "array",
+              "description": "List of commands to execute"
+            }
+          }
+        },
+        "opped_player": {
+          "type": "object",
+          "description": "Commands executed as opped player",
+          "properties": {
+            "commands": {
+              "type": "array",
+              "description": "List of commands to execute"
+            }
+          }
+        }
+      }
+    },
+    "fireball": {
+      "category": "combat",
+      "description": "Launches a fireball projectile that explodes on impact",
+      "_source": "factory",
+      "properties": {
+        "delay": {
+          "type": "integer",
+          "description": "Cooldown between uses in milliseconds",
+          "default": 0,
+          "min": 0.0
+        },
+        "yield": {
+          "type": "number",
+          "description": "Explosion power/radius"
+        },
+        "speed": {
+          "type": "number",
+          "description": "Fireball travel speed"
+        }
+      }
+    },
+    "misc": {
+      "category": "misc",
+      "description": "Miscellaneous item properties like fire/lava damage resistance",
+      "_source": "factory",
+      "properties": {
+        "burns_in_fire": {
+          "type": "boolean",
+          "description": "Whether item burns in fire (deprecated, use damage_resistant)",
+          "default": true
+        },
+        "burns_in_lava": {
+          "type": "boolean",
+          "description": "Whether item burns in lava (deprecated, use damage_resistant)",
+          "default": true
+        },
+        "breaks_from_cactus": {
+          "type": "boolean",
+          "description": "Whether item breaks from cactus (deprecated, use damage_resistant)",
+          "default": true
+        },
+        "break_music_discs": {
+          "type": "boolean",
+          "description": "Whether item can break music discs",
+          "default": false
         }
       }
     },
     "smelting": {
       "category": "farming",
-      "description": "Auto-smelts mined blocks",
+      "description": "Automatically smelts mined blocks into their smelted form",
+      "_source": "factory",
       "properties": {
         "play_sound": {
           "type": "boolean",
-          "description": "Play smelting sound",
+          "description": "Play smelting sound effect",
           "default": true
         }
       }
     },
-    "harvesting": {
-      "category": "farming",
-      "description": "Harvests and replants crops"
+    "thor": {
+      "category": "combat",
+      "description": "Summons lightning bolts on the target location when attacking",
+      "_source": "factory",
+      "properties": {
+        "lightning_bolts_amount": {
+          "type": "integer",
+          "description": "Number of lightning bolts to summon",
+          "default": 1,
+          "min": 1.0
+        },
+        "random_location_variation": {
+          "type": "number",
+          "description": "Random offset for lightning positions",
+          "default": 1.5,
+          "min": 0.0,
+          "max": 10.0
+        },
+        "delay": {
+          "type": "integer",
+          "description": "Cooldown between uses in milliseconds",
+          "default": 0,
+          "min": 0.0
+        }
+      }
+    },
+    "efficiency": {
+      "category": "gameplay",
+      "description": "Modifies mining speed for tools beyond vanilla efficiency",
+      "_source": "factory",
+      "properties": {
+        "amount": {
+          "type": "number",
+          "description": "Efficiency modifier amount"
+        }
+      }
+    },
+    "custom": {
+      "category": "misc",
+      "description": "Custom mechanic with configurable actions and conditions",
+      "_source": "factory",
+      "properties": {
+        "events": {
+          "type": "array",
+          "description": "List of event handlers"
+        }
+      }
+    },
+    "durability": {
+      "category": "gameplay",
+      "description": "Custom durability behavior for items (deprecated on 1.20.5+, use durability component instead)",
+      "_source": "factory",
+      "properties": {
+        "value": {
+          "type": "integer",
+          "description": "Custom durability value",
+          "default": 1,
+          "min": 1
+        }
+      }
+    },
+    "food": {
+      "category": "misc",
+      "description": "Legacy food behavior (deprecated on 1.20.5+, use food component instead)",
+      "_source": "factory",
+      "properties": {
+        "hunger": {
+          "type": "integer",
+          "description": "Hunger points restored",
+          "default": 1,
+          "min": 0.0
+        },
+        "saturation": {
+          "type": "number",
+          "description": "Saturation restored",
+          "default": 1.0,
+          "min": 0.0
+        },
+        "replacement": {
+          "type": "string",
+          "description": "Item to give after consuming"
+        },
+        "effects": {
+          "type": "array",
+          "description": "Potion effects to apply on consume"
+        }
+      }
+    },
+    "armor_effects": {
+      "category": "misc",
+      "description": "Applies potion effects while wearing armor pieces",
+      "_source": "factory",
+      "properties": {
+        "effects": {
+          "type": "array",
+          "description": "List of potion effects to apply"
+        }
+      }
+    },
+    "energyblast": {
+      "category": "combat",
+      "description": "Fires an energy blast projectile that damages entities in its path",
+      "_source": "factory",
+      "properties": {
+        "delay": {
+          "type": "integer",
+          "description": "Cooldown between uses in milliseconds",
+          "default": 0,
+          "min": 0.0
+        },
+        "damage": {
+          "type": "number",
+          "description": "Damage dealt to entities hit"
+        },
+        "length": {
+          "type": "integer",
+          "description": "Length/range of the energy blast"
+        }
+      }
+    },
+    "itemtype": {
+      "category": "misc",
+      "description": "Defines custom item type behavior for categorization",
+      "_source": "factory",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Custom item type identifier"
+        }
+      }
     },
     "watering": {
       "category": "farming",
-      "description": "Waters farmland"
+      "description": "Waters farmland blocks to hydrate them",
+      "_source": "factory"
     },
-    "bottledexp": {
+    "consumable": {
+      "category": "misc",
+      "description": "Legacy consumable behavior for items (deprecated on 1.21.2+, use consumable component)",
+      "_source": "factory"
+    },
+    "backpack": {
+      "category": "misc",
+      "description": "Provides portable storage that persists with the item",
+      "_source": "factory",
+      "properties": {
+        "rows": {
+          "type": "integer",
+          "description": "Number of inventory rows (1-6)",
+          "default": 6,
+          "min": 1.0,
+          "max": 6.0
+        },
+        "title": {
+          "type": "string",
+          "description": "Inventory title",
+          "default": "Backpack"
+        },
+        "open_sound": {
+          "type": "string",
+          "description": "Sound played when opening"
+        },
+        "close_sound": {
+          "type": "string",
+          "description": "Sound played when closing"
+        },
+        "volume": {
+          "type": "number",
+          "description": "Sound volume",
+          "default": 1.0,
+          "min": 0.0,
+          "max": 2.0
+        },
+        "pitch": {
+          "type": "number",
+          "description": "Sound pitch",
+          "default": 1.0,
+          "min": 0.0,
+          "max": 2.0
+        }
+      }
+    },
+    "bigmining": {
       "category": "farming",
-      "description": "Stores experience in bottles"
+      "description": "Mines blocks in an area around the targeted block",
+      "_source": "factory",
+      "properties": {
+        "radius": {
+          "type": "integer",
+          "description": "Horizontal radius of mining area",
+          "default": 1,
+          "min": 1
+        },
+        "depth": {
+          "type": "integer",
+          "description": "Depth of mining area",
+          "default": 1,
+          "min": 1
+        }
+      }
+    },
+    "stringblock": {
+      "category": "gameplay",
+      "description": "Creates custom blocks using tripwire states (up to 127 variations)",
+      "_source": "factory",
+      "properties": {
+        "custom_variation": {
+          "type": "integer",
+          "description": "Unique variation ID (1-127)",
+          "default": 1,
+          "min": 1,
+          "max": 127
+        },
+        "model": {
+          "type": "string",
+          "description": "Block model path"
+        },
+        "hardness": {
+          "type": "number",
+          "description": "Block break hardness",
+          "default": 1.0,
+          "min": 0.0
+        },
+        "light": {
+          "type": "integer",
+          "description": "Light level emitted (0-15)",
+          "default": 0,
+          "min": 0,
+          "max": 15
+        },
+        "drop": {
+          "type": "object",
+          "description": "Drop configuration when broken",
+          "properties": {
+            "loots": {
+              "type": "array",
+              "description": "List of loot entries"
+            },
+            "silktouch": {
+              "type": "boolean",
+              "description": "Require silk touch",
+              "default": false
+            }
+          }
+        },
+        "sapling": {
+          "type": "object",
+          "description": "Sapling growth configuration",
+          "properties": {
+            "min_light": {
+              "type": "integer",
+              "description": "Minimum light level to grow",
+              "default": 9,
+              "min": 0,
+              "max": 15
+            },
+            "grow_chance": {
+              "type": "number",
+              "description": "Growth chance per check",
+              "default": 0.1,
+              "min": 0.0,
+              "max": 1.0
+            },
+            "grow_block": {
+              "type": "string",
+              "description": "Block ID when grown"
+            }
+          }
+        }
+      }
     },
     "bedrockbreak": {
       "category": "farming",
@@ -7064,243 +7793,9 @@
         }
       }
     },
-    "durability": {
-      "category": "gameplay",
-      "description": "Custom durability behavior",
-      "properties": {
-        "value": {
-          "type": "integer",
-          "description": "Durability value",
-          "min": 1
-        }
-      }
-    },
-    "efficiency": {
-      "category": "gameplay",
-      "description": "Modifies mining speed",
-      "properties": {
-        "amount": {
-          "type": "number",
-          "description": "Efficiency modifier"
-        }
-      }
-    },
-    "repair": {
-      "category": "gameplay",
-      "description": "Allows repairing with custom materials",
-      "properties": {
-        "ratio": {
-          "type": "number",
-          "description": "Repair ratio per material",
-          "min": 0
-        },
-        "oraxen_item": {
-          "type": "string",
-          "description": "Oraxen item ID for repair material"
-        }
-      }
-    },
-    "furniture": {
-      "category": "gameplay",
-      "description": "Place item as furniture entity",
-      "properties": {
-        "hardness": {
-          "type": "number",
-          "description": "Break hardness",
-          "min": 0
-        },
-        "barrier": {
-          "type": "boolean",
-          "description": "Use barrier block for collision",
-          "default": false
-        },
-        "light": {
-          "type": "integer",
-          "description": "Light level (0-15)",
-          "min": 0
-        }
-      }
-    },
-    "noteblock": {
-      "category": "gameplay",
-      "description": "Custom noteblock-based block",
-      "properties": {
-        "light": {
-          "type": "integer",
-          "description": "Light level (0-15)",
-          "min": 0
-        },
-        "hardness": {
-          "type": "number",
-          "description": "Block hardness",
-          "min": 0
-        }
-      }
-    },
-    "stringblock": {
-      "category": "gameplay",
-      "description": "Custom tripwire-based block",
-      "properties": {
-        "light": {
-          "type": "integer",
-          "description": "Light level (0-15)",
-          "min": 0
-        },
-        "hardness": {
-          "type": "number",
-          "description": "Block hardness",
-          "min": 0
-        }
-      }
-    },
     "block": {
       "category": "gameplay",
       "description": "Custom block mechanic"
-    },
-    "aura": {
-      "category": "cosmetic",
-      "description": "Particle aura around player",
-      "properties": {
-        "particle": {
-          "type": "enum",
-          "description": "Particle type",
-          "enum": "Particle"
-        },
-        "type": {
-          "type": "string",
-          "description": "Aura type",
-          "values": [
-            "simple",
-            "ring",
-            "helix"
-          ]
-        }
-      }
-    },
-    "hat": {
-      "category": "cosmetic",
-      "description": "Item can be worn as a hat"
-    },
-    "skin": {
-      "category": "cosmetic",
-      "description": "Skin item for skinnable items",
-      "properties": {
-        "consume": {
-          "type": "boolean",
-          "description": "Consume skin on apply",
-          "default": true
-        }
-      }
-    },
-    "skinnable": {
-      "category": "cosmetic",
-      "description": "Item that can accept skins"
-    },
-    "soulbound": {
-      "category": "misc",
-      "description": "Item stays in inventory on death",
-      "properties": {
-        "lose_chance": {
-          "type": "number",
-          "description": "Chance to lose item anyway (0-100)",
-          "min": 0,
-          "default": 0
-        }
-      }
-    },
-    "armor_effects": {
-      "category": "misc",
-      "description": "Apply potion effects while wearing armor"
-    },
-    "commands": {
-      "category": "misc",
-      "description": "Execute commands on events",
-      "properties": {
-        "permission": {
-          "type": "string",
-          "description": "Required permission"
-        },
-        "cooldown": {
-          "type": "integer",
-          "description": "Cooldown in ticks",
-          "min": 0
-        }
-      }
-    },
-    "custom": {
-      "category": "misc",
-      "description": "Custom mechanic with actions and conditions"
-    },
-    "consumable": {
-      "category": "misc",
-      "description": "Legacy consumable behavior (pre-1.21.2)"
-    },
-    "consumable_potion_effects": {
-      "category": "misc",
-      "description": "Apply effects on consume"
-    },
-    "food": {
-      "category": "misc",
-      "description": "Legacy food behavior (pre-1.21.2)",
-      "properties": {
-        "hunger": {
-          "type": "integer",
-          "description": "Hunger points restored",
-          "min": 0
-        },
-        "saturation": {
-          "type": "number",
-          "description": "Saturation restored",
-          "min": 0
-        }
-      }
-    },
-    "music_disc": {
-      "category": "misc",
-      "description": "Custom music disc",
-      "properties": {
-        "song": {
-          "type": "string",
-          "description": "Song resource location"
-        }
-      }
-    },
-    "backpack": {
-      "category": "misc",
-      "description": "Portable storage",
-      "properties": {
-        "title": {
-          "type": "string",
-          "description": "Inventory title"
-        },
-        "rows": {
-          "type": "integer",
-          "description": "Number of rows (1-6)",
-          "min": 1,
-          "default": 3
-        }
-      }
-    },
-    "itemtype": {
-      "category": "misc",
-      "description": "Define item type behavior",
-      "properties": {
-        "type": {
-          "type": "string",
-          "description": "Item type identifier"
-        }
-      }
-    },
-    "misc": {
-      "category": "misc",
-      "description": "Miscellaneous properties",
-      "properties": {
-        "break_music_discs": {
-          "type": "boolean",
-          "description": "Can break music discs",
-          "default": false
-        }
-      }
     }
   },
   "pack": {
