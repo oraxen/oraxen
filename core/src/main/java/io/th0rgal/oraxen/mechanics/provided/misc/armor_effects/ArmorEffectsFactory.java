@@ -1,13 +1,23 @@
 package io.th0rgal.oraxen.mechanics.provided.misc.armor_effects;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.mechanics.ConfigProperty;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.mechanics.MechanicInfo;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.mechanics.PropertyType;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.scheduler.BukkitTask;
 
+@MechanicInfo(
+        category = "misc",
+        description = "Applies potion effects while wearing armor pieces"
+)
 public class ArmorEffectsFactory extends MechanicFactory {
+
+    @ConfigProperty(type = PropertyType.LIST, description = "List of potion effects to apply")
+    public static final String PROP_EFFECTS = "effects";
 
     private static ArmorEffectsFactory instance;
     private ArmorEffectsTask armorEffectTask;

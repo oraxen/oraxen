@@ -199,6 +199,16 @@ public class MechanicsManager {
         return FACTORIES_BY_MECHANIC_ID.get(mechanicID);
     }
 
+    /**
+     * Returns all registered mechanic factories.
+     * Used by SchemaGenerator for automatic schema extraction.
+     *
+     * @return Unmodifiable map of mechanic ID to factory
+     */
+    public static Map<String, MechanicFactory> getAllFactories() {
+        return Collections.unmodifiableMap(FACTORIES_BY_MECHANIC_ID);
+    }
+
     @FunctionalInterface
     public interface FactoryConstructor {
         MechanicFactory create(ConfigurationSection section);

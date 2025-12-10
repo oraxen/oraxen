@@ -3,9 +3,12 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.block;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.mechanics.ConfigProperty;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.mechanics.MechanicInfo;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.mechanics.PropertyType;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -17,7 +20,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@MechanicInfo(
+        category = "gameplay",
+        description = "Creates custom blocks using mushroom stem states"
+)
 public class BlockMechanicFactory extends MechanicFactory {
+
+    @ConfigProperty(type = PropertyType.INTEGER, description = "Unique variation ID")
+    public static final String PROP_CUSTOM_VARIATION = "custom_variation";
+
+    @ConfigProperty(type = PropertyType.STRING, description = "Block model path")
+    public static final String PROP_MODEL = "model";
+
+    @ConfigProperty(type = PropertyType.DOUBLE, description = "Block break hardness", defaultValue = "1.0", min = 0.0)
+    public static final String PROP_HARDNESS = "hardness";
 
     private static final List<JsonObject> MUSHROOM_STEM_BLOCKSTATE_OVERRIDES = new ArrayList<>();
     private static final Map<Integer, BlockMechanic> BLOCK_PER_VARIATION = new HashMap<>();
@@ -115,6 +131,5 @@ public class BlockMechanicFactory extends MechanicFactory {
         block.setBlockData(newBlockData, false);
         return true;
     }
-
 
 }

@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
+import io.th0rgal.oraxen.mechanics.MechanicConfigProperty;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolutionListener;
@@ -9,8 +10,11 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.Evoluti
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox.JukeboxListener;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.scheduler.BukkitTask;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
 
 public class FurnitureFactory extends MechanicFactory {
 
@@ -97,4 +101,57 @@ public class FurnitureFactory extends MechanicFactory {
         return (FurnitureMechanic) super.getMechanic(itemStack);
     }
 
+    @Override
+    public @Nullable String getMechanicCategory() {
+        return "gameplay";
+    }
+
+    @Override
+    public @Nullable String getMechanicDescription() {
+        return "Places items as interactive furniture entities in the world";
+    }
+
+    @Override
+    public @NotNull List<MechanicConfigProperty> getConfigSchema() {
+        return List.of(
+                MechanicConfigProperty.enumType("type", "Entity type for the furniture",
+                        List.of("DISPLAY_ENTITY", "ITEM_FRAME", "GLOW_ITEM_FRAME")),
+                MechanicConfigProperty.integer("hardness", "Break hardness (higher = slower to break)", 1, 0),
+                MechanicConfigProperty.string("item", "Alternative Oraxen item ID to display"),
+                MechanicConfigProperty.string("modelengine_id", "ModelEngine model ID to use"),
+                MechanicConfigProperty.bool("farmland_required", "Whether farmland is required for placement", false),
+                MechanicConfigProperty.bool("farmblock_required", "Whether farmblock is required for placement", false),
+                MechanicConfigProperty.integer("light", "Light level emitted (0-15)", 0, 0, 15),
+                MechanicConfigProperty.enumType("restricted_rotation", "Rotation restriction mode",
+                        List.of("NONE", "STRICT", "VERY_STRICT")),
+                MechanicConfigProperty.bool("rotatable", "Whether furniture can be rotated after placement", true),
+                MechanicConfigProperty.object("hitbox", "Custom hitbox dimensions", Map.of(
+                        "width", MechanicConfigProperty.decimal("width", "Hitbox width", 1.0, 0.0, 10.0),
+                        "height", MechanicConfigProperty.decimal("height", "Hitbox height", 1.0, 0.0, 10.0)
+                )),
+                MechanicConfigProperty.object("seat", "Seat configuration for sittable furniture", Map.of(
+                        "height", MechanicConfigProperty.decimal("height", "Seat height offset", 0.0),
+                        "yaw", MechanicConfigProperty.decimal("yaw", "Seat rotation", 0.0)
+                )),
+                MechanicConfigProperty.list("barriers", "List of barrier block positions relative to furniture"),
+                MechanicConfigProperty.object("display_entity_properties", "Display entity configuration", Map.of(
+                        "display_transform", MechanicConfigProperty.enumType("display_transform", "Display transform mode",
+                                List.of("NONE", "THIRDPERSON_LEFTHAND", "THIRDPERSON_RIGHTHAND", "FIRSTPERSON_LEFTHAND",
+                                        "FIRSTPERSON_RIGHTHAND", "HEAD", "GUI", "GROUND", "FIXED")),
+                        "brightness", MechanicConfigProperty.object("brightness", "Light levels", Map.of(
+                                "block", MechanicConfigProperty.integer("block", "Block light level", 0, 0, 15),
+                                "sky", MechanicConfigProperty.integer("sky", "Sky light level", 0, 0, 15)
+                        ))
+                )),
+                MechanicConfigProperty.object("drop", "Drop configuration when broken", Map.of(
+                        "silktouch", MechanicConfigProperty.bool("silktouch", "Require silk touch to drop", false),
+                        "loots", MechanicConfigProperty.list("loots", "List of loot entries")
+                )),
+                MechanicConfigProperty.object("storage", "Storage container configuration", Map.of(
+                        "type", MechanicConfigProperty.enumType("type", "Storage type", List.of("STORAGE", "PERSONAL", "ENDERCHEST", "DISPOSAL")),
+                        "rows", MechanicConfigProperty.integer("rows", "Number of inventory rows", 1, 1, 6),
+                        "title", MechanicConfigProperty.string("title", "Inventory title")
+                ))
+        );
+    }
 }

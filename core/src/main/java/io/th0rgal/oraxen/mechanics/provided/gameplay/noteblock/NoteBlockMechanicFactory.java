@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.mechanics.Mechanic;
+import io.th0rgal.oraxen.mechanics.MechanicConfigProperty;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional.DirectionalBlock;
@@ -22,6 +23,8 @@ import org.bukkit.block.data.type.NoteBlock;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.List;
@@ -269,4 +272,45 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         farmBlock = true;
     }
 
+    @Override
+    public @Nullable String getMechanicCategory() {
+        return "gameplay";
+    }
+
+    @Override
+    public @Nullable String getMechanicDescription() {
+        return "Creates custom blocks using noteblock states (up to 775 variations)";
+    }
+
+    @Override
+    public @NotNull List<MechanicConfigProperty> getConfigSchema() {
+        return List.of(
+                MechanicConfigProperty.integer("custom_variation", "Unique variation ID (0-775)", 0, 0, 775),
+                MechanicConfigProperty.string("model", "Block model path"),
+                MechanicConfigProperty.decimal("hardness", "Block break hardness", 1.0, 0.0),
+                MechanicConfigProperty.integer("light", "Light level emitted (0-15)", 0, 0, 15),
+                MechanicConfigProperty.bool("canIgnite", "Whether the block can be ignited", false),
+                MechanicConfigProperty.object("drop", "Drop configuration when broken", Map.of(
+                        "silktouch", MechanicConfigProperty.bool("silktouch", "Require silk touch", false),
+                        "loots", MechanicConfigProperty.list("loots", "List of loot entries")
+                )),
+                MechanicConfigProperty.object("directional", "Directional block configuration", Map.of(
+                        "parent_block", MechanicConfigProperty.string("parent_block", "Parent block ID"),
+                        "y_block", MechanicConfigProperty.string("y_block", "Y-axis variant ID"),
+                        "x_block", MechanicConfigProperty.string("x_block", "X-axis variant ID"),
+                        "z_block", MechanicConfigProperty.string("z_block", "Z-axis variant ID")
+                )),
+                MechanicConfigProperty.object("farmblock", "Farm block configuration", Map.of(
+                        "moisture", MechanicConfigProperty.integer("moisture", "Moisture level", 0, 0),
+                        "dry_block", MechanicConfigProperty.string("dry_block", "Block ID when dried")
+                )),
+                MechanicConfigProperty.object("log_strip", "Log stripping configuration", Map.of(
+                        "drop", MechanicConfigProperty.object("drop", "Item dropped on strip", Map.of(
+                                "oraxen_item", MechanicConfigProperty.string("oraxen_item", "Oraxen item ID"),
+                                "minecraft_type", MechanicConfigProperty.string("minecraft_type", "Vanilla item type")
+                        )),
+                        "stripped_log", MechanicConfigProperty.string("stripped_log", "Stripped log block ID")
+                ))
+        );
+    }
 }

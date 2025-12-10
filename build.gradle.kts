@@ -13,6 +13,7 @@ plugins {
     id("io.github.goooler.shadow") version "8.1.8"
 }
 
+
 class NMSVersion(val nmsVersion: String, val serverVersion: String)
 
 infix fun String.toNms(that: String): NMSVersion = NMSVersion(this, that)
@@ -37,8 +38,6 @@ val spigotPluginPath = project.findProperty("oraxen_spigot_plugin_path")?.toStri
 val pluginVersion: String by project
 group = "io.th0rgal"
 version = pluginVersion
-
-
 
 allprojects {
     apply(plugin = "java")
@@ -99,16 +98,19 @@ allprojects {
     }
 }
 
+
 dependencies {
     implementation(project(path = ":core"))
     SUPPORTED_VERSIONS.forEach { implementation(project(path = ":${it.nmsVersion}", configuration = "reobf")) }
 }
+
 
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(21))
     }
 }
+
 
 tasks.withType(xyz.jpenilla.runtask.task.AbstractRun::class) {
     javaLauncher = javaToolchains.launcherFor {
@@ -206,6 +208,7 @@ tasks {
     build.get().dependsOn(shadowJar)
 }
 
+
 bukkit {
     load = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.PluginLoadOrder.POSTWORLD
     main = "io.th0rgal.oraxen.OraxenPlugin"
@@ -227,6 +230,7 @@ bukkit {
     }
     libraries = oraxenLibs.bundles.libraries.bukkit.get().map { it.toString() }
 }
+
 
 if (spigotPluginPath != null) {
     tasks {

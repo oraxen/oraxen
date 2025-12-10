@@ -214,3 +214,6 @@ local.properties
 .sts4-cache/
 
 # Based on gitignore.io work
+
+# Test server for schema generation
+test-server/
