@@ -35,11 +35,6 @@ public class ToggleLightMechanicListener implements Listener {
         if (baseEntity == null) return;
         if (!ProtectionLib.canInteract(player, block != null ? block.getLocation() : baseEntity.getLocation())) return;
 
-        // Only toggle if furniture doesn't have other interactions that would conflict
-        // If it has storage, seat, or rotation, only toggle when sneaking to avoid conflicts
-        boolean hasOtherInteractions = furnitureMechanic.isStorage() || furnitureMechanic.hasSeat() || furnitureMechanic.isRotatable();
-        if (hasOtherInteractions && !player.isSneaking()) return;
-
         // For furniture with barriers, toggle based on base entity and update all barrier blocks
         if (furnitureMechanic.hasBarriers(baseEntity)) {
             toggleLight.toggleFurnitureBarriers(furnitureMechanic, baseEntity);
