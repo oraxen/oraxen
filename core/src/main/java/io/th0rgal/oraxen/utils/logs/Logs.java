@@ -8,10 +8,12 @@ import org.bukkit.Bukkit;
 
 public class Logs {
 
-    private Logs() {}
+    private Logs() {
+    }
 
     public static void logInfo(String message) {
-        if (!message.isEmpty()) logInfo(message, false);
+        if (!message.isEmpty())
+            logInfo(message, false);
     }
 
     public static void logInfo(String message, boolean newline) {
@@ -85,6 +87,7 @@ public class Logs {
 
     /**
      * Logs an exception stack trace when debug mode is enabled.
+     * 
      * @param throwable the exception to log
      */
     public static void debug(Throwable throwable) {

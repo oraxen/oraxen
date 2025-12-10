@@ -345,7 +345,8 @@ public class DuplicationHandler {
         String materialName = Utils.removeExtensionOnly(Utils.removeParentDirs(name)).toUpperCase();
         Material material = Material.getMaterial(materialName);
         if (material == null) {
-            Logs.logWarning("Failed to migrate duplicate file-entry, could not find a matching material for " + materialName);
+            Logs.logWarning(
+                    "Failed to migrate duplicate file-entry, could not find a matching material for " + materialName);
             return false;
         }
 
@@ -356,7 +357,8 @@ public class DuplicationHandler {
 
         YamlConfiguration migratedYaml = loadMigrateItemYaml(material);
         if (migratedYaml == null) {
-            Logs.logWarning("Failed to migrate duplicate file-entry, failed to load " + getDuplicateItemFile(material).getPath());
+            Logs.logWarning("Failed to migrate duplicate file-entry, failed to load "
+                    + getDuplicateItemFile(material).getPath());
             return false;
         }
 
@@ -401,7 +403,8 @@ public class DuplicationHandler {
         }
     }
 
-    private static void processOverrides(List<JsonObject> overrides, YamlConfiguration migratedYaml, String materialName) {
+    private static void processOverrides(List<JsonObject> overrides, YamlConfiguration migratedYaml,
+            String materialName) {
         Map<Integer, List<String>> pullingModels = new HashMap<>();
         Map<Integer, String> chargedModels = new HashMap<>();
         Map<Integer, String> blockingModels = new HashMap<>();
@@ -438,12 +441,18 @@ public class DuplicationHandler {
         yaml.set(id + ".Pack.generate_model", false);
         yaml.set(id + ".Pack.model", modelPath);
 
-        if (pullingModels.containsKey(cmd)) yaml.set(id + ".Pack.pulling_models", pullingModels.get(cmd));
-        if (damagedModels.containsKey(cmd)) yaml.set(id + ".Pack.damaged_models", damagedModels.get(cmd));
-        if (chargedModels.containsKey(cmd)) yaml.set(id + ".Pack.charged_model", chargedModels.get(cmd));
-        if (blockingModels.containsKey(cmd)) yaml.set(id + ".Pack.blocking_model", blockingModels.get(cmd));
-        if (castModels.containsKey(cmd)) yaml.set(id + ".Pack.cast_model", castModels.get(cmd));
-        if (Settings.RETAIN_CUSTOM_MODEL_DATA.toBool()) yaml.set(id + ".Pack.custom_model_data", cmd);
+        if (pullingModels.containsKey(cmd))
+            yaml.set(id + ".Pack.pulling_models", pullingModels.get(cmd));
+        if (damagedModels.containsKey(cmd))
+            yaml.set(id + ".Pack.damaged_models", damagedModels.get(cmd));
+        if (chargedModels.containsKey(cmd))
+            yaml.set(id + ".Pack.charged_model", chargedModels.get(cmd));
+        if (blockingModels.containsKey(cmd))
+            yaml.set(id + ".Pack.blocking_model", blockingModels.get(cmd));
+        if (castModels.containsKey(cmd))
+            yaml.set(id + ".Pack.cast_model", castModels.get(cmd));
+        if (Settings.RETAIN_CUSTOM_MODEL_DATA.toBool())
+            yaml.set(id + ".Pack.custom_model_data", cmd);
     }
 
     private static boolean saveMigratedYaml(YamlConfiguration migratedYaml, Material material) {
