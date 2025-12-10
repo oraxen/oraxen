@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.togglelight;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
@@ -177,6 +178,8 @@ public class ToggleLightMechanic extends Mechanic {
         
         // Remove all existing lights around blocks that need updates
         // Remove lights that: (1) aren't in desired set, OR (2) are at a higher level than desired
+        // BUT only if they're not adjacent to other furniture's barriers/base entities
+        Set<Block> thisFurnitureBlocks = new HashSet<>(blocksToUpdate);
         for (Block block : blocksToUpdate) {
             for (BlockFace face : BLOCK_FACES) {
                 Block relative = block.getRelative(face);
@@ -187,12 +190,19 @@ public class ToggleLightMechanic extends Mechanic {
                     // Remove if: not in desired set, OR existing light level is higher than desired
                     boolean shouldRemove = false;
                     if (desiredLevel == null) {
-                        // Location not in desired set - remove it
-                        shouldRemove = true;
+                        // Location not in desired set - check if it's safe to remove
+                        // Only remove if the light is adjacent to THIS furniture's blocks
+                        // and not adjacent to any OTHER furniture's blocks
+                        if (isLightAdjacentToThisFurnitureOnly(relative, thisFurnitureBlocks, baseEntity)) {
+                            shouldRemove = true;
+                        }
                     } else if (relative.getBlockData() instanceof Light existingLight) {
                         // Location is desired, but check if existing level is too high
+                        // Only remove if it's safe (not adjacent to other furniture)
                         if (existingLight.getLevel() > desiredLevel) {
-                            shouldRemove = true;
+                            if (isLightAdjacentToThisFurnitureOnly(relative, thisFurnitureBlocks, baseEntity)) {
+                                shouldRemove = true;
+                            }
                         }
                     }
                     
@@ -219,6 +229,60 @@ public class ToggleLightMechanic extends Mechanic {
             lightData.setLevel(level);
             lightBlock.setBlockData(lightData);
         }
+    }
+    
+    /**
+     * Checks if a light block is adjacent to THIS furniture's blocks only,
+     * and not adjacent to any other furniture's barriers or base entities.
+     * This prevents removing lights that belong to adjacent furniture pieces.
+     *
+     * @param lightBlock The light block to check
+     * @param thisFurnitureBlocks Set of blocks that belong to this furniture
+     * @param thisBaseEntity The base entity of this furniture
+     * @return true if the light is only adjacent to this furniture's blocks, false otherwise
+     */
+    private boolean isLightAdjacentToThisFurnitureOnly(Block lightBlock, Set<Block> thisFurnitureBlocks, Entity thisBaseEntity) {
+        // Check all adjacent blocks to the light
+        for (BlockFace face : BLOCK_FACES) {
+            Block adjacent = lightBlock.getRelative(face);
+            
+            // Skip if this adjacent block belongs to this furniture
+            if (thisFurnitureBlocks.contains(adjacent)) {
+                continue;
+            }
+            
+            // Check if this adjacent block belongs to another furniture
+            if (adjacent.getType() == Material.BARRIER) {
+                FurnitureMechanic otherFurniture = OraxenFurniture.getFurnitureMechanic(adjacent);
+                if (otherFurniture != null) {
+                    // Check if it's a different furniture (not this one)
+                    Entity otherBaseEntity = otherFurniture.getBaseEntity(adjacent);
+                    if (otherBaseEntity != null && !otherBaseEntity.getUniqueId().equals(thisBaseEntity.getUniqueId())) {
+                        // This light is adjacent to another furniture's barrier - don't remove it
+                        return false;
+                    }
+                }
+            }
+            
+            // Check if this adjacent block is at the location of another furniture's base entity
+            // Base entities are typically at block center, so check if there's a furniture entity at this block
+            if (adjacent.getWorld() != null) {
+                Location blockCenter = BlockHelpers.toCenterLocation(adjacent.getLocation());
+                for (Entity entity : adjacent.getWorld().getNearbyEntities(blockCenter, 0.1, 0.1, 0.1)) {
+                    if (OraxenFurniture.isBaseEntity(entity)) {
+                        // Check if the entity's block location matches the adjacent block
+                        Block entityBlock = entity.getLocation().getBlock();
+                        if (entityBlock.equals(adjacent) && !entity.getUniqueId().equals(thisBaseEntity.getUniqueId())) {
+                            // This light is adjacent to another furniture's base entity location - don't remove it
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Light is only adjacent to this furniture's blocks (or non-furniture blocks)
+        return true;
     }
     
     /**

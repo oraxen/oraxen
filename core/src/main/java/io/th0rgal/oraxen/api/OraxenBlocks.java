@@ -449,7 +449,12 @@ public class OraxenBlocks {
     private static ToggleLightMechanic getToggleLightMechanic(String itemID) {
         ToggleLightMechanicFactory factory = ToggleLightMechanicFactory.getInstance();
         if (factory == null) {
-            factory = (ToggleLightMechanicFactory) MechanicsManager.getMechanicFactory("toggle_light");
+            MechanicFactory mechanicFactory = MechanicsManager.getMechanicFactory("toggle_light");
+            if (mechanicFactory instanceof ToggleLightMechanicFactory) {
+                factory = (ToggleLightMechanicFactory) mechanicFactory;
+            } else {
+                return null;
+            }
         }
         return factory != null ? factory.getMechanic(itemID) : null;
     }

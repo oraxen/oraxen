@@ -570,6 +570,8 @@ public class FurnitureMechanic extends Mechanic {
             for (Location barrierLocation : barrierLocations) {
                 createInitialLight(barrierLocation.getBlock(), entity);
             }
+            // Also create light at base entity location for regular light mechanics
+            createInitialLight(entity.getLocation().getBlock(), entity);
         }
     }
 
@@ -915,7 +917,12 @@ public class FurnitureMechanic extends Mechanic {
     private ToggleLightMechanic getToggleLightMechanic() {
         ToggleLightMechanicFactory factory = ToggleLightMechanicFactory.getInstance();
         if (factory == null) {
-            factory = (ToggleLightMechanicFactory) MechanicsManager.getMechanicFactory("toggle_light");
+            MechanicFactory mechanicFactory = MechanicsManager.getMechanicFactory("toggle_light");
+            if (mechanicFactory instanceof ToggleLightMechanicFactory) {
+                factory = (ToggleLightMechanicFactory) mechanicFactory;
+            } else {
+                return null;
+            }
         }
         return factory != null ? factory.getMechanic(getItemID()) : null;
     }
