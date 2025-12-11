@@ -6,9 +6,11 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.api.events.OraxenPackGeneratedEvent;
 import io.th0rgal.oraxen.config.ResourcesManager;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.font.AnimatedGlyph;
 import io.th0rgal.oraxen.font.Font;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.font.Glyph;
+import io.th0rgal.oraxen.font.ShiftProvider;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenMeta;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
@@ -48,6 +50,12 @@ public class ResourcePack {
     private static final File packFolder = new File(OraxenPlugin.get().getDataFolder(), "pack");
     private final File pack = new File(packFolder, packFolder.getName() + ".zip");
 
+    /**
+     * Tracks whether animation shaders were generated (for combining with
+     * scoreboard shaders)
+     */
+    private boolean animationShadersGenerated = false;
+
     public ResourcePack() {
         // we use maps to avoid duplicate
         packModifiers = new HashMap<>();
@@ -56,6 +64,7 @@ public class ResourcePack {
 
     public void generate() {
         outputFiles.clear();
+        animationShadersGenerated = false;
 
         makeDirsIfNotExists(packFolder, new File(packFolder, "assets"));
 
@@ -486,7 +495,8 @@ public class ResourcePack {
         }
     }
 
-    private Map<Material, Map<String, ItemBuilder>> filterForItemModel(Map<Material, Map<String, ItemBuilder>> texturedItems) {
+    private Map<Material, Map<String, ItemBuilder>> filterForItemModel(
+            Map<Material, Map<String, ItemBuilder>> texturedItems) {
         Map<Material, Map<String, ItemBuilder>> filtered = new HashMap<>();
         for (Map.Entry<Material, Map<String, ItemBuilder>> materialEntry : texturedItems.entrySet()) {
             Map<String, ItemBuilder> filteredItems = new LinkedHashMap<>();
@@ -503,7 +513,8 @@ public class ResourcePack {
         return filtered;
     }
 
-    private Map<Material, Map<String, ItemBuilder>> filterForPredicates(Map<Material, Map<String, ItemBuilder>> texturedItems) {
+    private Map<Material, Map<String, ItemBuilder>> filterForPredicates(
+            Map<Material, Map<String, ItemBuilder>> texturedItems) {
         Map<Material, Map<String, ItemBuilder>> filtered = new HashMap<>();
         for (Map.Entry<Material, Map<String, ItemBuilder>> materialEntry : texturedItems.entrySet()) {
             Map<String, ItemBuilder> filteredItems = new LinkedHashMap<>();
@@ -524,6 +535,8 @@ public class ResourcePack {
         FontManager fontManager = OraxenPlugin.get().getFontManager();
         if (!fontManager.autoGenerate)
             return;
+
+        // Generate the main default font with glyphs
         final JsonObject output = new JsonObject();
         final JsonArray providers = new JsonArray();
         for (final Glyph glyph : fontManager.getGlyphs()) {
@@ -536,10 +549,511 @@ public class ResourcePack {
         for (final Font font : fontManager.getFonts()) {
             providers.add(font.toJson());
         }
+
+        // Add shift provider to default font for backward compatibility.
+        // This allows getShift() to work in plain strings (e.g., GUI titles)
+        // without requiring the oraxen:shift font to be explicitly applied.
+        ShiftProvider shiftProvider = fontManager.getShiftProvider();
+        providers.add(shiftProvider.toProviderJson());
+
         output.add("providers", providers);
         writeStringToVirtual("assets/minecraft/font", "default.json", output.toString());
         if (Settings.FIX_FORCE_UNICODE_GLYPHS.toBool())
             writeStringToVirtual("assets/minecraft/font", "uniform.json", output.toString());
+
+        // Generate the dedicated shift font (still useful for explicit font references)
+        generateShiftFont(fontManager);
+
+        // Process and generate animated glyph fonts
+        processAnimatedGlyphs(fontManager);
+    }
+
+    /**
+     * Generates the dedicated shift font file (assets/oraxen/font/shift.json).
+     * Uses a space font provider for efficient pixel-based text shifting.
+     */
+    private void generateShiftFont(FontManager fontManager) {
+        ShiftProvider shiftProvider = fontManager.getShiftProvider();
+        JsonObject shiftFont = shiftProvider.generateFontFile();
+        writeStringToVirtual("assets/oraxen/font", "shift.json", shiftFont.toString());
+        Logs.logSuccess("Generated shift font with space provider");
+    }
+
+    /**
+     * Processes animated glyphs: validates sprite sheets and generates font files.
+     */
+    private void processAnimatedGlyphs(FontManager fontManager) {
+        Collection<AnimatedGlyph> animatedGlyphs = fontManager.getAnimatedGlyphs();
+        if (animatedGlyphs.isEmpty()) {
+            return;
+        }
+
+        // Note: Codepoint counter is reset in ConfigsManager.parseAllGlyphConfigs()
+        // BEFORE animated glyphs are created, ensuring clean codepoint allocation on
+        // reload.
+
+        Logs.logInfo("Processing " + animatedGlyphs.size() + " animated glyphs...");
+
+        for (AnimatedGlyph animGlyph : animatedGlyphs) {
+            processAnimatedGlyph(animGlyph);
+        }
+
+        // Generate animation shaders and set flag for scoreboard shader combining
+        generateAnimationShaders();
+        animationShadersGenerated = true;
+    }
+
+    /**
+     * Processes a single animated glyph: validates sprite sheet and generates font.
+     */
+    private void processAnimatedGlyph(AnimatedGlyph animGlyph) {
+        File textureFile = animGlyph.getTextureFile(packFolder.toPath());
+
+        if (!textureFile.exists()) {
+            Logs.logWarning(
+                    "Sprite sheet not found for animated glyph '" + animGlyph.getName() + "': "
+                            + textureFile.getPath());
+            return;
+        }
+
+        // Validate sprite sheet dimensions
+        try {
+            BufferedImage image = ImageIO.read(textureFile);
+            if (image == null) {
+                Logs.logError("Failed to read sprite sheet for: " + animGlyph.getName());
+                return;
+            }
+
+            int frameCount = animGlyph.getFrameCount();
+
+            // Validate height is divisible by frame count
+            if (image.getHeight() % frameCount != 0) {
+                Logs.logWarning("Sprite sheet height (" + image.getHeight() +
+                        ") is not evenly divisible by frame count (" + frameCount +
+                        ") for: " + animGlyph.getName());
+            }
+
+            // Determine sprite sheet path for font reference
+            String texturePath = animGlyph.getTexturePath();
+            // Convert texture path to namespaced format for font reference
+            String spriteSheetPath;
+            if (texturePath.contains(":")) {
+                spriteSheetPath = texturePath;
+            } else {
+                spriteSheetPath = "minecraft:" + texturePath;
+            }
+            if (!spriteSheetPath.endsWith(".png")) {
+                spriteSheetPath += ".png";
+            }
+
+            // Mark as processed
+            animGlyph.setProcessed(spriteSheetPath);
+
+            // Generate font file for this animation
+            JsonObject fontJson = animGlyph.toFontJson();
+            if (fontJson != null) {
+                writeStringToVirtual("assets/oraxen/font/animations", animGlyph.getName() + ".json",
+                        fontJson.toString());
+                Logs.logSuccess("Generated animation font for: " + animGlyph.getName() +
+                        " (" + frameCount + " frames @ " + animGlyph.getFps() + " fps)");
+            }
+        } catch (IOException e) {
+            Logs.logError("Failed to process sprite sheet for: " + animGlyph.getName());
+            Logs.debug(e);
+        }
+    }
+
+    /**
+     * Generates animation shaders based on server version.
+     * Different Minecraft versions use different shader formats.
+     */
+    private void generateAnimationShaders() {
+        // Determine shader version based on pack format / server version
+        String shaderVersion = getShaderVersion();
+
+        // Generate vertex shader
+        String vshContent = getAnimationVertexShader(shaderVersion);
+        String fshContent = getAnimationFragmentShader(shaderVersion);
+        String jsonContent = getAnimationShaderJson(shaderVersion);
+
+        // Write shaders for both rendertype_text and rendertype_text_see_through
+        writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_text.vsh", vshContent);
+        writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_text.fsh", fshContent);
+        writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_text.json", jsonContent);
+
+        writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_text_see_through.vsh", vshContent);
+        writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_text_see_through.fsh", fshContent);
+        writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_text_see_through.json",
+                jsonContent.replace("rendertype_text", "rendertype_text_see_through"));
+
+        Logs.logSuccess("Generated animation shaders for version: " + shaderVersion);
+    }
+
+    /**
+     * Determines the shader version based on server version.
+     */
+    private String getShaderVersion() {
+        if (VersionUtil.atOrAbove("1.21.6")) {
+            return "1.21.6";
+        } else if (VersionUtil.atOrAbove("1.21.4")) {
+            return "1.21.4";
+        } else if (VersionUtil.atOrAbove("1.21")) {
+            return "1.21";
+        } else {
+            return "1.20";
+        }
+    }
+
+    /**
+     * Generates the animation vertex shader with shadow detection.
+     * Handles FPS and loop flag encoding in green channel:
+     * - Bit 7: loop flag (0=loop, 1=no-loop)
+     * - Bits 0-6: FPS (1-127)
+     */
+    private String getAnimationVertexShader(String version) {
+        String fogImport = version.compareTo("1.21.4") >= 0
+                ? "#moj_import <minecraft:fog.glsl>"
+                : "#moj_import <fog.glsl>";
+
+        String fogDistance = version.compareTo("1.21.6") >= 0
+                ? "vertexDistance = fog_distance(Position, FogShape);\n    cylindricalVertexDistance = cylindrical_distance(Position);"
+                : "vertexDistance = fog_distance(Position, FogShape);";
+
+        String distanceOutputs = version.compareTo("1.21.6") >= 0
+                ? "out float vertexDistance;\nout float cylindricalVertexDistance;"
+                : "out float vertexDistance;";
+
+        return """
+                #version 150
+
+                %s
+
+                in vec3 Position;
+                in vec4 Color;
+                in vec2 UV0;
+                in ivec2 UV2;
+
+                uniform sampler2D Sampler2;
+                uniform mat4 ModelViewMat;
+                uniform mat4 ProjMat;
+                uniform int FogShape;
+
+                %s
+                out vec4 vertexColor;
+                out vec2 texCoord0;
+                out float isAnimated;
+                out float animFps;
+                out float frameCount;
+                out float animLoop;
+
+                // Animation magic color detection
+                // Format: R=0xFF (marker), G=loop flag (bit 7) + FPS (bits 0-6), B=frame count
+                const float MAGIC_RED = 1.0;
+                const float SHADOW_RED = 0.25;  // Minecraft shadows = color / 4
+                const float EPSILON = 0.02;     // ~5/255 for float comparison
+
+                void main() {
+                    gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
+                    %s
+                    vertexColor = Color * texelFetch(Sampler2, UV2 / 16, 0);
+                    texCoord0 = UV0;
+
+                    // Default: not animated, looping enabled
+                    isAnimated = 0.0;
+                    animFps = 10.0;
+                    frameCount = 1.0;
+                    animLoop = 1.0;
+
+                    float r = Color.r;
+                    float g = Color.g;
+                    float b = Color.b;
+
+                    // Check for primary animation color: R=0xFF (1.0)
+                    if (abs(r - MAGIC_RED) < EPSILON && g > 0.003) {
+                        isAnimated = 1.0;
+                        // Green channel: bit 7 = loop flag (0=loop, 0x80=no-loop), bits 0-6 = FPS
+                        int gInt = int(g * 255.0 + 0.5);
+                        animLoop = (gInt >= 128) ? 0.0 : 1.0;  // Bit 7 set means NOT looping
+                        animFps = float(gInt & 0x7F);  // FPS in lower 7 bits
+                        frameCount = max(1.0, b * 255.0);
+                    }
+                    // Check for shadow variant: R≈0x3F (0.25), values divided by 4
+                    else if (abs(r - SHADOW_RED) < EPSILON && g > 0.001) {
+                        isAnimated = 1.0;
+                        // Multiply by 4 to recover original values
+                        int gRecovered = int(min(255.0, g * 255.0 * 4.0) + 0.5);
+                        animLoop = (gRecovered >= 128) ? 0.0 : 1.0;
+                        animFps = float(gRecovered & 0x7F);
+                        frameCount = max(1.0, min(255.0, b * 255.0 * 4.0));
+                    }
+                }
+                """.formatted(fogImport, distanceOutputs, fogDistance);
+    }
+
+    /**
+     * Generates the animation fragment shader with loop support.
+     * Non-looping animations play once then stay on the last frame.
+     */
+    private String getAnimationFragmentShader(String version) {
+        String fogImport = version.compareTo("1.21.4") >= 0
+                ? "#moj_import <minecraft:fog.glsl>"
+                : "#moj_import <fog.glsl>";
+
+        String fogFunction = version.compareTo("1.21.6") >= 0
+                ? "apply_fog"
+                : "linear_fog";
+
+        String distanceInputs = version.compareTo("1.21.6") >= 0
+                ? "in float vertexDistance;\nin float cylindricalVertexDistance;"
+                : "in float vertexDistance;";
+
+        String fogCall = version.compareTo("1.21.6") >= 0
+                ? "%s(color, vertexDistance, cylindricalVertexDistance, FogStart, FogEnd, FogColor)"
+                        .formatted(fogFunction)
+                : "%s(color, vertexDistance, FogStart, FogEnd, FogColor)".formatted(fogFunction);
+
+        return """
+                #version 150
+
+                %s
+
+                uniform sampler2D Sampler0;
+                uniform vec4 ColorModulator;
+                uniform float FogStart;
+                uniform float FogEnd;
+                uniform vec4 FogColor;
+                uniform float GameTime;
+
+                %s
+                in vec4 vertexColor;
+                in vec2 texCoord0;
+                in float isAnimated;
+                in float animFps;
+                in float frameCount;
+                in float animLoop;
+
+                out vec4 fragColor;
+
+                void main() {
+                    vec2 uv = texCoord0;
+
+                    // Animation handling for vertical sprite sheets
+                    if (isAnimated > 0.5) {
+                        // GameTime cycles 0-1 over 24000 ticks (~20 minutes real time)
+                        // Convert to seconds: GameTime * 1200.0
+                        float timeSeconds = GameTime * 1200.0;
+
+                        // Calculate raw frame index based on elapsed time
+                        int totalFrames = int(frameCount);
+                        int rawFrame = int(floor(timeSeconds * animFps));
+
+                        // Apply looping behavior:
+                        // - loop=1.0: use mod() to cycle through frames forever
+                        // - loop=0.0: use min() to clamp at last frame (play once)
+                        int currentFrame;
+                        if (animLoop > 0.5) {
+                            currentFrame = int(mod(float(rawFrame), float(totalFrames)));
+                        } else {
+                            currentFrame = min(rawFrame, totalFrames - 1);
+                        }
+
+                        // Each frame occupies 1/frameCount of the texture height
+                        float frameHeight = 1.0 / frameCount;
+
+                        // Remap UV.y to the current frame's region
+                        float localY = fract(uv.y * frameCount);
+                        uv.y = localY * frameHeight + float(currentFrame) * frameHeight;
+                    }
+
+                    vec4 color = texture(Sampler0, uv);
+
+                    if (color.a < 0.1) {
+                        discard;
+                    }
+
+                    // For animated glyphs, use texture color with ColorModulator only
+                    // This removes the magic color tint
+                    if (isAnimated > 0.5) {
+                        color = vec4(color.rgb * ColorModulator.rgb, color.a * ColorModulator.a);
+                    } else {
+                        color = color * vertexColor * ColorModulator;
+                    }
+
+                    fragColor = %s;
+                }
+                """.formatted(fogImport, distanceInputs, fogCall);
+    }
+
+    /**
+     * Generates the shader JSON configuration.
+     */
+    private String getAnimationShaderJson(String version) {
+        return """
+                {
+                    "blend": {
+                        "func": "add",
+                        "srcrgb": "srcalpha",
+                        "dstrgb": "1-srcalpha"
+                    },
+                    "vertex": "rendertype_text",
+                    "fragment": "rendertype_text",
+                    "attributes": [
+                        "Position",
+                        "Color",
+                        "UV0",
+                        "UV2"
+                    ],
+                    "samplers": [
+                        { "name": "Sampler0" },
+                        { "name": "Sampler2" }
+                    ],
+                    "uniforms": [
+                        { "name": "ModelViewMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+                        { "name": "ProjMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+                        { "name": "ColorModulator", "type": "float", "count": 4, "values": [ 1.0, 1.0, 1.0, 1.0 ] },
+                        { "name": "FogStart", "type": "float", "count": 1, "values": [ 0.0 ] },
+                        { "name": "FogEnd", "type": "float", "count": 1, "values": [ 1.0 ] },
+                        { "name": "FogColor", "type": "float", "count": 4, "values": [ 0.0, 0.0, 0.0, 0.0 ] },
+                        { "name": "FogShape", "type": "int", "count": 1, "values": [ 0 ] },
+                        { "name": "GameTime", "type": "float", "count": 1, "values": [ 0.0 ] }
+                    ]
+                }
+                """;
+    }
+
+    /**
+     * Generates a combined vertex shader that supports both animation and
+     * scoreboard number hiding.
+     * This is needed on pre-1.20.3 servers when both features are enabled.
+     */
+    private String getCombinedVertexShader(String version) {
+        String fogImport = version.compareTo("1.21.4") >= 0
+                ? "#moj_import <minecraft:fog.glsl>"
+                : "#moj_import <fog.glsl>";
+
+        String fogDistance = version.compareTo("1.21.6") >= 0
+                ? "vertexDistance = fog_distance(Position, FogShape);\n    cylindricalVertexDistance = cylindrical_distance(Position);"
+                : "vertexDistance = fog_distance(Position, FogShape);";
+
+        String distanceOutputs = version.compareTo("1.21.6") >= 0
+                ? "out float vertexDistance;\nout float cylindricalVertexDistance;"
+                : "out float vertexDistance;";
+
+        return """
+                #version 150
+
+                %s
+
+                in vec3 Position;
+                in vec4 Color;
+                in vec2 UV0;
+                in ivec2 UV2;
+
+                uniform sampler2D Sampler2;
+                uniform mat4 ModelViewMat;
+                uniform mat4 ProjMat;
+                uniform int FogShape;
+                uniform vec2 ScreenSize;
+
+                %s
+                out vec4 vertexColor;
+                out vec2 texCoord0;
+                out float isAnimated;
+                out float animFps;
+                out float frameCount;
+                out float animLoop;
+
+                // Animation magic color detection
+                // Format: R=0xFF (marker), G=loop flag (bit 7) + FPS (bits 0-6), B=frame count
+                const float MAGIC_RED = 1.0;
+                const float SHADOW_RED = 0.25;  // Minecraft shadows = color / 4
+                const float EPSILON = 0.02;     // ~5/255 for float comparison
+
+                void main() {
+                    gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
+                    %s
+                    vertexColor = Color * texelFetch(Sampler2, UV2 / 16, 0);
+                    texCoord0 = UV0;
+
+                    // Default: not animated, looping enabled
+                    isAnimated = 0.0;
+                    animFps = 10.0;
+                    frameCount = 1.0;
+                    animLoop = 1.0;
+
+                    float r = Color.r;
+                    float g = Color.g;
+                    float b = Color.b;
+
+                    // Check for primary animation color: R=0xFF (1.0)
+                    if (abs(r - MAGIC_RED) < EPSILON && g > 0.003) {
+                        isAnimated = 1.0;
+                        // Green channel: bit 7 = loop flag (0=loop, 0x80=no-loop), bits 0-6 = FPS
+                        int gInt = int(g * 255.0 + 0.5);
+                        animLoop = (gInt >= 128) ? 0.0 : 1.0;  // Bit 7 set means NOT looping
+                        animFps = float(gInt & 0x7F);  // FPS in lower 7 bits
+                        frameCount = max(1.0, b * 255.0);
+                    }
+                    // Check for shadow variant: R≈0x3F (0.25), values divided by 4
+                    else if (abs(r - SHADOW_RED) < EPSILON && g > 0.001) {
+                        isAnimated = 1.0;
+                        // Multiply by 4 to recover original values
+                        int gRecovered = int(min(255.0, g * 255.0 * 4.0) + 0.5);
+                        animLoop = (gRecovered >= 128) ? 0.0 : 1.0;
+                        animFps = float(gRecovered & 0x7F);
+                        frameCount = max(1.0, min(255.0, b * 255.0 * 4.0));
+                    }
+
+                    // Scoreboard number hiding (from original scoreboard shader)
+                    // Check position, color, and vertex ID to identify sidebar numbers
+                    if (Position.z == 0.0 &&
+                            gl_Position.x >= 0.95 && gl_Position.y >= -0.35 &&
+                            vertexColor.g == 84.0/255.0 && vertexColor.r == 252.0/255.0 &&
+                            gl_VertexID <= 4) {
+                        // Move vertices offscreen to hide scoreboard numbers
+                        gl_Position = ProjMat * ModelViewMat * vec4(ScreenSize + 100.0, 0.0, 0.0);
+                    }
+                }
+                """.formatted(fogImport, distanceOutputs, fogDistance);
+    }
+
+    /**
+     * Generates combined shader JSON that includes uniforms for both animation and
+     * scoreboard hiding.
+     */
+    private String getCombinedShaderJson(String version) {
+        return """
+                {
+                    "blend": {
+                        "func": "add",
+                        "srcrgb": "srcalpha",
+                        "dstrgb": "1-srcalpha"
+                    },
+                    "vertex": "rendertype_text",
+                    "fragment": "rendertype_text",
+                    "attributes": [
+                        "Position",
+                        "Color",
+                        "UV0",
+                        "UV2"
+                    ],
+                    "samplers": [
+                        { "name": "Sampler0" },
+                        { "name": "Sampler2" }
+                    ],
+                    "uniforms": [
+                        { "name": "ModelViewMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+                        { "name": "ProjMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+                        { "name": "ColorModulator", "type": "float", "count": 4, "values": [ 1.0, 1.0, 1.0, 1.0 ] },
+                        { "name": "FogStart", "type": "float", "count": 1, "values": [ 0.0 ] },
+                        { "name": "FogEnd", "type": "float", "count": 1, "values": [ 1.0 ] },
+                        { "name": "FogColor", "type": "float", "count": 4, "values": [ 0.0, 0.0, 0.0, 0.0 ] },
+                        { "name": "FogShape", "type": "int", "count": 1, "values": [ 0 ] },
+                        { "name": "GameTime", "type": "float", "count": 1, "values": [ 0.0 ] },
+                        { "name": "ScreenSize", "type": "float", "count": 2, "values": [ 1.0, 1.0 ] }
+                    ]
+                }
+                """;
     }
 
     private void generateSound(List<VirtualFile> output) {
@@ -855,11 +1369,25 @@ public class ResourcePack {
             "vec_it", "vi_vn", "yi_de", "yo_ng", "zh_cn", "zh_hk", "zh_tw", "zlm_arab"));
 
     private void hideScoreboardNumbers() {
-        if (OraxenPlugin.get().getPacketAdapter().isEnabled() && VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.20.3")) {
+        if (OraxenPlugin.get().getPacketAdapter().isEnabled() && VersionUtil.isPaperServer()
+                && VersionUtil.atOrAbove("1.20.3")) {
             OraxenPlugin.get().getPacketAdapter().registerScoreboardListener();
         } else { // Pre 1.20.3 rely on shaders
-            writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.json", getScoreboardJson());
-            writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.vsh", getScoreboardVsh());
+            // Check if animation shaders were already generated - need to combine them
+            if (animationShadersGenerated) {
+                // Use combined shaders that support both animation and scoreboard hiding
+                String shaderVersion = getShaderVersion();
+                writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.vsh",
+                        getCombinedVertexShader(shaderVersion));
+                writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.json",
+                        getCombinedShaderJson(shaderVersion));
+                // Fragment shader stays the same (animation-only, scoreboard uses vertex
+                // shader)
+                Logs.logInfo("Using combined animation + scoreboard hiding shaders");
+            } else {
+                writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.json", getScoreboardJson());
+                writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.vsh", getScoreboardVsh());
+            }
         }
     }
 

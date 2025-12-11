@@ -38,6 +38,13 @@ public class FontManager {
     private final Set<Font> fonts;
     private boolean useNmsGlyphs;
 
+    // New glyph types
+    private final ShiftProvider shiftProvider;
+    private final Map<String, ReferenceGlyph> referenceGlyphMap;
+    private final Map<String, ReferenceGlyph> referenceByPlaceholder;
+    private final Map<String, AnimatedGlyph> animatedGlyphMap;
+    private final Map<String, AnimatedGlyph> animatedByPlaceholder;
+
     public FontManager(final ConfigsManager configsManager) {
         final Configuration fontConfiguration = configsManager.getFont();
         final ConfigurationSection bitmapSection = fontConfiguration.getConfigurationSection("bitmaps");
@@ -58,7 +65,20 @@ public class FontManager {
         reverse = new LinkedHashMap<>();
         fontEvents = new FontEvents(this);
         fonts = new HashSet<>();
-        loadGlyphs(configsManager.parseGlyphConfigs());
+
+        // Initialize new glyph type maps
+        shiftProvider = new ShiftProvider();
+        referenceGlyphMap = new LinkedHashMap<>();
+        referenceByPlaceholder = new LinkedHashMap<>();
+        animatedGlyphMap = new LinkedHashMap<>();
+        animatedByPlaceholder = new LinkedHashMap<>();
+
+        // Parse all glyph types using new method
+        ConfigsManager.GlyphParseOutput glyphOutput = configsManager.parseAllGlyphConfigs();
+        loadGlyphs(glyphOutput.glyphs());
+        loadReferenceGlyphs(glyphOutput.referenceGlyphs());
+        loadAnimatedGlyphs(glyphOutput.animatedGlyphs());
+
         if (fontConfiguration.isConfigurationSection("fonts"))
             loadFonts(fontConfiguration.getConfigurationSection("fonts"));
 
@@ -75,6 +95,10 @@ public class FontManager {
                 adapter.removeTitleListener();
             });
         }
+
+        Logs.logSuccess("Loaded " + glyphMap.size() + " glyphs, " +
+                referenceGlyphMap.size() + " reference glyphs, " +
+                animatedGlyphMap.size() + " animated glyphs");
     }
 
     public boolean useNmsGlyphs() {
@@ -106,11 +130,39 @@ public class FontManager {
     private void loadGlyphs(Collection<Glyph> glyphs) {
         verifyRequiredGlyphs();
         for (Glyph glyph : glyphs) {
-            if (glyph.getCharacter().isBlank()) continue;
+            if (glyph.getCharacter().isBlank())
+                continue;
             glyphMap.put(glyph.getName(), glyph);
             reverse.put(glyph.getCharacter().charAt(0), glyph.getName());
             for (final String placeholder : glyph.getPlaceholders())
                 glyphByPlaceholder.put(placeholder, glyph);
+        }
+    }
+
+    /**
+     * Loads reference glyphs and resolves their source references.
+     */
+    private void loadReferenceGlyphs(List<ReferenceGlyph> referenceGlyphs) {
+        for (ReferenceGlyph refGlyph : referenceGlyphs) {
+            if (refGlyph.resolve(this)) {
+                referenceGlyphMap.put(refGlyph.getName(), refGlyph);
+                for (String placeholder : refGlyph.getPlaceholders()) {
+                    referenceByPlaceholder.put(placeholder, refGlyph);
+                }
+            }
+        }
+    }
+
+    /**
+     * Loads animated glyphs.
+     * Note: GIF processing happens later during resource pack generation.
+     */
+    private void loadAnimatedGlyphs(List<AnimatedGlyph> animatedGlyphs) {
+        for (AnimatedGlyph animGlyph : animatedGlyphs) {
+            animatedGlyphMap.put(animGlyph.getName(), animGlyph);
+            for (String placeholder : animGlyph.getPlaceholders()) {
+                animatedByPlaceholder.put(placeholder, animGlyph);
+            }
         }
     }
 
@@ -122,21 +174,21 @@ public class FontManager {
                     (float) fontSection.getDouble("shift_x"),
                     (float) fontSection.getDouble("shift_y"),
                     (float) fontSection.getDouble("size"),
-                    (float) fontSection.getDouble("oversample")
-            ));
+                    (float) fontSection.getDouble("oversample")));
         }
     }
 
     private void verifyRequiredGlyphs() {
-        // Ensure shifts.yml exists as it is required
-        checkYamlKeys(new File(OraxenPlugin.get().getDataFolder() + "/glyphs/shifts.yml"));
+        // Ensure required.yml exists (shifts.yml is deprecated - ShiftProvider handles
+        // shifts dynamically)
         checkYamlKeys(new File(OraxenPlugin.get().getDataFolder() + "/glyphs/required.yml"));
     }
 
     private void checkYamlKeys(File file) {
         File tempFile = new File(OraxenPlugin.get().getDataFolder() + "/glyphs/temp.yml");
         try {
-            Files.copy(Objects.requireNonNull(OraxenPlugin.get().getResource("glyphs/" + file.getName())), tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(Objects.requireNonNull(OraxenPlugin.get().getResource("glyphs/" + file.getName())),
+                    tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
             if (!file.exists()) {
                 OraxenPlugin.get().saveResource("glyphs/" + file.getName(), false);
             }
@@ -147,7 +199,8 @@ public class FontManager {
                 if (!new HashSet<>(requiredKeys).containsAll(tempKeys)) {
                     file.renameTo(new File(OraxenPlugin.get().getDataFolder() + "/glyphs/" + file.getName() + ".old"));
                     OraxenPlugin.get().saveResource("glyphs/" + file.getName(), true);
-                    Logs.logWarning("glyphs/" + file.getName() + " was incorrect, renamed to .old and regenerated the default one");
+                    Logs.logWarning("glyphs/" + file.getName()
+                            + " was incorrect, renamed to .old and regenerated the default one");
                 }
             }
         } catch (IOException e) {
@@ -173,8 +226,59 @@ public class FontManager {
         return getFonts().stream().filter(font -> font.file().equals(file)).findFirst().orElse(null);
     }
 
+    // Reference glyph accessors
+
+    /**
+     * Gets all reference glyphs.
+     */
+    public Collection<ReferenceGlyph> getReferenceGlyphs() {
+        return referenceGlyphMap.values();
+    }
+
+    /**
+     * Gets a reference glyph by ID.
+     */
+    @Nullable
+    public ReferenceGlyph getReferenceGlyphFromID(String id) {
+        return referenceGlyphMap.get(id);
+    }
+
+    /**
+     * Gets a reference glyph by placeholder.
+     */
+    @Nullable
+    public ReferenceGlyph getReferenceGlyphFromPlaceholder(String placeholder) {
+        return referenceByPlaceholder.get(placeholder);
+    }
+
+    // Animated glyph accessors
+
+    /**
+     * Gets all animated glyphs.
+     */
+    public Collection<AnimatedGlyph> getAnimatedGlyphs() {
+        return animatedGlyphMap.values();
+    }
+
+    /**
+     * Gets an animated glyph by ID.
+     */
+    @Nullable
+    public AnimatedGlyph getAnimatedGlyphFromID(String id) {
+        return animatedGlyphMap.get(id);
+    }
+
+    /**
+     * Gets an animated glyph by placeholder.
+     */
+    @Nullable
+    public AnimatedGlyph getAnimatedGlyphFromPlaceholder(String placeholder) {
+        return animatedByPlaceholder.get(placeholder);
+    }
+
     /**
      * Get a Glyph from a given Glyph-ID
+     * 
      * @param id The Glyph-ID
      * @return Returns the Glyph if it exists, otherwise the required Glyph
      */
@@ -185,6 +289,7 @@ public class FontManager {
 
     /**
      * Get a Glyph from a given Glyph-ID
+     * 
      * @param id The Glyph-ID
      * @return Returns the Glyph if it exists, otherwise null
      */
@@ -205,22 +310,28 @@ public class FontManager {
         return reverse;
     }
 
+    /**
+     * Gets the ShiftProvider instance.
+     *
+     * @return The ShiftProvider for generating shift strings
+     */
+    public ShiftProvider getShiftProvider() {
+        return shiftProvider;
+    }
+
+    /**
+     * Gets a shift string for the specified pixel offset.
+     * Uses the modern space font provider instead of legacy bitmap glyphs.
+     *
+     * @param length The pixel offset (positive = right, negative = left)
+     * @return A string of shift characters from the shift font
+     */
     public String getShift(int length) {
-        StringBuilder output = new StringBuilder();
-        String prefix = "shift_";
-        if (length < 0) {
-            prefix = "neg_shift_";
-            length = -length;
-        }
-        while (length > 0) {
-            int biggestPower = Integer.highestOneBit(length);
-            output.append(getGlyphFromName(prefix + biggestPower).getCharacter());
-            length -= biggestPower;
-        }
-        return output.toString();
+        return shiftProvider.getShiftString(length);
     }
 
     private final Map<UUID, List<String>> currentGlyphCompletions = new HashMap<>();
+
     public void sendGlyphTabCompletion(Player player) {
         List<String> completions = getGlyphByPlaceholderMap().values().stream()
                 .filter(Glyph::hasTabCompletion)
@@ -230,7 +341,8 @@ public class FontManager {
                 .toList();
 
         if (VersionUtil.atOrAbove("1.19.4")) {
-            player.removeCustomChatCompletions(currentGlyphCompletions.getOrDefault(player.getUniqueId(), new ArrayList<>()));
+            player.removeCustomChatCompletions(
+                    currentGlyphCompletions.getOrDefault(player.getUniqueId(), new ArrayList<>()));
             player.addCustomChatCompletions(completions);
             currentGlyphCompletions.put(player.getUniqueId(), completions);
         }
@@ -246,15 +358,18 @@ public class FontManager {
             JsonObject json = new JsonObject();
             JsonArray chars = new JsonArray();
 
-            List<Glyph> bitmapGlyphs = fontManager.getGlyphs().stream().filter(Glyph::hasBitmap).filter(g -> g.getBitMap() != null && g.getBitMap().equals(this)).toList();
+            List<Glyph> bitmapGlyphs = fontManager.getGlyphs().stream().filter(Glyph::hasBitmap)
+                    .filter(g -> g.getBitMap() != null && g.getBitMap().equals(this)).toList();
 
             for (int i = 1; i <= rows(); i++) {
                 int currentRow = i;
-                List<Glyph> glyphsInRow = bitmapGlyphs.stream().filter(g -> g.getBitmapEntry().row() == currentRow).toList();
+                List<Glyph> glyphsInRow = bitmapGlyphs.stream().filter(g -> g.getBitmapEntry().row() == currentRow)
+                        .toList();
                 StringBuilder charRow = new StringBuilder();
                 for (int j = 1; j <= columns(); j++) {
                     int currentColumn = j;
-                    Glyph glyph = glyphsInRow.stream().filter(g -> g.getBitmapEntry().column() == currentColumn).findFirst().orElse(null);
+                    Glyph glyph = glyphsInRow.stream().filter(g -> g.getBitmapEntry().column() == currentColumn)
+                            .findFirst().orElse(null);
                     charRow.append(glyph != null ? glyph.getCharacter() : Glyph.WHITESPACE_GLYPH);
                 }
                 chars.add(""); // Add row
