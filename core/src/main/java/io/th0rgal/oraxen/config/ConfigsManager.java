@@ -1,8 +1,10 @@
 package io.th0rgal.oraxen.config;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.font.AnimatedGlyph;
 import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.font.GlyphGrid;
+import io.th0rgal.oraxen.font.ReferenceGlyph;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemParser;
 import io.th0rgal.oraxen.items.ItemTemplate;
@@ -212,6 +214,116 @@ public class ConfigsManager {
     private static class GlyphParseContext {
         final Map<String, Character> charPerGlyph = new HashMap<>();
         final Set<Integer> usedCodepoints = new HashSet<>();
+    }
+
+    /**
+     * Result of parsing all glyph configuration files.
+     * Contains regular glyphs, reference glyphs, and animated glyphs.
+     */
+    public record GlyphParseOutput(
+            List<Glyph> glyphs,
+            List<ReferenceGlyph> referenceGlyphs,
+            List<AnimatedGlyph> animatedGlyphs) {
+        public GlyphParseOutput() {
+            this(new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+        }
+    }
+
+    /**
+     * Parses all glyph configs including regular, reference, and animated glyphs.
+     *
+     * @return GlyphParseOutput containing all parsed glyphs
+     */
+    public GlyphParseOutput parseAllGlyphConfigs() {
+        checkShiftsYmlDeprecation();
+
+        // Reset animated glyph codepoint counter BEFORE parsing any glyphs.
+        // This ensures codepoints start fresh on each reload, preventing
+        // counter overflow from accumulating across reloads.
+        AnimatedGlyph.resetCodepointCounter();
+
+        List<File> glyphFiles = getGlyphFiles();
+        GlyphParseOutput output = new GlyphParseOutput();
+        GlyphParseContext ctx = new GlyphParseContext();
+
+        collectExistingCodepoints(glyphFiles, ctx);
+        parseAllGlyphFiles(glyphFiles, output, ctx);
+
+        return output;
+    }
+
+    /**
+     * Checks if shifts.yml exists and logs deprecation warning.
+     */
+    private void checkShiftsYmlDeprecation() {
+        File shiftsFile = new File(glyphsFolder, "shifts.yml");
+        if (shiftsFile.exists()) {
+            Logs.logWarning(
+                    "shifts.yml is deprecated. Shift functionality is now built-in using the space font provider.");
+            Logs.logWarning("The <shift:N> tag will continue to work. You may safely delete shifts.yml.");
+        }
+    }
+
+    /**
+     * Parses all glyph types from files.
+     */
+    private void parseAllGlyphFiles(List<File> glyphFiles, GlyphParseOutput output, GlyphParseContext ctx) {
+        for (File file : glyphFiles) {
+            // Skip shifts.yml as it's now deprecated
+            if (file.getName().equals("shifts.yml")) {
+                continue;
+            }
+
+            YamlConfiguration configuration = OraxenYaml.loadConfiguration(file);
+            boolean fileChanged = parseAllGlyphsFromFile(configuration, output, ctx);
+            saveConfigIfChanged(file, configuration, fileChanged);
+        }
+    }
+
+    /**
+     * Parses all glyph types from a single file.
+     */
+    private boolean parseAllGlyphsFromFile(YamlConfiguration configuration, GlyphParseOutput output,
+            GlyphParseContext ctx) {
+        boolean fileChanged = false;
+
+        for (String key : configuration.getKeys(false)) {
+            ConfigurationSection glyphSection = configuration.getConfigurationSection(key);
+            if (glyphSection == null)
+                continue;
+
+            // Check for reference glyph
+            if (ReferenceGlyph.isReferenceGlyph(glyphSection)) {
+                try {
+                    ReferenceGlyph refGlyph = new ReferenceGlyph(key, glyphSection);
+                    output.referenceGlyphs.add(refGlyph);
+                } catch (IllegalArgumentException e) {
+                    Logs.logError("Failed to parse reference glyph '" + key + "': " + e.getMessage());
+                }
+                continue;
+            }
+
+            // Check for animated glyph
+            if (AnimatedGlyph.isAnimatedGlyph(glyphSection)) {
+                try {
+                    AnimatedGlyph animGlyph = new AnimatedGlyph(key, glyphSection);
+                    output.animatedGlyphs.add(animGlyph);
+                } catch (IllegalArgumentException e) {
+                    Logs.logError("Failed to parse animated glyph '" + key + "': " + e.getMessage());
+                }
+                continue;
+            }
+
+            // Regular glyph
+            GlyphParseResult result = createGlyph(key, glyphSection, ctx);
+            result.glyph.verifyGlyph(output.glyphs);
+            output.glyphs.add(result.glyph);
+
+            if (result.fileChanged)
+                fileChanged = true;
+        }
+
+        return fileChanged;
     }
 
     public Collection<Glyph> parseGlyphConfigs() {

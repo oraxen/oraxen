@@ -36,7 +36,22 @@ public class GlyphTag {
 
     public static Tag glyphTag(Player player, ArgumentQueue args) {
         String glyphId = args.popOr("A glyph value is required").value();
-        Glyph glyph = OraxenPlugin.get().getFontManager().getGlyphFromName(glyphId);
+        FontManager fontManager = OraxenPlugin.get().getFontManager();
+
+        // Check for animated glyph first
+        AnimatedGlyph animatedGlyph = fontManager.getAnimatedGlyphFromID(glyphId);
+        if (animatedGlyph != null) {
+            return handleAnimatedGlyph(player, animatedGlyph, args);
+        }
+
+        // Check for reference glyph
+        ReferenceGlyph referenceGlyph = fontManager.getReferenceGlyphFromID(glyphId);
+        if (referenceGlyph != null) {
+            return handleReferenceGlyph(player, referenceGlyph, args);
+        }
+
+        // Regular glyph
+        Glyph glyph = fontManager.getGlyphFromName(glyphId);
 
         // Collect all arguments
         List<String> arguments = new ArrayList<>();
@@ -247,5 +262,92 @@ public class GlyphTag {
                 return false;
         }
         return true;
+    }
+
+    /**
+     * Handles rendering of animated glyphs.
+     * Animated glyphs use a magic color for shader detection. The shader cycles
+     * through frames via UV remapping, so we only output the first frame character.
+     */
+    private static Tag handleAnimatedGlyph(Player player, AnimatedGlyph animGlyph, ArgumentQueue args) {
+        // Check permission
+        if (!animGlyph.hasPermission(player)) {
+            return Tag.selfClosingInserting(Component.text(animGlyph.getGlyphTag()));
+        }
+
+        // If not yet processed, show placeholder
+        if (!animGlyph.isProcessed()) {
+            return Tag.selfClosingInserting(Component.text(animGlyph.getGlyphTag()));
+        }
+
+        // Build the animated component with the first frame character and magic color.
+        // The shader handles frame cycling via UV remapping based on game time,
+        // so we only need to output a single character (not all frame characters).
+        Component animComponent = Component.text(animGlyph.getCharacter())
+                .font(animGlyph.getAnimationFont())
+                .color(animGlyph.getMagicColor());
+
+        return Tag.selfClosingInserting(animComponent);
+    }
+
+    /**
+     * Handles rendering of reference glyphs.
+     * Reference glyphs display a subset of another glyph's characters.
+     */
+    private static Tag handleReferenceGlyph(Player player, ReferenceGlyph refGlyph, ArgumentQueue args) {
+        // Check permission
+        if (!refGlyph.hasPermission(player)) {
+            return Tag.selfClosingInserting(Component.text(refGlyph.getGlyphTag()));
+        }
+
+        // Check if resolved
+        if (!refGlyph.isResolved()) {
+            return Tag.selfClosingInserting(Component.text(refGlyph.getGlyphTag()));
+        }
+
+        // Collect arguments for options
+        List<String> arguments = new ArrayList<>();
+        while (args.hasNext()) {
+            arguments.add(args.pop().value());
+        }
+
+        // Parse options (reuse logic from regular glyphs)
+        boolean colorable = false;
+        Integer shadowColor = null;
+
+        for (int i = 0; i < arguments.size(); i++) {
+            String arg = arguments.get(i).toLowerCase();
+
+            if (arg.equals("colorable") || arg.equals("c")) {
+                colorable = true;
+                continue;
+            }
+
+            if (arg.equals("shadow") || arg.equals("s")) {
+                if (i + 1 < arguments.size() && looksLikeColor(arguments.get(i + 1))) {
+                    shadowColor = GlyphAppearance.parseArgbColor(arguments.get(++i));
+                } else {
+                    shadowColor = refGlyph.getAppearance().shadowColor();
+                }
+            }
+        }
+
+        // Use glyph's default shadow color if none specified
+        if (shadowColor == null && refGlyph.getAppearance().hasShadowColor()) {
+            shadowColor = refGlyph.getAppearance().shadowColor();
+        }
+
+        // Build component with reference glyph's characters
+        Component glyphComponent = Component.text(refGlyph.getCharacters())
+                .font(refGlyph.getFont())
+                .style(Style.empty());
+
+        // Apply color
+        glyphComponent = glyphComponent.color(colorable ? null : NamedTextColor.WHITE);
+
+        // Apply shadow color
+        glyphComponent = applyShadowColor(glyphComponent, shadowColor);
+
+        return Tag.selfClosingInserting(glyphComponent);
     }
 }
