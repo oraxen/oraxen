@@ -105,6 +105,9 @@ repair:
 food:
   enabled: true
 
+toggle_light:
+  enabled: true
+
 
 # COSMETIC
 

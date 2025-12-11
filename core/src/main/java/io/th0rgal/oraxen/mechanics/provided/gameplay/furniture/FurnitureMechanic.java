@@ -13,9 +13,12 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolvingFurniture;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox.JukeboxBlock;
+import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.light.LightMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.togglelight.ToggleLightMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.togglelight.ToggleLightMechanicFactory;
 import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
@@ -428,7 +431,7 @@ public class FurnitureMechanic extends Mechanic {
                     interaction.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
                     frame.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
                 }
-                if (light.hasLightLevel()) light.createBlockLight(block);
+                createInitialLight(block, entity);
             }
         } else if (entity instanceof ItemDisplay itemDisplay) {
             setItemDisplayData(itemDisplay, item, yaw, displayEntityProperties, facing);
@@ -441,12 +444,14 @@ public class FurnitureMechanic extends Mechanic {
                             ? location.clone().subtract(0, 0.5 * displayEntityProperties.getScale().y(), 0) : location;
 
             if (hasBarriers()) setBarrierHitbox(entity, barrierLoc, yaw);
-            else if (hasSeat() && interaction != null) {
-                UUID seatUuid = spawnSeat(location.getBlock(), hasSeatYaw ? seatYaw : yaw);
-                interaction.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
-                itemDisplay.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
+            else {
+                if (hasSeat() && interaction != null) {
+                    UUID seatUuid = spawnSeat(location.getBlock(), hasSeatYaw ? seatYaw : yaw);
+                    interaction.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
+                    itemDisplay.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
+                }
+                createInitialLight(location.getBlock(), entity);
             }
-            if (light.hasLightLevel()) light.createBlockLight(location.getBlock());
         }
     }
 
@@ -552,7 +557,21 @@ public class FurnitureMechanic extends Mechanic {
             data.set(ROOT_KEY, PersistentDataType.STRING, new BlockLocation(location.clone()).toString());
             data.set(ORIENTATION_KEY, PersistentDataType.FLOAT, yaw);
             data.set(BASE_ENTITY_KEY, DataType.UUID, entity.getUniqueId());
-            if (light.hasLightLevel()) light.createBlockLight(block);
+        }
+        
+        // For toggle light mechanics with barriers, use updateAllBarrierBlocks to handle all barriers collectively
+        // This prevents lights from adjacent barriers from being incorrectly removed
+        ToggleLightMechanic toggleLight = getToggleLightMechanic();
+        if (toggleLight != null && (toggleLight.hasToggleLight() || toggleLight.getBaseLightLevel() > 0)) {
+            toggleLight.updateAllBarrierBlocks(this, entity);
+        } else {
+            // Fallback to per-barrier light creation for regular light mechanics
+            // This is safe because LightMechanic.createBlockLight doesn't remove lights first
+            for (Location barrierLocation : barrierLocations) {
+                createInitialLight(barrierLocation.getBlock(), entity);
+            }
+            // Also create light at base entity location for regular light mechanics
+            createInitialLight(entity.getLocation().getBlock(), entity);
         }
     }
 
@@ -598,7 +617,7 @@ public class FurnitureMechanic extends Mechanic {
 
             block.setType(Material.AIR);
             new CustomBlockData(location.getBlock(), OraxenPlugin.get()).clear();
-            if (light.hasLightLevel()) light.removeBlockLight(block);
+            removeLight(block);
         }
         removeBaseEntity(baseEntity);
     }
@@ -610,12 +629,12 @@ public class FurnitureMechanic extends Mechanic {
     private void removeBaseEntity(Entity baseEntity) {
         if (baseEntity == null) return;
         removeSubEntitiesOfFurniture(baseEntity);
-        if (light.hasLightLevel()) light.removeBlockLight(baseEntity.getLocation().getBlock());
+        removeLight(baseEntity.getLocation().getBlock());
         if (!baseEntity.isDead()) baseEntity.remove();
     }
 
     private void removeSubEntitiesOfFurniture(Entity baseEntity) {
-        if (light.hasLightLevel()) light.removeBlockLight(baseEntity.getLocation().getBlock());
+        removeLight(baseEntity.getLocation().getBlock());
         if (hasSeat) removeFurnitureSeat(baseEntity.getLocation());
 
         if (OraxenPlugin.supportsDisplayEntities) {
@@ -870,5 +889,70 @@ public class FurnitureMechanic extends Mechanic {
 
     public LightMechanic getLight() {
         return light;
+    }
+
+    private void createInitialLight(Block block, Entity baseEntity) {
+        ToggleLightMechanic toggleLight = getToggleLightMechanic();
+        if (toggleLight != null) {
+            int lightLevel;
+            if (baseEntity != null && toggleLight.hasToggleLight()) {
+                // Check toggle state from entity if available
+                lightLevel = toggleLight.isToggledOn(baseEntity) ? toggleLight.getToggleLightLevel() : toggleLight.getBaseLightLevel();
+            } else {
+                // Use base light level for initial placement
+                lightLevel = toggleLight.getBaseLightLevel();
+            }
+            // Only update if toggle light has functionality or light level > 0
+            if (toggleLight.hasToggleLight() || lightLevel > 0) {
+                toggleLight.updateLight(block, lightLevel);
+                return;
+            }
+        }
+        // Fallback to regular light mechanic if toggle-light not found or has no light
+        if (light.hasLightLevel()) {
+            light.createBlockLight(block);
+        }
+    }
+
+    private ToggleLightMechanic getToggleLightMechanic() {
+        ToggleLightMechanicFactory factory = ToggleLightMechanicFactory.getInstance();
+        if (factory == null) {
+            MechanicFactory mechanicFactory = MechanicsManager.getMechanicFactory("toggle_light");
+            if (mechanicFactory instanceof ToggleLightMechanicFactory) {
+                factory = (ToggleLightMechanicFactory) mechanicFactory;
+            } else {
+                return null;
+            }
+        }
+        return factory != null ? factory.getMechanic(getItemID()) : null;
+    }
+
+    private void removeLight(Block block) {
+        ToggleLightMechanic toggleLight = getToggleLightMechanic();
+        if (toggleLight != null && (toggleLight.hasToggleLight() || toggleLight.getBaseLightLevel() > 0)) {
+            toggleLight.updateLight(block, 0);
+        } else if (light.hasLightLevel()) {
+            light.removeBlockLight(block);
+        }
+    }
+
+    public void refreshLight(Entity baseEntity) {
+        if (baseEntity == null) return;
+        
+        ToggleLightMechanic toggleLight = getToggleLightMechanic();
+        if (toggleLight == null || (!toggleLight.hasToggleLight() && toggleLight.getBaseLightLevel() <= 0)) {
+            return;
+        }
+
+        if (hasBarriers(baseEntity)) {
+            // updateAllBarrierBlocks now handles both barrier blocks and base entity location
+            toggleLight.updateAllBarrierBlocks(this, baseEntity);
+        } else {
+            Block block = baseEntity.getLocation().getBlock();
+            int lightLevel = toggleLight.hasToggleLight() && toggleLight.isToggledOn(baseEntity) 
+                    ? toggleLight.getToggleLightLevel() 
+                    : toggleLight.getBaseLightLevel();
+            toggleLight.updateLight(block, lightLevel);
+        }
     }
 }
