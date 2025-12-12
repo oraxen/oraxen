@@ -19,7 +19,8 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Tests for PackMerger functionality.
  * 
- * Run with: ./gradlew :core:test --tests "io.th0rgal.oraxen.pack.generation.PackMergerTest"
+ * Run with: ./gradlew :core:test --tests
+ * "io.th0rgal.oraxen.pack.generation.PackMergerTest"
  */
 public class PackMergerTest {
 
@@ -54,7 +55,7 @@ public class PackMergerTest {
 
     @Test
     void testNestedPackMerge_BattlePassStyle() throws IOException {
-        // Create a BattlePass-style nested pack
+        // Create a BattlePass-style nested pack with deeply nested assets
         createNestedPackZip(uploadsFolder.resolve("battlepass.zip"),
                 "Textures (use 1)/jars_battlepass(vanillapack)");
 
@@ -62,22 +63,28 @@ public class PackMergerTest {
         List<VirtualFile> result = merger.mergeUploadedPacks();
 
         List<String> paths = result.stream().map(VirtualFile::getPath).toList();
-        System.out.println("Nested pack paths: " + paths);
 
-        // Currently, this will fail because the paths are not normalized
-        // The paths will be like: "Textures (use 1)/jars_battlepass(vanillapack)/assets/minecraft/..."
-        // But they SHOULD be: "assets/minecraft/..."
+        // Verify files were actually merged
+        assertFalse(result.isEmpty(), "Should have merged files from nested pack");
 
-        boolean hasCorrectPaths = paths.stream().anyMatch(p -> p.startsWith("assets/minecraft/"));
-        boolean hasNestedPaths = paths.stream().anyMatch(p -> p.contains("jars_battlepass"));
+        // Verify paths are normalized to start with assets/ (not the nested prefix)
+        assertTrue(paths.stream().anyMatch(p -> p.startsWith("assets/minecraft/")),
+                "Nested pack paths should be normalized to assets/minecraft/, got: " + paths);
 
-        System.out.println("Has correct paths: " + hasCorrectPaths);
-        System.out.println("Has nested paths: " + hasNestedPaths);
+        // Verify the nested prefix was stripped (paths should NOT contain the original
+        // nesting)
+        assertFalse(paths.stream().anyMatch(p -> p.contains("jars_battlepass")),
+                "Nested prefix should be stripped from paths, got: " + paths);
+        assertFalse(paths.stream().anyMatch(p -> p.contains("Textures (use 1)")),
+                "Nested prefix should be stripped from paths, got: " + paths);
 
-        // This is the bug - nested paths are not being normalized
-        if (hasNestedPaths && !hasCorrectPaths) {
-            System.out.println("BUG CONFIRMED: Nested pack paths are not normalized!");
-        }
+        // Verify expected files are present
+        assertTrue(paths.contains("assets/minecraft/font/default.json"),
+                "Should contain font file, got: " + paths);
+        assertTrue(paths.contains("assets/minecraft/models/item/paper.json"),
+                "Should contain model file, got: " + paths);
+        assertTrue(paths.contains("assets/minecraft/textures/item/icons/test.png"),
+                "Should contain texture file, got: " + paths);
     }
 
     @Test
@@ -131,8 +138,10 @@ public class PackMergerTest {
         try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(zipPath))) {
             String p = prefix.endsWith("/") ? prefix : prefix + "/";
             addZipEntry(zos, p + "pack.mcmeta", "{\"pack\":{\"pack_format\":34,\"description\":\"Test\"}}");
-            addZipEntry(zos, p + "assets/minecraft/font/default.json", "{\"providers\":[{\"type\":\"bitmap\",\"file\":\"minecraft:font/test.png\"}]}");
-            addZipEntry(zos, p + "assets/minecraft/models/item/paper.json", "{\"parent\":\"item/generated\",\"overrides\":[{\"predicate\":{\"custom_model_data\":1},\"model\":\"item/icons/test\"}]}");
+            addZipEntry(zos, p + "assets/minecraft/font/default.json",
+                    "{\"providers\":[{\"type\":\"bitmap\",\"file\":\"minecraft:font/test.png\"}]}");
+            addZipEntry(zos, p + "assets/minecraft/models/item/paper.json",
+                    "{\"parent\":\"item/generated\",\"overrides\":[{\"predicate\":{\"custom_model_data\":1},\"model\":\"item/icons/test\"}]}");
             addZipEntry(zos, p + "assets/minecraft/textures/item/icons/test.png", "FAKE_PNG_DATA");
         }
     }
@@ -144,7 +153,8 @@ public class PackMergerTest {
     }
 
     /**
-     * A testable version of PackMerger that doesn't depend on Oraxen's logging system.
+     * A testable version of PackMerger that doesn't depend on Oraxen's logging
+     * system.
      */
     static class TestablePackMerger {
         private final File uploadsDirectory;
@@ -195,7 +205,7 @@ public class PackMergerTest {
 
             int fileCount = 0;
             try (FileInputStream fis = new FileInputStream(packZip);
-                 ZipInputStream zis = new ZipInputStream(fis, StandardCharsets.UTF_8)) {
+                    ZipInputStream zis = new ZipInputStream(fis, StandardCharsets.UTF_8)) {
                 ZipEntry entry;
                 while ((entry = zis.getNextEntry()) != null) {
                     if (entry.isDirectory()) {
@@ -204,23 +214,23 @@ public class PackMergerTest {
                     }
 
                     String entryPath = entry.getName();
-                    
+
                     // Skip files not under the detected assets root
                     if (!assetsPrefix.isEmpty() && !entryPath.startsWith(assetsPrefix)) {
                         zis.closeEntry();
                         continue;
                     }
-                    
+
                     // Normalize the path by removing the prefix
                     String normalizedPath = entryPath;
                     if (!assetsPrefix.isEmpty()) {
                         normalizedPath = entryPath.substring(assetsPrefix.length());
                     }
-                    
+
                     // Skip if not a resource pack file (must be assets/, pack.mcmeta, or pack.png)
-                    if (!normalizedPath.startsWith("assets/") && 
-                        !normalizedPath.equals("pack.mcmeta") && 
-                        !normalizedPath.equals("pack.png")) {
+                    if (!normalizedPath.startsWith("assets/") &&
+                            !normalizedPath.equals("pack.mcmeta") &&
+                            !normalizedPath.equals("pack.png")) {
                         zis.closeEntry();
                         continue;
                     }
@@ -229,8 +239,7 @@ public class PackMergerTest {
                     VirtualFile virtualFile = new VirtualFile(
                             getParentFolder(normalizedPath),
                             getFileName(normalizedPath),
-                            new ByteArrayInputStream(buffer)
-                    );
+                            new ByteArrayInputStream(buffer));
 
                     String filePath = virtualFile.getPath();
                     mergedFilesMap.put(filePath, virtualFile);
@@ -245,7 +254,7 @@ public class PackMergerTest {
 
         private String detectAssetsPrefix(File packZip) throws IOException {
             try (FileInputStream fis = new FileInputStream(packZip);
-                 ZipInputStream zis = new ZipInputStream(fis, StandardCharsets.UTF_8)) {
+                    ZipInputStream zis = new ZipInputStream(fis, StandardCharsets.UTF_8)) {
                 ZipEntry entry;
                 while ((entry = zis.getNextEntry()) != null) {
                     String name = entry.getName();
@@ -261,16 +270,18 @@ public class PackMergerTest {
 
         private String getParentFolder(String path) {
             int lastSlash = path.lastIndexOf('/');
-            if (lastSlash < 0) return "";
-            if (lastSlash == 0) return "";
+            if (lastSlash < 0)
+                return "";
+            if (lastSlash == 0)
+                return "";
             return path.substring(0, lastSlash);
         }
 
         private String getFileName(String path) {
             int lastSlash = path.lastIndexOf('/');
-            if (lastSlash < 0) return path;
+            if (lastSlash < 0)
+                return path;
             return path.substring(lastSlash + 1);
         }
     }
 }
-
