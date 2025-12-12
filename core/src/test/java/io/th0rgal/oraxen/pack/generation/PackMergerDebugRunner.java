@@ -210,7 +210,8 @@ public class PackMergerDebugRunner {
             while ((entry = zis.getNextEntry()) != null) {
                 String name = entry.getName();
                 
-                int assetsIndex = name.indexOf("assets/");
+                // Fix: Use proper assets folder detection (not substring match)
+                int assetsIndex = findAssetsFolder(name);
                 if (assetsIndex >= 0) {
                     String root = name.substring(0, assetsIndex);
                     roots.add(root);
@@ -236,7 +237,8 @@ public class PackMergerDebugRunner {
         for (String root : sortedRoots) {
             boolean isSubdirOfExisting = false;
             for (String existing : finalRoots) {
-                if (root.startsWith(existing)) {
+                // Fix: Empty string would match everything with startsWith
+                if (!existing.isEmpty() && root.startsWith(existing)) {
                     isSubdirOfExisting = true;
                     break;
                 }
@@ -247,6 +249,23 @@ public class PackMergerDebugRunner {
         }
         
         return finalRoots;
+    }
+
+    /**
+     * Finds the index of "assets/" in a path, ensuring it's a proper folder name.
+     */
+    static int findAssetsFolder(String path) {
+        int index = 0;
+        while (true) {
+            int found = path.indexOf("assets/", index);
+            if (found < 0) {
+                return -1;
+            }
+            if (found == 0 || path.charAt(found - 1) == '/') {
+                return found;
+            }
+            index = found + 1;
+        }
     }
 
     static String normalizeEntryPath(String entryPath, List<String> packRoots) {

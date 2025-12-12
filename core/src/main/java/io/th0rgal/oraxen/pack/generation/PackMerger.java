@@ -154,8 +154,9 @@ public class PackMerger {
             while ((entry = zis.getNextEntry()) != null) {
                 String name = entry.getName();
                 
-                // Look for assets/ folders
-                int assetsIndex = name.indexOf("assets/");
+                // Look for assets/ folders - must be at start or after a path separator
+                // This prevents matching "testassets/" as a valid assets folder
+                int assetsIndex = findAssetsFolder(name);
                 if (assetsIndex >= 0) {
                     String root = name.substring(0, assetsIndex);
                     roots.add(root);
@@ -183,7 +184,9 @@ public class PackMerger {
         for (String root : sortedRoots) {
             boolean isSubdirOfExisting = false;
             for (String existing : finalRoots) {
-                if (root.startsWith(existing)) {
+                // Fix: Empty string would match everything with startsWith
+                // Only filter if existing is non-empty AND root starts with it
+                if (!existing.isEmpty() && root.startsWith(existing)) {
                     isSubdirOfExisting = true;
                     break;
                 }
@@ -194,6 +197,29 @@ public class PackMerger {
         }
         
         return finalRoots;
+    }
+
+    /**
+     * Finds the index of "assets/" in a path, ensuring it's a proper folder name
+     * (either at the start or immediately after a path separator).
+     * 
+     * @param path the path to search
+     * @return index where "assets/" starts, or -1 if not found
+     */
+    private int findAssetsFolder(String path) {
+        int index = 0;
+        while (true) {
+            int found = path.indexOf("assets/", index);
+            if (found < 0) {
+                return -1;
+            }
+            // Valid if at start of path OR preceded by a path separator
+            if (found == 0 || path.charAt(found - 1) == '/') {
+                return found;
+            }
+            // Continue searching after this match
+            index = found + 1;
+        }
     }
 
     /**
