@@ -4,7 +4,6 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.ShadowColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.ArgumentQueue;
@@ -12,6 +11,7 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -210,8 +210,14 @@ public class GlyphTag {
             return component;
 
         try {
-            return component.shadowColor(ShadowColor.shadowColor(shadowColor));
-        } catch (NoClassDefFoundError | NoSuchMethodError e) {
+            // Use reflection to avoid class loading issues on older Adventure versions
+            Class<?> shadowColorClass = Class.forName("net.kyori.adventure.text.format.ShadowColor");
+            Method shadowColorMethod = shadowColorClass.getMethod("shadowColor", int.class);
+            Object shadowColorObj = shadowColorMethod.invoke(null, shadowColor);
+            
+            Method componentShadowColorMethod = component.getClass().getMethod("shadowColor", shadowColorClass);
+            return (Component) componentShadowColorMethod.invoke(component, shadowColorObj);
+        } catch (ReflectiveOperationException e) {
             // Graceful degradation for older Adventure versions
             return component;
         }

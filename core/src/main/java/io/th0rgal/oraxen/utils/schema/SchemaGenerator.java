@@ -154,15 +154,33 @@ public class SchemaGenerator {
         JsonObject descriptions = new JsonObject();
 
         // Use Registry for modern versions
-        Registry.ATTRIBUTE.forEach(attr -> {
-            String key = attr.getKey().getKey();
-            values.add(key);
+        // Handle version differences where Attribute might be a class vs interface
+        try {
+            Registry.ATTRIBUTE.forEach(attr -> {
+                String key = attr.getKey().getKey();
+                values.add(key);
 
-            // Add descriptions for common attributes
-            String desc = getAttributeDescription(key);
-            if (desc != null)
-                descriptions.addProperty(key, desc);
-        });
+                // Add descriptions for common attributes
+                String desc = getAttributeDescription(key);
+                if (desc != null)
+                    descriptions.addProperty(key, desc);
+            });
+        } catch (IncompatibleClassChangeError | NoClassDefFoundError e) {
+            // Fallback for versions where Registry.ATTRIBUTE doesn't work (e.g., 1.21.1)
+            // Add common attribute keys manually
+            String[] commonAttributes = {
+                "generic.max_health", "generic.movement_speed", "generic.attack_damage",
+                "generic.armor", "generic.armor_toughness", "generic.attack_speed",
+                "generic.knockback_resistance", "generic.luck", "generic.flying_speed",
+                "generic.follow_range"
+            };
+            for (String attr : commonAttributes) {
+                values.add(attr);
+                String desc = getAttributeDescription(attr);
+                if (desc != null)
+                    descriptions.addProperty(attr, desc);
+            }
+        }
 
         result.add("values", values);
         result.add("descriptions", descriptions);
@@ -211,9 +229,24 @@ public class SchemaGenerator {
         JsonObject result = new JsonObject();
         JsonArray values = new JsonArray();
 
-        Registry.POTION_EFFECT_TYPE.forEach(effect -> {
-            values.add(effect.getKey().getKey());
-        });
+        // Handle version differences where PotionEffectType might be a class vs interface
+        try {
+            Registry.POTION_EFFECT_TYPE.forEach(effect -> {
+                values.add(effect.getKey().getKey());
+            });
+        } catch (IncompatibleClassChangeError | NoClassDefFoundError e) {
+            // Fallback for versions where Registry.POTION_EFFECT_TYPE doesn't work
+            // Add common potion effect keys manually
+            String[] commonEffects = {
+                "speed", "slowness", "haste", "mining_fatigue", "strength", "instant_health",
+                "instant_damage", "jump_boost", "nausea", "regeneration", "resistance",
+                "fire_resistance", "water_breathing", "invisibility", "blindness", "night_vision",
+                "hunger", "weakness", "poison", "wither", "health_boost", "absorption", "saturation"
+            };
+            for (String effect : commonEffects) {
+                values.add("minecraft:" + effect);
+            }
+        }
 
         result.add("values", values);
         return result;
@@ -224,11 +257,37 @@ public class SchemaGenerator {
         JsonArray values = new JsonArray();
         JsonObject maxLevels = new JsonObject();
 
-        Registry.ENCHANTMENT.forEach(enchant -> {
-            String key = enchant.getKey().getKey();
-            values.add(key);
-            maxLevels.addProperty(key, enchant.getMaxLevel());
-        });
+        // Handle version differences where Enchantment might be a class vs interface
+        try {
+            Registry.ENCHANTMENT.forEach(enchant -> {
+                String key = enchant.getKey().getKey();
+                values.add(key);
+                maxLevels.addProperty(key, enchant.getMaxLevel());
+            });
+        } catch (IncompatibleClassChangeError | NoClassDefFoundError e) {
+            // Fallback for versions where Registry.ENCHANTMENT doesn't work
+            // Add common enchantment keys manually
+            String[] commonEnchants = {
+                "protection", "fire_protection", "feather_falling", "blast_protection",
+                "projectile_protection", "respiration", "aqua_affinity", "thorns",
+                "depth_strider", "frost_walker", "binding_curse", "sharpness", "smite",
+                "bane_of_arthropods", "knockback", "fire_aspect", "looting", "sweeping",
+                "efficiency", "silk_touch", "unbreaking", "fortune", "power", "punch",
+                "flame", "infinity", "luck_of_the_sea", "lure", "mending", "vanishing_curse"
+            };
+            for (String enchant : commonEnchants) {
+                String key = "minecraft:" + enchant;
+                values.add(key);
+                // Set reasonable default max levels
+                int maxLevel = switch (enchant) {
+                    case "protection", "fire_protection", "blast_protection", "projectile_protection" -> 4;
+                    case "sharpness", "smite", "bane_of_arthropods", "efficiency", "power" -> 5;
+                    case "unbreaking", "looting", "fortune", "luck_of_the_sea", "lure" -> 3;
+                    default -> 1;
+                };
+                maxLevels.addProperty(key, maxLevel);
+            }
+        }
 
         result.add("values", values);
         result.add("maxLevels", maxLevels);
@@ -275,15 +334,34 @@ public class SchemaGenerator {
         JsonArray armorEquip = new JsonArray();
         JsonArray eat = new JsonArray();
 
-        Registry.SOUNDS.forEach(sound -> {
-            String name = sound.getKey().getKey();
-            values.add(name);
+        // Handle version differences where Sound might be a class vs interface
+        try {
+            Registry.SOUNDS.forEach(sound -> {
+                String name = sound.getKey().getKey();
+                values.add(name);
 
-            if (name.contains("armor") && name.contains("equip"))
-                armorEquip.add(name);
-            if (name.contains("eat") || name.contains("burp"))
-                eat.add(name);
-        });
+                if (name.contains("armor") && name.contains("equip"))
+                    armorEquip.add(name);
+                if (name.contains("eat") || name.contains("burp"))
+                    eat.add(name);
+            });
+        } catch (IncompatibleClassChangeError | NoClassDefFoundError e) {
+            // Fallback for versions where Registry.SOUNDS doesn't work (e.g., 1.21.1)
+            // Add common sound keys manually
+            String[] commonSounds = {
+                "entity.player.levelup", "entity.player.hurt", "entity.player.death",
+                "block.note_block.note", "ui.button.click", "entity.experience_orb.pickup",
+                "item.armor.equip_generic", "item.armor.equip_leather", "item.armor.equip_iron",
+                "item.armor.equip_diamond", "entity.generic.eat", "entity.player.burp"
+            };
+            for (String sound : commonSounds) {
+                values.add(sound);
+                if (sound.contains("armor") && sound.contains("equip"))
+                    armorEquip.add(sound);
+                if (sound.contains("eat") || sound.contains("burp"))
+                    eat.add(sound);
+            }
+        }
 
         result.add("values", values);
         categories.add("armor_equip", armorEquip);

@@ -42,6 +42,11 @@ public class ZipUtils {
         zipEntry.setLastModifiedTime(FileTime.fromMillis(0L));
         DuplicationHandler.checkForDuplicate(zos, zipEntry);
 
+        if (fis == null) {
+            zos.closeEntry();
+            return;
+        }
+
         final byte[] bytes = new byte[1024];
         int length;
         try (fis) {

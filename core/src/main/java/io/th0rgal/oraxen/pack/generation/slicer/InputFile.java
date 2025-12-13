@@ -37,6 +37,10 @@ public class InputFile {
         if (Files.exists(inputPath)) {
             try (final InputStream is = Files.newInputStream(inputPath)) {
                 final BufferedImage image = ImageIO.read(is);
+                if (image == null) {
+                    Logs.logWarning("Failed to read image: " + this.path + " (unsupported format or corrupted)");
+                    return;
+                }
                 final BufferedImage leftoverImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
                 final Graphics2D leftoverGraphics = leftoverImage.createGraphics();
                 leftoverGraphics.drawImage(image, 0, 0, null);
