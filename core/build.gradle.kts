@@ -11,11 +11,28 @@ tasks {
     //publish.get().dependsOn(shadowJar)
     shadowJar.get().archiveFileName.set("oraxen-${pluginVersion}.jar")
     build.get().dependsOn(shadowJar)
+    
+    test {
+        useJUnitPlatform()
+    }
+}
+
+// Task to run PackMerger debug tool
+tasks.register<JavaExec>("runPackMergerDebug") {
+    group = "debug"
+    description = "Runs the PackMerger debug tool to analyze resource pack zip files"
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("io.th0rgal.oraxen.pack.generation.PackMergerDebugRunner")
+    
+    // Pass command line args: ./gradlew :core:runPackMergerDebug --args="path/to/pack.zip"
+    if (project.hasProperty("packFile")) {
+        args(project.property("packFile"))
+    }
 }
 
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.21.8-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
     // libraries in plugin.yml > libraries
     compileOnly(oraxenLibs.bundles.libraries.bukkit) {
         exclude("org.jetbrains", "annotations")
@@ -35,6 +52,10 @@ dependencies {
         exclude("net.kyori")
         exclude(group = "com.google.guava")
     }
+    
+    // Test dependencies
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 java {

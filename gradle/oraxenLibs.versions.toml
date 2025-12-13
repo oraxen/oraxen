@@ -91,8 +91,6 @@ http = { module = "org.apache.httpcomponents:httpmime", version = "4.5.13" }
 
 # CommandAPI https://docs.commandapi.dev/dev-setup/setup
 # Repo: Maven Central
-# commandapi-spigot = { module = "dev.jorel:commandapi-spigot-shade", version.ref = "commandapi" }
-# commandapi-paper = { module = "dev.jorel:commandapi-paper-shade", version.ref = "commandapi" }
 commandapi = { module = "dev.jorel:commandapi-bukkit-core", version.ref = "commandapi" }
 
 #
@@ -153,8 +151,6 @@ libraries-shade = [
     "bstats",
     "annotations",
     "triumph-gui",
-    # "commandapi-spigot",
-    # "commandapi-paper",
     "javax-json",
     "protectionlib",
     "inventoryframework",

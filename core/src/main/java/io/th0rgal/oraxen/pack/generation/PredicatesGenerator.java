@@ -404,7 +404,9 @@ public class PredicatesGenerator {
     private static boolean has2DBlockIcon(Material material) {
         if (material == Material.BARRIER || material == Material.STRUCTURE_VOID || material == Material.LIGHT)
             return true;
-        if (material == Material.IRON_BARS || material == Material.CHAIN)
+        // Some server APIs may not expose certain materials as enum constants (or may relocate them);
+        // fall back to name checks to keep compilation compatible.
+        if (material == Material.IRON_BARS || "CHAIN".equals(material.name()))
             return true;
         if (material == Material.SEA_PICKLE || material == Material.POINTED_DRIPSTONE || material == Material.BELL)
             return true;
