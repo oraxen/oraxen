@@ -100,16 +100,70 @@ public class PackMergerTest {
                 "Should detect the path prefix before 'assets'");
     }
 
+    @Test
+    void testDetectAssetsRoot_DoesNotMatchFolderEndingWithAssets() throws IOException {
+        // Regression test: folders like "testassets/" should NOT be treated as "assets/"
+        // The bug was: indexOf("assets/") matches "testassets/" at index 4
+        Path trickyZip = uploadsFolder.resolve("tricky.zip");
+        
+        try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(trickyZip))) {
+            // This has "testassets/" which should NOT be detected as a valid assets folder
+            addZipEntry(zos, "testassets/minecraft/textures/test.png", "FAKE");
+            // This is the real assets folder
+            addZipEntry(zos, "realpack/assets/minecraft/textures/test.png", "FAKE");
+            addZipEntry(zos, "realpack/pack.mcmeta", "{\"pack\":{\"pack_format\":34}}");
+        }
+
+        String assetsPrefix = detectAssetsPrefix(trickyZip);
+        System.out.println("Detected assets prefix for tricky zip: '" + assetsPrefix + "'");
+
+        // Should find "realpack/" not "" (which would happen if testassets/ matched)
+        assertEquals("realpack/", assetsPrefix,
+                "Should NOT match 'testassets/' as a valid assets folder");
+    }
+
+    @Test
+    void testMerge_IgnoresFolderEndingWithAssets() throws IOException {
+        // End-to-end test: files in "testassets/" should be skipped
+        Path trickyZip = uploadsFolder.resolve("tricky_merge.zip");
+        
+        try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(trickyZip))) {
+            // "testassets/" should be ignored - not a valid resource pack
+            addZipEntry(zos, "testassets/minecraft/textures/bad.png", "BAD");
+            // "assets/" at root is valid
+            addZipEntry(zos, "assets/minecraft/textures/good.png", "GOOD");
+            addZipEntry(zos, "pack.mcmeta", "{\"pack\":{\"pack_format\":34}}");
+        }
+
+        TestablePackMerger merger = new TestablePackMerger(packFolder.toFile());
+        List<VirtualFile> result = merger.mergeUploadedPacks();
+        List<String> paths = result.stream().map(VirtualFile::getPath).toList();
+        
+        System.out.println("Merged paths: " + paths);
+
+        // Should contain the good file from assets/
+        assertTrue(paths.contains("assets/minecraft/textures/good.png"),
+                "Should merge files from valid 'assets/' folder");
+        
+        // Should NOT contain the bad file from testassets/
+        assertFalse(paths.stream().anyMatch(p -> p.contains("bad.png")),
+                "Should NOT merge files from 'testassets/' folder");
+        assertFalse(paths.stream().anyMatch(p -> p.contains("testassets")),
+                "Paths should not contain 'testassets'");
+    }
+
     /**
      * Detects the path prefix before the 'assets' folder in a zip file.
      * Returns empty string if assets is at root.
+     * 
+     * Uses the same algorithm as production PackMerger.findAssetsFolder().
      */
     private String detectAssetsPrefix(Path zipFile) throws IOException {
         try (ZipInputStream zis = new ZipInputStream(Files.newInputStream(zipFile))) {
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
                 String name = entry.getName();
-                int assetsIndex = name.indexOf("assets/");
+                int assetsIndex = findAssetsFolder(name);
                 if (assetsIndex >= 0) {
                     return name.substring(0, assetsIndex);
                 }
@@ -117,6 +171,28 @@ public class PackMergerTest {
             }
         }
         return "";
+    }
+
+    /**
+     * Finds the index of "assets/" in a path, ensuring it's a proper folder name
+     * (either at the start or immediately after a path separator).
+     * 
+     * This mirrors production PackMerger.findAssetsFolder() exactly.
+     */
+    private int findAssetsFolder(String path) {
+        int index = 0;
+        while (true) {
+            int found = path.indexOf("assets/", index);
+            if (found < 0) {
+                return -1;
+            }
+            // Valid if at start of path OR preceded by a path separator
+            if (found == 0 || path.charAt(found - 1) == '/') {
+                return found;
+            }
+            // Continue searching after this match
+            index = found + 1;
+        }
     }
 
     /**
@@ -258,7 +334,7 @@ public class PackMergerTest {
                 ZipEntry entry;
                 while ((entry = zis.getNextEntry()) != null) {
                     String name = entry.getName();
-                    int assetsIndex = name.indexOf("assets/");
+                    int assetsIndex = findAssetsFolderInner(name);
                     if (assetsIndex >= 0) {
                         return name.substring(0, assetsIndex);
                     }
@@ -266,6 +342,24 @@ public class PackMergerTest {
                 }
             }
             return "";
+        }
+
+        /**
+         * Finds the index of "assets/" in a path, ensuring it's a proper folder name.
+         * Mirrors production PackMerger.findAssetsFolder().
+         */
+        private int findAssetsFolderInner(String path) {
+            int index = 0;
+            while (true) {
+                int found = path.indexOf("assets/", index);
+                if (found < 0) {
+                    return -1;
+                }
+                if (found == 0 || path.charAt(found - 1) == '/') {
+                    return found;
+                }
+                index = found + 1;
+            }
         }
 
         private String getParentFolder(String path) {

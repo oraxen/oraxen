@@ -151,7 +151,7 @@ tasks {
         downloadPlugins {
             hangar("ProtocolLib", "5.4.0")
         }
-        minecraftVersion("1.21.10")
+        minecraftVersion("1.21.11")
         jvmArgs("-Dcom.mojang.eula.agree=true")
     }
 

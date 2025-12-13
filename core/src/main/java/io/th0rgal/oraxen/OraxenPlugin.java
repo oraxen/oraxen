@@ -73,7 +73,8 @@ public class OraxenPlugin extends JavaPlugin {
 
     @Override
     public void onLoad() {
-        // CommandAPI.onLoad(BukkitWrapper.createCommandApiConfig(this));
+        // CommandAPI initialization is currently disabled as CommandAPI 11.0.0 doesn't yet support 1.21.11
+        // CommandAPI.onLoad(new CommandAPIPaperConfig(this).silentLogs(true));
     }
 
     @Override

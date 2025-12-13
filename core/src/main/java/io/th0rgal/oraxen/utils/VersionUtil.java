@@ -37,7 +37,8 @@ public class VersionUtil {
         IS_PAPER = hasClass("com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent");
         IS_FOLIA = hasClass("io.papermc.paper.threadedregions.RegionizedServer");
         versionMap.put(NMSVersion.v1_21_R6,
-                Map.of(24, new MinecraftVersion("1.21.9"), 25, new MinecraftVersion("1.21.10")));
+                Map.of(24, new MinecraftVersion("1.21.9"), 25, new MinecraftVersion("1.21.10"),
+                        26, new MinecraftVersion("1.21.11")));
         versionMap.put(NMSVersion.v1_21_R5,
                 Map.of(22, new MinecraftVersion("1.21.7"), 23, new MinecraftVersion("1.21.8")));
         versionMap.put(NMSVersion.v1_21_R4,
