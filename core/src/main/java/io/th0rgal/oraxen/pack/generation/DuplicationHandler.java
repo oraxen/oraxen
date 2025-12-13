@@ -84,6 +84,366 @@ public class DuplicationHandler {
             }
     }
 
+    /**
+     * Merges vanilla item definition files (assets/minecraft/items/*.json) for
+     * 1.21.4+.
+     * This handles external packs that may include their own range_dispatch entries
+     * for custom_model_data, merging them with Oraxen's generated definitions.
+     */
+    public static void mergeVanillaItemDefinitions(List<VirtualFile> output) {
+        if (!VersionUtil.atOrAbove("1.21.4"))
+            return;
+        if (!Settings.APPEARANCE_PREDICATES.toBool())
+            return;
+
+        // First, convert legacy predicate overrides from external packs to modern item
+        // definitions
+        convertLegacyPredicatesToItemDefinitions(output);
+
+        Map<String, List<VirtualFile>> itemDefsToMerge = new HashMap<>();
+
+        // Find all vanilla item definition files
+        for (VirtualFile virtual : output.stream()
+                .filter(v -> v.getPath().startsWith("assets/minecraft/items/") && v.getPath().endsWith(".json"))
+                .toList()) {
+            String path = virtual.getPath();
+            itemDefsToMerge.computeIfAbsent(path, k -> new ArrayList<>()).add(virtual);
+        }
+
+        // Only process paths with duplicates
+        Map<String, List<VirtualFile>> duplicatesOnly = itemDefsToMerge.entrySet().stream()
+                .filter(e -> e.getValue().size() > 1)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        if (duplicatesOnly.isEmpty())
+            return;
+
+        Logs.logSuccess("Attempting to merge " + duplicatesOnly.size() + " duplicate vanilla item definition files");
+
+        for (Map.Entry<String, List<VirtualFile>> entry : duplicatesOnly.entrySet()) {
+            List<VirtualFile> duplicates = entry.getValue();
+            if (duplicates.size() < 2)
+                continue;
+
+            // Parse all duplicates and merge their range_dispatch entries
+            JsonObject mergedDefinition = mergeItemDefinitionEntries(duplicates);
+            if (mergedDefinition == null)
+                continue;
+
+            // Create merged file
+            VirtualFile first = duplicates.get(0);
+            InputStream newInput = new ByteArrayInputStream(
+                    mergedDefinition.toString().getBytes(StandardCharsets.UTF_8));
+            VirtualFile merged = new VirtualFile(
+                    Utils.getParentDirs(first.getPath()),
+                    Utils.removeParentDirs(first.getPath()),
+                    newInput);
+            merged.setPath(merged.getPath().replace("//", "/"));
+
+            // Replace duplicates with merged file
+            output.removeAll(duplicates);
+            output.add(merged);
+            Logs.logSuccess("Merged " + duplicates.size() + " item definitions into " + merged.getPath());
+        }
+    }
+
+    /**
+     * Converts legacy predicate overrides from external packs
+     * (assets/minecraft/models/item/*.json)
+     * to modern 1.21.4+ vanilla item definitions (assets/minecraft/items/*.json).
+     * Only creates definitions for materials that don't already have one generated
+     * by Oraxen.
+     */
+    private static void convertLegacyPredicatesToItemDefinitions(List<VirtualFile> output) {
+        // Find all existing item definitions (to avoid duplicating)
+        Set<String> existingItemDefs = output.stream()
+                .filter(v -> v.getPath().startsWith("assets/minecraft/items/") && v.getPath().endsWith(".json"))
+                .map(v -> Utils.getFileNameOnly(v.getPath()).toLowerCase(Locale.ROOT))
+                .collect(Collectors.toSet());
+
+        // Find legacy model files that have custom_model_data predicates
+        List<VirtualFile> legacyModels = output.stream()
+                .filter(v -> v.getPath().startsWith("assets/minecraft/models/item/") && v.getPath().endsWith(".json"))
+                .toList();
+
+        List<VirtualFile> newDefinitions = new ArrayList<>();
+
+        for (VirtualFile legacyModel : legacyModels) {
+            String itemName = Utils.getFileNameOnly(legacyModel.getPath()).toLowerCase(Locale.ROOT);
+
+            // Skip if we already have a modern item definition for this material
+            if (existingItemDefs.contains(itemName))
+                continue;
+
+            // Check if it's a vanilla base item (by trying to get Material)
+            Material material = Material.getMaterial(itemName.toUpperCase(Locale.ROOT));
+            if (material == null)
+                continue;
+
+            // Parse the legacy model
+            JsonElement jsonElement = legacyModel.toJsonElement();
+            if (jsonElement == null || !jsonElement.isJsonObject())
+                continue;
+            JsonObject legacyJson = jsonElement.getAsJsonObject();
+
+            // Check if it has custom_model_data overrides
+            if (!legacyJson.has("overrides"))
+                continue;
+            JsonArray overrides = legacyJson.getAsJsonArray("overrides");
+            if (overrides == null || overrides.isEmpty())
+                continue;
+
+            // Extract custom_model_data entries
+            List<CmdOverride> cmdOverrides = extractCustomModelDataOverrides(overrides);
+            if (cmdOverrides.isEmpty())
+                continue;
+
+            // Create modern item definition
+            JsonObject itemDef = createItemDefinitionFromOverrides(material, cmdOverrides, legacyJson);
+            if (itemDef == null)
+                continue;
+
+            // Add to output
+            VirtualFile newDef = new VirtualFile(
+                    "assets/minecraft/items",
+                    itemName + ".json",
+                    new ByteArrayInputStream(itemDef.toString().getBytes(StandardCharsets.UTF_8)));
+            newDefinitions.add(newDef);
+            existingItemDefs.add(itemName);
+
+            Logs.logSuccess("Converted legacy predicates for " + itemName + " to modern item definition");
+        }
+
+        output.addAll(newDefinitions);
+    }
+
+    /**
+     * Extracts custom_model_data overrides from a legacy overrides array.
+     */
+    private static List<CmdOverride> extractCustomModelDataOverrides(JsonArray overrides) {
+        List<CmdOverride> result = new ArrayList<>();
+        for (JsonElement element : overrides) {
+            if (!element.isJsonObject())
+                continue;
+            JsonObject override = element.getAsJsonObject();
+            if (!override.has("predicate") || !override.has("model"))
+                continue;
+
+            JsonObject predicate = override.getAsJsonObject("predicate");
+            if (!predicate.has("custom_model_data"))
+                continue;
+
+            int cmd = predicate.get("custom_model_data").getAsInt();
+            String model = override.get("model").getAsString();
+            result.add(new CmdOverride(cmd, model));
+        }
+        // Sort by CMD value
+        result.sort(Comparator.comparingInt(CmdOverride::cmd));
+        return result;
+    }
+
+    /**
+     * Creates a modern item definition from legacy CMD overrides.
+     */
+    private static JsonObject createItemDefinitionFromOverrides(Material material, List<CmdOverride> overrides,
+            JsonObject legacyJson) {
+        JsonObject root = new JsonObject();
+
+        // Build range_dispatch
+        JsonObject rangeDispatch = new JsonObject();
+        rangeDispatch.addProperty("type", "minecraft:range_dispatch");
+        rangeDispatch.addProperty("property", "minecraft:custom_model_data");
+        // CustomModelData is an int-array in the item model system; use index 0 by
+        // default
+        rangeDispatch.addProperty("index", 0);
+
+        JsonArray entries = new JsonArray();
+        for (CmdOverride override : overrides) {
+            JsonObject entry = new JsonObject();
+            entry.addProperty("threshold", override.cmd);
+
+            JsonObject model = new JsonObject();
+            model.addProperty("type", "minecraft:model");
+            model.addProperty("model", override.model);
+            entry.add("model", model);
+
+            entries.add(entry);
+        }
+        rangeDispatch.add("entries", entries);
+
+        // Fallback to vanilla model
+        JsonObject fallback = new JsonObject();
+        fallback.addProperty("type", "minecraft:model");
+        fallback.addProperty("model", "minecraft:item/" + material.name().toLowerCase(Locale.ROOT));
+        rangeDispatch.add("fallback", fallback);
+
+        root.add("model", rangeDispatch);
+        return root;
+    }
+
+    /**
+     * Record for CMD override data.
+     */
+    private record CmdOverride(int cmd, String model) {
+    }
+
+    /**
+     * Holds collected range_dispatch data during merging.
+     */
+    private static class RangeDispatchData {
+        final Set<Integer> seenThresholds = new HashSet<>();
+        final List<JsonObject> entries = new ArrayList<>();
+        JsonObject fallback = null;
+    }
+
+    /**
+     * Merges range_dispatch entries from multiple item definition files.
+     */
+    private static JsonObject mergeItemDefinitionEntries(List<VirtualFile> duplicates) {
+        List<JsonObject> jsonObjects = parseJsonObjects(duplicates);
+        if (jsonObjects.isEmpty())
+            return null;
+
+        JsonObject base = jsonObjects.get(0).deepCopy();
+        RangeDispatchData data = collectRangeDispatchData(jsonObjects);
+
+        if (!data.entries.isEmpty()) {
+            // Always provide a fallback to the vanilla item model. If none was present in
+            // duplicates,
+            // derive it from the item definition file name (e.g., "paper.json" ->
+            // minecraft:item/paper).
+            if (data.fallback == null) {
+                JsonObject derivedFallback = deriveFallbackFromItemDefinitionPath(duplicates.get(0));
+                if (derivedFallback != null)
+                    data.fallback = derivedFallback;
+            }
+            base.add("model", buildRangeDispatchModel(data));
+        }
+
+        return base;
+    }
+
+    private static List<JsonObject> parseJsonObjects(List<VirtualFile> files) {
+        return files.stream()
+                .map(VirtualFile::toJsonElement)
+                .filter(e -> e != null && e.isJsonObject())
+                .map(JsonElement::getAsJsonObject)
+                .toList();
+    }
+
+    private static RangeDispatchData collectRangeDispatchData(List<JsonObject> definitions) {
+        RangeDispatchData data = new RangeDispatchData();
+
+        for (JsonObject def : definitions) {
+            JsonObject model = getNestedModel(def);
+            if (model == null || !isCustomModelDataRangeDispatch(model))
+                continue;
+
+            collectEntriesFromModel(model, data);
+            collectFallbackFromModel(model, data);
+        }
+
+        return data;
+    }
+
+    private static void collectEntriesFromModel(JsonObject model, RangeDispatchData data) {
+        if (!model.has("entries"))
+            return;
+
+        for (JsonElement entryEl : model.getAsJsonArray("entries")) {
+            if (!entryEl.isJsonObject())
+                continue;
+
+            JsonObject entry = entryEl.getAsJsonObject();
+            if (!entry.has("threshold"))
+                continue;
+
+            int threshold = entry.get("threshold").getAsInt();
+            if (!data.seenThresholds.contains(threshold)) {
+                data.seenThresholds.add(threshold);
+                data.entries.add(entry.deepCopy());
+            }
+        }
+    }
+
+    private static void collectFallbackFromModel(JsonObject model, RangeDispatchData data) {
+        if (data.fallback == null && model.has("fallback")) {
+            data.fallback = model.getAsJsonObject("fallback").deepCopy();
+        }
+    }
+
+    private static JsonObject buildRangeDispatchModel(RangeDispatchData data) {
+        JsonObject rangeDispatch = new JsonObject();
+        rangeDispatch.addProperty("type", "minecraft:range_dispatch");
+        rangeDispatch.addProperty("property", "minecraft:custom_model_data");
+        rangeDispatch.addProperty("index", 0);
+
+        data.entries.sort(Comparator.comparingInt(e -> e.get("threshold").getAsInt()));
+
+        JsonArray sortedArray = new JsonArray();
+        data.entries.forEach(sortedArray::add);
+        rangeDispatch.add("entries", sortedArray);
+
+        if (data.fallback != null) {
+            rangeDispatch.add("fallback", data.fallback);
+        }
+
+        return rangeDispatch;
+    }
+
+    /**
+     * Derives a vanilla fallback model for an item definition file under
+     * assets/minecraft/items/*.json.
+     * Example: ".../paper.json" ->
+     * {"type":"minecraft:model","model":"minecraft:item/paper"}
+     */
+    private static JsonObject deriveFallbackFromItemDefinitionPath(VirtualFile file) {
+        if (file == null)
+            return null;
+        String path = file.getPath();
+        if (path == null || path.isBlank())
+            return null;
+
+        String name = path.substring(path.lastIndexOf('/') + 1);
+        if (!name.endsWith(".json"))
+            return null;
+        String baseName = name.substring(0, name.length() - ".json".length()).toLowerCase(Locale.ROOT);
+        if (baseName.isBlank())
+            return null;
+
+        JsonObject fallback = new JsonObject();
+        fallback.addProperty("type", "minecraft:model");
+        fallback.addProperty("model", "minecraft:item/" + baseName);
+        return fallback;
+    }
+
+    /**
+     * Gets the model object from an item definition, traversing nested structures.
+     */
+    private static JsonObject getNestedModel(JsonObject definition) {
+        if (!definition.has("model"))
+            return null;
+        JsonElement model = definition.get("model");
+        if (!model.isJsonObject())
+            return null;
+        return model.getAsJsonObject();
+    }
+
+    /**
+     * Checks if a model object is a range_dispatch using custom_model_data.
+     */
+    private static boolean isCustomModelDataRangeDispatch(JsonObject model) {
+        if (!model.has("type"))
+            return false;
+        String type = model.get("type").getAsString();
+        if (!"minecraft:range_dispatch".equals(type))
+            return false;
+        if (!model.has("property"))
+            return false;
+        String property = model.get("property").getAsString();
+        return "minecraft:custom_model_data".equals(property);
+    }
+
     private static JsonObject getItemTextures(List<JsonObject> duplicates) {
         JsonObject newTextures = new JsonObject();
         for (JsonObject itemJsons : duplicates) {

@@ -107,6 +107,11 @@ public class ResourcePack {
         }
         if (usePredicates) {
             generatePredicates(filterForPredicates(texturedItems));
+            // On 1.21.4+, also generate vanilla item definitions with range_dispatch for
+            // CMD
+            if (VersionUtil.atOrAbove("1.21.4")) {
+                generateVanillaItemDefinitions(filterForPredicates(texturedItems));
+            }
         }
 
         generateFont();
@@ -166,6 +171,8 @@ public class ResourcePack {
             DuplicationHandler.mergeFontFiles(output);
         if (Settings.MERGE_ITEM_MODELS.toBool())
             DuplicationHandler.mergeBaseItemFiles(output);
+        // Merge vanilla item definitions for 1.21.4+ (if predicates enabled)
+        DuplicationHandler.mergeVanillaItemDefinitions(output);
 
         List<String> excludedExtensions = Settings.EXCLUDED_FILE_EXTENSIONS.toStringList();
         excludedExtensions.removeIf(f -> f.equals("png") || f.equals("json"));
@@ -467,6 +474,24 @@ public class ResourcePack {
                     .split("/");
             writeStringToVirtual("assets/minecraft/models/" + vanillaModelPath[0], vanillaModelPath[1],
                     predicatesGenerator.toJSON().toString());
+        }
+    }
+
+    /**
+     * Generates vanilla item model definitions (assets/minecraft/items/*.json) for
+     * 1.21.4+.
+     * These use range_dispatch with custom_model_data property to switch between
+     * models,
+     * which is the modern replacement for legacy predicate overrides.
+     */
+    private void generateVanillaItemDefinitions(final Map<Material, Map<String, ItemBuilder>> texturedItems) {
+        for (final Map.Entry<Material, Map<String, ItemBuilder>> texturedItemsEntry : texturedItems.entrySet()) {
+            final Material material = texturedItemsEntry.getKey();
+            final List<ItemBuilder> items = new ArrayList<>(texturedItemsEntry.getValue().values());
+
+            final VanillaItemDefinitionGenerator generator = new VanillaItemDefinitionGenerator(material, items);
+            writeStringToVirtual("assets/minecraft/items", generator.getFileName(),
+                    generator.toJSON().toString());
         }
     }
 

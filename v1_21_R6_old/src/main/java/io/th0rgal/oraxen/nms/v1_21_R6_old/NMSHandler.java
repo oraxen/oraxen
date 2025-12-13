@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.nms.v1_21_R6;
+package io.th0rgal.oraxen.nms.v1_21_R6_old;
 
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -26,6 +26,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.common.ClientboundUpdateTagsPacket;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -79,7 +80,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     private final GlyphHandler glyphHandler;
 
     public NMSHandler() {
-        this.glyphHandler = new io.th0rgal.oraxen.nms.v1_21_R6.GlyphHandler();
+        this.glyphHandler = new io.th0rgal.oraxen.nms.v1_21_R6_old.GlyphHandler();
 
         // mineableWith tag handling
         NamespacedKey tagKey = NamespacedKey.fromString("mineable_with_key", OraxenPlugin.get());
@@ -232,25 +233,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         return null;
     }
 
-    // Use Object as key type to support both ResourceLocation (1.21.10) and
-    // Identifier (1.21.11)
-    private final Map<Object, IntList> tagRegistryMap = new HashMap<>();
-
-    /*
-     * private static Map<ResourceLocation, IntList> createTagRegistryMap() {
-     * return BuiltInRegistries.BLOCK.getTags().map(pair -> {
-     * IntArrayList list = new IntArrayList(pair.getSecond().size());
-     * if (pair.getFirst().location() == BlockTags.MINEABLE_WITH_AXE.location()) {
-     * pair.getSecond().stream()
-     * .filter(block -> !block.value().getDescriptionId().endsWith("note_block"))
-     * .forEach(block -> list.add(BuiltInRegistries.BLOCK.getId(block.value())));
-     * } else pair.getSecond().forEach(block ->
-     * list.add(BuiltInRegistries.BLOCK.getId(block.value())));
-     * 
-     * return Map.of(pair.getFirst().location(), list);
-     * }).collect(HashMap::new, Map::putAll, Map::putAll);
-     * }
-     */
+    // Use ResourceLocation directly (1.21.9/1.21.10 compatible)
+    private final Map<ResourceLocation, IntList> tagRegistryMap = new HashMap<>();
 
     @Override
     public boolean getSupported() {
@@ -270,12 +254,11 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     public boolean setComponent(ItemBuilder item, String componentKey, Object component) {
         try {
             net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(new ItemStack(item.getType()));
-            Object componentLocation = ResourceLocationHelper.parse("minecraft:" + componentKey.toLowerCase());
-            if (componentLocation == null)
-                return false;
+            ResourceLocation componentLocation = ResourceLocation.parse("minecraft:" + componentKey.toLowerCase());
 
-            // Use reflection to call getOptional with the correct type
-            net.minecraft.core.component.DataComponentType<?> componentType = getDataComponentType(componentLocation);
+            // Get the component type from registry
+            net.minecraft.core.component.DataComponentType<?> componentType = BuiltInRegistries.DATA_COMPONENT_TYPE
+                    .getOptional(componentLocation).orElse(null);
             if (componentType == null)
                 return false;
 
@@ -443,12 +426,9 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         // Sound handling
         String soundId = section.getString("sound");
         if (soundId != null) {
-            SoundEvent soundEvent = getSoundEventFromId(soundId);
-            if (soundEvent != null) {
-                consumable.sound(Holder.direct(soundEvent));
-            } else {
-                consumable.sound(template.sound());
-            }
+            ResourceLocation soundLocation = ResourceLocation.parse(soundId);
+            SoundEvent soundEvent = new SoundEvent(soundLocation, Optional.empty());
+            consumable.sound(Holder.direct(soundEvent));
         } else {
             consumable.sound(template.sound());
         }
@@ -482,6 +462,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         item.setConsumableComponent(consumable.build());
     }
 
+    @SuppressWarnings("unchecked")
     private void handleApplyEffects(Consumable.Builder consumable, Map<?, ?> effectSection) {
         if (!(effectSection.get("effects") instanceof Map<?, ?> effects))
             return;
@@ -494,7 +475,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             String effectId = entry.getKey().toString();
             Map<String, Object> effectData = (Map<String, Object>) entry.getValue();
 
-            getMobEffectOptional(effectId)
+            BuiltInRegistries.MOB_EFFECT.getOptional(ResourceLocation.parse(effectId))
                     .map(BuiltInRegistries.MOB_EFFECT::wrapAsHolder)
                     .ifPresent(effect -> {
                         int duration = Optional.ofNullable(effectData.get("duration"))
@@ -526,7 +507,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
         List<Holder<MobEffect>> mobEffects = effects.stream()
                 .map(Object::toString)
-                .map(this::getMobEffectOptional)
+                .map(ResourceLocation::parse)
+                .map(BuiltInRegistries.MOB_EFFECT::getOptional)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .map(BuiltInRegistries.MOB_EFFECT::wrapAsHolder)
@@ -543,82 +525,13 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                 .orElse(null);
 
         if (soundIdStr != null) {
-            getSoundEventOptional(soundIdStr)
+            BuiltInRegistries.SOUND_EVENT.getOptional(ResourceLocation.parse(soundIdStr))
                     .map(BuiltInRegistries.SOUND_EVENT::wrapAsHolder)
                     .map(PlaySoundConsumeEffect::new)
                     .ifPresent(consumable::onConsume);
         } else {
             // Use template sound
             consumable.onConsume(new PlaySoundConsumeEffect(template.sound()));
-        }
-    }
-
-    // ============ Reflection helpers for ResourceLocation/Identifier compatibility
-    // ============
-
-    /**
-     * Get DataComponentType by looking up the component location via reflection.
-     */
-    @SuppressWarnings("unchecked")
-    private net.minecraft.core.component.DataComponentType<?> getDataComponentType(Object location) {
-        try {
-            java.lang.reflect.Method getOptional = BuiltInRegistries.DATA_COMPONENT_TYPE.getClass()
-                    .getMethod("getOptional", ResourceLocationHelper.getResourceLocationClass());
-            Optional<net.minecraft.core.component.DataComponentType<?>> result = (Optional<net.minecraft.core.component.DataComponentType<?>>) getOptional
-                    .invoke(
-                            BuiltInRegistries.DATA_COMPONENT_TYPE, location);
-            return result.orElse(null);
-        } catch (Exception e) {
-            Logs.logWarning("Failed to get data component type: " + e.getMessage());
-            return null;
-        }
-    }
-
-    /**
-     * Get MobEffect optional by effect ID string.
-     */
-    @SuppressWarnings("unchecked")
-    private Optional<MobEffect> getMobEffectOptional(String effectId) {
-        try {
-            Object location = ResourceLocationHelper.parse(effectId);
-            java.lang.reflect.Method getOptional = BuiltInRegistries.MOB_EFFECT.getClass()
-                    .getMethod("getOptional", ResourceLocationHelper.getResourceLocationClass());
-            return (Optional<MobEffect>) getOptional.invoke(BuiltInRegistries.MOB_EFFECT, location);
-        } catch (Exception e) {
-            Logs.logWarning("Failed to get mob effect: " + effectId);
-            return Optional.empty();
-        }
-    }
-
-    /**
-     * Get SoundEvent optional by sound ID string.
-     */
-    @SuppressWarnings("unchecked")
-    private Optional<SoundEvent> getSoundEventOptional(String soundId) {
-        try {
-            Object location = ResourceLocationHelper.parse(soundId);
-            java.lang.reflect.Method getOptional = BuiltInRegistries.SOUND_EVENT.getClass()
-                    .getMethod("getOptional", ResourceLocationHelper.getResourceLocationClass());
-            return (Optional<SoundEvent>) getOptional.invoke(BuiltInRegistries.SOUND_EVENT, location);
-        } catch (Exception e) {
-            Logs.logWarning("Failed to get sound event: " + soundId);
-            return Optional.empty();
-        }
-    }
-
-    /**
-     * Create a SoundEvent from a sound ID string.
-     */
-    private SoundEvent getSoundEventFromId(String soundId) {
-        try {
-            Object location = ResourceLocationHelper.parse(soundId);
-            // SoundEvent constructor takes the location - use reflection since type differs
-            java.lang.reflect.Constructor<?> constructor = SoundEvent.class.getConstructor(
-                    ResourceLocationHelper.getResourceLocationClass(), Optional.class);
-            return (SoundEvent) constructor.newInstance(location, Optional.empty());
-        } catch (Exception e) {
-            Logs.logWarning("Failed to create sound event: " + soundId);
-            return null;
         }
     }
 
@@ -674,3 +587,4 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                 new BlockPos(location.getBlockX(), location.getBlockY(), location.getBlockZ()), 0);
     }
 }
+

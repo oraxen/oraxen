@@ -1,0 +1,142 @@
+---
+alwaysApply: true
+---
+
+## Pack Merger Testing Infrastructure
+
+The project includes a comprehensive testing infrastructure for debugging resource pack merging issues. This is particularly useful when users report problems with third-party resource packs.
+
+### Test Files Location
+
+All test files are in `core/src/test/java/io/th0rgal/oraxen/pack/generation/`:
+
+- `PackMergerDebugRunner.java` - Standalone CLI tool for analyzing zip structures
+- `PackMergerIntegrationTest.java` - JUnit integration tests for merge scenarios
+- `PackMergerTest.java` - Unit tests for individual methods
+
+### Running the Debug Tool
+
+To analyze a resource pack zip and understand how PackMerger will process it:
+
+```bash
+# From project root
+./gradlew :core:runPackMergerDebug -PpackFile=/path/to/pack.zip
+```
+
+The debug tool outputs:
+1. **Zip Structure Analysis** - Shows root folders and asset locations
+2. **Detected Pack Roots** - Where the merger finds valid resource packs
+3. **Merge Simulation** - Lists files that would be merged vs skipped
+4. **Summary** - Highlights any issues or warnings
+
+### Running Unit/Integration Tests
+
+```bash
+# Run all tests
+./gradlew :core:test
+
+# Run specific test class
+./gradlew :core:test --tests "PackMergerIntegrationTest"
+```
+
+### What the Debug Tool Reveals
+
+The tool helps diagnose common issues:
+
+1. **Nested Resource Packs** - Packs where `assets/` is not at the zip root
+2. **Multiple Packs in One Zip** - Zips containing several resource packs
+3. **Non-Resource Pack Files** - Plugin configs, readmes, etc. that get skipped
+4. **Path Normalization** - Shows how deep paths get normalized to `assets/...`
+
+### Example Output Interpretation
+
+```
+Detected pack roots:
+  - 'Textures/vanillapack/'         <- Valid resource pack at this prefix
+  - 'Textures/ItemsAdder/content/'  <- Another valid pack
+
+Files to merge:
+  [OK]   assets/minecraft/textures/... (from: Textures/vanillapack/assets/...)
+  [SKIP] PluginConfigs/settings.yml    <- Not a resource pack file
+  [SKIP] Oraxen/items/custom.yml       <- Oraxen config, should be copied manually
+```
+
+### Common Scenarios
+
+**Scenario 1: User's pack not merging**
+1. Run debug tool on the zip
+2. Check if `assets/` folder is detected
+3. If pack roots show deep nesting, PackMerger handles it automatically
+4. If no roots detected, the zip has no valid resource pack structure
+
+**Scenario 2: Files being skipped unexpectedly**
+1. Check the `[SKIP]` entries in the output
+2. Files outside `assets/`, `pack.mcmeta`, `pack.png` are intentionally skipped
+3. Plugin-specific configs (like Oraxen items/glyphs) should be copied manually
+
+**Scenario 3: BattlePass-style multi-integration packs**
+Some packs include multiple integration options:
+- `Oraxen/` folder - Copy to `plugins/Oraxen/` directly
+- `ItemsAdder/` folder - For ItemsAdder users
+- `vanillapack/` folder - Use with PackMerger uploads
+
+The debug tool correctly identifies that Oraxen-specific files are NOT resource pack files and should be manually copied to the plugin folder.
+
+### Adding New Tests
+
+When fixing pack merger bugs:
+
+1. Create a test case in `PackMergerIntegrationTest.java`
+2. Use the helper methods to create test zips programmatically
+3. Verify both positive (correct merge) and negative (skip non-pack files) cases
+
+```java
+@Test
+void testNestedResourcePack() throws Exception {
+    Path testZip = createTestZip("nested/path/to/assets/minecraft/textures/test.png");
+    List<MergedFile> results = runMerge(testZip);
+    
+    assertThat(results)
+        .hasSize(1)
+        .first()
+        .extracting(MergedFile::getNormalizedPath)
+        .isEqualTo("assets/minecraft/textures/test.png");
+}
+```
+
+### Known Issues Fixed
+
+The following bugs were identified and fixed in PackMerger:
+
+1. **Substring match for `assets/`**: The original `indexOf("assets/")` would incorrectly match folder names ending with "assets" (e.g., `testassets/`). Fixed by checking that `assets/` appears at path start or after `/`.
+
+2. **Empty string root filtering**: When the root pack is at zip root (empty string `""`), the subdirectory filtering logic would incorrectly filter out all nested pack roots because `"anything".startsWith("")` is always true.
+
+### Debugging User Issues with Server Logs
+
+When analyzing user logs, look for these key patterns:
+
+1. **Pack processing messages**:
+   ```
+   Processing pack | filename.zip
+   Added N files from filename.zip
+   Merged N files from M uploaded pack(s)
+   ```
+
+2. **Override warnings** (indicate potential conflicts):
+   ```
+   file.zip will override existing file assets/.../path from other.zip
+   ```
+
+3. **Merge attempts**:
+   ```
+   Attempting to merge imported base-item json files
+   Merged N duplicate font files into a final...
+   ```
+
+4. **Duplicate detection at zip-write time** (conflicts between Oraxen-generated and merged files):
+   ```
+   Duplicate file detected: assets/.../file.json - Attempting to migrate it
+   ```
+
+5. **Common interfering plugins**: Look for OraxenAutoMerge, ModelEngine pack generation, or other plugins that modify resource packs.
