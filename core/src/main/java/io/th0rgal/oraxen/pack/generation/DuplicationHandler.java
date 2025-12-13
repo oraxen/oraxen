@@ -253,6 +253,9 @@ public class DuplicationHandler {
         JsonObject rangeDispatch = new JsonObject();
         rangeDispatch.addProperty("type", "minecraft:range_dispatch");
         rangeDispatch.addProperty("property", "minecraft:custom_model_data");
+        // CustomModelData is an int-array in the item model system; use index 0 by
+        // default
+        rangeDispatch.addProperty("index", 0);
 
         JsonArray entries = new JsonArray();
         for (CmdOverride override : overrides) {
@@ -305,6 +308,15 @@ public class DuplicationHandler {
         RangeDispatchData data = collectRangeDispatchData(jsonObjects);
 
         if (!data.entries.isEmpty()) {
+            // Always provide a fallback to the vanilla item model. If none was present in
+            // duplicates,
+            // derive it from the item definition file name (e.g., "paper.json" ->
+            // minecraft:item/paper).
+            if (data.fallback == null) {
+                JsonObject derivedFallback = deriveFallbackFromItemDefinitionPath(duplicates.get(0));
+                if (derivedFallback != null)
+                    data.fallback = derivedFallback;
+            }
             base.add("model", buildRangeDispatchModel(data));
         }
 
@@ -364,6 +376,7 @@ public class DuplicationHandler {
         JsonObject rangeDispatch = new JsonObject();
         rangeDispatch.addProperty("type", "minecraft:range_dispatch");
         rangeDispatch.addProperty("property", "minecraft:custom_model_data");
+        rangeDispatch.addProperty("index", 0);
 
         data.entries.sort(Comparator.comparingInt(e -> e.get("threshold").getAsInt()));
 
@@ -376,6 +389,32 @@ public class DuplicationHandler {
         }
 
         return rangeDispatch;
+    }
+
+    /**
+     * Derives a vanilla fallback model for an item definition file under
+     * assets/minecraft/items/*.json.
+     * Example: ".../paper.json" ->
+     * {"type":"minecraft:model","model":"minecraft:item/paper"}
+     */
+    private static JsonObject deriveFallbackFromItemDefinitionPath(VirtualFile file) {
+        if (file == null)
+            return null;
+        String path = file.getPath();
+        if (path == null || path.isBlank())
+            return null;
+
+        String name = path.substring(path.lastIndexOf('/') + 1);
+        if (!name.endsWith(".json"))
+            return null;
+        String baseName = name.substring(0, name.length() - ".json".length()).toLowerCase(Locale.ROOT);
+        if (baseName.isBlank())
+            return null;
+
+        JsonObject fallback = new JsonObject();
+        fallback.addProperty("type", "minecraft:model");
+        fallback.addProperty("model", "minecraft:item/" + baseName);
+        return fallback;
     }
 
     /**

@@ -4,13 +4,13 @@ plugins {
     id("io.github.goooler.shadow") version "8.1.8"
 }
 
-// Paper 1.21.10 dev bundle provides better compatibility across 1.21.9-1.21.11
-// The class names (e.g., ResourceLocation) remain consistent with runtime.
+// Paper 1.21.11 dev bundle for v1_21_R6 NMS module
+// Note: 1.21.11 uses Identifier instead of ResourceLocation
 val enableReobf: Boolean = (project.findProperty("oraxen_enable_reobf")?.toString() ?: "false").toBoolean()
 
 dependencies {
     compileOnly(project(":core"))
-    paperweight.paperDevBundle("1.21.10-R0.1-SNAPSHOT")
+    paperweight.paperDevBundle("1.21.11-R0.1-SNAPSHOT")
 }
 
 tasks {

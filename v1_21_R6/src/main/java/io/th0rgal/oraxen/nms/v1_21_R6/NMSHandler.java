@@ -26,7 +26,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.common.ClientboundUpdateTagsPacket;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -233,10 +233,10 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         return null;
     }
 
-    private final Map<ResourceLocation, IntList> tagRegistryMap = new HashMap();// createTagRegistryMap();
+    private final Map<Identifier, IntList> tagRegistryMap = new HashMap();// createTagRegistryMap();
 
     /*
-     * private static Map<ResourceLocation, IntList> createTagRegistryMap() {
+     * private static Map<Identifier, IntList> createTagRegistryMap() {
      * return BuiltInRegistries.BLOCK.getTags().map(pair -> {
      * IntArrayList list = new IntArrayList(pair.getSecond().size());
      * if (pair.getFirst().location() == BlockTags.MINEABLE_WITH_AXE.location()) {
@@ -269,7 +269,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     public boolean setComponent(ItemBuilder item, String componentKey, Object component) {
         try {
             net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(new ItemStack(item.getType()));
-            net.minecraft.resources.ResourceLocation componentLocation = net.minecraft.resources.ResourceLocation
+            net.minecraft.resources.Identifier componentLocation = net.minecraft.resources.Identifier
                     .tryParse("minecraft:" + componentKey.toLowerCase());
             if (componentLocation == null)
                 return false;
@@ -444,7 +444,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         // Sound handling
         String soundId = section.getString("sound");
         if (soundId != null) {
-            ResourceLocation soundLocation = ResourceLocation.parse(soundId);
+            Identifier soundLocation = Identifier.parse(soundId);
             consumable.sound(Holder.direct(new SoundEvent(soundLocation, Optional.empty())));
         } else {
             consumable.sound(template.sound());
@@ -491,7 +491,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             String effectId = entry.getKey().toString();
             Map<String, Object> effectData = (Map<String, Object>) entry.getValue();
 
-            BuiltInRegistries.MOB_EFFECT.getOptional(ResourceLocation.parse(effectId))
+            BuiltInRegistries.MOB_EFFECT.getOptional(Identifier.parse(effectId))
                     .map(BuiltInRegistries.MOB_EFFECT::wrapAsHolder)
                     .ifPresent(effect -> {
                         int duration = Optional.ofNullable(effectData.get("duration"))
@@ -523,7 +523,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
         List<Holder<MobEffect>> mobEffects = effects.stream()
                 .map(Object::toString)
-                .map(ResourceLocation::parse)
+                .map(Identifier::parse)
                 .map(BuiltInRegistries.MOB_EFFECT::getOptional)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
@@ -536,9 +536,9 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     }
 
     private void handlePlaySound(Consumable.Builder consumable, Map<?, ?> effectSection, Consumable template) {
-        ResourceLocation soundKey = Optional.ofNullable(effectSection.get("sound"))
+        Identifier soundKey = Optional.ofNullable(effectSection.get("sound"))
                 .map(Object::toString)
-                .map(ResourceLocation::parse)
+                .map(Identifier::parse)
                 .orElse(template.sound().value().location());
 
         BuiltInRegistries.SOUND_EVENT.getOptional(soundKey)

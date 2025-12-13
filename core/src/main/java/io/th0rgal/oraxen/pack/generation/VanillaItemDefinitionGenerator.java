@@ -13,13 +13,18 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Generates vanilla item model definitions (assets/minecraft/items/*.json) for 1.21.4+.
+ * Generates vanilla item model definitions (assets/minecraft/items/*.json) for
+ * 1.21.4+.
  * <p>
- * These files use the modern item model definition format with {@code range_dispatch}
- * for CustomModelData switching, replacing the legacy predicate overrides system.
+ * These files use the modern item model definition format with
+ * {@code range_dispatch}
+ * for CustomModelData switching, replacing the legacy predicate overrides
+ * system.
  * <p>
- * Structure: The item definition dispatches based on custom_model_data values to select
- * the appropriate model, with special handling for items that have state-based models
+ * Structure: The item definition dispatches based on custom_model_data values
+ * to select
+ * the appropriate model, with special handling for items that have state-based
+ * models
  * (bow pulling, crossbow charged, shield blocking, fishing rod cast).
  */
 public class VanillaItemDefinitionGenerator {
@@ -53,7 +58,8 @@ public class VanillaItemDefinitionGenerator {
     }
 
     /**
-     * Returns the file path for this item definition (e.g., "map" for Material.MAP).
+     * Returns the file path for this item definition (e.g., "map" for
+     * Material.MAP).
      */
     public String getFileName() {
         return material.name().toLowerCase(Locale.ROOT) + ".json";
@@ -111,8 +117,10 @@ public class VanillaItemDefinitionGenerator {
         List<CmdEntry> cmdEntries = new ArrayList<>();
         for (ItemBuilder item : items) {
             OraxenMeta meta = item.getOraxenMeta();
-            if (meta == null || meta.getCustomModelData() == null) continue;
-            if (!meta.hasPackInfos()) continue;
+            if (meta == null || meta.getCustomModelData() == null)
+                continue;
+            if (!meta.hasPackInfos())
+                continue;
 
             int cmd = meta.getCustomModelData();
             JsonObject itemModel = createItemModel(meta);
@@ -128,6 +136,9 @@ public class VanillaItemDefinitionGenerator {
         JsonObject rangeDispatch = new JsonObject();
         rangeDispatch.addProperty("type", "minecraft:range_dispatch");
         rangeDispatch.addProperty("property", "minecraft:custom_model_data");
+        // CustomModelData is an int-array in the item model system; use index 0 by
+        // default
+        rangeDispatch.addProperty("index", 0);
 
         JsonArray entries = new JsonArray();
         for (CmdEntry entry : cmdEntries) {
@@ -143,7 +154,8 @@ public class VanillaItemDefinitionGenerator {
     }
 
     /**
-     * Creates the model object for a custom Oraxen item, including any state handling.
+     * Creates the model object for a custom Oraxen item, including any state
+     * handling.
      */
     private JsonObject createItemModel(OraxenMeta meta) {
         JsonObject baseModel = createModelObject(meta.getModelName());
@@ -406,8 +418,8 @@ public class VanillaItemDefinitionGenerator {
 
     private boolean isPotionMaterial(Material material) {
         return material == Material.POTION
-            || material == Material.SPLASH_POTION
-            || material == Material.LINGERING_POTION;
+                || material == Material.SPLASH_POTION
+                || material == Material.LINGERING_POTION;
     }
 
     private void addDyeTint(JsonObject model) {
@@ -438,6 +450,6 @@ public class VanillaItemDefinitionGenerator {
     /**
      * Helper record to store CMD value and its associated model.
      */
-    private record CmdEntry(int cmd, JsonObject model) {}
+    private record CmdEntry(int cmd, JsonObject model) {
+    }
 }
-
