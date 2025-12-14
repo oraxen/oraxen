@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.utils;
 
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.pack.generation.DuplicationHandler;
+import io.th0rgal.oraxen.utils.logs.Logs;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -21,10 +22,10 @@ public class ZipUtils {
     }
 
     public static void writeZipFile(final File outputFile,
-                                    final List<VirtualFile> fileList) {
+            final List<VirtualFile> fileList) {
 
         try (final FileOutputStream fos = new FileOutputStream(outputFile);
-             final ZipOutputStream zos = new ZipOutputStream(fos, StandardCharsets.UTF_8)) {
+                final ZipOutputStream zos = new ZipOutputStream(fos, StandardCharsets.UTF_8)) {
             final int compressionLevel = Deflater.class.getDeclaredField(Settings.COMPRESSION.toString()).getInt(null);
             zos.setLevel(compressionLevel);
             zos.setComment(Settings.COMMENT.toString());
@@ -42,14 +43,26 @@ public class ZipUtils {
         zipEntry.setLastModifiedTime(FileTime.fromMillis(0L));
         DuplicationHandler.checkForDuplicate(zos, zipEntry);
 
+        if (fis == null) {
+            Logs.logWarning("Skipping zip entry with null input stream: " + zipFilePath);
+            try {
+                zos.closeEntry();
+            } catch (IOException ignored) {
+            }
+            return;
+        }
+
         final byte[] bytes = new byte[1024];
         int length;
-        try (fis) {
-            while ((length = fis.read(bytes)) >= 0)
+        try (InputStream in = fis) {
+            while ((length = in.read(bytes)) >= 0)
                 zos.write(bytes, 0, length);
         } catch (IOException ignored) {
         } finally {
-            zos.closeEntry();
+            try {
+                zos.closeEntry();
+            } catch (IOException ignored) {
+            }
             if (Settings.PROTECTION.toBool()) {
                 zipEntry.setCrc(bytes.length);
                 zipEntry.setSize(new BigInteger(bytes).mod(BigInteger.valueOf(Long.MAX_VALUE)).longValue());

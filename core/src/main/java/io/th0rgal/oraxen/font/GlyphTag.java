@@ -4,7 +4,6 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.ShadowColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.ArgumentQueue;
@@ -15,6 +14,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.lang.reflect.Method;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -225,9 +225,21 @@ public class GlyphTag {
             return component;
 
         try {
-            return component.shadowColor(ShadowColor.shadowColor(shadowColor));
-        } catch (NoClassDefFoundError | NoSuchMethodError e) {
-            // Graceful degradation for older Adventure versions
+            // Paper 1.21.1 bundles different Adventure libs. In some cases, the ShadowColor
+            // class exists but fails to load due to missing transitive types (e.g.
+            // ARGBLike),
+            // causing NoClassDefFoundError during class resolution.
+            //
+            // To keep compatibility, use reflection and treat ShadowColor as optional.
+            ClassLoader cl = GlyphTag.class.getClassLoader();
+            Class<?> shadowColorClass = Class.forName("net.kyori.adventure.text.format.ShadowColor", false, cl);
+            Method factory = shadowColorClass.getMethod("shadowColor", int.class);
+            Object shadowColorObj = factory.invoke(null, shadowColor);
+
+            Method shadowMethod = Component.class.getMethod("shadowColor", shadowColorClass);
+            return (Component) shadowMethod.invoke(component, shadowColorObj);
+        } catch (Throwable ignored) {
+            // Graceful degradation for older/incompatible Adventure versions
             return component;
         }
     }

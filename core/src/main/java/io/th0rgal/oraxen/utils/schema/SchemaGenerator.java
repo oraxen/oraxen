@@ -22,6 +22,7 @@ import org.bukkit.inventory.ItemFlag;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.time.Instant;
 import java.util.List;
@@ -153,15 +154,24 @@ public class SchemaGenerator {
         JsonArray values = new JsonArray();
         JsonObject descriptions = new JsonObject();
 
-        // Use Registry for modern versions
-        Registry.ATTRIBUTE.forEach(attr -> {
-            String key = attr.getKey().getKey();
-            values.add(key);
+        // Paper 1.21.1 uses different Bukkit API types for some registries
+        // (e.g. Attribute/Sound/Enchantment/PotionEffectType are classes/enums in
+        // 1.21.1 but interfaces in later versions). If we compile against the newer
+        // API and call interface methods directly, 1.21.1 can throw
+        // IncompatibleClassChangeError.
+        //
+        // Iterate registries as raw Iterables and use reflection for getKey().
+        forEachRegistryEntry(Registry.ATTRIBUTE, entry -> {
+            NamespacedKey key = reflectNamespacedKey(entry);
+            if (key == null)
+                return;
 
-            // Add descriptions for common attributes
-            String desc = getAttributeDescription(key);
+            String keyString = key.getKey();
+            values.add(keyString);
+
+            String desc = getAttributeDescription(keyString);
             if (desc != null)
-                descriptions.addProperty(key, desc);
+                descriptions.addProperty(keyString, desc);
         });
 
         result.add("values", values);
@@ -211,8 +221,10 @@ public class SchemaGenerator {
         JsonObject result = new JsonObject();
         JsonArray values = new JsonArray();
 
-        Registry.POTION_EFFECT_TYPE.forEach(effect -> {
-            values.add(effect.getKey().getKey());
+        forEachRegistryEntry(Registry.POTION_EFFECT_TYPE, entry -> {
+            NamespacedKey key = reflectNamespacedKey(entry);
+            if (key != null)
+                values.add(key.getKey());
         });
 
         result.add("values", values);
@@ -224,10 +236,17 @@ public class SchemaGenerator {
         JsonArray values = new JsonArray();
         JsonObject maxLevels = new JsonObject();
 
-        Registry.ENCHANTMENT.forEach(enchant -> {
-            String key = enchant.getKey().getKey();
-            values.add(key);
-            maxLevels.addProperty(key, enchant.getMaxLevel());
+        forEachRegistryEntry(Registry.ENCHANTMENT, entry -> {
+            NamespacedKey key = reflectNamespacedKey(entry);
+            if (key == null)
+                return;
+
+            String keyString = key.getKey();
+            values.add(keyString);
+
+            Integer maxLevel = reflectInt(entry, "getMaxLevel");
+            if (maxLevel != null)
+                maxLevels.addProperty(keyString, maxLevel);
         });
 
         result.add("values", values);
@@ -275,8 +294,12 @@ public class SchemaGenerator {
         JsonArray armorEquip = new JsonArray();
         JsonArray eat = new JsonArray();
 
-        Registry.SOUNDS.forEach(sound -> {
-            String name = sound.getKey().getKey();
+        forEachRegistryEntry(Registry.SOUNDS, entry -> {
+            NamespacedKey key = reflectNamespacedKey(entry);
+            if (key == null)
+                return;
+
+            String name = key.getKey();
             values.add(name);
 
             if (name.contains("armor") && name.contains("equip"))
@@ -290,6 +313,36 @@ public class SchemaGenerator {
         categories.add("eat", eat);
         result.add("categories", categories);
         return result;
+    }
+
+    private static void forEachRegistryEntry(Object registry, java.util.function.Consumer<Object> consumer) {
+        if (!(registry instanceof Iterable<?> iterable))
+            return;
+        for (Object entry : iterable) {
+            if (entry != null) {
+                consumer.accept(entry);
+            }
+        }
+    }
+
+    private static NamespacedKey reflectNamespacedKey(Object registryEntry) {
+        try {
+            Method getKey = registryEntry.getClass().getMethod("getKey");
+            Object keyObj = getKey.invoke(registryEntry);
+            return keyObj instanceof NamespacedKey nk ? nk : null;
+        } catch (Throwable ignored) {
+            return null;
+        }
+    }
+
+    private static Integer reflectInt(Object instance, String methodName) {
+        try {
+            Method m = instance.getClass().getMethod(methodName);
+            Object v = m.invoke(instance);
+            return v instanceof Number n ? n.intValue() : null;
+        } catch (Throwable ignored) {
+            return null;
+        }
     }
 
     private static <T extends Enum<?>> JsonObject generateSimpleEnum(Class<T> enumClass) {
