@@ -2,7 +2,7 @@
   "oraxenVersion": "1.200.0",
   "minecraftVersion": "1.21.4",
   "serverVersion": "1.21.4-R0.1-SNAPSHOT",
-  "generatedAt": "2025-12-14T00:01:52.404823876Z",
+  "generatedAt": "2025-12-14T00:26:06.007292961Z",
   "enums": {
     "Material": {
       "values": [
@@ -7144,21 +7144,21 @@
           "type": "object",
           "description": "Directional block configuration",
           "properties": {
-            "z_block": {
+            "x_block": {
               "type": "string",
-              "description": "Z-axis variant ID"
-            },
-            "parent_block": {
-              "type": "string",
-              "description": "Parent block ID"
+              "description": "X-axis variant ID"
             },
             "y_block": {
               "type": "string",
               "description": "Y-axis variant ID"
             },
-            "x_block": {
+            "parent_block": {
               "type": "string",
-              "description": "X-axis variant ID"
+              "description": "Parent block ID"
+            },
+            "z_block": {
+              "type": "string",
+              "description": "Z-axis variant ID"
             }
           }
         },
@@ -7182,23 +7182,23 @@
           "type": "object",
           "description": "Log stripping configuration",
           "properties": {
-            "stripped_log": {
-              "type": "string",
-              "description": "Stripped log block ID"
-            },
             "drop": {
               "type": "object",
               "description": "Item dropped on strip",
               "properties": {
-                "minecraft_type": {
-                  "type": "string",
-                  "description": "Vanilla item type"
-                },
                 "oraxen_item": {
                   "type": "string",
                   "description": "Oraxen item ID"
+                },
+                "minecraft_type": {
+                  "type": "string",
+                  "description": "Vanilla item type"
                 }
               }
+            },
+            "stripped_log": {
+              "type": "string",
+              "description": "Stripped log block ID"
             }
           }
         }
@@ -7287,14 +7287,14 @@
           "type": "object",
           "description": "Seat configuration for sittable furniture",
           "properties": {
-            "yaw": {
-              "type": "number",
-              "description": "Seat rotation",
-              "default": 0.0
-            },
             "height": {
               "type": "number",
               "description": "Seat height offset",
+              "default": 0.0
+            },
+            "yaw": {
+              "type": "number",
+              "description": "Seat rotation",
               "default": 0.0
             }
           }
@@ -7326,16 +7326,16 @@
               "type": "object",
               "description": "Light levels",
               "properties": {
-                "sky": {
+                "block": {
                   "type": "integer",
-                  "description": "Sky light level",
+                  "description": "Block light level",
                   "default": 0,
                   "min": 0,
                   "max": 15
                 },
-                "block": {
+                "sky": {
                   "type": "integer",
-                  "description": "Block light level",
+                  "description": "Sky light level",
                   "default": 0,
                   "min": 0,
                   "max": 15
@@ -7373,16 +7373,16 @@
                 "DISPOSAL"
               ]
             },
+            "title": {
+              "type": "string",
+              "description": "Inventory title"
+            },
             "rows": {
               "type": "integer",
               "description": "Number of inventory rows",
               "default": 1,
               "min": 1,
               "max": 6
-            },
-            "title": {
-              "type": "string",
-              "description": "Inventory title"
             }
           }
         }
@@ -7761,16 +7761,16 @@
               "min": 0.0,
               "max": 1.0
             },
-            "grow_block": {
-              "type": "string",
-              "description": "Block ID when grown"
-            },
             "min_light": {
               "type": "integer",
               "description": "Minimum light level to grow",
               "default": 9,
               "min": 0,
               "max": 15
+            },
+            "grow_block": {
+              "type": "string",
+              "description": "Block ID when grown"
             }
           }
         }
