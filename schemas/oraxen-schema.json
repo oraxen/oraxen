@@ -1,8 +1,8 @@
 {
-  "oraxenVersion": "1.199.0",
+  "oraxenVersion": "1.200.0",
   "minecraftVersion": "1.21.4",
   "serverVersion": "1.21.4-R0.1-SNAPSHOT",
-  "generatedAt": "2025-12-10T22:12:43.736298497Z",
+  "generatedAt": "2025-12-14T00:01:52.404823876Z",
   "enums": {
     "Material": {
       "values": [
@@ -7363,10 +7363,6 @@
           "type": "object",
           "description": "Storage container configuration",
           "properties": {
-            "title": {
-              "type": "string",
-              "description": "Inventory title"
-            },
             "type": {
               "type": "string",
               "description": "Storage type",
@@ -7383,6 +7379,10 @@
               "default": 1,
               "min": 1,
               "max": 6
+            },
+            "title": {
+              "type": "string",
+              "description": "Inventory title"
             }
           }
         }
@@ -7754,13 +7754,6 @@
           "type": "object",
           "description": "Sapling growth configuration",
           "properties": {
-            "min_light": {
-              "type": "integer",
-              "description": "Minimum light level to grow",
-              "default": 9,
-              "min": 0,
-              "max": 15
-            },
             "grow_chance": {
               "type": "number",
               "description": "Growth chance per check",
@@ -7771,6 +7764,13 @@
             "grow_block": {
               "type": "string",
               "description": "Block ID when grown"
+            },
+            "min_light": {
+              "type": "integer",
+              "description": "Minimum light level to grow",
+              "default": 9,
+              "min": 0,
+              "max": 15
             }
           }
         }
