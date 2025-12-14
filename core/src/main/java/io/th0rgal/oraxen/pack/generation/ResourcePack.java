@@ -284,23 +284,40 @@ public class ResourcePack {
             if (!texture.getPath().matches(".*_layer_.*.png")) {
                 if (mcmeta.contains(texture.getPath() + ".mcmeta"))
                     continue;
-                BufferedImage image;
-                InputStream inputStream = texture.getInputStream();
                 try {
-                    image = ImageIO.read(new File("fake_file.png"));
-                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    inputStream.transferTo(baos);
-                    ImageIO.write(image, "png", baos);
-                    baos.close();
-                    inputStream.reset();
-                    inputStream.close();
-                } catch (IOException e) {
-                    continue;
-                }
+                    InputStream inputStream = texture.getInputStream();
+                    if (inputStream == null) {
+                        Logs.logWarning("Found unreadable texture at <blue>" + texture.getPath() + "</blue>");
+                        malformedTextures.add(texture);
+                        continue;
+                    }
 
-                if (image.getHeight() > 256 || image.getWidth() > 256) {
-                    Logs.logWarning("Found invalid texture at <blue>" + texture.getPath());
-                    Logs.logError("Resolution of textures cannot exceed 256x256");
+                    byte[] data;
+                    try (inputStream) {
+                        data = inputStream.readAllBytes();
+                    }
+
+                    // ImageIO.read returns null if there is no suitable reader
+                    // (corrupt/unsupported)
+                    BufferedImage image = ImageIO.read(new ByteArrayInputStream(data));
+                    if (image == null) {
+                        Logs.logWarning("Found unreadable texture at <blue>" + texture.getPath() + "</blue>");
+                        Logs.logWarning("Image format may be corrupt or unsupported by ImageIO.", true);
+                        malformedTextures.add(texture);
+                        continue;
+                    }
+
+                    if (image.getHeight() > 256 || image.getWidth() > 256) {
+                        Logs.logWarning("Found invalid texture at <blue>" + texture.getPath());
+                        Logs.logError("Resolution of textures cannot exceed 256x256");
+                        malformedTextures.add(texture);
+                    }
+                } catch (Exception e) {
+                    // Be resilient when validating packs: bad files should not crash pack
+                    // generation
+                    Logs.logWarning("Failed to validate texture <blue>" + texture.getPath() + "</blue>");
+                    if (Settings.DEBUG.toBool())
+                        e.printStackTrace();
                     malformedTextures.add(texture);
                 }
             }
