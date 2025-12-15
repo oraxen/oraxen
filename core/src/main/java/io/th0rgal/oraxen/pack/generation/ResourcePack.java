@@ -34,6 +34,7 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -94,6 +95,7 @@ public class ResourcePack {
 
         extractInPackIfNotExists(new File(packFolder, "pack.mcmeta"));
         extractInPackIfNotExists(new File(packFolder, "pack.png"));
+        updatePackMcmeta();
 
         // Sorting items to keep only one with models (and generate it if needed)
         final Map<Material, Map<String, ItemBuilder>> texturedItems = extractTexturedItems();
@@ -102,15 +104,33 @@ public class ResourcePack {
         boolean useItemModel = VersionUtil.atOrAbove("1.21.4") && Settings.APPEARANCE_ITEM_MODEL.toBool();
         boolean usePredicates = Settings.APPEARANCE_PREDICATES.toBool() || !VersionUtil.atOrAbove("1.21.4");
 
+        if (VersionUtil.atOrAbove("1.21.4") && useItemModel && Settings.APPEARANCE_PREDICATES.toBool()) {
+            Logs.logWarning("Both Pack.generation.appearance.item_model and predicates are enabled on 1.21.4+. "
+                    + "Oraxen will generate both the modern vanilla item definitions (assets/minecraft/items/*.json) "
+                    + "and the legacy base item model overrides (assets/minecraft/models/item/*.json). "
+                    + "If you run into compatibility issues, disable one of the two systems or use "
+                    + "exclude_from_item_model / excludeFromPredicates per item.", true);
+        }
+
         if (useItemModel) {
             generateModelDefinitions(filterForItemModel(texturedItems));
         }
         if (usePredicates) {
-            generatePredicates(filterForPredicates(texturedItems));
-            // On 1.21.4+, also generate vanilla item definitions with range_dispatch for
-            // CMD
+            // On 1.21.4+, Minecraft supports both:
+            // - vanilla item definitions (assets/minecraft/items/*.json) using
+            // range_dispatch on custom_model_data
+            // - legacy base item model overrides (assets/minecraft/models/item/*.json)
+            // using predicate overrides
+            //
+            // We generate BOTH when predicates are enabled for maximum compatibility with
+            // external tools/plugins
+            // that still rely on the legacy override format (e.g. pack viewers / CMD
+            // mappers).
             if (VersionUtil.atOrAbove("1.21.4")) {
                 generateVanillaItemDefinitions(filterForPredicates(texturedItems));
+                generatePredicates(filterForPredicates(texturedItems));
+            } else {
+                generatePredicates(filterForPredicates(texturedItems));
             }
         }
 
@@ -203,6 +223,52 @@ public class ResourcePack {
         });
     }
 
+    /**
+     * Ensures {@code pack/pack.mcmeta} always has the correct {@code pack_format}
+     * for the running server version.
+     *
+     * <p>
+     * We can't rely on {@link #extractInPackIfNotExists(File)} because users often
+     * keep their pack folder
+     * across updates, and the embedded template may be outdated for newer Minecraft
+     * versions.
+     * </p>
+     */
+    private void updatePackMcmeta() {
+        Path mcmetaPath = packFolder.toPath().resolve("pack.mcmeta");
+        if (!mcmetaPath.toFile().exists())
+            return;
+
+        try {
+            String content = Files.readString(mcmetaPath, StandardCharsets.UTF_8);
+            JsonObject root;
+            try {
+                root = JsonParser.parseString(content).getAsJsonObject();
+            } catch (Exception ignored) {
+                root = new JsonObject();
+            }
+
+            JsonObject pack = root.has("pack") && root.get("pack").isJsonObject()
+                    ? root.getAsJsonObject("pack")
+                    : new JsonObject();
+
+            // Preserve description if present (some users customize it).
+            if (!pack.has("description")) {
+                pack.addProperty("description", "§9§lOraxen §8| §7Extend the Game §7www§8.§7oraxen§8.§7com");
+            }
+
+            int packFormat = ResourcePackFormatUtil.getCurrentResourcePackFormat();
+            pack.addProperty("pack_format", packFormat);
+            root.add("pack", pack);
+
+            Files.writeString(mcmetaPath, root.toString(), StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            if (Settings.DEBUG.toBool())
+                e.printStackTrace();
+            Logs.logWarning("Failed to update pack.mcmeta pack_format. Keeping existing file.");
+        }
+    }
+
     private static Set<String> verifyPackFormatting(List<VirtualFile> output) {
         Logs.logInfo("Verifying formatting for textures and models...");
         Set<VirtualFile> textures = new HashSet<>();
@@ -234,15 +300,20 @@ public class ResourcePack {
             }
 
             String content;
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            InputStream inputStream = model.getInputStream();
             try {
-                inputStream.transferTo(baos);
-                content = baos.toString(StandardCharsets.UTF_8);
-                baos.close();
-                inputStream.reset();
-                inputStream.close();
-            } catch (IOException e) {
+                InputStream inputStream = model.getInputStream();
+                if (inputStream == null) {
+                    content = "";
+                } else {
+                    byte[] data;
+                    try (inputStream) {
+                        data = inputStream.readAllBytes();
+                    }
+                    // Important: restore stream for later zip writing
+                    model.setInputStream(new ByteArrayInputStream(data));
+                    content = new String(data, StandardCharsets.UTF_8);
+                }
+            } catch (Exception e) {
                 content = "";
             }
 
@@ -296,6 +367,8 @@ public class ResourcePack {
                     try (inputStream) {
                         data = inputStream.readAllBytes();
                     }
+                    // Important: restore stream for later zip writing
+                    texture.setInputStream(new ByteArrayInputStream(data));
 
                     // ImageIO.read returns null if there is no suitable reader
                     // (corrupt/unsupported)

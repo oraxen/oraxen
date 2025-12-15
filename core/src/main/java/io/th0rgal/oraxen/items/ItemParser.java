@@ -599,9 +599,10 @@ public class ItemParser {
         boolean useItemModel = VersionUtil.atOrAbove("1.21.4") && Settings.APPEARANCE_ITEM_MODEL.toBool();
         boolean usePredicates = Settings.APPEARANCE_PREDICATES.toBool() || !VersionUtil.atOrAbove("1.21.4");
 
-        if (useItemModel) {
-            applyItemModelComponent(item);
-        }
+        // 1.21.4+ can run both systems in parallel (item_model + CustomModelData).
+        // We keep applying CustomModelData when predicates are enabled because many external tools/plugins
+        // still rely on CustomModelData values even if the client rendering is driven by item_model.
+        if (useItemModel) applyItemModelComponent(item);
         if (usePredicates) {
             applyCustomModelData(item);
         }

@@ -88,7 +88,9 @@ Pack:
     appearance:
       # Generate item model definitions (assets/oraxen/items/*.json) - items get the item_model component
       item_model: true
-      # Generate predicate overrides in base item models (assets/minecraft/models/item/*.json) - items get custom_model_data
+      # Generate CustomModelData mappings.
+      # - Pre-1.21.4: generates predicate overrides in base item models (assets/minecraft/models/item/*.json)
+      # - 1.21.4+: also generates vanilla item definitions (assets/minecraft/items/*.json) using range_dispatch
       predicates: false
     verify_pack_files: true # Checks all textures and models to make sure they abide by valid Resourcepack formatting
     fix_force_unicode_glyphs: true # Fixes glyphs not being shown when Force Unicode is enabled
