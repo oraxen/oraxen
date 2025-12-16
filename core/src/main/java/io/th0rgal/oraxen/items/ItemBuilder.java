@@ -994,7 +994,7 @@ public class ItemBuilder {
                 }
                 itemMeta.setCustomModelDataComponent(cmd);
             }
-        } catch (NoSuchMethodError | Throwable ignored) {
+        } catch (Throwable ignored) {
             // Server/API doesn't support this component accessor
         }
     }
