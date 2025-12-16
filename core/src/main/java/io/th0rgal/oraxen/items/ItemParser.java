@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.provided.ecoitems.WrappedEcoItem;
 import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
+import io.th0rgal.oraxen.config.AppearanceMode;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
@@ -596,17 +597,31 @@ public class ItemParser {
     }
 
     private void applyAppearanceComponents(ItemBuilder item) {
-        boolean useItemModel = VersionUtil.atOrAbove("1.21.4") && Settings.APPEARANCE_ITEM_MODEL.toBool();
-        boolean usePredicates = Settings.APPEARANCE_PREDICATES.toBool() || !VersionUtil.atOrAbove("1.21.4");
+        final boolean is1_21_4Plus = VersionUtil.atOrAbove("1.21.4");
 
-        if (useItemModel) {
-            applyItemModelComponent(item);
-        }
-        if (usePredicates) {
-            applyCustomModelData(item);
+        if (is1_21_4Plus) {
+            // 1.21.4+ can combine multiple appearance systems
+            if (AppearanceMode.isItemPropertiesEnabled()) {
+                applyItemModelComponent(item);
+            }
+            if (AppearanceMode.isModelDataIdsEnabled()) {
+                applyModelDataIds(item);
+            }
+            if (AppearanceMode.isModelDataFloatEnabled()) {
+                // MODEL_DATA_FLOAT sets floats[0] and integer CMD on items
+                applyModelDataFloat(item);
+                applyLegacyCustomModelData(item);
+            }
+            // generate_predicates only affects pack generation, not item components
+        } else {
+            // Pre-1.21.4: always apply legacy integer CustomModelData (only option available)
+            applyLegacyCustomModelData(item);
         }
     }
 
+    /**
+     * ITEM_PROPERTIES mode: sets the minecraft:item_model component to "oraxen:&lt;item_id&gt;".
+     */
     private void applyItemModelComponent(ItemBuilder item) {
         if (!oraxenMeta.hasPackInfos() || oraxenMeta.isExcludedFromItemModel())
             return;
@@ -616,7 +631,41 @@ public class ItemParser {
         item.setItemModel(new NamespacedKey(OraxenPlugin.get(), section.getName()));
     }
 
-    private void applyCustomModelData(ItemBuilder item) {
+    /**
+     * MODEL_DATA_IDS mode: sets custom_model_data.strings[0] = "oraxen:&lt;item_id&gt;".
+     */
+    private void applyModelDataIds(ItemBuilder item) {
+        if (oraxenMeta.isExcludedFromPredicates())
+            return;
+
+        final String itemId = section != null ? section.getName() : null;
+        if (itemId == null || itemId.isBlank())
+            return;
+
+        // Set strings[0] = "oraxen:<item_id>" for the minecraft:select dispatcher
+        item.setCustomModelDataStrings(List.of(new NamespacedKey(OraxenPlugin.get(), itemId).toString()));
+    }
+
+    /**
+     * MODEL_DATA_FLOAT mode: sets custom_model_data.floats[0] = &lt;Pack.custom_model_data&gt;.
+     */
+    private void applyModelDataFloat(ItemBuilder item) {
+        if (oraxenMeta.isExcludedFromPredicates())
+            return;
+
+        final Integer customModelData = resolveCustomModelData(item);
+        if (customModelData != null) {
+            // Set floats[0] = CMD value for the minecraft:range_dispatch dispatcher
+            item.setCustomModelDataFloats(List.of((float) customModelData));
+            oraxenMeta.setCustomModelData(customModelData);
+        }
+    }
+
+    /**
+     * Legacy (pre-1.21.4) or force_predicates: sets integer CustomModelData for
+     * predicate overrides in assets/minecraft/models/item/*.json.
+     */
+    private void applyLegacyCustomModelData(ItemBuilder item) {
         if (oraxenMeta.isExcludedFromPredicates())
             return;
 

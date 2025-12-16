@@ -36,7 +36,9 @@ public class SpearLungeMechanic extends Mechanic {
     private final double lungeVelocity;
     private final double maxRange;
     private final double damage;
+    private final double minDamage;
     private final double knockback;
+    private final double hitboxRadius;
     private final int smoothFrames;
     private final NamespacedKey[] intermediateModelKeys;
 
@@ -74,7 +76,11 @@ public class SpearLungeMechanic extends Mechanic {
         this.lungeVelocity = section.getDouble("lunge_velocity", 0.6);
         this.maxRange = section.getDouble("max_range", 3.5);
         this.damage = section.getDouble("damage", 6.0);
+        // Minimum lunge damage (applied at 0% charge; still requires min_charge_percent to attack)
+        this.minDamage = Math.max(0.0, Math.min(section.getDouble("min_damage", 0.0), this.damage));
         this.knockback = section.getDouble("knockback", 0.5);
+        // Ray trace "width" for hit detection. Higher values make it easier to hit targets off-center.
+        this.hitboxRadius = Math.max(0.0, Math.min(section.getDouble("hitbox_radius", 0.5), 5.0));
         this.smoothFrames = section.getInt("smooth_frames", 0);
 
         // Gameplay modifiers
@@ -194,8 +200,16 @@ public class SpearLungeMechanic extends Mechanic {
         return damage;
     }
 
+    public double getMinDamage() {
+        return minDamage;
+    }
+
     public double getKnockback() {
         return knockback;
+    }
+
+    public double getHitboxRadius() {
+        return hitboxRadius;
     }
 
     public int getSmoothFrames() {

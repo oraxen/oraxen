@@ -4,6 +4,7 @@ import com.google.gson.*;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.api.events.OraxenPackGeneratedEvent;
+import io.th0rgal.oraxen.config.AppearanceMode;
 import io.th0rgal.oraxen.config.ResourcesManager;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.font.AnimatedGlyph;
@@ -34,6 +35,7 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -94,24 +96,38 @@ public class ResourcePack {
 
         extractInPackIfNotExists(new File(packFolder, "pack.mcmeta"));
         extractInPackIfNotExists(new File(packFolder, "pack.png"));
+        updatePackMcmeta();
 
         // Sorting items to keep only one with models (and generate it if needed)
         final Map<Material, Map<String, ItemBuilder>> texturedItems = extractTexturedItems();
 
-        // Dual appearance system: determine which systems to use
-        boolean useItemModel = VersionUtil.atOrAbove("1.21.4") && Settings.APPEARANCE_ITEM_MODEL.toBool();
-        boolean usePredicates = Settings.APPEARANCE_PREDICATES.toBool() || !VersionUtil.atOrAbove("1.21.4");
+        // Appearance systems can be combined on 1.21.4+.
+        // Pre-1.21.4 ALWAYS uses legacy predicates only.
+        final boolean is1_21_4Plus = VersionUtil.atOrAbove("1.21.4");
 
-        if (useItemModel) {
-            generateModelDefinitions(filterForItemModel(texturedItems));
-        }
-        if (usePredicates) {
-            generatePredicates(filterForPredicates(texturedItems));
-            // On 1.21.4+, also generate vanilla item definitions with range_dispatch for
-            // CMD
-            if (VersionUtil.atOrAbove("1.21.4")) {
-                generateVanillaItemDefinitions(filterForPredicates(texturedItems));
+        if (is1_21_4Plus) {
+            // Validate and log any configuration warnings
+            AppearanceMode.validateAndLogWarnings();
+
+            // ITEM_PROPERTIES: Generate assets/oraxen/items/<item_id>.json
+            if (AppearanceMode.isItemPropertiesEnabled()) {
+                generateModelDefinitions(filterForItemModel(texturedItems));
             }
+
+            // MODEL_DATA_IDS or MODEL_DATA_FLOAT: Generate assets/minecraft/items/<material>.json
+            if (AppearanceMode.shouldGenerateVanillaItemDefinitions()) {
+                boolean useSelect = AppearanceMode.shouldUseSelectForVanillaItemDefs();
+                boolean includeBothModes = AppearanceMode.shouldUseBothDispatchModes();
+                generateVanillaItemDefinitions(filterForPredicates(texturedItems), useSelect, includeBothModes);
+            }
+
+            // generate_predicates: Generate legacy predicate overrides (not needed on 1.21.4+)
+            if (AppearanceMode.shouldGenerateLegacyPredicates()) {
+                generatePredicates(filterForPredicates(texturedItems));
+            }
+        } else {
+            // Pre-1.21.4: Always generate legacy predicate overrides (the only option available)
+            generatePredicates(filterForPredicates(texturedItems));
         }
 
         generateFont();
@@ -203,6 +219,52 @@ public class ResourcePack {
         });
     }
 
+    /**
+     * Ensures {@code pack/pack.mcmeta} always has the correct {@code pack_format}
+     * for the running server version.
+     *
+     * <p>
+     * We can't rely on {@link #extractInPackIfNotExists(File)} because users often
+     * keep their pack folder
+     * across updates, and the embedded template may be outdated for newer Minecraft
+     * versions.
+     * </p>
+     */
+    private void updatePackMcmeta() {
+        Path mcmetaPath = packFolder.toPath().resolve("pack.mcmeta");
+        if (!mcmetaPath.toFile().exists())
+            return;
+
+        try {
+            String content = Files.readString(mcmetaPath, StandardCharsets.UTF_8);
+            JsonObject root;
+            try {
+                root = JsonParser.parseString(content).getAsJsonObject();
+            } catch (Exception ignored) {
+                root = new JsonObject();
+            }
+
+            JsonObject pack = root.has("pack") && root.get("pack").isJsonObject()
+                    ? root.getAsJsonObject("pack")
+                    : new JsonObject();
+
+            // Preserve description if present (some users customize it).
+            if (!pack.has("description")) {
+                pack.addProperty("description", "§9§lOraxen §8| §7Extend the Game §7www§8.§7oraxen§8.§7com");
+            }
+
+            int packFormat = ResourcePackFormatUtil.getCurrentResourcePackFormat();
+            pack.addProperty("pack_format", packFormat);
+            root.add("pack", pack);
+
+            Files.writeString(mcmetaPath, root.toString(), StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            if (Settings.DEBUG.toBool())
+                e.printStackTrace();
+            Logs.logWarning("Failed to update pack.mcmeta pack_format. Keeping existing file.");
+        }
+    }
+
     private static Set<String> verifyPackFormatting(List<VirtualFile> output) {
         Logs.logInfo("Verifying formatting for textures and models...");
         Set<VirtualFile> textures = new HashSet<>();
@@ -234,15 +296,20 @@ public class ResourcePack {
             }
 
             String content;
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            InputStream inputStream = model.getInputStream();
             try {
-                inputStream.transferTo(baos);
-                content = baos.toString(StandardCharsets.UTF_8);
-                baos.close();
-                inputStream.reset();
-                inputStream.close();
-            } catch (IOException e) {
+                InputStream inputStream = model.getInputStream();
+                if (inputStream == null) {
+                    content = "";
+                } else {
+                    byte[] data;
+                    try (inputStream) {
+                        data = inputStream.readAllBytes();
+                    }
+                    // Important: restore stream for later zip writing
+                    model.setInputStream(new ByteArrayInputStream(data));
+                    content = new String(data, StandardCharsets.UTF_8);
+                }
+            } catch (Exception e) {
                 content = "";
             }
 
@@ -296,6 +363,8 @@ public class ResourcePack {
                     try (inputStream) {
                         data = inputStream.readAllBytes();
                     }
+                    // Important: restore stream for later zip writing
+                    texture.setInputStream(new ByteArrayInputStream(data));
 
                     // ImageIO.read returns null if there is no suitable reader
                     // (corrupt/unsupported)
@@ -495,18 +564,22 @@ public class ResourcePack {
     }
 
     /**
-     * Generates vanilla item model definitions (assets/minecraft/items/*.json) for
-     * 1.21.4+.
-     * These use range_dispatch with custom_model_data property to switch between
-     * models,
-     * which is the modern replacement for legacy predicate overrides.
+     * Generates vanilla item model definitions (assets/minecraft/items/*.json) for 1.21.4+.
+     *
+     * @param texturedItems    the items to generate definitions for
+     * @param useSelect        true for {@code minecraft:select} on strings (MODEL_DATA_IDS),
+     *                         false for {@code minecraft:range_dispatch} on floats (MODEL_DATA_FLOAT_LEGACY)
+     * @param includeBothModes if true, generates both select (strings) AND range_dispatch (floats)
+     *                         dispatchers for maximum compatibility with external plugins
      */
-    private void generateVanillaItemDefinitions(final Map<Material, Map<String, ItemBuilder>> texturedItems) {
+    private void generateVanillaItemDefinitions(final Map<Material, Map<String, ItemBuilder>> texturedItems,
+            boolean useSelect, boolean includeBothModes) {
         for (final Map.Entry<Material, Map<String, ItemBuilder>> texturedItemsEntry : texturedItems.entrySet()) {
             final Material material = texturedItemsEntry.getKey();
             final List<ItemBuilder> items = new ArrayList<>(texturedItemsEntry.getValue().values());
 
-            final VanillaItemDefinitionGenerator generator = new VanillaItemDefinitionGenerator(material, items);
+            final VanillaItemDefinitionGenerator generator = new VanillaItemDefinitionGenerator(
+                    material, items, useSelect, includeBothModes);
             writeStringToVirtual("assets/minecraft/items", generator.getFileName(),
                     generator.toJSON().toString());
         }

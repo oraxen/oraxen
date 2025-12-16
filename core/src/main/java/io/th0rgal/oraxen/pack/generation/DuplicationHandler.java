@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.pack.generation;
 
 import com.google.gson.*;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.config.AppearanceMode;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.Utils;
@@ -89,11 +90,18 @@ public class DuplicationHandler {
      * 1.21.4+.
      * This handles external packs that may include their own range_dispatch entries
      * for custom_model_data, merging them with Oraxen's generated definitions.
+     * <p>
+     * Note: 1.21.4+ supports multiple CustomModelData "channels":
+     * - {@code strings} are used by {@code minecraft:select}
+     * - {@code floats} are used by {@code minecraft:range_dispatch}
+     * Oraxen primarily generates {@code minecraft:select} (strings) on 1.21.4+.
      */
     public static void mergeVanillaItemDefinitions(List<VirtualFile> output) {
         if (!VersionUtil.atOrAbove("1.21.4"))
             return;
-        if (!Settings.APPEARANCE_PREDICATES.toBool())
+
+        // Only merge item definitions when we're generating CMD-based definitions
+        if (!AppearanceMode.shouldGenerateVanillaItemDefinitions())
             return;
 
         // First, convert legacy predicate overrides from external packs to modern item
@@ -297,6 +305,16 @@ public class DuplicationHandler {
     }
 
     /**
+     * Holds collected select (strings) data during merging.
+     */
+    private static class SelectData {
+        final Set<String> seenWhen = new HashSet<>();
+        final List<JsonObject> cases = new ArrayList<>();
+        Integer index = null;
+        JsonObject fallback = null;
+    }
+
+    /**
      * Merges range_dispatch entries from multiple item definition files.
      */
     private static JsonObject mergeItemDefinitionEntries(List<VirtualFile> duplicates) {
@@ -305,19 +323,27 @@ public class DuplicationHandler {
             return null;
 
         JsonObject base = jsonObjects.get(0).deepCopy();
-        RangeDispatchData data = collectRangeDispatchData(jsonObjects);
-
-        if (!data.entries.isEmpty()) {
-            // Always provide a fallback to the vanilla item model. If none was present in
-            // duplicates,
-            // derive it from the item definition file name (e.g., "paper.json" ->
-            // minecraft:item/paper).
-            if (data.fallback == null) {
+        // Prefer merging "select" (strings) definitions if present, otherwise fall back to
+        // range_dispatch (floats).
+        SelectData selectData = collectSelectData(jsonObjects);
+        if (!selectData.cases.isEmpty()) {
+            if (selectData.fallback == null) {
                 JsonObject derivedFallback = deriveFallbackFromItemDefinitionPath(duplicates.get(0));
                 if (derivedFallback != null)
-                    data.fallback = derivedFallback;
+                    selectData.fallback = derivedFallback;
             }
-            base.add("model", buildRangeDispatchModel(data));
+            base.add("model", buildSelectModel(selectData));
+            return base;
+        }
+
+        RangeDispatchData rangeData = collectRangeDispatchData(jsonObjects);
+        if (!rangeData.entries.isEmpty()) {
+            if (rangeData.fallback == null) {
+                JsonObject derivedFallback = deriveFallbackFromItemDefinitionPath(duplicates.get(0));
+                if (derivedFallback != null)
+                    rangeData.fallback = derivedFallback;
+            }
+            base.add("model", buildRangeDispatchModel(rangeData));
         }
 
         return base;
@@ -341,6 +367,22 @@ public class DuplicationHandler {
 
             collectEntriesFromModel(model, data);
             collectFallbackFromModel(model, data);
+        }
+
+        return data;
+    }
+
+    private static SelectData collectSelectData(List<JsonObject> definitions) {
+        SelectData data = new SelectData();
+
+        for (JsonObject def : definitions) {
+            JsonObject model = getNestedModel(def);
+            if (model == null || !isCustomModelDataSelect(model))
+                continue;
+
+            collectCasesFromSelectModel(model, data);
+            collectIndexFromSelectModel(model, data);
+            collectFallbackFromSelectModel(model, data);
         }
 
         return data;
@@ -372,6 +414,60 @@ public class DuplicationHandler {
         }
     }
 
+    private static void collectCasesFromSelectModel(JsonObject model, SelectData data) {
+        if (!model.has("cases"))
+            return;
+        JsonArray cases = model.getAsJsonArray("cases");
+        if (cases == null || cases.isEmpty())
+            return;
+
+        for (JsonElement el : cases) {
+            if (!el.isJsonObject())
+                continue;
+            JsonObject caseObj = el.getAsJsonObject();
+            if (!caseObj.has("when"))
+                continue;
+
+            // Minecraft allows 'when' to be either a single string or an array of strings
+            JsonElement whenElement = caseObj.get("when");
+            List<String> whenValues = new ArrayList<>();
+            if (whenElement.isJsonArray()) {
+                for (JsonElement arrayEl : whenElement.getAsJsonArray()) {
+                    if (arrayEl.isJsonPrimitive() && arrayEl.getAsJsonPrimitive().isString()) {
+                        whenValues.add(arrayEl.getAsString());
+                    }
+                }
+            } else if (whenElement.isJsonPrimitive() && whenElement.getAsJsonPrimitive().isString()) {
+                whenValues.add(whenElement.getAsString());
+            }
+
+            if (whenValues.isEmpty())
+                continue;
+
+            // Use a canonical string representation of the when value(s) for deduplication
+            String whenKey = whenValues.size() == 1 ? whenValues.get(0) : whenValues.toString();
+            if (!data.seenWhen.contains(whenKey)) {
+                data.seenWhen.add(whenKey);
+                data.cases.add(caseObj.deepCopy());
+            }
+        }
+    }
+
+    private static void collectIndexFromSelectModel(JsonObject model, SelectData data) {
+        if (data.index == null && model.has("index")) {
+            try {
+                data.index = model.get("index").getAsInt();
+            } catch (Exception ignored) {
+            }
+        }
+    }
+
+    private static void collectFallbackFromSelectModel(JsonObject model, SelectData data) {
+        if (data.fallback == null && model.has("fallback") && model.get("fallback").isJsonObject()) {
+            data.fallback = model.getAsJsonObject("fallback").deepCopy();
+        }
+    }
+
     private static JsonObject buildRangeDispatchModel(RangeDispatchData data) {
         JsonObject rangeDispatch = new JsonObject();
         rangeDispatch.addProperty("type", "minecraft:range_dispatch");
@@ -389,6 +485,47 @@ public class DuplicationHandler {
         }
 
         return rangeDispatch;
+    }
+
+    private static JsonObject buildSelectModel(SelectData data) {
+        JsonObject select = new JsonObject();
+        select.addProperty("type", "minecraft:select");
+        select.addProperty("property", "minecraft:custom_model_data");
+        select.addProperty("index", data.index != null ? data.index : 0);
+
+        data.cases.sort(Comparator.comparing(c -> extractWhenSortKey(c)));
+        JsonArray sortedCases = new JsonArray();
+        data.cases.forEach(sortedCases::add);
+        select.add("cases", sortedCases);
+
+        if (data.fallback != null) {
+            select.add("fallback", data.fallback);
+        }
+        return select;
+    }
+
+    /**
+     * Extracts a sortable key from a select case's 'when' field.
+     * Handles both string and array formats that Minecraft allows.
+     */
+    private static String extractWhenSortKey(JsonObject caseObj) {
+        if (!caseObj.has("when"))
+            return "";
+        JsonElement when = caseObj.get("when");
+        if (when.isJsonPrimitive() && when.getAsJsonPrimitive().isString()) {
+            return when.getAsString();
+        } else if (when.isJsonArray()) {
+            // For arrays, join all values for consistent sorting
+            StringBuilder sb = new StringBuilder();
+            for (JsonElement el : when.getAsJsonArray()) {
+                if (el.isJsonPrimitive() && el.getAsJsonPrimitive().isString()) {
+                    if (sb.length() > 0) sb.append(",");
+                    sb.append(el.getAsString());
+                }
+            }
+            return sb.toString();
+        }
+        return "";
     }
 
     /**
@@ -437,6 +574,21 @@ public class DuplicationHandler {
             return false;
         String type = model.get("type").getAsString();
         if (!"minecraft:range_dispatch".equals(type))
+            return false;
+        if (!model.has("property"))
+            return false;
+        String property = model.get("property").getAsString();
+        return "minecraft:custom_model_data".equals(property);
+    }
+
+    /**
+     * Checks if a model object is a select using custom_model_data (strings).
+     */
+    private static boolean isCustomModelDataSelect(JsonObject model) {
+        if (!model.has("type"))
+            return false;
+        String type = model.get("type").getAsString();
+        if (!"minecraft:select".equals(type))
             return false;
         if (!model.has("property"))
             return false;

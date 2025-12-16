@@ -1,16 +1,21 @@
 name: Publish project to Maven repository
-# OR, publish per each commit
 on:
-  push:
-    branches: [ master, develop ]
+  release:
+    types: [published]
 jobs:
   publish:
     runs-on: ubuntu-latest
+    # Only publish when the release is actually published (not draft / prerelease)
+    if: ${{ github.event.release.draft == false && github.event.release.prerelease == false }}
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up JDK
-        uses: actions/setup-java@v1
+      - uses: actions/checkout@v4
         with:
+          # Build/publish the exact tag that was released
+          ref: ${{ github.event.release.tag_name }}
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
           java-version: 21
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
