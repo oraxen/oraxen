@@ -58,52 +58,79 @@ public final class ResourcePackFormatUtil {
     @Nullable
     private static Integer resolveViaMinecraftClasses() {
         try {
-            // net.minecraft.SharedConstants.getCurrentVersion()
-            Class<?> sharedConstants = Class.forName("net.minecraft.SharedConstants");
-            Method getCurrentVersion = sharedConstants.getMethod("getCurrentVersion");
-            Object currentVersion = getCurrentVersion.invoke(null);
+            Object currentVersion = getCurrentGameVersion();
+            if (currentVersion == null) return null;
 
-            // net.minecraft.server.packs.PackType.CLIENT_RESOURCES
-            Class<?> packTypeClass = Class.forName("net.minecraft.server.packs.PackType");
-            Object clientResources = null;
-            Object[] enumConstants = packTypeClass.getEnumConstants();
-            if (enumConstants != null) {
-                for (Object constant : enumConstants) {
-                    if (constant instanceof Enum<?> enumConstant && enumConstant.name().equals("CLIENT_RESOURCES")) {
-                        clientResources = constant;
-                        break;
-                    }
-                }
-            }
+            Object clientResources = getClientResourcesPackType();
             if (clientResources == null) return null;
 
-            // Preferred: currentVersion.getPackVersion(PackType)
-            for (Method method : currentVersion.getClass().getMethods()) {
-                if (!method.getName().equals("getPackVersion")) continue;
-                if (method.getParameterCount() != 1) continue;
-                if (!method.getReturnType().equals(int.class) && !method.getReturnType().equals(Integer.class)) continue;
-                if (!method.getParameterTypes()[0].isAssignableFrom(packTypeClass)) continue;
+            // Try preferred method first, then fallback
+            Integer result = tryGetPackVersionFromVersion(currentVersion, clientResources);
+            if (result != null) return result;
 
-                Object result = method.invoke(currentVersion, clientResources);
-                return (result instanceof Integer) ? (Integer) result : ((Number) result).intValue();
-            }
-
-            // Fallback: PackType#getVersion(currentVersion)
-            for (Method method : packTypeClass.getMethods()) {
-                if (!method.getName().equals("getVersion") && !method.getName().equals("getPackVersion")) continue;
-                if (method.getParameterCount() != 1) continue;
-                if (!method.getReturnType().equals(int.class) && !method.getReturnType().equals(Integer.class)) continue;
-                if (!method.getParameterTypes()[0].isAssignableFrom(currentVersion.getClass())) continue;
-
-                Object result = method.invoke(clientResources, currentVersion);
-                return (result instanceof Integer) ? (Integer) result : ((Number) result).intValue();
-            }
-
-            return null;
+            return tryGetVersionFromPackType(clientResources, currentVersion);
         } catch (Throwable t) {
             // Don't hard-fail pack generation because of a reflection mismatch
             return null;
         }
+    }
+
+    @Nullable
+    private static Object getCurrentGameVersion() throws Exception {
+        Class<?> sharedConstants = Class.forName("net.minecraft.SharedConstants");
+        Method getCurrentVersion = sharedConstants.getMethod("getCurrentVersion");
+        return getCurrentVersion.invoke(null);
+    }
+
+    @Nullable
+    private static Object getClientResourcesPackType() throws Exception {
+        Class<?> packTypeClass = Class.forName("net.minecraft.server.packs.PackType");
+        Object[] enumConstants = packTypeClass.getEnumConstants();
+        if (enumConstants == null) return null;
+
+        for (Object constant : enumConstants) {
+            if (constant instanceof Enum<?> enumConstant && "CLIENT_RESOURCES".equals(enumConstant.name())) {
+                return constant;
+            }
+        }
+        return null;
+    }
+
+    @Nullable
+    private static Integer tryGetPackVersionFromVersion(Object currentVersion, Object clientResources) throws Exception {
+        Class<?> packTypeClass = clientResources.getClass();
+        for (Method method : currentVersion.getClass().getMethods()) {
+            if (!"getPackVersion".equals(method.getName())) continue;
+            if (method.getParameterCount() != 1) continue;
+            if (!isIntReturnType(method)) continue;
+            if (!method.getParameterTypes()[0].isAssignableFrom(packTypeClass)) continue;
+
+            return toInteger(method.invoke(currentVersion, clientResources));
+        }
+        return null;
+    }
+
+    @Nullable
+    private static Integer tryGetVersionFromPackType(Object clientResources, Object currentVersion) throws Exception {
+        Class<?> packTypeClass = clientResources.getClass();
+        for (Method method : packTypeClass.getMethods()) {
+            if (!"getVersion".equals(method.getName()) && !"getPackVersion".equals(method.getName())) continue;
+            if (method.getParameterCount() != 1) continue;
+            if (!isIntReturnType(method)) continue;
+            if (!method.getParameterTypes()[0].isAssignableFrom(currentVersion.getClass())) continue;
+
+            return toInteger(method.invoke(clientResources, currentVersion));
+        }
+        return null;
+    }
+
+    private static boolean isIntReturnType(Method method) {
+        Class<?> returnType = method.getReturnType();
+        return returnType.equals(int.class) || returnType.equals(Integer.class);
+    }
+
+    private static Integer toInteger(Object result) {
+        return (result instanceof Integer) ? (Integer) result : ((Number) result).intValue();
     }
 }
 

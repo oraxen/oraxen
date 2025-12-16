@@ -832,138 +832,183 @@ public class ItemBuilder {
 
         ItemMeta itemMeta = itemStack.getItemMeta();
 
-        // 1.20.5+ properties
-        if (VersionUtil.atOrAbove("1.20.5")) {
-            if (itemMeta instanceof Damageable damageable)
-                damageable.setMaxDamage(durability);
-            if (hasItemName()) {
-                if (VersionUtil.isPaperServer())
-                    itemMeta.itemName(AdventureUtils.MINI_MESSAGE.deserialize(itemName));
-                else
-                    itemMeta.setItemName(itemName);
-            }
-            if (hasMaxStackSize())
-                itemMeta.setMaxStackSize(maxStackSize);
-            if (hasEnchantmentGlindOverride())
-                itemMeta.setEnchantmentGlintOverride(enchantmentGlintOverride);
-            if (hasRarity())
-                itemMeta.setRarity(rarity);
-            if (hasFoodComponent())
-                itemMeta.setFood(foodComponent);
-            if (hasToolComponent())
-                itemMeta.setTool(toolComponent);
-            if (fireResistant != null)
-                itemMeta.setFireResistant(fireResistant);
-            if (hideToolTip != null)
-                itemMeta.setHideTooltip(hideToolTip);
-        }
-
-        if (VersionUtil.atOrAbove("1.21")) {
-            if (hasJukeboxPlayable() && VersionUtil.isPaperServer()) {
-                try {
-                    itemMeta.setJukeboxPlayable(jukeboxPlayable);
-                } catch (NoSuchMethodError | UnsupportedOperationException e) {
-                    if (Settings.DEBUG.toBool()) {
-                        Logs.logWarning("Failed to set JukeboxPlayable - this feature requires Paper");
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-
-        if (VersionUtil.atOrAbove("1.21.2")) {
-            if (hasEquippableComponent())
-                itemMeta.setEquippable(equippableComponent);
-            if (hasUseCooldownComponent())
-                itemMeta.setUseCooldown(useCooldownComponent);
-            if (hasDamageResistant())
-                itemMeta.setDamageResistant(damageResistant);
-            if (hasItemModel())
-                itemMeta.setItemModel(itemModel);
-            if (hasTooltipStyle())
-                itemMeta.setTooltipStyle(tooltipStyle);
-            if (hasUseRemainder())
-                itemMeta.setUseRemainder(useRemainder);
-            if (hasEnchantable())
-                itemMeta.setEnchantable(enchantable);
-            if (itemModel != null)
-                itemMeta.setItemModel(itemModel);
-            if (isGlider != null)
-                itemMeta.setGlider(isGlider);
-
-        }
-
+        applyVersionSpecificProperties(itemMeta);
         handleVariousMeta(itemMeta);
         itemMeta.setUnbreakable(unbreakable);
 
         PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
-        if (displayName != null || displayNameMessage != null) {
-            if (!VersionUtil.atOrAbove("1.20.5"))
-                pdc.set(ORIGINAL_NAME_KEY, DataType.STRING,
-                        displayNameMessage != null ? displayNameMessage.toString() : displayName);
-            if (VersionUtil.isPaperServer()) {
-                Component nameComponent;
-                if (displayNameMessage != null) {
-                    nameComponent = displayNameMessage.toComponent();
-                } else {
-                    String name = this.displayName;
-                    if (name != null && isLegacyFormatted(name)) {
-                        nameComponent = AdventureUtils.LEGACY_SERIALIZER.deserialize(name);
-                    } else {
-                        nameComponent = AdventureUtils.MINI_MESSAGE.deserialize(name != null ? name : "");
-                    }
-                }
-                nameComponent = nameComponent.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)
-                        .colorIfAbsent(NamedTextColor.WHITE);
-                itemMeta.displayName(nameComponent);
-            } else
-                itemMeta.setDisplayName(
-                        displayNameMessage != null ? displayNameMessage.toSerializedString() : displayName);
+        applyDisplayName(itemMeta, pdc);
+        applyItemFlags(itemMeta);
+        applyEnchantments(itemMeta);
+        applyAttributeModifiers(itemMeta);
+        applyCustomModelData(itemMeta);
+        applyPersistentData(pdc);
+        applyLore(itemMeta);
+
+        itemStack.setItemMeta(itemMeta);
+        finalItemStack = applyConsumableComponent(itemStack);
+
+        return this;
+    }
+
+    private void applyVersionSpecificProperties(ItemMeta itemMeta) {
+        if (VersionUtil.atOrAbove("1.20.5")) {
+            applyProperties_1_20_5(itemMeta);
         }
+        if (VersionUtil.atOrAbove("1.21")) {
+            applyProperties_1_21(itemMeta);
+        }
+        if (VersionUtil.atOrAbove("1.21.2")) {
+            applyProperties_1_21_2(itemMeta);
+        }
+    }
 
-        if (itemFlags != null)
-            itemMeta.addItemFlags(itemFlags.toArray(new ItemFlag[0]));
+    private void applyProperties_1_20_5(ItemMeta itemMeta) {
+        if (itemMeta instanceof Damageable damageable)
+            damageable.setMaxDamage(durability);
+        if (hasItemName()) {
+            if (VersionUtil.isPaperServer())
+                itemMeta.itemName(AdventureUtils.MINI_MESSAGE.deserialize(itemName));
+            else
+                itemMeta.setItemName(itemName);
+        }
+        if (hasMaxStackSize())
+            itemMeta.setMaxStackSize(maxStackSize);
+        if (hasEnchantmentGlindOverride())
+            itemMeta.setEnchantmentGlintOverride(enchantmentGlintOverride);
+        if (hasRarity())
+            itemMeta.setRarity(rarity);
+        if (hasFoodComponent())
+            itemMeta.setFood(foodComponent);
+        if (hasToolComponent())
+            itemMeta.setTool(toolComponent);
+        if (fireResistant != null)
+            itemMeta.setFireResistant(fireResistant);
+        if (hideToolTip != null)
+            itemMeta.setHideTooltip(hideToolTip);
+    }
 
-        if (enchantments.size() > 0) {
-            for (final Map.Entry<Enchantment, Integer> enchant : enchantments.entrySet()) {
-                if (enchant.getKey() == null)
-                    continue;
-                int lvl = enchant.getValue() != null ? enchant.getValue() : 1;
-                itemMeta.addEnchant(enchant.getKey(), lvl, true);
+    private void applyProperties_1_21(ItemMeta itemMeta) {
+        if (hasJukeboxPlayable() && VersionUtil.isPaperServer()) {
+            try {
+                itemMeta.setJukeboxPlayable(jukeboxPlayable);
+            } catch (NoSuchMethodError | UnsupportedOperationException e) {
+                if (Settings.DEBUG.toBool()) {
+                    Logs.logWarning("Failed to set JukeboxPlayable - this feature requires Paper");
+                    e.printStackTrace();
+                }
             }
         }
+    }
 
+    private void applyProperties_1_21_2(ItemMeta itemMeta) {
+        if (hasEquippableComponent())
+            itemMeta.setEquippable(equippableComponent);
+        if (hasUseCooldownComponent())
+            itemMeta.setUseCooldown(useCooldownComponent);
+        if (hasDamageResistant())
+            itemMeta.setDamageResistant(damageResistant);
+        if (hasItemModel())
+            itemMeta.setItemModel(itemModel);
+        if (hasTooltipStyle())
+            itemMeta.setTooltipStyle(tooltipStyle);
+        if (hasUseRemainder())
+            itemMeta.setUseRemainder(useRemainder);
+        if (hasEnchantable())
+            itemMeta.setEnchantable(enchantable);
+        if (itemModel != null)
+            itemMeta.setItemModel(itemModel);
+        if (isGlider != null)
+            itemMeta.setGlider(isGlider);
+    }
+
+    private void applyDisplayName(ItemMeta itemMeta, PersistentDataContainer pdc) {
+        if (displayName == null && displayNameMessage == null)
+            return;
+
+        if (!VersionUtil.atOrAbove("1.20.5"))
+            pdc.set(ORIGINAL_NAME_KEY, DataType.STRING,
+                    displayNameMessage != null ? displayNameMessage.toString() : displayName);
+
+        if (VersionUtil.isPaperServer()) {
+            Component nameComponent = buildDisplayNameComponent();
+            nameComponent = nameComponent.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)
+                    .colorIfAbsent(NamedTextColor.WHITE);
+            itemMeta.displayName(nameComponent);
+        } else {
+            itemMeta.setDisplayName(
+                    displayNameMessage != null ? displayNameMessage.toSerializedString() : displayName);
+        }
+    }
+
+    private Component buildDisplayNameComponent() {
+        if (displayNameMessage != null) {
+            return displayNameMessage.toComponent();
+        }
+        String name = this.displayName;
+        if (name != null && isLegacyFormatted(name)) {
+            return AdventureUtils.LEGACY_SERIALIZER.deserialize(name);
+        }
+        return AdventureUtils.MINI_MESSAGE.deserialize(name != null ? name : "");
+    }
+
+    private void applyItemFlags(ItemMeta itemMeta) {
+        if (itemFlags != null)
+            itemMeta.addItemFlags(itemFlags.toArray(new ItemFlag[0]));
+    }
+
+    private void applyEnchantments(ItemMeta itemMeta) {
+        if (enchantments.isEmpty())
+            return;
+        for (final Map.Entry<Enchantment, Integer> enchant : enchantments.entrySet()) {
+            if (enchant.getKey() == null)
+                continue;
+            int lvl = enchant.getValue() != null ? enchant.getValue() : 1;
+            itemMeta.addEnchant(enchant.getKey(), lvl, true);
+        }
+    }
+
+    private void applyAttributeModifiers(ItemMeta itemMeta) {
         if (hasAttributeModifiers && attributeModifiers != null) {
             itemMeta.setAttributeModifiers(attributeModifiers);
         }
+    }
 
+    private void applyCustomModelData(ItemMeta itemMeta) {
         itemMeta.setCustomModelData(customModelData);
 
-        // 1.21.4+: apply custom_model_data component data for modern item definitions.
-        if (VersionUtil.atOrAbove("1.21.4") && (customModelDataStrings != null || customModelDataFloats != null)) {
-            try {
-                CustomModelDataComponent cmd = itemMeta.getCustomModelDataComponent();
-                if (cmd != null) {
-                    if (customModelDataStrings != null) {
-                        cmd.setStrings(new ArrayList<>(customModelDataStrings));
-                    }
-                    if (customModelDataFloats != null) {
-                        cmd.setFloats(new ArrayList<>(customModelDataFloats));
-                    }
-                    itemMeta.setCustomModelDataComponent(cmd);
+        // 1.21.4+: apply custom_model_data component data for modern item definitions
+        if (!VersionUtil.atOrAbove("1.21.4"))
+            return;
+        if (customModelDataStrings == null && customModelDataFloats == null)
+            return;
+
+        try {
+            CustomModelDataComponent cmd = itemMeta.getCustomModelDataComponent();
+            if (cmd != null) {
+                if (customModelDataStrings != null) {
+                    cmd.setStrings(new ArrayList<>(customModelDataStrings));
                 }
-            } catch (NoSuchMethodError ignored) {
-                // Server/API doesn't support this component accessor
-            } catch (Throwable ignored) {
-                // Be resilient across forks/versions
+                if (customModelDataFloats != null) {
+                    cmd.setFloats(new ArrayList<>(customModelDataFloats));
+                }
+                itemMeta.setCustomModelDataComponent(cmd);
             }
+        } catch (NoSuchMethodError | Throwable ignored) {
+            // Server/API doesn't support this component accessor
         }
+    }
 
-        if (!persistentDataMap.isEmpty())
-            for (final Map.Entry<PersistentDataSpace, Object> dataSpace : persistentDataMap.entrySet())
-                pdc.set(dataSpace.getKey().namespacedKey(),
-                        (PersistentDataType<?, Object>) dataSpace.getKey().dataType(), dataSpace.getValue());
+    @SuppressWarnings("unchecked")
+    private void applyPersistentData(PersistentDataContainer pdc) {
+        if (persistentDataMap.isEmpty())
+            return;
+        for (final Map.Entry<PersistentDataSpace, Object> dataSpace : persistentDataMap.entrySet())
+            pdc.set(dataSpace.getKey().namespacedKey(),
+                    (PersistentDataType<?, Object>) dataSpace.getKey().dataType(), dataSpace.getValue());
+    }
 
+    private void applyLore(ItemMeta itemMeta) {
         if (VersionUtil.isPaperServer()) {
             @Nullable
             List<Component> loreLines = lore != null
@@ -972,24 +1017,21 @@ public class ItemBuilder {
             loreLines = loreLines.stream()
                     .map(c -> c.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)).toList();
             itemMeta.lore(lore != null ? loreLines : null);
-        } else
+        } else {
             itemMeta.setLore(lore);
+        }
+    }
 
-        itemStack.setItemMeta(itemMeta);
-
-        // Add null check for NMSHandler
+    private ItemStack applyConsumableComponent(ItemStack itemStack) {
         NMSHandler handler = NMSHandlers.getHandler();
         if (handler != null) {
-            finalItemStack = handler.consumableComponent(itemStack, consumableComponent);
-        } else {
-            finalItemStack = itemStack;
-            if (Settings.DEBUG.toBool()) {
-                OraxenPlugin.get().getLogger()
-                        .warning("NMSHandler is null - consumableComponent features will not work");
-            }
+            return handler.consumableComponent(itemStack, consumableComponent);
         }
-
-        return this;
+        if (Settings.DEBUG.toBool()) {
+            OraxenPlugin.get().getLogger()
+                    .warning("NMSHandler is null - consumableComponent features will not work");
+        }
+        return itemStack;
     }
 
     public void save() {

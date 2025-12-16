@@ -493,7 +493,7 @@ public class DuplicationHandler {
         select.addProperty("property", "minecraft:custom_model_data");
         select.addProperty("index", data.index != null ? data.index : 0);
 
-        data.cases.sort(Comparator.comparing(c -> c.has("when") ? c.get("when").getAsString() : ""));
+        data.cases.sort(Comparator.comparing(c -> extractWhenSortKey(c)));
         JsonArray sortedCases = new JsonArray();
         data.cases.forEach(sortedCases::add);
         select.add("cases", sortedCases);
@@ -502,6 +502,30 @@ public class DuplicationHandler {
             select.add("fallback", data.fallback);
         }
         return select;
+    }
+
+    /**
+     * Extracts a sortable key from a select case's 'when' field.
+     * Handles both string and array formats that Minecraft allows.
+     */
+    private static String extractWhenSortKey(JsonObject caseObj) {
+        if (!caseObj.has("when"))
+            return "";
+        JsonElement when = caseObj.get("when");
+        if (when.isJsonPrimitive() && when.getAsJsonPrimitive().isString()) {
+            return when.getAsString();
+        } else if (when.isJsonArray()) {
+            // For arrays, join all values for consistent sorting
+            StringBuilder sb = new StringBuilder();
+            for (JsonElement el : when.getAsJsonArray()) {
+                if (el.isJsonPrimitive() && el.getAsJsonPrimitive().isString()) {
+                    if (sb.length() > 0) sb.append(",");
+                    sb.append(el.getAsString());
+                }
+            }
+            return sb.toString();
+        }
+        return "";
     }
 
     /**
