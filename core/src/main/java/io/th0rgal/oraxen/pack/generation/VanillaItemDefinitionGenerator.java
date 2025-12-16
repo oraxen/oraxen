@@ -54,6 +54,7 @@ public class VanillaItemDefinitionGenerator {
     private final List<ItemBuilder> items;
     private final PredicatesGenerator predicatesHelper;
     private final boolean useSelect;
+    private final boolean includeBothModes;
 
     /**
      * @param material  the base material
@@ -63,10 +64,24 @@ public class VanillaItemDefinitionGenerator {
      */
     public VanillaItemDefinitionGenerator(@NotNull Material material, @NotNull List<ItemBuilder> items,
             boolean useSelect) {
+        this(material, items, useSelect, false);
+    }
+
+    /**
+     * @param material         the base material
+     * @param items            the custom items using this material
+     * @param useSelect        true for {@code minecraft:select} on strings, false for
+     *                         {@code minecraft:range_dispatch} on floats
+     * @param includeBothModes if true, generates both select (strings) AND range_dispatch (floats)
+     *                         dispatchers for maximum compatibility with external plugins
+     */
+    public VanillaItemDefinitionGenerator(@NotNull Material material, @NotNull List<ItemBuilder> items,
+            boolean useSelect, boolean includeBothModes) {
         this.material = material;
         this.items = new ArrayList<>(items);
         this.predicatesHelper = new PredicatesGenerator(material, items);
         this.useSelect = useSelect;
+        this.includeBothModes = includeBothModes;
 
         // Sort items based on mode:
         // - useSelect=true (MODEL_DATA_IDS): alphabetically by Oraxen item id
@@ -103,8 +118,16 @@ public class VanillaItemDefinitionGenerator {
         // items)
         JsonObject vanillaModel = createVanillaModelReference();
 
-        // Build the CMD dispatcher (select or range_dispatch) with all custom items
-        JsonObject itemModel = useSelect ? createCmdSelect(vanillaModel) : createCmdRangeDispatch(vanillaModel);
+        // Build the CMD dispatcher(s) with all custom items
+        JsonObject itemModel;
+        if (includeBothModes) {
+            // When both modes are enabled, chain select (strings) -> range_dispatch (floats) -> vanilla
+            // This maximizes compatibility with external plugins using either approach
+            JsonObject rangeDispatchFallback = createCmdRangeDispatch(vanillaModel);
+            itemModel = createCmdSelect(rangeDispatchFallback);
+        } else {
+            itemModel = useSelect ? createCmdSelect(vanillaModel) : createCmdRangeDispatch(vanillaModel);
+        }
 
         root.add("model", itemModel);
         return root;

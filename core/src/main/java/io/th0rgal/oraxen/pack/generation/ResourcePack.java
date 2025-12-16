@@ -117,7 +117,8 @@ public class ResourcePack {
             // MODEL_DATA_IDS or MODEL_DATA_FLOAT: Generate assets/minecraft/items/<material>.json
             if (AppearanceMode.shouldGenerateVanillaItemDefinitions()) {
                 boolean useSelect = AppearanceMode.shouldUseSelectForVanillaItemDefs();
-                generateVanillaItemDefinitions(filterForPredicates(texturedItems), useSelect);
+                boolean includeBothModes = AppearanceMode.shouldUseBothDispatchModes();
+                generateVanillaItemDefinitions(filterForPredicates(texturedItems), useSelect, includeBothModes);
             }
 
             // generate_predicates: Generate legacy predicate overrides (not needed on 1.21.4+)
@@ -565,16 +566,20 @@ public class ResourcePack {
     /**
      * Generates vanilla item model definitions (assets/minecraft/items/*.json) for 1.21.4+.
      *
-     * @param texturedItems the items to generate definitions for
-     * @param useSelect     true for {@code minecraft:select} on strings (MODEL_DATA_IDS),
-     *                      false for {@code minecraft:range_dispatch} on floats (MODEL_DATA_FLOAT_LEGACY)
+     * @param texturedItems    the items to generate definitions for
+     * @param useSelect        true for {@code minecraft:select} on strings (MODEL_DATA_IDS),
+     *                         false for {@code minecraft:range_dispatch} on floats (MODEL_DATA_FLOAT_LEGACY)
+     * @param includeBothModes if true, generates both select (strings) AND range_dispatch (floats)
+     *                         dispatchers for maximum compatibility with external plugins
      */
-    private void generateVanillaItemDefinitions(final Map<Material, Map<String, ItemBuilder>> texturedItems, boolean useSelect) {
+    private void generateVanillaItemDefinitions(final Map<Material, Map<String, ItemBuilder>> texturedItems,
+            boolean useSelect, boolean includeBothModes) {
         for (final Map.Entry<Material, Map<String, ItemBuilder>> texturedItemsEntry : texturedItems.entrySet()) {
             final Material material = texturedItemsEntry.getKey();
             final List<ItemBuilder> items = new ArrayList<>(texturedItemsEntry.getValue().values());
 
-            final VanillaItemDefinitionGenerator generator = new VanillaItemDefinitionGenerator(material, items, useSelect);
+            final VanillaItemDefinitionGenerator generator = new VanillaItemDefinitionGenerator(
+                    material, items, useSelect, includeBothModes);
             writeStringToVirtual("assets/minecraft/items", generator.getFileName(),
                     generator.toJSON().toString());
         }

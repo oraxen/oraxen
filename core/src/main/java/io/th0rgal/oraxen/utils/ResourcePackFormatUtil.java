@@ -39,6 +39,8 @@ public final class ResourcePackFormatUtil {
 
         // Best-effort mapping for modern versions (used only if NMS reflection fails).
         // If this becomes outdated, reflection still handles it on supported servers.
+        if (v.isAtLeast(new MinecraftVersion("1.21.4"))) return 46;
+        if (v.isAtLeast(new MinecraftVersion("1.21.2"))) return 42;
         if (v.isAtLeast(new MinecraftVersion("1.21"))) return 34;
         if (v.isAtLeast(new MinecraftVersion("1.20.5"))) return 32;
         if (v.isAtLeast(new MinecraftVersion("1.20.3"))) return 22;

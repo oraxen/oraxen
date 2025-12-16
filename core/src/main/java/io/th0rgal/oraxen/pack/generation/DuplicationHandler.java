@@ -427,12 +427,27 @@ public class DuplicationHandler {
             JsonObject caseObj = el.getAsJsonObject();
             if (!caseObj.has("when"))
                 continue;
-            String when = caseObj.get("when").getAsString();
-            if (when == null)
+
+            // Minecraft allows 'when' to be either a single string or an array of strings
+            JsonElement whenElement = caseObj.get("when");
+            List<String> whenValues = new ArrayList<>();
+            if (whenElement.isJsonArray()) {
+                for (JsonElement arrayEl : whenElement.getAsJsonArray()) {
+                    if (arrayEl.isJsonPrimitive() && arrayEl.getAsJsonPrimitive().isString()) {
+                        whenValues.add(arrayEl.getAsString());
+                    }
+                }
+            } else if (whenElement.isJsonPrimitive() && whenElement.getAsJsonPrimitive().isString()) {
+                whenValues.add(whenElement.getAsString());
+            }
+
+            if (whenValues.isEmpty())
                 continue;
 
-            if (!data.seenWhen.contains(when)) {
-                data.seenWhen.add(when);
+            // Use a canonical string representation of the when value(s) for deduplication
+            String whenKey = whenValues.size() == 1 ? whenValues.get(0) : whenValues.toString();
+            if (!data.seenWhen.contains(whenKey)) {
+                data.seenWhen.add(whenKey);
                 data.cases.add(caseObj.deepCopy());
             }
         }

@@ -138,9 +138,8 @@ public final class AppearanceMode {
         boolean modelDataFloat = isModelDataFloatEnabled();
 
         if (modelDataIds && modelDataFloat) {
-            Logs.logWarning("Both model_data_ids and model_data_float are enabled. " +
-                    "They write to the same pack file (assets/minecraft/items/*.json). " +
-                    "model_data_ids will take priority; model_data_float is ignored for pack generation.");
+            Logs.logInfo("Both model_data_ids and model_data_float are enabled. " +
+                    "Pack generation will include both dispatch modes for maximum compatibility with external plugins.");
         }
 
         if (!isItemPropertiesEnabled() && !modelDataIds && !modelDataFloat) {
@@ -157,6 +156,15 @@ public final class AppearanceMode {
      */
     public static boolean shouldUseSelectForVanillaItemDefs() {
         return isModelDataIdsEnabled();
+    }
+
+    /**
+     * Returns true if both MODEL_DATA_IDS (strings/select) and MODEL_DATA_FLOAT (floats/range_dispatch)
+     * are enabled. In this case, pack generation should include both dispatch modes for maximum
+     * compatibility with external plugins that may use either approach.
+     */
+    public static boolean shouldUseBothDispatchModes() {
+        return isModelDataIdsEnabled() && isModelDataFloatEnabled();
     }
 
     /**
