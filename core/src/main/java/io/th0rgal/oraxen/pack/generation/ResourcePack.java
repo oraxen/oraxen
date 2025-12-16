@@ -114,13 +114,13 @@ public class ResourcePack {
                 generateModelDefinitions(filterForItemModel(texturedItems));
             }
 
-            // MODEL_DATA_IDS or MODEL_DATA_FLOAT_LEGACY: Generate assets/minecraft/items/<material>.json
+            // MODEL_DATA_IDS or MODEL_DATA_FLOAT: Generate assets/minecraft/items/<material>.json
             if (AppearanceMode.shouldGenerateVanillaItemDefinitions()) {
                 boolean useSelect = AppearanceMode.shouldUseSelectForVanillaItemDefs();
                 generateVanillaItemDefinitions(filterForPredicates(texturedItems), useSelect);
             }
 
-            // MODEL_DATA_FLOAT_LEGACY also generates legacy predicate overrides
+            // generate_predicates: Generate legacy predicate overrides (not needed on 1.21.4+)
             if (AppearanceMode.shouldGenerateLegacyPredicates()) {
                 generatePredicates(filterForPredicates(texturedItems));
             }

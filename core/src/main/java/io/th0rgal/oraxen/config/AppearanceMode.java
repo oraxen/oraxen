@@ -11,10 +11,10 @@ import java.util.Locale;
  * <ul>
  *   <li>{@link #isItemPropertiesEnabled()} — uses {@code minecraft:item_model} component</li>
  *   <li>{@link #isModelDataIdsEnabled()} — uses {@code custom_model_data.strings[0]} with {@code minecraft:select}</li>
- *   <li>{@link #isModelDataFloatLegacyEnabled()} — uses {@code custom_model_data.floats[0]} with {@code minecraft:range_dispatch}</li>
+ *   <li>{@link #isModelDataFloatEnabled()} — uses {@code custom_model_data.floats[0]} with {@code minecraft:range_dispatch}</li>
  * </ul>
  * <p>
- * Note: {@code model_data_ids} and {@code model_data_float_legacy} cannot both be enabled
+ * Note: {@code model_data_ids} and {@code model_data_float} cannot both be enabled
  * (they write to the same pack file path). If both are enabled, {@code model_data_ids} takes priority.
  * <p>
  * Pre-1.21.4 does not support item definitions, so Oraxen always falls back to legacy
@@ -76,15 +76,21 @@ public final class AppearanceMode {
     }
 
     /**
-     * Whether MODEL_DATA_FLOAT_LEGACY mode is enabled.
+     * Whether MODEL_DATA_FLOAT mode is enabled.
      * Uses custom_model_data.floats[0] and generates assets/minecraft/items/&lt;material&gt;.json
-     * with minecraft:range_dispatch. Also generates legacy predicate overrides and sets integer CMD.
+     * with minecraft:range_dispatch. Also sets integer CustomModelData on items.
      */
-    public static boolean isModelDataFloatLegacyEnabled() {
+    public static boolean isModelDataFloatEnabled() {
         // Check new key first
-        Boolean newKey = toBoolOrNull(Settings.APPEARANCE_MODEL_DATA_FLOAT_LEGACY);
+        Boolean newKey = toBoolOrNull(Settings.APPEARANCE_MODEL_DATA_FLOAT);
         if (newKey != null) {
             return newKey;
+        }
+
+        // Backward compatibility: check deprecated key (model_data_float_legacy)
+        Boolean legacyKey = toBoolOrNull(Settings.APPEARANCE_MODEL_DATA_FLOAT_LEGACY);
+        if (legacyKey != null) {
+            return legacyKey;
         }
 
         // Backward compatibility: check deprecated mode key
@@ -94,8 +100,29 @@ public final class AppearanceMode {
                     "FLOAT", "FLOATS", "RANGE_DISPATCH", "LEGACY_FLOAT");
         }
 
-        // Legacy: force_predicates=true meant legacy float mode
+        return false;
+    }
+
+    /**
+     * Whether to generate legacy predicate overrides (assets/minecraft/models/item/*.json).
+     * Not needed on 1.21.4+ since Minecraft uses the new item definition system.
+     * Only enable for compatibility with external tools that read legacy JSON files.
+     */
+    public static boolean isGeneratePredicatesEnabled() {
+        // Check new key first
+        Boolean newKey = toBoolOrNull(Settings.APPEARANCE_GENERATE_PREDICATES);
+        if (newKey != null) {
+            return newKey;
+        }
+
+        // Backward compatibility: force_predicates or old model_data_float_legacy implied predicates
         if (Settings.APPEARANCE_FORCE_PREDICATES.toBool()) {
+            return true;
+        }
+
+        // Old model_data_float_legacy always generated predicates
+        Boolean legacyFloatKey = toBoolOrNull(Settings.APPEARANCE_MODEL_DATA_FLOAT_LEGACY);
+        if (legacyFloatKey != null && legacyFloatKey) {
             return true;
         }
 
@@ -108,23 +135,23 @@ public final class AppearanceMode {
      */
     public static void validateAndLogWarnings() {
         boolean modelDataIds = isModelDataIdsEnabled();
-        boolean modelDataFloat = isModelDataFloatLegacyEnabled();
+        boolean modelDataFloat = isModelDataFloatEnabled();
 
         if (modelDataIds && modelDataFloat) {
-            Logs.logWarning("Both model_data_ids and model_data_float_legacy are enabled. " +
+            Logs.logWarning("Both model_data_ids and model_data_float are enabled. " +
                     "They write to the same pack file (assets/minecraft/items/*.json). " +
-                    "model_data_ids will take priority; model_data_float_legacy is ignored for pack generation.");
+                    "model_data_ids will take priority; model_data_float is ignored for pack generation.");
         }
 
         if (!isItemPropertiesEnabled() && !modelDataIds && !modelDataFloat) {
             Logs.logWarning("No appearance system is enabled in settings.yml. " +
                     "Items will not have custom models on 1.21.4+. " +
-                    "Enable at least one of: item_properties, model_data_ids, or model_data_float_legacy");
+                    "Enable at least one of: item_properties, model_data_ids, or model_data_float");
         }
     }
 
     /**
-     * For MODEL_DATA_IDS vs MODEL_DATA_FLOAT_LEGACY pack generation.
+     * For MODEL_DATA_IDS vs MODEL_DATA_FLOAT pack generation.
      * Returns true if we should generate minecraft:select (strings), false for minecraft:range_dispatch (floats).
      * MODEL_DATA_IDS takes priority if both are enabled.
      */
@@ -134,19 +161,17 @@ public final class AppearanceMode {
 
     /**
      * Whether to generate vanilla item definitions (assets/minecraft/items/*.json).
-     * True if either MODEL_DATA_IDS or MODEL_DATA_FLOAT_LEGACY is enabled.
+     * True if either MODEL_DATA_IDS or MODEL_DATA_FLOAT is enabled.
      */
     public static boolean shouldGenerateVanillaItemDefinitions() {
-        return isModelDataIdsEnabled() || isModelDataFloatLegacyEnabled();
+        return isModelDataIdsEnabled() || isModelDataFloatEnabled();
     }
 
     /**
-     * Whether to generate legacy predicate overrides (assets/minecraft/models/item/*.json)
-     * and set integer CustomModelData on items.
-     * This is always true when MODEL_DATA_FLOAT_LEGACY is enabled.
+     * Whether to generate legacy predicate overrides (assets/minecraft/models/item/*.json).
      */
     public static boolean shouldGenerateLegacyPredicates() {
-        return isModelDataFloatLegacyEnabled();
+        return isGeneratePredicatesEnabled();
     }
 
     // =========================================================================

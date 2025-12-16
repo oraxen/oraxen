@@ -105,8 +105,10 @@ public enum Settings {
     // 1.21.4+ appearance systems (can be combined)
     APPEARANCE_ITEM_PROPERTIES("Pack.generation.appearance.item_properties"),
     APPEARANCE_MODEL_DATA_IDS("Pack.generation.appearance.model_data_ids"),
-    APPEARANCE_MODEL_DATA_FLOAT_LEGACY("Pack.generation.appearance.model_data_float_legacy"),
+    APPEARANCE_MODEL_DATA_FLOAT("Pack.generation.appearance.model_data_float"),
+    APPEARANCE_GENERATE_PREDICATES("Pack.generation.appearance.generate_predicates"),
     // Deprecated keys (kept for backward compatibility with older configs)
+    @Deprecated APPEARANCE_MODEL_DATA_FLOAT_LEGACY("Pack.generation.appearance.model_data_float_legacy"),
     @Deprecated APPEARANCE_MODE("Pack.generation.appearance.mode"),
     @Deprecated APPEARANCE_FORCE_PREDICATES("Pack.generation.appearance.force_predicates"),
     @Deprecated APPEARANCE_ITEM_MODEL("Pack.generation.appearance.item_model"),

@@ -607,11 +607,12 @@ public class ItemParser {
             if (AppearanceMode.isModelDataIdsEnabled()) {
                 applyModelDataIds(item);
             }
-            if (AppearanceMode.isModelDataFloatLegacyEnabled()) {
-                // MODEL_DATA_FLOAT_LEGACY sets floats[0] AND legacy integer CMD + predicates
-                applyModelDataFloatLegacy(item);
+            if (AppearanceMode.isModelDataFloatEnabled()) {
+                // MODEL_DATA_FLOAT sets floats[0] and integer CMD on items
+                applyModelDataFloat(item);
                 applyLegacyCustomModelData(item);
             }
+            // generate_predicates only affects pack generation, not item components
         } else {
             // Pre-1.21.4: always apply legacy integer CustomModelData (only option available)
             applyLegacyCustomModelData(item);
@@ -646,9 +647,9 @@ public class ItemParser {
     }
 
     /**
-     * MODEL_DATA_FLOAT_LEGACY mode: sets custom_model_data.floats[0] = &lt;Pack.custom_model_data&gt;.
+     * MODEL_DATA_FLOAT mode: sets custom_model_data.floats[0] = &lt;Pack.custom_model_data&gt;.
      */
-    private void applyModelDataFloatLegacy(ItemBuilder item) {
+    private void applyModelDataFloat(ItemBuilder item) {
         if (oraxenMeta.isExcludedFromPredicates())
             return;
 

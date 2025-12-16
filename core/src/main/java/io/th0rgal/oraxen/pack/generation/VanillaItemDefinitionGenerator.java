@@ -14,17 +14,21 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Generates vanilla item model definitions (assets/minecraft/items/*.json) for 1.21.4+.
+ * Generates vanilla item model definitions (assets/minecraft/items/*.json) for
+ * 1.21.4+.
  * <p>
  * Supports two dispatcher types:
  * <ul>
- *   <li>{@code useSelect=true} — uses {@code minecraft:select} on {@code custom_model_data.strings[0]}
- *       with Oraxen item ids as discrete keys (MODEL_DATA_IDS)</li>
- *   <li>{@code useSelect=false} — uses {@code minecraft:range_dispatch} on {@code custom_model_data.floats[0]}
- *       with numeric thresholds (MODEL_DATA_FLOAT_LEGACY)</li>
+ * <li>{@code useSelect=true} — uses {@code minecraft:select} on
+ * {@code custom_model_data.strings[0]}
+ * with Oraxen item ids as discrete keys (MODEL_DATA_IDS)</li>
+ * <li>{@code useSelect=false} — uses {@code minecraft:range_dispatch} on
+ * {@code custom_model_data.floats[0]}
+ * with numeric thresholds (MODEL_DATA_FLOAT_LEGACY)</li>
  * </ul>
  * <p>
- * Special handling for state-based models is included (bow pulling, crossbow charged,
+ * Special handling for state-based models is included (bow pulling, crossbow
+ * charged,
  * shield blocking, fishing rod cast).
  */
 public class VanillaItemDefinitionGenerator {
@@ -54,9 +58,11 @@ public class VanillaItemDefinitionGenerator {
     /**
      * @param material  the base material
      * @param items     the custom items using this material
-     * @param useSelect true for {@code minecraft:select} on strings, false for {@code minecraft:range_dispatch} on floats
+     * @param useSelect true for {@code minecraft:select} on strings, false for
+     *                  {@code minecraft:range_dispatch} on floats
      */
-    public VanillaItemDefinitionGenerator(@NotNull Material material, @NotNull List<ItemBuilder> items, boolean useSelect) {
+    public VanillaItemDefinitionGenerator(@NotNull Material material, @NotNull List<ItemBuilder> items,
+            boolean useSelect) {
         this.material = material;
         this.items = new ArrayList<>(items);
         this.predicatesHelper = new PredicatesGenerator(material, items);
@@ -80,7 +86,8 @@ public class VanillaItemDefinitionGenerator {
     }
 
     /**
-     * Returns the file name for this item definition (e.g., "paper.json" for Material.PAPER).
+     * Returns the file name for this item definition (e.g., "paper.json" for
+     * Material.PAPER).
      */
     public String getFileName() {
         return material.name().toLowerCase(Locale.ROOT) + ".json";
@@ -92,7 +99,8 @@ public class VanillaItemDefinitionGenerator {
     public JsonObject toJSON() {
         JsonObject root = new JsonObject();
 
-        // Build the base vanilla model reference (with state handling for special items)
+        // Build the base vanilla model reference (with state handling for special
+        // items)
         JsonObject vanillaModel = createVanillaModelReference();
 
         // Build the CMD dispatcher (select or range_dispatch) with all custom items

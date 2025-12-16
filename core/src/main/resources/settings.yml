@@ -89,7 +89,7 @@ Pack:
     # 1.21.4+ supports multiple appearance systems that can be COMBINED:
     # - item_properties: uses minecraft:item_model component
     # - model_data_ids: uses custom_model_data.strings[0] with minecraft:select
-    # - model_data_float_legacy: uses custom_model_data.floats[0] with minecraft:range_dispatch
+    # - model_data_float: uses custom_model_data.floats[0] with minecraft:range_dispatch
     #
     # Pre-1.21.4 does NOT support item definitions, so Oraxen always falls back to
     # legacy predicate overrides (assets/minecraft/models/item/*.json) + integer CustomModelData.
@@ -97,23 +97,29 @@ Pack:
       # ITEM_PROPERTIES (default: true)
       # Uses the minecraft:item_model component with Oraxen ids (oraxen:<item_id>).
       # Generates assets/oraxen/items/<item_id>.json.
-      # Can be combined with model_data_ids for maximum compatibility.
+      # Can be combined with model_data_ids or model_data_float.
       item_properties: true
 
       # MODEL_DATA_IDS (default: false)
       # Uses custom_model_data.strings[0] = "oraxen:<item_id>"
       # Generates assets/minecraft/items/<material>.json using minecraft:select.
       # Good for plugins that read custom_model_data but want stable string identifiers.
-      # Cannot be combined with model_data_float_legacy (they write to the same file).
+      # Cannot be combined with model_data_float (they write to the same file).
       model_data_ids: false
 
-      # MODEL_DATA_FLOAT_LEGACY (default: false)
+      # MODEL_DATA_FLOAT (default: false)
       # Uses custom_model_data.floats[0] = <Pack.custom_model_data as float>
       # Generates assets/minecraft/items/<material>.json using minecraft:range_dispatch.
-      # Also generates legacy predicate overrides and sets integer CustomModelData.
-      # For full backward compatibility with plugins expecting integer CMD values.
+      # Also sets integer CustomModelData on items for plugin compatibility.
       # Cannot be combined with model_data_ids (they write to the same file).
-      model_data_float_legacy: false
+      model_data_float: false
+
+      # GENERATE_PREDICATES (default: false)
+      # Generates legacy predicate overrides (assets/minecraft/models/item/*.json).
+      # NOT NEEDED on 1.21.4+ since Minecraft uses the new item definition system.
+      # Only enable if you need compatibility with external tools that read legacy JSON files.
+      # Pre-1.21.4 always generates predicates regardless of this setting.
+      generate_predicates: false
     verify_pack_files: true # Checks all textures and models to make sure they abide by valid Resourcepack formatting
     fix_force_unicode_glyphs: true # Fixes glyphs not being shown when Force Unicode is enabled
     texture_slicer: true # Slices default-texture overrides into new 1.20.2 format
