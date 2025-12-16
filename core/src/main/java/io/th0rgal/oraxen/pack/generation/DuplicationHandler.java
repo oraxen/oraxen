@@ -100,9 +100,8 @@ public class DuplicationHandler {
         if (!VersionUtil.atOrAbove("1.21.4"))
             return;
 
-        // Only merge item definitions when we're generating CMD-based definitions (MODEL_DATA_IDS or MODEL_DATA_FLOAT_LEGACY)
-        AppearanceMode mode = AppearanceMode.fromSettings();
-        if (mode != AppearanceMode.MODEL_DATA_IDS && mode != AppearanceMode.MODEL_DATA_FLOAT_LEGACY)
+        // Only merge item definitions when we're generating CMD-based definitions
+        if (!AppearanceMode.shouldGenerateVanillaItemDefinitions())
             return;
 
         // First, convert legacy predicate overrides from external packs to modern item

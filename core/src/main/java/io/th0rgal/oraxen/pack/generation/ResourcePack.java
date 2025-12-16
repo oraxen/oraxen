@@ -101,32 +101,27 @@ public class ResourcePack {
         // Sorting items to keep only one with models (and generate it if needed)
         final Map<Material, Map<String, ItemBuilder>> texturedItems = extractTexturedItems();
 
-        // Appearance system: use AppearanceMode to determine what pack files + item components to generate.
-        // Pre-1.21.4 ALWAYS uses legacy predicates; 1.21.4+ uses the selected mode.
-        final AppearanceMode mode = AppearanceMode.fromSettings();
+        // Appearance systems can be combined on 1.21.4+.
+        // Pre-1.21.4 ALWAYS uses legacy predicates only.
         final boolean is1_21_4Plus = VersionUtil.atOrAbove("1.21.4");
-        final boolean forcePredicates = Settings.APPEARANCE_FORCE_PREDICATES.toBool();
 
         if (is1_21_4Plus) {
-            // 1.21.4+ pack generation based on appearance mode
-            switch (mode) {
-                case ITEM_PROPERTIES -> {
-                    // Generate assets/oraxen/items/<item_id>.json (item model definitions)
-                    generateModelDefinitions(filterForItemModel(texturedItems));
-                }
-                case MODEL_DATA_IDS -> {
-                    // Generate assets/minecraft/items/<material>.json using minecraft:select on custom_model_data.strings
-                    generateVanillaItemDefinitions(filterForPredicates(texturedItems), AppearanceMode.MODEL_DATA_IDS);
-                }
-                case MODEL_DATA_FLOAT_LEGACY -> {
-                    // Generate assets/minecraft/items/<material>.json using minecraft:range_dispatch on custom_model_data.floats
-                    generateVanillaItemDefinitions(filterForPredicates(texturedItems), AppearanceMode.MODEL_DATA_FLOAT_LEGACY);
-                }
+            // Validate and log any configuration warnings
+            AppearanceMode.validateAndLogWarnings();
+
+            // ITEM_PROPERTIES: Generate assets/oraxen/items/<item_id>.json
+            if (AppearanceMode.isItemPropertiesEnabled()) {
+                generateModelDefinitions(filterForItemModel(texturedItems));
             }
 
-            // Optionally force legacy predicate overrides for compatibility with external tools
-            if (forcePredicates) {
-                Logs.logInfo("Force-generating legacy predicate overrides (Pack.generation.appearance.force_predicates=true)");
+            // MODEL_DATA_IDS or MODEL_DATA_FLOAT_LEGACY: Generate assets/minecraft/items/<material>.json
+            if (AppearanceMode.shouldGenerateVanillaItemDefinitions()) {
+                boolean useSelect = AppearanceMode.shouldUseSelectForVanillaItemDefs();
+                generateVanillaItemDefinitions(filterForPredicates(texturedItems), useSelect);
+            }
+
+            // MODEL_DATA_FLOAT_LEGACY also generates legacy predicate overrides
+            if (AppearanceMode.shouldGenerateLegacyPredicates()) {
                 generatePredicates(filterForPredicates(texturedItems));
             }
         } else {
@@ -569,19 +564,17 @@ public class ResourcePack {
 
     /**
      * Generates vanilla item model definitions (assets/minecraft/items/*.json) for 1.21.4+.
-     * <p>
-     * Supports two modes:
-     * <ul>
-     *   <li>{@link AppearanceMode#MODEL_DATA_IDS} — generates {@code minecraft:select} on {@code custom_model_data.strings[0]}</li>
-     *   <li>{@link AppearanceMode#MODEL_DATA_FLOAT_LEGACY} — generates {@code minecraft:range_dispatch} on {@code custom_model_data.floats[0]}</li>
-     * </ul>
+     *
+     * @param texturedItems the items to generate definitions for
+     * @param useSelect     true for {@code minecraft:select} on strings (MODEL_DATA_IDS),
+     *                      false for {@code minecraft:range_dispatch} on floats (MODEL_DATA_FLOAT_LEGACY)
      */
-    private void generateVanillaItemDefinitions(final Map<Material, Map<String, ItemBuilder>> texturedItems, AppearanceMode mode) {
+    private void generateVanillaItemDefinitions(final Map<Material, Map<String, ItemBuilder>> texturedItems, boolean useSelect) {
         for (final Map.Entry<Material, Map<String, ItemBuilder>> texturedItemsEntry : texturedItems.entrySet()) {
             final Material material = texturedItemsEntry.getKey();
             final List<ItemBuilder> items = new ArrayList<>(texturedItemsEntry.getValue().values());
 
-            final VanillaItemDefinitionGenerator generator = new VanillaItemDefinitionGenerator(material, items, mode);
+            final VanillaItemDefinitionGenerator generator = new VanillaItemDefinitionGenerator(material, items, useSelect);
             writeStringToVirtual("assets/minecraft/items", generator.getFileName(),
                     generator.toJSON().toString());
         }

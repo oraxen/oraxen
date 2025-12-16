@@ -64,8 +64,8 @@ public class SpearLungeMechanicFactory extends MechanicFactory implements Listen
 
     @EventHandler
     public void onPackGeneration(OraxenPackGeneratedEvent event) {
-        // Spear lunge only uses item model definitions when the appearance mode is ITEM_PROPERTIES on 1.21.4+
-        if (!VersionUtil.atOrAbove("1.21.4") || AppearanceMode.fromSettings() != AppearanceMode.ITEM_PROPERTIES) {
+        // Spear lunge only uses item model definitions when ITEM_PROPERTIES is enabled on 1.21.4+
+        if (!VersionUtil.atOrAbove("1.21.4") || !AppearanceMode.isItemPropertiesEnabled()) {
             return;
         }
 

@@ -3,7 +3,6 @@ package io.th0rgal.oraxen.pack.generation;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.api.OraxenItems;
-import io.th0rgal.oraxen.config.AppearanceMode;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenMeta;
 import org.bukkit.Material;
@@ -17,15 +16,16 @@ import java.util.Locale;
 /**
  * Generates vanilla item model definitions (assets/minecraft/items/*.json) for 1.21.4+.
  * <p>
- * Supports two modes via {@link AppearanceMode}:
+ * Supports two dispatcher types:
  * <ul>
- *   <li>{@link AppearanceMode#MODEL_DATA_IDS} — uses {@code minecraft:select} on {@code custom_model_data.strings[0]}
- *       with Oraxen item ids as discrete keys</li>
- *   <li>{@link AppearanceMode#MODEL_DATA_FLOAT_LEGACY} — uses {@code minecraft:range_dispatch} on
- *       {@code custom_model_data.floats[0]} with numeric thresholds (legacy style)</li>
+ *   <li>{@code useSelect=true} — uses {@code minecraft:select} on {@code custom_model_data.strings[0]}
+ *       with Oraxen item ids as discrete keys (MODEL_DATA_IDS)</li>
+ *   <li>{@code useSelect=false} — uses {@code minecraft:range_dispatch} on {@code custom_model_data.floats[0]}
+ *       with numeric thresholds (MODEL_DATA_FLOAT_LEGACY)</li>
  * </ul>
  * <p>
- * Special handling for state-based models is included (bow pulling, crossbow charged, shield blocking, fishing rod cast).
+ * Special handling for state-based models is included (bow pulling, crossbow charged,
+ * shield blocking, fishing rod cast).
  */
 public class VanillaItemDefinitionGenerator {
 
@@ -42,29 +42,34 @@ public class VanillaItemDefinitionGenerator {
     private static final int DEFAULT_TINT_COLOR = 16578808;
 
     /**
-     * Index into {@code minecraft:custom_model_data.strings} (for MODEL_DATA_IDS)
-     * or {@code minecraft:custom_model_data.floats} (for MODEL_DATA_FLOAT_LEGACY).
+     * Index into {@code minecraft:custom_model_data.strings} or {@code floats}.
      */
     private static final int CUSTOM_MODEL_DATA_INDEX = 0;
 
     private final Material material;
     private final List<ItemBuilder> items;
     private final PredicatesGenerator predicatesHelper;
-    private final AppearanceMode mode;
+    private final boolean useSelect;
 
-    public VanillaItemDefinitionGenerator(@NotNull Material material, @NotNull List<ItemBuilder> items, @NotNull AppearanceMode mode) {
+    /**
+     * @param material  the base material
+     * @param items     the custom items using this material
+     * @param useSelect true for {@code minecraft:select} on strings, false for {@code minecraft:range_dispatch} on floats
+     */
+    public VanillaItemDefinitionGenerator(@NotNull Material material, @NotNull List<ItemBuilder> items, boolean useSelect) {
         this.material = material;
         this.items = new ArrayList<>(items);
         this.predicatesHelper = new PredicatesGenerator(material, items);
-        this.mode = mode;
+        this.useSelect = useSelect;
 
         // Sort items based on mode:
-        // - MODEL_DATA_IDS: alphabetically by Oraxen item id
-        // - MODEL_DATA_FLOAT_LEGACY: by numeric CustomModelData value
-        if (mode == AppearanceMode.MODEL_DATA_FLOAT_LEGACY) {
+        // - useSelect=true (MODEL_DATA_IDS): alphabetically by Oraxen item id
+        // - useSelect=false (MODEL_DATA_FLOAT_LEGACY): by numeric CustomModelData value
+        if (!useSelect) {
             this.items.sort(Comparator.comparingInt(item -> {
                 OraxenMeta meta = item.getOraxenMeta();
-                return meta != null && meta.getCustomModelData() != null ? meta.getCustomModelData() : Integer.MAX_VALUE;
+                return meta != null && meta.getCustomModelData() != null ? meta.getCustomModelData()
+                        : Integer.MAX_VALUE;
             }));
         } else {
             this.items.sort(Comparator.comparing(item -> {
@@ -91,11 +96,7 @@ public class VanillaItemDefinitionGenerator {
         JsonObject vanillaModel = createVanillaModelReference();
 
         // Build the CMD dispatcher (select or range_dispatch) with all custom items
-        JsonObject itemModel = switch (mode) {
-            case MODEL_DATA_IDS -> createCmdSelect(vanillaModel);
-            case MODEL_DATA_FLOAT_LEGACY -> createCmdRangeDispatch(vanillaModel);
-            default -> vanillaModel; // ITEM_PROPERTIES does not use vanilla item definitions
-        };
+        JsonObject itemModel = useSelect ? createCmdSelect(vanillaModel) : createCmdRangeDispatch(vanillaModel);
 
         root.add("model", itemModel);
         return root;
@@ -134,7 +135,8 @@ public class VanillaItemDefinitionGenerator {
     // =====================================================================
 
     /**
-     * Creates a {@code minecraft:select} model that switches based on {@code custom_model_data.strings[index]}.
+     * Creates a {@code minecraft:select} model that switches based on
+     * {@code custom_model_data.strings[index]}.
      */
     private JsonObject createCmdSelect(JsonObject fallbackModel) {
         List<SelectCaseEntry> selectCases = new ArrayList<>();
@@ -178,7 +180,8 @@ public class VanillaItemDefinitionGenerator {
 
     private static String toOraxenCustomModelDataKey(@NotNull String itemId) {
         // Use a stable, low-collision key for custom_model_data.strings[0].
-        // Matches the NamespacedKey format used by minecraft:item_model (e.g. "oraxen:my_item").
+        // Matches the NamespacedKey format used by minecraft:item_model (e.g.
+        // "oraxen:my_item").
         return "oraxen:" + itemId;
     }
 
@@ -234,7 +237,8 @@ public class VanillaItemDefinitionGenerator {
     // =====================================================================
 
     /**
-     * Creates the model object for a custom Oraxen item, including any state handling.
+     * Creates the model object for a custom Oraxen item, including any state
+     * handling.
      */
     private JsonObject createItemModel(OraxenMeta meta) {
         JsonObject baseModel = createModelObject(meta.getModelName());

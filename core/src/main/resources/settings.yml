@@ -84,45 +84,36 @@ Pack:
     generate: true # Unlike Plugin.generation.default_assets, this will enable/disable all pack generation
     # List of file extensions that will not be included in the final zipped ResourcePack
     excluded_file_extensions: []
-    # Item appearance mode.
+    # Item appearance systems (1.21.4+).
     #
-    # 1.21.4+ supports the new item definition pipeline (assets/*/items/*.json) and the
-    # new CustomModelData component channels (strings/floats/flags/colors).
+    # 1.21.4+ supports multiple appearance systems that can be COMBINED:
+    # - item_properties: uses minecraft:item_model component
+    # - model_data_ids: uses custom_model_data.strings[0] with minecraft:select
+    # - model_data_float_legacy: uses custom_model_data.floats[0] with minecraft:range_dispatch
     #
-    # Pre-1.21.4 does NOT support item definitions, so Oraxen will always fall back to
+    # Pre-1.21.4 does NOT support item definitions, so Oraxen always falls back to
     # legacy predicate overrides (assets/minecraft/models/item/*.json) + integer CustomModelData.
     appearance:
-      # Which appearance system Oraxen should drive on 1.21.4+:
-      #
-      # - ITEM_PROPERTIES:
-      #     Uses the minecraft:item_model component with Oraxen ids (oraxen:<item_id>).
-      #     Oraxen generates assets/oraxen/items/<item_id>.json (item definitions).
-      #
-      # - MODEL_DATA_IDS:
-      #     Uses the minecraft:custom_model_data component with Oraxen ids:
-      #       custom_model_data.strings[0] = "oraxen:<item_id>"
-      #     Oraxen generates assets/minecraft/items/<material>.json using minecraft:select (strings).
-      #
-      # - MODEL_DATA_FLOAT_LEGACY:
-      #     Legacy-style numeric model-data mapping, stored as:
-      #       custom_model_data.floats[0] = <Pack.custom_model_data as float>
-      #     Oraxen generates assets/minecraft/items/<material>.json using minecraft:range_dispatch (floats).
-      #
-      # Enabling any of these modes automatically enables generation of the correct selectors on 1.21.4+.
-      # On pre-1.21.4, Oraxen automatically falls back to predicate overrides instead.
-      mode: ITEM_PROPERTIES
+      # ITEM_PROPERTIES (default: true)
+      # Uses the minecraft:item_model component with Oraxen ids (oraxen:<item_id>).
+      # Generates assets/oraxen/items/<item_id>.json.
+      # Can be combined with model_data_ids for maximum compatibility.
+      item_properties: true
 
-      # 1.21.4+ only:
-      # Force generating legacy predicate overrides (assets/minecraft/models/item/*.json) in addition to the
-      # selected mode. This is useful for compatibility with external tools/plugins that still inspect
-      # legacy override JSONs or rely on integer CustomModelData.
-      force_predicates: false
+      # MODEL_DATA_IDS (default: false)
+      # Uses custom_model_data.strings[0] = "oraxen:<item_id>"
+      # Generates assets/minecraft/items/<material>.json using minecraft:select.
+      # Good for plugins that read custom_model_data but want stable string identifiers.
+      # Cannot be combined with model_data_float_legacy (they write to the same file).
+      model_data_ids: false
 
-      # Deprecated (kept for backward compatibility with older configs):
-      # - item_model: legacy boolean equivalent of mode=ITEM_PROPERTIES
-      # - predicates: legacy boolean that enabled legacy predicates (and 1.21.4+ item definitions)
-      item_model: true
-      predicates: false
+      # MODEL_DATA_FLOAT_LEGACY (default: false)
+      # Uses custom_model_data.floats[0] = <Pack.custom_model_data as float>
+      # Generates assets/minecraft/items/<material>.json using minecraft:range_dispatch.
+      # Also generates legacy predicate overrides and sets integer CustomModelData.
+      # For full backward compatibility with plugins expecting integer CMD values.
+      # Cannot be combined with model_data_ids (they write to the same file).
+      model_data_float_legacy: false
     verify_pack_files: true # Checks all textures and models to make sure they abide by valid Resourcepack formatting
     fix_force_unicode_glyphs: true # Fixes glyphs not being shown when Force Unicode is enabled
     texture_slicer: true # Slices default-texture overrides into new 1.20.2 format

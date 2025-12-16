@@ -1,79 +1,179 @@
 package io.th0rgal.oraxen.config;
 
+import io.th0rgal.oraxen.utils.logs.Logs;
+
 import java.util.Locale;
 
 /**
- * Controls how Oraxen drives item appearance on 1.21.4+.
+ * Utility class for checking which item appearance systems are enabled on 1.21.4+.
  * <p>
- * Pre-1.21.4 does not support item definitions ({@code assets/&#42;/items/&#42;.json}), so Oraxen will
- * always fall back to legacy predicate overrides + integer CustomModelData, regardless of this mode.
+ * Multiple systems can be enabled simultaneously:
+ * <ul>
+ *   <li>{@link #isItemPropertiesEnabled()} — uses {@code minecraft:item_model} component</li>
+ *   <li>{@link #isModelDataIdsEnabled()} — uses {@code custom_model_data.strings[0]} with {@code minecraft:select}</li>
+ *   <li>{@link #isModelDataFloatLegacyEnabled()} — uses {@code custom_model_data.floats[0]} with {@code minecraft:range_dispatch}</li>
+ * </ul>
+ * <p>
+ * Note: {@code model_data_ids} and {@code model_data_float_legacy} cannot both be enabled
+ * (they write to the same pack file path). If both are enabled, {@code model_data_ids} takes priority.
+ * <p>
+ * Pre-1.21.4 does not support item definitions, so Oraxen always falls back to legacy
+ * predicate overrides + integer CustomModelData regardless of these settings.
  */
-public enum AppearanceMode {
-    /**
-     * Use the minecraft:item_model component with Oraxen ids (oraxen:&lt;item_id&gt;).
-     * Generates assets/oraxen/items/&lt;item_id&gt;.json.
-     */
-    ITEM_PROPERTIES,
-    /**
-     * Use minecraft:custom_model_data.strings[0] = "oraxen:&lt;item_id&gt;" and
-     * generate assets/minecraft/items/&lt;material&gt;.json with minecraft:select.
-     */
-    MODEL_DATA_IDS,
-    /**
-     * Legacy numeric model data mapping using minecraft:custom_model_data.floats[0] and
-     * generate assets/minecraft/items/&lt;material&gt;.json with minecraft:range_dispatch.
-     */
-    MODEL_DATA_FLOAT_LEGACY;
+public final class AppearanceMode {
 
-    /**
-     * Preferred entrypoint used by runtime/pack generation.
-     * <p>
-     * If the new {@code Pack.generation.appearance.mode} key is missing, this falls back to the legacy
-     * boolean settings for compatibility with older configs.
-     */
-    public static AppearanceMode fromSettings() {
-        String raw = nullSafeTrim(Settings.APPEARANCE_MODE.toString());
-        if (!raw.isEmpty()) {
-            return parse(raw);
-        }
-
-        // Backward compatible fallback:
-        // - item_model=true -> ITEM_PROPERTIES
-        // - predicates=true -> MODEL_DATA_IDS (modern CMD strings on 1.21.4+; legacy predicates pre-1.21.4)
-        if (Settings.APPEARANCE_ITEM_MODEL.toBool()) {
-            return ITEM_PROPERTIES;
-        }
-        if (Settings.APPEARANCE_PREDICATES.toBool()) {
-            return MODEL_DATA_IDS;
-        }
-        return ITEM_PROPERTIES;
+    private AppearanceMode() {
+        // Utility class
     }
 
-    public static AppearanceMode parse(String raw) {
-        String normalized = nullSafeTrim(raw)
-                .toUpperCase(Locale.ROOT)
+    /**
+     * Whether ITEM_PROPERTIES mode is enabled.
+     * Uses the minecraft:item_model component with Oraxen ids (oraxen:&lt;item_id&gt;).
+     * Generates assets/oraxen/items/&lt;item_id&gt;.json.
+     */
+    public static boolean isItemPropertiesEnabled() {
+        // Check new key first
+        Boolean newKey = toBoolOrNull(Settings.APPEARANCE_ITEM_PROPERTIES);
+        if (newKey != null) {
+            return newKey;
+        }
+
+        // Backward compatibility: check deprecated keys
+        String modeRaw = nullSafeTrim(Settings.APPEARANCE_MODE.toString());
+        if (!modeRaw.isEmpty()) {
+            return parseModeContains(modeRaw, "ITEM_PROPERTIES", "ITEM_MODEL", "ITEM_PROPERTY", "ITEM");
+        }
+
+        // Legacy boolean fallback
+        return Settings.APPEARANCE_ITEM_MODEL.toBool();
+    }
+
+    /**
+     * Whether MODEL_DATA_IDS mode is enabled.
+     * Uses custom_model_data.strings[0] = "oraxen:&lt;item_id&gt;" and
+     * generates assets/minecraft/items/&lt;material&gt;.json with minecraft:select.
+     */
+    public static boolean isModelDataIdsEnabled() {
+        // Check new key first
+        Boolean newKey = toBoolOrNull(Settings.APPEARANCE_MODEL_DATA_IDS);
+        if (newKey != null) {
+            return newKey;
+        }
+
+        // Backward compatibility: check deprecated mode key
+        String modeRaw = nullSafeTrim(Settings.APPEARANCE_MODE.toString());
+        if (!modeRaw.isEmpty()) {
+            return parseModeContains(modeRaw, "MODEL_DATA_IDS", "MODEL_DATA_ID", "CMD_IDS", "CMD_ID", "STRINGS", "CMD_STRINGS", "MODEL_DATA");
+        }
+
+        // Legacy boolean fallback (predicates=true with new system means MODEL_DATA_IDS)
+        // But only if item_model is false, otherwise default to false
+        if (!Settings.APPEARANCE_ITEM_MODEL.toBool() && Settings.APPEARANCE_PREDICATES.toBool()) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Whether MODEL_DATA_FLOAT_LEGACY mode is enabled.
+     * Uses custom_model_data.floats[0] and generates assets/minecraft/items/&lt;material&gt;.json
+     * with minecraft:range_dispatch. Also generates legacy predicate overrides and sets integer CMD.
+     */
+    public static boolean isModelDataFloatLegacyEnabled() {
+        // Check new key first
+        Boolean newKey = toBoolOrNull(Settings.APPEARANCE_MODEL_DATA_FLOAT_LEGACY);
+        if (newKey != null) {
+            return newKey;
+        }
+
+        // Backward compatibility: check deprecated mode key
+        String modeRaw = nullSafeTrim(Settings.APPEARANCE_MODE.toString());
+        if (!modeRaw.isEmpty()) {
+            return parseModeContains(modeRaw, "MODEL_DATA_FLOAT_LEGACY", "MODEL_DATA_FLOAT", "MODEL_DATA_FLOATS",
+                    "FLOAT", "FLOATS", "RANGE_DISPATCH", "LEGACY_FLOAT");
+        }
+
+        // Legacy: force_predicates=true meant legacy float mode
+        if (Settings.APPEARANCE_FORCE_PREDICATES.toBool()) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Validates the appearance configuration and logs warnings for conflicts.
+     * Should be called during plugin initialization.
+     */
+    public static void validateAndLogWarnings() {
+        boolean modelDataIds = isModelDataIdsEnabled();
+        boolean modelDataFloat = isModelDataFloatLegacyEnabled();
+
+        if (modelDataIds && modelDataFloat) {
+            Logs.logWarning("Both model_data_ids and model_data_float_legacy are enabled. " +
+                    "They write to the same pack file (assets/minecraft/items/*.json). " +
+                    "model_data_ids will take priority; model_data_float_legacy is ignored for pack generation.");
+        }
+
+        if (!isItemPropertiesEnabled() && !modelDataIds && !modelDataFloat) {
+            Logs.logWarning("No appearance system is enabled in settings.yml. " +
+                    "Items will not have custom models on 1.21.4+. " +
+                    "Enable at least one of: item_properties, model_data_ids, or model_data_float_legacy");
+        }
+    }
+
+    /**
+     * For MODEL_DATA_IDS vs MODEL_DATA_FLOAT_LEGACY pack generation.
+     * Returns true if we should generate minecraft:select (strings), false for minecraft:range_dispatch (floats).
+     * MODEL_DATA_IDS takes priority if both are enabled.
+     */
+    public static boolean shouldUseSelectForVanillaItemDefs() {
+        return isModelDataIdsEnabled();
+    }
+
+    /**
+     * Whether to generate vanilla item definitions (assets/minecraft/items/*.json).
+     * True if either MODEL_DATA_IDS or MODEL_DATA_FLOAT_LEGACY is enabled.
+     */
+    public static boolean shouldGenerateVanillaItemDefinitions() {
+        return isModelDataIdsEnabled() || isModelDataFloatLegacyEnabled();
+    }
+
+    /**
+     * Whether to generate legacy predicate overrides (assets/minecraft/models/item/*.json)
+     * and set integer CustomModelData on items.
+     * This is always true when MODEL_DATA_FLOAT_LEGACY is enabled.
+     */
+    public static boolean shouldGenerateLegacyPredicates() {
+        return isModelDataFloatLegacyEnabled();
+    }
+
+    // =========================================================================
+    // Internal helpers
+    // =========================================================================
+
+    private static Boolean toBoolOrNull(Settings setting) {
+        String raw = nullSafeTrim(setting.toString());
+        if (raw.isEmpty()) {
+            return null;
+        }
+        return "true".equalsIgnoreCase(raw) || "yes".equalsIgnoreCase(raw) || "1".equals(raw);
+    }
+
+    private static boolean parseModeContains(String modeRaw, String... aliases) {
+        String normalized = modeRaw.toUpperCase(Locale.ROOT)
                 .replace('-', '_')
                 .replace(' ', '_');
-
-        // Friendly aliases
-        return switch (normalized) {
-            case "ITEM_MODEL", "ITEM_PROPERTIES", "ITEM_PROPERTY", "ITEM" -> ITEM_PROPERTIES;
-            case "MODEL_DATA", "MODEL_DATA_IDS", "MODEL_DATA_ID", "CMD_IDS", "CMD_ID", "STRINGS", "CMD_STRINGS" ->
-                    MODEL_DATA_IDS;
-            case "MODEL_DATA_FLOAT", "MODEL_DATA_FLOATS", "FLOAT", "FLOATS", "RANGE_DISPATCH", "LEGACY_FLOAT",
-                 "MODEL_DATA_FLOAT_LEGACY" -> MODEL_DATA_FLOAT_LEGACY;
-            default -> {
-                try {
-                    yield AppearanceMode.valueOf(normalized);
-                } catch (IllegalArgumentException ignored) {
-                    yield ITEM_PROPERTIES;
-                }
+        for (String alias : aliases) {
+            if (normalized.equals(alias)) {
+                return true;
             }
-        };
+        }
+        return false;
     }
 
     private static String nullSafeTrim(String s) {
         return s == null ? "" : s.trim();
     }
 }
-

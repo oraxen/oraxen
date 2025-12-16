@@ -597,20 +597,19 @@ public class ItemParser {
     }
 
     private void applyAppearanceComponents(ItemBuilder item) {
-        final AppearanceMode mode = AppearanceMode.fromSettings();
         final boolean is1_21_4Plus = VersionUtil.atOrAbove("1.21.4");
-        final boolean forcePredicates = Settings.APPEARANCE_FORCE_PREDICATES.toBool();
 
         if (is1_21_4Plus) {
-            // 1.21.4+ applies the selected appearance mode
-            switch (mode) {
-                case ITEM_PROPERTIES -> applyItemModelComponent(item);
-                case MODEL_DATA_IDS -> applyModelDataIds(item);
-                case MODEL_DATA_FLOAT_LEGACY -> applyModelDataFloatLegacy(item);
+            // 1.21.4+ can combine multiple appearance systems
+            if (AppearanceMode.isItemPropertiesEnabled()) {
+                applyItemModelComponent(item);
             }
-
-            // Force legacy predicates: also apply integer CustomModelData for external tools
-            if (forcePredicates) {
+            if (AppearanceMode.isModelDataIdsEnabled()) {
+                applyModelDataIds(item);
+            }
+            if (AppearanceMode.isModelDataFloatLegacyEnabled()) {
+                // MODEL_DATA_FLOAT_LEGACY sets floats[0] AND legacy integer CMD + predicates
+                applyModelDataFloatLegacy(item);
                 applyLegacyCustomModelData(item);
             }
         } else {
