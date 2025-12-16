@@ -8,7 +8,6 @@ import io.th0rgal.oraxen.utils.VersionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -197,7 +196,7 @@ public class SpearLungeMechanicListener implements Listener {
         Vector direction = player.getLocation().getDirection();
         applyLungeMovement(player, mechanic, direction, chargePercent);
 
-        List<LivingEntity> targets = findTargetsInCone(player, mechanic, direction);
+        List<LivingEntity> targets = findTargetsAlongRay(player, mechanic, direction);
         int maxTargets = mechanic.getMaxTargets();
 
         for (int i = 0; i < Math.min(targets.size(), maxTargets); i++) {
@@ -224,58 +223,59 @@ public class SpearLungeMechanicListener implements Listener {
         }
     }
 
-    private List<LivingEntity> findTargetsInCone(Player player, SpearLungeMechanic mechanic, Vector direction) {
+    /**
+     * Finds lunge targets using a narrow ray trace (constant width).
+     * <p>
+     * This avoids the previous "cone" behavior where the hit area grows with distance,
+     * which could make hits land far off-center at long range.
+     */
+    private List<LivingEntity> findTargetsAlongRay(Player player, SpearLungeMechanic mechanic, Vector direction) {
         double range = mechanic.getMaxRange();
+        double raySize = mechanic.getHitboxRadius();
         Location eyeLocation = player.getEyeLocation();
         Vector lookDirection = direction.clone().normalize();
 
         List<LivingEntity> targets = new ArrayList<>();
 
-        // Raytrace for direct hits
-        RayTraceResult rayResult = player.getWorld().rayTraceEntities(
-                eyeLocation, lookDirection, range, 0.5,
-                entity -> entity instanceof LivingEntity && entity != player && !entity.isDead());
+        Location start = eyeLocation.clone();
+        double remainingDistance = range;
 
-        if (rayResult != null && rayResult.getHitEntity() instanceof LivingEntity hitEntity) {
-            targets.add(hitEntity);
-        }
+        // Iterate ray traces to support hitting multiple entities along the lunge path.
+        // Hard-cap iterations to avoid any edge-case infinite loops.
+        int maxIterations = Math.max(1, mechanic.getMaxTargets() * 4);
+        for (int i = 0; i < maxIterations && targets.size() < mechanic.getMaxTargets() && remainingDistance > 0.0; i++) {
+            RayTraceResult rayResult = player.getWorld().rayTraceEntities(
+                    start, lookDirection, remainingDistance, raySize,
+                    entity -> entity instanceof LivingEntity
+                            && entity != player
+                            && !entity.isDead()
+                            && !targets.contains(entity));
 
-        // Cone check for additional targets
-        for (Entity entity : player.getNearbyEntities(range + 1, range + 1, range + 1)) {
-            if (!(entity instanceof LivingEntity target) || entity == player || entity.isDead())
-                continue;
-            if (targets.contains(target))
-                continue;
-            if (isInAttackCone(target, eyeLocation, lookDirection, range)) {
-                targets.add(target);
+            if (rayResult == null || !(rayResult.getHitEntity() instanceof LivingEntity hitEntity)) {
+                break;
             }
+
+            targets.add(hitEntity);
+
+            Vector hitPos = rayResult.getHitPosition();
+            if (hitPos == null) {
+                break;
+            }
+
+            // Advance start slightly past the hit so we can find additional targets.
+            double travelled = eyeLocation.toVector().distance(hitPos);
+            remainingDistance = range - travelled;
+            start = hitPos.toLocation(player.getWorld()).add(lookDirection.clone().multiply(0.01));
         }
 
-        targets.sort(Comparator.comparingDouble(e -> eyeLocation.distanceSquared(e.getLocation())));
         return targets;
-    }
-
-    private boolean isInAttackCone(LivingEntity target, Location eyeLocation, Vector lookDirection, double range) {
-        Location entityCenter = target.getLocation().add(0, target.getHeight() / 2, 0);
-        double distance = eyeLocation.distance(entityCenter);
-
-        if (distance > range + 1.5)
-            return false;
-
-        Vector toEntity = entityCenter.toVector().subtract(eyeLocation.toVector());
-        if (toEntity.lengthSquared() < 0.01)
-            return false;
-
-        toEntity.normalize();
-        double dot = lookDirection.dot(toEntity);
-        return dot > 0.5; // ~60 degree cone
     }
 
     private void applyDamageToTarget(Player player, SpearLungeMechanic mechanic, LivingEntity target,
             Vector direction, double chargePercent) {
         intentionalDamageTargets.add(target.getUniqueId());
 
-        double damage = mechanic.getDamage() * chargePercent;
+        double damage = mechanic.getMinDamage() + ((mechanic.getDamage() - mechanic.getMinDamage()) * chargePercent);
         target.damage(damage, player);
 
         // Note: intentionalDamageTargets is cleared in onEntityDamage after allowing

@@ -4,7 +4,6 @@ import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.events.OraxenPackGeneratedEvent;
 import io.th0rgal.oraxen.config.AppearanceMode;
-import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.ConfigProperty;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
@@ -43,6 +42,33 @@ public class SpearLungeMechanicFactory extends MechanicFactory implements Listen
 
     @ConfigProperty(type = PropertyType.DOUBLE, description = "Base damage dealt during lunge", defaultValue = "6.0", min = 0.0)
     public static final String PROP_DAMAGE = "damage";
+
+    @ConfigProperty(type = PropertyType.DOUBLE, description = "Minimum damage dealt during lunge (at 0% charge)", defaultValue = "0.0", min = 0.0)
+    public static final String PROP_MIN_DAMAGE = "min_damage";
+
+    @ConfigProperty(type = PropertyType.DOUBLE, description = "Knockback applied to targets hit by the lunge", defaultValue = "0.5", min = 0.0)
+    public static final String PROP_KNOCKBACK = "knockback";
+
+    @ConfigProperty(type = PropertyType.DOUBLE, description = "Hitbox radius for lunge hit detection (higher = easier to hit off-center)", defaultValue = "0.5", min = 0.0, max = 5.0)
+    public static final String PROP_HITBOX_RADIUS = "hitbox_radius";
+
+    @ConfigProperty(type = PropertyType.INTEGER, description = "Maximum number of entities hit per lunge", defaultValue = "1", min = 1)
+    public static final String PROP_MAX_TARGETS = "max_targets";
+
+    @ConfigProperty(type = PropertyType.DOUBLE, description = "Minimum charge percentage required to attack (0-1)", defaultValue = "0.3", min = 0.0, max = 1.0)
+    public static final String PROP_MIN_CHARGE_PERCENT = "min_charge_percent";
+
+    @ConfigProperty(type = PropertyType.DOUBLE, description = "Movement slowdown while charging (0-1)", defaultValue = "0.4", min = 0.0, max = 1.0)
+    public static final String PROP_CHARGE_SLOWDOWN = "charge_slowdown";
+
+    @ConfigProperty(type = PropertyType.INTEGER, description = "Maximum time to hold charge (ticks) before cancelling", defaultValue = "60", min = 1)
+    public static final String PROP_MAX_HOLD_TICKS = "max_hold_ticks";
+
+    @ConfigProperty(type = PropertyType.INTEGER, description = "Number of intermediate animation frames used during charge", defaultValue = "0", min = 0)
+    public static final String PROP_SMOOTH_FRAMES = "smooth_frames";
+
+    @ConfigProperty(type = PropertyType.LIST, description = "List of intermediate model paths for smooth charge animation")
+    public static final String PROP_INTERMEDIATE_MODELS = "intermediate_models";
 
     private static SpearLungeMechanicFactory instance;
     private final List<SpearLungeMechanic> registeredMechanics = new ArrayList<>();

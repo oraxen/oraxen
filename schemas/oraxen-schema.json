@@ -7004,6 +7004,61 @@
           "description": "Base damage dealt during lunge",
           "default": 6.0,
           "min": 0.0
+        },
+        "min_damage": {
+          "type": "number",
+          "description": "Minimum damage dealt during lunge (at 0% charge)",
+          "default": 0.0,
+          "min": 0.0
+        },
+        "knockback": {
+          "type": "number",
+          "description": "Knockback applied to targets hit by the lunge",
+          "default": 0.5,
+          "min": 0.0
+        },
+        "hitbox_radius": {
+          "type": "number",
+          "description": "Hitbox radius for lunge hit detection (higher = easier to hit off-center)",
+          "default": 0.5,
+          "min": 0.0,
+          "max": 5.0
+        },
+        "max_targets": {
+          "type": "integer",
+          "description": "Maximum number of entities hit per lunge",
+          "default": 1,
+          "min": 1.0
+        },
+        "min_charge_percent": {
+          "type": "number",
+          "description": "Minimum charge percentage required to attack (0-1)",
+          "default": 0.3,
+          "min": 0.0,
+          "max": 1.0
+        },
+        "charge_slowdown": {
+          "type": "number",
+          "description": "Movement slowdown while charging (0-1)",
+          "default": 0.4,
+          "min": 0.0,
+          "max": 1.0
+        },
+        "max_hold_ticks": {
+          "type": "integer",
+          "description": "Maximum time to hold charge (ticks) before cancelling",
+          "default": 60,
+          "min": 1.0
+        },
+        "smooth_frames": {
+          "type": "integer",
+          "description": "Number of intermediate animation frames used during charge",
+          "default": 0,
+          "min": 0.0
+        },
+        "intermediate_models": {
+          "type": "array",
+          "description": "List of intermediate model paths for smooth charge animation"
         }
       }
     },
