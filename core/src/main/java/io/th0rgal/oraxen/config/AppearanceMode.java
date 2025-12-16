@@ -187,7 +187,16 @@ public final class AppearanceMode {
     // =========================================================================
 
     private static Boolean toBoolOrNull(Settings setting) {
-        String raw = nullSafeTrim(setting.toString());
+        Object value = setting.getValue();
+        if (value == null) {
+            return null;
+        }
+        // Handle boolean values directly from YAML (true/false)
+        if (value instanceof Boolean) {
+            return (Boolean) value;
+        }
+        // Handle string values ("true", "false", "yes", "no", etc.)
+        String raw = nullSafeTrim(value.toString());
         if (raw.isEmpty()) {
             return null;
         }
