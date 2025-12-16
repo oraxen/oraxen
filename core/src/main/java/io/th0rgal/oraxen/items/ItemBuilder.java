@@ -76,6 +76,18 @@ public class ItemBuilder {
     private Multimap<Attribute, AttributeModifier> attributeModifiers;
     @Nullable
     private Integer customModelData;
+    /**
+     * 1.21.4+ Custom Model Data component strings.
+     * Used by modern item definitions via {@code minecraft:select} on {@code minecraft:custom_model_data}.
+     */
+    @Nullable
+    private List<String> customModelDataStrings;
+    /**
+     * 1.21.4+ Custom Model Data component floats.
+     * Used by modern item definitions via {@code minecraft:range_dispatch} on {@code minecraft:custom_model_data}.
+     */
+    @Nullable
+    private List<Float> customModelDataFloats;
     private List<String> lore;
     private ItemStack finalItemStack;
 
@@ -201,6 +213,25 @@ public class ItemBuilder {
             attributeModifiers = itemMeta.getAttributeModifiers();
 
         customModelData = itemMeta.hasCustomModelData() ? itemMeta.getCustomModelData() : null;
+
+        // 1.21.4+: capture custom_model_data component data if present (best-effort)
+        if (VersionUtil.atOrAbove("1.21.4")) {
+            try {
+                CustomModelDataComponent cmd = itemMeta.getCustomModelDataComponent();
+                if (cmd != null) {
+                    if (cmd.getStrings() != null && !cmd.getStrings().isEmpty()) {
+                        customModelDataStrings = new ArrayList<>(cmd.getStrings());
+                    }
+                    if (cmd.getFloats() != null && !cmd.getFloats().isEmpty()) {
+                        customModelDataFloats = new ArrayList<>(cmd.getFloats());
+                    }
+                }
+            } catch (NoSuchMethodError ignored) {
+                // Running on an API/server without the component accessors
+            } catch (Throwable ignored) {
+                // Be resilient across forks/versions
+            }
+        }
 
         if (itemMeta.hasLore()) {
             if (VersionUtil.isPaperServer())
@@ -693,6 +724,24 @@ public class ItemBuilder {
         return this;
     }
 
+    /**
+     * Sets the 1.21.4+ custom_model_data strings list (used by minecraft:select).
+     * Passing {@code null} clears the strings.
+     */
+    public ItemBuilder setCustomModelDataStrings(@Nullable final List<String> strings) {
+        this.customModelDataStrings = strings != null ? new ArrayList<>(strings) : null;
+        return this;
+    }
+
+    /**
+     * Sets the 1.21.4+ custom_model_data floats list (used by minecraft:range_dispatch).
+     * Passing {@code null} clears the floats.
+     */
+    public ItemBuilder setCustomModelDataFloats(@Nullable final List<Float> floats) {
+        this.customModelDataFloats = floats != null ? new ArrayList<>(floats) : null;
+        return this;
+    }
+
     public ItemBuilder addItemFlags(final ItemFlag... itemFlags) {
         if (this.itemFlags == null)
             this.itemFlags = EnumSet.noneOf(ItemFlag.class); // Use EnumSet for better performance
@@ -889,6 +938,26 @@ public class ItemBuilder {
         }
 
         itemMeta.setCustomModelData(customModelData);
+
+        // 1.21.4+: apply custom_model_data component data for modern item definitions.
+        if (VersionUtil.atOrAbove("1.21.4") && (customModelDataStrings != null || customModelDataFloats != null)) {
+            try {
+                CustomModelDataComponent cmd = itemMeta.getCustomModelDataComponent();
+                if (cmd != null) {
+                    if (customModelDataStrings != null) {
+                        cmd.setStrings(new ArrayList<>(customModelDataStrings));
+                    }
+                    if (customModelDataFloats != null) {
+                        cmd.setFloats(new ArrayList<>(customModelDataFloats));
+                    }
+                    itemMeta.setCustomModelDataComponent(cmd);
+                }
+            } catch (NoSuchMethodError ignored) {
+                // Server/API doesn't support this component accessor
+            } catch (Throwable ignored) {
+                // Be resilient across forks/versions
+            }
+        }
 
         if (!persistentDataMap.isEmpty())
             for (final Map.Entry<PersistentDataSpace, Object> dataSpace : persistentDataMap.entrySet())

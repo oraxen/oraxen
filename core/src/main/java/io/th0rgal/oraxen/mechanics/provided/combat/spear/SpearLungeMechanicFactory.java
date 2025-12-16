@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.combat.spear;
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.events.OraxenPackGeneratedEvent;
+import io.th0rgal.oraxen.config.AppearanceMode;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.ConfigProperty;
 import io.th0rgal.oraxen.mechanics.Mechanic;
@@ -63,7 +64,8 @@ public class SpearLungeMechanicFactory extends MechanicFactory implements Listen
 
     @EventHandler
     public void onPackGeneration(OraxenPackGeneratedEvent event) {
-        if (!VersionUtil.atOrAbove("1.21.4") || !Settings.APPEARANCE_ITEM_MODEL.toBool()) {
+        // Spear lunge only uses item model definitions when the appearance mode is ITEM_PROPERTIES on 1.21.4+
+        if (!VersionUtil.atOrAbove("1.21.4") || AppearanceMode.fromSettings() != AppearanceMode.ITEM_PROPERTIES) {
             return;
         }
 

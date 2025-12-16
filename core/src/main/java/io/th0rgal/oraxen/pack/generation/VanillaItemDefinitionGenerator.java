@@ -2,6 +2,8 @@ package io.th0rgal.oraxen.pack.generation;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.config.AppearanceMode;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenMeta;
 import org.bukkit.Material;
@@ -13,19 +15,17 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Generates vanilla item model definitions (assets/minecraft/items/*.json) for
- * 1.21.4+.
+ * Generates vanilla item model definitions (assets/minecraft/items/*.json) for 1.21.4+.
  * <p>
- * These files use the modern item model definition format with
- * {@code range_dispatch}
- * for CustomModelData switching, replacing the legacy predicate overrides
- * system.
+ * Supports two modes via {@link AppearanceMode}:
+ * <ul>
+ *   <li>{@link AppearanceMode#MODEL_DATA_IDS} — uses {@code minecraft:select} on {@code custom_model_data.strings[0]}
+ *       with Oraxen item ids as discrete keys</li>
+ *   <li>{@link AppearanceMode#MODEL_DATA_FLOAT_LEGACY} — uses {@code minecraft:range_dispatch} on
+ *       {@code custom_model_data.floats[0]} with numeric thresholds (legacy style)</li>
+ * </ul>
  * <p>
- * Structure: The item definition dispatches based on custom_model_data values
- * to select
- * the appropriate model, with special handling for items that have state-based
- * models
- * (bow pulling, crossbow charged, shield blocking, fishing rod cast).
+ * Special handling for state-based models is included (bow pulling, crossbow charged, shield blocking, fishing rod cast).
  */
 public class VanillaItemDefinitionGenerator {
 
@@ -41,25 +41,41 @@ public class VanillaItemDefinitionGenerator {
     // Default tint color (white)
     private static final int DEFAULT_TINT_COLOR = 16578808;
 
+    /**
+     * Index into {@code minecraft:custom_model_data.strings} (for MODEL_DATA_IDS)
+     * or {@code minecraft:custom_model_data.floats} (for MODEL_DATA_FLOAT_LEGACY).
+     */
+    private static final int CUSTOM_MODEL_DATA_INDEX = 0;
+
     private final Material material;
     private final List<ItemBuilder> items;
     private final PredicatesGenerator predicatesHelper;
+    private final AppearanceMode mode;
 
-    public VanillaItemDefinitionGenerator(@NotNull Material material, @NotNull List<ItemBuilder> items) {
+    public VanillaItemDefinitionGenerator(@NotNull Material material, @NotNull List<ItemBuilder> items, @NotNull AppearanceMode mode) {
         this.material = material;
         this.items = new ArrayList<>(items);
         this.predicatesHelper = new PredicatesGenerator(material, items);
+        this.mode = mode;
 
-        // Sort items by CustomModelData for consistent ordering
-        this.items.sort(Comparator.comparingInt(item -> {
-            OraxenMeta meta = item.getOraxenMeta();
-            return meta != null && meta.getCustomModelData() != null ? meta.getCustomModelData() : Integer.MAX_VALUE;
-        }));
+        // Sort items based on mode:
+        // - MODEL_DATA_IDS: alphabetically by Oraxen item id
+        // - MODEL_DATA_FLOAT_LEGACY: by numeric CustomModelData value
+        if (mode == AppearanceMode.MODEL_DATA_FLOAT_LEGACY) {
+            this.items.sort(Comparator.comparingInt(item -> {
+                OraxenMeta meta = item.getOraxenMeta();
+                return meta != null && meta.getCustomModelData() != null ? meta.getCustomModelData() : Integer.MAX_VALUE;
+            }));
+        } else {
+            this.items.sort(Comparator.comparing(item -> {
+                String id = OraxenItems.getIdByItem(item);
+                return id != null ? id : "";
+            }));
+        }
     }
 
     /**
-     * Returns the file path for this item definition (e.g., "map" for
-     * Material.MAP).
+     * Returns the file name for this item definition (e.g., "paper.json" for Material.PAPER).
      */
     public String getFileName() {
         return material.name().toLowerCase(Locale.ROOT) + ".json";
@@ -71,11 +87,15 @@ public class VanillaItemDefinitionGenerator {
     public JsonObject toJSON() {
         JsonObject root = new JsonObject();
 
-        // Build the base vanilla model reference
+        // Build the base vanilla model reference (with state handling for special items)
         JsonObject vanillaModel = createVanillaModelReference();
 
-        // Build the CMD range_dispatch with all custom items
-        JsonObject itemModel = createCmdRangeDispatch(vanillaModel);
+        // Build the CMD dispatcher (select or range_dispatch) with all custom items
+        JsonObject itemModel = switch (mode) {
+            case MODEL_DATA_IDS -> createCmdSelect(vanillaModel);
+            case MODEL_DATA_FLOAT_LEGACY -> createCmdRangeDispatch(vanillaModel);
+            default -> vanillaModel; // ITEM_PROPERTIES does not use vanilla item definitions
+        };
 
         root.add("model", itemModel);
         return root;
@@ -109,11 +129,68 @@ public class VanillaItemDefinitionGenerator {
         };
     }
 
+    // =====================================================================
+    // MODEL_DATA_IDS: minecraft:select on custom_model_data.strings
+    // =====================================================================
+
     /**
-     * Creates a range_dispatch model that switches based on custom_model_data.
+     * Creates a {@code minecraft:select} model that switches based on {@code custom_model_data.strings[index]}.
+     */
+    private JsonObject createCmdSelect(JsonObject fallbackModel) {
+        List<SelectCaseEntry> selectCases = new ArrayList<>();
+        for (ItemBuilder item : items) {
+            OraxenMeta meta = item.getOraxenMeta();
+            if (meta == null || !meta.hasPackInfos())
+                continue;
+
+            final String id = OraxenItems.getIdByItem(item);
+            if (id == null || id.isBlank())
+                continue;
+
+            final String when = toOraxenCustomModelDataKey(id);
+            JsonObject itemModel = createItemModel(meta);
+            selectCases.add(new SelectCaseEntry(when, itemModel));
+        }
+
+        if (selectCases.isEmpty()) {
+            return fallbackModel;
+        }
+
+        selectCases.sort(Comparator.comparing(SelectCaseEntry::when));
+
+        JsonObject select = new JsonObject();
+        select.addProperty("type", "minecraft:select");
+        select.addProperty("property", "minecraft:custom_model_data");
+        select.addProperty("index", CUSTOM_MODEL_DATA_INDEX);
+
+        JsonArray cases = new JsonArray();
+        for (SelectCaseEntry entry : selectCases) {
+            JsonObject caseObj = new JsonObject();
+            caseObj.addProperty("when", entry.when);
+            caseObj.add("model", entry.model);
+            cases.add(caseObj);
+        }
+        select.add("cases", cases);
+        select.add("fallback", fallbackModel);
+
+        return select;
+    }
+
+    private static String toOraxenCustomModelDataKey(@NotNull String itemId) {
+        // Use a stable, low-collision key for custom_model_data.strings[0].
+        // Matches the NamespacedKey format used by minecraft:item_model (e.g. "oraxen:my_item").
+        return "oraxen:" + itemId;
+    }
+
+    // =====================================================================
+    // MODEL_DATA_FLOAT_LEGACY: minecraft:range_dispatch on custom_model_data.floats
+    // =====================================================================
+
+    /**
+     * Creates a {@code minecraft:range_dispatch} model that switches based on
+     * {@code custom_model_data.floats[index]} using numeric thresholds.
      */
     private JsonObject createCmdRangeDispatch(JsonObject fallbackModel) {
-        // Collect all items with valid CMD values
         List<CmdEntry> cmdEntries = new ArrayList<>();
         for (ItemBuilder item : items) {
             OraxenMeta meta = item.getOraxenMeta();
@@ -127,18 +204,17 @@ public class VanillaItemDefinitionGenerator {
             cmdEntries.add(new CmdEntry(cmd, itemModel));
         }
 
-        // If no CMD entries, just return the vanilla model
         if (cmdEntries.isEmpty()) {
             return fallbackModel;
         }
 
-        // Build the range_dispatch
+        // Sort by CMD value ascending
+        cmdEntries.sort(Comparator.comparingInt(CmdEntry::cmd));
+
         JsonObject rangeDispatch = new JsonObject();
         rangeDispatch.addProperty("type", "minecraft:range_dispatch");
         rangeDispatch.addProperty("property", "minecraft:custom_model_data");
-        // CustomModelData is an int-array in the item model system; use index 0 by
-        // default
-        rangeDispatch.addProperty("index", 0);
+        rangeDispatch.addProperty("index", CUSTOM_MODEL_DATA_INDEX);
 
         JsonArray entries = new JsonArray();
         for (CmdEntry entry : cmdEntries) {
@@ -153,9 +229,12 @@ public class VanillaItemDefinitionGenerator {
         return rangeDispatch;
     }
 
+    // =====================================================================
+    // Common Item Model Creation
+    // =====================================================================
+
     /**
-     * Creates the model object for a custom Oraxen item, including any state
-     * handling.
+     * Creates the model object for a custom Oraxen item, including any state handling.
      */
     private JsonObject createItemModel(OraxenMeta meta) {
         JsonObject baseModel = createModelObject(meta.getModelName());
@@ -190,7 +269,6 @@ public class VanillaItemDefinitionGenerator {
         conditionModel.addProperty("property", "minecraft:using_item");
         conditionModel.add("on_false", baseModel);
 
-        // on_true: range_dispatch for pulling states
         JsonObject rangeDispatch = new JsonObject();
         rangeDispatch.addProperty("type", "minecraft:range_dispatch");
         rangeDispatch.addProperty("property", "minecraft:use_duration");
@@ -215,7 +293,6 @@ public class VanillaItemDefinitionGenerator {
     }
 
     private JsonObject createVanillaCrossbowModel(JsonObject baseModel, String vanillaModelPath) {
-        // Build charged model selection
         JsonObject selectModel = new JsonObject();
         selectModel.addProperty("type", "minecraft:select");
         selectModel.addProperty("property", "minecraft:charge_type");
@@ -234,13 +311,11 @@ public class VanillaItemDefinitionGenerator {
         selectModel.add("cases", cases);
         selectModel.add("fallback", baseModel);
 
-        // Wrap with pulling condition
         JsonObject pullingCondition = new JsonObject();
         pullingCondition.addProperty("type", "minecraft:condition");
         pullingCondition.addProperty("property", "minecraft:using_item");
         pullingCondition.add("on_false", selectModel);
 
-        // on_true: range_dispatch for pulling states
         JsonObject rangeDispatch = new JsonObject();
         rangeDispatch.addProperty("type", "minecraft:range_dispatch");
         rangeDispatch.addProperty("property", "minecraft:crossbow/pull");
@@ -282,7 +357,7 @@ public class VanillaItemDefinitionGenerator {
     }
 
     // =====================================================================
-    // Custom Item State-Based Models (from ModelDefinitionGenerator)
+    // Custom Item State-Based Models
     // =====================================================================
 
     private JsonObject createBowPullingModel(JsonObject baseModel, OraxenMeta meta) {
@@ -448,7 +523,13 @@ public class VanillaItemDefinitionGenerator {
     }
 
     /**
-     * Helper record to store CMD value and its associated model.
+     * Helper record for select cases (MODEL_DATA_IDS mode).
+     */
+    private record SelectCaseEntry(String when, JsonObject model) {
+    }
+
+    /**
+     * Helper record for range_dispatch entries (MODEL_DATA_FLOAT_LEGACY mode).
      */
     private record CmdEntry(int cmd, JsonObject model) {
     }

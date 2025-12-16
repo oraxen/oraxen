@@ -4,6 +4,7 @@ import com.google.gson.*;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.api.events.OraxenPackGeneratedEvent;
+import io.th0rgal.oraxen.config.AppearanceMode;
 import io.th0rgal.oraxen.config.ResourcesManager;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.font.AnimatedGlyph;
@@ -100,38 +101,37 @@ public class ResourcePack {
         // Sorting items to keep only one with models (and generate it if needed)
         final Map<Material, Map<String, ItemBuilder>> texturedItems = extractTexturedItems();
 
-        // Dual appearance system: determine which systems to use
-        boolean useItemModel = VersionUtil.atOrAbove("1.21.4") && Settings.APPEARANCE_ITEM_MODEL.toBool();
-        boolean usePredicates = Settings.APPEARANCE_PREDICATES.toBool() || !VersionUtil.atOrAbove("1.21.4");
+        // Appearance system: use AppearanceMode to determine what pack files + item components to generate.
+        // Pre-1.21.4 ALWAYS uses legacy predicates; 1.21.4+ uses the selected mode.
+        final AppearanceMode mode = AppearanceMode.fromSettings();
+        final boolean is1_21_4Plus = VersionUtil.atOrAbove("1.21.4");
+        final boolean forcePredicates = Settings.APPEARANCE_FORCE_PREDICATES.toBool();
 
-        if (VersionUtil.atOrAbove("1.21.4") && useItemModel && Settings.APPEARANCE_PREDICATES.toBool()) {
-            Logs.logWarning("Both Pack.generation.appearance.item_model and predicates are enabled on 1.21.4+. "
-                    + "Oraxen will generate both the modern vanilla item definitions (assets/minecraft/items/*.json) "
-                    + "and the legacy base item model overrides (assets/minecraft/models/item/*.json). "
-                    + "If you run into compatibility issues, disable one of the two systems or use "
-                    + "exclude_from_item_model / excludeFromPredicates per item.", true);
-        }
+        if (is1_21_4Plus) {
+            // 1.21.4+ pack generation based on appearance mode
+            switch (mode) {
+                case ITEM_PROPERTIES -> {
+                    // Generate assets/oraxen/items/<item_id>.json (item model definitions)
+                    generateModelDefinitions(filterForItemModel(texturedItems));
+                }
+                case MODEL_DATA_IDS -> {
+                    // Generate assets/minecraft/items/<material>.json using minecraft:select on custom_model_data.strings
+                    generateVanillaItemDefinitions(filterForPredicates(texturedItems), AppearanceMode.MODEL_DATA_IDS);
+                }
+                case MODEL_DATA_FLOAT_LEGACY -> {
+                    // Generate assets/minecraft/items/<material>.json using minecraft:range_dispatch on custom_model_data.floats
+                    generateVanillaItemDefinitions(filterForPredicates(texturedItems), AppearanceMode.MODEL_DATA_FLOAT_LEGACY);
+                }
+            }
 
-        if (useItemModel) {
-            generateModelDefinitions(filterForItemModel(texturedItems));
-        }
-        if (usePredicates) {
-            // On 1.21.4+, Minecraft supports both:
-            // - vanilla item definitions (assets/minecraft/items/*.json) using
-            // range_dispatch on custom_model_data
-            // - legacy base item model overrides (assets/minecraft/models/item/*.json)
-            // using predicate overrides
-            //
-            // We generate BOTH when predicates are enabled for maximum compatibility with
-            // external tools/plugins
-            // that still rely on the legacy override format (e.g. pack viewers / CMD
-            // mappers).
-            if (VersionUtil.atOrAbove("1.21.4")) {
-                generateVanillaItemDefinitions(filterForPredicates(texturedItems));
-                generatePredicates(filterForPredicates(texturedItems));
-            } else {
+            // Optionally force legacy predicate overrides for compatibility with external tools
+            if (forcePredicates) {
+                Logs.logInfo("Force-generating legacy predicate overrides (Pack.generation.appearance.force_predicates=true)");
                 generatePredicates(filterForPredicates(texturedItems));
             }
+        } else {
+            // Pre-1.21.4: Always generate legacy predicate overrides (the only option available)
+            generatePredicates(filterForPredicates(texturedItems));
         }
 
         generateFont();
@@ -568,18 +568,20 @@ public class ResourcePack {
     }
 
     /**
-     * Generates vanilla item model definitions (assets/minecraft/items/*.json) for
-     * 1.21.4+.
-     * These use range_dispatch with custom_model_data property to switch between
-     * models,
-     * which is the modern replacement for legacy predicate overrides.
+     * Generates vanilla item model definitions (assets/minecraft/items/*.json) for 1.21.4+.
+     * <p>
+     * Supports two modes:
+     * <ul>
+     *   <li>{@link AppearanceMode#MODEL_DATA_IDS} — generates {@code minecraft:select} on {@code custom_model_data.strings[0]}</li>
+     *   <li>{@link AppearanceMode#MODEL_DATA_FLOAT_LEGACY} — generates {@code minecraft:range_dispatch} on {@code custom_model_data.floats[0]}</li>
+     * </ul>
      */
-    private void generateVanillaItemDefinitions(final Map<Material, Map<String, ItemBuilder>> texturedItems) {
+    private void generateVanillaItemDefinitions(final Map<Material, Map<String, ItemBuilder>> texturedItems, AppearanceMode mode) {
         for (final Map.Entry<Material, Map<String, ItemBuilder>> texturedItemsEntry : texturedItems.entrySet()) {
             final Material material = texturedItemsEntry.getKey();
             final List<ItemBuilder> items = new ArrayList<>(texturedItemsEntry.getValue().values());
 
-            final VanillaItemDefinitionGenerator generator = new VanillaItemDefinitionGenerator(material, items);
+            final VanillaItemDefinitionGenerator generator = new VanillaItemDefinitionGenerator(material, items, mode);
             writeStringToVirtual("assets/minecraft/items", generator.getFileName(),
                     generator.toJSON().toString());
         }

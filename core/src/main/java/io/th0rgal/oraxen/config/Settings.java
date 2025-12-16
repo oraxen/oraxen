@@ -102,6 +102,10 @@ public enum Settings {
     GENERATE_MODEL_BASED_ON_TEXTURE_PATH("Pack.generation.auto_generated_models_follow_texture_path"),
     COMPRESSION("Pack.generation.compression"),
     PROTECTION("Pack.generation.protection"),
+    // 1.21.4+ appearance mode selector (preferred)
+    APPEARANCE_MODE("Pack.generation.appearance.mode"),
+    APPEARANCE_FORCE_PREDICATES("Pack.generation.appearance.force_predicates"),
+    // Deprecated booleans (kept for backward compatibility)
     APPEARANCE_ITEM_MODEL("Pack.generation.appearance.item_model"),
     APPEARANCE_PREDICATES("Pack.generation.appearance.predicates"),
     COMMENT("Pack.generation.comment"),

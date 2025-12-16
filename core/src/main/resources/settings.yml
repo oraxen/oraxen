@@ -84,13 +84,44 @@ Pack:
     generate: true # Unlike Plugin.generation.default_assets, this will enable/disable all pack generation
     # List of file extensions that will not be included in the final zipped ResourcePack
     excluded_file_extensions: []
-    # Which systems to use for item appearance (1.21.4+ only, pre-1.21.4 always uses predicates)
+    # Item appearance mode.
+    #
+    # 1.21.4+ supports the new item definition pipeline (assets/*/items/*.json) and the
+    # new CustomModelData component channels (strings/floats/flags/colors).
+    #
+    # Pre-1.21.4 does NOT support item definitions, so Oraxen will always fall back to
+    # legacy predicate overrides (assets/minecraft/models/item/*.json) + integer CustomModelData.
     appearance:
-      # Generate item model definitions (assets/oraxen/items/*.json) - items get the item_model component
+      # Which appearance system Oraxen should drive on 1.21.4+:
+      #
+      # - ITEM_PROPERTIES:
+      #     Uses the minecraft:item_model component with Oraxen ids (oraxen:<item_id>).
+      #     Oraxen generates assets/oraxen/items/<item_id>.json (item definitions).
+      #
+      # - MODEL_DATA_IDS:
+      #     Uses the minecraft:custom_model_data component with Oraxen ids:
+      #       custom_model_data.strings[0] = "oraxen:<item_id>"
+      #     Oraxen generates assets/minecraft/items/<material>.json using minecraft:select (strings).
+      #
+      # - MODEL_DATA_FLOAT_LEGACY:
+      #     Legacy-style numeric model-data mapping, stored as:
+      #       custom_model_data.floats[0] = <Pack.custom_model_data as float>
+      #     Oraxen generates assets/minecraft/items/<material>.json using minecraft:range_dispatch (floats).
+      #
+      # Enabling any of these modes automatically enables generation of the correct selectors on 1.21.4+.
+      # On pre-1.21.4, Oraxen automatically falls back to predicate overrides instead.
+      mode: ITEM_PROPERTIES
+
+      # 1.21.4+ only:
+      # Force generating legacy predicate overrides (assets/minecraft/models/item/*.json) in addition to the
+      # selected mode. This is useful for compatibility with external tools/plugins that still inspect
+      # legacy override JSONs or rely on integer CustomModelData.
+      force_predicates: false
+
+      # Deprecated (kept for backward compatibility with older configs):
+      # - item_model: legacy boolean equivalent of mode=ITEM_PROPERTIES
+      # - predicates: legacy boolean that enabled legacy predicates (and 1.21.4+ item definitions)
       item_model: true
-      # Generate CustomModelData mappings.
-      # - Pre-1.21.4: generates predicate overrides in base item models (assets/minecraft/models/item/*.json)
-      # - 1.21.4+: also generates vanilla item definitions (assets/minecraft/items/*.json) using range_dispatch
       predicates: false
     verify_pack_files: true # Checks all textures and models to make sure they abide by valid Resourcepack formatting
     fix_force_unicode_glyphs: true # Fixes glyphs not being shown when Force Unicode is enabled
