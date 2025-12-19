@@ -1,10 +1,9 @@
 package io.th0rgal.oraxen.mechanics.provided.combat.bleeding;
 
-import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.protectionlib.ProtectionLib;
-import org.bukkit.Bukkit;
 import org.bukkit.Particle;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -12,7 +11,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,7 +19,7 @@ import java.util.UUID;
 public class BleedingMechanicListener implements Listener {
 
     private final MechanicFactory factory;
-    private final Map<UUID, BukkitTask> bleedingTasks = new HashMap<>();
+    private final Map<UUID, SchedulerUtil.ScheduledTask> bleedingTasks = new HashMap<>();
 
     public BleedingMechanicListener(MechanicFactory factory) {
         this.factory = factory;
@@ -58,9 +56,9 @@ public class BleedingMechanicListener implements Listener {
 
         final int[] ticksRemaining = {mechanic.getDuration()};
 
-        BukkitTask task = Bukkit.getScheduler().runTaskTimer(OraxenPlugin.get(), () -> {
+        SchedulerUtil.ScheduledTask task = SchedulerUtil.runForEntityTimer(victim, 0L, mechanic.getTickInterval(), () -> {
             if (!victim.isValid() || victim.isDead() || ticksRemaining[0] <= 0) {
-                BukkitTask existingTask = bleedingTasks.remove(victimId);
+                SchedulerUtil.ScheduledTask existingTask = bleedingTasks.remove(victimId);
                 if (existingTask != null) {
                     existingTask.cancel();
                 }
@@ -78,7 +76,7 @@ public class BleedingMechanicListener implements Listener {
             );
 
             ticksRemaining[0] -= mechanic.getTickInterval();
-        }, 0L, mechanic.getTickInterval());
+        }, () -> bleedingTasks.remove(victimId));
 
         bleedingTasks.put(victimId, task);
     }

@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.farmblock.FarmBlockDryout;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -15,18 +16,30 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.EVOLUTION_KEY;
 
-public class EvolutionTask extends BukkitRunnable {
+public class EvolutionTask implements Runnable {
 
     private final FurnitureFactory furnitureFactory;
     private final int delay;
+    private SchedulerUtil.ScheduledTask scheduledTask;
 
     public EvolutionTask(FurnitureFactory furnitureFactory, int delay) {
         this.furnitureFactory = furnitureFactory;
         this.delay = delay;
+    }
+
+    public SchedulerUtil.ScheduledTask start(long initialDelay, long period) {
+        scheduledTask = SchedulerUtil.runTaskTimer(initialDelay, period, this);
+        return scheduledTask;
+    }
+
+    public void cancel() {
+        if (scheduledTask != null) {
+            scheduledTask.cancel();
+            scheduledTask = null;
+        }
     }
 
     @Override

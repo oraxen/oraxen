@@ -149,7 +149,7 @@ public class HudManager {
         }
 
         hudTask = new HudTask();
-        hudTask.runTaskTimer(OraxenPlugin.get(), 0, hudUpdateTime);
+        hudTask.start(0, hudUpdateTime);
         hudTaskEnabled = true;
     }
 

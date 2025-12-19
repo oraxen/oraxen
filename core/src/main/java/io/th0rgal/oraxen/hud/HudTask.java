@@ -2,19 +2,31 @@ package io.th0rgal.oraxen.hud;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.utils.EntityUtils;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.List;
 
-public class HudTask extends BukkitRunnable {
+public class HudTask implements Runnable {
 
     private final HudManager manager = OraxenPlugin.get().getHudManager();
+    private SchedulerUtil.ScheduledTask scheduledTask;
 
     private List<? extends Player> hudEnabledPlayers() {
         return Bukkit.getOnlinePlayers().stream().filter(manager::getHudState).toList();
+    }
+
+    public void start(long delay, long period) {
+        scheduledTask = SchedulerUtil.runTaskTimer(delay, period, this);
+    }
+
+    public void cancel() {
+        if (scheduledTask != null) {
+            scheduledTask.cancel();
+            scheduledTask = null;
+        }
     }
 
     @Override

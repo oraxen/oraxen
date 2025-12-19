@@ -222,6 +222,7 @@ bukkit {
     version = pluginVersion
     name = "Oraxen"
     apiVersion = "1.18"
+    foliaSupported = true
     authors = listOf("th0rgal", "https://github.com/oraxen/oraxen/blob/master/CONTRIBUTORS.md")
     softDepend = listOf(
         "CommandAPI",

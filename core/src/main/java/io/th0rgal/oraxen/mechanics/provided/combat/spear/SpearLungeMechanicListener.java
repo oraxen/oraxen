@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -21,8 +22,6 @@ import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
@@ -64,7 +63,7 @@ public class SpearLungeMechanicListener implements Listener {
             long startTick,
             SpearLungeMechanic mechanic,
             EquipmentSlot hand,
-            BukkitTask task,
+            SchedulerUtil.ScheduledTask task,
             int lastFrame,
             NamespacedKey originalModel,
             float originalWalkSpeed) {
@@ -142,7 +141,9 @@ public class SpearLungeMechanicListener implements Listener {
         }
 
         // Start a task to monitor charging state
-        BukkitTask task = new ChargeMonitorTask(player, mechanic, hand).runTaskTimer(OraxenPlugin.get(), 1L, 1L);
+        ChargeMonitorTask monitorTask = new ChargeMonitorTask(player, mechanic, hand);
+        SchedulerUtil.ScheduledTask task = SchedulerUtil.runForEntityTimer(player, 1L, 1L, 
+            monitorTask, () -> cancelCharge(player, false));
 
         ChargeState state = new ChargeState(Bukkit.getCurrentTick(), mechanic, hand, task, 0, originalModel,
                 originalWalkSpeed);
@@ -190,8 +191,8 @@ public class SpearLungeMechanicListener implements Listener {
     private void performLungeAttack(Player player, SpearLungeMechanic mechanic, double chargePercent) {
         // Suppress default melee damage during lunge
         lungingPlayers.add(player.getUniqueId());
-        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(),
-                () -> lungingPlayers.remove(player.getUniqueId()), 5L);
+        SchedulerUtil.runForEntityLater(player, 5L,
+                () -> lungingPlayers.remove(player.getUniqueId()), () -> lungingPlayers.remove(player.getUniqueId()));
 
         Vector direction = player.getLocation().getDirection();
         applyLungeMovement(player, mechanic, direction, chargePercent);
@@ -373,7 +374,7 @@ public class SpearLungeMechanicListener implements Listener {
      * Task that monitors the charging state and detects release.
      * It also handles smooth animation frame progression and particle effects.
      */
-    private class ChargeMonitorTask extends BukkitRunnable {
+    private class ChargeMonitorTask implements Runnable {
 
         private final Player player;
         private final SpearLungeMechanic mechanic;

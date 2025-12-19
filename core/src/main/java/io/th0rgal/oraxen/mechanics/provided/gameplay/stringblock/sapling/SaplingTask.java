@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.compatibilities.provided.worldedit.WrappedWorldEdit;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.PluginUtils;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
@@ -14,16 +15,28 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic.SAPLING_KEY;
 
-public class SaplingTask extends BukkitRunnable {
+public class SaplingTask implements Runnable {
 
     private final int delay;
+    private SchedulerUtil.ScheduledTask scheduledTask;
 
     public SaplingTask(int delay) {
         this.delay = delay;
+    }
+
+    public SchedulerUtil.ScheduledTask start(long initialDelay, long period) {
+        scheduledTask = SchedulerUtil.runTaskTimer(initialDelay, period, this);
+        return scheduledTask;
+    }
+
+    public void cancel() {
+        if (scheduledTask != null) {
+            scheduledTask.cancel();
+            scheduledTask = null;
+        }
     }
 
     @Override

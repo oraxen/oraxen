@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -30,11 +31,10 @@ public abstract class PackSender {
                     AdventureUtils.tagResolver("pack_url", hostingProvider.getPackURL()),
                     AdventureUtils.tagResolver("player", player.getName()));
         else
-            Bukkit.getScheduler().runTaskLaterAsynchronously(OraxenPlugin.get(),
+            SchedulerUtil.runTaskLaterAsync(delay * 20L,
                     () -> Message.COMMAND_JOIN_MESSAGE.send(player,
                             AdventureUtils.tagResolver("pack_url", hostingProvider.getPackURL()),
-                            AdventureUtils.tagResolver("player", player.getName()))
-                    , delay * 20L);
+                            AdventureUtils.tagResolver("player", player.getName())));
     }
 
 }
