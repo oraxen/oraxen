@@ -50,17 +50,18 @@ public class BleedingMechanicListener implements Listener {
     private void applyBleeding(LivingEntity victim, BleedingMechanic mechanic) {
         UUID victimId = victim.getUniqueId();
 
-        if (bleedingTasks.containsKey(victimId)) {
-            bleedingTasks.get(victimId).cancel();
+        SchedulerUtil.ScheduledTask existingTask = bleedingTasks.remove(victimId);
+        if (existingTask != null) {
+            existingTask.cancel();
         }
 
         final int[] ticksRemaining = {mechanic.getDuration()};
 
         SchedulerUtil.ScheduledTask task = SchedulerUtil.runForEntityTimer(victim, 0L, mechanic.getTickInterval(), () -> {
             if (!victim.isValid() || victim.isDead() || ticksRemaining[0] <= 0) {
-                SchedulerUtil.ScheduledTask existingTask = bleedingTasks.remove(victimId);
-                if (existingTask != null) {
-                    existingTask.cancel();
+                SchedulerUtil.ScheduledTask taskToCancel = bleedingTasks.remove(victimId);
+                if (taskToCancel != null) {
+                    taskToCancel.cancel();
                 }
                 return;
             }
@@ -78,7 +79,10 @@ public class BleedingMechanicListener implements Listener {
             ticksRemaining[0] -= mechanic.getTickInterval();
         }, () -> bleedingTasks.remove(victimId));
 
-        bleedingTasks.put(victimId, task);
+        // Only store task if it was successfully scheduled (can be null on Folia if entity is retired)
+        if (task != null) {
+            bleedingTasks.put(victimId, task);
+        }
     }
 
 }

@@ -155,7 +155,9 @@ public class SpearLungeMechanicListener implements Listener {
         if (state == null)
             return;
 
-        state.task().cancel();
+        if (state.task() != null) {
+            state.task().cancel();
+        }
 
         // Restore walk speed
         player.setWalkSpeed(state.originalWalkSpeed());
@@ -345,7 +347,9 @@ public class SpearLungeMechanicListener implements Listener {
         Player player = event.getPlayer();
         ChargeState state = chargingPlayers.remove(player.getUniqueId());
         if (state != null) {
-            state.task().cancel();
+            if (state.task() != null) {
+                state.task().cancel();
+            }
             // Restore walk speed before player disconnects
             player.setWalkSpeed(state.originalWalkSpeed());
         }
@@ -358,7 +362,9 @@ public class SpearLungeMechanicListener implements Listener {
         Player player = event.getEntity();
         ChargeState state = chargingPlayers.remove(player.getUniqueId());
         if (state != null) {
-            state.task().cancel();
+            if (state.task() != null) {
+                state.task().cancel();
+            }
             // Restore walk speed so it's correct on respawn
             player.setWalkSpeed(state.originalWalkSpeed());
         }
