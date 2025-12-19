@@ -83,7 +83,7 @@ public class OraxenSkriptTypes {
                     public OraxenItemId parse(String input, ParseContext context) {
                         // Remove quotes if present
                         String id = input.trim();
-                        if (id.startsWith("\"") && id.endsWith("\"")) {
+                        if (id.length() > 1 && id.startsWith("\"") && id.endsWith("\"")) {
                             id = id.substring(1, id.length() - 1);
                         }
                         if (OraxenItems.exists(id)) {
