@@ -130,7 +130,7 @@ Use these annotations for documentation:
 
 Skript is a compile-time dependency in `gradle/oraxenLibs.versions.toml`:
 ```toml
-skript = { module = "com.github.SkriptLang:Skript", version = "2.13.2" }
+skript = { module = "com.github.SkriptLang:Skript", version = "2.9.6" }
 ```
 
 It's included in the `plugins` bundle and listed in `softDepend` in `build.gradle.kts`.

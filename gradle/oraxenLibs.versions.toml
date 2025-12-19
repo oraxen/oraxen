@@ -56,7 +56,7 @@ blocklocker = { module = "nl.rutgerkok:blocklocker", version = "1.13-SNAPSHOT" }
 
 # Skript https://github.com/SkriptLang/Skript
 # Repo: https://repo.skriptlang.org/releases
-skript = { module = "com.github.SkriptLang:Skript", version = "2.13.2" }
+skript = { module = "com.github.SkriptLang:Skript", version = "2.9.6" }
 
 #
 # Libraries that are included in MC

@@ -95,11 +95,8 @@ allprojects {
         maven("https://repo.codemc.io/repository/maven-releases/") {
             content { includeGroup("com.github.retrooper") }
         }
-        maven("https://repo.skriptlang.org/releases") {
-            content { includeModule("com.github.SkriptLang", "Skript") } // Skript
-        }
         maven("https://jitpack.io") {
-            content { includeGroupByRegex("com\\.github\\..*") }
+            content { includeGroupByRegex("com\\.github\\..*") } // Skript
         }
         mavenCentral()
     }

@@ -39,14 +39,11 @@ public class SkriptCompatibility extends CompatibilityProvider<Skript> {
 
     /**
      * Load all Skript syntax classes (expressions, events, conditions, effects)
+     * @throws IOException if loading fails
      */
-    private void loadSyntaxClasses() {
-        try {
-            addon.loadClasses("io.th0rgal.oraxen.compatibilities.provided.skript",
-                    "expressions", "events", "conditions", "effects");
-        } catch (IOException e) {
-            Logs.logError("Failed to load Skript syntax classes: " + e.getMessage());
-        }
+    private void loadSyntaxClasses() throws IOException {
+        addon.loadClasses("io.th0rgal.oraxen.compatibilities.provided.skript",
+                "expressions", "events", "conditions", "effects");
     }
 
     @Override
