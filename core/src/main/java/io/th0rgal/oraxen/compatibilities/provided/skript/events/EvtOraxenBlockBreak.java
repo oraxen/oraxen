@@ -31,20 +31,20 @@ public class EvtOraxenBlockBreak extends SkriptEvent {
                 .since("1.0");
 
         // Register event values for NoteBlock
-        EventValues.registerEventValue(OraxenNoteBlockBreakEvent.class, Player.class, 
-                OraxenNoteBlockBreakEvent::getPlayer);
-        EventValues.registerEventValue(OraxenNoteBlockBreakEvent.class, Block.class, 
-                OraxenNoteBlockBreakEvent::getBlock);
-        EventValues.registerEventValue(OraxenNoteBlockBreakEvent.class, String.class, 
-                event -> event.getMechanic().getItemID());
+        EventValues.registerEventValue(OraxenNoteBlockBreakEvent.class, Player.class,
+                OraxenNoteBlockBreakEvent::getPlayer, EventValues.TIME_NOW);
+        EventValues.registerEventValue(OraxenNoteBlockBreakEvent.class, Block.class,
+                OraxenNoteBlockBreakEvent::getBlock, EventValues.TIME_NOW);
+        EventValues.registerEventValue(OraxenNoteBlockBreakEvent.class, String.class,
+                event -> event.getMechanic().getItemID(), EventValues.TIME_NOW);
 
         // Register event values for StringBlock
-        EventValues.registerEventValue(OraxenStringBlockBreakEvent.class, Player.class, 
-                OraxenStringBlockBreakEvent::getPlayer);
-        EventValues.registerEventValue(OraxenStringBlockBreakEvent.class, Block.class, 
-                OraxenStringBlockBreakEvent::getBlock);
-        EventValues.registerEventValue(OraxenStringBlockBreakEvent.class, String.class, 
-                event -> event.getMechanic().getItemID());
+        EventValues.registerEventValue(OraxenStringBlockBreakEvent.class, Player.class,
+                OraxenStringBlockBreakEvent::getPlayer, EventValues.TIME_NOW);
+        EventValues.registerEventValue(OraxenStringBlockBreakEvent.class, Block.class,
+                OraxenStringBlockBreakEvent::getBlock, EventValues.TIME_NOW);
+        EventValues.registerEventValue(OraxenStringBlockBreakEvent.class, String.class,
+                event -> event.getMechanic().getItemID(), EventValues.TIME_NOW);
     }
 
     private Literal<String> itemId;

@@ -32,24 +32,24 @@ public class EvtOraxenBlockPlace extends SkriptEvent {
                 .since("1.0");
 
         // Register event values for NoteBlock
-        EventValues.registerEventValue(OraxenNoteBlockPlaceEvent.class, Player.class, 
-                OraxenNoteBlockPlaceEvent::getPlayer);
-        EventValues.registerEventValue(OraxenNoteBlockPlaceEvent.class, Block.class, 
-                OraxenNoteBlockPlaceEvent::getBlock);
-        EventValues.registerEventValue(OraxenNoteBlockPlaceEvent.class, ItemStack.class, 
-                OraxenNoteBlockPlaceEvent::getItemInHand);
-        EventValues.registerEventValue(OraxenNoteBlockPlaceEvent.class, String.class, 
-                event -> event.getMechanic().getItemID());
+        EventValues.registerEventValue(OraxenNoteBlockPlaceEvent.class, Player.class,
+                OraxenNoteBlockPlaceEvent::getPlayer, EventValues.TIME_NOW);
+        EventValues.registerEventValue(OraxenNoteBlockPlaceEvent.class, Block.class,
+                OraxenNoteBlockPlaceEvent::getBlock, EventValues.TIME_NOW);
+        EventValues.registerEventValue(OraxenNoteBlockPlaceEvent.class, ItemStack.class,
+                OraxenNoteBlockPlaceEvent::getItemInHand, EventValues.TIME_NOW);
+        EventValues.registerEventValue(OraxenNoteBlockPlaceEvent.class, String.class,
+                event -> event.getMechanic().getItemID(), EventValues.TIME_NOW);
 
         // Register event values for StringBlock
-        EventValues.registerEventValue(OraxenStringBlockPlaceEvent.class, Player.class, 
-                OraxenStringBlockPlaceEvent::getPlayer);
-        EventValues.registerEventValue(OraxenStringBlockPlaceEvent.class, Block.class, 
-                OraxenStringBlockPlaceEvent::getBlock);
-        EventValues.registerEventValue(OraxenStringBlockPlaceEvent.class, ItemStack.class, 
-                OraxenStringBlockPlaceEvent::getItemInHand);
-        EventValues.registerEventValue(OraxenStringBlockPlaceEvent.class, String.class, 
-                event -> event.getMechanic().getItemID());
+        EventValues.registerEventValue(OraxenStringBlockPlaceEvent.class, Player.class,
+                OraxenStringBlockPlaceEvent::getPlayer, EventValues.TIME_NOW);
+        EventValues.registerEventValue(OraxenStringBlockPlaceEvent.class, Block.class,
+                OraxenStringBlockPlaceEvent::getBlock, EventValues.TIME_NOW);
+        EventValues.registerEventValue(OraxenStringBlockPlaceEvent.class, ItemStack.class,
+                OraxenStringBlockPlaceEvent::getItemInHand, EventValues.TIME_NOW);
+        EventValues.registerEventValue(OraxenStringBlockPlaceEvent.class, String.class,
+                event -> event.getMechanic().getItemID(), EventValues.TIME_NOW);
     }
 
     private Literal<String> itemId;

@@ -32,14 +32,14 @@ public class EvtOraxenFurnitureBreak extends SkriptEvent {
                 .since("1.0");
 
         // Register event values
-        EventValues.registerEventValue(OraxenFurnitureBreakEvent.class, Player.class, 
-                OraxenFurnitureBreakEvent::getPlayer);
-        EventValues.registerEventValue(OraxenFurnitureBreakEvent.class, Block.class, 
-                OraxenFurnitureBreakEvent::getBlock);
-        EventValues.registerEventValue(OraxenFurnitureBreakEvent.class, Entity.class, 
-                OraxenFurnitureBreakEvent::getBaseEntity);
-        EventValues.registerEventValue(OraxenFurnitureBreakEvent.class, String.class, 
-                event -> event.getMechanic().getItemID());
+        EventValues.registerEventValue(OraxenFurnitureBreakEvent.class, Player.class,
+                OraxenFurnitureBreakEvent::getPlayer, EventValues.TIME_NOW);
+        EventValues.registerEventValue(OraxenFurnitureBreakEvent.class, Block.class,
+                OraxenFurnitureBreakEvent::getBlock, EventValues.TIME_NOW);
+        EventValues.registerEventValue(OraxenFurnitureBreakEvent.class, Entity.class,
+                OraxenFurnitureBreakEvent::getBaseEntity, EventValues.TIME_NOW);
+        EventValues.registerEventValue(OraxenFurnitureBreakEvent.class, String.class,
+                event -> event.getMechanic().getItemID(), EventValues.TIME_NOW);
     }
 
     private Literal<String> itemId;

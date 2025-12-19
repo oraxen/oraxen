@@ -32,16 +32,16 @@ public class EvtOraxenFurniturePlace extends SkriptEvent {
                 .since("1.0");
 
         // Register event values
-        EventValues.registerEventValue(OraxenFurniturePlaceEvent.class, Player.class, 
-                OraxenFurniturePlaceEvent::getPlayer);
-        EventValues.registerEventValue(OraxenFurniturePlaceEvent.class, Block.class, 
-                OraxenFurniturePlaceEvent::getBlock);
-        EventValues.registerEventValue(OraxenFurniturePlaceEvent.class, Entity.class, 
-                OraxenFurniturePlaceEvent::getBaseEntity);
-        EventValues.registerEventValue(OraxenFurniturePlaceEvent.class, ItemStack.class, 
-                OraxenFurniturePlaceEvent::getItemInHand);
-        EventValues.registerEventValue(OraxenFurniturePlaceEvent.class, String.class, 
-                event -> event.getMechanic().getItemID());
+        EventValues.registerEventValue(OraxenFurniturePlaceEvent.class, Player.class,
+                OraxenFurniturePlaceEvent::getPlayer, EventValues.TIME_NOW);
+        EventValues.registerEventValue(OraxenFurniturePlaceEvent.class, Block.class,
+                OraxenFurniturePlaceEvent::getBlock, EventValues.TIME_NOW);
+        EventValues.registerEventValue(OraxenFurniturePlaceEvent.class, Entity.class,
+                OraxenFurniturePlaceEvent::getBaseEntity, EventValues.TIME_NOW);
+        EventValues.registerEventValue(OraxenFurniturePlaceEvent.class, ItemStack.class,
+                OraxenFurniturePlaceEvent::getItemInHand, EventValues.TIME_NOW);
+        EventValues.registerEventValue(OraxenFurniturePlaceEvent.class, String.class,
+                event -> event.getMechanic().getItemID(), EventValues.TIME_NOW);
     }
 
     private Literal<String> itemId;

@@ -55,8 +55,8 @@ libreforge = { module = "com.willfp:libreforge", version = "4.36.0" }
 blocklocker = { module = "nl.rutgerkok:blocklocker", version = "1.13-SNAPSHOT" }
 
 # Skript https://github.com/SkriptLang/Skript
-# Repo: https://repo.skriptlang.org/releases
-skript = { module = "com.github.SkriptLang:Skript", version = "2.9.6" }
+# Repo: https://repo.skriptlang.org/releases (NOT JitPack)
+skript = { module = "com.github.SkriptLang:Skript", version = "2.13.2" }
 
 #
 # Libraries that are included in MC
