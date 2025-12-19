@@ -43,7 +43,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicFactory.getBlockMechanic;
 
@@ -182,30 +181,38 @@ public abstract class BreakerSystem {
     private List<Location> furnitureBarrierLocations(FurnitureMechanic furnitureMechanic, Block block) {
         if (!breakerLocations.contains(block.getLocation())) return List.of(block.getLocation());
 
-        AtomicReference<Entity> furnitureBaseEntity = new AtomicReference<>();
-        SchedulerUtil.runAtLocation(block.getLocation(), () -> furnitureBaseEntity.set(furnitureMechanic != null ? furnitureMechanic.getBaseEntity(block) : null));
-        return furnitureMechanic != null && furnitureBaseEntity.get() != null
-                ? furnitureMechanic.getLocations(FurnitureMechanic.getFurnitureYaw(furnitureBaseEntity.get()),
-                furnitureBaseEntity.get().getLocation(), furnitureMechanic.getBarriers())
-                : Collections.singletonList(block.getLocation());
+        // Get base entity directly - we're already on the correct thread context
+        // (main thread for Bukkit, region thread for Folia) from block damage events.
+        if (furnitureMechanic == null) return Collections.singletonList(block.getLocation());
+        
+        Entity furnitureBaseEntity = furnitureMechanic.getBaseEntity(block);
+        if (furnitureBaseEntity == null) return Collections.singletonList(block.getLocation());
+        
+        return furnitureMechanic.getLocations(
+                FurnitureMechanic.getFurnitureYaw(furnitureBaseEntity),
+                furnitureBaseEntity.getLocation(), 
+                furnitureMechanic.getBarriers());
     }
 
     private boolean blockDamageEventCancelled(Block block, Player player) {
         if (!breakerLocations.contains(block.getLocation())) return false;
 
+        // Events must be dispatched synchronously to check cancellation status.
+        // Since this is called from block damage events, we're already on the correct thread
+        // (main thread for Bukkit, region thread for Folia).
         switch (block.getType()) {
             case NOTE_BLOCK -> {
                 NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
                 if (mechanic == null) return true;
                 OraxenNoteBlockDamageEvent event = new OraxenNoteBlockDamageEvent(mechanic, block, player);
-                SchedulerUtil.runAtLocation(block.getLocation(), () -> Bukkit.getPluginManager().callEvent(event));
+                Bukkit.getPluginManager().callEvent(event);
                 return event.isCancelled();
             }
             case TRIPWIRE -> {
                 StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
                 if (mechanic == null) return true;
                 OraxenStringBlockDamageEvent event = new OraxenStringBlockDamageEvent(mechanic, block, player);
-                SchedulerUtil.runAtLocation(block.getLocation(), () -> Bukkit.getPluginManager().callEvent(event));
+                Bukkit.getPluginManager().callEvent(event);
                 return event.isCancelled();
             }
             case BARRIER -> {
@@ -214,7 +221,7 @@ public abstract class BreakerSystem {
                 Entity baseEntity = mechanic.getBaseEntity(block);
                 if (baseEntity == null) return true;
                 OraxenFurnitureDamageEvent event = new OraxenFurnitureDamageEvent(mechanic, baseEntity, player, block);
-                SchedulerUtil.runAtLocation(block.getLocation(), () -> Bukkit.getPluginManager().callEvent(event));
+                Bukkit.getPluginManager().callEvent(event);
                 return event.isCancelled();
             }
             case BEDROCK -> { // For BedrockBreakMechanic
