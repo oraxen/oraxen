@@ -95,6 +95,12 @@ allprojects {
         maven("https://repo.codemc.io/repository/maven-releases/") {
             content { includeGroup("com.github.retrooper") }
         }
+        maven("https://repo.skriptlang.org/releases") {
+            content { includeModule("com.github.SkriptLang", "Skript") } // Skript
+        }
+        maven("https://jitpack.io") {
+            content { includeGroupByRegex("com\\.github\\..*") }
+        }
         mavenCentral()
     }
 }
@@ -222,7 +228,7 @@ bukkit {
         "ProtocolLib",
         "LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "MythicMobs", "BossShopPro",
         "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared",
-        "NBTAPI", "ModelEngine", "ViaBackwards", "HuskClaims", "HuskTowns", "BentoBox"
+        "NBTAPI", "ModelEngine", "ViaBackwards", "HuskClaims", "HuskTowns", "BentoBox", "Skript"
     )
     loadBefore = listOf("Realistic_World")
     permissions.create("oraxen.command") {

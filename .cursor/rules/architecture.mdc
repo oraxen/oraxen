@@ -70,7 +70,8 @@ Oraxen is a Gradle-based Java plugin for Minecraft Paper/Spigot servers that del
 
 ### Compatibility Layer
 
-- Integrations under `core/.../compatibilities/provided` for ProtocolLib, PlaceholderAPI, WorldEdit, ModelEngine, MythicMobs, MMOItems, EcoItems, BlockLocker, etc. Compatibility is enabled/disabled at runtime based on detected plugins.
+- Integrations under `core/.../compatibilities/provided` for ProtocolLib, PlaceholderAPI, WorldEdit, ModelEngine, MythicMobs, MMOItems, EcoItems, BlockLocker, Skript, etc. Compatibility is enabled/disabled at runtime based on detected plugins.
+- **Skript integration**: Located in `core/.../compatibilities/provided/skript/`. Provides expressions, conditions, events, and effects for working with Oraxen items, blocks, and furniture in Skript scripts. See `skript-compat.mdc` for syntax reference.
 
 ### Development Workflow
 
