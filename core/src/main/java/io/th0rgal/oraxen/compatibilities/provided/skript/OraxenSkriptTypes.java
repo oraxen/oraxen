@@ -83,8 +83,13 @@ public class OraxenSkriptTypes {
                     public OraxenItemId parse(String input, ParseContext context) {
                         // Remove quotes if present
                         String id = input.trim();
-                        if (id.length() > 1 && id.startsWith("\"") && id.endsWith("\"")) {
+                        // Need at least 2 chars for valid quotes (""), and length > 2 for content inside
+                        if (id.length() >= 2 && id.startsWith("\"") && id.endsWith("\"")) {
                             id = id.substring(1, id.length() - 1);
+                        }
+                        // Empty or null-like IDs are invalid
+                        if (id.isEmpty()) {
+                            return null;
                         }
                         if (OraxenItems.exists(id)) {
                             return new OraxenItemId(id);
