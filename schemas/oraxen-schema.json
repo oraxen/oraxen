@@ -1,8 +1,8 @@
 {
-  "oraxenVersion": "1.200.1",
+  "oraxenVersion": "1.201.0",
   "minecraftVersion": "1.21.4",
   "serverVersion": "1.21.4-R0.1-SNAPSHOT",
-  "generatedAt": "2025-12-16T20:22:30.369211056Z",
+  "generatedAt": "2025-12-20T09:04:21.169639169Z",
   "enums": {
     "Material": {
       "values": [
@@ -7184,14 +7184,14 @@
           "type": "object",
           "description": "Drop configuration when broken",
           "properties": {
-            "loots": {
-              "type": "array",
-              "description": "List of loot entries"
-            },
             "silktouch": {
               "type": "boolean",
               "description": "Require silk touch",
               "default": false
+            },
+            "loots": {
+              "type": "array",
+              "description": "List of loot entries"
             }
           }
         },
@@ -7199,21 +7199,21 @@
           "type": "object",
           "description": "Directional block configuration",
           "properties": {
-            "z_block": {
+            "x_block": {
               "type": "string",
-              "description": "Z-axis variant ID"
-            },
-            "parent_block": {
-              "type": "string",
-              "description": "Parent block ID"
+              "description": "X-axis variant ID"
             },
             "y_block": {
               "type": "string",
               "description": "Y-axis variant ID"
             },
-            "x_block": {
+            "parent_block": {
               "type": "string",
-              "description": "X-axis variant ID"
+              "description": "Parent block ID"
+            },
+            "z_block": {
+              "type": "string",
+              "description": "Z-axis variant ID"
             }
           }
         },
@@ -7237,23 +7237,23 @@
           "type": "object",
           "description": "Log stripping configuration",
           "properties": {
-            "stripped_log": {
-              "type": "string",
-              "description": "Stripped log block ID"
-            },
             "drop": {
               "type": "object",
               "description": "Item dropped on strip",
               "properties": {
-                "minecraft_type": {
-                  "type": "string",
-                  "description": "Vanilla item type"
-                },
                 "oraxen_item": {
                   "type": "string",
                   "description": "Oraxen item ID"
+                },
+                "minecraft_type": {
+                  "type": "string",
+                  "description": "Vanilla item type"
                 }
               }
+            },
+            "stripped_log": {
+              "type": "string",
+              "description": "Stripped log block ID"
             }
           }
         }
@@ -7322,16 +7322,16 @@
           "type": "object",
           "description": "Custom hitbox dimensions",
           "properties": {
-            "height": {
+            "width": {
               "type": "number",
-              "description": "Hitbox height",
+              "description": "Hitbox width",
               "default": 1.0,
               "min": 0.0,
               "max": 10.0
             },
-            "width": {
+            "height": {
               "type": "number",
-              "description": "Hitbox width",
+              "description": "Hitbox height",
               "default": 1.0,
               "min": 0.0,
               "max": 10.0
@@ -7342,14 +7342,14 @@
           "type": "object",
           "description": "Seat configuration for sittable furniture",
           "properties": {
-            "yaw": {
-              "type": "number",
-              "description": "Seat rotation",
-              "default": 0.0
-            },
             "height": {
               "type": "number",
               "description": "Seat height offset",
+              "default": 0.0
+            },
+            "yaw": {
+              "type": "number",
+              "description": "Seat rotation",
               "default": 0.0
             }
           }
@@ -7403,14 +7403,14 @@
           "type": "object",
           "description": "Drop configuration when broken",
           "properties": {
-            "loots": {
-              "type": "array",
-              "description": "List of loot entries"
-            },
             "silktouch": {
               "type": "boolean",
               "description": "Require silk touch to drop",
               "default": false
+            },
+            "loots": {
+              "type": "array",
+              "description": "List of loot entries"
             }
           }
         },
@@ -7418,9 +7418,12 @@
           "type": "object",
           "description": "Storage container configuration",
           "properties": {
-            "title": {
-              "type": "string",
-              "description": "Inventory title"
+            "rows": {
+              "type": "integer",
+              "description": "Number of inventory rows",
+              "default": 1,
+              "min": 1,
+              "max": 6
             },
             "type": {
               "type": "string",
@@ -7432,12 +7435,9 @@
                 "DISPOSAL"
               ]
             },
-            "rows": {
-              "type": "integer",
-              "description": "Number of inventory rows",
-              "default": 1,
-              "min": 1,
-              "max": 6
+            "title": {
+              "type": "string",
+              "description": "Inventory title"
             }
           }
         }
@@ -7794,14 +7794,14 @@
           "type": "object",
           "description": "Drop configuration when broken",
           "properties": {
-            "loots": {
-              "type": "array",
-              "description": "List of loot entries"
-            },
             "silktouch": {
               "type": "boolean",
               "description": "Require silk touch",
               "default": false
+            },
+            "loots": {
+              "type": "array",
+              "description": "List of loot entries"
             }
           }
         },
@@ -7809,12 +7809,9 @@
           "type": "object",
           "description": "Sapling growth configuration",
           "properties": {
-            "min_light": {
-              "type": "integer",
-              "description": "Minimum light level to grow",
-              "default": 9,
-              "min": 0,
-              "max": 15
+            "grow_block": {
+              "type": "string",
+              "description": "Block ID when grown"
             },
             "grow_chance": {
               "type": "number",
@@ -7823,9 +7820,12 @@
               "min": 0.0,
               "max": 1.0
             },
-            "grow_block": {
-              "type": "string",
-              "description": "Block ID when grown"
+            "min_light": {
+              "type": "integer",
+              "description": "Minimum light level to grow",
+              "default": 9,
+              "min": 0,
+              "max": 15
             }
           }
         }
