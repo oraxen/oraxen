@@ -102,9 +102,11 @@ public class FurnitureSoundListener implements Listener {
     public void onStepFall(final GenericGameEvent event) {
         Entity entity = event.getEntity();
         if (!(entity instanceof LivingEntity)) return;
-        if (!isLoaded(entity.getLocation())) return;
+        Location entityLoc = entity.getLocation();
+        if (entityLoc == null || !isLoaded(entityLoc)) return;
 
         GameEvent gameEvent = event.getEvent();
+        if (gameEvent == null) return;
         Block blockStandingOn = BlockHelpers.getBlockStandingOn(entity);
         EntityDamageEvent cause = entity.getLastDamageCause();
 
