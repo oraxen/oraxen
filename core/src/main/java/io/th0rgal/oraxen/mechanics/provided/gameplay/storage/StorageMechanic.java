@@ -29,12 +29,14 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class StorageMechanic {
 
-    public static Set<Player> playerStorages = new HashSet<>();
-    public static Map<Block, StorageGui> blockStorages = new HashMap<>();
-    public static Map<Entity, StorageGui> frameStorages = new HashMap<>();
+    // Use thread-safe collections for Folia compatibility (concurrent region thread access)
+    public static Set<Player> playerStorages = ConcurrentHashMap.newKeySet();
+    public static Map<Block, StorageGui> blockStorages = new ConcurrentHashMap<>();
+    public static Map<Entity, StorageGui> frameStorages = new ConcurrentHashMap<>();
     public static final NamespacedKey STORAGE_KEY = new NamespacedKey(OraxenPlugin.get(), "storage");
     public static final NamespacedKey PERSONAL_STORAGE_KEY = new NamespacedKey(OraxenPlugin.get(), "personal_storage");
     private final int rows;

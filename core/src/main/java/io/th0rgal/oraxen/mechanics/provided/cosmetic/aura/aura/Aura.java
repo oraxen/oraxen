@@ -18,8 +18,13 @@ public abstract class Aura {
     protected abstract long getDelay();
 
     public void start() {
-        scheduledTask = SchedulerUtil.runTaskTimerAsync(0L, getDelay(), () -> 
-            mechanic.players.forEach(Aura.this::spawnParticles));
+        // Use async timer to iterate players, then schedule particle spawning
+        // on each player's region thread for Folia compatibility
+        scheduledTask = SchedulerUtil.runTaskTimerAsync(0L, getDelay(), () -> {
+            for (Player player : mechanic.players) {
+                SchedulerUtil.runForEntity(player, () -> spawnParticles(player));
+            }
+        });
     }
 
     public void stop() {

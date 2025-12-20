@@ -26,6 +26,7 @@ import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Listener handling the spear lunge mechanic's charge and attack logic.
@@ -38,14 +39,15 @@ import java.util.*;
 public class SpearLungeMechanicListener implements Listener {
 
     private final MechanicFactory factory;
-    private final Map<UUID, ChargeState> chargingPlayers = new HashMap<>();
-    private final Map<UUID, Long> attackCooldowns = new HashMap<>();
+    // Use thread-safe collections for Folia compatibility (concurrent region thread access)
+    private final Map<UUID, ChargeState> chargingPlayers = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> attackCooldowns = new ConcurrentHashMap<>();
     // Track players who just triggered a lunge attack - suppress their default
     // melee damage
-    private final Set<UUID> lungingPlayers = new HashSet<>();
+    private final Set<UUID> lungingPlayers = ConcurrentHashMap.newKeySet();
     // Track entities we're intentionally damaging via lunge - allow their damage
     // events
-    private final Set<UUID> intentionalDamageTargets = new HashSet<>();
+    private final Set<UUID> intentionalDamageTargets = ConcurrentHashMap.newKeySet();
 
     // Cooldown in ticks after an attack before player can charge again (30 ticks =
     // 1.5 seconds)

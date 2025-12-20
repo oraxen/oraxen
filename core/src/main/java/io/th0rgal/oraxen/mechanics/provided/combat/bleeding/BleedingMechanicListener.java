@@ -12,14 +12,15 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class BleedingMechanicListener implements Listener {
 
     private final MechanicFactory factory;
-    private final Map<UUID, SchedulerUtil.ScheduledTask> bleedingTasks = new HashMap<>();
+    // Use thread-safe map for Folia compatibility (concurrent region thread access)
+    private final Map<UUID, SchedulerUtil.ScheduledTask> bleedingTasks = new ConcurrentHashMap<>();
 
     public BleedingMechanicListener(MechanicFactory factory) {
         this.factory = factory;

@@ -10,11 +10,12 @@ import org.bukkit.Particle;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
-import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class AuraMechanic extends Mechanic {
 
+    // Use thread-safe set for Folia compatibility (concurrent region thread access)
     public final Set<Player> players;
     public final Particle particle;
     private final Aura aura;
@@ -28,19 +29,27 @@ public class AuraMechanic extends Mechanic {
             case "helix" -> aura = new HelixAura(this);
             default -> aura = null;
         }
-        players = new HashSet<>();
+        players = ConcurrentHashMap.newKeySet();
     }
 
     public void add(Player player) {
         players.add(player);
-        if (players.size() == 1)
+        if (players.size() == 1 && aura != null)
             aura.start();
     }
 
     public void remove(Player player) {
         players.remove(player);
-        if (players.isEmpty())
+        if (players.isEmpty() && aura != null)
             aura.stop();
+    }
+
+    /**
+     * Stops the aura task. Called during mechanic unload/reload.
+     */
+    public void stopAura() {
+        if (aura != null) aura.stop();
+        players.clear();
     }
 
 }

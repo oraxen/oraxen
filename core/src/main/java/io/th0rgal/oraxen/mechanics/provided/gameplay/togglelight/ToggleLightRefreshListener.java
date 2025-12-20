@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.entity.Entity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -20,22 +21,24 @@ public class ToggleLightRefreshListener implements Listener {
             if (factory == null) return;
 
             for (World world : Bukkit.getServer().getWorlds()) {
-                // Refresh furniture entities
+                // Refresh furniture entities - schedule on each entity's region thread for Folia compatibility
                 world.getEntities().stream()
                         .filter(OraxenFurniture::isBaseEntity)
-                        .forEach(entity -> {
-                            FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(entity);
-                            if (furnitureMechanic == null) return;
-                            ToggleLightMechanic toggleLight = factory.getMechanic(furnitureMechanic.getItemID());
-                            if (toggleLight != null && (toggleLight.hasToggleLight() || toggleLight.getBaseLightLevel() > 0)) {
-                                furnitureMechanic.refreshLight(entity);
-                            }
-                        });
+                        .forEach(entity -> SchedulerUtil.runForEntity(entity, () -> refreshEntityLight(factory, entity)));
 
                 // Note: NoteBlocks and StringBlocks are not refreshed here to avoid expensive chunk iteration.
                 // Their light state persists in PDC and will be refreshed on interaction or when placed.
             }
         }); // Delay to ensure all mechanics are fully loaded
+    }
+
+    private void refreshEntityLight(ToggleLightMechanicFactory factory, Entity entity) {
+        FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(entity);
+        if (furnitureMechanic == null) return;
+        ToggleLightMechanic toggleLight = factory.getMechanic(furnitureMechanic.getItemID());
+        if (toggleLight != null && (toggleLight.hasToggleLight() || toggleLight.getBaseLightLevel() > 0)) {
+            furnitureMechanic.refreshLight(entity);
+        }
     }
 }
 

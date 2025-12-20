@@ -170,6 +170,9 @@ public class MechanicsManager {
             if (task != null) task.cancel();
         }));
         MECHANIC_TASKS.clear();
+        
+        // Stop dynamically-started aura tasks (these aren't registered as regular tasks)
+        AuraMechanicFactory.stopAllAuras();
     }
 
     public static void unregisterTasks(String mechanicId) {

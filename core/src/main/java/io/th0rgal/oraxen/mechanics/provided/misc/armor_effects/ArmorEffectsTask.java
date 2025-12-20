@@ -22,8 +22,9 @@ public class ArmorEffectsTask implements Runnable {
 
     @Override
     public void run() {
+        // Schedule on each player's region thread for Folia compatibility
         for (Player player : Bukkit.getOnlinePlayers()) {
-            ArmorEffectsMechanic.addEffects(player);
+            SchedulerUtil.runForEntity(player, () -> ArmorEffectsMechanic.addEffects(player));
         }
     }
 }

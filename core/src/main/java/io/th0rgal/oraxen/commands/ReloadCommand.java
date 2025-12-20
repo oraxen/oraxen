@@ -53,7 +53,7 @@ public class ReloadCommand {
             Message.UPDATING_PLACED_FURNITURES.log();
             for (World world : Bukkit.getServer().getWorlds())
                 world.getEntities().stream().filter(OraxenFurniture::isBaseEntity)
-                        .forEach(OraxenFurniture::updateFurniture);
+                        .forEach(entity -> SchedulerUtil.runForEntity(entity, () -> OraxenFurniture.updateFurniture(entity)));
         }
 
     }
