@@ -44,11 +44,17 @@ public class McMMOAbilityListener implements Listener {
 
     /**
      * Called when a player's mcMMO super ability deactivates.
+     * Only removes the tracking if the deactivating skill matches the stored one.
      */
     @EventHandler(priority = EventPriority.MONITOR)
     public void onAbilityDeactivate(McMMOPlayerAbilityDeactivateEvent event) {
         Player player = event.getPlayer();
-        activeAbilities.remove(player.getUniqueId());
+        PrimarySkillType deactivatingSkill = event.getSkill();
+
+        // Only remove if the deactivating skill matches the one we're tracking
+        // This prevents race conditions where a different skill's deactivation
+        // incorrectly clears tracking for a still-active ability
+        activeAbilities.remove(player.getUniqueId(), deactivatingSkill);
     }
 
     /**

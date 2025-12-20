@@ -15,8 +15,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Handles mcMMO XP rewards for breaking Oraxen custom blocks.
@@ -39,7 +39,8 @@ import java.util.Map;
 public class McMMOBlockXPHandler implements Listener {
 
     // Cache for block XP configurations to avoid repeated config lookups
-    private final Map<String, BlockXPConfig> xpConfigCache = new HashMap<>();
+    // Uses ConcurrentHashMap for Folia compatibility (concurrent region thread access)
+    private final Map<String, BlockXPConfig> xpConfigCache = new ConcurrentHashMap<>();
 
     /**
      * Handles XP rewards when an Oraxen noteblock is broken.
@@ -77,7 +78,8 @@ public class McMMOBlockXPHandler implements Listener {
         String itemId = mechanic.getItemID();
         BlockXPConfig config = getXPConfig(itemId);
 
-        if (config == null) return;
+        // Check for sentinel value (no config) or null skill
+        if (config == null || config == NO_CONFIG_SENTINEL || config.skill() == null) return;
 
         try {
             // Use mcMMO's API to add XP with proper handling
@@ -90,20 +92,23 @@ public class McMMOBlockXPHandler implements Listener {
 
     /**
      * Gets the XP configuration for a block, using cache when possible.
+     * Uses computeIfAbsent for thread-safe atomic access (Folia compatibility).
      *
      * @param itemId the Oraxen item ID
      * @return the XP config, or null if none configured
      */
     private BlockXPConfig getXPConfig(String itemId) {
-        // Check cache first
-        if (xpConfigCache.containsKey(itemId)) {
-            return xpConfigCache.get(itemId);
-        }
+        // Use computeIfAbsent for atomic thread-safe access
+        // Note: ConcurrentHashMap does not allow null values, so we use a sentinel
+        return xpConfigCache.computeIfAbsent(itemId, this::loadXPConfigOrSentinel);
+    }
 
-        // Try to load from config
+    // Sentinel value to represent "no config" since ConcurrentHashMap doesn't allow null values
+    private static final BlockXPConfig NO_CONFIG_SENTINEL = new BlockXPConfig(null, -1);
+
+    private BlockXPConfig loadXPConfigOrSentinel(String itemId) {
         BlockXPConfig config = loadXPConfig(itemId);
-        xpConfigCache.put(itemId, config);
-        return config;
+        return config != null ? config : NO_CONFIG_SENTINEL;
     }
 
     /**
@@ -177,6 +182,7 @@ public class McMMOBlockXPHandler implements Listener {
 
     /**
      * Simple record to hold block XP configuration.
+     * Skill can be null for the NO_CONFIG_SENTINEL value.
      */
     private record BlockXPConfig(PrimarySkillType skill, int xp) {}
 }
