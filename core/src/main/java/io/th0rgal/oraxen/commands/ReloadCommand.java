@@ -36,8 +36,9 @@ public class ReloadCommand {
         if (Settings.UPDATE_ITEMS.toBool() && Settings.UPDATE_ITEMS_ON_RELOAD.toBool()) {
             Message.UPDATING_USER_ITEMS.log();
             for (Player player : Bukkit.getServer().getOnlinePlayers()) {
-                PlayerInventory inventory = player.getInventory();
-                SchedulerUtil.runTaskAsync(() -> {
+                // Use runForEntity for Folia compatibility - inventory must be accessed on player's region thread
+                SchedulerUtil.runForEntity(player, () -> {
+                    PlayerInventory inventory = player.getInventory();
                     for (int i = 0; i < inventory.getSize(); i++) {
                         ItemStack oldItem = inventory.getItem(i);
                         ItemStack newItem = ItemUpdater.updateItem(oldItem);

@@ -19,6 +19,9 @@ public class AuraMechanic extends Mechanic {
     public final Set<Player> players;
     public final Particle particle;
     private final Aura aura;
+    
+    // Lock object for atomic add/remove + start/stop operations
+    private final Object auraLock = new Object();
 
     public AuraMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section);
@@ -33,23 +36,32 @@ public class AuraMechanic extends Mechanic {
     }
 
     public void add(Player player) {
-        players.add(player);
-        if (players.size() == 1 && aura != null)
-            aura.start();
+        // Synchronize to make add + size check atomic for Folia thread safety
+        synchronized (auraLock) {
+            boolean wasEmpty = players.isEmpty();
+            players.add(player);
+            if (wasEmpty && aura != null)
+                aura.start();
+        }
     }
 
     public void remove(Player player) {
-        players.remove(player);
-        if (players.isEmpty() && aura != null)
-            aura.stop();
+        // Synchronize to make remove + isEmpty check atomic for Folia thread safety
+        synchronized (auraLock) {
+            players.remove(player);
+            if (players.isEmpty() && aura != null)
+                aura.stop();
+        }
     }
 
     /**
      * Stops the aura task. Called during mechanic unload/reload.
      */
     public void stopAura() {
-        if (aura != null) aura.stop();
-        players.clear();
+        synchronized (auraLock) {
+            if (aura != null) aura.stop();
+            players.clear();
+        }
     }
 
 }
