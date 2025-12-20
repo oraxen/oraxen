@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.api.events.stringblock.OraxenStringBlockPlaceEvent;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import org.bukkit.GameEvent;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.SoundCategory;
 import org.bukkit.block.Block;
@@ -61,10 +62,12 @@ public class StringBlockSoundListener implements Listener {
     public void onStepFall(final GenericGameEvent event) {
         Entity entity = event.getEntity();
         if (!(entity instanceof LivingEntity)) return;
-        if (!isLoaded(entity.getLocation())) return;
+        Location entityLoc = entity.getLocation();
+        if (entityLoc == null || !isLoaded(entityLoc)) return;
 
         GameEvent gameEvent = event.getEvent();
-        Block block = entity.getLocation().getBlock();
+        if (gameEvent == null) return;
+        Block block = entityLoc.getBlock();
         EntityDamageEvent cause = entity.getLastDamageCause();
 
         if (gameEvent == GameEvent.HIT_GROUND && cause != null && cause.getCause() != EntityDamageEvent.DamageCause.FALL) return;

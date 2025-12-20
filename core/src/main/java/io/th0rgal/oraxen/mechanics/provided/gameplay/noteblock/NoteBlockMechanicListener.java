@@ -99,10 +99,11 @@ public class NoteBlockMechanicListener implements Listener {
 
         @EventHandler(priority = EventPriority.HIGHEST)
         public void onNoteblockPowered(final GenericGameEvent event) {
-            Block block = event.getLocation().getBlock();
-
-            Location eLoc = block.getLocation();
-            if (!isLoaded(event.getLocation()) || !isLoaded(eLoc)) return;
+            Location eventLoc = event.getLocation();
+            if (eventLoc == null || !isLoaded(eventLoc)) return;
+            
+            Block block = eventLoc.getBlock();
+            if (block == null) return;
 
             // This GameEvent only exists in 1.19
             // If server is 1.18 check if its there and if not return
@@ -111,7 +112,7 @@ public class NoteBlockMechanicListener implements Listener {
             if (event.getEvent() != GameEvent.NOTE_BLOCK_PLAY) return;
             if (block.getType() != Material.NOTE_BLOCK) return;
             NoteBlock data = (NoteBlock) block.getBlockData().clone();
-            Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> block.setBlockData(data, false), 1L);
+            SchedulerUtil.runAtLocationLater(block.getLocation(), 1L, () -> block.setBlockData(data, false));
         }
 
         public void updateAndCheck(Block block) {

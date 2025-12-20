@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.pack.receive;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
@@ -35,14 +36,14 @@ public class PackReceiver implements Listener {
             case FAILED_RELOAD -> new PackAction(Settings.RECEIVE_FAILED_RELOAD_ACTIONS.toConfigSection(), playerResolver);
             case DISCARDED -> new PackAction(Settings.RECEIVE_DISCARDED_ACTIONS.toConfigSection(), playerResolver);
         };
-        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
+        SchedulerUtil.runForEntityLater(event.getPlayer(), packAction.getDelay(), () -> {
             if (packAction.hasMessage())
                 sendMessage(event.getPlayer(), packAction.getMessageType(), packAction.getMessageContent());
             if (packAction.hasSound())
                 packAction.playSound(event.getPlayer(), event.getPlayer().getLocation());
 
             packAction.getCommandsParser().perform(event.getPlayer());
-        }, packAction.getDelay());
+        }, () -> {});
     }
 
     private void sendMessage(Player receiver, String action, Component message) {

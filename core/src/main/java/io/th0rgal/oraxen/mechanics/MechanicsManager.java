@@ -39,13 +39,13 @@ import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanicFactor
 import io.th0rgal.oraxen.mechanics.provided.misc.misc.MiscMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.music_disc.MusicDiscMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.soulbound.SoulBoundMechanicFactory;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
 import java.io.IOException;
@@ -55,7 +55,7 @@ import java.util.Map.Entry;
 public class MechanicsManager {
 
     private static final Map<String, MechanicFactory> FACTORIES_BY_MECHANIC_ID = new HashMap<>();
-    public static final Map<String, List<Integer>> MECHANIC_TASKS = new HashMap<>();
+    private static final Map<String, List<SchedulerUtil.ScheduledTask>> MECHANIC_TASKS = new HashMap<>();
     private static final Map<String, List<Listener>> MECHANICS_LISTENERS = new HashMap<>();
 
     public static void registerNativeMechanics() {
@@ -106,10 +106,7 @@ public class MechanicsManager {
         if (CompatibilitiesManager.hasPlugin("ProtocolLib"))
             registerFactory("bedrockbreak", BedrockBreakMechanicFactory::new);
 
-        Bukkit.getScheduler().callSyncMethod(OraxenPlugin.get(), () -> {
-            Bukkit.getPluginManager().callEvent(new OraxenNativeMechanicsRegisteredEvent());
-            return null;
-        });
+        SchedulerUtil.runTask(() -> Bukkit.getPluginManager().callEvent(new OraxenNativeMechanicsRegisteredEvent()));
     }
 
     /**
@@ -156,22 +153,33 @@ public class MechanicsManager {
         }
     }
 
-    public static void registerTask(String mechanicId, BukkitTask task) {
+    /**
+     * Registers a scheduled task for a mechanic so it can be cancelled during reload/unload.
+     */
+    public static void registerTask(String mechanicId, SchedulerUtil.ScheduledTask task) {
+        if (task == null) return;
         MECHANIC_TASKS.compute(mechanicId, (key, value) -> {
             if (value == null) value = new ArrayList<>();
-            value.add(task.getTaskId());
+            value.add(task);
             return value;
         });
     }
 
     public static void unregisterTasks() {
-        MECHANIC_TASKS.values().forEach(tasks -> tasks.forEach(Bukkit.getScheduler()::cancelTask));
+        MECHANIC_TASKS.values().forEach(tasks -> tasks.forEach(task -> {
+            if (task != null) task.cancel();
+        }));
         MECHANIC_TASKS.clear();
+        
+        // Stop dynamically-started aura tasks (these aren't registered as regular tasks)
+        AuraMechanicFactory.stopAllAuras();
     }
 
     public static void unregisterTasks(String mechanicId) {
         MECHANIC_TASKS.computeIfPresent(mechanicId, (key, value) -> {
-            value.forEach(Bukkit.getScheduler()::cancelTask);
+            value.forEach(task -> {
+                if (task != null) task.cancel();
+            });
             return Collections.emptyList();
         });
     }

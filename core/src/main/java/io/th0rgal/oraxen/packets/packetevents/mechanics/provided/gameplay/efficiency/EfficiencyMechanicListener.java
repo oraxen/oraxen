@@ -5,11 +5,10 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
-import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.efficiency.EfficiencyMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.efficiency.EfficiencyMechanicFactory;
-import org.bukkit.Bukkit;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -38,14 +37,14 @@ public class EfficiencyMechanicListener implements PacketListener {
             return;
         final EfficiencyMechanic mechanic = (EfficiencyMechanic) factory.getMechanic(itemID);
         if (wrapper.getAction() == DiggingAction.START_DIGGING) {
-            Bukkit.getScheduler().runTask(OraxenPlugin.get(), () ->
+            SchedulerUtil.runForEntity(player, () ->
                 player.addPotionEffect(new PotionEffect(mechanic.getType(),
                     20 * 60 * 5,
                     mechanic.getAmount() - 1,
-                    false, false, false)));
+                    false, false, false)), () -> {});
         } else {
-            Bukkit.getScheduler().runTask(OraxenPlugin.get(), () ->
-                player.removePotionEffect(mechanic.getType()));
+            SchedulerUtil.runForEntity(player, () ->
+                player.removePotionEffect(mechanic.getType()), () -> {});
         }
     }
 }

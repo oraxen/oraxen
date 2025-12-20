@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.EventUtils;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.VectorUtils;
 import io.th0rgal.oraxen.utils.timers.Timer;
 import io.th0rgal.oraxen.utils.wrappers.ParticleWrapper;
@@ -25,7 +26,6 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 public class EnergyBlastMechanicManager implements Listener {
@@ -76,67 +76,74 @@ public class EnergyBlastMechanicManager implements Listener {
 
 
     private void playEffect(Player player, EnergyBlastMechanic mechanic) {
-        new BukkitRunnable() {
-            final Vector dir = player.getLocation().getDirection().normalize();
-            static final int circlePoints = 360;
-            double radius = 2;
-            final Location playerLoc = player.getEyeLocation();
-            final double pitch = (playerLoc.getPitch() + 90.0F) * 0.017453292F;
-            final double yaw = -playerLoc.getYaw() * 0.017453292F;
-            final double increment = (2 * Math.PI) / circlePoints;
-            double circlePointOffset = 0;
-            int beamLength = mechanic.getLength() * 2;
-            final double radiusShrinkage = radius / ((beamLength + 2) / 2.0);
+        final Vector dir = player.getLocation().getDirection().normalize();
+        final int circlePoints = 360;
+        final double[] radius = {2};
+        final Location playerLoc = player.getEyeLocation();
+        final double pitch = (playerLoc.getPitch() + 90.0F) * 0.017453292F;
+        final double yaw = -playerLoc.getYaw() * 0.017453292F;
+        final double increment = (2 * Math.PI) / circlePoints;
+        final double[] circlePointOffset = {0};
+        final int[] beamLength = {mechanic.getLength() * 2};
+        final double radiusShrinkage = radius[0] / ((beamLength[0] + 2) / 2.0);
+        final SchedulerUtil.ScheduledTask[] taskHolder = new SchedulerUtil.ScheduledTask[1];
 
-            @Override
-            public void run() {
-                beamLength--;
-                if (beamLength < 1) {
-                    this.cancel();
-                    return;
-                }
-                for (int i = 0; i < circlePoints; i++) {
-                    double angle = i * increment + circlePointOffset;
-                    double x = radius * Math.cos(angle);
-                    double z = radius * Math.sin(angle);
-                    Vector vec = new Vector(x, 0, z);
-                    VectorUtils.rotateAroundAxisX(vec, pitch);
-                    VectorUtils.rotateAroundAxisY(vec, yaw);
-                    playerLoc.add(vec);
-                    spawnParticle(playerLoc.getWorld(), playerLoc, mechanic);
-                    playerLoc.subtract(vec);
-                }
+        taskHolder[0] = SchedulerUtil.runAtLocationTimer(playerLoc, 0, 1, () -> {
+            beamLength[0]--;
+            if (beamLength[0] < 1) {
+                if (taskHolder[0] != null) taskHolder[0].cancel();
+                return;
+            }
+            for (int i = 0; i < circlePoints; i++) {
+                double angle = i * increment + circlePointOffset[0];
+                double x = radius[0] * Math.cos(angle);
+                double z = radius[0] * Math.sin(angle);
+                Vector vec = new Vector(x, 0, z);
+                VectorUtils.rotateAroundAxisX(vec, pitch);
+                VectorUtils.rotateAroundAxisY(vec, yaw);
+                playerLoc.add(vec);
+                spawnParticle(playerLoc.getWorld(), playerLoc, mechanic);
+                playerLoc.subtract(vec);
+            }
 
-                circlePointOffset += increment / 3;
-                if (circlePointOffset >= increment) {
-                    circlePointOffset = 0;
-                }
+            circlePointOffset[0] += increment / 3;
+            if (circlePointOffset[0] >= increment) {
+                circlePointOffset[0] = 0;
+            }
 
-                radius -= radiusShrinkage;
-                if (radius < 0) {
-                    spawnParticle(playerLoc.getWorld(), playerLoc, mechanic, 1000, 0.3, 0.3, 0.3, 0.3);
-                    for (Entity entity : playerLoc.getWorld().getNearbyEntities(playerLoc, 0.5, 0.5, 0.5))
-                        if (entity instanceof LivingEntity livingEntity && entity != player) {
+            radius[0] -= radiusShrinkage;
+            if (radius[0] < 0) {
+                spawnParticle(playerLoc.getWorld(), playerLoc, mechanic, 1000, 0.3, 0.3, 0.3, 0.3);
+                for (Entity entity : playerLoc.getWorld().getNearbyEntities(playerLoc, 0.5, 0.5, 0.5)) {
+                    if (entity instanceof LivingEntity livingEntity && entity != player) {
+                        // Use entity scheduler for damage on Folia (entity may be in different region)
+                        SchedulerUtil.runForEntity(livingEntity, () -> {
+                            if (livingEntity.isDead()) return;
                             EntityDamageByEntityEvent event = EventUtils.EntityDamageByEntityEvent(player, entity, EntityDamageEvent.DamageCause.MAGIC, DamageType.MAGIC, mechanic.getDamage() * 3.0);
-                            if (entity.isDead() || EventUtils.callEvent(event)) continue;
+                            if (EventUtils.callEvent(event)) return;
                             entity.setLastDamageCause(event);
                             livingEntity.damage(mechanic.getDamage() * 3.0, player);
-                        }
-                    this.cancel();
-                    return;
+                        });
+                    }
                 }
+                if (taskHolder[0] != null) taskHolder[0].cancel();
+                return;
+            }
 
-                playerLoc.add(dir);
-                for (Entity entity : playerLoc.getWorld().getNearbyEntities(playerLoc, radius, radius, radius))
-                    if (entity instanceof LivingEntity livingEntity && entity != player) {
+            playerLoc.add(dir);
+            for (Entity entity : playerLoc.getWorld().getNearbyEntities(playerLoc, radius[0], radius[0], radius[0])) {
+                if (entity instanceof LivingEntity livingEntity && entity != player) {
+                    // Use entity scheduler for damage on Folia (entity may be in different region)
+                    SchedulerUtil.runForEntity(livingEntity, () -> {
+                        if (livingEntity.isDead()) return;
                         EntityDamageByEntityEvent event = EventUtils.EntityDamageByEntityEvent(player, entity, EntityDamageEvent.DamageCause.MAGIC, DamageType.MAGIC, mechanic.getDamage());
-                        if (livingEntity.isDead() || !EventUtils.callEvent(event)) continue;
+                        if (!EventUtils.callEvent(event)) return;
                         livingEntity.setLastDamageCause(event);
                         livingEntity.damage(mechanic.getDamage(), player);
-                    }
-
+                    });
+                }
             }
-        }.runTaskTimer(OraxenPlugin.get(), 0, 1);
+        });
     }
 
     private void spawnParticle(World world, Location location, EnergyBlastMechanic mechanic) {

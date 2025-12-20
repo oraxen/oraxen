@@ -20,6 +20,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.togglelight.ToggleLightMech
 import io.th0rgal.oraxen.mechanics.provided.gameplay.togglelight.ToggleLightMechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.EventUtils;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import org.bukkit.*;
@@ -315,11 +316,11 @@ public class OraxenBlocks {
         removeLight(block, mechanic.getItemID());
         if (mechanic.isTall()) blockAbove.setType(Material.AIR);
         block.setType(Material.AIR);
-        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
+        SchedulerUtil.runAtLocationLater(block.getLocation(), 1L, () -> {
             StringBlockMechanicListener.fixClientsideUpdate(block.getLocation());
             if (blockAbove.getType() == Material.TRIPWIRE)
                 removeStringBlock(blockAbove, player, overrideDrop);
-        }, 1L);
+        });
         return true;
     }
 

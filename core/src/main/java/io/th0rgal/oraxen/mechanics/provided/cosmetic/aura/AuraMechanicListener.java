@@ -10,17 +10,18 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class AuraMechanicListener implements Listener {
 
     private final AuraMechanicFactory factory;
+    // Use thread-safe map for Folia compatibility (concurrent region thread access)
     private final Map<Player, AuraMechanic> registeredPlayers;
 
     public AuraMechanicListener(AuraMechanicFactory factory) {
         this.factory = factory;
-        registeredPlayers = new HashMap<>();
+        registeredPlayers = new ConcurrentHashMap<>();
     }
 
     public void enable(Player player, AuraMechanic mechanic) {

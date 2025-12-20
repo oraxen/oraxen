@@ -1,28 +1,16 @@
 package io.th0rgal.oraxen.mechanics.provided.cosmetic.aura.aura;
 
-import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.cosmetic.aura.AuraMechanic;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 
 public abstract class Aura {
 
     protected final AuraMechanic mechanic;
-    private BukkitRunnable runnable;
+    private SchedulerUtil.ScheduledTask scheduledTask;
 
     protected Aura(AuraMechanic mechanic) {
         this.mechanic = mechanic;
-    }
-
-    BukkitRunnable getRunnable() {
-        return new BukkitRunnable() {
-            @Override
-            public void run() {
-                mechanic.players.forEach(Aura.this::spawnParticles);
-            }
-        };
     }
 
     protected abstract void spawnParticles(Player player);
@@ -30,14 +18,19 @@ public abstract class Aura {
     protected abstract long getDelay();
 
     public void start() {
-        runnable = getRunnable();
-        BukkitTask task = runnable.runTaskTimerAsynchronously(OraxenPlugin.get(), 0L, getDelay());
-        MechanicsManager.registerTask(mechanic.getFactory().getMechanicID(), task);
+        // Use async timer to iterate players, then schedule particle spawning
+        // on each player's region thread for Folia compatibility
+        scheduledTask = SchedulerUtil.runTaskTimerAsync(0L, getDelay(), () -> {
+            for (Player player : mechanic.players) {
+                SchedulerUtil.runForEntity(player, () -> spawnParticles(player));
+            }
+        });
     }
 
     public void stop() {
-        runnable.cancel();
+        if (scheduledTask != null) {
+            scheduledTask.cancel();
+            scheduledTask = null;
+        }
     }
-
-
 }

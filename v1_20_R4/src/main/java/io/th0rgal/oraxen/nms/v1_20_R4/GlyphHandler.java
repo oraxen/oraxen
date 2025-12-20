@@ -10,6 +10,7 @@ import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.nms.GlyphHandlers;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -39,7 +40,6 @@ import net.minecraft.server.network.ServerConnectionListener;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -209,12 +209,7 @@ public class GlyphHandler implements io.th0rgal.oraxen.nms.GlyphHandler {
         try {
             bind(futures, serverChannelHandler);
         } catch (IllegalArgumentException ex) {
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    bind(futures, serverChannelHandler);
-                }
-            }.runTask(OraxenPlugin.get());
+            SchedulerUtil.runTask(() -> bind(futures, serverChannelHandler));
         }
 
         if (VersionUtil.isPaperServer())

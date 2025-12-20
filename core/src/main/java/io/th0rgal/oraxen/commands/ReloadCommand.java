@@ -15,6 +15,7 @@ import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -35,8 +36,9 @@ public class ReloadCommand {
         if (Settings.UPDATE_ITEMS.toBool() && Settings.UPDATE_ITEMS_ON_RELOAD.toBool()) {
             Message.UPDATING_USER_ITEMS.log();
             for (Player player : Bukkit.getServer().getOnlinePlayers()) {
-                PlayerInventory inventory = player.getInventory();
-                Bukkit.getScheduler().runTaskAsynchronously(OraxenPlugin.get(), () -> {
+                // Use runForEntity for Folia compatibility - inventory must be accessed on player's region thread
+                SchedulerUtil.runForEntity(player, () -> {
+                    PlayerInventory inventory = player.getInventory();
                     for (int i = 0; i < inventory.getSize(); i++) {
                         ItemStack oldItem = inventory.getItem(i);
                         ItemStack newItem = ItemUpdater.updateItem(oldItem);
@@ -52,7 +54,7 @@ public class ReloadCommand {
             Message.UPDATING_PLACED_FURNITURES.log();
             for (World world : Bukkit.getServer().getWorlds())
                 world.getEntities().stream().filter(OraxenFurniture::isBaseEntity)
-                        .forEach(OraxenFurniture::updateFurniture);
+                        .forEach(entity -> SchedulerUtil.runForEntity(entity, () -> OraxenFurniture.updateFurniture(entity)));
         }
 
     }

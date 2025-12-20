@@ -6,21 +6,34 @@ import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic.FARMBLOCK_KEY;
 
-public class FarmBlockTask extends BukkitRunnable {
+public class FarmBlockTask implements Runnable {
     private final int delay;
+    private SchedulerUtil.ScheduledTask scheduledTask;
 
     public FarmBlockTask(int delay) {
         this.delay = delay;
+    }
+
+    public SchedulerUtil.ScheduledTask start(long initialDelay, long period) {
+        scheduledTask = SchedulerUtil.runTaskTimer(initialDelay, period, this);
+        return scheduledTask;
+    }
+
+    public void cancel() {
+        if (scheduledTask != null) {
+            scheduledTask.cancel();
+            scheduledTask = null;
+        }
     }
 
     private boolean isAreaWet(FarmBlockDryout mechanic, Block block, PersistentDataContainer pdc) {
@@ -59,9 +72,14 @@ public class FarmBlockTask extends BukkitRunnable {
 
     @Override
     public void run() {
-        for (World world : Bukkit.getWorlds())
-            for (Chunk chunk : world.getLoadedChunks())
-                CustomBlockData.getBlocksWithCustomData(OraxenPlugin.get(), chunk).forEach(block ->
-                        updateBlock(block, BlockHelpers.getPDC(block)));
+        for (World world : Bukkit.getWorlds()) {
+            for (Chunk chunk : world.getLoadedChunks()) {
+                for (Block block : CustomBlockData.getBlocksWithCustomData(OraxenPlugin.get(), chunk)) {
+                    // Run block operations on the block's region thread for Folia compatibility
+                    SchedulerUtil.runAtLocation(block.getLocation(), () ->
+                            updateBlock(block, BlockHelpers.getPDC(block)));
+                }
+            }
+        }
     }
 }

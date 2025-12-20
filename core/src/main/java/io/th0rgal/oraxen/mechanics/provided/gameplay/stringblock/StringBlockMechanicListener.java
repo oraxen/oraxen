@@ -78,7 +78,7 @@ public class StringBlockMechanicListener implements Listener {
                     continue;
 
                 final BlockData data = changed.getBlockData().clone();
-                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> changed.setBlockData(data, false), 1L);
+                SchedulerUtil.runAtLocationLater(changed.getLocation(), 1L, () -> changed.setBlockData(data, false));
             }
         }
 
@@ -120,8 +120,8 @@ public class StringBlockMechanicListener implements Listener {
                         block.setType(Material.AIR);
                     if (BlockHelpers.isReplaceable(blockAbove.getType()))
                         blockAbove.breakNaturally(true);
-                    Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(),
-                            Runnable -> fixClientsideUpdate(block.getLocation()), 1);
+                    SchedulerUtil.runAtLocationLater(block.getLocation(), 1L,
+                            () -> fixClientsideUpdate(block.getLocation()));
                 }
             }
         }
@@ -247,8 +247,8 @@ public class StringBlockMechanicListener implements Listener {
 
                 makePlayerPlaceBlock(player, event.getHand(), item, placedAgainst, event.getBlockFace(),
                         Bukkit.createBlockData(item.getType()));
-                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(),
-                        Runnable -> fixClientsideUpdate(placedAgainst.getLocation()), 1L);
+                SchedulerUtil.runAtLocationLater(placedAgainst.getLocation(), 1L,
+                        () -> fixClientsideUpdate(placedAgainst.getLocation()));
             }
         }
 

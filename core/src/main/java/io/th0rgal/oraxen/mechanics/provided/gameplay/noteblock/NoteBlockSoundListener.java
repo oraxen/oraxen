@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.events.noteblock.OraxenNoteBlockBreakEvent;
 import io.th0rgal.oraxen.api.events.noteblock.OraxenNoteBlockPlaceEvent;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.*;
@@ -21,20 +22,20 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.world.GenericGameEvent;
 import org.bukkit.event.world.WorldUnloadEvent;
-import org.bukkit.scheduler.BukkitTask;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static io.th0rgal.oraxen.utils.BlockHelpers.isLoaded;
 import static io.th0rgal.oraxen.utils.blocksounds.BlockSounds.*;
 
 public class NoteBlockSoundListener implements Listener {
-    private final Map<Location, BukkitTask> breakerPlaySound = new HashMap<>();
+    // Use thread-safe collection for Folia compatibility (concurrent region thread access)
+    private final Map<Location, SchedulerUtil.ScheduledTask> breakerPlaySound = new ConcurrentHashMap<>();
 
     @EventHandler
     public void onWorldUnload(WorldUnloadEvent event) {
-        for (Map.Entry<Location, BukkitTask> entry : breakerPlaySound.entrySet()) {
+        for (Map.Entry<Location, SchedulerUtil.ScheduledTask> entry : breakerPlaySound.entrySet()) {
             if (entry.getKey().isWorldLoaded() || entry.getValue().isCancelled()) continue;
             entry.getValue().cancel();
             breakerPlaySound.remove(entry.getKey());
@@ -75,16 +76,16 @@ public class NoteBlockSoundListener implements Listener {
 
         if (block.getType() == Material.NOTE_BLOCK || block.getType() == Material.MUSHROOM_STEM) {
             if (event.getInstaBreak()) {
-                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->
-                        block.setType(Material.AIR, false), 1);
+                SchedulerUtil.runAtLocationLater(location, 1L, () ->
+                        block.setType(Material.AIR, false));
                 return;
             }
         }
         if (soundGroup.getHitSound() != Sound.BLOCK_WOOD_HIT) return;
         if (breakerPlaySound.containsKey(location)) return;
 
-        BukkitTask task = Bukkit.getScheduler().runTaskTimer(OraxenPlugin.get(), () ->
-                BlockHelpers.playCustomBlockSound(location, VANILLA_WOOD_HIT, VANILLA_HIT_VOLUME, VANILLA_HIT_PITCH), 2L, 4L);
+        SchedulerUtil.ScheduledTask task = SchedulerUtil.runAtLocationTimer(location, 2L, 4L, () ->
+                BlockHelpers.playCustomBlockSound(location, VANILLA_WOOD_HIT, VANILLA_HIT_VOLUME, VANILLA_HIT_PITCH));
         breakerPlaySound.put(location, task);
     }
 
@@ -101,9 +102,11 @@ public class NoteBlockSoundListener implements Listener {
     public void onStepFall(final GenericGameEvent event) {
         Entity entity = event.getEntity();
         if (!(entity instanceof LivingEntity)) return;
-        if (!isLoaded(entity.getLocation())) return;
+        Location entityLoc = entity.getLocation();
+        if (entityLoc == null || !isLoaded(entityLoc)) return;
 
         GameEvent gameEvent = event.getEvent();
+        if (gameEvent == null) return;
         Block block = BlockHelpers.getBlockStandingOn(entity);
         EntityDamageEvent cause = entity.getLastDamageCause();
 

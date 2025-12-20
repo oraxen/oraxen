@@ -8,8 +8,8 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.ItemUtils;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.VersionUtil;
-import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -129,7 +129,7 @@ public class ItemUpdater implements Listener {
 
         PlayerInventory inventory = event.getPlayer().getInventory();
         if (inventory.firstEmpty() == -1) event.setItem(event.getItem().add(usingConvertsTo.getAmount()));
-        else Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> {
+        else SchedulerUtil.runForEntity(event.getPlayer(), () -> {
             for (int i = 0; i < inventory.getSize(); i++) {
                 ItemStack oldItem = inventory.getItem(i);
                 ItemStack newItem = ItemUpdater.updateItem(oldItem);
@@ -139,7 +139,7 @@ public class ItemUpdater implements Listener {
                 inventory.setItem(i, null);
                 inventory.addItem(newItem);
             }
-        });
+        }, () -> {});
     }
 
     private static final NamespacedKey IF_UUID = Objects.requireNonNull(NamespacedKey.fromString("oraxen:if-uuid"));

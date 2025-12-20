@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -21,12 +22,11 @@ import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Listener handling the spear lunge mechanic's charge and attack logic.
@@ -39,14 +39,15 @@ import java.util.*;
 public class SpearLungeMechanicListener implements Listener {
 
     private final MechanicFactory factory;
-    private final Map<UUID, ChargeState> chargingPlayers = new HashMap<>();
-    private final Map<UUID, Long> attackCooldowns = new HashMap<>();
+    // Use thread-safe collections for Folia compatibility (concurrent region thread access)
+    private final Map<UUID, ChargeState> chargingPlayers = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> attackCooldowns = new ConcurrentHashMap<>();
     // Track players who just triggered a lunge attack - suppress their default
     // melee damage
-    private final Set<UUID> lungingPlayers = new HashSet<>();
+    private final Set<UUID> lungingPlayers = ConcurrentHashMap.newKeySet();
     // Track entities we're intentionally damaging via lunge - allow their damage
     // events
-    private final Set<UUID> intentionalDamageTargets = new HashSet<>();
+    private final Set<UUID> intentionalDamageTargets = ConcurrentHashMap.newKeySet();
 
     // Cooldown in ticks after an attack before player can charge again (30 ticks =
     // 1.5 seconds)
@@ -64,7 +65,7 @@ public class SpearLungeMechanicListener implements Listener {
             long startTick,
             SpearLungeMechanic mechanic,
             EquipmentSlot hand,
-            BukkitTask task,
+            SchedulerUtil.ScheduledTask task,
             int lastFrame,
             NamespacedKey originalModel,
             float originalWalkSpeed) {
@@ -142,7 +143,9 @@ public class SpearLungeMechanicListener implements Listener {
         }
 
         // Start a task to monitor charging state
-        BukkitTask task = new ChargeMonitorTask(player, mechanic, hand).runTaskTimer(OraxenPlugin.get(), 1L, 1L);
+        ChargeMonitorTask monitorTask = new ChargeMonitorTask(player, mechanic, hand);
+        SchedulerUtil.ScheduledTask task = SchedulerUtil.runForEntityTimer(player, 1L, 1L, 
+            monitorTask, () -> cancelCharge(player, false));
 
         ChargeState state = new ChargeState(Bukkit.getCurrentTick(), mechanic, hand, task, 0, originalModel,
                 originalWalkSpeed);
@@ -154,7 +157,9 @@ public class SpearLungeMechanicListener implements Listener {
         if (state == null)
             return;
 
-        state.task().cancel();
+        if (state.task() != null) {
+            state.task().cancel();
+        }
 
         // Restore walk speed
         player.setWalkSpeed(state.originalWalkSpeed());
@@ -190,8 +195,8 @@ public class SpearLungeMechanicListener implements Listener {
     private void performLungeAttack(Player player, SpearLungeMechanic mechanic, double chargePercent) {
         // Suppress default melee damage during lunge
         lungingPlayers.add(player.getUniqueId());
-        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(),
-                () -> lungingPlayers.remove(player.getUniqueId()), 5L);
+        SchedulerUtil.runForEntityLater(player, 5L,
+                () -> lungingPlayers.remove(player.getUniqueId()), () -> lungingPlayers.remove(player.getUniqueId()));
 
         Vector direction = player.getLocation().getDirection();
         applyLungeMovement(player, mechanic, direction, chargePercent);
@@ -344,7 +349,9 @@ public class SpearLungeMechanicListener implements Listener {
         Player player = event.getPlayer();
         ChargeState state = chargingPlayers.remove(player.getUniqueId());
         if (state != null) {
-            state.task().cancel();
+            if (state.task() != null) {
+                state.task().cancel();
+            }
             // Restore walk speed before player disconnects
             player.setWalkSpeed(state.originalWalkSpeed());
         }
@@ -357,7 +364,9 @@ public class SpearLungeMechanicListener implements Listener {
         Player player = event.getEntity();
         ChargeState state = chargingPlayers.remove(player.getUniqueId());
         if (state != null) {
-            state.task().cancel();
+            if (state.task() != null) {
+                state.task().cancel();
+            }
             // Restore walk speed so it's correct on respawn
             player.setWalkSpeed(state.originalWalkSpeed());
         }
@@ -373,7 +382,7 @@ public class SpearLungeMechanicListener implements Listener {
      * Task that monitors the charging state and detects release.
      * It also handles smooth animation frame progression and particle effects.
      */
-    private class ChargeMonitorTask extends BukkitRunnable {
+    private class ChargeMonitorTask implements Runnable {
 
         private final Player player;
         private final SpearLungeMechanic mechanic;

@@ -209,7 +209,7 @@ public class StringBlockMechanicFactory extends MechanicFactory {
 //        if (saplingList.isEmpty()) return;
 
         saplingTask = new SaplingTask(saplingGrowthCheckDelay);
-        saplingTask.runTaskTimer(OraxenPlugin.get(), 0, saplingGrowthCheckDelay);
+        MechanicsManager.registerTask(getMechanicID(), saplingTask.start(0, saplingGrowthCheckDelay));
         sapling = true;
     }
 
