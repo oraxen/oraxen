@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.CompatibilityProvider;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
+import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.Plugin;
 
 /**
@@ -47,6 +48,16 @@ public class McMMOCompatibility extends CompatibilityProvider<Plugin> {
 
     @Override
     public void disable() {
+        // Unregister the listeners before nulling them
+        if (blockXPHandler != null) {
+            HandlerList.unregisterAll(blockXPHandler);
+            blockXPHandler.clearCache();
+        }
+        if (abilityListener != null) {
+            HandlerList.unregisterAll(abilityListener);
+            abilityListener.clear();
+        }
+
         super.disable();
         instance = null;
         blockXPHandler = null;

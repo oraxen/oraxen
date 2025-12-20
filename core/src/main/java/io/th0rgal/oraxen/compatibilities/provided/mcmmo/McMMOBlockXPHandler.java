@@ -108,6 +108,18 @@ public class McMMOBlockXPHandler implements Listener {
 
     /**
      * Loads XP configuration from an Oraxen item's mechanic section.
+     * <p>
+     * The mcmmo section is a sibling of the block mechanic (noteblock/stringblock)
+     * under the Mechanics parent, not a child of the block mechanic itself.
+     * <pre>
+     * mythril_ore:
+     *   Mechanics:
+     *     noteblock:    # mechanic.getSection() returns this
+     *       ...
+     *     mcmmo:        # we need getParent().getConfigurationSection("mcmmo")
+     *       skill: MINING
+     *       xp: 150
+     * </pre>
      *
      * @param itemId the Oraxen item ID
      * @return the loaded config, or null if not configured
@@ -120,11 +132,15 @@ public class McMMOBlockXPHandler implements Listener {
         }
         if (mechanic == null) return null;
 
-        // Look for mcmmo configuration in the mechanic's section
-        ConfigurationSection section = mechanic.getSection();
-        if (section == null) return null;
+        // The mechanic's section is e.g. "noteblock", we need to go up to "Mechanics"
+        // and then get the sibling "mcmmo" section
+        ConfigurationSection mechanicSection = mechanic.getSection();
+        if (mechanicSection == null) return null;
 
-        ConfigurationSection mcmmoSection = section.getConfigurationSection("mcmmo");
+        ConfigurationSection parentSection = mechanicSection.getParent();
+        if (parentSection == null) return null;
+
+        ConfigurationSection mcmmoSection = parentSection.getConfigurationSection("mcmmo");
         if (mcmmoSection == null) return null;
 
         String skillName = mcmmoSection.getString("skill");

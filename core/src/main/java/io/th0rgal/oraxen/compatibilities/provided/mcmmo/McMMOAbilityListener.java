@@ -1,10 +1,8 @@
 package io.th0rgal.oraxen.compatibilities.provided.mcmmo;
 
 import com.gmail.nossr50.datatypes.skills.PrimarySkillType;
-import com.gmail.nossr50.datatypes.skills.SuperAbilityType;
 import com.gmail.nossr50.events.skills.abilities.McMMOPlayerAbilityActivateEvent;
 import com.gmail.nossr50.events.skills.abilities.McMMOPlayerAbilityDeactivateEvent;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -42,9 +40,6 @@ public class McMMOAbilityListener implements Listener {
         PrimarySkillType skill = event.getSkill();
 
         activeAbilities.put(player.getUniqueId(), skill);
-
-        // Debug logging for server owners who want to see the integration working
-        Logs.logInfo("mcMMO ability activated: " + player.getName() + " - " + skill.name());
     }
 
     /**
