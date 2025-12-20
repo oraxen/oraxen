@@ -150,7 +150,9 @@ lotr_pike:
       lunge_velocity: 0.9       # Forward velocity on lunge
       max_range: 7.0            # Hit detection range in blocks (increased spear reach)
       damage: 12.0              # Lunge damage at full charge (increased)
+      min_damage: 4.0           # Minimum damage at 0% charge (scales up to 'damage' at 100%)
       knockback: 1.2            # Knockback applied to targets (doubled)
+      hitbox_radius: 0.6        # Hitbox radius for hit detection (higher = easier to hit off-center, max 5.0)
       min_charge_percent: 0.25  # Minimum charge needed to attack (25%)
       # Movement while charging
       charge_slowdown: 0.5      # 50% slower while charging (0.0 = none, 1.0 = frozen)

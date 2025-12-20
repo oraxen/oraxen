@@ -1,0 +1,144 @@
+---
+description: "Oraxen Skript compatibility module - syntax reference and development guide"
+alwaysApply: false
+---
+
+## Oraxen Skript Integration
+
+Oraxen includes built-in Skript compatibility that loads automatically when Skript is present on the server. This provides expressions, conditions, events, and effects for working with Oraxen items, blocks, and furniture.
+
+### Location
+
+All Skript integration code is in:
+`core/src/main/java/io/th0rgal/oraxen/compatibilities/provided/skript/`
+
+```
+skript/
+├── SkriptCompatibility.java     # Main hook, registers addon
+├── OraxenSkriptTypes.java       # Custom type definitions
+├── expressions/
+│   ├── ExprOraxenItem.java      # Get ItemStack from ID
+│   ├── ExprOraxenId.java        # Get ID from ItemStack/Block/Entity
+│   ├── ExprOraxenBlock.java     # Get block ID at location
+│   └── ExprOraxenFurniture.java # Get furniture ID
+├── conditions/
+│   ├── CondIsOraxenItem.java
+│   ├── CondIsOraxenBlock.java
+│   └── CondIsOraxenFurniture.java
+├── events/
+│   ├── EvtOraxenBlockBreak.java
+│   ├── EvtOraxenBlockPlace.java
+│   ├── EvtOraxenBlockInteract.java
+│   ├── EvtOraxenFurnitureBreak.java
+│   ├── EvtOraxenFurniturePlace.java
+│   └── EvtOraxenFurnitureInteract.java
+└── effects/
+    ├── EffPlaceOraxenBlock.java
+    ├── EffPlaceOraxenFurniture.java
+    ├── EffRemoveOraxenBlock.java
+    └── EffRemoveOraxenFurniture.java
+```
+
+### Available Syntax
+
+#### Expressions
+
+| Syntax | Returns | Description |
+|--------|---------|-------------|
+| `oraxen item %string%` | ItemStack | Get an Oraxen item by ID |
+| `oraxen id of %itemstack/block/entity/location%` | String | Get the Oraxen ID |
+| `oraxen block at %location/block%` | String | Get Oraxen block ID at location |
+| `oraxen furniture at %location/entity%` | String | Get Oraxen furniture ID |
+
+#### Conditions
+
+| Syntax | Description |
+|--------|-------------|
+| `%itemstack% is [an] oraxen item` | Check if item is any Oraxen item |
+| `%itemstack% is oraxen item %string%` | Check if item is specific Oraxen item |
+| `%block/location% is [an] oraxen block` | Check if block is Oraxen block |
+| `%block/location% is oraxen block %string%` | Check if block is specific Oraxen block |
+| `%entity/block/location% is [an] oraxen furniture` | Check if target is Oraxen furniture |
+| `%entity/block/location% is oraxen furniture %string%` | Check if target is specific furniture |
+
+#### Events
+
+| Syntax | Event Values |
+|--------|--------------|
+| `on oraxen block break [of %string%]` | event-player, event-block, event-string (ID) |
+| `on oraxen block place [of %string%]` | event-player, event-block, event-item, event-string |
+| `on oraxen block interact [of %string%]` | event-player, event-block, event-item, event-string |
+| `on oraxen furniture break [of %string%]` | event-player, event-block, event-entity, event-string |
+| `on oraxen furniture place [of %string%]` | event-player, event-block, event-entity, event-item, event-string |
+| `on oraxen furniture interact [of %string%]` | event-player, event-block, event-entity, event-item, event-string |
+
+#### Effects
+
+| Syntax | Description |
+|--------|-------------|
+| `place oraxen block %string% at %locations%` | Place Oraxen block |
+| `place oraxen furniture %string% at %locations%` | Place Oraxen furniture |
+| `remove oraxen block at %locations/blocks%` | Remove Oraxen block |
+| `remove oraxen furniture at %locations/entities%` | Remove Oraxen furniture |
+
+### Example Scripts
+
+```vb
+# Give Oraxen items
+on join:
+    give player oraxen item "ruby_sword"
+
+# Check held item
+on right click:
+    if player's tool is oraxen item "magic_wand":
+        strike lightning at target block
+
+# Listen to Oraxen events
+on oraxen block break of "ruby_ore":
+    cancel event
+    send "You need a special pickaxe to mine this!"
+
+on oraxen furniture interact of "treasure_chest":
+    give player diamond
+    send "You found treasure!"
+
+# Place Oraxen blocks/furniture via script
+command /placeoraxen <text>:
+    trigger:
+        place oraxen block arg-1 at player's target block
+        send "Placed %arg-1%!"
+```
+
+### Adding New Syntax
+
+When adding new Skript syntax elements:
+
+1. **Expressions**: Extend `SimpleExpression<T>` or `PropertyExpression<F, T>`
+2. **Conditions**: Extend `Condition`
+3. **Events**: Extend `SkriptEvent`, use `EventValues.registerEventValue()` for event values
+4. **Effects**: Extend `Effect`
+
+All syntax classes must have a `static {}` block that calls `Skript.registerXxx()`.
+
+Use these annotations for documentation:
+- `@Name("Display Name")`
+- `@Description("What it does")`
+- `@Examples({"example 1", "example 2"})`
+- `@Since("version")`
+
+### Dependencies
+
+Skript is a compile-time dependency in `gradle/oraxenLibs.versions.toml`:
+```toml
+skript = { module = "com.github.SkriptLang:Skript", version = "2.9.6" }
+```
+
+It's included in the `plugins` bundle and listed in `softDepend` in `build.gradle.kts`.
+
+### Testing
+
+To test Skript integration:
+1. Install Skript on the test server
+2. Create a test script in `plugins/Skript/scripts/`
+3. Use `/skript reload all` to reload scripts
+4. Check console for syntax errors
