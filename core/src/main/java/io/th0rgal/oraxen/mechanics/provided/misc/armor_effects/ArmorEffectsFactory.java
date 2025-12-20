@@ -39,7 +39,7 @@ public class ArmorEffectsFactory extends MechanicFactory {
         addToImplemented(mechanic);
         if (armorEffectTask != null) armorEffectTask.cancel();
         armorEffectTask = new ArmorEffectsTask();
-        armorEffectTask.start(0, delay);
+        MechanicsManager.registerTask(getMechanicID(), armorEffectTask.start(0, delay));
         return mechanic;
     }
 

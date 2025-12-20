@@ -80,7 +80,7 @@ public class FurnitureFactory extends MechanicFactory {
         if (evolutionTask != null)
             evolutionTask.cancel();
         evolutionTask = new EvolutionTask(this, evolutionCheckDelay);
-        evolutionTask.start(0, evolutionCheckDelay);
+        MechanicsManager.registerTask(getMechanicID(), evolutionTask.start(0, evolutionCheckDelay));
         evolvingFurnitures = true;
     }
 

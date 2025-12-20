@@ -55,7 +55,7 @@ import java.util.Map.Entry;
 public class MechanicsManager {
 
     private static final Map<String, MechanicFactory> FACTORIES_BY_MECHANIC_ID = new HashMap<>();
-    public static final Map<String, List<Integer>> MECHANIC_TASKS = new HashMap<>();
+    private static final Map<String, List<SchedulerUtil.ScheduledTask>> MECHANIC_TASKS = new HashMap<>();
     private static final Map<String, List<Listener>> MECHANICS_LISTENERS = new HashMap<>();
 
     public static void registerNativeMechanics() {
@@ -153,14 +153,30 @@ public class MechanicsManager {
         }
     }
 
+    /**
+     * Registers a scheduled task for a mechanic so it can be cancelled during reload/unload.
+     */
+    public static void registerTask(String mechanicId, SchedulerUtil.ScheduledTask task) {
+        if (task == null) return;
+        MECHANIC_TASKS.compute(mechanicId, (key, value) -> {
+            if (value == null) value = new ArrayList<>();
+            value.add(task);
+            return value;
+        });
+    }
+
     public static void unregisterTasks() {
-        MECHANIC_TASKS.values().forEach(tasks -> tasks.forEach(SchedulerUtil::cancelTask));
+        MECHANIC_TASKS.values().forEach(tasks -> tasks.forEach(task -> {
+            if (task != null) task.cancel();
+        }));
         MECHANIC_TASKS.clear();
     }
 
     public static void unregisterTasks(String mechanicId) {
         MECHANIC_TASKS.computeIfPresent(mechanicId, (key, value) -> {
-            value.forEach(SchedulerUtil::cancelTask);
+            value.forEach(task -> {
+                if (task != null) task.cancel();
+            });
             return Collections.emptyList();
         });
     }

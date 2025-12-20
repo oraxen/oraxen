@@ -266,7 +266,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
 //        if (farmblockList.isEmpty()) return;
 
         farmBlockTask = new FarmBlockTask(farmBlockCheckDelay);
-        farmBlockTask.start(0, farmBlockCheckDelay);
+        MechanicsManager.registerTask(getMechanicID(), farmBlockTask.start(0, farmBlockCheckDelay));
         farmBlock = true;
     }
 
