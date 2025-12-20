@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.compatibilities.provided.mcmmo;
 import com.gmail.nossr50.api.ExperienceAPI;
 import com.gmail.nossr50.datatypes.skills.PrimarySkillType;
 import io.th0rgal.oraxen.api.OraxenBlocks;
+import io.th0rgal.oraxen.api.events.OraxenItemsLoadedEvent;
 import io.th0rgal.oraxen.api.events.noteblock.OraxenNoteBlockBreakEvent;
 import io.th0rgal.oraxen.api.events.stringblock.OraxenStringBlockBreakEvent;
 import io.th0rgal.oraxen.mechanics.Mechanic;
@@ -66,6 +67,16 @@ public class McMMOBlockXPHandler implements Listener {
         if (player == null || mechanic == null) return;
 
         awardXPForBlock(player, mechanic);
+    }
+
+    /**
+     * Clears the XP config cache when Oraxen items are reloaded.
+     * This ensures that changes to mcmmo XP settings take effect
+     * immediately after /oraxen reload without requiring a server restart.
+     */
+    @EventHandler
+    public void onItemsReloaded(OraxenItemsLoadedEvent event) {
+        clearCache();
     }
 
     /**
