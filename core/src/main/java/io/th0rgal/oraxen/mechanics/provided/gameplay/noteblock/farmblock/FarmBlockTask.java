@@ -72,9 +72,14 @@ public class FarmBlockTask implements Runnable {
 
     @Override
     public void run() {
-        for (World world : Bukkit.getWorlds())
-            for (Chunk chunk : world.getLoadedChunks())
-                CustomBlockData.getBlocksWithCustomData(OraxenPlugin.get(), chunk).forEach(block ->
-                        updateBlock(block, BlockHelpers.getPDC(block)));
+        for (World world : Bukkit.getWorlds()) {
+            for (Chunk chunk : world.getLoadedChunks()) {
+                for (Block block : CustomBlockData.getBlocksWithCustomData(OraxenPlugin.get(), chunk)) {
+                    // Run block operations on the block's region thread for Folia compatibility
+                    SchedulerUtil.runAtLocation(block.getLocation(), () ->
+                            updateBlock(block, BlockHelpers.getPDC(block)));
+                }
+            }
+        }
     }
 }

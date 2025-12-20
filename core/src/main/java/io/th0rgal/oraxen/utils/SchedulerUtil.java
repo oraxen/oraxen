@@ -36,6 +36,7 @@ public final class SchedulerUtil {
     private static Method taskCancelMethod;
 
     private static boolean foliaInitialized = false;
+    private static Exception foliaInitException = null;
 
     static {
         if (VersionUtil.isFoliaServer()) {
@@ -43,9 +44,28 @@ public final class SchedulerUtil {
                 initializeFoliaSchedulers();
                 foliaInitialized = true;
             } catch (Exception e) {
-                e.printStackTrace();
+                foliaInitException = e;
                 foliaInitialized = false;
+                // Log the error immediately so it's visible during startup
+                System.err.println("[Oraxen] CRITICAL: Failed to initialize Folia scheduler APIs!");
+                System.err.println("[Oraxen] This will cause scheduling errors. Please report this issue.");
+                e.printStackTrace();
             }
+        }
+    }
+
+    /**
+     * Throws an exception if running on Folia but scheduler initialization failed.
+     * This provides a clear error message instead of falling back to BukkitScheduler
+     * which would throw UnsupportedOperationException.
+     */
+    private static void ensureFoliaReady() {
+        if (VersionUtil.isFoliaServer() && !foliaInitialized) {
+            throw new IllegalStateException(
+                "Folia scheduler initialization failed. Cannot schedule tasks. " +
+                "See startup logs for the original error.",
+                foliaInitException
+            );
         }
     }
 
@@ -117,10 +137,10 @@ public final class SchedulerUtil {
             } catch (Exception e) {
                 throw new RuntimeException("Failed to schedule Folia task", e);
             }
-        } else {
-            BukkitTask task = Bukkit.getScheduler().runTask(plugin, runnable);
-            return new ScheduledTask(task);
         }
+        ensureFoliaReady(); // Throws if on Folia but init failed
+        BukkitTask task = Bukkit.getScheduler().runTask(plugin, runnable);
+        return new ScheduledTask(task);
     }
 
     /**
@@ -143,10 +163,10 @@ public final class SchedulerUtil {
             } catch (Exception e) {
                 throw new RuntimeException("Failed to schedule Folia delayed task", e);
             }
-        } else {
-            BukkitTask task = Bukkit.getScheduler().runTaskLater(plugin, runnable, delayTicks);
-            return new ScheduledTask(task);
         }
+        ensureFoliaReady(); // Throws if on Folia but init failed
+        BukkitTask task = Bukkit.getScheduler().runTaskLater(plugin, runnable, delayTicks);
+        return new ScheduledTask(task);
     }
 
     /**
@@ -168,10 +188,10 @@ public final class SchedulerUtil {
             } catch (Exception e) {
                 throw new RuntimeException("Failed to schedule Folia timer task", e);
             }
-        } else {
-            BukkitTask task = Bukkit.getScheduler().runTaskTimer(plugin, runnable, delayTicks, periodTicks);
-            return new ScheduledTask(task);
         }
+        ensureFoliaReady(); // Throws if on Folia but init failed
+        BukkitTask task = Bukkit.getScheduler().runTaskTimer(plugin, runnable, delayTicks, periodTicks);
+        return new ScheduledTask(task);
     }
 
     // ==================== ASYNC TASKS ====================
@@ -195,10 +215,10 @@ public final class SchedulerUtil {
             } catch (Exception e) {
                 throw new RuntimeException("Failed to schedule Folia async task", e);
             }
-        } else {
-            BukkitTask task = Bukkit.getScheduler().runTaskAsynchronously(plugin, runnable);
-            return new ScheduledTask(task);
         }
+        ensureFoliaReady(); // Throws if on Folia but init failed
+        BukkitTask task = Bukkit.getScheduler().runTaskAsynchronously(plugin, runnable);
+        return new ScheduledTask(task);
     }
 
     /**
@@ -222,10 +242,10 @@ public final class SchedulerUtil {
             } catch (Exception e) {
                 throw new RuntimeException("Failed to schedule Folia async delayed task", e);
             }
-        } else {
-            BukkitTask task = Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, runnable, delayTicks);
-            return new ScheduledTask(task);
         }
+        ensureFoliaReady(); // Throws if on Folia but init failed
+        BukkitTask task = Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, runnable, delayTicks);
+        return new ScheduledTask(task);
     }
 
     /**
@@ -250,10 +270,10 @@ public final class SchedulerUtil {
             } catch (Exception e) {
                 throw new RuntimeException("Failed to schedule Folia async timer task", e);
             }
-        } else {
-            BukkitTask task = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, runnable, delayTicks, periodTicks);
-            return new ScheduledTask(task);
         }
+        ensureFoliaReady(); // Throws if on Folia but init failed
+        BukkitTask task = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, runnable, delayTicks, periodTicks);
+        return new ScheduledTask(task);
     }
 
     // ==================== LOCATION-BASED TASKS (Region Scheduler) ====================
@@ -280,10 +300,10 @@ public final class SchedulerUtil {
             } catch (Exception e) {
                 throw new RuntimeException("Failed to schedule Folia region task", e);
             }
-        } else {
-            BukkitTask task = Bukkit.getScheduler().runTask(plugin, runnable);
-            return new ScheduledTask(task);
         }
+        ensureFoliaReady(); // Throws if on Folia but init failed
+        BukkitTask task = Bukkit.getScheduler().runTask(plugin, runnable);
+        return new ScheduledTask(task);
     }
 
     /**
@@ -307,10 +327,10 @@ public final class SchedulerUtil {
             } catch (Exception e) {
                 throw new RuntimeException("Failed to schedule Folia region delayed task", e);
             }
-        } else {
-            BukkitTask task = Bukkit.getScheduler().runTaskLater(plugin, runnable, delayTicks);
-            return new ScheduledTask(task);
         }
+        ensureFoliaReady(); // Throws if on Folia but init failed
+        BukkitTask task = Bukkit.getScheduler().runTaskLater(plugin, runnable, delayTicks);
+        return new ScheduledTask(task);
     }
 
     /**
@@ -334,10 +354,10 @@ public final class SchedulerUtil {
             } catch (Exception e) {
                 throw new RuntimeException("Failed to schedule Folia region timer task", e);
             }
-        } else {
-            BukkitTask task = Bukkit.getScheduler().runTaskTimer(plugin, runnable, delayTicks, periodTicks);
-            return new ScheduledTask(task);
         }
+        ensureFoliaReady(); // Throws if on Folia but init failed
+        BukkitTask task = Bukkit.getScheduler().runTaskTimer(plugin, runnable, delayTicks, periodTicks);
+        return new ScheduledTask(task);
     }
 
     // ==================== ENTITY-BASED TASKS (Entity Scheduler) ====================
@@ -380,10 +400,10 @@ public final class SchedulerUtil {
             } catch (Exception e) {
                 throw new RuntimeException("Failed to schedule Folia entity task", e);
             }
-        } else {
-            BukkitTask task = Bukkit.getScheduler().runTask(plugin, runnable);
-            return new ScheduledTask(task);
         }
+        ensureFoliaReady(); // Throws if on Folia but init failed
+        BukkitTask task = Bukkit.getScheduler().runTask(plugin, runnable);
+        return new ScheduledTask(task);
     }
 
     /**
@@ -407,10 +427,10 @@ public final class SchedulerUtil {
             } catch (Exception e) {
                 throw new RuntimeException("Failed to schedule Folia entity delayed task", e);
             }
-        } else {
-            BukkitTask task = Bukkit.getScheduler().runTaskLater(plugin, runnable, delayTicks);
-            return new ScheduledTask(task);
         }
+        ensureFoliaReady(); // Throws if on Folia but init failed
+        BukkitTask task = Bukkit.getScheduler().runTaskLater(plugin, runnable, delayTicks);
+        return new ScheduledTask(task);
     }
 
     /**
@@ -434,10 +454,10 @@ public final class SchedulerUtil {
             } catch (Exception e) {
                 throw new RuntimeException("Failed to schedule Folia entity timer task", e);
             }
-        } else {
-            BukkitTask task = Bukkit.getScheduler().runTaskTimer(plugin, runnable, delayTicks, periodTicks);
-            return new ScheduledTask(task);
         }
+        ensureFoliaReady(); // Throws if on Folia but init failed
+        BukkitTask task = Bukkit.getScheduler().runTaskTimer(plugin, runnable, delayTicks, periodTicks);
+        return new ScheduledTask(task);
     }
 
     /**

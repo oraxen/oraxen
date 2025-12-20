@@ -45,31 +45,37 @@ public class SaplingTask implements Runnable {
         for (World world : Bukkit.getWorlds()) {
             for (Chunk chunk : world.getLoadedChunks()) {
                 for (Block block : CustomBlockData.getBlocksWithCustomData(OraxenPlugin.get(), chunk)) {
-                    PersistentDataContainer pdc = BlockHelpers.getPDC(block);
-                    if (pdc.has(SAPLING_KEY, PersistentDataType.INTEGER) && block.getType() == Material.TRIPWIRE) {
-                        StringBlockMechanic string = OraxenBlocks.getStringMechanic(block);
-                        if (string == null || !string.isSapling()) return;
-
-                        SaplingMechanic sapling = string.getSaplingMechanic();
-                        if (sapling == null || !sapling.hasSchematic()) continue;
-                        if (!sapling.canGrowNaturally()) continue;
-                        if (sapling.requiresWaterSource() && !sapling.isUnderWater(block)) continue;
-                        if (sapling.requiresLight() && block.getLightLevel() < sapling.getMinLightLevel()) continue;
-                        if (!sapling.replaceBlocks() && !WrappedWorldEdit.getBlocksInSchematic(block.getLocation(), sapling.getSchematic()).isEmpty()) continue;
-
-                        int growthTimeRemains = pdc.getOrDefault(SAPLING_KEY, PersistentDataType.INTEGER, 0) - delay;
-                        if (growthTimeRemains <= 0) {
-                            block.setType(Material.AIR, false);
-                            if (sapling.hasGrowSound())
-                                block.getWorld().playSound(block.getLocation(), sapling.getGrowSound(), 1.0f, 0.8f);
-                            WrappedWorldEdit.pasteSchematic(block.getLocation(), sapling.getSchematic(), sapling.replaceBlocks(), sapling.copyBiomes(), sapling.copyEntities());
-                        } else pdc.set(SAPLING_KEY, PersistentDataType.INTEGER, growthTimeRemains);
-                    }
-                    else if (pdc.has(SAPLING_KEY, PersistentDataType.INTEGER) && block.getType() != Material.TRIPWIRE) {
-                        pdc.remove(SAPLING_KEY);
-                    }
+                    // Run block operations on the block's region thread for Folia compatibility
+                    SchedulerUtil.runAtLocation(block.getLocation(), () -> processSapling(block));
                 }
             }
+        }
+    }
+
+    private void processSapling(Block block) {
+        PersistentDataContainer pdc = BlockHelpers.getPDC(block);
+        if (pdc.has(SAPLING_KEY, PersistentDataType.INTEGER) && block.getType() == Material.TRIPWIRE) {
+            StringBlockMechanic string = OraxenBlocks.getStringMechanic(block);
+            if (string == null || !string.isSapling()) return;
+
+            SaplingMechanic sapling = string.getSaplingMechanic();
+            if (sapling == null || !sapling.hasSchematic()) return;
+            if (!sapling.canGrowNaturally()) return;
+            if (sapling.requiresWaterSource() && !sapling.isUnderWater(block)) return;
+            if (sapling.requiresLight() && block.getLightLevel() < sapling.getMinLightLevel()) return;
+            if (!sapling.replaceBlocks() && !WrappedWorldEdit.getBlocksInSchematic(block.getLocation(), sapling.getSchematic()).isEmpty()) return;
+
+            int growthTimeRemains = pdc.getOrDefault(SAPLING_KEY, PersistentDataType.INTEGER, 0) - delay;
+            if (growthTimeRemains <= 0) {
+                block.setType(Material.AIR, false);
+                if (sapling.hasGrowSound())
+                    block.getWorld().playSound(block.getLocation(), sapling.getGrowSound(), 1.0f, 0.8f);
+                WrappedWorldEdit.pasteSchematic(block.getLocation(), sapling.getSchematic(), sapling.replaceBlocks(), sapling.copyBiomes(), sapling.copyEntities());
+            } else {
+                pdc.set(SAPLING_KEY, PersistentDataType.INTEGER, growthTimeRemains);
+            }
+        } else if (pdc.has(SAPLING_KEY, PersistentDataType.INTEGER) && block.getType() != Material.TRIPWIRE) {
+            pdc.remove(SAPLING_KEY);
         }
     }
 }
