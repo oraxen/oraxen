@@ -37,21 +37,21 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicFactory.getBlockMechanic;
 
 public abstract class BreakerSystem {
 
     public static final List<HardnessModifier> MODIFIERS = new ArrayList<>();
-    private final Set<Location> breakerLocations = new HashSet<>();
-    private final Map<Location, SchedulerUtil.ScheduledTask> breakerTasks = new HashMap<>();
-    private final Map<Location, SchedulerUtil.ScheduledTask> breakerPlaySound = new HashMap<>();
+    // Use thread-safe collections for Folia compatibility (concurrent region thread access)
+    private final Set<Location> breakerLocations = ConcurrentHashMap.newKeySet();
+    private final Map<Location, SchedulerUtil.ScheduledTask> breakerTasks = new ConcurrentHashMap<>();
+    private final Map<Location, SchedulerUtil.ScheduledTask> breakerPlaySound = new ConcurrentHashMap<>();
 
     public abstract void registerListener();
 
@@ -93,7 +93,8 @@ public abstract class BreakerSystem {
                 drop = stringMechanic.getDrop() != null ? stringMechanic.getDrop() : Drop.emptyDrop();
             else drop = null;
 
-            SchedulerUtil.runAtLocation(location, () ->
+            // Use entity scheduler for player operations on Folia (player may move to different region)
+            SchedulerUtil.runForEntity(player, () ->
                 player.addPotionEffect(new PotionEffect(PotionUtils.getEffectType("mining_fatigue"),
                     (int) (period * 11),
                     Integer.MAX_VALUE,
@@ -149,29 +150,42 @@ public abstract class BreakerSystem {
                     modifier.breakBlock(player, block, item);
                 } else stopBlockHitSound(location);
 
-                SchedulerUtil.runAtLocation(location, () ->
+                // Use entity scheduler for player operations on Folia (player may move to different region)
+                SchedulerUtil.runForEntity(player, () ->
                     player.removePotionEffect(PotionUtils.getEffectType("mining_fatigue")));
 
                 stopBlockBreaker(location);
                 stopBlockHitSound(location);
                 for (final Entity entity : world.getNearbyEntities(location, 16, 16, 16)) {
                     if (entity instanceof Player viewer) {
-                        if (furnitureMechanic != null) for (Location barrierLoc : furnitureBarrierLocations)
-                            sendBlockBreak(viewer, barrierLoc, valueHolder[0]);
-                        else sendBlockBreak(viewer, location, valueHolder[0]);
+                        // Send block break animation to each viewer on their own thread
+                        SchedulerUtil.runForEntity(viewer, () -> {
+                            if (furnitureMechanic != null) {
+                                for (Location barrierLoc : furnitureBarrierLocations) {
+                                    sendBlockBreak(viewer, barrierLoc, valueHolder[0]);
+                                }
+                            } else {
+                                sendBlockBreak(viewer, location, valueHolder[0]);
+                            }
+                        });
                     }
                 }
             });
             breakerTasks.put(location, breakerTask);
         } else {
-            SchedulerUtil.runAtLocation(location, () -> {
+            // Use entity scheduler for player operations on Folia (player may move to different region)
+            SchedulerUtil.runForEntity(player, () -> {
                 player.removePotionEffect(PotionUtils.getEffectType("mining_fatigue"));
                 if (!ProtectionLib.canBreak(player, location))
                     player.sendBlockChange(location, block.getBlockData());
+            });
 
-                for (final Entity entity : world.getNearbyEntities(location, 16, 16, 16))
-                    if (entity instanceof Player viewer)
-                        sendBlockBreak(viewer, location, 10);
+            SchedulerUtil.runAtLocation(location, () -> {
+                for (final Entity entity : world.getNearbyEntities(location, 16, 16, 16)) {
+                    if (entity instanceof Player viewer) {
+                        SchedulerUtil.runForEntity(viewer, () -> sendBlockBreak(viewer, location, 10));
+                    }
+                }
                 stopBlockBreaker(location);
                 stopBlockHitSound(location);
             });

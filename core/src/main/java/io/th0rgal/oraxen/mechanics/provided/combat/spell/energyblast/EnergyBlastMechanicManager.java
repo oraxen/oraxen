@@ -114,25 +114,35 @@ public class EnergyBlastMechanicManager implements Listener {
             radius[0] -= radiusShrinkage;
             if (radius[0] < 0) {
                 spawnParticle(playerLoc.getWorld(), playerLoc, mechanic, 1000, 0.3, 0.3, 0.3, 0.3);
-                for (Entity entity : playerLoc.getWorld().getNearbyEntities(playerLoc, 0.5, 0.5, 0.5))
+                for (Entity entity : playerLoc.getWorld().getNearbyEntities(playerLoc, 0.5, 0.5, 0.5)) {
                     if (entity instanceof LivingEntity livingEntity && entity != player) {
-                        EntityDamageByEntityEvent event = EventUtils.EntityDamageByEntityEvent(player, entity, EntityDamageEvent.DamageCause.MAGIC, DamageType.MAGIC, mechanic.getDamage() * 3.0);
-                        if (entity.isDead() || EventUtils.callEvent(event)) continue;
-                        entity.setLastDamageCause(event);
-                        livingEntity.damage(mechanic.getDamage() * 3.0, player);
+                        // Use entity scheduler for damage on Folia (entity may be in different region)
+                        SchedulerUtil.runForEntity(livingEntity, () -> {
+                            if (livingEntity.isDead()) return;
+                            EntityDamageByEntityEvent event = EventUtils.EntityDamageByEntityEvent(player, entity, EntityDamageEvent.DamageCause.MAGIC, DamageType.MAGIC, mechanic.getDamage() * 3.0);
+                            if (EventUtils.callEvent(event)) return;
+                            entity.setLastDamageCause(event);
+                            livingEntity.damage(mechanic.getDamage() * 3.0, player);
+                        });
                     }
+                }
                 if (taskHolder[0] != null) taskHolder[0].cancel();
                 return;
             }
 
             playerLoc.add(dir);
-            for (Entity entity : playerLoc.getWorld().getNearbyEntities(playerLoc, radius[0], radius[0], radius[0]))
+            for (Entity entity : playerLoc.getWorld().getNearbyEntities(playerLoc, radius[0], radius[0], radius[0])) {
                 if (entity instanceof LivingEntity livingEntity && entity != player) {
-                    EntityDamageByEntityEvent event = EventUtils.EntityDamageByEntityEvent(player, entity, EntityDamageEvent.DamageCause.MAGIC, DamageType.MAGIC, mechanic.getDamage());
-                    if (livingEntity.isDead() || !EventUtils.callEvent(event)) continue;
-                    livingEntity.setLastDamageCause(event);
-                    livingEntity.damage(mechanic.getDamage(), player);
+                    // Use entity scheduler for damage on Folia (entity may be in different region)
+                    SchedulerUtil.runForEntity(livingEntity, () -> {
+                        if (livingEntity.isDead()) return;
+                        EntityDamageByEntityEvent event = EventUtils.EntityDamageByEntityEvent(player, entity, EntityDamageEvent.DamageCause.MAGIC, DamageType.MAGIC, mechanic.getDamage());
+                        if (!EventUtils.callEvent(event)) return;
+                        livingEntity.setLastDamageCause(event);
+                        livingEntity.damage(mechanic.getDamage(), player);
+                    });
                 }
+            }
         });
     }
 

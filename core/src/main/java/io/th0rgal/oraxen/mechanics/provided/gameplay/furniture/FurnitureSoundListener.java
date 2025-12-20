@@ -26,15 +26,16 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.world.GenericGameEvent;
 import org.bukkit.event.world.WorldUnloadEvent;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static io.th0rgal.oraxen.utils.BlockHelpers.isLoaded;
 import static io.th0rgal.oraxen.utils.blocksounds.BlockSounds.*;
 
 public class FurnitureSoundListener implements Listener {
 
-    private final Map<Location, SchedulerUtil.ScheduledTask> breakerPlaySound = new HashMap<>();
+    // Use thread-safe collection for Folia compatibility (concurrent region thread access)
+    private final Map<Location, SchedulerUtil.ScheduledTask> breakerPlaySound = new ConcurrentHashMap<>();
 
     @EventHandler
     public void onWorldUnload(WorldUnloadEvent event) {

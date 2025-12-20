@@ -345,6 +345,18 @@ public final class SchedulerUtil {
     /**
      * Runs a task for a specific entity (uses EntityScheduler on Folia).
      * This ensures the task runs on the thread that owns the entity.
+     * If the entity is retired before execution, the task is silently skipped.
+     *
+     * @param entity   The entity to schedule the task for
+     * @param runnable The task to run
+     */
+    public static ScheduledTask runForEntity(Entity entity, Runnable runnable) {
+        return runForEntity(OraxenPlugin.get(), entity, runnable, null);
+    }
+
+    /**
+     * Runs a task for a specific entity (uses EntityScheduler on Folia).
+     * This ensures the task runs on the thread that owns the entity.
      *
      * @param entity   The entity to schedule the task for
      * @param runnable The task to run
