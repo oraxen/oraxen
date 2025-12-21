@@ -39,13 +39,31 @@ public class OraxenExpansion extends PlaceholderExpansion {
 
     @Override
     public String onRequest(final OfflinePlayer player, @NotNull final String params) {
-        final Glyph glyph = plugin.getFontManager().getGlyphFromName(params);
-
         if (params.equals("pack_url"))
             return plugin.getUploadManager().getHostingProvider().getPackURL();
         else if (params.equals("pack_hash"))
             return plugin.getUploadManager().getHostingProvider().getOriginalSHA1();
-        else if (glyph != null)
+
+        // Handle positive shift: %oraxen_shift_N%
+        if (params.startsWith("shift_")) {
+            try {
+                int pixels = Integer.parseInt(params.substring(6));
+                return plugin.getFontManager().getShift(pixels);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
+        // Handle negative shift: %oraxen_neg_shift_N%
+        if (params.startsWith("neg_shift_")) {
+            try {
+                int pixels = Integer.parseInt(params.substring(10));
+                return plugin.getFontManager().getShift(-pixels);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
+        final Glyph glyph = plugin.getFontManager().getGlyphFromName(params);
+        if (glyph != null)
             return glyph.getCharacter();
         return null; // Placeholder is unknown by the Expansion
     }
