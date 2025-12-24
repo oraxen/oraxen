@@ -18,6 +18,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.EVOLUTION_KEY;
+import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.STAGE_INDEX_KEY;
 
 public class EvolutionTask implements Runnable {
 
@@ -63,6 +64,7 @@ public class EvolutionTask implements Runnable {
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
         if (mechanic == null) return;
 
+        // Check farmland/farmblock requirements
         if (mechanic.farmlandRequired && blockBelow.getType() != Material.FARMLAND) {
             OraxenFurniture.remove(entity, null);
             return;
@@ -79,11 +81,87 @@ public class EvolutionTask implements Runnable {
                 OraxenFurniture.remove(entity, null);
                 return;
             } else if (!dryoutMechanic.isMoistFarmBlock()) {
-                pdc.set(FurnitureMechanic.EVOLUTION_KEY, PersistentDataType.INTEGER, 0);
+                pdc.set(EVOLUTION_KEY, PersistentDataType.INTEGER, 0);
                 return;
             }
         }
 
+        // NEW: Handle staged evolution (model swapping, no entity recreation)
+        if (mechanic.hasGrowthStages()) {
+            processStageEvolution(entity, mechanic, pdc, entityLoc, world);
+            return;
+        }
+
+        // Legacy: Handle single-stage evolution (entity recreation)
+        processLegacyEvolution(entity, mechanic, pdc, entityLoc, world);
+    }
+
+    /**
+     * Processes evolution for furniture using the new inline stages system.
+     * Only swaps the model, preserves the entity.
+     */
+    private void processStageEvolution(Entity entity, FurnitureMechanic mechanic, 
+                                        PersistentDataContainer pdc, Location entityLoc, World world) {
+        int currentStageIndex = pdc.getOrDefault(STAGE_INDEX_KEY, PersistentDataType.INTEGER, 0);
+        
+        // Check if already at final stage
+        if (mechanic.isFinalStage(currentStageIndex)) return;
+        
+        GrowthStage currentStage = mechanic.getGrowthStage(currentStageIndex);
+        if (currentStage == null || !currentStage.hasEvolution()) return;
+        
+        // Calculate boost ticks
+        int lightBoostTick = 0;
+        int rainBoostTick = 0;
+        
+        if (currentStage.isLightBoosted() && 
+            entityLoc.getBlock().getLightLevel() >= currentStage.getMinimumLightLevel()) {
+            lightBoostTick = currentStage.getLightBoostTick();
+        }
+        
+        if (currentStage.isRainBoosted() && world.hasStorm() && 
+            world.getHighestBlockAt(entityLoc).getY() > entityLoc.getY()) {
+            rainBoostTick = currentStage.getRainBoostTick();
+        }
+        
+        // Update evolution progress
+        int evolutionStep = pdc.getOrDefault(EVOLUTION_KEY, PersistentDataType.INTEGER, 0) 
+                           + delay + lightBoostTick + rainBoostTick;
+        
+        if (evolutionStep > currentStage.getDelay()) {
+            // Ready to evolve - check probability
+            if (!currentStage.bernoulliTest()) {
+                // Failed probability check, reset timer but stay at current stage
+                pdc.set(EVOLUTION_KEY, PersistentDataType.INTEGER, 0);
+                return;
+            }
+            
+            // Advance to next stage
+            int nextStageIndex = currentStageIndex + 1;
+            GrowthStage nextStage = mechanic.getGrowthStage(nextStageIndex);
+            if (nextStage == null) return;
+            
+            // Update stage index
+            pdc.set(STAGE_INDEX_KEY, PersistentDataType.INTEGER, nextStageIndex);
+            // Reset evolution timer
+            pdc.set(EVOLUTION_KEY, PersistentDataType.INTEGER, 0);
+            
+            // Swap the model (no entity recreation!)
+            String modelKey = nextStage.getModelKey();
+            FurnitureMechanic.setFurnitureItemModel(entity, mechanic.getItemID(), modelKey);
+            
+            // TODO: Handle per-stage light level changes if needed
+        } else {
+            // Not ready yet, update progress
+            pdc.set(EVOLUTION_KEY, PersistentDataType.INTEGER, evolutionStep);
+        }
+    }
+
+    /**
+     * Processes evolution using the legacy system (separate items, entity recreation).
+     */
+    private void processLegacyEvolution(Entity entity, FurnitureMechanic mechanic, 
+                                         PersistentDataContainer pdc, Location entityLoc, World world) {
         EvolvingFurniture evolution = mechanic.getEvolution();
         if (evolution == null) return;
 
@@ -108,7 +186,7 @@ public class EvolutionTask implements Runnable {
             OraxenFurniture.remove(entity, null);
             nextMechanic.place(entity.getLocation(), entity.getLocation().getYaw(), entity.getFacing());
         } else {
-            pdc.set(FurnitureMechanic.EVOLUTION_KEY, PersistentDataType.INTEGER, evolutionStep);
+            pdc.set(EVOLUTION_KEY, PersistentDataType.INTEGER, evolutionStep);
         }
     }
 }
