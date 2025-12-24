@@ -601,13 +601,40 @@ public class ResourcePack {
                 ItemBuilder texturedItem = entry.getValue();
                 OraxenMeta oraxenMeta = texturedItem.getOraxenMeta();
                 if (oraxenMeta.hasPackInfos()) {
+                    // Generate the main item model definition
                     final ModelDefinitionGenerator modelDefinitionGenerator = new ModelDefinitionGenerator(oraxenMeta,
                             key);
                     writeStringToVirtual("assets/oraxen/items/", itemId + ".json",
                             modelDefinitionGenerator.toJSON().toString());
+
+                    // Generate additional model definitions from Pack.models
+                    // These are registered as oraxen:<itemId>/<key> -> modelPath
+                    if (oraxenMeta.hasAdditionalModels()) {
+                        for (Map.Entry<String, String> modelEntry : oraxenMeta.getAdditionalModels().entrySet()) {
+                            String modelKey = modelEntry.getKey();
+                            String modelPath = modelEntry.getValue();
+                            String additionalDefinitionId = itemId + "/" + modelKey;
+                            String additionalDefinition = createSimpleModelDefinition(modelPath);
+                            writeStringToVirtual("assets/oraxen/items/", additionalDefinitionId + ".json",
+                                    additionalDefinition);
+                        }
+                    }
                 }
             }
         }
+    }
+
+    /**
+     * Creates a simple model definition JSON for additional models.
+     * Used by Pack.models to register model aliases.
+     */
+    private String createSimpleModelDefinition(String modelPath) {
+        com.google.gson.JsonObject root = new com.google.gson.JsonObject();
+        com.google.gson.JsonObject model = new com.google.gson.JsonObject();
+        model.addProperty("type", "minecraft:model");
+        model.addProperty("model", modelPath);
+        root.add("model", model);
+        return root.toString();
     }
 
     private Map<Material, Map<String, ItemBuilder>> filterForItemModel(

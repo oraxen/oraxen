@@ -1035,6 +1035,16 @@ public class SchemaGenerator {
         model.addProperty("description", "Path to existing JSON model file (without .json)");
         pack.add("model", model);
 
+        // models - Additional model definitions for multi-state items
+        JsonObject models = new JsonObject();
+        models.addProperty("type", "object");
+        models.addProperty("description", "Additional models map. Keys are aliases, values are model paths. " +
+                "Auto-registered as oraxen:<itemId>/<key>. Example: { opened: default/turntable_opened }");
+        JsonObject modelsAdditional = new JsonObject();
+        modelsAdditional.addProperty("type", "string");
+        models.add("additionalProperties", modelsAdditional);
+        pack.add("models", models);
+
         // custom_model_data
         JsonObject cmd = new JsonObject();
         cmd.addProperty("type", "integer");

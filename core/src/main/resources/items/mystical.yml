@@ -129,6 +129,12 @@ lotr_pike:
   Pack:
     generate_model: false
     model: default/lotrpikeinactive
+    # Optional: You can also define models here using Pack.models
+    # These are auto-registered as oraxen:lotr_pike/active, oraxen:lotr_pike/frame0, etc.
+    # models:
+    #   active: default/lotrpikeactive
+    #   frame0: default/lotrpike_frame0
+    #   frame1: default/lotrpike_frame1
   Components:
     # Cooldown between lunge attacks (1.5 seconds)
     use_cooldown:
@@ -138,8 +144,7 @@ lotr_pike:
     rarity: RARE
   Mechanics:
     spear_lunge:
-      # The active model path (same format as Pack.model)
-      # Oraxen will auto-generate the item model definition for this
+      # The active model path - mechanic handles registration automatically
       active_model: default/lotrpikeactive
       # Intermediate models for smooth animation (in order)
       intermediate_models:
