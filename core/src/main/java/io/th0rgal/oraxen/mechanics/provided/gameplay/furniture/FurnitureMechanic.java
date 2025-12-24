@@ -217,7 +217,15 @@ public class FurnitureMechanic extends Mechanic {
             // Legacy: single evolution section
             ConfigurationSection evoSection = section.getConfigurationSection("evolution");
             evolvingFurniture = evoSection != null ? new EvolvingFurniture(getItemID(), evoSection) : null;
-            if (evolvingFurniture != null) ((FurnitureFactory) getFactory()).registerEvolution();
+            if (evolvingFurniture != null) {
+                ((FurnitureFactory) getFactory()).registerEvolution();
+                // Deprecation warning for legacy pattern
+                if (evolvingFurniture.getNextStage() != null) {
+                    Logs.logWarning("Furniture '" + getItemID() + "' uses legacy 'next_stage' evolution.");
+                    Logs.logWarning("Consider migrating to inline 'stages' for better performance (no entity recreation).");
+                    Logs.logWarning("See: https://docs.oraxen.com/mechanics/furniture/evolution#inline-stages", true);
+                }
+            }
         }
 
         ConfigurationSection limitedPlacingSection = section.getConfigurationSection("limited_placing");
