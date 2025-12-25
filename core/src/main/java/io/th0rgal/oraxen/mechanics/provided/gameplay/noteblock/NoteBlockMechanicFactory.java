@@ -187,7 +187,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
         NoteBlockMechanic mechanic = new NoteBlockMechanic(this, itemMechanicConfiguration);
         if (!Range.between(0, 775).contains(mechanic.getCustomVariation())) {
-            Logs.logError("The custom variation of the block " + mechanic.getItemID() + " is not between 0 and 775!");
+            Logs.logError("The custom_variation of " + mechanic.getItemID() + " is " + mechanic.getCustomVariation() + ", but must be between 0 and 775!");
             Logs.logWarning("The item has failed to build for now to prevent bugs and issues.");
             return null;
         }
@@ -288,6 +288,8 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
                 MechanicConfigProperty.decimal("hardness", "Block break hardness", 1.0, 0.0),
                 MechanicConfigProperty.integer("light", "Light level emitted (0-15)", 0, 0, 15),
                 MechanicConfigProperty.bool("canIgnite", "Whether the block can be ignited", false),
+                MechanicConfigProperty.bool("blast_resistant", "Whether block resists explosions", false),
+                MechanicConfigProperty.bool("immovable", "Whether block resists pistons", false),
                 MechanicConfigProperty.object("drop", "Drop configuration when broken", Map.of(
                         "silktouch", MechanicConfigProperty.bool("silktouch", "Require silk touch", false),
                         "loots", MechanicConfigProperty.list("loots", "List of loot entries")

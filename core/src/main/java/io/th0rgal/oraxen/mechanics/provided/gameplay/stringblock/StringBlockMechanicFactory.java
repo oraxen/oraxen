@@ -127,8 +127,9 @@ public class StringBlockMechanicFactory extends MechanicFactory {
     public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
         StringBlockMechanic mechanic = new StringBlockMechanic(this, itemMechanicConfiguration);
         if (!Range.between(1, 127).contains(mechanic.getCustomVariation())) {
-            Logs.logError("The custom variation of the block " + mechanic.getItemID() + " is not between 1 and 127!");
+            Logs.logError("The custom_variation of " + mechanic.getItemID() + " is " + mechanic.getCustomVariation() + ", but must be between 1 and 127!");
             Logs.logWarning("The item has failed to build for now to prevent bugs and issues.");
+            return null;
         }
         variants.add(getBlockstateVariantName(mechanic.getCustomVariation()),
                 getModelJson(mechanic.getModel(itemMechanicConfiguration.getParent()
@@ -230,6 +231,8 @@ public class StringBlockMechanicFactory extends MechanicFactory {
                 MechanicConfigProperty.string("model", "Block model path"),
                 MechanicConfigProperty.decimal("hardness", "Block break hardness", 1.0, 0.0),
                 MechanicConfigProperty.integer("light", "Light level emitted (0-15)", 0, 0, 15),
+                MechanicConfigProperty.bool("blast_resistant", "Whether block resists explosions", false),
+                MechanicConfigProperty.bool("immovable", "Whether block resists pistons", false),
                 MechanicConfigProperty.object("drop", "Drop configuration when broken", Map.of(
                         "silktouch", MechanicConfigProperty.bool("silktouch", "Require silk touch", false),
                         "loots", MechanicConfigProperty.list("loots", "List of loot entries")

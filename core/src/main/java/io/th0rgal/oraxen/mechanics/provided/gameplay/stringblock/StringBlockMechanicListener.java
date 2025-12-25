@@ -87,6 +87,16 @@ public class StringBlockMechanicListener implements Listener {
             List<Block> tripwireList = event.getBlocks().stream()
                     .filter(block -> block.getType().equals(Material.TRIPWIRE)).toList();
 
+            // First pass: check for immovable blocks before modifying anything
+            for (Block block : tripwireList) {
+                final StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
+                if (mechanic != null && mechanic.isImmovable()) {
+                    event.setCancelled(true);
+                    return;
+                }
+            }
+
+            // Second pass: destroy blocks now that we know none are immovable
             for (Block block : tripwireList) {
                 final StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
                 if (mechanic == null)
@@ -320,6 +330,12 @@ public class StringBlockMechanicListener implements Listener {
             if (stringBlockMechanic == null)
                 return;
 
+            // Respect blast resistance
+            if (stringBlockMechanic.isBlastResistant()) {
+                event.blockList().remove(block);
+                return;
+            }
+
             final Block blockAbove = block.getRelative(BlockFace.UP);
             final Block blockBelow = block.getRelative(BlockFace.DOWN);
             if (block.getType() == Material.TRIPWIRE) {
@@ -349,6 +365,12 @@ public class StringBlockMechanicListener implements Listener {
             final StringBlockMechanic stringBlockMechanic = OraxenBlocks.getStringMechanic(block);
             if (stringBlockMechanic == null)
                 return;
+
+            // Respect blast resistance
+            if (stringBlockMechanic.isBlastResistant()) {
+                event.blockList().remove(block);
+                return;
+            }
 
             final Block blockAbove = block.getRelative(BlockFace.UP);
             final Block blockBelow = block.getRelative(BlockFace.DOWN);

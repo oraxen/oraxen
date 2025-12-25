@@ -22,6 +22,8 @@ public class StringBlockMechanic extends Mechanic {
     private String model;
     private final int hardness;
     private final LightMechanic light;
+    private final boolean blastResistant;
+    private final boolean immovable;
 
     private final List<String> randomPlaceBlock;
     private final SaplingMechanic saplingMechanic;
@@ -42,6 +44,8 @@ public class StringBlockMechanic extends Mechanic {
         isTall = section.getBoolean("is_tall", false);
         hardness = section.getInt("hardness", 1);
         light = new LightMechanic(section);
+        blastResistant = section.getBoolean("blast_resistant", false);
+        immovable = section.getBoolean("immovable", false);
 
         ConfigurationSection dropSection = section.getConfigurationSection("drop");
         drop = dropSection != null ? Drop.createDrop(StringBlockMechanicFactory.getInstance().toolTypes, dropSection, getItemID()) : new Drop(new ArrayList<>(), false, false, getItemID());
@@ -111,6 +115,14 @@ public class StringBlockMechanic extends Mechanic {
 
     public List<String> getRandomPlaceBlock() {
         return randomPlaceBlock;
+    }
+
+    public boolean isBlastResistant() {
+        return blastResistant;
+    }
+
+    public boolean isImmovable() {
+        return immovable;
     }
 
     public BlockLockerMechanic getBlockLocker() {

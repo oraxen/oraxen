@@ -163,8 +163,8 @@ public class ChorusBlockMechanicFactory extends MechanicFactory {
     public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
         ChorusBlockMechanic mechanic = new ChorusBlockMechanic(this, itemMechanicConfiguration);
         if (!Range.between(1, MAX_BLOCK_VARIATION).contains(mechanic.getCustomVariation())) {
-            Logs.logError("The custom variation of the block " + mechanic.getItemID()
-                    + " is not between 1 and " + MAX_BLOCK_VARIATION + "!");
+            Logs.logError("The custom_variation of " + mechanic.getItemID() + " is " + mechanic.getCustomVariation()
+                    + ", but must be between 1 and " + MAX_BLOCK_VARIATION + "!");
             Logs.logWarning("The item has failed to build for now to prevent bugs and issues.");
             return null;
         }

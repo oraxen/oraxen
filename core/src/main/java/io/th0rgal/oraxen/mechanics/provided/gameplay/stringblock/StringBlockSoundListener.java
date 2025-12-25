@@ -29,10 +29,21 @@ public class StringBlockSoundListener implements Listener {
     public void onPistonPush(BlockPistonExtendEvent event) {
         List<Block> tripwireList = event.getBlocks().stream().filter(block -> block.getType().equals(Material.TRIPWIRE)).toList();
 
+        // First pass: check for immovable blocks before modifying anything
         for (Block block : tripwireList) {
             final StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
+            if (mechanic != null && mechanic.isImmovable()) {
+                event.setCancelled(true);
+                return;
+            }
+        }
+
+        // Second pass: play sounds and destroy blocks
+        for (Block block : tripwireList) {
+            final StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
+            if (mechanic == null) continue;
+
             block.setType(Material.AIR, false);
-            if (mechanic == null) return;
             BlockSounds blockSounds = mechanic.getBlockSounds();
 
             if (mechanic.hasBlockSounds() && blockSounds.hasBreakSound())

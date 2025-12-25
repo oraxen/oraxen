@@ -281,9 +281,14 @@ public class NoteBlockMechanicListener implements Listener {
             if (result != ExplosionResult.DESTROY && result != ExplosionResult.DESTROY_WITH_DECAY) return;
         }
         for (Block block : new HashSet<>(event.blockList())) {
-            if (!OraxenBlocks.isOraxenNoteBlock(block)) continue;
-            OraxenBlocks.remove(block.getLocation(), null);
-            event.blockList().remove(block);
+            NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
+            if (mechanic == null) continue;
+            if (mechanic.isBlastResistant()) {
+                event.blockList().remove(block);
+            } else {
+                OraxenBlocks.remove(block.getLocation(), null);
+                event.blockList().remove(block);
+            }
         }
     }
 
@@ -294,9 +299,14 @@ public class NoteBlockMechanicListener implements Listener {
             if (result != ExplosionResult.DESTROY && result != ExplosionResult.DESTROY_WITH_DECAY) return;
         }
         for (Block block : new HashSet<>(event.blockList())) {
-            if (!OraxenBlocks.isOraxenNoteBlock(block)) continue;
-            OraxenBlocks.remove(block.getLocation(), null);
-            event.blockList().remove(block);
+            NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
+            if (mechanic == null) continue;
+            if (mechanic.isBlastResistant()) {
+                event.blockList().remove(block);
+            } else {
+                OraxenBlocks.remove(block.getLocation(), null);
+                event.blockList().remove(block);
+            }
         }
     }
 
