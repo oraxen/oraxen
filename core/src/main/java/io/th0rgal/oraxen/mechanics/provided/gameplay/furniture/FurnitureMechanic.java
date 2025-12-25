@@ -548,6 +548,15 @@ public class FurnitureMechanic extends Mechanic {
                 createInitialLight(location.getBlock(), entity);
             }
         }
+        
+        // Apply initial stage model for staged furniture
+        // The base item shows the "seed" texture, but we need to swap to stage0's model
+        if (hasGrowthStages()) {
+            GrowthStage initialStage = getGrowthStage(initialStageIndex);
+            if (initialStage != null && initialStage.getModelKey() != null && !initialStage.getModelKey().isEmpty()) {
+                setFurnitureItemModel(entity, getItemID(), initialStage.getModelKey());
+            }
+        }
     }
 
     private Interaction spawnInteractionEntity(Entity entity, Location location, float width, float height) {
