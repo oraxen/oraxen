@@ -220,3 +220,4 @@ test-server/
 
 # Claude Code
 .claude/secrets.json
+secrets.json

@@ -210,3 +210,38 @@ Set in gradle.properties for development:
 - Never paste secrets into code, docs, or commits
 - Wire code to read from environment variables
 - Validate external input at boundaries
+
+## Deployment
+
+### Prerequisites
+
+1. Copy `~/minecraft/secrets.json` to project root (already in `.gitignore`)
+2. SSH key at `~/.ssh/cursor` with access to the dedicated server
+
+### Deploy to Production Server
+
+```bash
+# Build the plugin
+./gradlew build -x test
+
+# Deploy (using secrets.json)
+HOST="$(jq -r '.servers.test_server.ssh.host' secrets.json)"
+USER="$(jq -r '.servers.test_server.ssh.user' secrets.json)"
+PORT="$(jq -r '.servers.test_server.ssh.port' secrets.json)"
+KEY="$(jq -r '.servers.dedicated.ssh.identity_file' secrets.json)"
+PLUGINS_DIR="$(jq -r '.servers.test_server.paths.plugins_dir' secrets.json)"
+JAR="build/libs/oraxen-*.jar"
+
+rsync -avP -e "ssh -i ${KEY/#\~/$HOME} -p ${PORT}" $JAR "${USER}@${HOST}:${PLUGINS_DIR}/"
+
+# Restart server
+UNIT="$(jq -r '.servers.test_server.systemd.unit' secrets.json)"
+ssh -i "${KEY/#\~/$HOME}" -p "$PORT" "$USER@$HOST" "systemctl restart $UNIT"
+```
+
+### Server Details
+
+- **Host**: Dedicated VPS (see `secrets.json` for IP)
+- **Minecraft**: Paper 1.21.4 at `/root/minecraft/paper-1.21`
+- **Systemd unit**: `minecraft-test.service`
+- **Plugins dir**: `/root/minecraft/paper-1.21/plugins/`

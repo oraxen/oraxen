@@ -19,34 +19,20 @@ import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.world.GenericGameEvent;
 
-import java.util.List;
-
 import static io.th0rgal.oraxen.utils.BlockHelpers.isLoaded;
 
 public class StringBlockSoundListener implements Listener {
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPistonPush(BlockPistonExtendEvent event) {
-        List<Block> tripwireList = event.getBlocks().stream().filter(block -> block.getType().equals(Material.TRIPWIRE)).toList();
-
-        // First pass: check for immovable blocks before modifying anything
-        for (Block block : tripwireList) {
+        // Only play sounds - the MechanicPhysicsListener handles block destruction and drops
+        for (Block block : event.getBlocks()) {
+            if (block.getType() != Material.TRIPWIRE) continue;
             final StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
-            if (mechanic != null && mechanic.isImmovable()) {
-                event.setCancelled(true);
-                return;
-            }
-        }
+            if (mechanic == null || !mechanic.hasBlockSounds()) continue;
 
-        // Second pass: play sounds and destroy blocks
-        for (Block block : tripwireList) {
-            final StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
-            if (mechanic == null) continue;
-
-            block.setType(Material.AIR, false);
             BlockSounds blockSounds = mechanic.getBlockSounds();
-
-            if (mechanic.hasBlockSounds() && blockSounds.hasBreakSound())
+            if (blockSounds.hasBreakSound())
                 BlockHelpers.playCustomBlockSound(block.getLocation(), blockSounds.getBreakSound(), blockSounds.getBreakVolume(), blockSounds.getBreakPitch());
         }
     }
