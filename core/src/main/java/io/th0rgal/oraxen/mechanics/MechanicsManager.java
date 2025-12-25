@@ -21,6 +21,7 @@ import io.th0rgal.oraxen.mechanics.provided.farming.harvesting.HarvestingMechani
 import io.th0rgal.oraxen.mechanics.provided.farming.smelting.SmeltingMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.farming.watering.WateringMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.chorusblock.ChorusBlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.durability.DurabilityMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.efficiency.EfficiencyMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
@@ -79,6 +80,7 @@ public class MechanicsManager {
         registerFactory("block", BlockMechanicFactory::new);
         registerFactory("noteblock", NoteBlockMechanicFactory::new);
         registerFactory("stringblock", StringBlockMechanicFactory::new);
+        registerFactory("chorusblock", ChorusBlockMechanicFactory::new);
         registerFactory("furniture", FurnitureFactory::new);
         registerFactory("toggle_light", ToggleLightMechanicFactory::new);
 

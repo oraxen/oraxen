@@ -72,4 +72,8 @@ public class NMSHandlers {
     public static boolean isNoteblockUpdatesDisabled() {
         return handler != null && handler.noteblockUpdatesDisabled();
     }
+
+    public static boolean isChorusPlantUpdatesDisabled() {
+        return handler != null && handler.chorusPlantUpdatesDisabled();
+    }
 }

@@ -92,6 +92,10 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         return VersionUtil.isPaperServer() && VersionUtil.matchesServer("1.20.1") && GlobalConfiguration.get().blockUpdates.disableNoteblockUpdates;
     }
 
+    @Override
+    public boolean chorusPlantUpdatesDisabled() {
+        return VersionUtil.isPaperServer() && VersionUtil.matchesServer("1.20.1") && GlobalConfiguration.get().blockUpdates.disableChorusPlantUpdates;
+    }
 
     @Override
     public ItemStack copyItemNBTTags(@NotNull ItemStack oldItem, @NotNull ItemStack newItem) {

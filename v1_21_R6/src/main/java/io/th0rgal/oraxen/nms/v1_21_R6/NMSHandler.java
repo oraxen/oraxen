@@ -123,6 +123,11 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     }
 
     @Override
+    public boolean chorusPlantUpdatesDisabled() {
+        return VersionUtil.isPaperServer() && GlobalConfiguration.get().blockUpdates.disableChorusPlantUpdates;
+    }
+
+    @Override
     /* This method copies custom NBT data from one item to another */
     public ItemStack copyItemNBTTags(@NotNull ItemStack oldItem, @NotNull ItemStack newItem) {
         net.minecraft.world.item.ItemStack newNmsItem = CraftItemStack.asNMSCopy(newItem);
