@@ -30,6 +30,16 @@ public class ChorusBlockSoundListener implements Listener {
         List<Block> chorusList = event.getBlocks().stream()
                 .filter(block -> block.getType().equals(Material.CHORUS_PLANT)).toList();
 
+        // First pass: check for immovable blocks before modifying anything
+        for (Block block : chorusList) {
+            final ChorusBlockMechanic mechanic = OraxenBlocks.getChorusMechanic(block);
+            if (mechanic != null && mechanic.isImmovable()) {
+                event.setCancelled(true);
+                return;
+            }
+        }
+
+        // Second pass: play sounds and destroy blocks
         for (Block block : chorusList) {
             final ChorusBlockMechanic mechanic = OraxenBlocks.getChorusMechanic(block);
             if (mechanic == null) continue;

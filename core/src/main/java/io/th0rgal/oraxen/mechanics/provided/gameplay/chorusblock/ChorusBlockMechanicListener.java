@@ -88,15 +88,20 @@ public class ChorusBlockMechanicListener implements Listener {
             List<Block> chorusList = event.getBlocks().stream()
                     .filter(block -> block.getType().equals(Material.CHORUS_PLANT)).toList();
 
+            // First pass: check for immovable blocks before modifying anything
+            for (Block block : chorusList) {
+                final ChorusBlockMechanic mechanic = OraxenBlocks.getChorusMechanic(block);
+                if (mechanic != null && mechanic.isImmovable()) {
+                    event.setCancelled(true);
+                    return;
+                }
+            }
+
+            // Second pass: destroy blocks now that we know none are immovable
             for (Block block : chorusList) {
                 final ChorusBlockMechanic mechanic = OraxenBlocks.getChorusMechanic(block);
                 if (mechanic == null)
                     continue;
-
-                if (mechanic.isImmovable()) {
-                    event.setCancelled(true);
-                    return;
-                }
 
                 block.setType(Material.AIR, false);
 
@@ -111,15 +116,20 @@ public class ChorusBlockMechanicListener implements Listener {
             List<Block> chorusList = event.getBlocks().stream()
                     .filter(block -> block.getType().equals(Material.CHORUS_PLANT)).toList();
 
+            // First pass: check for immovable blocks before modifying anything
+            for (Block block : chorusList) {
+                final ChorusBlockMechanic mechanic = OraxenBlocks.getChorusMechanic(block);
+                if (mechanic != null && mechanic.isImmovable()) {
+                    event.setCancelled(true);
+                    return;
+                }
+            }
+
+            // Second pass: destroy blocks now that we know none are immovable
             for (Block block : chorusList) {
                 final ChorusBlockMechanic mechanic = OraxenBlocks.getChorusMechanic(block);
                 if (mechanic == null)
                     continue;
-
-                if (mechanic.isImmovable()) {
-                    event.setCancelled(true);
-                    return;
-                }
 
                 block.setType(Material.AIR, false);
 
