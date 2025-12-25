@@ -204,7 +204,8 @@ public class FurnitureMechanic extends Mechanic {
                     for (Map.Entry<?, ?> entry : stageMap.entrySet()) {
                         stageSection.set(entry.getKey().toString(), entry.getValue());
                     }
-                    growthStages.add(new GrowthStage(stageSection, drop));
+                    // Pass the item ID for proper drop fallback (avoids NPE from empty sourceID)
+                    growthStages.add(new GrowthStage(stageSection, drop, getItemID()));
                     section.set("_temp_stage_" + (growthStages.size() - 1), null); // Clean up temp section
                 }
             }
@@ -709,9 +710,12 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
+    // Track which legacy fallback warnings have been logged to avoid spam
+    private static final Set<String> loggedLegacyWarnings = new HashSet<>();
+
     /**
      * Swaps the item model of a furniture entity to a different model key.
-     * Uses the item_model component (1.21.2+) or falls back to full item swap.
+     * Uses the item_model component (1.21.2+) or falls back to legacy item lookup.
      * 
      * @param entity The furniture base entity
      * @param itemId The base item ID (e.g., "weed_seed")
@@ -731,10 +735,46 @@ public class FurnitureMechanic extends Mechanic {
             furnitureItem.setItemMeta(itemMeta);
             setFurnitureItem(entity, furnitureItem);
         } else {
-            // Fallback for older versions: rebuild item from scratch
-            // This requires the model to be registered as a separate item
-            // For now, just update what we can
-            Logs.logWarning("Staged furniture evolution requires 1.21.2+ for optimal performance");
+            // Fallback for older versions: try to find a legacy item with naming convention
+            // Pattern: itemId_modelKey (e.g., "weed_seed_stage0")
+            if (modelKey == null) {
+                // Reset to base item
+                ItemStack baseItem = OraxenItems.getOptionalItemById(itemId)
+                        .map(b -> b.build().clone())
+                        .orElse(null);
+                if (baseItem != null) {
+                    ItemUtils.editItemMeta(baseItem, meta -> meta.setDisplayName(""));
+                    setFurnitureItem(entity, baseItem);
+                }
+                return;
+            }
+            
+            // Try legacy naming patterns: itemId_modelKey, itemId + modelKey
+            String[] legacyPatterns = {
+                itemId + "_" + modelKey,           // weed_seed_stage0
+                itemId + modelKey,                 // weed_seedstage0 (unlikely but check)
+                itemId.replace("_seed", "_plant_" + modelKey), // weed_plant_stage0 (common pattern)
+                itemId.replace("_seeds", "_" + modelKey)       // grape_stage0 (if seeds → stages)
+            };
+            
+            for (String legacyId : legacyPatterns) {
+                ItemStack legacyItem = OraxenItems.getOptionalItemById(legacyId)
+                        .map(b -> b.build().clone())
+                        .orElse(null);
+                if (legacyItem != null) {
+                    ItemUtils.editItemMeta(legacyItem, meta -> meta.setDisplayName(""));
+                    setFurnitureItem(entity, legacyItem);
+                    return;
+                }
+            }
+            
+            // No legacy item found - log warning once per unique combo
+            String warningKey = itemId + "/" + modelKey;
+            if (!loggedLegacyWarnings.contains(warningKey)) {
+                loggedLegacyWarnings.add(warningKey);
+                Logs.logWarning("Inline stages for '" + itemId + "' require MC 1.21.2+ for model swapping.");
+                Logs.logWarning("On older versions, create legacy items (e.g., '" + itemId + "_" + modelKey + "') or upgrade.", true);
+            }
         }
     }
 

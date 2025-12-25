@@ -384,9 +384,37 @@ No performance impact - just cleaner config organization.
 
 ## Server Version Requirements
 
-- **Pack.models**: Works on all versions
-- **Inline stages (optimal)**: Requires Minecraft 1.21.2+ for efficient model swapping via `item_model` component
-- **Inline stages (fallback)**: Works on older versions but with a warning
+- **Pack.models**: Works on all versions for defining multiple models
+- **Inline stages (full support)**: Requires Minecraft 1.21.2+ for efficient model swapping via `item_model` component
+- **Inline stages (legacy fallback)**: On older versions, Oraxen will attempt to find legacy items with naming patterns like `itemId_modelKey` (e.g., `weed_seed_stage0`). If no legacy items exist, a warning is logged and the visual model won't change (though internal stage tracking and drops still work correctly)
+
+### Pre-1.21.2 Workaround
+
+For servers running Minecraft 1.21.1 or older, you have two options:
+
+1. **Upgrade to 1.21.2+** (recommended) - Full inline stages support
+2. **Create legacy items** - Keep the old separate items alongside inline stages:
+
+```yaml
+weed_seed:
+  # ... main item with Pack.models and stages ...
+
+# Legacy fallback items for pre-1.21.2
+weed_seed_stage0:
+  material: PAPER
+  excludeFromInventory: true
+  Pack:
+    model: default/weed/stage0
+
+weed_seed_stage1:
+  material: PAPER
+  excludeFromInventory: true
+  Pack:
+    model: default/weed/stage1
+# ... etc
+```
+
+Oraxen will automatically use these legacy items on older servers for visual model swapping.
 
 ---
 

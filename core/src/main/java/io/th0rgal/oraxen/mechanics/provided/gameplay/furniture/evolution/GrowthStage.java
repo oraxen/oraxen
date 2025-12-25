@@ -36,15 +36,17 @@ public class GrowthStage {
      * 
      * @param section The configuration section for this stage
      * @param defaultDrop The default drop from the parent mechanic (used if stage has no drop)
+     * @param parentItemId The parent item ID (used as fallback source for drops)
      */
-    public GrowthStage(ConfigurationSection section, @Nullable Drop defaultDrop) {
+    public GrowthStage(ConfigurationSection section, @Nullable Drop defaultDrop, String parentItemId) {
         this.modelKey = section.getString("model", "");
         this.light = section.getInt("light", -1);
         
         // Parse stage-specific drop
+        // Use parentItemId as sourceID for drop fallback (avoids NPE from empty string)
         ConfigurationSection dropSection = section.getConfigurationSection("drop");
         if (dropSection != null) {
-            this.drop = Drop.createDrop(FurnitureFactory.getInstance().toolTypes, dropSection, "");
+            this.drop = Drop.createDrop(FurnitureFactory.getInstance().toolTypes, dropSection, parentItemId);
         } else {
             this.drop = defaultDrop;
         }
