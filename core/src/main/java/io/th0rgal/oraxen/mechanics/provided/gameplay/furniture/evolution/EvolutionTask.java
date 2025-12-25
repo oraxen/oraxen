@@ -149,8 +149,6 @@ public class EvolutionTask implements Runnable {
             // Swap the model (no entity recreation!)
             String modelKey = nextStage.getModelKey();
             FurnitureMechanic.setFurnitureItemModel(entity, mechanic.getItemID(), modelKey);
-            
-            // TODO: Handle per-stage light level changes if needed
         } else {
             // Not ready yet, update progress
             pdc.set(EVOLUTION_KEY, PersistentDataType.INTEGER, evolutionStep);
