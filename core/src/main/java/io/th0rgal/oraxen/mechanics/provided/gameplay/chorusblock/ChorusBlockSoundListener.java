@@ -32,8 +32,9 @@ public class ChorusBlockSoundListener implements Listener {
 
         for (Block block : chorusList) {
             final ChorusBlockMechanic mechanic = OraxenBlocks.getChorusMechanic(block);
+            if (mechanic == null) continue;
+
             block.setType(Material.AIR, false);
-            if (mechanic == null) return;
             BlockSounds blockSounds = mechanic.getBlockSounds();
 
             if (mechanic.hasBlockSounds() && blockSounds.hasBreakSound())
@@ -88,7 +89,7 @@ public class ChorusBlockSoundListener implements Listener {
             sound = blockSounds.getStepSound();
             volume = blockSounds.getStepVolume();
             pitch = blockSounds.getStepPitch();
-        } else if (gameEvent == GameEvent.HIT_GROUND && blockSounds.hasStepSound()) {
+        } else if (gameEvent == GameEvent.HIT_GROUND && blockSounds.hasFallSound()) {
             sound = blockSounds.getFallSound();
             volume = blockSounds.getFallVolume();
             pitch = blockSounds.getFallPitch();

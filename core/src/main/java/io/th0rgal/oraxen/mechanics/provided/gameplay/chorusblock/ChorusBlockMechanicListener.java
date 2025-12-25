@@ -531,8 +531,8 @@ public class ChorusBlockMechanicListener implements Listener {
         for (double x = loc.getX() - 10; x < loc.getX() + 10; x++) {
             for (double y = loc.getY() - 4; y < loc.getY() + 4; y++) {
                 for (double z = loc.getZ() - 10; z < loc.getZ() + 10; z++) {
-                    if (loc.getBlock().getType() == Material.CHORUS_PLANT) {
-                        Location newLoc = new Location(loc.getWorld(), x, y, z);
+                    Location newLoc = new Location(loc.getWorld(), x, y, z);
+                    if (newLoc.getBlock().getType() == Material.CHORUS_PLANT) {
                         for (Entity e : players) {
                             ((Player) e).sendBlockChange(newLoc, newLoc.getBlock().getBlockData());
                         }
