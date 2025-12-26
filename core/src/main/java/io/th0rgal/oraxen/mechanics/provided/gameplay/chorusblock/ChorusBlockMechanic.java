@@ -5,11 +5,13 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.light.LightMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import org.bukkit.block.data.MultipleFacing;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +23,7 @@ public class ChorusBlockMechanic extends Mechanic {
     private final Drop drop;
     private final BlockSounds blockSounds;
     private final LimitedPlacing limitedPlacing;
+    private final StorageMechanic storage;
     private final int hardness;
     private final LightMechanic light;
     private final boolean isFalling;
@@ -28,6 +31,10 @@ public class ChorusBlockMechanic extends Mechanic {
     private final boolean immovable;
     private final BlockLockerMechanic blockLocker;
     private final List<ClickAction> clickActions;
+    private final float seatHeight;
+    private final boolean hasSeat;
+    private final boolean hasSeatYaw;
+    private final float seatYaw;
 
     // Cached blockData for efficient lookup
     private final MultipleFacing blockData;
@@ -59,7 +66,24 @@ public class ChorusBlockMechanic extends Mechanic {
         ConfigurationSection blockLockerSection = section.getConfigurationSection("blocklocker");
         blockLocker = blockLockerSection != null ? new BlockLockerMechanic(blockLockerSection) : null;
 
+        ConfigurationSection storageSection = section.getConfigurationSection("storage");
+        storage = storageSection != null ? new StorageMechanic(storageSection) : null;
+
         clickActions = ClickAction.parseList(section);
+
+        // Parse seat configuration
+        ConfigurationSection seatSection = section.getConfigurationSection("seat");
+        if (seatSection != null) {
+            hasSeat = true;
+            seatHeight = (float) seatSection.getDouble("height", 0.5);
+            hasSeatYaw = seatSection.contains("yaw");
+            seatYaw = hasSeatYaw ? (float) seatSection.getDouble("yaw") : 0;
+        } else {
+            hasSeat = false;
+            seatHeight = 0;
+            hasSeatYaw = false;
+            seatYaw = 0;
+        }
 
         // Cache the blockData for this mechanic
         blockData = ChorusBlockMechanicFactory.createChorusData(customVariation);
@@ -139,5 +163,41 @@ public class ChorusBlockMechanic extends Mechanic {
 
     public boolean hasClickActions() {
         return !clickActions.isEmpty();
+    }
+
+    public void runClickActions(final Player player) {
+        for (final ClickAction action : clickActions) {
+            if (action.canRun(player)) {
+                action.performActions(player);
+            }
+        }
+    }
+
+    public boolean isStorage() {
+        return storage != null;
+    }
+
+    public StorageMechanic getStorage() {
+        return storage;
+    }
+
+    public boolean hasSeat() {
+        return hasSeat;
+    }
+
+    public float getSeatHeight() {
+        return seatHeight;
+    }
+
+    public boolean hasSeatYaw() {
+        return hasSeatYaw;
+    }
+
+    public float getSeatYaw() {
+        return seatYaw;
+    }
+
+    public boolean isInteractable() {
+        return hasClickActions() || isStorage() || hasSeat();
     }
 }

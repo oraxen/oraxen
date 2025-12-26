@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.chorusblock;
 
+import com.jeff_media.morepersistentdatatypes.DataType;
 import io.papermc.paper.event.entity.EntityInsideBlockEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
@@ -7,8 +8,8 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.api.events.chorusblock.OraxenChorusBlockInteractEvent;
 import io.th0rgal.oraxen.api.events.chorusblock.OraxenChorusBlockPlaceEvent;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.*;
-import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
 import io.th0rgal.protectionlib.ProtectionLib;
@@ -18,10 +19,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.MultipleFacing;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.FallingBlock;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -34,12 +32,17 @@ import org.bukkit.event.inventory.InventoryCreativeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.RayTraceResult;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 public class ChorusBlockMechanicListener implements Listener {
+
+    public static final NamespacedKey SEAT_KEY = new NamespacedKey(OraxenPlugin.get(), "chorus_seat");
 
     public ChorusBlockMechanicListener() {
         if (OraxenPlugin.get().getPacketAdapter().isEnabled())
@@ -187,12 +190,100 @@ public class ChorusBlockMechanicListener implements Listener {
 
         // Handle click actions
         if (mechanic.hasClickActions()) {
-            for (ClickAction action : mechanic.getClickActions()) {
-                if (action.canRun(event.getPlayer())) {
-                    action.performActions(event.getPlayer());
-                }
+            mechanic.runClickActions(event.getPlayer());
+        }
+
+        // Handle storage interaction
+        if (mechanic.isStorage()) {
+            handleStorageInteraction(mechanic, block, event.getPlayer());
+            event.setCancelled(true);
+            return;
+        }
+
+        // Handle seat interaction
+        if (mechanic.hasSeat()) {
+            handleSeatInteraction(mechanic, block, event.getPlayer());
+            event.setCancelled(true);
+        }
+    }
+
+    private void handleStorageInteraction(ChorusBlockMechanic mechanic, Block block, Player player) {
+        StorageMechanic storage = mechanic.getStorage();
+        if (storage == null) return;
+
+        switch (storage.getStorageType()) {
+            case STORAGE, SHULKER -> storage.openStorage(block, player);
+            case PERSONAL -> storage.openPersonalStorage(player, block.getLocation(), null);
+            case DISPOSAL -> storage.openDisposal(player, block.getLocation(), null);
+            case ENDERCHEST -> player.openInventory(player.getEnderChest());
+        }
+    }
+
+    private void handleSeatInteraction(ChorusBlockMechanic mechanic, Block block, Player player) {
+        // Check if there's already a seat at this location
+        ArmorStand existingSeat = getSeat(block);
+        if (existingSeat != null) {
+            // Player is already sitting or someone else is
+            if (!existingSeat.getPassengers().isEmpty()) {
+                return;
+            }
+            // Seat exists but is empty, seat the player
+            existingSeat.addPassenger(player);
+            return;
+        }
+
+        // Create a new seat
+        UUID seatUuid = spawnSeat(block, mechanic);
+        if (seatUuid != null) {
+            Entity seat = block.getWorld().getEntity(seatUuid);
+            if (seat != null) {
+                seat.addPassenger(player);
             }
         }
+    }
+
+    private ArmorStand getSeat(Block block) {
+        Location seatLoc = BlockHelpers.toCenterBlockLocation(block.getLocation());
+        if (block.getWorld() == null) return null;
+        for (Entity entity : block.getWorld().getNearbyEntities(seatLoc, 0.5, 2, 0.5)) {
+            if (!(entity instanceof ArmorStand armorStand)) continue;
+            PersistentDataContainer pdc = armorStand.getPersistentDataContainer();
+            if (pdc.has(SEAT_KEY, PersistentDataType.STRING)) {
+                return armorStand;
+            }
+        }
+        return null;
+    }
+
+    private UUID spawnSeat(Block block, ChorusBlockMechanic mechanic) {
+        Location seatLoc = block.getLocation().add(0.5, mechanic.getSeatHeight() - 1, 0.5);
+        float yaw = mechanic.hasSeatYaw() ? mechanic.getSeatYaw() : 0;
+
+        ArmorStand seat = EntityUtils.spawnEntity(seatLoc, ArmorStand.class, (ArmorStand stand) -> {
+            stand.setVisible(false);
+            stand.setRotation(yaw, 0);
+            stand.setInvulnerable(true);
+            stand.setGravity(false);
+            stand.setMarker(true);
+            stand.setSmall(true);
+            stand.getPersistentDataContainer().set(SEAT_KEY, PersistentDataType.STRING, mechanic.getItemID());
+        });
+
+        // Store seat UUID in block PDC
+        PersistentDataContainer blockPdc = BlockHelpers.getPDC(block);
+        blockPdc.set(SEAT_KEY, DataType.UUID, seat.getUniqueId());
+
+        return seat.getUniqueId();
+    }
+
+    private void removeSeat(Block block) {
+        ArmorStand seat = getSeat(block);
+        if (seat != null) {
+            seat.getPassengers().forEach(seat::removePassenger);
+            if (!seat.isDead()) seat.remove();
+        }
+        PersistentDataContainer blockPdc = BlockHelpers.getPDC(block);
+        blockPdc.remove(SEAT_KEY);
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
@@ -292,6 +383,14 @@ public class ChorusBlockMechanicListener implements Listener {
 
         ChorusBlockMechanic mechanic = OraxenBlocks.getChorusMechanic(block);
         if (mechanic != null) {
+            // Drop storage contents before removing block
+            if (mechanic.isStorage()) {
+                mechanic.getStorage().dropStorageContent(block);
+            }
+            // Remove seat if present
+            if (mechanic.hasSeat()) {
+                removeSeat(block);
+            }
             event.setCancelled(true);
             OraxenBlocks.remove(block.getLocation(), player);
             event.setDropItems(false);
@@ -300,6 +399,15 @@ public class ChorusBlockMechanicListener implements Listener {
 
         // Handle breaking block below chorus
         if (blockAbove.getType() == Material.CHORUS_PLANT && OraxenBlocks.isOraxenChorusBlock(blockAbove)) {
+            ChorusBlockMechanic aboveMechanic = OraxenBlocks.getChorusMechanic(blockAbove);
+            if (aboveMechanic != null) {
+                if (aboveMechanic.isStorage()) {
+                    aboveMechanic.getStorage().dropStorageContent(blockAbove);
+                }
+                if (aboveMechanic.hasSeat()) {
+                    removeSeat(blockAbove);
+                }
+            }
             OraxenBlocks.remove(blockAbove.getLocation(), player);
         }
     }

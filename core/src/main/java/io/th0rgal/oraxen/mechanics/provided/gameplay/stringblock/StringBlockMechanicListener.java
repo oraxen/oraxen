@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.api.events.stringblock.OraxenStringBlockInteractEvent;
 import io.th0rgal.oraxen.api.events.stringblock.OraxenStringBlockPlaceEvent;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
@@ -17,14 +18,17 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.type.Tripwire;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.*;
+import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryCreativeEvent;
@@ -144,15 +148,42 @@ public class StringBlockMechanicListener implements Listener {
             return;
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
             return;
-        if (event.getClickedBlock().getType() != Material.NOTE_BLOCK)
+        if (event.getClickedBlock().getType() != Material.TRIPWIRE)
             return;
         StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
         if (mechanic == null)
             return;
 
-        if (!EventUtils.callEvent(new OraxenStringBlockInteractEvent(mechanic, event.getPlayer(), event.getItem(),
-                event.getHand(), block, event.getBlockFace())))
+        OraxenStringBlockInteractEvent interactEvent = new OraxenStringBlockInteractEvent(
+                mechanic, event.getPlayer(), event.getItem(),
+                event.getHand(), block, event.getBlockFace());
+        if (!EventUtils.callEvent(interactEvent)) {
             event.setCancelled(true);
+            return;
+        }
+
+        // Handle click actions
+        if (mechanic.hasClickActions()) {
+            mechanic.runClickActions(event.getPlayer());
+        }
+
+        // Handle storage interaction
+        if (mechanic.isStorage()) {
+            handleStorageInteraction(mechanic, block, event.getPlayer());
+            event.setCancelled(true);
+        }
+    }
+
+    private void handleStorageInteraction(StringBlockMechanic mechanic, Block block, Player player) {
+        StorageMechanic storage = mechanic.getStorage();
+        if (storage == null) return;
+
+        switch (storage.getStorageType()) {
+            case STORAGE, SHULKER -> storage.openStorage(block, player);
+            case PERSONAL -> storage.openPersonalStorage(player, block.getLocation(), null);
+            case DISPOSAL -> storage.openDisposal(player, block.getLocation(), null);
+            case ENDERCHEST -> player.openInventory(player.getEnderChest());
+        }
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
@@ -300,6 +331,10 @@ public class StringBlockMechanicListener implements Listener {
 
         StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
         if (mechanic != null) {
+            // Drop storage contents before removing block
+            if (mechanic.isStorage()) {
+                mechanic.getStorage().dropStorageContent(block);
+            }
             event.setCancelled(true);
             OraxenBlocks.remove(block.getLocation(), player);
             event.setDropItems(false);
@@ -309,6 +344,10 @@ public class StringBlockMechanicListener implements Listener {
         // Check for tall block mechanics
         StringBlockMechanic mechanicBelow = OraxenBlocks.getStringMechanic(blockBelow);
         if (block.getType() == Material.TRIPWIRE && mechanicBelow != null && mechanicBelow.isTall()) {
+            // Drop storage contents before removing block
+            if (mechanicBelow.isStorage()) {
+                mechanicBelow.getStorage().dropStorageContent(blockBelow);
+            }
             event.setCancelled(true);
             OraxenBlocks.remove(blockBelow.getLocation(), player);
             event.setDropItems(false);
@@ -317,6 +356,10 @@ public class StringBlockMechanicListener implements Listener {
 
         // Handle breaking block below string
         if (blockAbove.getType() == Material.TRIPWIRE && OraxenBlocks.isOraxenStringBlock(blockAbove)) {
+            StringBlockMechanic aboveMechanic = OraxenBlocks.getStringMechanic(blockAbove);
+            if (aboveMechanic != null && aboveMechanic.isStorage()) {
+                aboveMechanic.getStorage().dropStorageContent(blockAbove);
+            }
             OraxenBlocks.remove(blockAbove.getLocation(), player);
         }
     }
@@ -455,6 +498,63 @@ public class StringBlockMechanicListener implements Listener {
         // LightMechanic.refreshBlockLight(block);
     }
 
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onFallingBlockLand(EntityChangeBlockEvent event) {
+        if (!(event.getEntity() instanceof FallingBlock fallingBlock))
+            return;
+        if (fallingBlock.getBlockData().getMaterial() != Material.TRIPWIRE)
+            return;
+
+        BlockData blockData = fallingBlock.getBlockData();
+        if (!(blockData instanceof Tripwire tripwire))
+            return;
+
+        StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(blockData);
+        if (mechanic == null)
+            return;
+
+        // Place the block at the landing location
+        Block block = event.getBlock();
+        block.setBlockData(tripwire, false);
+        OraxenBlocks.place(mechanic.getItemID(), block.getLocation());
+
+        if (mechanic.hasLight()) {
+            mechanic.getLight().createBlockLight(block);
+        }
+
+        // Handle tall blocks - place upper part too
+        if (mechanic.isTall()) {
+            Block blockAbove = block.getRelative(BlockFace.UP);
+            if (BlockHelpers.isReplaceable(blockAbove.getType())) {
+                blockAbove.setType(Material.TRIPWIRE, false);
+            }
+        }
+    }
+
+    private void handleFallingOraxenBlockAbove(Block block) {
+        Block blockAbove = block.getRelative(BlockFace.UP);
+        StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(blockAbove);
+        if (mechanic == null || !mechanic.isFalling()) return;
+
+        BlockData blockData = blockAbove.getBlockData();
+        Location fallingLocation = BlockHelpers.toCenterBlockLocation(blockAbove.getLocation());
+        OraxenBlocks.remove(blockAbove.getLocation(), null);
+
+        // If tall block, remove upper part too
+        if (mechanic.isTall()) {
+            Block upperBlock = blockAbove.getRelative(BlockFace.UP);
+            if (upperBlock.getType() == Material.TRIPWIRE) {
+                upperBlock.setType(Material.AIR, false);
+            }
+        }
+
+        if (fallingLocation.getNearbyEntitiesByType(FallingBlock.class, 0.25).isEmpty()) {
+            blockAbove.getWorld().spawnFallingBlock(fallingLocation, blockData);
+        }
+
+        handleFallingOraxenBlockAbove(blockAbove);
+    }
+
     private HardnessModifier getHardnessModifier() {
         return new HardnessModifier() {
 
@@ -545,6 +645,24 @@ public class StringBlockMechanicListener implements Listener {
                 if (mechanic.isTall())
                     blockAbove.setBlockData(oldDataAbove);
                 return;
+            }
+
+            // Handle falling blocks
+            if (mechanic.isFalling()) {
+                Block below = target.getRelative(BlockFace.DOWN);
+                if (below.getType() == Material.AIR || BlockHelpers.isReplaceable(below.getType())) {
+                    // For tall blocks, also clear the upper part
+                    if (mechanic.isTall()) {
+                        blockAbove.setType(Material.AIR, false);
+                    }
+                    OraxenBlocks.remove(target.getLocation(), null);
+                    Location fallingLocation = BlockHelpers.toCenterBlockLocation(target.getLocation());
+                    if (fallingLocation.getNearbyEntitiesByType(FallingBlock.class, 0.25).isEmpty()) {
+                        FallingBlock fallingBlock = target.getWorld().spawnFallingBlock(fallingLocation, newData);
+                        fallingBlock.setDropItem(false);
+                    }
+                    handleFallingOraxenBlockAbove(target);
+                }
             }
 
             if (player.getGameMode() != GameMode.CREATIVE)
