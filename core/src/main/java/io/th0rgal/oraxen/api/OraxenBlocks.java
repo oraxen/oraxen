@@ -369,6 +369,9 @@ public class OraxenBlocks {
 
         final Block blockAbove = block.getRelative(BlockFace.UP);
         removeLight(block, mechanic.getItemID());
+        if (mechanic.isStorage() && mechanic.getStorage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
+            mechanic.getStorage().dropStorageContent(block);
+        }
         if (mechanic.isTall()) blockAbove.setType(Material.AIR);
         block.setType(Material.AIR);
         SchedulerUtil.runAtLocationLater(block.getLocation(), 1L, () -> {
@@ -400,6 +403,9 @@ public class OraxenBlocks {
         if (drop != null) drop.spawns(block.getLocation(), itemInHand);
 
         removeLight(block, mechanic.getItemID());
+        if (mechanic.isStorage() && mechanic.getStorage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
+            mechanic.getStorage().dropStorageContent(block);
+        }
         block.setType(Material.AIR);
         SchedulerUtil.runAtLocationLater(block.getLocation(), 1L, () -> {
             ChorusBlockMechanicListener.fixClientsideUpdate(block.getLocation());

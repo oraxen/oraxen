@@ -256,7 +256,10 @@ public class ChorusBlockMechanicListener implements Listener {
     }
 
     private UUID spawnSeat(Block block, ChorusBlockMechanic mechanic) {
-        Location seatLoc = block.getLocation().add(0.5, mechanic.getSeatHeight() - 1, 0.5);
+        // For blocks, seatHeight is relative to block top. ArmorStand passengers sit ~0.3 blocks above the stand.
+        // A small ArmorStand is ~0.5 blocks tall. To sit ON the block (Y+1), we need stand at ~Y+0.7
+        // With seatHeight=0 meaning "on top of block", formula: Y + 0.5 + seatHeight (where 0.5 accounts for offset)
+        Location seatLoc = block.getLocation().add(0.5, mechanic.getSeatHeight(), 0.5);
         float yaw = mechanic.hasSeatYaw() ? mechanic.getSeatYaw() : 0;
 
         ArmorStand seat = EntityUtils.spawnEntity(seatLoc, ArmorStand.class, (ArmorStand stand) -> {
@@ -407,6 +410,19 @@ public class ChorusBlockMechanicListener implements Listener {
                 if (aboveMechanic.hasSeat()) {
                     removeSeat(blockAbove);
                 }
+                // Handle falling blocks - spawn falling block instead of just removing
+                if (aboveMechanic.isFalling()) {
+                    BlockData aboveBlockData = blockAbove.getBlockData();
+                    Location fallingLocation = BlockHelpers.toCenterBlockLocation(blockAbove.getLocation());
+
+                    OraxenBlocks.remove(blockAbove.getLocation(), null);
+
+                    if (fallingLocation.getNearbyEntitiesByType(FallingBlock.class, 0.25).isEmpty()) {
+                        FallingBlock fallingBlock = blockAbove.getWorld().spawnFallingBlock(fallingLocation, aboveBlockData);
+                        fallingBlock.setDropItem(false);
+                    }
+                    return;
+                }
             }
             OraxenBlocks.remove(blockAbove.getLocation(), player);
         }
@@ -539,9 +555,13 @@ public class ChorusBlockMechanicListener implements Listener {
         if (mechanic == null)
             return;
 
+        // Cancel the event to prevent Minecraft from placing vanilla chorus plant
+        event.setCancelled(true);
+
         // Place the block at the landing location
         Block block = event.getBlock();
         block.setBlockData(multipleFacing, false);
+        OraxenBlocks.place(mechanic.getItemID(), block.getLocation());
 
         if (mechanic.hasLight()) {
             mechanic.getLight().createBlockLight(block);

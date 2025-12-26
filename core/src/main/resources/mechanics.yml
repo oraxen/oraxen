@@ -39,6 +39,7 @@ misc:
 custom_block_sounds:
   noteblock_and_block: true
   stringblock_and_furniture: true
+  chorusblock: true
 
 # legacy blocks using mushroom stems, prefer to use noteblock
 block:
@@ -76,6 +77,16 @@ stringblock:
       - NETHERITE
     sapling_growth_check_delay: 4000
     disable_vanilla_strings: false
+    enabled: true
+
+chorusblock:
+    tool_types:
+      - WOODEN
+      - STONE
+      - IRON
+      - GOLDEN
+      - DIAMOND
+      - NETHERITE
     enabled: true
 
 furniture:
