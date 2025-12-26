@@ -35,9 +35,8 @@ public class OraxenMetrics {
         metrics.addCustomChart(new SimplePie("download_source", OraxenMetrics::detectDownloadSource));
         metrics.addCustomChart(new SimplePie("license_status", OraxenMetrics::detectLicenseStatus));
 
-        // Server information
+        // Server information (minecraft_version is provided natively by bStats)
         metrics.addCustomChart(new SimplePie("server_type", OraxenMetrics::detectServerType));
-        metrics.addCustomChart(new SimplePie("minecraft_version", OraxenMetrics::getMinecraftVersion));
 
         // Plugin features
         metrics.addCustomChart(new SingleLineChart("custom_items_count", () -> OraxenItems.getItems().size()));
@@ -117,13 +116,6 @@ public class OraxenMetrics {
             return "Paper";
         }
         return "Spigot";
-    }
-
-    /**
-     * Gets the Minecraft version string.
-     */
-    private static String getMinecraftVersion() {
-        return MinecraftVersion.getCurrentVersion().toString();
     }
 
     /**
