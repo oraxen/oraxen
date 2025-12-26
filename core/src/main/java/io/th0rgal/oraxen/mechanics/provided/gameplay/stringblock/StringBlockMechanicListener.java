@@ -473,18 +473,19 @@ public class StringBlockMechanicListener implements Listener {
 
             @Override
             public long getPeriod(final Player player, final Block block, final ItemStack tool) {
-                final StringBlockMechanic tripwireMechanic = OraxenBlocks.getStringMechanic(block);
-                if (tripwireMechanic == null)
+                final StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
+                if (mechanic == null)
                     return 0;
-                final long period = tripwireMechanic.getHardness();
+                final long hardness = mechanic.getHardness();
                 double modifier = 1;
-                if (tripwireMechanic.getDrop().canDrop(tool)) {
+                if (mechanic.getDrop().canDrop(tool)) {
                     modifier *= 0.4;
-                    final int diff = tripwireMechanic.getDrop().getDiff(tool);
+                    final int diff = mechanic.getDrop().getDiff(tool);
                     if (diff >= 1)
                         modifier *= Math.pow(0.9, diff);
                 }
-                return (long) (period * modifier);
+                long period = (long) (hardness * modifier);
+                return period == 0 && mechanic.hasHardness() ? 1 : period;
             }
         };
     }

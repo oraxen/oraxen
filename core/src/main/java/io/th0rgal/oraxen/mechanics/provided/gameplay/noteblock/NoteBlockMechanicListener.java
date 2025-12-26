@@ -442,7 +442,7 @@ public class NoteBlockMechanicListener implements Listener {
                 if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
                     mechanic = mechanic.getDirectional().getParentMechanic();
 
-                final long period = mechanic.getHardness();
+                final long hardness = mechanic.getHardness();
                 double modifier = 1;
                 if (mechanic.getDrop().canDrop(tool)) {
                     modifier *= 0.4;
@@ -450,7 +450,8 @@ public class NoteBlockMechanicListener implements Listener {
                     if (diff >= 1)
                         modifier *= Math.pow(0.9, diff);
                 }
-                return (long) (period * modifier);
+                long period = (long) (hardness * modifier);
+                return period == 0 && mechanic.hasHardness() ? 1 : period;
             }
         };
     }

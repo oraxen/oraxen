@@ -461,7 +461,7 @@ public class ChorusBlockMechanicListener implements Listener {
                 final ChorusBlockMechanic mechanic = OraxenBlocks.getChorusMechanic(block);
                 if (mechanic == null)
                     return 0;
-                final long period = mechanic.getHardness();
+                final long hardness = mechanic.getHardness();
                 double modifier = 1;
                 if (mechanic.getDrop().canDrop(tool)) {
                     modifier *= 0.4;
@@ -469,7 +469,8 @@ public class ChorusBlockMechanicListener implements Listener {
                     if (diff >= 1)
                         modifier *= Math.pow(0.9, diff);
                 }
-                return (long) (period * modifier);
+                long period = (long) (hardness * modifier);
+                return period == 0 && mechanic.hasHardness() ? 1 : period;
             }
         };
     }
