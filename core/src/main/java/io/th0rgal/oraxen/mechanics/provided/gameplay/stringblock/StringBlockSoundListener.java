@@ -23,13 +23,16 @@ import static io.th0rgal.oraxen.utils.BlockHelpers.isLoaded;
 
 public class StringBlockSoundListener implements Listener {
 
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPistonPush(BlockPistonExtendEvent event) {
-        // Only play sounds - the MechanicPhysicsListener handles block destruction and drops
+        // Run at HIGH priority (before HIGHEST physics listener) to capture mechanics
+        // before blocks are set to AIR. We only play sounds here, no block modification.
         for (Block block : event.getBlocks()) {
             if (block.getType() != Material.TRIPWIRE) continue;
             final StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
             if (mechanic == null || !mechanic.hasBlockSounds()) continue;
+            // Skip immovable blocks - they won't be destroyed
+            if (mechanic.isImmovable()) continue;
 
             BlockSounds blockSounds = mechanic.getBlockSounds();
             if (blockSounds.hasBreakSound())
