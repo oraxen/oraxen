@@ -307,24 +307,6 @@ public class StringBlockMechanicListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onInteract(final PlayerInteractEvent event) {
-        final Block block = event.getClickedBlock();
-        EquipmentSlot hand = event.getHand();
-        if (hand == null || event.getAction() != Action.RIGHT_CLICK_BLOCK)
-            return;
-        if (block == null || block.getType() != Material.TRIPWIRE)
-            return;
-
-        // Call the event
-        StringBlockMechanic stringBlockMechanic = OraxenBlocks.getStringMechanic(block);
-        if (stringBlockMechanic == null)
-            return;
-        if (!EventUtils.callEvent(new OraxenStringBlockInteractEvent(stringBlockMechanic, event.getPlayer(),
-                event.getItem(), event.getHand(), block, event.getBlockFace())))
-            event.setUseInteractedBlock(Event.Result.DENY);
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBreakingCustomBlock(final BlockBreakEvent event) {
         final Block block = event.getBlock();
         final Block blockAbove = block.getRelative(BlockFace.UP);
