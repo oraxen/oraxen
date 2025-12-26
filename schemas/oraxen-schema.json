@@ -1,8 +1,8 @@
 {
-  "oraxenVersion": "1.201.0",
+  "oraxenVersion": "1.202.0",
   "minecraftVersion": "1.21.4",
   "serverVersion": "1.21.4-R0.1-SNAPSHOT",
-  "generatedAt": "2025-12-20T09:18:32.431014388Z",
+  "generatedAt": "2025-12-26T09:40:35.776089782Z",
   "enums": {
     "Material": {
       "values": [
@@ -7180,18 +7180,28 @@
           "description": "Whether the block can be ignited",
           "default": false
         },
+        "blast_resistant": {
+          "type": "boolean",
+          "description": "Whether block resists explosions",
+          "default": false
+        },
+        "immovable": {
+          "type": "boolean",
+          "description": "Whether block resists pistons",
+          "default": false
+        },
         "drop": {
           "type": "object",
           "description": "Drop configuration when broken",
           "properties": {
-            "loots": {
-              "type": "array",
-              "description": "List of loot entries"
-            },
             "silktouch": {
               "type": "boolean",
               "description": "Require silk touch",
               "default": false
+            },
+            "loots": {
+              "type": "array",
+              "description": "List of loot entries"
             }
           }
         },
@@ -7199,17 +7209,17 @@
           "type": "object",
           "description": "Directional block configuration",
           "properties": {
-            "z_block": {
+            "y_block": {
               "type": "string",
-              "description": "Z-axis variant ID"
+              "description": "Y-axis variant ID"
             },
             "parent_block": {
               "type": "string",
               "description": "Parent block ID"
             },
-            "y_block": {
+            "z_block": {
               "type": "string",
-              "description": "Y-axis variant ID"
+              "description": "Z-axis variant ID"
             },
             "x_block": {
               "type": "string",
@@ -7221,15 +7231,15 @@
           "type": "object",
           "description": "Farm block configuration",
           "properties": {
-            "dry_block": {
-              "type": "string",
-              "description": "Block ID when dried"
-            },
             "moisture": {
               "type": "integer",
               "description": "Moisture level",
               "default": 0,
               "min": 0
+            },
+            "dry_block": {
+              "type": "string",
+              "description": "Block ID when dried"
             }
           }
         },
@@ -7322,16 +7332,16 @@
           "type": "object",
           "description": "Custom hitbox dimensions",
           "properties": {
-            "height": {
+            "width": {
               "type": "number",
-              "description": "Hitbox height",
+              "description": "Hitbox width",
               "default": 1.0,
               "min": 0.0,
               "max": 10.0
             },
-            "width": {
+            "height": {
               "type": "number",
-              "description": "Hitbox width",
+              "description": "Hitbox height",
               "default": 1.0,
               "min": 0.0,
               "max": 10.0
@@ -7403,14 +7413,14 @@
           "type": "object",
           "description": "Drop configuration when broken",
           "properties": {
-            "loots": {
-              "type": "array",
-              "description": "List of loot entries"
-            },
             "silktouch": {
               "type": "boolean",
               "description": "Require silk touch to drop",
               "default": false
+            },
+            "loots": {
+              "type": "array",
+              "description": "List of loot entries"
             }
           }
         },
@@ -7418,10 +7428,6 @@
           "type": "object",
           "description": "Storage container configuration",
           "properties": {
-            "title": {
-              "type": "string",
-              "description": "Inventory title"
-            },
             "type": {
               "type": "string",
               "description": "Storage type",
@@ -7431,6 +7437,10 @@
                 "ENDERCHEST",
                 "DISPOSAL"
               ]
+            },
+            "title": {
+              "type": "string",
+              "description": "Inventory title"
             },
             "rows": {
               "type": "integer",
@@ -7557,6 +7567,111 @@
           "type": "boolean",
           "description": "Play smelting sound effect",
           "default": true
+        }
+      }
+    },
+    "chorusblock": {
+      "category": "gameplay",
+      "description": "Creates custom blocks using chorus plant states (up to 63 variations)",
+      "_source": "factory",
+      "properties": {
+        "custom_variation": {
+          "type": "integer",
+          "description": "Unique variation ID (1-63)",
+          "default": 1,
+          "min": 1,
+          "max": 63
+        },
+        "model": {
+          "type": "string",
+          "description": "Block model path"
+        },
+        "hardness": {
+          "type": "number",
+          "description": "Block break hardness",
+          "default": 1.0,
+          "min": 0.0
+        },
+        "light": {
+          "type": "integer",
+          "description": "Light level emitted (0-15)",
+          "default": 0,
+          "min": 0,
+          "max": 15
+        },
+        "is_falling": {
+          "type": "boolean",
+          "description": "Whether the block falls like sand",
+          "default": false
+        },
+        "blast_resistant": {
+          "type": "boolean",
+          "description": "Whether the block resists explosions",
+          "default": false
+        },
+        "immovable": {
+          "type": "boolean",
+          "description": "Whether the block can be moved by pistons",
+          "default": false
+        },
+        "drop": {
+          "type": "object",
+          "description": "Drop configuration when broken",
+          "properties": {
+            "silktouch": {
+              "type": "boolean",
+              "description": "Require silk touch",
+              "default": false
+            },
+            "loots": {
+              "type": "array",
+              "description": "List of loot entries"
+            }
+          }
+        },
+        "block_sounds": {
+          "type": "object",
+          "description": "Custom block sounds",
+          "properties": {
+            "hit_sound": {
+              "type": "string",
+              "description": "Sound when hit"
+            },
+            "fall_sound": {
+              "type": "string",
+              "description": "Sound when fallen on"
+            },
+            "place_sound": {
+              "type": "string",
+              "description": "Sound when placed"
+            },
+            "step_sound": {
+              "type": "string",
+              "description": "Sound when stepped on"
+            },
+            "break_sound": {
+              "type": "string",
+              "description": "Sound when broken"
+            }
+          }
+        },
+        "limited_placing": {
+          "type": "object",
+          "description": "Placement restrictions",
+          "properties": {
+            "type": {
+              "type": "string",
+              "description": "ALLOW or DENY list type"
+            },
+            "block_types": {
+              "type": "array",
+              "description": "Block types to allow/deny"
+            }
+          }
+        },
+        "clickActions": {
+          "type": "array",
+          "description": "Actions to perform on click"
         }
       }
     },
@@ -7790,18 +7905,28 @@
           "min": 0,
           "max": 15
         },
+        "blast_resistant": {
+          "type": "boolean",
+          "description": "Whether block resists explosions",
+          "default": false
+        },
+        "immovable": {
+          "type": "boolean",
+          "description": "Whether block resists pistons",
+          "default": false
+        },
         "drop": {
           "type": "object",
           "description": "Drop configuration when broken",
           "properties": {
-            "loots": {
-              "type": "array",
-              "description": "List of loot entries"
-            },
             "silktouch": {
               "type": "boolean",
               "description": "Require silk touch",
               "default": false
+            },
+            "loots": {
+              "type": "array",
+              "description": "List of loot entries"
             }
           }
         },
@@ -7809,19 +7934,19 @@
           "type": "object",
           "description": "Sapling growth configuration",
           "properties": {
-            "min_light": {
-              "type": "integer",
-              "description": "Minimum light level to grow",
-              "default": 9,
-              "min": 0,
-              "max": 15
-            },
             "grow_chance": {
               "type": "number",
               "description": "Growth chance per check",
               "default": 0.1,
               "min": 0.0,
               "max": 1.0
+            },
+            "min_light": {
+              "type": "integer",
+              "description": "Minimum light level to grow",
+              "default": 9,
+              "min": 0,
+              "max": 15
             },
             "grow_block": {
               "type": "string",
@@ -7887,6 +8012,13 @@
     "model": {
       "type": "string",
       "description": "Path to existing JSON model file (without .json)"
+    },
+    "models": {
+      "type": "object",
+      "description": "Additional models map. Keys are aliases, values are model paths. Auto-registered as oraxen:\u003citemId\u003e/\u003ckey\u003e. Example: { opened: default/turntable_opened }",
+      "additionalProperties": {
+        "type": "string"
+      }
     },
     "custom_model_data": {
       "type": "integer",
