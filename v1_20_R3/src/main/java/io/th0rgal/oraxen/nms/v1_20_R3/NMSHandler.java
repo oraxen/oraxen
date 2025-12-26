@@ -66,6 +66,11 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     }
 
     @Override
+    public boolean chorusPlantUpdatesDisabled() {
+        return VersionUtil.isPaperServer() && GlobalConfiguration.get().blockUpdates.disableChorusPlantUpdates;
+    }
+
+    @Override
     public ItemStack copyItemNBTTags(@NotNull ItemStack oldItem, @NotNull ItemStack newItem) {
         CompoundTag oldTag = CraftItemStack.asNMSCopy(oldItem).getOrCreateTag();
         net.minecraft.world.item.ItemStack newNmsItem = CraftItemStack.asNMSCopy(newItem);

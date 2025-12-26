@@ -3,10 +3,12 @@ package io.th0rgal.oraxen.utils.breaker;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
+import io.th0rgal.oraxen.api.events.chorusblock.OraxenChorusBlockDamageEvent;
 import io.th0rgal.oraxen.api.events.furniture.OraxenFurnitureDamageEvent;
 import io.th0rgal.oraxen.api.events.noteblock.OraxenNoteBlockDamageEvent;
 import io.th0rgal.oraxen.api.events.stringblock.OraxenStringBlockDamageEvent;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.chorusblock.ChorusBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
@@ -105,74 +107,82 @@ public abstract class BreakerSystem {
                 if (existingTask != null) existingTask.cancel();
             }
 
-            // Cancellation state is being ignored.
-            // However still needs to be called for plugin support.
-            final PlayerInteractEvent playerInteractEvent =
-                new PlayerInteractEvent(player, Action.LEFT_CLICK_BLOCK, player.getInventory().getItemInMainHand(), block, blockFace, EquipmentSlot.HAND);
-            SchedulerUtil.runAtLocation(location, () -> Bukkit.getPluginManager().callEvent(playerInteractEvent));
-
             breakerLocations.add(location);
 
-            // If the relevant damage event is cancelled, return
-            if (blockDamageEventCancelled(block, player)) {
-                stopBlockBreaker(location);
-                return;
-            }
-
-            // Methods for sending multi-barrier block-breaks
-            final List<Location> furnitureBarrierLocations = furnitureBarrierLocations(furnitureMechanic, block);
+            // Schedule the rest on main/region thread - packet listeners run on Netty thread
+            // and Bukkit events must be called synchronously on the main thread
             final HardnessModifier modifier = triggeredModifier;
-            startBlockHitSound(location);
+            SchedulerUtil.runAtLocation(location, () -> {
+                // Fire PlayerInteractEvent for plugin support (cancellation state is ignored)
+                final PlayerInteractEvent playerInteractEvent =
+                    new PlayerInteractEvent(player, Action.LEFT_CLICK_BLOCK, player.getInventory().getItemInMainHand(), block, blockFace, EquipmentSlot.HAND);
+                Bukkit.getPluginManager().callEvent(playerInteractEvent);
 
-            final int[] valueHolder = {0};
-            SchedulerUtil.ScheduledTask breakerTask = SchedulerUtil.runAtLocationTimer(location, period, period, () -> {
-                if (!breakerLocations.contains(location)) {
+                // If the relevant damage event is cancelled, stop the breaker
+                if (blockDamageEventCancelled(block, player)) {
                     stopBlockBreaker(location);
-                    stopBlockHitSound(location);
                     return;
                 }
 
-                if (item.getEnchantmentLevel(EnchantmentWrapper.EFFICIENCY) >= 5)
-                    valueHolder[0] = 10;
+                // Methods for sending multi-barrier block-breaks
+                final List<Location> furnitureBarrierLocations = furnitureBarrierLocations(furnitureMechanic, block);
+                startBlockHitSound(location);
 
-                for (final Entity entity : world.getNearbyEntities(location, 16, 16, 16)) {
-                    if (entity instanceof Player viewer) {
-                        if (furnitureMechanic != null) for (Location barrierLoc : furnitureBarrierLocations)
-                            sendBlockBreak(viewer, barrierLoc, valueHolder[0]);
-                        else sendBlockBreak(viewer, location, valueHolder[0]);
+                final int[] valueHolder = {0};
+                SchedulerUtil.ScheduledTask breakerTask = SchedulerUtil.runAtLocationTimer(location, period, period, () -> {
+                    if (!breakerLocations.contains(location)) {
+                        stopBlockBreaker(location);
+                        stopBlockHitSound(location);
+                        return;
                     }
-                }
 
-                if (valueHolder[0]++ < 10) return;
-                if (EventUtils.callEvent(new BlockBreakEvent(block, player)) && ProtectionLib.canBreak(player, location)) {
-                    // Damage item with properties identified earlier
-                    ItemUtils.damageItem(player, drop, item);
-                    modifier.breakBlock(player, block, item);
-                } else stopBlockHitSound(location);
+                    if (item.getEnchantmentLevel(EnchantmentWrapper.EFFICIENCY) >= 5)
+                        valueHolder[0] = 10;
 
-                // Use entity scheduler for player operations on Folia (player may move to different region)
-                SchedulerUtil.runForEntity(player, () ->
-                    player.removePotionEffect(PotionUtils.getEffectType("mining_fatigue")));
+                    for (final Entity entity : world.getNearbyEntities(location, 16, 16, 16)) {
+                        if (entity instanceof Player viewer) {
+                            if (furnitureMechanic != null) for (Location barrierLoc : furnitureBarrierLocations)
+                                sendBlockBreak(viewer, barrierLoc, valueHolder[0]);
+                            else sendBlockBreak(viewer, location, valueHolder[0]);
+                        }
+                    }
 
-                stopBlockBreaker(location);
-                stopBlockHitSound(location);
-                for (final Entity entity : world.getNearbyEntities(location, 16, 16, 16)) {
-                    if (entity instanceof Player viewer) {
-                        // Send block break animation to each viewer on their own thread
-                        SchedulerUtil.runForEntity(viewer, () -> {
-                            if (furnitureMechanic != null) {
-                                for (Location barrierLoc : furnitureBarrierLocations) {
-                                    sendBlockBreak(viewer, barrierLoc, valueHolder[0]);
+                    if (valueHolder[0]++ < 10) return;
+                    if (EventUtils.callEvent(new BlockBreakEvent(block, player)) && ProtectionLib.canBreak(player, location)) {
+                        // Damage item with properties identified earlier
+                        ItemUtils.damageItem(player, drop, item);
+                        modifier.breakBlock(player, block, item);
+                    } else stopBlockHitSound(location);
+
+                    // Use entity scheduler for player operations on Folia (player may move to different region)
+                    SchedulerUtil.runForEntity(player, () ->
+                        player.removePotionEffect(PotionUtils.getEffectType("mining_fatigue")));
+
+                    stopBlockBreaker(location);
+                    stopBlockHitSound(location);
+                    for (final Entity entity : world.getNearbyEntities(location, 16, 16, 16)) {
+                        if (entity instanceof Player viewer) {
+                            // Send block break animation to each viewer on their own thread
+                            SchedulerUtil.runForEntity(viewer, () -> {
+                                if (furnitureMechanic != null) {
+                                    for (Location barrierLoc : furnitureBarrierLocations) {
+                                        sendBlockBreak(viewer, barrierLoc, valueHolder[0]);
+                                    }
+                                } else {
+                                    sendBlockBreak(viewer, location, valueHolder[0]);
                                 }
-                            } else {
-                                sendBlockBreak(viewer, location, valueHolder[0]);
-                            }
-                        });
+                            });
+                        }
                     }
-                }
+                });
+                breakerTasks.put(location, breakerTask);
             });
-            breakerTasks.put(location, breakerTask);
         } else {
+            // Cancel the breaker immediately to prevent race conditions.
+            // This must happen synchronously before any scheduled tasks.
+            stopBlockBreaker(location);
+            stopBlockHitSound(location);
+
             // Use entity scheduler for player operations on Folia (player may move to different region)
             SchedulerUtil.runForEntity(player, () -> {
                 player.removePotionEffect(PotionUtils.getEffectType("mining_fatigue"));
@@ -186,8 +196,6 @@ public abstract class BreakerSystem {
                         SchedulerUtil.runForEntity(viewer, () -> sendBlockBreak(viewer, location, 10));
                     }
                 }
-                stopBlockBreaker(location);
-                stopBlockHitSound(location);
             });
         }
     }
@@ -212,8 +220,7 @@ public abstract class BreakerSystem {
         if (!breakerLocations.contains(block.getLocation())) return false;
 
         // Events must be dispatched synchronously to check cancellation status.
-        // Since this is called from block damage events, we're already on the correct thread
-        // (main thread for Bukkit, region thread for Folia).
+        // This is called from a scheduled task on the main/region thread.
         switch (block.getType()) {
             case NOTE_BLOCK -> {
                 NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
@@ -226,6 +233,13 @@ public abstract class BreakerSystem {
                 StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
                 if (mechanic == null) return true;
                 OraxenStringBlockDamageEvent event = new OraxenStringBlockDamageEvent(mechanic, block, player);
+                Bukkit.getPluginManager().callEvent(event);
+                return event.isCancelled();
+            }
+            case CHORUS_PLANT -> {
+                ChorusBlockMechanic mechanic = OraxenBlocks.getChorusMechanic(block);
+                if (mechanic == null) return true;
+                OraxenChorusBlockDamageEvent event = new OraxenChorusBlockDamageEvent(mechanic, block, player);
                 Bukkit.getPluginManager().callEvent(event);
                 return event.isCancelled();
             }

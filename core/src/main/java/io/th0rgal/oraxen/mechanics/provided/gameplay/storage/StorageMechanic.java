@@ -86,7 +86,8 @@ public class StorageMechanic {
     }
 
     public void openStorage(Block block, Player player) {
-        if (block.getType() != Material.NOTE_BLOCK) return;
+        Material blockType = block.getType();
+        if (blockType != Material.NOTE_BLOCK && blockType != Material.TRIPWIRE && blockType != Material.CHORUS_PLANT) return;
         StorageGui storageGui = (blockStorages.containsKey(block) ? blockStorages.get(block) : createGui(block, null));
         storageGui.open(player);
         blockStorages.put(block, storageGui);

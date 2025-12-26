@@ -42,6 +42,7 @@ public class OraxenMeta {
     private float swapAnimationScale = 1.0f;
     private boolean excludeFromPredicates = false;
     private boolean excludeFromItemModel = false;
+    private Map<String, String> additionalModels = new HashMap<>();
 
     public void setExcludedFromInventory(boolean excluded) {
         this.excludedFromInventory = excluded;
@@ -135,6 +136,20 @@ public class OraxenMeta {
         // Per-item appearance system exclusions
         this.excludeFromPredicates = section.getBoolean("exclude_from_predicates", false);
         this.excludeFromItemModel = section.getBoolean("exclude_from_item_model", false);
+
+        // Parse additional models map (Pack.models)
+        // These are registered as oraxen:<itemId>/<key> -> <modelPath>
+        if (section.isConfigurationSection("models")) {
+            ConfigurationSection modelsSection = section.getConfigurationSection("models");
+            if (modelsSection != null) {
+                for (String key : modelsSection.getKeys(false)) {
+                    String modelPath = modelsSection.getString(key);
+                    if (modelPath != null) {
+                        this.additionalModels.put(key, modelPath.replace(".json", ""));
+                    }
+                }
+            }
+        }
 
         if (generate_model && !modelName.matches("^[a-z0-9-_/]+$")) {
             Logs.logWarning("Item " + section.getParent().getName()
@@ -370,6 +385,32 @@ public class OraxenMeta {
 
     public boolean isExcludedFromItemModel() {
         return excludeFromItemModel;
+    }
+
+    /**
+     * Returns the map of additional models defined in Pack.models.
+     * Keys are model aliases, values are model paths.
+     * These will be registered as oraxen:&lt;itemId&gt;/&lt;key&gt; during pack generation.
+     */
+    public Map<String, String> getAdditionalModels() {
+        return additionalModels;
+    }
+
+    /**
+     * Checks if this item has additional models defined.
+     */
+    public boolean hasAdditionalModels() {
+        return !additionalModels.isEmpty();
+    }
+
+    /**
+     * Gets the model path for an additional model by its key.
+     * @param key The model alias (e.g., "active", "stage1")
+     * @return The model path, or null if not found
+     */
+    @Nullable
+    public String getAdditionalModel(String key) {
+        return additionalModels.get(key);
     }
 
 }

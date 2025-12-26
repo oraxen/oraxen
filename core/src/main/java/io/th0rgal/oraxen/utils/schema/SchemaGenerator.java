@@ -772,7 +772,11 @@ public class SchemaGenerator {
                 Map.of(
                         "barrier", prop("boolean", "Use barrier block for collision", null, false),
                         "light", prop("integer", "Light level (0-15)", 0, null),
-                        "hardness", prop("number", "Break hardness", 0, null)));
+                        "hardness", prop("number", "Break hardness", 0, null),
+                        "farmland_required", prop("boolean", "Requires farmland below", null, false),
+                        "farmblock_required", prop("boolean", "Requires custom farmblock below", null, false),
+                        "initial_stage", prop("integer", "Initial growth stage index (for staged plants)", 0, 0),
+                        "stages", prop("array", "Inline growth stages - array of objects with: model (string), light (int), evolution (object), drop (object)", null, null)));
 
         addMechanicIfAbsent(mechanics, "noteblock", "gameplay", "Custom noteblock-based block",
                 Map.of(
@@ -1034,6 +1038,16 @@ public class SchemaGenerator {
         model.addProperty("type", "string");
         model.addProperty("description", "Path to existing JSON model file (without .json)");
         pack.add("model", model);
+
+        // models - Additional model definitions for multi-state items
+        JsonObject models = new JsonObject();
+        models.addProperty("type", "object");
+        models.addProperty("description", "Additional models map. Keys are aliases, values are model paths. " +
+                "Auto-registered as oraxen:<itemId>/<key>. Example: { opened: default/turntable_opened }");
+        JsonObject modelsAdditional = new JsonObject();
+        modelsAdditional.addProperty("type", "string");
+        models.add("additionalProperties", modelsAdditional);
+        pack.add("models", models);
 
         // custom_model_data
         JsonObject cmd = new JsonObject();

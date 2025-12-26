@@ -142,16 +142,17 @@ turntable:
           y: 0.75
           z: 0.75
       jukebox:
-        active_stage: "turtable_active_stage"
+        # NEW: Use active_model instead of active_stage (references Pack.models key)
+        active_model: opened
         volume: 1.0
         pitch: 1.0
   Pack:
     generate_model: false
     model: default/turntable_closed
+    # NEW: Define additional models inline - no more fake items needed!
+    # These are auto-registered as oraxen:turntable/opened, etc.
+    models:
+      opened: default/turntable_opened
 
-turtable_active_stage:
-  material: PAPER
-  excludeFromInventory: true
-  Pack:
-    generate_model: false
-    model: default/turntable_opened
+# REMOVED: turtable_active_stage is no longer needed!
+# The "opened" model is now defined inline in turntable's Pack.models

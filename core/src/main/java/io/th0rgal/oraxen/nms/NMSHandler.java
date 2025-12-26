@@ -20,6 +20,8 @@ public interface NMSHandler {
 
     boolean tripwireUpdatesDisabled();
 
+    boolean chorusPlantUpdatesDisabled();
+
     /**
      * Copies over all NBT-Tags from oldItem to newItem
      * Useful for plugins that might register their own NBT-Tags outside
@@ -115,6 +117,11 @@ public interface NMSHandler {
 
         @Override
         public boolean tripwireUpdatesDisabled() {
+            return false;
+        }
+
+        @Override
+        public boolean chorusPlantUpdatesDisabled() {
             return false;
         }
 

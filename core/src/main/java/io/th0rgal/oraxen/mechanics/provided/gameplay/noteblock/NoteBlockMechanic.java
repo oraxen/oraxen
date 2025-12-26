@@ -33,6 +33,8 @@ public class NoteBlockMechanic extends Mechanic {
     private final LightMechanic light;
     private final boolean canIgnite;
     private final boolean isFalling;
+    private final boolean blastResistant;
+    private final boolean immovable;
     private final FarmBlockDryout farmBlockDryout;
     private final LogStripping logStripping;
     private final DirectionalBlock directionalBlock;
@@ -56,6 +58,8 @@ public class NoteBlockMechanic extends Mechanic {
         clickActions = ClickAction.parseList(section);
         canIgnite = section.getBoolean("can_ignite", false);
         isFalling = section.getBoolean("is_falling", false);
+        blastResistant = section.getBoolean("blast_resistant", false);
+        immovable = section.getBoolean("immovable", false);
 
         ConfigurationSection dropSection = section.getConfigurationSection("drop");
         drop = dropSection != null ? Drop.createDrop(NoteBlockMechanicFactory.getInstance().toolTypes, dropSection, getItemID()) : new Drop(new ArrayList<>(), false, false, getItemID());
@@ -164,6 +168,18 @@ public class NoteBlockMechanic extends Mechanic {
 
     public boolean isInteractable() {
         return hasClickActions() || isStorage();
+    }
+
+    public boolean isBlastResistant() {
+        if (isDirectional() && !getDirectional().isParentBlock()) {
+            return blastResistant || directionalBlock.getParentMechanic().isBlastResistant();
+        } else return blastResistant;
+    }
+
+    public boolean isImmovable() {
+        if (isDirectional() && !getDirectional().isParentBlock()) {
+            return immovable || directionalBlock.getParentMechanic().isImmovable();
+        } else return immovable;
     }
 
     public BlockLockerMechanic getBlockLocker() {
