@@ -20,7 +20,7 @@ public class MessageAction extends Action<Player> {
     @Override
     public void run(@NotNull Player player, @NotNull Context<Player> context) {
         final String text = getMeta().getParsedData(player, context);
-        // Support both MiniMessage format (e.g., <gold>) and legacy format (e.g., &6)
+        // Uses MiniMessage format (e.g., <gold>, <red>, <bold>)
         final Component message = AdventureUtils.MINI_MESSAGE.deserialize(text);
         OraxenPlugin.get().getAudience().player(player).sendMessage(message);
     }
