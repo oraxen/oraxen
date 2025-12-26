@@ -58,6 +58,10 @@ blocklocker = { module = "nl.rutgerkok:blocklocker", version = "1.13-SNAPSHOT" }
 # Repo: https://repo.skriptlang.org/releases (NOT JitPack)
 skript = { module = "com.github.SkriptLang:Skript", version = "2.13.2" }
 
+# mcMMO https://github.com/mcMMO-Dev/mcMMO
+# Repo: JitPack
+mcmmo = { module = "com.github.mcMMO-Dev:mcMMO", version = "2.2.025" }
+
 #
 # Libraries that are included in MC
 # But are not exposed
@@ -176,7 +180,8 @@ plugins = [
     "worldedit-bukkit", # WorldEdit
     "eco",
     "libreforge",
-    "ecoitems",         # EcoÍtems
+    "ecoitems",         # EcoItems
     "blocklocker",      # BlockLocker
     "skript",           # Skript
+    "mcmmo",            # mcMMO
 ]
