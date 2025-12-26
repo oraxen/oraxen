@@ -82,9 +82,12 @@ public class EvolutionListener implements Listener {
         // Update stage index and reset evolution timer
         pdc.set(STAGE_INDEX_KEY, PersistentDataType.INTEGER, nextStageIndex);
         pdc.set(EVOLUTION_KEY, PersistentDataType.INTEGER, 0);
-        
+
         // Swap the model (no entity recreation!)
         FurnitureMechanic.setFurnitureItemModel(entity, mechanic.getItemID(), nextStage.getModelKey());
+
+        // Update light level if stage has per-stage light
+        EvolutionTask.updateStageLight(entity.getLocation().getBlock(), currentStage, nextStage, mechanic);
     }
 
     /**

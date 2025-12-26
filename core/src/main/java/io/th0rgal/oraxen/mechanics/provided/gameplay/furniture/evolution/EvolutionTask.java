@@ -14,6 +14,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
+import org.bukkit.block.data.type.Light;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
@@ -140,15 +141,18 @@ public class EvolutionTask implements Runnable {
             int nextStageIndex = currentStageIndex + 1;
             GrowthStage nextStage = mechanic.getGrowthStage(nextStageIndex);
             if (nextStage == null) return;
-            
+
             // Update stage index
             pdc.set(STAGE_INDEX_KEY, PersistentDataType.INTEGER, nextStageIndex);
             // Reset evolution timer
             pdc.set(EVOLUTION_KEY, PersistentDataType.INTEGER, 0);
-            
+
             // Swap the model (no entity recreation!)
             String modelKey = nextStage.getModelKey();
             FurnitureMechanic.setFurnitureItemModel(entity, mechanic.getItemID(), modelKey);
+
+            // Update light level if stage has per-stage light
+            updateStageLight(entityLoc.getBlock(), currentStage, nextStage, mechanic);
         } else {
             // Not ready yet, update progress
             pdc.set(EVOLUTION_KEY, PersistentDataType.INTEGER, evolutionStep);
@@ -185,6 +189,61 @@ public class EvolutionTask implements Runnable {
             nextMechanic.place(entity.getLocation(), entity.getLocation().getYaw(), entity.getFacing());
         } else {
             pdc.set(EVOLUTION_KEY, PersistentDataType.INTEGER, evolutionStep);
+        }
+    }
+
+    /**
+     * Updates the light level when transitioning between growth stages.
+     * Removes old light and creates new light if the stage light levels differ.
+     */
+    static void updateStageLight(Block block, GrowthStage oldStage, GrowthStage newStage, FurnitureMechanic mechanic) {
+        int oldLight = oldStage != null ? oldStage.getLight() : -1;
+        int newLight = newStage.getLight();
+
+        // If new stage inherits from mechanic (-1), use mechanic's light level
+        int effectiveNewLight = newLight == -1 && mechanic.hasLight() ? mechanic.getLight().getLightLevel() : newLight;
+        int effectiveOldLight = oldLight == -1 && mechanic.hasLight() ? mechanic.getLight().getLightLevel() : oldLight;
+
+        // No change needed if light levels are the same
+        if (effectiveOldLight == effectiveNewLight) return;
+
+        // Remove old light if it existed
+        if (effectiveOldLight > 0) {
+            removeLight(block, effectiveOldLight);
+        }
+
+        // Create new light if needed
+        if (effectiveNewLight > 0) {
+            createLight(block, effectiveNewLight);
+        }
+    }
+
+    private static final BlockFace[] LIGHT_FACES = new BlockFace[]{
+            BlockFace.UP, BlockFace.DOWN, BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST, BlockFace.SELF
+    };
+
+    private static void createLight(Block block, int lightLevel) {
+        Light lightData = (Light) Material.LIGHT.createBlockData();
+        lightData.setLevel(Math.min(15, lightLevel));
+
+        if (block.getType().isAir()) {
+            block.setBlockData(lightData);
+        } else {
+            for (BlockFace face : LIGHT_FACES) {
+                Block relative = block.getRelative(face);
+                if (!relative.getType().isAir() && relative.getType() != Material.LIGHT) continue;
+                if (relative.getBlockData() instanceof Light relativeLight && relativeLight.getLevel() > lightLevel) continue;
+                relative.setBlockData(lightData);
+            }
+        }
+    }
+
+    private static void removeLight(Block block, int lightLevel) {
+        for (BlockFace face : LIGHT_FACES) {
+            Block relative = block.getRelative(face);
+            if (relative.getType() == Material.LIGHT) {
+                relative.setType(Material.AIR);
+            }
         }
     }
 }
