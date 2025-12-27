@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.hopper;
 
 import md.thomas.hopper.Dependency;
 import md.thomas.hopper.FailurePolicy;
+import md.thomas.hopper.Platform;
 import md.thomas.hopper.bukkit.BukkitHopper;
 import md.thomas.hopper.version.UpdatePolicy;
 import org.bukkit.Bukkit;
@@ -39,12 +40,30 @@ public final class OraxenHopper {
             boolean hasPacketEvents = pluginJarExists("PacketEvents") || pluginJarExists("packetevents");
 
             if (!hasProtocolLib && !hasPacketEvents) {
+                Platform platform = Platform.detect();
                 logger.info("Neither ProtocolLib nor PacketEvents detected, registering PacketEvents for download...");
+                logger.info("Detected platform: " + platform);
+
+                // Primary source: Modrinth (auto-detects platform for correct spigot/paper variant)
                 deps.require(Dependency.modrinth("packetevents")
                     .name("PacketEvents")
                     .minVersion("2.7.0")
                     .updatePolicy(UpdatePolicy.MINOR)
-                    .onFailure(FailurePolicy.WARN_SKIP) // Don't fail if download fails
+                    .onFailure(FailurePolicy.WARN_SKIP)
+                    .build());
+
+                // Fallback source: GitHub releases (if Modrinth fails)
+                // Uses asset pattern to match the correct platform variant
+                String assetPattern = switch (platform) {
+                    case SPIGOT, BUKKIT -> "*-spigot-*.jar";
+                    default -> "*-spigot-*.jar"; // Paper/Folia/Purpur are compatible with spigot builds
+                };
+                deps.require(Dependency.github("retrooper/packetevents")
+                    .name("PacketEvents")
+                    .minVersion("2.7.0")
+                    .assetPattern(assetPattern)
+                    .updatePolicy(UpdatePolicy.MINOR)
+                    .onFailure(FailurePolicy.WARN_SKIP)
                     .build());
             }
         });
