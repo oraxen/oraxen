@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.commands.CommandsManager;
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.config.*;
 import io.th0rgal.oraxen.font.FontManager;
+import io.th0rgal.oraxen.hopper.OraxenHopper;
 import io.th0rgal.oraxen.packets.PacketAdapter;
 import io.th0rgal.oraxen.packets.PacketEventsAdapter;
 import io.th0rgal.oraxen.packets.ProtocolLibAdapter;
@@ -57,6 +58,8 @@ public class OraxenPlugin extends JavaPlugin {
 
     public OraxenPlugin() {
         oraxen = this;
+        // Register dependencies with Hopper for auto-download
+        OraxenHopper.register(this);
     }
 
     public static OraxenPlugin get() {
@@ -74,6 +77,9 @@ public class OraxenPlugin extends JavaPlugin {
 
     @Override
     public void onLoad() {
+        // Download dependencies registered with Hopper
+        OraxenHopper.download(this);
+
         // CommandAPI initialization is currently disabled as CommandAPI 11.0.0 doesn't yet support 1.21.11
         // CommandAPI.onLoad(new CommandAPIPaperConfig(this).silentLogs(true));
     }
@@ -91,12 +97,11 @@ public class OraxenPlugin extends JavaPlugin {
         if (Settings.KEEP_UP_TO_DATE.toBool())
             new SettingsUpdater().handleSettingsUpdate();
         if (PacketAdapter.isProtocolLibEnabled()) {
-            Logs.logInfo("[OraxenPlugin] ProtocolLib is enabled, using ProtocolLibAdapter");
+            if (Settings.DEBUG.toBool()) Logs.logInfo("ProtocolLib is enabled, using ProtocolLibAdapter");
             packetAdapter = new ProtocolLibAdapter();
             new ProtocolLibBreakerSystem().registerListener();
         } else if (PacketAdapter.isPacketEventsEnabled()) {
-            Logs.logInfo(
-                    "[OraxenPlugin] ProtocolLib is NOT enabled, PacketEvents is enabled, using PacketEventsAdapter");
+            if (Settings.DEBUG.toBool()) Logs.logInfo("PacketEvents is enabled, using PacketEventsAdapter");
             packetAdapter = new PacketEventsAdapter();
             new PacketEventsBreakerSystem().registerListener();
         } else {
@@ -112,6 +117,12 @@ public class OraxenPlugin extends JavaPlugin {
 
         Bukkit.getPluginManager().registerEvents(new CustomArmorListener(), this);
         NMSHandlers.setup();
+
+        // Auto-update Paper config for block updates (noteblock, tripwire, chorus)
+        var updatedSettings = PaperConfigUpdater.ensureAllBlockUpdatesDisabled();
+        if (!updatedSettings.isEmpty()) {
+            Logs.logSuccess("Auto-updated paper-global.yml: enabled " + String.join(", ", updatedSettings) + " (restart required)");
+        }
 
         resourcePack = new ResourcePack();
         MechanicsManager.registerNativeMechanics();

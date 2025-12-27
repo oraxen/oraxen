@@ -27,7 +27,6 @@ public final class ResourcePackFormatUtil {
             // Fallback: best-effort mapping based on the server version.
             // This should only be used if reflection fails (rare on supported versions).
             resolved = fallbackByMinecraftVersion();
-            Logs.logWarning("Failed to resolve resource pack format via NMS. Falling back to pack_format=" + resolved);
         }
 
         cached = resolved;
