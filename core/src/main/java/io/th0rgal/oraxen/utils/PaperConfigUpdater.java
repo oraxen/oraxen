@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.utils;
 
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.logs.Logs;
 
 import java.io.IOException;
@@ -14,7 +15,8 @@ import java.util.regex.Pattern;
  * Utility class to update Paper's paper-global.yml configuration file.
  * Uses line-by-line processing to preserve comments and formatting.
  * <p>
- * Disable auto-update with: -Doraxen.autoUpdatePaperConfig=false
+ * Disable auto-update via settings.yml: Plugin.auto_update_paper_config: false
+ * Or via system property: -Doraxen.autoUpdatePaperConfig=false
  */
 public final class PaperConfigUpdater {
 
@@ -33,7 +35,10 @@ public final class PaperConfigUpdater {
     public static List<String> ensureAllBlockUpdatesDisabled() {
         List<String> updatedSettings = new ArrayList<>();
 
-        // Check if disabled via system property
+        // Check if disabled via config or system property
+        if (!Settings.AUTO_UPDATE_PAPER_CONFIG.toBool()) {
+            return updatedSettings;
+        }
         String prop = System.getProperty("oraxen.autoUpdatePaperConfig");
         if ("false".equalsIgnoreCase(prop)) {
             return updatedSettings;

@@ -5,6 +5,7 @@ Plugin:
   commands:
     repair:
       oraxen_durability_only: false # will not repair vanilla items if set to true
+  auto_update_paper_config: true # Auto-update paper-global.yml to disable block updates for custom blocks
   generation:
     default_assets: true
     default_configs: true
