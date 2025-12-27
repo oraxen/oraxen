@@ -205,7 +205,9 @@ tasks {
                             "os.version"
                         )
                     }",
-                    "Compiled" to (project.findProperty("oraxen_compiled")?.toString() ?: "true").toBoolean()
+                    "Compiled" to (project.findProperty("oraxen_compiled")?.toString() ?: "true").toBoolean(),
+                    // Tell Paper not to remap this plugin - v1_21_R6 module uses Mojang mappings
+                    "paperweight-mappings-namespace" to "mojang"
                 )
             )
         }
