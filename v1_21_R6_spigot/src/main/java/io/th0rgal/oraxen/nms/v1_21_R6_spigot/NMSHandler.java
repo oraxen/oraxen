@@ -3,15 +3,22 @@ package io.th0rgal.oraxen.nms.v1_21_R6_spigot;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.nms.GlyphHandler;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.core.component.DataComponents;
 import org.bukkit.Location;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.craftbukkit.v1_21_R7.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.components.FoodComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Set;
 
 /**
  * NMS Handler for Spigot 1.21.11 (uses Spigot mappings).
@@ -63,25 +70,55 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         return false;
     }
 
+    // Keys used by vanilla Minecraft that should not be copied
+    private static final Set<String> vanillaKeys = Set.of(
+            "PublicBukkitValues", "Damage", "RepairCost", "CustomModelData",
+            "Enchantments", "StoredEnchantments", "display", "HideFlags",
+            "Unbreakable", "AttributeModifiers", "SkullOwner", "BlockEntityTag",
+            "BlockStateTag", "CanDestroy", "CanPlaceOn", "Charged", "ChargedProjectiles",
+            "Items", "Decorations", "Trim", "Recipes", "title", "author", "pages",
+            "resolved", "generation", "map", "map_scale_direction", "Fireworks", "Explosion",
+            "Flight", "CustomPotionEffects", "Potion", "CustomPotionColor", "LodestoneTracked",
+            "LodestoneDimension", "LodestonePos", "EntityTag", "BucketVariantTag"
+    );
+
     @Override
     public ItemStack copyItemNBTTags(@NotNull ItemStack oldItem, @NotNull ItemStack newItem) {
-        // For Spigot, we'll use Bukkit's PersistentDataContainer which is portable
-        // This is a simplified implementation
-        if (oldItem.hasItemMeta() && newItem.hasItemMeta()) {
-            var oldMeta = oldItem.getItemMeta();
-            var newMeta = newItem.getItemMeta();
-            if (oldMeta != null && newMeta != null) {
-                // Copy persistent data container
-                for (var key : oldMeta.getPersistentDataContainer().getKeys()) {
-                    var type = oldMeta.getPersistentDataContainer().get(key, org.bukkit.persistence.PersistentDataType.STRING);
-                    if (type != null) {
-                        newMeta.getPersistentDataContainer().set(key, org.bukkit.persistence.PersistentDataType.STRING, type);
-                    }
-                }
-                newItem.setItemMeta(newMeta);
-            }
+        net.minecraft.world.item.ItemStack newNmsItem = CraftItemStack.asNMSCopy(newItem);
+        net.minecraft.world.item.ItemStack oldNmsItem = CraftItemStack.asNMSCopy(oldItem);
+
+        // Gets data component's nbt data
+        // DataComponents.b is CUSTOM_DATA in Spigot mappings
+        CustomData oldData = oldNmsItem.a().a(DataComponents.b); // getComponents().get(CUSTOM_DATA)
+        CustomData newData = newNmsItem.a().a(DataComponents.b);
+
+        // Cancels if null
+        if (oldData == null || newData == null)
+            return newItem;
+
+        // Creates new nbt compounds
+        // CustomData.b() returns the NBTTagCompound (copyTag equivalent)
+        NBTTagCompound oldTag = oldData.b();
+        NBTTagCompound newTag = newData.b();
+
+        // NBTTagCompound.e() returns keySet
+        for (String key : oldTag.e()) {
+            if (vanillaKeys.contains(key))
+                continue;
+            // NBTTagCompound.a(String) returns NBTBase at that key
+            NBTBase value = oldTag.a(key);
+            if (value != null)
+                // NBTTagCompound.a(String, NBTBase) puts a value
+                newTag.a(key, value);
+            else
+                // NBTTagCompound.r(String) removes a key
+                newTag.r(key);
         }
-        return newItem;
+
+        // ItemStack.b(DataComponentType, T) sets the component value
+        // CustomData.a(NBTTagCompound) creates CustomData from tag
+        newNmsItem.b(DataComponents.b, CustomData.a(newTag));
+        return CraftItemStack.asBukkitCopy(newNmsItem);
     }
 
     @Override
