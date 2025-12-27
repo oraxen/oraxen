@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.hopper;
 
 import md.thomas.hopper.Dependency;
 import md.thomas.hopper.FailurePolicy;
+import md.thomas.hopper.LogLevel;
 import md.thomas.hopper.Platform;
 import md.thomas.hopper.bukkit.BukkitHopper;
 import md.thomas.hopper.version.UpdatePolicy;
@@ -71,8 +72,6 @@ public final class OraxenHopper {
 
             // CommandAPI is required for Oraxen commands
             if (!hasCommandAPI) {
-                logger.info("CommandAPI not detected, registering for download...");
-
                 // Primary source: Modrinth
                 deps.require(Dependency.modrinth("commandapi")
                     .name("CommandAPI")
@@ -97,8 +96,6 @@ public final class OraxenHopper {
 
             // PacketEvents is optional but recommended (if neither ProtocolLib nor PacketEvents is available)
             if (!hasProtocolLib && !hasPacketEvents) {
-                logger.info("Neither ProtocolLib nor PacketEvents detected, registering PacketEvents for download...");
-
                 // Primary source: Modrinth (auto-detects platform for correct spigot/paper variant)
                 deps.require(Dependency.modrinth("packetevents")
                     .name("PacketEvents")
@@ -137,26 +134,19 @@ public final class OraxenHopper {
         }
 
         Logger logger = plugin.getLogger();
-        BukkitHopper.DownloadAndLoadResult result = BukkitHopper.downloadAndLoad(plugin);
+        BukkitHopper.DownloadAndLoadResult result = BukkitHopper.downloadAndLoad(plugin, LogLevel.QUIET);
 
         downloadComplete = true;
         requiresRestart = !result.noRestartRequired();
 
         if (requiresRestart) {
-            // Some plugins couldn't be auto-loaded
+            // Some plugins couldn't be auto-loaded - log details
             logger.warning("Some dependencies require a server restart to load:");
             for (var failed : result.loadResult().failed()) {
                 logger.warning("  - " + failed.path().getFileName() + ": " + failed.error());
             }
-        } else if (result.loadResult().hasLoaded()) {
-            // Successfully auto-loaded - single line summary
-            var loaded = result.loadResult().loaded();
-            String summary = loaded.stream()
-                .map(p -> p.name() + " " + p.version())
-                .reduce((a, b) -> a + ", " + b)
-                .orElse("");
-            logger.info("Auto-loaded: " + summary);
         }
+        // Hopper's QUIET mode already logs: "[Hopper] Loaded: CommandAPI 11.1.0, PacketEvents 2.11.1"
 
         return !requiresRestart;
     }
