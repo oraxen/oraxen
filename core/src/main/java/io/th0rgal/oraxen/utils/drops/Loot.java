@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.utils.drops;
 
-import dev.jorel.commandapi.wrappers.IntegerRange;
+import io.th0rgal.oraxen.utils.IntegerRange;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.provided.ecoitems.WrappedEcoItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
