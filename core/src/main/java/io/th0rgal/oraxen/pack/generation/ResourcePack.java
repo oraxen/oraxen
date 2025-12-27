@@ -718,7 +718,7 @@ public class ResourcePack {
         ShiftProvider shiftProvider = fontManager.getShiftProvider();
         JsonObject shiftFont = shiftProvider.generateFontFile();
         writeStringToVirtual("assets/oraxen/font", "shift.json", shiftFont.toString());
-        Logs.logSuccess("Generated shift font with space provider");
+        if (Settings.DEBUG.toBool()) Logs.logInfo("Generated shift font with space provider");
     }
 
     /**
