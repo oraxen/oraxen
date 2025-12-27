@@ -73,10 +73,16 @@ allprojects {
             }
         }
         maven("https://repo.oraxen.com/releases") {
-            content { includeGroup("io.th0rgal") } // protectionlib
+            content {
+                includeGroup("io.th0rgal") // protectionlib
+                includeGroup("md.thomas.hopper") // hopper
+            }
         }
         maven("https://repo.oraxen.com/snapshots") {
-            content { includeGroup("io.th0rgal") }
+            content {
+                includeGroup("io.th0rgal")
+                includeGroup("md.thomas.hopper")
+            }
         }
         maven("https://repo.auxilor.io/repository/maven-public/") {
             content { includeGroup("com.willfp") } // EcoItems, eco, libreforge
