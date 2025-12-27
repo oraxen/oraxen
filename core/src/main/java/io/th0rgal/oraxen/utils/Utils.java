@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.utils;
 
-import dev.jorel.commandapi.wrappers.IntegerRange;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Color;
 import org.bukkit.entity.Player;

@@ -157,6 +157,7 @@ tasks {
     runServer {
         downloadPlugins {
             hangar("ProtocolLib", "5.4.0")
+            hangar("CommandAPI", "11.1.0")
         }
         minecraftVersion("1.21.11")
         jvmArgs("-Dcom.mojang.eula.agree=true")
