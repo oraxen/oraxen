@@ -44,7 +44,7 @@ public class AtlasGenerator {
     }
 
     public static void generateAtlasFile(List<VirtualFile> output, Set<String> malformedTextures) {
-        Logs.logSuccess("Generating atlas-file for 1.19.3+ Resource Pack format");
+        if (Settings.DEBUG.toBool()) Logs.logInfo("Generating atlas-file for 1.19.3+ Resource Pack format");
         if (Settings.EXCLUDE_MALFORMED_ATLAS.toBool() && !malformedTextures.isEmpty())
             Logs.logWarning("Attempting to exclude malformed textures from atlas-file");
 

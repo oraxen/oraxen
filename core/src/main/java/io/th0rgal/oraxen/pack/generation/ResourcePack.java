@@ -266,7 +266,7 @@ public class ResourcePack {
     }
 
     private static Set<String> verifyPackFormatting(List<VirtualFile> output) {
-        Logs.logInfo("Verifying formatting for textures and models...");
+        if (Settings.DEBUG.toBool()) Logs.logInfo("Verifying formatting for textures and models...");
         Set<VirtualFile> textures = new HashSet<>();
         Set<String> texturePaths = new HashSet<>();
         Set<String> mcmeta = new HashSet<>();
@@ -1443,7 +1443,7 @@ public class ResourcePack {
     }
 
     private void convertGlobalLang(List<VirtualFile> output) {
-        Logs.logWarning("Converting global lang file to individual language files...");
+        if (Settings.DEBUG.toBool()) Logs.logInfo("Converting global lang file to individual language files...");
         Set<VirtualFile> virtualLangFiles = new HashSet<>();
         File globalLangFile = new File(packFolder, "lang/global.json");
         JsonObject globalLang = new JsonObject();
