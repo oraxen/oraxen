@@ -3,6 +3,7 @@
 adventure = "4.17.0"
 adventure-platform = "4.3.4"
 commandapi = "11.0.0"
+hopper = "1.0.0"
 
 actions = "1.0.0-SNAPSHOT"
 
@@ -132,6 +133,10 @@ persistent-data-serializer = { module = "com.jeff-media:persistent-data-serializ
 # Repo: Maven Central
 triumph-gui = { module = "dev.triumphteam:triumph-gui", version = "3.1.10" }
 
+# Hopper - Runtime Dependency Loader https://github.com/oraxen/hopper
+# Repo: https://repo.oraxen.com/releases/
+hopper-bukkit = { module = "md.thomas.hopper:hopper-bukkit", version.ref = "hopper" }
+
 [bundles]
 # libraries that are included somewher but not exposed
 libraries-included = [
@@ -162,6 +167,7 @@ libraries-shade = [
     "more-persistent-data-types",
     "persistent-data-serializer",
     "actions-spigot",
+    "hopper-bukkit",
 ]
 plugins = [
     "commandapi",
