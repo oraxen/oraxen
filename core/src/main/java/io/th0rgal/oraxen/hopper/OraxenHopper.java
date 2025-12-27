@@ -12,11 +12,14 @@ import org.jetbrains.annotations.NotNull;
 import java.util.logging.Logger;
 
 /**
- * Handles automatic downloading of optional dependencies using Hopper.
+ * Handles automatic downloading of dependencies using Hopper.
  * <p>
- * This class registers and downloads PacketEvents if neither ProtocolLib nor PacketEvents
- * is installed on the server. Downloaded plugins are automatically loaded at runtime
- * without requiring a server restart.
+ * This class registers and downloads:
+ * <ul>
+ *   <li>CommandAPI - Required for Oraxen commands</li>
+ *   <li>PacketEvents - If neither ProtocolLib nor PacketEvents is installed</li>
+ * </ul>
+ * Downloaded plugins are automatically loaded at runtime without requiring a server restart.
  */
 public final class OraxenHopper {
 
@@ -33,16 +36,44 @@ public final class OraxenHopper {
      */
     public static void register(@NotNull Plugin plugin) {
         Logger logger = plugin.getLogger();
+        Platform platform = Platform.detect();
+        logger.info("Detected platform: " + platform);
+
         BukkitHopper.register(plugin, deps -> {
-            // Only download PacketEvents if neither ProtocolLib nor PacketEvents is available
             // We check for files in the plugins folder since plugins aren't loaded yet in constructor
+            boolean hasCommandAPI = pluginJarExists("CommandAPI");
             boolean hasProtocolLib = pluginJarExists("ProtocolLib");
             boolean hasPacketEvents = pluginJarExists("PacketEvents") || pluginJarExists("packetevents");
 
+            // CommandAPI is required for Oraxen commands
+            if (!hasCommandAPI) {
+                logger.info("CommandAPI not detected, registering for download...");
+
+                // Primary source: Modrinth
+                deps.require(Dependency.modrinth("commandapi")
+                    .name("CommandAPI")
+                    .minVersion("11.0.0")
+                    .updatePolicy(UpdatePolicy.MINOR)
+                    .onFailure(FailurePolicy.WARN_SKIP)
+                    .build());
+
+                // Fallback source: GitHub releases
+                String commandApiPattern = switch (platform) {
+                    case PAPER, FOLIA, PURPUR -> "*-Paper.jar";
+                    default -> "*-Spigot.jar";
+                };
+                deps.require(Dependency.github("CommandAPI/CommandAPI")
+                    .name("CommandAPI")
+                    .minVersion("11.0.0")
+                    .assetPattern(commandApiPattern)
+                    .updatePolicy(UpdatePolicy.MINOR)
+                    .onFailure(FailurePolicy.WARN_SKIP)
+                    .build());
+            }
+
+            // PacketEvents is optional but recommended (if neither ProtocolLib nor PacketEvents is available)
             if (!hasProtocolLib && !hasPacketEvents) {
-                Platform platform = Platform.detect();
                 logger.info("Neither ProtocolLib nor PacketEvents detected, registering PacketEvents for download...");
-                logger.info("Detected platform: " + platform);
 
                 // Primary source: Modrinth (auto-detects platform for correct spigot/paper variant)
                 deps.require(Dependency.modrinth("packetevents")
@@ -52,16 +83,12 @@ public final class OraxenHopper {
                     .onFailure(FailurePolicy.WARN_SKIP)
                     .build());
 
-                // Fallback source: GitHub releases (if Modrinth fails)
-                // Uses asset pattern to match the correct platform variant
-                String assetPattern = switch (platform) {
-                    case SPIGOT, BUKKIT -> "*-spigot-*.jar";
-                    default -> "*-spigot-*.jar"; // Paper/Folia/Purpur are compatible with spigot builds
-                };
+                // Fallback source: GitHub releases
+                String packetEventsPattern = "*-spigot-*.jar"; // Works for all platforms
                 deps.require(Dependency.github("retrooper/packetevents")
                     .name("PacketEvents")
                     .minVersion("2.7.0")
-                    .assetPattern(assetPattern)
+                    .assetPattern(packetEventsPattern)
                     .updatePolicy(UpdatePolicy.MINOR)
                     .onFailure(FailurePolicy.WARN_SKIP)
                     .build());
