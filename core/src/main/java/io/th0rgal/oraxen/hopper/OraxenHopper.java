@@ -10,6 +10,7 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 /**
  * Handles automatic downloading of dependencies using Hopper.
@@ -25,6 +26,18 @@ public final class OraxenHopper {
 
     private static boolean downloadComplete = false;
     private static boolean requiresRestart = false;
+    private static boolean enabled = true;
+
+    // Patterns to match plugin jar files (e.g., CommandAPI-9.0.0.jar, packetevents-spigot-2.0.jar)
+    private static final Pattern COMMANDAPI_PATTERN = Pattern.compile(
+        "(?i)^commandapi[-_]?[\\d.].*\\.jar$"
+    );
+    private static final Pattern PROTOCOLLIB_PATTERN = Pattern.compile(
+        "(?i)^protocollib[-_]?[\\d.].*\\.jar$"
+    );
+    private static final Pattern PACKETEVENTS_PATTERN = Pattern.compile(
+        "(?i)^packetevents[-_]?[\\w-]*[\\d.].*\\.jar$"
+    );
 
     private OraxenHopper() {}
 
@@ -36,14 +49,22 @@ public final class OraxenHopper {
      */
     public static void register(@NotNull Plugin plugin) {
         Logger logger = plugin.getLogger();
+
+        // Check if auto-download is enabled via system property (config not loaded in constructor)
+        String prop = System.getProperty("oraxen.autoDownloadDependencies");
+        if ("false".equalsIgnoreCase(prop)) {
+            enabled = false;
+            logger.info("Auto-download of dependencies is disabled");
+            return;
+        }
+
         Platform platform = Platform.detect();
-        logger.info("Detected platform: " + platform);
 
         BukkitHopper.register(plugin, deps -> {
             // We check for files in the plugins folder since plugins aren't loaded yet in constructor
-            boolean hasCommandAPI = pluginJarExists("CommandAPI");
-            boolean hasProtocolLib = pluginJarExists("ProtocolLib");
-            boolean hasPacketEvents = pluginJarExists("PacketEvents") || pluginJarExists("packetevents");
+            boolean hasCommandAPI = pluginJarExists(COMMANDAPI_PATTERN);
+            boolean hasProtocolLib = pluginJarExists(PROTOCOLLIB_PATTERN);
+            boolean hasPacketEvents = pluginJarExists(PACKETEVENTS_PATTERN);
 
             // CommandAPI is required for Oraxen commands
             if (!hasCommandAPI) {
@@ -107,6 +128,11 @@ public final class OraxenHopper {
      * @return true if all dependencies are satisfied and loaded, false if restart is required
      */
     public static boolean download(@NotNull Plugin plugin) {
+        if (!enabled) {
+            downloadComplete = true;
+            return true;
+        }
+
         Logger logger = plugin.getLogger();
         BukkitHopper.DownloadAndLoadResult result = BukkitHopper.downloadAndLoad(plugin);
 
@@ -115,26 +141,18 @@ public final class OraxenHopper {
 
         if (requiresRestart) {
             // Some plugins couldn't be auto-loaded
-            logger.warning("=".repeat(60));
-            logger.warning("  ORAXEN - Some Dependencies Require Restart");
-            logger.warning("=".repeat(60));
+            logger.warning("Some dependencies require a server restart to load:");
             for (var failed : result.loadResult().failed()) {
-                logger.warning("  ! " + failed.path().getFileName() + ": " + failed.error());
+                logger.warning("  - " + failed.path().getFileName() + ": " + failed.error());
             }
-            logger.warning("");
-            logger.warning("  Please RESTART the server to load these dependencies.");
-            logger.warning("  Oraxen will run in limited mode until restart.");
-            logger.warning("=".repeat(60));
         } else if (result.loadResult().hasLoaded()) {
-            // Successfully auto-loaded
-            logger.info("=".repeat(60));
-            logger.info("  ORAXEN - Dependencies Auto-Loaded Successfully");
-            logger.info("=".repeat(60));
-            for (var loaded : result.loadResult().loaded()) {
-                logger.info("  + " + loaded.name() + " v" + loaded.version());
-            }
-            logger.info("  No restart required!");
-            logger.info("=".repeat(60));
+            // Successfully auto-loaded - single line summary
+            var loaded = result.loadResult().loaded();
+            String summary = loaded.stream()
+                .map(p -> p.name() + " " + p.version())
+                .reduce((a, b) -> a + ", " + b)
+                .orElse("");
+            logger.info("Auto-loaded: " + summary);
         }
 
         return !requiresRestart;
@@ -165,17 +183,20 @@ public final class OraxenHopper {
     }
 
     /**
-     * Checks if a plugin jar file exists in the plugins folder.
+     * Checks if a plugin jar file exists in the plugins folder using a regex pattern.
      * This is used during constructor phase when plugins haven't loaded yet.
+     *
+     * @param pattern regex pattern to match the plugin jar filename
+     * @return true if a matching jar exists
      */
-    private static boolean pluginJarExists(String pluginName) {
+    private static boolean pluginJarExists(Pattern pattern) {
         java.io.File pluginsFolder = Bukkit.getPluginsFolder();
         if (pluginsFolder == null || !pluginsFolder.exists()) {
             return false;
         }
 
         java.io.File[] files = pluginsFolder.listFiles((dir, name) ->
-            name.toLowerCase().contains(pluginName.toLowerCase()) && name.endsWith(".jar")
+            pattern.matcher(name).matches()
         );
 
         return files != null && files.length > 0;

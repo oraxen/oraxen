@@ -2,6 +2,7 @@ debug: false
 Plugin:
   keep_this_up_to_date: true # Oraxen will delete old settings
   language: "english" # Valid options are "czech", "english", "french", "german",  "jpn_JP", "korean", "ru-RU", "zh-CN", "zh-TW"
+  # To disable auto-download of dependencies, add -Doraxen.autoDownloadDependencies=false to JVM args
   commands:
     repair:
       oraxen_durability_only: false # will not repair vanilla items if set to true
