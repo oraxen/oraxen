@@ -3,7 +3,7 @@
 adventure = "4.17.0"
 adventure-platform = "4.3.4"
 commandapi = "11.0.0"
-hopper = "1.0.0"
+hopper = "1.1.0"
 
 actions = "1.0.0-SNAPSHOT"
 

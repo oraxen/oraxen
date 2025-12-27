@@ -1,9 +1,7 @@
 package io.th0rgal.oraxen.hopper;
 
-import io.th0rgal.oraxen.utils.PluginUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import md.thomas.hopper.Dependency;
-import md.thomas.hopper.DownloadResult;
 import md.thomas.hopper.FailurePolicy;
 import md.thomas.hopper.bukkit.BukkitHopper;
 import md.thomas.hopper.version.UpdatePolicy;
@@ -15,7 +13,8 @@ import org.jetbrains.annotations.NotNull;
  * Handles automatic downloading of optional dependencies using Hopper.
  * <p>
  * This class registers and downloads PacketEvents if neither ProtocolLib nor PacketEvents
- * is installed on the server.
+ * is installed on the server. Downloaded plugins are automatically loaded at runtime
+ * without requiring a server restart.
  */
 public final class OraxenHopper {
 
@@ -50,30 +49,43 @@ public final class OraxenHopper {
     }
 
     /**
-     * Downloads all registered dependencies.
+     * Downloads all registered dependencies and automatically loads them.
      * Should be called in the plugin's onLoad() method.
+     * <p>
+     * This method uses Hopper's auto-load feature to load downloaded plugins
+     * at runtime without requiring a server restart.
      *
      * @param plugin the Oraxen plugin instance
-     * @return true if all dependencies are satisfied (no restart needed), false if restart is required
+     * @return true if all dependencies are satisfied and loaded, false if restart is required
      */
     public static boolean download(@NotNull Plugin plugin) {
-        DownloadResult result = BukkitHopper.download(plugin);
-        BukkitHopper.logResult(plugin, result);
+        BukkitHopper.DownloadAndLoadResult result = BukkitHopper.downloadAndLoad(plugin);
 
         downloadComplete = true;
-        requiresRestart = result.requiresRestart();
+        requiresRestart = !result.noRestartRequired();
 
         if (requiresRestart) {
+            // Some plugins couldn't be auto-loaded
             Logs.logWarning("=".repeat(60));
-            Logs.logWarning("  ORAXEN - Dependencies Downloaded");
+            Logs.logWarning("  ORAXEN - Some Dependencies Require Restart");
             Logs.logWarning("=".repeat(60));
-            for (DownloadResult.DownloadedDependency dep : result.downloaded()) {
-                Logs.logWarning("  + " + dep.name() + " v" + dep.version());
+            for (var failed : result.loadResult().failed()) {
+                Logs.logWarning("  ! " + failed.path().getFileName() + ": " + failed.error());
             }
             Logs.logWarning("");
-            Logs.logWarning("  Please RESTART the server to load the new dependencies.");
+            Logs.logWarning("  Please RESTART the server to load these dependencies.");
             Logs.logWarning("  Oraxen will run in limited mode until restart.");
             Logs.logWarning("=".repeat(60));
+        } else if (result.loadResult().hasLoaded()) {
+            // Successfully auto-loaded
+            Logs.logSuccess("=".repeat(60));
+            Logs.logSuccess("  ORAXEN - Dependencies Auto-Loaded Successfully");
+            Logs.logSuccess("=".repeat(60));
+            for (var loaded : result.loadResult().loaded()) {
+                Logs.logSuccess("  + " + loaded.name() + " v" + loaded.version());
+            }
+            Logs.logSuccess("  No restart required!");
+            Logs.logSuccess("=".repeat(60));
         }
 
         return !requiresRestart;
