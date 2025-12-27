@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.hopper;
 
-import io.th0rgal.oraxen.utils.logs.Logs;
 import md.thomas.hopper.Dependency;
 import md.thomas.hopper.FailurePolicy;
 import md.thomas.hopper.bukkit.BukkitHopper;
@@ -8,6 +7,8 @@ import md.thomas.hopper.version.UpdatePolicy;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.logging.Logger;
 
 /**
  * Handles automatic downloading of optional dependencies using Hopper.
@@ -30,6 +31,7 @@ public final class OraxenHopper {
      * @param plugin the Oraxen plugin instance
      */
     public static void register(@NotNull Plugin plugin) {
+        Logger logger = plugin.getLogger();
         BukkitHopper.register(plugin, deps -> {
             // Only download PacketEvents if neither ProtocolLib nor PacketEvents is available
             // We check for files in the plugins folder since plugins aren't loaded yet in constructor
@@ -37,7 +39,7 @@ public final class OraxenHopper {
             boolean hasPacketEvents = pluginJarExists("PacketEvents") || pluginJarExists("packetevents");
 
             if (!hasProtocolLib && !hasPacketEvents) {
-                Logs.logInfo("Neither ProtocolLib nor PacketEvents detected, registering PacketEvents for download...");
+                logger.info("Neither ProtocolLib nor PacketEvents detected, registering PacketEvents for download...");
                 deps.require(Dependency.modrinth("packetevents")
                     .name("PacketEvents")
                     .minVersion("2.7.0")
@@ -59,6 +61,7 @@ public final class OraxenHopper {
      * @return true if all dependencies are satisfied and loaded, false if restart is required
      */
     public static boolean download(@NotNull Plugin plugin) {
+        Logger logger = plugin.getLogger();
         BukkitHopper.DownloadAndLoadResult result = BukkitHopper.downloadAndLoad(plugin);
 
         downloadComplete = true;
@@ -66,26 +69,26 @@ public final class OraxenHopper {
 
         if (requiresRestart) {
             // Some plugins couldn't be auto-loaded
-            Logs.logWarning("=".repeat(60));
-            Logs.logWarning("  ORAXEN - Some Dependencies Require Restart");
-            Logs.logWarning("=".repeat(60));
+            logger.warning("=".repeat(60));
+            logger.warning("  ORAXEN - Some Dependencies Require Restart");
+            logger.warning("=".repeat(60));
             for (var failed : result.loadResult().failed()) {
-                Logs.logWarning("  ! " + failed.path().getFileName() + ": " + failed.error());
+                logger.warning("  ! " + failed.path().getFileName() + ": " + failed.error());
             }
-            Logs.logWarning("");
-            Logs.logWarning("  Please RESTART the server to load these dependencies.");
-            Logs.logWarning("  Oraxen will run in limited mode until restart.");
-            Logs.logWarning("=".repeat(60));
+            logger.warning("");
+            logger.warning("  Please RESTART the server to load these dependencies.");
+            logger.warning("  Oraxen will run in limited mode until restart.");
+            logger.warning("=".repeat(60));
         } else if (result.loadResult().hasLoaded()) {
             // Successfully auto-loaded
-            Logs.logSuccess("=".repeat(60));
-            Logs.logSuccess("  ORAXEN - Dependencies Auto-Loaded Successfully");
-            Logs.logSuccess("=".repeat(60));
+            logger.info("=".repeat(60));
+            logger.info("  ORAXEN - Dependencies Auto-Loaded Successfully");
+            logger.info("=".repeat(60));
             for (var loaded : result.loadResult().loaded()) {
-                Logs.logSuccess("  + " + loaded.name() + " v" + loaded.version());
+                logger.info("  + " + loaded.name() + " v" + loaded.version());
             }
-            Logs.logSuccess("  No restart required!");
-            Logs.logSuccess("=".repeat(60));
+            logger.info("  No restart required!");
+            logger.info("=".repeat(60));
         }
 
         return !requiresRestart;
