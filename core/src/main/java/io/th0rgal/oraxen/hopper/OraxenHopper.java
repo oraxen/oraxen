@@ -28,15 +28,18 @@ public final class OraxenHopper {
     private static boolean requiresRestart = false;
     private static boolean enabled = true;
 
-    // Patterns to match plugin jar files (e.g., CommandAPI-9.0.0.jar, packetevents-spigot-2.0.jar)
+    // Patterns to match plugin jar files
+    // Matches: CommandAPI.jar, CommandAPI-11.0.0.jar, CommandAPI-11.0.0-Paper.jar
     private static final Pattern COMMANDAPI_PATTERN = Pattern.compile(
-        "(?i)^commandapi[-_]?[\\d.].*\\.jar$"
+        "(?i)^commandapi([-_][\\d][\\w.-]*)?\\.jar$"
     );
+    // Matches: ProtocolLib.jar, ProtocolLib-5.4.0.jar
     private static final Pattern PROTOCOLLIB_PATTERN = Pattern.compile(
-        "(?i)^protocollib[-_]?[\\d.].*\\.jar$"
+        "(?i)^protocollib([-_][\\d][\\w.-]*)?\\.jar$"
     );
+    // Matches: packetevents.jar, packetevents-spigot-2.11.1.jar
     private static final Pattern PACKETEVENTS_PATTERN = Pattern.compile(
-        "(?i)^packetevents[-_]?[\\w-]*[\\d.].*\\.jar$"
+        "(?i)^packetevents([-_][\\w.-]*)?\\.jar$"
     );
 
     private OraxenHopper() {}
