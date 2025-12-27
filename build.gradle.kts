@@ -28,7 +28,8 @@ val SUPPORTED_VERSIONS: List<NMSVersion> = listOf(
     "v1_21_R4" toNms "1.21.5-R0.1-SNAPSHOT",
     "v1_21_R5" toNms "1.21.8-R0.1-SNAPSHOT", // also for 1.21.7
     "v1_21_R6_old" toNms "1.21.10-R0.1-SNAPSHOT", // 1.21.9 and 1.21.10 (uses ResourceLocation)
-    "v1_21_R6" toNms "1.21.11-R0.1-SNAPSHOT" // 1.21.11 (uses Identifier, needs reflection helper)
+    "v1_21_R6" toNms "1.21.11-R0.1-SNAPSHOT", // 1.21.11 Paper (Mojang-mapped)
+    "v1_21_R6_spigot" toNms "1.21.11-R0.1-SNAPSHOT" // 1.21.11 Spigot (Spigot-mapped, requires BuildTools)
 )
 
 val compiled = (project.findProperty("oraxen_compiled")?.toString() ?: "true").toBoolean()

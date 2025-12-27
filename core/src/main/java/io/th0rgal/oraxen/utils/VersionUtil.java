@@ -11,7 +11,8 @@ public class VersionUtil {
     private static final boolean IS_FOLIA;
 
     public enum NMSVersion {
-        v1_21_R6,
+        v1_21_R6,        // Paper 1.21.11 (Mojang-mapped)
+        v1_21_R6_spigot, // Spigot 1.21.11 (Spigot-mapped)
         v1_21_R6_old,
         v1_21_R5,
         v1_21_R4,
@@ -30,7 +31,17 @@ public class VersionUtil {
         UNKNOWN;
 
         public static boolean matchesServer(NMSVersion version) {
-            return version != UNKNOWN && getNMSVersion(MinecraftVersion.getCurrentVersion()).equals(version);
+            if (version == UNKNOWN) return false;
+            NMSVersion serverVersion = getNMSVersion(MinecraftVersion.getCurrentVersion());
+
+            // Special handling for 1.21.11: choose between Paper and Spigot variants
+            if (serverVersion == v1_21_R6) {
+                if (version == v1_21_R6 && isPaperServer()) return true;
+                if (version == v1_21_R6_spigot && !isPaperServer()) return true;
+                return false;
+            }
+
+            return serverVersion.equals(version);
         }
     }
 
