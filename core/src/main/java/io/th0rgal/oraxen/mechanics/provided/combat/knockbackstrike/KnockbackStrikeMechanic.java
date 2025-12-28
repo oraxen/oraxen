@@ -7,9 +7,9 @@ import org.bukkit.Sound;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class KnockbackStrikeMechanic extends Mechanic {
 
@@ -26,8 +26,8 @@ public class KnockbackStrikeMechanic extends Mechanic {
     private final int resetTime;
     private final boolean showCounter;
 
-    // Player hit counters
-    private final Map<UUID, HitData> hitCounters = new HashMap<>();
+    // Use thread-safe map for Folia compatibility (concurrent region thread access)
+    private final Map<UUID, HitData> hitCounters = new ConcurrentHashMap<>();
 
     public KnockbackStrikeMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section);
