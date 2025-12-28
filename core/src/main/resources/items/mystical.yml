@@ -18,11 +18,11 @@ legendary_hammer:
     durability:
       value: 10000 #diamond sword is 1561
     knockback_strike:
-      required_hits: 15                      # How many hits required to trigger knockback
+      required_hits: 15                     # How many hits required to trigger knockback
       knockback_horizontal: 2.0             # Horizontal knockback force (forward/backward)
       knockback_vertical: 1.2               # Vertical knockback force (upward jump)
       reset_time: 80                        # Hit counter reset time in ticks (20 ticks = 1 second)  
-   # show_counter: false                   # (It can be added, but it's not currently added.) Show hit counter in action bar
+    # show_counter: false                   # (It can be added, but it's not currently added.) Show hit counter in action bar
       play_sound: true                      # Play sound effect on trigger
       sound_type: ENTITY_ENDER_DRAGON_HURT  # Sound type to play
       sound_volume: 1.5                     # Sound volume level
