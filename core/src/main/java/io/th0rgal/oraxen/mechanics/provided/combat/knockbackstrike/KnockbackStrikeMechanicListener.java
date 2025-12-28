@@ -3,12 +3,13 @@ package io.th0rgal.oraxen.mechanics.provided.combat.knockbackstrike;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
-import io.th0rgal.oraxen.utils.ProtectionLib;
+import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
+import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -101,20 +102,26 @@ public class KnockbackStrikeMechanicListener implements Listener {
 
         // Play sound at victim location
         if (mechanic.shouldPlaySound()) {
-            try {
-                victimLoc.getWorld().playSound(
-                    victimLoc,
-                    mechanic.getSoundType(),
-                    mechanic.getSoundVolume(),
-                    mechanic.getSoundPitch()
-                );
-            } catch (Exception e) {
-                // Continue silently if sound fails
+            World world = victimLoc.getWorld();
+            if (world != null) {
+                try {
+                    world.playSound(
+                        victimLoc,
+                        mechanic.getSoundType(),
+                        mechanic.getSoundVolume(),
+                        mechanic.getSoundPitch()
+                    );
+                } catch (Exception e) {
+                    // Continue silently if sound fails
+                }
             }
         }
     }
 
     private void spawnParticles(Location location, KnockbackStrikeMechanic mechanic) {
+        World world = location.getWorld();
+        if (world == null) return;
+        
         try {
             // Adjust location upward for better visibility
             Location particleLoc = location.clone().add(0, 1.0, 0);
@@ -130,7 +137,7 @@ public class KnockbackStrikeMechanicListener implements Listener {
                     Color.fromRGB(255, 0, 0), // Red
                     1.0f
                 );
-                location.getWorld().spawnParticle(
+                world.spawnParticle(
                     Particle.DUST,
                     particleLoc,
                     count,
@@ -145,7 +152,7 @@ public class KnockbackStrikeMechanicListener implements Listener {
                     Color.fromRGB(255, 255, 0), // End: Yellow
                     1.0f
                 );
-                location.getWorld().spawnParticle(
+                world.spawnParticle(
                     Particle.DUST_COLOR_TRANSITION,
                     particleLoc,
                     count,
@@ -157,7 +164,7 @@ public class KnockbackStrikeMechanicListener implements Listener {
                 // Block particles - require BlockData (using Stone)
                 Material blockMat = Material.STONE;
                 BlockData blockData = blockMat.createBlockData();
-                location.getWorld().spawnParticle(
+                world.spawnParticle(
                     particleType,
                     particleLoc,
                     count,
@@ -168,7 +175,7 @@ public class KnockbackStrikeMechanicListener implements Listener {
             } else if (particleType == Particle.ITEM) {
                 // Item particle - requires ItemStack
                 ItemStack itemStack = new ItemStack(Material.DIAMOND);
-                location.getWorld().spawnParticle(
+                world.spawnParticle(
                     Particle.ITEM,
                     particleLoc,
                     count,
@@ -179,7 +186,7 @@ public class KnockbackStrikeMechanicListener implements Listener {
             } else if (particleType == Particle.VIBRATION) {
                 // Vibration - requires PositionSource (skip, too complex)
                 // Can't spawn this particle normally, use another particle
-                location.getWorld().spawnParticle(
+                world.spawnParticle(
                     Particle.GLOW,
                     particleLoc,
                     count,
@@ -187,7 +194,7 @@ public class KnockbackStrikeMechanicListener implements Listener {
                 );
             } else if (particleType == Particle.SCULK_CHARGE) {
                 // Sculk charge - requires Roll parameter
-                location.getWorld().spawnParticle(
+                world.spawnParticle(
                     Particle.SCULK_CHARGE,
                     particleLoc,
                     count,
@@ -197,7 +204,7 @@ public class KnockbackStrikeMechanicListener implements Listener {
                 );
             } else if (particleType == Particle.SHRIEK) {
                 // Shriek - requires Delay parameter
-                location.getWorld().spawnParticle(
+                world.spawnParticle(
                     Particle.SHRIEK,
                     particleLoc,
                     count,
@@ -207,7 +214,7 @@ public class KnockbackStrikeMechanicListener implements Listener {
                 );
             } else {
                 // Normal particles - no special parameters required
-                location.getWorld().spawnParticle(
+                world.spawnParticle(
                     particleType,
                     particleLoc,
                     count,
