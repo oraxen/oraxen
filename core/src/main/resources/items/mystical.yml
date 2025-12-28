@@ -8,6 +8,9 @@
 legendary_hammer:
   displayname: "<gradient:#F06966:#FAD6A6>Legendary Hammer"
   material: DIAMOND_PICKAXE
+  lore:
+    - "<#ff455b>» <#D5D6D8>Strike your enemies with a devastating blow"
+    - "<#ff455b>» <#D5D6D8>On the 15th hit, the player is launched forward"
   Pack:
     generate_model: false
     model: default/legendary_hammer
@@ -15,9 +18,9 @@ legendary_hammer:
     durability:
       value: 10000 #diamond sword is 1561
     knockback_strike:
-      required_hits: 2                      # How many hits required to trigger knockback
+      required_hits: 15                      # How many hits required to trigger knockback
       knockback_horizontal: 2.0             # Horizontal knockback force (forward/backward)
-      knockback_vertical: 0.5               # Vertical knockback force (upward jump)
+      knockback_vertical: 1.2               # Vertical knockback force (upward jump)
       reset_time: 80                        # Hit counter reset time in ticks (20 ticks = 1 second)  
    # show_counter: false                   # (It can be added, but it's not currently added.) Show hit counter in action bar
       play_sound: true                      # Play sound effect on trigger
