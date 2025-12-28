@@ -14,6 +14,19 @@ legendary_hammer:
   Mechanics:
     durability:
       value: 10000 #diamond sword is 1561
+    knockback_strike:
+      required_hits: 2                      # How many hits required to trigger knockback
+      knockback_horizontal: 2.0             # Horizontal knockback force (forward/backward)
+      knockback_vertical: 0.5               # Vertical knockback force (upward jump)
+      reset_time: 80                        # Hit counter reset time in ticks (20 ticks = 1 second)
+      play_sound: true                      # Play sound effect on trigger
+      sound_type: ENTITY_ENDER_DRAGON_HURT  # Sound type to play
+      sound_volume: 1.5                     # Sound volume level
+      sound_pitch: 0.8                      # Sound pitch (lower = deeper sound)
+      particle:
+        type: DUST                          # Particle type (DUST = colored dust)
+        count: 200                          # Number of particles to spawn
+        spread: 0.5                         # Particle spread radius in blocks  oldu mu şimdi
 
 earth_hammer:
   displayname: "<gradient:#89E59D:#37C6BA>Earth Hammer"
