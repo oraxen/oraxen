@@ -30,7 +30,7 @@ legendary_hammer:
       particle:
         type: DUST                          # Particle type (DUST = colored dust)
         count: 200                          # Number of particles to spawn
-        spread: 0.5                         # Particle spread radius in blocks  oldu mu şimdi
+        spread: 0.5                         # Particle spread radius in blocks
 
 earth_hammer:
   displayname: "<gradient:#89E59D:#37C6BA>Earth Hammer"
