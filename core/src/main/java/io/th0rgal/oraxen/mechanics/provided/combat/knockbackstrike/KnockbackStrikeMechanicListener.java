@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.combat.knockbackstrike;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.utils.ProtectionLib;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -26,7 +27,7 @@ public class KnockbackStrikeMechanicListener implements Listener {
         this.factory = factory;
     }
 
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
         // Only if player is attacking
         if (!(event.getDamager() instanceof Player)) return;
@@ -35,6 +36,9 @@ public class KnockbackStrikeMechanicListener implements Listener {
         // Entity must be LivingEntity
         if (!(event.getEntity() instanceof LivingEntity)) return;
         LivingEntity victim = (LivingEntity) event.getEntity();
+
+        // Protection check
+        if (!ProtectionLib.canInteract(attacker, victim.getLocation())) return;
 
         // Player's held item
         ItemStack item = attacker.getInventory().getItemInMainHand();
@@ -64,51 +68,51 @@ public class KnockbackStrikeMechanicListener implements Listener {
     }
 
     private void applyKnockback(Player attacker, LivingEntity victim, KnockbackStrikeMechanic mechanic) {
-    Location victimLoc = victim.getLocation();
-    Location attackerLoc = attacker.getLocation();
+        Location victimLoc = victim.getLocation();
+        Location attackerLoc = attacker.getLocation();
 
-    // Get victim position (only horizontal - zero Y axis)
-    Vector direction = victimLoc.toVector().subtract(attackerLoc.toVector());
-    direction.setY(0); // Zero Y axis (only horizontal direction)
-    
-    // Check if vector is zero before normalizing (prevents NaN)
-    if (direction.lengthSquared() == 0) {
-        // Players are at same X-Z position, use attacker's facing direction
-        direction = attackerLoc.getDirection().setY(0);
+        // Get victim position (only horizontal - zero Y axis)
+        Vector direction = victimLoc.toVector().subtract(attackerLoc.toVector());
+        direction.setY(0); // Zero Y axis (only horizontal direction)
+        
+        // Check if vector is zero before normalizing (prevents NaN)
         if (direction.lengthSquared() == 0) {
-            // Last resort: use X axis direction
-            direction = new Vector(1, 0, 0);
+            // Players are at same X-Z position, use attacker's facing direction
+            direction = attackerLoc.getDirection().setY(0);
+            if (direction.lengthSquared() == 0) {
+                // Last resort: use X axis direction
+                direction = new Vector(1, 0, 0);
+            }
+        }
+        
+        direction.normalize(); // Normalize
+        
+        // Apply horizontal knockback (X and Z axes)
+        direction.multiply(mechanic.getKnockbackHorizontal());
+        
+        // Apply vertical knockback SEPARATELY to Y axis
+        direction.setY(mechanic.getKnockbackVertical());
+
+        // Apply knockback
+        victim.setVelocity(direction);
+
+        // Spawn particle effect at victim location
+        spawnParticles(victimLoc, mechanic);
+
+        // Play sound at victim location
+        if (mechanic.shouldPlaySound()) {
+            try {
+                victimLoc.getWorld().playSound(
+                    victimLoc,
+                    mechanic.getSoundType(),
+                    mechanic.getSoundVolume(),
+                    mechanic.getSoundPitch()
+                );
+            } catch (Exception e) {
+                // Continue silently if sound fails
+            }
         }
     }
-    
-    direction.normalize(); // Normalize
-    
-    // Apply horizontal knockback (X and Z axes)
-    direction.multiply(mechanic.getKnockbackHorizontal());
-    
-    // Apply vertical knockback SEPARATELY to Y axis
-    direction.setY(mechanic.getKnockbackVertical());
-
-    // Apply knockback
-    victim.setVelocity(direction);
-
-    // Spawn particle effect at victim location
-    spawnParticles(victimLoc, mechanic);
-
-    // Play sound at victim location
-    if (mechanic.shouldPlaySound()) {
-        try {
-            victimLoc.getWorld().playSound(
-                victimLoc,
-                mechanic.getSoundType(),
-                mechanic.getSoundVolume(),
-                mechanic.getSoundPitch()
-            );
-        } catch (Exception e) {
-            // Continue silently if sound fails
-        }
-    }
-}
 
     private void spawnParticles(Location location, KnockbackStrikeMechanic mechanic) {
         try {
