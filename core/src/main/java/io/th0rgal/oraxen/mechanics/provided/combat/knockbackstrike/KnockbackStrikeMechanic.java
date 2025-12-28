@@ -109,50 +109,61 @@ public class KnockbackStrikeMechanic extends Mechanic {
 
     /**
      * Increments player's hit count and returns true if required hits reached
+     * Thread-safe implementation using atomic compute operation for Folia compatibility
      */
     public boolean incrementHitAndCheck(UUID playerUUID) {
         long currentTime = System.currentTimeMillis();
-        HitData data = hitCounters.get(playerUUID);
-
-        if (data == null || currentTime - data.lastHitTime > (resetTime * 50L)) {
-            // First hit or timeout
-            data = new HitData(1, currentTime);
-            hitCounters.put(playerUUID, data);
+        
+        // Use array to capture result from atomic lambda
+        boolean[] shouldTrigger = {false};
+        
+        hitCounters.compute(playerUUID, (key, data) -> {
+            // This entire lambda executes atomically - no race conditions
             
-            // If required_hits is 1, trigger immediately
-            if (requiredHits <= 1) {
-                hitCounters.remove(playerUUID);
-                return true;
+            if (data == null || currentTime - data.lastHitTime > (resetTime * 50L)) {
+                // First hit or timeout - reset counter
+                if (requiredHits <= 1) {
+                    // Trigger immediately if only 1 hit required
+                    shouldTrigger[0] = true;
+                    return null; // Remove from map
+                }
+                // Start new counter
+                return new HitData(1, currentTime);
+            } else {
+                // Increment hit count atomically
+                int newCount = data.hitCount + 1;
+                
+                if (newCount >= requiredHits) {
+                    // Required hits reached - trigger and reset
+                    shouldTrigger[0] = true;
+                    return null; // Remove from map
+                }
+                // Update with new count and time
+                return new HitData(newCount, currentTime);
             }
-            return false;
-        } else {
-            // Increment hit count
-            data.hitCount++;
-            data.lastHitTime = currentTime;
-
-            if (data.hitCount >= requiredHits) {
-                // Required hits reached, reset counter
-                hitCounters.remove(playerUUID);
-                return true;
-            }
-            return false;
-        }
+        });
+        
+        return shouldTrigger[0];
     }
 
     /**
      * Returns current hit count for player
+     * Thread-safe implementation
      */
     public int getCurrentHitCount(UUID playerUUID) {
-        HitData data = hitCounters.get(playerUUID);
-        if (data == null) return 0;
-        
         long currentTime = System.currentTimeMillis();
-        if (currentTime - data.lastHitTime > (resetTime * 50L)) {
-            hitCounters.remove(playerUUID);
-            return 0;
-        }
         
-        return data.hitCount;
+        // Use computeIfPresent for atomic read and potential removal
+        HitData data = hitCounters.computeIfPresent(playerUUID, (key, existingData) -> {
+            if (currentTime - existingData.lastHitTime > (resetTime * 50L)) {
+                // Expired - remove from map
+                return null;
+            }
+            // Still valid - keep it
+            return existingData;
+        });
+        
+        return data != null ? data.hitCount : 0;
     }
 
     /**
@@ -186,11 +197,11 @@ public class KnockbackStrikeMechanic extends Mechanic {
     }
 
     /**
-     * Inner class to hold hit data
+     * Inner class to hold hit data - immutable for thread safety
      */
     private static class HitData {
-        int hitCount;
-        long lastHitTime;
+        final int hitCount;
+        final long lastHitTime;
 
         HitData(int hitCount, long lastHitTime) {
             this.hitCount = hitCount;
