@@ -118,6 +118,12 @@ public class KnockbackStrikeMechanic extends Mechanic {
             // First hit or timeout
             data = new HitData(1, currentTime);
             hitCounters.put(playerUUID, data);
+            
+            // If required_hits is 1, trigger immediately
+            if (requiredHits <= 1) {
+                hitCounters.remove(playerUUID);
+                return true;
+            }
             return false;
         } else {
             // Increment hit count
