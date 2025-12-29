@@ -163,6 +163,10 @@ public class AnimatedGlyph {
             throw new IllegalArgumentException(
                     "Animated glyph '" + glyphName + "' must specify 'animation.frames' > 0");
         }
+        if (frameCount > 16) {
+            Logs.logWarning("Animated glyph '" + glyphName + "' has " + frameCount +
+                    " frames, but only 16 are supported. Animation will not work correctly.");
+        }
 
         this.fps = Math.max(MIN_FPS, Math.min(MAX_FPS, animSection.getInt("fps", DEFAULT_FPS)));
         this.loop = animSection.getBoolean("loop", true);
@@ -615,6 +619,8 @@ public class AnimatedGlyph {
     /**
      * Extracts animation parameters from a magic color.
      * Handles both primary colors and shadow variants.
+     * <p>
+     * Blue channel encoding: bits 0-3 = frame index, bits 4-7 = total frames - 1
      *
      * @param color The color value
      * @return int array of [fps, frameCount, loop (1=true, 0=false)], or null if
@@ -631,7 +637,9 @@ public class AnimatedGlyph {
             // Extract loop flag from bit 7, FPS from bits 0-6
             int loopFlag = (g & 0x80) == 0 ? 1 : 0; // 0x80 set means NOT looping
             int fps = g & 0x7F;
-            return new int[] { Math.max(MIN_FPS, fps), b, loopFlag };
+            // Blue channel: bits 0-3 = frame index, bits 4-7 = total frames - 1
+            int frameCount = ((b >> 4) & 0x0F) + 1;
+            return new int[] { Math.max(MIN_FPS, fps), frameCount, loopFlag };
         }
 
         // Shadow color: multiply by 4 to recover original
@@ -641,8 +649,10 @@ public class AnimatedGlyph {
             int originalG = Math.min(255, g * 4);
             int loopFlag = (originalG & 0x80) == 0 ? 1 : 0;
             int fps = Math.min(MAX_FPS, originalG & 0x7F);
-            int frames = Math.min(255, b * 4);
-            return new int[] { Math.max(MIN_FPS, fps), Math.max(1, frames), loopFlag };
+            // Recover blue and decode frame count
+            int originalB = Math.min(255, b * 4);
+            int frameCount = ((originalB >> 4) & 0x0F) + 1;
+            return new int[] { Math.max(MIN_FPS, fps), frameCount, loopFlag };
         }
 
         return null;

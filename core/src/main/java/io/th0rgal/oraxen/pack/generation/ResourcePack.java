@@ -1300,6 +1300,7 @@ public class ResourcePack {
                 in ivec2 UV2;
 
                 uniform sampler2D Sampler2;
+                uniform vec2 ScreenSize;
 
                 out float sphericalVertexDistance;
                 out float cylindricalVertexDistance;
@@ -1443,6 +1444,9 @@ public class ResourcePack {
                     "samplers": [
                         { "name": "Sampler0" },
                         { "name": "Sampler2" }
+                    ],
+                    "uniforms": [
+                        { "name": "ScreenSize", "type": "float", "count": 2, "values": [ 1.0, 1.0 ] }
                     ]
                 }
                 """;
