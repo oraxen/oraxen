@@ -1059,14 +1059,14 @@ public class ResourcePack {
                         effectData = vec4(0.0);
 
                         int rInt = int(Color.r * 255.0 + 0.5);
+                        int gRaw = int(Color.g * 255.0 + 0.5);
+                        int bRaw = int(Color.b * 255.0 + 0.5);
 
                         // Check for animation color: R=254 for primary, R≈63 for shadow
                         bool isPrimaryAnim = (rInt == 254);
-                        bool isShadowAnim = (rInt >= 62 && rInt <= 64);
+                        bool isShadowAnim = (rInt >= 62 && rInt <= 64) && (gRaw >= 1);
 
                         if (ORAXEN_ANIMATED_GLYPHS && (isPrimaryAnim || isShadowAnim)) {
-                            int gRaw = int(Color.g * 255.0 + 0.5);
-                            int bRaw = int(Color.b * 255.0 + 0.5);
                             int gInt = isPrimaryAnim ? gRaw : min(255, gRaw * 4);
                             int bInt = isPrimaryAnim ? bRaw : min(255, bRaw * 4);
 
@@ -1090,9 +1090,6 @@ public class ResourcePack {
 
                         // Text effects: encoded in low RGB bits (alpha_lsb)
                         if (ORAXEN_TEXT_EFFECTS && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
-                            int gRaw = int(Color.g * 255.0 + 0.5);
-                            int bRaw = int(Color.b * 255.0 + 0.5);
-
                             int rLow = rInt & ORAXEN_TEXT_LOW_MASK;
                             int gLow = gRaw & ORAXEN_TEXT_LOW_MASK;
                             int bLow = bRaw & ORAXEN_TEXT_LOW_MASK;
@@ -1175,14 +1172,14 @@ public class ResourcePack {
                     effectData = vec4(0.0);
 
                     int rInt = int(Color.r * 255.0 + 0.5);
+                    int gRaw = int(Color.g * 255.0 + 0.5);
+                    int bRaw = int(Color.b * 255.0 + 0.5);
 
                     // Check for animation color: R=254 for primary, R≈63 for shadow
                     bool isPrimaryAnim = (rInt == 254);
-                    bool isShadowAnim = (rInt >= 62 && rInt <= 64);
+                    bool isShadowAnim = (rInt >= 62 && rInt <= 64) && (gRaw >= 1);
 
                     if (ORAXEN_ANIMATED_GLYPHS && (isPrimaryAnim || isShadowAnim)) {
-                        int gRaw = int(Color.g * 255.0 + 0.5);
-                        int bRaw = int(Color.b * 255.0 + 0.5);
                         int gInt = isPrimaryAnim ? gRaw : min(255, gRaw * 4);
                         int bInt = isPrimaryAnim ? bRaw : min(255, bRaw * 4);
 
@@ -1206,9 +1203,6 @@ public class ResourcePack {
 
                     // Text effects: encoded in low RGB bits (alpha_lsb)
                     if (ORAXEN_TEXT_EFFECTS && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
-                        int gRaw = int(Color.g * 255.0 + 0.5);
-                        int bRaw = int(Color.b * 255.0 + 0.5);
-
                         int rLow = rInt & ORAXEN_TEXT_LOW_MASK;
                         int gLow = gRaw & ORAXEN_TEXT_LOW_MASK;
                         int bLow = bRaw & ORAXEN_TEXT_LOW_MASK;
@@ -1294,14 +1288,14 @@ public class ResourcePack {
                         effectData = vec4(0.0);
 
                         int rInt = int(Color.r * 255.0 + 0.5);
+                        int gRaw = int(Color.g * 255.0 + 0.5);
+                        int bRaw = int(Color.b * 255.0 + 0.5);
 
                         // Check for animation color: R=254 for primary, R≈63 for shadow
                         bool isPrimaryAnim = (rInt == 254);
-                        bool isShadowAnim = (rInt >= 62 && rInt <= 64);
+                        bool isShadowAnim = (rInt >= 62 && rInt <= 64) && (gRaw >= 1);
 
                         if (ORAXEN_ANIMATED_GLYPHS && (isPrimaryAnim || isShadowAnim)) {
-                            int gRaw = int(Color.g * 255.0 + 0.5);
-                            int bRaw = int(Color.b * 255.0 + 0.5);
                             int gInt = isPrimaryAnim ? gRaw : min(255, gRaw * 4);
                             int bInt = isPrimaryAnim ? bRaw : min(255, bRaw * 4);
 
@@ -1325,9 +1319,6 @@ public class ResourcePack {
 
                         // Text effects: encoded in low RGB bits (alpha_lsb)
                         if (ORAXEN_TEXT_EFFECTS && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
-                            int gRaw = int(Color.g * 255.0 + 0.5);
-                            int bRaw = int(Color.b * 255.0 + 0.5);
-
                             int rLow = rInt & ORAXEN_TEXT_LOW_MASK;
                             int gLow = gRaw & ORAXEN_TEXT_LOW_MASK;
                             int bLow = bRaw & ORAXEN_TEXT_LOW_MASK;
@@ -1410,14 +1401,14 @@ public class ResourcePack {
                     effectData = vec4(0.0);
 
                     int rInt = int(Color.r * 255.0 + 0.5);
+                    int gRaw = int(Color.g * 255.0 + 0.5);
+                    int bRaw = int(Color.b * 255.0 + 0.5);
 
                     // Check for animation color: R=254 for primary, R≈63 for shadow
                     bool isPrimaryAnim = (rInt == 254);
-                    bool isShadowAnim = (rInt >= 62 && rInt <= 64);
+                    bool isShadowAnim = (rInt >= 62 && rInt <= 64) && (gRaw >= 1);
 
                     if (ORAXEN_ANIMATED_GLYPHS && (isPrimaryAnim || isShadowAnim)) {
-                        int gRaw = int(Color.g * 255.0 + 0.5);
-                        int bRaw = int(Color.b * 255.0 + 0.5);
                         int gInt = isPrimaryAnim ? gRaw : min(255, gRaw * 4);
                         int bInt = isPrimaryAnim ? bRaw : min(255, bRaw * 4);
 
@@ -1441,9 +1432,6 @@ public class ResourcePack {
 
                     // Text effects: encoded in low RGB bits (alpha_lsb)
                     if (ORAXEN_TEXT_EFFECTS && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
-                        int gRaw = int(Color.g * 255.0 + 0.5);
-                        int bRaw = int(Color.b * 255.0 + 0.5);
-
                         int rLow = rInt & ORAXEN_TEXT_LOW_MASK;
                         int gLow = gRaw & ORAXEN_TEXT_LOW_MASK;
                         int bLow = bRaw & ORAXEN_TEXT_LOW_MASK;
@@ -1864,12 +1852,12 @@ public class ResourcePack {
 
                     // Check for animation color: R=254 for primary, R≈63 for shadow
                     int rInt = int(Color.r * 255.0 + 0.5);
+                    int gRaw = int(Color.g * 255.0 + 0.5);
+                    int bRaw = int(Color.b * 255.0 + 0.5);
                     bool isPrimaryAnim = (rInt == 254);
-                    bool isShadowAnim = (rInt >= 62 && rInt <= 64);
+                    bool isShadowAnim = (rInt >= 62 && rInt <= 64) && (gRaw >= 1);
 
                     if (ORAXEN_ANIMATED_GLYPHS && (isPrimaryAnim || isShadowAnim)) {
-                        int gRaw = int(Color.g * 255.0 + 0.5);
-                        int bRaw = int(Color.b * 255.0 + 0.5);
                         int gInt = isPrimaryAnim ? gRaw : min(255, gRaw * 4);
                         int bInt = isPrimaryAnim ? bRaw : min(255, bRaw * 4);
 
@@ -1895,9 +1883,6 @@ public class ResourcePack {
 
                     // Text effects: encoded in low RGB bits (alpha_lsb)
                     if (ORAXEN_TEXT_EFFECTS && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
-                        int gRaw = int(Color.g * 255.0 + 0.5);
-                        int bRaw = int(Color.b * 255.0 + 0.5);
-
                         int rLow = rInt & ORAXEN_TEXT_LOW_MASK;
                         int gLow = gRaw & ORAXEN_TEXT_LOW_MASK;
                         int bLow = bRaw & ORAXEN_TEXT_LOW_MASK;
@@ -1994,12 +1979,12 @@ public class ResourcePack {
 
                     // Check for animation color: R=254 for primary, R≈63 for shadow
                     int rInt = int(Color.r * 255.0 + 0.5);
+                    int gRaw = int(Color.g * 255.0 + 0.5);
+                    int bRaw = int(Color.b * 255.0 + 0.5);
                     bool isPrimaryAnim = (rInt == 254);
-                    bool isShadowAnim = (rInt >= 62 && rInt <= 64);
+                    bool isShadowAnim = (rInt >= 62 && rInt <= 64) && (gRaw >= 1);
 
                     if (ORAXEN_ANIMATED_GLYPHS && (isPrimaryAnim || isShadowAnim)) {
-                        int gRaw = int(Color.g * 255.0 + 0.5);
-                        int bRaw = int(Color.b * 255.0 + 0.5);
                         int gInt = isPrimaryAnim ? gRaw : min(255, gRaw * 4);
                         int bInt = isPrimaryAnim ? bRaw : min(255, bRaw * 4);
 
@@ -2025,9 +2010,6 @@ public class ResourcePack {
 
                     // Text effects: encoded in low RGB bits (alpha_lsb)
                     if (ORAXEN_TEXT_EFFECTS && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
-                        int gRaw = int(Color.g * 255.0 + 0.5);
-                        int bRaw = int(Color.b * 255.0 + 0.5);
-
                         int rLow = rInt & ORAXEN_TEXT_LOW_MASK;
                         int gLow = gRaw & ORAXEN_TEXT_LOW_MASK;
                         int bLow = bRaw & ORAXEN_TEXT_LOW_MASK;
