@@ -1030,14 +1030,14 @@ public class ResourcePack {
                             // Wave effect (type 1): vertical sine wave
                             if (effectType == 1) {
                                 float phase = charIndex * 0.6 + timeSeconds * speed * 2.0;
-                                float amplitude = max(1.0, param) * 0.5;
+                                float amplitude = max(1.0, param) * 0.15;
                                 pos.y += sin(phase) * amplitude;
                                 gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
                             }
                             // Shake effect (type 2): random jitter
                             else if (effectType == 2) {
                                 float seed = charIndex + floor(timeSeconds * speed * 8.0);
-                                float amplitude = max(1.0, param) * 0.5;
+                                float amplitude = max(1.0, param) * 0.15;
                                 pos.x += (fract(sin(seed * 12.9898) * 43758.5453) - 0.5) * amplitude;
                                 pos.y += (fract(sin(seed * 78.233) * 43758.5453) - 0.5) * amplitude;
                                 gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
@@ -1134,7 +1134,7 @@ public class ResourcePack {
                         // Wave effect (type 1): vertical sine wave
                         if (effectType == 1) {
                             float phase = charIndex * 0.6 + timeSeconds * speed * 2.0;
-                            float amplitude = max(1.0, param) * 0.5;
+                            float amplitude = max(1.0, param) * 0.15;
                             pos.y += sin(phase) * amplitude;
                             gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
                             sphericalVertexDistance = fog_spherical_distance(pos);
@@ -1143,7 +1143,7 @@ public class ResourcePack {
                         // Shake effect (type 2): random jitter
                         else if (effectType == 2) {
                             float seed = charIndex + floor(timeSeconds * speed * 8.0);
-                            float amplitude = max(1.0, param) * 0.5;
+                            float amplitude = max(1.0, param) * 0.15;
                             pos.x += (fract(sin(seed * 12.9898) * 43758.5453) - 0.5) * amplitude;
                             pos.y += (fract(sin(seed * 78.233) * 43758.5453) - 0.5) * amplitude;
                             gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
@@ -1241,7 +1241,7 @@ public class ResourcePack {
                         // Wave effect (type 1): vertical sine wave
                         if (effectType == 1) {
                             float phase = charIndex * 0.6 + timeSeconds * speed * 2.0;
-                            float amplitude = max(1.0, param) * 0.5;
+                            float amplitude = max(1.0, param) * 0.15;
                             pos.y += sin(phase) * amplitude;
                             gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
                             vertexDistance = fog_distance(pos, FogShape);
@@ -1249,7 +1249,7 @@ public class ResourcePack {
                         // Shake effect (type 2): random jitter
                         else if (effectType == 2) {
                             float seed = charIndex + floor(timeSeconds * speed * 8.0);
-                            float amplitude = max(1.0, param) * 0.5;
+                            float amplitude = max(1.0, param) * 0.15;
                             pos.x += (fract(sin(seed * 12.9898) * 43758.5453) - 0.5) * amplitude;
                             pos.y += (fract(sin(seed * 78.233) * 43758.5453) - 0.5) * amplitude;
                             gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
