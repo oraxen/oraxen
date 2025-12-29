@@ -69,13 +69,10 @@ public class ChorusBlockMechanicFactory extends MechanicFactory {
                     new ChorusBlockMechanicListener.ChorusBlockMechanicPhysicsListener());
         }
 
-        // Warn if Paper config is not set
+        // Warn if Paper config is not set (auto-update happens earlier in plugin enable)
         if (VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.20.1")
                 && !NMSHandlers.isChorusPlantUpdatesDisabled()) {
-            Logs.logError("Paper's block-updates.disable-chorus-plant-updates is not enabled.");
-            Logs.logWarning("It is recommended to enable this setting for improved performance and prevent bugs with chorus plants");
-            Logs.logWarning("Otherwise Oraxen needs to listen to very taxing events, which also introduces some bugs");
-            Logs.logWarning("You can enable this setting in ServerFolder/config/paper-global.yml", true);
+            Logs.logWarning("Paper's block-updates.disable-chorus-plant-updates is not enabled, restart may be required");
         }
     }
 

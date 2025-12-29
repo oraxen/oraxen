@@ -7,14 +7,39 @@
 > Developers who have contributed to the source code
 
 * [Boy0000](https://github.com/Boy0000): Maintained the plugin until end of 2024, responsible for adding several mechanics, fixing bugs, and improving the code quality.
-* [AntoineJT](https://github.com/AntoineJT): made great refactors.
+* [pxlarified](https://github.com/pxlarified): Active contributor since 2024, working on bug fixes and improvements.
+* [Lauriichan](https://github.com/Lauriichan): did a great job with the recipes, commands and multiple refactors
 * [yzl210](https://github.com/yzl210): active contributor, introduced mythicmobs support, shapeless+furnace recipes and
   much more
-* [Lauriichan](https://github.com/Lauriichan): did a great job with the recipes, commands and multiple refactors
-* [Brett Saunders](https://github.com/brettsaunders21): introduced an awesome display inventory for recipes
 * [Euphyllia](https://github.com/Euphillya): multiple improvements (worked on recipes and fixed bugs) and work on Folia Support
+* [AntoineJT](https://github.com/AntoineJT): made great refactors.
+* [Hugo5000](https://github.com/Hugo5000): contributed various improvements and bug fixes.
+* [Mowstyl](https://github.com/Mowstyl): contributed code improvements.
+* [Brett Saunders](https://github.com/brettsaunders21): introduced an awesome display inventory for recipes
+* [lucian929](https://github.com/lucian929): contributed multiple improvements.
+* [pustinek](https://github.com/pustinek): contributed code improvements.
+* [iGabyTM](https://github.com/iGabyTM): contributed bug fixes and improvements.
+* [SrBedrock](https://github.com/SrBedrock): contributed translations and fixes.
+* [clementinise](https://github.com/clementinise): contributed improvements.
+* [TheDeadSnake](https://github.com/TheDeadSnake): contributed code improvements.
+* [MrYoup](https://github.com/MrYoup): contributed improvements.
+* [ArubikU](https://github.com/ArubikU): contributed code improvements.
+* [WillFP / Auxilor](https://github.com/WillFP): fixed jitpack configuration and eco plugins integration.
+* [fishiatee](https://github.com/fishiatee): contributed improvements.
+* [Kiryu144](https://github.com/Kiryu144): contributed code improvements.
+* [Nelonn](https://github.com/Nelonn): contributed improvements.
+* [Xiao-MoMi](https://github.com/Xiao-MoMi): contributed improvements.
+* [rafael5gr2](https://github.com/rafael5gr2): contributed translations and fixes.
+* [Sty13](https://github.com/Sty13): contributed code improvements.
+* [VergilPrime](https://github.com/VergilPrime): contributed improvements.
+* [playajames419](https://github.com/playajames419): contributed code fixes.
+* [KamillPlayZ](https://github.com/KamillPlayZ): contributed improvements.
+* [YouHaveTrouble](https://github.com/YouHaveTrouble): contributed fixes.
+* [nklyshko](https://github.com/nklyshko): contributed improvements.
 * [Karlatemp](https://github.com/Karlatemp): added support for external hosting providers
-* [Auxilor](https://github.com/Auxilor): fixed jitpack configuration
+* [JohnsonRan](https://github.com/JohnsonRan): contributed translations.
+* [Emibergo02](https://github.com/Emibergo02): contributed improvements.
+* [CDFN](https://github.com/CDFN): contributed fixes.
 * [MrMicky](https://github.com/MrMicky-FR): developer of [FastInv](https://github.com/MrMicky-FR/FastInv) (used in this
   plugin)
 * [MiniDigger](https://github.com/MiniDigger): developer of [MiniMessage](https://github.com/MiniDigger/MiniMessage) (
