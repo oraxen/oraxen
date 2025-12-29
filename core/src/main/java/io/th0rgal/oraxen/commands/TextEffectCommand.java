@@ -71,7 +71,7 @@ public class TextEffectCommand {
                 .withPermission("oraxen.command.texteffect")
                 .withArguments(
                         new StringArgument("effect").replaceSuggestions(ArgumentSuggestions.strings(getEffectNames())),
-                        new IntegerArgument("speed", 1, 15),
+                        new IntegerArgument("speed", 1, 7),
                         new GreedyStringArgument("text")
                 )
                 .executesPlayer((player, args) -> {
@@ -87,8 +87,8 @@ public class TextEffectCommand {
                 .withPermission("oraxen.command.texteffect")
                 .withArguments(
                         new StringArgument("effect").replaceSuggestions(ArgumentSuggestions.strings(getEffectNames())),
-                        new IntegerArgument("speed", 1, 15),
-                        new IntegerArgument("param", 0, 15),
+                        new IntegerArgument("speed", 1, 7),
+                        new IntegerArgument("param", 0, 7),
                         new GreedyStringArgument("text")
                 )
                 .executesPlayer((player, args) -> {
@@ -159,8 +159,8 @@ public class TextEffectCommand {
                     sender.sendMessage("  /oraxen texteffect speed <effect> <speed> <text>");
                     sender.sendMessage("  /oraxen texteffect full <effect> <speed> <param> <text>");
                     sender.sendMessage("");
-                    sender.sendMessage("  speed: 1-15 (default: 3)");
-                    sender.sendMessage("  param: 0-15 (amplitude/intensity, default: 3)");
+                    sender.sendMessage("  speed: 1-7 (default: 3)");
+                    sender.sendMessage("  param: 0-7 (amplitude/intensity, default: 3)");
 
                     if (sender instanceof Player player) {
                         // Show demo of each effect

@@ -20,8 +20,8 @@ import java.util.Map;
  * Color encoding: 0xFDGGBB where:
  * <ul>
  *   <li>FD = Red channel (253) - text effect marker</li>
- *   <li>GG = Green channel: effectType (bits 0-3) | speed (bits 4-7)</li>
- *   <li>BB = Blue channel: charIndex (bits 0-3) | param (bits 4-7)</li>
+ *   <li>GG = Green channel: marker bits (7 and 3) set to 1, effectType (bits 0-2), speed (bits 4-6)</li>
+ *   <li>BB = Blue channel: marker bits (7 and 3) set to 1, charIndex (bits 0-2), param (bits 4-6)</li>
  * </ul>
  * <p>
  * Example configuration:
@@ -48,12 +48,18 @@ public class TextEffect {
     public static final int MAGIC_RED = 0xFD; // 253
 
     /**
-     * Default speed for effects (1-15).
+     * Marker bits to reduce collisions with real colors.
+     * Bits 7 and 3 must be set in both G and B.
+     */
+    public static final int EFFECT_MARKER = 0x88;
+
+    /**
+     * Default speed for effects (1-7).
      */
     public static final int DEFAULT_SPEED = 3;
 
     /**
-     * Default parameter for effects (amplitude, intensity, etc.).
+     * Default parameter for effects (amplitude, intensity, etc.) (0-7).
      */
     public static final int DEFAULT_PARAM = 3;
 
@@ -211,20 +217,20 @@ public class TextEffect {
      * Gets the magic color for a text effect character.
      *
      * @param type       The effect type
-     * @param speed      Speed of the effect (1-15)
-     * @param charIndex  Character index for phase offset (0-15, wraps for longer text)
-     * @param param      Additional parameter (amplitude, intensity, etc.) (0-15)
+     * @param speed      Speed of the effect (1-7)
+     * @param charIndex  Character index for phase offset (0-7, wraps for longer text)
+     * @param param      Additional parameter (amplitude, intensity, etc.) (0-7)
      * @return Magic color encoding the effect parameters
      */
     @NotNull
     public static TextColor getMagicColor(Type type, int speed, int charIndex, int param) {
-        int effectId = type.getId() & 0x0F;
-        int speedClamped = Math.max(1, Math.min(15, speed)) & 0x0F;
-        int charIndexClamped = charIndex & 0x0F;
-        int paramClamped = param & 0x0F;
+        int effectId = type.getId() & 0x07;
+        int speedClamped = Math.max(1, Math.min(7, speed)) & 0x07;
+        int charIndexClamped = charIndex & 0x07;
+        int paramClamped = param & 0x07;
 
-        int green = effectId | (speedClamped << 4);
-        int blue = charIndexClamped | (paramClamped << 4);
+        int green = EFFECT_MARKER | effectId | (speedClamped << 4);
+        int blue = EFFECT_MARKER | charIndexClamped | (paramClamped << 4);
 
         return TextColor.color(MAGIC_RED, green, blue);
     }
@@ -234,8 +240,8 @@ public class TextEffect {
      *
      * @param text   The text to apply the effect to
      * @param type   The effect type
-     * @param speed  Speed of the effect (1-15)
-     * @param param  Additional parameter (amplitude, intensity, etc.) (0-15)
+     * @param speed  Speed of the effect (1-7)
+     * @param param  Additional parameter (amplitude, intensity, etc.) (0-7)
      * @return Component with per-character magic colors
      */
     @NotNull
@@ -250,7 +256,7 @@ public class TextEffect {
 
         for (int i = 0; i < text.length(); ) {
             int codepoint = text.codePointAt(i);
-            int charIndex = idx % 16; // Wrap for long text
+            int charIndex = idx % 8; // Wrap for long text
 
             TextColor magic = getMagicColor(type, speed, charIndex, param);
             result = result.append(
@@ -279,7 +285,7 @@ public class TextEffect {
      * Applies rainbow effect - cycles through hues over time.
      *
      * @param text  The text to colorize
-     * @param speed How fast the rainbow cycles (1-15)
+     * @param speed How fast the rainbow cycles (1-7)
      * @return Component with rainbow effect colors
      */
     @NotNull
@@ -299,8 +305,8 @@ public class TextEffect {
      * Applies wave effect - vertical sine wave motion.
      *
      * @param text      The text to animate
-     * @param speed     How fast the wave moves (1-15)
-     * @param amplitude Wave amplitude (1-15)
+     * @param speed     How fast the wave moves (1-7)
+     * @param amplitude Wave amplitude (1-7)
      * @return Component with wave effect colors
      */
     @NotNull
@@ -320,8 +326,8 @@ public class TextEffect {
      * Applies shake effect - random jitter.
      *
      * @param text      The text to animate
-     * @param speed     How fast the shake updates (1-15)
-     * @param intensity Shake intensity (1-15)
+     * @param speed     How fast the shake updates (1-7)
+     * @param intensity Shake intensity (1-7)
      * @return Component with shake effect colors
      */
     @NotNull
@@ -341,7 +347,7 @@ public class TextEffect {
      * Applies pulse effect - opacity fades in/out.
      *
      * @param text  The text to animate
-     * @param speed How fast the pulse cycles (1-15)
+     * @param speed How fast the pulse cycles (1-7)
      * @return Component with pulse effect colors
      */
     @NotNull
@@ -372,7 +378,7 @@ public class TextEffect {
      * Applies typewriter effect - characters appear sequentially.
      *
      * @param text  The text to animate
-     * @param speed How fast characters appear (1-15)
+     * @param speed How fast characters appear (1-7)
      * @return Component with typewriter effect colors
      */
     @NotNull
@@ -392,8 +398,8 @@ public class TextEffect {
      * Applies wobble effect - rotation oscillation.
      *
      * @param text      The text to animate
-     * @param speed     How fast the wobble cycles (1-15)
-     * @param amplitude Wobble amplitude (1-15)
+     * @param speed     How fast the wobble cycles (1-7)
+     * @param amplitude Wobble amplitude (1-7)
      * @return Component with wobble effect colors
      */
     @NotNull
@@ -413,7 +419,7 @@ public class TextEffect {
      * Applies obfuscate effect - rapidly cycling random characters.
      *
      * @param text  The text to obfuscate
-     * @param speed How fast characters cycle (1-15)
+     * @param speed How fast characters cycle (1-7)
      * @return Component with obfuscate effect colors
      */
     @NotNull
@@ -431,23 +437,19 @@ public class TextEffect {
 
     /**
      * Checks if a color value represents a text effect.
-     * Text effect colors have R=253 (0xFD).
-     * Also checks for shadow variant (colors divided by 4).
+     * Text effect colors have R=253 (0xFD) and marker bits set in G/B.
      *
      * @param color The color value to check
      * @return true if this is a text effect magic color
      */
     public static boolean isTextEffectColor(int color) {
         int r = (color >> 16) & 0xFF;
+        int g = (color >> 8) & 0xFF;
+        int b = color & 0xFF;
 
-        // Primary color: R=253
-        if (r == MAGIC_RED) {
-            return true;
-        }
-
-        // Shadow color: 253/4 ≈ 63
-        int shadowRed = MAGIC_RED / 4;
-        return r >= shadowRed - 1 && r <= shadowRed + 1;
+        return r == MAGIC_RED
+                && (g & EFFECT_MARKER) == EFFECT_MARKER
+                && (b & EFFECT_MARKER) == EFFECT_MARKER;
     }
 
     /**
@@ -462,24 +464,13 @@ public class TextEffect {
         int g = (color >> 8) & 0xFF;
         int b = color & 0xFF;
 
-        // Primary color: R=253
-        if (r == MAGIC_RED) {
-            int effectType = g & 0x0F;
-            int speed = (g >> 4) & 0x0F;
-            int charIndex = b & 0x0F;
-            int param = (b >> 4) & 0x0F;
-            return new int[]{effectType, Math.max(1, speed), charIndex, param};
-        }
-
-        // Shadow color: multiply by 4 to recover
-        int shadowRed = MAGIC_RED / 4;
-        if (r >= shadowRed - 1 && r <= shadowRed + 1) {
-            int originalG = Math.min(255, g * 4);
-            int originalB = Math.min(255, b * 4);
-            int effectType = originalG & 0x0F;
-            int speed = (originalG >> 4) & 0x0F;
-            int charIndex = originalB & 0x0F;
-            int param = (originalB >> 4) & 0x0F;
+        if (r == MAGIC_RED
+                && (g & EFFECT_MARKER) == EFFECT_MARKER
+                && (b & EFFECT_MARKER) == EFFECT_MARKER) {
+            int effectType = g & 0x07;
+            int speed = (g >> 4) & 0x07;
+            int charIndex = b & 0x07;
+            int param = (b >> 4) & 0x07;
             return new int[]{effectType, Math.max(1, speed), charIndex, param};
         }
 

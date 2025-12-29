@@ -948,8 +948,10 @@ public class ResourcePack {
      *
      * Color encoding for text effects:
      * - R = 253: text effect marker
-     * - G bits 0-3: effect type, bits 4-7: speed
-     * - B bits 0-3: char index, bits 4-7: param (amplitude/intensity)
+     * - G bits 7 and 3: marker bits (must be 1)
+     * - G bits 0-2: effect type, bits 4-6: speed
+     * - B bits 7 and 3: marker bits (must be 1)
+     * - B bits 0-2: char index, bits 4-6: param (amplitude/intensity)
      */
     private String getAnimationVertexShader(String version, boolean seeThrough) {
         boolean is1_21_6Plus = version.compareTo("1.21.6") >= 0;
@@ -1010,44 +1012,45 @@ public class ResourcePack {
                         }
 
                         // Text effects: R=253 for primary
-                        // Note: Text effect shadows (R≈63 from 253/4) share the same range as animation shadows
-                        // and are handled by the animation shadow path above (hidden). Only process primary colors.
+                        // Marker bits (7 and 3) must be set in G and B to avoid color collisions.
+                        // Note: Text effect shadows share the animation shadow range and are hidden above.
                         bool isPrimaryEffect = (rInt == 253);
 
                         if (isPrimaryEffect) {
                             int gRaw = int(Color.g * 255.0 + 0.5);
                             int bRaw = int(Color.b * 255.0 + 0.5);
-                            int gInt = gRaw;
-                            int bInt = bRaw;
+                            bool hasMarker = ((gRaw & 0x88) == 0x88) && ((bRaw & 0x88) == 0x88);
 
-                            int effectType = gInt & 0x0F;
-                            float speed = max(1.0, float((gInt >> 4) & 0x0F));
-                            float charIndex = float(bInt & 0x0F);
-                            float param = float((bInt >> 4) & 0x0F);
+                            if (hasMarker) {
+                                int effectType = gRaw & 0x07;
+                                float speed = max(1.0, float((gRaw >> 4) & 0x07));
+                                float charIndex = float(bRaw & 0x07);
+                                float param = float((bRaw >> 4) & 0x07);
 
-                            float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
+                                float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
 
-                            // Wave effect (type 1): vertical sine wave
-                            if (effectType == 1) {
-                                float phase = charIndex * 0.6 + timeSeconds * speed * 2.0;
-                                float amplitude = max(1.0, param) * 0.15;
-                                pos.y += sin(phase) * amplitude;
-                                gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
+                                // Wave effect (type 1): vertical sine wave
+                                if (effectType == 1) {
+                                    float phase = charIndex * 0.6 + timeSeconds * speed * 2.0;
+                                    float amplitude = max(1.0, param) * 0.15;
+                                    pos.y += sin(phase) * amplitude;
+                                    gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
+                                }
+                                // Shake effect (type 2): random jitter
+                                else if (effectType == 2) {
+                                    float seed = charIndex + floor(timeSeconds * speed * 8.0);
+                                    float amplitude = max(1.0, param) * 0.15;
+                                    pos.x += (fract(sin(seed * 12.9898) * 43758.5453) - 0.5) * amplitude;
+                                    pos.y += (fract(sin(seed * 78.233) * 43758.5453) - 0.5) * amplitude;
+                                    gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
+                                }
+                                // Wobble effect (type 6): rotation oscillation handled in fragment
+
+                                // Pass effect data to fragment shader
+                                // x=effectType, y=speed, z=charIndex, w=param
+                                effectData = vec4(float(effectType), speed, charIndex, param);
+                                vertexColor = Color; // Keep original color for fragment shader processing
                             }
-                            // Shake effect (type 2): random jitter
-                            else if (effectType == 2) {
-                                float seed = charIndex + floor(timeSeconds * speed * 8.0);
-                                float amplitude = max(1.0, param) * 0.15;
-                                pos.x += (fract(sin(seed * 12.9898) * 43758.5453) - 0.5) * amplitude;
-                                pos.y += (fract(sin(seed * 78.233) * 43758.5453) - 0.5) * amplitude;
-                                gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                            }
-                            // Wobble effect (type 6): rotation oscillation handled in fragment
-
-                            // Pass effect data to fragment shader
-                            // x=effectType, y=speed, z=charIndex, w=param
-                            effectData = vec4(float(effectType), speed, charIndex, param);
-                            vertexColor = Color; // Keep original color for fragment shader processing
                         }
                     }
                     """;
@@ -1114,46 +1117,47 @@ public class ResourcePack {
                     }
 
                     // Text effects: R=253 for primary
-                    // Note: Text effect shadows (R≈63 from 253/4) share the same range as animation shadows
-                    // and are handled by the animation shadow path above (hidden). Only process primary colors.
+                    // Marker bits (7 and 3) must be set in G and B to avoid color collisions.
+                    // Note: Text effect shadows share the animation shadow range and are hidden above.
                     bool isPrimaryEffect = (rInt == 253);
 
                     if (isPrimaryEffect) {
                         int gRaw = int(Color.g * 255.0 + 0.5);
                         int bRaw = int(Color.b * 255.0 + 0.5);
-                        int gInt = gRaw;
-                        int bInt = bRaw;
+                        bool hasMarker = ((gRaw & 0x88) == 0x88) && ((bRaw & 0x88) == 0x88);
 
-                        int effectType = gInt & 0x0F;
-                        float speed = max(1.0, float((gInt >> 4) & 0x0F));
-                        float charIndex = float(bInt & 0x0F);
-                        float param = float((bInt >> 4) & 0x0F);
+                        if (hasMarker) {
+                            int effectType = gRaw & 0x07;
+                            float speed = max(1.0, float((gRaw >> 4) & 0x07));
+                            float charIndex = float(bRaw & 0x07);
+                            float param = float((bRaw >> 4) & 0x07);
 
-                        float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
+                            float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
 
-                        // Wave effect (type 1): vertical sine wave
-                        if (effectType == 1) {
-                            float phase = charIndex * 0.6 + timeSeconds * speed * 2.0;
-                            float amplitude = max(1.0, param) * 0.15;
-                            pos.y += sin(phase) * amplitude;
-                            gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                            sphericalVertexDistance = fog_spherical_distance(pos);
-                            cylindricalVertexDistance = fog_cylindrical_distance(pos);
+                            // Wave effect (type 1): vertical sine wave
+                            if (effectType == 1) {
+                                float phase = charIndex * 0.6 + timeSeconds * speed * 2.0;
+                                float amplitude = max(1.0, param) * 0.15;
+                                pos.y += sin(phase) * amplitude;
+                                gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
+                                sphericalVertexDistance = fog_spherical_distance(pos);
+                                cylindricalVertexDistance = fog_cylindrical_distance(pos);
+                            }
+                            // Shake effect (type 2): random jitter
+                            else if (effectType == 2) {
+                                float seed = charIndex + floor(timeSeconds * speed * 8.0);
+                                float amplitude = max(1.0, param) * 0.15;
+                                pos.x += (fract(sin(seed * 12.9898) * 43758.5453) - 0.5) * amplitude;
+                                pos.y += (fract(sin(seed * 78.233) * 43758.5453) - 0.5) * amplitude;
+                                gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
+                                sphericalVertexDistance = fog_spherical_distance(pos);
+                                cylindricalVertexDistance = fog_cylindrical_distance(pos);
+                            }
+
+                            // Pass effect data to fragment shader
+                            effectData = vec4(float(effectType), speed, charIndex, param);
+                            vertexColor = Color * texelFetch(Sampler2, UV2 / 16, 0);
                         }
-                        // Shake effect (type 2): random jitter
-                        else if (effectType == 2) {
-                            float seed = charIndex + floor(timeSeconds * speed * 8.0);
-                            float amplitude = max(1.0, param) * 0.15;
-                            pos.x += (fract(sin(seed * 12.9898) * 43758.5453) - 0.5) * amplitude;
-                            pos.y += (fract(sin(seed * 78.233) * 43758.5453) - 0.5) * amplitude;
-                            gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                            sphericalVertexDistance = fog_spherical_distance(pos);
-                            cylindricalVertexDistance = fog_cylindrical_distance(pos);
-                        }
-
-                        // Pass effect data to fragment shader
-                        effectData = vec4(float(effectType), speed, charIndex, param);
-                        vertexColor = Color * texelFetch(Sampler2, UV2 / 16, 0);
                     }
                 }
                 """;
@@ -1221,44 +1225,45 @@ public class ResourcePack {
                     }
 
                     // Text effects: R=253 for primary
-                    // Note: Text effect shadows (R≈63 from 253/4) share the same range as animation shadows
-                    // and are handled by the animation shadow path above (hidden). Only process primary colors.
+                    // Marker bits (7 and 3) must be set in G and B to avoid color collisions.
+                    // Note: Text effect shadows share the animation shadow range and are hidden above.
                     bool isPrimaryEffect = (rInt == 253);
 
                     if (isPrimaryEffect) {
                         int gRaw = int(Color.g * 255.0 + 0.5);
                         int bRaw = int(Color.b * 255.0 + 0.5);
-                        int gInt = gRaw;
-                        int bInt = bRaw;
+                        bool hasMarker = ((gRaw & 0x88) == 0x88) && ((bRaw & 0x88) == 0x88);
 
-                        int effectType = gInt & 0x0F;
-                        float speed = max(1.0, float((gInt >> 4) & 0x0F));
-                        float charIndex = float(bInt & 0x0F);
-                        float param = float((bInt >> 4) & 0x0F);
+                        if (hasMarker) {
+                            int effectType = gRaw & 0x07;
+                            float speed = max(1.0, float((gRaw >> 4) & 0x07));
+                            float charIndex = float(bRaw & 0x07);
+                            float param = float((bRaw >> 4) & 0x07);
 
-                        float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
+                            float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
 
-                        // Wave effect (type 1): vertical sine wave
-                        if (effectType == 1) {
-                            float phase = charIndex * 0.6 + timeSeconds * speed * 2.0;
-                            float amplitude = max(1.0, param) * 0.15;
-                            pos.y += sin(phase) * amplitude;
-                            gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                            vertexDistance = fog_distance(pos, FogShape);
+                            // Wave effect (type 1): vertical sine wave
+                            if (effectType == 1) {
+                                float phase = charIndex * 0.6 + timeSeconds * speed * 2.0;
+                                float amplitude = max(1.0, param) * 0.15;
+                                pos.y += sin(phase) * amplitude;
+                                gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
+                                vertexDistance = fog_distance(pos, FogShape);
+                            }
+                            // Shake effect (type 2): random jitter
+                            else if (effectType == 2) {
+                                float seed = charIndex + floor(timeSeconds * speed * 8.0);
+                                float amplitude = max(1.0, param) * 0.15;
+                                pos.x += (fract(sin(seed * 12.9898) * 43758.5453) - 0.5) * amplitude;
+                                pos.y += (fract(sin(seed * 78.233) * 43758.5453) - 0.5) * amplitude;
+                                gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
+                                vertexDistance = fog_distance(pos, FogShape);
+                            }
+
+                            // Pass effect data to fragment shader
+                            effectData = vec4(float(effectType), speed, charIndex, param);
+                            vertexColor = Color * texelFetch(Sampler2, UV2 / 16, 0);
                         }
-                        // Shake effect (type 2): random jitter
-                        else if (effectType == 2) {
-                            float seed = charIndex + floor(timeSeconds * speed * 8.0);
-                            float amplitude = max(1.0, param) * 0.15;
-                            pos.x += (fract(sin(seed * 12.9898) * 43758.5453) - 0.5) * amplitude;
-                            pos.y += (fract(sin(seed * 78.233) * 43758.5453) - 0.5) * amplitude;
-                            gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                            vertexDistance = fog_distance(pos, FogShape);
-                        }
-
-                        // Pass effect data to fragment shader
-                        effectData = vec4(float(effectType), speed, charIndex, param);
-                        vertexColor = Color * texelFetch(Sampler2, UV2 / 16, 0);
                     }
                 }
                 """.formatted(imports);
