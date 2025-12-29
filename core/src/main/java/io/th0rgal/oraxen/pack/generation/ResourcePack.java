@@ -1082,8 +1082,6 @@ public class ResourcePack {
                 out float cylindricalVertexDistance;
                 out vec4 vertexColor;
                 out vec2 texCoord0;
-                out vec4 effectData;
-                out vec4 effectData;
                 out vec4 effectData; // Pass effect info to fragment shader
 
                 void main() {
@@ -1158,16 +1156,6 @@ public class ResourcePack {
                                 float amplitude = max(1.0, param) * 0.15;
                                 pos.x += (fract(sin(seed * 12.9898) * 43758.5453) - 0.5) * amplitude;
                                 pos.y += (fract(sin(seed * 78.233) * 43758.5453) - 0.5) * amplitude;
-                                gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                                sphericalVertexDistance = fog_spherical_distance(pos);
-                                cylindricalVertexDistance = fog_cylindrical_distance(pos);
-                            }
-                            // Wobble effect (type 6): circular oscillation
-                            else if (effectType == 6) {
-                                float phase = charIndex * 0.6 + timeSeconds * speed * 2.0;
-                                float amplitude = max(1.0, param) * 0.15;
-                                pos.x += cos(phase) * amplitude;
-                                pos.y += sin(phase) * amplitude;
                                 gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
                                 sphericalVertexDistance = fog_spherical_distance(pos);
                                 cylindricalVertexDistance = fog_cylindrical_distance(pos);
@@ -1396,15 +1384,6 @@ public class ResourcePack {
                                 float amplitude = max(1.0, param) * 0.15;
                                 pos.x += (fract(sin(seed * 12.9898) * 43758.5453) - 0.5) * amplitude;
                                 pos.y += (fract(sin(seed * 78.233) * 43758.5453) - 0.5) * amplitude;
-                                gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                                vertexDistance = fog_distance(pos, FogShape);
-                            }
-                            // Wobble effect (type 6): circular oscillation
-                            else if (effectType == 6) {
-                                float phase = charIndex * 0.6 + timeSeconds * speed * 2.0;
-                                float amplitude = max(1.0, param) * 0.15;
-                                pos.x += cos(phase) * amplitude;
-                                pos.y += sin(phase) * amplitude;
                                 gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
                                 vertexDistance = fog_distance(pos, FogShape);
                             }
