@@ -7,40 +7,49 @@ import java.util.*;
 
 public class VersionUtil {
     private static final Map<NMSVersion, Map<Integer, MinecraftVersion>> versionMap = new HashMap<>();
+    private static final Map<NMSVersion, NMSVersion> spigotVariants = new EnumMap<>(NMSVersion.class);
     private static final boolean IS_PAPER;
     private static final boolean IS_FOLIA;
 
     public enum NMSVersion {
-        v1_21_R6,        // Paper 1.21.11 (Mojang-mapped)
-        v1_21_R6_spigot, // Spigot 1.21.11 (Spigot-mapped)
-        v1_21_R6_old,
-        v1_21_R5,
-        v1_21_R4,
-        v1_21_R3,
-        v1_21_R2,
-        v1_21_R1,
-        v1_20_R4,
-        v1_20_R3,
-        v1_20_R2,
-        v1_20_R1,
-        v1_19_R3,
-        v1_19_R2,
-        v1_19_R1,
-        v1_18_R2,
-        v1_18_R1,
+        // Paper 1.20.5+ uses Mojang mappings at runtime, Spigot uses Spigot mappings
+        v1_21_R6,              // Paper 1.21.11 (Mojang-mapped)
+        v1_21_R6_spigot,       // Spigot 1.21.11 (Spigot-mapped)
+        v1_21_R6_old,          // Paper 1.21.9-1.21.10 (Mojang-mapped)
+        v1_21_R6_old_spigot,   // Spigot 1.21.9-1.21.10 (Spigot-mapped)
+        v1_21_R5,              // Paper 1.21.7-1.21.8 (Mojang-mapped)
+        v1_21_R5_spigot,       // Spigot 1.21.7-1.21.8 (Spigot-mapped)
+        v1_21_R4,              // Paper 1.21.5 (Mojang-mapped)
+        v1_21_R4_spigot,       // Spigot 1.21.5 (Spigot-mapped)
+        v1_21_R3,              // Paper 1.21.4 (Mojang-mapped)
+        v1_21_R3_spigot,       // Spigot 1.21.4 (Spigot-mapped)
+        v1_21_R2,              // Paper 1.21.2-1.21.3 (Mojang-mapped)
+        v1_21_R2_spigot,       // Spigot 1.21.2-1.21.3 (Spigot-mapped)
+        v1_21_R1,              // Paper 1.21-1.21.1 (Mojang-mapped)
+        v1_21_R1_spigot,       // Spigot 1.21-1.21.1 (Spigot-mapped)
+        v1_20_R4,              // Paper 1.20.5-1.20.6 (Mojang-mapped)
+        v1_20_R4_spigot,       // Spigot 1.20.5-1.20.6 (Spigot-mapped)
+        v1_20_R3,              // 1.20.3-1.20.4 (reobf still works for both)
+        v1_20_R2,              // 1.20.2
+        v1_20_R1,              // 1.20-1.20.1
+        v1_19_R3,              // 1.19.4
+        v1_19_R2,              // 1.19.3
+        v1_19_R1,              // 1.19-1.19.2
+        v1_18_R2,              // 1.18.2
+        v1_18_R1,              // 1.18-1.18.1
         UNKNOWN;
 
         public static boolean matchesServer(NMSVersion version) {
             if (version == UNKNOWN) return false;
             NMSVersion serverVersion = getNMSVersion(MinecraftVersion.getCurrentVersion());
 
-            // Special handling for 1.21.11: choose between Paper and Spigot variants
-            if (serverVersion == v1_21_R6) {
-                if (version == v1_21_R6 && isPaperServer()) return true;
-                if (version == v1_21_R6_spigot && !isPaperServer()) return true;
-                return false;
+            // For 1.20.5+ (v1_20_R4 and later), choose between Paper and Spigot variants
+            NMSVersion spigotVariant = spigotVariants.get(serverVersion);
+            if (spigotVariant != null) {
+                return isPaperServer() ? version == serverVersion : version == spigotVariant;
             }
 
+            // For older versions (1.20.4 and below), reobf works for both
             return serverVersion.equals(version);
         }
     }
@@ -48,6 +57,17 @@ public class VersionUtil {
     static {
         IS_PAPER = hasClass("com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent");
         IS_FOLIA = hasClass("io.papermc.paper.threadedregions.RegionizedServer");
+
+        // Map Paper versions to their Spigot variants (for 1.20.5+)
+        spigotVariants.put(NMSVersion.v1_21_R6, NMSVersion.v1_21_R6_spigot);
+        spigotVariants.put(NMSVersion.v1_21_R6_old, NMSVersion.v1_21_R6_old_spigot);
+        spigotVariants.put(NMSVersion.v1_21_R5, NMSVersion.v1_21_R5_spigot);
+        spigotVariants.put(NMSVersion.v1_21_R4, NMSVersion.v1_21_R4_spigot);
+        spigotVariants.put(NMSVersion.v1_21_R3, NMSVersion.v1_21_R3_spigot);
+        spigotVariants.put(NMSVersion.v1_21_R2, NMSVersion.v1_21_R2_spigot);
+        spigotVariants.put(NMSVersion.v1_21_R1, NMSVersion.v1_21_R1_spigot);
+        spigotVariants.put(NMSVersion.v1_20_R4, NMSVersion.v1_20_R4_spigot);
+
         versionMap.put(NMSVersion.v1_21_R6,
                 Map.of(26, new MinecraftVersion("1.21.11")));
         versionMap.put(NMSVersion.v1_21_R6_old,

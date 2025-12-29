@@ -30,7 +30,14 @@ val SUPPORTED_VERSIONS: List<NMSVersion> = listOfNotNull(
     "v1_21_R5" toNms "1.21.8-R0.1-SNAPSHOT", // also for 1.21.7
     "v1_21_R6_old" toNms "1.21.10-R0.1-SNAPSHOT", // 1.21.9 and 1.21.10 (uses ResourceLocation)
     "v1_21_R6" toNms "1.21.11-R0.1-SNAPSHOT", // 1.21.11 Paper (Mojang-mapped)
-    // Skip Spigot module in CI - requires BuildTools to install Spigot artifacts to local Maven
+    // Skip Spigot modules in CI - requires BuildTools to install Spigot artifacts to local Maven
+    if (!isCI) "v1_20_R4_spigot" toNms "1.20.6-R0.1-SNAPSHOT" else null,
+    if (!isCI) "v1_21_R1_spigot" toNms "1.21.1-R0.1-SNAPSHOT" else null,
+    if (!isCI) "v1_21_R2_spigot" toNms "1.21.3-R0.1-SNAPSHOT" else null,
+    if (!isCI) "v1_21_R3_spigot" toNms "1.21.4-R0.1-SNAPSHOT" else null,
+    if (!isCI) "v1_21_R4_spigot" toNms "1.21.5-R0.1-SNAPSHOT" else null,
+    if (!isCI) "v1_21_R5_spigot" toNms "1.21.8-R0.1-SNAPSHOT" else null,
+    if (!isCI) "v1_21_R6_old_spigot" toNms "1.21.10-R0.1-SNAPSHOT" else null,
     if (!isCI) "v1_21_R6_spigot" toNms "1.21.11-R0.1-SNAPSHOT" else null
 )
 

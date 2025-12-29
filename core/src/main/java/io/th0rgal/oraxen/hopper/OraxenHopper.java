@@ -183,7 +183,8 @@ public final class OraxenHopper {
      * @return true if a matching jar exists
      */
     private static boolean pluginJarExists(Pattern pattern) {
-        java.io.File pluginsFolder = Bukkit.getPluginsFolder();
+        // Use getUpdateFolderFile().getParentFile() for Spigot compatibility (getPluginsFolder() is Paper-only)
+        java.io.File pluginsFolder = Bukkit.getUpdateFolderFile().getParentFile();
         if (pluginsFolder == null || !pluginsFolder.exists()) {
             return false;
         }
