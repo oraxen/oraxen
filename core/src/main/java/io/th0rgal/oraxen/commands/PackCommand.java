@@ -11,10 +11,8 @@ import io.th0rgal.oraxen.config.ResourcesManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import org.bukkit.entity.Player;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 public class PackCommand {
 
@@ -56,19 +54,10 @@ public class PackCommand {
                 .withOptionalArguments(new BooleanArgument("override"))
                 .executes((sender, args) -> {
                     final String type = (String) args.getOptional("folder").orElse("all");
-                    final ZipInputStream zip = ResourcesManager.browse();
-                    try {
-                        ZipEntry entry = zip.getNextEntry();
-                        while (entry != null) {
-                            extract(entry, type, OraxenPlugin.get().getResourceManager(), (Boolean) args.getOptional("override").orElse(false));
-                            entry = zip.getNextEntry();
-                        }
-                        zip.closeEntry();
-                        zip.close();
-                    } catch (final IOException ex) {
-                        ex.printStackTrace();
-                    }
-
+                    final boolean override = (Boolean) args.getOptional("override").orElse(false);
+                    ResourcesManager.browseJar(entry ->
+                        extract(entry, type, OraxenPlugin.get().getResourceManager(), override)
+                    );
                 });
     }
 

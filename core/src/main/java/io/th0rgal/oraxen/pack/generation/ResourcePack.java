@@ -42,7 +42,6 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 public class ResourcePack {
 
@@ -421,18 +420,9 @@ public class ResourcePack {
     private final boolean extractSounds = !new File(packFolder, "sounds").exists();
 
     private void extractDefaultFolders() {
-        final ZipInputStream zip = ResourcesManager.browse();
-        try {
-            ZipEntry entry = zip.getNextEntry();
-            while (entry != null) {
-                extract(entry, OraxenPlugin.get().getResourceManager(), isSuitable(entry.getName()));
-                entry = zip.getNextEntry();
-            }
-            zip.closeEntry();
-            zip.close();
-        } catch (final IOException ex) {
-            ex.printStackTrace();
-        }
+        ResourcesManager.browseJar(entry ->
+            extract(entry, OraxenPlugin.get().getResourceManager(), isSuitable(entry.getName()))
+        );
     }
 
     private boolean isSuitable(String entryName) {
@@ -453,23 +443,14 @@ public class ResourcePack {
     }
 
     private void extractRequired() {
-        final ZipInputStream zip = ResourcesManager.browse();
-        try {
-            ZipEntry entry = zip.getNextEntry();
-            while (entry != null) {
-                if (entry.getName().startsWith("pack/textures/models/armor/leather_layer_")
-                        || entry.getName().startsWith("pack/textures/required")
-                        || entry.getName().startsWith("pack/models/required")) {
-                    OraxenPlugin.get().getResourceManager().extractFileIfTrue(entry,
-                            !OraxenPlugin.get().getDataFolder().toPath().resolve(entry.getName()).toFile().exists());
-                }
-                entry = zip.getNextEntry();
+        ResourcesManager.browseJar(entry -> {
+            if (entry.getName().startsWith("pack/textures/models/armor/leather_layer_")
+                    || entry.getName().startsWith("pack/textures/required")
+                    || entry.getName().startsWith("pack/models/required")) {
+                OraxenPlugin.get().getResourceManager().extractFileIfTrue(entry,
+                        !OraxenPlugin.get().getDataFolder().toPath().resolve(entry.getName()).toFile().exists());
             }
-            zip.closeEntry();
-            zip.close();
-        } catch (final IOException ex) {
-            ex.printStackTrace();
-        }
+        });
     }
 
     private void extract(ZipEntry entry, ResourcesManager resourcesManager, boolean isSuitable) {
