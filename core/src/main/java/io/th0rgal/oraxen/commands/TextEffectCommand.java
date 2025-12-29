@@ -27,11 +27,11 @@ import java.util.Arrays;
  */
 public class TextEffectCommand {
 
-    private static final ArgumentSuggestions<String> EFFECT_SUGGESTIONS = ArgumentSuggestions.strings(
-            Arrays.stream(TextEffect.Type.values())
-                    .map(TextEffect.Type::getName)
-                    .toArray(String[]::new)
-    );
+    private static String[] getEffectNames() {
+        return Arrays.stream(TextEffect.Type.values())
+                .map(TextEffect.Type::getName)
+                .toArray(String[]::new);
+    }
 
     public CommandAPICommand getTextEffectCommand() {
         // Create three variants to handle different argument counts
@@ -56,7 +56,7 @@ public class TextEffectCommand {
         return new CommandAPICommand("basic")
                 .withPermission("oraxen.command.texteffect")
                 .withArguments(
-                        new StringArgument("effect").replaceSuggestions(EFFECT_SUGGESTIONS),
+                        new StringArgument("effect").replaceSuggestions(ArgumentSuggestions.strings(getEffectNames())),
                         new GreedyStringArgument("text")
                 )
                 .executesPlayer((player, args) -> {
@@ -70,7 +70,7 @@ public class TextEffectCommand {
         return new CommandAPICommand("speed")
                 .withPermission("oraxen.command.texteffect")
                 .withArguments(
-                        new StringArgument("effect").replaceSuggestions(EFFECT_SUGGESTIONS),
+                        new StringArgument("effect").replaceSuggestions(ArgumentSuggestions.strings(getEffectNames())),
                         new IntegerArgument("speed", 1, 15),
                         new GreedyStringArgument("text")
                 )
@@ -86,7 +86,7 @@ public class TextEffectCommand {
         return new CommandAPICommand("full")
                 .withPermission("oraxen.command.texteffect")
                 .withArguments(
-                        new StringArgument("effect").replaceSuggestions(EFFECT_SUGGESTIONS),
+                        new StringArgument("effect").replaceSuggestions(ArgumentSuggestions.strings(getEffectNames())),
                         new IntegerArgument("speed", 1, 15),
                         new IntegerArgument("param", 0, 15),
                         new GreedyStringArgument("text")
