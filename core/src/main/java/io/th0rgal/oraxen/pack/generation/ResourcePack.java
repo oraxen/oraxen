@@ -1319,8 +1319,8 @@ public class ResourcePack {
                             // Rainbow effect (type 0)
                             if (effectType == 0) {
                                 float hue = mod(charIndex * 0.08 + timeSeconds * speed * 0.05, 1.0);
-                                vec3 rgb = hsv2rgb(vec3(hue, 0.9, 1.0));
-                                color.rgb = color.rgb * rgb;
+                                vec3 rgb = hsv2rgb(vec3(hue, 1.0, 1.0));
+                                color.rgb = rgb;  // Replace color (not multiply) for full brightness
                             }
                             // Pulse effect (type 3): opacity fades in/out
                             else if (effectType == 3) {
@@ -1332,7 +1332,7 @@ public class ResourcePack {
                                 float t = charIndex / 15.0;
                                 vec3 startColor = vec3(1.0, 0.3, 0.3);
                                 vec3 endColor = vec3(0.3, 0.3, 1.0);
-                                color.rgb *= mix(startColor, endColor, t);
+                                color.rgb = mix(startColor, endColor, t);  // Replace color for full brightness
                             }
                             // Typewriter effect (type 5): characters appear sequentially
                             else if (effectType == 5) {
@@ -1392,8 +1392,8 @@ public class ResourcePack {
                         // Rainbow effect (type 0)
                         if (effectType == 0) {
                             float hue = mod(charIndex * 0.08 + timeSeconds * speed * 0.05, 1.0);
-                            vec3 rgb = hsv2rgb(vec3(hue, 0.9, 1.0));
-                            color.rgb = color.rgb * rgb;
+                            vec3 rgb = hsv2rgb(vec3(hue, 1.0, 1.0));
+                            color.rgb = rgb;  // Replace color (not multiply) for full brightness
                         }
                         // Pulse effect (type 3): opacity fades in/out
                         else if (effectType == 3) {
@@ -1405,7 +1405,7 @@ public class ResourcePack {
                             float t = charIndex / 15.0;
                             vec3 startColor = vec3(1.0, 0.3, 0.3);
                             vec3 endColor = vec3(0.3, 0.3, 1.0);
-                            color.rgb *= mix(startColor, endColor, t);
+                            color.rgb = mix(startColor, endColor, t);  // Replace color for full brightness
                         }
                         // Typewriter effect (type 5): characters appear sequentially
                         else if (effectType == 5) {
@@ -1469,8 +1469,8 @@ public class ResourcePack {
                         // Rainbow effect (type 0)
                         if (effectType == 0) {
                             float hue = mod(charIndex * 0.08 + timeSeconds * speed * 0.05, 1.0);
-                            vec3 rgb = hsv2rgb(vec3(hue, 0.9, 1.0));
-                            color.rgb = color.rgb * rgb;
+                            vec3 rgb = hsv2rgb(vec3(hue, 1.0, 1.0));
+                            color.rgb = rgb;  // Replace color (not multiply) for full brightness
                         }
                         // Pulse effect (type 3): opacity fades in/out
                         else if (effectType == 3) {
@@ -1482,7 +1482,7 @@ public class ResourcePack {
                             float t = charIndex / 15.0;
                             vec3 startColor = vec3(1.0, 0.3, 0.3);
                             vec3 endColor = vec3(0.3, 0.3, 1.0);
-                            color.rgb *= mix(startColor, endColor, t);
+                            color.rgb = mix(startColor, endColor, t);  // Replace color for full brightness
                         }
                         // Typewriter effect (type 5): characters appear sequentially
                         else if (effectType == 5) {
