@@ -7,6 +7,7 @@ import java.util.*;
 
 public class VersionUtil {
     private static final Map<NMSVersion, Map<Integer, MinecraftVersion>> versionMap = new HashMap<>();
+    private static final Map<NMSVersion, NMSVersion> spigotVariants = new EnumMap<>(NMSVersion.class);
     private static final boolean IS_PAPER;
     private static final boolean IS_FOLIA;
 
@@ -43,50 +44,30 @@ public class VersionUtil {
             NMSVersion serverVersion = getNMSVersion(MinecraftVersion.getCurrentVersion());
 
             // For 1.20.5+ (v1_20_R4 and later), choose between Paper and Spigot variants
-            // Paper uses Mojang mappings, Spigot uses Spigot mappings
-            switch (serverVersion) {
-                case v1_21_R6:
-                    if (version == v1_21_R6 && isPaperServer()) return true;
-                    if (version == v1_21_R6_spigot && !isPaperServer()) return true;
-                    return false;
-                case v1_21_R6_old:
-                    if (version == v1_21_R6_old && isPaperServer()) return true;
-                    if (version == v1_21_R6_old_spigot && !isPaperServer()) return true;
-                    return false;
-                case v1_21_R5:
-                    if (version == v1_21_R5 && isPaperServer()) return true;
-                    if (version == v1_21_R5_spigot && !isPaperServer()) return true;
-                    return false;
-                case v1_21_R4:
-                    if (version == v1_21_R4 && isPaperServer()) return true;
-                    if (version == v1_21_R4_spigot && !isPaperServer()) return true;
-                    return false;
-                case v1_21_R3:
-                    if (version == v1_21_R3 && isPaperServer()) return true;
-                    if (version == v1_21_R3_spigot && !isPaperServer()) return true;
-                    return false;
-                case v1_21_R2:
-                    if (version == v1_21_R2 && isPaperServer()) return true;
-                    if (version == v1_21_R2_spigot && !isPaperServer()) return true;
-                    return false;
-                case v1_21_R1:
-                    if (version == v1_21_R1 && isPaperServer()) return true;
-                    if (version == v1_21_R1_spigot && !isPaperServer()) return true;
-                    return false;
-                case v1_20_R4:
-                    if (version == v1_20_R4 && isPaperServer()) return true;
-                    if (version == v1_20_R4_spigot && !isPaperServer()) return true;
-                    return false;
-                default:
-                    // For older versions (1.20.4 and below), reobf works for both
-                    return serverVersion.equals(version);
+            NMSVersion spigotVariant = spigotVariants.get(serverVersion);
+            if (spigotVariant != null) {
+                return isPaperServer() ? version == serverVersion : version == spigotVariant;
             }
+
+            // For older versions (1.20.4 and below), reobf works for both
+            return serverVersion.equals(version);
         }
     }
 
     static {
         IS_PAPER = hasClass("com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent");
         IS_FOLIA = hasClass("io.papermc.paper.threadedregions.RegionizedServer");
+
+        // Map Paper versions to their Spigot variants (for 1.20.5+)
+        spigotVariants.put(NMSVersion.v1_21_R6, NMSVersion.v1_21_R6_spigot);
+        spigotVariants.put(NMSVersion.v1_21_R6_old, NMSVersion.v1_21_R6_old_spigot);
+        spigotVariants.put(NMSVersion.v1_21_R5, NMSVersion.v1_21_R5_spigot);
+        spigotVariants.put(NMSVersion.v1_21_R4, NMSVersion.v1_21_R4_spigot);
+        spigotVariants.put(NMSVersion.v1_21_R3, NMSVersion.v1_21_R3_spigot);
+        spigotVariants.put(NMSVersion.v1_21_R2, NMSVersion.v1_21_R2_spigot);
+        spigotVariants.put(NMSVersion.v1_21_R1, NMSVersion.v1_21_R1_spigot);
+        spigotVariants.put(NMSVersion.v1_20_R4, NMSVersion.v1_20_R4_spigot);
+
         versionMap.put(NMSVersion.v1_21_R6,
                 Map.of(26, new MinecraftVersion("1.21.11")));
         versionMap.put(NMSVersion.v1_21_R6_old,
