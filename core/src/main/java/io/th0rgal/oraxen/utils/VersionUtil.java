@@ -11,37 +11,76 @@ public class VersionUtil {
     private static final boolean IS_FOLIA;
 
     public enum NMSVersion {
-        v1_21_R6,        // Paper 1.21.11 (Mojang-mapped)
-        v1_21_R6_spigot, // Spigot 1.21.11 (Spigot-mapped)
-        v1_21_R6_old,
-        v1_21_R5,
-        v1_21_R4,
-        v1_21_R3,
-        v1_21_R2,
-        v1_21_R1,
-        v1_20_R4,
-        v1_20_R3,
-        v1_20_R2,
-        v1_20_R1,
-        v1_19_R3,
-        v1_19_R2,
-        v1_19_R1,
-        v1_18_R2,
-        v1_18_R1,
+        // Paper 1.20.5+ uses Mojang mappings at runtime, Spigot uses Spigot mappings
+        v1_21_R6,              // Paper 1.21.11 (Mojang-mapped)
+        v1_21_R6_spigot,       // Spigot 1.21.11 (Spigot-mapped)
+        v1_21_R6_old,          // Paper 1.21.9-1.21.10 (Mojang-mapped)
+        v1_21_R6_old_spigot,   // Spigot 1.21.9-1.21.10 (Spigot-mapped)
+        v1_21_R5,              // Paper 1.21.7-1.21.8 (Mojang-mapped)
+        v1_21_R5_spigot,       // Spigot 1.21.7-1.21.8 (Spigot-mapped)
+        v1_21_R4,              // Paper 1.21.5 (Mojang-mapped)
+        v1_21_R4_spigot,       // Spigot 1.21.5 (Spigot-mapped)
+        v1_21_R3,              // Paper 1.21.4 (Mojang-mapped)
+        v1_21_R3_spigot,       // Spigot 1.21.4 (Spigot-mapped)
+        v1_21_R2,              // Paper 1.21.2-1.21.3 (Mojang-mapped)
+        v1_21_R2_spigot,       // Spigot 1.21.2-1.21.3 (Spigot-mapped)
+        v1_21_R1,              // Paper 1.21-1.21.1 (Mojang-mapped)
+        v1_21_R1_spigot,       // Spigot 1.21-1.21.1 (Spigot-mapped)
+        v1_20_R4,              // Paper 1.20.5-1.20.6 (Mojang-mapped)
+        v1_20_R4_spigot,       // Spigot 1.20.5-1.20.6 (Spigot-mapped)
+        v1_20_R3,              // 1.20.3-1.20.4 (reobf still works for both)
+        v1_20_R2,              // 1.20.2
+        v1_20_R1,              // 1.20-1.20.1
+        v1_19_R3,              // 1.19.4
+        v1_19_R2,              // 1.19.3
+        v1_19_R1,              // 1.19-1.19.2
+        v1_18_R2,              // 1.18.2
+        v1_18_R1,              // 1.18-1.18.1
         UNKNOWN;
 
         public static boolean matchesServer(NMSVersion version) {
             if (version == UNKNOWN) return false;
             NMSVersion serverVersion = getNMSVersion(MinecraftVersion.getCurrentVersion());
 
-            // Special handling for 1.21.11: choose between Paper and Spigot variants
-            if (serverVersion == v1_21_R6) {
-                if (version == v1_21_R6 && isPaperServer()) return true;
-                if (version == v1_21_R6_spigot && !isPaperServer()) return true;
-                return false;
+            // For 1.20.5+ (v1_20_R4 and later), choose between Paper and Spigot variants
+            // Paper uses Mojang mappings, Spigot uses Spigot mappings
+            switch (serverVersion) {
+                case v1_21_R6:
+                    if (version == v1_21_R6 && isPaperServer()) return true;
+                    if (version == v1_21_R6_spigot && !isPaperServer()) return true;
+                    return false;
+                case v1_21_R6_old:
+                    if (version == v1_21_R6_old && isPaperServer()) return true;
+                    if (version == v1_21_R6_old_spigot && !isPaperServer()) return true;
+                    return false;
+                case v1_21_R5:
+                    if (version == v1_21_R5 && isPaperServer()) return true;
+                    if (version == v1_21_R5_spigot && !isPaperServer()) return true;
+                    return false;
+                case v1_21_R4:
+                    if (version == v1_21_R4 && isPaperServer()) return true;
+                    if (version == v1_21_R4_spigot && !isPaperServer()) return true;
+                    return false;
+                case v1_21_R3:
+                    if (version == v1_21_R3 && isPaperServer()) return true;
+                    if (version == v1_21_R3_spigot && !isPaperServer()) return true;
+                    return false;
+                case v1_21_R2:
+                    if (version == v1_21_R2 && isPaperServer()) return true;
+                    if (version == v1_21_R2_spigot && !isPaperServer()) return true;
+                    return false;
+                case v1_21_R1:
+                    if (version == v1_21_R1 && isPaperServer()) return true;
+                    if (version == v1_21_R1_spigot && !isPaperServer()) return true;
+                    return false;
+                case v1_20_R4:
+                    if (version == v1_20_R4 && isPaperServer()) return true;
+                    if (version == v1_20_R4_spigot && !isPaperServer()) return true;
+                    return false;
+                default:
+                    // For older versions (1.20.4 and below), reobf works for both
+                    return serverVersion.equals(version);
             }
-
-            return serverVersion.equals(version);
         }
     }
 
