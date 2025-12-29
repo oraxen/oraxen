@@ -108,8 +108,10 @@ public class RecipesManager {
                 case "stonecutting.yml" -> new StonecuttingLoader(recipeSection).registerRecipe();
                 default -> Logs.logError(configFile.getName());
             }
-        } catch (NullPointerException exception) {
+        } catch (Exception exception) {
             Message.BAD_RECIPE.log(AdventureUtils.tagResolver("recipe", recipeSection.getName()));
+            Logs.logError("Failed to load recipe '" + recipeSection.getName() + "': " + exception.getClass().getSimpleName() + ": " + exception.getMessage());
+            Logs.debug(exception);
         }
     }
 }
