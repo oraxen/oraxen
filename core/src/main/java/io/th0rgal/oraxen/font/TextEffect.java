@@ -98,7 +98,7 @@ public class TextEffect {
         TYPEWRITER(5, "typewriter"),
 
         /**
-         * Wobble effect - rotation oscillation.
+         * Wobble effect - circular oscillation.
          */
         WOBBLE(6, "wobble"),
 
@@ -395,7 +395,7 @@ public class TextEffect {
     }
 
     /**
-     * Applies wobble effect - rotation oscillation.
+     * Applies wobble effect - circular oscillation.
      *
      * @param text      The text to animate
      * @param speed     How fast the wobble cycles (1-7)
