@@ -993,18 +993,23 @@ public class ResourcePack {
 
     private String getTextShaderConstants(TextShaderFeatures features) {
         TextEffectEncoding.ShaderEncoding encoding = TextEffect.getEncoding().shaderEncoding();
+        int dataMax = encoding.dataMax();
         return String.format(Locale.ROOT, """
                 const bool ORAXEN_ANIMATED_GLYPHS = %s;
                 const bool ORAXEN_TEXT_EFFECTS = %s;
                 const int ORAXEN_TEXT_LOW_MASK = %d;
-                const int ORAXEN_TEXT_MARKER_BIT = %d;
                 const int ORAXEN_TEXT_DATA_MASK = %d;
+                const int ORAXEN_TEXT_DATA_MIN = %d;
+                const int ORAXEN_TEXT_DATA_MAX = %d;
+                const int ORAXEN_TEXT_DATA_GAP = %d;
                 """,
                 features.animatedGlyphs() ? "true" : "false",
                 features.textEffects() ? "true" : "false",
                 encoding.lowMask(),
-                encoding.markerBit(),
-                encoding.dataMask());
+                encoding.dataMask(),
+                encoding.dataMin(),
+                dataMax,
+                encoding.dataGap());
     }
 
     /**
@@ -1019,7 +1024,7 @@ public class ResourcePack {
      *
      * Color encoding for text effects (alpha_lsb):
      * - Low 4 bits of each channel are reserved
-     * - Bit 3 is a marker, bits 0-2 carry data (0-7)
+     * - Low nibble values between DATA_MIN and DATA_MAX carry data (0-7), skipping DATA_GAP
      * - R -> effectType, G -> speed, B -> param
      * - charIndex is derived from gl_VertexID
      */
@@ -1091,14 +1096,25 @@ public class ResourcePack {
                             int rLow = rInt & ORAXEN_TEXT_LOW_MASK;
                             int gLow = gRaw & ORAXEN_TEXT_LOW_MASK;
                             int bLow = bRaw & ORAXEN_TEXT_LOW_MASK;
-                            bool hasMarker = ((rLow & ORAXEN_TEXT_MARKER_BIT) == ORAXEN_TEXT_MARKER_BIT)
-                                    && ((gLow & ORAXEN_TEXT_MARKER_BIT) == ORAXEN_TEXT_MARKER_BIT)
-                                    && ((bLow & ORAXEN_TEXT_MARKER_BIT) == ORAXEN_TEXT_MARKER_BIT);
+                            bool hasGap = ORAXEN_TEXT_DATA_GAP >= 0;
+                            bool hasMarker = (rLow >= ORAXEN_TEXT_DATA_MIN && rLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || rLow != ORAXEN_TEXT_DATA_GAP))
+                                    && (gLow >= ORAXEN_TEXT_DATA_MIN && gLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || gLow != ORAXEN_TEXT_DATA_GAP))
+                                    && (bLow >= ORAXEN_TEXT_DATA_MIN && bLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || bLow != ORAXEN_TEXT_DATA_GAP));
 
                             if (hasMarker) {
-                                int effectType = rLow & ORAXEN_TEXT_DATA_MASK;
-                                float speed = max(1.0, float(gLow & ORAXEN_TEXT_DATA_MASK));
-                                float param = float(bLow & ORAXEN_TEXT_DATA_MASK);
+                                int effectType = rLow - ORAXEN_TEXT_DATA_MIN;
+                                if (hasGap && rLow > ORAXEN_TEXT_DATA_GAP) {
+                                    effectType -= 1;
+                                }
+                                float speed = float(gLow - ORAXEN_TEXT_DATA_MIN);
+                                if (hasGap && gLow > ORAXEN_TEXT_DATA_GAP) {
+                                    speed -= 1.0;
+                                }
+                                speed = max(1.0, speed);
+                                float param = float(bLow - ORAXEN_TEXT_DATA_MIN);
+                                if (hasGap && bLow > ORAXEN_TEXT_DATA_GAP) {
+                                    param -= 1.0;
+                                }
                                 float charIndex = float((gl_VertexID >> 2) & ORAXEN_TEXT_DATA_MASK);
 
                                 float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
@@ -1205,14 +1221,25 @@ public class ResourcePack {
                         int rLow = rInt & ORAXEN_TEXT_LOW_MASK;
                         int gLow = gRaw & ORAXEN_TEXT_LOW_MASK;
                         int bLow = bRaw & ORAXEN_TEXT_LOW_MASK;
-                        bool hasMarker = ((rLow & ORAXEN_TEXT_MARKER_BIT) == ORAXEN_TEXT_MARKER_BIT)
-                                && ((gLow & ORAXEN_TEXT_MARKER_BIT) == ORAXEN_TEXT_MARKER_BIT)
-                                && ((bLow & ORAXEN_TEXT_MARKER_BIT) == ORAXEN_TEXT_MARKER_BIT);
+                        bool hasGap = ORAXEN_TEXT_DATA_GAP >= 0;
+                        bool hasMarker = (rLow >= ORAXEN_TEXT_DATA_MIN && rLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || rLow != ORAXEN_TEXT_DATA_GAP))
+                                && (gLow >= ORAXEN_TEXT_DATA_MIN && gLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || gLow != ORAXEN_TEXT_DATA_GAP))
+                                && (bLow >= ORAXEN_TEXT_DATA_MIN && bLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || bLow != ORAXEN_TEXT_DATA_GAP));
 
                         if (hasMarker) {
-                            int effectType = rLow & ORAXEN_TEXT_DATA_MASK;
-                            float speed = max(1.0, float(gLow & ORAXEN_TEXT_DATA_MASK));
-                            float param = float(bLow & ORAXEN_TEXT_DATA_MASK);
+                            int effectType = rLow - ORAXEN_TEXT_DATA_MIN;
+                            if (hasGap && rLow > ORAXEN_TEXT_DATA_GAP) {
+                                effectType -= 1;
+                            }
+                            float speed = float(gLow - ORAXEN_TEXT_DATA_MIN);
+                            if (hasGap && gLow > ORAXEN_TEXT_DATA_GAP) {
+                                speed -= 1.0;
+                            }
+                            speed = max(1.0, speed);
+                            float param = float(bLow - ORAXEN_TEXT_DATA_MIN);
+                            if (hasGap && bLow > ORAXEN_TEXT_DATA_GAP) {
+                                param -= 1.0;
+                            }
                             float charIndex = float((gl_VertexID >> 2) & ORAXEN_TEXT_DATA_MASK);
 
                             float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
@@ -1324,14 +1351,25 @@ public class ResourcePack {
                             int rLow = rInt & ORAXEN_TEXT_LOW_MASK;
                             int gLow = gRaw & ORAXEN_TEXT_LOW_MASK;
                             int bLow = bRaw & ORAXEN_TEXT_LOW_MASK;
-                            bool hasMarker = ((rLow & ORAXEN_TEXT_MARKER_BIT) == ORAXEN_TEXT_MARKER_BIT)
-                                    && ((gLow & ORAXEN_TEXT_MARKER_BIT) == ORAXEN_TEXT_MARKER_BIT)
-                                    && ((bLow & ORAXEN_TEXT_MARKER_BIT) == ORAXEN_TEXT_MARKER_BIT);
+                            bool hasGap = ORAXEN_TEXT_DATA_GAP >= 0;
+                            bool hasMarker = (rLow >= ORAXEN_TEXT_DATA_MIN && rLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || rLow != ORAXEN_TEXT_DATA_GAP))
+                                    && (gLow >= ORAXEN_TEXT_DATA_MIN && gLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || gLow != ORAXEN_TEXT_DATA_GAP))
+                                    && (bLow >= ORAXEN_TEXT_DATA_MIN && bLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || bLow != ORAXEN_TEXT_DATA_GAP));
 
                             if (hasMarker) {
-                                int effectType = rLow & ORAXEN_TEXT_DATA_MASK;
-                                float speed = max(1.0, float(gLow & ORAXEN_TEXT_DATA_MASK));
-                                float param = float(bLow & ORAXEN_TEXT_DATA_MASK);
+                                int effectType = rLow - ORAXEN_TEXT_DATA_MIN;
+                                if (hasGap && rLow > ORAXEN_TEXT_DATA_GAP) {
+                                    effectType -= 1;
+                                }
+                                float speed = float(gLow - ORAXEN_TEXT_DATA_MIN);
+                                if (hasGap && gLow > ORAXEN_TEXT_DATA_GAP) {
+                                    speed -= 1.0;
+                                }
+                                speed = max(1.0, speed);
+                                float param = float(bLow - ORAXEN_TEXT_DATA_MIN);
+                                if (hasGap && bLow > ORAXEN_TEXT_DATA_GAP) {
+                                    param -= 1.0;
+                                }
                                 float charIndex = float((gl_VertexID >> 2) & ORAXEN_TEXT_DATA_MASK);
 
                                 float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
@@ -1439,14 +1477,25 @@ public class ResourcePack {
                         int rLow = rInt & ORAXEN_TEXT_LOW_MASK;
                         int gLow = gRaw & ORAXEN_TEXT_LOW_MASK;
                         int bLow = bRaw & ORAXEN_TEXT_LOW_MASK;
-                        bool hasMarker = ((rLow & ORAXEN_TEXT_MARKER_BIT) == ORAXEN_TEXT_MARKER_BIT)
-                                && ((gLow & ORAXEN_TEXT_MARKER_BIT) == ORAXEN_TEXT_MARKER_BIT)
-                                && ((bLow & ORAXEN_TEXT_MARKER_BIT) == ORAXEN_TEXT_MARKER_BIT);
+                        bool hasGap = ORAXEN_TEXT_DATA_GAP >= 0;
+                        bool hasMarker = (rLow >= ORAXEN_TEXT_DATA_MIN && rLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || rLow != ORAXEN_TEXT_DATA_GAP))
+                                && (gLow >= ORAXEN_TEXT_DATA_MIN && gLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || gLow != ORAXEN_TEXT_DATA_GAP))
+                                && (bLow >= ORAXEN_TEXT_DATA_MIN && bLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || bLow != ORAXEN_TEXT_DATA_GAP));
 
                         if (hasMarker) {
-                            int effectType = rLow & ORAXEN_TEXT_DATA_MASK;
-                            float speed = max(1.0, float(gLow & ORAXEN_TEXT_DATA_MASK));
-                            float param = float(bLow & ORAXEN_TEXT_DATA_MASK);
+                            int effectType = rLow - ORAXEN_TEXT_DATA_MIN;
+                            if (hasGap && rLow > ORAXEN_TEXT_DATA_GAP) {
+                                effectType -= 1;
+                            }
+                            float speed = float(gLow - ORAXEN_TEXT_DATA_MIN);
+                            if (hasGap && gLow > ORAXEN_TEXT_DATA_GAP) {
+                                speed -= 1.0;
+                            }
+                            speed = max(1.0, speed);
+                            float param = float(bLow - ORAXEN_TEXT_DATA_MIN);
+                            if (hasGap && bLow > ORAXEN_TEXT_DATA_GAP) {
+                                param -= 1.0;
+                            }
                             float charIndex = float((gl_VertexID >> 2) & ORAXEN_TEXT_DATA_MASK);
 
                             float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
@@ -1919,14 +1968,25 @@ public class ResourcePack {
                         int rLow = rInt & ORAXEN_TEXT_LOW_MASK;
                         int gLow = gRaw & ORAXEN_TEXT_LOW_MASK;
                         int bLow = bRaw & ORAXEN_TEXT_LOW_MASK;
-                        bool hasMarker = ((rLow & ORAXEN_TEXT_MARKER_BIT) == ORAXEN_TEXT_MARKER_BIT)
-                                && ((gLow & ORAXEN_TEXT_MARKER_BIT) == ORAXEN_TEXT_MARKER_BIT)
-                                && ((bLow & ORAXEN_TEXT_MARKER_BIT) == ORAXEN_TEXT_MARKER_BIT);
+                        bool hasGap = ORAXEN_TEXT_DATA_GAP >= 0;
+                        bool hasMarker = (rLow >= ORAXEN_TEXT_DATA_MIN && rLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || rLow != ORAXEN_TEXT_DATA_GAP))
+                                && (gLow >= ORAXEN_TEXT_DATA_MIN && gLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || gLow != ORAXEN_TEXT_DATA_GAP))
+                                && (bLow >= ORAXEN_TEXT_DATA_MIN && bLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || bLow != ORAXEN_TEXT_DATA_GAP));
 
                         if (hasMarker) {
-                            int effectType = rLow & ORAXEN_TEXT_DATA_MASK;
-                            float speed = max(1.0, float(gLow & ORAXEN_TEXT_DATA_MASK));
-                            float param = float(bLow & ORAXEN_TEXT_DATA_MASK);
+                            int effectType = rLow - ORAXEN_TEXT_DATA_MIN;
+                            if (hasGap && rLow > ORAXEN_TEXT_DATA_GAP) {
+                                effectType -= 1;
+                            }
+                            float speed = float(gLow - ORAXEN_TEXT_DATA_MIN);
+                            if (hasGap && gLow > ORAXEN_TEXT_DATA_GAP) {
+                                speed -= 1.0;
+                            }
+                            speed = max(1.0, speed);
+                            float param = float(bLow - ORAXEN_TEXT_DATA_MIN);
+                            if (hasGap && bLow > ORAXEN_TEXT_DATA_GAP) {
+                                param -= 1.0;
+                            }
                             float charIndex = float((gl_VertexID >> 2) & ORAXEN_TEXT_DATA_MASK);
 
                             float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
@@ -2049,14 +2109,25 @@ public class ResourcePack {
                         int rLow = rInt & ORAXEN_TEXT_LOW_MASK;
                         int gLow = gRaw & ORAXEN_TEXT_LOW_MASK;
                         int bLow = bRaw & ORAXEN_TEXT_LOW_MASK;
-                        bool hasMarker = ((rLow & ORAXEN_TEXT_MARKER_BIT) == ORAXEN_TEXT_MARKER_BIT)
-                                && ((gLow & ORAXEN_TEXT_MARKER_BIT) == ORAXEN_TEXT_MARKER_BIT)
-                                && ((bLow & ORAXEN_TEXT_MARKER_BIT) == ORAXEN_TEXT_MARKER_BIT);
+                        bool hasGap = ORAXEN_TEXT_DATA_GAP >= 0;
+                        bool hasMarker = (rLow >= ORAXEN_TEXT_DATA_MIN && rLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || rLow != ORAXEN_TEXT_DATA_GAP))
+                                && (gLow >= ORAXEN_TEXT_DATA_MIN && gLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || gLow != ORAXEN_TEXT_DATA_GAP))
+                                && (bLow >= ORAXEN_TEXT_DATA_MIN && bLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || bLow != ORAXEN_TEXT_DATA_GAP));
 
                         if (hasMarker) {
-                            int effectType = rLow & ORAXEN_TEXT_DATA_MASK;
-                            float speed = max(1.0, float(gLow & ORAXEN_TEXT_DATA_MASK));
-                            float param = float(bLow & ORAXEN_TEXT_DATA_MASK);
+                            int effectType = rLow - ORAXEN_TEXT_DATA_MIN;
+                            if (hasGap && rLow > ORAXEN_TEXT_DATA_GAP) {
+                                effectType -= 1;
+                            }
+                            float speed = float(gLow - ORAXEN_TEXT_DATA_MIN);
+                            if (hasGap && gLow > ORAXEN_TEXT_DATA_GAP) {
+                                speed -= 1.0;
+                            }
+                            speed = max(1.0, speed);
+                            float param = float(bLow - ORAXEN_TEXT_DATA_MIN);
+                            if (hasGap && bLow > ORAXEN_TEXT_DATA_GAP) {
+                                param -= 1.0;
+                            }
                             float charIndex = float((gl_VertexID >> 2) & ORAXEN_TEXT_DATA_MASK);
 
                             float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);

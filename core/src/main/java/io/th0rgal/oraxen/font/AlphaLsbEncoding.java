@@ -8,8 +8,7 @@ import org.jetbrains.annotations.Nullable;
  * Encodes text effects into the lowest 4 bits of each RGB channel.
  * <p>
  * Layout (low 4 bits per channel):
- * - bit 3: marker (1)
- * - bits 0-2: data (0-7)
+ * - values {@code DATA_MIN..DATA_MAX} carry data (0-7), skipping {@code DATA_GAP}
  * <p>
  * R low bits: effect type
  * G low bits: speed
@@ -25,11 +24,13 @@ public final class AlphaLsbEncoding implements TextEffectEncoding {
 
     public static final int LSB_BITS = 4;
     public static final int LOW_MASK = (1 << LSB_BITS) - 1; // 0x0F
-    public static final int MARKER_BIT = 1 << (LSB_BITS - 1); // 0x08
-    public static final int DATA_MASK = MARKER_BIT - 1; // 0x07
+    public static final int DATA_MASK = (1 << (LSB_BITS - 1)) - 1; // 0x07
+    public static final int DATA_MIN = 1;
+    public static final int DATA_GAP = 5;
+    public static final int DATA_MAX = computeDataMax();
 
     private static final ShaderEncoding SHADER_ENCODING =
-            new ShaderEncoding(LSB_BITS, MARKER_BIT, DATA_MASK, LOW_MASK, true);
+            new ShaderEncoding(LSB_BITS, DATA_MASK, LOW_MASK, DATA_MIN, DATA_GAP, true);
 
     @Override
     public String getName() {
@@ -66,9 +67,7 @@ public final class AlphaLsbEncoding implements TextEffectEncoding {
         int gLow = g & LOW_MASK;
         int bLow = b & LOW_MASK;
 
-        return (rLow & MARKER_BIT) == MARKER_BIT
-                && (gLow & MARKER_BIT) == MARKER_BIT
-                && (bLow & MARKER_BIT) == MARKER_BIT;
+        return isEncodedNibble(rLow) && isEncodedNibble(gLow) && isEncodedNibble(bLow);
     }
 
     @Override
@@ -87,9 +86,9 @@ public final class AlphaLsbEncoding implements TextEffectEncoding {
         int gLow = g & LOW_MASK;
         int bLow = b & LOW_MASK;
 
-        int effectType = rLow & DATA_MASK;
-        int speed = clamp(gLow & DATA_MASK, 1, DATA_MASK);
-        int param = bLow & DATA_MASK;
+        int effectType = decodeNibble(rLow);
+        int speed = clamp(decodeNibble(gLow), 1, DATA_MASK);
+        int param = decodeNibble(bLow);
 
         // Char index is derived in the shader (gl_VertexID).
         return new Decoded(effectType, speed, 0, param);
@@ -101,7 +100,7 @@ public final class AlphaLsbEncoding implements TextEffectEncoding {
     }
 
     private static int encodeChannel(int base, int data) {
-        return (base & ~LOW_MASK) | (MARKER_BIT | (data & DATA_MASK));
+        return (base & ~LOW_MASK) | encodeNibble(data);
     }
 
     private static int avoidAnimationSentinels(int red) {
@@ -109,6 +108,37 @@ public final class AlphaLsbEncoding implements TextEffectEncoding {
         if (red == 254) return red - 16;
         if (red >= 62 && red <= 64) return red + 16;
         return red;
+    }
+
+    private static boolean isEncodedNibble(int low) {
+        if (low < DATA_MIN || low > DATA_MAX) {
+            return false;
+        }
+        return DATA_GAP < 0 || low != DATA_GAP;
+    }
+
+    private static int encodeNibble(int data) {
+        int encoded = (data & DATA_MASK) + DATA_MIN;
+        if (DATA_GAP >= 0 && encoded >= DATA_GAP) {
+            encoded += 1;
+        }
+        return encoded;
+    }
+
+    private static int decodeNibble(int low) {
+        int decoded = low - DATA_MIN;
+        if (DATA_GAP >= 0 && low > DATA_GAP) {
+            decoded -= 1;
+        }
+        return decoded;
+    }
+
+    private static int computeDataMax() {
+        int max = DATA_MIN + DATA_MASK;
+        if (DATA_GAP >= DATA_MIN && DATA_GAP <= max) {
+            max += 1;
+        }
+        return max;
     }
 
     private static int clamp(int value, int min, int max) {

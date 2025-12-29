@@ -24,7 +24,9 @@ import java.util.Map;
  * Default encoding (alpha_lsb):
  * <ul>
  *   <li>Low 4 bits of each channel are reserved</li>
- *   <li>Bit 3 is a marker, bits 0-2 carry data (0-7)</li>
+ *   <li>Low nibble values between {@link AlphaLsbEncoding#DATA_MIN} and
+ *       {@link AlphaLsbEncoding#DATA_MAX} carry data (0-7), skipping
+ *       {@link AlphaLsbEncoding#DATA_GAP}</li>
  *   <li>R -> effectType, G -> speed, B -> param</li>
  *   <li>Character index is derived in the shader from {@code gl_VertexID}</li>
  * </ul>

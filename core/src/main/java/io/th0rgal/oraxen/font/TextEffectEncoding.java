@@ -51,11 +51,23 @@ public interface TextEffectEncoding {
      * Shader-side constants for decoding.
      *
      * @param lsbBits Number of low bits reserved for encoding
-     * @param markerBit Bit value used as marker inside the low bits
      * @param dataMask Mask for data bits inside the low bits
      * @param lowMask Mask for low bits
+     * @param dataMin Lowest allowed encoded low-nibble value
+     * @param dataGap Optional gap value to skip (set to -1 for none)
      * @param charIndexFromVertexId Whether shader should derive char index from gl_VertexID
      */
-    record ShaderEncoding(int lsbBits, int markerBit, int dataMask, int lowMask, boolean charIndexFromVertexId) {
+    record ShaderEncoding(int lsbBits, int dataMask, int lowMask, int dataMin, int dataGap, boolean charIndexFromVertexId) {
+        public int dataMax() {
+            int max = dataMin + dataMask;
+            if (dataGap >= dataMin && dataGap <= max) {
+                max += 1;
+            }
+            return max;
+        }
+
+        public boolean hasGap() {
+            return dataGap >= 0;
+        }
     }
 }
