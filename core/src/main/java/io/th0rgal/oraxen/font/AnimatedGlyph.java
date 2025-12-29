@@ -82,6 +82,11 @@ public class AnimatedGlyph {
     public static final int MAX_FPS = 127;
 
     /**
+     * Maximum number of frames supported by the shader encoding (4 bits).
+     */
+    public static final int MAX_FRAMES = 16;
+
+    /**
      * Starting codepoint for animated glyph characters.
      * Uses BMP Private Use Area (U+E000 to U+F7FF) to avoid encoding issues.
      */
@@ -118,9 +123,14 @@ public class AnimatedGlyph {
     private final List<Integer> frameCodepoints;
 
     /**
+     * Codepoint used for the reset spacer (negative advance between frames).
+     * Allocated during construction to avoid collisions after codepoint counter reset.
+     */
+    private int resetCodepoint = -1;
+
+    /**
      * Codepoint used for offset space provider (if offset != 0).
-     * Allocated during construction to avoid collisions after codepoint counter
-     * reset.
+     * Allocated during construction or when auto-offset is computed.
      */
     private int offsetCodepoint = -1;
 
@@ -158,14 +168,16 @@ public class AnimatedGlyph {
             throw new IllegalArgumentException("Animated glyph '" + glyphName + "' missing 'animation' section");
         }
 
-        this.frameCount = animSection.getInt("frames", -1);
+        int configuredFrameCount = animSection.getInt("frames", -1);
+        this.frameCount = configuredFrameCount;
         if (frameCount <= 0) {
             throw new IllegalArgumentException(
                     "Animated glyph '" + glyphName + "' must specify 'animation.frames' > 0");
         }
-        if (frameCount > 16) {
+        if (frameCount > MAX_FRAMES) {
             Logs.logWarning("Animated glyph '" + glyphName + "' has " + frameCount +
-                    " frames, but only 16 are supported. Animation will not work correctly.");
+                    " frames, but only " + MAX_FRAMES + " are supported. Extra frames will be ignored.");
+            this.frameCount = MAX_FRAMES;
         }
 
         this.fps = Math.max(MIN_FPS, Math.min(MAX_FPS, animSection.getInt("fps", DEFAULT_FPS)));
@@ -244,9 +256,13 @@ public class AnimatedGlyph {
             frameCodepoints.add(nextCodepoint++);
         }
 
-        // Always allocate offset codepoint for the spacer character
-        // This is needed to move the cursor after all frames render
+        // Always allocate reset codepoint for the spacer character between frames.
         if (nextCodepoint <= MAX_CODEPOINT) {
+            resetCodepoint = nextCodepoint++;
+        }
+
+        // Allocate offset codepoint if a custom offset was configured.
+        if (offset != 0 && offsetCodepoint < 0 && nextCodepoint <= MAX_CODEPOINT) {
             offsetCodepoint = nextCodepoint++;
         }
     }
@@ -456,10 +472,15 @@ public class AnimatedGlyph {
         space.addProperty("type", "space");
         JsonObject advances = new JsonObject();
 
-        // The offset codepoint has NEGATIVE advance to reset cursor after each frame
+        // The reset codepoint has NEGATIVE advance to reset cursor after each frame
         // -height because frame width = height for square glyphs (from horizontal strip)
-        if (offsetCodepoint >= 0) {
-            advances.addProperty(Character.toString(offsetCodepoint), -height);
+        if (resetCodepoint >= 0) {
+            advances.addProperty(Character.toString(resetCodepoint), -height);
+        }
+
+        int effectiveOffset = getOffset();
+        if (effectiveOffset != 0 && offsetCodepoint >= 0) {
+            advances.addProperty(Character.toString(offsetCodepoint), effectiveOffset);
         }
 
         space.add("advances", advances);
@@ -490,7 +511,8 @@ public class AnimatedGlyph {
         // The reset character has negative advance = -height, moving cursor back
         // After last frame, cursor is at position = height (frame width)
         Component result = Component.empty();
-        String resetChar = offsetCodepoint >= 0 ? Character.toString(offsetCodepoint) : "";
+        String resetChar = resetCodepoint >= 0 ? Character.toString(resetCodepoint) : "";
+        String offsetChar = offsetCodepoint >= 0 ? Character.toString(offsetCodepoint) : "";
 
         for (int i = 0; i < actualFrames; i++) {
             // Add frame character with magic color
@@ -501,11 +523,18 @@ public class AnimatedGlyph {
 
             // Add reset character after each frame except the last
             // This moves cursor back so next frame renders at same position
-            if (i < actualFrames - 1 && offsetCodepoint >= 0) {
+            if (i < actualFrames - 1 && resetCodepoint >= 0) {
                 result = result.append(
                         Component.text(resetChar)
                                 .font(getAnimationFont()));
             }
+        }
+
+        int effectiveOffset = getOffset();
+        if (effectiveOffset != 0 && offsetCodepoint >= 0) {
+            result = result.append(
+                    Component.text(offsetChar)
+                            .font(getAnimationFont()));
         }
 
         return result;
