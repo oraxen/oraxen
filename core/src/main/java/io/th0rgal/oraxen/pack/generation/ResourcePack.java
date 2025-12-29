@@ -954,7 +954,6 @@ public class ResourcePack {
     private String getAnimationVertexShader(String version, boolean seeThrough) {
         boolean is1_21_6Plus = version.compareTo("1.21.6") >= 0;
         boolean is1_21_4Plus = version.compareTo("1.21.4") >= 0;
-        boolean textEffectsEnabled = Settings.TEXT_EFFECTS_ENABLED.toBool();
 
         if (is1_21_6Plus) {
             if (seeThrough) {
@@ -1010,15 +1009,16 @@ public class ResourcePack {
                             }
                         }
 
-                        // Text effects: R=253 for primary, R≈63 for shadow (253/4)
+                        // Text effects: R=253 for primary
+                        // Note: Text effect shadows (R≈63 from 253/4) share the same range as animation shadows
+                        // and are handled by the animation shadow path above (hidden). Only process primary colors.
                         bool isPrimaryEffect = (rInt == 253);
-                        bool isShadowEffect = (rInt >= 62 && rInt <= 64 && !isShadowAnim);
 
-                        if (isPrimaryEffect || isShadowEffect) {
+                        if (isPrimaryEffect) {
                             int gRaw = int(Color.g * 255.0 + 0.5);
                             int bRaw = int(Color.b * 255.0 + 0.5);
-                            int gInt = isPrimaryEffect ? gRaw : min(255, gRaw * 4);
-                            int bInt = isPrimaryEffect ? bRaw : min(255, bRaw * 4);
+                            int gInt = gRaw;
+                            int bInt = bRaw;
 
                             int effectType = gInt & 0x0F;
                             float speed = max(1.0, float((gInt >> 4) & 0x0F));
@@ -1113,15 +1113,16 @@ public class ResourcePack {
                         }
                     }
 
-                    // Text effects: R=253 for primary, R≈63 for shadow (253/4)
+                    // Text effects: R=253 for primary
+                    // Note: Text effect shadows (R≈63 from 253/4) share the same range as animation shadows
+                    // and are handled by the animation shadow path above (hidden). Only process primary colors.
                     bool isPrimaryEffect = (rInt == 253);
-                    bool isShadowEffect = (rInt >= 62 && rInt <= 64 && !isShadowAnim);
 
-                    if (isPrimaryEffect || isShadowEffect) {
+                    if (isPrimaryEffect) {
                         int gRaw = int(Color.g * 255.0 + 0.5);
                         int bRaw = int(Color.b * 255.0 + 0.5);
-                        int gInt = isPrimaryEffect ? gRaw : min(255, gRaw * 4);
-                        int bInt = isPrimaryEffect ? bRaw : min(255, bRaw * 4);
+                        int gInt = gRaw;
+                        int bInt = bRaw;
 
                         int effectType = gInt & 0x0F;
                         float speed = max(1.0, float((gInt >> 4) & 0x0F));
@@ -1219,15 +1220,16 @@ public class ResourcePack {
                         }
                     }
 
-                    // Text effects: R=253 for primary, R≈63 for shadow (253/4)
+                    // Text effects: R=253 for primary
+                    // Note: Text effect shadows (R≈63 from 253/4) share the same range as animation shadows
+                    // and are handled by the animation shadow path above (hidden). Only process primary colors.
                     bool isPrimaryEffect = (rInt == 253);
-                    bool isShadowEffect = (rInt >= 62 && rInt <= 64 && !isShadowAnim);
 
-                    if (isPrimaryEffect || isShadowEffect) {
+                    if (isPrimaryEffect) {
                         int gRaw = int(Color.g * 255.0 + 0.5);
                         int bRaw = int(Color.b * 255.0 + 0.5);
-                        int gInt = isPrimaryEffect ? gRaw : min(255, gRaw * 4);
-                        int bInt = isPrimaryEffect ? bRaw : min(255, bRaw * 4);
+                        int gInt = gRaw;
+                        int bInt = bRaw;
 
                         int effectType = gInt & 0x0F;
                         float speed = max(1.0, float((gInt >> 4) & 0x0F));
