@@ -31,6 +31,8 @@ import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 
 import javax.imageio.ImageIO;
+import java.awt.AlphaComposite;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -767,25 +769,72 @@ public class ResourcePack {
             }
 
             int frameCount = animGlyph.getFrameCount();
+            int imageWidth = image.getWidth();
+            int imageHeight = image.getHeight();
+            boolean widthDiv = imageWidth % frameCount == 0;
+            boolean heightDiv = imageHeight % frameCount == 0;
 
-            // Validate height is divisible by frame count
-            if (image.getHeight() % frameCount != 0) {
-                Logs.logWarning("Sprite sheet height (" + image.getHeight() +
-                        ") is not evenly divisible by frame count (" + frameCount +
-                        ") for: " + animGlyph.getName());
+            boolean vertical = heightDiv && (!widthDiv || imageHeight >= imageWidth);
+            boolean horizontal = widthDiv && (!heightDiv || imageWidth > imageHeight);
+
+            if (!heightDiv && !widthDiv) {
+                Logs.logWarning("Sprite sheet dimensions (" + imageWidth + "x" + imageHeight +
+                        ") are not divisible by frame count (" + frameCount + ") for: " + animGlyph.getName());
+            }
+
+            BufferedImage sheetImage = image;
+            boolean generatedStrip = false;
+
+            if (vertical && heightDiv) {
+                int frameHeight = imageHeight / frameCount;
+                int frameWidth = imageWidth;
+                if (frameHeight <= 0) {
+                    Logs.logWarning("Invalid frame height for animated glyph '" + animGlyph.getName() + "'");
+                    return;
+                }
+
+                BufferedImage horizontalStrip = new BufferedImage(frameWidth * frameCount, frameHeight,
+                        BufferedImage.TYPE_INT_ARGB);
+                Graphics2D graphics = horizontalStrip.createGraphics();
+                graphics.setComposite(AlphaComposite.Src);
+                for (int i = 0; i < frameCount; i++) {
+                    BufferedImage frame = image.getSubimage(0, i * frameHeight, frameWidth, frameHeight);
+                    graphics.drawImage(frame, i * frameWidth, 0, null);
+                }
+                graphics.dispose();
+
+                sheetImage = horizontalStrip;
+                generatedStrip = true;
+            } else if (!horizontal) {
+                Logs.logWarning("Unable to determine sprite sheet orientation for: " + animGlyph.getName());
             }
 
             // Determine sprite sheet path for font reference
             String texturePath = animGlyph.getTexturePath();
-            // Convert texture path to namespaced format for font reference
-            String spriteSheetPath;
+            String namespace = "minecraft";
+            String relativePath = texturePath;
             if (texturePath.contains(":")) {
-                spriteSheetPath = texturePath;
-            } else {
-                spriteSheetPath = "minecraft:" + texturePath;
+                String[] split = texturePath.split(":", 2);
+                namespace = split[0];
+                relativePath = split[1];
             }
-            if (!spriteSheetPath.endsWith(".png")) {
-                spriteSheetPath += ".png";
+            if (relativePath.endsWith(".png")) {
+                relativePath = relativePath.substring(0, relativePath.length() - 4);
+            }
+
+            String finalPath = generatedStrip ? relativePath + "_strip" : relativePath;
+            String spriteSheetPath = namespace + ":" + finalPath + ".png";
+
+            if (generatedStrip) {
+                String filePath = finalPath + ".png";
+                int lastSlash = filePath.lastIndexOf('/');
+                String folder = "assets/" + namespace + "/textures";
+                String name = filePath;
+                if (lastSlash >= 0) {
+                    folder = folder + "/" + filePath.substring(0, lastSlash);
+                    name = filePath.substring(lastSlash + 1);
+                }
+                writeImageToVirtual(folder, name, sheetImage);
             }
 
             // Mark as processed
@@ -813,20 +862,39 @@ public class ResourcePack {
         // Determine shader version based on pack format / server version
         String shaderVersion = getShaderVersion();
 
-        // Generate vertex shader
-        String vshContent = getAnimationVertexShader(shaderVersion);
-        String fshContent = getAnimationFragmentShader(shaderVersion);
-        String jsonContent = getAnimationShaderJson(shaderVersion);
+        // Generate shaders (see-through uses a different vertex format on 1.21.6+)
+        String vshContent = getAnimationVertexShader(shaderVersion, false);
+        String fshContent = getAnimationFragmentShader(shaderVersion, false);
+        String jsonContent = getAnimationShaderJson(shaderVersion, false);
+
+        String vshSeeThrough = getAnimationVertexShader(shaderVersion, true);
+        String fshSeeThrough = getAnimationFragmentShader(shaderVersion, true);
+        String jsonSeeThrough = getAnimationShaderJson(shaderVersion, true);
+
+        String vshIntensity = getAnimationVertexShader(shaderVersion, false);
+        String fshIntensity = getAnimationFragmentShader(shaderVersion, false, true);
+        String jsonIntensity = getAnimationShaderJson(shaderVersion, "rendertype_text_intensity", false);
+
+        String vshIntensitySeeThrough = getAnimationVertexShader(shaderVersion, true);
+        String fshIntensitySeeThrough = getAnimationFragmentShader(shaderVersion, true, true);
+        String jsonIntensitySeeThrough = getAnimationShaderJson(shaderVersion, "rendertype_text_intensity_see_through", true);
 
         // Write shaders for both rendertype_text and rendertype_text_see_through
         writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_text.vsh", vshContent);
         writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_text.fsh", fshContent);
         writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_text.json", jsonContent);
 
-        writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_text_see_through.vsh", vshContent);
-        writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_text_see_through.fsh", fshContent);
-        writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_text_see_through.json",
-                jsonContent.replace("rendertype_text", "rendertype_text_see_through"));
+        writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_text_see_through.vsh", vshSeeThrough);
+        writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_text_see_through.fsh", fshSeeThrough);
+        writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_text_see_through.json", jsonSeeThrough);
+
+        writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_text_intensity.vsh", vshIntensity);
+        writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_text_intensity.fsh", fshIntensity);
+        writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_text_intensity.json", jsonIntensity);
+
+        writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_text_intensity_see_through.vsh", vshIntensitySeeThrough);
+        writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_text_intensity_see_through.fsh", fshIntensitySeeThrough);
+        writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_text_intensity_see_through.json", jsonIntensitySeeThrough);
 
         Logs.logSuccess("Generated animation shaders for version: " + shaderVersion);
     }
@@ -852,20 +920,138 @@ public class ResourcePack {
      * - Bit 7: loop flag (0=loop, 1=no-loop)
      * - Bits 0-6: FPS (1-127)
      */
-    private String getAnimationVertexShader(String version) {
-        String fogImport = version.compareTo("1.21.4") >= 0
-                ? "#moj_import <minecraft:fog.glsl>"
-                : "#moj_import <fog.glsl>";
+    /**
+     * Generates animation vertex shader using visibility-based animation.
+     * Each frame is a separate character; the shader hides frames that don't match current time.
+     *
+     * Color encoding:
+     * - R = 254: animation marker
+     * - G bits 0-6: FPS, bit 7: loop flag
+     * - B bits 0-3: frame index, bits 4-7: total frames - 1
+     */
+    private String getAnimationVertexShader(String version, boolean seeThrough) {
+        boolean is1_21_6Plus = version.compareTo("1.21.6") >= 0;
+        boolean is1_21_4Plus = version.compareTo("1.21.4") >= 0;
 
-        String fogDistance = version.compareTo("1.21.6") >= 0
-                ? "vertexDistance = fog_distance(Position, FogShape);\n    cylindricalVertexDistance = cylindrical_distance(Position);"
-                : "vertexDistance = fog_distance(Position, FogShape);";
+        if (is1_21_6Plus) {
+            if (seeThrough) {
+                return """
+                    #version 330
 
-        String distanceOutputs = version.compareTo("1.21.6") >= 0
-                ? "out float vertexDistance;\nout float cylindricalVertexDistance;"
-                : "out float vertexDistance;";
+                    #moj_import <minecraft:dynamictransforms.glsl>
+                    #moj_import <minecraft:projection.glsl>
+                    #moj_import <minecraft:globals.glsl>
 
-        return """
+                    in vec3 Position;
+                    in vec4 Color;
+                    in vec2 UV0;
+
+                    out vec4 vertexColor;
+                    out vec2 texCoord0;
+
+                    void main() {
+                        gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
+                        texCoord0 = UV0;
+                        vertexColor = Color;
+
+                        // Check for animation color: R=254 for primary, R≈63 for shadow
+                        int rInt = int(Color.r * 255.0 + 0.5);
+                        bool isPrimaryAnim = (rInt == 254);
+                        bool isShadowAnim = (rInt >= 62 && rInt <= 64);
+
+                        if (isPrimaryAnim || isShadowAnim) {
+                            int gRaw = int(Color.g * 255.0 + 0.5);
+                            int bRaw = int(Color.b * 255.0 + 0.5);
+                            int gInt = isPrimaryAnim ? gRaw : min(255, gRaw * 4);
+                            int bInt = isPrimaryAnim ? bRaw : min(255, bRaw * 4);
+
+                            bool loop = (gInt < 128);
+                            float fps = max(1.0, float(gInt & 0x7F));
+                            int frameIndex = bInt & 0x0F;
+                            int totalFrames = ((bInt >> 4) & 0x0F) + 1;
+
+                            float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
+                            int rawFrame = int(floor(timeSeconds * fps));
+                            int currentFrame = loop ? (rawFrame % totalFrames) : min(rawFrame, totalFrames - 1);
+
+                            // Hide this frame if it's not the current one
+                            // Shadows always hidden - color precision loss makes all shadows decode to same frameIndex
+                            float visible = (frameIndex == currentFrame && isPrimaryAnim) ? 1.0 : 0.0;
+
+                            if (isPrimaryAnim) {
+                                vertexColor = vec4(1.0, 1.0, 1.0, visible);
+                            } else {
+                                vertexColor = vec4(0.0);
+                            }
+                        }
+                    }
+                    """;
+            }
+
+            return """
+                #version 330
+
+                #moj_import <minecraft:fog.glsl>
+                #moj_import <minecraft:dynamictransforms.glsl>
+                #moj_import <minecraft:projection.glsl>
+                #moj_import <minecraft:globals.glsl>
+
+                in vec3 Position;
+                in vec4 Color;
+                in vec2 UV0;
+                in ivec2 UV2;
+
+                uniform sampler2D Sampler2;
+
+                out float sphericalVertexDistance;
+                out float cylindricalVertexDistance;
+                out vec4 vertexColor;
+                out vec2 texCoord0;
+
+                void main() {
+                    gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
+                    sphericalVertexDistance = fog_spherical_distance(Position);
+                    cylindricalVertexDistance = fog_cylindrical_distance(Position);
+                    texCoord0 = UV0;
+                    vertexColor = Color * texelFetch(Sampler2, UV2 / 16, 0);
+
+                    // Check for animation color: R=254 for primary, R≈63 for shadow
+                    int rInt = int(Color.r * 255.0 + 0.5);
+                    bool isPrimaryAnim = (rInt == 254);
+                    bool isShadowAnim = (rInt >= 62 && rInt <= 64);
+
+                    if (isPrimaryAnim || isShadowAnim) {
+                        int gRaw = int(Color.g * 255.0 + 0.5);
+                        int bRaw = int(Color.b * 255.0 + 0.5);
+                        int gInt = isPrimaryAnim ? gRaw : min(255, gRaw * 4);
+                        int bInt = isPrimaryAnim ? bRaw : min(255, bRaw * 4);
+
+                        bool loop = (gInt < 128);
+                        float fps = max(1.0, float(gInt & 0x7F));
+                        int frameIndex = bInt & 0x0F;
+                        int totalFrames = ((bInt >> 4) & 0x0F) + 1;
+
+                        float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
+                        int rawFrame = int(floor(timeSeconds * fps));
+                        int currentFrame = loop ? (rawFrame % totalFrames) : min(rawFrame, totalFrames - 1);
+
+                        // Hide this frame if it's not the current one
+                        // Shadows always hidden - color precision loss makes all shadows decode to same frameIndex
+                        float visible = (frameIndex == currentFrame && isPrimaryAnim) ? 1.0 : 0.0;
+
+                        if (isPrimaryAnim) {
+                            vertexColor = vec4(1.0, 1.0, 1.0, visible) * texelFetch(Sampler2, UV2 / 16, 0);
+                        } else {
+                            vertexColor = vec4(0.0);
+                        }
+                    }
+                }
+                """;
+        } else {
+            // Pre-1.21.6: use traditional uniform declarations
+            String imports = is1_21_4Plus ? "#moj_import <minecraft:fog.glsl>" : "#moj_import <fog.glsl>";
+
+            return """
                 #version 150
 
                 %s
@@ -879,82 +1065,117 @@ public class ResourcePack {
                 uniform mat4 ModelViewMat;
                 uniform mat4 ProjMat;
                 uniform int FogShape;
+                uniform float GameTime;
 
-                %s
+                out float vertexDistance;
                 out vec4 vertexColor;
                 out vec2 texCoord0;
-                out float isAnimated;
-                out float animFps;
-                out float frameCount;
-                out float animLoop;
-
-                // Animation magic color detection
-                // Format: R=0xFF (marker), G=loop flag (bit 7) + FPS (bits 0-6), B=frame count
-                const float MAGIC_RED = 1.0;
-                const float SHADOW_RED = 0.25;  // Minecraft shadows = color / 4
-                const float EPSILON = 0.02;     // ~5/255 for float comparison
 
                 void main() {
                     gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
-                    %s
-                    vertexColor = Color * texelFetch(Sampler2, UV2 / 16, 0);
+                    vertexDistance = fog_distance(Position, FogShape);
                     texCoord0 = UV0;
+                    vertexColor = Color * texelFetch(Sampler2, UV2 / 16, 0);
 
-                    // Default: not animated, looping enabled
-                    isAnimated = 0.0;
-                    animFps = 10.0;
-                    frameCount = 1.0;
-                    animLoop = 1.0;
+                    // Check for animation color: R=254 for primary, R≈63 for shadow
+                    int rInt = int(Color.r * 255.0 + 0.5);
+                    bool isPrimaryAnim = (rInt == 254);
+                    bool isShadowAnim = (rInt >= 62 && rInt <= 64);
 
-                    float r = Color.r;
-                    float g = Color.g;
-                    float b = Color.b;
+                    if (isPrimaryAnim || isShadowAnim) {
+                        int gRaw = int(Color.g * 255.0 + 0.5);
+                        int bRaw = int(Color.b * 255.0 + 0.5);
+                        int gInt = isPrimaryAnim ? gRaw : min(255, gRaw * 4);
+                        int bInt = isPrimaryAnim ? bRaw : min(255, bRaw * 4);
 
-                    // Check for primary animation color: R=0xFF (1.0)
-                    if (abs(r - MAGIC_RED) < EPSILON && g > 0.003) {
-                        isAnimated = 1.0;
-                        // Green channel: bit 7 = loop flag (0=loop, 0x80=no-loop), bits 0-6 = FPS
-                        int gInt = int(g * 255.0 + 0.5);
-                        animLoop = (gInt >= 128) ? 0.0 : 1.0;  // Bit 7 set means NOT looping
-                        animFps = float(gInt & 0x7F);  // FPS in lower 7 bits
-                        frameCount = max(1.0, b * 255.0);
-                    }
-                    // Check for shadow variant: R≈0x3F (0.25), values divided by 4
-                    else if (abs(r - SHADOW_RED) < EPSILON && g > 0.001) {
-                        isAnimated = 1.0;
-                        // Multiply by 4 to recover original values
-                        int gRecovered = int(min(255.0, g * 255.0 * 4.0) + 0.5);
-                        animLoop = (gRecovered >= 128) ? 0.0 : 1.0;
-                        animFps = float(gRecovered & 0x7F);
-                        frameCount = max(1.0, min(255.0, b * 255.0 * 4.0));
+                        bool loop = (gInt < 128);
+                        float fps = max(1.0, float(gInt & 0x7F));
+                        int frameIndex = bInt & 0x0F;
+                        int totalFrames = ((bInt >> 4) & 0x0F) + 1;
+
+                        float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
+                        int rawFrame = int(floor(timeSeconds * fps));
+                        int currentFrame = loop ? int(mod(float(rawFrame), float(totalFrames))) : min(rawFrame, totalFrames - 1);
+
+                        // Hide this frame if it's not the current one
+                        // Shadows always hidden - color precision loss makes all shadows decode to same frameIndex
+                        float visible = (frameIndex == currentFrame && isPrimaryAnim) ? 1.0 : 0.0;
+
+                        if (isPrimaryAnim) {
+                            vertexColor = vec4(1.0, 1.0, 1.0, visible) * texelFetch(Sampler2, UV2 / 16, 0);
+                        } else {
+                            vertexColor = vec4(0.0);
+                        }
                     }
                 }
-                """.formatted(fogImport, distanceOutputs, fogDistance);
+                """.formatted(imports);
+        }
     }
 
     /**
-     * Generates the animation fragment shader with loop support.
-     * Non-looping animations play once then stay on the last frame.
+     * Generates a simple fragment shader - visibility is handled in vertex shader.
      */
-    private String getAnimationFragmentShader(String version) {
-        String fogImport = version.compareTo("1.21.4") >= 0
-                ? "#moj_import <minecraft:fog.glsl>"
-                : "#moj_import <fog.glsl>";
+    private String getAnimationFragmentShader(String version, boolean seeThrough) {
+        return getAnimationFragmentShader(version, seeThrough, false);
+    }
 
-        String fogFunction = version.compareTo("1.21.6") >= 0
-                ? "apply_fog"
-                : "linear_fog";
+    private String getAnimationFragmentShader(String version, boolean seeThrough, boolean intensity) {
+        boolean is1_21_6Plus = version.compareTo("1.21.6") >= 0;
+        boolean is1_21_4Plus = version.compareTo("1.21.4") >= 0;
+        String sampleExpr = intensity ? "texture(Sampler0, texCoord0).rrrr" : "texture(Sampler0, texCoord0)";
 
-        String distanceInputs = version.compareTo("1.21.6") >= 0
-                ? "in float vertexDistance;\nin float cylindricalVertexDistance;"
-                : "in float vertexDistance;";
+        if (is1_21_6Plus) {
+            if (seeThrough) {
+                return """
+                    #version 330
 
-        String fogCall = version.compareTo("1.21.6") >= 0
-                ? "%s(color, vertexDistance, cylindricalVertexDistance, FogStart, FogEnd, FogColor)"
-                        .formatted(fogFunction)
-                : "%s(color, vertexDistance, FogStart, FogEnd, FogColor)".formatted(fogFunction);
+                    #moj_import <minecraft:dynamictransforms.glsl>
 
-        return """
+                    uniform sampler2D Sampler0;
+
+                    in vec4 vertexColor;
+                    in vec2 texCoord0;
+
+                    out vec4 fragColor;
+
+                    void main() {
+                        vec4 color = %s * vertexColor * ColorModulator;
+                        if (color.a < 0.1) {
+                            discard;
+                        }
+                        fragColor = color;
+                    }
+                    """.formatted(sampleExpr);
+            }
+
+            return """
+                #version 330
+
+                #moj_import <minecraft:fog.glsl>
+                #moj_import <minecraft:dynamictransforms.glsl>
+
+                uniform sampler2D Sampler0;
+
+                in float sphericalVertexDistance;
+                in float cylindricalVertexDistance;
+                in vec4 vertexColor;
+                in vec2 texCoord0;
+
+                out vec4 fragColor;
+
+                void main() {
+                    vec4 color = %s * vertexColor * ColorModulator;
+                    if (color.a < 0.1) {
+                        discard;
+                    }
+                    fragColor = apply_fog(color, sphericalVertexDistance, cylindricalVertexDistance, FogEnvironmentalStart, FogEnvironmentalEnd, FogRenderDistanceStart, FogRenderDistanceEnd, FogColor);
+                }
+                """.formatted(sampleExpr);
+        } else {
+            // Pre-1.21.6: use traditional uniform declarations
+            String imports = is1_21_4Plus ? "#moj_import <minecraft:fog.glsl>" : "#moj_import <fog.glsl>";
+
+            return """
                 #version 150
 
                 %s
@@ -964,73 +1185,62 @@ public class ResourcePack {
                 uniform float FogStart;
                 uniform float FogEnd;
                 uniform vec4 FogColor;
-                uniform float GameTime;
 
-                %s
+                in float vertexDistance;
                 in vec4 vertexColor;
                 in vec2 texCoord0;
-                in float isAnimated;
-                in float animFps;
-                in float frameCount;
-                in float animLoop;
 
                 out vec4 fragColor;
 
                 void main() {
-                    vec2 uv = texCoord0;
-
-                    // Animation handling for vertical sprite sheets
-                    if (isAnimated > 0.5) {
-                        // GameTime cycles 0-1 over 24000 ticks (~20 minutes real time)
-                        // Convert to seconds: GameTime * 1200.0
-                        float timeSeconds = GameTime * 1200.0;
-
-                        // Calculate raw frame index based on elapsed time
-                        int totalFrames = int(frameCount);
-                        int rawFrame = int(floor(timeSeconds * animFps));
-
-                        // Apply looping behavior:
-                        // - loop=1.0: use mod() to cycle through frames forever
-                        // - loop=0.0: use min() to clamp at last frame (play once)
-                        int currentFrame;
-                        if (animLoop > 0.5) {
-                            currentFrame = int(mod(float(rawFrame), float(totalFrames)));
-                        } else {
-                            currentFrame = min(rawFrame, totalFrames - 1);
-                        }
-
-                        // Each frame occupies 1/frameCount of the texture height
-                        float frameHeight = 1.0 / frameCount;
-
-                        // Remap UV.y to the current frame's region
-                        float localY = fract(uv.y * frameCount);
-                        uv.y = localY * frameHeight + float(currentFrame) * frameHeight;
-                    }
-
-                    vec4 color = texture(Sampler0, uv);
-
+                    vec4 color = %s * vertexColor * ColorModulator;
                     if (color.a < 0.1) {
                         discard;
                     }
-
-                    // For animated glyphs, use texture color with ColorModulator only
-                    // This removes the magic color tint
-                    if (isAnimated > 0.5) {
-                        color = vec4(color.rgb * ColorModulator.rgb, color.a * ColorModulator.a);
-                    } else {
-                        color = color * vertexColor * ColorModulator;
-                    }
-
-                    fragColor = %s;
+                    fragColor = linear_fog(color, vertexDistance, FogStart, FogEnd, FogColor);
                 }
-                """.formatted(fogImport, distanceInputs, fogCall);
+                """.formatted(imports, sampleExpr);
+        }
     }
 
     /**
      * Generates the shader JSON configuration.
      */
-    private String getAnimationShaderJson(String version) {
-        return """
+    private String getAnimationShaderJson(String version, boolean seeThrough) {
+        String shaderName = seeThrough ? "rendertype_text_see_through" : "rendertype_text";
+        return getAnimationShaderJson(version, shaderName, seeThrough);
+    }
+
+    private String getAnimationShaderJson(String version, String shaderName, boolean seeThrough) {
+        boolean is1_21_6Plus = version.compareTo("1.21.6") >= 0;
+
+        if (is1_21_6Plus) {
+            // 1.21.6+ uses uniform blocks - most uniforms come from imported glsl files
+            // Only samplers need to be declared in the JSON
+            if (seeThrough) {
+                return """
+                    {
+                        "vertex": "minecraft:core/%s",
+                        "fragment": "minecraft:core/%s",
+                        "samplers": [
+                            { "name": "Sampler0" }
+                        ]
+                    }
+                    """.formatted(shaderName, shaderName);
+            }
+
+            return """
+                {
+                    "vertex": "minecraft:core/%s",
+                    "fragment": "minecraft:core/%s",
+                    "samplers": [
+                        { "name": "Sampler0" },
+                        { "name": "Sampler2" }
+                    ]
+                }
+                """.formatted(shaderName, shaderName);
+        } else {
+            return """
                 {
                     "blend": {
                         "func": "add",
@@ -1060,7 +1270,8 @@ public class ResourcePack {
                         { "name": "GameTime", "type": "float", "count": 1, "values": [ 0.0 ] }
                     ]
                 }
-                """;
+                """.replace("rendertype_text", shaderName);
+        }
     }
 
     /**
@@ -1069,19 +1280,73 @@ public class ResourcePack {
      * This is needed on pre-1.20.3 servers when both features are enabled.
      */
     private String getCombinedVertexShader(String version) {
-        String fogImport = version.compareTo("1.21.4") >= 0
-                ? "#moj_import <minecraft:fog.glsl>"
-                : "#moj_import <fog.glsl>";
+        boolean is1_21_6Plus = version.compareTo("1.21.6") >= 0;
+        boolean is1_21_4Plus = version.compareTo("1.21.4") >= 0;
 
-        String fogDistance = version.compareTo("1.21.6") >= 0
-                ? "vertexDistance = fog_distance(Position, FogShape);\n    cylindricalVertexDistance = cylindrical_distance(Position);"
-                : "vertexDistance = fog_distance(Position, FogShape);";
+        if (is1_21_6Plus) {
+            // 1.21.6+ uses uniform blocks from globals.glsl
+            // ScreenSize, GameTime, etc. come from the Globals uniform block
+            return """
+                #version 150
 
-        String distanceOutputs = version.compareTo("1.21.6") >= 0
-                ? "out float vertexDistance;\nout float cylindricalVertexDistance;"
-                : "out float vertexDistance;";
+                #moj_import <minecraft:fog.glsl>
+                #moj_import <minecraft:dynamictransforms.glsl>
+                #moj_import <minecraft:projection.glsl>
+                #moj_import <minecraft:globals.glsl>
 
-        return """
+                in vec3 Position;
+                in vec4 Color;
+                in vec2 UV0;
+                in ivec2 UV2;
+
+                uniform sampler2D Sampler2;
+
+                out float sphericalVertexDistance;
+                out float cylindricalVertexDistance;
+                out vec4 vertexColor;
+                out vec2 texCoord0;
+                out float isAnimated;
+                out float animFps;
+                out float frameCount;
+                out float animLoop;
+
+                void main() {
+                    gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
+                    sphericalVertexDistance = fog_spherical_distance(Position);
+                    cylindricalVertexDistance = fog_cylindrical_distance(Position);
+                    vertexColor = Color * texelFetch(Sampler2, UV2 / 16, 0);
+                    texCoord0 = UV0;
+
+                    // Default: not animated, looping enabled
+                    isAnimated = 0.0;
+                    animFps = 10.0;
+                    frameCount = 1.0;
+                    animLoop = 1.0;
+
+                    // Check for primary animation color: R=0xFE (254)
+                    int rInt = int(Color.r * 255.0 + 0.5);
+                    if (rInt == 254) {
+                        isAnimated = 1.0;
+                        int gInt = int(Color.g * 255.0 + 0.5);
+                        animLoop = (gInt >= 128) ? 0.0 : 1.0;
+                        animFps = float(gInt & 0x7F);
+                        frameCount = max(1.0, Color.b * 255.0);
+                    }
+
+                    // Scoreboard number hiding
+                    if (Position.z == 0.0 &&
+                            gl_Position.x >= 0.95 && gl_Position.y >= -0.35 &&
+                            vertexColor.g == 84.0/255.0 && vertexColor.r == 252.0/255.0 &&
+                            gl_VertexID <= 4) {
+                        gl_Position = ProjMat * ModelViewMat * vec4(ScreenSize + 100.0, 0.0, 0.0);
+                    }
+                }
+                """;
+        } else {
+            // Pre-1.21.6: use traditional uniform declarations
+            String imports = is1_21_4Plus ? "#moj_import <minecraft:fog.glsl>" : "#moj_import <fog.glsl>";
+
+            return """
                 #version 150
 
                 %s
@@ -1097,7 +1362,7 @@ public class ResourcePack {
                 uniform int FogShape;
                 uniform vec2 ScreenSize;
 
-                %s
+                out float vertexDistance;
                 out vec4 vertexColor;
                 out vec2 texCoord0;
                 out float isAnimated;
@@ -1105,15 +1370,9 @@ public class ResourcePack {
                 out float frameCount;
                 out float animLoop;
 
-                // Animation magic color detection
-                // Format: R=0xFF (marker), G=loop flag (bit 7) + FPS (bits 0-6), B=frame count
-                const float MAGIC_RED = 1.0;
-                const float SHADOW_RED = 0.25;  // Minecraft shadows = color / 4
-                const float EPSILON = 0.02;     // ~5/255 for float comparison
-
                 void main() {
                     gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
-                    %s
+                    vertexDistance = fog_distance(Position, FogShape);
                     vertexColor = Color * texelFetch(Sampler2, UV2 / 16, 0);
                     texCoord0 = UV0;
 
@@ -1123,40 +1382,26 @@ public class ResourcePack {
                     frameCount = 1.0;
                     animLoop = 1.0;
 
-                    float r = Color.r;
-                    float g = Color.g;
-                    float b = Color.b;
-
-                    // Check for primary animation color: R=0xFF (1.0)
-                    if (abs(r - MAGIC_RED) < EPSILON && g > 0.003) {
+                    // Check for primary animation color: R=0xFE (254)
+                    int rInt = int(Color.r * 255.0 + 0.5);
+                    if (rInt == 254) {
                         isAnimated = 1.0;
-                        // Green channel: bit 7 = loop flag (0=loop, 0x80=no-loop), bits 0-6 = FPS
-                        int gInt = int(g * 255.0 + 0.5);
-                        animLoop = (gInt >= 128) ? 0.0 : 1.0;  // Bit 7 set means NOT looping
-                        animFps = float(gInt & 0x7F);  // FPS in lower 7 bits
-                        frameCount = max(1.0, b * 255.0);
-                    }
-                    // Check for shadow variant: R≈0x3F (0.25), values divided by 4
-                    else if (abs(r - SHADOW_RED) < EPSILON && g > 0.001) {
-                        isAnimated = 1.0;
-                        // Multiply by 4 to recover original values
-                        int gRecovered = int(min(255.0, g * 255.0 * 4.0) + 0.5);
-                        animLoop = (gRecovered >= 128) ? 0.0 : 1.0;
-                        animFps = float(gRecovered & 0x7F);
-                        frameCount = max(1.0, min(255.0, b * 255.0 * 4.0));
+                        int gInt = int(Color.g * 255.0 + 0.5);
+                        animLoop = (gInt >= 128) ? 0.0 : 1.0;
+                        animFps = float(gInt & 0x7F);
+                        frameCount = max(1.0, Color.b * 255.0);
                     }
 
-                    // Scoreboard number hiding (from original scoreboard shader)
-                    // Check position, color, and vertex ID to identify sidebar numbers
+                    // Scoreboard number hiding
                     if (Position.z == 0.0 &&
                             gl_Position.x >= 0.95 && gl_Position.y >= -0.35 &&
                             vertexColor.g == 84.0/255.0 && vertexColor.r == 252.0/255.0 &&
                             gl_VertexID <= 4) {
-                        // Move vertices offscreen to hide scoreboard numbers
                         gl_Position = ProjMat * ModelViewMat * vec4(ScreenSize + 100.0, 0.0, 0.0);
                     }
                 }
-                """.formatted(fogImport, distanceOutputs, fogDistance);
+                """.formatted(imports);
+        }
     }
 
     /**
@@ -1164,7 +1409,22 @@ public class ResourcePack {
      * scoreboard hiding.
      */
     private String getCombinedShaderJson(String version) {
-        return """
+        boolean is1_21_6Plus = version.compareTo("1.21.6") >= 0;
+
+        if (is1_21_6Plus) {
+            // 1.21.6+ uses uniform blocks - most uniforms come from imported glsl files
+            return """
+                {
+                    "vertex": "minecraft:core/rendertype_text",
+                    "fragment": "minecraft:core/rendertype_text",
+                    "samplers": [
+                        { "name": "Sampler0" },
+                        { "name": "Sampler2" }
+                    ]
+                }
+                """;
+        } else {
+            return """
                 {
                     "blend": {
                         "func": "add",
@@ -1196,6 +1456,7 @@ public class ResourcePack {
                     ]
                 }
                 """;
+        }
     }
 
     private void generateSound(List<VirtualFile> output) {
@@ -1320,6 +1581,18 @@ public class ResourcePack {
         folder = !folder.endsWith("/") ? folder : folder.substring(0, folder.length() - 1);
         addOutputFiles(
                 new VirtualFile(folder, name, new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))));
+    }
+
+    private static void writeImageToVirtual(String folder, String name, BufferedImage image) {
+        folder = !folder.endsWith("/") ? folder : folder.substring(0, folder.length() - 1);
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            ImageIO.write(image, "png", outputStream);
+            addOutputFiles(new VirtualFile(folder, name, new ByteArrayInputStream(outputStream.toByteArray())));
+        } catch (IOException e) {
+            Logs.logError("Failed to write generated texture: " + folder + "/" + name);
+            if (Settings.DEBUG.toBool())
+                e.printStackTrace();
+        }
     }
 
     private void getAllFiles(File dir, Collection<VirtualFile> fileList, String newFolder, String... excluded) {

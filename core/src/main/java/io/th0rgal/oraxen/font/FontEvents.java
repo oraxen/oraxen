@@ -289,6 +289,16 @@ public class FontEvents implements Listener {
                 }
             }
 
+            // Process animated glyphs
+            for (AnimatedGlyph animGlyph : manager.getAnimatedGlyphs()) {
+                if (player == null || animGlyph.hasPermission(player)) {
+                    for (String placeholder : animGlyph.getPlaceholders()) {
+                        component = (TextComponent) component.replaceText(TextReplacementConfig.builder()
+                                .matchLiteral(placeholder).replacement(animGlyph.getGlyphComponent()).build());
+                    }
+                }
+            }
+
             return LEGACY_SERIALIZER.serialize(component);
         }
     }
@@ -343,6 +353,18 @@ public class FontEvents implements Listener {
                                 .matchLiteral(entry.getKey())
                                 .replacement(entry.getValue().getGlyphComponent()).build()
                 );
+            }
+
+        // Process animated glyphs
+        for (AnimatedGlyph animGlyph : manager.getAnimatedGlyphs())
+            if (animGlyph.hasPermission(player)) {
+                for (String placeholder : animGlyph.getPlaceholders()) {
+                    message = message.replaceText(
+                            TextReplacementConfig.builder()
+                                    .matchLiteral(placeholder)
+                                    .replacement(animGlyph.getGlyphComponent()).build()
+                    );
+                }
             }
 
         return message;

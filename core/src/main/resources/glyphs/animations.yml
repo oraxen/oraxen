@@ -1,0 +1,15 @@
+# Animated Glyphs - Example configuration
+# These glyphs use shader-based animation from sprite sheets
+
+spinner:
+  texture: animations/spinner    # Path to PNG sprite sheet (frames stacked vertically)
+  animation:
+    frames: 4                    # Number of frames in sprite sheet
+    fps: 8                       # Frames per second (1-127)
+    loop: true                   # Whether to loop the animation
+  ascent: 8
+  height: 16
+  chat:
+    placeholders:
+      - ":spinner:"
+      - ":loading:"

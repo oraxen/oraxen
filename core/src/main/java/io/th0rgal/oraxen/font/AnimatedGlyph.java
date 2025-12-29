@@ -53,14 +53,15 @@ public class AnimatedGlyph {
     /**
      * Magic color encoding scheme for animated glyphs.
      * <p>
-     * Format: 0xFFGGBB where:
-     * - FF = Red channel (always 0xFF for animation marker)
+     * Format: 0xFEGGBB where:
+     * - FE = Red channel (always 0xFE for animation marker)
+     *        Using 0xFE instead of 0xFF to avoid matching white text (255,255,255)
      * - GG = Green channel encodes FPS directly (1-255)
      * - BB = Blue channel encodes frame count (1-255)
      * <p>
-     * Shader detects R=0xFF and G in valid FPS range as animated.
+     * Shader detects R=0xFE as the animation marker.
      */
-    public static final int MAGIC_RED = 0xFF;
+    public static final int MAGIC_RED = 0xFE;
 
     /**
      * Default frames per second for animations.
@@ -101,6 +102,8 @@ public class AnimatedGlyph {
     private final int fps;
     private final boolean loop;
     private final int offset;
+    private final boolean hasCustomOffset;
+    private int autoOffset = 0;
     private final int ascent;
     private final int height;
     private final String permission;
@@ -163,6 +166,7 @@ public class AnimatedGlyph {
 
         this.fps = Math.max(MIN_FPS, Math.min(MAX_FPS, animSection.getInt("fps", DEFAULT_FPS)));
         this.loop = animSection.getBoolean("loop", true);
+        this.hasCustomOffset = animSection.contains("offset");
         this.offset = animSection.getInt("offset", 0);
 
         this.ascent = glyphSection.getInt("ascent", 8);
@@ -236,9 +240,9 @@ public class AnimatedGlyph {
             frameCodepoints.add(nextCodepoint++);
         }
 
-        // Pre-allocate offset codepoint if offset is specified
-        // This prevents collision after resetCodepointCounter() is called
-        if (offset != 0 && nextCodepoint <= MAX_CODEPOINT) {
+        // Always allocate offset codepoint for the spacer character
+        // This is needed to move the cursor after all frames render
+        if (nextCodepoint <= MAX_CODEPOINT) {
             offsetCodepoint = nextCodepoint++;
         }
     }
@@ -305,7 +309,22 @@ public class AnimatedGlyph {
     }
 
     public int getOffset() {
-        return offset;
+        return hasCustomOffset ? offset : autoOffset;
+    }
+
+    /**
+     * Sets an automatically calculated offset for this glyph if no custom offset
+     * was provided in config. Allocates a codepoint for the space provider if
+     * needed.
+     *
+     * @param autoOffsetPixels The computed offset in pixels (can be negative)
+     */
+    public void setAutoOffset(int autoOffsetPixels) {
+        if (hasCustomOffset) return;
+        this.autoOffset = autoOffsetPixels;
+        if (autoOffsetPixels != 0 && offsetCodepoint < 0 && nextCodepoint <= MAX_CODEPOINT) {
+            offsetCodepoint = nextCodepoint++;
+        }
     }
 
     public int getAscent() {
@@ -340,7 +359,13 @@ public class AnimatedGlyph {
      * Gets the first frame character for simple display.
      */
     public String getCharacter() {
-        return frameCodepoints.isEmpty() ? "" : Character.toString(frameCodepoints.get(0));
+        if (frameCodepoints.isEmpty()) return "";
+        String baseChar = Character.toString(frameCodepoints.get(0));
+        int effectiveOffset = getOffset();
+        if (effectiveOffset != 0 && offsetCodepoint >= 0) {
+            return baseChar + Character.toString(offsetCodepoint);
+        }
+        return baseChar;
     }
 
     /**
@@ -385,8 +410,11 @@ public class AnimatedGlyph {
 
     /**
      * Generates the font JSON for this animated glyph.
-     * Creates a bitmap provider with all frames stacked vertically,
-     * plus a space provider for the offset reset.
+     * Uses visibility-based animation: each frame is a separate character,
+     * and the shader hides all frames except the current one.
+     * <p>
+     * Uses negative advance technique: between each frame, a reset character
+     * moves the cursor back to the starting position.
      *
      * @return JsonObject containing the font definition
      */
@@ -399,49 +427,114 @@ public class AnimatedGlyph {
         JsonObject font = new JsonObject();
         JsonArray providers = new JsonArray();
 
-        // Bitmap provider with all frames
+        // Bitmap provider with all frames as separate characters in one row
+        // The horizontal strip is divided into frameCount equal parts
         JsonObject bitmap = new JsonObject();
         bitmap.addProperty("type", "bitmap");
         bitmap.addProperty("file", spriteSheetPath);
         bitmap.addProperty("ascent", ascent);
         bitmap.addProperty("height", height);
 
+        // Create chars string with all frame codepoints in a single row
+        // This maps each codepoint to 1/frameCount of the texture width
         JsonArray chars = new JsonArray();
-        for (int codepoint : frameCodepoints) {
-            // Use Character.toString(int) to properly handle supplementary codepoints
-            chars.add(Character.toString(codepoint));
+        StringBuilder frameChars = new StringBuilder();
+        int actualFrames = frameCodepoints.size();
+        for (int i = 0; i < actualFrames; i++) {
+            frameChars.append(Character.toString(frameCodepoints.get(i)));
         }
+        chars.add(frameChars.toString());
         bitmap.add("chars", chars);
         providers.add(bitmap);
 
-        // Space provider for offset reset if needed
-        // Uses pre-allocated offsetCodepoint to avoid collision after counter reset
-        if (offset != 0 && offsetCodepoint >= 0) {
-            JsonObject space = new JsonObject();
-            space.addProperty("type", "space");
-            JsonObject advances = new JsonObject();
-            advances.addProperty(Character.toString(offsetCodepoint), offset);
-            space.add("advances", advances);
-            providers.add(space);
+        // Space provider with negative advance to reset cursor position
+        // After each frame renders at position X, cursor moves to X+width
+        // We use a reset character with advance = -width to move cursor back to X
+        // This makes all frames render at the same position
+        JsonObject space = new JsonObject();
+        space.addProperty("type", "space");
+        JsonObject advances = new JsonObject();
+
+        // The offset codepoint has NEGATIVE advance to reset cursor after each frame
+        // -height because frame width = height for square glyphs (from horizontal strip)
+        if (offsetCodepoint >= 0) {
+            advances.addProperty(Character.toString(offsetCodepoint), -height);
         }
+
+        space.add("advances", advances);
+        providers.add(space);
 
         font.add("providers", providers);
         return font;
     }
 
     /**
-     * Generates the animation component with the first frame character and magic
-     * color.
-     * The shader cycles through frames via UV remapping based on game time,
-     * so only the first frame character is needed.
+     * Generates the animation component with all frame characters overlapping.
+     * Each frame has a magic color encoding its frame index.
+     * The shader shows only the frame that matches the current time.
+     * <p>
+     * Uses negative advance technique: after each frame (except the last),
+     * a reset character moves the cursor back so frames overlap.
      *
-     * @return Component containing first frame character with magic color for
-     *         shader detection
+     * @return Component containing all frames with magic colors for shader detection
      */
     public Component getAnimationComponent() {
-        return Component.text(getCharacter())
-                .font(getAnimationFont())
-                .color(getMagicColor());
+        int actualFrames = frameCodepoints.size();
+        if (actualFrames == 0) {
+            return Component.empty();
+        }
+
+        // Build component with frames interleaved with reset characters
+        // Pattern: frame0 + reset + frame1 + reset + frame2 + reset + frame3
+        // The reset character has negative advance = -height, moving cursor back
+        // After last frame, cursor is at position = height (frame width)
+        Component result = Component.empty();
+        String resetChar = offsetCodepoint >= 0 ? Character.toString(offsetCodepoint) : "";
+
+        for (int i = 0; i < actualFrames; i++) {
+            // Add frame character with magic color
+            result = result.append(
+                    Component.text(Character.toString(frameCodepoints.get(i)))
+                            .font(getAnimationFont())
+                            .color(getMagicColorForFrame(i)));
+
+            // Add reset character after each frame except the last
+            // This moves cursor back so next frame renders at same position
+            if (i < actualFrames - 1 && offsetCodepoint >= 0) {
+                result = result.append(
+                        Component.text(resetChar)
+                                .font(getAnimationFont()));
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Gets the magic color for a specific frame.
+     * Encodes fps, loop flag, frame index, and total frames for shader detection.
+     * <p>
+     * Color format: 0xFEGGBB
+     * - R = 0xFE (254): Animation marker
+     * - G: Bit 7 = loop flag (0=loop, 1=no-loop), Bits 0-6 = FPS (1-127)
+     * - B: Bits 0-3 = frame index (0-15), Bits 4-7 = total frames - 1 (0-15, so 1-16 frames)
+     *
+     * @param frameIndex The frame index (0-based)
+     * @return Magic color for shader to detect and process
+     */
+    public TextColor getMagicColorForFrame(int frameIndex) {
+        int fpsValue = Math.max(MIN_FPS, Math.min(MAX_FPS, fps));
+        int loopBit = loop ? 0 : 0x80;
+        int greenChannel = loopBit | fpsValue;
+
+        // Blue channel encodes frame index (lower 4 bits) and total frames (upper 4 bits)
+        int actualFrames = frameCodepoints.size();
+        int frameIdx = Math.max(0, Math.min(15, frameIndex));
+        int totalFramesMinus1 = Math.max(0, Math.min(15, actualFrames - 1));
+        int blueChannel = frameIdx | (totalFramesMinus1 << 4);
+
+        int rgb = (MAGIC_RED << 16) | (greenChannel << 8) | blueChannel;
+        return TextColor.color(rgb);
     }
 
     /**
@@ -482,33 +575,21 @@ public class AnimatedGlyph {
      * Gets the magic color for this glyph encoding FPS, frame count, and loop flag.
      * <p>
      * Color format: 0xFFGGBB
-     * - R (0xFF): Animation marker
+     * - R = 0xFE (254): Animation marker
      * - G: Bit 7 = loop flag (0=loop, 1=no-loop), Bits 0-6 = FPS (1-127)
-     * - B: Frame count (1-255)
+     * - B: Bits 0-3 = frame index (0-15), Bits 4-7 = total frames - 1 (0-15)
      *
-     * @return The magic color with encoded animation parameters
+     * @return The magic color for frame 0
+     * @deprecated Use {@link #getMagicColorForFrame(int)} instead
      */
+    @Deprecated
     public TextColor getMagicColor() {
-        // Encode FPS in lower 7 bits of green channel (clamped to 1-127)
-        int fpsValue = Math.max(MIN_FPS, Math.min(MAX_FPS, fps));
-
-        // Encode loop flag in bit 7: 0 = looping (default), 0x80 = not looping
-        int loopBit = loop ? 0 : 0x80;
-        int greenChannel = loopBit | fpsValue;
-
-        // Encode actual allocated frame count in blue channel (clamped to 1-255)
-        // Use frameCodepoints.size() instead of frameCount to handle codepoint overflow
-        int actualFrames = frameCodepoints.size();
-        int frameBlue = Math.max(1, Math.min(255, actualFrames));
-
-        // Combine into RGB: 0xFFGGBB
-        int rgb = (MAGIC_RED << 16) | (greenChannel << 8) | frameBlue;
-        return TextColor.color(rgb);
+        return getMagicColorForFrame(0);
     }
 
     /**
      * Checks if a color value represents an animated glyph.
-     * Animation colors have R=0xFF and G encodes loop flag + FPS.
+     * Animation colors have R=0xFE and G encodes loop flag + FPS.
      * Also checks for shadow variant (colors divided by 4).
      *
      * @param color The color value to check
@@ -518,8 +599,7 @@ public class AnimatedGlyph {
         int r = (color >> 16) & 0xFF;
         int g = (color >> 8) & 0xFF;
 
-        // Primary color: R=0xFF, G has FPS in lower 7 bits (1-127) and loop flag in bit
-        // 7
+        // Primary color: R=0xFE (254), G has FPS in lower 7 bits (1-127) and loop flag in bit 7
         // G range is 1-255 (1-127 for looping, 129-255 for non-looping)
         if (r == MAGIC_RED && g >= MIN_FPS) {
             return true;
@@ -549,7 +629,7 @@ public class AnimatedGlyph {
         int g = (color >> 8) & 0xFF;
         int b = color & 0xFF;
 
-        // Primary color: R=0xFF
+        // Primary color: R=0xFE (254)
         if (r == MAGIC_RED && g >= MIN_FPS) {
             // Extract loop flag from bit 7, FPS from bits 0-6
             int loopFlag = (g & 0x80) == 0 ? 1 : 0; // 0x80 set means NOT looping
