@@ -80,7 +80,17 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     private final GlyphHandler glyphHandler;
 
     public NMSHandler() {
-        this.glyphHandler = new io.th0rgal.oraxen.nms.v1_21_R6_old.GlyphHandler();
+        // Try to create GlyphHandler, fall back to empty if it fails
+        // This can happen on some server implementations (e.g., Purpur) that have different packet APIs
+        GlyphHandler handler;
+        try {
+            handler = new io.th0rgal.oraxen.nms.v1_21_R6_old.GlyphHandler();
+        } catch (NoClassDefFoundError | ExceptionInInitializerError | NoSuchMethodError e) {
+            Logs.logWarning("Failed to initialize NMS GlyphHandler for this server implementation.");
+            Logs.logWarning("NMS glyph features will be disabled. Consider using VANILLA glyph handler in settings.yml");
+            handler = new GlyphHandler.EmptyGlyphHandler();
+        }
+        this.glyphHandler = handler;
 
         // mineableWith tag handling
         NamespacedKey tagKey = NamespacedKey.fromString("mineable_with_key", OraxenPlugin.get());
