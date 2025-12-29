@@ -46,8 +46,6 @@ public enum Settings {
     TEXT_EFFECTS_PULSE("TextEffects.effects.pulse.enabled"),
     TEXT_EFFECTS_GRADIENT("TextEffects.effects.gradient.enabled"),
     TEXT_EFFECTS_TYPEWRITER("TextEffects.effects.typewriter.enabled"),
-    TEXT_EFFECTS_WOBBLE("TextEffects.effects.wobble.enabled"),
-    TEXT_EFFECTS_OBFUSCATE("TextEffects.effects.obfuscate.enabled"),
 
 
     // Chat

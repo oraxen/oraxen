@@ -114,17 +114,7 @@ public class TextEffect {
         /**
          * Typewriter effect - characters appear sequentially.
          */
-        TYPEWRITER(5, "typewriter"),
-
-        /**
-         * Wobble effect - circular oscillation.
-         */
-        WOBBLE(6, "wobble"),
-
-        /**
-         * Obfuscate effect - rapidly cycling random characters.
-         */
-        OBFUSCATE(7, "obfuscate");
+        TYPEWRITER(5, "typewriter");
 
         private final int id;
         private final String name;
@@ -533,47 +523,6 @@ public class TextEffect {
     @NotNull
     public static Component typewriter(String text) {
         return typewriter(text, DEFAULT_SPEED);
-    }
-
-    /**
-     * Applies wobble effect - circular oscillation.
-     *
-     * @param text      The text to animate
-     * @param speed     How fast the wobble cycles (1-7)
-     * @param amplitude Wobble amplitude (1-7)
-     * @return Component with wobble effect colors
-     */
-    @NotNull
-    public static Component wobble(String text, int speed, int amplitude) {
-        return apply(text, Type.WOBBLE, speed, amplitude);
-    }
-
-    /**
-     * Applies wobble effect with default parameters.
-     */
-    @NotNull
-    public static Component wobble(String text) {
-        return wobble(text, DEFAULT_SPEED, DEFAULT_PARAM);
-    }
-
-    /**
-     * Applies obfuscate effect - rapidly cycling random characters.
-     *
-     * @param text  The text to obfuscate
-     * @param speed How fast characters cycle (1-7)
-     * @return Component with obfuscate effect colors
-     */
-    @NotNull
-    public static Component obfuscate(String text, int speed) {
-        return apply(text, Type.OBFUSCATE, speed, 0);
-    }
-
-    /**
-     * Applies obfuscate effect with default speed.
-     */
-    @NotNull
-    public static Component obfuscate(String text) {
-        return obfuscate(text, DEFAULT_SPEED);
     }
 
     /**

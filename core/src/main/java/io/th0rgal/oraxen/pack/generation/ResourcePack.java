@@ -1115,7 +1115,7 @@ public class ResourcePack {
                                 if (hasGap && bLow > ORAXEN_TEXT_DATA_GAP) {
                                     param -= 1.0;
                                 }
-                                float charIndex = float((gl_VertexID >> 2) & ORAXEN_TEXT_DATA_MASK);
+                                float charIndex = float(gl_VertexID >> 2);
 
                                 float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
 
@@ -1134,15 +1134,6 @@ public class ResourcePack {
                                     pos.y += (fract(sin(seed * 78.233) * 43758.5453) - 0.5) * amplitude;
                                     gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
                                 }
-                                // Wobble effect (type 6): circular oscillation
-                                else if (effectType == 6) {
-                                    float phase = charIndex * 0.6 + timeSeconds * speed * 2.0;
-                                    float amplitude = max(1.0, param) * 0.15;
-                                    pos.x += cos(phase) * amplitude;
-                                    pos.y += sin(phase) * amplitude;
-                                    gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                                }
-
                                 // Pass effect data to fragment shader
                                 // x=effectType, y=speed, z=charIndex, w=param
                                 effectData = vec4(float(effectType), speed, charIndex, param);
@@ -1240,7 +1231,7 @@ public class ResourcePack {
                             if (hasGap && bLow > ORAXEN_TEXT_DATA_GAP) {
                                 param -= 1.0;
                             }
-                            float charIndex = float((gl_VertexID >> 2) & ORAXEN_TEXT_DATA_MASK);
+                            float charIndex = float(gl_VertexID >> 2);
 
                             float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
 
@@ -1263,17 +1254,6 @@ public class ResourcePack {
                                 sphericalVertexDistance = fog_spherical_distance(pos);
                                 cylindricalVertexDistance = fog_cylindrical_distance(pos);
                             }
-                            // Wobble effect (type 6): circular oscillation
-                            else if (effectType == 6) {
-                                float phase = charIndex * 0.6 + timeSeconds * speed * 2.0;
-                                float amplitude = max(1.0, param) * 0.15;
-                                pos.x += cos(phase) * amplitude;
-                                pos.y += sin(phase) * amplitude;
-                                gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                                sphericalVertexDistance = fog_spherical_distance(pos);
-                                cylindricalVertexDistance = fog_cylindrical_distance(pos);
-                            }
-
                             // Pass effect data to fragment shader
                             effectData = vec4(float(effectType), speed, charIndex, param);
                         }
@@ -1370,7 +1350,7 @@ public class ResourcePack {
                                 if (hasGap && bLow > ORAXEN_TEXT_DATA_GAP) {
                                     param -= 1.0;
                                 }
-                                float charIndex = float((gl_VertexID >> 2) & ORAXEN_TEXT_DATA_MASK);
+                                float charIndex = float(gl_VertexID >> 2);
 
                                 float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
 
@@ -1391,16 +1371,6 @@ public class ResourcePack {
                                     gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
                                     vertexDistance = fog_distance(pos, FogShape);
                                 }
-                                // Wobble effect (type 6): circular oscillation
-                                else if (effectType == 6) {
-                                    float phase = charIndex * 0.6 + timeSeconds * speed * 2.0;
-                                    float amplitude = max(1.0, param) * 0.15;
-                                    pos.x += cos(phase) * amplitude;
-                                    pos.y += sin(phase) * amplitude;
-                                    gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                                    vertexDistance = fog_distance(pos, FogShape);
-                                }
-
                                 // Pass effect data to fragment shader
                                 effectData = vec4(float(effectType), speed, charIndex, param);
                             }
@@ -1496,7 +1466,7 @@ public class ResourcePack {
                             if (hasGap && bLow > ORAXEN_TEXT_DATA_GAP) {
                                 param -= 1.0;
                             }
-                            float charIndex = float((gl_VertexID >> 2) & ORAXEN_TEXT_DATA_MASK);
+                            float charIndex = float(gl_VertexID >> 2);
 
                             float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
 
@@ -1517,16 +1487,6 @@ public class ResourcePack {
                                 gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
                                 vertexDistance = fog_distance(pos, FogShape);
                             }
-                            // Wobble effect (type 6): circular oscillation
-                            else if (effectType == 6) {
-                                float phase = charIndex * 0.6 + timeSeconds * speed * 2.0;
-                                float amplitude = max(1.0, param) * 0.15;
-                                pos.x += cos(phase) * amplitude;
-                                pos.y += sin(phase) * amplitude;
-                                gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                                vertexDistance = fog_distance(pos, FogShape);
-                            }
-
                             // Pass effect data to fragment shader
                             effectData = vec4(float(effectType), speed, charIndex, param);
                         }
@@ -1589,8 +1549,8 @@ public class ResourcePack {
 
                             // Rainbow effect (type 0)
                             if (effectType == 0) {
-                                float hue = mod(charIndex * 0.08 + timeSeconds * speed * 0.05, 1.0);
-                                vec3 rgb = hsv2rgb(vec3(hue, 1.0, 1.0));
+                                float hue = fract(charIndex * 0.03 + timeSeconds * speed * 0.03);
+                                vec3 rgb = hsv2rgb(vec3(hue, 0.9, 1.0));
                                 color.rgb = rgb;  // Replace color (not multiply) for full brightness
                             }
                             // Pulse effect (type 3): opacity fades in/out
@@ -1605,20 +1565,11 @@ public class ResourcePack {
                                 vec3 endColor = vec3(0.3, 0.3, 1.0);
                                 color.rgb = mix(startColor, endColor, t);  // Replace color for full brightness
                             }
-                            // Typewriter effect (type 5): characters appear sequentially
+                            // Typewriter effect (type 5): characters appear sequentially left-to-right
                             else if (effectType == 5) {
-                                float revealTime = charIndex / (speed * 2.0);
-                                if (mod(timeSeconds, 16.0 / speed) < revealTime) {
-                                    color.a = 0.0;
-                                }
-                            }
-                            // Obfuscate effect (type 7): rapid color cycling
-                            else if (effectType == 7) {
-                                float seed = charIndex + floor(timeSeconds * speed * 10.0);
-                                float r = fract(sin(seed * 12.9898) * 43758.5453);
-                                float g = fract(sin(seed * 78.233) * 43758.5453);
-                                float b = fract(sin(seed * 37.719) * 43758.5453);
-                                color.rgb = vec3(r, g, b);
+                                float reveal = mod(timeSeconds * speed * 2.0, 256.0);
+                                float alpha = clamp(reveal - charIndex, 0.0, 1.0);
+                                color.a *= alpha;
                             }
                         }
 
@@ -1662,8 +1613,8 @@ public class ResourcePack {
 
                         // Rainbow effect (type 0)
                         if (effectType == 0) {
-                            float hue = mod(charIndex * 0.08 + timeSeconds * speed * 0.05, 1.0);
-                            vec3 rgb = hsv2rgb(vec3(hue, 1.0, 1.0));
+                            float hue = fract(charIndex * 0.03 + timeSeconds * speed * 0.03);
+                            vec3 rgb = hsv2rgb(vec3(hue, 0.9, 1.0));
                             color.rgb = rgb;  // Replace color (not multiply) for full brightness
                         }
                         // Pulse effect (type 3): opacity fades in/out
@@ -1680,18 +1631,9 @@ public class ResourcePack {
                         }
                         // Typewriter effect (type 5): characters appear sequentially
                         else if (effectType == 5) {
-                            float revealTime = charIndex / (speed * 2.0);
-                            if (mod(timeSeconds, 16.0 / speed) < revealTime) {
-                                color.a = 0.0;
-                            }
-                        }
-                        // Obfuscate effect (type 7): rapid color cycling
-                        else if (effectType == 7) {
-                            float seed = charIndex + floor(timeSeconds * speed * 10.0);
-                            float r = fract(sin(seed * 12.9898) * 43758.5453);
-                            float g = fract(sin(seed * 78.233) * 43758.5453);
-                            float b = fract(sin(seed * 37.719) * 43758.5453);
-                            color.rgb = vec3(r, g, b);
+                            float reveal = mod(timeSeconds * speed * 2.0, 256.0);
+                            float alpha = clamp(reveal - charIndex, 0.0, 1.0);
+                            color.a *= alpha;
                         }
                     }
 
@@ -1739,8 +1681,8 @@ public class ResourcePack {
 
                         // Rainbow effect (type 0)
                         if (effectType == 0) {
-                            float hue = mod(charIndex * 0.08 + timeSeconds * speed * 0.05, 1.0);
-                            vec3 rgb = hsv2rgb(vec3(hue, 1.0, 1.0));
+                            float hue = fract(charIndex * 0.03 + timeSeconds * speed * 0.03);
+                            vec3 rgb = hsv2rgb(vec3(hue, 0.9, 1.0));
                             color.rgb = rgb;  // Replace color (not multiply) for full brightness
                         }
                         // Pulse effect (type 3): opacity fades in/out
@@ -1757,18 +1699,9 @@ public class ResourcePack {
                         }
                         // Typewriter effect (type 5): characters appear sequentially
                         else if (effectType == 5) {
-                            float revealTime = charIndex / (speed * 2.0);
-                            if (mod(timeSeconds, 16.0 / speed) < revealTime) {
-                                color.a = 0.0;
-                            }
-                        }
-                        // Obfuscate effect (type 7): rapid color cycling
-                        else if (effectType == 7) {
-                            float seed = charIndex + floor(timeSeconds * speed * 10.0);
-                            float r = fract(sin(seed * 12.9898) * 43758.5453);
-                            float g = fract(sin(seed * 78.233) * 43758.5453);
-                            float b = fract(sin(seed * 37.719) * 43758.5453);
-                            color.rgb = vec3(r, g, b);
+                            float reveal = mod(timeSeconds * speed * 2.0, 256.0);
+                            float alpha = clamp(reveal - charIndex, 0.0, 1.0);
+                            color.a *= alpha;
                         }
                     }
 
@@ -1987,7 +1920,7 @@ public class ResourcePack {
                             if (hasGap && bLow > ORAXEN_TEXT_DATA_GAP) {
                                 param -= 1.0;
                             }
-                            float charIndex = float((gl_VertexID >> 2) & ORAXEN_TEXT_DATA_MASK);
+                            float charIndex = float(gl_VertexID >> 2);
 
                             float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
 
@@ -2010,17 +1943,6 @@ public class ResourcePack {
                                 sphericalVertexDistance = fog_spherical_distance(pos);
                                 cylindricalVertexDistance = fog_cylindrical_distance(pos);
                             }
-                            // Wobble effect (type 6): circular oscillation
-                            else if (effectType == 6) {
-                                float phase = charIndex * 0.6 + timeSeconds * speed * 2.0;
-                                float amplitude = max(1.0, param) * 0.15;
-                                pos.x += cos(phase) * amplitude;
-                                pos.y += sin(phase) * amplitude;
-                                gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                                sphericalVertexDistance = fog_spherical_distance(pos);
-                                cylindricalVertexDistance = fog_cylindrical_distance(pos);
-                            }
-
                             // Pass effect data to fragment shader
                             effectData = vec4(float(effectType), speed, charIndex, param);
                         }
@@ -2128,7 +2050,7 @@ public class ResourcePack {
                             if (hasGap && bLow > ORAXEN_TEXT_DATA_GAP) {
                                 param -= 1.0;
                             }
-                            float charIndex = float((gl_VertexID >> 2) & ORAXEN_TEXT_DATA_MASK);
+                            float charIndex = float(gl_VertexID >> 2);
 
                             float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
 
@@ -2149,16 +2071,6 @@ public class ResourcePack {
                                 gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
                                 vertexDistance = fog_distance(pos, FogShape);
                             }
-                            // Wobble effect (type 6): circular oscillation
-                            else if (effectType == 6) {
-                                float phase = charIndex * 0.6 + timeSeconds * speed * 2.0;
-                                float amplitude = max(1.0, param) * 0.15;
-                                pos.x += cos(phase) * amplitude;
-                                pos.y += sin(phase) * amplitude;
-                                gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                                vertexDistance = fog_distance(pos, FogShape);
-                            }
-
                             // Pass effect data to fragment shader
                             effectData = vec4(float(effectType), speed, charIndex, param);
                         }

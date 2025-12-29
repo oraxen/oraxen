@@ -151,8 +151,6 @@ public class TextEffectCommand {
                     sender.sendMessage("- pulse: Opacity fades in/out");
                     sender.sendMessage("- gradient: Static color gradient");
                     sender.sendMessage("- typewriter: Characters appear sequentially");
-                    sender.sendMessage("- wobble: Circular oscillation");
-                    sender.sendMessage("- obfuscate: Rapidly cycling random colors");
                     sender.sendMessage("");
                     sender.sendMessage("Usage:");
                     sender.sendMessage("  /oraxen texteffect basic <effect> <text>");

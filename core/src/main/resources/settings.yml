@@ -64,11 +64,7 @@ TextEffects:
     gradient:
       enabled: true # Static color gradient across text
     typewriter:
-      enabled: true # Characters appear sequentially
-    wobble:
-      enabled: true # Text rotates back and forth
-    obfuscate:
-      enabled: true # Rapidly cycling random characters
+      enabled: true # Characters appear sequentially left-to-right
 
 Chat:
   # If glyphs do not show up in chat, try setting this to LEGACY
