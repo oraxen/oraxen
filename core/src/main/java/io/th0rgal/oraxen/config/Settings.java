@@ -38,6 +38,17 @@ public enum Settings {
     UNICODE_COMPLETIONS("Glyphs.unicode_completions"),
     GLYPH_HOVER_TEXT("Glyphs.chat_hover_text"),
 
+    // Text Effects (shader-based)
+    TEXT_EFFECTS_ENABLED("TextEffects.enabled"),
+    TEXT_EFFECTS_RAINBOW("TextEffects.effects.rainbow.enabled"),
+    TEXT_EFFECTS_WAVE("TextEffects.effects.wave.enabled"),
+    TEXT_EFFECTS_SHAKE("TextEffects.effects.shake.enabled"),
+    TEXT_EFFECTS_PULSE("TextEffects.effects.pulse.enabled"),
+    TEXT_EFFECTS_GRADIENT("TextEffects.effects.gradient.enabled"),
+    TEXT_EFFECTS_TYPEWRITER("TextEffects.effects.typewriter.enabled"),
+    TEXT_EFFECTS_WOBBLE("TextEffects.effects.wobble.enabled"),
+    TEXT_EFFECTS_OBFUSCATE("TextEffects.effects.obfuscate.enabled"),
+
 
     // Chat
     CHAT_HANDLER("Chat.chat_handler"),

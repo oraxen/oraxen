@@ -79,6 +79,9 @@ public class FontManager {
         loadReferenceGlyphs(glyphOutput.referenceGlyphs());
         loadAnimatedGlyphs(glyphOutput.animatedGlyphs());
 
+        // Load text effects configuration from settings
+        loadTextEffectsConfig();
+
         if (fontConfiguration.isConfigurationSection("fonts"))
             loadFonts(fontConfiguration.getConfigurationSection("fonts"));
 
@@ -350,6 +353,25 @@ public class FontManager {
 
     public void clearGlyphTabCompletions(Player player) {
         this.currentGlyphCompletions.remove(player.getUniqueId());
+    }
+
+    /**
+     * Loads text effects configuration from settings.yml.
+     */
+    private void loadTextEffectsConfig() {
+        Configuration settings = OraxenPlugin.get().getConfigsManager().getSettings();
+        ConfigurationSection textEffectsSection = settings.getConfigurationSection("TextEffects");
+        TextEffect.loadConfig(textEffectsSection);
+
+        if (TextEffect.isEnabled()) {
+            int enabledCount = 0;
+            for (TextEffect.Type type : TextEffect.Type.values()) {
+                if (TextEffect.isEffectEnabled(type)) {
+                    enabledCount++;
+                }
+            }
+            Logs.logSuccess("Loaded " + enabledCount + " text effects");
+        }
     }
 
     public record GlyphBitMap(String texture, int rows, int columns, int ascent, int height) {

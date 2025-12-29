@@ -937,23 +937,24 @@ public class ResourcePack {
     }
 
     /**
-     * Generates the animation vertex shader with shadow detection.
-     * Handles FPS and loop flag encoding in green channel:
-     * - Bit 7: loop flag (0=loop, 1=no-loop)
-     * - Bits 0-6: FPS (1-127)
-     */
-    /**
      * Generates animation vertex shader using visibility-based animation.
      * Each frame is a separate character; the shader hides frames that don't match current time.
+     * Also handles text effects (R=253) with position-based effects like wave, shake, wobble.
      *
-     * Color encoding:
+     * Color encoding for animated glyphs:
      * - R = 254: animation marker
      * - G bits 0-6: FPS, bit 7: loop flag
      * - B bits 0-3: frame index, bits 4-7: total frames - 1
+     *
+     * Color encoding for text effects:
+     * - R = 253: text effect marker
+     * - G bits 0-3: effect type, bits 4-7: speed
+     * - B bits 0-3: char index, bits 4-7: param (amplitude/intensity)
      */
     private String getAnimationVertexShader(String version, boolean seeThrough) {
         boolean is1_21_6Plus = version.compareTo("1.21.6") >= 0;
         boolean is1_21_4Plus = version.compareTo("1.21.4") >= 0;
+        boolean textEffectsEnabled = Settings.TEXT_EFFECTS_ENABLED.toBool();
 
         if (is1_21_6Plus) {
             if (seeThrough) {
@@ -970,14 +971,18 @@ public class ResourcePack {
 
                     out vec4 vertexColor;
                     out vec2 texCoord0;
+                    out vec4 effectData; // Pass effect info to fragment shader
 
                     void main() {
-                        gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
+                        vec3 pos = Position;
+                        gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
                         texCoord0 = UV0;
                         vertexColor = Color;
+                        effectData = vec4(0.0);
+
+                        int rInt = int(Color.r * 255.0 + 0.5);
 
                         // Check for animation color: R=254 for primary, R≈63 for shadow
-                        int rInt = int(Color.r * 255.0 + 0.5);
                         bool isPrimaryAnim = (rInt == 254);
                         bool isShadowAnim = (rInt >= 62 && rInt <= 64);
 
@@ -996,8 +1001,6 @@ public class ResourcePack {
                             int rawFrame = int(floor(timeSeconds * fps));
                             int currentFrame = loop ? (rawFrame % totalFrames) : min(rawFrame, totalFrames - 1);
 
-                            // Hide this frame if it's not the current one
-                            // Shadows always hidden - color precision loss makes all shadows decode to same frameIndex
                             float visible = (frameIndex == currentFrame && isPrimaryAnim) ? 1.0 : 0.0;
 
                             if (isPrimaryAnim) {
@@ -1005,6 +1008,46 @@ public class ResourcePack {
                             } else {
                                 vertexColor = vec4(0.0);
                             }
+                        }
+
+                        // Text effects: R=253 for primary, R≈63 for shadow (253/4)
+                        bool isPrimaryEffect = (rInt == 253);
+                        bool isShadowEffect = (rInt >= 62 && rInt <= 64 && !isShadowAnim);
+
+                        if (isPrimaryEffect || isShadowEffect) {
+                            int gRaw = int(Color.g * 255.0 + 0.5);
+                            int bRaw = int(Color.b * 255.0 + 0.5);
+                            int gInt = isPrimaryEffect ? gRaw : min(255, gRaw * 4);
+                            int bInt = isPrimaryEffect ? bRaw : min(255, bRaw * 4);
+
+                            int effectType = gInt & 0x0F;
+                            float speed = max(1.0, float((gInt >> 4) & 0x0F));
+                            float charIndex = float(bInt & 0x0F);
+                            float param = float((bInt >> 4) & 0x0F);
+
+                            float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
+
+                            // Wave effect (type 1): vertical sine wave
+                            if (effectType == 1) {
+                                float phase = charIndex * 0.6 + timeSeconds * speed * 2.0;
+                                float amplitude = max(1.0, param) * 0.5;
+                                pos.y += sin(phase) * amplitude;
+                                gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
+                            }
+                            // Shake effect (type 2): random jitter
+                            else if (effectType == 2) {
+                                float seed = charIndex + floor(timeSeconds * speed * 8.0);
+                                float amplitude = max(1.0, param) * 0.5;
+                                pos.x += (fract(sin(seed * 12.9898) * 43758.5453) - 0.5) * amplitude;
+                                pos.y += (fract(sin(seed * 78.233) * 43758.5453) - 0.5) * amplitude;
+                                gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
+                            }
+                            // Wobble effect (type 6): rotation oscillation handled in fragment
+
+                            // Pass effect data to fragment shader
+                            // x=effectType, y=speed, z=charIndex, w=param
+                            effectData = vec4(float(effectType), speed, charIndex, param);
+                            vertexColor = Color; // Keep original color for fragment shader processing
                         }
                     }
                     """;
@@ -1029,16 +1072,20 @@ public class ResourcePack {
                 out float cylindricalVertexDistance;
                 out vec4 vertexColor;
                 out vec2 texCoord0;
+                out vec4 effectData; // Pass effect info to fragment shader
 
                 void main() {
-                    gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
-                    sphericalVertexDistance = fog_spherical_distance(Position);
-                    cylindricalVertexDistance = fog_cylindrical_distance(Position);
+                    vec3 pos = Position;
+                    gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
+                    sphericalVertexDistance = fog_spherical_distance(pos);
+                    cylindricalVertexDistance = fog_cylindrical_distance(pos);
                     texCoord0 = UV0;
                     vertexColor = Color * texelFetch(Sampler2, UV2 / 16, 0);
+                    effectData = vec4(0.0);
+
+                    int rInt = int(Color.r * 255.0 + 0.5);
 
                     // Check for animation color: R=254 for primary, R≈63 for shadow
-                    int rInt = int(Color.r * 255.0 + 0.5);
                     bool isPrimaryAnim = (rInt == 254);
                     bool isShadowAnim = (rInt >= 62 && rInt <= 64);
 
@@ -1057,8 +1104,6 @@ public class ResourcePack {
                         int rawFrame = int(floor(timeSeconds * fps));
                         int currentFrame = loop ? (rawFrame % totalFrames) : min(rawFrame, totalFrames - 1);
 
-                        // Hide this frame if it's not the current one
-                        // Shadows always hidden - color precision loss makes all shadows decode to same frameIndex
                         float visible = (frameIndex == currentFrame && isPrimaryAnim) ? 1.0 : 0.0;
 
                         if (isPrimaryAnim) {
@@ -1066,6 +1111,48 @@ public class ResourcePack {
                         } else {
                             vertexColor = vec4(0.0);
                         }
+                    }
+
+                    // Text effects: R=253 for primary, R≈63 for shadow (253/4)
+                    bool isPrimaryEffect = (rInt == 253);
+                    bool isShadowEffect = (rInt >= 62 && rInt <= 64 && !isShadowAnim);
+
+                    if (isPrimaryEffect || isShadowEffect) {
+                        int gRaw = int(Color.g * 255.0 + 0.5);
+                        int bRaw = int(Color.b * 255.0 + 0.5);
+                        int gInt = isPrimaryEffect ? gRaw : min(255, gRaw * 4);
+                        int bInt = isPrimaryEffect ? bRaw : min(255, bRaw * 4);
+
+                        int effectType = gInt & 0x0F;
+                        float speed = max(1.0, float((gInt >> 4) & 0x0F));
+                        float charIndex = float(bInt & 0x0F);
+                        float param = float((bInt >> 4) & 0x0F);
+
+                        float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
+
+                        // Wave effect (type 1): vertical sine wave
+                        if (effectType == 1) {
+                            float phase = charIndex * 0.6 + timeSeconds * speed * 2.0;
+                            float amplitude = max(1.0, param) * 0.5;
+                            pos.y += sin(phase) * amplitude;
+                            gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
+                            sphericalVertexDistance = fog_spherical_distance(pos);
+                            cylindricalVertexDistance = fog_cylindrical_distance(pos);
+                        }
+                        // Shake effect (type 2): random jitter
+                        else if (effectType == 2) {
+                            float seed = charIndex + floor(timeSeconds * speed * 8.0);
+                            float amplitude = max(1.0, param) * 0.5;
+                            pos.x += (fract(sin(seed * 12.9898) * 43758.5453) - 0.5) * amplitude;
+                            pos.y += (fract(sin(seed * 78.233) * 43758.5453) - 0.5) * amplitude;
+                            gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
+                            sphericalVertexDistance = fog_spherical_distance(pos);
+                            cylindricalVertexDistance = fog_cylindrical_distance(pos);
+                        }
+
+                        // Pass effect data to fragment shader
+                        effectData = vec4(float(effectType), speed, charIndex, param);
+                        vertexColor = Color * texelFetch(Sampler2, UV2 / 16, 0);
                     }
                 }
                 """;
@@ -1092,15 +1179,19 @@ public class ResourcePack {
                 out float vertexDistance;
                 out vec4 vertexColor;
                 out vec2 texCoord0;
+                out vec4 effectData; // Pass effect info to fragment shader
 
                 void main() {
-                    gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
-                    vertexDistance = fog_distance(Position, FogShape);
+                    vec3 pos = Position;
+                    gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
+                    vertexDistance = fog_distance(pos, FogShape);
                     texCoord0 = UV0;
                     vertexColor = Color * texelFetch(Sampler2, UV2 / 16, 0);
+                    effectData = vec4(0.0);
+
+                    int rInt = int(Color.r * 255.0 + 0.5);
 
                     // Check for animation color: R=254 for primary, R≈63 for shadow
-                    int rInt = int(Color.r * 255.0 + 0.5);
                     bool isPrimaryAnim = (rInt == 254);
                     bool isShadowAnim = (rInt >= 62 && rInt <= 64);
 
@@ -1119,8 +1210,6 @@ public class ResourcePack {
                         int rawFrame = int(floor(timeSeconds * fps));
                         int currentFrame = loop ? int(mod(float(rawFrame), float(totalFrames))) : min(rawFrame, totalFrames - 1);
 
-                        // Hide this frame if it's not the current one
-                        // Shadows always hidden - color precision loss makes all shadows decode to same frameIndex
                         float visible = (frameIndex == currentFrame && isPrimaryAnim) ? 1.0 : 0.0;
 
                         if (isPrimaryAnim) {
@@ -1128,6 +1217,46 @@ public class ResourcePack {
                         } else {
                             vertexColor = vec4(0.0);
                         }
+                    }
+
+                    // Text effects: R=253 for primary, R≈63 for shadow (253/4)
+                    bool isPrimaryEffect = (rInt == 253);
+                    bool isShadowEffect = (rInt >= 62 && rInt <= 64 && !isShadowAnim);
+
+                    if (isPrimaryEffect || isShadowEffect) {
+                        int gRaw = int(Color.g * 255.0 + 0.5);
+                        int bRaw = int(Color.b * 255.0 + 0.5);
+                        int gInt = isPrimaryEffect ? gRaw : min(255, gRaw * 4);
+                        int bInt = isPrimaryEffect ? bRaw : min(255, bRaw * 4);
+
+                        int effectType = gInt & 0x0F;
+                        float speed = max(1.0, float((gInt >> 4) & 0x0F));
+                        float charIndex = float(bInt & 0x0F);
+                        float param = float((bInt >> 4) & 0x0F);
+
+                        float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
+
+                        // Wave effect (type 1): vertical sine wave
+                        if (effectType == 1) {
+                            float phase = charIndex * 0.6 + timeSeconds * speed * 2.0;
+                            float amplitude = max(1.0, param) * 0.5;
+                            pos.y += sin(phase) * amplitude;
+                            gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
+                            vertexDistance = fog_distance(pos, FogShape);
+                        }
+                        // Shake effect (type 2): random jitter
+                        else if (effectType == 2) {
+                            float seed = charIndex + floor(timeSeconds * speed * 8.0);
+                            float amplitude = max(1.0, param) * 0.5;
+                            pos.x += (fract(sin(seed * 12.9898) * 43758.5453) - 0.5) * amplitude;
+                            pos.y += (fract(sin(seed * 78.233) * 43758.5453) - 0.5) * amplitude;
+                            gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
+                            vertexDistance = fog_distance(pos, FogShape);
+                        }
+
+                        // Pass effect data to fragment shader
+                        effectData = vec4(float(effectType), speed, charIndex, param);
+                        vertexColor = Color * texelFetch(Sampler2, UV2 / 16, 0);
                     }
                 }
                 """.formatted(imports);
@@ -1146,28 +1275,86 @@ public class ResourcePack {
         boolean is1_21_4Plus = version.compareTo("1.21.4") >= 0;
         String sampleExpr = intensity ? "texture(Sampler0, texCoord0).rrrr" : "texture(Sampler0, texCoord0)";
 
+        // HSV to RGB function for rainbow effect
+        String hsvToRgb = """
+                // HSV to RGB conversion for rainbow effect
+                vec3 hsv2rgb(vec3 c) {
+                    vec4 K = vec4(1.0, 2.0/3.0, 1.0/3.0, 3.0);
+                    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+                    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+                }
+                """;
+
         if (is1_21_6Plus) {
             if (seeThrough) {
                 return """
                     #version 330
 
                     #moj_import <minecraft:dynamictransforms.glsl>
+                    #moj_import <minecraft:globals.glsl>
 
                     uniform sampler2D Sampler0;
 
                     in vec4 vertexColor;
                     in vec2 texCoord0;
+                    in vec4 effectData;
 
                     out vec4 fragColor;
 
+                    %s
+
                     void main() {
                         vec4 color = %s * vertexColor * ColorModulator;
+
+                        // Apply text effects if effectData.x > 0 (effectType)
+                        if (effectData.x > 0.5) {
+                            int effectType = int(effectData.x + 0.5);
+                            float speed = effectData.y;
+                            float charIndex = effectData.z;
+                            float param = effectData.w;
+                            float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
+
+                            // Rainbow effect (type 0)
+                            if (effectType == 0) {
+                                float hue = mod(charIndex * 0.08 + timeSeconds * speed * 0.05, 1.0);
+                                vec3 rgb = hsv2rgb(vec3(hue, 0.9, 1.0));
+                                color.rgb = color.rgb * rgb;
+                            }
+                            // Pulse effect (type 3): opacity fades in/out
+                            else if (effectType == 3) {
+                                float pulse = (sin(timeSeconds * speed * 0.5 + charIndex * 0.3) + 1.0) * 0.5;
+                                color.a *= 0.3 + pulse * 0.7;
+                            }
+                            // Gradient effect (type 4): static color gradient
+                            else if (effectType == 4) {
+                                float t = charIndex / 15.0;
+                                vec3 startColor = vec3(1.0, 0.3, 0.3);
+                                vec3 endColor = vec3(0.3, 0.3, 1.0);
+                                color.rgb *= mix(startColor, endColor, t);
+                            }
+                            // Typewriter effect (type 5): characters appear sequentially
+                            else if (effectType == 5) {
+                                float revealTime = charIndex / (speed * 2.0);
+                                if (mod(timeSeconds, 16.0 / speed) < revealTime) {
+                                    color.a = 0.0;
+                                }
+                            }
+                            // Obfuscate effect (type 7): rapid color cycling
+                            else if (effectType == 7) {
+                                float seed = charIndex + floor(timeSeconds * speed * 10.0);
+                                float r = fract(sin(seed * 12.9898) * 43758.5453);
+                                float g = fract(sin(seed * 78.233) * 43758.5453);
+                                float b = fract(sin(seed * 37.719) * 43758.5453);
+                                color.rgb = vec3(r, g, b);
+                            }
+                        }
+
                         if (color.a < 0.1) {
                             discard;
                         }
                         fragColor = color;
                     }
-                    """.formatted(sampleExpr);
+                    """.formatted(hsvToRgb, sampleExpr);
             }
 
             return """
@@ -1175,6 +1362,7 @@ public class ResourcePack {
 
                 #moj_import <minecraft:fog.glsl>
                 #moj_import <minecraft:dynamictransforms.glsl>
+                #moj_import <minecraft:globals.glsl>
 
                 uniform sampler2D Sampler0;
 
@@ -1182,17 +1370,64 @@ public class ResourcePack {
                 in float cylindricalVertexDistance;
                 in vec4 vertexColor;
                 in vec2 texCoord0;
+                in vec4 effectData;
 
                 out vec4 fragColor;
 
+                %s
+
                 void main() {
                     vec4 color = %s * vertexColor * ColorModulator;
+
+                    // Apply text effects if effectData.x >= 0 (effectType, 0 is rainbow)
+                    if (effectData.x >= 0.0 && effectData.y > 0.5) {
+                        int effectType = int(effectData.x + 0.5);
+                        float speed = effectData.y;
+                        float charIndex = effectData.z;
+                        float param = effectData.w;
+                        float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
+
+                        // Rainbow effect (type 0)
+                        if (effectType == 0) {
+                            float hue = mod(charIndex * 0.08 + timeSeconds * speed * 0.05, 1.0);
+                            vec3 rgb = hsv2rgb(vec3(hue, 0.9, 1.0));
+                            color.rgb = color.rgb * rgb;
+                        }
+                        // Pulse effect (type 3): opacity fades in/out
+                        else if (effectType == 3) {
+                            float pulse = (sin(timeSeconds * speed * 0.5 + charIndex * 0.3) + 1.0) * 0.5;
+                            color.a *= 0.3 + pulse * 0.7;
+                        }
+                        // Gradient effect (type 4): static color gradient
+                        else if (effectType == 4) {
+                            float t = charIndex / 15.0;
+                            vec3 startColor = vec3(1.0, 0.3, 0.3);
+                            vec3 endColor = vec3(0.3, 0.3, 1.0);
+                            color.rgb *= mix(startColor, endColor, t);
+                        }
+                        // Typewriter effect (type 5): characters appear sequentially
+                        else if (effectType == 5) {
+                            float revealTime = charIndex / (speed * 2.0);
+                            if (mod(timeSeconds, 16.0 / speed) < revealTime) {
+                                color.a = 0.0;
+                            }
+                        }
+                        // Obfuscate effect (type 7): rapid color cycling
+                        else if (effectType == 7) {
+                            float seed = charIndex + floor(timeSeconds * speed * 10.0);
+                            float r = fract(sin(seed * 12.9898) * 43758.5453);
+                            float g = fract(sin(seed * 78.233) * 43758.5453);
+                            float b = fract(sin(seed * 37.719) * 43758.5453);
+                            color.rgb = vec3(r, g, b);
+                        }
+                    }
+
                     if (color.a < 0.1) {
                         discard;
                     }
                     fragColor = apply_fog(color, sphericalVertexDistance, cylindricalVertexDistance, FogEnvironmentalStart, FogEnvironmentalEnd, FogRenderDistanceStart, FogRenderDistanceEnd, FogColor);
                 }
-                """.formatted(sampleExpr);
+                """.formatted(hsvToRgb, sampleExpr);
         } else {
             // Pre-1.21.6: use traditional uniform declarations
             String imports = is1_21_4Plus ? "#moj_import <minecraft:fog.glsl>" : "#moj_import <fog.glsl>";
@@ -1207,21 +1442,69 @@ public class ResourcePack {
                 uniform float FogStart;
                 uniform float FogEnd;
                 uniform vec4 FogColor;
+                uniform float GameTime;
 
                 in float vertexDistance;
                 in vec4 vertexColor;
                 in vec2 texCoord0;
+                in vec4 effectData;
 
                 out vec4 fragColor;
 
+                %s
+
                 void main() {
                     vec4 color = %s * vertexColor * ColorModulator;
+
+                    // Apply text effects if effectData.x >= 0 (effectType, 0 is rainbow)
+                    if (effectData.x >= 0.0 && effectData.y > 0.5) {
+                        int effectType = int(effectData.x + 0.5);
+                        float speed = effectData.y;
+                        float charIndex = effectData.z;
+                        float param = effectData.w;
+                        float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
+
+                        // Rainbow effect (type 0)
+                        if (effectType == 0) {
+                            float hue = mod(charIndex * 0.08 + timeSeconds * speed * 0.05, 1.0);
+                            vec3 rgb = hsv2rgb(vec3(hue, 0.9, 1.0));
+                            color.rgb = color.rgb * rgb;
+                        }
+                        // Pulse effect (type 3): opacity fades in/out
+                        else if (effectType == 3) {
+                            float pulse = (sin(timeSeconds * speed * 0.5 + charIndex * 0.3) + 1.0) * 0.5;
+                            color.a *= 0.3 + pulse * 0.7;
+                        }
+                        // Gradient effect (type 4): static color gradient
+                        else if (effectType == 4) {
+                            float t = charIndex / 15.0;
+                            vec3 startColor = vec3(1.0, 0.3, 0.3);
+                            vec3 endColor = vec3(0.3, 0.3, 1.0);
+                            color.rgb *= mix(startColor, endColor, t);
+                        }
+                        // Typewriter effect (type 5): characters appear sequentially
+                        else if (effectType == 5) {
+                            float revealTime = charIndex / (speed * 2.0);
+                            if (mod(timeSeconds, 16.0 / speed) < revealTime) {
+                                color.a = 0.0;
+                            }
+                        }
+                        // Obfuscate effect (type 7): rapid color cycling
+                        else if (effectType == 7) {
+                            float seed = charIndex + floor(timeSeconds * speed * 10.0);
+                            float r = fract(sin(seed * 12.9898) * 43758.5453);
+                            float g = fract(sin(seed * 78.233) * 43758.5453);
+                            float b = fract(sin(seed * 37.719) * 43758.5453);
+                            color.rgb = vec3(r, g, b);
+                        }
+                    }
+
                     if (color.a < 0.1) {
                         discard;
                     }
                     fragColor = linear_fog(color, vertexDistance, FogStart, FogEnd, FogColor);
                 }
-                """.formatted(imports, sampleExpr);
+                """.formatted(imports, hsvToRgb, sampleExpr);
         }
     }
 
