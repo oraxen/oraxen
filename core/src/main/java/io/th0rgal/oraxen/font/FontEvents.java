@@ -192,42 +192,11 @@ public class FontEvents implements Listener {
         if (VersionUtil.atOrAbove("1.20.5")) return;
 
         Player player = (Player) event.getWhoClicked();
-        String displayName = clickedInv.getRenameText();
         ItemStack inputItem = clickedInv.getItem(0);
         ItemStack resultItem = clickedInv.getItem(2);
         if (resultItem == null || !OraxenItems.exists(inputItem)) return;
 
-        if (displayName != null) {
-            displayName = AdventureUtils.parseLegacyThroughMiniMessage(displayName);
-            for (Character character : manager.getReverseMap().keySet()) {
-                if (!displayName.contains(String.valueOf(character))) continue;
-                Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
-                if (!glyph.hasPermission(player)) {
-                    Glyph required = manager.getGlyphFromName("required");
-                    String replacement = required.hasPermission(player) ? String.valueOf(required.getCharacter()) : "";
-                    Message.NO_PERMISSION.send(player, AdventureUtils.tagResolver("permission", glyph.getPermission()));
-                    displayName = displayName.replace(String.valueOf(character), replacement);
-                }
-            }
-
-            for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet()) {
-                if (entry.getValue().hasPermission(player))
-                    displayName = (manager.permsChatcolor == null)
-                            ? displayName.replace(entry.getKey(),
-                            String.valueOf(entry.getValue().getCharacter()))
-                            : displayName.replace(entry.getKey(),
-                            ChatColor.WHITE + String.valueOf(entry.getValue().getCharacter())
-                                    + PapiAliases.setPlaceholders(player, manager.permsChatcolor));
-            }
-        }
-
-        // Since getRenameText is in PlainText, check if the displayName is the same as the rename text with all tags stripped
-        // If so retain the displayName of inputItem. This also fixes enchantments breaking names
-        // If the displayName is null, reset it to the "original" name
-        String strippedDownInputDisplay = MINI_MESSAGE.stripTags(AdventureUtils.parseLegacy(inputItem.getItemMeta().getDisplayName()));
-        if (((displayName == null || displayName.isEmpty()) && OraxenItems.exists(inputItem)) || strippedDownInputDisplay.equals(displayName)) {
-            displayName = inputItem.getItemMeta().getPersistentDataContainer().get(ORIGINAL_NAME_KEY, PersistentDataType.STRING);
-        }
+        String displayName = processRenameDisplayName(player, clickedInv.getRenameText(), inputItem);
 
         String finalDisplayName = displayName;
         ItemUtils.editItemMeta(resultItem, meta -> {
@@ -235,6 +204,48 @@ public class FontEvents implements Listener {
             else if (VersionUtil.isPaperServer()) meta.displayName(MINI_MESSAGE.deserialize(finalDisplayName));
             else meta.setDisplayName(finalDisplayName);
         });
+    }
+
+    private String processRenameDisplayName(Player player, String displayName, ItemStack inputItem) {
+        if (displayName != null) {
+            displayName = AdventureUtils.parseLegacyThroughMiniMessage(displayName);
+            displayName = replaceUnpermittedGlyphs(player, displayName);
+            displayName = replaceGlyphPlaceholders(player, displayName);
+        }
+
+        // If displayName is unchanged from input or empty, restore original name
+        String strippedInput = MINI_MESSAGE.stripTags(AdventureUtils.parseLegacy(inputItem.getItemMeta().getDisplayName()));
+        if (((displayName == null || displayName.isEmpty()) && OraxenItems.exists(inputItem))
+                || strippedInput.equals(displayName)) {
+            return inputItem.getItemMeta().getPersistentDataContainer().get(ORIGINAL_NAME_KEY, PersistentDataType.STRING);
+        }
+        return displayName;
+    }
+
+    private String replaceUnpermittedGlyphs(Player player, String displayName) {
+        for (Character character : manager.getReverseMap().keySet()) {
+            if (!displayName.contains(String.valueOf(character))) continue;
+            Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
+            if (!glyph.hasPermission(player)) {
+                Glyph required = manager.getGlyphFromName("required");
+                String replacement = required.hasPermission(player) ? String.valueOf(required.getCharacter()) : "";
+                Message.NO_PERMISSION.send(player, AdventureUtils.tagResolver("permission", glyph.getPermission()));
+                displayName = displayName.replace(String.valueOf(character), replacement);
+            }
+        }
+        return displayName;
+    }
+
+    private String replaceGlyphPlaceholders(Player player, String displayName) {
+        for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet()) {
+            if (!entry.getValue().hasPermission(player)) continue;
+            String replacement = (manager.permsChatcolor == null)
+                    ? String.valueOf(entry.getValue().getCharacter())
+                    : ChatColor.WHITE + String.valueOf(entry.getValue().getCharacter())
+                            + PapiAliases.setPlaceholders(player, manager.permsChatcolor);
+            displayName = displayName.replace(entry.getKey(), replacement);
+        }
+        return displayName;
     }
 
     @EventHandler

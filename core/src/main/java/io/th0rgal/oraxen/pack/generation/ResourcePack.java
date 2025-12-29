@@ -754,13 +754,11 @@ public class ResourcePack {
         File textureFile = animGlyph.getTextureFile(packFolder.toPath());
 
         if (!textureFile.exists()) {
-            Logs.logWarning(
-                    "Sprite sheet not found for animated glyph '" + animGlyph.getName() + "': "
-                            + textureFile.getPath());
+            Logs.logWarning("Sprite sheet not found for animated glyph '" + animGlyph.getName() + "': "
+                    + textureFile.getPath());
             return;
         }
 
-        // Validate sprite sheet dimensions
         try {
             BufferedImage image = ImageIO.read(textureFile);
             if (image == null) {
@@ -768,89 +766,113 @@ public class ResourcePack {
                 return;
             }
 
-            int frameCount = animGlyph.getFrameCount();
-            int imageWidth = image.getWidth();
-            int imageHeight = image.getHeight();
-            boolean widthDiv = imageWidth % frameCount == 0;
-            boolean heightDiv = imageHeight % frameCount == 0;
+            BufferedImage sheetImage = prepareAnimationSpriteSheet(animGlyph, image);
+            if (sheetImage == null) return;
 
-            boolean vertical = heightDiv && (!widthDiv || imageHeight >= imageWidth);
-            boolean horizontal = widthDiv && (!heightDiv || imageWidth > imageHeight);
+            boolean generatedStrip = (sheetImage != image);
+            String spriteSheetPath = writeSpriteSheetIfNeeded(animGlyph, sheetImage, generatedStrip);
 
-            if (!heightDiv && !widthDiv) {
-                Logs.logWarning("Sprite sheet dimensions (" + imageWidth + "x" + imageHeight +
-                        ") are not divisible by frame count (" + frameCount + ") for: " + animGlyph.getName());
-            }
-
-            BufferedImage sheetImage = image;
-            boolean generatedStrip = false;
-
-            if (vertical && heightDiv) {
-                int frameHeight = imageHeight / frameCount;
-                int frameWidth = imageWidth;
-                if (frameHeight <= 0) {
-                    Logs.logWarning("Invalid frame height for animated glyph '" + animGlyph.getName() + "'");
-                    return;
-                }
-
-                BufferedImage horizontalStrip = new BufferedImage(frameWidth * frameCount, frameHeight,
-                        BufferedImage.TYPE_INT_ARGB);
-                Graphics2D graphics = horizontalStrip.createGraphics();
-                graphics.setComposite(AlphaComposite.Src);
-                for (int i = 0; i < frameCount; i++) {
-                    BufferedImage frame = image.getSubimage(0, i * frameHeight, frameWidth, frameHeight);
-                    graphics.drawImage(frame, i * frameWidth, 0, null);
-                }
-                graphics.dispose();
-
-                sheetImage = horizontalStrip;
-                generatedStrip = true;
-            } else if (!horizontal) {
-                Logs.logWarning("Unable to determine sprite sheet orientation for: " + animGlyph.getName());
-            }
-
-            // Determine sprite sheet path for font reference
-            String texturePath = animGlyph.getTexturePath();
-            String namespace = "minecraft";
-            String relativePath = texturePath;
-            if (texturePath.contains(":")) {
-                String[] split = texturePath.split(":", 2);
-                namespace = split[0];
-                relativePath = split[1];
-            }
-            if (relativePath.endsWith(".png")) {
-                relativePath = relativePath.substring(0, relativePath.length() - 4);
-            }
-
-            String finalPath = generatedStrip ? relativePath + "_strip" : relativePath;
-            String spriteSheetPath = namespace + ":" + finalPath + ".png";
-
-            if (generatedStrip) {
-                String filePath = finalPath + ".png";
-                int lastSlash = filePath.lastIndexOf('/');
-                String folder = "assets/" + namespace + "/textures";
-                String name = filePath;
-                if (lastSlash >= 0) {
-                    folder = folder + "/" + filePath.substring(0, lastSlash);
-                    name = filePath.substring(lastSlash + 1);
-                }
-                writeImageToVirtual(folder, name, sheetImage);
-            }
-
-            // Mark as processed
             animGlyph.setProcessed(spriteSheetPath);
-
-            // Generate font file for this animation
-            JsonObject fontJson = animGlyph.toFontJson();
-            if (fontJson != null) {
-                writeStringToVirtual("assets/oraxen/font/animations", animGlyph.getName() + ".json",
-                        fontJson.toString());
-                Logs.logSuccess("Generated animation font for: " + animGlyph.getName() +
-                        " (" + frameCount + " frames @ " + animGlyph.getFps() + " fps)");
-            }
+            generateAnimationFont(animGlyph);
         } catch (IOException e) {
             Logs.logError("Failed to process sprite sheet for: " + animGlyph.getName());
             Logs.debug(e);
+        }
+    }
+
+    /**
+     * Prepares the sprite sheet for animation, converting vertical to horizontal if needed.
+     */
+    private BufferedImage prepareAnimationSpriteSheet(AnimatedGlyph animGlyph, BufferedImage image) {
+        int frameCount = animGlyph.getFrameCount();
+        int imageWidth = image.getWidth();
+        int imageHeight = image.getHeight();
+        boolean widthDiv = imageWidth % frameCount == 0;
+        boolean heightDiv = imageHeight % frameCount == 0;
+
+        if (!heightDiv && !widthDiv) {
+            Logs.logWarning("Sprite sheet dimensions (" + imageWidth + "x" + imageHeight +
+                    ") are not divisible by frame count (" + frameCount + ") for: " + animGlyph.getName());
+        }
+
+        boolean vertical = heightDiv && (!widthDiv || imageHeight >= imageWidth);
+        boolean horizontal = widthDiv && (!heightDiv || imageWidth > imageHeight);
+
+        if (vertical && heightDiv) {
+            return convertVerticalToHorizontalStrip(animGlyph, image, frameCount);
+        } else if (!horizontal) {
+            Logs.logWarning("Unable to determine sprite sheet orientation for: " + animGlyph.getName());
+        }
+        return image;
+    }
+
+    /**
+     * Converts a vertical sprite sheet to horizontal strip format.
+     */
+    private BufferedImage convertVerticalToHorizontalStrip(AnimatedGlyph animGlyph, BufferedImage image, int frameCount) {
+        int frameHeight = image.getHeight() / frameCount;
+        int frameWidth = image.getWidth();
+        if (frameHeight <= 0) {
+            Logs.logWarning("Invalid frame height for animated glyph '" + animGlyph.getName() + "'");
+            return null;
+        }
+
+        BufferedImage horizontalStrip = new BufferedImage(frameWidth * frameCount, frameHeight,
+                BufferedImage.TYPE_INT_ARGB);
+        Graphics2D graphics = horizontalStrip.createGraphics();
+        graphics.setComposite(AlphaComposite.Src);
+        for (int i = 0; i < frameCount; i++) {
+            BufferedImage frame = image.getSubimage(0, i * frameHeight, frameWidth, frameHeight);
+            graphics.drawImage(frame, i * frameWidth, 0, null);
+        }
+        graphics.dispose();
+        return horizontalStrip;
+    }
+
+    /**
+     * Writes the sprite sheet to virtual files if it was generated, returns the resource path.
+     */
+    private String writeSpriteSheetIfNeeded(AnimatedGlyph animGlyph, BufferedImage sheetImage, boolean generatedStrip) {
+        String texturePath = animGlyph.getTexturePath();
+        String namespace = "minecraft";
+        String relativePath = texturePath;
+
+        if (texturePath.contains(":")) {
+            String[] split = texturePath.split(":", 2);
+            namespace = split[0];
+            relativePath = split[1];
+        }
+        if (relativePath.endsWith(".png")) {
+            relativePath = relativePath.substring(0, relativePath.length() - 4);
+        }
+
+        String finalPath = generatedStrip ? relativePath + "_strip" : relativePath;
+        String spriteSheetPath = namespace + ":" + finalPath + ".png";
+
+        if (generatedStrip) {
+            String filePath = finalPath + ".png";
+            int lastSlash = filePath.lastIndexOf('/');
+            String folder = "assets/" + namespace + "/textures";
+            String name = filePath;
+            if (lastSlash >= 0) {
+                folder = folder + "/" + filePath.substring(0, lastSlash);
+                name = filePath.substring(lastSlash + 1);
+            }
+            writeImageToVirtual(folder, name, sheetImage);
+        }
+        return spriteSheetPath;
+    }
+
+    /**
+     * Generates the font file for an animated glyph.
+     */
+    private void generateAnimationFont(AnimatedGlyph animGlyph) {
+        JsonObject fontJson = animGlyph.toFontJson();
+        if (fontJson != null) {
+            writeStringToVirtual("assets/oraxen/font/animations", animGlyph.getName() + ".json",
+                    fontJson.toString());
+            Logs.logSuccess("Generated animation font for: " + animGlyph.getName() +
+                    " (" + animGlyph.getFrameCount() + " frames @ " + animGlyph.getFps() + " fps)");
         }
     }
 
