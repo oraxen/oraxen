@@ -1167,6 +1167,7 @@ public class ResourcePack {
                     %s
                     %s
                     %s
+                    %s
 
                     void main() {
                         vec3 pos = Position;
@@ -1266,7 +1267,6 @@ public class ResourcePack {
                 out vec4 vertexColor;
                 out vec2 texCoord0;
                 out vec4 effectData; // Pass effect info to fragment shader
-                %s
                 %s
                 %s
 
@@ -1373,6 +1373,7 @@ public class ResourcePack {
                     out vec2 texCoord0;
                     out vec4 effectData; // Pass effect info to fragment shader
                     %s
+                    %s
 
                     void main() {
                         vec3 pos = Position;
@@ -1473,6 +1474,7 @@ public class ResourcePack {
                 out vec4 vertexColor;
                 out vec2 texCoord0;
                 out vec4 effectData; // Pass effect info to fragment shader
+                %s
                 %s
 
                 void main() {
@@ -1848,7 +1850,6 @@ public class ResourcePack {
                 out vec4 effectData;
                 %s
                 %s
-                %s
 
                 void main() {
                     vec3 pos = Position;
@@ -1963,6 +1964,7 @@ public class ResourcePack {
                 out vec4 vertexColor;
                 out vec2 texCoord0;
                 out vec4 effectData;
+                %s
                 %s
 
                 void main() {
