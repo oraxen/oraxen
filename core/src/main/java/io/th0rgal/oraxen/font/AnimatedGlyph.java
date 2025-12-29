@@ -356,16 +356,13 @@ public class AnimatedGlyph {
     }
 
     /**
-     * Gets the first frame character for simple display.
+     * Gets the first frame character for simple/static display.
+     * Returns only the first frame without any reset characters,
+     * as the reset character is only used for animation sequencing.
      */
     public String getCharacter() {
         if (frameCodepoints.isEmpty()) return "";
-        String baseChar = Character.toString(frameCodepoints.get(0));
-        int effectiveOffset = getOffset();
-        if (effectiveOffset != 0 && offsetCodepoint >= 0) {
-            return baseChar + Character.toString(offsetCodepoint);
-        }
-        return baseChar;
+        return Character.toString(frameCodepoints.get(0));
     }
 
     /**

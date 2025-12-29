@@ -1277,7 +1277,8 @@ public class ResourcePack {
     /**
      * Generates a combined vertex shader that supports both animation and
      * scoreboard number hiding.
-     * This is needed on pre-1.20.3 servers when both features are enabled.
+     * Uses visibility-based animation: each frame is a separate character,
+     * and the shader hides frames that don't match current time.
      */
     private String getCombinedVertexShader(String version) {
         boolean is1_21_6Plus = version.compareTo("1.21.6") >= 0;
@@ -1285,9 +1286,8 @@ public class ResourcePack {
 
         if (is1_21_6Plus) {
             // 1.21.6+ uses uniform blocks from globals.glsl
-            // ScreenSize, GameTime, etc. come from the Globals uniform block
             return """
-                #version 150
+                #version 330
 
                 #moj_import <minecraft:fog.glsl>
                 #moj_import <minecraft:dynamictransforms.glsl>
@@ -1305,32 +1305,43 @@ public class ResourcePack {
                 out float cylindricalVertexDistance;
                 out vec4 vertexColor;
                 out vec2 texCoord0;
-                out float isAnimated;
-                out float animFps;
-                out float frameCount;
-                out float animLoop;
 
                 void main() {
                     gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
                     sphericalVertexDistance = fog_spherical_distance(Position);
                     cylindricalVertexDistance = fog_cylindrical_distance(Position);
-                    vertexColor = Color * texelFetch(Sampler2, UV2 / 16, 0);
                     texCoord0 = UV0;
+                    vertexColor = Color * texelFetch(Sampler2, UV2 / 16, 0);
 
-                    // Default: not animated, looping enabled
-                    isAnimated = 0.0;
-                    animFps = 10.0;
-                    frameCount = 1.0;
-                    animLoop = 1.0;
-
-                    // Check for primary animation color: R=0xFE (254)
+                    // Check for animation color: R=254 for primary, R≈63 for shadow
                     int rInt = int(Color.r * 255.0 + 0.5);
-                    if (rInt == 254) {
-                        isAnimated = 1.0;
-                        int gInt = int(Color.g * 255.0 + 0.5);
-                        animLoop = (gInt >= 128) ? 0.0 : 1.0;
-                        animFps = float(gInt & 0x7F);
-                        frameCount = max(1.0, Color.b * 255.0);
+                    bool isPrimaryAnim = (rInt == 254);
+                    bool isShadowAnim = (rInt >= 62 && rInt <= 64);
+
+                    if (isPrimaryAnim || isShadowAnim) {
+                        int gRaw = int(Color.g * 255.0 + 0.5);
+                        int bRaw = int(Color.b * 255.0 + 0.5);
+                        int gInt = isPrimaryAnim ? gRaw : min(255, gRaw * 4);
+                        int bInt = isPrimaryAnim ? bRaw : min(255, bRaw * 4);
+
+                        bool loop = (gInt < 128);
+                        float fps = max(1.0, float(gInt & 0x7F));
+                        int frameIndex = bInt & 0x0F;
+                        int totalFrames = ((bInt >> 4) & 0x0F) + 1;
+
+                        float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
+                        int rawFrame = int(floor(timeSeconds * fps));
+                        int currentFrame = loop ? (rawFrame % totalFrames) : min(rawFrame, totalFrames - 1);
+
+                        // Hide this frame if it's not the current one
+                        // Shadows always hidden - color precision loss makes all shadows decode to same frameIndex
+                        float visible = (frameIndex == currentFrame && isPrimaryAnim) ? 1.0 : 0.0;
+
+                        if (isPrimaryAnim) {
+                            vertexColor = vec4(1.0, 1.0, 1.0, visible) * texelFetch(Sampler2, UV2 / 16, 0);
+                        } else {
+                            vertexColor = vec4(0.0);
+                        }
                     }
 
                     // Scoreboard number hiding
@@ -1361,35 +1372,47 @@ public class ResourcePack {
                 uniform mat4 ProjMat;
                 uniform int FogShape;
                 uniform vec2 ScreenSize;
+                uniform float GameTime;
 
                 out float vertexDistance;
                 out vec4 vertexColor;
                 out vec2 texCoord0;
-                out float isAnimated;
-                out float animFps;
-                out float frameCount;
-                out float animLoop;
 
                 void main() {
                     gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
                     vertexDistance = fog_distance(Position, FogShape);
-                    vertexColor = Color * texelFetch(Sampler2, UV2 / 16, 0);
                     texCoord0 = UV0;
+                    vertexColor = Color * texelFetch(Sampler2, UV2 / 16, 0);
 
-                    // Default: not animated, looping enabled
-                    isAnimated = 0.0;
-                    animFps = 10.0;
-                    frameCount = 1.0;
-                    animLoop = 1.0;
-
-                    // Check for primary animation color: R=0xFE (254)
+                    // Check for animation color: R=254 for primary, R≈63 for shadow
                     int rInt = int(Color.r * 255.0 + 0.5);
-                    if (rInt == 254) {
-                        isAnimated = 1.0;
-                        int gInt = int(Color.g * 255.0 + 0.5);
-                        animLoop = (gInt >= 128) ? 0.0 : 1.0;
-                        animFps = float(gInt & 0x7F);
-                        frameCount = max(1.0, Color.b * 255.0);
+                    bool isPrimaryAnim = (rInt == 254);
+                    bool isShadowAnim = (rInt >= 62 && rInt <= 64);
+
+                    if (isPrimaryAnim || isShadowAnim) {
+                        int gRaw = int(Color.g * 255.0 + 0.5);
+                        int bRaw = int(Color.b * 255.0 + 0.5);
+                        int gInt = isPrimaryAnim ? gRaw : min(255, gRaw * 4);
+                        int bInt = isPrimaryAnim ? bRaw : min(255, bRaw * 4);
+
+                        bool loop = (gInt < 128);
+                        float fps = max(1.0, float(gInt & 0x7F));
+                        int frameIndex = bInt & 0x0F;
+                        int totalFrames = ((bInt >> 4) & 0x0F) + 1;
+
+                        float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
+                        int rawFrame = int(floor(timeSeconds * fps));
+                        int currentFrame = loop ? int(mod(float(rawFrame), float(totalFrames))) : min(rawFrame, totalFrames - 1);
+
+                        // Hide this frame if it's not the current one
+                        // Shadows always hidden - color precision loss makes all shadows decode to same frameIndex
+                        float visible = (frameIndex == currentFrame && isPrimaryAnim) ? 1.0 : 0.0;
+
+                        if (isPrimaryAnim) {
+                            vertexColor = vec4(1.0, 1.0, 1.0, visible) * texelFetch(Sampler2, UV2 / 16, 0);
+                        } else {
+                            vertexColor = vec4(0.0);
+                        }
                     }
 
                     // Scoreboard number hiding
