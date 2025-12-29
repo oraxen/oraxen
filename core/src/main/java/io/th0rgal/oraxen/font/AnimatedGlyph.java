@@ -140,6 +140,12 @@ public class AnimatedGlyph {
     private String spriteSheetPath;
 
     /**
+     * Pixel dimensions for a single frame within the sprite sheet.
+     */
+    private int frameWidthPx = 0;
+    private int frameHeightPx = 0;
+
+    /**
      * Whether the sprite sheet has been validated and is ready for use.
      */
     private boolean processed = false;
@@ -278,9 +284,13 @@ public class AnimatedGlyph {
      * Marks this glyph as processed with the sprite sheet path.
      *
      * @param spriteSheetPath Path to the generated sprite sheet
+     * @param frameWidthPx    Width of a single frame in pixels
+     * @param frameHeightPx   Height of a single frame in pixels
      */
-    public void setProcessed(String spriteSheetPath) {
+    public void setProcessed(String spriteSheetPath, int frameWidthPx, int frameHeightPx) {
         this.spriteSheetPath = spriteSheetPath;
+        this.frameWidthPx = frameWidthPx;
+        this.frameHeightPx = frameHeightPx;
         this.processed = true;
     }
 
@@ -373,6 +383,14 @@ public class AnimatedGlyph {
 
     public String getSpriteSheetPath() {
         return spriteSheetPath;
+    }
+
+    public int getFrameWidthPx() {
+        return frameWidthPx;
+    }
+
+    public int getFrameHeightPx() {
+        return frameHeightPx;
     }
 
     /**
@@ -472,10 +490,16 @@ public class AnimatedGlyph {
         space.addProperty("type", "space");
         JsonObject advances = new JsonObject();
 
-        // The reset codepoint has NEGATIVE advance to reset cursor after each frame
-        // -height because frame width = height for square glyphs (from horizontal strip)
+        // The reset codepoint has NEGATIVE advance to reset cursor after each frame.
+        // Use the frame aspect ratio to compute the rendered width in pixels.
         if (resetCodepoint >= 0) {
-            advances.addProperty(Character.toString(resetCodepoint), -height);
+            int resetAdvance = -height;
+            if (frameWidthPx > 0 && frameHeightPx > 0) {
+                float aspect = (float) frameWidthPx / (float) frameHeightPx;
+                int renderedWidth = Math.max(1, Math.round(height * aspect));
+                resetAdvance = -renderedWidth;
+            }
+            advances.addProperty(Character.toString(resetCodepoint), resetAdvance);
         }
 
         int effectiveOffset = getOffset();

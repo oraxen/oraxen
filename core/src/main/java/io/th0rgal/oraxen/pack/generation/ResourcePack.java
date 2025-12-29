@@ -810,7 +810,26 @@ public class ResourcePack {
             boolean generatedStrip = (sheetImage != image);
             String spriteSheetPath = writeSpriteSheetIfNeeded(animGlyph, sheetImage, generatedStrip);
 
-            animGlyph.setProcessed(spriteSheetPath);
+            int frameCount = Math.max(1, animGlyph.getFrameCount());
+            int sheetWidth = sheetImage.getWidth();
+            int sheetHeight = sheetImage.getHeight();
+            int frameWidthPx;
+            int frameHeightPx;
+
+            if (sheetWidth % frameCount == 0) {
+                frameWidthPx = sheetWidth / frameCount;
+                frameHeightPx = sheetHeight;
+            } else if (sheetHeight % frameCount == 0) {
+                frameWidthPx = sheetWidth;
+                frameHeightPx = sheetHeight / frameCount;
+            } else {
+                frameWidthPx = Math.max(1, sheetWidth / frameCount);
+                frameHeightPx = sheetHeight;
+                Logs.logWarning("Sprite sheet '" + animGlyph.getName() + "' has non-divisible dimensions; " +
+                        "reset advance may be approximate.");
+            }
+
+            animGlyph.setProcessed(spriteSheetPath, frameWidthPx, frameHeightPx);
             generateAnimationFont(animGlyph);
         } catch (IOException e) {
             Logs.logError("Failed to process sprite sheet for: " + animGlyph.getName());
