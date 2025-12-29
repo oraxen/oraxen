@@ -1166,8 +1166,6 @@ public class ResourcePack {
                     out vec4 effectData; // Pass effect info to fragment shader
                     %s
                     %s
-                    %s
-                    %s
 
                     void main() {
                         vec3 pos = Position;
