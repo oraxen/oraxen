@@ -38,6 +38,8 @@ public enum Settings {
     UNICODE_COMPLETIONS("Glyphs.unicode_completions"),
     GLYPH_HOVER_TEXT("Glyphs.chat_hover_text"),
 
+    // Text Effects (shader-based)
+    TEXT_EFFECTS_ENABLED("TextEffects.enabled"),
 
     // Chat
     CHAT_HANDLER("Chat.chat_handler"),

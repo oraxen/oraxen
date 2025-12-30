@@ -42,6 +42,17 @@ Glyphs:
   unicode_completions: true # Whether glyph tab-completions shows unicodes or glyph-pølaceholders
   chat_hover_text: "<glyph_placeholder>" # The text that will be shown when hovering over a glyph in chat
 
+# Shader-based text effects (rainbow, wave, shake, etc.)
+# These effects apply to any text using a color encoding detected by shaders.
+# Default encoding (alpha_lsb) preserves the base color by using RGB low bits.
+# Effect definitions and GLSL snippets live in text_effects.yml.
+# Text effects compatible with 1.21.11+
+TextEffects:
+  enabled: true # Master toggle for all text effects
+  shader:
+    template: auto # auto, effects_only, animated_only
+    encoding: alpha_lsb # Encoding strategy for text effects
+
 Chat:
   # If glyphs do not show up in chat, try setting this to LEGACY
   chat_handler: MODERN # Valid once are MODERN & LEGACY

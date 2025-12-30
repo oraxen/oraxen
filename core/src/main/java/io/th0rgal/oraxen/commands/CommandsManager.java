@@ -45,7 +45,9 @@ public class CommandsManager {
                         (new LogDumpCommand().getLogDumpCommand()),
                         (new VersionCommand()).getVersionCommand(),
                         (new AdminCommand()).getAdminCommand(),
-                        (new SchemaCommand()).getSchemaCommand())
+                        (new SchemaCommand()).getSchemaCommand(),
+                        (new TextEffectCommand()).getTextEffectCommand(),
+                        (new TextEffectCommand()).getTextEffectsListCommand())
                 .executes((sender, args) -> {
                     Message.COMMAND_HELP.send(sender);
                 })
