@@ -90,8 +90,6 @@ effects:
     description: Characters appear sequentially left-to-right
     snippets:
       - fragment: |
-          float span = max(1.0, (param + 1.0) * 8.0);
-          float localIndex = mod(charIndex, span);
-          float reveal = mod(floor(timeSeconds * speed * 2.0), span);
-          float alpha = step(localIndex, reveal);
+          float reveal = floor(timeSeconds * speed * 4.0);
+          float alpha = step(charIndex, reveal);
           texColor.a *= alpha;
