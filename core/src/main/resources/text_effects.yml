@@ -90,6 +90,8 @@ effects:
     description: Characters appear sequentially left-to-right
     snippets:
       - fragment: |
-          float reveal = mod(timeSeconds * speed * 2.0, 256.0);
-          float alpha = clamp(reveal - charIndex, 0.0, 1.0);
+          float span = max(1.0, float(ORAXEN_TEXT_DATA_MASK + 1) * (param + 1.0));
+          float localIndex = mod(charIndex, span);
+          float reveal = mod(floor(timeSeconds * speed * 2.0), span);
+          float alpha = step(localIndex, reveal);
           texColor.a *= alpha;
