@@ -72,24 +72,3 @@ effects:
       - fragment: |
           float pulse = (sin(timeSeconds * speed * 0.5 + charIndex * 0.3) + 1.0) * 0.5;
           texColor.a *= 0.3 + pulse * 0.7;
-
-  gradient:
-    id: 4
-    enabled: true
-    description: Static color gradient
-    snippets:
-      - fragment: |
-          float t = charIndex / 15.0;
-          vec3 startColor = vec3(1.0, 0.3, 0.3);
-          vec3 endColor = vec3(0.3, 0.3, 1.0);
-          texColor.rgb = mix(startColor, endColor, t);
-
-  typewriter:
-    id: 5
-    enabled: true
-    description: Characters appear sequentially left-to-right
-    snippets:
-      - fragment: |
-          float reveal = floor(timeSeconds * speed * 4.0);
-          float alpha = step(charIndex, reveal);
-          texColor.a *= alpha;
