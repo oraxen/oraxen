@@ -10,6 +10,7 @@ import com.comphenix.protocol.reflect.StructureModifier;
 import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -39,13 +40,24 @@ public class ProtocolLibBreakerSystem extends BreakerSystem {
 
             final BlockPosition pos = dataTemp.getValues().getFirst();
             final World world = player.getWorld();
-            final Block block = world.getBlockAt(pos.getX(), pos.getY(), pos.getZ());
-            final Location location = block.getLocation();
+            final Location location = new Location(world, pos.getX(), pos.getY(), pos.getZ());
             final BlockFace blockFace = dataDirection.size() > 0 ?
                 BlockFace.valueOf(dataDirection.read(0).name()) :
                 BlockFace.UP;
 
-            handleEvent(player, block, location, blockFace, world, () -> event.setCancelled(true), type == EnumWrappers.PlayerDigType.START_DESTROY_BLOCK);
+            final EnumWrappers.PlayerDigType digType = type;
+            SchedulerUtil.runAtLocation(location, () -> {
+                final Block block = location.getBlock();
+                handleEvent(
+                    player,
+                    block,
+                    location,
+                    blockFace,
+                    world,
+                    () -> event.setCancelled(true),
+                    digType == EnumWrappers.PlayerDigType.START_DESTROY_BLOCK
+                );
+            });
         }
     };
 
