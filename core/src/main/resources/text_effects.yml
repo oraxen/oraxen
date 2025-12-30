@@ -90,7 +90,7 @@ effects:
     description: Characters appear sequentially left-to-right
     snippets:
       - fragment: |
-          float span = max(1.0, float(ORAXEN_TEXT_DATA_MASK + 1) * (param + 1.0));
+          float span = max(1.0, (param + 1.0) * 8.0);
           float localIndex = mod(charIndex, span);
           float reveal = mod(floor(timeSeconds * speed * 2.0), span);
           float alpha = step(localIndex, reveal);
