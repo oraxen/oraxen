@@ -52,19 +52,6 @@ TextEffects:
   shader:
     template: auto # auto, effects_only, animated_only
     encoding: alpha_lsb # Encoding strategy for text effects
-  effects:
-    rainbow:
-      enabled: true # Cycles through rainbow colors over time
-    wave:
-      enabled: true # Text moves up and down in a wave pattern
-    shake:
-      enabled: true # Text randomly shakes/jitters
-    pulse:
-      enabled: true # Text fades in and out
-    gradient:
-      enabled: true # Static color gradient across text
-    typewriter:
-      enabled: true # Characters appear sequentially left-to-right
 
 Chat:
   # If glyphs do not show up in chat, try setting this to LEGACY

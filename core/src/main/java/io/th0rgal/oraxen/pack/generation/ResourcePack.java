@@ -31,6 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
+import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
 import java.awt.AlphaComposite;
@@ -60,6 +61,8 @@ public class ResourcePack {
      */
     private boolean textShadersGenerated = false;
     private TextShaderFeatures textShaderFeatures = null;
+    private TextEffectSnippets textEffectSnippets = null;
+    private TextShaderTarget textEffectSnippetsTarget = null;
 
     public ResourcePack() {
         // we use maps to avoid duplicate
@@ -71,6 +74,8 @@ public class ResourcePack {
         outputFiles.clear();
         textShadersGenerated = false;
         textShaderFeatures = null;
+        textEffectSnippets = null;
+        textEffectSnippetsTarget = null;
 
         makeDirsIfNotExists(packFolder, new File(packFolder, "assets"));
 
@@ -705,6 +710,10 @@ public class ResourcePack {
         }
     }
 
+    private record TextEffectSnippets(String vertexPrelude, String fragmentPrelude,
+                                      String vertexEffects, String fragmentEffects) {
+    }
+
     private void maybeGenerateTextShaders(boolean hasAnimatedGlyphs) {
         if (textShadersGenerated) return;
 
@@ -1012,6 +1021,109 @@ public class ResourcePack {
                 encoding.dataGap());
     }
 
+    private TextEffectSnippets getTextEffectSnippets(TextShaderTarget target) {
+        if (textEffectSnippets != null && target.equals(textEffectSnippetsTarget)) {
+            return textEffectSnippets;
+        }
+        textEffectSnippetsTarget = target;
+        textEffectSnippets = buildTextEffectSnippets(target);
+        return textEffectSnippets;
+    }
+
+    private TextEffectSnippets buildTextEffectSnippets(TextShaderTarget target) {
+        if (!TextEffect.isEnabled() || !TextEffect.hasAnyEffectEnabled()) {
+            return new TextEffectSnippets("", "", "", "");
+        }
+
+        StringBuilder vertexPrelude = new StringBuilder();
+        StringBuilder fragmentPrelude = new StringBuilder();
+        StringBuilder vertexEffects = new StringBuilder();
+        StringBuilder fragmentEffects = new StringBuilder();
+
+        appendPrelude(vertexPrelude, TextEffect.getSharedVertexPrelude());
+        appendPrelude(fragmentPrelude, TextEffect.getSharedFragmentPrelude());
+
+        boolean firstVertex = true;
+        boolean firstFragment = true;
+
+        for (TextEffect.Definition definition : TextEffect.getEnabledEffects()) {
+            TextEffect.Snippet snippet = definition.resolveSnippet(target.packFormat(), target.minecraftVersion());
+            if (snippet == null) {
+                Logs.logWarning("No shader snippet for text effect '" + definition.getName()
+                        + "' on target " + target.displayName());
+                continue;
+            }
+
+            if (snippet.hasVertexPrelude()) {
+                appendPrelude(vertexPrelude, snippet.vertexPrelude());
+            }
+            if (snippet.hasFragmentPrelude()) {
+                appendPrelude(fragmentPrelude, snippet.fragmentPrelude());
+            }
+
+            if (snippet.hasVertex()) {
+                appendEffectBlock(vertexEffects, definition, snippet.vertex(), firstVertex);
+                firstVertex = false;
+            }
+            if (snippet.hasFragment()) {
+                appendEffectBlock(fragmentEffects, definition, snippet.fragment(), firstFragment);
+                firstFragment = false;
+            }
+        }
+
+        return new TextEffectSnippets(vertexPrelude.toString(), fragmentPrelude.toString(),
+                vertexEffects.toString(), fragmentEffects.toString());
+    }
+
+    private void appendPrelude(StringBuilder builder, @Nullable String snippet) {
+        if (snippet == null || snippet.isBlank()) {
+            return;
+        }
+        if (builder.length() > 0) {
+            builder.append("\n");
+        }
+        builder.append(snippet.stripTrailing());
+    }
+
+    private void appendEffectBlock(StringBuilder builder, TextEffect.Definition definition,
+                                   String snippet, boolean first) {
+        String effectIndent = "                            ";
+        String codeIndent = effectIndent + "    ";
+
+        builder.append(effectIndent)
+                .append("// ")
+                .append(definition.getName())
+                .append("\n");
+        builder.append(effectIndent)
+                .append(first ? "if" : "else if")
+                .append(" (effectType == ")
+                .append(definition.getId())
+                .append(") {\n");
+        builder.append(indentSnippet(snippet, codeIndent));
+        builder.append("\n")
+                .append(effectIndent)
+                .append("}\n");
+    }
+
+    private String indentSnippet(String snippet, String indent) {
+        String trimmed = snippet.stripTrailing();
+        if (trimmed.isEmpty()) {
+            return "";
+        }
+        String[] lines = trimmed.split("\\R", -1);
+        StringBuilder out = new StringBuilder();
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+            if (!line.isEmpty()) {
+                out.append(indent).append(line);
+            }
+            if (i < lines.length - 1) {
+                out.append("\n");
+            }
+        }
+        return out.toString();
+    }
+
     /**
      * Generates animation vertex shader using visibility-based animation.
      * Each frame is a separate character; the shader hides frames that don't match current time.
@@ -1032,6 +1144,9 @@ public class ResourcePack {
         boolean is1_21_6Plus = target.isAtLeast("1.21.6");
         boolean is1_21_4Plus = target.isAtLeast("1.21.4");
         String textShaderConstants = getTextShaderConstants(features);
+        TextEffectSnippets snippets = getTextEffectSnippets(target);
+        String vertexPrelude = snippets.vertexPrelude();
+        String vertexEffects = snippets.vertexEffects();
 
         if (is1_21_6Plus) {
             if (seeThrough) {
@@ -1049,6 +1164,8 @@ public class ResourcePack {
                     out vec4 vertexColor;
                     out vec2 texCoord0;
                     out vec4 effectData; // Pass effect info to fragment shader
+                    %s
+                    %s
                     %s
 
                     void main() {
@@ -1116,28 +1233,17 @@ public class ResourcePack {
 
                                 float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
 
-                                // Wave effect (type 1): vertical sine wave
-                                if (effectType == 1) {
-                                    float phase = charIndex * 0.6 + timeSeconds * speed * 2.0;
-                                    float amplitude = max(1.0, param) * 0.15;
-                                    pos.y += sin(phase) * amplitude;
-                                    gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                                }
-                                // Shake effect (type 2): random jitter
-                                else if (effectType == 2) {
-                                    float seed = charIndex + floor(timeSeconds * speed * 8.0);
-                                    float amplitude = max(1.0, param) * 0.15;
-                                    pos.x += (fract(sin(seed * 12.9898) * 43758.5453) - 0.5) * amplitude;
-                                    pos.y += (fract(sin(seed * 78.233) * 43758.5453) - 0.5) * amplitude;
-                                    gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                                }
+%s
+
+                                gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
+
                                 // Pass effect data to fragment shader
                                 // x=effectType, y=speed, z=charIndex, w=param
                                 effectData = vec4(float(effectType), speed, charIndex, param);
                             }
                         }
                     }
-                    """.formatted(textShaderConstants);
+                    """.formatted(textShaderConstants, vertexPrelude, vertexEffects);
             }
 
             return """
@@ -1160,6 +1266,8 @@ public class ResourcePack {
                 out vec4 vertexColor;
                 out vec2 texCoord0;
                 out vec4 effectData; // Pass effect info to fragment shader
+                %s
+                %s
                 %s
 
                 void main() {
@@ -1229,31 +1337,18 @@ public class ResourcePack {
 
                             float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
 
-                            // Wave effect (type 1): vertical sine wave
-                            if (effectType == 1) {
-                                float phase = charIndex * 0.6 + timeSeconds * speed * 2.0;
-                                float amplitude = max(1.0, param) * 0.15;
-                                pos.y += sin(phase) * amplitude;
-                                gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                                sphericalVertexDistance = fog_spherical_distance(pos);
-                                cylindricalVertexDistance = fog_cylindrical_distance(pos);
-                            }
-                            // Shake effect (type 2): random jitter
-                            else if (effectType == 2) {
-                                float seed = charIndex + floor(timeSeconds * speed * 8.0);
-                                float amplitude = max(1.0, param) * 0.15;
-                                pos.x += (fract(sin(seed * 12.9898) * 43758.5453) - 0.5) * amplitude;
-                                pos.y += (fract(sin(seed * 78.233) * 43758.5453) - 0.5) * amplitude;
-                                gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                                sphericalVertexDistance = fog_spherical_distance(pos);
-                                cylindricalVertexDistance = fog_cylindrical_distance(pos);
-                            }
+%s
+
+                            gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
+                            sphericalVertexDistance = fog_spherical_distance(pos);
+                            cylindricalVertexDistance = fog_cylindrical_distance(pos);
+
                             // Pass effect data to fragment shader
                             effectData = vec4(float(effectType), speed, charIndex, param);
                         }
                     }
                 }
-                """.formatted(textShaderConstants);
+                """.formatted(textShaderConstants, vertexPrelude, vertexEffects);
         } else {
             // Pre-1.21.6: use traditional uniform declarations
             String imports = is1_21_4Plus ? "#moj_import <minecraft:fog.glsl>" : "#moj_import <fog.glsl>";
@@ -1345,29 +1440,17 @@ public class ResourcePack {
 
                                 float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
 
-                                // Wave effect (type 1): vertical sine wave
-                                if (effectType == 1) {
-                                    float phase = charIndex * 0.6 + timeSeconds * speed * 2.0;
-                                    float amplitude = max(1.0, param) * 0.15;
-                                    pos.y += sin(phase) * amplitude;
-                                    gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                                    vertexDistance = fog_distance(pos, FogShape);
-                                }
-                                // Shake effect (type 2): random jitter
-                                else if (effectType == 2) {
-                                    float seed = charIndex + floor(timeSeconds * speed * 8.0);
-                                    float amplitude = max(1.0, param) * 0.15;
-                                    pos.x += (fract(sin(seed * 12.9898) * 43758.5453) - 0.5) * amplitude;
-                                    pos.y += (fract(sin(seed * 78.233) * 43758.5453) - 0.5) * amplitude;
-                                    gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                                    vertexDistance = fog_distance(pos, FogShape);
-                                }
+%s
+
+                                gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
+                                vertexDistance = fog_distance(pos, FogShape);
+
                                 // Pass effect data to fragment shader
                                 effectData = vec4(float(effectType), speed, charIndex, param);
                             }
                         }
                     }
-                    """.formatted(imports, textShaderConstants);
+                    """.formatted(imports, textShaderConstants, vertexPrelude, vertexEffects);
             }
 
             return """
@@ -1458,29 +1541,17 @@ public class ResourcePack {
 
                             float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
 
-                            // Wave effect (type 1): vertical sine wave
-                            if (effectType == 1) {
-                                float phase = charIndex * 0.6 + timeSeconds * speed * 2.0;
-                                float amplitude = max(1.0, param) * 0.15;
-                                pos.y += sin(phase) * amplitude;
-                                gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                                vertexDistance = fog_distance(pos, FogShape);
-                            }
-                            // Shake effect (type 2): random jitter
-                            else if (effectType == 2) {
-                                float seed = charIndex + floor(timeSeconds * speed * 8.0);
-                                float amplitude = max(1.0, param) * 0.15;
-                                pos.x += (fract(sin(seed * 12.9898) * 43758.5453) - 0.5) * amplitude;
-                                pos.y += (fract(sin(seed * 78.233) * 43758.5453) - 0.5) * amplitude;
-                                gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                                vertexDistance = fog_distance(pos, FogShape);
-                            }
+%s
+
+                            gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
+                            vertexDistance = fog_distance(pos, FogShape);
+
                             // Pass effect data to fragment shader
                             effectData = vec4(float(effectType), speed, charIndex, param);
                         }
                     }
                 }
-                """.formatted(imports, textShaderConstants);
+                """.formatted(imports, textShaderConstants, vertexPrelude, vertexEffects);
         }
     }
 
@@ -1495,16 +1566,9 @@ public class ResourcePack {
         boolean is1_21_6Plus = target.isAtLeast("1.21.6");
         boolean is1_21_4Plus = target.isAtLeast("1.21.4");
         String sampleExpr = intensity ? "texture(Sampler0, texCoord0).rrrr" : "texture(Sampler0, texCoord0)";
-
-        // HSV to RGB function for rainbow effect
-        String hsvToRgb = """
-                // HSV to RGB conversion for rainbow effect
-                vec3 hsv2rgb(vec3 c) {
-                    vec4 K = vec4(1.0, 2.0/3.0, 1.0/3.0, 3.0);
-                    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
-                    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
-                }
-                """;
+        TextEffectSnippets snippets = getTextEffectSnippets(target);
+        String fragmentPrelude = snippets.fragmentPrelude();
+        String fragmentEffects = snippets.fragmentEffects();
 
         if (is1_21_6Plus) {
             if (seeThrough) {
@@ -1526,6 +1590,7 @@ public class ResourcePack {
 
                     void main() {
                         vec4 color = %s * vertexColor * ColorModulator;
+                        vec4 texColor = color;
 
                         // Apply text effects if effectData.x >= 0 (effectType, 0 is rainbow)
                         if (effectData.x >= 0.0 && effectData.y > 0.5) {
@@ -1535,38 +1600,17 @@ public class ResourcePack {
                             float param = effectData.w;
                             float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
 
-                            // Rainbow effect (type 0)
-                            if (effectType == 0) {
-                                float hue = fract(charIndex * 0.03 + timeSeconds * speed * 0.03);
-                                vec3 rgb = hsv2rgb(vec3(hue, 0.9, 1.0));
-                                color.rgb = rgb;  // Replace color (not multiply) for full brightness
-                            }
-                            // Pulse effect (type 3): opacity fades in/out
-                            else if (effectType == 3) {
-                                float pulse = (sin(timeSeconds * speed * 0.5 + charIndex * 0.3) + 1.0) * 0.5;
-                                color.a *= 0.3 + pulse * 0.7;
-                            }
-                            // Gradient effect (type 4): static color gradient
-                            else if (effectType == 4) {
-                                float t = charIndex / 15.0;
-                                vec3 startColor = vec3(1.0, 0.3, 0.3);
-                                vec3 endColor = vec3(0.3, 0.3, 1.0);
-                                color.rgb = mix(startColor, endColor, t);  // Replace color for full brightness
-                            }
-                            // Typewriter effect (type 5): characters appear sequentially left-to-right
-                            else if (effectType == 5) {
-                                float reveal = mod(timeSeconds * speed * 2.0, 256.0);
-                                float alpha = clamp(reveal - charIndex, 0.0, 1.0);
-                                color.a *= alpha;
-                            }
+%s
                         }
+
+                        color = texColor;
 
                         if (color.a < 0.1) {
                             discard;
                         }
                         fragColor = color;
                     }
-                    """.formatted(hsvToRgb, sampleExpr);
+                    """.formatted(fragmentPrelude, sampleExpr, fragmentEffects);
             }
 
             return """
@@ -1590,6 +1634,7 @@ public class ResourcePack {
 
                 void main() {
                     vec4 color = %s * vertexColor * ColorModulator;
+                    vec4 texColor = color;
 
                     // Apply text effects if effectData.x >= 0 (effectType, 0 is rainbow)
                     if (effectData.x >= 0.0 && effectData.y > 0.5) {
@@ -1599,38 +1644,17 @@ public class ResourcePack {
                         float param = effectData.w;
                         float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
 
-                        // Rainbow effect (type 0)
-                        if (effectType == 0) {
-                            float hue = fract(charIndex * 0.03 + timeSeconds * speed * 0.03);
-                            vec3 rgb = hsv2rgb(vec3(hue, 0.9, 1.0));
-                            color.rgb = rgb;  // Replace color (not multiply) for full brightness
-                        }
-                        // Pulse effect (type 3): opacity fades in/out
-                        else if (effectType == 3) {
-                            float pulse = (sin(timeSeconds * speed * 0.5 + charIndex * 0.3) + 1.0) * 0.5;
-                            color.a *= 0.3 + pulse * 0.7;
-                        }
-                        // Gradient effect (type 4): static color gradient
-                        else if (effectType == 4) {
-                            float t = charIndex / 15.0;
-                            vec3 startColor = vec3(1.0, 0.3, 0.3);
-                            vec3 endColor = vec3(0.3, 0.3, 1.0);
-                            color.rgb = mix(startColor, endColor, t);  // Replace color for full brightness
-                        }
-                        // Typewriter effect (type 5): characters appear sequentially
-                        else if (effectType == 5) {
-                            float reveal = mod(timeSeconds * speed * 2.0, 256.0);
-                            float alpha = clamp(reveal - charIndex, 0.0, 1.0);
-                            color.a *= alpha;
-                        }
+%s
                     }
+
+                    color = texColor;
 
                     if (color.a < 0.1) {
                         discard;
                     }
                     fragColor = apply_fog(color, sphericalVertexDistance, cylindricalVertexDistance, FogEnvironmentalStart, FogEnvironmentalEnd, FogRenderDistanceStart, FogRenderDistanceEnd, FogColor);
                 }
-                """.formatted(hsvToRgb, sampleExpr);
+                """.formatted(fragmentPrelude, sampleExpr, fragmentEffects);
         } else {
             // Pre-1.21.6: use traditional uniform declarations
             String imports = is1_21_4Plus ? "#moj_import <minecraft:fog.glsl>" : "#moj_import <fog.glsl>";
@@ -1658,6 +1682,7 @@ public class ResourcePack {
 
                 void main() {
                     vec4 color = %s * vertexColor * ColorModulator;
+                    vec4 texColor = color;
 
                     // Apply text effects if effectData.x >= 0 (effectType, 0 is rainbow)
                     if (effectData.x >= 0.0 && effectData.y > 0.5) {
@@ -1667,38 +1692,17 @@ public class ResourcePack {
                         float param = effectData.w;
                         float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
 
-                        // Rainbow effect (type 0)
-                        if (effectType == 0) {
-                            float hue = fract(charIndex * 0.03 + timeSeconds * speed * 0.03);
-                            vec3 rgb = hsv2rgb(vec3(hue, 0.9, 1.0));
-                            color.rgb = rgb;  // Replace color (not multiply) for full brightness
-                        }
-                        // Pulse effect (type 3): opacity fades in/out
-                        else if (effectType == 3) {
-                            float pulse = (sin(timeSeconds * speed * 0.5 + charIndex * 0.3) + 1.0) * 0.5;
-                            color.a *= 0.3 + pulse * 0.7;
-                        }
-                        // Gradient effect (type 4): static color gradient
-                        else if (effectType == 4) {
-                            float t = charIndex / 15.0;
-                            vec3 startColor = vec3(1.0, 0.3, 0.3);
-                            vec3 endColor = vec3(0.3, 0.3, 1.0);
-                            color.rgb = mix(startColor, endColor, t);  // Replace color for full brightness
-                        }
-                        // Typewriter effect (type 5): characters appear sequentially
-                        else if (effectType == 5) {
-                            float reveal = mod(timeSeconds * speed * 2.0, 256.0);
-                            float alpha = clamp(reveal - charIndex, 0.0, 1.0);
-                            color.a *= alpha;
-                        }
+%s
                     }
+
+                    color = texColor;
 
                     if (color.a < 0.1) {
                         discard;
                     }
                     fragColor = linear_fog(color, vertexDistance, FogStart, FogEnd, FogColor);
                 }
-                """.formatted(imports, hsvToRgb, sampleExpr);
+                """.formatted(imports, fragmentPrelude, sampleExpr, fragmentEffects);
         }
     }
 
@@ -1815,6 +1819,9 @@ public class ResourcePack {
         boolean is1_21_6Plus = target.isAtLeast("1.21.6");
         boolean is1_21_4Plus = target.isAtLeast("1.21.4");
         String textShaderConstants = getTextShaderConstants(features);
+        TextEffectSnippets snippets = getTextEffectSnippets(target);
+        String vertexPrelude = snippets.vertexPrelude();
+        String vertexEffects = snippets.vertexEffects();
 
         if (is1_21_6Plus) {
             // 1.21.6+ uses uniform blocks from globals.glsl
@@ -1839,6 +1846,8 @@ public class ResourcePack {
                 out vec4 vertexColor;
                 out vec2 texCoord0;
                 out vec4 effectData;
+                %s
+                %s
                 %s
 
                 void main() {
@@ -1909,25 +1918,12 @@ public class ResourcePack {
 
                             float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
 
-                            // Wave effect (type 1): vertical sine wave
-                            if (effectType == 1) {
-                                float phase = charIndex * 0.6 + timeSeconds * speed * 2.0;
-                                float amplitude = max(1.0, param) * 0.15;
-                                pos.y += sin(phase) * amplitude;
-                                gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                                sphericalVertexDistance = fog_spherical_distance(pos);
-                                cylindricalVertexDistance = fog_cylindrical_distance(pos);
-                            }
-                            // Shake effect (type 2): random jitter
-                            else if (effectType == 2) {
-                                float seed = charIndex + floor(timeSeconds * speed * 8.0);
-                                float amplitude = max(1.0, param) * 0.15;
-                                pos.x += (fract(sin(seed * 12.9898) * 43758.5453) - 0.5) * amplitude;
-                                pos.y += (fract(sin(seed * 78.233) * 43758.5453) - 0.5) * amplitude;
-                                gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                                sphericalVertexDistance = fog_spherical_distance(pos);
-                                cylindricalVertexDistance = fog_cylindrical_distance(pos);
-                            }
+%s
+
+                            gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
+                            sphericalVertexDistance = fog_spherical_distance(pos);
+                            cylindricalVertexDistance = fog_cylindrical_distance(pos);
+
                             // Pass effect data to fragment shader
                             effectData = vec4(float(effectType), speed, charIndex, param);
                         }
@@ -1941,7 +1937,7 @@ public class ResourcePack {
                         gl_Position = ProjMat * ModelViewMat * vec4(ScreenSize + 100.0, 0.0, 0.0);
                     }
                 }
-                """.formatted(textShaderConstants);
+                """.formatted(textShaderConstants, vertexPrelude, vertexEffects);
         } else {
             // Pre-1.21.6: use traditional uniform declarations
             String imports = is1_21_4Plus ? "#moj_import <minecraft:fog.glsl>" : "#moj_import <fog.glsl>";
@@ -2036,23 +2032,11 @@ public class ResourcePack {
 
                             float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
 
-                            // Wave effect (type 1): vertical sine wave
-                            if (effectType == 1) {
-                                float phase = charIndex * 0.6 + timeSeconds * speed * 2.0;
-                                float amplitude = max(1.0, param) * 0.15;
-                                pos.y += sin(phase) * amplitude;
-                                gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                                vertexDistance = fog_distance(pos, FogShape);
-                            }
-                            // Shake effect (type 2): random jitter
-                            else if (effectType == 2) {
-                                float seed = charIndex + floor(timeSeconds * speed * 8.0);
-                                float amplitude = max(1.0, param) * 0.15;
-                                pos.x += (fract(sin(seed * 12.9898) * 43758.5453) - 0.5) * amplitude;
-                                pos.y += (fract(sin(seed * 78.233) * 43758.5453) - 0.5) * amplitude;
-                                gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                                vertexDistance = fog_distance(pos, FogShape);
-                            }
+%s
+
+                            gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
+                            vertexDistance = fog_distance(pos, FogShape);
+
                             // Pass effect data to fragment shader
                             effectData = vec4(float(effectType), speed, charIndex, param);
                         }
@@ -2066,7 +2050,7 @@ public class ResourcePack {
                         gl_Position = ProjMat * ModelViewMat * vec4(ScreenSize + 100.0, 0.0, 0.0);
                     }
                 }
-                """.formatted(imports, textShaderConstants);
+                """.formatted(imports, textShaderConstants, vertexPrelude, vertexEffects);
         }
     }
 

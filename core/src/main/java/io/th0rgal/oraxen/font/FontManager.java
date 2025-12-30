@@ -361,15 +361,11 @@ public class FontManager {
     private void loadTextEffectsConfig() {
         Configuration settings = OraxenPlugin.get().getConfigsManager().getSettings();
         ConfigurationSection textEffectsSection = settings.getConfigurationSection("TextEffects");
-        TextEffect.loadConfig(textEffectsSection);
+        ConfigurationSection textEffectsConfig = OraxenPlugin.get().getConfigsManager().getTextEffects();
+        TextEffect.loadConfig(textEffectsSection, textEffectsConfig);
 
         if (TextEffect.isEnabled()) {
-            int enabledCount = 0;
-            for (TextEffect.Type type : TextEffect.Type.values()) {
-                if (TextEffect.isEffectEnabled(type)) {
-                    enabledCount++;
-                }
-            }
+            int enabledCount = TextEffect.getEnabledEffects().size();
             Logs.logSuccess("Loaded " + enabledCount + " text effects");
         }
     }

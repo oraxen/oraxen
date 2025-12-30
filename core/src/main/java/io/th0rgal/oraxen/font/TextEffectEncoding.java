@@ -18,12 +18,12 @@ public interface TextEffectEncoding {
      * Encodes the effect parameters into the base color.
      *
      * @param baseColor Base color to preserve as much as possible
-     * @param type Effect type
+     * @param effectId Effect type id
      * @param speed Effect speed (1-7)
      * @param param Effect parameter (0-7)
      * @param charIndex Character index (0-7); may be ignored by some encodings
      */
-    TextColor encode(TextColor baseColor, TextEffect.Type type, int speed, int param, int charIndex);
+    TextColor encode(TextColor baseColor, int effectId, int speed, int param, int charIndex);
 
     /**
      * Checks whether the encoded color matches this encoding scheme.

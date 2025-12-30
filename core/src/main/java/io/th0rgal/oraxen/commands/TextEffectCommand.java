@@ -10,7 +10,6 @@ import io.th0rgal.oraxen.font.TextEffect;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 
-import java.util.Arrays;
 
 /**
  * Command for testing text effects.
@@ -28,8 +27,8 @@ import java.util.Arrays;
 public class TextEffectCommand {
 
     private static String[] getEffectNames() {
-        return Arrays.stream(TextEffect.Type.values())
-                .map(TextEffect.Type::getName)
+        return TextEffect.getEffects().stream()
+                .map(TextEffect.Definition::getName)
                 .toArray(String[]::new);
     }
 
@@ -106,12 +105,10 @@ public class TextEffectCommand {
             return;
         }
 
-        TextEffect.Type type = TextEffect.Type.fromName(effectName);
-        if (type == null) {
+        TextEffect.Definition definition = TextEffect.getEffect(effectName);
+        if (definition == null) {
             player.sendMessage(Component.text("Unknown effect: " + effectName + ". Available: " +
-                    String.join(", ", Arrays.stream(TextEffect.Type.values())
-                            .map(TextEffect.Type::getName)
-                            .toArray(String[]::new))));
+                    String.join(", ", getEffectNames())));
             return;
         }
 
@@ -120,12 +117,12 @@ public class TextEffectCommand {
             return;
         }
 
-        if (!TextEffect.isEffectEnabled(type)) {
-            player.sendMessage(Component.text("The " + type.getName() + " effect is disabled in settings.yml"));
+        if (!TextEffect.isEffectEnabled(definition)) {
+            player.sendMessage(Component.text("The " + definition.getName() + " effect is disabled"));
             return;
         }
 
-        Component effectComponent = TextEffect.apply(text, type, speed, param);
+        Component effectComponent = TextEffect.apply(text, definition, speed, param);
 
         // Send to chat
         player.sendMessage(Component.text("Chat: ").append(effectComponent));
@@ -134,7 +131,7 @@ public class TextEffectCommand {
         OraxenPlugin.get().getAudience().player(player).sendActionBar(effectComponent);
 
         // Info message
-        player.sendMessage(Component.text("Sent " + type.getName() + " effect (speed=" + speed + ", param=" + param + ")"));
+        player.sendMessage(Component.text("Sent " + definition.getName() + " effect (speed=" + speed + ", param=" + param + ")"));
     }
 
     /**
@@ -145,12 +142,15 @@ public class TextEffectCommand {
                 .withPermission("oraxen.command.texteffect")
                 .executes((sender, args) -> {
                     sender.sendMessage("Available text effects:");
-                    sender.sendMessage("- rainbow: Cycles through rainbow colors");
-                    sender.sendMessage("- wave: Vertical sine wave motion");
-                    sender.sendMessage("- shake: Random jitter");
-                    sender.sendMessage("- pulse: Opacity fades in/out");
-                    sender.sendMessage("- gradient: Static color gradient");
-                    sender.sendMessage("- typewriter: Characters appear sequentially");
+                    for (TextEffect.Definition definition : TextEffect.getEffects()) {
+                        String description = definition.getDescription();
+                        String suffix = TextEffect.isEffectEnabled(definition) ? "" : " (disabled)";
+                        if (description == null || description.isEmpty()) {
+                            sender.sendMessage("- " + definition.getName() + suffix);
+                        } else {
+                            sender.sendMessage("- " + definition.getName() + ": " + description + suffix);
+                        }
+                    }
                     sender.sendMessage("");
                     sender.sendMessage("Usage:");
                     sender.sendMessage("  /oraxen texteffect basic <effect> <text>");
@@ -164,10 +164,10 @@ public class TextEffectCommand {
                         // Show demo of each effect
                         sender.sendMessage("");
                         sender.sendMessage("Demo:");
-                        for (TextEffect.Type type : TextEffect.Type.values()) {
-                            if (TextEffect.isEffectEnabled(type)) {
-                                Component demo = TextEffect.apply(type.getName(), type);
-                                player.sendMessage(Component.text("  " + type.getName() + ": ").append(demo));
+                        for (TextEffect.Definition definition : TextEffect.getEffects()) {
+                            if (TextEffect.isEffectEnabled(definition)) {
+                                Component demo = TextEffect.apply(definition.getName(), definition);
+                                player.sendMessage(Component.text("  " + definition.getName() + ": ").append(demo));
                             }
                         }
                     }

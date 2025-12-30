@@ -39,17 +39,17 @@ public final class AlphaLsbEncoding implements TextEffectEncoding {
 
     @Override
     @NotNull
-    public TextColor encode(TextColor baseColor, TextEffect.Type type, int speed, int param, int charIndex) {
+    public TextColor encode(TextColor baseColor, int effectId, int speed, int param, int charIndex) {
         int rgb = baseColor.value();
         int r = (rgb >> 16) & 0xFF;
         int g = (rgb >> 8) & 0xFF;
         int b = rgb & 0xFF;
 
-        int effectId = type.getId() & DATA_MASK;
+        int effectValue = effectId & DATA_MASK;
         int speedClamped = clamp(speed, 1, DATA_MASK);
         int paramClamped = clamp(param, 0, DATA_MASK);
 
-        int rEnc = avoidAnimationSentinels(encodeChannel(r, effectId));
+        int rEnc = avoidAnimationSentinels(encodeChannel(r, effectValue));
         int gEnc = encodeChannel(g, speedClamped);
         int bEnc = encodeChannel(b, paramClamped);
 

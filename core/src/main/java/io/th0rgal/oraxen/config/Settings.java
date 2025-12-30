@@ -40,13 +40,6 @@ public enum Settings {
 
     // Text Effects (shader-based)
     TEXT_EFFECTS_ENABLED("TextEffects.enabled"),
-    TEXT_EFFECTS_RAINBOW("TextEffects.effects.rainbow.enabled"),
-    TEXT_EFFECTS_WAVE("TextEffects.effects.wave.enabled"),
-    TEXT_EFFECTS_SHAKE("TextEffects.effects.shake.enabled"),
-    TEXT_EFFECTS_PULSE("TextEffects.effects.pulse.enabled"),
-    TEXT_EFFECTS_GRADIENT("TextEffects.effects.gradient.enabled"),
-    TEXT_EFFECTS_TYPEWRITER("TextEffects.effects.typewriter.enabled"),
-
 
     // Chat
     CHAT_HANDLER("Chat.chat_handler"),
