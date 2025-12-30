@@ -49,6 +49,9 @@ Glyphs:
 # Text effects compatible with 1.21.11+
 TextEffects:
   enabled: true # Master toggle for all text effects
+  shader:
+    template: auto # auto, effects_only, animated_only
+    encoding: alpha_lsb # Encoding strategy for text effects
   effects:
     rainbow:
       enabled: true # Cycles through rainbow colors over time

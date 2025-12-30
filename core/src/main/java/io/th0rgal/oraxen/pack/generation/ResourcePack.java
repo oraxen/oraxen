@@ -12,6 +12,8 @@ import io.th0rgal.oraxen.font.Font;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.font.ShiftProvider;
+import io.th0rgal.oraxen.font.TextEffect;
+import io.th0rgal.oraxen.font.TextEffectEncoding;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenMeta;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
@@ -54,10 +56,10 @@ public class ResourcePack {
     private final File pack = new File(packFolder, packFolder.getName() + ".zip");
 
     /**
-     * Tracks whether animation shaders were generated (for combining with
-     * scoreboard shaders)
+     * Tracks whether text shaders were generated (for combining with scoreboard shaders).
      */
-    private boolean animationShadersGenerated = false;
+    private boolean textShadersGenerated = false;
+    private TextShaderFeatures textShaderFeatures = null;
 
     public ResourcePack() {
         // we use maps to avoid duplicate
@@ -67,7 +69,8 @@ public class ResourcePack {
 
     public void generate() {
         outputFiles.clear();
-        animationShadersGenerated = false;
+        textShadersGenerated = false;
+        textShaderFeatures = null;
 
         makeDirsIfNotExists(packFolder, new File(packFolder, "assets"));
 
@@ -689,8 +692,65 @@ public class ResourcePack {
         // Generate the dedicated shift font (still useful for explicit font references)
         generateShiftFont(fontManager);
 
-        // Process and generate animated glyph fonts
-        processAnimatedGlyphs(fontManager);
+        // Process animated glyph fonts
+        boolean hasAnimatedGlyphs = processAnimatedGlyphs(fontManager);
+
+        // Generate text shaders when needed (animated glyphs and/or text effects).
+        maybeGenerateTextShaders(hasAnimatedGlyphs);
+    }
+
+    private record TextShaderFeatures(boolean animatedGlyphs, boolean textEffects) {
+        boolean anyEnabled() {
+            return animatedGlyphs || textEffects;
+        }
+    }
+
+    private void maybeGenerateTextShaders(boolean hasAnimatedGlyphs) {
+        if (textShadersGenerated) return;
+
+        TextShaderFeatures features = resolveTextShaderFeatures(hasAnimatedGlyphs);
+        if (!features.anyEnabled()) return;
+
+        TextShaderTarget target = TextShaderTarget.current();
+        generateTextShaders(target, features);
+        textShaderFeatures = features;
+        textShadersGenerated = true;
+    }
+
+    private TextShaderFeatures resolveTextShaderFeatures(boolean hasAnimatedGlyphs) {
+        boolean textEffectsEnabled = TextEffect.isEnabled() && TextEffect.hasAnyEffectEnabled();
+        TextEffect.ShaderTemplate template = TextEffect.getShaderTemplate();
+
+        boolean includeAnimated;
+        boolean includeEffects;
+
+        switch (template) {
+            case ANIMATED_GLYPHS -> {
+                includeAnimated = hasAnimatedGlyphs;
+                includeEffects = false;
+            }
+            case TEXT_EFFECTS -> {
+                includeAnimated = false;
+                includeEffects = textEffectsEnabled;
+            }
+            case AUTO -> {
+                includeAnimated = hasAnimatedGlyphs;
+                includeEffects = textEffectsEnabled;
+            }
+            default -> {
+                includeAnimated = hasAnimatedGlyphs;
+                includeEffects = textEffectsEnabled;
+            }
+        }
+
+        if (hasAnimatedGlyphs && !includeAnimated) {
+            Logs.logWarning("Animated glyphs detected but TextEffects.shader.template disables them.");
+        }
+        if (textEffectsEnabled && !includeEffects) {
+            Logs.logWarning("Text effects are enabled but TextEffects.shader.template disables them.");
+        }
+
+        return new TextShaderFeatures(includeAnimated, includeEffects);
     }
 
     /**
@@ -707,10 +767,10 @@ public class ResourcePack {
     /**
      * Processes animated glyphs: validates sprite sheets and generates font files.
      */
-    private void processAnimatedGlyphs(FontManager fontManager) {
+    private boolean processAnimatedGlyphs(FontManager fontManager) {
         Collection<AnimatedGlyph> animatedGlyphs = fontManager.getAnimatedGlyphs();
         if (animatedGlyphs.isEmpty()) {
-            return;
+            return false;
         }
 
         // Note: Codepoint counter is reset in ConfigsManager.parseAllGlyphConfigs()
@@ -722,10 +782,7 @@ public class ResourcePack {
         for (AnimatedGlyph animGlyph : animatedGlyphs) {
             processAnimatedGlyph(animGlyph);
         }
-
-        // Generate animation shaders and set flag for scoreboard shader combining
-        generateAnimationShaders();
-        animationShadersGenerated = true;
+        return true;
     }
 
     /**
@@ -858,29 +915,26 @@ public class ResourcePack {
     }
 
     /**
-     * Generates animation shaders based on server version.
+     * Generates text shaders based on target and enabled features.
      * Different Minecraft versions use different shader formats.
      */
-    private void generateAnimationShaders() {
-        // Determine shader version based on pack format / server version
-        String shaderVersion = getShaderVersion();
-
+    private void generateTextShaders(TextShaderTarget target, TextShaderFeatures features) {
         // Generate shaders (see-through uses a different vertex format on 1.21.6+)
-        String vshContent = getAnimationVertexShader(shaderVersion, false);
-        String fshContent = getAnimationFragmentShader(shaderVersion, false);
-        String jsonContent = getAnimationShaderJson(shaderVersion, false);
+        String vshContent = getAnimationVertexShader(target, features, false);
+        String fshContent = getAnimationFragmentShader(target, false);
+        String jsonContent = getAnimationShaderJson(target, false);
 
-        String vshSeeThrough = getAnimationVertexShader(shaderVersion, true);
-        String fshSeeThrough = getAnimationFragmentShader(shaderVersion, true);
-        String jsonSeeThrough = getAnimationShaderJson(shaderVersion, true);
+        String vshSeeThrough = getAnimationVertexShader(target, features, true);
+        String fshSeeThrough = getAnimationFragmentShader(target, true);
+        String jsonSeeThrough = getAnimationShaderJson(target, true);
 
-        String vshIntensity = getAnimationVertexShader(shaderVersion, false);
-        String fshIntensity = getAnimationFragmentShader(shaderVersion, false, true);
-        String jsonIntensity = getAnimationShaderJson(shaderVersion, "rendertype_text_intensity", false);
+        String vshIntensity = getAnimationVertexShader(target, features, false);
+        String fshIntensity = getAnimationFragmentShader(target, false, true);
+        String jsonIntensity = getAnimationShaderJson(target, "rendertype_text_intensity", false);
 
-        String vshIntensitySeeThrough = getAnimationVertexShader(shaderVersion, true);
-        String fshIntensitySeeThrough = getAnimationFragmentShader(shaderVersion, true, true);
-        String jsonIntensitySeeThrough = getAnimationShaderJson(shaderVersion, "rendertype_text_intensity_see_through", true);
+        String vshIntensitySeeThrough = getAnimationVertexShader(target, features, true);
+        String fshIntensitySeeThrough = getAnimationFragmentShader(target, true, true);
+        String jsonIntensitySeeThrough = getAnimationShaderJson(target, "rendertype_text_intensity_see_through", true);
 
         // Write shaders for both rendertype_text and rendertype_text_see_through
         writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_text.vsh", vshContent);
@@ -899,44 +953,61 @@ public class ResourcePack {
         writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_text_intensity_see_through.fsh", fshIntensitySeeThrough);
         writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_text_intensity_see_through.json", jsonIntensitySeeThrough);
 
-        Logs.logSuccess("Generated animation shaders for version: " + shaderVersion);
+        Logs.logSuccess("Generated text shaders for " + target.displayName()
+                + " (shader " + getShaderVersion(target) + ")");
     }
 
     /**
      * Determines the shader version based on server version.
      */
-    private String getShaderVersion() {
-        if (VersionUtil.atOrAbove("1.21.6")) {
+    private String getShaderVersion(TextShaderTarget target) {
+        if (target.isAtLeast("1.21.6")) {
             return "1.21.6";
-        } else if (VersionUtil.atOrAbove("1.21.4")) {
+        } else if (target.isAtLeast("1.21.4")) {
             return "1.21.4";
-        } else if (VersionUtil.atOrAbove("1.21")) {
+        } else if (target.isAtLeast("1.21")) {
             return "1.21";
         } else {
             return "1.20";
         }
     }
 
+    private String getTextShaderConstants(TextShaderFeatures features) {
+        TextEffectEncoding.ShaderEncoding encoding = TextEffect.getEncoding().shaderEncoding();
+        return String.format(Locale.ROOT, """
+                const bool ORAXEN_ANIMATED_GLYPHS = %s;
+                const bool ORAXEN_TEXT_EFFECTS = %s;
+                const int ORAXEN_TEXT_LOW_MASK = %d;
+                const int ORAXEN_TEXT_MARKER_BIT = %d;
+                const int ORAXEN_TEXT_DATA_MASK = %d;
+                """,
+                features.animatedGlyphs() ? "true" : "false",
+                features.textEffects() ? "true" : "false",
+                encoding.lowMask(),
+                encoding.markerBit(),
+                encoding.dataMask());
+    }
+
     /**
      * Generates animation vertex shader using visibility-based animation.
      * Each frame is a separate character; the shader hides frames that don't match current time.
-     * Also handles text effects (R=253) with position-based effects like wave, shake, wobble.
+     * Also handles text effects encoded in RGB low bits (alpha_lsb) with position-based effects.
      *
      * Color encoding for animated glyphs:
      * - R = 254: animation marker
      * - G bits 0-6: FPS, bit 7: loop flag
      * - B bits 0-3: frame index, bits 4-7: total frames - 1
      *
-     * Color encoding for text effects:
-     * - R = 253: text effect marker
-     * - G bits 7 and 3: marker bits (must be 1)
-     * - G bits 0-2: effect type, bits 4-6: speed
-     * - B bits 7 and 3: marker bits (must be 1)
-     * - B bits 0-2: char index, bits 4-6: param (amplitude/intensity)
+     * Color encoding for text effects (alpha_lsb):
+     * - Low 4 bits of each channel are reserved
+     * - Bit 3 is a marker, bits 0-2 carry data (0-7)
+     * - R -> effectType, G -> speed, B -> param
+     * - charIndex is derived from gl_VertexID
      */
-    private String getAnimationVertexShader(String version, boolean seeThrough) {
-        boolean is1_21_6Plus = version.compareTo("1.21.6") >= 0;
-        boolean is1_21_4Plus = version.compareTo("1.21.4") >= 0;
+    private String getAnimationVertexShader(TextShaderTarget target, TextShaderFeatures features, boolean seeThrough) {
+        boolean is1_21_6Plus = target.isAtLeast("1.21.6");
+        boolean is1_21_4Plus = target.isAtLeast("1.21.4");
+        String textShaderConstants = getTextShaderConstants(features);
 
         if (is1_21_6Plus) {
             if (seeThrough) {
@@ -954,6 +1025,7 @@ public class ResourcePack {
                     out vec4 vertexColor;
                     out vec2 texCoord0;
                     out vec4 effectData; // Pass effect info to fragment shader
+                    %s
 
                     void main() {
                         vec3 pos = Position;
@@ -968,7 +1040,7 @@ public class ResourcePack {
                         bool isPrimaryAnim = (rInt == 254);
                         bool isShadowAnim = (rInt >= 62 && rInt <= 64);
 
-                        if (isPrimaryAnim || isShadowAnim) {
+                        if (ORAXEN_ANIMATED_GLYPHS && (isPrimaryAnim || isShadowAnim)) {
                             int gRaw = int(Color.g * 255.0 + 0.5);
                             int bRaw = int(Color.b * 255.0 + 0.5);
                             int gInt = isPrimaryAnim ? gRaw : min(255, gRaw * 4);
@@ -981,7 +1053,7 @@ public class ResourcePack {
 
                             float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
                             int rawFrame = int(floor(timeSeconds * fps));
-                            int currentFrame = loop ? (rawFrame % totalFrames) : min(rawFrame, totalFrames - 1);
+                            int currentFrame = loop ? (rawFrame %% totalFrames) : min(rawFrame, totalFrames - 1);
 
                             float visible = (frameIndex == currentFrame && isPrimaryAnim) ? 1.0 : 0.0;
 
@@ -992,21 +1064,23 @@ public class ResourcePack {
                             }
                         }
 
-                        // Text effects: R=253 for primary
-                        // Marker bits (7 and 3) must be set in G and B to avoid color collisions.
-                        // Note: Text effect shadows share the animation shadow range and are hidden above.
-                        bool isPrimaryEffect = (rInt == 253);
-
-                        if (isPrimaryEffect) {
+                        // Text effects: encoded in low RGB bits (alpha_lsb)
+                        if (ORAXEN_TEXT_EFFECTS && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
                             int gRaw = int(Color.g * 255.0 + 0.5);
                             int bRaw = int(Color.b * 255.0 + 0.5);
-                            bool hasMarker = ((gRaw & 0x88) == 0x88) && ((bRaw & 0x88) == 0x88);
+
+                            int rLow = rInt & ORAXEN_TEXT_LOW_MASK;
+                            int gLow = gRaw & ORAXEN_TEXT_LOW_MASK;
+                            int bLow = bRaw & ORAXEN_TEXT_LOW_MASK;
+                            bool hasMarker = ((rLow & ORAXEN_TEXT_MARKER_BIT) == ORAXEN_TEXT_MARKER_BIT)
+                                    && ((gLow & ORAXEN_TEXT_MARKER_BIT) == ORAXEN_TEXT_MARKER_BIT)
+                                    && ((bLow & ORAXEN_TEXT_MARKER_BIT) == ORAXEN_TEXT_MARKER_BIT);
 
                             if (hasMarker) {
-                                int effectType = gRaw & 0x07;
-                                float speed = max(1.0, float((gRaw >> 4) & 0x07));
-                                float charIndex = float(bRaw & 0x07);
-                                float param = float((bRaw >> 4) & 0x07);
+                                int effectType = rLow & ORAXEN_TEXT_DATA_MASK;
+                                float speed = max(1.0, float(gLow & ORAXEN_TEXT_DATA_MASK));
+                                float param = float(bLow & ORAXEN_TEXT_DATA_MASK);
+                                float charIndex = float((gl_VertexID >> 2) & ORAXEN_TEXT_DATA_MASK);
 
                                 float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
 
@@ -1037,11 +1111,10 @@ public class ResourcePack {
                                 // Pass effect data to fragment shader
                                 // x=effectType, y=speed, z=charIndex, w=param
                                 effectData = vec4(float(effectType), speed, charIndex, param);
-                                vertexColor = Color; // Keep original color for fragment shader processing
                             }
                         }
                     }
-                    """;
+                    """.formatted(textShaderConstants);
             }
 
             return """
@@ -1064,6 +1137,7 @@ public class ResourcePack {
                 out vec4 vertexColor;
                 out vec2 texCoord0;
                 out vec4 effectData; // Pass effect info to fragment shader
+                %s
 
                 void main() {
                     vec3 pos = Position;
@@ -1080,7 +1154,7 @@ public class ResourcePack {
                     bool isPrimaryAnim = (rInt == 254);
                     bool isShadowAnim = (rInt >= 62 && rInt <= 64);
 
-                    if (isPrimaryAnim || isShadowAnim) {
+                    if (ORAXEN_ANIMATED_GLYPHS && (isPrimaryAnim || isShadowAnim)) {
                         int gRaw = int(Color.g * 255.0 + 0.5);
                         int bRaw = int(Color.b * 255.0 + 0.5);
                         int gInt = isPrimaryAnim ? gRaw : min(255, gRaw * 4);
@@ -1093,7 +1167,7 @@ public class ResourcePack {
 
                         float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
                         int rawFrame = int(floor(timeSeconds * fps));
-                        int currentFrame = loop ? (rawFrame % totalFrames) : min(rawFrame, totalFrames - 1);
+                        int currentFrame = loop ? (rawFrame %% totalFrames) : min(rawFrame, totalFrames - 1);
 
                         float visible = (frameIndex == currentFrame && isPrimaryAnim) ? 1.0 : 0.0;
 
@@ -1104,21 +1178,23 @@ public class ResourcePack {
                         }
                     }
 
-                    // Text effects: R=253 for primary
-                    // Marker bits (7 and 3) must be set in G and B to avoid color collisions.
-                    // Note: Text effect shadows share the animation shadow range and are hidden above.
-                    bool isPrimaryEffect = (rInt == 253);
-
-                    if (isPrimaryEffect) {
+                    // Text effects: encoded in low RGB bits (alpha_lsb)
+                    if (ORAXEN_TEXT_EFFECTS && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
                         int gRaw = int(Color.g * 255.0 + 0.5);
                         int bRaw = int(Color.b * 255.0 + 0.5);
-                        bool hasMarker = ((gRaw & 0x88) == 0x88) && ((bRaw & 0x88) == 0x88);
+
+                        int rLow = rInt & ORAXEN_TEXT_LOW_MASK;
+                        int gLow = gRaw & ORAXEN_TEXT_LOW_MASK;
+                        int bLow = bRaw & ORAXEN_TEXT_LOW_MASK;
+                        bool hasMarker = ((rLow & ORAXEN_TEXT_MARKER_BIT) == ORAXEN_TEXT_MARKER_BIT)
+                                && ((gLow & ORAXEN_TEXT_MARKER_BIT) == ORAXEN_TEXT_MARKER_BIT)
+                                && ((bLow & ORAXEN_TEXT_MARKER_BIT) == ORAXEN_TEXT_MARKER_BIT);
 
                         if (hasMarker) {
-                            int effectType = gRaw & 0x07;
-                            float speed = max(1.0, float((gRaw >> 4) & 0x07));
-                            float charIndex = float(bRaw & 0x07);
-                            float param = float((bRaw >> 4) & 0x07);
+                            int effectType = rLow & ORAXEN_TEXT_DATA_MASK;
+                            float speed = max(1.0, float(gLow & ORAXEN_TEXT_DATA_MASK));
+                            float param = float(bLow & ORAXEN_TEXT_DATA_MASK);
+                            float charIndex = float((gl_VertexID >> 2) & ORAXEN_TEXT_DATA_MASK);
 
                             float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
 
@@ -1154,11 +1230,10 @@ public class ResourcePack {
 
                             // Pass effect data to fragment shader
                             effectData = vec4(float(effectType), speed, charIndex, param);
-                            vertexColor = Color * texelFetch(Sampler2, UV2 / 16, 0);
                         }
                     }
                 }
-                """;
+                """.formatted(textShaderConstants);
         } else {
             // Pre-1.21.6: use traditional uniform declarations
             String imports = is1_21_4Plus ? "#moj_import <minecraft:fog.glsl>" : "#moj_import <fog.glsl>";
@@ -1182,6 +1257,7 @@ public class ResourcePack {
                     out vec4 vertexColor;
                     out vec2 texCoord0;
                     out vec4 effectData; // Pass effect info to fragment shader
+                    %s
 
                     void main() {
                         vec3 pos = Position;
@@ -1197,7 +1273,7 @@ public class ResourcePack {
                         bool isPrimaryAnim = (rInt == 254);
                         bool isShadowAnim = (rInt >= 62 && rInt <= 64);
 
-                        if (isPrimaryAnim || isShadowAnim) {
+                        if (ORAXEN_ANIMATED_GLYPHS && (isPrimaryAnim || isShadowAnim)) {
                             int gRaw = int(Color.g * 255.0 + 0.5);
                             int bRaw = int(Color.b * 255.0 + 0.5);
                             int gInt = isPrimaryAnim ? gRaw : min(255, gRaw * 4);
@@ -1221,20 +1297,23 @@ public class ResourcePack {
                             }
                         }
 
-                        // Text effects: R=253 for primary
-                        // Marker bits (7 and 3) must be set in G and B to avoid color collisions.
-                        bool isPrimaryEffect = (rInt == 253);
-
-                        if (isPrimaryEffect) {
+                        // Text effects: encoded in low RGB bits (alpha_lsb)
+                        if (ORAXEN_TEXT_EFFECTS && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
                             int gRaw = int(Color.g * 255.0 + 0.5);
                             int bRaw = int(Color.b * 255.0 + 0.5);
-                            bool hasMarker = ((gRaw & 0x88) == 0x88) && ((bRaw & 0x88) == 0x88);
+
+                            int rLow = rInt & ORAXEN_TEXT_LOW_MASK;
+                            int gLow = gRaw & ORAXEN_TEXT_LOW_MASK;
+                            int bLow = bRaw & ORAXEN_TEXT_LOW_MASK;
+                            bool hasMarker = ((rLow & ORAXEN_TEXT_MARKER_BIT) == ORAXEN_TEXT_MARKER_BIT)
+                                    && ((gLow & ORAXEN_TEXT_MARKER_BIT) == ORAXEN_TEXT_MARKER_BIT)
+                                    && ((bLow & ORAXEN_TEXT_MARKER_BIT) == ORAXEN_TEXT_MARKER_BIT);
 
                             if (hasMarker) {
-                                int effectType = gRaw & 0x07;
-                                float speed = max(1.0, float((gRaw >> 4) & 0x07));
-                                float charIndex = float(bRaw & 0x07);
-                                float param = float((bRaw >> 4) & 0x07);
+                                int effectType = rLow & ORAXEN_TEXT_DATA_MASK;
+                                float speed = max(1.0, float(gLow & ORAXEN_TEXT_DATA_MASK));
+                                float param = float(bLow & ORAXEN_TEXT_DATA_MASK);
+                                float charIndex = float((gl_VertexID >> 2) & ORAXEN_TEXT_DATA_MASK);
 
                                 float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
 
@@ -1267,11 +1346,10 @@ public class ResourcePack {
 
                                 // Pass effect data to fragment shader
                                 effectData = vec4(float(effectType), speed, charIndex, param);
-                                vertexColor = Color;
                             }
                         }
                     }
-                    """.formatted(imports);
+                    """.formatted(imports, textShaderConstants);
             }
 
             return """
@@ -1294,6 +1372,7 @@ public class ResourcePack {
                 out vec4 vertexColor;
                 out vec2 texCoord0;
                 out vec4 effectData; // Pass effect info to fragment shader
+                %s
 
                 void main() {
                     vec3 pos = Position;
@@ -1309,7 +1388,7 @@ public class ResourcePack {
                     bool isPrimaryAnim = (rInt == 254);
                     bool isShadowAnim = (rInt >= 62 && rInt <= 64);
 
-                    if (isPrimaryAnim || isShadowAnim) {
+                    if (ORAXEN_ANIMATED_GLYPHS && (isPrimaryAnim || isShadowAnim)) {
                         int gRaw = int(Color.g * 255.0 + 0.5);
                         int bRaw = int(Color.b * 255.0 + 0.5);
                         int gInt = isPrimaryAnim ? gRaw : min(255, gRaw * 4);
@@ -1333,21 +1412,23 @@ public class ResourcePack {
                         }
                     }
 
-                    // Text effects: R=253 for primary
-                    // Marker bits (7 and 3) must be set in G and B to avoid color collisions.
-                    // Note: Text effect shadows share the animation shadow range and are hidden above.
-                    bool isPrimaryEffect = (rInt == 253);
-
-                    if (isPrimaryEffect) {
+                    // Text effects: encoded in low RGB bits (alpha_lsb)
+                    if (ORAXEN_TEXT_EFFECTS && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
                         int gRaw = int(Color.g * 255.0 + 0.5);
                         int bRaw = int(Color.b * 255.0 + 0.5);
-                        bool hasMarker = ((gRaw & 0x88) == 0x88) && ((bRaw & 0x88) == 0x88);
+
+                        int rLow = rInt & ORAXEN_TEXT_LOW_MASK;
+                        int gLow = gRaw & ORAXEN_TEXT_LOW_MASK;
+                        int bLow = bRaw & ORAXEN_TEXT_LOW_MASK;
+                        bool hasMarker = ((rLow & ORAXEN_TEXT_MARKER_BIT) == ORAXEN_TEXT_MARKER_BIT)
+                                && ((gLow & ORAXEN_TEXT_MARKER_BIT) == ORAXEN_TEXT_MARKER_BIT)
+                                && ((bLow & ORAXEN_TEXT_MARKER_BIT) == ORAXEN_TEXT_MARKER_BIT);
 
                         if (hasMarker) {
-                            int effectType = gRaw & 0x07;
-                            float speed = max(1.0, float((gRaw >> 4) & 0x07));
-                            float charIndex = float(bRaw & 0x07);
-                            float param = float((bRaw >> 4) & 0x07);
+                            int effectType = rLow & ORAXEN_TEXT_DATA_MASK;
+                            float speed = max(1.0, float(gLow & ORAXEN_TEXT_DATA_MASK));
+                            float param = float(bLow & ORAXEN_TEXT_DATA_MASK);
+                            float charIndex = float((gl_VertexID >> 2) & ORAXEN_TEXT_DATA_MASK);
 
                             float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
 
@@ -1380,24 +1461,23 @@ public class ResourcePack {
 
                             // Pass effect data to fragment shader
                             effectData = vec4(float(effectType), speed, charIndex, param);
-                            vertexColor = Color * texelFetch(Sampler2, UV2 / 16, 0);
                         }
                     }
                 }
-                """.formatted(imports);
+                """.formatted(imports, textShaderConstants);
         }
     }
 
     /**
      * Generates a simple fragment shader - visibility is handled in vertex shader.
      */
-    private String getAnimationFragmentShader(String version, boolean seeThrough) {
-        return getAnimationFragmentShader(version, seeThrough, false);
+    private String getAnimationFragmentShader(TextShaderTarget target, boolean seeThrough) {
+        return getAnimationFragmentShader(target, seeThrough, false);
     }
 
-    private String getAnimationFragmentShader(String version, boolean seeThrough, boolean intensity) {
-        boolean is1_21_6Plus = version.compareTo("1.21.6") >= 0;
-        boolean is1_21_4Plus = version.compareTo("1.21.4") >= 0;
+    private String getAnimationFragmentShader(TextShaderTarget target, boolean seeThrough, boolean intensity) {
+        boolean is1_21_6Plus = target.isAtLeast("1.21.6");
+        boolean is1_21_4Plus = target.isAtLeast("1.21.4");
         String sampleExpr = intensity ? "texture(Sampler0, texCoord0).rrrr" : "texture(Sampler0, texCoord0)";
 
         // HSV to RGB function for rainbow effect
@@ -1636,13 +1716,13 @@ public class ResourcePack {
     /**
      * Generates the shader JSON configuration.
      */
-    private String getAnimationShaderJson(String version, boolean seeThrough) {
+    private String getAnimationShaderJson(TextShaderTarget target, boolean seeThrough) {
         String shaderName = seeThrough ? "rendertype_text_see_through" : "rendertype_text";
-        return getAnimationShaderJson(version, shaderName, seeThrough);
+        return getAnimationShaderJson(target, shaderName, seeThrough);
     }
 
-    private String getAnimationShaderJson(String version, String shaderName, boolean seeThrough) {
-        boolean is1_21_6Plus = version.compareTo("1.21.6") >= 0;
+    private String getAnimationShaderJson(TextShaderTarget target, String shaderName, boolean seeThrough) {
+        boolean is1_21_6Plus = target.isAtLeast("1.21.6");
 
         if (is1_21_6Plus) {
             // 1.21.6+ uses uniform blocks - most uniforms come from imported glsl files
@@ -1742,9 +1822,10 @@ public class ResourcePack {
      * Uses visibility-based animation: each frame is a separate character,
      * and the shader hides frames that don't match current time.
      */
-    private String getCombinedVertexShader(String version) {
-        boolean is1_21_6Plus = version.compareTo("1.21.6") >= 0;
-        boolean is1_21_4Plus = version.compareTo("1.21.4") >= 0;
+    private String getCombinedVertexShader(TextShaderTarget target, TextShaderFeatures features) {
+        boolean is1_21_6Plus = target.isAtLeast("1.21.6");
+        boolean is1_21_4Plus = target.isAtLeast("1.21.4");
+        String textShaderConstants = getTextShaderConstants(features);
 
         if (is1_21_6Plus) {
             // 1.21.6+ uses uniform blocks from globals.glsl
@@ -1768,6 +1849,8 @@ public class ResourcePack {
                 out float cylindricalVertexDistance;
                 out vec4 vertexColor;
                 out vec2 texCoord0;
+                out vec4 effectData;
+                %s
 
                 void main() {
                     vec3 pos = Position;
@@ -1783,7 +1866,7 @@ public class ResourcePack {
                     bool isPrimaryAnim = (rInt == 254);
                     bool isShadowAnim = (rInt >= 62 && rInt <= 64);
 
-                    if (isPrimaryAnim || isShadowAnim) {
+                    if (ORAXEN_ANIMATED_GLYPHS && (isPrimaryAnim || isShadowAnim)) {
                         int gRaw = int(Color.g * 255.0 + 0.5);
                         int bRaw = int(Color.b * 255.0 + 0.5);
                         int gInt = isPrimaryAnim ? gRaw : min(255, gRaw * 4);
@@ -1796,7 +1879,7 @@ public class ResourcePack {
 
                         float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
                         int rawFrame = int(floor(timeSeconds * fps));
-                        int currentFrame = loop ? (rawFrame % totalFrames) : min(rawFrame, totalFrames - 1);
+                        int currentFrame = loop ? (rawFrame %% totalFrames) : min(rawFrame, totalFrames - 1);
 
                         // Hide this frame if it's not the current one
                         // Shadows always hidden - color precision loss makes all shadows decode to same frameIndex
@@ -1809,20 +1892,23 @@ public class ResourcePack {
                         }
                     }
 
-                    // Text effects: R=253 for primary
-                    // Marker bits (7 and 3) must be set in G and B to avoid color collisions.
-                    bool isPrimaryEffect = (rInt == 253);
-
-                    if (isPrimaryEffect) {
+                    // Text effects: encoded in low RGB bits (alpha_lsb)
+                    if (ORAXEN_TEXT_EFFECTS && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
                         int gRaw = int(Color.g * 255.0 + 0.5);
                         int bRaw = int(Color.b * 255.0 + 0.5);
-                        bool hasMarker = ((gRaw & 0x88) == 0x88) && ((bRaw & 0x88) == 0x88);
+
+                        int rLow = rInt & ORAXEN_TEXT_LOW_MASK;
+                        int gLow = gRaw & ORAXEN_TEXT_LOW_MASK;
+                        int bLow = bRaw & ORAXEN_TEXT_LOW_MASK;
+                        bool hasMarker = ((rLow & ORAXEN_TEXT_MARKER_BIT) == ORAXEN_TEXT_MARKER_BIT)
+                                && ((gLow & ORAXEN_TEXT_MARKER_BIT) == ORAXEN_TEXT_MARKER_BIT)
+                                && ((bLow & ORAXEN_TEXT_MARKER_BIT) == ORAXEN_TEXT_MARKER_BIT);
 
                         if (hasMarker) {
-                            int effectType = gRaw & 0x07;
-                            float speed = max(1.0, float((gRaw >> 4) & 0x07));
-                            float charIndex = float(bRaw & 0x07);
-                            float param = float((bRaw >> 4) & 0x07);
+                            int effectType = rLow & ORAXEN_TEXT_DATA_MASK;
+                            float speed = max(1.0, float(gLow & ORAXEN_TEXT_DATA_MASK));
+                            float param = float(bLow & ORAXEN_TEXT_DATA_MASK);
+                            float charIndex = float((gl_VertexID >> 2) & ORAXEN_TEXT_DATA_MASK);
 
                             float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
 
@@ -1858,7 +1944,6 @@ public class ResourcePack {
 
                             // Pass effect data to fragment shader
                             effectData = vec4(float(effectType), speed, charIndex, param);
-                            vertexColor = Color * texelFetch(Sampler2, UV2 / 16, 0);
                         }
                     }
 
@@ -1870,7 +1955,7 @@ public class ResourcePack {
                         gl_Position = ProjMat * ModelViewMat * vec4(ScreenSize + 100.0, 0.0, 0.0);
                     }
                 }
-                """;
+                """.formatted(textShaderConstants);
         } else {
             // Pre-1.21.6: use traditional uniform declarations
             String imports = is1_21_4Plus ? "#moj_import <minecraft:fog.glsl>" : "#moj_import <fog.glsl>";
@@ -1895,6 +1980,8 @@ public class ResourcePack {
                 out float vertexDistance;
                 out vec4 vertexColor;
                 out vec2 texCoord0;
+                out vec4 effectData;
+                %s
 
                 void main() {
                     vec3 pos = Position;
@@ -1909,7 +1996,7 @@ public class ResourcePack {
                     bool isPrimaryAnim = (rInt == 254);
                     bool isShadowAnim = (rInt >= 62 && rInt <= 64);
 
-                    if (isPrimaryAnim || isShadowAnim) {
+                    if (ORAXEN_ANIMATED_GLYPHS && (isPrimaryAnim || isShadowAnim)) {
                         int gRaw = int(Color.g * 255.0 + 0.5);
                         int bRaw = int(Color.b * 255.0 + 0.5);
                         int gInt = isPrimaryAnim ? gRaw : min(255, gRaw * 4);
@@ -1935,20 +2022,23 @@ public class ResourcePack {
                         }
                     }
 
-                    // Text effects: R=253 for primary
-                    // Marker bits (7 and 3) must be set in G and B to avoid color collisions.
-                    bool isPrimaryEffect = (rInt == 253);
-
-                    if (isPrimaryEffect) {
+                    // Text effects: encoded in low RGB bits (alpha_lsb)
+                    if (ORAXEN_TEXT_EFFECTS && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
                         int gRaw = int(Color.g * 255.0 + 0.5);
                         int bRaw = int(Color.b * 255.0 + 0.5);
-                        bool hasMarker = ((gRaw & 0x88) == 0x88) && ((bRaw & 0x88) == 0x88);
+
+                        int rLow = rInt & ORAXEN_TEXT_LOW_MASK;
+                        int gLow = gRaw & ORAXEN_TEXT_LOW_MASK;
+                        int bLow = bRaw & ORAXEN_TEXT_LOW_MASK;
+                        bool hasMarker = ((rLow & ORAXEN_TEXT_MARKER_BIT) == ORAXEN_TEXT_MARKER_BIT)
+                                && ((gLow & ORAXEN_TEXT_MARKER_BIT) == ORAXEN_TEXT_MARKER_BIT)
+                                && ((bLow & ORAXEN_TEXT_MARKER_BIT) == ORAXEN_TEXT_MARKER_BIT);
 
                         if (hasMarker) {
-                            int effectType = gRaw & 0x07;
-                            float speed = max(1.0, float((gRaw >> 4) & 0x07));
-                            float charIndex = float(bRaw & 0x07);
-                            float param = float((bRaw >> 4) & 0x07);
+                            int effectType = rLow & ORAXEN_TEXT_DATA_MASK;
+                            float speed = max(1.0, float(gLow & ORAXEN_TEXT_DATA_MASK));
+                            float param = float(bLow & ORAXEN_TEXT_DATA_MASK);
+                            float charIndex = float((gl_VertexID >> 2) & ORAXEN_TEXT_DATA_MASK);
 
                             float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
 
@@ -1981,7 +2071,6 @@ public class ResourcePack {
 
                             // Pass effect data to fragment shader
                             effectData = vec4(float(effectType), speed, charIndex, param);
-                            vertexColor = Color * texelFetch(Sampler2, UV2 / 16, 0);
                         }
                     }
 
@@ -1993,7 +2082,7 @@ public class ResourcePack {
                         gl_Position = ProjMat * ModelViewMat * vec4(ScreenSize + 100.0, 0.0, 0.0);
                     }
                 }
-                """.formatted(imports);
+                """.formatted(imports, textShaderConstants);
         }
     }
 
@@ -2001,8 +2090,8 @@ public class ResourcePack {
      * Generates combined shader JSON that includes uniforms for both animation and
      * scoreboard hiding.
      */
-    private String getCombinedShaderJson(String version) {
-        boolean is1_21_6Plus = version.compareTo("1.21.6") >= 0;
+    private String getCombinedShaderJson(TextShaderTarget target) {
+        boolean is1_21_6Plus = target.isAtLeast("1.21.6");
 
         if (is1_21_6Plus) {
             // 1.21.6+ uses uniform blocks - most uniforms come from imported glsl files
@@ -2384,17 +2473,20 @@ public class ResourcePack {
                 && VersionUtil.atOrAbove("1.20.3")) {
             OraxenPlugin.get().getPacketAdapter().registerScoreboardListener();
         } else { // Pre 1.20.3 rely on shaders
-            // Check if animation shaders were already generated - need to combine them
-            if (animationShadersGenerated) {
-                // Use combined shaders that support both animation and scoreboard hiding
-                String shaderVersion = getShaderVersion();
+            // Check if text shaders were already generated - need to combine them
+            if (textShadersGenerated) {
+                // Use combined shaders that support both text features and scoreboard hiding
+                TextShaderTarget target = TextShaderTarget.current();
+                boolean hasAnimatedGlyphs = !OraxenPlugin.get().getFontManager().getAnimatedGlyphs().isEmpty();
+                TextShaderFeatures features = textShaderFeatures != null
+                        ? textShaderFeatures
+                        : resolveTextShaderFeatures(hasAnimatedGlyphs);
                 writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.vsh",
-                        getCombinedVertexShader(shaderVersion));
+                        getCombinedVertexShader(target, features));
                 writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.json",
-                        getCombinedShaderJson(shaderVersion));
-                // Fragment shader stays the same (animation-only, scoreboard uses vertex
-                // shader)
-                Logs.logInfo("Using combined animation + scoreboard hiding shaders");
+                        getCombinedShaderJson(target));
+                // Fragment shader stays the same (text shader uses vertex shader for scoreboard hiding)
+                Logs.logInfo("Using combined text + scoreboard hiding shaders");
             } else {
                 writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.json", getScoreboardJson());
                 writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.vsh", getScoreboardVsh());

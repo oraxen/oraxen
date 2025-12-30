@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.font;
 
+import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.configuration.ConfigurationSection;
@@ -7,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -15,19 +17,25 @@ import java.util.Map;
  * Unlike animated glyphs which swap between sprite frames, text effects modify
  * how existing characters render (color, position, opacity) using GLSL shaders.
  * <p>
- * Effects use a magic color scheme with R=253 to distinguish from animated glyphs (R=254).
+ * Effects are encoded into the low bits of RGB using a configurable strategy
+ * (default: {@link AlphaLsbEncoding}). This preserves the base color while
+ * providing effect data to the shader.
  * <p>
- * Color encoding: 0xFDGGBB where:
+ * Default encoding (alpha_lsb):
  * <ul>
- *   <li>FD = Red channel (253) - text effect marker</li>
- *   <li>GG = Green channel: marker bits (7 and 3) set to 1, effectType (bits 0-2), speed (bits 4-6)</li>
- *   <li>BB = Blue channel: marker bits (7 and 3) set to 1, charIndex (bits 0-2), param (bits 4-6)</li>
+ *   <li>Low 4 bits of each channel are reserved</li>
+ *   <li>Bit 3 is a marker, bits 0-2 carry data (0-7)</li>
+ *   <li>R -> effectType, G -> speed, B -> param</li>
+ *   <li>Character index is derived in the shader from {@code gl_VertexID}</li>
  * </ul>
  * <p>
  * Example configuration:
  * <pre>
  * TextEffects:
  *   enabled: true
+ *   shader:
+ *     template: auto
+ *     encoding: alpha_lsb
  *   effects:
  *     rainbow:
  *       enabled: true
@@ -42,15 +50,19 @@ import java.util.Map;
 public class TextEffect {
 
     /**
-     * Magic red value for text effects (253).
-     * Different from animated glyphs (254) to allow shader to distinguish.
+     * Legacy magic red value for the deprecated R=253 encoding.
+     *
+     * @deprecated Replaced by {@link AlphaLsbEncoding}; kept for compatibility.
      */
+    @Deprecated
     public static final int MAGIC_RED = 0xFD; // 253
 
     /**
-     * Marker bits to reduce collisions with real colors.
-     * Bits 7 and 3 must be set in both G and B.
+     * Legacy marker bits for the deprecated encoding.
+     *
+     * @deprecated Replaced by {@link AlphaLsbEncoding}; kept for compatibility.
      */
+    @Deprecated
     public static final int EFFECT_MARKER = 0x88;
 
     /**
@@ -62,6 +74,11 @@ public class TextEffect {
      * Default parameter for effects (amplitude, intensity, etc.) (0-7).
      */
     public static final int DEFAULT_PARAM = 3;
+
+    /**
+     * Default base color when none is specified.
+     */
+    private static final TextColor DEFAULT_BASE_COLOR = TextColor.color(255, 255, 255);
 
     /**
      * Effect types available for text.
@@ -150,9 +167,47 @@ public class TextEffect {
         }
     }
 
+    /**
+     * Shader template selection for text rendering.
+     */
+    public enum ShaderTemplate {
+        AUTO("auto"),
+        TEXT_EFFECTS("effects_only"),
+        ANIMATED_GLYPHS("animated_only");
+
+        private final String name;
+
+        ShaderTemplate(String name) {
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        @Nullable
+        public static ShaderTemplate fromName(@Nullable String name) {
+            if (name == null) return null;
+            String normalized = name.trim().toLowerCase(Locale.ROOT);
+            for (ShaderTemplate template : values()) {
+                if (template.name.equals(normalized)) {
+                    return template;
+                }
+            }
+
+            return switch (normalized) {
+                case "effects", "text_effects", "text-effects" -> TEXT_EFFECTS;
+                case "animated", "animated_glyphs", "animated-glyphs" -> ANIMATED_GLYPHS;
+                default -> null;
+            };
+        }
+    }
+
     // Static configuration for which effects are enabled
     private static final Map<Type, Boolean> enabledEffects = new LinkedHashMap<>();
     private static boolean globalEnabled = true;
+    private static TextEffectEncoding encoding = new AlphaLsbEncoding();
+    private static ShaderTemplate shaderTemplate = ShaderTemplate.AUTO;
 
     static {
         // Enable all effects by default
@@ -169,10 +224,13 @@ public class TextEffect {
     public static void loadConfig(@Nullable ConfigurationSection section) {
         if (section == null) {
             globalEnabled = false;
+            encoding = new AlphaLsbEncoding();
+            shaderTemplate = ShaderTemplate.AUTO;
             return;
         }
 
         globalEnabled = section.getBoolean("enabled", true);
+        loadShaderConfig(section.getConfigurationSection("shader"));
 
         ConfigurationSection effectsSection = section.getConfigurationSection("effects");
         if (effectsSection != null) {
@@ -185,6 +243,41 @@ public class TextEffect {
         }
     }
 
+    private static void loadShaderConfig(@Nullable ConfigurationSection shaderSection) {
+        ShaderTemplate parsedTemplate = ShaderTemplate.AUTO;
+        TextEffectEncoding parsedEncoding = new AlphaLsbEncoding();
+
+        if (shaderSection != null) {
+            String templateName = shaderSection.getString("template", ShaderTemplate.AUTO.getName());
+            ShaderTemplate template = ShaderTemplate.fromName(templateName);
+            if (template == null) {
+                Logs.logWarning("Unknown TextEffects.shader.template '" + templateName + "', using 'auto'.");
+            } else {
+                parsedTemplate = template;
+            }
+
+            String encodingName = shaderSection.getString("encoding", parsedEncoding.getName());
+            parsedEncoding = resolveEncoding(encodingName);
+        }
+
+        shaderTemplate = parsedTemplate;
+        encoding = parsedEncoding;
+    }
+
+    private static TextEffectEncoding resolveEncoding(@Nullable String name) {
+        if (name == null) {
+            return new AlphaLsbEncoding();
+        }
+
+        String normalized = name.trim().toLowerCase(Locale.ROOT);
+        if (normalized.equals("alpha_lsb") || normalized.equals("alpha-lsb") || normalized.equals("lsb")) {
+            return new AlphaLsbEncoding();
+        }
+
+        Logs.logWarning("Unknown TextEffects.shader.encoding '" + name + "', using 'alpha_lsb'.");
+        return new AlphaLsbEncoding();
+    }
+
     /**
      * Checks if text effects are globally enabled.
      */
@@ -193,10 +286,32 @@ public class TextEffect {
     }
 
     /**
+     * Returns the configured shader template selection.
+     */
+    public static ShaderTemplate getShaderTemplate() {
+        return shaderTemplate;
+    }
+
+    /**
+     * Returns the configured encoding strategy.
+     */
+    public static TextEffectEncoding getEncoding() {
+        return encoding;
+    }
+
+    /**
      * Checks if a specific effect type is enabled.
      */
     public static boolean isEffectEnabled(Type type) {
         return globalEnabled && enabledEffects.getOrDefault(type, true);
+    }
+
+    /**
+     * Returns true if at least one effect is enabled.
+     */
+    public static boolean hasAnyEffectEnabled() {
+        if (!globalEnabled) return false;
+        return enabledEffects.values().stream().anyMatch(Boolean::booleanValue);
     }
 
     /**
@@ -214,51 +329,75 @@ public class TextEffect {
     }
 
     /**
-     * Gets the magic color for a text effect character.
+     * Gets the encoded color for a text effect character, using the default base color.
      *
+     * @param type       The effect type
+     * @param speed      Speed of the effect (1-7)
+     * @param charIndex  Character index for phase offset (0-7, wraps for longer text);
+     *                   some encodings derive this in the shader and may ignore it.
+     * @param param      Additional parameter (amplitude, intensity, etc.) (0-7)
+     * @return Encoded color carrying the effect parameters
+     */
+    @NotNull
+    public static TextColor getMagicColor(Type type, int speed, int charIndex, int param) {
+        return getMagicColor(DEFAULT_BASE_COLOR, type, speed, charIndex, param);
+    }
+
+    /**
+     * Gets the encoded color for a text effect character, preserving the base color.
+     *
+     * @param baseColor  Base color to preserve
      * @param type       The effect type
      * @param speed      Speed of the effect (1-7)
      * @param charIndex  Character index for phase offset (0-7, wraps for longer text)
      * @param param      Additional parameter (amplitude, intensity, etc.) (0-7)
-     * @return Magic color encoding the effect parameters
+     * @return Encoded color carrying the effect parameters
      */
     @NotNull
-    public static TextColor getMagicColor(Type type, int speed, int charIndex, int param) {
-        int effectId = type.getId() & 0x07;
-        int speedClamped = Math.max(1, Math.min(7, speed)) & 0x07;
-        int charIndexClamped = charIndex & 0x07;
-        int paramClamped = param & 0x07;
-
-        int green = EFFECT_MARKER | effectId | (speedClamped << 4);
-        int blue = EFFECT_MARKER | charIndexClamped | (paramClamped << 4);
-
-        return TextColor.color(MAGIC_RED, green, blue);
+    public static TextColor getMagicColor(@NotNull TextColor baseColor, Type type, int speed, int charIndex, int param) {
+        return encoding.encode(baseColor, type, speed, param, charIndex);
     }
 
     /**
-     * Applies a text effect to a string, returning a Component with magic colors.
+     * Applies a text effect to a string, returning a Component with encoded colors.
      *
      * @param text   The text to apply the effect to
      * @param type   The effect type
      * @param speed  Speed of the effect (1-7)
      * @param param  Additional parameter (amplitude, intensity, etc.) (0-7)
-     * @return Component with per-character magic colors
+     * @return Component with per-character encoded colors
      */
     @NotNull
     public static Component apply(String text, Type type, int speed, int param) {
+        return apply(text, type, speed, param, null);
+    }
+
+    /**
+     * Applies a text effect to a string while preserving the provided base color.
+     *
+     * @param text      The text to apply the effect to
+     * @param type      The effect type
+     * @param speed     Speed of the effect (1-7)
+     * @param param     Additional parameter (amplitude, intensity, etc.) (0-7)
+     * @param baseColor Base color to preserve, or null to use default (white)
+     * @return Component with per-character encoded colors
+     */
+    @NotNull
+    public static Component apply(String text, Type type, int speed, int param, @Nullable TextColor baseColor) {
         if (text == null || text.isEmpty()) {
             return Component.empty();
         }
 
+        TextColor effectiveBase = baseColor != null ? baseColor : DEFAULT_BASE_COLOR;
         Component result = Component.empty();
-        int len = text.codePointCount(0, text.length());
         int idx = 0;
+        int mask = encoding.shaderEncoding().dataMask();
 
         for (int i = 0; i < text.length(); ) {
             int codepoint = text.codePointAt(i);
-            int charIndex = idx % 8; // Wrap for long text
+            int charIndex = mask > 0 ? (idx % (mask + 1)) : 0; // Wrap for long text
 
-            TextColor magic = getMagicColor(type, speed, charIndex, param);
+            TextColor magic = getMagicColor(effectiveBase, type, speed, charIndex, param);
             result = result.append(
                     Component.text(Character.toString(codepoint))
                             .color(magic)
@@ -437,43 +576,25 @@ public class TextEffect {
 
     /**
      * Checks if a color value represents a text effect.
-     * Text effect colors have R=253 (0xFD) and marker bits set in G/B.
      *
      * @param color The color value to check
      * @return true if this is a text effect magic color
      */
     public static boolean isTextEffectColor(int color) {
-        int r = (color >> 16) & 0xFF;
-        int g = (color >> 8) & 0xFF;
-        int b = color & 0xFF;
-
-        return r == MAGIC_RED
-                && (g & EFFECT_MARKER) == EFFECT_MARKER
-                && (b & EFFECT_MARKER) == EFFECT_MARKER;
+        return encoding.matches(color);
     }
 
     /**
      * Extracts text effect parameters from a magic color.
      *
      * @param color The color value
-     * @return int array of [effectType, speed, charIndex, param], or null if not a text effect
+     * @return int array of [effectType, speed, charIndex, param], or null if not a text effect.
+     *         Some encodings derive charIndex in the shader; in that case charIndex may be 0 here.
      */
     @Nullable
     public static int[] extractParams(int color) {
-        int r = (color >> 16) & 0xFF;
-        int g = (color >> 8) & 0xFF;
-        int b = color & 0xFF;
-
-        if (r == MAGIC_RED
-                && (g & EFFECT_MARKER) == EFFECT_MARKER
-                && (b & EFFECT_MARKER) == EFFECT_MARKER) {
-            int effectType = g & 0x07;
-            int speed = (g >> 4) & 0x07;
-            int charIndex = b & 0x07;
-            int param = (b >> 4) & 0x07;
-            return new int[]{effectType, Math.max(1, speed), charIndex, param};
-        }
-
-        return null;
+        TextEffectEncoding.Decoded decoded = encoding.decode(color);
+        if (decoded == null) return null;
+        return new int[]{decoded.effectType(), decoded.speed(), decoded.charIndex(), decoded.param()};
     }
 }
