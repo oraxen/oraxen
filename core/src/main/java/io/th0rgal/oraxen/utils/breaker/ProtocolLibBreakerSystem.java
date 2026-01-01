@@ -46,6 +46,9 @@ public class ProtocolLibBreakerSystem extends BreakerSystem {
                 BlockFace.UP;
 
             final EnumWrappers.PlayerDigType digType = type;
+            
+            event.setCancelled(true);
+            
             SchedulerUtil.runAtLocation(location, () -> {
                 final Block block = location.getBlock();
                 handleEvent(
@@ -54,7 +57,7 @@ public class ProtocolLibBreakerSystem extends BreakerSystem {
                     location,
                     blockFace,
                     world,
-                    () -> event.setCancelled(true),
+                    () -> {},
                     digType == EnumWrappers.PlayerDigType.START_DESTROY_BLOCK
                 );
             });
