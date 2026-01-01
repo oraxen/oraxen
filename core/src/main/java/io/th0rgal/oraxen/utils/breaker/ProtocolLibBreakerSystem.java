@@ -10,6 +10,11 @@ import com.comphenix.protocol.reflect.StructureModifier;
 import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.OraxenBlocks;
+import io.th0rgal.oraxen.api.OraxenFurniture;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -47,22 +52,36 @@ public class ProtocolLibBreakerSystem extends BreakerSystem {
 
             final EnumWrappers.PlayerDigType digType = type;
             
-            event.setCancelled(true);
-            
             SchedulerUtil.runAtLocation(location, () -> {
                 final Block block = location.getBlock();
-                handleEvent(
-                    player,
-                    block,
-                    location,
-                    blockFace,
-                    world,
-                    () -> {},
-                    digType == EnumWrappers.PlayerDigType.START_DESTROY_BLOCK
-                );
+                
+                if (shouldHandleBlock(block)) {
+                    event.setCancelled(true);
+                    handleEvent(
+                        player,
+                        block,
+                        location,
+                        blockFace,
+                        world,
+                        () -> {},
+                        digType == EnumWrappers.PlayerDigType.START_DESTROY_BLOCK
+                    );
+                }
             });
         }
     };
+
+    private boolean shouldHandleBlock(Block block) {
+        NoteBlockMechanic noteMechanic = OraxenBlocks.getNoteBlockMechanic(block);
+        StringBlockMechanic stringMechanic = OraxenBlocks.getStringMechanic(block);
+        FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(block);
+        
+        if (block.getType() == Material.NOTE_BLOCK && noteMechanic == null) return false;
+        if (block.getType() == Material.TRIPWIRE && stringMechanic == null) return false;
+        if (block.getType() == Material.BARRIER && furnitureMechanic == null) return false;
+        
+        return noteMechanic != null || stringMechanic != null || furnitureMechanic != null;
+    }
 
     @Override
     protected void sendBlockBreak(final Player player, final Location location, final int stage) {
