@@ -268,7 +268,6 @@ public class ShapedBlockMechanicListener implements Listener {
 
         Player player = event.getPlayer();
         ItemStack item = player.getInventory().getItemInMainHand();
-
         if (item.getType().isAir()) return;
 
         String itemId = OraxenItems.getIdByItem(item);
@@ -281,14 +280,7 @@ public class ShapedBlockMechanicListener implements Listener {
         if (clickedBlock == null) return;
 
         BlockFace face = event.getBlockFace();
-        Block targetBlock;
-
-        // Determine target block - check if clicked block is replaceable
-        if (BlockHelpers.isReplaceable(clickedBlock.getType())) {
-            targetBlock = clickedBlock;
-        } else {
-            targetBlock = clickedBlock.getRelative(face);
-        }
+        Block targetBlock = getTargetBlock(clickedBlock, face);
 
         // Handle slab double placement
         if (shapedMechanic.getBlockType() == ShapedBlockType.SLAB) {
@@ -297,69 +289,62 @@ public class ShapedBlockMechanicListener implements Listener {
             }
         }
 
-        // Check if target is replaceable (air, water, grass, etc.)
-        if (!BlockHelpers.isReplaceable(targetBlock.getType())) {
-            return;
-        }
+        // Validate placement
+        if (!canPlaceBlock(player, targetBlock, clickedBlock, shapedMechanic)) return;
 
-        // Check world height bounds
-        Range<Integer> worldHeightRange = Range.of(targetBlock.getWorld().getMinHeight(),
-                targetBlock.getWorld().getMaxHeight() - 1);
-        if (!worldHeightRange.contains(targetBlock.getY())) {
-            return;
-        }
-
-        // Check if player is standing inside target block
-        if (BlockHelpers.isStandingInside(player, targetBlock)) {
-            return;
-        }
-
-        // Check protection plugins (WorldGuard, GriefPrevention, etc.)
-        if (!ProtectionLib.canBuild(player, targetBlock.getLocation())) {
-            return;
-        }
-
-        // Check limited placing
-        if (shapedMechanic.hasLimitedPlacing()) {
-            if (!shapedMechanic.getLimitedPlacing().checkLimitedMechanic(clickedBlock)) {
-                return;
-            }
-        }
-
-        // Check if placing in water for waterlogging
-        boolean isWaterlogged = targetBlock.getType() == Material.WATER;
-
-        // Special handling for doors - they need 2 blocks
+        // Additional door validation
         if (shapedMechanic.getBlockType() == ShapedBlockType.DOOR) {
-            Block upperBlock = targetBlock.getRelative(BlockFace.UP);
-            // Check if there's room for the upper part
-            if (!BlockHelpers.isReplaceable(upperBlock.getType())) {
-                return;
-            }
-            // Check if player would be inside upper block
-            if (BlockHelpers.isStandingInside(player, upperBlock)) {
-                return;
-            }
-            // Check protection for upper block too
-            if (!ProtectionLib.canBuild(player, upperBlock.getLocation())) {
-                return;
-            }
+            if (!canPlaceDoor(player, targetBlock)) return;
         }
 
-        // Cancel the normal interaction
+        // Cancel the normal interaction and place the block
         event.setCancelled(true);
+        placeShapedBlock(player, item, targetBlock, clickedBlock, face, shapedMechanic, itemId);
+    }
 
-        // Place the block
+    private Block getTargetBlock(Block clickedBlock, BlockFace face) {
+        if (BlockHelpers.isReplaceable(clickedBlock.getType())) {
+            return clickedBlock;
+        }
+        return clickedBlock.getRelative(face);
+    }
+
+    private boolean canPlaceBlock(Player player, Block targetBlock, Block clickedBlock, ShapedBlockMechanic mechanic) {
+        if (!BlockHelpers.isReplaceable(targetBlock.getType())) return false;
+
+        Range<Integer> worldHeightRange = Range.of(
+            targetBlock.getWorld().getMinHeight(),
+            targetBlock.getWorld().getMaxHeight() - 1
+        );
+        if (!worldHeightRange.contains(targetBlock.getY())) return false;
+
+        if (BlockHelpers.isStandingInside(player, targetBlock)) return false;
+        if (!ProtectionLib.canBuild(player, targetBlock.getLocation())) return false;
+
+        if (mechanic.hasLimitedPlacing()) {
+            if (!mechanic.getLimitedPlacing().checkLimitedMechanic(clickedBlock)) return false;
+        }
+        return true;
+    }
+
+    private boolean canPlaceDoor(Player player, Block targetBlock) {
+        Block upperBlock = targetBlock.getRelative(BlockFace.UP);
+        if (!BlockHelpers.isReplaceable(upperBlock.getType())) return false;
+        if (BlockHelpers.isStandingInside(player, upperBlock)) return false;
+        if (!ProtectionLib.canBuild(player, upperBlock.getLocation())) return false;
+        return true;
+    }
+
+    private void placeShapedBlock(Player player, ItemStack item, Block targetBlock, Block clickedBlock,
+                                   BlockFace face, ShapedBlockMechanic shapedMechanic, String itemId) {
+        boolean isWaterlogged = targetBlock.getType() == Material.WATER;
         Material placeMaterial = shapedMechanic.getPlacedMaterial();
+
         targetBlock.setType(placeMaterial, false);
-
-        // Apply block data based on player direction
         applyBlockData(targetBlock, player, face, shapedMechanic, isWaterlogged);
-
-        // Mark as custom shaped block
         markAsCustomBlock(targetBlock, shapedMechanic);
 
-        // For doors, place the upper block too
+        // Handle door upper block
         if (shapedMechanic.getBlockType() == ShapedBlockType.DOOR) {
             Block upperBlock = targetBlock.getRelative(BlockFace.UP);
             upperBlock.setType(placeMaterial, false);
@@ -374,29 +359,37 @@ public class ShapedBlockMechanicListener implements Listener {
         Bukkit.getPluginManager().callEvent(placeEvent);
 
         if (placeEvent.isCancelled()) {
-            targetBlock.setType(Material.AIR);
-            if (shapedMechanic.getBlockType() == ShapedBlockType.DOOR) {
-                targetBlock.getRelative(BlockFace.UP).setType(Material.AIR);
-            }
+            revertPlacement(targetBlock, shapedMechanic);
             return;
         }
 
-        // Play sound
-        if (shapedMechanic.hasBlockSounds()) {
-            BlockSounds sounds = shapedMechanic.getBlockSounds();
+        playPlaceSound(targetBlock, shapedMechanic);
+        consumeItem(player, item);
+        Logs.logSuccess("[ShapedBlock] Placed " + itemId + " as " + shapedMechanic.getBlockType());
+    }
+
+    private void revertPlacement(Block targetBlock, ShapedBlockMechanic mechanic) {
+        targetBlock.setType(Material.AIR);
+        if (mechanic.getBlockType() == ShapedBlockType.DOOR) {
+            targetBlock.getRelative(BlockFace.UP).setType(Material.AIR);
+        }
+    }
+
+    private void playPlaceSound(Block block, ShapedBlockMechanic mechanic) {
+        if (mechanic.hasBlockSounds()) {
+            BlockSounds sounds = mechanic.getBlockSounds();
             if (sounds.hasPlaceSound()) {
-                BlockHelpers.playCustomBlockSound(targetBlock.getLocation(), sounds.getPlaceSound(), sounds.getPlaceVolume(), sounds.getPlacePitch());
+                BlockHelpers.playCustomBlockSound(block.getLocation(), sounds.getPlaceSound(), sounds.getPlaceVolume(), sounds.getPlacePitch());
             }
         } else {
-            targetBlock.getWorld().playSound(targetBlock.getLocation(), Sound.BLOCK_COPPER_PLACE, 1.0f, 1.0f);
+            block.getWorld().playSound(block.getLocation(), Sound.BLOCK_COPPER_PLACE, 1.0f, 1.0f);
         }
+    }
 
-        // Remove item from inventory
+    private void consumeItem(Player player, ItemStack item) {
         if (player.getGameMode() != GameMode.CREATIVE) {
             item.setAmount(item.getAmount() - 1);
         }
-
-        Logs.logSuccess("[ShapedBlock] Placed " + itemId + " as " + shapedMechanic.getBlockType());
     }
 
     // ==================== CUSTOM BLOCK BREAKING ====================
@@ -587,40 +580,47 @@ public class ShapedBlockMechanicListener implements Listener {
      * Copy block data properties from one BlockData to another (same block type family).
      */
     private void copyBlockData(BlockData from, BlockData to) {
-        // Copy stair properties
         if (from instanceof org.bukkit.block.data.type.Stairs fromStairs && to instanceof org.bukkit.block.data.type.Stairs toStairs) {
-            toStairs.setFacing(fromStairs.getFacing());
-            toStairs.setHalf(fromStairs.getHalf());
-            toStairs.setShape(fromStairs.getShape());
-            if (from instanceof Waterlogged fromWL && to instanceof Waterlogged toWL) {
-                toWL.setWaterlogged(fromWL.isWaterlogged());
-            }
+            copyStairsData(fromStairs, toStairs);
+        } else if (from instanceof Slab fromSlab && to instanceof Slab toSlab) {
+            copySlabData(fromSlab, toSlab);
+        } else if (from instanceof org.bukkit.block.data.type.Door fromDoor && to instanceof org.bukkit.block.data.type.Door toDoor) {
+            copyDoorData(fromDoor, toDoor);
+        } else if (from instanceof org.bukkit.block.data.type.TrapDoor fromTrap && to instanceof org.bukkit.block.data.type.TrapDoor toTrap) {
+            copyTrapDoorData(fromTrap, toTrap);
+        } else {
+            copyWaterloggedData(from, to);
         }
-        // Copy slab properties
-        else if (from instanceof Slab fromSlab && to instanceof Slab toSlab) {
-            toSlab.setType(fromSlab.getType());
-            if (from instanceof Waterlogged fromWL && to instanceof Waterlogged toWL) {
-                toWL.setWaterlogged(fromWL.isWaterlogged());
-            }
-        }
-        // Copy door properties
-        else if (from instanceof org.bukkit.block.data.type.Door fromDoor && to instanceof org.bukkit.block.data.type.Door toDoor) {
-            toDoor.setFacing(fromDoor.getFacing());
-            toDoor.setHalf(fromDoor.getHalf());
-            toDoor.setHinge(fromDoor.getHinge());
-            toDoor.setOpen(fromDoor.isOpen());
-        }
-        // Copy trapdoor properties
-        else if (from instanceof org.bukkit.block.data.type.TrapDoor fromTrap && to instanceof org.bukkit.block.data.type.TrapDoor toTrap) {
-            toTrap.setFacing(fromTrap.getFacing());
-            toTrap.setHalf(fromTrap.getHalf());
-            toTrap.setOpen(fromTrap.isOpen());
-            if (from instanceof Waterlogged fromWL && to instanceof Waterlogged toWL) {
-                toWL.setWaterlogged(fromWL.isWaterlogged());
-            }
-        }
-        // Copy grate properties (waterlogged only)
-        else if (from instanceof Waterlogged fromWL && to instanceof Waterlogged toWL) {
+    }
+
+    private void copyStairsData(org.bukkit.block.data.type.Stairs from, org.bukkit.block.data.type.Stairs to) {
+        to.setFacing(from.getFacing());
+        to.setHalf(from.getHalf());
+        to.setShape(from.getShape());
+        copyWaterloggedData(from, to);
+    }
+
+    private void copySlabData(Slab from, Slab to) {
+        to.setType(from.getType());
+        copyWaterloggedData(from, to);
+    }
+
+    private void copyDoorData(org.bukkit.block.data.type.Door from, org.bukkit.block.data.type.Door to) {
+        to.setFacing(from.getFacing());
+        to.setHalf(from.getHalf());
+        to.setHinge(from.getHinge());
+        to.setOpen(from.isOpen());
+    }
+
+    private void copyTrapDoorData(org.bukkit.block.data.type.TrapDoor from, org.bukkit.block.data.type.TrapDoor to) {
+        to.setFacing(from.getFacing());
+        to.setHalf(from.getHalf());
+        to.setOpen(from.isOpen());
+        copyWaterloggedData(from, to);
+    }
+
+    private void copyWaterloggedData(BlockData from, BlockData to) {
+        if (from instanceof Waterlogged fromWL && to instanceof Waterlogged toWL) {
             toWL.setWaterlogged(fromWL.isWaterlogged());
         }
     }
