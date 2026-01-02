@@ -52,11 +52,11 @@ public class ProtocolLibBreakerSystem extends BreakerSystem {
 
             final EnumWrappers.PlayerDigType digType = type;
             
-            event.setCancelled(true);
-
             SchedulerUtil.runAtLocation(location, () -> {
                 final Block block = location.getBlock();
                 if (!shouldHandleBlock(block)) return;
+
+                event.setCancelled(true);
 
                 handleEvent(
                     player,
