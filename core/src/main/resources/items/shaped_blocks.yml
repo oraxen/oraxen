@@ -1,5 +1,9 @@
 # Custom Shaped Block Variants (Stairs, Slabs, Doors, Trapdoors, Grates)
 # Uses waxed copper blocks as base - supports 4 custom variations per type
+#
+# For DOORS: Use item/generated in Pack for hand display, and specify
+# block textures (bottom/top) in Mechanics.shaped_block.textures section.
+# This ensures the door looks correct both in hand and when placed.
 
 # Example custom oak stairs using waxed copper stairs
 custom_oak_stairs:
@@ -94,20 +98,25 @@ custom_stone_slab:
             probability: 1.0
 
 # Example custom door
+# Note: Doors use item/generated for hand display with an icon texture,
+# and separate textures in the mechanic for the placed block (bottom/top)
 custom_oak_door:
   displayname: "<#8B4513>Custom Oak Door"
   material: PAPER
   Pack:
     generate_model: true
-    parent_model: block/door_bottom_left
+    parent_model: item/generated
     textures:
-      - block/oak_door_bottom
-      - block/oak_door_top
+      - default/custom_oak_door_icon  # Flat icon for hand display
   Mechanics:
     shaped_block:
       type: DOOR
       custom_variation: 1
       hardness: 2
+      # Block textures (separate from Pack textures for hand display)
+      textures:
+        bottom: block/oak_door_bottom
+        top: block/oak_door_top
       block_sounds:
         break_sound: block.wood.break
         place_sound: block.wood.place

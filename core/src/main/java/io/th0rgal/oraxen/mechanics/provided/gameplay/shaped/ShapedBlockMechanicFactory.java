@@ -12,6 +12,7 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,8 +34,8 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
     // Store model names for blockstate generation
     private final Map<Material, String> modelByMaterial = new HashMap<>();
 
-    // Store texture info for generating variant models
-    private final Map<Material, String> textureByMaterial = new HashMap<>();
+    // Store texture info for generating variant models (supports multiple textures for doors)
+    private final Map<Material, List<String>> texturesByMaterial = new HashMap<>();
 
     // Store block type for each material
     private final Map<Material, ShapedBlockType> typeByMaterial = new HashMap<>();
@@ -123,16 +124,19 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
             typeByMaterial.put(mechanic.getPlacedMaterial(), type);
             Logs.logInfo("Stored model for " + mechanic.getPlacedMaterial() + " -> " + modelName);
 
-            // Store texture for generating variant models
-            ConfigurationSection packSection = section.getParent().getParent().getConfigurationSection("Pack");
-            if (packSection != null) {
-                List<String> textures = packSection.getStringList("textures");
-                Logs.logInfo("Shaped block " + mechanic.getItemID() + " textures from config: " + textures);
-                if (!textures.isEmpty()) {
-                    String texture = textures.get(0);
-                    Logs.logInfo("Storing texture for " + mechanic.getPlacedMaterial() + ": " + texture);
-                    textureByMaterial.put(mechanic.getPlacedMaterial(), texture);
+            // Store textures for generating variant models
+            // First check for mechanic-level textures (block-specific), then fall back to Pack textures
+            List<String> blockTextures = getBlockTextures(section, type);
+            if (blockTextures.isEmpty()) {
+                // Fall back to Pack textures
+                ConfigurationSection packSection = section.getParent().getParent().getConfigurationSection("Pack");
+                if (packSection != null) {
+                    blockTextures = new ArrayList<>(packSection.getStringList("textures"));
                 }
+            }
+            if (!blockTextures.isEmpty()) {
+                Logs.logInfo("Storing textures for " + mechanic.getPlacedMaterial() + ": " + blockTextures);
+                texturesByMaterial.put(mechanic.getPlacedMaterial(), blockTextures);
             }
         } else {
             Logs.logWarning("No model found for shaped block " + mechanic.getItemID());
@@ -145,6 +149,36 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
     }
 
     /**
+     * Get block-specific textures from mechanic config.
+     * Supports both list format and map format (for doors with bottom/top).
+     */
+    private List<String> getBlockTextures(ConfigurationSection section, ShapedBlockType type) {
+        List<String> textures = new ArrayList<>();
+
+        // Check for textures map (e.g., textures.bottom, textures.top)
+        ConfigurationSection texturesSection = section.getConfigurationSection("textures");
+        if (texturesSection != null) {
+            if (type == ShapedBlockType.DOOR) {
+                String bottom = texturesSection.getString("bottom");
+                String top = texturesSection.getString("top");
+                if (bottom != null) textures.add(bottom);
+                if (top != null) textures.add(top);
+            } else {
+                // For other types, use single texture
+                String texture = texturesSection.getString("texture");
+                if (texture != null) textures.add(texture);
+            }
+        }
+
+        // Check for textures list
+        if (textures.isEmpty() && section.isList("textures")) {
+            textures.addAll(section.getStringList("textures"));
+        }
+
+        return textures;
+    }
+
+    /**
      * Generate blockstate files and variant models for all registered shaped blocks
      */
     private void generateBlockstates() {
@@ -152,12 +186,12 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
         for (Map.Entry<Material, String> entry : modelByMaterial.entrySet()) {
             Material material = entry.getKey();
             String modelName = entry.getValue();
-            String texture = textureByMaterial.get(material);
+            List<String> textures = texturesByMaterial.get(material);
             ShapedBlockType type = typeByMaterial.get(material);
 
             // Generate variant models if needed
-            if (texture != null && type != null) {
-                generateVariantModels(type, modelName, texture);
+            if (textures != null && !textures.isEmpty() && type != null) {
+                generateVariantModels(type, modelName, textures);
             }
 
             String blockstateName = material.name().toLowerCase() + ".json";
@@ -173,26 +207,28 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
     /**
      * Generate variant models for block types that need multiple models
      */
-    private void generateVariantModels(ShapedBlockType type, String modelName, String texture) {
+    private void generateVariantModels(ShapedBlockType type, String modelName, List<String> textures) {
+        String primaryTexture = textures.get(0);
+
         // Always generate the base block model in the block/ folder
-        generateBaseBlockModel(type, modelName, texture);
+        generateBaseBlockModel(type, modelName, textures);
 
         switch (type) {
             case STAIR -> {
                 // Generate inner and outer stair models for corner shapes
-                generateStairVariantModels(modelName, texture);
+                generateStairVariantModels(modelName, primaryTexture);
             }
             case SLAB -> {
                 // Generate slab_top and double slab models
-                generateSlabVariantModels(modelName, texture);
+                generateSlabVariantModels(modelName, primaryTexture);
             }
             case DOOR -> {
-                // Generate all door variant models
-                generateDoorVariantModels(modelName, texture);
+                // Generate all door variant models (uses both textures)
+                generateDoorVariantModels(modelName, textures);
             }
             case TRAPDOOR -> {
                 // Generate trapdoor variants
-                generateTrapdoorVariantModels(modelName, texture);
+                generateTrapdoorVariantModels(modelName, primaryTexture);
             }
             default -> {
                 // Grates use the base model only
@@ -203,39 +239,41 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
     /**
      * Generate the base block model in the block/ folder for blockstate references
      */
-    private void generateBaseBlockModel(ShapedBlockType type, String modelName, String texture) {
+    private void generateBaseBlockModel(ShapedBlockType type, String modelName, List<String> textureList) {
         JsonObject model = new JsonObject();
         JsonObject textures = new JsonObject();
 
-        String texturePath = normalizeTexturePath(texture);
+        String primaryTexture = normalizeTexturePath(textureList.get(0));
+        String secondaryTexture = textureList.size() > 1 ? normalizeTexturePath(textureList.get(1)) : primaryTexture;
 
-        Logs.logInfo("Generating base block model " + modelName + " with texture: " + texturePath);
+        Logs.logInfo("Generating base block model " + modelName + " with textures: " + primaryTexture + ", " + secondaryTexture);
 
         switch (type) {
             case STAIR -> {
                 model.addProperty("parent", "block/stairs");
-                textures.addProperty("bottom", texturePath);
-                textures.addProperty("top", texturePath);
-                textures.addProperty("side", texturePath);
+                textures.addProperty("bottom", primaryTexture);
+                textures.addProperty("top", primaryTexture);
+                textures.addProperty("side", primaryTexture);
             }
             case SLAB -> {
                 model.addProperty("parent", "block/slab");
-                textures.addProperty("bottom", texturePath);
-                textures.addProperty("top", texturePath);
-                textures.addProperty("side", texturePath);
+                textures.addProperty("bottom", primaryTexture);
+                textures.addProperty("top", primaryTexture);
+                textures.addProperty("side", primaryTexture);
             }
             case TRAPDOOR -> {
                 model.addProperty("parent", "block/template_trapdoor_bottom");
-                textures.addProperty("texture", texturePath);
+                textures.addProperty("texture", primaryTexture);
             }
             case DOOR -> {
+                // For doors: first texture = bottom, second texture = top
                 model.addProperty("parent", "block/door_bottom_left");
-                textures.addProperty("bottom", texturePath);
-                textures.addProperty("top", texturePath);
+                textures.addProperty("bottom", primaryTexture);
+                textures.addProperty("top", secondaryTexture);
             }
             case GRATE -> {
                 model.addProperty("parent", "block/cube_all");
-                textures.addProperty("all", texturePath);
+                textures.addProperty("all", primaryTexture);
             }
         }
 
@@ -315,11 +353,10 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
     /**
      * Generate door variant models (all 8 combinations of half/hinge/open)
      */
-    private void generateDoorVariantModels(String modelName, String texture) {
-        String texturePath = normalizeTexturePath(texture);
-        // For doors, we need both bottom and top textures - use same texture for both
-        String bottomTexture = texturePath;
-        String topTexture = texturePath;
+    private void generateDoorVariantModels(String modelName, List<String> textureList) {
+        // For doors: first texture = bottom, second texture = top
+        String bottomTexture = normalizeTexturePath(textureList.get(0));
+        String topTexture = textureList.size() > 1 ? normalizeTexturePath(textureList.get(1)) : bottomTexture;
 
         // Model variants: {half}_{hinge}_{open}
         String[][] doorVariants = {
@@ -354,7 +391,7 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
                 "assets/minecraft/models/block", modelName + suffix + ".json", model.toString());
         }
 
-        Logs.logInfo("Generated door variant models for " + modelName);
+        Logs.logInfo("Generated door variant models for " + modelName + " (bottom: " + bottomTexture + ", top: " + topTexture + ")");
     }
 
     /**
