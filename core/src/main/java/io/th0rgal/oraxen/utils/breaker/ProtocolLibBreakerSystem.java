@@ -52,21 +52,21 @@ public class ProtocolLibBreakerSystem extends BreakerSystem {
 
             final EnumWrappers.PlayerDigType digType = type;
             
+            event.setCancelled(true);
+
             SchedulerUtil.runAtLocation(location, () -> {
                 final Block block = location.getBlock();
-                
-                if (shouldHandleBlock(block)) {
-                    event.setCancelled(true);
-                    handleEvent(
-                        player,
-                        block,
-                        location,
-                        blockFace,
-                        world,
-                        () -> {},
-                        digType == EnumWrappers.PlayerDigType.START_DESTROY_BLOCK
-                    );
-                }
+                if (!shouldHandleBlock(block)) return;
+
+                handleEvent(
+                    player,
+                    block,
+                    location,
+                    blockFace,
+                    world,
+                    () -> {},
+                    digType == EnumWrappers.PlayerDigType.START_DESTROY_BLOCK
+                );
             });
         }
     };
@@ -75,12 +75,19 @@ public class ProtocolLibBreakerSystem extends BreakerSystem {
         NoteBlockMechanic noteMechanic = OraxenBlocks.getNoteBlockMechanic(block);
         StringBlockMechanic stringMechanic = OraxenBlocks.getStringMechanic(block);
         FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(block);
-        
+
+        boolean isChorusPlant = block.getType() == Material.CHORUS_PLANT;
+        boolean isBedrock = block.getType() == Material.BEDROCK;
+
         if (block.getType() == Material.NOTE_BLOCK && noteMechanic == null) return false;
         if (block.getType() == Material.TRIPWIRE && stringMechanic == null) return false;
         if (block.getType() == Material.BARRIER && furnitureMechanic == null) return false;
-        
-        return noteMechanic != null || stringMechanic != null || furnitureMechanic != null;
+
+        return noteMechanic != null
+            || stringMechanic != null
+            || furnitureMechanic != null
+            || isChorusPlant
+            || isBedrock;
     }
 
     @Override
