@@ -25,6 +25,7 @@ public class BackpackCosmeticListener implements Listener {
 
     private final BackpackCosmeticFactory factory;
     private final BackpackCosmeticManager manager;
+    private SchedulerUtil.ScheduledTask refreshTask;
 
     // Movement thresholds to reduce unnecessary updates
     private static final double POSITION_THRESHOLD = 0.1;
@@ -35,7 +36,17 @@ public class BackpackCosmeticListener implements Listener {
         this.manager = BackpackCosmeticManager.getInstance();
 
         // Start periodic viewer refresh task
-        SchedulerUtil.runTaskTimer(20L, 20L, () -> manager.refreshAllViewers());
+        refreshTask = SchedulerUtil.runTaskTimer(20L, 20L, () -> manager.refreshAllViewers());
+    }
+
+    /**
+     * Cancel the periodic refresh task when the listener is being unregistered.
+     */
+    public void cleanup() {
+        if (refreshTask != null && !refreshTask.isCancelled()) {
+            refreshTask.cancel();
+            refreshTask = null;
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -103,6 +114,9 @@ public class BackpackCosmeticListener implements Listener {
         Player player = event.getPlayer();
 
         if (!manager.hasBackpack(player)) return;
+
+        // getTo() can return null in some edge cases
+        if (event.getTo() == null) return;
 
         // Check if position or yaw changed significantly
         if (event.getFrom().getWorld() != event.getTo().getWorld()) return;

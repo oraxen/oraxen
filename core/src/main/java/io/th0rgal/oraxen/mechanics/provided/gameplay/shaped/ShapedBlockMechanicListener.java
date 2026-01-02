@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -216,9 +217,7 @@ public class ShapedBlockMechanicListener implements Listener {
         Chunk chunk = event.getChunk();
 
         // Schedule conversion for next tick to ensure chunk is fully loaded
-        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
-            convertWaxedCopperInChunk(chunk);
-        }, 1L);
+        SchedulerUtil.runTaskLater(1L, () -> convertWaxedCopperInChunk(chunk));
     }
 
     /**
@@ -369,9 +368,16 @@ public class ShapedBlockMechanicListener implements Listener {
     }
 
     private void revertPlacement(Block targetBlock, ShapedBlockMechanic mechanic) {
+        // Clean up PDC data before removing blocks
+        CustomBlockData blockData = new CustomBlockData(targetBlock, OraxenPlugin.get());
+        blockData.remove(ShapedBlockMechanic.SHAPED_BLOCK_KEY);
+
         targetBlock.setType(Material.AIR);
         if (mechanic.getBlockType() == ShapedBlockType.DOOR) {
-            targetBlock.getRelative(BlockFace.UP).setType(Material.AIR);
+            Block upperBlock = targetBlock.getRelative(BlockFace.UP);
+            CustomBlockData upperBlockData = new CustomBlockData(upperBlock, OraxenPlugin.get());
+            upperBlockData.remove(ShapedBlockMechanic.SHAPED_BLOCK_KEY);
+            upperBlock.setType(Material.AIR);
         }
     }
 
@@ -414,7 +420,18 @@ public class ShapedBlockMechanicListener implements Listener {
         if (player.getGameMode() != GameMode.CREATIVE) {
             Drop drop = mechanic.getDrop();
             if (drop != null) {
-                drop.spawns(block.getLocation(), player.getInventory().getItemInMainHand());
+                // Double slabs should drop twice
+                int dropCount = 1;
+                if (mechanic.getBlockType() == ShapedBlockType.SLAB) {
+                    BlockData data = block.getBlockData();
+                    if (data instanceof Slab slab && slab.getType() == Slab.Type.DOUBLE) {
+                        dropCount = 2;
+                    }
+                }
+                ItemStack tool = player.getInventory().getItemInMainHand();
+                for (int i = 0; i < dropCount; i++) {
+                    drop.spawns(block.getLocation(), tool);
+                }
             }
         }
 
@@ -610,12 +627,14 @@ public class ShapedBlockMechanicListener implements Listener {
         to.setHalf(from.getHalf());
         to.setHinge(from.getHinge());
         to.setOpen(from.isOpen());
+        to.setPowered(from.isPowered());
     }
 
     private void copyTrapDoorData(org.bukkit.block.data.type.TrapDoor from, org.bukkit.block.data.type.TrapDoor to) {
         to.setFacing(from.getFacing());
         to.setHalf(from.getHalf());
         to.setOpen(from.isOpen());
+        to.setPowered(from.isPowered());
         copyWaterloggedData(from, to);
     }
 
