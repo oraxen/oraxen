@@ -1007,10 +1007,12 @@ public class ResourcePack {
                 const bool ORAXEN_ANIMATED_GLYPHS = %s;
                 const bool ORAXEN_TEXT_EFFECTS = %s;
                 const int ORAXEN_TEXT_LOW_MASK = %d;
+                const int ORAXEN_TEXT_HIGH_MASK = 0xF0;
                 const int ORAXEN_TEXT_DATA_MASK = %d;
                 const int ORAXEN_TEXT_DATA_MIN = %d;
                 const int ORAXEN_TEXT_DATA_MAX = %d;
                 const int ORAXEN_TEXT_DATA_GAP = %d;
+                const int ORAXEN_TEXT_R_HIGH_MARKER = %d;
                 """,
                 features.animatedGlyphs() ? "true" : "false",
                 features.textEffects() ? "true" : "false",
@@ -1018,7 +1020,8 @@ public class ResourcePack {
                 encoding.dataMask(),
                 encoding.dataMin(),
                 dataMax,
-                encoding.dataGap());
+                encoding.dataGap(),
+                encoding.rHighMarker());
     }
 
     private TextEffectSnippets getTextEffectSnippets(TextShaderTarget target) {
@@ -1210,7 +1213,9 @@ public class ResourcePack {
                             int gLow = gRaw & ORAXEN_TEXT_LOW_MASK;
                             int bLow = bRaw & ORAXEN_TEXT_LOW_MASK;
                             bool hasGap = ORAXEN_TEXT_DATA_GAP >= 0;
-                            bool hasMarker = (rLow >= ORAXEN_TEXT_DATA_MIN && rLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || rLow != ORAXEN_TEXT_DATA_GAP))
+                            bool hasHighMarker = (rInt & ORAXEN_TEXT_HIGH_MASK) == ORAXEN_TEXT_R_HIGH_MARKER;
+                            bool hasMarker = hasHighMarker
+                                    && (rLow >= ORAXEN_TEXT_DATA_MIN && rLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || rLow != ORAXEN_TEXT_DATA_GAP))
                                     && (gLow >= ORAXEN_TEXT_DATA_MIN && gLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || gLow != ORAXEN_TEXT_DATA_GAP))
                                     && (bLow >= ORAXEN_TEXT_DATA_MIN && bLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || bLow != ORAXEN_TEXT_DATA_GAP));
 
@@ -1307,13 +1312,15 @@ public class ResourcePack {
                         }
                     }
 
-                    // Text effects: encoded in low RGB bits (alpha_lsb)
+                    // Text effects: encoded in low RGB bits (alpha_lsb) with high-nibble marker
                     if (ORAXEN_TEXT_EFFECTS && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
                         int rLow = rInt & ORAXEN_TEXT_LOW_MASK;
                         int gLow = gRaw & ORAXEN_TEXT_LOW_MASK;
                         int bLow = bRaw & ORAXEN_TEXT_LOW_MASK;
                         bool hasGap = ORAXEN_TEXT_DATA_GAP >= 0;
-                        bool hasMarker = (rLow >= ORAXEN_TEXT_DATA_MIN && rLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || rLow != ORAXEN_TEXT_DATA_GAP))
+                        bool hasHighMarker = (rInt & ORAXEN_TEXT_HIGH_MASK) == ORAXEN_TEXT_R_HIGH_MARKER;
+                        bool hasMarker = hasHighMarker
+                                && (rLow >= ORAXEN_TEXT_DATA_MIN && rLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || rLow != ORAXEN_TEXT_DATA_GAP))
                                 && (gLow >= ORAXEN_TEXT_DATA_MIN && gLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || gLow != ORAXEN_TEXT_DATA_GAP))
                                 && (bLow >= ORAXEN_TEXT_DATA_MIN && bLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || bLow != ORAXEN_TEXT_DATA_GAP));
 
@@ -1417,7 +1424,9 @@ public class ResourcePack {
                             int gLow = gRaw & ORAXEN_TEXT_LOW_MASK;
                             int bLow = bRaw & ORAXEN_TEXT_LOW_MASK;
                             bool hasGap = ORAXEN_TEXT_DATA_GAP >= 0;
-                            bool hasMarker = (rLow >= ORAXEN_TEXT_DATA_MIN && rLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || rLow != ORAXEN_TEXT_DATA_GAP))
+                            bool hasHighMarker = (rInt & ORAXEN_TEXT_HIGH_MASK) == ORAXEN_TEXT_R_HIGH_MARKER;
+                            bool hasMarker = hasHighMarker
+                                    && (rLow >= ORAXEN_TEXT_DATA_MIN && rLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || rLow != ORAXEN_TEXT_DATA_GAP))
                                     && (gLow >= ORAXEN_TEXT_DATA_MIN && gLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || gLow != ORAXEN_TEXT_DATA_GAP))
                                     && (bLow >= ORAXEN_TEXT_DATA_MIN && bLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || bLow != ORAXEN_TEXT_DATA_GAP));
 
@@ -1513,13 +1522,15 @@ public class ResourcePack {
                         }
                     }
 
-                    // Text effects: encoded in low RGB bits (alpha_lsb)
+                    // Text effects: encoded in low RGB bits (alpha_lsb) with high-nibble marker
                     if (ORAXEN_TEXT_EFFECTS && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
                         int rLow = rInt & ORAXEN_TEXT_LOW_MASK;
                         int gLow = gRaw & ORAXEN_TEXT_LOW_MASK;
                         int bLow = bRaw & ORAXEN_TEXT_LOW_MASK;
                         bool hasGap = ORAXEN_TEXT_DATA_GAP >= 0;
-                        bool hasMarker = (rLow >= ORAXEN_TEXT_DATA_MIN && rLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || rLow != ORAXEN_TEXT_DATA_GAP))
+                        bool hasHighMarker = (rInt & ORAXEN_TEXT_HIGH_MASK) == ORAXEN_TEXT_R_HIGH_MARKER;
+                        bool hasMarker = hasHighMarker
+                                && (rLow >= ORAXEN_TEXT_DATA_MIN && rLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || rLow != ORAXEN_TEXT_DATA_GAP))
                                 && (gLow >= ORAXEN_TEXT_DATA_MIN && gLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || gLow != ORAXEN_TEXT_DATA_GAP))
                                 && (bLow >= ORAXEN_TEXT_DATA_MIN && bLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || bLow != ORAXEN_TEXT_DATA_GAP));
 
@@ -1889,13 +1900,15 @@ public class ResourcePack {
                         }
                     }
 
-                    // Text effects: encoded in low RGB bits (alpha_lsb)
+                    // Text effects: encoded in low RGB bits (alpha_lsb) with high-nibble marker
                     if (ORAXEN_TEXT_EFFECTS && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
                         int rLow = rInt & ORAXEN_TEXT_LOW_MASK;
                         int gLow = gRaw & ORAXEN_TEXT_LOW_MASK;
                         int bLow = bRaw & ORAXEN_TEXT_LOW_MASK;
                         bool hasGap = ORAXEN_TEXT_DATA_GAP >= 0;
-                        bool hasMarker = (rLow >= ORAXEN_TEXT_DATA_MIN && rLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || rLow != ORAXEN_TEXT_DATA_GAP))
+                        bool hasHighMarker = (rInt & ORAXEN_TEXT_HIGH_MASK) == ORAXEN_TEXT_R_HIGH_MARKER;
+                        bool hasMarker = hasHighMarker
+                                && (rLow >= ORAXEN_TEXT_DATA_MIN && rLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || rLow != ORAXEN_TEXT_DATA_GAP))
                                 && (gLow >= ORAXEN_TEXT_DATA_MIN && gLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || gLow != ORAXEN_TEXT_DATA_GAP))
                                 && (bLow >= ORAXEN_TEXT_DATA_MIN && bLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || bLow != ORAXEN_TEXT_DATA_GAP));
 
@@ -2004,13 +2017,15 @@ public class ResourcePack {
                         }
                     }
 
-                    // Text effects: encoded in low RGB bits (alpha_lsb)
+                    // Text effects: encoded in low RGB bits (alpha_lsb) with high-nibble marker
                     if (ORAXEN_TEXT_EFFECTS && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
                         int rLow = rInt & ORAXEN_TEXT_LOW_MASK;
                         int gLow = gRaw & ORAXEN_TEXT_LOW_MASK;
                         int bLow = bRaw & ORAXEN_TEXT_LOW_MASK;
                         bool hasGap = ORAXEN_TEXT_DATA_GAP >= 0;
-                        bool hasMarker = (rLow >= ORAXEN_TEXT_DATA_MIN && rLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || rLow != ORAXEN_TEXT_DATA_GAP))
+                        bool hasHighMarker = (rInt & ORAXEN_TEXT_HIGH_MASK) == ORAXEN_TEXT_R_HIGH_MARKER;
+                        bool hasMarker = hasHighMarker
+                                && (rLow >= ORAXEN_TEXT_DATA_MIN && rLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || rLow != ORAXEN_TEXT_DATA_GAP))
                                 && (gLow >= ORAXEN_TEXT_DATA_MIN && gLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || gLow != ORAXEN_TEXT_DATA_GAP))
                                 && (bLow >= ORAXEN_TEXT_DATA_MIN && bLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || bLow != ORAXEN_TEXT_DATA_GAP));
 

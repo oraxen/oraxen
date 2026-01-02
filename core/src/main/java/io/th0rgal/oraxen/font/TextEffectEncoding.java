@@ -55,9 +55,10 @@ public interface TextEffectEncoding {
      * @param lowMask Mask for low bits
      * @param dataMin Lowest allowed encoded low-nibble value
      * @param dataGap Optional gap value to skip (set to -1 for none)
+     * @param rHighMarker High nibble marker for red channel (e.g., 0xF0); shader checks (R & 0xF0) == rHighMarker
      * @param charIndexFromVertexId Whether shader should derive char index from gl_VertexID
      */
-    record ShaderEncoding(int lsbBits, int dataMask, int lowMask, int dataMin, int dataGap, boolean charIndexFromVertexId) {
+    record ShaderEncoding(int lsbBits, int dataMask, int lowMask, int dataMin, int dataGap, int rHighMarker, boolean charIndexFromVertexId) {
         public int dataMax() {
             int max = dataMin + dataMask;
             if (dataGap >= dataMin && dataGap <= max) {
@@ -68,6 +69,10 @@ public interface TextEffectEncoding {
 
         public boolean hasGap() {
             return dataGap >= 0;
+        }
+
+        public boolean hasHighMarker() {
+            return rHighMarker >= 0;
         }
     }
 }

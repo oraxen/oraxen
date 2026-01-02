@@ -5,18 +5,19 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Encodes text effects into the lowest 4 bits of each RGB channel.
+ * Encodes text effects into the lowest 4 bits of each RGB channel,
+ * with a high-nibble marker on the red channel for opt-in detection.
  * <p>
- * Layout (low 4 bits per channel):
- * - values {@code DATA_MIN..DATA_MAX} carry data (0-7), skipping {@code DATA_GAP}
+ * Layout:
+ * - R high nibble: must be {@code R_HIGH_MARKER} (0xF0) for detection
+ * - R low nibble: effect type (0-7)
+ * - G low nibble: speed (1-7)
+ * - B low nibble: param (0-7)
  * <p>
- * R low bits: effect type
- * G low bits: speed
- * B low bits: param
+ * The high-nibble marker ensures only intentionally encoded colors
+ * trigger text effects, avoiding false positives from natural colors.
  * <p>
  * Character index is derived from gl_VertexID in the shader.
- * Red channel values that collide with animated glyph sentinels are nudged
- * by one high-nibble step to avoid false positives.
  * <p>
  * Note: Adventure TextColor is RGB-only, so alpha cannot be encoded directly.
  */
@@ -24,13 +25,21 @@ public final class AlphaLsbEncoding implements TextEffectEncoding {
 
     public static final int LSB_BITS = 4;
     public static final int LOW_MASK = (1 << LSB_BITS) - 1; // 0x0F
+    public static final int HIGH_MASK = 0xF0;
     public static final int DATA_MASK = (1 << (LSB_BITS - 1)) - 1; // 0x07
     public static final int DATA_MIN = 1;
     public static final int DATA_GAP = 5;
     public static final int DATA_MAX = computeDataMax();
 
+    /**
+     * High nibble marker for the red channel.
+     * R must have (R & 0xF0) == 0xF0 to be recognized as effect text.
+     * This gives R values 0xF1-0xF9 (241-249) excluding 0xF5 (245) due to DATA_GAP.
+     */
+    public static final int R_HIGH_MARKER = 0xF0;
+
     private static final ShaderEncoding SHADER_ENCODING =
-            new ShaderEncoding(LSB_BITS, DATA_MASK, LOW_MASK, DATA_MIN, DATA_GAP, true);
+            new ShaderEncoding(LSB_BITS, DATA_MASK, LOW_MASK, DATA_MIN, DATA_GAP, R_HIGH_MARKER, true);
 
     @Override
     public String getName() {
@@ -41,7 +50,6 @@ public final class AlphaLsbEncoding implements TextEffectEncoding {
     @NotNull
     public TextColor encode(TextColor baseColor, int effectId, int speed, int param, int charIndex) {
         int rgb = baseColor.value();
-        int r = (rgb >> 16) & 0xFF;
         int g = (rgb >> 8) & 0xFF;
         int b = rgb & 0xFF;
 
@@ -49,7 +57,8 @@ public final class AlphaLsbEncoding implements TextEffectEncoding {
         int speedClamped = clamp(speed, 1, DATA_MASK);
         int paramClamped = clamp(param, 0, DATA_MASK);
 
-        int rEnc = avoidAnimationSentinels(encodeChannel(r, effectValue));
+        // Force R high nibble to R_HIGH_MARKER for opt-in detection
+        int rEnc = R_HIGH_MARKER | encodeNibble(effectValue);
         int gEnc = encodeChannel(g, speedClamped);
         int bEnc = encodeChannel(b, paramClamped);
 
@@ -62,6 +71,11 @@ public final class AlphaLsbEncoding implements TextEffectEncoding {
         int r = (color >> 16) & 0xFF;
         int g = (color >> 8) & 0xFF;
         int b = color & 0xFF;
+
+        // Check high nibble marker on R channel
+        if ((r & HIGH_MASK) != R_HIGH_MARKER) {
+            return false;
+        }
 
         int rLow = r & LOW_MASK;
         int gLow = g & LOW_MASK;
@@ -101,13 +115,6 @@ public final class AlphaLsbEncoding implements TextEffectEncoding {
 
     private static int encodeChannel(int base, int data) {
         return (base & ~LOW_MASK) | encodeNibble(data);
-    }
-
-    private static int avoidAnimationSentinels(int red) {
-        // Avoid R=254 and shadow range (62-64) which are reserved for animated glyphs.
-        if (red == 254) return red - 16;
-        if (red >= 62 && red <= 64) return red + 16;
-        return red;
     }
 
     private static boolean isEncodedNibble(int low) {
