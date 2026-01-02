@@ -621,16 +621,16 @@ public class ItemBuilder {
         return this;
     }
 
-    public boolean hasEnchantmentGlindOverride() {
+    public boolean hasEnchantmentGlintOverride() {
         return VersionUtil.atOrAbove("1.20.5") && enchantmentGlintOverride != null;
     }
 
     @Nullable
-    public Boolean getEnchantmentGlindOverride() {
+    public Boolean getEnchantmentGlintOverride() {
         return enchantmentGlintOverride;
     }
 
-    public ItemBuilder setEnchantmentGlindOverride(@Nullable Boolean enchantmentGlintOverride) {
+    public ItemBuilder setEnchantmentGlintOverride(@Nullable Boolean enchantmentGlintOverride) {
         this.enchantmentGlintOverride = enchantmentGlintOverride;
         return this;
     }
@@ -874,7 +874,7 @@ public class ItemBuilder {
         }
         if (hasMaxStackSize())
             itemMeta.setMaxStackSize(maxStackSize);
-        if (hasEnchantmentGlindOverride())
+        if (hasEnchantmentGlintOverride())
             itemMeta.setEnchantmentGlintOverride(enchantmentGlintOverride);
         if (hasRarity())
             itemMeta.setRarity(rarity);
