@@ -1,0 +1,164 @@
+# Custom Shaped Block Variants (Stairs, Slabs, Doors, Trapdoors, Grates)
+# Uses waxed copper blocks as base - supports 4 custom variations per type
+
+# Example custom oak stairs using waxed copper stairs
+custom_oak_stairs:
+  displayname: "<#8B4513>Custom Oak Stairs"
+  material: PAPER
+  Pack:
+    generate_model: true
+    parent_model: block/stairs
+    textures:
+      - default/custom_oak_planks
+  Mechanics:
+    shaped_block:
+      type: STAIR
+      custom_variation: 1
+      hardness: 2
+      block_sounds:
+        break_sound: block.wood.break
+        place_sound: block.wood.place
+      drop:
+        silktouch: false
+        loots:
+          - oraxen_item: custom_oak_stairs
+            probability: 1.0
+
+# Example custom stone stairs
+custom_stone_stairs:
+  displayname: "<#808080>Custom Stone Stairs"
+  material: PAPER
+  Pack:
+    generate_model: true
+    parent_model: block/stairs
+    textures:
+      - block/stone
+  Mechanics:
+    shaped_block:
+      type: STAIR
+      custom_variation: 2
+      hardness: 4
+      block_sounds:
+        break_sound: block.stone.break
+        place_sound: block.stone.place
+      drop:
+        silktouch: false
+        loots:
+          - oraxen_item: custom_stone_stairs
+            probability: 1.0
+
+# Example custom oak slab
+custom_oak_slab:
+  displayname: "<#8B4513>Custom Oak Slab"
+  material: PAPER
+  Pack:
+    generate_model: true
+    parent_model: block/slab
+    textures:
+      - default/custom_oak_planks
+  Mechanics:
+    shaped_block:
+      type: SLAB
+      custom_variation: 1
+      hardness: 2
+      block_sounds:
+        break_sound: block.wood.break
+        place_sound: block.wood.place
+      drop:
+        silktouch: false
+        loots:
+          - oraxen_item: custom_oak_slab
+            probability: 1.0
+
+# Example custom stone slab
+custom_stone_slab:
+  displayname: "<#808080>Custom Stone Slab"
+  material: PAPER
+  Pack:
+    generate_model: true
+    parent_model: block/slab
+    textures:
+      - block/stone
+  Mechanics:
+    shaped_block:
+      type: SLAB
+      custom_variation: 2
+      hardness: 4
+      block_sounds:
+        break_sound: block.stone.break
+        place_sound: block.stone.place
+      drop:
+        silktouch: false
+        loots:
+          - oraxen_item: custom_stone_slab
+            probability: 1.0
+
+# Example custom door
+custom_oak_door:
+  displayname: "<#8B4513>Custom Oak Door"
+  material: PAPER
+  Pack:
+    generate_model: true
+    parent_model: block/door_bottom_left
+    textures:
+      - block/oak_door_bottom
+      - block/oak_door_top
+  Mechanics:
+    shaped_block:
+      type: DOOR
+      custom_variation: 1
+      hardness: 2
+      block_sounds:
+        break_sound: block.wood.break
+        place_sound: block.wood.place
+      drop:
+        silktouch: false
+        loots:
+          - oraxen_item: custom_oak_door
+            probability: 1.0
+
+# Example custom trapdoor
+custom_oak_trapdoor:
+  displayname: "<#8B4513>Custom Oak Trapdoor"
+  material: PAPER
+  Pack:
+    generate_model: true
+    parent_model: block/template_trapdoor_bottom
+    textures:
+      - block/oak_trapdoor
+  Mechanics:
+    shaped_block:
+      type: TRAPDOOR
+      custom_variation: 1
+      hardness: 2
+      block_sounds:
+        break_sound: block.wood.break
+        place_sound: block.wood.place
+      drop:
+        silktouch: false
+        loots:
+          - oraxen_item: custom_oak_trapdoor
+            probability: 1.0
+
+# Example custom grate
+custom_iron_grate:
+  displayname: "<#A0A0A0>Custom Iron Grate"
+  material: PAPER
+  Pack:
+    generate_model: true
+    parent_model: block/cube_all
+    textures:
+      - block/copper_grate
+  Mechanics:
+    shaped_block:
+      type: GRATE
+      custom_variation: 1
+      hardness: 5
+      block_sounds:
+        break_sound: block.copper.break
+        place_sound: block.copper.place
+      drop:
+        silktouch: false
+        loots:
+          - oraxen_item: custom_iron_grate
+            probability: 1.0

@@ -51,6 +51,23 @@ public class ModelGenerator {
             } else if (parentModel.equals("block/cube_top")) {
                 textures.addProperty("top", defaultTexture);
                 textures.addProperty("side", Utils.getOrDefault(layers, 1, defaultTexture));
+            } else if (parentModel.equals("block/stairs") || parentModel.equals("block/inner_stairs") || parentModel.equals("block/outer_stairs")) {
+                // Stairs models use bottom, top, side textures (all same by default)
+                textures.addProperty("bottom", defaultTexture);
+                textures.addProperty("top", Utils.getOrDefault(layers, 1, defaultTexture));
+                textures.addProperty("side", Utils.getOrDefault(layers, 2, defaultTexture));
+            } else if (parentModel.equals("block/slab") || parentModel.equals("block/slab_top")) {
+                // Slab models use bottom, top, side textures
+                textures.addProperty("bottom", defaultTexture);
+                textures.addProperty("top", Utils.getOrDefault(layers, 1, defaultTexture));
+                textures.addProperty("side", Utils.getOrDefault(layers, 2, defaultTexture));
+            } else if (parentModel.startsWith("block/door") || parentModel.startsWith("block/template_door")) {
+                // Door models use bottom and top textures
+                textures.addProperty("bottom", defaultTexture);
+                textures.addProperty("top", Utils.getOrDefault(layers, 1, defaultTexture));
+            } else if (parentModel.startsWith("block/template_trapdoor") || parentModel.startsWith("block/trapdoor")) {
+                // Trapdoor models use texture
+                textures.addProperty("texture", defaultTexture);
             } else {
                 for (int i = 0; i < layers.size(); i++)
                     textures.addProperty("layer" + i, layers.get(i));

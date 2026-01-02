@@ -1,0 +1,68 @@
+# Cosmetic Backpacks
+# These backpacks are displayed on the player's back when equipped in the specified slot.
+# They use packet-based invisible armor stands for efficient rendering.
+
+leather_backpack:
+  displayname: "<#8B4513>Leather Backpack"
+  material: LEATHER_CHESTPLATE
+  Pack:
+    generate_model: true
+    parent_model: item/generated
+    textures:
+      - default/leather_backpack
+  Mechanics:
+    backpack_cosmetic:
+      slot: CHEST  # Display backpack when item is in chest slot
+      offset:
+        x: 0.5  # Offset to the right side so visible from first person
+        y: 0.2
+        z: -0.2
+      scale: 0.8
+      view_distance: 48
+      hide_in_spectator: true
+      small: true
+      visible_to_self: true  # Player can see their own backpack
+
+adventurer_backpack:
+  displayname: "<#2E8B57>Adventurer's Backpack"
+  material: LEATHER_CHESTPLATE
+  color: 46139  # Dark green tint
+  Pack:
+    generate_model: true
+    parent_model: item/generated
+    textures:
+      - default/adventurer_backpack
+  Mechanics:
+    backpack_cosmetic:
+      slot: CHEST
+      offset:
+        x: 0.0
+        y: 0.45
+        z: -0.35
+      scale: 0.9
+      view_distance: 64
+      hide_in_spectator: true
+      small: true
+      visible_to_self: true
+
+explorer_pack:
+  displayname: "<#4169E1>Explorer's Pack"
+  material: LEATHER_CHESTPLATE
+  color: 4286945  # Blue tint
+  Pack:
+    generate_model: true
+    parent_model: item/generated
+    textures:
+      - default/explorer_pack
+  Mechanics:
+    backpack_cosmetic:
+      slot: CHEST
+      offset:
+        x: 0.0
+        y: 0.35
+        z: -0.25
+      scale: 0.75
+      view_distance: 48
+      hide_in_spectator: true
+      small: false
+      visible_to_self: true
