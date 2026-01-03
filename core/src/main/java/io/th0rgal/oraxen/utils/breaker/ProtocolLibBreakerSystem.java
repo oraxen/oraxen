@@ -10,15 +10,24 @@ import com.comphenix.protocol.reflect.StructureModifier;
 import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.OraxenBlocks;
+import io.th0rgal.oraxen.api.OraxenFurniture;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 public class ProtocolLibBreakerSystem extends BreakerSystem {
-    private final PacketAdapter listener = new PacketAdapter(OraxenPlugin.get(),
-        ListenerPriority.LOW, PacketType.Play.Client.BLOCK_DIG) {
+    private final PacketAdapter listener = new PacketAdapter(PacketAdapter
+        .params(OraxenPlugin.get(), PacketType.Play.Client.BLOCK_DIG)
+        .listenerPriority(ListenerPriority.LOW)
+        .optionSync()) {
         @Override
         public void onPacketReceiving(final PacketEvent event) {
             final PacketContainer packet = event.getPacket();
@@ -39,15 +48,49 @@ public class ProtocolLibBreakerSystem extends BreakerSystem {
 
             final BlockPosition pos = dataTemp.getValues().getFirst();
             final World world = player.getWorld();
-            final Block block = world.getBlockAt(pos.getX(), pos.getY(), pos.getZ());
-            final Location location = block.getLocation();
+            final Location location = new Location(world, pos.getX(), pos.getY(), pos.getZ());
             final BlockFace blockFace = dataDirection.size() > 0 ?
                 BlockFace.valueOf(dataDirection.read(0).name()) :
                 BlockFace.UP;
 
-            handleEvent(player, block, location, blockFace, world, () -> event.setCancelled(true), type == EnumWrappers.PlayerDigType.START_DESTROY_BLOCK);
+            final EnumWrappers.PlayerDigType digType = type;
+
+            final Block block = location.getBlock();
+            final boolean shouldHandle = shouldHandleBlock(block);
+            if (!shouldHandle) return;
+
+            // cancel now
+            event.setCancelled(true);
+
+            final Material initialType = block.getType();
+            final BlockData initialBlockData = block.getBlockData().clone();
+
+            SchedulerUtil.runAtLocation(location, () -> {
+                final Block scheduledBlock = location.getBlock();
+                if (!shouldHandleBlock(scheduledBlock)) return;
+                if (scheduledBlock.getType() != initialType) return;
+                if (!scheduledBlock.getBlockData().matches(initialBlockData)) return;
+
+                handleEvent(
+                    player,
+                    scheduledBlock,
+                    location,
+                    blockFace,
+                    world,
+                    () -> {},
+                    digType == EnumWrappers.PlayerDigType.START_DESTROY_BLOCK
+                );
+            });
         }
     };
+
+    private boolean shouldHandleBlock(Block block) {
+        return OraxenBlocks.getNoteBlockMechanic(block) != null
+            || OraxenBlocks.getStringMechanic(block) != null
+            || OraxenFurniture.getFurnitureMechanic(block) != null
+            || block.getType() == Material.CHORUS_PLANT
+            || block.getType() == Material.BEDROCK;
+    }
 
     @Override
     protected void sendBlockBreak(final Player player, final Location location, final int stage) {
