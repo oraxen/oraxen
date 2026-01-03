@@ -1027,7 +1027,7 @@ public class ResourcePack {
         }
     }
 
-    private String getTextShaderConstants(TextShaderFeatures features) {
+    private String getTextShaderConstants(TextShaderTarget target, TextShaderFeatures features) {
         StringBuilder sb = new StringBuilder();
         sb.append(String.format(Locale.ROOT, """
                 const bool ORAXEN_ANIMATED_GLYPHS = %s;
@@ -1036,9 +1036,11 @@ public class ResourcePack {
                 features.animatedGlyphs() ? "true" : "false",
                 features.textEffects() ? "true" : "false"));
 
-        // Generate exact trigger colors for each enabled effect
-        // The shader will match these exact RGB values - no pattern matching
-        List<TextEffect.Definition> enabledEffects = TextEffect.getEnabledEffects();
+        // Generate exact trigger colors only for effects that have valid snippets for this target
+        // This ensures we don't recognize trigger colors for effects without shader code
+        List<TextEffect.Definition> enabledEffects = TextEffect.getEnabledEffects().stream()
+                .filter(def -> def.resolveSnippet(target.packFormat(), target.minecraftVersion()) != null)
+                .toList();
         int effectCount = enabledEffects.size();
         sb.append(String.format(Locale.ROOT, "const int ORAXEN_EFFECT_COUNT = %d;\n", effectCount));
 
@@ -1215,7 +1217,7 @@ public class ResourcePack {
     private String getAnimationVertexShader(TextShaderTarget target, TextShaderFeatures features, boolean seeThrough) {
         boolean is1_21_6Plus = target.isAtLeast("1.21.6");
         boolean is1_21_4Plus = target.isAtLeast("1.21.4");
-        String textShaderConstants = getTextShaderConstants(features);
+        String textShaderConstants = getTextShaderConstants(target, features);
         TextEffectSnippets snippets = getTextEffectSnippets(target);
         String vertexPrelude = snippets.vertexPrelude();
         String vertexEffects = snippets.vertexEffects();
@@ -1854,7 +1856,7 @@ public class ResourcePack {
     private String getCombinedVertexShader(TextShaderTarget target, TextShaderFeatures features) {
         boolean is1_21_6Plus = target.isAtLeast("1.21.6");
         boolean is1_21_4Plus = target.isAtLeast("1.21.4");
-        String textShaderConstants = getTextShaderConstants(features);
+        String textShaderConstants = getTextShaderConstants(target, features);
         TextEffectSnippets snippets = getTextEffectSnippets(target);
         String vertexPrelude = snippets.vertexPrelude();
         String vertexEffects = snippets.vertexEffects();
