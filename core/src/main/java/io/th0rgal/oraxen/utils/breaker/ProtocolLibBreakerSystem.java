@@ -23,8 +23,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 public class ProtocolLibBreakerSystem extends BreakerSystem {
-    private final PacketAdapter listener = new PacketAdapter(OraxenPlugin.get(),
-        ListenerPriority.LOW, PacketType.Play.Client.BLOCK_DIG) {
+    private final PacketAdapter listener = new PacketAdapter(PacketAdapter
+        .params(OraxenPlugin.get(), PacketType.Play.Client.BLOCK_DIG)
+        .listenerPriority(ListenerPriority.LOW)
+        .optionSync()) {
         @Override
         public void onPacketReceiving(final PacketEvent event) {
             final PacketContainer packet = event.getPacket();
@@ -52,17 +54,15 @@ public class ProtocolLibBreakerSystem extends BreakerSystem {
 
             final EnumWrappers.PlayerDigType digType = type;
 
-            final boolean isCustomBlock = shouldHandleBlock(location.getBlock());
-            if (isCustomBlock) {
-                event.setCancelled(true);
-            }
+            final Block block = location.getBlock();
+            if (shouldHandleBlock(block)) event.setCancelled(true);
 
             SchedulerUtil.runAtLocation(location, () -> {
-                final Block block = location.getBlock();
-                if (shouldHandleBlock(block)) {
+                final Block scheduledBlock = location.getBlock();
+                if (shouldHandleBlock(scheduledBlock)) {
                     handleEvent(
                         player,
-                        block,
+                        scheduledBlock,
                         location,
                         blockFace,
                         world,
