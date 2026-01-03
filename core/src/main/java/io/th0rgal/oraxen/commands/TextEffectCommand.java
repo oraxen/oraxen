@@ -122,7 +122,8 @@ public class TextEffectCommand {
             return;
         }
 
-        Component effectComponent = TextEffect.apply(text, definition, speed, param);
+        // Speed and param are now defined in text_effects.yml config
+        Component effectComponent = TextEffect.apply(text, definition);
 
         // Send to chat
         player.sendMessage(Component.text("Chat: ").append(effectComponent));
@@ -131,7 +132,7 @@ public class TextEffectCommand {
         OraxenPlugin.get().getAudience().player(player).sendActionBar(effectComponent);
 
         // Info message
-        player.sendMessage(Component.text("Sent " + definition.getName() + " effect (speed=" + speed + ", param=" + param + ")"));
+        player.sendMessage(Component.text("Sent " + definition.getName() + " effect"));
     }
 
     /**

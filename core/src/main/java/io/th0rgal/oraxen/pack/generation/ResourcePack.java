@@ -1105,60 +1105,40 @@ public class ResourcePack {
         builder.append(snippet.stripTrailing());
     }
 
+    /**
+     * Appends an effect block that matches the exact trigger_color from config.
+     * No variables or placeholders - all values are hardcoded in the snippet.
+     */
     private void appendEffectBlock(StringBuilder builder, TextEffect.Definition definition,
                                    String snippet, boolean first) {
         String effectIndent = "                            ";
         String codeIndent = effectIndent + "    ";
 
-        // Bake in color, speed, and param from definition
-        String bakedSnippet = bakeEffectConstants(snippet, definition);
+        // Get the trigger color for exact matching
+        net.kyori.adventure.text.format.TextColor triggerColor = definition.getTriggerColor();
+        int r = triggerColor.red();
+        int g = triggerColor.green();
+        int b = triggerColor.blue();
 
         builder.append(effectIndent)
                 .append("// ")
                 .append(definition.getName())
+                .append(" - trigger #")
+                .append(String.format("%02X%02X%02X", r, g, b))
                 .append("\n");
         builder.append(effectIndent)
                 .append(first ? "if" : "else if")
-                .append(" (effectType == ")
-                .append(definition.getId())
+                .append(" (rInt == ")
+                .append(r)
+                .append(" && gRaw == ")
+                .append(g)
+                .append(" && bRaw == ")
+                .append(b)
                 .append(") {\n");
-        builder.append(indentSnippet(bakedSnippet, codeIndent));
+        builder.append(indentSnippet(snippet, codeIndent));
         builder.append("\n")
                 .append(effectIndent)
                 .append("}\n");
-    }
-
-    /**
-     * Replaces placeholder constants in shader snippets with actual values from the definition.
-     * This bakes color, speed, and param into the shader at generation time.
-     * <p>
-     * Supports both new format (EFFECT_COLOR, EFFECT_SPEED, EFFECT_PARAM) and
-     * legacy format (speed, param) for backward compatibility.
-     */
-    private String bakeEffectConstants(String snippet, TextEffect.Definition definition) {
-        // Get color as normalized RGB vec3
-        net.kyori.adventure.text.format.TextColor color = definition.getColor();
-        float r = color.red() / 255.0f;
-        float g = color.green() / 255.0f;
-        float b = color.blue() / 255.0f;
-        String colorVec = String.format(java.util.Locale.US, "vec3(%.4f, %.4f, %.4f)", r, g, b);
-
-        // Get speed and param as floats
-        String speedVal = String.format(java.util.Locale.US, "%.1f", (float) definition.getSpeed());
-        String paramVal = String.format(java.util.Locale.US, "%.1f", (float) definition.getParam());
-
-        // Replace new-style placeholders first
-        String result = snippet
-                .replace("EFFECT_COLOR", colorVec)
-                .replace("EFFECT_SPEED", speedVal)
-                .replace("EFFECT_PARAM", paramVal);
-
-        // For backward compatibility, also replace legacy variable references
-        // Use word boundary matching to avoid partial replacements
-        result = result.replaceAll("\\bspeed\\b", speedVal);
-        result = result.replaceAll("\\bparam\\b", paramVal);
-
-        return result;
     }
 
     private String indentSnippet(String snippet, String indent) {

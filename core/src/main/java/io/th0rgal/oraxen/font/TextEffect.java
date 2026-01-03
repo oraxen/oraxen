@@ -204,30 +204,27 @@ public class TextEffect {
     /**
      * Definition of a text effect loaded from text_effects.yml.
      * <p>
-     * Each effect has a single color defined in the config. This color is baked
-     * into the shader at pack generation time. Users apply effects with
-     * {@code <effect:NAME>text</effect>} tags - the color comes from config.
+     * Each effect has a unique {@code trigger_color} that the shader matches exactly.
+     * All effect parameters (output color, speed, amplitude) are hardcoded in the
+     * shader snippets - no variables or placeholders needed.
+     * <p>
+     * Usage: {@code <effect:NAME>text</effect>}
      */
     public static final class Definition {
         private final String name;
         private final int id;
         private final String description;
         private boolean enabled;
-        private final TextColor color;
-        private final int speed;
-        private final int param;
+        private final TextColor triggerColor;
         private final List<Snippet> snippets;
 
         Definition(String name, int id, @Nullable String description, boolean enabled,
-                   @Nullable TextColor color, int speed, int param,
-                   @Nullable List<Snippet> snippets) {
+                   @NotNull TextColor triggerColor, @Nullable List<Snippet> snippets) {
             this.name = name;
             this.id = id;
             this.description = description != null ? description : "";
             this.enabled = enabled;
-            this.color = color != null ? color : DEFAULT_BASE_COLOR;
-            this.speed = Math.max(1, Math.min(7, speed));
-            this.param = Math.max(0, Math.min(7, param));
+            this.triggerColor = triggerColor;
             this.snippets = snippets != null ? List.copyOf(snippets) : List.of();
         }
 
@@ -252,25 +249,12 @@ public class TextEffect {
         }
 
         /**
-         * Gets the effect's configured color. This color is baked into the shader.
+         * Gets the exact color that triggers this effect in the shader.
+         * The shader matches this RGB value exactly.
          */
         @NotNull
-        public TextColor getColor() {
-            return color;
-        }
-
-        /**
-         * Gets the effect's configured speed (1-7).
-         */
-        public int getSpeed() {
-            return speed;
-        }
-
-        /**
-         * Gets the effect's configured param/amplitude (0-7).
-         */
-        public int getParam() {
-            return param;
+        public TextColor getTriggerColor() {
+            return triggerColor;
         }
 
         public List<Snippet> getSnippets() {
@@ -418,9 +402,7 @@ public class TextEffect {
 
             String description = effectSection.getString("description", "");
             boolean enabled = effectSection.getBoolean("enabled", true);
-            TextColor color = parseColor(effectSection.getString("color", null));
-            int speed = effectSection.getInt("speed", DEFAULT_SPEED);
-            int param = effectSection.getInt("param", DEFAULT_PARAM);
+            TextColor triggerColor = parseTriggerColor(effectSection.getString("trigger_color", null), id);
             List<Snippet> snippets = parseSnippets(effectSection);
 
             String normalized = normalizeName(name);
@@ -433,7 +415,7 @@ public class TextEffect {
                 continue;
             }
 
-            Definition definition = new Definition(name, id, description, enabled, color, speed, param, snippets);
+            Definition definition = new Definition(name, id, description, enabled, triggerColor, snippets);
             effectsByName.put(normalized, definition);
             effectsById.put(id, definition);
             effectDefinitions.add(definition);
@@ -545,23 +527,31 @@ public class TextEffect {
         return text != null ? text : defaultValue;
     }
 
-    @Nullable
-    private static TextColor parseColor(@Nullable String colorStr) {
-        if (colorStr == null || colorStr.isBlank()) {
-            return null;
+    /**
+     * Parses trigger_color from config, or generates a default based on effect ID.
+     * Default format: #FDxD00 where x is the effect ID (0-7).
+     * This ensures unique, unlikely-to-collide colors for each effect.
+     */
+    @NotNull
+    private static TextColor parseTriggerColor(@Nullable String colorStr, int effectId) {
+        if (colorStr != null && !colorStr.isBlank()) {
+            String trimmed = colorStr.trim();
+            if (trimmed.startsWith("#")) {
+                trimmed = trimmed.substring(1);
+            }
+            try {
+                int rgb = Integer.parseInt(trimmed, 16);
+                return TextColor.color(rgb);
+            } catch (NumberFormatException ex) {
+                Logs.logWarning("Invalid trigger_color '" + colorStr + "' in text_effects.yml, using default.");
+            }
         }
-        String trimmed = colorStr.trim();
-        // Support hex colors like "#FF5500" or "FF5500"
-        if (trimmed.startsWith("#")) {
-            trimmed = trimmed.substring(1);
-        }
-        try {
-            int rgb = Integer.parseInt(trimmed, 16);
-            return TextColor.color(rgb);
-        } catch (NumberFormatException ex) {
-            Logs.logWarning("Invalid color '" + colorStr + "' in text_effects.yml, using default.");
-            return null;
-        }
+        // Generate default: R=253 (0xFD), G=(effectId<<4)|0xD, B=0
+        // This produces colors like #FD0D00, #FD1D00, #FD2D00, etc.
+        int r = 0xFD;
+        int g = ((effectId & 0x07) << 4) | 0x0D;
+        int b = 0x00;
+        return TextColor.color(r, g, b);
     }
 
     @NotNull
@@ -819,90 +809,47 @@ public class TextEffect {
     }
 
     /**
-     * Applies a text effect to a string, returning a Component with encoded colors.
-     *
-     * @param text   The text to apply the effect to
-     * @param definition   The effect definition
-     * @param speed  Speed of the effect (1-7)
-     * @param param  Additional parameter (amplitude, intensity, etc.) (0-7)
-     * @return Component with per-character encoded colors
-     */
-    @NotNull
-    public static Component apply(String text, Definition definition, int speed, int param) {
-        return apply(text, definition, speed, param, null);
-    }
-
-    /**
-     * Applies a text effect to a string using effect-specific fonts.
+     * Applies a text effect to a string using effect-specific fonts and trigger colors.
      * <p>
-     * With effect fonts, the color is used entirely for encoding effect parameters.
-     * The original base color is NOT preserved - effect fonts trade color for effect.
+     * The effect's trigger_color from config is used directly - no encoding needed.
+     * The shader matches this exact color to apply the effect.
      *
      * @param text       The text to apply the effect to
      * @param definition The effect definition
-     * @param speed      Speed of the effect (1-7)
-     * @param param      Additional parameter (amplitude, intensity, etc.) (0-7)
-     * @param baseColor  Ignored - effect fonts don't preserve base color
-     * @return Component with per-character encoded colors and effect font
+     * @return Component with trigger color and effect font
      */
     @NotNull
-    public static Component apply(String text, Definition definition, int speed, int param, @Nullable TextColor baseColor) {
+    public static Component apply(String text, Definition definition) {
         if (text == null || text.isEmpty()) {
             return Component.empty();
         }
         if (definition == null || !isEffectEnabled(definition)) {
-            TextColor effectiveBase = baseColor != null ? baseColor : DEFAULT_BASE_COLOR;
-            return Component.text(text).color(effectiveBase);
+            return Component.text(text).color(DEFAULT_BASE_COLOR);
         }
 
-        // Get the effect-specific font
+        // Get the effect-specific font and trigger color
         Key effectFont = EffectFontProvider.getFontKey(definition.getId());
+        TextColor triggerColor = definition.getTriggerColor();
 
         Component result = Component.empty();
-        int idx = 0;
 
         for (int i = 0; i < text.length(); ) {
             int codepoint = text.codePointAt(i);
 
-            // Encode effect parameters in color (baseColor is ignored for effect fonts)
-            TextColor encodedColor = encoding.encode(null, definition.getId(), speed, param, idx);
-
             result = result.append(
                     Component.text(Character.toString(codepoint))
-                            .font(effectFont)  // Use effect-specific font
-                            .color(encodedColor)
+                            .font(effectFont)
+                            .color(triggerColor)
             );
 
             i += Character.charCount(codepoint);
-            idx++;
         }
 
         return result;
     }
 
     /**
-     * Applies a text effect using the definition's configured speed and param.
-     * This is the primary method for applying effects.
-     */
-    @NotNull
-    public static Component apply(String text, Definition definition) {
-        if (definition == null) {
-            return Component.text(text != null ? text : "");
-        }
-        return apply(text, definition, definition.getSpeed(), definition.getParam());
-    }
-
-    /**
      * Applies a text effect by name.
-     */
-    @NotNull
-    public static Component apply(String text, String effectName, int speed, int param) {
-        Definition definition = getEffect(effectName);
-        return apply(text, definition, speed, param, null);
-    }
-
-    /**
-     * Applies a text effect by name using the definition's configured parameters.
      */
     @NotNull
     public static Component apply(String text, String effectName) {
@@ -918,145 +865,88 @@ public class TextEffect {
     @Deprecated
     @NotNull
     public static Component apply(String text, Type type) {
-        return apply(text, type, DEFAULT_SPEED, DEFAULT_PARAM);
+        Definition definition = getEffect(type.getName());
+        return apply(text, definition);
     }
 
     /**
-     * Applies a text effect to a string, returning a Component with encoded colors.
+     * Legacy method for backward compatibility.
      *
-     * @deprecated Prefer {@link #apply(String, Definition, int, int)}.
+     * @deprecated Speed and param are now defined in config. Use {@link #apply(String, Definition)}.
      */
     @Deprecated
     @NotNull
     public static Component apply(String text, Type type, int speed, int param) {
-        return apply(text, type, speed, param, null);
+        // Speed and param are now in config, ignored here
+        return apply(text, type);
     }
 
     /**
-     * Applies a text effect to a string while preserving the provided base color.
+     * Legacy method for backward compatibility.
      *
-     * @deprecated Prefer {@link #apply(String, Definition, int, int, TextColor)}.
+     * @deprecated Speed, param, and baseColor are now defined in config. Use {@link #apply(String, Definition)}.
      */
     @Deprecated
     @NotNull
     public static Component apply(String text, Type type, int speed, int param, @Nullable TextColor baseColor) {
-        Definition definition = getEffect(type.getName());
-        return apply(text, definition, speed, param, baseColor);
+        // Speed, param, and baseColor are now in config, ignored here
+        return apply(text, type);
     }
 
     // Convenience methods for each effect type (by name)
 
     /**
-     * Applies rainbow effect - cycles through hues over time.
-     *
-     * @param text  The text to colorize
-     * @param speed How fast the rainbow cycles (1-7)
-     * @return Component with rainbow effect colors
-     */
-    @NotNull
-    public static Component rainbow(String text, int speed) {
-        return apply(text, "rainbow", speed, 0);
-    }
-
-    /**
-     * Applies rainbow effect with default speed.
+     * Applies rainbow effect.
+     * Speed is now defined in text_effects.yml config.
      */
     @NotNull
     public static Component rainbow(String text) {
-        return rainbow(text, DEFAULT_SPEED);
+        return apply(text, "rainbow");
     }
 
     /**
-     * Applies wave effect - vertical sine wave motion.
-     *
-     * @param text      The text to animate
-     * @param speed     How fast the wave moves (1-7)
-     * @param amplitude Wave amplitude (1-7)
-     * @return Component with wave effect colors
-     */
-    @NotNull
-    public static Component wave(String text, int speed, int amplitude) {
-        return apply(text, "wave", speed, amplitude);
-    }
-
-    /**
-     * Applies wave effect with default parameters.
+     * Applies wave effect.
+     * Speed and amplitude are now defined in text_effects.yml config.
      */
     @NotNull
     public static Component wave(String text) {
-        return wave(text, DEFAULT_SPEED, DEFAULT_PARAM);
+        return apply(text, "wave");
     }
 
     /**
-     * Applies shake effect - random jitter.
-     *
-     * @param text      The text to animate
-     * @param speed     How fast the shake updates (1-7)
-     * @param intensity Shake intensity (1-7)
-     * @return Component with shake effect colors
-     */
-    @NotNull
-    public static Component shake(String text, int speed, int intensity) {
-        return apply(text, "shake", speed, intensity);
-    }
-
-    /**
-     * Applies shake effect with default parameters.
+     * Applies shake effect.
+     * Speed and intensity are now defined in text_effects.yml config.
      */
     @NotNull
     public static Component shake(String text) {
-        return shake(text, DEFAULT_SPEED, DEFAULT_PARAM);
+        return apply(text, "shake");
     }
 
     /**
-     * Applies pulse effect - opacity fades in/out.
-     *
-     * @param text  The text to animate
-     * @param speed How fast the pulse cycles (1-7)
-     * @return Component with pulse effect colors
-     */
-    @NotNull
-    public static Component pulse(String text, int speed) {
-        return apply(text, "pulse", speed, 0);
-    }
-
-    /**
-     * Applies pulse effect with default speed.
+     * Applies pulse effect.
+     * Speed is now defined in text_effects.yml config.
      */
     @NotNull
     public static Component pulse(String text) {
-        return pulse(text, DEFAULT_SPEED);
+        return apply(text, "pulse");
     }
 
     /**
-     * Applies gradient effect - static color gradient.
-     *
-     * @param text The text to colorize
-     * @return Component with gradient effect colors
+     * Applies gradient effect.
+     * Parameters are now defined in text_effects.yml config.
      */
     @NotNull
     public static Component gradient(String text) {
-        return apply(text, "gradient", 0, 0);
+        return apply(text, "gradient");
     }
 
     /**
-     * Applies typewriter effect - characters appear sequentially.
-     *
-     * @param text  The text to animate
-     * @param speed How fast characters appear (1-7)
-     * @return Component with typewriter effect colors
-     */
-    @NotNull
-    public static Component typewriter(String text, int speed) {
-        return apply(text, "typewriter", speed, 0);
-    }
-
-    /**
-     * Applies typewriter effect with default speed.
+     * Applies typewriter effect.
+     * Speed is now defined in text_effects.yml config.
      */
     @NotNull
     public static Component typewriter(String text) {
-        return typewriter(text, DEFAULT_SPEED);
+        return apply(text, "typewriter");
     }
 
     /**
