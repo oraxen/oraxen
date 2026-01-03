@@ -1,10 +1,11 @@
 version: 1
 
 # Text effect GLSL snippets used when generating text shaders.
+#
 # Each effect defines:
 # - id: numeric effect id (0-7) - optional, auto-assigned if omitted
 # - enabled: whether the effect is available
-# - trigger_color: exact hex color the shader matches (optional, defaults to #FDxD00)
+# - trigger_color: any hex color (e.g., #FF5500) - optional, auto-generated if omitted
 # - description: optional text shown in /oraxen texteffects
 # - snippets: GLSL code for the effect (all values hardcoded, no variables)
 #
@@ -13,9 +14,10 @@ version: 1
 # IDs are auto-assigned in order (0, 1, 2...) if not specified.
 # You can mix explicit and auto-assigned IDs; explicit IDs are reserved first.
 #
-# The trigger_color is matched exactly by the shader. All effect parameters
-# (output color, speed, amplitude) are hardcoded in the snippets.
-# This eliminates false positives where gradient colors triggered effects.
+# The trigger_color can be any hex color - the shader matches it exactly.
+# Since exact 24-bit matches are extremely unlikely in gradients or normal text,
+# any unique color works safely. Don't use your trigger_color for regular text.
+# Default trigger colors use pattern #FDxD00 (where x = effect ID).
 
 shared:
   # Shared GLSL helpers inserted before main() in fragment shaders.

@@ -61,7 +61,7 @@ public final class EffectFontProvider {
 
     /**
      * Generates font JSON for an effect font.
-     * Each effect font references the vanilla default font providers.
+     * Each effect font references the full default font (including Oraxen glyphs).
      *
      * @param effectId Effect type ID (0-7)
      * @return JsonObject for the font definition
@@ -71,10 +71,10 @@ public final class EffectFontProvider {
         JsonObject font = new JsonObject();
         JsonArray providers = new JsonArray();
 
-        // Reference vanilla font for all standard characters
+        // Reference the full default font (includes Oraxen glyphs, shift providers, etc.)
         JsonObject reference = new JsonObject();
         reference.addProperty("type", "reference");
-        reference.addProperty("id", "minecraft:include/default");
+        reference.addProperty("id", "minecraft:default");
         providers.add(reference);
 
         font.add("providers", providers);

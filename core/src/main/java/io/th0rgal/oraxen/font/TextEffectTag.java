@@ -1,7 +1,9 @@
 package io.th0rgal.oraxen.font;
 
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.flattener.ComponentFlattener;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.minimessage.Context;
 import net.kyori.adventure.text.minimessage.ParsingException;
 import net.kyori.adventure.text.minimessage.tag.Modifying;
@@ -10,6 +12,8 @@ import net.kyori.adventure.text.minimessage.tag.resolver.ArgumentQueue;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -17,8 +21,10 @@ import java.util.Set;
  * <p>
  * Usage: {@code <effect:wave>wavy text</effect>}
  * <p>
- * The effect's color, speed, and param are defined in text_effects.yml
- * and baked into the shader at resource pack generation time.
+ * Preserves nested formatting: {@code <effect:wave><bold>bold wavy</bold></effect>}
+ * <p>
+ * The effect's trigger color is defined in text_effects.yml
+ * and matched exactly by the shader at runtime.
  */
 public class TextEffectTag {
 
@@ -69,28 +75,51 @@ public class TextEffectTag {
 
     /**
      * Modifying tag that applies text effects to wrapped content.
-     * Each component's text content is transformed with the effect font and encoding.
+     * Preserves component structure, decorations, click/hover events while
+     * applying the effect font and trigger color to text content.
      */
     private static class EffectModifyingTag implements Modifying {
         private final TextEffect.Definition definition;
+        private final Key effectFont;
+        private final TextColor triggerColor;
 
         EffectModifyingTag(TextEffect.Definition definition) {
             this.definition = definition;
+            this.effectFont = EffectFontProvider.getFontKey(definition.getId());
+            this.triggerColor = definition.getTriggerColor();
         }
 
         @Override
         public Component apply(@NotNull Component current, int depth) {
-            // Extract plain text from the current component
-            StringBuilder textBuilder = new StringBuilder();
-            ComponentFlattener.basic().flatten(current, textBuilder::append);
-            String text = textBuilder.toString();
-
-            if (text.isEmpty()) {
+            // Only transform at depth 0 to avoid double-processing
+            if (depth > 0) {
                 return current;
             }
 
-            // Apply the text effect
-            return TextEffect.apply(text, definition);
+            return transformComponent(current);
+        }
+
+        /**
+         * Recursively transforms a component tree, applying effect font/color
+         * while preserving structure, decorations, and events.
+         */
+        private Component transformComponent(Component component) {
+            // Apply effect font and color, preserving other styles
+            // Adventure's style system is additive, so decorations like bold/italic are preserved
+            Component transformed = component.font(effectFont).color(triggerColor);
+
+            // Recursively transform children
+            List<Component> children = component.children();
+            if (!children.isEmpty()) {
+                List<Component> transformedChildren = new ArrayList<>(children.size());
+                for (Component child : children) {
+                    transformedChildren.add(transformComponent(child));
+                }
+                // Build new component with transformed children
+                return transformed.children(transformedChildren);
+            }
+
+            return transformed;
         }
     }
 }

@@ -22,38 +22,22 @@ import java.util.Map;
  * Unlike animated glyphs which swap between sprite frames, text effects modify
  * how existing characters render (color, position, opacity) using GLSL shaders.
  * <p>
- * Text effects use dedicated effect fonts (one per effect type) and encode
- * parameters in the color using {@link EffectFontEncoding}. This approach
- * eliminates false positives from gradient colors since the shader only
- * triggers effects when the tight dual marker (R=253, G low nibble=0xD) is present.
+ * How it works:
+ * <ol>
+ *   <li>Each effect has a dedicated font (e.g., {@code oraxen:effect_rainbow})</li>
+ *   <li>Each effect has a unique trigger_color (any hex color, matched exactly)</li>
+ *   <li>Text is rendered with the effect font + trigger color</li>
+ *   <li>The shader detects the exact color match and applies the effect</li>
+ * </ol>
  * <p>
- * Encoding layout (effect_font):
- * <ul>
- *   <li>R = 253 (marker)</li>
- *   <li>G high nibble = effect type (0-7)</li>
- *   <li>G low nibble = 0xD (marker)</li>
- *   <li>B high nibble = speed (1-7)</li>
- *   <li>B low nibble = param (0-7)</li>
- *   <li>Character index derived from {@code gl_VertexID}</li>
- * </ul>
+ * This approach eliminates false positives from gradients since the shader
+ * matches the exact 24-bit RGB value, which is extremely unlikely to occur
+ * randomly in gradient interpolation.
  * <p>
- * Example configuration:
- * <pre>
- * settings.yml:
- *   TextEffects:
- *     enabled: true
- *     shader:
- *       template: auto
- *
- * text_effects.yml:
- *   effects:
- *     rainbow:
- *       id: 0
- *       enabled: true
- *       snippets:
- *         - fragment: |
- *             // GLSL snippet
- * </pre>
+ * Usage: {@code <effect:wave>wavy text</effect>}
+ * <p>
+ * Effect parameters (speed, amplitude, color output) are defined in
+ * {@code text_effects.yml} and baked into the GLSL snippets at pack generation.
  */
 public class TextEffect {
 
