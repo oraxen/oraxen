@@ -339,6 +339,9 @@ public class ShapedBlockMechanicListener implements Listener {
         boolean isWaterlogged = targetBlock.getType() == Material.WATER;
         Material placeMaterial = shapedMechanic.getPlacedMaterial();
 
+        // Capture replaced state BEFORE modifying the block (for BlockPlaceEvent)
+        org.bukkit.block.BlockState replacedState = targetBlock.getState();
+
         targetBlock.setType(placeMaterial, false);
         applyBlockData(targetBlock, player, face, shapedMechanic, isWaterlogged);
         markAsCustomBlock(targetBlock, shapedMechanic);
@@ -351,9 +354,9 @@ public class ShapedBlockMechanicListener implements Listener {
             markAsCustomBlock(upperBlock, shapedMechanic);
         }
 
-        // Fire BlockPlaceEvent for compatibility
+        // Fire BlockPlaceEvent for compatibility (with correct replaced state)
         BlockPlaceEvent placeEvent = new BlockPlaceEvent(
-            targetBlock, targetBlock.getState(), clickedBlock, item, player, true, EquipmentSlot.HAND
+            targetBlock, replacedState, clickedBlock, item, player, true, EquipmentSlot.HAND
         );
         Bukkit.getPluginManager().callEvent(placeEvent);
 

@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -131,10 +132,12 @@ public class BackpackCosmeticManager {
      * Refresh viewers for all backpacks (called periodically)
      */
     public void refreshAllViewers() {
-        for (Map.Entry<UUID, BackpackData> entry : activeBackpacks.entrySet()) {
+        Iterator<Map.Entry<UUID, BackpackData>> iterator = activeBackpacks.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<UUID, BackpackData> entry = iterator.next();
             Player owner = Bukkit.getPlayer(entry.getKey());
             if (owner == null || !owner.isOnline()) {
-                activeBackpacks.remove(entry.getKey());
+                iterator.remove();
                 continue;
             }
 
