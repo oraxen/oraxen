@@ -2,13 +2,16 @@ version: 1
 
 # Text effect GLSL snippets used when generating text shaders.
 # Each effect defines:
-# - id: numeric effect id (0-7)
+# - id: numeric effect id (0-7) - optional, auto-assigned if omitted
 # - enabled: whether the effect is available
 # - trigger_color: exact hex color the shader matches (optional, defaults to #FDxD00)
 # - description: optional text shown in /oraxen texteffects
 # - snippets: GLSL code for the effect (all values hardcoded, no variables)
 #
 # Usage in chat: <effect:wave>wavy text</effect>
+#
+# IDs are auto-assigned in order (0, 1, 2...) if not specified.
+# You can mix explicit and auto-assigned IDs; explicit IDs are reserved first.
 #
 # The trigger_color is matched exactly by the shader. All effect parameters
 # (output color, speed, amplitude) are hardcoded in the snippets.
@@ -26,7 +29,7 @@ shared:
 
 effects:
   rainbow:
-    id: 0
+    # id auto-assigned (0)
     enabled: true
     # trigger_color defaults to #FD0D00 (R=253, G=0x0D, B=0)
     description: Cycles through rainbow colors over time
@@ -36,7 +39,7 @@ effects:
           texColor.rgb = hsv2rgb(vec3(hue, 0.9, 1.0));
 
   wave:
-    id: 1
+    # id auto-assigned (1)
     enabled: true
     # trigger_color defaults to #FD1D00 (R=253, G=0x1D, B=0)
     description: Vertical sine wave motion
@@ -48,7 +51,7 @@ effects:
           pos.y += sin(phase) * 2.0;
 
   shake:
-    id: 2
+    # id auto-assigned (2)
     enabled: true
     # trigger_color defaults to #FD2D00 (R=253, G=0x2D, B=0)
     description: Random jitter
@@ -61,7 +64,7 @@ effects:
           pos.y += (fract(sin(seed * 78.233) * 43758.5453) - 0.5) * 1.5;
 
   pulse:
-    id: 3
+    # id auto-assigned (3)
     enabled: true
     # trigger_color defaults to #FD3D00 (R=253, G=0x3D, B=0)
     description: Opacity fades in/out

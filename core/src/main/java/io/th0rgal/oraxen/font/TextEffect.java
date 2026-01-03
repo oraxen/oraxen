@@ -378,6 +378,13 @@ public class TextEffect {
         }
 
         int maxEffectId = encoding.shaderEncoding().dataMask();
+
+        // Two-pass loading: first collect explicit IDs, then auto-assign missing ones
+        record PendingEffect(String name, ConfigurationSection section, int explicitId) {}
+        List<PendingEffect> pendingEffects = new ArrayList<>();
+        java.util.Set<Integer> usedIds = new java.util.HashSet<>();
+
+        // First pass: collect all effects and their explicit IDs
         for (String key : effectsSection.getKeys(false)) {
             ConfigurationSection effectSection = effectsSection.getConfigurationSection(key);
             if (effectSection == null) {
@@ -389,15 +396,47 @@ public class TextEffect {
                 continue;
             }
 
-            int id = effectSection.getInt("id", -1);
-            if (id < 0) {
-                Logs.logWarning("Text effect '" + name + "' is missing an id, skipping.");
-                continue;
-            }
-            if (id > maxEffectId) {
-                Logs.logWarning("Text effect '" + name + "' uses id " + id
+            int explicitId = effectSection.getInt("id", -1);
+            if (explicitId > maxEffectId) {
+                Logs.logWarning("Text effect '" + name + "' uses id " + explicitId
                         + " but encoding only supports 0-" + maxEffectId + "; skipping.");
                 continue;
+            }
+
+            // Track explicitly assigned IDs
+            if (explicitId >= 0) {
+                if (usedIds.contains(explicitId)) {
+                    Logs.logWarning("Duplicate text effect id '" + explicitId + "' for '" + name + "', skipping.");
+                    continue;
+                }
+                usedIds.add(explicitId);
+            }
+
+            pendingEffects.add(new PendingEffect(name, effectSection, explicitId));
+        }
+
+        // Second pass: assign IDs and create definitions
+        int nextAutoId = 0;
+        for (PendingEffect pending : pendingEffects) {
+            String name = pending.name();
+            ConfigurationSection effectSection = pending.section();
+
+            // Determine final ID
+            int id;
+            if (pending.explicitId() >= 0) {
+                id = pending.explicitId();
+            } else {
+                // Auto-assign: find first available ID
+                while (usedIds.contains(nextAutoId) && nextAutoId <= maxEffectId) {
+                    nextAutoId++;
+                }
+                if (nextAutoId > maxEffectId) {
+                    Logs.logWarning("Text effect '" + name + "' cannot be auto-assigned an id; all IDs 0-" + maxEffectId + " are used.");
+                    continue;
+                }
+                id = nextAutoId;
+                usedIds.add(id);
+                nextAutoId++;
             }
 
             String description = effectSection.getString("description", "");
@@ -408,10 +447,6 @@ public class TextEffect {
             String normalized = normalizeName(name);
             if (effectsByName.containsKey(normalized)) {
                 Logs.logWarning("Duplicate text effect name '" + name + "', skipping.");
-                continue;
-            }
-            if (effectsById.containsKey(id)) {
-                Logs.logWarning("Duplicate text effect id '" + id + "' for '" + name + "', skipping.");
                 continue;
             }
 
