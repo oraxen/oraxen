@@ -19,6 +19,7 @@ import io.th0rgal.oraxen.utils.SchedulerUtil;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -55,21 +56,30 @@ public class ProtocolLibBreakerSystem extends BreakerSystem {
             final EnumWrappers.PlayerDigType digType = type;
 
             final Block block = location.getBlock();
-            if (shouldHandleBlock(block)) event.setCancelled(true);
+            final boolean shouldHandle = shouldHandleBlock(block);
+            if (!shouldHandle) return;
+
+            // cancel now
+            event.setCancelled(true);
+
+            final Material initialType = block.getType();
+            final BlockData initialBlockData = block.getBlockData().clone();
 
             SchedulerUtil.runAtLocation(location, () -> {
                 final Block scheduledBlock = location.getBlock();
-                if (shouldHandleBlock(scheduledBlock)) {
-                    handleEvent(
-                        player,
-                        scheduledBlock,
-                        location,
-                        blockFace,
-                        world,
-                        () -> {},
-                        digType == EnumWrappers.PlayerDigType.START_DESTROY_BLOCK
-                    );
-                }
+                if (!shouldHandleBlock(scheduledBlock)) return;
+                if (scheduledBlock.getType() != initialType) return;
+                if (!scheduledBlock.getBlockData().matches(initialBlockData)) return;
+
+                handleEvent(
+                    player,
+                    scheduledBlock,
+                    location,
+                    blockFace,
+                    world,
+                    () -> {},
+                    digType == EnumWrappers.PlayerDigType.START_DESTROY_BLOCK
+                );
             });
         }
     };
