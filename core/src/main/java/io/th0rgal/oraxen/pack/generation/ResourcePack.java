@@ -8,12 +8,15 @@ import io.th0rgal.oraxen.config.AppearanceMode;
 import io.th0rgal.oraxen.config.ResourcesManager;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.font.AnimatedGlyph;
+import io.th0rgal.oraxen.font.EffectFontEncoding;
+import io.th0rgal.oraxen.font.EffectFontProvider;
 import io.th0rgal.oraxen.font.Font;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.font.ShiftProvider;
 import io.th0rgal.oraxen.font.TextEffect;
 import io.th0rgal.oraxen.font.TextEffectEncoding;
+import net.kyori.adventure.key.Key;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenMeta;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
@@ -697,11 +700,35 @@ public class ResourcePack {
         // Generate the dedicated shift font (still useful for explicit font references)
         generateShiftFont(fontManager);
 
+        // Generate effect fonts for text effects
+        generateEffectFonts();
+
         // Process animated glyph fonts
         boolean hasAnimatedGlyphs = processAnimatedGlyphs(fontManager);
 
         // Generate text shaders when needed (animated glyphs and/or text effects).
         maybeGenerateTextShaders(hasAnimatedGlyphs);
+    }
+
+    /**
+     * Generates effect font files for text effects.
+     * Each effect type gets a dedicated font that references vanilla glyphs.
+     */
+    private void generateEffectFonts() {
+        if (!TextEffect.isEnabled() || !TextEffect.hasAnyEffectEnabled()) {
+            return;
+        }
+
+        EffectFontProvider provider = new EffectFontProvider();
+
+        for (int i = 0; i < EffectFontProvider.getEffectFontCount(); i++) {
+            Key fontKey = EffectFontProvider.EFFECT_FONT_KEYS[i];
+            JsonObject fontJson = provider.generateFontJson(i);
+
+            String path = "assets/" + fontKey.namespace() + "/font";
+            String filename = fontKey.value() + ".json";
+            writeStringToVirtual(path, filename, fontJson.toString());
+        }
     }
 
     private record TextShaderFeatures(boolean animatedGlyphs, boolean textEffects) {
@@ -1001,27 +1028,17 @@ public class ResourcePack {
     }
 
     private String getTextShaderConstants(TextShaderFeatures features) {
-        TextEffectEncoding.ShaderEncoding encoding = TextEffect.getEncoding().shaderEncoding();
-        int dataMax = encoding.dataMax();
+        // Effect font encoding uses tight dual markers: R=253, G low nibble=0xD
         return String.format(Locale.ROOT, """
                 const bool ORAXEN_ANIMATED_GLYPHS = %s;
                 const bool ORAXEN_TEXT_EFFECTS = %s;
-                const int ORAXEN_TEXT_LOW_MASK = %d;
-                const int ORAXEN_TEXT_HIGH_MASK = 0xF0;
-                const int ORAXEN_TEXT_DATA_MASK = %d;
-                const int ORAXEN_TEXT_DATA_MIN = %d;
-                const int ORAXEN_TEXT_DATA_MAX = %d;
-                const int ORAXEN_TEXT_DATA_GAP = %d;
-                const int ORAXEN_TEXT_R_HIGH_MARKER = %d;
+                const int ORAXEN_EFFECT_R_MARKER = %d;
+                const int ORAXEN_EFFECT_G_LOW_MARKER = %d;
                 """,
                 features.animatedGlyphs() ? "true" : "false",
                 features.textEffects() ? "true" : "false",
-                encoding.lowMask(),
-                encoding.dataMask(),
-                encoding.dataMin(),
-                dataMax,
-                encoding.dataGap(),
-                encoding.rHighMarker());
+                EffectFontEncoding.R_MARKER,
+                EffectFontEncoding.G_LOW_MARKER);
     }
 
     private TextEffectSnippets getTextEffectSnippets(TextShaderTarget target) {
@@ -1088,19 +1105,28 @@ public class ResourcePack {
         builder.append(snippet.stripTrailing());
     }
 
+    /**
+     * Appends an effect block that matches on effectType.
+     * Both vertex and fragment shaders define effectType from the effect encoding.
+     * No variables or placeholders - all values are hardcoded in the snippet.
+     */
     private void appendEffectBlock(StringBuilder builder, TextEffect.Definition definition,
                                    String snippet, boolean first) {
         String effectIndent = "                            ";
         String codeIndent = effectIndent + "    ";
 
+        int effectId = definition.getId();
+
         builder.append(effectIndent)
                 .append("// ")
                 .append(definition.getName())
-                .append("\n");
+                .append(" (id=")
+                .append(effectId)
+                .append(")\n");
         builder.append(effectIndent)
                 .append(first ? "if" : "else if")
                 .append(" (effectType == ")
-                .append(definition.getId())
+                .append(effectId)
                 .append(") {\n");
         builder.append(indentSnippet(snippet, codeIndent));
         builder.append("\n")
@@ -1207,32 +1233,16 @@ public class ResourcePack {
                             }
                         }
 
-                        // Text effects: encoded in low RGB bits (alpha_lsb)
+                        // Text effects: effect font encoding with tight dual markers
                         if (ORAXEN_TEXT_EFFECTS && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
-                            int rLow = rInt & ORAXEN_TEXT_LOW_MASK;
-                            int gLow = gRaw & ORAXEN_TEXT_LOW_MASK;
-                            int bLow = bRaw & ORAXEN_TEXT_LOW_MASK;
-                            bool hasGap = ORAXEN_TEXT_DATA_GAP >= 0;
-                            bool hasHighMarker = (rInt & ORAXEN_TEXT_HIGH_MASK) == ORAXEN_TEXT_R_HIGH_MARKER;
-                            bool hasMarker = hasHighMarker
-                                    && (rLow >= ORAXEN_TEXT_DATA_MIN && rLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || rLow != ORAXEN_TEXT_DATA_GAP))
-                                    && (gLow >= ORAXEN_TEXT_DATA_MIN && gLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || gLow != ORAXEN_TEXT_DATA_GAP))
-                                    && (bLow >= ORAXEN_TEXT_DATA_MIN && bLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || bLow != ORAXEN_TEXT_DATA_GAP));
+                            // Check dual markers: R=253 and G low nibble=0xD
+                            bool hasMarker = (rInt == ORAXEN_EFFECT_R_MARKER) && ((gRaw & 0x0F) == ORAXEN_EFFECT_G_LOW_MARKER);
 
                             if (hasMarker) {
-                                int effectType = rLow - ORAXEN_TEXT_DATA_MIN;
-                                if (hasGap && rLow > ORAXEN_TEXT_DATA_GAP) {
-                                    effectType -= 1;
-                                }
-                                float speed = float(gLow - ORAXEN_TEXT_DATA_MIN);
-                                if (hasGap && gLow > ORAXEN_TEXT_DATA_GAP) {
-                                    speed -= 1.0;
-                                }
-                                speed = max(1.0, speed);
-                                float param = float(bLow - ORAXEN_TEXT_DATA_MIN);
-                                if (hasGap && bLow > ORAXEN_TEXT_DATA_GAP) {
-                                    param -= 1.0;
-                                }
+                                // Decode effect parameters from color
+                                int effectType = (gRaw >> 4) & 0x07;
+                                float speed = max(1.0, float((bRaw >> 4) & 0x07));
+                                float param = float(bRaw & 0x07);
                                 float charIndex = float(gl_VertexID >> 2);
 
                                 float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
@@ -1312,32 +1322,16 @@ public class ResourcePack {
                         }
                     }
 
-                    // Text effects: encoded in low RGB bits (alpha_lsb) with high-nibble marker
+                    // Text effects: effect font encoding with tight dual markers
                     if (ORAXEN_TEXT_EFFECTS && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
-                        int rLow = rInt & ORAXEN_TEXT_LOW_MASK;
-                        int gLow = gRaw & ORAXEN_TEXT_LOW_MASK;
-                        int bLow = bRaw & ORAXEN_TEXT_LOW_MASK;
-                        bool hasGap = ORAXEN_TEXT_DATA_GAP >= 0;
-                        bool hasHighMarker = (rInt & ORAXEN_TEXT_HIGH_MASK) == ORAXEN_TEXT_R_HIGH_MARKER;
-                        bool hasMarker = hasHighMarker
-                                && (rLow >= ORAXEN_TEXT_DATA_MIN && rLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || rLow != ORAXEN_TEXT_DATA_GAP))
-                                && (gLow >= ORAXEN_TEXT_DATA_MIN && gLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || gLow != ORAXEN_TEXT_DATA_GAP))
-                                && (bLow >= ORAXEN_TEXT_DATA_MIN && bLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || bLow != ORAXEN_TEXT_DATA_GAP));
+                        // Check dual markers: R=253 and G low nibble=0xD
+                        bool hasMarker = (rInt == ORAXEN_EFFECT_R_MARKER) && ((gRaw & 0x0F) == ORAXEN_EFFECT_G_LOW_MARKER);
 
                         if (hasMarker) {
-                            int effectType = rLow - ORAXEN_TEXT_DATA_MIN;
-                            if (hasGap && rLow > ORAXEN_TEXT_DATA_GAP) {
-                                effectType -= 1;
-                            }
-                            float speed = float(gLow - ORAXEN_TEXT_DATA_MIN);
-                            if (hasGap && gLow > ORAXEN_TEXT_DATA_GAP) {
-                                speed -= 1.0;
-                            }
-                            speed = max(1.0, speed);
-                            float param = float(bLow - ORAXEN_TEXT_DATA_MIN);
-                            if (hasGap && bLow > ORAXEN_TEXT_DATA_GAP) {
-                                param -= 1.0;
-                            }
+                            // Decode effect parameters from color
+                            int effectType = (gRaw >> 4) & 0x07;
+                            float speed = max(1.0, float((bRaw >> 4) & 0x07));
+                            float param = float(bRaw & 0x07);
                             float charIndex = float(gl_VertexID >> 2);
 
                             float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
@@ -1418,32 +1412,16 @@ public class ResourcePack {
                             }
                         }
 
-                        // Text effects: encoded in low RGB bits (alpha_lsb)
+                        // Text effects: effect font encoding with tight dual markers
                         if (ORAXEN_TEXT_EFFECTS && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
-                            int rLow = rInt & ORAXEN_TEXT_LOW_MASK;
-                            int gLow = gRaw & ORAXEN_TEXT_LOW_MASK;
-                            int bLow = bRaw & ORAXEN_TEXT_LOW_MASK;
-                            bool hasGap = ORAXEN_TEXT_DATA_GAP >= 0;
-                            bool hasHighMarker = (rInt & ORAXEN_TEXT_HIGH_MASK) == ORAXEN_TEXT_R_HIGH_MARKER;
-                            bool hasMarker = hasHighMarker
-                                    && (rLow >= ORAXEN_TEXT_DATA_MIN && rLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || rLow != ORAXEN_TEXT_DATA_GAP))
-                                    && (gLow >= ORAXEN_TEXT_DATA_MIN && gLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || gLow != ORAXEN_TEXT_DATA_GAP))
-                                    && (bLow >= ORAXEN_TEXT_DATA_MIN && bLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || bLow != ORAXEN_TEXT_DATA_GAP));
+                            // Check dual markers: R=253 and G low nibble=0xD
+                            bool hasMarker = (rInt == ORAXEN_EFFECT_R_MARKER) && ((gRaw & 0x0F) == ORAXEN_EFFECT_G_LOW_MARKER);
 
                             if (hasMarker) {
-                                int effectType = rLow - ORAXEN_TEXT_DATA_MIN;
-                                if (hasGap && rLow > ORAXEN_TEXT_DATA_GAP) {
-                                    effectType -= 1;
-                                }
-                                float speed = float(gLow - ORAXEN_TEXT_DATA_MIN);
-                                if (hasGap && gLow > ORAXEN_TEXT_DATA_GAP) {
-                                    speed -= 1.0;
-                                }
-                                speed = max(1.0, speed);
-                                float param = float(bLow - ORAXEN_TEXT_DATA_MIN);
-                                if (hasGap && bLow > ORAXEN_TEXT_DATA_GAP) {
-                                    param -= 1.0;
-                                }
+                                // Decode effect parameters from color
+                                int effectType = (gRaw >> 4) & 0x07;
+                                float speed = max(1.0, float((bRaw >> 4) & 0x07));
+                                float param = float(bRaw & 0x07);
                                 float charIndex = float(gl_VertexID >> 2);
 
                                 float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
@@ -1522,32 +1500,16 @@ public class ResourcePack {
                         }
                     }
 
-                    // Text effects: encoded in low RGB bits (alpha_lsb) with high-nibble marker
+                    // Text effects: effect font encoding with tight dual markers
                     if (ORAXEN_TEXT_EFFECTS && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
-                        int rLow = rInt & ORAXEN_TEXT_LOW_MASK;
-                        int gLow = gRaw & ORAXEN_TEXT_LOW_MASK;
-                        int bLow = bRaw & ORAXEN_TEXT_LOW_MASK;
-                        bool hasGap = ORAXEN_TEXT_DATA_GAP >= 0;
-                        bool hasHighMarker = (rInt & ORAXEN_TEXT_HIGH_MASK) == ORAXEN_TEXT_R_HIGH_MARKER;
-                        bool hasMarker = hasHighMarker
-                                && (rLow >= ORAXEN_TEXT_DATA_MIN && rLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || rLow != ORAXEN_TEXT_DATA_GAP))
-                                && (gLow >= ORAXEN_TEXT_DATA_MIN && gLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || gLow != ORAXEN_TEXT_DATA_GAP))
-                                && (bLow >= ORAXEN_TEXT_DATA_MIN && bLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || bLow != ORAXEN_TEXT_DATA_GAP));
+                        // Check dual markers: R=253 and G low nibble=0xD
+                        bool hasMarker = (rInt == ORAXEN_EFFECT_R_MARKER) && ((gRaw & 0x0F) == ORAXEN_EFFECT_G_LOW_MARKER);
 
                         if (hasMarker) {
-                            int effectType = rLow - ORAXEN_TEXT_DATA_MIN;
-                            if (hasGap && rLow > ORAXEN_TEXT_DATA_GAP) {
-                                effectType -= 1;
-                            }
-                            float speed = float(gLow - ORAXEN_TEXT_DATA_MIN);
-                            if (hasGap && gLow > ORAXEN_TEXT_DATA_GAP) {
-                                speed -= 1.0;
-                            }
-                            speed = max(1.0, speed);
-                            float param = float(bLow - ORAXEN_TEXT_DATA_MIN);
-                            if (hasGap && bLow > ORAXEN_TEXT_DATA_GAP) {
-                                param -= 1.0;
-                            }
+                            // Decode effect parameters from color
+                            int effectType = (gRaw >> 4) & 0x07;
+                            float speed = max(1.0, float((bRaw >> 4) & 0x07));
+                            float param = float(bRaw & 0x07);
                             float charIndex = float(gl_VertexID >> 2);
 
                             float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
@@ -1900,32 +1862,16 @@ public class ResourcePack {
                         }
                     }
 
-                    // Text effects: encoded in low RGB bits (alpha_lsb) with high-nibble marker
+                    // Text effects: effect font encoding with tight dual markers
                     if (ORAXEN_TEXT_EFFECTS && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
-                        int rLow = rInt & ORAXEN_TEXT_LOW_MASK;
-                        int gLow = gRaw & ORAXEN_TEXT_LOW_MASK;
-                        int bLow = bRaw & ORAXEN_TEXT_LOW_MASK;
-                        bool hasGap = ORAXEN_TEXT_DATA_GAP >= 0;
-                        bool hasHighMarker = (rInt & ORAXEN_TEXT_HIGH_MASK) == ORAXEN_TEXT_R_HIGH_MARKER;
-                        bool hasMarker = hasHighMarker
-                                && (rLow >= ORAXEN_TEXT_DATA_MIN && rLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || rLow != ORAXEN_TEXT_DATA_GAP))
-                                && (gLow >= ORAXEN_TEXT_DATA_MIN && gLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || gLow != ORAXEN_TEXT_DATA_GAP))
-                                && (bLow >= ORAXEN_TEXT_DATA_MIN && bLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || bLow != ORAXEN_TEXT_DATA_GAP));
+                        // Check dual markers: R=253 and G low nibble=0xD
+                        bool hasMarker = (rInt == ORAXEN_EFFECT_R_MARKER) && ((gRaw & 0x0F) == ORAXEN_EFFECT_G_LOW_MARKER);
 
                         if (hasMarker) {
-                            int effectType = rLow - ORAXEN_TEXT_DATA_MIN;
-                            if (hasGap && rLow > ORAXEN_TEXT_DATA_GAP) {
-                                effectType -= 1;
-                            }
-                            float speed = float(gLow - ORAXEN_TEXT_DATA_MIN);
-                            if (hasGap && gLow > ORAXEN_TEXT_DATA_GAP) {
-                                speed -= 1.0;
-                            }
-                            speed = max(1.0, speed);
-                            float param = float(bLow - ORAXEN_TEXT_DATA_MIN);
-                            if (hasGap && bLow > ORAXEN_TEXT_DATA_GAP) {
-                                param -= 1.0;
-                            }
+                            // Decode effect parameters from color
+                            int effectType = (gRaw >> 4) & 0x07;
+                            float speed = max(1.0, float((bRaw >> 4) & 0x07));
+                            float param = float(bRaw & 0x07);
                             float charIndex = float(gl_VertexID >> 2);
 
                             float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
@@ -2017,32 +1963,16 @@ public class ResourcePack {
                         }
                     }
 
-                    // Text effects: encoded in low RGB bits (alpha_lsb) with high-nibble marker
+                    // Text effects: effect font encoding with tight dual markers
                     if (ORAXEN_TEXT_EFFECTS && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
-                        int rLow = rInt & ORAXEN_TEXT_LOW_MASK;
-                        int gLow = gRaw & ORAXEN_TEXT_LOW_MASK;
-                        int bLow = bRaw & ORAXEN_TEXT_LOW_MASK;
-                        bool hasGap = ORAXEN_TEXT_DATA_GAP >= 0;
-                        bool hasHighMarker = (rInt & ORAXEN_TEXT_HIGH_MASK) == ORAXEN_TEXT_R_HIGH_MARKER;
-                        bool hasMarker = hasHighMarker
-                                && (rLow >= ORAXEN_TEXT_DATA_MIN && rLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || rLow != ORAXEN_TEXT_DATA_GAP))
-                                && (gLow >= ORAXEN_TEXT_DATA_MIN && gLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || gLow != ORAXEN_TEXT_DATA_GAP))
-                                && (bLow >= ORAXEN_TEXT_DATA_MIN && bLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || bLow != ORAXEN_TEXT_DATA_GAP));
+                        // Check dual markers: R=253 and G low nibble=0xD
+                        bool hasMarker = (rInt == ORAXEN_EFFECT_R_MARKER) && ((gRaw & 0x0F) == ORAXEN_EFFECT_G_LOW_MARKER);
 
                         if (hasMarker) {
-                            int effectType = rLow - ORAXEN_TEXT_DATA_MIN;
-                            if (hasGap && rLow > ORAXEN_TEXT_DATA_GAP) {
-                                effectType -= 1;
-                            }
-                            float speed = float(gLow - ORAXEN_TEXT_DATA_MIN);
-                            if (hasGap && gLow > ORAXEN_TEXT_DATA_GAP) {
-                                speed -= 1.0;
-                            }
-                            speed = max(1.0, speed);
-                            float param = float(bLow - ORAXEN_TEXT_DATA_MIN);
-                            if (hasGap && bLow > ORAXEN_TEXT_DATA_GAP) {
-                                param -= 1.0;
-                            }
+                            // Decode effect parameters from color
+                            int effectType = (gRaw >> 4) & 0x07;
+                            float speed = max(1.0, float((bRaw >> 4) & 0x07));
+                            float param = float(bRaw & 0x07);
                             float charIndex = float(gl_VertexID >> 2);
 
                             float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
