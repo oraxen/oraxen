@@ -26,10 +26,33 @@ public enum CustomArmorType {
             }
             return customArmorType;
         } catch (IllegalArgumentException e) {
-            CustomArmorType defaultType = VersionUtil.atOrAbove("1.21.2") ? COMPONENT : VersionUtil.atOrAbove("1.20") ? TRIMS : NONE;
-            Logs.logError("Invalid custom armor type: " + type);
-            Logs.logError("Defaulting to %s.".formatted(defaultType));
+            CustomArmorType defaultType = getBestForCurrentVersion();
+            Logs.logError("Invalid or incompatible custom armor type - " + type);
+            Logs.logError("Defaulting to %s based on your Minecraft version.".formatted(defaultType));
+
+            // Persist the corrected value back to settings.yml so future loads use the compatible type
+            Settings.CUSTOM_ARMOR_TYPE.setValue(defaultType.name());
             return defaultType;
+        }
+    }
+
+    /**
+     * Determines the most suitable CustomArmorType for the running server version.
+     *
+     * Components: 1.21.2+
+     * Trims:      1.20 - 1.21.1
+     * Shaders:    1.18 - 1.19.4
+     * None:       below 1.18 or when custom armor is not supported
+     */
+    private static CustomArmorType getBestForCurrentVersion() {
+        if (VersionUtil.atOrAbove("1.21.2")) {
+            return COMPONENT;
+        } else if (VersionUtil.atOrAbove("1.20")) {
+            return TRIMS;
+        } else if (VersionUtil.atOrAbove("1.18")) {
+            return SHADER;
+        } else {
+            return NONE;
         }
     }
 }
