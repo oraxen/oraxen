@@ -2,25 +2,19 @@ version: 1
 
 # Text effect GLSL snippets used when generating text shaders.
 # Each effect defines:
-# - id: numeric effect id encoded into RGB low bits (see TextEffects.shader.encoding)
+# - id: numeric effect id (0-7)
 # - enabled: whether the effect is available
+# - color: hex color for the effect (e.g. "#FF5500")
+# - speed: animation speed (1-7, default 3)
+# - param: effect parameter like amplitude/intensity (0-7, default 3)
 # - description: optional text shown in /oraxen texteffects
-# - snippets: ordered list of GLSL snippets (first matching target wins)
-#   - targets: optional constraints for pack format or minecraft version
-#   - vertex: GLSL lines inserted in the vertex shader main() for this effect
-#   - fragment: GLSL lines inserted in the fragment shader main() for this effect
+# - snippets: GLSL code for the effect
 #
-# Available variables inside snippets:
-# - float timeSeconds, speed, param, charIndex
-# - vec3 pos (vertex) or vec4 texColor (fragment)
-# - int effectType (already decoded)
+# Usage in chat: <effect:wave>wavy text</effect>
 #
-# Snippet target constraints (all optional):
-#   targets:
-#     min_pack_format: 34
-#     max_pack_format: 46
-#     min_version: "1.21"
-#     max_version: "1.21.5"
+# The color, speed, and param are baked into the shader at pack generation.
+# This means each effect has a fixed appearance - no per-message customization.
+# This tradeoff eliminates false positives where gradient colors triggered effects.
 
 shared:
   # Shared GLSL helpers inserted before main() in fragment shaders.
@@ -36,39 +30,53 @@ effects:
   rainbow:
     id: 0
     enabled: true
+    speed: 3
     description: Cycles through rainbow colors over time
     snippets:
       - fragment: |
-          float hue = fract(charIndex * 0.03 + timeSeconds * speed * 0.03);
+          float hue = fract(charIndex * 0.03 + timeSeconds * EFFECT_SPEED * 0.03);
           vec3 rgb = hsv2rgb(vec3(hue, 0.9, 1.0));
           texColor.rgb = rgb;
 
   wave:
     id: 1
     enabled: true
+    color: "#55CDFC"
+    speed: 3
+    param: 4
     description: Vertical sine wave motion
     snippets:
+      - fragment: |
+          texColor.rgb = EFFECT_COLOR;
       - vertex: |
-          float phase = charIndex * 0.6 + timeSeconds * speed * 2.0;
-          float amplitude = max(1.0, param) * 0.15;
+          float phase = charIndex * 0.6 + timeSeconds * EFFECT_SPEED * 2.0;
+          float amplitude = EFFECT_PARAM * 0.5;
           pos.y += sin(phase) * amplitude;
 
   shake:
     id: 2
     enabled: true
+    color: "#FF6B6B"
+    speed: 4
+    param: 3
     description: Random jitter
     snippets:
+      - fragment: |
+          texColor.rgb = EFFECT_COLOR;
       - vertex: |
-          float seed = charIndex + floor(timeSeconds * speed * 8.0);
-          float amplitude = max(1.0, param) * 0.15;
+          float seed = charIndex + floor(timeSeconds * EFFECT_SPEED * 8.0);
+          float amplitude = EFFECT_PARAM * 0.5;
           pos.x += (fract(sin(seed * 12.9898) * 43758.5453) - 0.5) * amplitude;
           pos.y += (fract(sin(seed * 78.233) * 43758.5453) - 0.5) * amplitude;
 
   pulse:
     id: 3
     enabled: true
+    color: "#FFD93D"
+    speed: 3
     description: Opacity fades in/out
     snippets:
       - fragment: |
-          float pulse = (sin(timeSeconds * speed * 0.5 + charIndex * 0.3) + 1.0) * 0.5;
+          texColor.rgb = EFFECT_COLOR;
+          float pulse = (sin(timeSeconds * EFFECT_SPEED * 0.5 + charIndex * 0.3) + 1.0) * 0.5;
           texColor.a *= 0.3 + pulse * 0.7;

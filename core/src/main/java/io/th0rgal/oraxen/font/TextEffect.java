@@ -203,19 +203,31 @@ public class TextEffect {
 
     /**
      * Definition of a text effect loaded from text_effects.yml.
+     * <p>
+     * Each effect has a single color defined in the config. This color is baked
+     * into the shader at pack generation time. Users apply effects with
+     * {@code <effect:NAME>text</effect>} tags - the color comes from config.
      */
     public static final class Definition {
         private final String name;
         private final int id;
         private final String description;
         private boolean enabled;
+        private final TextColor color;
+        private final int speed;
+        private final int param;
         private final List<Snippet> snippets;
 
-        Definition(String name, int id, @Nullable String description, boolean enabled, @Nullable List<Snippet> snippets) {
+        Definition(String name, int id, @Nullable String description, boolean enabled,
+                   @Nullable TextColor color, int speed, int param,
+                   @Nullable List<Snippet> snippets) {
             this.name = name;
             this.id = id;
             this.description = description != null ? description : "";
             this.enabled = enabled;
+            this.color = color != null ? color : DEFAULT_BASE_COLOR;
+            this.speed = Math.max(1, Math.min(7, speed));
+            this.param = Math.max(0, Math.min(7, param));
             this.snippets = snippets != null ? List.copyOf(snippets) : List.of();
         }
 
@@ -237,6 +249,28 @@ public class TextEffect {
 
         public void setEnabled(boolean enabled) {
             this.enabled = enabled;
+        }
+
+        /**
+         * Gets the effect's configured color. This color is baked into the shader.
+         */
+        @NotNull
+        public TextColor getColor() {
+            return color;
+        }
+
+        /**
+         * Gets the effect's configured speed (1-7).
+         */
+        public int getSpeed() {
+            return speed;
+        }
+
+        /**
+         * Gets the effect's configured param/amplitude (0-7).
+         */
+        public int getParam() {
+            return param;
         }
 
         public List<Snippet> getSnippets() {
@@ -384,6 +418,9 @@ public class TextEffect {
 
             String description = effectSection.getString("description", "");
             boolean enabled = effectSection.getBoolean("enabled", true);
+            TextColor color = parseColor(effectSection.getString("color", null));
+            int speed = effectSection.getInt("speed", DEFAULT_SPEED);
+            int param = effectSection.getInt("param", DEFAULT_PARAM);
             List<Snippet> snippets = parseSnippets(effectSection);
 
             String normalized = normalizeName(name);
@@ -396,7 +433,7 @@ public class TextEffect {
                 continue;
             }
 
-            Definition definition = new Definition(name, id, description, enabled, snippets);
+            Definition definition = new Definition(name, id, description, enabled, color, speed, param, snippets);
             effectsByName.put(normalized, definition);
             effectsById.put(id, definition);
             effectDefinitions.add(definition);
@@ -506,6 +543,25 @@ public class TextEffect {
         }
         String text = value.toString();
         return text != null ? text : defaultValue;
+    }
+
+    @Nullable
+    private static TextColor parseColor(@Nullable String colorStr) {
+        if (colorStr == null || colorStr.isBlank()) {
+            return null;
+        }
+        String trimmed = colorStr.trim();
+        // Support hex colors like "#FF5500" or "FF5500"
+        if (trimmed.startsWith("#")) {
+            trimmed = trimmed.substring(1);
+        }
+        try {
+            int rgb = Integer.parseInt(trimmed, 16);
+            return TextColor.color(rgb);
+        } catch (NumberFormatException ex) {
+            Logs.logWarning("Invalid color '" + colorStr + "' in text_effects.yml, using default.");
+            return null;
+        }
     }
 
     @NotNull
@@ -825,11 +881,15 @@ public class TextEffect {
     }
 
     /**
-     * Applies a text effect with default parameters by definition.
+     * Applies a text effect using the definition's configured speed and param.
+     * This is the primary method for applying effects.
      */
     @NotNull
     public static Component apply(String text, Definition definition) {
-        return apply(text, definition, DEFAULT_SPEED, DEFAULT_PARAM);
+        if (definition == null) {
+            return Component.text(text != null ? text : "");
+        }
+        return apply(text, definition, definition.getSpeed(), definition.getParam());
     }
 
     /**
@@ -842,11 +902,12 @@ public class TextEffect {
     }
 
     /**
-     * Applies a text effect by name with default parameters.
+     * Applies a text effect by name using the definition's configured parameters.
      */
     @NotNull
     public static Component apply(String text, String effectName) {
-        return apply(text, effectName, DEFAULT_SPEED, DEFAULT_PARAM);
+        Definition definition = getEffect(effectName);
+        return apply(text, definition);
     }
 
     /**

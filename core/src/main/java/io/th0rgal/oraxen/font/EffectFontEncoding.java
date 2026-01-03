@@ -11,16 +11,17 @@ import org.jetbrains.annotations.Nullable;
  * explicitly opt-in, we can use the color space freely for encoding without
  * needing to preserve the original color.
  * <p>
- * Color layout:
+ * Color layout (simplified - speed/param are baked into shaders):
  * <ul>
  *   <li>R = 253 (0xFD) - primary marker</li>
  *   <li>G high nibble = effect type (0-7)</li>
  *   <li>G low nibble = 0xD (13) - secondary marker</li>
- *   <li>B high nibble = speed (1-7, 0 treated as 1)</li>
- *   <li>B low nibble = param (0-7)</li>
+ *   <li>B = 0 (unused - speed/param come from config, baked into shader)</li>
  * </ul>
  * <p>
  * Character index is derived from gl_VertexID in the shader.
+ * Speed and param are defined per-effect in text_effects.yml and baked into
+ * the shader at pack generation time.
  * <p>
  * The dual marker (R=253, G ends in 0xD) makes false positives extremely unlikely.
  * Natural colors or gradients would need to produce exactly #FD_D__ pattern.
@@ -65,10 +66,8 @@ public final class EffectFontEncoding implements TextEffectEncoding {
         int effectType = effectId & 0x07;
         int g = (effectType << 4) | G_LOW_MARKER;
 
-        // B = (speed << 4) | param
-        int speedClamped = Math.max(1, Math.min(7, speed));
-        int paramClamped = Math.max(0, Math.min(7, param));
-        int b = (speedClamped << 4) | paramClamped;
+        // B = 0 (speed/param are baked into shader from config)
+        int b = 0;
 
         return TextColor.color(r, g, b);
     }
@@ -92,14 +91,12 @@ public final class EffectFontEncoding implements TextEffectEncoding {
 
         int color = rgb & 0xFFFFFF;
         int g = (color >> 8) & 0xFF;
-        int b = color & 0xFF;
 
         int effectType = (g >> 4) & 0x07;
-        int speed = Math.max(1, (b >> 4) & 0x07);
-        int param = b & 0x07;
 
-        // charIndex is derived in the shader from gl_VertexID
-        return new Decoded(effectType, speed, 0, param);
+        // Speed and param come from config, not encoding
+        // Return defaults here for API compatibility
+        return new Decoded(effectType, 3, 0, 3);
     }
 
     @Override
