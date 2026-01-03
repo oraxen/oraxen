@@ -50,7 +50,7 @@ jobs:
           cp build/libs/oraxen-*.jar test-server/plugins/
           
           # Download Paper server
-          curl -sL -o test-server/paper.jar "https://api.papermc.io/v2/projects/paper/versions/1.21.4/builds/224/downloads/paper-1.21.4-224.jar"
+          curl -sL -o test-server/paper.jar "https://api.papermc.io/v2/projects/paper/versions/1.21.11/builds/69/downloads/paper-1.21.11-69.jar"
           
           # Download CommandAPI
           curl -sL -o test-server/plugins/CommandAPI.jar "https://github.com/JorelAli/CommandAPI/releases/download/9.7.0/CommandAPI-9.7.0.jar"
