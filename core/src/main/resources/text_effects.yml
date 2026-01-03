@@ -48,7 +48,7 @@ effects:
     snippets:
       - fragment: |
           texColor.rgb = vec3(0.333, 0.804, 0.988);
-      - vertex: |
+        vertex: |
           float phase = charIndex * 0.6 + timeSeconds * 6.0;
           pos.y += sin(phase) * 2.0;
 
@@ -60,7 +60,7 @@ effects:
     snippets:
       - fragment: |
           texColor.rgb = vec3(1.0, 0.42, 0.42);
-      - vertex: |
+        vertex: |
           float seed = charIndex + floor(timeSeconds * 32.0);
           pos.x += (fract(sin(seed * 12.9898) * 43758.5453) - 0.5) * 1.5;
           pos.y += (fract(sin(seed * 78.233) * 43758.5453) - 0.5) * 1.5;

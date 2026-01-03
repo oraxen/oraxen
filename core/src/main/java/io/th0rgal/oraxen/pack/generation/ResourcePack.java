@@ -1106,7 +1106,8 @@ public class ResourcePack {
     }
 
     /**
-     * Appends an effect block that matches the exact trigger_color from config.
+     * Appends an effect block that matches on effectType.
+     * Both vertex and fragment shaders define effectType from the effect encoding.
      * No variables or placeholders - all values are hardcoded in the snippet.
      */
     private void appendEffectBlock(StringBuilder builder, TextEffect.Definition definition,
@@ -1114,26 +1115,18 @@ public class ResourcePack {
         String effectIndent = "                            ";
         String codeIndent = effectIndent + "    ";
 
-        // Get the trigger color for exact matching
-        net.kyori.adventure.text.format.TextColor triggerColor = definition.getTriggerColor();
-        int r = triggerColor.red();
-        int g = triggerColor.green();
-        int b = triggerColor.blue();
+        int effectId = definition.getId();
 
         builder.append(effectIndent)
                 .append("// ")
                 .append(definition.getName())
-                .append(" - trigger #")
-                .append(String.format("%02X%02X%02X", r, g, b))
-                .append("\n");
+                .append(" (id=")
+                .append(effectId)
+                .append(")\n");
         builder.append(effectIndent)
                 .append(first ? "if" : "else if")
-                .append(" (rInt == ")
-                .append(r)
-                .append(" && gRaw == ")
-                .append(g)
-                .append(" && bRaw == ")
-                .append(b)
+                .append(" (effectType == ")
+                .append(effectId)
                 .append(") {\n");
         builder.append(indentSnippet(snippet, codeIndent));
         builder.append("\n")
