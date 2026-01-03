@@ -154,6 +154,9 @@ witherskull:
 
 bleeding:
   enabled: true
+  
+knockback_strike:
+  enabled: true
 
 spear_lunge:
   enabled: true

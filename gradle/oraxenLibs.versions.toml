@@ -119,7 +119,7 @@ protectionlib = { module = "io.th0rgal:protectionlib", version = "1.8.0" }
 
 # InventoryFramework https://github.com/stefvanschie/IF
 # Repo: Maven Central
-inventoryframework = { module = "com.github.stefvanschie.inventoryframework:IF", version = "0.11.5" }
+inventoryframework = { module = "com.github.stefvanschie.inventoryframework:IF", version = "0.11.6" }
 
 # Repo: Maven Central
 # https://github.com/mfnalex/CustomBlockData

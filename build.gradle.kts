@@ -97,7 +97,10 @@ allprojects {
             content { includeGroup("com.willfp") } // EcoItems, eco, libreforge
         }
         maven("https://maven.enginehub.org/repo/") {
-            content { includeGroupAndSubgroups("com.sk89q.worldedit") } // world edit
+            content {
+                includeGroupAndSubgroups("com.sk89q.worldedit") // world edit
+                includeGroupAndSubgroups("org.enginehub") // WorldEdit transitive dependencies (lin-bus-bom, etc)
+            }
         }
         maven("https://nexus.phoenixdevt.fr/repository/maven-public/") {
             content {

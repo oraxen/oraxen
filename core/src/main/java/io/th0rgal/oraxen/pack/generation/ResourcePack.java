@@ -8,12 +8,15 @@ import io.th0rgal.oraxen.config.AppearanceMode;
 import io.th0rgal.oraxen.config.ResourcesManager;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.font.AnimatedGlyph;
+import io.th0rgal.oraxen.font.EffectFontEncoding;
+import io.th0rgal.oraxen.font.EffectFontProvider;
 import io.th0rgal.oraxen.font.Font;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.font.ShiftProvider;
 import io.th0rgal.oraxen.font.TextEffect;
 import io.th0rgal.oraxen.font.TextEffectEncoding;
+import net.kyori.adventure.key.Key;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenMeta;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
@@ -697,11 +700,35 @@ public class ResourcePack {
         // Generate the dedicated shift font (still useful for explicit font references)
         generateShiftFont(fontManager);
 
+        // Generate effect fonts for text effects
+        generateEffectFonts();
+
         // Process animated glyph fonts
         boolean hasAnimatedGlyphs = processAnimatedGlyphs(fontManager);
 
         // Generate text shaders when needed (animated glyphs and/or text effects).
         maybeGenerateTextShaders(hasAnimatedGlyphs);
+    }
+
+    /**
+     * Generates effect font files for text effects.
+     * Each effect type gets a dedicated font that references vanilla glyphs.
+     */
+    private void generateEffectFonts() {
+        if (!TextEffect.isEnabled() || !TextEffect.hasAnyEffectEnabled()) {
+            return;
+        }
+
+        EffectFontProvider provider = new EffectFontProvider();
+
+        for (int i = 0; i < EffectFontProvider.getEffectFontCount(); i++) {
+            Key fontKey = EffectFontProvider.EFFECT_FONT_KEYS[i];
+            JsonObject fontJson = provider.generateFontJson(i);
+
+            String path = "assets/" + fontKey.namespace() + "/font";
+            String filename = fontKey.value() + ".json";
+            writeStringToVirtual(path, filename, fontJson.toString());
+        }
     }
 
     private record TextShaderFeatures(boolean animatedGlyphs, boolean textEffects) {
@@ -1000,25 +1027,63 @@ public class ResourcePack {
         }
     }
 
-    private String getTextShaderConstants(TextShaderFeatures features) {
-        TextEffectEncoding.ShaderEncoding encoding = TextEffect.getEncoding().shaderEncoding();
-        int dataMax = encoding.dataMax();
-        return String.format(Locale.ROOT, """
+    private String getTextShaderConstants(TextShaderTarget target, TextShaderFeatures features) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format(Locale.ROOT, """
                 const bool ORAXEN_ANIMATED_GLYPHS = %s;
                 const bool ORAXEN_TEXT_EFFECTS = %s;
-                const int ORAXEN_TEXT_LOW_MASK = %d;
-                const int ORAXEN_TEXT_DATA_MASK = %d;
-                const int ORAXEN_TEXT_DATA_MIN = %d;
-                const int ORAXEN_TEXT_DATA_MAX = %d;
-                const int ORAXEN_TEXT_DATA_GAP = %d;
                 """,
                 features.animatedGlyphs() ? "true" : "false",
-                features.textEffects() ? "true" : "false",
-                encoding.lowMask(),
-                encoding.dataMask(),
-                encoding.dataMin(),
-                dataMax,
-                encoding.dataGap());
+                features.textEffects() ? "true" : "false"));
+
+        // Generate exact trigger colors only for effects that have valid snippets for this target
+        // This ensures we don't recognize trigger colors for effects without shader code
+        List<TextEffect.Definition> enabledEffects = TextEffect.getEnabledEffects().stream()
+                .filter(def -> def.resolveSnippet(target.packFormat(), target.minecraftVersion()) != null)
+                .toList();
+        int effectCount = enabledEffects.size();
+        sb.append(String.format(Locale.ROOT, "const int ORAXEN_EFFECT_COUNT = %d;\n", effectCount));
+
+        // Always define arrays (GLSL requires all identifiers to exist even in unreachable branches)
+        // Use at least size 1 to avoid zero-size array issues
+        int arraySize = Math.max(1, effectCount);
+        sb.append("const ivec3 ORAXEN_EFFECT_TRIGGERS[").append(arraySize).append("] = ivec3[](\n");
+        if (enabledEffects.isEmpty()) {
+            // Placeholder entry that will never match (ORAXEN_EFFECT_COUNT is 0)
+            sb.append("    ivec3(0, 0, 0)\n");
+        } else {
+            for (int i = 0; i < enabledEffects.size(); i++) {
+                TextEffect.Definition def = enabledEffects.get(i);
+                int rgb = def.getTriggerColor().value();
+                int r = (rgb >> 16) & 0xFF;
+                int g = (rgb >> 8) & 0xFF;
+                int b = rgb & 0xFF;
+                sb.append(String.format(Locale.ROOT, "    ivec3(%d, %d, %d)", r, g, b));
+                if (i < enabledEffects.size() - 1) {
+                    sb.append(",");
+                }
+                sb.append(" // ").append(def.getName()).append(" (id=").append(def.getId()).append(")\n");
+            }
+        }
+        sb.append(");\n");
+
+        // Also generate effect IDs array to map trigger index to effect type
+        sb.append("const int ORAXEN_EFFECT_IDS[").append(arraySize).append("] = int[](\n");
+        if (enabledEffects.isEmpty()) {
+            sb.append("    0\n");
+        } else {
+            for (int i = 0; i < enabledEffects.size(); i++) {
+                TextEffect.Definition def = enabledEffects.get(i);
+                sb.append(String.format(Locale.ROOT, "    %d", def.getId()));
+                if (i < enabledEffects.size() - 1) {
+                    sb.append(",");
+                }
+                sb.append("\n");
+            }
+        }
+        sb.append(");\n");
+
+        return sb.toString();
     }
 
     private TextEffectSnippets getTextEffectSnippets(TextShaderTarget target) {
@@ -1085,19 +1150,28 @@ public class ResourcePack {
         builder.append(snippet.stripTrailing());
     }
 
+    /**
+     * Appends an effect block that matches on effectType.
+     * Both vertex and fragment shaders define effectType from the effect encoding.
+     * No variables or placeholders - all values are hardcoded in the snippet.
+     */
     private void appendEffectBlock(StringBuilder builder, TextEffect.Definition definition,
                                    String snippet, boolean first) {
         String effectIndent = "                            ";
         String codeIndent = effectIndent + "    ";
 
+        int effectId = definition.getId();
+
         builder.append(effectIndent)
                 .append("// ")
                 .append(definition.getName())
-                .append("\n");
+                .append(" (id=")
+                .append(effectId)
+                .append(")\n");
         builder.append(effectIndent)
                 .append(first ? "if" : "else if")
                 .append(" (effectType == ")
-                .append(definition.getId())
+                .append(effectId)
                 .append(") {\n");
         builder.append(indentSnippet(snippet, codeIndent));
         builder.append("\n")
@@ -1143,7 +1217,7 @@ public class ResourcePack {
     private String getAnimationVertexShader(TextShaderTarget target, TextShaderFeatures features, boolean seeThrough) {
         boolean is1_21_6Plus = target.isAtLeast("1.21.6");
         boolean is1_21_4Plus = target.isAtLeast("1.21.4");
-        String textShaderConstants = getTextShaderConstants(features);
+        String textShaderConstants = getTextShaderConstants(target, features);
         TextEffectSnippets snippets = getTextEffectSnippets(target);
         String vertexPrelude = snippets.vertexPrelude();
         String vertexEffects = snippets.vertexEffects();
@@ -1172,7 +1246,7 @@ public class ResourcePack {
                         gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
                         texCoord0 = UV0;
                         vertexColor = Color;
-                        effectData = vec4(0.0);
+                        effectData = vec4(-1.0, 0.0, 0.0, 0.0); // -1 means no effect
 
                         int rInt = int(Color.r * 255.0 + 0.5);
                         int gRaw = int(Color.g * 255.0 + 0.5);
@@ -1180,7 +1254,7 @@ public class ResourcePack {
 
                         // Check for animation color: R=254 for primary, R≈63 for shadow
                         bool isPrimaryAnim = (rInt == 254);
-                        bool isShadowAnim = (rInt >= 62 && rInt <= 64) && (gRaw >= 1);
+                        bool isShadowAnim = (rInt >= 62 && rInt <= 64) && (gRaw >= 1) && (bRaw <= 64);
 
                         if (ORAXEN_ANIMATED_GLYPHS && (isPrimaryAnim || isShadowAnim)) {
                             int gInt = isPrimaryAnim ? gRaw : min(255, gRaw * 4);
@@ -1204,30 +1278,21 @@ public class ResourcePack {
                             }
                         }
 
-                        // Text effects: encoded in low RGB bits (alpha_lsb)
-                        if (ORAXEN_TEXT_EFFECTS && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
-                            int rLow = rInt & ORAXEN_TEXT_LOW_MASK;
-                            int gLow = gRaw & ORAXEN_TEXT_LOW_MASK;
-                            int bLow = bRaw & ORAXEN_TEXT_LOW_MASK;
-                            bool hasGap = ORAXEN_TEXT_DATA_GAP >= 0;
-                            bool hasMarker = (rLow >= ORAXEN_TEXT_DATA_MIN && rLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || rLow != ORAXEN_TEXT_DATA_GAP))
-                                    && (gLow >= ORAXEN_TEXT_DATA_MIN && gLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || gLow != ORAXEN_TEXT_DATA_GAP))
-                                    && (bLow >= ORAXEN_TEXT_DATA_MIN && bLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || bLow != ORAXEN_TEXT_DATA_GAP));
+                        // Text effects: exact trigger color matching
+                        if (ORAXEN_TEXT_EFFECTS && ORAXEN_EFFECT_COUNT > 0 && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
+                            // Check for exact trigger color match
+                            ivec3 colorInt = ivec3(rInt, gRaw, bRaw);
+                            int effectType = -1;
+                            for (int i = 0; i < ORAXEN_EFFECT_COUNT; i++) {
+                                if (colorInt == ORAXEN_EFFECT_TRIGGERS[i]) {
+                                    effectType = ORAXEN_EFFECT_IDS[i];
+                                    break;
+                                }
+                            }
 
-                            if (hasMarker) {
-                                int effectType = rLow - ORAXEN_TEXT_DATA_MIN;
-                                if (hasGap && rLow > ORAXEN_TEXT_DATA_GAP) {
-                                    effectType -= 1;
-                                }
-                                float speed = float(gLow - ORAXEN_TEXT_DATA_MIN);
-                                if (hasGap && gLow > ORAXEN_TEXT_DATA_GAP) {
-                                    speed -= 1.0;
-                                }
-                                speed = max(1.0, speed);
-                                float param = float(bLow - ORAXEN_TEXT_DATA_MIN);
-                                if (hasGap && bLow > ORAXEN_TEXT_DATA_GAP) {
-                                    param -= 1.0;
-                                }
+                            if (effectType >= 0) {
+                                float speed = 3.0; // Default speed (configured in shader snippets)
+                                float param = 3.0; // Default param (configured in shader snippets)
                                 float charIndex = float(gl_VertexID >> 2);
 
                                 float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
@@ -1275,7 +1340,7 @@ public class ResourcePack {
                     cylindricalVertexDistance = fog_cylindrical_distance(pos);
                     texCoord0 = UV0;
                     vertexColor = Color * texelFetch(Sampler2, UV2 / 16, 0);
-                    effectData = vec4(0.0);
+                    effectData = vec4(-1.0, 0.0, 0.0, 0.0); // -1 means no effect
 
                     int rInt = int(Color.r * 255.0 + 0.5);
                     int gRaw = int(Color.g * 255.0 + 0.5);
@@ -1283,7 +1348,7 @@ public class ResourcePack {
 
                     // Check for animation color: R=254 for primary, R≈63 for shadow
                     bool isPrimaryAnim = (rInt == 254);
-                    bool isShadowAnim = (rInt >= 62 && rInt <= 64) && (gRaw >= 1);
+                    bool isShadowAnim = (rInt >= 62 && rInt <= 64) && (gRaw >= 1) && (bRaw <= 64);
 
                     if (ORAXEN_ANIMATED_GLYPHS && (isPrimaryAnim || isShadowAnim)) {
                         int gInt = isPrimaryAnim ? gRaw : min(255, gRaw * 4);
@@ -1307,30 +1372,21 @@ public class ResourcePack {
                         }
                     }
 
-                    // Text effects: encoded in low RGB bits (alpha_lsb)
-                    if (ORAXEN_TEXT_EFFECTS && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
-                        int rLow = rInt & ORAXEN_TEXT_LOW_MASK;
-                        int gLow = gRaw & ORAXEN_TEXT_LOW_MASK;
-                        int bLow = bRaw & ORAXEN_TEXT_LOW_MASK;
-                        bool hasGap = ORAXEN_TEXT_DATA_GAP >= 0;
-                        bool hasMarker = (rLow >= ORAXEN_TEXT_DATA_MIN && rLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || rLow != ORAXEN_TEXT_DATA_GAP))
-                                && (gLow >= ORAXEN_TEXT_DATA_MIN && gLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || gLow != ORAXEN_TEXT_DATA_GAP))
-                                && (bLow >= ORAXEN_TEXT_DATA_MIN && bLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || bLow != ORAXEN_TEXT_DATA_GAP));
+                    // Text effects: exact trigger color matching
+                    if (ORAXEN_TEXT_EFFECTS && ORAXEN_EFFECT_COUNT > 0 && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
+                        // Check for exact trigger color match
+                        ivec3 colorInt = ivec3(rInt, gRaw, bRaw);
+                        int effectType = -1;
+                        for (int i = 0; i < ORAXEN_EFFECT_COUNT; i++) {
+                            if (colorInt == ORAXEN_EFFECT_TRIGGERS[i]) {
+                                effectType = ORAXEN_EFFECT_IDS[i];
+                                break;
+                            }
+                        }
 
-                        if (hasMarker) {
-                            int effectType = rLow - ORAXEN_TEXT_DATA_MIN;
-                            if (hasGap && rLow > ORAXEN_TEXT_DATA_GAP) {
-                                effectType -= 1;
-                            }
-                            float speed = float(gLow - ORAXEN_TEXT_DATA_MIN);
-                            if (hasGap && gLow > ORAXEN_TEXT_DATA_GAP) {
-                                speed -= 1.0;
-                            }
-                            speed = max(1.0, speed);
-                            float param = float(bLow - ORAXEN_TEXT_DATA_MIN);
-                            if (hasGap && bLow > ORAXEN_TEXT_DATA_GAP) {
-                                param -= 1.0;
-                            }
+                        if (effectType >= 0) {
+                            float speed = 3.0; // Default speed (configured in shader snippets)
+                            float param = 3.0; // Default param (configured in shader snippets)
                             float charIndex = float(gl_VertexID >> 2);
 
                             float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
@@ -1379,7 +1435,7 @@ public class ResourcePack {
                         vertexDistance = fog_distance(pos, FogShape);
                         texCoord0 = UV0;
                         vertexColor = Color;
-                        effectData = vec4(0.0);
+                        effectData = vec4(-1.0, 0.0, 0.0, 0.0); // -1 means no effect
 
                         int rInt = int(Color.r * 255.0 + 0.5);
                         int gRaw = int(Color.g * 255.0 + 0.5);
@@ -1387,7 +1443,7 @@ public class ResourcePack {
 
                         // Check for animation color: R=254 for primary, R≈63 for shadow
                         bool isPrimaryAnim = (rInt == 254);
-                        bool isShadowAnim = (rInt >= 62 && rInt <= 64) && (gRaw >= 1);
+                        bool isShadowAnim = (rInt >= 62 && rInt <= 64) && (gRaw >= 1) && (bRaw <= 64);
 
                         if (ORAXEN_ANIMATED_GLYPHS && (isPrimaryAnim || isShadowAnim)) {
                             int gInt = isPrimaryAnim ? gRaw : min(255, gRaw * 4);
@@ -1411,30 +1467,21 @@ public class ResourcePack {
                             }
                         }
 
-                        // Text effects: encoded in low RGB bits (alpha_lsb)
-                        if (ORAXEN_TEXT_EFFECTS && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
-                            int rLow = rInt & ORAXEN_TEXT_LOW_MASK;
-                            int gLow = gRaw & ORAXEN_TEXT_LOW_MASK;
-                            int bLow = bRaw & ORAXEN_TEXT_LOW_MASK;
-                            bool hasGap = ORAXEN_TEXT_DATA_GAP >= 0;
-                            bool hasMarker = (rLow >= ORAXEN_TEXT_DATA_MIN && rLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || rLow != ORAXEN_TEXT_DATA_GAP))
-                                    && (gLow >= ORAXEN_TEXT_DATA_MIN && gLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || gLow != ORAXEN_TEXT_DATA_GAP))
-                                    && (bLow >= ORAXEN_TEXT_DATA_MIN && bLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || bLow != ORAXEN_TEXT_DATA_GAP));
+                        // Text effects: exact trigger color matching
+                        if (ORAXEN_TEXT_EFFECTS && ORAXEN_EFFECT_COUNT > 0 && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
+                            // Check for exact trigger color match
+                            ivec3 colorInt = ivec3(rInt, gRaw, bRaw);
+                            int effectType = -1;
+                            for (int i = 0; i < ORAXEN_EFFECT_COUNT; i++) {
+                                if (colorInt == ORAXEN_EFFECT_TRIGGERS[i]) {
+                                    effectType = ORAXEN_EFFECT_IDS[i];
+                                    break;
+                                }
+                            }
 
-                            if (hasMarker) {
-                                int effectType = rLow - ORAXEN_TEXT_DATA_MIN;
-                                if (hasGap && rLow > ORAXEN_TEXT_DATA_GAP) {
-                                    effectType -= 1;
-                                }
-                                float speed = float(gLow - ORAXEN_TEXT_DATA_MIN);
-                                if (hasGap && gLow > ORAXEN_TEXT_DATA_GAP) {
-                                    speed -= 1.0;
-                                }
-                                speed = max(1.0, speed);
-                                float param = float(bLow - ORAXEN_TEXT_DATA_MIN);
-                                if (hasGap && bLow > ORAXEN_TEXT_DATA_GAP) {
-                                    param -= 1.0;
-                                }
+                            if (effectType >= 0) {
+                                float speed = 3.0; // Default speed (configured in shader snippets)
+                                float param = 3.0; // Default param (configured in shader snippets)
                                 float charIndex = float(gl_VertexID >> 2);
 
                                 float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
@@ -1481,7 +1528,7 @@ public class ResourcePack {
                     vertexDistance = fog_distance(pos, FogShape);
                     texCoord0 = UV0;
                     vertexColor = Color * texelFetch(Sampler2, UV2 / 16, 0);
-                    effectData = vec4(0.0);
+                    effectData = vec4(-1.0, 0.0, 0.0, 0.0); // -1 means no effect
 
                     int rInt = int(Color.r * 255.0 + 0.5);
                     int gRaw = int(Color.g * 255.0 + 0.5);
@@ -1489,7 +1536,7 @@ public class ResourcePack {
 
                     // Check for animation color: R=254 for primary, R≈63 for shadow
                     bool isPrimaryAnim = (rInt == 254);
-                    bool isShadowAnim = (rInt >= 62 && rInt <= 64) && (gRaw >= 1);
+                    bool isShadowAnim = (rInt >= 62 && rInt <= 64) && (gRaw >= 1) && (bRaw <= 64);
 
                     if (ORAXEN_ANIMATED_GLYPHS && (isPrimaryAnim || isShadowAnim)) {
                         int gInt = isPrimaryAnim ? gRaw : min(255, gRaw * 4);
@@ -1513,30 +1560,21 @@ public class ResourcePack {
                         }
                     }
 
-                    // Text effects: encoded in low RGB bits (alpha_lsb)
-                    if (ORAXEN_TEXT_EFFECTS && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
-                        int rLow = rInt & ORAXEN_TEXT_LOW_MASK;
-                        int gLow = gRaw & ORAXEN_TEXT_LOW_MASK;
-                        int bLow = bRaw & ORAXEN_TEXT_LOW_MASK;
-                        bool hasGap = ORAXEN_TEXT_DATA_GAP >= 0;
-                        bool hasMarker = (rLow >= ORAXEN_TEXT_DATA_MIN && rLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || rLow != ORAXEN_TEXT_DATA_GAP))
-                                && (gLow >= ORAXEN_TEXT_DATA_MIN && gLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || gLow != ORAXEN_TEXT_DATA_GAP))
-                                && (bLow >= ORAXEN_TEXT_DATA_MIN && bLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || bLow != ORAXEN_TEXT_DATA_GAP));
+                    // Text effects: exact trigger color matching
+                    if (ORAXEN_TEXT_EFFECTS && ORAXEN_EFFECT_COUNT > 0 && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
+                        // Check for exact trigger color match
+                        ivec3 colorInt = ivec3(rInt, gRaw, bRaw);
+                        int effectType = -1;
+                        for (int i = 0; i < ORAXEN_EFFECT_COUNT; i++) {
+                            if (colorInt == ORAXEN_EFFECT_TRIGGERS[i]) {
+                                effectType = ORAXEN_EFFECT_IDS[i];
+                                break;
+                            }
+                        }
 
-                        if (hasMarker) {
-                            int effectType = rLow - ORAXEN_TEXT_DATA_MIN;
-                            if (hasGap && rLow > ORAXEN_TEXT_DATA_GAP) {
-                                effectType -= 1;
-                            }
-                            float speed = float(gLow - ORAXEN_TEXT_DATA_MIN);
-                            if (hasGap && gLow > ORAXEN_TEXT_DATA_GAP) {
-                                speed -= 1.0;
-                            }
-                            speed = max(1.0, speed);
-                            float param = float(bLow - ORAXEN_TEXT_DATA_MIN);
-                            if (hasGap && bLow > ORAXEN_TEXT_DATA_GAP) {
-                                param -= 1.0;
-                            }
+                        if (effectType >= 0) {
+                            float speed = 3.0; // Default speed (configured in shader snippets)
+                            float param = 3.0; // Default param (configured in shader snippets)
                             float charIndex = float(gl_VertexID >> 2);
 
                             float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
@@ -1818,7 +1856,7 @@ public class ResourcePack {
     private String getCombinedVertexShader(TextShaderTarget target, TextShaderFeatures features) {
         boolean is1_21_6Plus = target.isAtLeast("1.21.6");
         boolean is1_21_4Plus = target.isAtLeast("1.21.4");
-        String textShaderConstants = getTextShaderConstants(features);
+        String textShaderConstants = getTextShaderConstants(target, features);
         TextEffectSnippets snippets = getTextEffectSnippets(target);
         String vertexPrelude = snippets.vertexPrelude();
         String vertexEffects = snippets.vertexEffects();
@@ -1856,14 +1894,14 @@ public class ResourcePack {
                     cylindricalVertexDistance = fog_cylindrical_distance(pos);
                     texCoord0 = UV0;
                     vertexColor = Color * texelFetch(Sampler2, UV2 / 16, 0);
-                    effectData = vec4(0.0);
+                    effectData = vec4(-1.0, 0.0, 0.0, 0.0); // -1 means no effect
 
                     // Check for animation color: R=254 for primary, R≈63 for shadow
                     int rInt = int(Color.r * 255.0 + 0.5);
                     int gRaw = int(Color.g * 255.0 + 0.5);
                     int bRaw = int(Color.b * 255.0 + 0.5);
                     bool isPrimaryAnim = (rInt == 254);
-                    bool isShadowAnim = (rInt >= 62 && rInt <= 64) && (gRaw >= 1);
+                    bool isShadowAnim = (rInt >= 62 && rInt <= 64) && (gRaw >= 1) && (bRaw <= 64);
 
                     if (ORAXEN_ANIMATED_GLYPHS && (isPrimaryAnim || isShadowAnim)) {
                         int gInt = isPrimaryAnim ? gRaw : min(255, gRaw * 4);
@@ -1889,30 +1927,21 @@ public class ResourcePack {
                         }
                     }
 
-                    // Text effects: encoded in low RGB bits (alpha_lsb)
-                    if (ORAXEN_TEXT_EFFECTS && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
-                        int rLow = rInt & ORAXEN_TEXT_LOW_MASK;
-                        int gLow = gRaw & ORAXEN_TEXT_LOW_MASK;
-                        int bLow = bRaw & ORAXEN_TEXT_LOW_MASK;
-                        bool hasGap = ORAXEN_TEXT_DATA_GAP >= 0;
-                        bool hasMarker = (rLow >= ORAXEN_TEXT_DATA_MIN && rLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || rLow != ORAXEN_TEXT_DATA_GAP))
-                                && (gLow >= ORAXEN_TEXT_DATA_MIN && gLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || gLow != ORAXEN_TEXT_DATA_GAP))
-                                && (bLow >= ORAXEN_TEXT_DATA_MIN && bLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || bLow != ORAXEN_TEXT_DATA_GAP));
+                    // Text effects: exact trigger color matching
+                    if (ORAXEN_TEXT_EFFECTS && ORAXEN_EFFECT_COUNT > 0 && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
+                        // Check for exact trigger color match
+                        ivec3 colorInt = ivec3(rInt, gRaw, bRaw);
+                        int effectType = -1;
+                        for (int i = 0; i < ORAXEN_EFFECT_COUNT; i++) {
+                            if (colorInt == ORAXEN_EFFECT_TRIGGERS[i]) {
+                                effectType = ORAXEN_EFFECT_IDS[i];
+                                break;
+                            }
+                        }
 
-                        if (hasMarker) {
-                            int effectType = rLow - ORAXEN_TEXT_DATA_MIN;
-                            if (hasGap && rLow > ORAXEN_TEXT_DATA_GAP) {
-                                effectType -= 1;
-                            }
-                            float speed = float(gLow - ORAXEN_TEXT_DATA_MIN);
-                            if (hasGap && gLow > ORAXEN_TEXT_DATA_GAP) {
-                                speed -= 1.0;
-                            }
-                            speed = max(1.0, speed);
-                            float param = float(bLow - ORAXEN_TEXT_DATA_MIN);
-                            if (hasGap && bLow > ORAXEN_TEXT_DATA_GAP) {
-                                param -= 1.0;
-                            }
+                        if (effectType >= 0) {
+                            float speed = 3.0; // Default speed (configured in shader snippets)
+                            float param = 3.0; // Default param (configured in shader snippets)
                             float charIndex = float(gl_VertexID >> 2);
 
                             float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
@@ -1971,14 +2000,14 @@ public class ResourcePack {
                     vertexDistance = fog_distance(pos, FogShape);
                     texCoord0 = UV0;
                     vertexColor = Color * texelFetch(Sampler2, UV2 / 16, 0);
-                    effectData = vec4(0.0);
+                    effectData = vec4(-1.0, 0.0, 0.0, 0.0); // -1 means no effect
 
                     // Check for animation color: R=254 for primary, R≈63 for shadow
                     int rInt = int(Color.r * 255.0 + 0.5);
                     int gRaw = int(Color.g * 255.0 + 0.5);
                     int bRaw = int(Color.b * 255.0 + 0.5);
                     bool isPrimaryAnim = (rInt == 254);
-                    bool isShadowAnim = (rInt >= 62 && rInt <= 64) && (gRaw >= 1);
+                    bool isShadowAnim = (rInt >= 62 && rInt <= 64) && (gRaw >= 1) && (bRaw <= 64);
 
                     if (ORAXEN_ANIMATED_GLYPHS && (isPrimaryAnim || isShadowAnim)) {
                         int gInt = isPrimaryAnim ? gRaw : min(255, gRaw * 4);
@@ -2004,30 +2033,21 @@ public class ResourcePack {
                         }
                     }
 
-                    // Text effects: encoded in low RGB bits (alpha_lsb)
-                    if (ORAXEN_TEXT_EFFECTS && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
-                        int rLow = rInt & ORAXEN_TEXT_LOW_MASK;
-                        int gLow = gRaw & ORAXEN_TEXT_LOW_MASK;
-                        int bLow = bRaw & ORAXEN_TEXT_LOW_MASK;
-                        bool hasGap = ORAXEN_TEXT_DATA_GAP >= 0;
-                        bool hasMarker = (rLow >= ORAXEN_TEXT_DATA_MIN && rLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || rLow != ORAXEN_TEXT_DATA_GAP))
-                                && (gLow >= ORAXEN_TEXT_DATA_MIN && gLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || gLow != ORAXEN_TEXT_DATA_GAP))
-                                && (bLow >= ORAXEN_TEXT_DATA_MIN && bLow <= ORAXEN_TEXT_DATA_MAX && (!hasGap || bLow != ORAXEN_TEXT_DATA_GAP));
+                    // Text effects: exact trigger color matching
+                    if (ORAXEN_TEXT_EFFECTS && ORAXEN_EFFECT_COUNT > 0 && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
+                        // Check for exact trigger color match
+                        ivec3 colorInt = ivec3(rInt, gRaw, bRaw);
+                        int effectType = -1;
+                        for (int i = 0; i < ORAXEN_EFFECT_COUNT; i++) {
+                            if (colorInt == ORAXEN_EFFECT_TRIGGERS[i]) {
+                                effectType = ORAXEN_EFFECT_IDS[i];
+                                break;
+                            }
+                        }
 
-                        if (hasMarker) {
-                            int effectType = rLow - ORAXEN_TEXT_DATA_MIN;
-                            if (hasGap && rLow > ORAXEN_TEXT_DATA_GAP) {
-                                effectType -= 1;
-                            }
-                            float speed = float(gLow - ORAXEN_TEXT_DATA_MIN);
-                            if (hasGap && gLow > ORAXEN_TEXT_DATA_GAP) {
-                                speed -= 1.0;
-                            }
-                            speed = max(1.0, speed);
-                            float param = float(bLow - ORAXEN_TEXT_DATA_MIN);
-                            if (hasGap && bLow > ORAXEN_TEXT_DATA_GAP) {
-                                param -= 1.0;
-                            }
+                        if (effectType >= 0) {
+                            float speed = 3.0; // Default speed (configured in shader snippets)
+                            float param = 3.0; // Default param (configured in shader snippets)
                             float charIndex = float(gl_VertexID >> 2);
 
                             float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
