@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicInfo;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.PropertyType;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import org.bukkit.configuration.ConfigurationSection;
 
 @MechanicInfo(
@@ -42,8 +43,13 @@ public class BackpackCosmeticFactory extends MechanicFactory {
         super(section);
         instance = this;
 
-        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(),
-            new BackpackCosmeticListener(this));
+        BackpackCosmeticListener listener = new BackpackCosmeticListener(this);
+        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), listener);
+
+        // Register the refresh task with MechanicsManager for proper cleanup on reload
+        BackpackCosmeticManager manager = BackpackCosmeticManager.getInstance();
+        SchedulerUtil.ScheduledTask refreshTask = SchedulerUtil.runTaskTimer(20L, 20L, manager::refreshAllViewers);
+        MechanicsManager.registerTask(getMechanicID(), refreshTask);
 
         io.th0rgal.oraxen.utils.logs.Logs.logSuccess("BackpackCosmeticFactory initialized");
     }

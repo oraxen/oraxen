@@ -512,7 +512,7 @@ public class ShapedBlockMechanicListener implements Listener {
 
         switch (mechanic.getBlockType()) {
             case STAIR -> applyStairData(data, player, clickedFace);
-            case SLAB -> applySlabData(data, clickedFace);
+            case SLAB -> applySlabData(data, player, clickedFace);
             case DOOR -> applyDoorData(data, player);
             case TRAPDOOR -> applyTrapdoorData(data, player, clickedFace);
             case GRATE -> { /* Grates have no directional data */ }
@@ -544,14 +544,16 @@ public class ShapedBlockMechanicListener implements Listener {
         }
     }
 
-    private void applySlabData(BlockData data, BlockFace clickedFace) {
+    private void applySlabData(BlockData data, Player player, BlockFace clickedFace) {
         if (data instanceof Slab slab) {
             if (clickedFace == BlockFace.UP) {
                 slab.setType(Slab.Type.BOTTOM);
             } else if (clickedFace == BlockFace.DOWN) {
                 slab.setType(Slab.Type.TOP);
             } else {
-                slab.setType(Slab.Type.BOTTOM);
+                // Side face: determine TOP/BOTTOM based on click position
+                double clickY = player.getEyeLocation().getY() % 1;
+                slab.setType(clickY > 0.5 ? Slab.Type.TOP : Slab.Type.BOTTOM);
             }
         }
     }
@@ -580,10 +582,16 @@ public class ShapedBlockMechanicListener implements Listener {
         if (data instanceof org.bukkit.block.data.type.TrapDoor trapdoor) {
             trapdoor.setFacing(player.getFacing());
             trapdoor.setOpen(false);
-            if (clickedFace == BlockFace.DOWN) {
+            if (clickedFace == BlockFace.UP) {
+                trapdoor.setHalf(org.bukkit.block.data.Bisected.Half.BOTTOM);
+            } else if (clickedFace == BlockFace.DOWN) {
                 trapdoor.setHalf(org.bukkit.block.data.Bisected.Half.TOP);
             } else {
-                trapdoor.setHalf(org.bukkit.block.data.Bisected.Half.BOTTOM);
+                // Side face: determine TOP/BOTTOM based on click position
+                double clickY = player.getEyeLocation().getY() % 1;
+                trapdoor.setHalf(clickY > 0.5 ?
+                    org.bukkit.block.data.Bisected.Half.TOP :
+                    org.bukkit.block.data.Bisected.Half.BOTTOM);
             }
         }
     }

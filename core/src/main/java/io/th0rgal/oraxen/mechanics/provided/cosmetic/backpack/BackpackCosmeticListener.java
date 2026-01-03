@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.mechanics.provided.cosmetic.backpack;
 
-import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
@@ -25,7 +24,6 @@ public class BackpackCosmeticListener implements Listener {
 
     private final BackpackCosmeticFactory factory;
     private final BackpackCosmeticManager manager;
-    private SchedulerUtil.ScheduledTask refreshTask;
 
     // Movement thresholds to reduce unnecessary updates
     private static final double POSITION_THRESHOLD = 0.1;
@@ -34,19 +32,7 @@ public class BackpackCosmeticListener implements Listener {
     public BackpackCosmeticListener(BackpackCosmeticFactory factory) {
         this.factory = factory;
         this.manager = BackpackCosmeticManager.getInstance();
-
-        // Start periodic viewer refresh task
-        refreshTask = SchedulerUtil.runTaskTimer(20L, 20L, () -> manager.refreshAllViewers());
-    }
-
-    /**
-     * Cancel the periodic refresh task when the listener is being unregistered.
-     */
-    public void cleanup() {
-        if (refreshTask != null && !refreshTask.isCancelled()) {
-            refreshTask.cancel();
-            refreshTask = null;
-        }
+        // Note: Refresh task is registered in BackpackCosmeticFactory with MechanicsManager
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
