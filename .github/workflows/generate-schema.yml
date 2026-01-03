@@ -53,7 +53,7 @@ jobs:
           curl -sL -o test-server/paper.jar "https://api.papermc.io/v2/projects/paper/versions/1.21.11/builds/69/downloads/paper-1.21.11-69.jar"
           
           # Download CommandAPI (version must match gradle/oraxenLibs.versions.toml)
-          curl -sL -L -o test-server/plugins/CommandAPI.jar "https://github.com/CommandAPI/CommandAPI/releases/download/11.0.0/CommandAPI-11.0.0.jar"
+          curl -sL -o test-server/plugins/CommandAPI.jar "https://github.com/CommandAPI/CommandAPI/releases/download/11.0.0/CommandAPI-11.0.0-Paper.jar"
           
           # Accept EULA
           echo "eula=true" > test-server/eula.txt
