@@ -337,6 +337,11 @@ public class TextEffect {
         applyEffectOverrides(settingsSection != null ? settingsSection.getConfigurationSection("effects") : null);
     }
 
+    /**
+     * Pending effect data collected during first pass of loading.
+     */
+    private record PendingEffect(String name, ConfigurationSection section, int explicitId) {}
+
     private static void loadEffectDefinitions(@Nullable ConfigurationSection effectsRoot) {
         effectsByName.clear();
         effectsById.clear();
@@ -349,11 +354,7 @@ public class TextEffect {
             return;
         }
 
-        ConfigurationSection sharedSection = effectsRoot.getConfigurationSection("shared");
-        if (sharedSection != null) {
-            sharedVertexPrelude = sharedSection.getString("vertex_prelude", "");
-            sharedFragmentPrelude = sharedSection.getString("fragment_prelude", "");
-        }
+        loadSharedPreludes(effectsRoot);
 
         ConfigurationSection effectsSection = effectsRoot.getConfigurationSection("effects");
         if (effectsSection == null) {
@@ -362,13 +363,23 @@ public class TextEffect {
         }
 
         int maxEffectId = encoding.shaderEncoding().dataMask();
-
-        // Two-pass loading: first collect explicit IDs, then auto-assign missing ones
-        record PendingEffect(String name, ConfigurationSection section, int explicitId) {}
-        List<PendingEffect> pendingEffects = new ArrayList<>();
         java.util.Set<Integer> usedIds = new java.util.HashSet<>();
+        List<PendingEffect> pendingEffects = collectPendingEffects(effectsSection, maxEffectId, usedIds);
+        createDefinitions(pendingEffects, usedIds, maxEffectId);
+    }
 
-        // First pass: collect all effects and their explicit IDs
+    private static void loadSharedPreludes(ConfigurationSection effectsRoot) {
+        ConfigurationSection sharedSection = effectsRoot.getConfigurationSection("shared");
+        if (sharedSection != null) {
+            sharedVertexPrelude = sharedSection.getString("vertex_prelude", "");
+            sharedFragmentPrelude = sharedSection.getString("fragment_prelude", "");
+        }
+    }
+
+    private static List<PendingEffect> collectPendingEffects(ConfigurationSection effectsSection,
+                                                              int maxEffectId, java.util.Set<Integer> usedIds) {
+        List<PendingEffect> pendingEffects = new ArrayList<>();
+
         for (String key : effectsSection.getKeys(false)) {
             ConfigurationSection effectSection = effectsSection.getConfigurationSection(key);
             if (effectSection == null) {
@@ -387,7 +398,6 @@ public class TextEffect {
                 continue;
             }
 
-            // Track explicitly assigned IDs
             if (explicitId >= 0) {
                 if (usedIds.contains(explicitId)) {
                     Logs.logWarning("Duplicate text effect id '" + explicitId + "' for '" + name + "', skipping.");
@@ -399,46 +409,65 @@ public class TextEffect {
             pendingEffects.add(new PendingEffect(name, effectSection, explicitId));
         }
 
-        // Second pass: assign IDs and create definitions
+        return pendingEffects;
+    }
+
+    private static void createDefinitions(List<PendingEffect> pendingEffects,
+                                          java.util.Set<Integer> usedIds, int maxEffectId) {
         int nextAutoId = 0;
+
         for (PendingEffect pending : pendingEffects) {
-            String name = pending.name();
-            ConfigurationSection effectSection = pending.section();
+            int id = pending.explicitId() >= 0
+                    ? pending.explicitId()
+                    : assignNextAvailableId(pending.name(), usedIds, maxEffectId, nextAutoId);
 
-            // Determine final ID
-            int id;
-            if (pending.explicitId() >= 0) {
-                id = pending.explicitId();
-            } else {
-                // Auto-assign: find first available ID
-                while (usedIds.contains(nextAutoId) && nextAutoId <= maxEffectId) {
-                    nextAutoId++;
-                }
-                if (nextAutoId > maxEffectId) {
-                    Logs.logWarning("Text effect '" + name + "' cannot be auto-assigned an id; all IDs 0-" + maxEffectId + " are used.");
-                    continue;
-                }
-                id = nextAutoId;
-                usedIds.add(id);
-                nextAutoId++;
+            if (id < 0) {
+                continue; // Skip if no ID could be assigned
             }
 
-            String description = effectSection.getString("description", "");
-            boolean enabled = effectSection.getBoolean("enabled", true);
-            TextColor triggerColor = parseTriggerColor(effectSection.getString("trigger_color", null), id);
-            List<Snippet> snippets = parseSnippets(effectSection);
-
-            String normalized = normalizeName(name);
-            if (effectsByName.containsKey(normalized)) {
-                Logs.logWarning("Duplicate text effect name '" + name + "', skipping.");
-                continue;
+            if (pending.explicitId() < 0) {
+                // Update nextAutoId for next iteration
+                nextAutoId = id + 1;
             }
 
-            Definition definition = new Definition(name, id, description, enabled, triggerColor, snippets);
-            effectsByName.put(normalized, definition);
-            effectsById.put(id, definition);
-            effectDefinitions.add(definition);
+            Definition definition = createDefinition(pending, id);
+            if (definition != null) {
+                effectsByName.put(normalizeName(pending.name()), definition);
+                effectsById.put(id, definition);
+                effectDefinitions.add(definition);
+            }
         }
+    }
+
+    private static int assignNextAvailableId(String name, java.util.Set<Integer> usedIds,
+                                             int maxEffectId, int startFrom) {
+        int nextId = startFrom;
+        while (usedIds.contains(nextId) && nextId <= maxEffectId) {
+            nextId++;
+        }
+        if (nextId > maxEffectId) {
+            Logs.logWarning("Text effect '" + name + "' cannot be auto-assigned an id; all IDs 0-" + maxEffectId + " are used.");
+            return -1;
+        }
+        usedIds.add(nextId);
+        return nextId;
+    }
+
+    @Nullable
+    private static Definition createDefinition(PendingEffect pending, int id) {
+        String normalized = normalizeName(pending.name());
+        if (effectsByName.containsKey(normalized)) {
+            Logs.logWarning("Duplicate text effect name '" + pending.name() + "', skipping.");
+            return null;
+        }
+
+        ConfigurationSection section = pending.section();
+        String description = section.getString("description", "");
+        boolean enabled = section.getBoolean("enabled", true);
+        TextColor triggerColor = parseTriggerColor(section.getString("trigger_color", null), id);
+        List<Snippet> snippets = parseSnippets(section);
+
+        return new Definition(pending.name(), id, description, enabled, triggerColor, snippets);
     }
 
     private static void applyEffectOverrides(@Nullable ConfigurationSection overrides) {
