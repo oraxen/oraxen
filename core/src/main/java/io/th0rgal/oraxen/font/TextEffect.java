@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.font;
 
 import io.th0rgal.oraxen.utils.MinecraftVersion;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.configuration.ConfigurationSection;
@@ -21,18 +22,19 @@ import java.util.Map;
  * Unlike animated glyphs which swap between sprite frames, text effects modify
  * how existing characters render (color, position, opacity) using GLSL shaders.
  * <p>
- * Effects are encoded into the low bits of RGB using a configurable strategy
- * (default: {@link AlphaLsbEncoding}). This preserves the base color while
- * providing effect data to the shader.
+ * Text effects use dedicated effect fonts (one per effect type) and encode
+ * parameters in the color using {@link EffectFontEncoding}. This approach
+ * eliminates false positives from gradient colors since the shader only
+ * triggers effects when the tight dual marker (R=253, G low nibble=0xD) is present.
  * <p>
- * Default encoding (alpha_lsb):
+ * Encoding layout (effect_font):
  * <ul>
- *   <li>Low 4 bits of each channel are reserved</li>
- *   <li>Low nibble values between {@link AlphaLsbEncoding#DATA_MIN} and
- *       {@link AlphaLsbEncoding#DATA_MAX} carry data (0-7), skipping
- *       {@link AlphaLsbEncoding#DATA_GAP}</li>
- *   <li>R -> effectType, G -> speed, B -> param</li>
- *   <li>Character index is derived in the shader from {@code gl_VertexID}</li>
+ *   <li>R = 253 (marker)</li>
+ *   <li>G high nibble = effect type (0-7)</li>
+ *   <li>G low nibble = 0xD (marker)</li>
+ *   <li>B high nibble = speed (1-7)</li>
+ *   <li>B low nibble = param (0-7)</li>
+ *   <li>Character index derived from {@code gl_VertexID}</li>
  * </ul>
  * <p>
  * Example configuration:
@@ -42,7 +44,6 @@ import java.util.Map;
  *     enabled: true
  *     shader:
  *       template: auto
- *       encoding: alpha_lsb
  *
  * text_effects.yml:
  *   effects:
@@ -57,9 +58,9 @@ import java.util.Map;
 public class TextEffect {
 
     /**
-     * Legacy magic red value for the deprecated R=253 encoding.
+     * Legacy magic red value - now used as the primary marker in effect font encoding.
      *
-     * @deprecated Replaced by {@link AlphaLsbEncoding}; kept for compatibility.
+     * @deprecated Use {@link EffectFontEncoding#R_MARKER} instead.
      */
     @Deprecated
     public static final int MAGIC_RED = 0xFD; // 253
@@ -67,7 +68,7 @@ public class TextEffect {
     /**
      * Legacy marker bits for the deprecated encoding.
      *
-     * @deprecated Replaced by {@link AlphaLsbEncoding}; kept for compatibility.
+     * @deprecated Use {@link EffectFontEncoding} instead.
      */
     @Deprecated
     public static final int EFFECT_MARKER = 0x88;
@@ -310,7 +311,7 @@ public class TextEffect {
     private static String sharedVertexPrelude = "";
     private static String sharedFragmentPrelude = "";
     private static boolean globalEnabled = true;
-    private static TextEffectEncoding encoding = new AlphaLsbEncoding();
+    private static TextEffectEncoding encoding = new EffectFontEncoding();
     private static ShaderTemplate shaderTemplate = ShaderTemplate.AUTO;
 
     /**
@@ -323,7 +324,7 @@ public class TextEffect {
                                   @Nullable ConfigurationSection effectsRoot) {
         if (settingsSection == null) {
             globalEnabled = false;
-            encoding = new AlphaLsbEncoding();
+            encoding = new EffectFontEncoding();
             shaderTemplate = ShaderTemplate.AUTO;
         } else {
             globalEnabled = settingsSection.getBoolean("enabled", true);
@@ -514,7 +515,7 @@ public class TextEffect {
 
     private static void loadShaderConfig(@Nullable ConfigurationSection shaderSection) {
         ShaderTemplate parsedTemplate = ShaderTemplate.AUTO;
-        TextEffectEncoding parsedEncoding = new AlphaLsbEncoding();
+        TextEffectEncoding parsedEncoding = new EffectFontEncoding();
 
         if (shaderSection != null) {
             String templateName = shaderSection.getString("template", ShaderTemplate.AUTO.getName());
@@ -525,26 +526,19 @@ public class TextEffect {
                 parsedTemplate = template;
             }
 
-            String encodingName = shaderSection.getString("encoding", parsedEncoding.getName());
-            parsedEncoding = resolveEncoding(encodingName);
+            // Effect font encoding is now the only supported encoding
+            // The encoding config option is deprecated but we still read it for logging
+            String encodingName = shaderSection.getString("encoding", null);
+            if (encodingName != null && !encodingName.isEmpty()) {
+                String normalized = encodingName.trim().toLowerCase(Locale.ROOT);
+                if (!normalized.equals("effect_font") && !normalized.equals("effect-font")) {
+                    Logs.logWarning("TextEffects.shader.encoding '" + encodingName + "' is deprecated. Using 'effect_font'.");
+                }
+            }
         }
 
         shaderTemplate = parsedTemplate;
         encoding = parsedEncoding;
-    }
-
-    private static TextEffectEncoding resolveEncoding(@Nullable String name) {
-        if (name == null) {
-            return new AlphaLsbEncoding();
-        }
-
-        String normalized = name.trim().toLowerCase(Locale.ROOT);
-        if (normalized.equals("alpha_lsb") || normalized.equals("alpha-lsb") || normalized.equals("lsb")) {
-            return new AlphaLsbEncoding();
-        }
-
-        Logs.logWarning("Unknown TextEffects.shader.encoding '" + name + "', using 'alpha_lsb'.");
-        return new AlphaLsbEncoding();
     }
 
     /**
@@ -783,14 +777,17 @@ public class TextEffect {
     }
 
     /**
-     * Applies a text effect to a string while preserving the provided base color.
+     * Applies a text effect to a string using effect-specific fonts.
+     * <p>
+     * With effect fonts, the color is used entirely for encoding effect parameters.
+     * The original base color is NOT preserved - effect fonts trade color for effect.
      *
-     * @param text      The text to apply the effect to
-     * @param definition      The effect definition
-     * @param speed     Speed of the effect (1-7)
-     * @param param     Additional parameter (amplitude, intensity, etc.) (0-7)
-     * @param baseColor Base color to preserve, or null to use default (white)
-     * @return Component with per-character encoded colors
+     * @param text       The text to apply the effect to
+     * @param definition The effect definition
+     * @param speed      Speed of the effect (1-7)
+     * @param param      Additional parameter (amplitude, intensity, etc.) (0-7)
+     * @param baseColor  Ignored - effect fonts don't preserve base color
+     * @return Component with per-character encoded colors and effect font
      */
     @NotNull
     public static Component apply(String text, Definition definition, int speed, int param, @Nullable TextColor baseColor) {
@@ -802,19 +799,22 @@ public class TextEffect {
             return Component.text(text).color(effectiveBase);
         }
 
-        TextColor effectiveBase = baseColor != null ? baseColor : DEFAULT_BASE_COLOR;
+        // Get the effect-specific font
+        Key effectFont = EffectFontProvider.getFontKey(definition.getId());
+
         Component result = Component.empty();
         int idx = 0;
-        int mask = encoding.shaderEncoding().dataMask();
 
         for (int i = 0; i < text.length(); ) {
             int codepoint = text.codePointAt(i);
-            int charIndex = mask > 0 ? (idx % (mask + 1)) : 0; // Wrap for long text
 
-            TextColor magic = getMagicColor(effectiveBase, definition, speed, charIndex, param);
+            // Encode effect parameters in color (baseColor is ignored for effect fonts)
+            TextColor encodedColor = encoding.encode(null, definition.getId(), speed, param, idx);
+
             result = result.append(
                     Component.text(Character.toString(codepoint))
-                            .color(magic)
+                            .font(effectFont)  // Use effect-specific font
+                            .color(encodedColor)
             );
 
             i += Character.charCount(codepoint);
