@@ -12,6 +12,7 @@ import io.th0rgal.oraxen.mechanics.provided.combat.spell.fireball.FireballMechan
 import io.th0rgal.oraxen.mechanics.provided.combat.spell.thor.ThorMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.combat.spell.witherskull.WitherSkullMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.cosmetic.aura.AuraMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.cosmetic.backpack.BackpackCosmeticFactory;
 import io.th0rgal.oraxen.mechanics.provided.cosmetic.hat.HatMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.cosmetic.skin.SkinMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.cosmetic.skinnable.SkinnableMechanicFactory;
@@ -23,6 +24,7 @@ import io.th0rgal.oraxen.mechanics.provided.farming.smelting.SmeltingMechanicFac
 import io.th0rgal.oraxen.mechanics.provided.farming.watering.WateringMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.chorusblock.ChorusBlockMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.shaped.ShapedBlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.durability.DurabilityMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.efficiency.EfficiencyMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
@@ -82,11 +84,13 @@ public class MechanicsManager {
         registerFactory("noteblock", NoteBlockMechanicFactory::new);
         registerFactory("stringblock", StringBlockMechanicFactory::new);
         registerFactory("chorusblock", ChorusBlockMechanicFactory::new);
+        registerFactory("shaped_block", ShapedBlockMechanicFactory::new);
         registerFactory("furniture", FurnitureFactory::new);
         registerFactory("toggle_light", ToggleLightMechanicFactory::new);
 
         // cosmetic
         registerFactory("aura", AuraMechanicFactory::new);
+        registerFactory("backpack_cosmetic", BackpackCosmeticFactory::new);
         registerFactory("hat", HatMechanicFactory::new);
         registerFactory("skin", SkinMechanicFactory::new);
         registerFactory("skinnable", SkinnableMechanicFactory::new);

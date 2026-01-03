@@ -89,6 +89,23 @@ chorusblock:
       - NETHERITE
     enabled: true
 
+# Custom stairs, slabs, doors, trapdoors, grates using waxed copper blocks
+shaped_block:
+    tool_types:
+      - WOODEN
+      - STONE
+      - IRON
+      - GOLDEN
+      - DIAMOND
+      - NETHERITE
+    # Convert vanilla waxed copper to non-waxed copper with oxidation prevention.
+    # This reserves waxed copper materials for custom blocks while preserving
+    # vanilla copper functionality through a marker system.
+    convert_vanilla_waxed: true
+    # Handle waxed copper in world generation (Trial Chambers, etc.)
+    handle_world_generation: true
+    enabled: true
+
 furniture:
   default_furniture_type: DISPLAY_ENTITY # DISPLAY_ENTITY, ITEM_FRAME, GLOW_ITEM_FRAME
   tool_types:
@@ -123,6 +140,10 @@ toggle_light:
 # COSMETIC
 
 aura:
+  enabled: true
+
+# Cosmetic backpacks displayed on player's back using packet-based armor stands
+backpack_cosmetic:
   enabled: true
 
 hat:
