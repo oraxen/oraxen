@@ -5,26 +5,22 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Encodes text effects using a tight color marker that eliminates false positives.
+ * Encodes text effects using exact trigger colors that the shader matches precisely.
  * <p>
  * This encoding is used exclusively with effect fonts. Since effect fonts are
  * explicitly opt-in, we can use the color space freely for encoding without
  * needing to preserve the original color.
  * <p>
- * Color layout (simplified - speed/param are baked into shaders):
+ * Color layout:
  * <ul>
  *   <li>R = 253 (0xFD) - primary marker</li>
  *   <li>G high nibble = effect type (0-7)</li>
  *   <li>G low nibble = 0xD (13) - secondary marker</li>
- *   <li>B = 0 (unused - speed/param come from config, baked into shader)</li>
+ *   <li>B = 0 (unused)</li>
  * </ul>
  * <p>
- * Character index is derived from gl_VertexID in the shader.
- * Speed and param are defined per-effect in text_effects.yml and baked into
- * the shader at pack generation time.
- * <p>
- * The dual marker (R=253, G ends in 0xD) makes false positives extremely unlikely.
- * Natural colors or gradients would need to produce exactly #FD_D__ pattern.
+ * The shader matches the exact 24-bit RGB value, so false positives from gradients
+ * are extremely unlikely. For example, effect 0 uses #FD0D00, effect 1 uses #FD1D00.
  */
 public final class EffectFontEncoding implements TextEffectEncoding {
 
@@ -66,7 +62,7 @@ public final class EffectFontEncoding implements TextEffectEncoding {
         int effectType = effectId & 0x07;
         int g = (effectType << 4) | G_LOW_MARKER;
 
-        // B = 0 (speed/param are baked into shader from config)
+        // B = 0 (unused - speed/param come from config, baked into shader)
         int b = 0;
 
         return TextColor.color(r, g, b);
@@ -77,9 +73,10 @@ public final class EffectFontEncoding implements TextEffectEncoding {
         int color = rgb & 0xFFFFFF;
         int r = (color >> 16) & 0xFF;
         int g = (color >> 8) & 0xFF;
+        int b = color & 0xFF;
 
-        // Check dual marker: R=253 and G ends in 0xD
-        return r == R_MARKER && (g & LOW_NIBBLE_MASK) == G_LOW_MARKER;
+        // Match exact trigger color format: R=253, G low nibble=0xD, B=0
+        return r == R_MARKER && (g & LOW_NIBBLE_MASK) == G_LOW_MARKER && b == 0;
     }
 
     @Override
