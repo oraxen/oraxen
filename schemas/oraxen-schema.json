@@ -1,8 +1,8 @@
 {
-  "oraxenVersion": "1.203.1",
+  "oraxenVersion": "1.203.2",
   "minecraftVersion": "1.21.11",
   "serverVersion": "1.21.11-R0.1-SNAPSHOT",
-  "generatedAt": "2026-01-03T14:04:37.349723751Z",
+  "generatedAt": "2026-01-04T09:58:48.387162760Z",
   "enums": {
     "Material": {
       "values": [
@@ -7761,14 +7761,14 @@
           "type": "object",
           "description": "Drop configuration when broken",
           "properties": {
+            "loots": {
+              "type": "array",
+              "description": "List of loot entries"
+            },
             "silktouch": {
               "type": "boolean",
               "description": "Require silk touch",
               "default": false
-            },
-            "loots": {
-              "type": "array",
-              "description": "List of loot entries"
             }
           }
         },
@@ -7776,17 +7776,17 @@
           "type": "object",
           "description": "Directional block configuration",
           "properties": {
-            "y_block": {
+            "z_block": {
               "type": "string",
-              "description": "Y-axis variant ID"
+              "description": "Z-axis variant ID"
             },
             "parent_block": {
               "type": "string",
               "description": "Parent block ID"
             },
-            "z_block": {
+            "y_block": {
               "type": "string",
-              "description": "Z-axis variant ID"
+              "description": "Y-axis variant ID"
             },
             "x_block": {
               "type": "string",
@@ -7798,15 +7798,15 @@
           "type": "object",
           "description": "Farm block configuration",
           "properties": {
+            "dry_block": {
+              "type": "string",
+              "description": "Block ID when dried"
+            },
             "moisture": {
               "type": "integer",
               "description": "Moisture level",
               "default": 0,
               "min": 0
-            },
-            "dry_block": {
-              "type": "string",
-              "description": "Block ID when dried"
             }
           }
         },
@@ -7899,16 +7899,16 @@
           "type": "object",
           "description": "Custom hitbox dimensions",
           "properties": {
-            "width": {
+            "height": {
               "type": "number",
-              "description": "Hitbox width",
+              "description": "Hitbox height",
               "default": 1.0,
               "min": 0.0,
               "max": 10.0
             },
-            "height": {
+            "width": {
               "type": "number",
-              "description": "Hitbox height",
+              "description": "Hitbox width",
               "default": 1.0,
               "min": 0.0,
               "max": 10.0
@@ -7980,14 +7980,14 @@
           "type": "object",
           "description": "Drop configuration when broken",
           "properties": {
+            "loots": {
+              "type": "array",
+              "description": "List of loot entries"
+            },
             "silktouch": {
               "type": "boolean",
               "description": "Require silk touch to drop",
               "default": false
-            },
-            "loots": {
-              "type": "array",
-              "description": "List of loot entries"
             }
           }
         },
@@ -7995,6 +7995,10 @@
           "type": "object",
           "description": "Storage container configuration",
           "properties": {
+            "title": {
+              "type": "string",
+              "description": "Inventory title"
+            },
             "type": {
               "type": "string",
               "description": "Storage type",
@@ -8004,10 +8008,6 @@
                 "ENDERCHEST",
                 "DISPOSAL"
               ]
-            },
-            "title": {
-              "type": "string",
-              "description": "Inventory title"
             },
             "rows": {
               "type": "integer",
@@ -8185,14 +8185,14 @@
           "type": "object",
           "description": "Drop configuration when broken",
           "properties": {
+            "loots": {
+              "type": "array",
+              "description": "List of loot entries"
+            },
             "silktouch": {
               "type": "boolean",
               "description": "Require silk touch",
               "default": false
-            },
-            "loots": {
-              "type": "array",
-              "description": "List of loot entries"
             }
           }
         },
@@ -8200,25 +8200,25 @@
           "type": "object",
           "description": "Custom block sounds",
           "properties": {
-            "hit_sound": {
+            "place_sound": {
               "type": "string",
-              "description": "Sound when hit"
+              "description": "Sound when placed"
             },
             "fall_sound": {
               "type": "string",
               "description": "Sound when fallen on"
             },
-            "place_sound": {
+            "hit_sound": {
               "type": "string",
-              "description": "Sound when placed"
-            },
-            "step_sound": {
-              "type": "string",
-              "description": "Sound when stepped on"
+              "description": "Sound when hit"
             },
             "break_sound": {
               "type": "string",
               "description": "Sound when broken"
+            },
+            "step_sound": {
+              "type": "string",
+              "description": "Sound when stepped on"
             }
           }
         },
@@ -8226,13 +8226,13 @@
           "type": "object",
           "description": "Placement restrictions",
           "properties": {
-            "type": {
-              "type": "string",
-              "description": "ALLOW or DENY list type"
-            },
             "block_types": {
               "type": "array",
               "description": "Block types to allow/deny"
+            },
+            "type": {
+              "type": "string",
+              "description": "ALLOW or DENY list type"
             }
           }
         },
@@ -8584,14 +8584,14 @@
           "type": "object",
           "description": "Drop configuration when broken",
           "properties": {
+            "loots": {
+              "type": "array",
+              "description": "List of loot entries"
+            },
             "silktouch": {
               "type": "boolean",
               "description": "Require silk touch",
               "default": false
-            },
-            "loots": {
-              "type": "array",
-              "description": "List of loot entries"
             }
           }
         },
@@ -8599,19 +8599,19 @@
           "type": "object",
           "description": "Sapling growth configuration",
           "properties": {
-            "grow_chance": {
-              "type": "number",
-              "description": "Growth chance per check",
-              "default": 0.1,
-              "min": 0.0,
-              "max": 1.0
-            },
             "min_light": {
               "type": "integer",
               "description": "Minimum light level to grow",
               "default": 9,
               "min": 0,
               "max": 15
+            },
+            "grow_chance": {
+              "type": "number",
+              "description": "Growth chance per check",
+              "default": 0.1,
+              "min": 0.0,
+              "max": 1.0
             },
             "grow_block": {
               "type": "string",
