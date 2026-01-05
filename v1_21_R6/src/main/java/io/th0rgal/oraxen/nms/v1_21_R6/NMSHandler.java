@@ -24,6 +24,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.Connection;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.common.ClientboundUpdateTagsPacket;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -786,12 +787,25 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         ServerPlayer serverPlayer = ((CraftPlayer) viewer).getHandle();
         Connection connection = serverPlayer.connection.connection;
 
-        // Convert yaw to protocol format (256 steps per rotation)
-        byte headYaw = (byte) ((int) (yaw * 256.0F / 360.0F));
+        // Following HMCCosmetics approach: send BOTH rotation packets for proper rotation
+        // "First person backpacks need both packets to rotate properly, otherwise they look off"
 
-        // Use move/look packet instead since head rotation requires actual entity
-        // Send a relative move packet with rotation only
-        connection.send(new ClientboundMoveEntityPacket.Rot(entityId, headYaw, (byte) 0, false));
+        // Convert yaw to protocol format (256 steps per rotation)
+        byte protocolYaw = (byte) ((int) (yaw * 256.0F / 360.0F));
+
+        // 1. Send entity body rotation packet (ClientboundMoveEntityPacket.Rot)
+        connection.send(new ClientboundMoveEntityPacket.Rot(entityId, protocolYaw, (byte) 0, false));
+
+        // 2. Send entity head rotation packet - write manually since we have a fake entity
+        // Packet format: VarInt entityId, Byte headYaw
+        FriendlyByteBuf buf = new FriendlyByteBuf(io.netty.buffer.Unpooled.buffer());
+        buf.writeVarInt(entityId);
+        buf.writeByte(protocolYaw);
+
+        // Create and send the packet using the registry
+        ClientboundRotateHeadPacket headPacket = ClientboundRotateHeadPacket.STREAM_CODEC.decode(buf);
+        connection.send(headPacket);
+        buf.release();
     }
 
     @Override

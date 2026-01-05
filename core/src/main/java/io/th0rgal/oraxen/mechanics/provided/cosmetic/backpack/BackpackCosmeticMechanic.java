@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.EquipmentSlot;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Mechanic for cosmetic backpacks that appear on the player's back.
@@ -11,7 +12,9 @@ import org.bukkit.inventory.EquipmentSlot;
  */
 public class BackpackCosmeticMechanic extends Mechanic {
 
+    @Nullable
     private final EquipmentSlot triggerSlot;
+    private final boolean triggerFromInventory;
     private final String displayModel;
     private final double offsetX;
     private final double offsetY;
@@ -26,11 +29,18 @@ public class BackpackCosmeticMechanic extends Mechanic {
         super(mechanicFactory, section);
 
         // Which equipment slot triggers the backpack display
+        // Special value "INVENTORY" means anywhere in inventory except hands
         String slotStr = section.getString("slot", "CHEST").toUpperCase();
-        try {
-            this.triggerSlot = EquipmentSlot.valueOf(slotStr);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid equipment slot: " + slotStr);
+        if (slotStr.equals("INVENTORY")) {
+            this.triggerSlot = null;
+            this.triggerFromInventory = true;
+        } else {
+            try {
+                this.triggerSlot = EquipmentSlot.valueOf(slotStr);
+                this.triggerFromInventory = false;
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Invalid equipment slot: " + slotStr + ". Valid values: HAND, OFF_HAND, HEAD, CHEST, LEGS, FEET, INVENTORY");
+            }
         }
 
         // The model to display on the armor stand's head
@@ -64,8 +74,16 @@ public class BackpackCosmeticMechanic extends Mechanic {
         this.visibleToSelf = section.getBoolean("visible_to_self", true);
     }
 
+    @Nullable
     public EquipmentSlot getTriggerSlot() {
         return triggerSlot;
+    }
+
+    /**
+     * Returns true if the backpack should trigger when the item is anywhere in inventory (except hands).
+     */
+    public boolean triggersFromInventory() {
+        return triggerFromInventory;
     }
 
     public String getDisplayModel() {

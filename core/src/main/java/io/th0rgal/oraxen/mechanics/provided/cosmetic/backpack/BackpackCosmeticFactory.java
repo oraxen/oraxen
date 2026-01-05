@@ -46,8 +46,14 @@ public class BackpackCosmeticFactory extends MechanicFactory {
         BackpackCosmeticListener listener = new BackpackCosmeticListener(this);
         MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), listener);
 
-        // Register the refresh task with MechanicsManager for proper cleanup on reload
+        // Register tasks with MechanicsManager for proper cleanup on reload
         BackpackCosmeticManager manager = BackpackCosmeticManager.getInstance();
+
+        // Fast position update task (every tick = 50ms) for smooth backpack following
+        SchedulerUtil.ScheduledTask positionTask = SchedulerUtil.runTaskTimer(1L, 1L, manager::updateAllBackpackPositions);
+        MechanicsManager.registerTask(getMechanicID(), positionTask);
+
+        // Viewer refresh task (every 20 ticks = 1 second) for adding/removing viewers
         SchedulerUtil.ScheduledTask refreshTask = SchedulerUtil.runTaskTimer(20L, 20L, manager::refreshAllViewers);
         MechanicsManager.registerTask(getMechanicID(), refreshTask);
 

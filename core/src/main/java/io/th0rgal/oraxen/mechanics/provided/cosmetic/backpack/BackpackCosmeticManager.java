@@ -43,8 +43,9 @@ public class BackpackCosmeticManager {
         // Generate a unique entity ID for the armor stand
         int entityId = NMSHandlers.getHandler().getNextEntityId();
 
-        // Create backpack data
-        BackpackData data = new BackpackData(entityId, mechanic, displayItem);
+        // Create backpack data with initial yaw locked to body yaw
+        float initialYaw = player.getBodyYaw();
+        BackpackData data = new BackpackData(entityId, mechanic, displayItem, initialYaw, player.getLocation());
         activeBackpacks.put(playerId, data);
 
         // Spawn the backpack for all nearby players
@@ -79,21 +80,41 @@ public class BackpackCosmeticManager {
     }
 
     /**
-     * Update backpack position when player moves
+     * Update backpack rotation when player moves.
+     * Position is handled automatically by mounting.
      */
     public void updateBackpackPosition(Player player) {
         BackpackData data = activeBackpacks.get(player.getUniqueId());
         if (data == null) return;
 
-        // Calculate the backpack position
-        Location backpackLoc = calculateBackpackLocation(player, data.getMechanic());
-
-        // Send position update to all viewers
+        // Only need to update rotation - mounting handles position automatically
+        float bodyYaw = player.getBodyYaw();
         for (UUID viewerId : data.getViewers()) {
             Player viewer = Bukkit.getPlayer(viewerId);
             if (viewer != null && viewer.isOnline()) {
-                NMSHandlers.getHandler().sendEntityTeleport(viewer, data.getEntityId(), backpackLoc);
-                NMSHandlers.getHandler().sendEntityHeadRotation(viewer, data.getEntityId(), player.getLocation().getYaw());
+                NMSHandlers.getHandler().sendEntityHeadRotation(viewer, data.getEntityId(), bodyYaw);
+            }
+        }
+    }
+
+    /**
+     * Update all backpack rotations (called by tick task).
+     * Position is handled automatically by mounting.
+     */
+    public void updateAllBackpackPositions() {
+        for (Map.Entry<UUID, BackpackData> entry : activeBackpacks.entrySet()) {
+            Player owner = Bukkit.getPlayer(entry.getKey());
+            if (owner == null || !owner.isOnline()) continue;
+
+            BackpackData data = entry.getValue();
+            float bodyYaw = owner.getBodyYaw();
+
+            // Only update rotation - mounting handles position automatically
+            for (UUID viewerId : data.getViewers()) {
+                Player viewer = Bukkit.getPlayer(viewerId);
+                if (viewer != null && viewer.isOnline()) {
+                    NMSHandlers.getHandler().sendEntityHeadRotation(viewer, data.getEntityId(), bodyYaw);
+                }
             }
         }
     }
@@ -195,19 +216,25 @@ public class BackpackCosmeticManager {
     }
 
     private void spawnBackpackForViewer(Player viewer, Player owner, BackpackData data) {
-        Location backpackLoc = calculateBackpackLocation(owner, data.getMechanic());
+        Location spawnLoc = owner.getLocation().clone();
 
-        // Spawn invisible armor stand
+        // Spawn invisible armor stand - use small=true to lower the display by ~1 block
+        // since mounting positions the entity at the player's head level
         NMSHandlers.getHandler().spawnBackpackArmorStand(
             viewer,
             data.getEntityId(),
-            backpackLoc,
+            spawnLoc,
             data.getDisplayItem(),
-            data.getMechanic().isSmallArmorStand()
+            true  // Force small armor stand to lower display position
         );
 
-        // Make the armor stand ride the player
+        // Mount the armor stand to the player for instant position following
         NMSHandlers.getHandler().sendMountPacket(viewer, owner.getEntityId(), data.getEntityId());
+
+        // Send initial head rotation to face the right direction
+        NMSHandlers.getHandler().sendEntityHeadRotation(viewer, data.getEntityId(), owner.getBodyYaw());
+
+        io.th0rgal.oraxen.utils.logs.Logs.logSuccess("[Backpack] Spawned and mounted armor stand for " + owner.getName());
     }
 
     private void destroyBackpackForViewers(Player owner, BackpackData data) {
@@ -220,19 +247,29 @@ public class BackpackCosmeticManager {
         data.getViewers().clear();
     }
 
-    private Location calculateBackpackLocation(Player player, BackpackCosmeticMechanic mechanic) {
+    private Location calculateBackpackLocation(Player player, BackpackData data) {
         Location loc = player.getLocation().clone();
+        BackpackCosmeticMechanic mechanic = data.getMechanic();
 
-        // Calculate offset based on player's yaw
-        double yawRad = Math.toRadians(loc.getYaw());
+        // Use body yaw directly - in Minecraft, body yaw only changes when player
+        // actually moves/turns their body, not when just looking around with head.
+        // This provides natural backpack behavior without complex tracking.
+        float bodyYaw = player.getBodyYaw();
+        double yawRad = Math.toRadians(bodyYaw);
+
         double offsetX = mechanic.getOffsetX();
         double offsetZ = mechanic.getOffsetZ();
 
-        // Rotate offset based on player facing direction
+        // Rotate offset based on body direction
         double rotatedX = offsetX * Math.cos(yawRad) - offsetZ * Math.sin(yawRad);
         double rotatedZ = offsetX * Math.sin(yawRad) + offsetZ * Math.cos(yawRad);
 
         loc.add(rotatedX, mechanic.getOffsetY(), rotatedZ);
+
+        // Set yaw to body yaw and pitch to 0
+        loc.setYaw(bodyYaw);
+        loc.setPitch(0);
+
         return loc;
     }
 
@@ -262,11 +299,31 @@ public class BackpackCosmeticManager {
         private final BackpackCosmeticMechanic mechanic;
         private final ItemStack displayItem;
         private final Set<UUID> viewers = ConcurrentHashMap.newKeySet();
+        private float lockedYaw;
+        private Location lastPosition;
 
-        public BackpackData(int entityId, BackpackCosmeticMechanic mechanic, ItemStack displayItem) {
+        public BackpackData(int entityId, BackpackCosmeticMechanic mechanic, ItemStack displayItem, float initialYaw, Location initialPosition) {
             this.entityId = entityId;
             this.mechanic = mechanic;
             this.displayItem = displayItem;
+            this.lockedYaw = initialYaw;
+            this.lastPosition = initialPosition.clone();
+        }
+
+        public float getLockedYaw() {
+            return lockedYaw;
+        }
+
+        public void setLockedYaw(float yaw) {
+            this.lockedYaw = yaw;
+        }
+
+        public Location getLastPosition() {
+            return lastPosition;
+        }
+
+        public void setLastPosition(Location pos) {
+            this.lastPosition = pos.clone();
         }
 
         public int getEntityId() {

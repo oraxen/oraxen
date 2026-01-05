@@ -66,3 +66,25 @@ explorer_pack:
       hide_in_spectator: true
       small: false
       visible_to_self: true
+
+# Test backpack using the vanilla-style bag model
+test_bag:
+  displayname: "<#8B4513>Test Bag"
+  material: LEATHER_CHESTPLATE
+  Pack:
+    generate_model: false
+    model: items/bag
+  Mechanics:
+    backpack_cosmetic:
+      slot: CHEST
+      # Note: offset not used with mounting - position controlled by mount system
+      # small armor stand is forced to lower display position
+      offset:
+        x: 0.0
+        y: 0.0
+        z: 0.0
+      scale: 1.0
+      view_distance: 48
+      hide_in_spectator: true
+      small: true  # Small armor stand lowers display by ~1 block
+      visible_to_self: true

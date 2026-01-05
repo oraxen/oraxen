@@ -15,6 +15,7 @@ import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.event.entity.EntityPickupItemEvent;
 
 /**
  * Listener for backpack cosmetic mechanics.
@@ -26,8 +27,9 @@ public class BackpackCosmeticListener implements Listener {
     private final BackpackCosmeticManager manager;
 
     // Movement thresholds to reduce unnecessary updates
-    private static final double POSITION_THRESHOLD = 0.1;
-    private static final float YAW_THRESHOLD = 5.0f;
+    // Without mount packets, we need more frequent updates for smooth following
+    private static final double POSITION_THRESHOLD = 0.01;
+    private static final float YAW_THRESHOLD = 1.0f;
 
     public BackpackCosmeticListener(BackpackCosmeticFactory factory) {
         this.factory = factory;
@@ -74,13 +76,10 @@ public class BackpackCosmeticListener implements Listener {
     public void onInventoryClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
 
-        // Check if clicking in player's armor slots
+        // Check if clicking in player's inventory
         if (event.getClickedInventory() instanceof PlayerInventory) {
-            InventoryType.SlotType slotType = event.getSlotType();
-            if (slotType == InventoryType.SlotType.ARMOR) {
-                // Delay check to after the inventory update
-                SchedulerUtil.runTaskLater(1L, () -> checkAndUpdateBackpack(player));
-            }
+            // Delay check to after the inventory update
+            SchedulerUtil.runTaskLater(1L, () -> checkAndUpdateBackpack(player));
         }
     }
 
@@ -133,8 +132,33 @@ public class BackpackCosmeticListener implements Listener {
         }
     }
 
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onItemPickup(EntityPickupItemEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+        // Check after pickup completes
+        SchedulerUtil.runTaskLater(1L, () -> checkAndUpdateBackpack(player));
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerItemHeld(PlayerItemHeldEvent event) {
+        // When player switches held item, check if backpack visibility should change
+        SchedulerUtil.runTaskLater(1L, () -> checkAndUpdateBackpack(event.getPlayer()));
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onPlayerDropItem(PlayerDropItemEvent event) {
+        // When player drops item, check if backpack visibility should change
+        SchedulerUtil.runTaskLater(1L, () -> checkAndUpdateBackpack(event.getPlayer()));
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onPlayerSwapHandItems(PlayerSwapHandItemsEvent event) {
+        // When player swaps hand items, check if backpack visibility should change
+        SchedulerUtil.runTaskLater(1L, () -> checkAndUpdateBackpack(event.getPlayer()));
+    }
+
     /**
-     * Check player's equipment and update backpack display accordingly
+     * Check player's equipment/inventory and update backpack display accordingly
      */
     private void checkAndUpdateBackpack(Player player) {
         if (!player.isOnline()) return;
@@ -147,27 +171,54 @@ public class BackpackCosmeticListener implements Listener {
             return;
         }
 
-        // Check each equipment slot for backpack items
         PlayerInventory inv = player.getInventory();
         BackpackCosmeticMechanic foundMechanic = null;
         ItemStack foundItem = null;
 
+        // First, check equipment slots for slot-based triggers
         for (EquipmentSlot slot : EquipmentSlot.values()) {
             ItemStack item = inv.getItem(slot);
             if (item == null || item.getType().isAir()) continue;
 
             String itemId = OraxenItems.getIdByItem(item);
-            io.th0rgal.oraxen.utils.logs.Logs.logSuccess("[Backpack] Slot " + slot + ": " + item.getType() + " (oraxen: " + itemId + ")");
-
             if (itemId == null) continue;
 
             Mechanic mechanic = factory.getMechanic(itemId);
             if (mechanic instanceof BackpackCosmeticMechanic backpackMechanic) {
-                io.th0rgal.oraxen.utils.logs.Logs.logSuccess("[Backpack] Found backpack mechanic! Trigger slot: " + backpackMechanic.getTriggerSlot() + ", current slot: " + slot);
-                if (backpackMechanic.getTriggerSlot() == slot) {
+                // Slot-based trigger: must be in the specific slot
+                if (!backpackMechanic.triggersFromInventory() && backpackMechanic.getTriggerSlot() == slot) {
+                    io.th0rgal.oraxen.utils.logs.Logs.logSuccess("[Backpack] Found backpack in trigger slot: " + slot);
                     foundMechanic = backpackMechanic;
                     foundItem = item;
                     break;
+                }
+            }
+        }
+
+        // If no slot-based trigger found, check inventory for inventory-based triggers
+        if (foundMechanic == null) {
+            // Get items in hands to exclude them
+            ItemStack mainHand = inv.getItemInMainHand();
+            ItemStack offHand = inv.getItemInOffHand();
+
+            // Check entire inventory (excluding hands)
+            for (ItemStack item : inv.getContents()) {
+                if (item == null || item.getType().isAir()) continue;
+                // Skip if item is in hand
+                if (item.equals(mainHand) || item.equals(offHand)) continue;
+
+                String itemId = OraxenItems.getIdByItem(item);
+                if (itemId == null) continue;
+
+                Mechanic mechanic = factory.getMechanic(itemId);
+                if (mechanic instanceof BackpackCosmeticMechanic backpackMechanic) {
+                    // Inventory-based trigger: anywhere except hands
+                    if (backpackMechanic.triggersFromInventory()) {
+                        io.th0rgal.oraxen.utils.logs.Logs.logSuccess("[Backpack] Found backpack in inventory (not hands)");
+                        foundMechanic = backpackMechanic;
+                        foundItem = item;
+                        break;
+                    }
                 }
             }
         }
@@ -179,7 +230,7 @@ public class BackpackCosmeticListener implements Listener {
                 manager.showBackpack(player, foundMechanic, foundItem);
             }
         } else {
-            // Hide backpack if no backpack item equipped
+            // Hide backpack if no backpack item found
             manager.hideBackpack(player);
         }
     }
