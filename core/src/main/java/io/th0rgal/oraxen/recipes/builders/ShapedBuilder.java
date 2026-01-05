@@ -46,18 +46,10 @@ public class ShapedBuilder extends WorkbenchBuilder {
             }
         }
 
-        ConfigurationSection newCraftSection;
-        ConfigurationSection resultSection;
-        ConfigurationSection ingredients;
-        if (getConfig().isConfigurationSection(name)) {
-            newCraftSection = getConfig().getConfigurationSection(name);
-            resultSection = newCraftSection.getConfigurationSection("result");
-            ingredients = newCraftSection.getConfigurationSection("ingredients");
-        } else {
-            newCraftSection = getConfig().createSection(name);
-            resultSection = newCraftSection.createSection("result");
-            ingredients = newCraftSection.createSection("ingredients");
-        }
+        ConfigurationSection newCraftSection = getConfig().createSection(name);
+        ConfigurationSection resultSection = newCraftSection.createSection("result");
+        ConfigurationSection ingredients = newCraftSection.createSection("ingredients");
+        
         newCraftSection.set("shape", shapes);
         setSerializedItem(resultSection, inventory.getItem(0));
         for (Map.Entry<ItemStack, Character> entry : letterByItem.entrySet()) {

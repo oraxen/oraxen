@@ -50,10 +50,10 @@ jobs:
           cp build/libs/oraxen-*.jar test-server/plugins/
           
           # Download Paper server
-          curl -sL -o test-server/paper.jar "https://api.papermc.io/v2/projects/paper/versions/1.21.4/builds/224/downloads/paper-1.21.4-224.jar"
+          curl -sL -o test-server/paper.jar "https://api.papermc.io/v2/projects/paper/versions/1.21.11/builds/69/downloads/paper-1.21.11-69.jar"
           
-          # Download CommandAPI
-          curl -sL -o test-server/plugins/CommandAPI.jar "https://github.com/JorelAli/CommandAPI/releases/download/9.7.0/CommandAPI-9.7.0.jar"
+          # Download CommandAPI (must match version in build.gradle.kts runServer)
+          curl -sL -o test-server/plugins/CommandAPI.jar "https://github.com/CommandAPI/CommandAPI/releases/download/11.1.0/CommandAPI-11.1.0-Paper.jar"
           
           # Accept EULA
           echo "eula=true" > test-server/eula.txt
@@ -128,10 +128,11 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          
+
           # Only commit if changed
           if [ -f "schemas/oraxen-schema.json" ]; then
             git add schemas/oraxen-schema.json
             git diff --staged --quiet || git commit -m "chore: update oraxen-schema.json for v${{ steps.version.outputs.version }}"
+            git pull --rebase origin master
             git push
           fi

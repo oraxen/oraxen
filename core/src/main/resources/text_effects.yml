@@ -1,26 +1,23 @@
 version: 1
 
 # Text effect GLSL snippets used when generating text shaders.
+#
 # Each effect defines:
-# - id: numeric effect id encoded into RGB low bits (see TextEffects.shader.encoding)
+# - id: numeric effect id (0-7) - optional, auto-assigned if omitted
 # - enabled: whether the effect is available
+# - trigger_color: any hex color (e.g., #FF5500) - optional, auto-generated if omitted
 # - description: optional text shown in /oraxen texteffects
-# - snippets: ordered list of GLSL snippets (first matching target wins)
-#   - targets: optional constraints for pack format or minecraft version
-#   - vertex: GLSL lines inserted in the vertex shader main() for this effect
-#   - fragment: GLSL lines inserted in the fragment shader main() for this effect
+# - snippets: GLSL code for the effect (all values hardcoded, no variables)
 #
-# Available variables inside snippets:
-# - float timeSeconds, speed, param, charIndex
-# - vec3 pos (vertex) or vec4 texColor (fragment)
-# - int effectType (already decoded)
+# Usage in chat: <effect:wave>wavy text</effect>
 #
-# Snippet target constraints (all optional):
-#   targets:
-#     min_pack_format: 34
-#     max_pack_format: 46
-#     min_version: "1.21"
-#     max_version: "1.21.5"
+# IDs are auto-assigned in order (0, 1, 2...) if not specified.
+# You can mix explicit and auto-assigned IDs; explicit IDs are reserved first.
+#
+# The trigger_color can be any hex color - the shader matches it exactly.
+# Since exact 24-bit matches are extremely unlikely in gradients or normal text,
+# any unique color works safely. Don't use your trigger_color for regular text.
+# Default trigger colors use pattern #FDxD00 (where x = effect ID).
 
 shared:
   # Shared GLSL helpers inserted before main() in fragment shaders.
@@ -34,41 +31,47 @@ shared:
 
 effects:
   rainbow:
-    id: 0
+    # id auto-assigned (0)
     enabled: true
+    # trigger_color defaults to #FD0D00 (R=253, G=0x0D, B=0)
     description: Cycles through rainbow colors over time
     snippets:
       - fragment: |
-          float hue = fract(charIndex * 0.03 + timeSeconds * speed * 0.03);
-          vec3 rgb = hsv2rgb(vec3(hue, 0.9, 1.0));
-          texColor.rgb = rgb;
+          float hue = fract(charIndex * 0.03 + timeSeconds * 0.09);
+          texColor.rgb = hsv2rgb(vec3(hue, 0.9, 1.0));
 
   wave:
-    id: 1
+    # id auto-assigned (1)
     enabled: true
+    # trigger_color defaults to #FD1D00 (R=253, G=0x1D, B=0)
     description: Vertical sine wave motion
     snippets:
-      - vertex: |
-          float phase = charIndex * 0.6 + timeSeconds * speed * 2.0;
-          float amplitude = max(1.0, param) * 0.15;
-          pos.y += sin(phase) * amplitude;
+      - fragment: |
+          texColor.rgb = vec3(0.333, 0.804, 0.988);
+        vertex: |
+          float phase = charIndex * 0.6 + timeSeconds * 6.0;
+          pos.y += sin(phase) * 2.0;
 
   shake:
-    id: 2
+    # id auto-assigned (2)
     enabled: true
+    # trigger_color defaults to #FD2D00 (R=253, G=0x2D, B=0)
     description: Random jitter
     snippets:
-      - vertex: |
-          float seed = charIndex + floor(timeSeconds * speed * 8.0);
-          float amplitude = max(1.0, param) * 0.15;
-          pos.x += (fract(sin(seed * 12.9898) * 43758.5453) - 0.5) * amplitude;
-          pos.y += (fract(sin(seed * 78.233) * 43758.5453) - 0.5) * amplitude;
+      - fragment: |
+          texColor.rgb = vec3(1.0, 0.42, 0.42);
+        vertex: |
+          float seed = charIndex + floor(timeSeconds * 32.0);
+          pos.x += (fract(sin(seed * 12.9898) * 43758.5453) - 0.5) * 1.5;
+          pos.y += (fract(sin(seed * 78.233) * 43758.5453) - 0.5) * 1.5;
 
   pulse:
-    id: 3
+    # id auto-assigned (3)
     enabled: true
+    # trigger_color defaults to #FD3D00 (R=253, G=0x3D, B=0)
     description: Opacity fades in/out
     snippets:
       - fragment: |
-          float pulse = (sin(timeSeconds * speed * 0.5 + charIndex * 0.3) + 1.0) * 0.5;
+          texColor.rgb = vec3(1.0, 0.85, 0.24);
+          float pulse = (sin(timeSeconds * 1.5 + charIndex * 0.3) + 1.0) * 0.5;
           texColor.a *= 0.3 + pulse * 0.7;

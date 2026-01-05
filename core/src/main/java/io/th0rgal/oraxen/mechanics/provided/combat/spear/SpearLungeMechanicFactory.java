@@ -76,8 +76,12 @@ public class SpearLungeMechanicFactory extends MechanicFactory implements Listen
     public SpearLungeMechanicFactory(ConfigurationSection section) {
         super(section);
         instance = this;
-        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new SpearLungeMechanicListener(this));
-        Bukkit.getPluginManager().registerEvents(this, OraxenPlugin.get());
+        MechanicsManager.registerListeners(
+                OraxenPlugin.get(),
+                getMechanicID(),
+                new SpearLungeMechanicListener(this),
+                this
+        );
     }
 
     @Override
