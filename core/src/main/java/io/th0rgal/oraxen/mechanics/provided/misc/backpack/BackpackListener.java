@@ -14,6 +14,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
@@ -60,6 +61,16 @@ public class BackpackListener implements Listener {
         if (!isBackpack(event.getOffHandItem()) && !isBackpack(event.getMainHandItem())) return;
         if (!(InventoryUtils.topInventoryForPlayer(player).getHolder() instanceof StorageGui gui)) return;
         gui.close(player, true);
+    }
+
+    // Prevent dropping backpacks while the backpack GUI is open to avoid duplication
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onPlayerDropItem(final PlayerDropItemEvent event) {
+        Player player = event.getPlayer();
+        if (!isBackpack(event.getItemDrop().getItemStack())) return;
+        if (InventoryUtils.topInventoryForPlayer(player).getHolder() instanceof StorageGui) {
+            event.setCancelled(true);
+        }
     }
 
     // Refresh close backpack if open to refresh with picked up items
