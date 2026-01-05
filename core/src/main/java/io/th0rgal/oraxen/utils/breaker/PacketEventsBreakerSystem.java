@@ -34,6 +34,7 @@ public class PacketEventsBreakerSystem extends BreakerSystem {
             }
 
             final World world = player.getWorld();
+            if (!world.isChunkLoaded(pos.getX() >> 4, pos.getZ() >> 4)) return;
             final Block block = world.getBlockAt(pos.getX(), pos.getY(), pos.getZ());
             final Location location = block.getLocation();
 
