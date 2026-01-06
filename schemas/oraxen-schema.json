@@ -2,7 +2,7 @@
   "oraxenVersion": "1.203.3",
   "minecraftVersion": "1.21.11",
   "serverVersion": "1.21.11-R0.1-SNAPSHOT",
-  "generatedAt": "2026-01-05T10:07:03.322392938Z",
+  "generatedAt": "2026-01-05T11:06:32.199069350Z",
   "enums": {
     "Material": {
       "values": [
@@ -7776,10 +7776,6 @@
           "type": "object",
           "description": "Directional block configuration",
           "properties": {
-            "z_block": {
-              "type": "string",
-              "description": "Z-axis variant ID"
-            },
             "x_block": {
               "type": "string",
               "description": "X-axis variant ID"
@@ -7791,6 +7787,10 @@
             "parent_block": {
               "type": "string",
               "description": "Parent block ID"
+            },
+            "z_block": {
+              "type": "string",
+              "description": "Z-axis variant ID"
             }
           }
         },
@@ -8200,10 +8200,6 @@
           "type": "object",
           "description": "Custom block sounds",
           "properties": {
-            "place_sound": {
-              "type": "string",
-              "description": "Sound when placed"
-            },
             "step_sound": {
               "type": "string",
               "description": "Sound when stepped on"
@@ -8219,6 +8215,10 @@
             "fall_sound": {
               "type": "string",
               "description": "Sound when fallen on"
+            },
+            "place_sound": {
+              "type": "string",
+              "description": "Sound when placed"
             }
           }
         },
