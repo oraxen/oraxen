@@ -368,6 +368,9 @@ public class ChorusBlockMechanicListener implements Listener {
 
         ChorusBlockMechanic mechanic = OraxenBlocks.getChorusMechanic(block);
         if (mechanic != null) {
+            event.setCancelled(true);
+            if (!ProtectionLib.canBreak(player, block.getLocation()))
+                return;
             // Drop storage contents before removing block
             if (mechanic.isStorage()) {
                 mechanic.getStorage().dropStorageContent(block);
@@ -376,7 +379,6 @@ public class ChorusBlockMechanicListener implements Listener {
             if (mechanic.hasSeat()) {
                 removeSeat(block);
             }
-            event.setCancelled(true);
             OraxenBlocks.remove(block.getLocation(), player);
             event.setDropItems(false);
             return;

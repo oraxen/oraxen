@@ -315,11 +315,13 @@ public class StringBlockMechanicListener implements Listener {
 
         StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
         if (mechanic != null) {
+            event.setCancelled(true);
+            if (!ProtectionLib.canBreak(player, block.getLocation()))
+                return;
             // Drop storage contents before removing block
             if (mechanic.isStorage()) {
                 mechanic.getStorage().dropStorageContent(block);
             }
-            event.setCancelled(true);
             OraxenBlocks.remove(block.getLocation(), player);
             event.setDropItems(false);
             return;
@@ -328,11 +330,13 @@ public class StringBlockMechanicListener implements Listener {
         // Check for tall block mechanics
         StringBlockMechanic mechanicBelow = OraxenBlocks.getStringMechanic(blockBelow);
         if (block.getType() == Material.TRIPWIRE && mechanicBelow != null && mechanicBelow.isTall()) {
+            event.setCancelled(true);
+            if (!ProtectionLib.canBreak(player, blockBelow.getLocation()))
+                return;
             // Drop storage contents before removing block
             if (mechanicBelow.isStorage()) {
                 mechanicBelow.getStorage().dropStorageContent(blockBelow);
             }
-            event.setCancelled(true);
             OraxenBlocks.remove(blockBelow.getLocation(), player);
             event.setDropItems(false);
             return;

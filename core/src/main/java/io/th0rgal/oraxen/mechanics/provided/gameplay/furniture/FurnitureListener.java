@@ -311,6 +311,8 @@ public class FurnitureListener implements Listener {
             return;
 
         event.setCancelled(true);
+        if (!ProtectionLib.canBreak(player, block.getLocation()))
+            return;
         OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic, baseEntity, player,
                 block);
         if (!EventUtils.callEvent(furnitureBreakEvent))
