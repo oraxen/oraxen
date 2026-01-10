@@ -66,7 +66,8 @@ public class ModelGenerator {
     }
 
     private boolean isCubeAllModel(String parentModel) {
-        return parentModel.equals("block/cube_all") || parentModel.equals("block/cube_mirrored_all");
+        return parentModel.equals("block/cube_all") || parentModel.equals("block/cube_mirrored_all")
+            || parentModel.equals("block/leaves");
     }
 
     private boolean isStairsOrSlabModel(String parentModel) {

@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.shaped;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.ConfigProperty;
@@ -19,7 +20,7 @@ import java.util.Map;
 
 @MechanicInfo(
     category = "gameplay",
-    description = "Allows creating custom stairs, slabs, doors, trapdoors, and grates using waxed copper blocks as base"
+    description = "Allows creating custom stairs, slabs, doors, trapdoors, grates, and bulbs (transparent blocks) using waxed copper blocks as base"
 )
 public class ShapedBlockMechanicFactory extends MechanicFactory {
 
@@ -37,6 +38,9 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
     // Store texture info for generating variant models (supports multiple textures for doors)
     private final Map<Material, List<String>> texturesByMaterial = new HashMap<>();
 
+    // Store parent model overrides (from Pack.parent_model) for base block model generation
+    private final Map<Material, String> parentModelByMaterial = new HashMap<>();
+
     // Store block type for each material
     private final Map<Material, ShapedBlockType> typeByMaterial = new HashMap<>();
 
@@ -44,7 +48,7 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
     private final boolean convertVanillaWaxed;
     private final boolean handleWorldGeneration;
 
-    @ConfigProperty(type = PropertyType.STRING, description = "Type of shaped block: STAIR, SLAB, DOOR, TRAPDOOR, GRATE")
+    @ConfigProperty(type = PropertyType.STRING, description = "Type of shaped block: STAIR, SLAB, DOOR, TRAPDOOR, GRATE, BULB")
     public static final String PROP_TYPE = "type";
 
     @ConfigProperty(type = PropertyType.INTEGER, description = "Custom variation (1-4, maps to copper oxidation states)", defaultValue = "1", min = 1, max = 4)
@@ -138,6 +142,11 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
                 Logs.logInfo("Storing textures for " + mechanic.getPlacedMaterial() + ": " + blockTextures);
                 texturesByMaterial.put(mechanic.getPlacedMaterial(), blockTextures);
             }
+
+            String parentModel = section.getParent().getParent().getString("Pack.parent_model");
+            if (parentModel != null && !parentModel.isBlank()) {
+                parentModelByMaterial.put(mechanic.getPlacedMaterial(), parentModel);
+            }
         } else {
             Logs.logWarning("No model found for shaped block " + mechanic.getItemID());
         }
@@ -165,7 +174,10 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
                 if (top != null) textures.add(top);
             } else {
                 // For other types, use single texture
+                // Check multiple possible keys: texture, all, side
                 String texture = texturesSection.getString("texture");
+                if (texture == null) texture = texturesSection.getString("all");
+                if (texture == null) texture = texturesSection.getString("side");
                 if (texture != null) textures.add(texture);
             }
         }
@@ -188,10 +200,11 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
             String modelName = entry.getValue();
             List<String> textures = texturesByMaterial.get(material);
             ShapedBlockType type = typeByMaterial.get(material);
+            String parentModelOverride = parentModelByMaterial.get(material);
 
             // Generate variant models if needed
             if (textures != null && !textures.isEmpty() && type != null) {
-                generateVariantModels(type, modelName, textures);
+                generateVariantModels(type, modelName, textures, parentModelOverride);
             }
 
             String blockstateName = material.name().toLowerCase() + ".json";
@@ -207,11 +220,11 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
     /**
      * Generate variant models for block types that need multiple models
      */
-    private void generateVariantModels(ShapedBlockType type, String modelName, List<String> textures) {
+    private void generateVariantModels(ShapedBlockType type, String modelName, List<String> textures, String parentModelOverride) {
         String primaryTexture = textures.get(0);
 
         // Always generate the base block model in the block/ folder
-        generateBaseBlockModel(type, modelName, textures);
+        generateBaseBlockModel(type, modelName, textures, parentModelOverride);
 
         switch (type) {
             case STAIR -> {
@@ -239,7 +252,7 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
     /**
      * Generate the base block model in the block/ folder for blockstate references
      */
-    private void generateBaseBlockModel(ShapedBlockType type, String modelName, List<String> textureList) {
+    private void generateBaseBlockModel(ShapedBlockType type, String modelName, List<String> textureList, String parentModelOverride) {
         JsonObject model = new JsonObject();
         JsonObject textures = new JsonObject();
 
@@ -272,7 +285,47 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
                 textures.addProperty("top", secondaryTexture);
             }
             case GRATE -> {
-                model.addProperty("parent", "block/cube_all");
+                // For GRATE, the vanilla copper-grate block provides the cutout render layer.
+                // We still want the model to behave "leaf-like" when stacking blocks.
+                //
+                // If the pack parent_model requests block/leaves, generate an explicit model:
+                // - Outer cube matches vanilla leaves (with cullface, like real leaves)
+                // - Inner inset cube renders even when adjacent blocks cull the shared face,
+                //   which makes stacked blocks visually "layer" instead of disappearing.
+                String parent = parentModelOverride;
+                if (parent != null && parent.equals("block/leaves")) {
+                    model.addProperty("parent", "block/block");
+
+                    textures.addProperty("all", primaryTexture);
+                    textures.addProperty("particle", primaryTexture);
+                    model.add("textures", textures);
+
+                    JsonArray elements = new JsonArray();
+
+                    // Outer cube (vanilla leaves-like, includes cullface)
+                    elements.add(createCubeElement(0.0, 16.0, true));
+                    // Inner inset cube (no cullface to create depth/layering when stacked)
+                    elements.add(createCubeElement(0.01, 15.99, false));
+
+                    model.add("elements", elements);
+
+                    OraxenPlugin.get().getResourcePack().writeStringToVirtual(
+                        "assets/minecraft/models/block", modelName + ".json", model.toString());
+
+                    Logs.logInfo("Generated base block model for " + modelName);
+                    return;
+                }
+
+                if (parent == null || parent.isBlank()) parent = "block/cube_all";
+                model.addProperty("parent", parent);
+                textures.addProperty("all", primaryTexture);
+            }
+            case BULB -> {
+                // For transparent blocks like leaves, use block/leaves parent
+                // which has the proper render type for transparency
+                String parent = parentModelOverride;
+                if (parent == null || parent.isBlank()) parent = "block/leaves";
+                model.addProperty("parent", parent);
                 textures.addProperty("all", primaryTexture);
             }
         }
@@ -283,6 +336,50 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
             "assets/minecraft/models/block", modelName + ".json", model.toString());
 
         Logs.logInfo("Generated base block model for " + modelName);
+    }
+
+    private JsonObject createCubeElement(double from, double to, boolean includeCullfaces) {
+        JsonObject element = new JsonObject();
+
+        JsonArray fromArr = new JsonArray();
+        fromArr.add(from);
+        fromArr.add(from);
+        fromArr.add(from);
+
+        JsonArray toArr = new JsonArray();
+        toArr.add(to);
+        toArr.add(to);
+        toArr.add(to);
+
+        element.add("from", fromArr);
+        element.add("to", toArr);
+
+        JsonObject faces = new JsonObject();
+        faces.add("down", createFace("down", includeCullfaces));
+        faces.add("up", createFace("up", includeCullfaces));
+        faces.add("north", createFace("north", includeCullfaces));
+        faces.add("south", createFace("south", includeCullfaces));
+        faces.add("west", createFace("west", includeCullfaces));
+        faces.add("east", createFace("east", includeCullfaces));
+        element.add("faces", faces);
+
+        return element;
+    }
+
+    private JsonObject createFace(String cullface, boolean includeCullfaces) {
+        JsonObject face = new JsonObject();
+
+        // Always full-face UVs since these are cube elements
+        JsonArray uv = new JsonArray();
+        uv.add(0);
+        uv.add(0);
+        uv.add(16);
+        uv.add(16);
+        face.add("uv", uv);
+
+        face.addProperty("texture", "#all");
+        if (includeCullfaces) face.addProperty("cullface", cullface);
+        return face;
     }
 
     /**
@@ -466,6 +563,7 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
             case DOOR -> generateDoorBlockstate(blockModelName);
             case TRAPDOOR -> generateTrapdoorBlockstate(blockModelName);
             case GRATE -> generateGrateBlockstate(blockModelName);
+            case BULB -> generateBulbBlockstate(blockModelName);
         };
     }
 
@@ -697,6 +795,33 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
 
         variants.add("waterlogged=false", model);
         variants.add("waterlogged=true", model.deepCopy());
+
+        blockstate.add("variants", variants);
+        return blockstate.toString();
+    }
+
+    /**
+     * Generate blockstate for bulbs (transparent full blocks with lit/powered states)
+     * Copper bulbs are perfect for custom transparent blocks like leaves.
+     */
+    private String generateBulbBlockstate(String modelName) {
+        JsonObject blockstate = new JsonObject();
+        JsonObject variants = new JsonObject();
+
+        String[] litValues = {"false", "true"};
+        String[] poweredValues = {"false", "true"};
+
+        for (String lit : litValues) {
+            for (String powered : poweredValues) {
+                String variantKey = "lit=" + lit + ",powered=" + powered;
+
+                JsonObject model = new JsonObject();
+                // Use the same model for all states - we don't want the bulb lighting behavior
+                model.addProperty("model", modelName);
+
+                variants.add(variantKey, model);
+            }
+        }
 
         blockstate.add("variants", variants);
         return blockstate.toString();

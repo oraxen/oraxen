@@ -40,11 +40,13 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
 /**
- * Handles placement, breaking, and interactions for shaped blocks (stairs, slabs, doors, trapdoors, grates).
+ * Handles placement, breaking, and interactions for shaped blocks (stairs, slabs, doors, trapdoors, grates, bulbs).
  *
  * Custom blocks use WAXED copper materials with custom textures.
  * Vanilla waxed copper is converted to NON-WAXED copper and marked to prevent oxidation,
  * preserving vanilla copper functionality while avoiding texture conflicts.
+ *
+ * Bulbs (copper bulbs) are particularly useful for transparent full blocks like custom leaves.
  */
 public class ShapedBlockMechanicListener implements Listener {
 
@@ -366,6 +368,17 @@ public class ShapedBlockMechanicListener implements Listener {
         }
 
         playPlaceSound(targetBlock, shapedMechanic);
+
+        // Optional light support via LightMechanic (places minecraft:light blocks nearby).
+        // This does not change the underlying placed block's own light level, but still
+        // provides illumination around the custom block.
+        if (shapedMechanic.hasLight()) {
+            shapedMechanic.getLight().createBlockLight(targetBlock);
+            if (shapedMechanic.getBlockType() == ShapedBlockType.DOOR) {
+                shapedMechanic.getLight().createBlockLight(targetBlock.getRelative(BlockFace.UP));
+            }
+        }
+
         consumeItem(player, item);
         Logs.logSuccess("[ShapedBlock] Placed " + itemId + " as " + shapedMechanic.getBlockType());
     }
@@ -446,6 +459,11 @@ public class ShapedBlockMechanicListener implements Listener {
             }
         }
 
+        // Remove any minecraft:light blocks placed by this mechanic
+        if (mechanic.hasLight()) {
+            mechanic.getLight().removeBlockLight(block);
+        }
+
         // Clean up custom block data
         CustomBlockData blockData = new CustomBlockData(block, OraxenPlugin.get());
         blockData.remove(ShapedBlockMechanic.SHAPED_BLOCK_KEY);
@@ -457,6 +475,9 @@ public class ShapedBlockMechanicListener implements Listener {
                 Block otherHalf = door.getHalf() == org.bukkit.block.data.Bisected.Half.BOTTOM
                     ? block.getRelative(BlockFace.UP)
                     : block.getRelative(BlockFace.DOWN);
+                if (mechanic.hasLight()) {
+                    mechanic.getLight().removeBlockLight(otherHalf);
+                }
                 // Clean up the other half's data
                 CustomBlockData otherBlockData = new CustomBlockData(otherHalf, OraxenPlugin.get());
                 otherBlockData.remove(ShapedBlockMechanic.SHAPED_BLOCK_KEY);
@@ -519,6 +540,7 @@ public class ShapedBlockMechanicListener implements Listener {
             case DOOR -> applyDoorData(data, player);
             case TRAPDOOR -> applyTrapdoorData(data, player, clickedFace);
             case GRATE -> { /* Grates have no directional data */ }
+            case BULB -> applyBulbData(data);
         }
 
         if (isWaterlogged && data instanceof Waterlogged waterloggedData) {
@@ -599,6 +621,15 @@ public class ShapedBlockMechanicListener implements Listener {
         }
     }
 
+    private void applyBulbData(BlockData data) {
+        // Copper bulbs have lit and powered states
+        // For custom blocks (like leaves), we want them always unlit and unpowered
+        if (data instanceof org.bukkit.block.data.type.CopperBulb bulb) {
+            bulb.setLit(false);
+            bulb.setPowered(false);
+        }
+    }
+
     private void markAsCustomBlock(Block block, ShapedBlockMechanic mechanic) {
         CustomBlockData blockData = new CustomBlockData(block, OraxenPlugin.get());
         blockData.set(ShapedBlockMechanic.SHAPED_BLOCK_KEY, PersistentDataType.STRING, mechanic.getItemID());
@@ -616,6 +647,8 @@ public class ShapedBlockMechanicListener implements Listener {
             copyDoorData(fromDoor, toDoor);
         } else if (from instanceof org.bukkit.block.data.type.TrapDoor fromTrap && to instanceof org.bukkit.block.data.type.TrapDoor toTrap) {
             copyTrapDoorData(fromTrap, toTrap);
+        } else if (from instanceof org.bukkit.block.data.type.CopperBulb fromBulb && to instanceof org.bukkit.block.data.type.CopperBulb toBulb) {
+            copyBulbData(fromBulb, toBulb);
         } else {
             copyWaterloggedData(from, to);
         }
@@ -647,6 +680,11 @@ public class ShapedBlockMechanicListener implements Listener {
         to.setOpen(from.isOpen());
         to.setPowered(from.isPowered());
         copyWaterloggedData(from, to);
+    }
+
+    private void copyBulbData(org.bukkit.block.data.type.CopperBulb from, org.bukkit.block.data.type.CopperBulb to) {
+        to.setLit(from.isLit());
+        to.setPowered(from.isPowered());
     }
 
     private void copyWaterloggedData(BlockData from, BlockData to) {

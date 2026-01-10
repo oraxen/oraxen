@@ -81,6 +81,20 @@ public enum ShapedBlockType {
             Material.WEATHERED_COPPER_GRATE,
             Material.OXIDIZED_COPPER_GRATE
         }
+    ),
+    BULB(
+        new Material[]{
+            Material.WAXED_COPPER_BULB,
+            Material.WAXED_EXPOSED_COPPER_BULB,
+            Material.WAXED_WEATHERED_COPPER_BULB,
+            Material.WAXED_OXIDIZED_COPPER_BULB
+        },
+        new Material[]{
+            Material.COPPER_BULB,
+            Material.EXPOSED_COPPER_BULB,
+            Material.WEATHERED_COPPER_BULB,
+            Material.OXIDIZED_COPPER_BULB
+        }
     );
 
     private final Material[] waxedMaterials;
