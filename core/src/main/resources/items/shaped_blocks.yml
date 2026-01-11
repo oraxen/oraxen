@@ -107,7 +107,7 @@ custom_oak_door:
     generate_model: true
     parent_model: item/generated
     textures:
-      - default/custom_oak_door_icon  # Flat icon for hand display
+      - block/oak_door_bottom  # Hand/inventory icon (separate from placed block textures)
   Mechanics:
     shaped_block:
       type: DOOR
