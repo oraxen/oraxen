@@ -114,7 +114,7 @@ public class BackpackCosmeticListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerGameModeChange(PlayerGameModeChangeEvent event) {
         Player player = event.getPlayer();
         BackpackCosmeticManager.BackpackData data = manager.getBackpackData(player);
@@ -197,15 +197,18 @@ public class BackpackCosmeticListener implements Listener {
 
         // If no slot-based trigger found, check inventory for inventory-based triggers
         if (foundMechanic == null) {
-            // Get items in hands to exclude them
-            ItemStack mainHand = inv.getItemInMainHand();
-            ItemStack offHand = inv.getItemInOffHand();
+            // Get held item slot to exclude it (slot 40 is offhand, getHeldItemSlot is main hand)
+            int heldSlot = inv.getHeldItemSlot();
+            int offHandSlot = 40;
 
-            // Check entire inventory (excluding hands)
-            for (ItemStack item : inv.getContents()) {
+            // Check entire inventory (excluding hands by slot index)
+            ItemStack[] contents = inv.getContents();
+            for (int slot = 0; slot < contents.length; slot++) {
+                // Skip hand slots
+                if (slot == heldSlot || slot == offHandSlot) continue;
+
+                ItemStack item = contents[slot];
                 if (item == null || item.getType().isAir()) continue;
-                // Skip if item is in hand
-                if (item.equals(mainHand) || item.equals(offHand)) continue;
 
                 String itemId = OraxenItems.getIdByItem(item);
                 if (itemId == null) continue;

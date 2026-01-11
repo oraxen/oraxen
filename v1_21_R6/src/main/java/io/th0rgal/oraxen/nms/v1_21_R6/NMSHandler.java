@@ -798,14 +798,18 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
         // 2. Send entity head rotation packet - write manually since we have a fake entity
         // Packet format: VarInt entityId, Byte headYaw
-        FriendlyByteBuf buf = new FriendlyByteBuf(io.netty.buffer.Unpooled.buffer());
-        buf.writeVarInt(entityId);
-        buf.writeByte(protocolYaw);
+        io.netty.buffer.ByteBuf byteBuf = io.netty.buffer.Unpooled.buffer();
+        try {
+            FriendlyByteBuf buf = new FriendlyByteBuf(byteBuf);
+            buf.writeVarInt(entityId);
+            buf.writeByte(protocolYaw);
 
-        // Create and send the packet using the registry
-        ClientboundRotateHeadPacket headPacket = ClientboundRotateHeadPacket.STREAM_CODEC.decode(buf);
-        connection.send(headPacket);
-        buf.release();
+            // Create and send the packet using the registry
+            ClientboundRotateHeadPacket headPacket = ClientboundRotateHeadPacket.STREAM_CODEC.decode(buf);
+            connection.send(headPacket);
+        } finally {
+            byteBuf.release();
+        }
     }
 
     @Override
