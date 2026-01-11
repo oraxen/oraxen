@@ -10,6 +10,7 @@ import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.protectionlib.ProtectionLib;
+import org.jetbrains.annotations.Nullable;
 import org.apache.commons.lang3.Range;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -300,7 +301,8 @@ public class ShapedBlockMechanicListener implements Listener {
 
         // Cancel the normal interaction and place the block
         event.setCancelled(true);
-        placeShapedBlock(player, item, targetBlock, clickedBlock, face, shapedMechanic, itemId);
+        Location interactionPoint = event.getInteractionPoint();
+        placeShapedBlock(player, item, targetBlock, clickedBlock, face, shapedMechanic, itemId, interactionPoint);
     }
 
     private Block getTargetBlock(Block clickedBlock, BlockFace face) {
@@ -337,7 +339,8 @@ public class ShapedBlockMechanicListener implements Listener {
     }
 
     private void placeShapedBlock(Player player, ItemStack item, Block targetBlock, Block clickedBlock,
-                                   BlockFace face, ShapedBlockMechanic shapedMechanic, String itemId) {
+                                   BlockFace face, ShapedBlockMechanic shapedMechanic, String itemId,
+                                   @Nullable Location interactionPoint) {
         boolean isWaterlogged = targetBlock.getType() == Material.WATER;
         Material placeMaterial = shapedMechanic.getPlacedMaterial();
 
@@ -345,7 +348,7 @@ public class ShapedBlockMechanicListener implements Listener {
         org.bukkit.block.BlockState replacedState = targetBlock.getState();
 
         targetBlock.setType(placeMaterial, false);
-        applyBlockData(targetBlock, player, face, shapedMechanic, isWaterlogged);
+        applyBlockData(targetBlock, player, face, shapedMechanic, isWaterlogged, interactionPoint);
         markAsCustomBlock(targetBlock, shapedMechanic);
 
         // Handle door upper block
@@ -531,12 +534,13 @@ public class ShapedBlockMechanicListener implements Listener {
         return false;
     }
 
-    private void applyBlockData(Block block, Player player, BlockFace clickedFace, ShapedBlockMechanic mechanic, boolean isWaterlogged) {
+    private void applyBlockData(Block block, Player player, BlockFace clickedFace, ShapedBlockMechanic mechanic,
+                                 boolean isWaterlogged, @Nullable Location interactionPoint) {
         BlockData data = block.getBlockData();
 
         switch (mechanic.getBlockType()) {
-            case STAIR -> applyStairData(data, player, clickedFace);
-            case SLAB -> applySlabData(data, player, clickedFace);
+            case STAIR -> applyStairData(data, player, clickedFace, interactionPoint);
+            case SLAB -> applySlabData(data, player, clickedFace, interactionPoint);
             case DOOR -> applyDoorData(data, player);
             case TRAPDOOR -> applyTrapdoorData(data, player, clickedFace);
             case GRATE -> { /* Grates have no directional data */ }
@@ -550,7 +554,7 @@ public class ShapedBlockMechanicListener implements Listener {
         block.setBlockData(data, false);
     }
 
-    private void applyStairData(BlockData data, Player player, BlockFace clickedFace) {
+    private void applyStairData(BlockData data, Player player, BlockFace clickedFace, @Nullable Location interactionPoint) {
         if (data instanceof org.bukkit.block.data.type.Stairs stairs) {
             BlockFace playerFacing = player.getFacing();
             stairs.setFacing(playerFacing);
@@ -560,8 +564,8 @@ public class ShapedBlockMechanicListener implements Listener {
             } else if (clickedFace == BlockFace.DOWN) {
                 stairs.setHalf(org.bukkit.block.data.Bisected.Half.TOP);
             } else {
-                Location eyeLoc = player.getEyeLocation();
-                double clickY = eyeLoc.getY() % 1;
+                // Side face: use click position on the block to determine top/bottom
+                double clickY = interactionPoint != null ? interactionPoint.getY() % 1 : 0.5;
                 stairs.setHalf(clickY > 0.5 ?
                     org.bukkit.block.data.Bisected.Half.TOP :
                     org.bukkit.block.data.Bisected.Half.BOTTOM);
@@ -569,15 +573,15 @@ public class ShapedBlockMechanicListener implements Listener {
         }
     }
 
-    private void applySlabData(BlockData data, Player player, BlockFace clickedFace) {
+    private void applySlabData(BlockData data, Player player, BlockFace clickedFace, @Nullable Location interactionPoint) {
         if (data instanceof Slab slab) {
             if (clickedFace == BlockFace.UP) {
                 slab.setType(Slab.Type.BOTTOM);
             } else if (clickedFace == BlockFace.DOWN) {
                 slab.setType(Slab.Type.TOP);
             } else {
-                // Side face: determine TOP/BOTTOM based on click position
-                double clickY = player.getEyeLocation().getY() % 1;
+                // Side face: use click position on the block to determine top/bottom
+                double clickY = interactionPoint != null ? interactionPoint.getY() % 1 : 0.5;
                 slab.setType(clickY > 0.5 ? Slab.Type.TOP : Slab.Type.BOTTOM);
             }
         }

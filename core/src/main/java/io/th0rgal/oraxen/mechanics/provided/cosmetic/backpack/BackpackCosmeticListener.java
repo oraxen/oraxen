@@ -225,8 +225,13 @@ public class BackpackCosmeticListener implements Listener {
 
         if (foundMechanic != null) {
             // Show or update backpack
-            io.th0rgal.oraxen.utils.logs.Logs.logSuccess("[Backpack] Showing backpack for " + player.getName());
-            if (!manager.hasBackpack(player)) {
+            BackpackCosmeticManager.BackpackData currentData = manager.getBackpackData(player);
+            boolean needsUpdate = currentData == null ||
+                currentData.getMechanic() != foundMechanic ||
+                !foundItem.isSimilar(currentData.getDisplayItem());
+
+            if (needsUpdate) {
+                io.th0rgal.oraxen.utils.logs.Logs.logSuccess("[Backpack] Showing backpack for " + player.getName());
                 manager.showBackpack(player, foundMechanic, foundItem);
             }
         } else {
