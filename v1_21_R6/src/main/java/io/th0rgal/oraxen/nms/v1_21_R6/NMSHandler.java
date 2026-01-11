@@ -823,8 +823,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         Connection connection = serverPlayer.connection.connection;
 
         // Create mount packet by writing to a buffer
+        io.netty.buffer.ByteBuf byteBuf = io.netty.buffer.Unpooled.buffer();
         try {
-            io.netty.buffer.ByteBuf byteBuf = io.netty.buffer.Unpooled.buffer();
             net.minecraft.network.FriendlyByteBuf buf = new net.minecraft.network.FriendlyByteBuf(byteBuf);
 
             // Write vehicle entity ID as VarInt
@@ -841,11 +841,11 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             // Create packet using the buffer constructor
             ClientboundSetPassengersPacket mountPacket = ClientboundSetPassengersPacket.STREAM_CODEC.decode(buf);
             connection.send(mountPacket);
-
-            Logs.logSuccess("[Backpack] Sent mount packet: vehicle=" + vehicleId + ", passengers=" + java.util.Arrays.toString(passengerIds));
         } catch (Exception e) {
             Logs.logWarning("Failed to send mount packet: " + e.getMessage());
             e.printStackTrace();
+        } finally {
+            byteBuf.release();
         }
     }
 

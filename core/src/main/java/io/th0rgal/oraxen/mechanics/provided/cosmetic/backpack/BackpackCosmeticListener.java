@@ -163,7 +163,7 @@ public class BackpackCosmeticListener implements Listener {
     private void checkAndUpdateBackpack(Player player) {
         if (!player.isOnline()) return;
 
-        io.th0rgal.oraxen.utils.logs.Logs.logSuccess("[Backpack] Checking equipment for " + player.getName());
+        // Debug: io.th0rgal.oraxen.utils.logs.Logs.logSuccess("[Backpack] Checking equipment for " + player.getName());
 
         // Check spectator mode
         if (player.getGameMode() == GameMode.SPECTATOR) {
@@ -187,7 +187,7 @@ public class BackpackCosmeticListener implements Listener {
             if (mechanic instanceof BackpackCosmeticMechanic backpackMechanic) {
                 // Slot-based trigger: must be in the specific slot
                 if (!backpackMechanic.triggersFromInventory() && backpackMechanic.getTriggerSlot() == slot) {
-                    io.th0rgal.oraxen.utils.logs.Logs.logSuccess("[Backpack] Found backpack in trigger slot: " + slot);
+                    // Debug: io.th0rgal.oraxen.utils.logs.Logs.logSuccess("[Backpack] Found backpack in trigger slot: " + slot);
                     foundMechanic = backpackMechanic;
                     foundItem = item;
                     break;
@@ -214,7 +214,7 @@ public class BackpackCosmeticListener implements Listener {
                 if (mechanic instanceof BackpackCosmeticMechanic backpackMechanic) {
                     // Inventory-based trigger: anywhere except hands
                     if (backpackMechanic.triggersFromInventory()) {
-                        io.th0rgal.oraxen.utils.logs.Logs.logSuccess("[Backpack] Found backpack in inventory (not hands)");
+                        // Debug: io.th0rgal.oraxen.utils.logs.Logs.logSuccess("[Backpack] Found backpack in inventory (not hands)");
                         foundMechanic = backpackMechanic;
                         foundItem = item;
                         break;
@@ -231,7 +231,7 @@ public class BackpackCosmeticListener implements Listener {
                 !foundItem.isSimilar(currentData.getDisplayItem());
 
             if (needsUpdate) {
-                io.th0rgal.oraxen.utils.logs.Logs.logSuccess("[Backpack] Showing backpack for " + player.getName());
+                // Debug: io.th0rgal.oraxen.utils.logs.Logs.logSuccess("[Backpack] Showing backpack for " + player.getName());
                 manager.showBackpack(player, foundMechanic, foundItem);
             }
         } else {

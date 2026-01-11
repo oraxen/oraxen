@@ -335,6 +335,8 @@ public class ShapedBlockMechanicListener implements Listener {
         if (!BlockHelpers.isReplaceable(upperBlock.getType())) return false;
         if (BlockHelpers.isStandingInside(player, upperBlock)) return false;
         if (!ProtectionLib.canBuild(player, upperBlock.getLocation())) return false;
+        // Validate upper block is within world height limits
+        if (upperBlock.getY() >= targetBlock.getWorld().getMaxHeight()) return false;
         return true;
     }
 
@@ -366,7 +368,7 @@ public class ShapedBlockMechanicListener implements Listener {
         Bukkit.getPluginManager().callEvent(placeEvent);
 
         if (placeEvent.isCancelled()) {
-            revertPlacement(targetBlock, shapedMechanic);
+            revertPlacement(targetBlock, shapedMechanic, replacedState);
             return;
         }
 
@@ -386,16 +388,19 @@ public class ShapedBlockMechanicListener implements Listener {
         Logs.logSuccess("[ShapedBlock] Placed " + itemId + " as " + shapedMechanic.getBlockType());
     }
 
-    private void revertPlacement(Block targetBlock, ShapedBlockMechanic mechanic) {
+    private void revertPlacement(Block targetBlock, ShapedBlockMechanic mechanic, org.bukkit.block.BlockState replacedState) {
         // Clean up PDC data before removing blocks
         CustomBlockData blockData = new CustomBlockData(targetBlock, OraxenPlugin.get());
         blockData.remove(ShapedBlockMechanic.SHAPED_BLOCK_KEY);
 
-        targetBlock.setType(Material.AIR);
+        // Restore original block state instead of just setting to AIR
+        replacedState.update(true, false);
+
         if (mechanic.getBlockType() == ShapedBlockType.DOOR) {
             Block upperBlock = targetBlock.getRelative(BlockFace.UP);
             CustomBlockData upperBlockData = new CustomBlockData(upperBlock, OraxenPlugin.get());
             upperBlockData.remove(ShapedBlockMechanic.SHAPED_BLOCK_KEY);
+            // Upper block was always air/replaceable before door placement
             upperBlock.setType(Material.AIR);
         }
     }
@@ -542,7 +547,7 @@ public class ShapedBlockMechanicListener implements Listener {
             case STAIR -> applyStairData(data, player, clickedFace, interactionPoint);
             case SLAB -> applySlabData(data, player, clickedFace, interactionPoint);
             case DOOR -> applyDoorData(data, player);
-            case TRAPDOOR -> applyTrapdoorData(data, player, clickedFace);
+            case TRAPDOOR -> applyTrapdoorData(data, player, clickedFace, interactionPoint);
             case GRATE -> { /* Grates have no directional data */ }
             case BULB -> applyBulbData(data);
         }
@@ -607,7 +612,7 @@ public class ShapedBlockMechanicListener implements Listener {
         }
     }
 
-    private void applyTrapdoorData(BlockData data, Player player, BlockFace clickedFace) {
+    private void applyTrapdoorData(BlockData data, Player player, BlockFace clickedFace, @Nullable Location interactionPoint) {
         if (data instanceof org.bukkit.block.data.type.TrapDoor trapdoor) {
             trapdoor.setFacing(player.getFacing());
             trapdoor.setOpen(false);
@@ -616,8 +621,8 @@ public class ShapedBlockMechanicListener implements Listener {
             } else if (clickedFace == BlockFace.DOWN) {
                 trapdoor.setHalf(org.bukkit.block.data.Bisected.Half.TOP);
             } else {
-                // Side face: determine TOP/BOTTOM based on click position
-                double clickY = player.getEyeLocation().getY() % 1;
+                // Side face: use click position on the block to determine top/bottom
+                double clickY = interactionPoint != null ? interactionPoint.getY() % 1 : 0.5;
                 trapdoor.setHalf(clickY > 0.5 ?
                     org.bukkit.block.data.Bisected.Half.TOP :
                     org.bukkit.block.data.Bisected.Half.BOTTOM);

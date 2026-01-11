@@ -61,7 +61,7 @@ public class BackpackCosmeticManager {
 
         if (data != null) {
             // Destroy the entity for all viewers
-            destroyBackpackForViewers(player, data);
+            destroyBackpackForViewers(data);
         }
     }
 
@@ -216,16 +216,16 @@ public class BackpackCosmeticManager {
     }
 
     private void spawnBackpackForViewer(Player viewer, Player owner, BackpackData data) {
+        BackpackCosmeticMechanic mechanic = data.getMechanic();
         Location spawnLoc = owner.getLocation().clone();
 
-        // Spawn invisible armor stand - use small=true to lower the display by ~1 block
-        // since mounting positions the entity at the player's head level
+        // Spawn invisible armor stand using mechanic's small configuration
         NMSHandlers.getHandler().spawnBackpackArmorStand(
             viewer,
             data.getEntityId(),
             spawnLoc,
             data.getDisplayItem(),
-            true  // Force small armor stand to lower display position
+            mechanic.isSmallArmorStand()
         );
 
         // Mount the armor stand to the player for instant position following
@@ -234,10 +234,10 @@ public class BackpackCosmeticManager {
         // Send initial head rotation to face the right direction
         NMSHandlers.getHandler().sendEntityHeadRotation(viewer, data.getEntityId(), owner.getBodyYaw());
 
-        io.th0rgal.oraxen.utils.logs.Logs.logSuccess("[Backpack] Spawned and mounted armor stand for " + owner.getName());
+        // Debug: io.th0rgal.oraxen.utils.logs.Logs.logSuccess("[Backpack] Spawned and mounted armor stand for " + owner.getName());
     }
 
-    private void destroyBackpackForViewers(Player owner, BackpackData data) {
+    private void destroyBackpackForViewers(BackpackData data) {
         for (UUID viewerId : data.getViewers()) {
             Player viewer = Bukkit.getPlayer(viewerId);
             if (viewer != null && viewer.isOnline()) {
@@ -283,10 +283,8 @@ public class BackpackCosmeticManager {
      */
     public void cleanup() {
         for (Map.Entry<UUID, BackpackData> entry : activeBackpacks.entrySet()) {
-            Player owner = Bukkit.getPlayer(entry.getKey());
-            if (owner != null) {
-                destroyBackpackForViewers(owner, entry.getValue());
-            }
+            // Always destroy for all viewers, regardless of owner online status
+            destroyBackpackForViewers(entry.getValue());
         }
         activeBackpacks.clear();
     }
