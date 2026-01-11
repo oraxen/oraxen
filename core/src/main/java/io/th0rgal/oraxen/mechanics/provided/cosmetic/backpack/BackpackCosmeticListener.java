@@ -176,7 +176,9 @@ public class BackpackCosmeticListener implements Listener {
         ItemStack foundItem = null;
 
         // First, check equipment slots for slot-based triggers
-        for (EquipmentSlot slot : EquipmentSlot.values()) {
+        // Only check player-valid slots (skip BODY which is for wolf armor)
+        EquipmentSlot[] playerSlots = {EquipmentSlot.HAND, EquipmentSlot.OFF_HAND, EquipmentSlot.FEET, EquipmentSlot.LEGS, EquipmentSlot.CHEST, EquipmentSlot.HEAD};
+        for (EquipmentSlot slot : playerSlots) {
             ItemStack item = inv.getItem(slot);
             if (item == null || item.getType().isAir()) continue;
 

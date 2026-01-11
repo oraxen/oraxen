@@ -702,7 +702,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         ServerPlayer serverPlayer = ((CraftPlayer) viewer).getHandle();
         Connection connection = serverPlayer.connection.connection;
 
-        Logs.logSuccess("[Backpack] Spawning armor stand for " + viewer.getName() + " at " + location + " (entityId: " + entityId + ")");
+        // Debug: Logs.logSuccess("[Backpack] Spawning armor stand for " + viewer.getName() + " at " + location + " (entityId: " + entityId + ")");
 
         // Create spawn packet for armor stand
         UUID uuid = UUID.randomUUID();
@@ -757,7 +757,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             ));
             ClientboundSetEquipmentPacket equipmentPacket = new ClientboundSetEquipmentPacket(entityId, equipment);
             connection.send(equipmentPacket);
-            Logs.logSuccess("[Backpack] Sent equipment packet with item in HEAD slot: " + displayItem.getType());
+            // Debug: Logs.logSuccess("[Backpack] Sent equipment packet with item in HEAD slot: " + displayItem.getType());
         }
     }
 
