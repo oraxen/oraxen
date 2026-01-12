@@ -491,6 +491,13 @@ public class ShapedBlockMechanicListener implements Listener {
                 otherBlockData.remove(ShapedBlockMechanic.SHAPED_BLOCK_KEY);
             }
         }
+
+        // For stairs, update adjacent stair shapes after this block is removed
+        if (mechanic.getBlockType() == ShapedBlockType.STAIR) {
+            // Schedule for next tick since the block hasn't been removed yet
+            Block blockRef = block;
+            SchedulerUtil.runTaskLater(1L, () -> updateAdjacentStairShapes(blockRef));
+        }
     }
 
     // ==================== HELPER METHODS ====================
@@ -557,6 +564,12 @@ public class ShapedBlockMechanicListener implements Listener {
         }
 
         block.setBlockData(data, false);
+
+        // For stairs, calculate shape based on adjacent stairs and update neighbors
+        if (mechanic.getBlockType() == ShapedBlockType.STAIR) {
+            updateStairShape(block);
+            updateAdjacentStairShapes(block);
+        }
     }
 
     private void applyStairData(BlockData data, Player player, BlockFace clickedFace, @Nullable Location interactionPoint) {
@@ -642,6 +655,118 @@ public class ShapedBlockMechanicListener implements Listener {
     private void markAsCustomBlock(Block block, ShapedBlockMechanic mechanic) {
         CustomBlockData blockData = new CustomBlockData(block, OraxenPlugin.get());
         blockData.set(ShapedBlockMechanic.SHAPED_BLOCK_KEY, PersistentDataType.STRING, mechanic.getItemID());
+    }
+
+    // ==================== STAIR SHAPE CALCULATION ====================
+
+    /**
+     * Update the shape of a stair block based on adjacent stairs.
+     * This mimics vanilla Minecraft stair connection behavior.
+     */
+    private void updateStairShape(Block block) {
+        BlockData data = block.getBlockData();
+        if (!(data instanceof org.bukkit.block.data.type.Stairs stairs)) return;
+
+        org.bukkit.block.data.type.Stairs.Shape newShape = calculateStairShape(block, stairs);
+        if (stairs.getShape() != newShape) {
+            stairs.setShape(newShape);
+            block.setBlockData(stairs, false);
+        }
+    }
+
+    /**
+     * Update the shape of adjacent stair blocks when a stair is placed or broken.
+     */
+    private void updateAdjacentStairShapes(Block block) {
+        for (BlockFace face : new BlockFace[]{BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST}) {
+            Block adjacent = block.getRelative(face);
+            if (isStairBlock(adjacent)) {
+                updateStairShape(adjacent);
+            }
+        }
+    }
+
+    /**
+     * Check if a block is a stair (either custom shaped block or vanilla stair).
+     */
+    private boolean isStairBlock(Block block) {
+        return block.getBlockData() instanceof org.bukkit.block.data.type.Stairs;
+    }
+
+    /**
+     * Calculate the stair shape based on adjacent stairs.
+     * This follows vanilla Minecraft's stair connection logic.
+     */
+    private org.bukkit.block.data.type.Stairs.Shape calculateStairShape(Block block, org.bukkit.block.data.type.Stairs stairs) {
+        BlockFace facing = stairs.getFacing();
+        org.bukkit.block.data.Bisected.Half half = stairs.getHalf();
+
+        // Check the block behind (in the direction the stair is facing)
+        Block backBlock = block.getRelative(facing);
+        org.bukkit.block.data.type.Stairs backStairs = getStairsData(backBlock);
+
+        if (backStairs != null && backStairs.getHalf() == half) {
+            BlockFace backFacing = backStairs.getFacing();
+            // Check if back stair is perpendicular to this one
+            if (isPerpendicularTo(facing, backFacing)) {
+                // Inner corner
+                if (backFacing == rotateClockwise(facing)) {
+                    return org.bukkit.block.data.type.Stairs.Shape.INNER_RIGHT;
+                } else {
+                    return org.bukkit.block.data.type.Stairs.Shape.INNER_LEFT;
+                }
+            }
+        }
+
+        // Check the block in front (opposite to facing direction)
+        Block frontBlock = block.getRelative(facing.getOppositeFace());
+        org.bukkit.block.data.type.Stairs frontStairs = getStairsData(frontBlock);
+
+        if (frontStairs != null && frontStairs.getHalf() == half) {
+            BlockFace frontFacing = frontStairs.getFacing();
+            // Check if front stair is perpendicular to this one
+            if (isPerpendicularTo(facing, frontFacing)) {
+                // Outer corner
+                if (frontFacing == rotateClockwise(facing)) {
+                    return org.bukkit.block.data.type.Stairs.Shape.OUTER_RIGHT;
+                } else {
+                    return org.bukkit.block.data.type.Stairs.Shape.OUTER_LEFT;
+                }
+            }
+        }
+
+        return org.bukkit.block.data.type.Stairs.Shape.STRAIGHT;
+    }
+
+    /**
+     * Get Stairs block data if the block is a stair, null otherwise.
+     */
+    private org.bukkit.block.data.type.Stairs getStairsData(Block block) {
+        BlockData data = block.getBlockData();
+        if (data instanceof org.bukkit.block.data.type.Stairs stairs) {
+            return stairs;
+        }
+        return null;
+    }
+
+    /**
+     * Check if two block faces are perpendicular to each other.
+     */
+    private boolean isPerpendicularTo(BlockFace face1, BlockFace face2) {
+        return face1 != face2 && face1 != face2.getOppositeFace();
+    }
+
+    /**
+     * Rotate a block face 90 degrees clockwise (on the horizontal plane).
+     */
+    private BlockFace rotateClockwise(BlockFace face) {
+        return switch (face) {
+            case NORTH -> BlockFace.EAST;
+            case EAST -> BlockFace.SOUTH;
+            case SOUTH -> BlockFace.WEST;
+            case WEST -> BlockFace.NORTH;
+            default -> face;
+        };
     }
 
     /**

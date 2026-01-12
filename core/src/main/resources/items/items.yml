@@ -176,3 +176,33 @@ welcome_disk:
     parent_model: "item/handheld"
     textures:
       - default/welcome_disk.png
+
+# Backpack
+# This backpack is displayed on the player's back when held anywhere in inventory.
+# Right-click to open storage. Uses packet-based invisible armor stands for rendering.
+
+leather_backpack:
+  displayname: "<#8B4513>Leather Backpack"
+  material: PAPER
+  Pack:
+    generate_model: false
+    model: items/bag
+  Mechanics:
+    # Storage functionality - right-click to open
+    backpack:
+      rows: 4
+      title: "<#8B4513>Leather Backpack"
+      open_sound: minecraft:item.armor.equip_leather
+      close_sound: minecraft:item.armor.equip_leather
+    # Cosmetic display on player's back
+    backpack_cosmetic:
+      slot: INVENTORY  # Display when item is anywhere in inventory
+      offset:
+        x: 0.0
+        y: 0.0
+        z: 0.0
+      scale: 1.0
+      view_distance: 48
+      hide_in_spectator: true
+      small: true
+      visible_to_self: true

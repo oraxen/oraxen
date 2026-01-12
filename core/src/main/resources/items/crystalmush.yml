@@ -107,7 +107,7 @@ crystalmush_door:
     generate_model: true
     parent_model: item/generated
     textures:
-      - default/crystalmush/crystalmush_door_bottom_anim  # Icon for hand
+      - default/crystalmush/crystalmush_door_icon  # Icon for hand
   Mechanics:
     shaped_block:
       type: DOOR
