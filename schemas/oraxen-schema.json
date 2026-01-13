@@ -2,7 +2,7 @@
   "oraxenVersion": "1.203.3",
   "minecraftVersion": "1.21.11",
   "serverVersion": "1.21.11-R0.1-SNAPSHOT",
-  "generatedAt": "2026-01-05T11:06:32.199069350Z",
+  "generatedAt": "2026-01-13T22:06:50.404809156Z",
   "enums": {
     "Material": {
       "values": [
@@ -7776,14 +7776,6 @@
           "type": "object",
           "description": "Directional block configuration",
           "properties": {
-            "x_block": {
-              "type": "string",
-              "description": "X-axis variant ID"
-            },
-            "y_block": {
-              "type": "string",
-              "description": "Y-axis variant ID"
-            },
             "parent_block": {
               "type": "string",
               "description": "Parent block ID"
@@ -7791,6 +7783,14 @@
             "z_block": {
               "type": "string",
               "description": "Z-axis variant ID"
+            },
+            "x_block": {
+              "type": "string",
+              "description": "X-axis variant ID"
+            },
+            "y_block": {
+              "type": "string",
+              "description": "Y-axis variant ID"
             }
           }
         },
@@ -7798,15 +7798,15 @@
           "type": "object",
           "description": "Farm block configuration",
           "properties": {
-            "dry_block": {
-              "type": "string",
-              "description": "Block ID when dried"
-            },
             "moisture": {
               "type": "integer",
               "description": "Moisture level",
               "default": 0,
               "min": 0
+            },
+            "dry_block": {
+              "type": "string",
+              "description": "Block ID when dried"
             }
           }
         },
@@ -7814,23 +7814,23 @@
           "type": "object",
           "description": "Log stripping configuration",
           "properties": {
+            "stripped_log": {
+              "type": "string",
+              "description": "Stripped log block ID"
+            },
             "drop": {
               "type": "object",
               "description": "Item dropped on strip",
               "properties": {
-                "oraxen_item": {
-                  "type": "string",
-                  "description": "Oraxen item ID"
-                },
                 "minecraft_type": {
                   "type": "string",
                   "description": "Vanilla item type"
+                },
+                "oraxen_item": {
+                  "type": "string",
+                  "description": "Oraxen item ID"
                 }
               }
-            },
-            "stripped_log": {
-              "type": "string",
-              "description": "Stripped log block ID"
             }
           }
         }
@@ -7919,14 +7919,14 @@
           "type": "object",
           "description": "Seat configuration for sittable furniture",
           "properties": {
-            "height": {
-              "type": "number",
-              "description": "Seat height offset",
-              "default": 0.0
-            },
             "yaw": {
               "type": "number",
               "description": "Seat rotation",
+              "default": 0.0
+            },
+            "height": {
+              "type": "number",
+              "description": "Seat height offset",
               "default": 0.0
             }
           }
@@ -7995,6 +7995,16 @@
           "type": "object",
           "description": "Storage container configuration",
           "properties": {
+            "type": {
+              "type": "string",
+              "description": "Storage type",
+              "values": [
+                "STORAGE",
+                "PERSONAL",
+                "ENDERCHEST",
+                "DISPOSAL"
+              ]
+            },
             "title": {
               "type": "string",
               "description": "Inventory title"
@@ -8005,16 +8015,6 @@
               "default": 1,
               "min": 1,
               "max": 6
-            },
-            "type": {
-              "type": "string",
-              "description": "Storage type",
-              "values": [
-                "STORAGE",
-                "PERSONAL",
-                "ENDERCHEST",
-                "DISPOSAL"
-              ]
             }
           }
         }
@@ -8200,14 +8200,6 @@
           "type": "object",
           "description": "Custom block sounds",
           "properties": {
-            "step_sound": {
-              "type": "string",
-              "description": "Sound when stepped on"
-            },
-            "break_sound": {
-              "type": "string",
-              "description": "Sound when broken"
-            },
             "hit_sound": {
               "type": "string",
               "description": "Sound when hit"
@@ -8219,6 +8211,14 @@
             "place_sound": {
               "type": "string",
               "description": "Sound when placed"
+            },
+            "step_sound": {
+              "type": "string",
+              "description": "Sound when stepped on"
+            },
+            "break_sound": {
+              "type": "string",
+              "description": "Sound when broken"
             }
           }
         },
@@ -8599,6 +8599,13 @@
           "type": "object",
           "description": "Sapling growth configuration",
           "properties": {
+            "grow_chance": {
+              "type": "number",
+              "description": "Growth chance per check",
+              "default": 0.1,
+              "min": 0.0,
+              "max": 1.0
+            },
             "min_light": {
               "type": "integer",
               "description": "Minimum light level to grow",
@@ -8609,13 +8616,6 @@
             "grow_block": {
               "type": "string",
               "description": "Block ID when grown"
-            },
-            "grow_chance": {
-              "type": "number",
-              "description": "Growth chance per check",
-              "default": 0.1,
-              "min": 0.0,
-              "max": 1.0
             }
           }
         }
