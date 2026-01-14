@@ -33,6 +33,45 @@ public class IrisCompatibility extends CompatibilityProvider<Iris> {
     @Override
     public void disable() {
         super.disable();
-        dataProvider = null;
+        if (dataProvider != null) {
+            try {
+                ExternalDataSVC externalDataSVC = Iris.service(ExternalDataSVC.class);
+                if (externalDataSVC != null) {
+                    boolean unregistered = false;
+                    for (String methodName : new String[]{"unregisterProvider", "deregisterProvider", "removeProvider"}) {
+                        try {
+                            java.lang.reflect.Method[] methods = externalDataSVC.getClass().getMethods();
+                            for (java.lang.reflect.Method method : methods) {
+                                if (!method.getName().equals(methodName)) continue;
+                                if (method.getParameterCount() != 1) continue;
+                                Class<?> paramType = method.getParameterTypes()[0];
+                                if (!paramType.isAssignableFrom(dataProvider.getClass())) continue;
+                                method.invoke(externalDataSVC, dataProvider);
+                                unregistered = true;
+                                break;
+                            }
+
+                            if (unregistered) break;
+                        } catch (Exception ignored) {
+                        }
+
+                        if (unregistered) break;
+                    }
+
+                    if (unregistered) {
+                        Logs.logSuccess("Unregistered Oraxen data provider from Iris");
+                    } else {
+                        Logs.logWarning("Failed to unregister Oraxen data provider from Iris (no supported API method found)");
+                    }
+                }
+            } catch (Exception e) {
+                Logs.logWarning("Failed to unregister Oraxen data provider from Iris: " + e.getMessage());
+                if (io.th0rgal.oraxen.config.Settings.DEBUG.toBool()) {
+                    e.printStackTrace();
+                }
+            } finally {
+                dataProvider = null;
+            }
+        }
     }
 }
