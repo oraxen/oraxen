@@ -10,6 +10,7 @@ import com.volmit.iris.util.data.IrisCustomData;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.items.ItemBuilder;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.inventory.ItemStack;
@@ -68,7 +69,11 @@ public class OraxenDataProvider extends ExternalDataProvider {
         blockId = statePair.getA();
 
         if (OraxenBlocks.isOraxenBlock(blockId.key())) {
-            OraxenBlocks.place(blockId.key(), block.getLocation());
+            try {
+                OraxenBlocks.place(blockId.key(), block.getLocation());
+            } catch (Exception e) {
+                Logs.logWarning("Failed to place Oraxen block '" + blockId.key() + "' at " + block.getLocation() + " during Iris world generation: " + e.getMessage());
+            }
         }
     }
 
