@@ -1,8 +1,8 @@
 {
-  "oraxenVersion": "1.203.1",
+  "oraxenVersion": "1.204.0",
   "minecraftVersion": "1.21.11",
   "serverVersion": "1.21.11-R0.1-SNAPSHOT",
-  "generatedAt": "2026-01-03T14:04:37.349723751Z",
+  "generatedAt": "2026-01-14T14:02:09.901139017Z",
   "enums": {
     "Material": {
       "values": [
@@ -7506,6 +7506,30 @@
         }
       }
     },
+    "shaped_block": {
+      "category": "gameplay",
+      "description": "Allows creating custom stairs, slabs, doors, trapdoors, grates, and bulbs (transparent blocks) using waxed copper blocks as base",
+      "_source": "factory",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Type of shaped block: STAIR, SLAB, DOOR, TRAPDOOR, GRATE, BULB"
+        },
+        "custom_variation": {
+          "type": "integer",
+          "description": "Custom variation (1-4, maps to copper oxidation states)",
+          "default": 1,
+          "min": 1.0,
+          "max": 4.0
+        },
+        "hardness": {
+          "type": "integer",
+          "description": "Block hardness for mining",
+          "default": 3,
+          "min": -1.0
+        }
+      }
+    },
     "lifeleech": {
       "category": "combat",
       "description": "Heals the player when dealing damage to entities",
@@ -7776,6 +7800,10 @@
           "type": "object",
           "description": "Directional block configuration",
           "properties": {
+            "x_block": {
+              "type": "string",
+              "description": "X-axis variant ID"
+            },
             "y_block": {
               "type": "string",
               "description": "Y-axis variant ID"
@@ -7787,10 +7815,6 @@
             "z_block": {
               "type": "string",
               "description": "Z-axis variant ID"
-            },
-            "x_block": {
-              "type": "string",
-              "description": "X-axis variant ID"
             }
           }
         },
@@ -7814,23 +7838,23 @@
           "type": "object",
           "description": "Log stripping configuration",
           "properties": {
-            "stripped_log": {
-              "type": "string",
-              "description": "Stripped log block ID"
-            },
             "drop": {
               "type": "object",
               "description": "Item dropped on strip",
               "properties": {
-                "minecraft_type": {
-                  "type": "string",
-                  "description": "Vanilla item type"
-                },
                 "oraxen_item": {
                   "type": "string",
                   "description": "Oraxen item ID"
+                },
+                "minecraft_type": {
+                  "type": "string",
+                  "description": "Vanilla item type"
                 }
               }
+            },
+            "stripped_log": {
+              "type": "string",
+              "description": "Stripped log block ID"
             }
           }
         }
@@ -7919,14 +7943,14 @@
           "type": "object",
           "description": "Seat configuration for sittable furniture",
           "properties": {
-            "yaw": {
-              "type": "number",
-              "description": "Seat rotation",
-              "default": 0.0
-            },
             "height": {
               "type": "number",
               "description": "Seat height offset",
+              "default": 0.0
+            },
+            "yaw": {
+              "type": "number",
+              "description": "Seat rotation",
               "default": 0.0
             }
           }
@@ -7939,26 +7963,6 @@
           "type": "object",
           "description": "Display entity configuration",
           "properties": {
-            "brightness": {
-              "type": "object",
-              "description": "Light levels",
-              "properties": {
-                "block": {
-                  "type": "integer",
-                  "description": "Block light level",
-                  "default": 0,
-                  "min": 0,
-                  "max": 15
-                },
-                "sky": {
-                  "type": "integer",
-                  "description": "Sky light level",
-                  "default": 0,
-                  "min": 0,
-                  "max": 15
-                }
-              }
-            },
             "display_transform": {
               "type": "string",
               "description": "Display transform mode",
@@ -7973,6 +7977,26 @@
                 "GROUND",
                 "FIXED"
               ]
+            },
+            "brightness": {
+              "type": "object",
+              "description": "Light levels",
+              "properties": {
+                "sky": {
+                  "type": "integer",
+                  "description": "Sky light level",
+                  "default": 0,
+                  "min": 0,
+                  "max": 15
+                },
+                "block": {
+                  "type": "integer",
+                  "description": "Block light level",
+                  "default": 0,
+                  "min": 0,
+                  "max": 15
+                }
+              }
             }
           }
         },
@@ -7995,6 +8019,13 @@
           "type": "object",
           "description": "Storage container configuration",
           "properties": {
+            "rows": {
+              "type": "integer",
+              "description": "Number of inventory rows",
+              "default": 1,
+              "min": 1,
+              "max": 6
+            },
             "type": {
               "type": "string",
               "description": "Storage type",
@@ -8008,13 +8039,6 @@
             "title": {
               "type": "string",
               "description": "Inventory title"
-            },
-            "rows": {
-              "type": "integer",
-              "description": "Number of inventory rows",
-              "default": 1,
-              "min": 1,
-              "max": 6
             }
           }
         }
@@ -8200,6 +8224,14 @@
           "type": "object",
           "description": "Custom block sounds",
           "properties": {
+            "step_sound": {
+              "type": "string",
+              "description": "Sound when stepped on"
+            },
+            "break_sound": {
+              "type": "string",
+              "description": "Sound when broken"
+            },
             "hit_sound": {
               "type": "string",
               "description": "Sound when hit"
@@ -8211,14 +8243,6 @@
             "place_sound": {
               "type": "string",
               "description": "Sound when placed"
-            },
-            "step_sound": {
-              "type": "string",
-              "description": "Sound when stepped on"
-            },
-            "break_sound": {
-              "type": "string",
-              "description": "Sound when broken"
             }
           }
         },
@@ -8424,6 +8448,51 @@
         }
       }
     },
+    "backpack_cosmetic": {
+      "category": "cosmetic",
+      "description": "Displays a cosmetic backpack on the player\u0027s back using packet-based armor stands",
+      "_source": "factory",
+      "properties": {
+        "slot": {
+          "type": "string",
+          "description": "Equipment slot that triggers backpack display",
+          "default": "CHEST"
+        },
+        "model": {
+          "type": "string",
+          "description": "Model to display as the backpack"
+        },
+        "scale": {
+          "type": "number",
+          "description": "Scale of the backpack",
+          "default": 1.0,
+          "min": 0.1,
+          "max": 3.0
+        },
+        "view_distance": {
+          "type": "integer",
+          "description": "View distance in blocks",
+          "default": 48,
+          "min": 8.0,
+          "max": 128.0
+        },
+        "hide_in_spectator": {
+          "type": "boolean",
+          "description": "Hide backpack in spectator mode",
+          "default": true
+        },
+        "small": {
+          "type": "boolean",
+          "description": "Use small armor stand",
+          "default": false
+        },
+        "visible_to_self": {
+          "type": "boolean",
+          "description": "Whether the backpack is visible to the player themselves",
+          "default": true
+        }
+      }
+    },
     "knockback_strike": {
       "category": "combat",
       "description": "Knocks back enemies after a certain number of consecutive hits with particle effects",
@@ -8599,6 +8668,10 @@
           "type": "object",
           "description": "Sapling growth configuration",
           "properties": {
+            "grow_block": {
+              "type": "string",
+              "description": "Block ID when grown"
+            },
             "grow_chance": {
               "type": "number",
               "description": "Growth chance per check",
@@ -8612,10 +8685,6 @@
               "default": 9,
               "min": 0,
               "max": 15
-            },
-            "grow_block": {
-              "type": "string",
-              "description": "Block ID when grown"
             }
           }
         }
@@ -8625,16 +8694,16 @@
       "category": "farming",
       "description": "Allows breaking bedrock (requires ProtocolLib)",
       "properties": {
+        "delay": {
+          "type": "integer",
+          "description": "Break delay in ticks",
+          "min": 0
+        },
         "probability": {
           "type": "number",
           "description": "Chance to break (0-1)",
           "min": 0,
           "default": 1.0
-        },
-        "delay": {
-          "type": "integer",
-          "description": "Break delay in ticks",
-          "min": 0
         }
       }
     },

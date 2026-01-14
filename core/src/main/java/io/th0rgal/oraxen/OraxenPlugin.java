@@ -172,6 +172,10 @@ public class OraxenPlugin extends JavaPlugin {
     public void onDisable() {
         HandlerList.unregisterAll(this);
         FurnitureFactory.unregisterEvolution();
+
+        // Clean up backpack cosmetic entities to prevent ghost armor stands
+        io.th0rgal.oraxen.mechanics.provided.cosmetic.backpack.BackpackCosmeticManager.getInstance().cleanup();
+
         for (Player player : Bukkit.getOnlinePlayers())
             if (GlyphHandlers.isNms())
                 NMSHandlers.getHandler().glyphHandler().uninject(player);
