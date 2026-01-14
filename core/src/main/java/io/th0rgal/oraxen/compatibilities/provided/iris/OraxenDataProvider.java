@@ -33,10 +33,6 @@ public class OraxenDataProvider extends ExternalDataProvider {
     @NotNull
     @Override
     public BlockData getBlockData(@NotNull Identifier blockId, @NotNull KMap<String, String> state) throws MissingResourceException {
-        if (!OraxenItems.exists(blockId.key())) {
-            throw new MissingResourceException("Failed to find BlockData!", blockId.namespace(), blockId.key());
-        }
-
         if (!OraxenBlocks.isOraxenBlock(blockId.key())) {
             throw new MissingResourceException("Failed to find BlockData!", blockId.namespace(), blockId.key());
         }
@@ -60,7 +56,9 @@ public class OraxenDataProvider extends ExternalDataProvider {
         try {
             return builder.build();
         } catch (Exception e) {
-            throw new MissingResourceException("Failed to find ItemData!", itemId.namespace(), itemId.key());
+            MissingResourceException ex = new MissingResourceException("Failed to find ItemData!", itemId.namespace(), itemId.key());
+            ex.initCause(e);
+            throw ex;
         }
     }
 
