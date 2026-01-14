@@ -163,18 +163,19 @@ public class BackpackCosmeticListener implements Listener {
     private void checkAndUpdateBackpack(Player player) {
         if (!player.isOnline()) return;
 
-        if (player.getGameMode() == GameMode.SPECTATOR) {
+        BackpackSearchResult result = findBackpackItem(player);
+
+        if (result == null) {
             manager.hideBackpack(player);
             return;
         }
 
-        BackpackSearchResult result = findBackpackItem(player);
-
-        if (result != null) {
-            updateBackpackDisplay(player, result.mechanic, result.item);
-        } else {
+        if (player.getGameMode() == GameMode.SPECTATOR && result.mechanic.hideInSpectator()) {
             manager.hideBackpack(player);
+            return;
         }
+
+        updateBackpackDisplay(player, result.mechanic, result.item);
     }
 
     /**
