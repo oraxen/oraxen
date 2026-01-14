@@ -186,7 +186,7 @@ leather_backpack:
   material: PAPER
   Pack:
     generate_model: false
-    model: items/bag
+    model: default/bag
   Mechanics:
     # Storage functionality - right-click to open
     backpack:

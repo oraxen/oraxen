@@ -163,85 +163,122 @@ public class BackpackCosmeticListener implements Listener {
     private void checkAndUpdateBackpack(Player player) {
         if (!player.isOnline()) return;
 
-        // Debug: io.th0rgal.oraxen.utils.logs.Logs.logSuccess("[Backpack] Checking equipment for " + player.getName());
-
-        // Check spectator mode
         if (player.getGameMode() == GameMode.SPECTATOR) {
             manager.hideBackpack(player);
             return;
         }
 
+        BackpackSearchResult result = findBackpackItem(player);
+
+        if (result != null) {
+            updateBackpackDisplay(player, result.mechanic, result.item);
+        } else {
+            manager.hideBackpack(player);
+        }
+    }
+
+    /**
+     * Search result containing the found backpack mechanic and item.
+     */
+    private record BackpackSearchResult(BackpackCosmeticMechanic mechanic, ItemStack item) {}
+
+    /**
+     * Find a backpack item in the player's equipment or inventory.
+     * First checks equipment slots for slot-based triggers, then inventory for inventory-based triggers.
+     */
+    private BackpackSearchResult findBackpackItem(Player player) {
         PlayerInventory inv = player.getInventory();
-        BackpackCosmeticMechanic foundMechanic = null;
-        ItemStack foundItem = null;
 
         // First, check equipment slots for slot-based triggers
-        // Only check player-valid slots (skip BODY which is for wolf armor)
-        EquipmentSlot[] playerSlots = {EquipmentSlot.HAND, EquipmentSlot.OFF_HAND, EquipmentSlot.FEET, EquipmentSlot.LEGS, EquipmentSlot.CHEST, EquipmentSlot.HEAD};
-        for (EquipmentSlot slot : playerSlots) {
-            ItemStack item = inv.getItem(slot);
-            if (item == null || item.getType().isAir()) continue;
-
-            String itemId = OraxenItems.getIdByItem(item);
-            if (itemId == null) continue;
-
-            Mechanic mechanic = factory.getMechanic(itemId);
-            if (mechanic instanceof BackpackCosmeticMechanic backpackMechanic) {
-                // Slot-based trigger: must be in the specific slot
-                if (!backpackMechanic.triggersFromInventory() && backpackMechanic.getTriggerSlot() == slot) {
-                    // Debug: io.th0rgal.oraxen.utils.logs.Logs.logSuccess("[Backpack] Found backpack in trigger slot: " + slot);
-                    foundMechanic = backpackMechanic;
-                    foundItem = item;
-                    break;
-                }
-            }
+        BackpackSearchResult slotResult = findSlotBasedBackpack(inv);
+        if (slotResult != null) {
+            return slotResult;
         }
 
         // If no slot-based trigger found, check inventory for inventory-based triggers
-        if (foundMechanic == null) {
-            // Get held item slot to exclude it (slot 40 is offhand, getHeldItemSlot is main hand)
-            int heldSlot = inv.getHeldItemSlot();
-            int offHandSlot = 40;
+        return findInventoryBasedBackpack(inv);
+    }
 
-            // Check entire inventory (excluding hands by slot index)
-            ItemStack[] contents = inv.getContents();
-            for (int slot = 0; slot < contents.length; slot++) {
-                // Skip hand slots
-                if (slot == heldSlot || slot == offHandSlot) continue;
-
-                ItemStack item = contents[slot];
-                if (item == null || item.getType().isAir()) continue;
-
-                String itemId = OraxenItems.getIdByItem(item);
-                if (itemId == null) continue;
-
-                Mechanic mechanic = factory.getMechanic(itemId);
-                if (mechanic instanceof BackpackCosmeticMechanic backpackMechanic) {
-                    // Inventory-based trigger: anywhere except hands
-                    if (backpackMechanic.triggersFromInventory()) {
-                        // Debug: io.th0rgal.oraxen.utils.logs.Logs.logSuccess("[Backpack] Found backpack in inventory (not hands)");
-                        foundMechanic = backpackMechanic;
-                        foundItem = item;
-                        break;
-                    }
-                }
-            }
+    /**
+     * Check equipment slots for slot-based backpack triggers.
+     */
+    private BackpackSearchResult findSlotBasedBackpack(PlayerInventory inv) {
+        // Only check player-valid slots (skip BODY which is for wolf armor)
+        EquipmentSlot[] playerSlots = {EquipmentSlot.HAND, EquipmentSlot.OFF_HAND, EquipmentSlot.FEET, EquipmentSlot.LEGS, EquipmentSlot.CHEST, EquipmentSlot.HEAD};
+        for (EquipmentSlot slot : playerSlots) {
+            BackpackSearchResult result = findSlotBasedBackpack(inv, slot);
+            if (result != null) return result;
         }
+        return null;
+    }
 
-        if (foundMechanic != null) {
-            // Show or update backpack
-            BackpackCosmeticManager.BackpackData currentData = manager.getBackpackData(player);
-            boolean needsUpdate = currentData == null ||
-                currentData.getMechanic() != foundMechanic ||
-                !foundItem.isSimilar(currentData.getDisplayItem());
+    /**
+     * Check inventory (excluding hands) for inventory-based backpack triggers.
+     */
+    private BackpackSearchResult findInventoryBasedBackpack(PlayerInventory inv) {
+        int heldSlot = inv.getHeldItemSlot();
+        int offHandSlot = 40;
 
-            if (needsUpdate) {
-                // Debug: io.th0rgal.oraxen.utils.logs.Logs.logSuccess("[Backpack] Showing backpack for " + player.getName());
-                manager.showBackpack(player, foundMechanic, foundItem);
-            }
-        } else {
-            // Hide backpack if no backpack item found
-            manager.hideBackpack(player);
+        ItemStack[] contents = inv.getContents();
+        for (int slot = 0; slot < contents.length; slot++) {
+            BackpackSearchResult result = findInventoryBackpack(contents, slot, heldSlot, offHandSlot);
+            if (result != null) return result;
+        }
+        return null;
+    }
+
+    private BackpackSearchResult findSlotBasedBackpack(PlayerInventory inv, EquipmentSlot slot) {
+        ItemStack item = inv.getItem(slot);
+        if (isEmptyItem(item)) return null;
+
+        BackpackCosmeticMechanic mechanic = getBackpackMechanic(item);
+        if (mechanic == null) return null;
+        if (mechanic.triggersFromInventory() || mechanic.getTriggerSlot() != slot) return null;
+
+        return new BackpackSearchResult(mechanic, item);
+    }
+
+    private BackpackSearchResult findInventoryBackpack(ItemStack[] contents, int slot, int heldSlot, int offHandSlot) {
+        if (slot == heldSlot || slot == offHandSlot) return null;
+
+        ItemStack item = contents[slot];
+        if (isEmptyItem(item)) return null;
+
+        BackpackCosmeticMechanic mechanic = getBackpackMechanic(item);
+        if (mechanic == null || !mechanic.triggersFromInventory()) return null;
+
+        return new BackpackSearchResult(mechanic, item);
+    }
+
+    private boolean isEmptyItem(ItemStack item) {
+        return item == null || item.getType().isAir();
+    }
+
+    /**
+     * Get the BackpackCosmeticMechanic for an item, or null if not a backpack item.
+     */
+    private BackpackCosmeticMechanic getBackpackMechanic(ItemStack item) {
+        String itemId = OraxenItems.getIdByItem(item);
+        if (itemId == null) return null;
+
+        Mechanic mechanic = factory.getMechanic(itemId);
+        if (mechanic instanceof BackpackCosmeticMechanic backpackMechanic) {
+            return backpackMechanic;
+        }
+        return null;
+    }
+
+    /**
+     * Update the backpack display if needed.
+     */
+    private void updateBackpackDisplay(Player player, BackpackCosmeticMechanic mechanic, ItemStack item) {
+        BackpackCosmeticManager.BackpackData currentData = manager.getBackpackData(player);
+        boolean needsUpdate = currentData == null ||
+            currentData.getMechanic() != mechanic ||
+            !item.isSimilar(currentData.getDisplayItem());
+
+        if (needsUpdate) {
+            manager.showBackpack(player, mechanic, item);
         }
     }
 
