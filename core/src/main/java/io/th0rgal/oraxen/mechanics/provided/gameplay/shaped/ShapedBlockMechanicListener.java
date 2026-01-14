@@ -66,7 +66,7 @@ public class ShapedBlockMechanicListener implements Listener {
      */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlaceVanillaWaxed(BlockPlaceEvent event) {
-        if (!factory.convertVanillaWaxed()) return;
+        if (!shouldHandleVanillaWaxed()) return;
 
         Block placed = event.getBlockPlaced();
         Material material = placed.getType();
@@ -98,7 +98,7 @@ public class ShapedBlockMechanicListener implements Listener {
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onWaxVanillaCopper(PlayerInteractEvent event) {
-        if (!factory.convertVanillaWaxed()) return;
+        if (!shouldHandleVanillaWaxed()) return;
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (event.getHand() != EquipmentSlot.HAND) return;
         if (event.useItemInHand() == Event.Result.DENY) return;
@@ -137,7 +137,7 @@ public class ShapedBlockMechanicListener implements Listener {
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onUnwaxVanillaCopper(PlayerInteractEvent event) {
-        if (!factory.convertVanillaWaxed()) return;
+        if (!shouldHandleVanillaWaxed()) return;
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (event.getHand() != EquipmentSlot.HAND) return;
         if (event.useItemInHand() == Event.Result.DENY) return;
@@ -167,6 +167,7 @@ public class ShapedBlockMechanicListener implements Listener {
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onUnwaxCustomBlock(PlayerInteractEvent event) {
+        if (!factory.hasCustomBlocks()) return;
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (event.getHand() != EquipmentSlot.HAND) return;
         if (event.useItemInHand() == Event.Result.DENY) return;
@@ -177,8 +178,8 @@ public class ShapedBlockMechanicListener implements Listener {
         ItemStack item = event.getItem();
         if (item == null || !Tag.ITEMS_AXES.isTagged(item.getType())) return;
 
-        // Check if it's a custom shaped block (waxed copper)
-        if (!ShapedBlockType.isWaxedCopper(block.getType())) return;
+        // Only prevent unwaxing actual custom shaped blocks
+        if (getMechanicFromBlock(block) == null) return;
 
         // Prevent unwaxing custom blocks
         event.setCancelled(true);
@@ -189,7 +190,7 @@ public class ShapedBlockMechanicListener implements Listener {
      */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onOxidize(BlockFormEvent event) {
-        if (!factory.convertVanillaWaxed()) return;
+        if (!shouldHandleVanillaWaxed()) return;
 
         Block block = event.getBlock();
         Material newType = event.getNewState().getType();
@@ -214,7 +215,7 @@ public class ShapedBlockMechanicListener implements Listener {
      */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onChunkLoad(ChunkLoadEvent event) {
-        if (!factory.handleWorldGeneration()) return;
+        if (!factory.handleWorldGeneration() || !factory.hasCustomBlocks()) return;
         if (!event.isNewChunk()) return;
 
         Chunk chunk = event.getChunk();
@@ -259,6 +260,10 @@ public class ShapedBlockMechanicListener implements Listener {
             Logs.logInfo("[ShapedBlock] Converted " + converted + " waxed copper blocks in chunk " +
                 chunk.getX() + ", " + chunk.getZ());
         }
+    }
+
+    private boolean shouldHandleVanillaWaxed() {
+        return factory.convertVanillaWaxed() && factory.hasCustomBlocks();
     }
 
     // ==================== CUSTOM BLOCK PLACEMENT ====================

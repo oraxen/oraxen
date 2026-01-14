@@ -858,4 +858,11 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
     public Map<Material, ShapedBlockMechanic> getAllMechanics() {
         return new HashMap<>(mechanicByMaterial);
     }
+
+    /**
+     * Whether any shaped block mechanics are registered.
+     */
+    public boolean hasCustomBlocks() {
+        return !mechanicByMaterial.isEmpty();
+    }
 }
