@@ -76,7 +76,7 @@ public class OraxenDataProvider extends ExternalDataProvider {
 
     @Override
     public @NotNull Collection<Identifier> getTypes(@NotNull DataType dataType) {
-        if (dataType == DataType.ENTITY) return List.of();
+        if ("ENTITY".equalsIgnoreCase(dataType.name())) return List.of();
         return Arrays.stream(OraxenItems.getItemNames())
                 .map(i -> new Identifier("oraxen", i))
                 .filter(dataType.asPredicate(this))
@@ -85,7 +85,9 @@ public class OraxenDataProvider extends ExternalDataProvider {
 
     @Override
     public boolean isValidProvider(@NotNull Identifier id, DataType dataType) {
-        if (dataType == DataType.ENTITY) return false;
-        return "oraxen".equalsIgnoreCase(id.namespace());
+        if ("ENTITY".equalsIgnoreCase(dataType.name())) return false;
+        if (!"oraxen".equalsIgnoreCase(id.namespace())) return false;
+        if ("BLOCK".equalsIgnoreCase(dataType.name())) return OraxenBlocks.isOraxenBlock(id.key());
+        return OraxenItems.exists(id.key());
     }
 }
