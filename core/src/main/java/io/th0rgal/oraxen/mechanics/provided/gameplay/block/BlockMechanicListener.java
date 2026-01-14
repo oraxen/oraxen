@@ -103,6 +103,7 @@ public class BlockMechanicListener implements Listener {
         final String itemID = OraxenItems.getIdByItem(item);
         final Block placedAgainst = event.getClickedBlock();
         if (factory.isNotImplementedIn(itemID) || placedAgainst == null) return;
+        if (!event.getPlayer().isSneaking() && BlockHelpers.isInteractable(placedAgainst)) return;
 
         final Player player = event.getPlayer();
         final Block target;

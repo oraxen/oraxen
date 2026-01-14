@@ -280,6 +280,7 @@ public class ShapedBlockMechanicListener implements Listener {
 
         Block clickedBlock = event.getClickedBlock();
         if (clickedBlock == null) return;
+        if (!player.isSneaking() && BlockHelpers.isInteractable(clickedBlock)) return;
 
         BlockFace face = event.getBlockFace();
         Block targetBlock = getTargetBlock(clickedBlock, face);
@@ -433,71 +434,94 @@ public class ShapedBlockMechanicListener implements Listener {
 
         Player player = event.getPlayer();
 
-        // Check protection plugins before allowing break
         if (!ProtectionLib.canBreak(player, block.getLocation())) {
             event.setCancelled(true);
             return;
         }
 
-        // Handle drops
         event.setDropItems(false);
-        if (player.getGameMode() != GameMode.CREATIVE) {
-            Drop drop = mechanic.getDrop();
-            if (drop != null) {
-                // Double slabs should drop twice
-                int dropCount = 1;
-                if (mechanic.getBlockType() == ShapedBlockType.SLAB) {
-                    BlockData data = block.getBlockData();
-                    if (data instanceof Slab slab && slab.getType() == Slab.Type.DOUBLE) {
-                        dropCount = 2;
-                    }
-                }
-                ItemStack tool = player.getInventory().getItemInMainHand();
-                for (int i = 0; i < dropCount; i++) {
-                    drop.spawns(block.getLocation(), tool);
-                }
-            }
-        }
+        handleBlockDrops(block, player, mechanic);
+        playBreakSound(block, mechanic);
+        cleanupBlockOnBreak(block, mechanic);
+        schedulePostBreakUpdates(block, mechanic);
+    }
 
-        // Play break sound
-        if (mechanic.hasBlockSounds()) {
-            BlockSounds sounds = mechanic.getBlockSounds();
-            if (sounds.hasBreakSound()) {
-                BlockHelpers.playCustomBlockSound(block.getLocation(), sounds.getBreakSound(), sounds.getBreakVolume(), sounds.getBreakPitch());
-            }
-        }
+    private void handleBlockDrops(Block block, Player player, ShapedBlockMechanic mechanic) {
+        if (player.getGameMode() == GameMode.CREATIVE) return;
 
-        // Remove any minecraft:light blocks placed by this mechanic
+        Drop drop = mechanic.getDrop();
+        if (drop == null) return;
+
+        int dropCount = getDropCount(block, mechanic);
+        ItemStack tool = player.getInventory().getItemInMainHand();
+        for (int i = 0; i < dropCount; i++) {
+            drop.spawns(block.getLocation(), tool);
+        }
+    }
+
+    private int getDropCount(Block block, ShapedBlockMechanic mechanic) {
+        if (mechanic.getBlockType() != ShapedBlockType.SLAB) return 1;
+
+        BlockData data = block.getBlockData();
+        if (data instanceof Slab slab && slab.getType() == Slab.Type.DOUBLE) {
+            return 2;
+        }
+        return 1;
+    }
+
+    private void playBreakSound(Block block, ShapedBlockMechanic mechanic) {
+        if (!mechanic.hasBlockSounds()) return;
+
+        BlockSounds sounds = mechanic.getBlockSounds();
+        if (sounds.hasBreakSound()) {
+            BlockHelpers.playCustomBlockSound(block.getLocation(), sounds.getBreakSound(), sounds.getBreakVolume(), sounds.getBreakPitch());
+        }
+    }
+
+    private void cleanupBlockOnBreak(Block block, ShapedBlockMechanic mechanic) {
+        removeBlockLight(block, mechanic);
+        clearCustomBlockData(block);
+        cleanupDoorOtherHalfIfNeeded(block, mechanic);
+    }
+
+    private void removeBlockLight(Block block, ShapedBlockMechanic mechanic) {
         if (mechanic.hasLight()) {
             mechanic.getLight().removeBlockLight(block);
         }
+    }
 
-        // Clean up custom block data
+    private void clearCustomBlockData(Block block) {
         CustomBlockData blockData = new CustomBlockData(block, OraxenPlugin.get());
         blockData.remove(ShapedBlockMechanic.SHAPED_BLOCK_KEY);
+    }
 
-        // For doors, also break the other half
+    private void cleanupDoorOtherHalfIfNeeded(Block block, ShapedBlockMechanic mechanic) {
         if (mechanic.getBlockType() == ShapedBlockType.DOOR) {
-            BlockData data = block.getBlockData();
-            if (data instanceof org.bukkit.block.data.type.Door door) {
-                Block otherHalf = door.getHalf() == org.bukkit.block.data.Bisected.Half.BOTTOM
-                    ? block.getRelative(BlockFace.UP)
-                    : block.getRelative(BlockFace.DOWN);
-                if (mechanic.hasLight()) {
-                    mechanic.getLight().removeBlockLight(otherHalf);
-                }
-                // Clean up the other half's data
-                CustomBlockData otherBlockData = new CustomBlockData(otherHalf, OraxenPlugin.get());
-                otherBlockData.remove(ShapedBlockMechanic.SHAPED_BLOCK_KEY);
-            }
+            cleanupDoorOtherHalf(block, mechanic);
+        }
+    }
+
+    private void cleanupDoorOtherHalf(Block block, ShapedBlockMechanic mechanic) {
+        BlockData data = block.getBlockData();
+        if (!(data instanceof org.bukkit.block.data.type.Door door)) return;
+
+        Block otherHalf = door.getHalf() == org.bukkit.block.data.Bisected.Half.BOTTOM
+            ? block.getRelative(BlockFace.UP)
+            : block.getRelative(BlockFace.DOWN);
+
+        if (mechanic.hasLight()) {
+            mechanic.getLight().removeBlockLight(otherHalf);
         }
 
-        // For stairs, update adjacent stair shapes after this block is removed
-        if (mechanic.getBlockType() == ShapedBlockType.STAIR) {
-            // Schedule for next tick since the block hasn't been removed yet
-            Block blockRef = block;
-            SchedulerUtil.runTaskLater(1L, () -> updateAdjacentStairShapes(blockRef));
-        }
+        CustomBlockData otherBlockData = new CustomBlockData(otherHalf, OraxenPlugin.get());
+        otherBlockData.remove(ShapedBlockMechanic.SHAPED_BLOCK_KEY);
+    }
+
+    private void schedulePostBreakUpdates(Block block, ShapedBlockMechanic mechanic) {
+        if (mechanic.getBlockType() != ShapedBlockType.STAIR) return;
+
+        Block blockRef = block;
+        SchedulerUtil.runTaskLater(1L, () -> updateAdjacentStairShapes(blockRef));
     }
 
     // ==================== HELPER METHODS ====================
@@ -696,46 +720,79 @@ public class ShapedBlockMechanicListener implements Listener {
     /**
      * Calculate the stair shape based on adjacent stairs.
      * This follows vanilla Minecraft's stair connection logic.
+     *
+     * Logic (inverted for custom stair visuals):
+     * 1. Check the block in front (in facing direction) for outer corners
+     * 2. Check the block behind (opposite to facing) for inner corners
+     * 3. The adjacent stair must be perpendicular and pass canTakeShape check
+     *
+     * For left/right determination:
+     * - If adjacent stair faces counterClockWise of our facing -> LEFT variant
+     * - Otherwise -> RIGHT variant
+     *
+     * Corner types:
+     * - OUTER = convex corner (material extended) - when perpendicular stair is in front
+     * - INNER = concave corner (material cut in) - when perpendicular stair is behind
      */
     private org.bukkit.block.data.type.Stairs.Shape calculateStairShape(Block block, org.bukkit.block.data.type.Stairs stairs) {
         BlockFace facing = stairs.getFacing();
         org.bukkit.block.data.Bisected.Half half = stairs.getHalf();
 
-        // Check the block behind (in the direction the stair is facing)
-        Block backBlock = block.getRelative(facing);
-        org.bukkit.block.data.type.Stairs backStairs = getStairsData(backBlock);
-
-        if (backStairs != null && backStairs.getHalf() == half) {
-            BlockFace backFacing = backStairs.getFacing();
-            // Check if back stair is perpendicular to this one
-            if (isPerpendicularTo(facing, backFacing)) {
-                // Inner corner
-                if (backFacing == rotateClockwise(facing)) {
-                    return org.bukkit.block.data.type.Stairs.Shape.INNER_RIGHT;
-                } else {
-                    return org.bukkit.block.data.type.Stairs.Shape.INNER_LEFT;
-                }
-            }
-        }
-
-        // Check the block in front (opposite to facing direction)
-        Block frontBlock = block.getRelative(facing.getOppositeFace());
+        // Check FRONT block for OUTER corners (convex - stair turns away from adjacent)
+        Block frontBlock = block.getRelative(facing);
         org.bukkit.block.data.type.Stairs frontStairs = getStairsData(frontBlock);
 
         if (frontStairs != null && frontStairs.getHalf() == half) {
             BlockFace frontFacing = frontStairs.getFacing();
-            // Check if front stair is perpendicular to this one
-            if (isPerpendicularTo(facing, frontFacing)) {
-                // Outer corner
-                if (frontFacing == rotateClockwise(facing)) {
-                    return org.bukkit.block.data.type.Stairs.Shape.OUTER_RIGHT;
-                } else {
+            // The front stair must be perpendicular to form an outer corner
+            if (isPerpendicularTo(facing, frontFacing) && canTakeShape(block, stairs, frontFacing.getOppositeFace())) {
+                if (frontFacing == rotateCounterClockwise(facing)) {
                     return org.bukkit.block.data.type.Stairs.Shape.OUTER_LEFT;
+                } else {
+                    return org.bukkit.block.data.type.Stairs.Shape.OUTER_RIGHT;
+                }
+            }
+        }
+
+        // Check BACK block for INNER corners (concave - stair turns toward adjacent)
+        Block backBlock = block.getRelative(facing.getOppositeFace());
+        org.bukkit.block.data.type.Stairs backStairs = getStairsData(backBlock);
+
+        if (backStairs != null && backStairs.getHalf() == half) {
+            BlockFace backFacing = backStairs.getFacing();
+            // The back stair must be perpendicular to form an inner corner
+            if (isPerpendicularTo(facing, backFacing) && canTakeShape(block, stairs, backFacing)) {
+                if (backFacing == rotateCounterClockwise(facing)) {
+                    return org.bukkit.block.data.type.Stairs.Shape.INNER_LEFT;
+                } else {
+                    return org.bukkit.block.data.type.Stairs.Shape.INNER_RIGHT;
                 }
             }
         }
 
         return org.bukkit.block.data.type.Stairs.Shape.STRAIGHT;
+    }
+
+    /**
+     * Check if the stair can take a corner shape in the given direction.
+     * This prevents invalid corner shapes when another stair would block it.
+     *
+     * Returns true if:
+     * - The block in that direction is NOT a stair, OR
+     * - The stair has a different facing than ours, OR
+     * - The stair has a different half than ours
+     */
+    private boolean canTakeShape(Block block, org.bukkit.block.data.type.Stairs stairs, BlockFace direction) {
+        Block adjacentBlock = block.getRelative(direction);
+        org.bukkit.block.data.type.Stairs adjacentStairs = getStairsData(adjacentBlock);
+
+        if (adjacentStairs == null) {
+            return true; // Not a stair, can take shape
+        }
+
+        // Can take shape if the adjacent stair differs in facing or half
+        return adjacentStairs.getFacing() != stairs.getFacing() ||
+               adjacentStairs.getHalf() != stairs.getHalf();
     }
 
     /**
@@ -765,6 +822,19 @@ public class ShapedBlockMechanicListener implements Listener {
             case EAST -> BlockFace.SOUTH;
             case SOUTH -> BlockFace.WEST;
             case WEST -> BlockFace.NORTH;
+            default -> face;
+        };
+    }
+
+    /**
+     * Rotate a block face 90 degrees counter-clockwise (on the horizontal plane).
+     */
+    private BlockFace rotateCounterClockwise(BlockFace face) {
+        return switch (face) {
+            case NORTH -> BlockFace.WEST;
+            case WEST -> BlockFace.SOUTH;
+            case SOUTH -> BlockFace.EAST;
+            case EAST -> BlockFace.NORTH;
             default -> face;
         };
     }
