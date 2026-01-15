@@ -107,9 +107,10 @@ public class RecipesManager {
         for (String recipeName : disabledRecipes) {
             NamespacedKey key = NamespacedKey.fromString(recipeName);
             if (key != null) {
-                if (Bukkit.removeRecipe(key))
-                    Logs.logInfo("Disabled recipe: " + key);
-                else
+                if (Bukkit.removeRecipe(key)) {
+                    if (Settings.DEBUG.toBool())
+                        Logs.logInfo("Successfully disabled recipe " + key);
+                } else
                     Logs.logWarning("Could not disable recipe (not found): " + key);
             } else {
                 Logs.logWarning("Invalid recipe key in disabled.yml: " + recipeName);
