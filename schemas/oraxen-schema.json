@@ -2,7 +2,7 @@
   "oraxenVersion": "1.204.0",
   "minecraftVersion": "1.21.11",
   "serverVersion": "1.21.11-R0.1-SNAPSHOT",
-  "generatedAt": "2026-01-14T14:58:00.189510405Z",
+  "generatedAt": "2026-01-17T17:50:45.540798279Z",
   "enums": {
     "Material": {
       "values": [
@@ -7822,15 +7822,15 @@
           "type": "object",
           "description": "Farm block configuration",
           "properties": {
+            "dry_block": {
+              "type": "string",
+              "description": "Block ID when dried"
+            },
             "moisture": {
               "type": "integer",
               "description": "Moisture level",
               "default": 0,
               "min": 0
-            },
-            "dry_block": {
-              "type": "string",
-              "description": "Block ID when dried"
             }
           }
         },
@@ -7963,6 +7963,47 @@
           "type": "object",
           "description": "Display entity configuration",
           "properties": {
+            "scale": {
+              "type": "object",
+              "description": "Scale of the display entity",
+              "properties": {
+                "y": {
+                  "type": "number",
+                  "description": "Y-axis scale",
+                  "default": 1.0
+                },
+                "z": {
+                  "type": "number",
+                  "description": "Z-axis scale",
+                  "default": 1.0
+                },
+                "x": {
+                  "type": "number",
+                  "description": "X-axis scale",
+                  "default": 1.0
+                }
+              }
+            },
+            "brightness": {
+              "type": "object",
+              "description": "Light levels",
+              "properties": {
+                "block": {
+                  "type": "integer",
+                  "description": "Block light level",
+                  "default": 0,
+                  "min": 0,
+                  "max": 15
+                },
+                "sky": {
+                  "type": "integer",
+                  "description": "Sky light level",
+                  "default": 0,
+                  "min": 0,
+                  "max": 15
+                }
+              }
+            },
             "display_transform": {
               "type": "string",
               "description": "Display transform mode",
@@ -7978,65 +8019,24 @@
                 "FIXED"
               ]
             },
-            "scale": {
-              "type": "object",
-              "description": "Scale of the display entity",
-              "properties": {
-                "x": {
-                  "type": "number",
-                  "description": "X-axis scale",
-                  "default": 1.0
-                },
-                "y": {
-                  "type": "number",
-                  "description": "Y-axis scale",
-                  "default": 1.0
-                },
-                "z": {
-                  "type": "number",
-                  "description": "Z-axis scale",
-                  "default": 1.0
-                }
-              }
-            },
             "translation": {
               "type": "object",
-              "description": "Position offset of the display entity (in blocks)",
+              "description": "Position offset in blocks",
               "properties": {
-                "x": {
-                  "type": "number",
-                  "description": "X-axis offset in blocks",
-                  "default": 0.0
-                },
                 "y": {
                   "type": "number",
-                  "description": "Y-axis offset in blocks",
+                  "description": "Y-axis offset",
                   "default": 0.0
                 },
                 "z": {
                   "type": "number",
-                  "description": "Z-axis offset in blocks",
+                  "description": "Z-axis offset",
                   "default": 0.0
-                }
-              }
-            },
-            "brightness": {
-              "type": "object",
-              "description": "Light levels",
-              "properties": {
-                "sky": {
-                  "type": "integer",
-                  "description": "Sky light level",
-                  "default": 0,
-                  "min": 0,
-                  "max": 15
                 },
-                "block": {
-                  "type": "integer",
-                  "description": "Block light level",
-                  "default": 0,
-                  "min": 0,
-                  "max": 15
+                "x": {
+                  "type": "number",
+                  "description": "X-axis offset",
+                  "default": 0.0
                 }
               }
             }
@@ -8061,6 +8061,10 @@
           "type": "object",
           "description": "Storage container configuration",
           "properties": {
+            "title": {
+              "type": "string",
+              "description": "Inventory title"
+            },
             "rows": {
               "type": "integer",
               "description": "Number of inventory rows",
@@ -8077,10 +8081,6 @@
                 "ENDERCHEST",
                 "DISPOSAL"
               ]
-            },
-            "title": {
-              "type": "string",
-              "description": "Inventory title"
             }
           }
         }
@@ -8710,6 +8710,13 @@
           "type": "object",
           "description": "Sapling growth configuration",
           "properties": {
+            "min_light": {
+              "type": "integer",
+              "description": "Minimum light level to grow",
+              "default": 9,
+              "min": 0,
+              "max": 15
+            },
             "grow_block": {
               "type": "string",
               "description": "Block ID when grown"
@@ -8720,13 +8727,6 @@
               "default": 0.1,
               "min": 0.0,
               "max": 1.0
-            },
-            "min_light": {
-              "type": "integer",
-              "description": "Minimum light level to grow",
-              "default": 9,
-              "min": 0,
-              "max": 15
             }
           }
         }
@@ -8736,16 +8736,16 @@
       "category": "farming",
       "description": "Allows breaking bedrock (requires ProtocolLib)",
       "properties": {
-        "delay": {
-          "type": "integer",
-          "description": "Break delay in ticks",
-          "min": 0
-        },
         "probability": {
           "type": "number",
           "description": "Chance to break (0-1)",
           "min": 0,
           "default": 1.0
+        },
+        "delay": {
+          "type": "integer",
+          "description": "Break delay in ticks",
+          "min": 0
         }
       }
     },
