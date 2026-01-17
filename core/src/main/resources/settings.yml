@@ -183,6 +183,8 @@ Pack:
     send_on_reload: true
     delay: -1
     mandatory: true
+    disable_movement_on_load: true # If true, players will not be able to move while the pack is loading
+    disable_damage_on_load: true # If true, players will not take damage while the pack is loading
     prompt: "<#fa4943>Accept the pack to enjoy a full <b><gradient:#9055FF:#13E2DA>Oraxen</b><#fa4943> experience"
     join_message:
       enabled: false
