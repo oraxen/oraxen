@@ -19,11 +19,10 @@ import java.util.List;
 public class GlyphCommand {
 
     public CommandAPICommand getGlyphCommand() {
-        List<Glyph> emojiList = OraxenPlugin.get().getFontManager().getEmojis().stream().toList();
-
         return new CommandAPICommand("emojis")
                 .withPermission("oraxen.command.emojis").withPermission("oraxen.command.emoji")
                 .executes((sender, args) -> {
+                    List<Glyph> emojiList = OraxenPlugin.get().getFontManager().getEmojis().stream().toList();
                     Player player = ((Player) sender);
                     boolean onlyShowPermissable = Settings.SHOW_PERMISSION_EMOJIS.toBool();
 
