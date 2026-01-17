@@ -170,6 +170,9 @@ public class ResourcePack {
                         continue;
                     if (folder.getName().equals("uploads"))
                         continue;
+                    // Skip macOS metadata directories
+                    if (folder.getName().equals("__MACOSX"))
+                        continue;
                     getAllFiles(folder, output,
                             folder.getName().matches("models|textures|lang|font|sounds") ? "assets/minecraft" : "");
                 }
