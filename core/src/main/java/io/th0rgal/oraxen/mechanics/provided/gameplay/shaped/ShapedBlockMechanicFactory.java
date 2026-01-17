@@ -614,24 +614,21 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
         model.addProperty("model", modelPath);
 
         // Calculate rotations based on facing, half, and shape
+        // This follows vanilla Minecraft's stair rotation logic:
+        // - Bottom half: _left shapes rotate -90 (270), _right and straight use base rotation
+        // - Top half: _right shapes rotate +90, _left and straight use base rotation
         int x = half.equals("top") ? 180 : 0;
         int y = baseY;
 
-        // Adjust y rotation for shape variants
-        if (shape.equals("inner_left") || shape.equals("outer_left")) {
-            y = (y + 270) % 360;
-        }
-        if (half.equals("top")) {
-            if (shape.equals("straight")) {
-                y = (y + 180) % 360;
-            } else if (shape.equals("inner_left")) {
+        if (half.equals("bottom")) {
+            // Bottom half: _left shapes rotate -90 (270)
+            if (shape.equals("inner_left") || shape.equals("outer_left")) {
                 y = (y + 270) % 360;
-            } else if (shape.equals("inner_right")) {
-                y = (y + 180) % 360;
-            } else if (shape.equals("outer_left")) {
-                y = (y + 270) % 360;
-            } else if (shape.equals("outer_right")) {
-                y = (y + 180) % 360;
+            }
+        } else {
+            // Top half: _right shapes rotate +90
+            if (shape.equals("inner_right") || shape.equals("outer_right")) {
+                y = (y + 90) % 360;
             }
         }
 
