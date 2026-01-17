@@ -252,7 +252,12 @@ public class PackMergerIntegrationTest {
                     }
 
                     String fileName = getFileName(normalizedPath);
-                    if (".DS_Store".equals(fileName) || "__MACOSX".equals(fileName) || normalizedPath.contains("/__MACOSX/")) {
+                    // Replicate the exact filtering logic from PackMerger.shouldIgnoreNormalizedPath()
+                    if (".DS_Store".equals(fileName) || "Thumbs.db".equalsIgnoreCase(fileName) || "desktop.ini".equalsIgnoreCase(fileName)) {
+                        zis.closeEntry();
+                        continue;
+                    }
+                    if (normalizedPath.startsWith("__MACOSX/") || normalizedPath.contains("/__MACOSX/")) {
                         zis.closeEntry();
                         continue;
                     }
