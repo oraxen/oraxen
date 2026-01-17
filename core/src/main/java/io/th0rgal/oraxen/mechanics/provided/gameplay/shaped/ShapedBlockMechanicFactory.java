@@ -103,7 +103,13 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
 
     @Override
     public Mechanic parse(ConfigurationSection section) {
-        ShapedBlockMechanic mechanic = new ShapedBlockMechanic(this, section);
+        ShapedBlockMechanic mechanic;
+        try {
+            mechanic = new ShapedBlockMechanic(this, section);
+        } catch (UnsupportedOperationException e) {
+            Logs.logError("Cannot create shaped block for item '" + section.getParent().getName() + "': " + e.getMessage());
+            return null;
+        }
 
         // Validate and register the variation
         ShapedBlockType type = mechanic.getBlockType();

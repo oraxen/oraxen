@@ -1,5 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.shaped;
 
+import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Material;
 
 import java.util.HashMap;
@@ -41,60 +43,60 @@ public enum ShapedBlockType {
         }
     ),
     DOOR(
-        new Material[]{
-            Material.WAXED_COPPER_DOOR,
-            Material.WAXED_EXPOSED_COPPER_DOOR,
-            Material.WAXED_WEATHERED_COPPER_DOOR,
-            Material.WAXED_OXIDIZED_COPPER_DOOR
-        },
-        new Material[]{
-            Material.COPPER_DOOR,
-            Material.EXPOSED_COPPER_DOOR,
-            Material.WEATHERED_COPPER_DOOR,
-            Material.OXIDIZED_COPPER_DOOR
-        }
+        getMaterialsIfAvailable(new String[]{
+            "WAXED_COPPER_DOOR",
+            "WAXED_EXPOSED_COPPER_DOOR",
+            "WAXED_WEATHERED_COPPER_DOOR",
+            "WAXED_OXIDIZED_COPPER_DOOR"
+        }),
+        getMaterialsIfAvailable(new String[]{
+            "COPPER_DOOR",
+            "EXPOSED_COPPER_DOOR",
+            "WEATHERED_COPPER_DOOR",
+            "OXIDIZED_COPPER_DOOR"
+        })
     ),
     TRAPDOOR(
-        new Material[]{
-            Material.WAXED_COPPER_TRAPDOOR,
-            Material.WAXED_EXPOSED_COPPER_TRAPDOOR,
-            Material.WAXED_WEATHERED_COPPER_TRAPDOOR,
-            Material.WAXED_OXIDIZED_COPPER_TRAPDOOR
-        },
-        new Material[]{
-            Material.COPPER_TRAPDOOR,
-            Material.EXPOSED_COPPER_TRAPDOOR,
-            Material.WEATHERED_COPPER_TRAPDOOR,
-            Material.OXIDIZED_COPPER_TRAPDOOR
-        }
+        getMaterialsIfAvailable(new String[]{
+            "WAXED_COPPER_TRAPDOOR",
+            "WAXED_EXPOSED_COPPER_TRAPDOOR",
+            "WAXED_WEATHERED_COPPER_TRAPDOOR",
+            "WAXED_OXIDIZED_COPPER_TRAPDOOR"
+        }),
+        getMaterialsIfAvailable(new String[]{
+            "COPPER_TRAPDOOR",
+            "EXPOSED_COPPER_TRAPDOOR",
+            "WEATHERED_COPPER_TRAPDOOR",
+            "OXIDIZED_COPPER_TRAPDOOR"
+        })
     ),
     GRATE(
-        new Material[]{
-            Material.WAXED_COPPER_GRATE,
-            Material.WAXED_EXPOSED_COPPER_GRATE,
-            Material.WAXED_WEATHERED_COPPER_GRATE,
-            Material.WAXED_OXIDIZED_COPPER_GRATE
-        },
-        new Material[]{
-            Material.COPPER_GRATE,
-            Material.EXPOSED_COPPER_GRATE,
-            Material.WEATHERED_COPPER_GRATE,
-            Material.OXIDIZED_COPPER_GRATE
-        }
+        getMaterialsIfAvailable(new String[]{
+            "WAXED_COPPER_GRATE",
+            "WAXED_EXPOSED_COPPER_GRATE",
+            "WAXED_WEATHERED_COPPER_GRATE",
+            "WAXED_OXIDIZED_COPPER_GRATE"
+        }),
+        getMaterialsIfAvailable(new String[]{
+            "COPPER_GRATE",
+            "EXPOSED_COPPER_GRATE",
+            "WEATHERED_COPPER_GRATE",
+            "OXIDIZED_COPPER_GRATE"
+        })
     ),
     BULB(
-        new Material[]{
-            Material.WAXED_COPPER_BULB,
-            Material.WAXED_EXPOSED_COPPER_BULB,
-            Material.WAXED_WEATHERED_COPPER_BULB,
-            Material.WAXED_OXIDIZED_COPPER_BULB
-        },
-        new Material[]{
-            Material.COPPER_BULB,
-            Material.EXPOSED_COPPER_BULB,
-            Material.WEATHERED_COPPER_BULB,
-            Material.OXIDIZED_COPPER_BULB
-        }
+        getMaterialsIfAvailable(new String[]{
+            "WAXED_COPPER_BULB",
+            "WAXED_EXPOSED_COPPER_BULB",
+            "WAXED_WEATHERED_COPPER_BULB",
+            "WAXED_OXIDIZED_COPPER_BULB"
+        }),
+        getMaterialsIfAvailable(new String[]{
+            "COPPER_BULB",
+            "EXPOSED_COPPER_BULB",
+            "WEATHERED_COPPER_BULB",
+            "OXIDIZED_COPPER_BULB"
+        })
     );
 
     private final Material[] waxedMaterials;
@@ -106,22 +108,49 @@ public enum ShapedBlockType {
     private static final Set<Material> ALL_WAXED = new HashSet<>();
     private static final Set<Material> ALL_VANILLA = new HashSet<>();
 
+    /**
+     * Helper method to safely get materials by name, returning empty array if they don't exist.
+     * This allows the enum to work on older Minecraft versions that don't have certain materials.
+     */
+    private static Material[] getMaterialsIfAvailable(String[] materialNames) {
+        Material[] materials = new Material[materialNames.length];
+        for (int i = 0; i < materialNames.length; i++) {
+            try {
+                materials[i] = Material.valueOf(materialNames[i]);
+            } catch (IllegalArgumentException e) {
+                // Material doesn't exist in this version, return empty array
+                return new Material[0];
+            }
+        }
+        return materials;
+    }
+
     static {
         for (ShapedBlockType type : values()) {
+            // Skip types that have no materials (not available in this version)
+            if (type.waxedMaterials.length == 0 || type.vanillaMaterials.length == 0) {
+                if (Settings.DEBUG.toBool()) {
+                    Logs.logInfo("ShapedBlockType " + type.name() + " is not available in this Minecraft version - skipping");
+                }
+                continue;
+            }
+            
             for (int i = 0; i < type.waxedMaterials.length; i++) {
                 Material waxed = type.waxedMaterials[i];
                 Material vanilla = type.vanillaMaterials[i];
-                WAXED_TO_VANILLA.put(waxed, vanilla);
-                VANILLA_TO_WAXED.put(vanilla, waxed);
-                ALL_WAXED.add(waxed);
-                ALL_VANILLA.add(vanilla);
+                if (waxed != null && vanilla != null) {
+                    WAXED_TO_VANILLA.put(waxed, vanilla);
+                    VANILLA_TO_WAXED.put(vanilla, waxed);
+                    ALL_WAXED.add(waxed);
+                    ALL_VANILLA.add(vanilla);
+                }
             }
         }
     }
 
     ShapedBlockType(Material[] waxedMaterials, Material[] vanillaMaterials) {
-        this.waxedMaterials = waxedMaterials;
-        this.vanillaMaterials = vanillaMaterials;
+        this.waxedMaterials = waxedMaterials != null ? waxedMaterials : new Material[0];
+        this.vanillaMaterials = vanillaMaterials != null ? vanillaMaterials : new Material[0];
     }
 
     /**
@@ -131,6 +160,9 @@ public enum ShapedBlockType {
     public Material getMaterial(int customVariation) {
         if (customVariation < 1 || customVariation > 4) {
             throw new IllegalArgumentException("custom_variation must be between 1 and 4, got: " + customVariation);
+        }
+        if (waxedMaterials.length == 0) {
+            throw new UnsupportedOperationException("Block type " + this.name() + " is not available in this Minecraft version");
         }
         return waxedMaterials[customVariation - 1];
     }
@@ -150,6 +182,9 @@ public enum ShapedBlockType {
         if (variation < 1 || variation > 4) {
             throw new IllegalArgumentException("variation must be between 1 and 4, got: " + variation);
         }
+        if (vanillaMaterials.length == 0) {
+            throw new UnsupportedOperationException("Block type " + this.name() + " is not available in this Minecraft version");
+        }
         return vanillaMaterials[variation - 1];
     }
 
@@ -158,6 +193,13 @@ public enum ShapedBlockType {
      */
     public Material[] getVanillaMaterials() {
         return vanillaMaterials;
+    }
+
+    /**
+     * Check if this block type is available in the current Minecraft version
+     */
+    public boolean isAvailable() {
+        return waxedMaterials.length > 0 && vanillaMaterials.length > 0;
     }
 
     /**
