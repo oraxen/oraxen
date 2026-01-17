@@ -146,13 +146,19 @@ public class PackMerger {
      */
     private List<String> detectResourcePackRoots(File packZip) throws IOException {
         Set<String> roots = new LinkedHashSet<>();
-        
+
         try (FileInputStream fis = new FileInputStream(packZip);
              ZipInputStream zis = new ZipInputStream(fis, StandardCharsets.UTF_8)) {
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
                 String name = entry.getName();
-                
+
+                // Skip macOS metadata directories - don't detect them as valid pack roots
+                if (name.startsWith("__MACOSX/") || name.contains("/__MACOSX/")) {
+                    zis.closeEntry();
+                    continue;
+                }
+
                 // Look for assets/ folders - must be at start or after a path separator
                 // This prevents matching "testassets/" as a valid assets folder
                 int assetsIndex = findAssetsFolder(name);
