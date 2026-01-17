@@ -24,12 +24,14 @@ public class DisplayEntityProperties {
     private final float displayWidth;
     private final float displayHeight;
     private final Vector3f scale;
+    private final Vector3f translation;
 
     public DisplayEntityProperties() {
         this.displayWidth = 0f;
         this.displayHeight = 0f;
         this.displayTransform = ItemDisplay.ItemDisplayTransform.NONE;
         this.scale = null;
+        this.translation = null;
         this.shadowRadius = null;
         this.shadowStrength = null;
         this.brightness = null;
@@ -52,6 +54,12 @@ public class DisplayEntityProperties {
                     (float) configSection.getDouble("scale.y", 1.0),
                     (float) configSection.getDouble("scale.z", 1.0));
         else scale = null;
+
+        if (configSection.isConfigurationSection("translation"))
+            translation = new Vector3f((float) configSection.getDouble("translation.x", 0.0),
+                    (float) configSection.getDouble("translation.y", 0.0),
+                    (float) configSection.getDouble("translation.z", 0.0));
+        else translation = null;
 
         if (viewRange == 0) viewRange = null;
         if (interpolationDuration == 0) interpolationDuration = null;
@@ -162,6 +170,14 @@ public class DisplayEntityProperties {
         return scale;
     }
 
+    public boolean hasTranslation() {
+        return translation != null;
+    }
+
+    public Vector3f getTranslation() {
+        return translation;
+    }
+
     public boolean ensureSameDisplayProperties(@NotNull Entity entity) {
         if (!(entity instanceof ItemDisplay itemDisplay)) return false;
         itemDisplay.setItemDisplayTransform(displayTransform);
@@ -173,6 +189,7 @@ public class DisplayEntityProperties {
         itemDisplay.setInterpolationDuration(Objects.requireNonNullElse(interpolationDuration, 0));
         itemDisplay.setInterpolationDelay(Objects.requireNonNullElse(interpolationDelay, 0));
         itemDisplay.getTransformation().getScale().set(Objects.requireNonNullElse(scale, new Vector3f(1,1,1)));
+        itemDisplay.getTransformation().getTranslation().set(Objects.requireNonNullElse(translation, new Vector3f(0,0,0)));
 
         return true;
     }

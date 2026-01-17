@@ -136,6 +136,16 @@ public class FurnitureFactory extends MechanicFactory {
                         "display_transform", MechanicConfigProperty.enumType("display_transform", "Display transform mode",
                                 List.of("NONE", "THIRDPERSON_LEFTHAND", "THIRDPERSON_RIGHTHAND", "FIRSTPERSON_LEFTHAND",
                                         "FIRSTPERSON_RIGHTHAND", "HEAD", "GUI", "GROUND", "FIXED")),
+                        "scale", MechanicConfigProperty.object("scale", "Scale of the display entity", Map.of(
+                                "x", MechanicConfigProperty.decimal("x", "X-axis scale", 1.0),
+                                "y", MechanicConfigProperty.decimal("y", "Y-axis scale", 1.0),
+                                "z", MechanicConfigProperty.decimal("z", "Z-axis scale", 1.0)
+                        )),
+                        "translation", MechanicConfigProperty.object("translation", "Position offset in blocks", Map.of(
+                                "x", MechanicConfigProperty.decimal("x", "X-axis offset", 0.0),
+                                "y", MechanicConfigProperty.decimal("y", "Y-axis offset", 0.0),
+                                "z", MechanicConfigProperty.decimal("z", "Z-axis offset", 0.0)
+                        )),
                         "brightness", MechanicConfigProperty.object("brightness", "Light levels", Map.of(
                                 "block", MechanicConfigProperty.integer("block", "Block light level", 0, 0, 15),
                                 "sky", MechanicConfigProperty.integer("sky", "Sky light level", 0, 0, 15)

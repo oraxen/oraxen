@@ -141,6 +141,13 @@ turntable:
           x: 0.75
           y: 0.75
           z: 0.75
+        # Translation allows fine-tuning the exact position of the display entity
+        # Values are in blocks (0.1 = 1/10th of a block)
+        # Useful for adjusting vertical placement or centering models
+        translation:
+          x: 0.0
+          y: 0.1  # Raise the turntable slightly off the ground
+          z: 0.0
       jukebox:
         # NEW: Use active_model instead of active_stage (references Pack.models key)
         active_model: opened

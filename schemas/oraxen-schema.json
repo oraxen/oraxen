@@ -7978,6 +7978,48 @@
                 "FIXED"
               ]
             },
+            "scale": {
+              "type": "object",
+              "description": "Scale of the display entity",
+              "properties": {
+                "x": {
+                  "type": "number",
+                  "description": "X-axis scale",
+                  "default": 1.0
+                },
+                "y": {
+                  "type": "number",
+                  "description": "Y-axis scale",
+                  "default": 1.0
+                },
+                "z": {
+                  "type": "number",
+                  "description": "Z-axis scale",
+                  "default": 1.0
+                }
+              }
+            },
+            "translation": {
+              "type": "object",
+              "description": "Position offset of the display entity (in blocks)",
+              "properties": {
+                "x": {
+                  "type": "number",
+                  "description": "X-axis offset in blocks",
+                  "default": 0.0
+                },
+                "y": {
+                  "type": "number",
+                  "description": "Y-axis offset in blocks",
+                  "default": 0.0
+                },
+                "z": {
+                  "type": "number",
+                  "description": "Z-axis offset in blocks",
+                  "default": 0.0
+                }
+              }
+            },
             "brightness": {
               "type": "object",
               "description": "Light levels",
