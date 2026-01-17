@@ -96,8 +96,7 @@ public class PackMerger {
                 
                 // Find which pack root this entry belongs to
                 String normalizedPath = normalizeEntryPath(entryPath, packRoots);
-                if (normalizedPath == null) {
-                    // Not a resource pack file, skip it
+                if (normalizedPath == null || shouldIgnoreNormalizedPath(normalizedPath)) {
                     zis.closeEntry();
                     continue;
                 }
@@ -230,6 +229,17 @@ public class PackMerger {
      * @param packRoots the detected pack root prefixes
      * @return normalized path starting with "assets/" or root files like "pack.mcmeta", or null if not a pack file
      */
+    private static boolean shouldIgnoreNormalizedPath(String normalizedPath) {
+        String fileName = normalizedPath.substring(normalizedPath.lastIndexOf('/') + 1);
+        if (".DS_Store".equals(fileName) || "Thumbs.db".equalsIgnoreCase(fileName) || "desktop.ini".equalsIgnoreCase(fileName))
+            return true;
+
+        if (normalizedPath.startsWith("__MACOSX/") || normalizedPath.contains("/__MACOSX/"))
+            return true;
+
+        return false;
+    }
+
     @Nullable
     private String normalizeEntryPath(String entryPath, List<String> packRoots) {
         for (String root : packRoots) {

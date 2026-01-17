@@ -48,7 +48,8 @@ public class PackMergerIntegrationTest {
         createZipFile(uploadsFolder.resolve("standard.zip"),
                 "pack.mcmeta", "{\"pack\":{\"pack_format\":34}}",
                 "assets/minecraft/models/item/diamond.json", "{\"parent\":\"item/generated\"}",
-                "assets/minecraft/textures/item/diamond.png", "PNG_DATA");
+                "assets/minecraft/textures/item/diamond.png", "PNG_DATA",
+                "assets/.DS_Store", "junk");
 
         List<VirtualFile> result = merger.mergeUploadedPacks();
 
@@ -58,6 +59,8 @@ public class PackMergerIntegrationTest {
         assertTrue(paths.contains("pack.mcmeta"));
         assertTrue(paths.contains("assets/minecraft/models/item/diamond.json"));
         assertTrue(paths.contains("assets/minecraft/textures/item/diamond.png"));
+        assertFalse(paths.stream().anyMatch(p -> p.endsWith(".DS_Store")), "Should ignore .DS_Store entries");
+        assertFalse(paths.stream().anyMatch(p -> p.contains("__MACOSX")), "Should ignore __MACOSX entries");
     }
 
     @Test
@@ -248,10 +251,16 @@ public class PackMergerIntegrationTest {
                         continue;
                     }
 
+                    String fileName = getFileName(normalizedPath);
+                    if (".DS_Store".equals(fileName) || "__MACOSX".equals(fileName) || normalizedPath.contains("/__MACOSX/")) {
+                        zis.closeEntry();
+                        continue;
+                    }
+
                     byte[] buffer = zis.readAllBytes();
                     VirtualFile virtualFile = new VirtualFile(
                             getParentFolder(normalizedPath),
-                            getFileName(normalizedPath),
+                            fileName,
                             new ByteArrayInputStream(buffer));
 
                     String filePath = virtualFile.getPath();

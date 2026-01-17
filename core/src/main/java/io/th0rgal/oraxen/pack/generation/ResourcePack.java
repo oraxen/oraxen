@@ -2268,23 +2268,37 @@ public class ResourcePack {
         }
     }
 
+    private static boolean shouldIgnorePackFile(File file) {
+        String name = file.getName();
+        if (".DS_Store".equals(name) || "Thumbs.db".equalsIgnoreCase(name) || "desktop.ini".equalsIgnoreCase(name))
+            return true;
+
+        if (file.isDirectory() && "__MACOSX".equals(name))
+            return true;
+
+        return false;
+    }
+
     private void getAllFiles(File dir, Collection<VirtualFile> fileList, String newFolder, String... excluded) {
         final File[] files = dir.listFiles();
         final List<String> blacklist = Arrays.asList(excluded);
         if (files != null)
             for (final File file : files) {
+                if (shouldIgnorePackFile(file))
+                    continue;
                 if (file.isDirectory())
                     getAllFiles(file, fileList, newFolder, excluded);
-                else if (!file.isDirectory() && !blacklist.contains(file.getName()))
+                else if (!blacklist.contains(file.getName()))
                     readFileToVirtuals(fileList, file, newFolder);
             }
     }
 
     private void getFilesInFolder(File dir, Collection<VirtualFile> fileList, String newFolder, String... excluded) {
         final File[] files = dir.listFiles();
+        final List<String> blacklist = Arrays.asList(excluded);
         if (files != null)
             for (final File file : files)
-                if (!file.isDirectory() && !Arrays.asList(excluded).contains(file.getName()))
+                if (!file.isDirectory() && !blacklist.contains(file.getName()) && !shouldIgnorePackFile(file))
                     readFileToVirtuals(fileList, file, newFolder);
     }
 
