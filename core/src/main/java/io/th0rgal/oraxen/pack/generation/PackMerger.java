@@ -96,8 +96,7 @@ public class PackMerger {
                 
                 // Find which pack root this entry belongs to
                 String normalizedPath = normalizeEntryPath(entryPath, packRoots);
-                if (normalizedPath == null) {
-                    // Not a resource pack file, skip it
+                if (normalizedPath == null || shouldIgnoreNormalizedPath(normalizedPath)) {
                     zis.closeEntry();
                     continue;
                 }
@@ -147,13 +146,19 @@ public class PackMerger {
      */
     private List<String> detectResourcePackRoots(File packZip) throws IOException {
         Set<String> roots = new LinkedHashSet<>();
-        
+
         try (FileInputStream fis = new FileInputStream(packZip);
              ZipInputStream zis = new ZipInputStream(fis, StandardCharsets.UTF_8)) {
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
                 String name = entry.getName();
-                
+
+                // Skip macOS metadata directories - don't detect them as valid pack roots
+                if (name.startsWith("__MACOSX/") || name.contains("/__MACOSX/")) {
+                    zis.closeEntry();
+                    continue;
+                }
+
                 // Look for assets/ folders - must be at start or after a path separator
                 // This prevents matching "testassets/" as a valid assets folder
                 int assetsIndex = findAssetsFolder(name);
@@ -230,6 +235,17 @@ public class PackMerger {
      * @param packRoots the detected pack root prefixes
      * @return normalized path starting with "assets/" or root files like "pack.mcmeta", or null if not a pack file
      */
+    private static boolean shouldIgnoreNormalizedPath(String normalizedPath) {
+        String fileName = normalizedPath.substring(normalizedPath.lastIndexOf('/') + 1);
+        if (".DS_Store".equals(fileName) || "Thumbs.db".equalsIgnoreCase(fileName) || "desktop.ini".equalsIgnoreCase(fileName))
+            return true;
+
+        if (normalizedPath.startsWith("__MACOSX/") || normalizedPath.contains("/__MACOSX/"))
+            return true;
+
+        return false;
+    }
+
     @Nullable
     private String normalizeEntryPath(String entryPath, List<String> packRoots) {
         for (String root : packRoots) {
