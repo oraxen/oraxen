@@ -84,13 +84,14 @@ public class BukkitPackSender extends PackSender implements Listener {
                             hostingProvider.getPackURL(), hostingProvider.getSHA1(), 
                             promptComponent, mandatory, layer);
                     } catch (Exception e) {
-                        // Fallback if layer not supported
+                        // Fallback if layer not supported - convert MiniMessage to Legacy String for Spigot
                         player.setResourcePack(hostingProvider.getPackUUID(), hostingProvider.getPackURL(), 
-                            hostingProvider.getSHA1(), AdventureUtils.parseLegacy(prompt), mandatory);
+                            hostingProvider.getSHA1(), AdventureUtils.LEGACY_SERIALIZER.serialize(AdventureUtils.MINI_MESSAGE.deserialize(prompt)), mandatory);
                     }
                 } else {
+                    // Spigot 1.20.3+ without layer - convert MiniMessage to Legacy String
                     player.setResourcePack(hostingProvider.getPackUUID(), hostingProvider.getPackURL(), 
-                        hostingProvider.getSHA1(), AdventureUtils.parseLegacy(prompt), mandatory);
+                        hostingProvider.getSHA1(), AdventureUtils.LEGACY_SERIALIZER.serialize(AdventureUtils.MINI_MESSAGE.deserialize(prompt)), mandatory);
                 }
             }
         } else {
@@ -99,8 +100,9 @@ public class BukkitPackSender extends PackSender implements Listener {
                 player.setResourcePack(hostingProvider.getPackURL(), hostingProvider.getSHA1(), 
                     AdventureUtils.MINI_MESSAGE.deserialize(prompt), mandatory);
             } else {
+                // Spigot pre-1.20.3 - convert MiniMessage to Legacy String
                 player.setResourcePack(hostingProvider.getPackURL(), hostingProvider.getSHA1(), 
-                    AdventureUtils.parseLegacy(prompt), mandatory);
+                    AdventureUtils.LEGACY_SERIALIZER.serialize(AdventureUtils.MINI_MESSAGE.deserialize(prompt)), mandatory);
             }
         }
     }
