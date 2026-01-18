@@ -41,7 +41,7 @@ public class BukkitPackSender extends PackSender implements Listener {
         if (!layerMethodChecked) {
             try {
                 setResourcePackWithLayerMethod = Player.class.getMethod("setResourcePack", 
-                    UUID.class, String.class, String.class, Component.class, boolean.class, String.class);
+                    UUID.class, String.class, byte[].class, Component.class, boolean.class, String.class);
                 layerMethodChecked = true;
             } catch (NoSuchMethodException e) {
                 layerMethodChecked = true;
