@@ -617,6 +617,11 @@ public class FurnitureMechanic extends Mechanic {
             transform.getScale().set(properties.getScale());
         } else transform.getScale().set(isFixed ? new Vector3f(0.5f, 0.5f, 0.5f) : new Vector3f(1f, 1f, 1f));
 
+        // Apply translation offset if specified
+        if (properties.hasTranslation()) {
+            transform.getTranslation().set(properties.getTranslation());
+        }
+
         // since FIXED is meant to mimic ItemFrames, we rotate it to match the ItemFrame's rotation
         // 1.20 Fixes this, will break for 1.19.4 but added disclaimer in console
         float pitch;

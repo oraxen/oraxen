@@ -1,0 +1,172 @@
+# Crystal Mushroom Block Set
+# Animated magical mushroom-wood blocks with glowing effects
+
+# Crystal Mushroom Log - animated bark texture
+crystalmush_log:
+  displayname: "<gradient:#9966FF:#FF66CC>Crystal Mushroom Log"
+  material: PAPER
+  Pack:
+    generate_model: true
+    parent_model: block/cube_column
+    textures:
+      side: default/crystalmush/wood_crystalmush_side_anim
+      end: default/crystalmush/wood_crystalmush_top_anim
+  Mechanics:
+    noteblock:
+      block_sounds:
+        break_sound: block.wood.break
+        place_sound: block.wood.place
+      custom_variation: 5
+      model: crystalmush_log
+      hardness: 2
+      drop:
+        silktouch: false
+        loots:
+          - oraxen_item: crystalmush_log
+            probability: 1.0
+
+# Crystal Mushroom Planks - animated plank texture
+crystalmush_planks:
+  displayname: "<gradient:#9966FF:#FF66CC>Crystal Mushroom Planks"
+  material: PAPER
+  Pack:
+    generate_model: true
+    parent_model: block/cube_all
+    textures:
+      - default/crystalmush/crystalmush_planks_anim
+  Mechanics:
+    noteblock:
+      block_sounds:
+        break_sound: block.wood.break
+        place_sound: block.wood.place
+      custom_variation: 6
+      model: crystalmush_planks
+      hardness: 2
+      drop:
+        silktouch: false
+        loots:
+          - oraxen_item: crystalmush_planks
+            probability: 1.0
+
+# Crystal Mushroom Leaves - transparent animated leaves using copper bulb blockstates
+# BULB type uses copper bulbs which allow custom transparent full blocks with block/leaves parent
+crystalmush_leaves:
+  displayname: "<gradient:#9966FF:#FF66CC>Crystal Mushroom Leaves"
+  material: PAPER
+  Pack:
+    generate_model: true
+    parent_model: block/leaves
+    textures:
+      - default/crystalmush/crystalmush_leaves_anim
+  Mechanics:
+    shaped_block:
+      # Use a copper grate as the placed block so Minecraft renders it with cutout rules
+      # (lets the texture alpha show through like real leaves).
+      type: GRATE
+      custom_variation: 2
+      # Emits light by placing minecraft:light blocks nearby (does not change the grate's own light level)
+      light: 12
+      hardness: 0.2
+      block_sounds:
+        break_sound: block.grass.break
+        place_sound: block.grass.place
+      drop:
+        silktouch: true
+        loots:
+          - oraxen_item: crystalmush_leaves
+            probability: 1.0
+
+# Crystal Mushroom Trapdoor - animated trapdoor
+crystalmush_trapdoor:
+  displayname: "<gradient:#9966FF:#FF66CC>Crystal Mushroom Trapdoor"
+  material: PAPER
+  Pack:
+    generate_model: true
+    parent_model: block/template_trapdoor_bottom
+    textures:
+      - default/crystalmush/crystalmush_trapdoor_anim
+  Mechanics:
+    shaped_block:
+      type: TRAPDOOR
+      custom_variation: 2
+      hardness: 2
+      block_sounds:
+        break_sound: block.wood.break
+        place_sound: block.wood.place
+      drop:
+        silktouch: false
+        loots:
+          - oraxen_item: crystalmush_trapdoor
+            probability: 1.0
+
+# Crystal Mushroom Door
+crystalmush_door:
+  displayname: "<gradient:#9966FF:#FF66CC>Crystal Mushroom Door"
+  material: PAPER
+  Pack:
+    generate_model: true
+    parent_model: item/generated
+    textures:
+      - default/crystalmush/crystalmush_door_icon  # Icon for hand
+  Mechanics:
+    shaped_block:
+      type: DOOR
+      custom_variation: 2
+      hardness: 2
+      textures:
+        bottom: default/crystalmush/crystalmush_door_bottom_anim
+        top: default/crystalmush/crystalmush_door_top_anim
+      block_sounds:
+        break_sound: block.wood.break
+        place_sound: block.wood.place
+      drop:
+        silktouch: false
+        loots:
+          - oraxen_item: crystalmush_door
+            probability: 1.0
+
+# Crystal Mushroom Stairs
+crystalmush_stairs:
+  displayname: "<gradient:#9966FF:#FF66CC>Crystal Mushroom Stairs"
+  material: PAPER
+  Pack:
+    generate_model: true
+    parent_model: block/stairs
+    textures:
+      - default/crystalmush/crystalmush_planks_anim
+  Mechanics:
+    shaped_block:
+      type: STAIR
+      custom_variation: 3
+      hardness: 2
+      block_sounds:
+        break_sound: block.wood.break
+        place_sound: block.wood.place
+      drop:
+        silktouch: false
+        loots:
+          - oraxen_item: crystalmush_stairs
+            probability: 1.0
+
+# Crystal Mushroom Slab
+crystalmush_slab:
+  displayname: "<gradient:#9966FF:#FF66CC>Crystal Mushroom Slab"
+  material: PAPER
+  Pack:
+    generate_model: true
+    parent_model: block/slab
+    textures:
+      - default/crystalmush/crystalmush_planks_anim
+  Mechanics:
+    shaped_block:
+      type: SLAB
+      custom_variation: 3
+      hardness: 2
+      block_sounds:
+        break_sound: block.wood.break
+        place_sound: block.wood.place
+      drop:
+        silktouch: false
+        loots:
+          - oraxen_item: crystalmush_slab
+            probability: 1.0

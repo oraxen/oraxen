@@ -20,6 +20,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 
 public class RecipesManager {
@@ -51,6 +52,7 @@ public class RecipesManager {
                 new File(recipesFolder, "campfire.yml").createNewFile();
                 new File(recipesFolder, "smoking.yml").createNewFile();
                 new File(recipesFolder, "stonecutting.yml").createNewFile();
+                new File(recipesFolder, "disabled.yml").createNewFile();
             } catch (IOException e) {
                 Logs.logError("Error while creating recipes files: " + e.getMessage());
             }
@@ -88,11 +90,31 @@ public class RecipesManager {
 
     private static void registerConfigRecipes(File configFile) {
         YamlConfiguration config = OraxenYaml.loadConfiguration(configFile);
+        if (configFile.getName().equals("disabled.yml")) {
+            disableRecipes(config);
+            return;
+        }
         for (String recipeSetting : config.getKeys(false)) {
             if (!config.isConfigurationSection(recipeSetting))
                 continue;
             ConfigurationSection recipeSection = config.getConfigurationSection(recipeSetting);
             registerRecipeByType(configFile, recipeSection);
+        }
+    }
+
+    private static void disableRecipes(YamlConfiguration config) {
+        List<String> disabledRecipes = config.getStringList("disabled");
+        for (String recipeName : disabledRecipes) {
+            NamespacedKey key = NamespacedKey.fromString(recipeName);
+            if (key != null) {
+                if (Bukkit.removeRecipe(key)) {
+                    if (Settings.DEBUG.toBool())
+                        Logs.logInfo("Successfully disabled recipe " + key);
+                } else
+                    Logs.logWarning("Could not disable recipe (not found): " + key);
+            } else {
+                Logs.logWarning("Invalid recipe key in disabled.yml: " + recipeName);
+            }
         }
     }
 
@@ -108,8 +130,10 @@ public class RecipesManager {
                 case "stonecutting.yml" -> new StonecuttingLoader(recipeSection).registerRecipe();
                 default -> Logs.logError(configFile.getName());
             }
-        } catch (NullPointerException exception) {
+        } catch (Exception exception) {
             Message.BAD_RECIPE.log(AdventureUtils.tagResolver("recipe", recipeSection.getName()));
+            Logs.logError("Failed to load recipe '" + recipeSection.getName() + "': " + exception.getClass().getSimpleName() + ": " + exception.getMessage());
+            Logs.debug(exception);
         }
     }
 }

@@ -135,6 +135,8 @@ public enum Settings {
     SEND_PACK_MANDATORY("Pack.dispatch.mandatory"),
     SEND_PACK_PROMPT("Pack.dispatch.prompt"),
     SEND_PACK_LAYER("Pack.dispatch.layer"),
+    DISABLE_MOVEMENT_ON_LOAD("Pack.dispatch.disable_movement_on_load"),
+    DISABLE_DAMAGE_ON_LOAD("Pack.dispatch.disable_damage_on_load"),
     SEND_JOIN_MESSAGE("Pack.dispatch.join_message.enabled"),
     JOIN_MESSAGE_DELAY("Pack.dispatch.join_message.delay"),
 

@@ -75,6 +75,46 @@ public interface NMSHandler {
 
     default void stopJukeBox(Location location) {
     }
+
+    // Backpack cosmetic packet methods
+
+    /**
+     * Get the next available entity ID for packet-based entities
+     */
+    default int getNextEntityId() {
+        return -1;
+    }
+
+    /**
+     * Spawn an invisible armor stand for backpack display
+     */
+    default void spawnBackpackArmorStand(Player viewer, int entityId, Location location, ItemStack displayItem, boolean small) {
+    }
+
+    /**
+     * Send entity teleport packet
+     */
+    default void sendEntityTeleport(Player viewer, int entityId, Location location) {
+    }
+
+    /**
+     * Send entity head rotation packet
+     */
+    default void sendEntityHeadRotation(Player viewer, int entityId, float yaw) {
+    }
+
+    /**
+     * Send entity destroy packet
+     */
+    default void sendEntityDestroy(Player viewer, int... entityIds) {
+    }
+
+    /**
+     * Send mount/ride packet (make entity ride another)
+     */
+    default void sendMountPacket(Player viewer, int vehicleId, int... passengerIds) {
+    }
+
     /**
      * Keys that are used by vanilla Minecraft and should therefore be skipped
      * Some are accessed through API methods, others are just used internally

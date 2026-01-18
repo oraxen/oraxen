@@ -59,6 +59,10 @@ blocklocker = { module = "nl.rutgerkok:blocklocker", version = "1.13-SNAPSHOT" }
 # Repo: https://repo.skriptlang.org/releases (NOT JitPack)
 skript = { module = "com.github.SkriptLang:Skript", version = "2.13.2" }
 
+# Iris https://github.com/VolmitSoftware/Iris
+# Repo: JitPack
+iris = { module = "com.github.VolmitSoftware:Iris", version = "6a89b8bd" }
+
 #
 # Libraries that are included in MC
 # But are not exposed
@@ -185,4 +189,5 @@ plugins = [
     "ecoitems",         # EcoÍtems
     "blocklocker",      # BlockLocker
     "skript",           # Skript
+    "iris",             # Iris World Generator
 ]
