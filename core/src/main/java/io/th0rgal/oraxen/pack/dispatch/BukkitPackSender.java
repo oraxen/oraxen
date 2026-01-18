@@ -78,8 +78,8 @@ public class BukkitPackSender extends PackSender implements Listener {
                 // Spigot - try with layer first if supported
                 if (useLayer) {
                     try {
-                        // Convert legacy string to Component for layer method
-                        Component promptComponent = AdventureUtils.LEGACY_SERIALIZER.deserialize(AdventureUtils.parseLegacy(prompt));
+                        // Parse MiniMessage format prompt to Component for layer method
+                        Component promptComponent = AdventureUtils.MINI_MESSAGE.deserialize(prompt);
                         setResourcePackWithLayerMethod.invoke(player, hostingProvider.getPackUUID(), 
                             hostingProvider.getPackURL(), hostingProvider.getSHA1(), 
                             promptComponent, mandatory, layer);
