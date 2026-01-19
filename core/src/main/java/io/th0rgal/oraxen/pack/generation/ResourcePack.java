@@ -1408,7 +1408,9 @@ public class ResourcePack {
                 """.formatted(textShaderConstants, vertexPrelude, vertexEffects);
         } else {
             // Pre-1.21.6: use traditional uniform declarations
-            String imports = is1_21_4Plus ? "#moj_import <minecraft:fog.glsl>" : "#moj_import <fog.glsl>";
+            // Note: 1.21.4/1.21.5 still use the old fog.glsl (non-namespaced) with fog_distance() and linear_fog()
+            // The namespaced minecraft:fog.glsl has different function signatures and interface blocks
+            String imports = "#moj_import <fog.glsl>";
 
             if (seeThrough) {
                 return """
@@ -1698,7 +1700,7 @@ public class ResourcePack {
                 """.formatted(fragmentPrelude, sampleExpr, fragmentEffects);
         } else {
             // Pre-1.21.6: use traditional uniform declarations
-            String imports = is1_21_4Plus ? "#moj_import <minecraft:fog.glsl>" : "#moj_import <fog.glsl>";
+            String imports = "#moj_import <fog.glsl>";
 
             return """
                 #version 150
@@ -1971,7 +1973,7 @@ public class ResourcePack {
                 """.formatted(textShaderConstants, vertexPrelude, vertexEffects);
         } else {
             // Pre-1.21.6: use traditional uniform declarations
-            String imports = is1_21_4Plus ? "#moj_import <minecraft:fog.glsl>" : "#moj_import <fog.glsl>";
+            String imports = "#moj_import <fog.glsl>";
 
             return """
                 #version 150

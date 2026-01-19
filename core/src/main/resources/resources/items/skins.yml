@@ -1,0 +1,41 @@
+# Material list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
+# EntityType list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/EntityType.html
+# Attribute list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/attribute/Attribute.html
+# Potion effects list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/potion/PotionEffectType.html
+# Random UUID generator: https://www.uuidgenerator.net/
+# Color codes: https://docs.adventure.kyori.net/minimessage.html#format
+
+diamond_sword: # A simple skinnable diamond sword
+  material: DIAMOND_SWORD
+  Mechanics:
+    skinnable: {}
+
+great_sword:
+  displayname: "<#D5D6D8><bold>SKIN: <gradient:#3685EC:#72C1E4>Great Sword"
+  material: DIAMOND_SWORD
+  Pack:
+    generate_model: false
+    model: default/great_sword
+  Mechanics:
+    skin:
+      consume: true
+
+bone_sword:
+  displayname: "<#D5D6D8><bold>SKIN: <gradient:#89E59D:#37C6BA>Bone Sword"
+  material: DIAMOND_SWORD
+  Pack:
+    generate_model: false
+    model: default/bone_sword
+  Mechanics:
+    skin:
+      consume: true
+
+wood_sword:
+  displayname: "<#D5D6D8><bold>SKIN: <gradient:#F06966:#FAD6A6>Wood Sword"
+  material: DIAMOND_SWORD
+  Pack:
+    generate_model: false
+    model: default/wood_sword
+  Mechanics:
+    skin:
+      consume: true

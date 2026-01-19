@@ -1,0 +1,1 @@
+{"textures":{"texture":"required/recipe_showcase"},"gui_light":"front","elements":[{"from":[-16,-16,15.9375],"to":[32,32,16],"faces":{"north":{"uv":[11,16,0,5],"rotation":180,"texture":"#texture"},"south":{"uv":[0,5,11,16],"texture":"#texture"}}}],"display":{"gui":{"rotation":[0,0,0],"translation":[72,65,-80],"scale":[3.66,3.66,3.66]}}}

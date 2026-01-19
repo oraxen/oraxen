@@ -1,0 +1,179 @@
+# Material list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
+# EntityType list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/EntityType.html
+# Attribute list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/attribute/Attribute.html
+# Potion effects list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/potion/PotionEffectType.html
+# Random UUID generator: https://www.uuidgenerator.net/
+# Color codes: https://docs.adventure.kyori.net/minimessage.html#format
+
+obsidian_pickaxe:
+  displayname: "<gradient:#4B36B1:#6699FF>Obsidian Pickaxe"
+  material: IRON_PICKAXE
+  lore:
+    - "<#6f737d>» <#D5D6D8>Ludicrous durability"
+  Pack:
+    generate_model: true
+    parent_model: "item/handheld"
+    textures:
+      - default/obsidian_pickaxe.png
+  Mechanics:
+    durability:
+      value: 15000 #diamond sword is 1561
+
+bedrock_pickaxe:
+  displayname: "<gradient:#3685EC:#72C1E4>Bedrock Pickaxe"
+  material: STONE_PICKAXE
+  lore:
+    - "<#6f737d>» <#D5D6D8>Mine bedrock blocks"
+  Pack:
+    generate_model: false
+    model: default/bedrock_pickaxe
+  Mechanics:
+    durability:
+      value: 5000 #diamond sword is 1561
+    bedrockbreak:
+      hardness: 10
+      probability: 1
+
+emerald_hammer:
+  displayname: "<gradient:#89E59D:#37C6BA>Emerald Hammer"
+  material: DIAMOND_PICKAXE
+  lore:
+    - "<#6f737d>» <#D5D6D8>Break 3x3 blocks"
+  Pack:
+    generate_model: true
+    parent_model: "item/handheld"
+    textures:
+      - default/emerald_hammer.png
+  Mechanics:
+    bigmining:
+      radius: 1
+      depth: 1
+
+amethyst_hammer:
+  displayname: "<gradient:#4B36B1:#6699FF>Amethyst Hammer"
+  material: DIAMOND_PICKAXE
+  lore:
+    - "<#6f737d>» <#D5D6D8>Break 3x3x2 blocks"
+  Pack:
+    generate_model: true
+    parent_model: "item/handheld"
+    textures:
+      - default/amethyst_hammer.png
+  Mechanics:
+    bigmining:
+      radius: 1
+      depth: 2
+
+onyx_hammer:
+  displayname: "<#6f737d>Onyx Hammer"
+  material: DIAMOND_PICKAXE
+  lore:
+    - "<#6f737d>» <#D5D6D8>Break 3x3x2 blocks"
+  Pack:
+    generate_model: true
+    parent_model: "item/handheld"
+    textures:
+      - default/onyx_hammer.png
+  Mechanics:
+    durability:
+      value: 3122
+    bigmining:
+      radius: 1
+      depth: 2
+
+orax_hammer:
+  displayname: "<gradient:#3685EC:#72C1E4>Orax Hammer"
+  material: DIAMOND_PICKAXE
+  lore:
+    - "<#6f737d>» <#D5D6D8>Break 5x5x2 blocks"
+  Pack:
+    generate_model: true
+    parent_model: "item/handheld"
+    textures:
+      - default/orax_hammer.png
+  Mechanics:
+    durability:
+      value: 4683
+    bigmining:
+      radius: 2
+      depth: 2
+
+fire_hammer:
+  displayname: "<gradient:#F06966:#FAD6A6>Fire Hammer"
+  material: DIAMOND_PICKAXE
+  lore:
+    - "<#6f737d>» <#D5D6D8>Break 3x3 blocks"
+    - "<#6f737d>» <#D5D6D8>Instantly smelt ores"
+  Pack:
+    generate_model: true
+    parent_model: "item/handheld"
+    textures:
+      - default/fire_hammer.png
+  Mechanics:
+    smelting:
+      enabled: true
+      play_sound: true
+    durability:
+      value: 4683
+    bigmining:
+      radius: 1
+      depth: 1
+
+iron_cog:
+  displayname: "<#D5D6D8>Iron Cog"
+  material: PAPER
+  lore:
+    - "<#6f737d>» <#D5D6D8>Click on a damaged item to repair"
+    - "   <#D5D6D8>10% of its maximum durability"
+  Pack:
+    generate_model: true
+    parent_model: "item/handheld"
+    textures:
+      - default/iron_cog.png
+  Mechanics:
+    repair:
+      ratio: 0.10
+
+gold_cog:
+  displayname: "<gradient:#F06966:#FAD6A6>Gold Cog"
+  material: PAPER
+  lore:
+    - "<#6f737d>» <#D5D6D8>Click on a damaged item to repair"
+    - "   <#D5D6D8>50% of its maximum durability"
+  Pack:
+    generate_model: true
+    parent_model: "item/handheld"
+    textures:
+      - default/gold_cog.png
+  Mechanics:
+    repair:
+      ratio: 0.50
+
+diamond_cog:
+  displayname: "<gradient:#3685EC:#72C1E4>Diamond Cog"
+  material: PAPER
+  lore:
+    - "<#6f737d>» <#D5D6D8>Click on a damaged item to repair"
+    - "   <#D5D6D8>100% of its maximum durability"
+  Pack:
+    generate_model: true
+    parent_model: "item/handheld"
+    textures:
+      - default/diamond_cog.png
+  Mechanics:
+    repair:
+      ratio: 1.0
+
+iron_serpe:
+  displayname: "<#D5D6D8>Iron Serpe"
+  material: WOODEN_HOE
+  Pack:
+    generate_model: true
+    parent_model: "item/handheld"
+    textures:
+      - default/iron_serpe.png
+  Mechanics:
+    harvesting:
+      cooldown: 10000 # 10 seconds
+      radius: 5
+      height: 3

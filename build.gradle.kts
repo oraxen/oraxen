@@ -286,3 +286,51 @@ if (spigotPluginPath != null) {
     }
 }
 
+// Headless pack generation task
+// Usage: ./gradlew generatePack -PmcVersion=1.21.4 [-PserverType=paper] [-PoutputDir=./build/pack] [-PconfigDir=./my-configs]
+tasks.register<Exec>("generatePack") {
+    group = "pack"
+    description = "Generate resource pack using headless server mode. Use -PmcVersion=X.XX.X to specify version."
+    dependsOn("shadowJar")
+
+    val mcVersion = project.findProperty("mcVersion")?.toString() ?: ""
+    val serverType = project.findProperty("serverType")?.toString() ?: "paper"
+    val outputDir = project.findProperty("outputDir")?.toString() ?: "${project.layout.buildDirectory.get()}/pack"
+    val configDir = project.findProperty("configDir")?.toString() ?: ""
+    val timeout = project.findProperty("packTimeout")?.toString() ?: "300"
+    val verbose = project.findProperty("verbose")?.toString()?.toBoolean() ?: false
+    val keepServer = project.findProperty("keepServer")?.toString()?.toBoolean() ?: false
+
+    val scriptPath = "${project.projectDir}/scripts/headless-pack-gen.sh"
+    val jarPath = "${project.layout.buildDirectory.get()}/libs/oraxen-${pluginVersion}.jar"
+
+    executable = "bash"
+    val args = mutableListOf(
+        scriptPath,
+        "--version", mcVersion,
+        "--server", serverType,
+        "--output", outputDir,
+        "--oraxen-jar", jarPath,
+        "--timeout", timeout
+    )
+
+    if (configDir.isNotEmpty()) {
+        args.addAll(listOf("--config-dir", configDir))
+    }
+    if (verbose) {
+        args.add("--verbose")
+    }
+    if (keepServer) {
+        args.add("--keep-server")
+    }
+
+    setArgs(args)
+
+    doFirst {
+        if (mcVersion.isEmpty()) {
+            throw GradleException("Minecraft version is required. Use -PmcVersion=X.XX.X (e.g., -PmcVersion=1.21.4)")
+        }
+        println("Generating resource pack for $serverType $mcVersion...")
+    }
+}
+

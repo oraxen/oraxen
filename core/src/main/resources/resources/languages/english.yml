@@ -1,0 +1,88 @@
+general:
+  prefix: "<gradient:#9055FF:#13E2DA>Oraxen <gray>| "
+  no_permission: "<prefix><#fa4943>You're lacking the permission <b><permission></b> to do this!"
+  work_in_progress: "<prefix><#facc43>This feature is work in progress!"
+  not_player: "<prefix><#fa4943>This can only be done as a player!"
+  cooldown: "<prefix><#facc43>Please wait Another <time> seconds!"
+  reload: "<prefix><#55ffa4>Successfully reloaded"
+  pack_uploading: "<prefix><#D5D6D8>Automatic upload of the resource pack is enabled, uploading..."
+  pack_not_uploaded: "<prefix><#fa4943>Resourcepack not uploaded"
+  pack_uploaded: "<prefix><#55ffa4>Resourcepack uploaded to <url> in <delay> ms"
+  pack_regenerated: "<prefix><#55ffa4>Resourcepack successfully regenerated"
+  updating_config: "<prefix><#facc43>Configuration option \"<option>\" not found, adding it!"
+  removing_config: "<prefix><#facc43>Configuration option \"<option>\" has been marked for removal, removing it!"
+  configs_validation_failed: "<prefix><#fa4943>Configurations validation failed, plugin automatically disabled!"
+  repaired_items: "<prefix><#55ffa4><amount> item(s) were successfully repaired!"
+  cannot_be_repaired: "<prefix><#fa4943>This item cannot be repaired!"
+  cannot_be_repaired_invalid: "<prefix><#fa4943>You need to hold a valid Item in your hand!"
+  updated_items: "<prefix><#55ffa4><amount> item(s) were successfully updated for <player>!"
+  zip_browse_error: "<prefix><#fa4943>An error occured browsing the zip"
+  bad_recipe: "<prefix><#fa4943>The recipe \"<recipe>\" is invalid, please ensure all its ingredients exist in your config"
+  item_not_found: "<prefix><#fa4943>Item \"<item>\" not found"
+  plugin_hooks: "<prefix><#55ffa4>Plugin \"<plugin>\" detected, enabling hooks"
+  plugin_unhooks: "<prefix><#55ffa4>Unhooking plugin \"<plugin>\""
+  not_enough_exp: "<prefix><#fa4943>You need more experience to do this"
+  not_enough_space: "<prefix><#fa4943>You need more space to place this furniture"
+  exit_menu: "<gradient:#FA7CBB:#F14658>Exit"
+  no_emojis: "<prefix><#fa4943>No emojis found"
+
+logs:
+  loaded: "<prefix><#55ffa4>Successfully loaded on <os>"
+  unloaded: "<prefix><#55ffa4>Successfully unloaded"
+  no_armor_item: "<prefix><#fa4943>No item matching <name> found. Unable to use <armor_layer_file>"
+  duplicate_armor_color: "<prefix><#fa4943><first_armor_prefix> armor set uses the same color as <second_armor_prefix> with a different texture"
+
+command:
+  help: "<prefix><#b8bbc2>Available commands
+        \n<hover:show_text:\"<gray>fill reload command\"><click:SUGGEST_COMMAND:/oraxen reload ><#6f737d>/o
+          <#b8bbc2>reload <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> reload the plugin
+        \n<hover:show_text:\"<gray>fill inv command\"><click:SUGGEST_COMMAND:/oraxen inv><#6f737d>/o
+          <#b8bbc2>inventory</click></hover>  <#6f737d>»<#b8bbc2> show oraxen items in inventory
+        \n<hover:show_text:\"<gray>fill pack command\"><click:SUGGEST_COMMAND:/oraxen pack ><#6f737d>/o
+          <#b8bbc2>pack <#fa8943>type <#43c9fa>target</click></hover>  <#6f737d>»<#b8bbc2> send oraxen pack
+        \n<hover:show_text:\"<gray>fill repair command\"><click:SUGGEST_COMMAND:/oraxen repair ><#6f737d>/o
+          <#b8bbc2>repair <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> repair one or all your items
+        \n<hover:show_text:\"<gray>fill give command\"><click:SUGGEST_COMMAND:/oraxen give ><#6f737d>/o
+          <#b8bbc2>give <#43c9fa>target <#fa4362>item <#43fa8c>amount</click></hover>  <#6f737d>»<#b8bbc2> give an oraxen item
+        \n<hover:show_text:\"<gray>fill recipes show command\"><click:SUGGEST_COMMAND:/oraxen recipes show ><#6f737d>/o
+          <#b8bbc2>recipes show <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> show recipes
+        \n<hover:show_text:\"<gray>fill recipes builder command\"><click:SUGGEST_COMMAND:/oraxen recipes builder ><#6f737d>/o
+          <#b8bbc2>recipes builder <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> open recipes builder
+        \n<hover:show_text:\"<gray>fill recipes save command\"><click:SUGGEST_COMMAND:/oraxen recipes save ><#6f737d>/o
+          <#b8bbc2>recipes save <#faf443>name</click></hover>  <#6f737d>»<#b8bbc2> save recipe"
+
+  join: |-
+    <dark_gray><st>                           </st><dark_gray>{<aqua><bold>Resource Pack</bold><dark_gray>}<dark_gray><st>                        </st>
+    <gray><bold>To see the new items you need to use a special resourcepack (but don't worry, this doesn't prevent you from using yours at the same time).</bold>
+    <dark_gray>»<gray> To try to load it directly from the game, <click:run_command:"oraxen pack send @p"><hover:show_text:"<red>! loading the resourcepack from the game can cause lags"><red><bold>CLICK HERE</bold></hover></click>
+    <dark_gray>»<gray> To download it from the internet, <hover:show_text:"<pack_url> <green>! install it from Options/ResourcePacks in your game"><green><bold><click:OPEN_URL:"<pack_url>">CLICK HERE</click></bold></hover>
+
+  recipe:
+    no_builder: "<prefix><#fa4943>Please create a recipe first!"
+    no_furnace: "<prefix><#fa4943>This option is only available for Furnace Recipes!"
+    no_name: "<prefix><#fa4943>Please <gradient:#FA7CBB:#F14658>specify a name for the recipe!"
+    no_recipes: "<prefix><#fa4943>There are no recipes to show!"
+    no_item: "<prefix><#fa4943>Please specify an item!"
+    save: "<prefix><#55ffa4>Recipe '<name>' saved successfully!"
+
+  give:
+    player: "<prefix><#55ffa4>You gave <#43c9fa><player><#55ffa4> <#43fa8c><amount><#6f737d> × <#fa4362><item><#55ffa4>!"
+    players: "<prefix><#55ffa4>You gave <#43c9fa><count><#55ffa4> players <#43fa8c><amount><#6f737d> × <#fa4362><item><#55ffa4>!"
+
+  dye:
+    success: "<prefix><#55ffa4>You successfully changed the color of this item!"
+    wrong_color: "<prefix><#fa4943>Color not recognized, try a hexadecimal color like #FFFFFF!"
+    failed: "<prefix><#fa4943>You cannot change this item's color!"
+
+  hud:
+    no_hud: "<prefix><#fa4943>There is no HUD by the name '<hud_id>'!"
+    toggle_on: "<prefix><#55ffa4>Toggled '<hud_id>' on!"
+    toggle_off: "<prefix><#fa4943>Toggled '<hud_id>' off!"
+
+  debug.toggle: "<prefix><#55ffa4>Debug mode is now <#43fa8c><state><#55ffa4>!"
+  version: "<prefix><#55ffa4>Oraxen version: <#43fa8c><version><#55ffa4>!"
+
+mechanics:
+  not_enough_exp: "<prefix><#fa4943>You need more experience to do this"
+  backpack_stacked: "<prefix><#fa4943>Cannot open stacked backpack"
+  jukebox_now_playing: "<dark_purple>Now Playing <disc>"

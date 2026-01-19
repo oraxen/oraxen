@@ -1,0 +1,88 @@
+general:
+  prefix: "<gradient:#9055FF:#13E2DA>Oraxen <gray>| "
+  no_permission: "<prefix><#fa4943>이 작업을 수행할 권한이 없습니다: <b><permission></b>!"
+  work_in_progress: "<prefix><#facc43>이 기능은 아직 작업 중입니다!"
+  not_player: "<prefix><#fa4943>이 작업은 플레이어만 수행할 수 있습니다!"
+  cooldown: "<prefix><#facc43>잠시 후에 다시 시도해 주세요. 대기 시간: <time>초!"
+  reload: "<prefix><#55ffa4>성공적으로 리로드되었습니다"
+  pack_uploading: "<prefix><#D5D6D8>자동 리소스 팩 업로드가 활성화되어 있습니다. 업로드 중..."
+  pack_not_uploaded: "<prefix><#fa4943>리소스 팩이 업로드되지 않았습니다"
+  pack_uploaded: "<prefix><#55ffa4>리소스 팩이 <delay>ms 내에 <url>에 업로드되었습니다"
+  pack_regenerated: "<prefix><#55ffa4>리소스 팩이 성공적으로 재생성되었습니다"
+  updating_config: "<prefix><#facc43>구성 옵션 \"<option>\"을(를) 찾을 수 없습니다. 옵션을 추가합니다!"
+  removing_config: "<prefix><#facc43>구성 옵션 \"<option>\"이(가) 제거 대기 상태로 표시되어 삭제됩니다!"
+  configs_validation_failed: "<prefix><#fa4943>구성 유효성 검사에 실패했습니다. 플러그인이 자동으로 비활성화되었습니다!"
+  repaired_items: "<prefix><#55ffa4><amount>개의 아이템이 성공적으로 수리되었습니다!"
+  cannot_be_repaired: "<prefix><#fa4943>이 아이템은 수리할 수 없습니다!"
+  cannot_be_repaired_invalid: "<prefix><#fa4943>손에 유효한 아이템을 들고 있어야 합니다!"
+  updated_items: "<prefix><#55ffa4><amount>개의 아이템이 <player>님을 위해 성공적으로 업데이트되었습니다!"
+  zip_browse_error: "<prefix><#fa4943>ZIP을 브라우징 하는 중 오류가 발생했습니다"
+  bad_recipe: "<prefix><#fa4943>레시피 \"<recipe>\"가 유효하지 않습니다. 모든 재료가 구성에 존재하는지 확인하세요"
+  item_not_found: "<prefix><#fa4943>아이템 \"<item>\"을(를) 찾을 수 없습니다"
+  plugin_hooks: "<prefix><#55ffa4>플러그인 \"<plugin>\"이 감지되었습니다. 후크를 활성화합니다"
+  plugin_unhooks: "<prefix><#55ffa4>플러그인 \"<plugin>\"의 후크를 비활성화합니다"
+  not_enough_exp: "<prefix><#fa4943>이 작업을 수행하기에는 더 많은 경험치가 필요합니다"
+  not_enough_space: "<prefix><#fa4943>가구를 놓을 공간이 부족합니다"
+  exit_menu: "<gradient:#FA7CBB:#F14658>나가기"
+  no_emojis: "<prefix><#fa4943>이모지를 찾을 수 없습니다"
+
+logs:
+  loaded: "<prefix><#55ffa4>성공적으로 <os>에 로드되었습니다"
+  unloaded: "<prefix><#55ffa4>성공적으로 언로드되었습니다"
+  no_armor_item: "<prefix><#fa4943><name>과(와) 일치하는 항목을 찾을 수 없습니다. <armor_layer_file>을(를) 사용할 수 없습니다"
+  duplicate_armor_color: "<prefix><#fa4943><first_armor_prefix> 갑옷 세트는 다른 텍스처를 사용하지만 <second_armor_prefix>와(과) 동일한 색상을 사용합니다"
+
+command:
+  help: "<prefix><#b8bbc2>사용 가능한 명령어
+        \n<hover:show_text:\"<gray>리로드 명령어\"><click:SUGGEST_COMMAND:/oraxen reload ><#6f737d>/o
+          <#b8bbc2>리로드 <#fa8943>유형</click></hover>  <#6f737d>»<#b8bbc2> 플러그인을 리로드합니다
+        \n<hover:show_text:\"<gray>인벤토리 명령어\"><click:SUGGEST_COMMAND:/oraxen inv><#6f737d>/o
+          <#b8bbc2>인벤토리</click></hover>  <#6f737d>»<#b8bbc2> 인벤토리에 있는 Oraxen 아이템을 표시합니다
+        \n<hover:show_text:\"<gray>팩 명령어\"><click:SUGGEST_COMMAND:/oraxen pack ><#6f737d>/o
+          <#b8bbc2>팩 <#fa8943>유형 <#43c9fa>대상</click></hover>  <#6f737d>»<#b8bbc2> Oraxen 팩을 보냅니다
+        \n<hover:show_text:\"<gray>수리 명령어\"><click:SUGGEST_COMMAND:/oraxen repair ><#6f737d>/o
+          <#b8bbc2>수리 <#fa8943>유형</click></hover>  <#6f737d>»<#b8bbc2> 당신의 아이템 중 하나 또는 모두를 수리합니다
+        \n<hover:show_text:\"<gray>아이템 지급 명령어\"><click:SUGGEST_COMMAND:/oraxen give ><#6f737d>/o
+          <#b8bbc2>지급 <#43c9fa>대상 <#fa4362>아이템 <#43fa8c>수량</click></hover>  <#6f737d>»<#b8bbc2> Oraxen 아이템을 지급합니다
+        \n<hover:show_text:\"<gray>레시피 표시 명령어\"><click:SUGGEST_COMMAND:/oraxen recipes show ><#6f737d>/o
+          <#b8bbc2>레시피 표시 <#fa8943>유형</click></hover>  <#6f737d>»<#b8bbc2> 레시피를 표시합니다
+        \n<hover:show_text:\"<gray>레시피 제작 명령어\"><click:SUGGEST_COMMAND:/oraxen recipes builder ><#6f737d>/o
+          <#b8bbc2>레시피 빌더 <#fa8943>유형</click></hover>  <#6f737d>»<#b8bbc2> 레시피 빌더를 엽니다
+        \n<hover:show_text:\"<gray>레시피 저장 명령어\"><click:SUGGEST_COMMAND:/oraxen recipes save ><#6f737d>/o
+          <#b8bbc2>레시피 저장 <#faf443>이름</click></hover>  <#6f737d>»<#b8bbc2> 레시피를 저장합니다"
+
+  join: |-
+    <dark_gray><st>                           </st><dark_gray>{<aqua><bold>리소스 팩</bold><dark_gray>}<dark_gray><st>                        </st>
+    <gray><bold>새로운 아이템을 보려면 Oraxen전용 리소스 팩을 사용해야합니다 (하지만 걱정하지 마세요, 이것은 동시에 여러분이 사용 중인 리소스 팩을 사용하는 것을 방해하지 않습니다).</bold>
+    <dark_gray>»<gray> 게임에서 직접로드하려면, <click:run_command:"oraxen pack send @p"><hover:show_text:"<red>! 게임에서 리소스 팩을 로드하는 것은 렉을 유발할 수 있습니다"><red><bold>여기를 클릭하세요</bold></hover></click>
+    <dark_gray>»<gray> 인터넷에서 다운로드하려면, <hover:show_text:"<pack_url> <green>! 게임의 옵션/리소스 팩에서 설치하십시오"><green><bold><click:OPEN_URL:"<pack_url>">여기를 클릭하세요</click></bold></hover>
+
+  recipe:
+    no_builder: "<prefix><#fa4943>레시피를 먼저 만들어주세요!"
+    no_furnace: "<prefix><#fa4943>이 옵션은 용광로 레시피에만 사용할 수 있습니다!"
+    no_name: "<prefix><#fa4943>레시피의 이름을 <gradient:#FA7CBB:#F14658>지정하세요!"
+    no_recipes: "<prefix><#fa4943>표시할 레시피가 없습니다!"
+    no_item: "<prefix><#fa4943>아이템을 지정하세요!"
+    save: "<prefix><#55ffa4>레시피 '<name>'이(가) 성공적으로 저장되었습니다!"
+
+  give:
+    player: "<prefix><#55ffa4><#43c9fa><player><#55ffa4>님께 <#43fa8c><amount><#6f737d> × <#fa4362><item><#55ffa4>을(를) 지급했습니다!"
+    players: "<prefix><#55ffa4><#count>명의 플레이어에게 <#43fa8c><amount><#6f737d> × <#fa4362><item><#55ffa4>을(를) 지급했습니다!"
+
+  dye:
+    success: "<prefix><#55ffa4>이 아이템의 색상을 성공적으로 변경했습니다!"
+    wrong_color: "<prefix><#fa4943>색상이 인식되지 않았습니다. #FFFFFF와 같은 16진수 색상을 사용해보세요!"
+    failed: "<prefix><#fa4943>이 아이템의 색상을 변경할 수 없습니다!"
+
+  hud:
+    no_hud: "<prefix><#fa4943>'<hud_id>'라는 이름의 HUD가 없습니다!"
+    toggle_on: "<prefix><#55ffa4>HUD '<hud_id>'을(를) 켰습니다!"
+    toggle_off: "<prefix><#fa4943>HUD '<hud_id>'을(를) 껐습니다!"
+
+  debug.toggle: "<prefix><#55ffa4>디버그 모드가 <#43fa8c><state><#55ffa4>로 설정되었습니다!"
+  version: "<prefix><#55ffa4>Oraxen 버전: <#43fa8c><version><#55ffa4>!"
+
+mechanics:
+  not_enough_exp: "<prefix><#fa4943>이 작업을 수행하려면 더 많은 경험치가 필요합니다"
+  backpack_stacked: "<prefix><#fa4943>풀 스택된 백팩을 열 수 없습니다"
+  jukebox_now_playing: "<dark_purple>지금 재생 중 <disc>"

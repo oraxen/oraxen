@@ -1,0 +1,145 @@
+# Material list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
+# EntityType list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/EntityType.html
+# Attribute list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/attribute/Attribute.html
+# Potion effects list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/potion/PotionEffectType.html
+# Random UUID generator: https://www.uuidgenerator.net/
+# Color codes: https://docs.adventure.kyori.net/minimessage.html#format
+
+storm_sword:
+  displayname: "<gradient:#3685EC:#72C1E4>Storm Sword"
+  material: DIAMOND_SWORD
+  AttributeModifiers:
+    # diamond sword has an attack damage of 7
+    - { attribute: GENERIC_ATTACK_DAMAGE, amount: 10, operation: 0, slot: HAND }
+    # it has two times more full-strength attacks per second than diamond sword
+    - { attribute: GENERIC_ATTACK_SPEED, amount: 3.2, operation: 0, slot: HAND }
+  lore:
+    - "<#6f737d>» <#D5D6D8>Right click to strike lightning"
+  Pack:
+    generate_model: false
+    model: default/storm_sword
+  Mechanics:
+    thor:
+      lightning_bolts_amount: 5
+      random_location_variation: 1.5
+      delay: 20000 # in milliseconds (20000ms = 20s)
+
+energy_crystal_sword:
+  displayname: "<gradient:#3685EC:#72C1E4>Energy Crystal Sword"
+  material: DIAMOND_SWORD
+  AttributeModifiers:
+    # diamond sword has an attack damage of 7
+    - { attribute: GENERIC_ATTACK_DAMAGE, amount: 10, operation: 0, slot: HAND }
+    # it has as much full-strength attacks per second than diamond sword
+    - { attribute: GENERIC_ATTACK_SPEED, amount: 1.6, operation: 0, slot: HAND }
+  Pack:
+    generate_model: false
+    model: default/energy_crystal_sword
+
+glass_sword:
+  displayname: "<#D5D6D8>Glass Sword"
+  material: DIAMOND_SWORD
+  lore:
+    - "<#6f737d>» <#D5D6D8>Fragile"
+  AttributeModifiers:
+    # diamond sword has an attack damage of 7
+    - { attribute: GENERIC_ATTACK_DAMAGE, amount: 10, operation: 0, slot: HAND }
+    # it has as 5 full-strength attacks per second
+    - { attribute: GENERIC_ATTACK_SPEED, amount: 1.6, operation: 0, slot: HAND }
+  Pack:
+    generate_model: true
+    parent_model: "item/handheld"
+    textures:
+      - default/glass_sword.png
+  Mechanics:
+    durability:
+      value: 8
+
+obsidian_sword:
+  displayname: "<gradient:#4B36B1:#6699FF>Obsidian Sword"
+  material: DIAMOND_SWORD
+  lore:
+    - "<#6f737d>» <#D5D6D8>Ludicrous durability"
+  AttributeModifiers:
+    # diamond sword has an attack damage of 7
+    - { attribute: GENERIC_ATTACK_DAMAGE, amount: 6, operation: 0, slot: HAND }
+    # it has as 5 full-strength attacks per second
+    - { attribute: GENERIC_ATTACK_SPEED, amount: 1.6, operation: 0, slot: HAND }
+  Pack:
+    generate_model: true
+    parent_model: "item/handheld"
+    textures:
+      - default/obsidian_sword.png
+  Mechanics:
+    durability:
+      value: 10000
+
+blood_sword:
+  displayname: "<gradient:#FA7CBB:#F14658>Blood Sword"
+  material: DIAMOND_SWORD
+  lore:
+    - "<#6f737d>» <#D5D6D8>Steal the life of your enemies"
+  AttributeModifiers:
+    # diamond sword has an attack damage of 7
+    - { attribute: GENERIC_ATTACK_DAMAGE, amount: 8, operation: 0, slot: HAND }
+    # it has as much full-strength attacks per second than diamond sword
+    - { attribute: GENERIC_ATTACK_SPEED, amount: 1.6, operation: 0, slot: HAND }
+  Pack:
+    generate_model: false
+    model: default/blood_sword
+  Mechanics:
+    lifeleech:
+      amount: 2 # the amount of 1/2 hearts that you'll steal to your opponents
+    durability:
+      value: 500 #diamond sword is 1561
+
+octavia_sword:
+  displayname: "<#D5D6D8>Octavia Sword"
+  material: DIAMOND_SWORD
+  Pack:
+    generate_model: false
+    model: default/octavia_sword
+  Mechanics:
+    durability:
+      value: 600 #diamond sword is 1561
+
+dagger:
+  displayname: "<gradient:#FA7CBB:#F14658>Dagger"
+  material: DIAMOND_SWORD
+  Pack:
+    generate_model: false
+    model: default/dagger
+  Mechanics:
+    durability:
+      value: 10 #diamond sword is 1561
+
+katana:
+  displayname: "<gradient:#F69D84:#FAD98D>Katana"
+  material: DIAMOND_SWORD
+  AttributeModifiers:
+    # diamond sword has an attack damage of 7
+    - { attribute: GENERIC_ATTACK_DAMAGE, amount: 5, operation: 0, slot: HAND }
+    # it has as 5 full-strength attacks per second
+    - { attribute: GENERIC_ATTACK_SPEED, amount: 5, operation: 0, slot: HAND }
+  Pack:
+    generate_model: false
+    model: default/katana
+  Mechanics:
+    durability:
+      value: 1000 #diamond sword is 1561
+
+combat_bow:
+  displayname: '<gradient:#F69D84:#FAD98D>Combat Bow'
+  material: BOW
+  AttributeModifiers:
+    - attribute: GENERIC_ATTACK_DAMAGE
+      amount: 7
+      operation: 0
+      slot: HAND
+  Pack:
+    generate_model: false
+    model: default/combat_bow
+    pulling_models:
+      - default/combat_bow_pulling_0
+      - default/combat_bow_pulling_1
+      - default/combat_bow_pulling_2

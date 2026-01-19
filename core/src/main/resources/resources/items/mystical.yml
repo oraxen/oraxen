@@ -1,0 +1,113 @@
+# Material list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
+# EntityType list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/EntityType.html
+# Attribute list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/attribute/Attribute.html
+# Potion effects list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/potion/PotionEffectType.html
+# Random UUID generator: https://www.uuidgenerator.net/
+# Color codes: https://docs.adventure.kyori.net/minimessage.html#format
+
+legendary_hammer:
+  displayname: "<gradient:#F06966:#FAD6A6>Legendary Hammer"
+  material: DIAMOND_PICKAXE
+  Pack:
+    generate_model: false
+    model: default/legendary_hammer
+  Mechanics:
+    durability:
+      value: 10000 #diamond sword is 1561
+
+earth_hammer:
+  displayname: "<gradient:#89E59D:#37C6BA>Earth Hammer"
+  material: DIAMOND_PICKAXE
+  Pack:
+    generate_model: false
+    model: default/earth_hammer
+
+magical_wand:
+  displayname: "<gradient:#3685EC:#72C1E4>Magical Wand"
+  material: WOODEN_HOE
+  Pack:
+    generate_model: false
+    model: default/magical_wand
+  Mechanics:
+    aura:
+      type: helix
+      particle: SOUL_FIRE_FLAME
+    energyblast:
+      delay: 20000
+      length: 5
+      damage: 10.0
+      particle:
+        type: REDSTONE #Only REDSTONE particle can change size and color.
+        size: 1
+        color:
+          red: 0
+          green: 255
+          blue: 255
+
+magical_axe:
+  displayname: "<gradient:#89E59D:#37C6BA>Axe of Experience"
+  material: DIAMOND_AXE
+  lore:
+    - "<#6f737d>» <#D5D6D8>Convert experience to bottles"
+  Pack:
+    generate_model: false
+    model: default/magical_axe
+  Mechanics:
+    bottledexp: # Because exp converting is cheated
+      ratio: 0.95 # So you'll lose 1/20 of your exp by converting it
+
+ice_staff:
+  displayname: "<gradient:#3685EC:#72C1E4>Ice Staff"
+  material: WOODEN_HOE
+  Pack:
+    generate_model: false
+    model: default/ice_staff
+
+battle_axe:
+  displayname: '<gradient:#F06966:#FAD6A6>Battle Axe'
+  material: DIAMOND_AXE
+  AttributeModifiers:
+    - attribute: GENERIC_ATTACK_DAMAGE
+      amount: 7
+      operation: 0
+      slot: HAND
+  Pack:
+    generate_model: false
+    model: default/battle_axe
+
+withooker:
+  displayname: "<gradient:#3685EC:#72C1E4>Withooker"
+  material: WOODEN_HOE
+  unbreakable: true
+  Pack:
+    generate_model: false
+    model: default/withooker
+  Mechanics:
+    witherskull:
+      charged: false
+      delay: 3000 # in milliseconds (3000ms = 3s)
+
+divine_shield:
+  displayname: '<gradient:#F69D84:#FAD98D>Divine Shield'
+  material: SHIELD
+  Pack:
+    generate_model: false
+    model: default/divine_shield
+    blocking_model: default/divine_shield_blocking
+
+magic_book:
+  displayname: '<gradient:#3685EC:#72C1E4>Magic Book'
+  material: DIAMOND_SWORD
+  Pack:
+    generate_model: false
+    model: default/magic_book
+  Mechanics:
+    aura:
+      type: simple
+      particle: PORTAL
+    energyblast:
+      delay: 20000
+      length: 5
+      damage: 10.0
+      particle:
+        type: PORTAL
