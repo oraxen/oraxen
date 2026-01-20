@@ -1626,6 +1626,56 @@ public class ResourcePack {
         }
     }
 
+    // Common uniform definitions for shader JSON
+    private static final String UNIFORM_MATRIX = """
+                        { "name": "ModelViewMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+                        { "name": "ProjMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+                        { "name": "ColorModulator", "type": "float", "count": 4, "values": [ 1.0, 1.0, 1.0, 1.0 ] }""";
+    private static final String UNIFORM_FOG = """
+                        { "name": "FogStart", "type": "float", "count": 1, "values": [ 0.0 ] },
+                        { "name": "FogEnd", "type": "float", "count": 1, "values": [ 1.0 ] },
+                        { "name": "FogColor", "type": "float", "count": 4, "values": [ 0.0, 0.0, 0.0, 0.0 ] },
+                        { "name": "FogShape", "type": "int", "count": 1, "values": [ 0 ] }""";
+    private static final String UNIFORM_GAMETIME = """
+                        { "name": "GameTime", "type": "float", "count": 1, "values": [ 0.0 ] }""";
+    private static final String UNIFORM_SCREENSIZE = """
+                        { "name": "ScreenSize", "type": "float", "count": 2, "values": [ 1.0, 1.0 ] }""";
+
+    /**
+     * Builds a pre-1.21.6 shader JSON configuration.
+     */
+    private String buildLegacyShaderJson(String shaderName, boolean hasUV2, boolean hasSampler2,
+            boolean hasFog, boolean hasGameTime, boolean hasScreenSize) {
+        String attributes = hasUV2
+                ? "\"Position\", \"Color\", \"UV0\", \"UV2\""
+                : "\"Position\", \"Color\", \"UV0\"";
+        String samplers = hasSampler2
+                ? "{ \"name\": \"Sampler0\" }, { \"name\": \"Sampler2\" }"
+                : "{ \"name\": \"Sampler0\" }";
+
+        StringBuilder uniforms = new StringBuilder(UNIFORM_MATRIX);
+        if (hasFog) uniforms.append(",\n").append(UNIFORM_FOG);
+        if (hasGameTime) uniforms.append(",\n").append(UNIFORM_GAMETIME);
+        if (hasScreenSize) uniforms.append(",\n").append(UNIFORM_SCREENSIZE);
+
+        return """
+            {
+                "blend": {
+                    "func": "add",
+                    "srcrgb": "srcalpha",
+                    "dstrgb": "1-srcalpha"
+                },
+                "vertex": "%s",
+                "fragment": "%s",
+                "attributes": [ %s ],
+                "samplers": [ %s ],
+                "uniforms": [
+%s
+                ]
+            }
+            """.formatted(shaderName, shaderName, attributes, samplers, uniforms.toString());
+    }
+
     /**
      * Generates the shader JSON configuration.
      */
@@ -1639,93 +1689,18 @@ public class ResourcePack {
 
         if (is1_21_6Plus) {
             // 1.21.6+ uses uniform blocks - most uniforms come from imported glsl files
-            // Only samplers need to be declared in the JSON
-            if (seeThrough) {
-                return """
-                    {
-                        "vertex": "minecraft:core/%s",
-                        "fragment": "minecraft:core/%s",
-                        "samplers": [
-                            { "name": "Sampler0" }
-                        ]
-                    }
-                    """.formatted(shaderName, shaderName);
-            }
-
+            String samplers = seeThrough
+                    ? "{ \"name\": \"Sampler0\" }"
+                    : "{ \"name\": \"Sampler0\" }, { \"name\": \"Sampler2\" }";
             return """
                 {
                     "vertex": "minecraft:core/%s",
                     "fragment": "minecraft:core/%s",
-                    "samplers": [
-                        { "name": "Sampler0" },
-                        { "name": "Sampler2" }
-                    ]
+                    "samplers": [ %s ]
                 }
-                """.formatted(shaderName, shaderName);
+                """.formatted(shaderName, shaderName, samplers);
         } else {
-            if (seeThrough) {
-                return """
-                    {
-                        "blend": {
-                            "func": "add",
-                            "srcrgb": "srcalpha",
-                            "dstrgb": "1-srcalpha"
-                        },
-                        "vertex": "rendertype_text",
-                        "fragment": "rendertype_text",
-                        "attributes": [
-                            "Position",
-                            "Color",
-                            "UV0"
-                        ],
-                        "samplers": [
-                            { "name": "Sampler0" }
-                        ],
-                        "uniforms": [
-                            { "name": "ModelViewMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
-                            { "name": "ProjMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
-                            { "name": "ColorModulator", "type": "float", "count": 4, "values": [ 1.0, 1.0, 1.0, 1.0 ] },
-                            { "name": "FogStart", "type": "float", "count": 1, "values": [ 0.0 ] },
-                            { "name": "FogEnd", "type": "float", "count": 1, "values": [ 1.0 ] },
-                            { "name": "FogColor", "type": "float", "count": 4, "values": [ 0.0, 0.0, 0.0, 0.0 ] },
-                            { "name": "FogShape", "type": "int", "count": 1, "values": [ 0 ] },
-                            { "name": "GameTime", "type": "float", "count": 1, "values": [ 0.0 ] }
-                        ]
-                    }
-                    """.replace("rendertype_text", shaderName);
-            }
-
-            return """
-                {
-                    "blend": {
-                        "func": "add",
-                        "srcrgb": "srcalpha",
-                        "dstrgb": "1-srcalpha"
-                    },
-                    "vertex": "rendertype_text",
-                    "fragment": "rendertype_text",
-                    "attributes": [
-                        "Position",
-                        "Color",
-                        "UV0",
-                        "UV2"
-                    ],
-                    "samplers": [
-                        { "name": "Sampler0" },
-                        { "name": "Sampler2" }
-                    ],
-                    "uniforms": [
-                        { "name": "ModelViewMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
-                        { "name": "ProjMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
-                        { "name": "ColorModulator", "type": "float", "count": 4, "values": [ 1.0, 1.0, 1.0, 1.0 ] },
-                        { "name": "FogStart", "type": "float", "count": 1, "values": [ 0.0 ] },
-                        { "name": "FogEnd", "type": "float", "count": 1, "values": [ 1.0 ] },
-                        { "name": "FogColor", "type": "float", "count": 4, "values": [ 0.0, 0.0, 0.0, 0.0 ] },
-                        { "name": "FogShape", "type": "int", "count": 1, "values": [ 0 ] },
-                        { "name": "GameTime", "type": "float", "count": 1, "values": [ 0.0 ] }
-                    ]
-                }
-                """.replace("rendertype_text", shaderName);
+            return buildLegacyShaderJson(shaderName, !seeThrough, !seeThrough, true, true, false);
         }
     }
 
@@ -1819,48 +1794,12 @@ public class ResourcePack {
                 {
                     "vertex": "minecraft:core/rendertype_text",
                     "fragment": "minecraft:core/rendertype_text",
-                    "samplers": [
-                        { "name": "Sampler0" },
-                        { "name": "Sampler2" }
-                    ],
-                    "uniforms": [
-                        { "name": "ScreenSize", "type": "float", "count": 2, "values": [ 1.0, 1.0 ] }
-                    ]
+                    "samplers": [ { "name": "Sampler0" }, { "name": "Sampler2" } ],
+                    "uniforms": [ { "name": "ScreenSize", "type": "float", "count": 2, "values": [ 1.0, 1.0 ] } ]
                 }
                 """;
         } else {
-            return """
-                {
-                    "blend": {
-                        "func": "add",
-                        "srcrgb": "srcalpha",
-                        "dstrgb": "1-srcalpha"
-                    },
-                    "vertex": "rendertype_text",
-                    "fragment": "rendertype_text",
-                    "attributes": [
-                        "Position",
-                        "Color",
-                        "UV0",
-                        "UV2"
-                    ],
-                    "samplers": [
-                        { "name": "Sampler0" },
-                        { "name": "Sampler2" }
-                    ],
-                    "uniforms": [
-                        { "name": "ModelViewMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
-                        { "name": "ProjMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
-                        { "name": "ColorModulator", "type": "float", "count": 4, "values": [ 1.0, 1.0, 1.0, 1.0 ] },
-                        { "name": "FogStart", "type": "float", "count": 1, "values": [ 0.0 ] },
-                        { "name": "FogEnd", "type": "float", "count": 1, "values": [ 1.0 ] },
-                        { "name": "FogColor", "type": "float", "count": 4, "values": [ 0.0, 0.0, 0.0, 0.0 ] },
-                        { "name": "FogShape", "type": "int", "count": 1, "values": [ 0 ] },
-                        { "name": "GameTime", "type": "float", "count": 1, "values": [ 0.0 ] },
-                        { "name": "ScreenSize", "type": "float", "count": 2, "values": [ 1.0, 1.0 ] }
-                    ]
-                }
-                """;
+            return buildLegacyShaderJson("rendertype_text", true, true, true, true, true);
         }
     }
 
