@@ -1202,53 +1202,28 @@ public class ResourcePack {
     }
 
     /**
-     * Generates animation vertex shader using visibility-based animation.
-     * Each frame is a separate character; the shader hides frames that don't match current time.
-     * Also handles text effects encoded in RGB low bits (alpha_lsb) with position-based effects.
-     *
-     * Color encoding for animated glyphs:
-     * - R = 254: animation marker
-     * - G bits 0-6: FPS, bit 7: loop flag
-     * - B bits 0-3: frame index, bits 4-7: total frames - 1
-     *
-     * Color encoding for text effects (alpha_lsb):
-     * - Low 4 bits of each channel are reserved
-     * - Low nibble values between DATA_MIN and DATA_MAX carry data (0-7), skipping DATA_GAP
-     * - R -> effectType, G -> speed, B -> param
-     * - charIndex is derived from gl_VertexID
+     * Configuration for version-specific shader code generation.
+     * Holds the variable parts that differ between MC versions and seeThrough modes.
      */
-    private String getAnimationVertexShader(TextShaderTarget target, TextShaderFeatures features, boolean seeThrough) {
-        boolean is1_21_6Plus = target.isAtLeast("1.21.6");
-        boolean is1_21_4Plus = target.isAtLeast("1.21.4");
-        String textShaderConstants = getTextShaderConstants(target, features);
-        TextEffectSnippets snippets = getTextEffectSnippets(target);
-        String vertexPrelude = snippets.vertexPrelude();
-        String vertexEffects = snippets.vertexEffects();
+    private record VertexShaderConfig(
+            String fogDistanceInit,        // Initial fog distance calculation (empty for seeThrough)
+            String fogDistanceRecalc,      // Fog recalculation after effects (empty for seeThrough)
+            String vertexColorInit,        // Initial vertexColor assignment
+            String vertexColorAnimated,    // vertexColor for animated glyphs
+            String moduloExpr              // Modulo expression: "(rawFrame %% totalFrames)" or "int(mod(float(rawFrame), float(totalFrames)))"
+    ) {}
 
-        if (is1_21_6Plus) {
-            if (seeThrough) {
-                return """
-                    #version 330
-
-                    #moj_import <minecraft:dynamictransforms.glsl>
-                    #moj_import <minecraft:projection.glsl>
-                    #moj_import <minecraft:globals.glsl>
-
-                    in vec3 Position;
-                    in vec4 Color;
-                    in vec2 UV0;
-
-                    out vec4 vertexColor;
-                    out vec2 texCoord0;
-                    out vec4 effectData; // Pass effect info to fragment shader
-                    %s
-                    %s
-
+    /**
+     * Generates the vertex shader main() body logic. This is shared between all shader variants,
+     * with version-specific parts injected via VertexShaderConfig.
+     */
+    private String getVertexShaderMainBody(VertexShaderConfig config, String vertexEffects) {
+        return """
                     void main() {
                         vec3 pos = Position;
                         gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                        texCoord0 = UV0;
-                        vertexColor = Color;
+%s                        texCoord0 = UV0;
+                        vertexColor = %s;
                         effectData = vec4(-1.0, 0.0, 0.0, 0.0); // -1 means no effect
 
                         int rInt = int(Color.r * 255.0 + 0.5);
@@ -1270,12 +1245,12 @@ public class ResourcePack {
 
                             float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
                             int rawFrame = int(floor(timeSeconds * fps));
-                            int currentFrame = loop ? (rawFrame %% totalFrames) : min(rawFrame, totalFrames - 1);
+                            int currentFrame = loop ? %s : min(rawFrame, totalFrames - 1);
 
                             float visible = (frameIndex == currentFrame && isPrimaryAnim) ? 1.0 : 0.0;
 
                             if (isPrimaryAnim) {
-                                vertexColor = vec4(1.0, 1.0, 1.0, visible);
+                                vertexColor = %s;
                             } else {
                                 vertexColor = vec4(0.0);
                             }
@@ -1303,17 +1278,67 @@ public class ResourcePack {
 %s
 
                                 gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-
+%s
                                 // Pass effect data to fragment shader
-                                // x=effectType, y=speed, z=charIndex, w=param
                                 effectData = vec4(float(effectType), speed, charIndex, param);
                             }
                         }
                     }
-                    """.formatted(textShaderConstants, vertexPrelude, vertexEffects);
-            }
+                """.formatted(
+                config.fogDistanceInit.isEmpty() ? "" : "                        " + config.fogDistanceInit + "\n",
+                config.vertexColorInit,
+                config.moduloExpr,
+                config.vertexColorAnimated,
+                vertexEffects,
+                config.fogDistanceRecalc.isEmpty() ? "" : "                            " + config.fogDistanceRecalc + "\n"
+        );
+    }
 
-            return """
+    /**
+     * Generates animation vertex shader using visibility-based animation.
+     * Each frame is a separate character; the shader hides frames that don't match current time.
+     * Also handles text effects encoded in RGB low bits (alpha_lsb) with position-based effects.
+     *
+     * Color encoding for animated glyphs:
+     * - R = 254: animation marker
+     * - G bits 0-6: FPS, bit 7: loop flag
+     * - B bits 0-3: frame index, bits 4-7: total frames - 1
+     *
+     * Color encoding for text effects (alpha_lsb):
+     * - Low 4 bits of each channel are reserved
+     * - Low nibble values between DATA_MIN and DATA_MAX carry data (0-7), skipping DATA_GAP
+     * - R -> effectType, G -> speed, B -> param
+     * - charIndex is derived from gl_VertexID
+     */
+    private String getAnimationVertexShader(TextShaderTarget target, TextShaderFeatures features, boolean seeThrough) {
+        boolean is1_21_6Plus = target.isAtLeast("1.21.6");
+        String textShaderConstants = getTextShaderConstants(target, features);
+        TextEffectSnippets snippets = getTextEffectSnippets(target);
+        String vertexPrelude = snippets.vertexPrelude();
+        String vertexEffects = snippets.vertexEffects();
+
+        VertexShaderConfig config = createVertexShaderConfig(is1_21_6Plus, seeThrough);
+        String mainBody = getVertexShaderMainBody(config, vertexEffects);
+
+        if (is1_21_6Plus) {
+            String header = seeThrough ? """
+                #version 330
+
+                #moj_import <minecraft:dynamictransforms.glsl>
+                #moj_import <minecraft:projection.glsl>
+                #moj_import <minecraft:globals.glsl>
+
+                in vec3 Position;
+                in vec4 Color;
+                in vec2 UV0;
+
+                out vec4 vertexColor;
+                out vec2 texCoord0;
+                out vec4 effectData;
+                %s
+                %s
+
+""" : """
                 #version 330
 
                 #moj_import <minecraft:fog.glsl>
@@ -1332,179 +1357,38 @@ public class ResourcePack {
                 out float cylindricalVertexDistance;
                 out vec4 vertexColor;
                 out vec2 texCoord0;
-                out vec4 effectData; // Pass effect info to fragment shader
+                out vec4 effectData;
                 %s
                 %s
 
-                void main() {
-                    vec3 pos = Position;
-                    gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                    sphericalVertexDistance = fog_spherical_distance(pos);
-                    cylindricalVertexDistance = fog_cylindrical_distance(pos);
-                    texCoord0 = UV0;
-                    vertexColor = Color * texelFetch(Sampler2, UV2 / 16, 0);
-                    effectData = vec4(-1.0, 0.0, 0.0, 0.0); // -1 means no effect
-
-                    int rInt = int(Color.r * 255.0 + 0.5);
-                    int gRaw = int(Color.g * 255.0 + 0.5);
-                    int bRaw = int(Color.b * 255.0 + 0.5);
-
-                    // Check for animation color: R=254 for primary, R≈63 for shadow
-                    bool isPrimaryAnim = (rInt == 254);
-                    bool isShadowAnim = (rInt >= 62 && rInt <= 64) && (gRaw >= 1) && (bRaw <= 64);
-
-                    if (ORAXEN_ANIMATED_GLYPHS && (isPrimaryAnim || isShadowAnim)) {
-                        int gInt = isPrimaryAnim ? gRaw : min(255, gRaw * 4);
-                        int bInt = isPrimaryAnim ? bRaw : min(255, bRaw * 4);
-
-                        bool loop = (gInt < 128);
-                        float fps = max(1.0, float(gInt & 0x7F));
-                        int frameIndex = bInt & 0x0F;
-                        int totalFrames = ((bInt >> 4) & 0x0F) + 1;
-
-                        float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
-                        int rawFrame = int(floor(timeSeconds * fps));
-                        int currentFrame = loop ? (rawFrame %% totalFrames) : min(rawFrame, totalFrames - 1);
-
-                        float visible = (frameIndex == currentFrame && isPrimaryAnim) ? 1.0 : 0.0;
-
-                        if (isPrimaryAnim) {
-                            vertexColor = vec4(1.0, 1.0, 1.0, visible) * texelFetch(Sampler2, UV2 / 16, 0);
-                        } else {
-                            vertexColor = vec4(0.0);
-                        }
-                    }
-
-                    // Text effects: exact trigger color matching
-                    if (ORAXEN_TEXT_EFFECTS && ORAXEN_EFFECT_COUNT > 0 && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
-                        // Check for exact trigger color match
-                        ivec3 colorInt = ivec3(rInt, gRaw, bRaw);
-                        int effectType = -1;
-                        for (int i = 0; i < ORAXEN_EFFECT_COUNT; i++) {
-                            if (colorInt == ORAXEN_EFFECT_TRIGGERS[i]) {
-                                effectType = ORAXEN_EFFECT_IDS[i];
-                                break;
-                            }
-                        }
-
-                        if (effectType >= 0) {
-                            float speed = 3.0; // Default speed (configured in shader snippets)
-                            float param = 3.0; // Default param (configured in shader snippets)
-                            float charIndex = float(gl_VertexID >> 2);
-
-                            float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
-
-%s
-
-                            gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                            sphericalVertexDistance = fog_spherical_distance(pos);
-                            cylindricalVertexDistance = fog_cylindrical_distance(pos);
-
-                            // Pass effect data to fragment shader
-                            effectData = vec4(float(effectType), speed, charIndex, param);
-                        }
-                    }
-                }
-                """.formatted(textShaderConstants, vertexPrelude, vertexEffects);
+""";
+            return header.formatted(textShaderConstants, vertexPrelude) + mainBody;
         } else {
             // Pre-1.21.6: use traditional uniform declarations
             // Note: 1.21.4/1.21.5 still use the old fog.glsl (non-namespaced) with fog_distance() and linear_fog()
-            // The namespaced minecraft:fog.glsl has different function signatures and interface blocks
             String imports = "#moj_import <fog.glsl>";
+            String header = seeThrough ? """
+                #version 150
 
-            if (seeThrough) {
-                return """
-                    #version 150
+                %s
 
-                    %s
+                in vec3 Position;
+                in vec4 Color;
+                in vec2 UV0;
 
-                    in vec3 Position;
-                    in vec4 Color;
-                    in vec2 UV0;
+                uniform mat4 ModelViewMat;
+                uniform mat4 ProjMat;
+                uniform int FogShape;
+                uniform float GameTime;
 
-                    uniform mat4 ModelViewMat;
-                    uniform mat4 ProjMat;
-                    uniform int FogShape;
-                    uniform float GameTime;
+                out float vertexDistance;
+                out vec4 vertexColor;
+                out vec2 texCoord0;
+                out vec4 effectData;
+                %s
+                %s
 
-                    out float vertexDistance;
-                    out vec4 vertexColor;
-                    out vec2 texCoord0;
-                    out vec4 effectData; // Pass effect info to fragment shader
-                    %s
-                    %s
-
-                    void main() {
-                        vec3 pos = Position;
-                        gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                        vertexDistance = fog_distance(pos, FogShape);
-                        texCoord0 = UV0;
-                        vertexColor = Color;
-                        effectData = vec4(-1.0, 0.0, 0.0, 0.0); // -1 means no effect
-
-                        int rInt = int(Color.r * 255.0 + 0.5);
-                        int gRaw = int(Color.g * 255.0 + 0.5);
-                        int bRaw = int(Color.b * 255.0 + 0.5);
-
-                        // Check for animation color: R=254 for primary, R≈63 for shadow
-                        bool isPrimaryAnim = (rInt == 254);
-                        bool isShadowAnim = (rInt >= 62 && rInt <= 64) && (gRaw >= 1) && (bRaw <= 64);
-
-                        if (ORAXEN_ANIMATED_GLYPHS && (isPrimaryAnim || isShadowAnim)) {
-                            int gInt = isPrimaryAnim ? gRaw : min(255, gRaw * 4);
-                            int bInt = isPrimaryAnim ? bRaw : min(255, bRaw * 4);
-
-                            bool loop = (gInt < 128);
-                            float fps = max(1.0, float(gInt & 0x7F));
-                            int frameIndex = bInt & 0x0F;
-                            int totalFrames = ((bInt >> 4) & 0x0F) + 1;
-
-                            float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
-                            int rawFrame = int(floor(timeSeconds * fps));
-                            int currentFrame = loop ? int(mod(float(rawFrame), float(totalFrames))) : min(rawFrame, totalFrames - 1);
-
-                            float visible = (frameIndex == currentFrame && isPrimaryAnim) ? 1.0 : 0.0;
-
-                            if (isPrimaryAnim) {
-                                vertexColor = vec4(1.0, 1.0, 1.0, visible);
-                            } else {
-                                vertexColor = vec4(0.0);
-                            }
-                        }
-
-                        // Text effects: exact trigger color matching
-                        if (ORAXEN_TEXT_EFFECTS && ORAXEN_EFFECT_COUNT > 0 && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
-                            // Check for exact trigger color match
-                            ivec3 colorInt = ivec3(rInt, gRaw, bRaw);
-                            int effectType = -1;
-                            for (int i = 0; i < ORAXEN_EFFECT_COUNT; i++) {
-                                if (colorInt == ORAXEN_EFFECT_TRIGGERS[i]) {
-                                    effectType = ORAXEN_EFFECT_IDS[i];
-                                    break;
-                                }
-                            }
-
-                            if (effectType >= 0) {
-                                float speed = 3.0; // Default speed (configured in shader snippets)
-                                float param = 3.0; // Default param (configured in shader snippets)
-                                float charIndex = float(gl_VertexID >> 2);
-
-                                float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
-
-%s
-
-                                gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                                vertexDistance = fog_distance(pos, FogShape);
-
-                                // Pass effect data to fragment shader
-                                effectData = vec4(float(effectType), speed, charIndex, param);
-                            }
-                        }
-                    }
-                    """.formatted(imports, textShaderConstants, vertexPrelude, vertexEffects);
-            }
-
-            return """
+""" : """
                 #version 150
 
                 %s
@@ -1523,78 +1407,56 @@ public class ResourcePack {
                 out float vertexDistance;
                 out vec4 vertexColor;
                 out vec2 texCoord0;
-                out vec4 effectData; // Pass effect info to fragment shader
+                out vec4 effectData;
                 %s
                 %s
 
-                void main() {
-                    vec3 pos = Position;
-                    gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                    vertexDistance = fog_distance(pos, FogShape);
-                    texCoord0 = UV0;
-                    vertexColor = Color * texelFetch(Sampler2, UV2 / 16, 0);
-                    effectData = vec4(-1.0, 0.0, 0.0, 0.0); // -1 means no effect
+""";
+            return header.formatted(imports, textShaderConstants, vertexPrelude) + mainBody;
+        }
+    }
 
-                    int rInt = int(Color.r * 255.0 + 0.5);
-                    int gRaw = int(Color.g * 255.0 + 0.5);
-                    int bRaw = int(Color.b * 255.0 + 0.5);
-
-                    // Check for animation color: R=254 for primary, R≈63 for shadow
-                    bool isPrimaryAnim = (rInt == 254);
-                    bool isShadowAnim = (rInt >= 62 && rInt <= 64) && (gRaw >= 1) && (bRaw <= 64);
-
-                    if (ORAXEN_ANIMATED_GLYPHS && (isPrimaryAnim || isShadowAnim)) {
-                        int gInt = isPrimaryAnim ? gRaw : min(255, gRaw * 4);
-                        int bInt = isPrimaryAnim ? bRaw : min(255, bRaw * 4);
-
-                        bool loop = (gInt < 128);
-                        float fps = max(1.0, float(gInt & 0x7F));
-                        int frameIndex = bInt & 0x0F;
-                        int totalFrames = ((bInt >> 4) & 0x0F) + 1;
-
-                        float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
-                        int rawFrame = int(floor(timeSeconds * fps));
-                        int currentFrame = loop ? int(mod(float(rawFrame), float(totalFrames))) : min(rawFrame, totalFrames - 1);
-
-                        float visible = (frameIndex == currentFrame && isPrimaryAnim) ? 1.0 : 0.0;
-
-                        if (isPrimaryAnim) {
-                            vertexColor = vec4(1.0, 1.0, 1.0, visible) * texelFetch(Sampler2, UV2 / 16, 0);
-                        } else {
-                            vertexColor = vec4(0.0);
-                        }
-                    }
-
-                    // Text effects: exact trigger color matching
-                    if (ORAXEN_TEXT_EFFECTS && ORAXEN_EFFECT_COUNT > 0 && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
-                        // Check for exact trigger color match
-                        ivec3 colorInt = ivec3(rInt, gRaw, bRaw);
-                        int effectType = -1;
-                        for (int i = 0; i < ORAXEN_EFFECT_COUNT; i++) {
-                            if (colorInt == ORAXEN_EFFECT_TRIGGERS[i]) {
-                                effectType = ORAXEN_EFFECT_IDS[i];
-                                break;
-                            }
-                        }
-
-                        if (effectType >= 0) {
-                            float speed = 3.0; // Default speed (configured in shader snippets)
-                            float param = 3.0; // Default param (configured in shader snippets)
-                            float charIndex = float(gl_VertexID >> 2);
-
-                            float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
-
-%s
-
-                            gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                            vertexDistance = fog_distance(pos, FogShape);
-
-                            // Pass effect data to fragment shader
-                            effectData = vec4(float(effectType), speed, charIndex, param);
-                        }
-                    }
-                }
-                """.formatted(imports, textShaderConstants, vertexPrelude, vertexEffects);
+    /**
+     * Creates the version-specific shader configuration based on MC version and seeThrough mode.
+     */
+    private VertexShaderConfig createVertexShaderConfig(boolean is1_21_6Plus, boolean seeThrough) {
+        if (is1_21_6Plus) {
+            if (seeThrough) {
+                return new VertexShaderConfig(
+                        "",  // No fog init for seeThrough
+                        "",  // No fog recalc for seeThrough
+                        "Color",
+                        "vec4(1.0, 1.0, 1.0, visible)",
+                        "(rawFrame %% totalFrames)"
+                );
+            } else {
+                return new VertexShaderConfig(
+                        "sphericalVertexDistance = fog_spherical_distance(pos);\n                        cylindricalVertexDistance = fog_cylindrical_distance(pos);",
+                        "sphericalVertexDistance = fog_spherical_distance(pos);\n                            cylindricalVertexDistance = fog_cylindrical_distance(pos);",
+                        "Color * texelFetch(Sampler2, UV2 / 16, 0)",
+                        "vec4(1.0, 1.0, 1.0, visible) * texelFetch(Sampler2, UV2 / 16, 0)",
+                        "(rawFrame %% totalFrames)"
+                );
+            }
+        } else {
+            // Pre-1.21.6
+            if (seeThrough) {
+                return new VertexShaderConfig(
+                        "vertexDistance = fog_distance(pos, FogShape);",
+                        "vertexDistance = fog_distance(pos, FogShape);",
+                        "Color",
+                        "vec4(1.0, 1.0, 1.0, visible)",
+                        "int(mod(float(rawFrame), float(totalFrames)))"
+                );
+            } else {
+                return new VertexShaderConfig(
+                        "vertexDistance = fog_distance(pos, FogShape);",
+                        "vertexDistance = fog_distance(pos, FogShape);",
+                        "Color * texelFetch(Sampler2, UV2 / 16, 0)",
+                        "vec4(1.0, 1.0, 1.0, visible) * texelFetch(Sampler2, UV2 / 16, 0)",
+                        "int(mod(float(rawFrame), float(totalFrames)))"
+                );
+            }
         }
     }
 
