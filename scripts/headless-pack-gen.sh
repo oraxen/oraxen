@@ -341,11 +341,18 @@ EOF
     if [[ -n "$CONFIG_DIR" && -d "$CONFIG_DIR" ]]; then
         log_info "Copying custom config from $CONFIG_DIR..."
         cp -r "$CONFIG_DIR"/* "$WORK_DIR/plugins/Oraxen/" 2>/dev/null || true
-        # Ensure settings.yml still has upload disabled
+        # Ensure settings.yml still has upload disabled (only disable upload, not other features)
         if [[ -f "$CONFIG_DIR/settings.yml" ]]; then
             log_warn "Custom settings.yml detected - ensuring upload is disabled"
-            # Use sed to force upload disabled
-            sed -i.bak 's/enabled: true/enabled: false/' "$WORK_DIR/plugins/Oraxen/settings.yml" 2>/dev/null || true
+            # Use perl to target only the upload section's enabled setting
+            # This is portable across BSD (macOS) and GNU (Linux) environments
+            local settings_file="$WORK_DIR/plugins/Oraxen/settings.yml"
+            perl -i -pe '
+                BEGIN { $in_upload = 0; }
+                if (/^  upload:$/) { $in_upload = 1; }
+                elsif ($in_upload && /^  [a-zA-Z]/) { $in_upload = 0; }
+                if ($in_upload && /^    enabled: true$/) { s/true/false/; }
+            ' "$settings_file" 2>/dev/null || true
         fi
     fi
 
