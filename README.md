@@ -156,8 +156,7 @@ Snapshot builds are also available at [https://repo.oraxen.com/snapshots](https:
 
 *Click here to read [the entire license](https://github.com/Th0rgal/Oraxen/blob/master/LICENSE.md).*
 
-Oraxen is a paid plugin, to use it you must purchase a license on [spigotmc.org](https://spigotmc.org), nevertheless I
-will not try to prevent you from downloading the source code and rebuilding it, as long as you do not distribute it (
-whether it is modified or intact and compiled or whether it is the source code, partial or complete). Public forks are
-allowed as long as you comply with the license (in order to propose a pull request). Buying a license will not only save
+Oraxen is a paid plugin, to use it you must purchase a license on [spigotmc.org](https://spigotmc.org), [polymart.org](https://polymart.org/product/629/), [builtbybit.com](https://builtbybit.com/resources/oraxen-custom-items-blocks-more.16594/). Nevertheless we will not try to prevent you from downloading the source code and rebuilding it, as long as you do not distribute it (whether it is modified or intact and compiled or whether it is the source code, partial or complete). Public forks are allowed as long as you comply with the license (in order to propose a pull request). Buying a license will not only save
 you time, I will do my best to help you if you have any concerns and it will show me that you appreciate my work.
+
+
