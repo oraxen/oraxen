@@ -715,7 +715,10 @@ public class ResourcePack {
 
     /**
      * Generates effect font files for text effects.
-     * Each effect type gets a dedicated font that references vanilla glyphs.
+     * Each enabled effect gets a dedicated font that references vanilla glyphs.
+     * <p>
+     * This method now supports unlimited effects (up to 256) by iterating over
+     * all enabled effects rather than a fixed array.
      */
     private void generateEffectFonts() {
         if (!TextEffect.isEnabled() || !TextEffect.hasAnyEffectEnabled()) {
@@ -724,9 +727,10 @@ public class ResourcePack {
 
         EffectFontProvider provider = new EffectFontProvider();
 
-        for (int i = 0; i < EffectFontProvider.getEffectFontCount(); i++) {
-            Key fontKey = EffectFontProvider.EFFECT_FONT_KEYS[i];
-            JsonObject fontJson = provider.generateFontJson(i);
+        // Generate fonts for all enabled effects (supports unlimited effects)
+        for (TextEffect.Definition def : TextEffect.getEnabledEffects()) {
+            Key fontKey = EffectFontProvider.getFontKey(def.getId());
+            JsonObject fontJson = provider.generateFontJson(def.getId());
 
             String path = "assets/" + fontKey.namespace() + "/font";
             String filename = fontKey.value() + ".json";
