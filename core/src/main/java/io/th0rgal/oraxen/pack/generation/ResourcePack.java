@@ -1488,7 +1488,6 @@ public class ResourcePack {
 
     private String getAnimationFragmentShader(TextShaderTarget target, boolean seeThrough, boolean intensity) {
         boolean is1_21_6Plus = target.isAtLeast("1.21.6");
-        boolean is1_21_4Plus = target.isAtLeast("1.21.4");
         String sampleExpr = intensity ? "texture(Sampler0, texCoord0).rrrr" : "texture(Sampler0, texCoord0)";
         TextEffectSnippets snippets = getTextEffectSnippets(target);
         String fragmentPrelude = snippets.fragmentPrelude();
