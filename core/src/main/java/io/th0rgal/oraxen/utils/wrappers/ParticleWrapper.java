@@ -16,33 +16,56 @@ public class ParticleWrapper {
 
     static {
         try {
-            if (VersionUtil.isPaperServer()) {
-                DUST_VALUE = Registry.PARTICLE_TYPE.get(NamespacedKey.minecraft("dust"));
-                SPLASH_VALUE = Registry.PARTICLE_TYPE.get(NamespacedKey.minecraft("splash"));
-            } else {
-                // Fallback for non-Paper servers with direct enum values
-                DUST_VALUE = Particle.valueOf("REDSTONE"); // equivalent to dust
-                SPLASH_VALUE = Particle.valueOf("WATER_SPLASH");
-            }
-        } catch (Exception e) {
-            // Fallback if Registry.PARTICLE_TYPE is not available or enum names are
-            // different
-            try {
-                DUST_VALUE = Particle.valueOf("REDSTONE");
-                SPLASH_VALUE = Particle.valueOf("WATER_SPLASH");
-            } catch (IllegalArgumentException ex) {
-                // If these don't exist, try common fallbacks
+            // Only use Registry for Paper servers on 1.20.5+ where Registry.PARTICLE_TYPE exists
+            if (VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.20.5")) {
                 try {
-                    DUST_VALUE = Particle.valueOf("DUST");
-                    SPLASH_VALUE = Particle.valueOf("SPLASH");
-                } catch (IllegalArgumentException ex2) {
-                    Logs.logError("Could not find appropriate particle types for this server version");
-                    // Last resort fallback to ANY particle
-                    DUST_VALUE = Particle.values()[0];
-                    SPLASH_VALUE = Particle.values()[0];
+                    Particle dust = Registry.PARTICLE_TYPE.get(NamespacedKey.minecraft("dust"));
+                    Particle splash = Registry.PARTICLE_TYPE.get(NamespacedKey.minecraft("splash"));
+                    if (dust == null || splash == null) {
+                        throw new IllegalStateException("Registry lookup returned null");
+                    }
+                    DUST_VALUE = dust;
+                    SPLASH_VALUE = splash;
+                } catch (Exception registryException) {
+                    // Registry approach failed, fall back to direct enum access
+                    DUST_VALUE = getParticleByName("DUST", "REDSTONE");
+                    SPLASH_VALUE = getParticleByName("SPLASH", "WATER_SPLASH");
                 }
+            } else {
+                // For older versions or non-Paper servers, use direct enum access
+                DUST_VALUE = getParticleByName("DUST", "REDSTONE");
+                SPLASH_VALUE = getParticleByName("SPLASH", "WATER_SPLASH");
+            }
+        } catch (IllegalArgumentException | IncompatibleClassChangeError e) {
+            Logs.logError("Failed to initialize particle types, using fallback particles: " + e.getMessage());
+            e.printStackTrace();
+            // Last resort fallback to any available particle
+            Particle[] particles = Particle.values();
+            if (particles.length == 0) {
+                throw new IllegalStateException("No Particle enum constants available");
+            }
+            DUST_VALUE = particles[0];
+            SPLASH_VALUE = particles.length > 1 ? particles[1] : particles[0];
+        }
+    }
+
+    /**
+     * Helper method to get particle by trying multiple names in order
+     */
+    private static Particle getParticleByName(String... names) {
+        for (String name : names) {
+            try {
+                return Particle.valueOf(name.toUpperCase());
+            } catch (IllegalArgumentException ignored) {
+                // Try next name
             }
         }
+        // If no names work, return first available particle as fallback
+        Particle[] particles = Particle.values();
+        if (particles.length > 0) {
+            return particles[0];
+        }
+        throw new IllegalStateException("No Particle enum constants available - cannot resolve particle by names: " + java.util.Arrays.toString(names));
     }
 
     @NotNull
