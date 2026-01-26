@@ -2,7 +2,7 @@
   "oraxenVersion": "1.205.0",
   "minecraftVersion": "1.21.11",
   "serverVersion": "1.21.11-R0.1-SNAPSHOT",
-  "generatedAt": "2026-01-26T15:37:28.383542247Z",
+  "generatedAt": "2026-01-26T16:18:28.172456522Z",
   "enums": {
     "Material": {
       "values": [
@@ -7800,21 +7800,21 @@
           "type": "object",
           "description": "Directional block configuration",
           "properties": {
-            "z_block": {
+            "x_block": {
               "type": "string",
-              "description": "Z-axis variant ID"
-            },
-            "parent_block": {
-              "type": "string",
-              "description": "Parent block ID"
+              "description": "X-axis variant ID"
             },
             "y_block": {
               "type": "string",
               "description": "Y-axis variant ID"
             },
-            "x_block": {
+            "parent_block": {
               "type": "string",
-              "description": "X-axis variant ID"
+              "description": "Parent block ID"
+            },
+            "z_block": {
+              "type": "string",
+              "description": "Z-axis variant ID"
             }
           }
         },
@@ -7822,15 +7822,15 @@
           "type": "object",
           "description": "Farm block configuration",
           "properties": {
-            "dry_block": {
-              "type": "string",
-              "description": "Block ID when dried"
-            },
             "moisture": {
               "type": "integer",
               "description": "Moisture level",
               "default": 0,
               "min": 0
+            },
+            "dry_block": {
+              "type": "string",
+              "description": "Block ID when dried"
             }
           }
         },
@@ -7838,23 +7838,23 @@
           "type": "object",
           "description": "Log stripping configuration",
           "properties": {
-            "stripped_log": {
-              "type": "string",
-              "description": "Stripped log block ID"
-            },
             "drop": {
               "type": "object",
               "description": "Item dropped on strip",
               "properties": {
-                "minecraft_type": {
-                  "type": "string",
-                  "description": "Vanilla item type"
-                },
                 "oraxen_item": {
                   "type": "string",
                   "description": "Oraxen item ID"
+                },
+                "minecraft_type": {
+                  "type": "string",
+                  "description": "Vanilla item type"
                 }
               }
+            },
+            "stripped_log": {
+              "type": "string",
+              "description": "Stripped log block ID"
             }
           }
         }
@@ -7943,14 +7943,14 @@
           "type": "object",
           "description": "Seat configuration for sittable furniture",
           "properties": {
-            "yaw": {
-              "type": "number",
-              "description": "Seat rotation",
-              "default": 0.0
-            },
             "height": {
               "type": "number",
               "description": "Seat height offset",
+              "default": 0.0
+            },
+            "yaw": {
+              "type": "number",
+              "description": "Seat rotation",
               "default": 0.0
             }
           }
@@ -7963,6 +7963,63 @@
           "type": "object",
           "description": "Display entity configuration",
           "properties": {
+            "display_transform": {
+              "type": "string",
+              "description": "Display transform mode",
+              "values": [
+                "NONE",
+                "THIRDPERSON_LEFTHAND",
+                "THIRDPERSON_RIGHTHAND",
+                "FIRSTPERSON_LEFTHAND",
+                "FIRSTPERSON_RIGHTHAND",
+                "HEAD",
+                "GUI",
+                "GROUND",
+                "FIXED"
+              ]
+            },
+            "translation": {
+              "type": "object",
+              "description": "Position offset in blocks",
+              "properties": {
+                "x": {
+                  "type": "number",
+                  "description": "X-axis offset",
+                  "default": 0.0
+                },
+                "y": {
+                  "type": "number",
+                  "description": "Y-axis offset",
+                  "default": 0.0
+                },
+                "z": {
+                  "type": "number",
+                  "description": "Z-axis offset",
+                  "default": 0.0
+                }
+              }
+            },
+            "scale": {
+              "type": "object",
+              "description": "Scale of the display entity",
+              "properties": {
+                "x": {
+                  "type": "number",
+                  "description": "X-axis scale",
+                  "default": 1.0
+                },
+                "y": {
+                  "type": "number",
+                  "description": "Y-axis scale",
+                  "default": 1.0
+                },
+                "z": {
+                  "type": "number",
+                  "description": "Z-axis scale",
+                  "default": 1.0
+                }
+              }
+            },
             "brightness": {
               "type": "object",
               "description": "Light levels",
@@ -7982,63 +8039,6 @@
                   "max": 15
                 }
               }
-            },
-            "scale": {
-              "type": "object",
-              "description": "Scale of the display entity",
-              "properties": {
-                "z": {
-                  "type": "number",
-                  "description": "Z-axis scale",
-                  "default": 1.0
-                },
-                "y": {
-                  "type": "number",
-                  "description": "Y-axis scale",
-                  "default": 1.0
-                },
-                "x": {
-                  "type": "number",
-                  "description": "X-axis scale",
-                  "default": 1.0
-                }
-              }
-            },
-            "translation": {
-              "type": "object",
-              "description": "Position offset in blocks",
-              "properties": {
-                "z": {
-                  "type": "number",
-                  "description": "Z-axis offset",
-                  "default": 0.0
-                },
-                "y": {
-                  "type": "number",
-                  "description": "Y-axis offset",
-                  "default": 0.0
-                },
-                "x": {
-                  "type": "number",
-                  "description": "X-axis offset",
-                  "default": 0.0
-                }
-              }
-            },
-            "display_transform": {
-              "type": "string",
-              "description": "Display transform mode",
-              "values": [
-                "NONE",
-                "THIRDPERSON_LEFTHAND",
-                "THIRDPERSON_RIGHTHAND",
-                "FIRSTPERSON_LEFTHAND",
-                "FIRSTPERSON_RIGHTHAND",
-                "HEAD",
-                "GUI",
-                "GROUND",
-                "FIXED"
-              ]
             }
           }
         },
@@ -8061,10 +8061,6 @@
           "type": "object",
           "description": "Storage container configuration",
           "properties": {
-            "title": {
-              "type": "string",
-              "description": "Inventory title"
-            },
             "type": {
               "type": "string",
               "description": "Storage type",
@@ -8074,6 +8070,10 @@
                 "ENDERCHEST",
                 "DISPOSAL"
               ]
+            },
+            "title": {
+              "type": "string",
+              "description": "Inventory title"
             },
             "rows": {
               "type": "integer",
@@ -8266,21 +8266,21 @@
           "type": "object",
           "description": "Custom block sounds",
           "properties": {
-            "place_sound": {
+            "break_sound": {
               "type": "string",
-              "description": "Sound when placed"
-            },
-            "fall_sound": {
-              "type": "string",
-              "description": "Sound when fallen on"
+              "description": "Sound when broken"
             },
             "hit_sound": {
               "type": "string",
               "description": "Sound when hit"
             },
-            "break_sound": {
+            "fall_sound": {
               "type": "string",
-              "description": "Sound when broken"
+              "description": "Sound when fallen on"
+            },
+            "place_sound": {
+              "type": "string",
+              "description": "Sound when placed"
             },
             "step_sound": {
               "type": "string",
@@ -8710,19 +8710,19 @@
           "type": "object",
           "description": "Sapling growth configuration",
           "properties": {
-            "min_light": {
-              "type": "integer",
-              "description": "Minimum light level to grow",
-              "default": 9,
-              "min": 0,
-              "max": 15
-            },
             "grow_chance": {
               "type": "number",
               "description": "Growth chance per check",
               "default": 0.1,
               "min": 0.0,
               "max": 1.0
+            },
+            "min_light": {
+              "type": "integer",
+              "description": "Minimum light level to grow",
+              "default": 9,
+              "min": 0,
+              "max": 15
             },
             "grow_block": {
               "type": "string",
@@ -8736,16 +8736,16 @@
       "category": "farming",
       "description": "Allows breaking bedrock (requires ProtocolLib)",
       "properties": {
+        "delay": {
+          "type": "integer",
+          "description": "Break delay in ticks",
+          "min": 0
+        },
         "probability": {
           "type": "number",
           "description": "Chance to break (0-1)",
           "min": 0,
           "default": 1.0
-        },
-        "delay": {
-          "type": "integer",
-          "description": "Break delay in ticks",
-          "min": 0
         }
       }
     },
