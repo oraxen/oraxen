@@ -144,6 +144,14 @@ public class SpearLungeMechanic extends Mechanic {
         try {
             return Particle.valueOf(name.toUpperCase());
         } catch (IllegalArgumentException e) {
+            // Invalid particle name, use fallback silently
+            return Particle.CRIT;
+        } catch (IncompatibleClassChangeError e) {
+            // Handle version compatibility issues with Particle.valueOf()
+            return Particle.CRIT;
+        } catch (Exception e) {
+            // Unexpected error - log with stack trace for diagnostics
+            e.printStackTrace();
             return Particle.CRIT;
         }
     }
@@ -153,7 +161,15 @@ public class SpearLungeMechanic extends Mechanic {
             NamespacedKey key = NamespacedKey.minecraft(name.toLowerCase());
             Sound sound = Registry.SOUNDS.get(key);
             return sound != null ? sound : Sound.ENTITY_PLAYER_ATTACK_SWEEP;
+        } catch (IllegalArgumentException e) {
+            // Invalid sound name, use fallback silently
+            return Sound.ENTITY_PLAYER_ATTACK_SWEEP;
+        } catch (IncompatibleClassChangeError e) {
+            // Handle version compatibility issues with Sound registry access
+            return Sound.ENTITY_PLAYER_ATTACK_SWEEP;
         } catch (Exception e) {
+            // Unexpected error - log with stack trace for diagnostics
+            e.printStackTrace();
             return Sound.ENTITY_PLAYER_ATTACK_SWEEP;
         }
     }
