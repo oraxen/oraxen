@@ -15,6 +15,7 @@ public class OraxenMeta {
 
     private Integer customModelData;
     private String modelName;
+    private String guiModel;
     private String blockingModel;
     private String blockingTexture;
     private List<String> pullingModels;
@@ -63,6 +64,7 @@ public class OraxenMeta {
     public void setPackInfos(ConfigurationSection section) {
         this.hasPackInfos = true;
         this.modelName = readModelName(section, "model");
+        this.guiModel = readModelName(section, "gui_model");
         this.blockingModel = readModelName(section, "blocking_model");
         this.castModel = readModelName(section, "cast_model");
         this.chargedModel = readModelName(section, "charged_model");
@@ -207,6 +209,14 @@ public class OraxenMeta {
 
     public String getModelName() {
         return modelName;
+    }
+
+    public boolean hasGuiModel() {
+        return guiModel != null;
+    }
+
+    public String getGuiModel() {
+        return guiModel;
     }
 
     public String getModelPath() {
