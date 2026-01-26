@@ -1446,7 +1446,7 @@ public class ResourcePack {
                         "",  // No fog recalc for seeThrough
                         "Color",
                         "vec4(1.0, 1.0, 1.0, visible)",
-                        "(rawFrame %% totalFrames)"
+                        "(rawFrame % totalFrames)"
                 );
             } else {
                 return new VertexShaderConfig(
@@ -1454,7 +1454,7 @@ public class ResourcePack {
                         "sphericalVertexDistance = fog_spherical_distance(pos);\n                            cylindricalVertexDistance = fog_cylindrical_distance(pos);",
                         "Color * texelFetch(Sampler2, UV2 / 16, 0)",
                         "vec4(1.0, 1.0, 1.0, visible) * texelFetch(Sampler2, UV2 / 16, 0)",
-                        "(rawFrame %% totalFrames)"
+                        "(rawFrame % totalFrames)"
                 );
             }
         } else {
