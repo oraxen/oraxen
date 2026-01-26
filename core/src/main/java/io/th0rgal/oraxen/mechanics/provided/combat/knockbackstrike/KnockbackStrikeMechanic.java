@@ -189,6 +189,14 @@ public class KnockbackStrikeMechanic extends Mechanic {
         } catch (IllegalArgumentException e) {
             Logs.logWarning("Invalid particle type: " + particleName + ", using CRIT as fallback");
             return Particle.CRIT;
+        } catch (IncompatibleClassChangeError e) {
+            // Handle version compatibility issues with Particle.valueOf()
+            Logs.logWarning("Particle compatibility issue with " + particleName + ", using CRIT as fallback");
+            return Particle.CRIT;
+        } catch (Exception e) {
+            Logs.logError("Unexpected error parsing particle " + particleName + ": " + e.getMessage());
+            e.printStackTrace();
+            return Particle.CRIT;
         }
     }
 
@@ -206,6 +214,7 @@ public class KnockbackStrikeMechanic extends Mechanic {
             return getSafeFallbackSound();
         } catch (Exception e) {
             Logs.logError("Unexpected error parsing sound " + soundName + ": " + e.getMessage());
+            e.printStackTrace();
             return getSafeFallbackSound();
         }
     }
@@ -216,15 +225,15 @@ public class KnockbackStrikeMechanic extends Mechanic {
     private Sound getSafeFallbackSound() {
         try {
             return Sound.valueOf("ENTITY_PLAYER_ATTACK_KNOCKBACK");
-        } catch (Throwable e1) {
+        } catch (IllegalArgumentException | IncompatibleClassChangeError e1) {
             try {
                 // Try older sound name
                 return Sound.valueOf("ENTITY_PLAYER_ATTACK_STRONG");
-            } catch (Throwable e2) {
+            } catch (IllegalArgumentException | IncompatibleClassChangeError e2) {
                 try {
                     // Try even older sound name
                     return Sound.valueOf("SUCCESSFUL_HIT");
-                } catch (Throwable e3) {
+                } catch (IllegalArgumentException | IncompatibleClassChangeError e3) {
                     // Last resort - return first available sound
                     Sound[] sounds = Sound.values();
                     if (sounds.length > 0) {

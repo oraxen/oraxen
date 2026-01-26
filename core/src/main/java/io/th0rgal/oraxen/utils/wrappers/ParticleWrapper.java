@@ -36,8 +36,9 @@ public class ParticleWrapper {
                 DUST_VALUE = getParticleByName("DUST", "REDSTONE");
                 SPLASH_VALUE = getParticleByName("SPLASH", "WATER_SPLASH");
             }
-        } catch (Exception e) {
+        } catch (IllegalArgumentException | IncompatibleClassChangeError e) {
             Logs.logError("Failed to initialize particle types, using fallback particles: " + e.getMessage());
+            e.printStackTrace();
             // Last resort fallback to any available particle
             Particle[] particles = Particle.values();
             if (particles.length == 0) {
