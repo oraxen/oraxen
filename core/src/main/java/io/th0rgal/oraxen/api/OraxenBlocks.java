@@ -129,7 +129,7 @@ public class OraxenBlocks {
      * @return true if the itemID has a NoteBlockMechanic, otherwise false
      */
     public static boolean isOraxenNoteBlock(String itemID) {
-        return !NoteBlockMechanicFactory.getInstance().isNotImplementedIn(itemID);
+        return NoteBlockMechanicFactory.isEnabled() && !NoteBlockMechanicFactory.getInstance().isNotImplementedIn(itemID);
     }
 
     public static boolean isOraxenNoteBlock(ItemStack item) {
