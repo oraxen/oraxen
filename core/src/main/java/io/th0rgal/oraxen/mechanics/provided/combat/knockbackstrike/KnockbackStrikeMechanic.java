@@ -2,6 +2,8 @@ package io.th0rgal.oraxen.mechanics.provided.combat.knockbackstrike;
 
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.utils.logs.Logs;
+import io.th0rgal.oraxen.utils.wrappers.ParticleWrapper;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.configuration.ConfigurationSection;
@@ -176,23 +178,62 @@ public class KnockbackStrikeMechanic extends Mechanic {
 
     private Particle parseParticle(String particleName) {
         try {
-            // DUST and REDSTONE are the same particle
+            // Handle special particles that have version compatibility issues
             if (particleName.equalsIgnoreCase("DUST") || particleName.equalsIgnoreCase("REDSTONE")) {
-                return Particle.DUST;
+                return ParticleWrapper.DUST;
+            }
+            if (particleName.equalsIgnoreCase("SPLASH") || particleName.equalsIgnoreCase("WATER_SPLASH")) {
+                return ParticleWrapper.SPLASH;
             }
             return Particle.valueOf(particleName.toUpperCase());
         } catch (IllegalArgumentException e) {
-            System.out.println("[Oraxen] Invalid particle type: " + particleName + ", using CRIT as fallback");
+            Logs.logWarning("Invalid particle type: " + particleName + ", using CRIT as fallback");
             return Particle.CRIT;
         }
     }
 
     private Sound parseSound(String soundName) {
         try {
+            // Try direct valueOf first
             return Sound.valueOf(soundName.toUpperCase());
         } catch (IllegalArgumentException e) {
-            System.out.println("[Oraxen] Invalid sound type: " + soundName + ", using ENTITY_PLAYER_ATTACK_KNOCKBACK as fallback");
-            return Sound.ENTITY_PLAYER_ATTACK_KNOCKBACK;
+            Sound fallback = getSafeFallbackSound();
+            Logs.logWarning("Invalid sound type: " + soundName + ", using " + fallback.name() + " as fallback");
+            return fallback;
+        } catch (IncompatibleClassChangeError e) {
+            // Handle version compatibility issues with Sound.valueOf() (includes NoSuchMethodError)
+            Logs.logWarning("Sound compatibility issue with " + soundName + ", using fallback sound");
+            return getSafeFallbackSound();
+        } catch (Exception e) {
+            Logs.logError("Unexpected error parsing sound " + soundName + ": " + e.getMessage());
+            return getSafeFallbackSound();
+        }
+    }
+
+    /**
+     * Get a safe fallback sound that should exist in most versions
+     */
+    private Sound getSafeFallbackSound() {
+        try {
+            return Sound.valueOf("ENTITY_PLAYER_ATTACK_KNOCKBACK");
+        } catch (Exception e1) {
+            try {
+                // Try older sound name
+                return Sound.valueOf("ENTITY_PLAYER_ATTACK_STRONG");
+            } catch (Exception e2) {
+                try {
+                    // Try even older sound name
+                    return Sound.valueOf("SUCCESSFUL_HIT");
+                } catch (Exception e3) {
+                    // Last resort - return first available sound
+                    Sound[] sounds = Sound.values();
+                    if (sounds.length > 0) {
+                        return sounds[0];
+                    }
+                    // This should never happen in a real server environment
+                    throw new RuntimeException("No Sound enum values available - server environment is corrupted");
+                }
+            }
         }
     }
 
