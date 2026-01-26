@@ -38,6 +38,12 @@ public class ModelDefinitionGenerator {
         
         JsonObject baseModel = createBaseModel();
         JsonObject itemModel = createItemSpecificModel(baseModel);
+        
+        // If gui_model is specified, wrap in display_context selector
+        if (oraxenMeta.hasGuiModel()) {
+            itemModel = createDisplayContextModel(itemModel);
+        }
+        
         root.add("model", itemModel);
         
         addItemModelProperties(root);
@@ -307,6 +313,31 @@ public class ModelDefinitionGenerator {
         conditionModel.add("on_true", createModelObject(oraxenMeta.getBlockingModel()));
         
         return conditionModel;
+    }
+    
+    /**
+     * Creates a display_context selector model that shows different models in GUI vs other contexts.
+     * This wraps the main item model (which could be a bow, crossbow, etc.) with a GUI-specific icon.
+     *
+     * @param fallbackModel The model to use in all contexts except GUI (equipped, in-hand, etc.)
+     * @return A JsonObject representing a minecraft:select type with display_context property
+     */
+    private JsonObject createDisplayContextModel(JsonObject fallbackModel) {
+        JsonObject selectModel = new JsonObject();
+        selectModel.addProperty("type", "minecraft:select");
+        selectModel.addProperty("property", "minecraft:display_context");
+        
+        // Create the GUI case
+        JsonArray cases = new JsonArray();
+        JsonObject guiCase = new JsonObject();
+        guiCase.addProperty("when", "gui");
+        guiCase.add("model", createModelObject(oraxenMeta.getGuiModel()));
+        cases.add(guiCase);
+        
+        selectModel.add("cases", cases);
+        selectModel.add("fallback", fallbackModel);
+        
+        return selectModel;
     }
     
     /**
