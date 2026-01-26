@@ -715,7 +715,10 @@ public class ResourcePack {
 
     /**
      * Generates effect font files for text effects.
-     * Each effect type gets a dedicated font that references vanilla glyphs.
+     * Each enabled effect gets a dedicated font that references vanilla glyphs.
+     * <p>
+     * This method now supports unlimited effects (up to 256) by iterating over
+     * all enabled effects rather than a fixed array.
      */
     private void generateEffectFonts() {
         if (!TextEffect.isEnabled() || !TextEffect.hasAnyEffectEnabled()) {
@@ -724,9 +727,10 @@ public class ResourcePack {
 
         EffectFontProvider provider = new EffectFontProvider();
 
-        for (int i = 0; i < EffectFontProvider.getEffectFontCount(); i++) {
-            Key fontKey = EffectFontProvider.EFFECT_FONT_KEYS[i];
-            JsonObject fontJson = provider.generateFontJson(i);
+        // Generate fonts for all enabled effects (supports unlimited effects)
+        for (TextEffect.Definition def : TextEffect.getEnabledEffects()) {
+            Key fontKey = EffectFontProvider.getFontKey(def.getId());
+            JsonObject fontJson = provider.generateFontJson(def.getId());
 
             String path = "assets/" + fontKey.namespace() + "/font";
             String filename = fontKey.value() + ".json";
@@ -1202,53 +1206,42 @@ public class ResourcePack {
     }
 
     /**
-     * Generates animation vertex shader using visibility-based animation.
-     * Each frame is a separate character; the shader hides frames that don't match current time.
-     * Also handles text effects encoded in RGB low bits (alpha_lsb) with position-based effects.
-     *
-     * Color encoding for animated glyphs:
-     * - R = 254: animation marker
-     * - G bits 0-6: FPS, bit 7: loop flag
-     * - B bits 0-3: frame index, bits 4-7: total frames - 1
-     *
-     * Color encoding for text effects (alpha_lsb):
-     * - Low 4 bits of each channel are reserved
-     * - Low nibble values between DATA_MIN and DATA_MAX carry data (0-7), skipping DATA_GAP
-     * - R -> effectType, G -> speed, B -> param
-     * - charIndex is derived from gl_VertexID
+     * Configuration for version-specific shader code generation.
+     * Holds the variable parts that differ between MC versions and seeThrough modes.
      */
-    private String getAnimationVertexShader(TextShaderTarget target, TextShaderFeatures features, boolean seeThrough) {
-        boolean is1_21_6Plus = target.isAtLeast("1.21.6");
-        boolean is1_21_4Plus = target.isAtLeast("1.21.4");
-        String textShaderConstants = getTextShaderConstants(target, features);
-        TextEffectSnippets snippets = getTextEffectSnippets(target);
-        String vertexPrelude = snippets.vertexPrelude();
-        String vertexEffects = snippets.vertexEffects();
+    private record VertexShaderConfig(
+            String fogDistanceInit,        // Initial fog distance calculation (empty for seeThrough)
+            String fogDistanceRecalc,      // Fog recalculation after effects (empty for seeThrough)
+            String vertexColorInit,        // Initial vertexColor assignment
+            String vertexColorAnimated,    // vertexColor for animated glyphs
+            String moduloExpr              // Modulo expression: "(rawFrame %% totalFrames)" or "int(mod(float(rawFrame), float(totalFrames)))"
+    ) {}
 
-        if (is1_21_6Plus) {
-            if (seeThrough) {
-                return """
-                    #version 330
+    /**
+     * Generates the vertex shader main() body logic. This is shared between all shader variants,
+     * with version-specific parts injected via VertexShaderConfig.
+     *
+     * @param config Version-specific shader configuration
+     * @param vertexEffects The vertex effect code snippet
+     * @param includeScoreboardHiding Whether to include scoreboard number hiding code
+     */
+    private String getVertexShaderMainBody(VertexShaderConfig config, String vertexEffects, boolean includeScoreboardHiding) {
+        String scoreboardHiding = includeScoreboardHiding ? """
 
-                    #moj_import <minecraft:dynamictransforms.glsl>
-                    #moj_import <minecraft:projection.glsl>
-                    #moj_import <minecraft:globals.glsl>
+                        // Scoreboard number hiding
+                        if (Position.z == 0.0 &&
+                                gl_Position.x >= 0.95 && gl_Position.y >= -0.35 &&
+                                vertexColor.g == 84.0/255.0 && vertexColor.r == 252.0/255.0 &&
+                                gl_VertexID <= 4) {
+                            gl_Position = ProjMat * ModelViewMat * vec4(ScreenSize + 100.0, 0.0, 0.0);
+                        }""" : "";
 
-                    in vec3 Position;
-                    in vec4 Color;
-                    in vec2 UV0;
-
-                    out vec4 vertexColor;
-                    out vec2 texCoord0;
-                    out vec4 effectData; // Pass effect info to fragment shader
-                    %s
-                    %s
-
+        return """
                     void main() {
                         vec3 pos = Position;
                         gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                        texCoord0 = UV0;
-                        vertexColor = Color;
+%s                        texCoord0 = UV0;
+                        vertexColor = %s;
                         effectData = vec4(-1.0, 0.0, 0.0, 0.0); // -1 means no effect
 
                         int rInt = int(Color.r * 255.0 + 0.5);
@@ -1270,12 +1263,12 @@ public class ResourcePack {
 
                             float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
                             int rawFrame = int(floor(timeSeconds * fps));
-                            int currentFrame = loop ? (rawFrame %% totalFrames) : min(rawFrame, totalFrames - 1);
+                            int currentFrame = loop ? %s : min(rawFrame, totalFrames - 1);
 
                             float visible = (frameIndex == currentFrame && isPrimaryAnim) ? 1.0 : 0.0;
 
                             if (isPrimaryAnim) {
-                                vertexColor = vec4(1.0, 1.0, 1.0, visible);
+                                vertexColor = %s;
                             } else {
                                 vertexColor = vec4(0.0);
                             }
@@ -1303,17 +1296,68 @@ public class ResourcePack {
 %s
 
                                 gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-
+%s
                                 // Pass effect data to fragment shader
-                                // x=effectType, y=speed, z=charIndex, w=param
                                 effectData = vec4(float(effectType), speed, charIndex, param);
                             }
-                        }
+                        }%s
                     }
-                    """.formatted(textShaderConstants, vertexPrelude, vertexEffects);
-            }
+                """.formatted(
+                config.fogDistanceInit.isEmpty() ? "" : "                        " + config.fogDistanceInit + "\n",
+                config.vertexColorInit,
+                config.moduloExpr,
+                config.vertexColorAnimated,
+                vertexEffects,
+                config.fogDistanceRecalc.isEmpty() ? "" : "                            " + config.fogDistanceRecalc + "\n",
+                scoreboardHiding
+        );
+    }
 
-            return """
+    /**
+     * Generates animation vertex shader using visibility-based animation.
+     * Each frame is a separate character; the shader hides frames that don't match current time.
+     * Also handles text effects encoded in RGB low bits (alpha_lsb) with position-based effects.
+     *
+     * Color encoding for animated glyphs:
+     * - R = 254: animation marker
+     * - G bits 0-6: FPS, bit 7: loop flag
+     * - B bits 0-3: frame index, bits 4-7: total frames - 1
+     *
+     * Color encoding for text effects (alpha_lsb):
+     * - Low 4 bits of each channel are reserved
+     * - Low nibble values between DATA_MIN and DATA_MAX carry data (0-7), skipping DATA_GAP
+     * - R -> effectType, G -> speed, B -> param
+     * - charIndex is derived from gl_VertexID
+     */
+    private String getAnimationVertexShader(TextShaderTarget target, TextShaderFeatures features, boolean seeThrough) {
+        boolean is1_21_6Plus = target.isAtLeast("1.21.6");
+        String textShaderConstants = getTextShaderConstants(target, features);
+        TextEffectSnippets snippets = getTextEffectSnippets(target);
+        String vertexPrelude = snippets.vertexPrelude();
+        String vertexEffects = snippets.vertexEffects();
+
+        VertexShaderConfig config = createVertexShaderConfig(is1_21_6Plus, seeThrough);
+        String mainBody = getVertexShaderMainBody(config, vertexEffects, false);
+
+        if (is1_21_6Plus) {
+            String header = seeThrough ? """
+                #version 330
+
+                #moj_import <minecraft:dynamictransforms.glsl>
+                #moj_import <minecraft:projection.glsl>
+                #moj_import <minecraft:globals.glsl>
+
+                in vec3 Position;
+                in vec4 Color;
+                in vec2 UV0;
+
+                out vec4 vertexColor;
+                out vec2 texCoord0;
+                out vec4 effectData;
+                %s
+                %s
+
+""" : """
                 #version 330
 
                 #moj_import <minecraft:fog.glsl>
@@ -1332,177 +1376,38 @@ public class ResourcePack {
                 out float cylindricalVertexDistance;
                 out vec4 vertexColor;
                 out vec2 texCoord0;
-                out vec4 effectData; // Pass effect info to fragment shader
+                out vec4 effectData;
                 %s
                 %s
 
-                void main() {
-                    vec3 pos = Position;
-                    gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                    sphericalVertexDistance = fog_spherical_distance(pos);
-                    cylindricalVertexDistance = fog_cylindrical_distance(pos);
-                    texCoord0 = UV0;
-                    vertexColor = Color * texelFetch(Sampler2, UV2 / 16, 0);
-                    effectData = vec4(-1.0, 0.0, 0.0, 0.0); // -1 means no effect
-
-                    int rInt = int(Color.r * 255.0 + 0.5);
-                    int gRaw = int(Color.g * 255.0 + 0.5);
-                    int bRaw = int(Color.b * 255.0 + 0.5);
-
-                    // Check for animation color: R=254 for primary, R≈63 for shadow
-                    bool isPrimaryAnim = (rInt == 254);
-                    bool isShadowAnim = (rInt >= 62 && rInt <= 64) && (gRaw >= 1) && (bRaw <= 64);
-
-                    if (ORAXEN_ANIMATED_GLYPHS && (isPrimaryAnim || isShadowAnim)) {
-                        int gInt = isPrimaryAnim ? gRaw : min(255, gRaw * 4);
-                        int bInt = isPrimaryAnim ? bRaw : min(255, bRaw * 4);
-
-                        bool loop = (gInt < 128);
-                        float fps = max(1.0, float(gInt & 0x7F));
-                        int frameIndex = bInt & 0x0F;
-                        int totalFrames = ((bInt >> 4) & 0x0F) + 1;
-
-                        float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
-                        int rawFrame = int(floor(timeSeconds * fps));
-                        int currentFrame = loop ? (rawFrame %% totalFrames) : min(rawFrame, totalFrames - 1);
-
-                        float visible = (frameIndex == currentFrame && isPrimaryAnim) ? 1.0 : 0.0;
-
-                        if (isPrimaryAnim) {
-                            vertexColor = vec4(1.0, 1.0, 1.0, visible) * texelFetch(Sampler2, UV2 / 16, 0);
-                        } else {
-                            vertexColor = vec4(0.0);
-                        }
-                    }
-
-                    // Text effects: exact trigger color matching
-                    if (ORAXEN_TEXT_EFFECTS && ORAXEN_EFFECT_COUNT > 0 && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
-                        // Check for exact trigger color match
-                        ivec3 colorInt = ivec3(rInt, gRaw, bRaw);
-                        int effectType = -1;
-                        for (int i = 0; i < ORAXEN_EFFECT_COUNT; i++) {
-                            if (colorInt == ORAXEN_EFFECT_TRIGGERS[i]) {
-                                effectType = ORAXEN_EFFECT_IDS[i];
-                                break;
-                            }
-                        }
-
-                        if (effectType >= 0) {
-                            float speed = 3.0; // Default speed (configured in shader snippets)
-                            float param = 3.0; // Default param (configured in shader snippets)
-                            float charIndex = float(gl_VertexID >> 2);
-
-                            float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
-
-%s
-
-                            gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                            sphericalVertexDistance = fog_spherical_distance(pos);
-                            cylindricalVertexDistance = fog_cylindrical_distance(pos);
-
-                            // Pass effect data to fragment shader
-                            effectData = vec4(float(effectType), speed, charIndex, param);
-                        }
-                    }
-                }
-                """.formatted(textShaderConstants, vertexPrelude, vertexEffects);
+""";
+            return header.formatted(textShaderConstants, vertexPrelude) + mainBody;
         } else {
             // Pre-1.21.6: use traditional uniform declarations
-            String imports = is1_21_4Plus ? "#moj_import <minecraft:fog.glsl>" : "#moj_import <fog.glsl>";
+            // Note: 1.21.4/1.21.5 still use the old fog.glsl (non-namespaced) with fog_distance() and linear_fog()
+            String imports = "#moj_import <fog.glsl>";
+            String header = seeThrough ? """
+                #version 150
 
-            if (seeThrough) {
-                return """
-                    #version 150
+                %s
 
-                    %s
+                in vec3 Position;
+                in vec4 Color;
+                in vec2 UV0;
 
-                    in vec3 Position;
-                    in vec4 Color;
-                    in vec2 UV0;
+                uniform mat4 ModelViewMat;
+                uniform mat4 ProjMat;
+                uniform int FogShape;
+                uniform float GameTime;
 
-                    uniform mat4 ModelViewMat;
-                    uniform mat4 ProjMat;
-                    uniform int FogShape;
-                    uniform float GameTime;
+                out float vertexDistance;
+                out vec4 vertexColor;
+                out vec2 texCoord0;
+                out vec4 effectData;
+                %s
+                %s
 
-                    out float vertexDistance;
-                    out vec4 vertexColor;
-                    out vec2 texCoord0;
-                    out vec4 effectData; // Pass effect info to fragment shader
-                    %s
-                    %s
-
-                    void main() {
-                        vec3 pos = Position;
-                        gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                        vertexDistance = fog_distance(pos, FogShape);
-                        texCoord0 = UV0;
-                        vertexColor = Color;
-                        effectData = vec4(-1.0, 0.0, 0.0, 0.0); // -1 means no effect
-
-                        int rInt = int(Color.r * 255.0 + 0.5);
-                        int gRaw = int(Color.g * 255.0 + 0.5);
-                        int bRaw = int(Color.b * 255.0 + 0.5);
-
-                        // Check for animation color: R=254 for primary, R≈63 for shadow
-                        bool isPrimaryAnim = (rInt == 254);
-                        bool isShadowAnim = (rInt >= 62 && rInt <= 64) && (gRaw >= 1) && (bRaw <= 64);
-
-                        if (ORAXEN_ANIMATED_GLYPHS && (isPrimaryAnim || isShadowAnim)) {
-                            int gInt = isPrimaryAnim ? gRaw : min(255, gRaw * 4);
-                            int bInt = isPrimaryAnim ? bRaw : min(255, bRaw * 4);
-
-                            bool loop = (gInt < 128);
-                            float fps = max(1.0, float(gInt & 0x7F));
-                            int frameIndex = bInt & 0x0F;
-                            int totalFrames = ((bInt >> 4) & 0x0F) + 1;
-
-                            float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
-                            int rawFrame = int(floor(timeSeconds * fps));
-                            int currentFrame = loop ? int(mod(float(rawFrame), float(totalFrames))) : min(rawFrame, totalFrames - 1);
-
-                            float visible = (frameIndex == currentFrame && isPrimaryAnim) ? 1.0 : 0.0;
-
-                            if (isPrimaryAnim) {
-                                vertexColor = vec4(1.0, 1.0, 1.0, visible);
-                            } else {
-                                vertexColor = vec4(0.0);
-                            }
-                        }
-
-                        // Text effects: exact trigger color matching
-                        if (ORAXEN_TEXT_EFFECTS && ORAXEN_EFFECT_COUNT > 0 && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
-                            // Check for exact trigger color match
-                            ivec3 colorInt = ivec3(rInt, gRaw, bRaw);
-                            int effectType = -1;
-                            for (int i = 0; i < ORAXEN_EFFECT_COUNT; i++) {
-                                if (colorInt == ORAXEN_EFFECT_TRIGGERS[i]) {
-                                    effectType = ORAXEN_EFFECT_IDS[i];
-                                    break;
-                                }
-                            }
-
-                            if (effectType >= 0) {
-                                float speed = 3.0; // Default speed (configured in shader snippets)
-                                float param = 3.0; // Default param (configured in shader snippets)
-                                float charIndex = float(gl_VertexID >> 2);
-
-                                float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
-
-%s
-
-                                gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                                vertexDistance = fog_distance(pos, FogShape);
-
-                                // Pass effect data to fragment shader
-                                effectData = vec4(float(effectType), speed, charIndex, param);
-                            }
-                        }
-                    }
-                    """.formatted(imports, textShaderConstants, vertexPrelude, vertexEffects);
-            }
-
-            return """
+""" : """
                 #version 150
 
                 %s
@@ -1521,78 +1426,56 @@ public class ResourcePack {
                 out float vertexDistance;
                 out vec4 vertexColor;
                 out vec2 texCoord0;
-                out vec4 effectData; // Pass effect info to fragment shader
+                out vec4 effectData;
                 %s
                 %s
 
-                void main() {
-                    vec3 pos = Position;
-                    gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                    vertexDistance = fog_distance(pos, FogShape);
-                    texCoord0 = UV0;
-                    vertexColor = Color * texelFetch(Sampler2, UV2 / 16, 0);
-                    effectData = vec4(-1.0, 0.0, 0.0, 0.0); // -1 means no effect
+""";
+            return header.formatted(imports, textShaderConstants, vertexPrelude) + mainBody;
+        }
+    }
 
-                    int rInt = int(Color.r * 255.0 + 0.5);
-                    int gRaw = int(Color.g * 255.0 + 0.5);
-                    int bRaw = int(Color.b * 255.0 + 0.5);
-
-                    // Check for animation color: R=254 for primary, R≈63 for shadow
-                    bool isPrimaryAnim = (rInt == 254);
-                    bool isShadowAnim = (rInt >= 62 && rInt <= 64) && (gRaw >= 1) && (bRaw <= 64);
-
-                    if (ORAXEN_ANIMATED_GLYPHS && (isPrimaryAnim || isShadowAnim)) {
-                        int gInt = isPrimaryAnim ? gRaw : min(255, gRaw * 4);
-                        int bInt = isPrimaryAnim ? bRaw : min(255, bRaw * 4);
-
-                        bool loop = (gInt < 128);
-                        float fps = max(1.0, float(gInt & 0x7F));
-                        int frameIndex = bInt & 0x0F;
-                        int totalFrames = ((bInt >> 4) & 0x0F) + 1;
-
-                        float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
-                        int rawFrame = int(floor(timeSeconds * fps));
-                        int currentFrame = loop ? int(mod(float(rawFrame), float(totalFrames))) : min(rawFrame, totalFrames - 1);
-
-                        float visible = (frameIndex == currentFrame && isPrimaryAnim) ? 1.0 : 0.0;
-
-                        if (isPrimaryAnim) {
-                            vertexColor = vec4(1.0, 1.0, 1.0, visible) * texelFetch(Sampler2, UV2 / 16, 0);
-                        } else {
-                            vertexColor = vec4(0.0);
-                        }
-                    }
-
-                    // Text effects: exact trigger color matching
-                    if (ORAXEN_TEXT_EFFECTS && ORAXEN_EFFECT_COUNT > 0 && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
-                        // Check for exact trigger color match
-                        ivec3 colorInt = ivec3(rInt, gRaw, bRaw);
-                        int effectType = -1;
-                        for (int i = 0; i < ORAXEN_EFFECT_COUNT; i++) {
-                            if (colorInt == ORAXEN_EFFECT_TRIGGERS[i]) {
-                                effectType = ORAXEN_EFFECT_IDS[i];
-                                break;
-                            }
-                        }
-
-                        if (effectType >= 0) {
-                            float speed = 3.0; // Default speed (configured in shader snippets)
-                            float param = 3.0; // Default param (configured in shader snippets)
-                            float charIndex = float(gl_VertexID >> 2);
-
-                            float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
-
-%s
-
-                            gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                            vertexDistance = fog_distance(pos, FogShape);
-
-                            // Pass effect data to fragment shader
-                            effectData = vec4(float(effectType), speed, charIndex, param);
-                        }
-                    }
-                }
-                """.formatted(imports, textShaderConstants, vertexPrelude, vertexEffects);
+    /**
+     * Creates the version-specific shader configuration based on MC version and seeThrough mode.
+     */
+    private VertexShaderConfig createVertexShaderConfig(boolean is1_21_6Plus, boolean seeThrough) {
+        if (is1_21_6Plus) {
+            if (seeThrough) {
+                return new VertexShaderConfig(
+                        "",  // No fog init for seeThrough
+                        "",  // No fog recalc for seeThrough
+                        "Color",
+                        "vec4(1.0, 1.0, 1.0, visible)",
+                        "(rawFrame % totalFrames)"
+                );
+            } else {
+                return new VertexShaderConfig(
+                        "sphericalVertexDistance = fog_spherical_distance(pos);\n                        cylindricalVertexDistance = fog_cylindrical_distance(pos);",
+                        "sphericalVertexDistance = fog_spherical_distance(pos);\n                            cylindricalVertexDistance = fog_cylindrical_distance(pos);",
+                        "Color * texelFetch(Sampler2, UV2 / 16, 0)",
+                        "vec4(1.0, 1.0, 1.0, visible) * texelFetch(Sampler2, UV2 / 16, 0)",
+                        "(rawFrame % totalFrames)"
+                );
+            }
+        } else {
+            // Pre-1.21.6
+            if (seeThrough) {
+                return new VertexShaderConfig(
+                        "vertexDistance = fog_distance(pos, FogShape);",
+                        "vertexDistance = fog_distance(pos, FogShape);",
+                        "Color",
+                        "vec4(1.0, 1.0, 1.0, visible)",
+                        "int(mod(float(rawFrame), float(totalFrames)))"
+                );
+            } else {
+                return new VertexShaderConfig(
+                        "vertexDistance = fog_distance(pos, FogShape);",
+                        "vertexDistance = fog_distance(pos, FogShape);",
+                        "Color * texelFetch(Sampler2, UV2 / 16, 0)",
+                        "vec4(1.0, 1.0, 1.0, visible) * texelFetch(Sampler2, UV2 / 16, 0)",
+                        "int(mod(float(rawFrame), float(totalFrames)))"
+                );
+            }
         }
     }
 
@@ -1605,7 +1488,6 @@ public class ResourcePack {
 
     private String getAnimationFragmentShader(TextShaderTarget target, boolean seeThrough, boolean intensity) {
         boolean is1_21_6Plus = target.isAtLeast("1.21.6");
-        boolean is1_21_4Plus = target.isAtLeast("1.21.4");
         String sampleExpr = intensity ? "texture(Sampler0, texCoord0).rrrr" : "texture(Sampler0, texCoord0)";
         TextEffectSnippets snippets = getTextEffectSnippets(target);
         String fragmentPrelude = snippets.fragmentPrelude();
@@ -1698,7 +1580,7 @@ public class ResourcePack {
                 """.formatted(fragmentPrelude, sampleExpr, fragmentEffects);
         } else {
             // Pre-1.21.6: use traditional uniform declarations
-            String imports = is1_21_4Plus ? "#moj_import <minecraft:fog.glsl>" : "#moj_import <fog.glsl>";
+            String imports = "#moj_import <fog.glsl>";
 
             return """
                 #version 150
@@ -1747,6 +1629,56 @@ public class ResourcePack {
         }
     }
 
+    // Common uniform definitions for shader JSON
+    private static final String UNIFORM_MATRIX = """
+                        { "name": "ModelViewMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+                        { "name": "ProjMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+                        { "name": "ColorModulator", "type": "float", "count": 4, "values": [ 1.0, 1.0, 1.0, 1.0 ] }""";
+    private static final String UNIFORM_FOG = """
+                        { "name": "FogStart", "type": "float", "count": 1, "values": [ 0.0 ] },
+                        { "name": "FogEnd", "type": "float", "count": 1, "values": [ 1.0 ] },
+                        { "name": "FogColor", "type": "float", "count": 4, "values": [ 0.0, 0.0, 0.0, 0.0 ] },
+                        { "name": "FogShape", "type": "int", "count": 1, "values": [ 0 ] }""";
+    private static final String UNIFORM_GAMETIME = """
+                        { "name": "GameTime", "type": "float", "count": 1, "values": [ 0.0 ] }""";
+    private static final String UNIFORM_SCREENSIZE = """
+                        { "name": "ScreenSize", "type": "float", "count": 2, "values": [ 1.0, 1.0 ] }""";
+
+    /**
+     * Builds a pre-1.21.6 shader JSON configuration.
+     */
+    private String buildLegacyShaderJson(String shaderName, boolean hasUV2, boolean hasSampler2,
+            boolean hasFog, boolean hasGameTime, boolean hasScreenSize) {
+        String attributes = hasUV2
+                ? "\"Position\", \"Color\", \"UV0\", \"UV2\""
+                : "\"Position\", \"Color\", \"UV0\"";
+        String samplers = hasSampler2
+                ? "{ \"name\": \"Sampler0\" }, { \"name\": \"Sampler2\" }"
+                : "{ \"name\": \"Sampler0\" }";
+
+        StringBuilder uniforms = new StringBuilder(UNIFORM_MATRIX);
+        if (hasFog) uniforms.append(",\n").append(UNIFORM_FOG);
+        if (hasGameTime) uniforms.append(",\n").append(UNIFORM_GAMETIME);
+        if (hasScreenSize) uniforms.append(",\n").append(UNIFORM_SCREENSIZE);
+
+        return """
+            {
+                "blend": {
+                    "func": "add",
+                    "srcrgb": "srcalpha",
+                    "dstrgb": "1-srcalpha"
+                },
+                "vertex": "%s",
+                "fragment": "%s",
+                "attributes": [ %s ],
+                "samplers": [ %s ],
+                "uniforms": [
+%s
+                ]
+            }
+            """.formatted(shaderName, shaderName, attributes, samplers, uniforms.toString());
+    }
+
     /**
      * Generates the shader JSON configuration.
      */
@@ -1760,93 +1692,18 @@ public class ResourcePack {
 
         if (is1_21_6Plus) {
             // 1.21.6+ uses uniform blocks - most uniforms come from imported glsl files
-            // Only samplers need to be declared in the JSON
-            if (seeThrough) {
-                return """
-                    {
-                        "vertex": "minecraft:core/%s",
-                        "fragment": "minecraft:core/%s",
-                        "samplers": [
-                            { "name": "Sampler0" }
-                        ]
-                    }
-                    """.formatted(shaderName, shaderName);
-            }
-
+            String samplers = seeThrough
+                    ? "{ \"name\": \"Sampler0\" }"
+                    : "{ \"name\": \"Sampler0\" }, { \"name\": \"Sampler2\" }";
             return """
                 {
                     "vertex": "minecraft:core/%s",
                     "fragment": "minecraft:core/%s",
-                    "samplers": [
-                        { "name": "Sampler0" },
-                        { "name": "Sampler2" }
-                    ]
+                    "samplers": [ %s ]
                 }
-                """.formatted(shaderName, shaderName);
+                """.formatted(shaderName, shaderName, samplers);
         } else {
-            if (seeThrough) {
-                return """
-                    {
-                        "blend": {
-                            "func": "add",
-                            "srcrgb": "srcalpha",
-                            "dstrgb": "1-srcalpha"
-                        },
-                        "vertex": "rendertype_text",
-                        "fragment": "rendertype_text",
-                        "attributes": [
-                            "Position",
-                            "Color",
-                            "UV0"
-                        ],
-                        "samplers": [
-                            { "name": "Sampler0" }
-                        ],
-                        "uniforms": [
-                            { "name": "ModelViewMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
-                            { "name": "ProjMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
-                            { "name": "ColorModulator", "type": "float", "count": 4, "values": [ 1.0, 1.0, 1.0, 1.0 ] },
-                            { "name": "FogStart", "type": "float", "count": 1, "values": [ 0.0 ] },
-                            { "name": "FogEnd", "type": "float", "count": 1, "values": [ 1.0 ] },
-                            { "name": "FogColor", "type": "float", "count": 4, "values": [ 0.0, 0.0, 0.0, 0.0 ] },
-                            { "name": "FogShape", "type": "int", "count": 1, "values": [ 0 ] },
-                            { "name": "GameTime", "type": "float", "count": 1, "values": [ 0.0 ] }
-                        ]
-                    }
-                    """.replace("rendertype_text", shaderName);
-            }
-
-            return """
-                {
-                    "blend": {
-                        "func": "add",
-                        "srcrgb": "srcalpha",
-                        "dstrgb": "1-srcalpha"
-                    },
-                    "vertex": "rendertype_text",
-                    "fragment": "rendertype_text",
-                    "attributes": [
-                        "Position",
-                        "Color",
-                        "UV0",
-                        "UV2"
-                    ],
-                    "samplers": [
-                        { "name": "Sampler0" },
-                        { "name": "Sampler2" }
-                    ],
-                    "uniforms": [
-                        { "name": "ModelViewMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
-                        { "name": "ProjMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
-                        { "name": "ColorModulator", "type": "float", "count": 4, "values": [ 1.0, 1.0, 1.0, 1.0 ] },
-                        { "name": "FogStart", "type": "float", "count": 1, "values": [ 0.0 ] },
-                        { "name": "FogEnd", "type": "float", "count": 1, "values": [ 1.0 ] },
-                        { "name": "FogColor", "type": "float", "count": 4, "values": [ 0.0, 0.0, 0.0, 0.0 ] },
-                        { "name": "FogShape", "type": "int", "count": 1, "values": [ 0 ] },
-                        { "name": "GameTime", "type": "float", "count": 1, "values": [ 0.0 ] }
-                    ]
-                }
-                """.replace("rendertype_text", shaderName);
+            return buildLegacyShaderJson(shaderName, !seeThrough, !seeThrough, true, true, false);
         }
     }
 
@@ -1858,15 +1715,18 @@ public class ResourcePack {
      */
     private String getCombinedVertexShader(TextShaderTarget target, TextShaderFeatures features) {
         boolean is1_21_6Plus = target.isAtLeast("1.21.6");
-        boolean is1_21_4Plus = target.isAtLeast("1.21.4");
         String textShaderConstants = getTextShaderConstants(target, features);
         TextEffectSnippets snippets = getTextEffectSnippets(target);
         String vertexPrelude = snippets.vertexPrelude();
         String vertexEffects = snippets.vertexEffects();
 
+        // Combined shader always uses non-seeThrough config (has Sampler2, fog) with scoreboard hiding
+        VertexShaderConfig config = createVertexShaderConfig(is1_21_6Plus, false);
+        String mainBody = getVertexShaderMainBody(config, vertexEffects, true);
+
         if (is1_21_6Plus) {
             // 1.21.6+ uses uniform blocks from globals.glsl
-            return """
+            String header = """
                 #version 330
 
                 #moj_import <minecraft:fog.glsl>
@@ -1890,90 +1750,12 @@ public class ResourcePack {
                 %s
                 %s
 
-                void main() {
-                    vec3 pos = Position;
-                    gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                    sphericalVertexDistance = fog_spherical_distance(pos);
-                    cylindricalVertexDistance = fog_cylindrical_distance(pos);
-                    texCoord0 = UV0;
-                    vertexColor = Color * texelFetch(Sampler2, UV2 / 16, 0);
-                    effectData = vec4(-1.0, 0.0, 0.0, 0.0); // -1 means no effect
-
-                    // Check for animation color: R=254 for primary, R≈63 for shadow
-                    int rInt = int(Color.r * 255.0 + 0.5);
-                    int gRaw = int(Color.g * 255.0 + 0.5);
-                    int bRaw = int(Color.b * 255.0 + 0.5);
-                    bool isPrimaryAnim = (rInt == 254);
-                    bool isShadowAnim = (rInt >= 62 && rInt <= 64) && (gRaw >= 1) && (bRaw <= 64);
-
-                    if (ORAXEN_ANIMATED_GLYPHS && (isPrimaryAnim || isShadowAnim)) {
-                        int gInt = isPrimaryAnim ? gRaw : min(255, gRaw * 4);
-                        int bInt = isPrimaryAnim ? bRaw : min(255, bRaw * 4);
-
-                        bool loop = (gInt < 128);
-                        float fps = max(1.0, float(gInt & 0x7F));
-                        int frameIndex = bInt & 0x0F;
-                        int totalFrames = ((bInt >> 4) & 0x0F) + 1;
-
-                        float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
-                        int rawFrame = int(floor(timeSeconds * fps));
-                        int currentFrame = loop ? (rawFrame %% totalFrames) : min(rawFrame, totalFrames - 1);
-
-                        // Hide this frame if it's not the current one
-                        // Shadows always hidden - color precision loss makes all shadows decode to same frameIndex
-                        float visible = (frameIndex == currentFrame && isPrimaryAnim) ? 1.0 : 0.0;
-
-                        if (isPrimaryAnim) {
-                            vertexColor = vec4(1.0, 1.0, 1.0, visible) * texelFetch(Sampler2, UV2 / 16, 0);
-                        } else {
-                            vertexColor = vec4(0.0);
-                        }
-                    }
-
-                    // Text effects: exact trigger color matching
-                    if (ORAXEN_TEXT_EFFECTS && ORAXEN_EFFECT_COUNT > 0 && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
-                        // Check for exact trigger color match
-                        ivec3 colorInt = ivec3(rInt, gRaw, bRaw);
-                        int effectType = -1;
-                        for (int i = 0; i < ORAXEN_EFFECT_COUNT; i++) {
-                            if (colorInt == ORAXEN_EFFECT_TRIGGERS[i]) {
-                                effectType = ORAXEN_EFFECT_IDS[i];
-                                break;
-                            }
-                        }
-
-                        if (effectType >= 0) {
-                            float speed = 3.0; // Default speed (configured in shader snippets)
-                            float param = 3.0; // Default param (configured in shader snippets)
-                            float charIndex = float(gl_VertexID >> 2);
-
-                            float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
-
-%s
-
-                            gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                            sphericalVertexDistance = fog_spherical_distance(pos);
-                            cylindricalVertexDistance = fog_cylindrical_distance(pos);
-
-                            // Pass effect data to fragment shader
-                            effectData = vec4(float(effectType), speed, charIndex, param);
-                        }
-                    }
-
-                    // Scoreboard number hiding
-                    if (Position.z == 0.0 &&
-                            gl_Position.x >= 0.95 && gl_Position.y >= -0.35 &&
-                            vertexColor.g == 84.0/255.0 && vertexColor.r == 252.0/255.0 &&
-                            gl_VertexID <= 4) {
-                        gl_Position = ProjMat * ModelViewMat * vec4(ScreenSize + 100.0, 0.0, 0.0);
-                    }
-                }
-                """.formatted(textShaderConstants, vertexPrelude, vertexEffects);
+""";
+            return header.formatted(textShaderConstants, vertexPrelude) + mainBody;
         } else {
             // Pre-1.21.6: use traditional uniform declarations
-            String imports = is1_21_4Plus ? "#moj_import <minecraft:fog.glsl>" : "#moj_import <fog.glsl>";
-
-            return """
+            String imports = "#moj_import <fog.glsl>";
+            String header = """
                 #version 150
 
                 %s
@@ -1997,83 +1779,8 @@ public class ResourcePack {
                 %s
                 %s
 
-                void main() {
-                    vec3 pos = Position;
-                    gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                    vertexDistance = fog_distance(pos, FogShape);
-                    texCoord0 = UV0;
-                    vertexColor = Color * texelFetch(Sampler2, UV2 / 16, 0);
-                    effectData = vec4(-1.0, 0.0, 0.0, 0.0); // -1 means no effect
-
-                    // Check for animation color: R=254 for primary, R≈63 for shadow
-                    int rInt = int(Color.r * 255.0 + 0.5);
-                    int gRaw = int(Color.g * 255.0 + 0.5);
-                    int bRaw = int(Color.b * 255.0 + 0.5);
-                    bool isPrimaryAnim = (rInt == 254);
-                    bool isShadowAnim = (rInt >= 62 && rInt <= 64) && (gRaw >= 1) && (bRaw <= 64);
-
-                    if (ORAXEN_ANIMATED_GLYPHS && (isPrimaryAnim || isShadowAnim)) {
-                        int gInt = isPrimaryAnim ? gRaw : min(255, gRaw * 4);
-                        int bInt = isPrimaryAnim ? bRaw : min(255, bRaw * 4);
-
-                        bool loop = (gInt < 128);
-                        float fps = max(1.0, float(gInt & 0x7F));
-                        int frameIndex = bInt & 0x0F;
-                        int totalFrames = ((bInt >> 4) & 0x0F) + 1;
-
-                        float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
-                        int rawFrame = int(floor(timeSeconds * fps));
-                        int currentFrame = loop ? int(mod(float(rawFrame), float(totalFrames))) : min(rawFrame, totalFrames - 1);
-
-                        // Hide this frame if it's not the current one
-                        // Shadows always hidden - color precision loss makes all shadows decode to same frameIndex
-                        float visible = (frameIndex == currentFrame && isPrimaryAnim) ? 1.0 : 0.0;
-
-                        if (isPrimaryAnim) {
-                            vertexColor = vec4(1.0, 1.0, 1.0, visible) * texelFetch(Sampler2, UV2 / 16, 0);
-                        } else {
-                            vertexColor = vec4(0.0);
-                        }
-                    }
-
-                    // Text effects: exact trigger color matching
-                    if (ORAXEN_TEXT_EFFECTS && ORAXEN_EFFECT_COUNT > 0 && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
-                        // Check for exact trigger color match
-                        ivec3 colorInt = ivec3(rInt, gRaw, bRaw);
-                        int effectType = -1;
-                        for (int i = 0; i < ORAXEN_EFFECT_COUNT; i++) {
-                            if (colorInt == ORAXEN_EFFECT_TRIGGERS[i]) {
-                                effectType = ORAXEN_EFFECT_IDS[i];
-                                break;
-                            }
-                        }
-
-                        if (effectType >= 0) {
-                            float speed = 3.0; // Default speed (configured in shader snippets)
-                            float param = 3.0; // Default param (configured in shader snippets)
-                            float charIndex = float(gl_VertexID >> 2);
-
-                            float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
-
-%s
-
-                            gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-                            vertexDistance = fog_distance(pos, FogShape);
-
-                            // Pass effect data to fragment shader
-                            effectData = vec4(float(effectType), speed, charIndex, param);
-                        }
-                    }
-
-                    // Scoreboard number hiding
-                    if (Position.z == 0.0 &&
-                            gl_Position.x >= 0.95 && gl_Position.y >= -0.35 &&
-                            vertexColor.g == 84.0/255.0 && vertexColor.r == 252.0/255.0 &&
-                            gl_VertexID <= 4) {
-                        gl_Position = ProjMat * ModelViewMat * vec4(ScreenSize + 100.0, 0.0, 0.0);
-                    }
-                }
-                """.formatted(imports, textShaderConstants, vertexPrelude, vertexEffects);
+""";
+            return header.formatted(imports, textShaderConstants, vertexPrelude) + mainBody;
         }
     }
 
@@ -2090,48 +1797,12 @@ public class ResourcePack {
                 {
                     "vertex": "minecraft:core/rendertype_text",
                     "fragment": "minecraft:core/rendertype_text",
-                    "samplers": [
-                        { "name": "Sampler0" },
-                        { "name": "Sampler2" }
-                    ],
-                    "uniforms": [
-                        { "name": "ScreenSize", "type": "float", "count": 2, "values": [ 1.0, 1.0 ] }
-                    ]
+                    "samplers": [ { "name": "Sampler0" }, { "name": "Sampler2" } ],
+                    "uniforms": [ { "name": "ScreenSize", "type": "float", "count": 2, "values": [ 1.0, 1.0 ] } ]
                 }
                 """;
         } else {
-            return """
-                {
-                    "blend": {
-                        "func": "add",
-                        "srcrgb": "srcalpha",
-                        "dstrgb": "1-srcalpha"
-                    },
-                    "vertex": "rendertype_text",
-                    "fragment": "rendertype_text",
-                    "attributes": [
-                        "Position",
-                        "Color",
-                        "UV0",
-                        "UV2"
-                    ],
-                    "samplers": [
-                        { "name": "Sampler0" },
-                        { "name": "Sampler2" }
-                    ],
-                    "uniforms": [
-                        { "name": "ModelViewMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
-                        { "name": "ProjMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
-                        { "name": "ColorModulator", "type": "float", "count": 4, "values": [ 1.0, 1.0, 1.0, 1.0 ] },
-                        { "name": "FogStart", "type": "float", "count": 1, "values": [ 0.0 ] },
-                        { "name": "FogEnd", "type": "float", "count": 1, "values": [ 1.0 ] },
-                        { "name": "FogColor", "type": "float", "count": 4, "values": [ 0.0, 0.0, 0.0, 0.0 ] },
-                        { "name": "FogShape", "type": "int", "count": 1, "values": [ 0 ] },
-                        { "name": "GameTime", "type": "float", "count": 1, "values": [ 0.0 ] },
-                        { "name": "ScreenSize", "type": "float", "count": 2, "values": [ 1.0, 1.0 ] }
-                    ]
-                }
-                """;
+            return buildLegacyShaderJson("rendertype_text", true, true, true, true, true);
         }
     }
 
@@ -2206,42 +1877,56 @@ public class ResourcePack {
         return sounds;
     }
 
+    /**
+     * Generic handler for sound entries with a specific material type.
+     *
+     * @param sounds The sound collection to filter
+     * @param customSounds The custom block sounds config section
+     * @param soundPrefix The sound prefix to filter (e.g., "wood" or "stone")
+     * @param configKey The config key to check in customSounds (e.g., "noteblock_and_block")
+     * @param section1 First mechanic section to check
+     * @param section1EnabledDefault Default enabled value for section1
+     * @param section2 Second mechanic section to check
+     * @param section2EnabledDefault Default enabled value for section2
+     */
+    private void handleSoundEntries(Collection<CustomSound> sounds,
+            ConfigurationSection customSounds,
+            String soundPrefix,
+            String configKey,
+            ConfigurationSection section1,
+            boolean section1EnabledDefault,
+            ConfigurationSection section2,
+            boolean section2EnabledDefault) {
+        java.util.function.Predicate<CustomSound> soundFilter =
+                s -> s.getName().startsWith("required." + soundPrefix) || s.getName().startsWith("block." + soundPrefix);
+
+        if (customSounds == null) {
+            sounds.removeIf(soundFilter);
+            return;
+        }
+
+        if (!customSounds.getBoolean(configKey, true)) {
+            sounds.removeIf(soundFilter);
+        }
+
+        if (section1 != null && !section1.getBoolean("enabled", section1EnabledDefault) &&
+                section2 != null && !section2.getBoolean("enabled", section2EnabledDefault)) {
+            sounds.removeIf(soundFilter);
+        }
+    }
+
     private void handleWoodSoundEntries(Collection<CustomSound> sounds,
             ConfigurationSection customSounds,
             ConfigurationSection noteblock,
             ConfigurationSection block) {
-        if (customSounds == null) {
-            sounds.removeIf(s -> s.getName().startsWith("required.wood") || s.getName().startsWith("block.wood"));
-            return;
-        }
-
-        if (!customSounds.getBoolean("noteblock_and_block", true)) {
-            sounds.removeIf(s -> s.getName().startsWith("required.wood") || s.getName().startsWith("block.wood"));
-        }
-
-        if (noteblock != null && !noteblock.getBoolean("enabled", true) &&
-                block != null && !block.getBoolean("enabled", false)) {
-            sounds.removeIf(s -> s.getName().startsWith("required.wood") || s.getName().startsWith("block.wood"));
-        }
+        handleSoundEntries(sounds, customSounds, "wood", "noteblock_and_block", noteblock, true, block, false);
     }
 
     private void handleStoneSoundEntries(Collection<CustomSound> sounds,
             ConfigurationSection customSounds,
             ConfigurationSection stringblock,
             ConfigurationSection furniture) {
-        if (customSounds == null) {
-            sounds.removeIf(s -> s.getName().startsWith("required.stone") || s.getName().startsWith("block.stone"));
-            return;
-        }
-
-        if (!customSounds.getBoolean("stringblock_and_furniture", true)) {
-            sounds.removeIf(s -> s.getName().startsWith("required.stone") || s.getName().startsWith("block.stone"));
-        }
-
-        if (stringblock != null && !stringblock.getBoolean("enabled", true) &&
-                furniture != null && !furniture.getBoolean("enabled", true)) {
-            sounds.removeIf(s -> s.getName().startsWith("required.stone") || s.getName().startsWith("block.stone"));
-        }
+        handleSoundEntries(sounds, customSounds, "stone", "stringblock_and_furniture", stringblock, true, furniture, true);
     }
 
     private void removeUnwantedSoundEntries(Collection<CustomSound> sounds) {

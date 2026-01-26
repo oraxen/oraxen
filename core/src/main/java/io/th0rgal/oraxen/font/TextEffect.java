@@ -324,6 +324,9 @@ public class TextEffect {
      */
     public static void loadConfig(@Nullable ConfigurationSection settingsSection,
                                   @Nullable ConfigurationSection effectsRoot) {
+        // Clear the font key cache to ensure fresh keys are generated for the new effects
+        EffectFontProvider.clearCache();
+
         if (settingsSection == null) {
             globalEnabled = false;
             encoding = new EffectFontEncoding();
@@ -577,7 +580,10 @@ public class TextEffect {
 
     /**
      * Parses trigger_color from config, or generates a default based on effect ID.
-     * Default format: #FDxD00 where x is the effect ID (0-7).
+     * <p>
+     * For effects 0-7: Default format is #FDxD00 where x is the effect ID (legacy compatibility).
+     * For effects 8+: Uses a spread algorithm to generate unique colors across the color space.
+     * <p>
      * This ensures unique, unlikely-to-collide colors for each effect.
      */
     @NotNull
@@ -594,12 +600,8 @@ public class TextEffect {
                 Logs.logWarning("Invalid trigger_color '" + colorStr + "' in text_effects.yml, using default.");
             }
         }
-        // Generate default: R=253 (0xFD), G=(effectId<<4)|0xD, B=0
-        // This produces colors like #FD0D00, #FD1D00, #FD2D00, etc.
-        int r = 0xFD;
-        int g = ((effectId & 0x07) << 4) | 0x0D;
-        int b = 0x00;
-        return TextColor.color(r, g, b);
+        // Delegate to EffectFontEncoding for consistent default color generation
+        return EffectFontEncoding.generateDefaultTriggerColor(effectId);
     }
 
     @NotNull
