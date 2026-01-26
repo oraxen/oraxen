@@ -216,15 +216,15 @@ public class KnockbackStrikeMechanic extends Mechanic {
     private Sound getSafeFallbackSound() {
         try {
             return Sound.valueOf("ENTITY_PLAYER_ATTACK_KNOCKBACK");
-        } catch (Exception e1) {
+        } catch (Throwable e1) {
             try {
                 // Try older sound name
                 return Sound.valueOf("ENTITY_PLAYER_ATTACK_STRONG");
-            } catch (Exception e2) {
+            } catch (Throwable e2) {
                 try {
                     // Try even older sound name
                     return Sound.valueOf("SUCCESSFUL_HIT");
-                } catch (Exception e3) {
+                } catch (Throwable e3) {
                     // Last resort - return first available sound
                     Sound[] sounds = Sound.values();
                     if (sounds.length > 0) {
