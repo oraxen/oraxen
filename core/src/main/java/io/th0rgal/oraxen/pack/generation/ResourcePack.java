@@ -1645,6 +1645,38 @@ public class ResourcePack {
                         { "name": "ScreenSize", "type": "float", "count": 2, "values": [ 1.0, 1.0 ] }""";
 
     /**
+     * Builds a 1.21+ shader JSON configuration (vanilla-style).
+     *
+     * <p>In 1.21.4 Mojang switched core shaders to reference their own sources via
+     * fully-qualified ids like {@code minecraft:core/rendertype_text}. Prior versions
+     * used bare names like {@code rendertype_text}. The client treats invalid shader
+     * references as a fatal pack load error.
+     */
+    private String build1_21ShaderJson(String shaderName, boolean seeThrough, boolean fullyQualifiedCoreRefs,
+                                       boolean includeFog, boolean includeGameTime, boolean includeScreenSize) {
+        String shaderRef = fullyQualifiedCoreRefs ? "minecraft:core/" + shaderName : shaderName;
+        String samplers = seeThrough
+                ? "{ \"name\": \"Sampler0\" }"
+                : "{ \"name\": \"Sampler0\" }, { \"name\": \"Sampler2\" }";
+
+        StringBuilder uniforms = new StringBuilder(UNIFORM_MATRIX);
+        if (includeFog) uniforms.append(",\n").append(UNIFORM_FOG);
+        if (includeGameTime) uniforms.append(",\n").append(UNIFORM_GAMETIME);
+        if (includeScreenSize) uniforms.append(",\n").append(UNIFORM_SCREENSIZE);
+
+        return """
+            {
+                "vertex": "%s",
+                "fragment": "%s",
+                "samplers": [ %s ],
+                "uniforms": [
+%s
+                ]
+            }
+            """.formatted(shaderRef, shaderRef, samplers, uniforms.toString());
+    }
+
+    /**
      * Builds a pre-1.21.6 shader JSON configuration.
      */
     private String buildLegacyShaderJson(String shaderName, boolean hasUV2, boolean hasSampler2,
@@ -1689,6 +1721,7 @@ public class ResourcePack {
 
     private String getAnimationShaderJson(TextShaderTarget target, String shaderName, boolean seeThrough) {
         boolean is1_21_6Plus = target.isAtLeast("1.21.6");
+        boolean is1_21_4Plus = target.isAtLeast("1.21.4");
 
         if (is1_21_6Plus) {
             // 1.21.6+ uses uniform blocks - most uniforms come from imported glsl files
@@ -1702,7 +1735,14 @@ public class ResourcePack {
                     "samplers": [ %s ]
                 }
                 """.formatted(shaderName, shaderName, samplers);
+        } else if (is1_21_4Plus) {
+            // 1.21.4/1.21.5: still #version 150 shaders with explicit uniforms,
+            // but core shader sources must be referenced as minecraft:core/<name>
+            // (otherwise the client looks for minecraft:<name> and fails to load the pack).
+            boolean includeFog = !seeThrough;
+            return build1_21ShaderJson(shaderName, seeThrough, true, includeFog, true, false);
         } else {
+            // 1.21.0-1.21.3 (and older): bare shader refs still work.
             return buildLegacyShaderJson(shaderName, !seeThrough, !seeThrough, true, true, false);
         }
     }
