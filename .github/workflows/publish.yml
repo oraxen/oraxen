@@ -5,8 +5,8 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    # Only publish when the release is actually published (not draft / prerelease)
-    if: ${{ github.event.release.draft == false && github.event.release.prerelease == false }}
+    # Only publish when the release is actually published (not draft / prerelease) and in the original repository
+    if: ${{ github.repository == 'oraxen/oraxen' && github.event.release.draft == false && github.event.release.prerelease == false }}
     steps:
       - uses: actions/checkout@v4
         with:
