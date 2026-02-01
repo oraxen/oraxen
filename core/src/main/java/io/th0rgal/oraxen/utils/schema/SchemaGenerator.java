@@ -1039,6 +1039,15 @@ public class SchemaGenerator {
         model.addProperty("description", "Path to existing JSON model file (without .json)");
         pack.add("model", model);
 
+        // gui_model
+        JsonObject guiModel = new JsonObject();
+        guiModel.addProperty("type", "string");
+        guiModel.addProperty("description", "Model to display in inventory/GUI (uses display_context selector). " +
+                "When specified, 'model' is shown when held/equipped, and 'gui_model' is shown in inventory. " +
+                "Useful for 3D models that need simpler 2D icons in GUI.");
+        guiModel.addProperty("minecraftVersion", "1.21.2+");
+        pack.add("gui_model", guiModel);
+
         // models - Additional model definitions for multi-state items
         JsonObject models = new JsonObject();
         models.addProperty("type", "object");
