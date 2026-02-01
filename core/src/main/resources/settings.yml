@@ -186,7 +186,11 @@ Pack:
     disable_movement_on_load: true # If true, players will not be able to move while the pack is loading
     disable_damage_on_load: true # If true, players will not take damage while the pack is loading
     prompt: "<#fa4943>Accept the pack to enjoy a full <b><gradient:#9055FF:#13E2DA>Oraxen</b><#fa4943> experience"
-    layer: "bungee" # Resource pack layer name (1.21+). Common values: "bungee", "server", or empty string to disable
+    # BungeeCord/Velocity compatibility: Set to any non-empty value (e.g., "bungee") to use addResourcePack instead of setResourcePack.
+    # This prevents Oraxen from clearing resource packs sent by your proxy, allowing multiple packs to coexist.
+    # Leave empty ("") for standalone servers to use setResourcePack (replaces existing packs).
+    # Requires Minecraft 1.20.3+ for multi-pack support.
+    layer: ""
     join_message:
       enabled: false
       delay: -1
