@@ -15,6 +15,7 @@ on:
 jobs:
   generate-schema:
     runs-on: ubuntu-latest
+    if: github.repository == 'oraxen/oraxen'
     permissions:
       contents: write
 
