@@ -2,7 +2,7 @@
   "oraxenVersion": "1.205.0",
   "minecraftVersion": "1.21.11",
   "serverVersion": "1.21.11-R0.1-SNAPSHOT",
-  "generatedAt": "2026-02-01T14:15:09.607096869Z",
+  "generatedAt": "2026-02-01T14:34:34.451802370Z",
   "enums": {
     "Material": {
       "values": [
@@ -7822,15 +7822,15 @@
           "type": "object",
           "description": "Farm block configuration",
           "properties": {
-            "dry_block": {
-              "type": "string",
-              "description": "Block ID when dried"
-            },
             "moisture": {
               "type": "integer",
               "description": "Moisture level",
               "default": 0,
               "min": 0
+            },
+            "dry_block": {
+              "type": "string",
+              "description": "Block ID when dried"
             }
           }
         },
@@ -7963,35 +7963,10 @@
           "type": "object",
           "description": "Display entity configuration",
           "properties": {
-            "brightness": {
-              "type": "object",
-              "description": "Light levels",
-              "properties": {
-                "block": {
-                  "type": "integer",
-                  "description": "Block light level",
-                  "default": 0,
-                  "min": 0,
-                  "max": 15
-                },
-                "sky": {
-                  "type": "integer",
-                  "description": "Sky light level",
-                  "default": 0,
-                  "min": 0,
-                  "max": 15
-                }
-              }
-            },
             "scale": {
               "type": "object",
               "description": "Scale of the display entity",
               "properties": {
-                "z": {
-                  "type": "number",
-                  "description": "Z-axis scale",
-                  "default": 1.0
-                },
                 "y": {
                   "type": "number",
                   "description": "Y-axis scale",
@@ -8001,6 +7976,11 @@
                   "type": "number",
                   "description": "X-axis scale",
                   "default": 1.0
+                },
+                "z": {
+                  "type": "number",
+                  "description": "Z-axis scale",
+                  "default": 1.0
                 }
               }
             },
@@ -8008,11 +7988,6 @@
               "type": "object",
               "description": "Position offset in blocks",
               "properties": {
-                "z": {
-                  "type": "number",
-                  "description": "Z-axis offset",
-                  "default": 0.0
-                },
                 "y": {
                   "type": "number",
                   "description": "Y-axis offset",
@@ -8021,6 +7996,11 @@
                 "x": {
                   "type": "number",
                   "description": "X-axis offset",
+                  "default": 0.0
+                },
+                "z": {
+                  "type": "number",
+                  "description": "Z-axis offset",
                   "default": 0.0
                 }
               }
@@ -8039,6 +8019,26 @@
                 "GROUND",
                 "FIXED"
               ]
+            },
+            "brightness": {
+              "type": "object",
+              "description": "Light levels",
+              "properties": {
+                "sky": {
+                  "type": "integer",
+                  "description": "Sky light level",
+                  "default": 0,
+                  "min": 0,
+                  "max": 15
+                },
+                "block": {
+                  "type": "integer",
+                  "description": "Block light level",
+                  "default": 0,
+                  "min": 0,
+                  "max": 15
+                }
+              }
             }
           }
         },
@@ -8736,16 +8736,16 @@
       "category": "farming",
       "description": "Allows breaking bedrock (requires ProtocolLib)",
       "properties": {
+        "delay": {
+          "type": "integer",
+          "description": "Break delay in ticks",
+          "min": 0
+        },
         "probability": {
           "type": "number",
           "description": "Chance to break (0-1)",
           "min": 0,
           "default": 1.0
-        },
-        "delay": {
-          "type": "integer",
-          "description": "Break delay in ticks",
-          "min": 0
         }
       }
     },
@@ -8788,6 +8788,11 @@
     "model": {
       "type": "string",
       "description": "Path to existing JSON model file (without .json)"
+    },
+    "gui_model": {
+      "type": "string",
+      "description": "Model to display in inventory/GUI (uses display_context selector). When specified, \u0027model\u0027 is shown when held/equipped, and \u0027gui_model\u0027 is shown in inventory. Useful for 3D models that need simpler 2D icons in GUI.",
+      "minecraftVersion": "1.21.2+"
     },
     "models": {
       "type": "object",
