@@ -139,13 +139,36 @@ public class VanillaItemDefinitionGenerator {
      */
     private JsonObject createVanillaModelReference() {
         String vanillaModelPath = "minecraft:" + predicatesHelper.getVanillaModelName(material);
-        JsonObject baseModel = createModelObject(vanillaModelPath);
+        
+        // Use special model types for items that require custom rendering (shield, conduit, etc.)
+        JsonObject baseModel = isSpecialModelMaterial(material) 
+                ? createSpecialModelObject(vanillaModelPath, getSpecialModelType(material))
+                : createModelObject(vanillaModelPath);
 
         // Add tints for dyeable/potion items
         addTintsIfNeeded(baseModel);
 
         // Wrap with special state handling for specific materials
         return wrapWithStateHandling(baseModel, vanillaModelPath);
+    }
+
+    /**
+     * Checks if a material requires a special model type instead of a regular model.
+     */
+    private boolean isSpecialModelMaterial(Material mat) {
+        return mat == Material.SHIELD || mat == Material.CONDUIT || mat == Material.DECORATED_POT;
+    }
+
+    /**
+     * Gets the special model type identifier for materials that require custom rendering.
+     */
+    private String getSpecialModelType(Material mat) {
+        return switch (mat) {
+            case SHIELD -> "minecraft:shield";
+            case CONDUIT -> "minecraft:conduit";
+            case DECORATED_POT -> "minecraft:decorated_pot";
+            default -> null;
+        };
     }
 
     /**
@@ -387,7 +410,8 @@ public class VanillaItemDefinitionGenerator {
         conditionModel.addProperty("type", "minecraft:condition");
         conditionModel.addProperty("property", "minecraft:using_item");
         conditionModel.add("on_false", baseModel);
-        conditionModel.add("on_true", createModelObject("minecraft:item/shield_blocking"));
+        // Shield blocking state also needs special model type for proper rendering
+        conditionModel.add("on_true", createSpecialModelObject("minecraft:item/shield_blocking", "minecraft:shield"));
         return conditionModel;
     }
 
@@ -555,6 +579,25 @@ public class VanillaItemDefinitionGenerator {
         modelObj.addProperty("type", "minecraft:model");
         modelObj.addProperty("model", modelPath);
         return modelObj;
+    }
+
+    /**
+     * Creates a special model object for items that require custom rendering (shield, conduit, etc.).
+     * These use "type": "minecraft:special" with a nested model type instead of "type": "minecraft:model".
+     * 
+     * @param basePath the model path used as the "base" property (for display transformations)
+     * @param specialType the special model type (e.g., "minecraft:shield", "minecraft:conduit")
+     */
+    private JsonObject createSpecialModelObject(String basePath, String specialType) {
+        JsonObject specialObj = new JsonObject();
+        specialObj.addProperty("type", "minecraft:special");
+        specialObj.addProperty("base", basePath);
+        
+        JsonObject modelType = new JsonObject();
+        modelType.addProperty("type", specialType);
+        specialObj.add("model", modelType);
+        
+        return specialObj;
     }
 
     /**
