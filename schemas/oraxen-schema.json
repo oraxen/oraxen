@@ -2,7 +2,7 @@
   "oraxenVersion": "1.205.0",
   "minecraftVersion": "1.21.11",
   "serverVersion": "1.21.11-R0.1-SNAPSHOT",
-  "generatedAt": "2026-01-31T12:05:56.813397292Z",
+  "generatedAt": "2026-02-01T14:15:09.607096869Z",
   "enums": {
     "Material": {
       "values": [
@@ -7785,14 +7785,14 @@
           "type": "object",
           "description": "Drop configuration when broken",
           "properties": {
+            "loots": {
+              "type": "array",
+              "description": "List of loot entries"
+            },
             "silktouch": {
               "type": "boolean",
               "description": "Require silk touch",
               "default": false
-            },
-            "loots": {
-              "type": "array",
-              "description": "List of loot entries"
             }
           }
         },
@@ -7804,17 +7804,17 @@
               "type": "string",
               "description": "Z-axis variant ID"
             },
-            "x_block": {
+            "parent_block": {
               "type": "string",
-              "description": "X-axis variant ID"
+              "description": "Parent block ID"
             },
             "y_block": {
               "type": "string",
               "description": "Y-axis variant ID"
             },
-            "parent_block": {
+            "x_block": {
               "type": "string",
-              "description": "Parent block ID"
+              "description": "X-axis variant ID"
             }
           }
         },
@@ -7838,23 +7838,23 @@
           "type": "object",
           "description": "Log stripping configuration",
           "properties": {
+            "stripped_log": {
+              "type": "string",
+              "description": "Stripped log block ID"
+            },
             "drop": {
               "type": "object",
               "description": "Item dropped on strip",
               "properties": {
-                "oraxen_item": {
-                  "type": "string",
-                  "description": "Oraxen item ID"
-                },
                 "minecraft_type": {
                   "type": "string",
                   "description": "Vanilla item type"
+                },
+                "oraxen_item": {
+                  "type": "string",
+                  "description": "Oraxen item ID"
                 }
               }
-            },
-            "stripped_log": {
-              "type": "string",
-              "description": "Stripped log block ID"
             }
           }
         }
@@ -7923,16 +7923,16 @@
           "type": "object",
           "description": "Custom hitbox dimensions",
           "properties": {
-            "width": {
+            "height": {
               "type": "number",
-              "description": "Hitbox width",
+              "description": "Hitbox height",
               "default": 1.0,
               "min": 0.0,
               "max": 10.0
             },
-            "height": {
+            "width": {
               "type": "number",
-              "description": "Hitbox height",
+              "description": "Hitbox width",
               "default": 1.0,
               "min": 0.0,
               "max": 10.0
@@ -7943,14 +7943,14 @@
           "type": "object",
           "description": "Seat configuration for sittable furniture",
           "properties": {
-            "height": {
-              "type": "number",
-              "description": "Seat height offset",
-              "default": 0.0
-            },
             "yaw": {
               "type": "number",
               "description": "Seat rotation",
+              "default": 0.0
+            },
+            "height": {
+              "type": "number",
+              "description": "Seat height offset",
               "default": 0.0
             }
           }
@@ -7963,48 +7963,6 @@
           "type": "object",
           "description": "Display entity configuration",
           "properties": {
-            "translation": {
-              "type": "object",
-              "description": "Position offset in blocks",
-              "properties": {
-                "y": {
-                  "type": "number",
-                  "description": "Y-axis offset",
-                  "default": 0.0
-                },
-                "z": {
-                  "type": "number",
-                  "description": "Z-axis offset",
-                  "default": 0.0
-                },
-                "x": {
-                  "type": "number",
-                  "description": "X-axis offset",
-                  "default": 0.0
-                }
-              }
-            },
-            "scale": {
-              "type": "object",
-              "description": "Scale of the display entity",
-              "properties": {
-                "y": {
-                  "type": "number",
-                  "description": "Y-axis scale",
-                  "default": 1.0
-                },
-                "z": {
-                  "type": "number",
-                  "description": "Z-axis scale",
-                  "default": 1.0
-                },
-                "x": {
-                  "type": "number",
-                  "description": "X-axis scale",
-                  "default": 1.0
-                }
-              }
-            },
             "brightness": {
               "type": "object",
               "description": "Light levels",
@@ -8022,6 +7980,48 @@
                   "default": 0,
                   "min": 0,
                   "max": 15
+                }
+              }
+            },
+            "scale": {
+              "type": "object",
+              "description": "Scale of the display entity",
+              "properties": {
+                "z": {
+                  "type": "number",
+                  "description": "Z-axis scale",
+                  "default": 1.0
+                },
+                "y": {
+                  "type": "number",
+                  "description": "Y-axis scale",
+                  "default": 1.0
+                },
+                "x": {
+                  "type": "number",
+                  "description": "X-axis scale",
+                  "default": 1.0
+                }
+              }
+            },
+            "translation": {
+              "type": "object",
+              "description": "Position offset in blocks",
+              "properties": {
+                "z": {
+                  "type": "number",
+                  "description": "Z-axis offset",
+                  "default": 0.0
+                },
+                "y": {
+                  "type": "number",
+                  "description": "Y-axis offset",
+                  "default": 0.0
+                },
+                "x": {
+                  "type": "number",
+                  "description": "X-axis offset",
+                  "default": 0.0
                 }
               }
             },
@@ -8046,14 +8046,14 @@
           "type": "object",
           "description": "Drop configuration when broken",
           "properties": {
+            "loots": {
+              "type": "array",
+              "description": "List of loot entries"
+            },
             "silktouch": {
               "type": "boolean",
               "description": "Require silk touch to drop",
               "default": false
-            },
-            "loots": {
-              "type": "array",
-              "description": "List of loot entries"
             }
           }
         },
@@ -8065,13 +8065,6 @@
               "type": "string",
               "description": "Inventory title"
             },
-            "rows": {
-              "type": "integer",
-              "description": "Number of inventory rows",
-              "default": 1,
-              "min": 1,
-              "max": 6
-            },
             "type": {
               "type": "string",
               "description": "Storage type",
@@ -8081,6 +8074,13 @@
                 "ENDERCHEST",
                 "DISPOSAL"
               ]
+            },
+            "rows": {
+              "type": "integer",
+              "description": "Number of inventory rows",
+              "default": 1,
+              "min": 1,
+              "max": 6
             }
           }
         }
@@ -8251,14 +8251,14 @@
           "type": "object",
           "description": "Drop configuration when broken",
           "properties": {
+            "loots": {
+              "type": "array",
+              "description": "List of loot entries"
+            },
             "silktouch": {
               "type": "boolean",
               "description": "Require silk touch",
               "default": false
-            },
-            "loots": {
-              "type": "array",
-              "description": "List of loot entries"
             }
           }
         },
@@ -8270,21 +8270,21 @@
               "type": "string",
               "description": "Sound when placed"
             },
-            "step_sound": {
+            "fall_sound": {
               "type": "string",
-              "description": "Sound when stepped on"
-            },
-            "break_sound": {
-              "type": "string",
-              "description": "Sound when broken"
+              "description": "Sound when fallen on"
             },
             "hit_sound": {
               "type": "string",
               "description": "Sound when hit"
             },
-            "fall_sound": {
+            "break_sound": {
               "type": "string",
-              "description": "Sound when fallen on"
+              "description": "Sound when broken"
+            },
+            "step_sound": {
+              "type": "string",
+              "description": "Sound when stepped on"
             }
           }
         },
@@ -8292,13 +8292,13 @@
           "type": "object",
           "description": "Placement restrictions",
           "properties": {
-            "type": {
-              "type": "string",
-              "description": "ALLOW or DENY list type"
-            },
             "block_types": {
               "type": "array",
               "description": "Block types to allow/deny"
+            },
+            "type": {
+              "type": "string",
+              "description": "ALLOW or DENY list type"
             }
           }
         },
@@ -8695,14 +8695,14 @@
           "type": "object",
           "description": "Drop configuration when broken",
           "properties": {
+            "loots": {
+              "type": "array",
+              "description": "List of loot entries"
+            },
             "silktouch": {
               "type": "boolean",
               "description": "Require silk touch",
               "default": false
-            },
-            "loots": {
-              "type": "array",
-              "description": "List of loot entries"
             }
           }
         },
@@ -8717,16 +8717,16 @@
               "min": 0,
               "max": 15
             },
-            "grow_block": {
-              "type": "string",
-              "description": "Block ID when grown"
-            },
             "grow_chance": {
               "type": "number",
               "description": "Growth chance per check",
               "default": 0.1,
               "min": 0.0,
               "max": 1.0
+            },
+            "grow_block": {
+              "type": "string",
+              "description": "Block ID when grown"
             }
           }
         }
