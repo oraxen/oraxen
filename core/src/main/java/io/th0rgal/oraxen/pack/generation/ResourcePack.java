@@ -79,6 +79,7 @@ public class ResourcePack {
         textShaderFeatures = null;
         textEffectSnippets = null;
         textEffectSnippetsTarget = null;
+        shaderOverlaysGenerated = false;
 
         makeDirsIfNotExists(packFolder, new File(packFolder, "assets"));
 
@@ -143,6 +144,8 @@ public class ResourcePack {
         }
 
         generateFont();
+        // Update pack.mcmeta with shader overlays after shaders are generated
+        updatePackMcmetaOverlays();
         if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool())
             hideScoreboardNumbers();
         hideScoreboardOrTablistBackgrounds();
@@ -244,6 +247,11 @@ public class ResourcePack {
      * across updates, and the embedded template may be outdated for newer Minecraft
      * versions.
      * </p>
+     *
+     * <p>
+     * Also adds overlay entries for cross-version shader compatibility when the server
+     * is running 1.21.4+ and text effects or animated glyphs may be used.
+     * </p>
      */
     private void updatePackMcmeta() {
         Path mcmetaPath = packFolder.toPath().resolve("pack.mcmeta");
@@ -270,13 +278,127 @@ public class ResourcePack {
 
             int packFormat = ResourcePackFormatUtil.getCurrentResourcePackFormat();
             pack.addProperty("pack_format", packFormat);
+
+            // Add supported_formats for broader client compatibility
+            // This tells clients the range of pack formats this pack supports
+            MinecraftVersion currentVersion = MinecraftVersion.getCurrentVersion();
+            if (currentVersion.isAtLeast(new MinecraftVersion("1.21.4"))) {
+                JsonObject supportedFormats = new JsonObject();
+                supportedFormats.addProperty("min_inclusive", TextShaderTarget.PACK_FORMAT_1_21_4);
+                // Use a high max to support future versions (Minecraft ignores unknown higher formats)
+                supportedFormats.addProperty("max_inclusive", 999);
+                pack.add("supported_formats", supportedFormats);
+            }
+
             root.add("pack", pack);
 
-            Files.writeString(mcmetaPath, root.toString(), StandardCharsets.UTF_8);
+            // Use Gson with pretty printing for readable output
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            Files.writeString(mcmetaPath, gson.toJson(root), StandardCharsets.UTF_8);
         } catch (Exception e) {
             if (Settings.DEBUG.toBool())
                 e.printStackTrace();
             Logs.logWarning("Failed to update pack.mcmeta pack_format. Keeping existing file.");
+        }
+    }
+
+    /**
+     * Updates pack.mcmeta to add shader overlay entries after shaders have been generated.
+     * This must be called after {@link #generateFont()} to ensure overlay directories exist.
+     */
+    private void updatePackMcmetaOverlays() {
+        if (!shaderOverlaysGenerated) {
+            return;
+        }
+
+        Path mcmetaPath = packFolder.toPath().resolve("pack.mcmeta");
+        if (!mcmetaPath.toFile().exists()) {
+            return;
+        }
+
+        try {
+            String content = Files.readString(mcmetaPath, StandardCharsets.UTF_8);
+            JsonObject root;
+            try {
+                root = JsonParser.parseString(content).getAsJsonObject();
+            } catch (Exception ignored) {
+                Logs.logWarning("Failed to parse pack.mcmeta for overlay update");
+                return;
+            }
+
+            MinecraftVersion currentVersion = MinecraftVersion.getCurrentVersion();
+            if (currentVersion.isAtLeast(new MinecraftVersion("1.21.4"))) {
+                addShaderOverlayEntries(root, currentVersion);
+            }
+
+            // Use Gson with pretty printing for readable output
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            Files.writeString(mcmetaPath, gson.toJson(root), StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            if (Settings.DEBUG.toBool())
+                e.printStackTrace();
+            Logs.logWarning("Failed to update pack.mcmeta with shader overlays. Keeping existing file.");
+        }
+    }
+
+    /**
+     * Adds overlay entries to pack.mcmeta for cross-version shader compatibility.
+     *
+     * <p>Overlays allow the pack to include different shader formats for different
+     * Minecraft client versions. The client automatically selects the appropriate
+     * overlay based on its pack_format.</p>
+     *
+     * @param root The root pack.mcmeta JSON object
+     * @param serverVersion The server's Minecraft version
+     */
+    private void addShaderOverlayEntries(JsonObject root, MinecraftVersion serverVersion) {
+        // Get existing overlays or create new one
+        JsonObject overlays;
+        if (root.has("overlays")) {
+            overlays = root.getAsJsonObject("overlays");
+        } else {
+            overlays = new JsonObject();
+        }
+        
+        // Get existing entries array or create new one
+        JsonArray entries;
+        if (overlays.has("entries")) {
+            entries = overlays.getAsJsonArray("entries");
+        } else {
+            entries = new JsonArray();
+        }
+
+        int initialSize = entries.size();
+
+        if (serverVersion.isAtLeast(new MinecraftVersion("1.21.6"))) {
+            // Server is 1.21.6+, base shaders are 1.21.6 format
+            // Add overlay for 1.21.4/1.21.5 clients (pack_format 46-54)
+            JsonObject entry = new JsonObject();
+            JsonObject formats = new JsonObject();
+            formats.addProperty("min_inclusive", TextShaderTarget.PACK_FORMAT_1_21_4);
+            formats.addProperty("max_inclusive", TextShaderTarget.PACK_FORMAT_1_21_6 - 1);
+            entry.add("formats", formats);
+            entry.addProperty("directory", OVERLAY_1_21_4_5);
+            entries.add(entry);
+        } else if (serverVersion.isAtLeast(new MinecraftVersion("1.21.4"))) {
+            // Server is 1.21.4/1.21.5, base shaders are 1.21.4 format
+            // Add overlay for 1.21.6+ clients (pack_format 55+)
+            JsonObject entry = new JsonObject();
+            JsonObject formats = new JsonObject();
+            formats.addProperty("min_inclusive", TextShaderTarget.PACK_FORMAT_1_21_6);
+            formats.addProperty("max_inclusive", 999); // Support future versions
+            entry.add("formats", formats);
+            entry.addProperty("directory", OVERLAY_1_21_6_PLUS);
+            entries.add(entry);
+        }
+
+        int newEntriesAdded = entries.size() - initialSize;
+        if (newEntriesAdded > 0) {
+            overlays.add("entries", entries);
+            root.add("overlays", overlays);
+            if (Settings.DEBUG.toBool()) {
+                Logs.logInfo("Added " + newEntriesAdded + " shader overlay entries to pack.mcmeta");
+            }
         }
     }
 
@@ -976,11 +1098,49 @@ public class ResourcePack {
         }
     }
 
+    /** Directory name for 1.21.6+ shader overlay */
+    private static final String OVERLAY_1_21_6_PLUS = "overlay_1_21_6_plus";
+
+    /** Tracks whether overlay shaders were generated (for pack.mcmeta update) */
+    private boolean shaderOverlaysGenerated = false;
+
     /**
      * Generates text shaders based on target and enabled features.
      * Different Minecraft versions use different shader formats.
+     * Also generates overlay shaders for cross-version compatibility.
      */
     private void generateTextShaders(TextShaderTarget target, TextShaderFeatures features) {
+        // Generate base shaders for the current server version
+        generateTextShadersForTarget(target, features, "");
+
+        // Generate overlay shaders for cross-version compatibility
+        // If server is 1.21.4/1.21.5, also generate 1.21.6+ shaders in overlay directory
+        if (target.isAtLeast("1.21.4") && !target.isAtLeast("1.21.6")) {
+            TextShaderTarget overlayTarget = TextShaderTarget.forVersion("1.21.6");
+            generateTextShadersForTarget(overlayTarget, features, OVERLAY_1_21_6_PLUS + "/");
+            shaderOverlaysGenerated = true;
+            Logs.logSuccess("Generated shader overlay for 1.21.6+ clients");
+        }
+        // If server is 1.21.6+, also generate 1.21.4/1.21.5 shaders in overlay directory
+        else if (target.isAtLeast("1.21.6")) {
+            TextShaderTarget overlayTarget = TextShaderTarget.forVersion("1.21.4");
+            generateTextShadersForTarget(overlayTarget, features, OVERLAY_1_21_4_5 + "/");
+            shaderOverlaysGenerated = true;
+            Logs.logSuccess("Generated shader overlay for 1.21.4/1.21.5 clients");
+        }
+    }
+
+    /** Directory name for 1.21.4/1.21.5 shader overlay */
+    private static final String OVERLAY_1_21_4_5 = "overlay_1_21_4_5";
+
+    /**
+     * Generates text shaders for a specific target version into the given path prefix.
+     *
+     * @param target The target version for shader generation
+     * @param features The shader features to include
+     * @param pathPrefix Empty for base pack, or "overlay_xxx/" for overlay directories
+     */
+    private void generateTextShadersForTarget(TextShaderTarget target, TextShaderFeatures features, String pathPrefix) {
         // Generate shaders (see-through uses a different vertex format on 1.21.6+)
         String vshContent = getAnimationVertexShader(target, features, false);
         String fshContent = getAnimationFragmentShader(target, false);
@@ -998,25 +1158,27 @@ public class ResourcePack {
         String fshIntensitySeeThrough = getAnimationFragmentShader(target, true, true);
         String jsonIntensitySeeThrough = getAnimationShaderJson(target, "rendertype_text_intensity_see_through", true);
 
+        String shaderPath = pathPrefix + "assets/minecraft/shaders/core";
+
         // Write shaders for both rendertype_text and rendertype_text_see_through
-        writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_text.vsh", vshContent);
-        writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_text.fsh", fshContent);
-        writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_text.json", jsonContent);
+        writeStringToVirtual(shaderPath, "rendertype_text.vsh", vshContent);
+        writeStringToVirtual(shaderPath, "rendertype_text.fsh", fshContent);
+        writeStringToVirtual(shaderPath, "rendertype_text.json", jsonContent);
 
-        writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_text_see_through.vsh", vshSeeThrough);
-        writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_text_see_through.fsh", fshSeeThrough);
-        writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_text_see_through.json", jsonSeeThrough);
+        writeStringToVirtual(shaderPath, "rendertype_text_see_through.vsh", vshSeeThrough);
+        writeStringToVirtual(shaderPath, "rendertype_text_see_through.fsh", fshSeeThrough);
+        writeStringToVirtual(shaderPath, "rendertype_text_see_through.json", jsonSeeThrough);
 
-        writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_text_intensity.vsh", vshIntensity);
-        writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_text_intensity.fsh", fshIntensity);
-        writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_text_intensity.json", jsonIntensity);
+        writeStringToVirtual(shaderPath, "rendertype_text_intensity.vsh", vshIntensity);
+        writeStringToVirtual(shaderPath, "rendertype_text_intensity.fsh", fshIntensity);
+        writeStringToVirtual(shaderPath, "rendertype_text_intensity.json", jsonIntensity);
 
-        writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_text_intensity_see_through.vsh", vshIntensitySeeThrough);
-        writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_text_intensity_see_through.fsh", fshIntensitySeeThrough);
-        writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_text_intensity_see_through.json", jsonIntensitySeeThrough);
+        writeStringToVirtual(shaderPath, "rendertype_text_intensity_see_through.vsh", vshIntensitySeeThrough);
+        writeStringToVirtual(shaderPath, "rendertype_text_intensity_see_through.fsh", fshIntensitySeeThrough);
+        writeStringToVirtual(shaderPath, "rendertype_text_intensity_see_through.json", jsonIntensitySeeThrough);
 
         Logs.logSuccess("Generated text shaders for " + target.displayName()
-                + " (shader " + getShaderVersion(target) + ")");
+                + " (shader " + getShaderVersion(target) + ")" + (pathPrefix.isEmpty() ? "" : " [overlay]"));
     }
 
     /**
@@ -1645,6 +1807,38 @@ public class ResourcePack {
                         { "name": "ScreenSize", "type": "float", "count": 2, "values": [ 1.0, 1.0 ] }""";
 
     /**
+     * Builds a 1.21+ shader JSON configuration (vanilla-style).
+     *
+     * <p>In 1.21.4 Mojang switched core shaders to reference their own sources via
+     * fully-qualified ids like {@code minecraft:core/rendertype_text}. Prior versions
+     * used bare names like {@code rendertype_text}. The client treats invalid shader
+     * references as a fatal pack load error.
+     */
+    private String build1_21ShaderJson(String shaderName, boolean seeThrough, boolean fullyQualifiedCoreRefs,
+                                       boolean includeFog, boolean includeGameTime, boolean includeScreenSize) {
+        String shaderRef = fullyQualifiedCoreRefs ? "minecraft:core/" + shaderName : shaderName;
+        String samplers = seeThrough
+                ? "{ \"name\": \"Sampler0\" }"
+                : "{ \"name\": \"Sampler0\" }, { \"name\": \"Sampler2\" }";
+
+        StringBuilder uniforms = new StringBuilder(UNIFORM_MATRIX);
+        if (includeFog) uniforms.append(",\n").append(UNIFORM_FOG);
+        if (includeGameTime) uniforms.append(",\n").append(UNIFORM_GAMETIME);
+        if (includeScreenSize) uniforms.append(",\n").append(UNIFORM_SCREENSIZE);
+
+        return """
+            {
+                "vertex": "%s",
+                "fragment": "%s",
+                "samplers": [ %s ],
+                "uniforms": [
+%s
+                ]
+            }
+            """.formatted(shaderRef, shaderRef, samplers, uniforms.toString());
+    }
+
+    /**
      * Builds a pre-1.21.6 shader JSON configuration.
      */
     private String buildLegacyShaderJson(String shaderName, boolean hasUV2, boolean hasSampler2,
@@ -1689,6 +1883,7 @@ public class ResourcePack {
 
     private String getAnimationShaderJson(TextShaderTarget target, String shaderName, boolean seeThrough) {
         boolean is1_21_6Plus = target.isAtLeast("1.21.6");
+        boolean is1_21_4Plus = target.isAtLeast("1.21.4");
 
         if (is1_21_6Plus) {
             // 1.21.6+ uses uniform blocks - most uniforms come from imported glsl files
@@ -1702,7 +1897,14 @@ public class ResourcePack {
                     "samplers": [ %s ]
                 }
                 """.formatted(shaderName, shaderName, samplers);
+        } else if (is1_21_4Plus) {
+            // 1.21.4/1.21.5: still #version 150 shaders with explicit uniforms,
+            // but core shader sources must be referenced as minecraft:core/<name>
+            // (otherwise the client looks for minecraft:<name> and fails to load the pack).
+            boolean includeFog = !seeThrough;
+            return build1_21ShaderJson(shaderName, seeThrough, true, includeFog, true, false);
         } else {
+            // 1.21.0-1.21.3 (and older): bare shader refs still work.
             return buildLegacyShaderJson(shaderName, !seeThrough, !seeThrough, true, true, false);
         }
     }
