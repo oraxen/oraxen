@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.mechanics;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.events.OraxenNativeMechanicsRegisteredEvent;
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.provided.combat.knockbackstrike.KnockbackStrikeMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.combat.bleeding.BleedingMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.combat.lifeleech.LifeLeechMechanicFactory;
@@ -81,7 +82,8 @@ public class MechanicsManager {
         registerFactory("durability", DurabilityMechanicFactory::new);
         registerFactory("efficiency", EfficiencyMechanicFactory::new);
         registerFactory("block", BlockMechanicFactory::new);
-        registerFactory("noteblock", NoteBlockMechanicFactory::new);
+        if (!Settings.DISABLE_NOTE_BLOCK_FUNCTIONALITY.toBool())
+            registerFactory("noteblock", NoteBlockMechanicFactory::new);
         registerFactory("stringblock", StringBlockMechanicFactory::new);
         registerFactory("chorusblock", ChorusBlockMechanicFactory::new);
         registerFactory("shaped_block", ShapedBlockMechanicFactory::new);

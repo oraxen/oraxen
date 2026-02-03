@@ -76,6 +76,7 @@ CustomArmor:
 CustomBlocks:
   block_correction: NMS # Valid types are NMS and LEGACY
   use_legacy_noteblocks: true # Setting relevant for future changes, for now leave this to true
+  disable-noteblock-functionality: false # When true, Oraxen will not use note blocks for custom blocks and vanilla note blocks will behave normally (requires restart)
 
 ItemUpdater:
   # Update the items in player inventory to the latest in config when player joins

@@ -68,6 +68,7 @@ public enum Settings {
     // Custom Blocks
     BLOCK_CORRECTION("CustomBlocks.block_correction"),
     LEGACY_NOTEBLOCKS("CustomBlocks.use_legacy_noteblocks"),
+    DISABLE_NOTE_BLOCK_FUNCTIONALITY("CustomBlocks.disable-noteblock-functionality"),
 
     // ItemUpdater
     UPDATE_ITEMS("ItemUpdater.update_items"),

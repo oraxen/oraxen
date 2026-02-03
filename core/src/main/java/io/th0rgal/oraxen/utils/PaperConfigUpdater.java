@@ -60,6 +60,7 @@ public final class PaperConfigUpdater {
             boolean inBlockUpdates = false;
             int blockUpdatesIndent = -1;
 
+            boolean updateNoteblockUpdates = !Settings.DISABLE_NOTE_BLOCK_FUNCTIONALITY.toBool();
             for (int i = 0; i < updatedLines.size(); i++) {
                 String line = updatedLines.get(i);
                 String trimmed = line.trim();
@@ -81,8 +82,11 @@ public final class PaperConfigUpdater {
 
                 // Process settings within block-updates
                 if (inBlockUpdates) {
-                    String updated = tryUpdateSetting(line, "disable-noteblock-updates", updatedSettings);
-                    if (updated != null) { updatedLines.set(i, updated); continue; }
+                    String updated;
+                    if (updateNoteblockUpdates) {
+                        updated = tryUpdateSetting(line, "disable-noteblock-updates", updatedSettings);
+                        if (updated != null) { updatedLines.set(i, updated); continue; }
+                    }
 
                     updated = tryUpdateSetting(line, "disable-tripwire-updates", updatedSettings);
                     if (updated != null) { updatedLines.set(i, updated); continue; }
