@@ -513,11 +513,6 @@ public class ResourcePack {
                         continue;
                     }
 
-                    if (image.getHeight() > 256 || image.getWidth() > 256) {
-                        Logs.logWarning("Found invalid texture at <blue>" + texture.getPath());
-                        Logs.logError("Resolution of textures cannot exceed 256x256");
-                        malformedTextures.add(texture);
-                    }
                 } catch (Exception e) {
                     // Be resilient when validating packs: bad files should not crash pack
                     // generation
