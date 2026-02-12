@@ -173,12 +173,14 @@ tasks {
         filteringCharset = Charsets.UTF_8.name()
     }
 
+    val runServerVersion = (findProperty("mcVersion") as String?) ?: "1.21.11"
+
     runServer {
         downloadPlugins {
             hangar("ProtocolLib", "5.4.0")
             hangar("CommandAPI", "11.1.0")
         }
-        minecraftVersion("1.21.11")
+        minecraftVersion(runServerVersion)
         jvmArgs("-Dcom.mojang.eula.agree=true")
     }
 
@@ -333,4 +335,3 @@ tasks.register<Exec>("generatePack") {
         println("Generating resource pack for $serverType $mcVersion...")
     }
 }
-

@@ -101,7 +101,7 @@ public class KnockbackStrikeMechanicListener implements Listener {
         spawnParticles(victimLoc, mechanic);
 
         // Play sound at victim location
-        if (mechanic.shouldPlaySound()) {
+        if (mechanic.shouldPlaySound() && mechanic.getSoundType() != null) {
             World world = victimLoc.getWorld();
             if (world != null) {
                 try {

@@ -2,14 +2,19 @@ package io.th0rgal.oraxen.mechanics.provided.combat.knockbackstrike;
 
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.oraxen.utils.wrappers.ParticleWrapper;
+import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
+import org.bukkit.Registry;
 import org.bukkit.Sound;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
+import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -22,6 +27,7 @@ public class KnockbackStrikeMechanic extends Mechanic {
     private final int particleCount;
     private final double particleSpread;
     private final boolean playSound;
+    @Nullable
     private final Sound soundType;
     private final float soundVolume;
     private final float soundPitch;
@@ -89,6 +95,7 @@ public class KnockbackStrikeMechanic extends Mechanic {
         return playSound;
     }
 
+    @Nullable
     public Sound getSoundType() {
         return soundType;
     }
@@ -200,13 +207,18 @@ public class KnockbackStrikeMechanic extends Mechanic {
         }
     }
 
+    @Nullable
     private Sound parseSound(String soundName) {
         try {
             // Try direct valueOf first
             return Sound.valueOf(soundName.toUpperCase());
         } catch (IllegalArgumentException e) {
             Sound fallback = getSafeFallbackSound();
-            Logs.logWarning("Invalid sound type: " + soundName + ", using " + fallback.name() + " as fallback");
+            if (fallback != null) {
+                Logs.logWarning("Invalid sound type: " + soundName + ", using fallback sound");
+            } else {
+                Logs.logWarning("Invalid sound type: " + soundName + ", disabling KnockbackStrike sound");
+            }
             return fallback;
         } catch (IncompatibleClassChangeError e) {
             // Handle version compatibility issues with Sound.valueOf() (includes NoSuchMethodError)
@@ -222,28 +234,50 @@ public class KnockbackStrikeMechanic extends Mechanic {
     /**
      * Get a safe fallback sound that should exist in most versions
      */
+    @Nullable
     private Sound getSafeFallbackSound() {
-        try {
-            return Sound.valueOf("ENTITY_PLAYER_ATTACK_KNOCKBACK");
-        } catch (IllegalArgumentException | IncompatibleClassChangeError e1) {
-            try {
-                // Try older sound name
-                return Sound.valueOf("ENTITY_PLAYER_ATTACK_STRONG");
-            } catch (IllegalArgumentException | IncompatibleClassChangeError e2) {
-                try {
-                    // Try even older sound name
-                    return Sound.valueOf("SUCCESSFUL_HIT");
-                } catch (IllegalArgumentException | IncompatibleClassChangeError e3) {
-                    // Last resort - return first available sound
-                    Sound[] sounds = Sound.values();
-                    if (sounds.length > 0) {
-                        return sounds[0];
-                    }
-                    // This should never happen in a real server environment
-                    throw new RuntimeException("No Sound enum values available - server environment is corrupted");
-                }
-            }
+        String[] candidates = {
+            "ENTITY_PLAYER_ATTACK_KNOCKBACK",
+            "ENTITY_PLAYER_ATTACK_STRONG",
+            "SUCCESSFUL_HIT",
+            "ENTITY_PLAYER_LEVELUP"
+        };
+
+        for (String candidate : candidates) {
+            Sound parsed = tryParseSound(candidate);
+            if (parsed != null) return parsed;
         }
+
+        return null;
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    @Nullable
+    private Sound tryParseSound(String soundName) {
+        try {
+            return Sound.valueOf(soundName);
+        } catch (IllegalArgumentException | IncompatibleClassChangeError ignored) {
+            // Try other compatibility paths below
+        }
+
+        try {
+            if (VersionUtil.isPaperServer()) {
+                return Registry.SOUNDS.get(NamespacedKey.minecraft(soundName.toLowerCase(Locale.ROOT)));
+            }
+        } catch (Throwable ignored) {
+            // Registry API not available on this runtime
+        }
+
+        try {
+            if (Sound.class.isEnum()) {
+                Class enumClass = (Class) Sound.class;
+                return (Sound) Enum.valueOf(enumClass, soundName);
+            }
+        } catch (Throwable ignored) {
+            // Sound is not enum on this runtime or constant is missing
+        }
+
+        return null;
     }
 
     /**
