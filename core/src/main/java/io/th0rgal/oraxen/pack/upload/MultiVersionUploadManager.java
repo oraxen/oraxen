@@ -48,12 +48,11 @@ public class MultiVersionUploadManager {
         }
 
         // Validate hosting provider compatibility
+        // Note: SelfHost compatibility is checked earlier in ResourcePack.generate()
+        // This is a safety check in case this method is called directly
         if (isSelfHost()) {
             Logs.logError("SelfHost is incompatible with multi-version packs!");
-            Logs.logError("SelfHost can only serve one file at /pack.zip, but multi-version requires unique URLs per version.");
-            Logs.logError("Please use 'polymath' or 'external' hosting provider instead.");
-            Logs.logError("Falling back to single-pack mode (disabling multi_version_packs).");
-            // Don't proceed with multi-version upload
+            Logs.logError("This should have been caught earlier - no packs will be uploaded.");
             return;
         }
 
