@@ -83,6 +83,11 @@ public class ResourcePack {
         // Legacy single-pack generation - prepare and generate base assets
         List<VirtualFile> output = prepareAndGenerateBaseAssets();
 
+        // Early exit if generation is disabled (empty output)
+        if (output.isEmpty()) {
+            return;
+        }
+
         // Zip and upload the single pack
         SchedulerUtil.runTask(() -> {
             OraxenPackGeneratedEvent event = new OraxenPackGeneratedEvent(output);
