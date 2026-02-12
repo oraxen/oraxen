@@ -283,6 +283,11 @@ public class ResourcePack {
         // Use shared generation logic
         List<VirtualFile> output = prepareAndGenerateBaseAssets();
 
+        // Early exit if generation is disabled (empty output)
+        if (output.isEmpty()) {
+            return;
+        }
+
         // Use MultiVersionPackGenerator for multi-version zip and upload
         MultiVersionPackGenerator multiVersionGenerator = new MultiVersionPackGenerator();
         multiVersionGenerator.generateMultipleVersions(output);

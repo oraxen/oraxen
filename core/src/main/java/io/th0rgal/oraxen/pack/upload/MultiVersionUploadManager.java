@@ -126,9 +126,10 @@ public class MultiVersionUploadManager {
             throw new IOException("Failed to upload pack");
         }
 
-        // Store URL and SHA1 from provider
+        // Store URL, SHA1, and UUID from provider
         packVersion.setPackURL(provider.getPackURL());
         packVersion.setPackSHA1(provider.getSHA1());
+        packVersion.setPackUUID(provider.getPackUUID()); // Use provider's content-based UUID
 
         // Store provider
         hostingProviders.put(packVersion, provider);

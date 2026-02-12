@@ -16,7 +16,7 @@ public class PackVersion implements Comparable<PackVersion> {
     private final int minFormatInclusive;
     private final int maxFormatInclusive;
     private final File packFile;
-    private final UUID packUUID;
+    private UUID packUUID; // Not final - set by hosting provider after upload
     private String packURL;
     private byte[] packSHA1;
 
@@ -36,7 +36,8 @@ public class PackVersion implements Comparable<PackVersion> {
         this.minFormatInclusive = minFormatInclusive;
         this.maxFormatInclusive = maxFormatInclusive;
         this.packFile = packFile;
-        this.packUUID = UUID.randomUUID();
+        // UUID will be set by hosting provider after upload (content-based for consistency)
+        this.packUUID = null;
     }
 
     public String getMinecraftVersion() {
@@ -77,6 +78,10 @@ public class PackVersion implements Comparable<PackVersion> {
 
     public void setPackSHA1(byte[] packSHA1) {
         this.packSHA1 = packSHA1;
+    }
+
+    public void setPackUUID(UUID packUUID) {
+        this.packUUID = packUUID;
     }
 
     /**
