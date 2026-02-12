@@ -23,7 +23,8 @@ class PackVersionTest {
         assertEquals(22, version.getMinFormatInclusive());
         assertEquals(31, version.getMaxFormatInclusive());
         assertEquals(packFile, version.getPackFile());
-        assertNotNull(version.getPackUUID());
+        // UUID is null until set by hosting provider after upload
+        assertNull(version.getPackUUID());
     }
 
     @Test
