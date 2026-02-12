@@ -290,10 +290,11 @@ public class ResourcePack {
                 // Use a high max to support future versions (Minecraft ignores unknown higher formats)
                 supportedFormats.addProperty("max_inclusive", 999);
                 pack.add("supported_formats", supportedFormats);
-            } else if (currentVersion.isAtLeast(new MinecraftVersion("1.20"))) {
-                // For 1.20.x versions, support formats 15-33
+            } else if (currentVersion.isAtLeast(new MinecraftVersion("1.20.2"))) {
+                // For 1.20.2+ versions, support formats 18-33
+                // supported_formats was introduced in MC 1.20.2 (pack format 18)
                 JsonObject supportedFormats = new JsonObject();
-                supportedFormats.addProperty("min_inclusive", 15);
+                supportedFormats.addProperty("min_inclusive", 18);
                 supportedFormats.addProperty("max_inclusive", 33);
                 pack.add("supported_formats", supportedFormats);
             }

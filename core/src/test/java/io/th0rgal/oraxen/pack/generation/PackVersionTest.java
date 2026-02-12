@@ -61,9 +61,9 @@ class PackVersionTest {
         PackVersion version1_20 = new PackVersion("1.20", 15, 15, 17, packFile1);
         PackVersion version1_21 = new PackVersion("1.21", 34, 34, 41, packFile2);
 
-        // Higher format should come first (natural ordering is reversed)
-        assertTrue(version1_21.compareTo(version1_20) < 0);
-        assertTrue(version1_20.compareTo(version1_21) > 0);
+        // Natural ordering: higher format > lower format (ascending order)
+        assertTrue(version1_21.compareTo(version1_20) > 0); // 1.21 (format 34) > 1.20 (format 15)
+        assertTrue(version1_20.compareTo(version1_21) < 0); // 1.20 (format 15) < 1.21 (format 34)
         assertEquals(0, version1_20.compareTo(version1_20));
     }
 

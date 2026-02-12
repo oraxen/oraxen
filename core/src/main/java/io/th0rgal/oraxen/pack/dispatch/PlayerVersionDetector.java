@@ -163,7 +163,7 @@ public class PlayerVersionDetector {
         // Map protocol versions to Minecraft versions (best effort)
         // https://minecraft.wiki/w/Protocol_version
 
-        if (protocol >= 779) return "1.21.4+";
+        if (protocol >= 769) return "1.21.4+";
         if (protocol >= 768) return "1.21.2";
         if (protocol == 767) return "1.21";
         if (protocol == 766) return "1.20.5";

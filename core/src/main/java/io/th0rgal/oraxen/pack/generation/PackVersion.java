@@ -106,7 +106,7 @@ public class PackVersion implements Comparable<PackVersion> {
         // https://minecraft.wiki/w/Protocol_version
         // https://minecraft.wiki/w/Pack_format
 
-        if (protocolVersion >= 779) return 46; // 1.21.4+ (protocol 779+)
+        if (protocolVersion >= 769) return 46; // 1.21.4+ (protocol 769+)
         if (protocolVersion >= 768) return 42; // 1.21.2 (protocol 768+)
         if (protocolVersion >= 767) return 34; // 1.21 (protocol 767)
         if (protocolVersion >= 766) return 32; // 1.20.5 (protocol 766)

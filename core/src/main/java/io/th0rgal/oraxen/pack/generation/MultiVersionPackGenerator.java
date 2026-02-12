@@ -55,12 +55,17 @@ public class MultiVersionPackGenerator {
 
         Logs.logInfo("Generating multi-version resource packs...");
 
+        // Fire event to allow modifications before generation
+        OraxenPackGeneratedEvent event = new OraxenPackGeneratedEvent(output);
+        EventUtils.callEvent(event);
+        output = event.getOutput();
+
         // Define which pack versions to generate
         versionManager.definePackVersions();
 
         // Set server pack version based on current server version
         MinecraftVersion currentVersion = MinecraftVersion.getCurrentVersion();
-        versionManager.setServerPackVersion(currentVersion.toString());
+        versionManager.setServerPackVersion(currentVersion.getVersion());
 
         // Generate each pack version
         Collection<PackVersion> versions = versionManager.getAllVersions();
@@ -131,8 +136,9 @@ public class MultiVersionPackGenerator {
         // Set pack format
         pack.addProperty("pack_format", packVersion.getPackFormat());
 
-        // Add supported_formats for broader compatibility
-        if (packVersion.getPackFormat() >= 46) { // 1.21.4+
+        // Add supported_formats for broader compatibility (1.20.2+)
+        // The supported_formats field was introduced in Minecraft 1.20.2 (pack format 18)
+        if (packVersion.getPackFormat() >= 18) {
             JsonObject supportedFormats = new JsonObject();
             supportedFormats.addProperty("min_inclusive", packVersion.getMinFormatInclusive());
             supportedFormats.addProperty("max_inclusive", packVersion.getMaxFormatInclusive());
