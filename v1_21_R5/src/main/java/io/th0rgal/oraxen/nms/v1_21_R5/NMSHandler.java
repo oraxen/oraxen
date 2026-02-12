@@ -12,6 +12,7 @@ import io.th0rgal.oraxen.nms.GlyphHandler;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -90,17 +91,19 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             return;
         ChannelInitializeListenerHolder.addListener(tagKey, (channel -> channel.pipeline().addBefore("packet_handler",
                 tagKey.asString(), new ChannelDuplexHandler() {
-                    Connection connection = (Connection) channel.pipeline().get("packet_handler");
-                    TagNetworkSerialization.NetworkPayload payload = createPayload();
-
                     @Override
                     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
-                        if (msg instanceof ClientboundUpdateTagsPacket updateTagsPacket) {
-                            Map<ResourceKey<? extends Registry<?>>, TagNetworkSerialization.NetworkPayload> tags = updateTagsPacket
-                                    .getTags();
-                            if (NoteBlockMechanicFactory.isEnabled()
-                                    && NoteBlockMechanicFactory.getInstance().removeMineableTag())
-                                tags.put(Registries.BLOCK, payload);
+                        if (msg instanceof ClientboundUpdateTagsPacket updateTagsPacket
+                                && NoteBlockMechanicFactory.isEnabled()
+                                && NoteBlockMechanicFactory.getInstance().removeMineableTag()) {
+                            TagNetworkSerialization.NetworkPayload payload = createPayload();
+                            if (payload == null) {
+                                ctx.write(msg, promise);
+                                return;
+                            }
+                            Map<ResourceKey<? extends Registry<?>>, TagNetworkSerialization.NetworkPayload> tags =
+                                    new HashMap<>(updateTagsPacket.getTags());
+                            tags.put(Registries.BLOCK, payload);
                             msg = new ClientboundUpdateTagsPacket(tags);
                         }
                         ctx.write(msg, promise);
@@ -231,14 +234,30 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             return null;
         constructor.setAccessible(true);
         try {
-            return (TagNetworkSerialization.NetworkPayload) constructor.newInstance(tagRegistryMap);
+            return (TagNetworkSerialization.NetworkPayload) constructor.newInstance(createTagRegistryMap());
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }
         return null;
     }
 
-    private final Map<ResourceLocation, IntList> tagRegistryMap = new HashMap();// createTagRegistryMap();
+    private static Map<ResourceLocation, IntList> createTagRegistryMap() {
+        return BuiltInRegistries.BLOCK.getTags().map(named -> {
+            ResourceLocation key = named.key().location();
+            IntArrayList list = new IntArrayList(named.size());
+            boolean isMineableTag = "minecraft".equals(key.getNamespace()) && key.getPath().startsWith("mineable/");
+
+            if (isMineableTag) {
+                named.stream()
+                        .filter(block -> !block.value().getDescriptionId().endsWith("note_block"))
+                        .forEach(block -> list.add(BuiltInRegistries.BLOCK.getId(block.value())));
+            } else {
+                named.forEach(block -> list.add(BuiltInRegistries.BLOCK.getId(block.value())));
+            }
+
+            return Map.of(key, (IntList) list);
+        }).collect(HashMap::new, Map::putAll, Map::putAll);
+    }
 
     /*
      * private static Map<ResourceLocation, IntList> createTagRegistryMap() {
