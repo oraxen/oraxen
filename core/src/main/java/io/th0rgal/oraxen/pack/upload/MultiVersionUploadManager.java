@@ -27,7 +27,6 @@ public class MultiVersionUploadManager {
 
     private final OraxenPlugin plugin;
     private final Map<PackVersion, HostingProvider> hostingProviders = new HashMap<>();
-    private HostingProvider sharedProvider; // Shared provider for SelfHost to avoid port conflicts
     private MultiVersionPackSender packSender;
 
     public MultiVersionUploadManager(OraxenPlugin plugin) {
@@ -45,6 +44,16 @@ public class MultiVersionUploadManager {
         // Check if upload is enabled
         if (!Settings.UPLOAD.toBool()) {
             Logs.logWarning("Pack upload is disabled in settings");
+            return;
+        }
+
+        // Validate hosting provider compatibility
+        if (isSelfHost()) {
+            Logs.logError("SelfHost is incompatible with multi-version packs!");
+            Logs.logError("SelfHost can only serve one file at /pack.zip, but multi-version requires unique URLs per version.");
+            Logs.logError("Please use 'polymath' or 'external' hosting provider instead.");
+            Logs.logError("Falling back to single-pack mode (disabling multi_version_packs).");
+            // Don't proceed with multi-version upload
             return;
         }
 
@@ -107,18 +116,9 @@ public class MultiVersionUploadManager {
         OraxenPackPreUploadEvent event = new OraxenPackPreUploadEvent();
         EventUtils.callEvent(event);
 
-        // Get or create hosting provider
-        // For SelfHost, reuse the same instance to avoid port conflicts
-        HostingProvider provider;
-        if (isSelfHost()) {
-            if (sharedProvider == null) {
-                sharedProvider = createHostingProvider();
-            }
-            provider = sharedProvider;
-        } else {
-            // For Polymath/External, each pack can have its own provider
-            provider = createHostingProvider();
-        }
+        // Create hosting provider for this version
+        // Note: SelfHost is not supported for multi-version (validated earlier)
+        HostingProvider provider = createHostingProvider();
 
         // Upload pack (provider calculates SHA-1 internally)
         boolean success = provider.uploadPack(packVersion.getPackFile());
@@ -145,17 +145,17 @@ public class MultiVersionUploadManager {
         java.util.Locale locale = java.util.Locale.ROOT;
         HostingProvider provider = switch (Settings.UPLOAD_TYPE.toString().toLowerCase(locale)) {
             case "polymath" -> new io.th0rgal.oraxen.pack.upload.hosts.Polymath(Settings.POLYMATH_SERVER.toString());
-            case "self-host" -> {
-                org.bukkit.configuration.ConfigurationSection selfHostConfig = plugin.getConfigsManager().getSettings()
-                        .getConfigurationSection("Pack.upload.self-host");
-                yield new io.th0rgal.oraxen.pack.upload.hosts.SelfHost(selfHostConfig);
-            }
             case "external" -> new io.th0rgal.oraxen.pack.upload.hosts.ExternalHost(Settings.EXTERNAL_PACK_URL.toString());
+            case "self-host" -> {
+                // SelfHost is incompatible with multi-version (already validated earlier)
+                Logs.logError("SelfHost cannot be used with multi-version packs");
+                yield null;
+            }
             default -> null;
         };
 
         if (provider == null) {
-            Logs.logError("Unknown Hosting-Provider type: " + Settings.UPLOAD_TYPE);
+            Logs.logError("Unknown or incompatible Hosting-Provider type: " + Settings.UPLOAD_TYPE);
             Logs.logError("Polymath will be used instead.");
             provider = new io.th0rgal.oraxen.pack.upload.hosts.Polymath(Settings.POLYMATH_SERVER.toString());
         }
@@ -171,16 +171,8 @@ public class MultiVersionUploadManager {
             packSender.unregister();
         }
 
-        // Shutdown shared SelfHost provider if present
-        if (sharedProvider != null && sharedProvider instanceof io.th0rgal.oraxen.pack.upload.hosts.SelfHost selfHost) {
-            try {
-                selfHost.shutdown();
-            } catch (Exception e) {
-                Logs.logWarning("Failed to shutdown SelfHost provider: " + e.getMessage());
-            }
-            sharedProvider = null;
-        }
-
+        // Clear hosting providers
+        // Note: SelfHost is not supported in multi-version mode
         hostingProviders.clear();
     }
 }

@@ -74,6 +74,13 @@ public class ResourcePack {
     }
 
     public void generate() {
+        // Check if multi-version pack generation is enabled
+        if (Settings.MULTI_VERSION_PACKS.toBool()) {
+            generateMultiVersion();
+            return;
+        }
+
+        // Legacy single-pack generation
         outputFiles.clear();
         textShadersGenerated = false;
         textShaderFeatures = null;
@@ -235,6 +242,83 @@ public class ResourcePack {
                 uploadManager.uploadAsyncAndSendToPlayers(OraxenPlugin.get().getResourcePack(), false, false);
             }
         });
+    }
+
+    /**
+     * Generates multiple resource pack versions for different Minecraft client versions.
+     * This method delegates to MultiVersionPackGenerator when multi_version_packs is enabled.
+     */
+    private void generateMultiVersion() {
+        outputFiles.clear();
+        textShadersGenerated = false;
+        textShaderFeatures = null;
+        textEffectSnippets = null;
+        textEffectSnippetsTarget = null;
+        shaderOverlaysGenerated = false;
+
+        makeDirsIfNotExists(packFolder, new File(packFolder, "assets"));
+
+        componentArmorModels = CustomArmorType.getSetting() == CustomArmorType.COMPONENT ? new ComponentArmorModels()
+                : null;
+        trimArmorDatapack = CustomArmorType.getSetting() == CustomArmorType.TRIMS ? new TrimArmorDatapack() : null;
+        shaderArmorTextures = CustomArmorType.getSetting() == CustomArmorType.SHADER ? new ShaderArmorTextures() : null;
+
+        if (Settings.GENERATE_DEFAULT_ASSETS.toBool())
+            extractDefaultFolders();
+        extractRequired();
+
+        if (!Settings.GENERATE.toBool())
+            return;
+
+        // Generate base assets (same as single-pack flow)
+        final Map<Material, Map<String, ItemBuilder>> texturedItems = extractTexturedItems();
+        final boolean is1_21_4Plus = VersionUtil.atOrAbove("1.21.4");
+
+        if (is1_21_4Plus) {
+            AppearanceMode.validateAndLogWarnings();
+        }
+
+        // Generate appearance systems
+        final AppearanceMode appearance = AppearanceMode.fromConfig();
+        switch (appearance) {
+            case PREDICATES_ONLY -> generatePredicatesOnly(texturedItems, outputFiles);
+            case COMPONENTS_ONLY -> generateComponentsOnly(texturedItems, outputFiles, is1_21_4Plus);
+            case BOTH -> generateBoth(texturedItems, outputFiles, is1_21_4Plus);
+        }
+
+        generatePackSupportFiles(outputFiles);
+        generateShaders(outputFiles);
+        generateGlyphs(outputFiles);
+        generateBlocks(outputFiles);
+
+        List<String> malformedTextures = new ArrayList<>();
+        VerifyRequiredTextures.verifyRequiredTextures(outputFiles, malformedTextures);
+
+        if (Settings.GENERATE_ATLAS_FILE.toBool())
+            AtlasGenerator.generateAtlasFile(outputFiles, malformedTextures);
+
+        if (Settings.MERGE_DUPLICATE_FONTS.toBool())
+            DuplicationHandler.mergeFontFiles(outputFiles);
+        if (Settings.MERGE_ITEM_MODELS.toBool())
+            DuplicationHandler.mergeBaseItemFiles(outputFiles);
+        DuplicationHandler.mergeVanillaItemDefinitions(outputFiles);
+
+        List<String> excludedExtensions = Settings.EXCLUDED_FILE_EXTENSIONS.toStringList();
+        excludedExtensions.removeIf(f -> f.equals("png") || f.equals("json"));
+        if (!excludedExtensions.isEmpty() && !outputFiles.isEmpty()) {
+            List<VirtualFile> newOutput = new ArrayList<>();
+            for (VirtualFile virtual : outputFiles)
+                for (String extension : excludedExtensions)
+                    if (virtual.getPath().endsWith(extension))
+                        newOutput.add(virtual);
+            outputFiles.removeAll(newOutput);
+        }
+
+        generateSound(outputFiles);
+
+        // Use MultiVersionPackGenerator instead of single-pack zip
+        MultiVersionPackGenerator multiVersionGenerator = new MultiVersionPackGenerator();
+        multiVersionGenerator.generateMultipleVersions(outputFiles);
     }
 
     /**
