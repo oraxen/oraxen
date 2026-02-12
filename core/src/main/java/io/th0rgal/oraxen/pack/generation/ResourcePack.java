@@ -282,11 +282,19 @@ public class ResourcePack {
             // Add supported_formats for broader client compatibility
             // This tells clients the range of pack formats this pack supports
             MinecraftVersion currentVersion = MinecraftVersion.getCurrentVersion();
-            if (currentVersion.isAtLeast(new MinecraftVersion("1.21.4"))) {
+            if (currentVersion.isAtLeast(new MinecraftVersion("1.21"))) {
                 JsonObject supportedFormats = new JsonObject();
-                supportedFormats.addProperty("min_inclusive", TextShaderTarget.PACK_FORMAT_1_21_4);
+                // Support wide range of 1.21.x pack formats (34 for 1.21, up to 999 for future versions)
+                // This ensures compatibility with 1.21, 1.21.2, 1.21.4, 1.21.11, etc.
+                supportedFormats.addProperty("min_inclusive", 34);
                 // Use a high max to support future versions (Minecraft ignores unknown higher formats)
                 supportedFormats.addProperty("max_inclusive", 999);
+                pack.add("supported_formats", supportedFormats);
+            } else if (currentVersion.isAtLeast(new MinecraftVersion("1.20"))) {
+                // For 1.20.x versions, support formats 15-33
+                JsonObject supportedFormats = new JsonObject();
+                supportedFormats.addProperty("min_inclusive", 15);
+                supportedFormats.addProperty("max_inclusive", 33);
                 pack.add("supported_formats", supportedFormats);
             }
 
