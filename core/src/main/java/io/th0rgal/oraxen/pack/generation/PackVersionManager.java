@@ -146,15 +146,20 @@ public class PackVersionManager {
 
     /**
      * Maps Minecraft version string to pack format.
+     * Matches the logic in ResourcePackFormatUtil.fallbackByMinecraftVersion().
      *
-     * @param version Minecraft version (e.g., "1.20.4", "1.21.1")
+     * @param version Minecraft version (e.g., "1.20.4", "1.21.1", "1.21.11")
      * @return Pack format number
      */
     private int getPackFormatForVersion(String version) {
         // Parse version string to compare
-        if (version.startsWith("1.21.4")) return 46;
+        // NOTE: For 1.21.x versions, pack formats vary significantly between patches
+        if (version.startsWith("1.21.11")) return 61; // 1.21.11+
+        if (version.startsWith("1.21.4") || version.startsWith("1.21.5") || version.startsWith("1.21.6")
+            || version.startsWith("1.21.7") || version.startsWith("1.21.8") || version.startsWith("1.21.9")
+            || version.startsWith("1.21.10")) return 46; // 1.21.4-1.21.10
         if (version.startsWith("1.21.2") || version.startsWith("1.21.3")) return 42;
-        if (version.startsWith("1.21")) return 34;
+        if (version.startsWith("1.21")) return 34; // 1.21-1.21.1
         if (version.startsWith("1.20.5") || version.startsWith("1.20.6")) return 32;
         if (version.startsWith("1.20.3") || version.startsWith("1.20.4")) return 22;
         if (version.startsWith("1.20.2")) return 18;

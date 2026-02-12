@@ -47,12 +47,6 @@ public class MultiVersionPackGenerator {
      * @param output Virtual files to include in all pack versions
      */
     public void generateMultipleVersions(List<VirtualFile> output) {
-        if (!Settings.MULTI_VERSION_PACKS.toBool()) {
-            // Multi-version disabled, use legacy single pack
-            generateSinglePack(output);
-            return;
-        }
-
         Logs.logInfo("Generating multi-version resource packs...");
 
         // Fire event to allow modifications before generation
@@ -153,28 +147,6 @@ public class MultiVersionPackGenerator {
         Files.writeString(tempFile.toPath(), gson.toJson(root), StandardCharsets.UTF_8);
 
         return tempFile;
-    }
-
-    private void generateSinglePack(List<VirtualFile> output) {
-        // Legacy behavior: generate single pack.zip
-        Logs.logInfo("Multi-version packs disabled, generating single pack");
-
-        File packFile = new File(packFolder, "pack.zip");
-
-        SchedulerUtil.runTask(() -> {
-            OraxenPackGeneratedEvent event = new OraxenPackGeneratedEvent(output);
-            EventUtils.callEvent(event);
-            ZipUtils.writeZipFile(packFile, event.getOutput());
-
-            UploadManager uploadManager = OraxenPlugin.get().getUploadManager();
-            if (uploadManager != null) {
-                uploadManager.uploadAsyncAndSendToPlayers(baseGenerator, true, true);
-            } else {
-                uploadManager = new UploadManager(OraxenPlugin.get());
-                OraxenPlugin.get().setUploadManager(uploadManager);
-                uploadManager.uploadAsyncAndSendToPlayers(baseGenerator, false, false);
-            }
-        });
     }
 
     private void uploadAndSendPacks() {
