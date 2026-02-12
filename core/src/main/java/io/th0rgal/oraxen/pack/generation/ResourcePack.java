@@ -80,7 +80,34 @@ public class ResourcePack {
             return;
         }
 
-        // Legacy single-pack generation
+        // Legacy single-pack generation - prepare and generate base assets
+        List<VirtualFile> output = prepareAndGenerateBaseAssets();
+
+        // Zip and upload the single pack
+        SchedulerUtil.runTask(() -> {
+            OraxenPackGeneratedEvent event = new OraxenPackGeneratedEvent(output);
+            EventUtils.callEvent(event);
+            ZipUtils.writeZipFile(pack, event.getOutput());
+
+            UploadManager uploadManager = OraxenPlugin.get().getUploadManager();
+            if (uploadManager != null) { // If the uploadManager isnt null, this was triggered by a pack-reload
+                uploadManager.uploadAsyncAndSendToPlayers(OraxenPlugin.get().getResourcePack(), true, true);
+            } else { // Otherwise this is was triggered on server-startup
+                uploadManager = new UploadManager(OraxenPlugin.get());
+                OraxenPlugin.get().setUploadManager(uploadManager);
+                uploadManager.uploadAsyncAndSendToPlayers(OraxenPlugin.get().getResourcePack(), false, false);
+            }
+        });
+    }
+
+    /**
+     * Prepares the environment and generates all base pack assets.
+     * This is shared logic between single-pack and multi-version generation.
+     *
+     * @return List of generated VirtualFiles ready for zipping
+     */
+    private List<VirtualFile> prepareAndGenerateBaseAssets() {
+        // Reset state
         outputFiles.clear();
         textShadersGenerated = false;
         textShaderFeatures = null;
@@ -100,7 +127,7 @@ public class ResourcePack {
         extractRequired();
 
         if (!Settings.GENERATE.toBool())
-            return;
+            return new ArrayList<>();
 
         if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool() && PluginUtils.isEnabled("HappyHUD")) {
             Logs.logError("HappyHUD detected with hide_scoreboard_numbers enabled!");
@@ -117,6 +144,18 @@ public class ResourcePack {
         extractInPackIfNotExists(new File(packFolder, "pack.mcmeta"));
         extractInPackIfNotExists(new File(packFolder, "pack.png"));
         updatePackMcmeta();
+
+        // Generate all base assets
+        return generateBaseAssets();
+    }
+
+    /**
+     * Generates all base pack assets (items, fonts, shaders, blocks, etc.).
+     * This is the core generation logic shared between single-pack and multi-version.
+     *
+     * @return List of generated VirtualFiles
+     */
+    private List<VirtualFile> generateBaseAssets() {
 
         // Sorting items to keep only one with models (and generate it if needed)
         final Map<Material, Map<String, ItemBuilder>> texturedItems = extractTexturedItems();
@@ -228,20 +267,7 @@ public class ResourcePack {
 
         generateSound(output);
 
-        SchedulerUtil.runTask(() -> {
-            OraxenPackGeneratedEvent event = new OraxenPackGeneratedEvent(output);
-            EventUtils.callEvent(event);
-            ZipUtils.writeZipFile(pack, event.getOutput());
-
-            UploadManager uploadManager = OraxenPlugin.get().getUploadManager();
-            if (uploadManager != null) { // If the uploadManager isnt null, this was triggered by a pack-reload
-                uploadManager.uploadAsyncAndSendToPlayers(OraxenPlugin.get().getResourcePack(), true, true);
-            } else { // Otherwise this is was triggered on server-startup
-                uploadManager = new UploadManager(OraxenPlugin.get());
-                OraxenPlugin.get().setUploadManager(uploadManager);
-                uploadManager.uploadAsyncAndSendToPlayers(OraxenPlugin.get().getResourcePack(), false, false);
-            }
-        });
+        return output;
     }
 
     /**
@@ -249,76 +275,12 @@ public class ResourcePack {
      * This method delegates to MultiVersionPackGenerator when multi_version_packs is enabled.
      */
     private void generateMultiVersion() {
-        outputFiles.clear();
-        textShadersGenerated = false;
-        textShaderFeatures = null;
-        textEffectSnippets = null;
-        textEffectSnippetsTarget = null;
-        shaderOverlaysGenerated = false;
+        // Use shared generation logic
+        List<VirtualFile> output = prepareAndGenerateBaseAssets();
 
-        makeDirsIfNotExists(packFolder, new File(packFolder, "assets"));
-
-        componentArmorModels = CustomArmorType.getSetting() == CustomArmorType.COMPONENT ? new ComponentArmorModels()
-                : null;
-        trimArmorDatapack = CustomArmorType.getSetting() == CustomArmorType.TRIMS ? new TrimArmorDatapack() : null;
-        shaderArmorTextures = CustomArmorType.getSetting() == CustomArmorType.SHADER ? new ShaderArmorTextures() : null;
-
-        if (Settings.GENERATE_DEFAULT_ASSETS.toBool())
-            extractDefaultFolders();
-        extractRequired();
-
-        if (!Settings.GENERATE.toBool())
-            return;
-
-        // Generate base assets (same as single-pack flow)
-        final Map<Material, Map<String, ItemBuilder>> texturedItems = extractTexturedItems();
-        final boolean is1_21_4Plus = VersionUtil.atOrAbove("1.21.4");
-
-        if (is1_21_4Plus) {
-            AppearanceMode.validateAndLogWarnings();
-        }
-
-        // Generate appearance systems
-        final AppearanceMode appearance = AppearanceMode.fromConfig();
-        switch (appearance) {
-            case PREDICATES_ONLY -> generatePredicatesOnly(texturedItems, outputFiles);
-            case COMPONENTS_ONLY -> generateComponentsOnly(texturedItems, outputFiles, is1_21_4Plus);
-            case BOTH -> generateBoth(texturedItems, outputFiles, is1_21_4Plus);
-        }
-
-        generatePackSupportFiles(outputFiles);
-        generateShaders(outputFiles);
-        generateGlyphs(outputFiles);
-        generateBlocks(outputFiles);
-
-        List<String> malformedTextures = new ArrayList<>();
-        VerifyRequiredTextures.verifyRequiredTextures(outputFiles, malformedTextures);
-
-        if (Settings.GENERATE_ATLAS_FILE.toBool())
-            AtlasGenerator.generateAtlasFile(outputFiles, malformedTextures);
-
-        if (Settings.MERGE_DUPLICATE_FONTS.toBool())
-            DuplicationHandler.mergeFontFiles(outputFiles);
-        if (Settings.MERGE_ITEM_MODELS.toBool())
-            DuplicationHandler.mergeBaseItemFiles(outputFiles);
-        DuplicationHandler.mergeVanillaItemDefinitions(outputFiles);
-
-        List<String> excludedExtensions = Settings.EXCLUDED_FILE_EXTENSIONS.toStringList();
-        excludedExtensions.removeIf(f -> f.equals("png") || f.equals("json"));
-        if (!excludedExtensions.isEmpty() && !outputFiles.isEmpty()) {
-            List<VirtualFile> newOutput = new ArrayList<>();
-            for (VirtualFile virtual : outputFiles)
-                for (String extension : excludedExtensions)
-                    if (virtual.getPath().endsWith(extension))
-                        newOutput.add(virtual);
-            outputFiles.removeAll(newOutput);
-        }
-
-        generateSound(outputFiles);
-
-        // Use MultiVersionPackGenerator instead of single-pack zip
+        // Use MultiVersionPackGenerator for multi-version zip and upload
         MultiVersionPackGenerator multiVersionGenerator = new MultiVersionPackGenerator();
-        multiVersionGenerator.generateMultipleVersions(outputFiles);
+        multiVersionGenerator.generateMultipleVersions(output);
     }
 
     /**

@@ -122,16 +122,48 @@ public class PackVersionManager {
         // Find exact match first
         this.serverPackVersion = packVersions.get(serverMcVersion);
 
-        // If no exact match, find closest version
+        // If no exact match, find compatible version based on pack format
         if (this.serverPackVersion == null) {
+            int serverFormat = getPackFormatForVersion(serverMcVersion);
             this.serverPackVersion = packVersions.values().stream()
-                .max(Comparator.naturalOrder())
+                .filter(pack -> pack.supportsFormat(serverFormat))
+                .min(Comparator.naturalOrder()) // Prefer lowest compatible format for broadest support
                 .orElse(null);
+
+            // Final fallback: use highest version
+            if (this.serverPackVersion == null) {
+                this.serverPackVersion = packVersions.values().stream()
+                    .max(Comparator.naturalOrder())
+                    .orElse(null);
+            }
         }
 
         if (this.serverPackVersion != null) {
-            Logs.logInfo("Server pack version set to: " + this.serverPackVersion);
+            Logs.logInfo("Server pack version set to: " + this.serverPackVersion.getMinecraftVersion()
+                + " (pack format " + this.serverPackVersion.getPackFormat() + ")");
         }
+    }
+
+    /**
+     * Maps Minecraft version string to pack format.
+     *
+     * @param version Minecraft version (e.g., "1.20.4", "1.21.1")
+     * @return Pack format number
+     */
+    private int getPackFormatForVersion(String version) {
+        // Parse version string to compare
+        if (version.startsWith("1.21.4")) return 46;
+        if (version.startsWith("1.21.2") || version.startsWith("1.21.3")) return 42;
+        if (version.startsWith("1.21")) return 34;
+        if (version.startsWith("1.20.5") || version.startsWith("1.20.6")) return 32;
+        if (version.startsWith("1.20.3") || version.startsWith("1.20.4")) return 22;
+        if (version.startsWith("1.20.2")) return 18;
+        if (version.startsWith("1.20")) return 15;
+        if (version.startsWith("1.19.4")) return 13;
+        if (version.startsWith("1.19.3")) return 12;
+        if (version.startsWith("1.19")) return 9;
+        if (version.startsWith("1.18")) return 8;
+        return 15; // Default fallback
     }
 
     /**
