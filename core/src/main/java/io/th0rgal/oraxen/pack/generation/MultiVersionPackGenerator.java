@@ -84,11 +84,29 @@ public class MultiVersionPackGenerator {
     private void generatePackVersion(PackVersion packVersion, List<VirtualFile> output) throws IOException {
         Logs.logInfo("Generating pack for Minecraft " + packVersion.getMinecraftVersion() + " (format " + packVersion.getPackFormat() + ")");
 
+        // Deep copy VirtualFiles to avoid shared InputStream consumption
+        List<VirtualFile> versionOutput = new java.util.ArrayList<>();
+        for (VirtualFile file : output) {
+            // Skip any existing pack.mcmeta to avoid duplicates
+            if (file.getPath().equals("pack.mcmeta") || file.getPath().endsWith("/pack.mcmeta")) {
+                continue;
+            }
+
+            // Create deep copy with fresh InputStream
+            try {
+                byte[] content = org.apache.commons.io.IOUtils.toByteArray(file.getInputStream());
+                java.io.ByteArrayInputStream freshStream = new java.io.ByteArrayInputStream(content);
+                String path = file.getPath();
+                String parentFolder = path.contains("/") ? path.substring(0, path.lastIndexOf("/")) : "";
+                String name = path.contains("/") ? path.substring(path.lastIndexOf("/") + 1) : path;
+                versionOutput.add(new VirtualFile(parentFolder, name, freshStream));
+            } catch (Exception e) {
+                Logs.logWarning("Failed to copy VirtualFile " + file.getPath() + ": " + e.getMessage());
+            }
+        }
+
         // Create pack.mcmeta for this version
         File tempMcmeta = createPackMcmeta(packVersion);
-
-        // Add pack.mcmeta to output
-        List<VirtualFile> versionOutput = new java.util.ArrayList<>(output);
         byte[] mcmetaContent = Files.readAllBytes(tempMcmeta.toPath());
         java.io.ByteArrayInputStream mcmetaStream = new java.io.ByteArrayInputStream(mcmetaContent);
         versionOutput.add(new VirtualFile("", "pack.mcmeta", mcmetaStream));

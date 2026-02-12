@@ -36,7 +36,7 @@ class PackVersionManagerTest {
 
         // Verify we have expected versions
         assertNotNull(manager.getVersion("1.21.4"));
-        assertNotNull(manager.getVersion("1.20.4"));
+        assertNotNull(manager.getVersion("1.20.3")); // 1.20.3 covers 1.20.3-1.20.4 range
         assertNotNull(manager.getVersion("1.20"));
     }
 

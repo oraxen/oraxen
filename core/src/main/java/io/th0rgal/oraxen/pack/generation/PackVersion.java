@@ -124,8 +124,9 @@ public class PackVersion implements Comparable<PackVersion> {
 
     @Override
     public int compareTo(@NotNull PackVersion other) {
-        // Sort by pack format (higher formats first for better compatibility)
-        return Integer.compare(other.packFormat, this.packFormat);
+        // Sort by pack format in ascending order (standard natural ordering)
+        // Higher pack formats will be "greater than" lower ones
+        return Integer.compare(this.packFormat, other.packFormat);
     }
 
     @Override
