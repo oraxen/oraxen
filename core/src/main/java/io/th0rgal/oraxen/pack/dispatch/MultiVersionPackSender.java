@@ -123,6 +123,11 @@ public class MultiVersionPackSender implements Listener {
     public void onPlayerConnect(PlayerJoinEvent event) {
         Player player = event.getPlayer();
 
+        // Send welcome message if enabled
+        if (Settings.SEND_JOIN_MESSAGE.toBool()) {
+            sendWelcomeMessage(player, true);
+        }
+
         if (!Settings.SEND_PACK.toBool()) {
             return;
         }
@@ -132,6 +137,18 @@ public class MultiVersionPackSender implements Listener {
             sendPack(player);
         } else {
             SchedulerUtil.runTaskLaterAsync(delay * 20L, () -> sendPack(player));
+        }
+    }
+
+    private void sendWelcomeMessage(Player player, boolean async) {
+        // Delegate to PackSender utility for welcome message
+        // This matches BukkitPackSender behavior
+        if (async) {
+            SchedulerUtil.runTaskLaterAsync(1L, () ->
+                io.th0rgal.oraxen.pack.dispatch.PackSender.sendWelcomeMessage(player)
+            );
+        } else {
+            io.th0rgal.oraxen.pack.dispatch.PackSender.sendWelcomeMessage(player);
         }
     }
 }

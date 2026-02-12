@@ -27,6 +27,7 @@ public class MultiVersionUploadManager {
 
     private final OraxenPlugin plugin;
     private final Map<PackVersion, HostingProvider> hostingProviders = new HashMap<>();
+    private HostingProvider sharedProvider; // Shared provider for SelfHost to avoid port conflicts
     private MultiVersionPackSender packSender;
 
     public MultiVersionUploadManager(OraxenPlugin plugin) {
@@ -41,6 +42,12 @@ public class MultiVersionUploadManager {
      * @param sendToPlayers Whether to send packs to online players
      */
     public void uploadAndSendToPlayers(PackVersionManager versionManager, boolean reload, boolean sendToPlayers) {
+        // Check if upload is enabled
+        if (!Settings.UPLOAD.toBool()) {
+            Logs.logWarning("Pack upload is disabled in settings");
+            return;
+        }
+
         // Initialize player version detection
         PlayerVersionDetector.initialize();
 
@@ -48,6 +55,11 @@ public class MultiVersionUploadManager {
             try {
                 // Upload all pack versions
                 uploadAllVersions(versionManager);
+
+                // Unregister old listener on reload to prevent duplicates
+                if (reload && packSender != null) {
+                    packSender.unregister();
+                }
 
                 // Create pack sender
                 packSender = new MultiVersionPackSender(versionManager, hostingProviders);
@@ -95,8 +107,18 @@ public class MultiVersionUploadManager {
         OraxenPackPreUploadEvent event = new OraxenPackPreUploadEvent();
         EventUtils.callEvent(event);
 
-        // Create hosting provider for this version
-        HostingProvider provider = createHostingProvider();
+        // Get or create hosting provider
+        // For SelfHost, reuse the same instance to avoid port conflicts
+        HostingProvider provider;
+        if (isSelfHost()) {
+            if (sharedProvider == null) {
+                sharedProvider = createHostingProvider();
+            }
+            provider = sharedProvider;
+        } else {
+            // For Polymath/External, each pack can have its own provider
+            provider = createHostingProvider();
+        }
 
         // Upload pack (provider calculates SHA-1 internally)
         boolean success = provider.uploadPack(packVersion.getPackFile());
@@ -114,6 +136,11 @@ public class MultiVersionUploadManager {
         Logs.logSuccess("  Uploaded: " + packVersion.getMinecraftVersion() + " -> " + provider.getPackURL());
     }
 
+    private boolean isSelfHost() {
+        String uploadType = Settings.UPLOAD_TYPE.toString().toLowerCase(java.util.Locale.ROOT);
+        return "self-host".equals(uploadType);
+    }
+
     private HostingProvider createHostingProvider() {
         java.util.Locale locale = java.util.Locale.ROOT;
         HostingProvider provider = switch (Settings.UPLOAD_TYPE.toString().toLowerCase(locale)) {
@@ -123,6 +150,7 @@ public class MultiVersionUploadManager {
                         .getConfigurationSection("Pack.upload.self-host");
                 yield new io.th0rgal.oraxen.pack.upload.hosts.SelfHost(selfHostConfig);
             }
+            case "external" -> new io.th0rgal.oraxen.pack.upload.hosts.ExternalHost(Settings.EXTERNAL_PACK_URL.toString());
             default -> null;
         };
 
@@ -143,8 +171,16 @@ public class MultiVersionUploadManager {
             packSender.unregister();
         }
 
-        // Note: SelfHost providers don't have a shutdown() method in the interface
-        // They are automatically stopped when uploadPack is called again
+        // Shutdown shared SelfHost provider if present
+        if (sharedProvider != null && sharedProvider instanceof io.th0rgal.oraxen.pack.upload.hosts.SelfHost selfHost) {
+            try {
+                selfHost.shutdown();
+            } catch (Exception e) {
+                Logs.logWarning("Failed to shutdown SelfHost provider: " + e.getMessage());
+            }
+            sharedProvider = null;
+        }
+
         hostingProviders.clear();
     }
 }
