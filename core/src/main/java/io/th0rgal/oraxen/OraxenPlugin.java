@@ -48,6 +48,7 @@ public class OraxenPlugin extends JavaPlugin {
     private ResourcesManager resourceManager;
     private BukkitAudiences audience;
     private UploadManager uploadManager;
+    private io.th0rgal.oraxen.pack.upload.MultiVersionUploadManager multiVersionUploadManager;
     private FontManager fontManager;
     private HudManager hudManager;
     private SoundManager soundManager;
@@ -211,6 +212,17 @@ public class OraxenPlugin extends JavaPlugin {
 
     public void setUploadManager(final UploadManager uploadManager) {
         this.uploadManager = uploadManager;
+    }
+
+    public io.th0rgal.oraxen.pack.upload.MultiVersionUploadManager getMultiVersionUploadManager() {
+        return multiVersionUploadManager;
+    }
+
+    public void setMultiVersionUploadManager(final io.th0rgal.oraxen.pack.upload.MultiVersionUploadManager multiVersionUploadManager) {
+        if (this.multiVersionUploadManager != null) {
+            this.multiVersionUploadManager.unregister();
+        }
+        this.multiVersionUploadManager = multiVersionUploadManager;
     }
 
     public FontManager getFontManager() {

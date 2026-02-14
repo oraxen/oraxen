@@ -74,6 +74,68 @@ public class ResourcePack {
     }
 
     public void generate() {
+        // Check if multi-version pack generation is enabled
+        boolean multiVersionEnabled = Settings.MULTI_VERSION_PACKS.toBool();
+        boolean isSelfHost = Settings.UPLOAD_TYPE.toString().equalsIgnoreCase("self-host");
+
+        // SelfHost is incompatible with multi-version (can only serve one file)
+        if (multiVersionEnabled && isSelfHost) {
+            Logs.logError("Multi-version packs are incompatible with self-host upload!");
+            Logs.logError("SelfHost can only serve one file at /pack.zip");
+            Logs.logError("Falling back to single-pack mode for this generation");
+            multiVersionEnabled = false; // Force fallback to single-pack
+        }
+
+        if (multiVersionEnabled) {
+            // Unregister single-pack listener if switching from single-pack mode
+            UploadManager oldUploadManager = OraxenPlugin.get().getUploadManager();
+            if (oldUploadManager != null) {
+                oldUploadManager.unregister();
+            }
+
+            generateMultiVersion();
+            return;
+        }
+
+        // Unregister multi-version listener if switching from multi-version mode
+        io.th0rgal.oraxen.pack.upload.MultiVersionUploadManager oldMultiVersionManager = OraxenPlugin.get().getMultiVersionUploadManager();
+        if (oldMultiVersionManager != null) {
+            oldMultiVersionManager.unregister();
+        }
+
+        // Legacy single-pack generation - prepare and generate base assets
+        List<VirtualFile> output = prepareAndGenerateBaseAssets();
+
+        // Early exit if generation is disabled (empty output)
+        if (output.isEmpty()) {
+            return;
+        }
+
+        // Zip and upload the single pack
+        SchedulerUtil.runTask(() -> {
+            OraxenPackGeneratedEvent event = new OraxenPackGeneratedEvent(output);
+            EventUtils.callEvent(event);
+            ZipUtils.writeZipFile(pack, event.getOutput());
+
+            UploadManager uploadManager = OraxenPlugin.get().getUploadManager();
+            if (uploadManager != null) { // If the uploadManager isnt null, this was triggered by a pack-reload
+                uploadManager.uploadAsyncAndSendToPlayers(OraxenPlugin.get().getResourcePack(), true, true);
+            } else { // Otherwise this is was triggered on server-startup
+                uploadManager = new UploadManager(OraxenPlugin.get());
+                OraxenPlugin.get().setUploadManager(uploadManager);
+                uploadManager.uploadAsyncAndSendToPlayers(OraxenPlugin.get().getResourcePack(), false, false);
+            }
+        });
+    }
+
+    /**
+     * Prepares the environment and generates all base pack assets.
+     * This is shared logic between single-pack and multi-version generation.
+     *
+     * @return List of generated VirtualFiles ready for zipping
+     */
+    private List<VirtualFile> prepareAndGenerateBaseAssets() {
+        // Reset state
         outputFiles.clear();
         textShadersGenerated = false;
         textShaderFeatures = null;
@@ -93,7 +155,7 @@ public class ResourcePack {
         extractRequired();
 
         if (!Settings.GENERATE.toBool())
-            return;
+            return new ArrayList<>();
 
         if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool() && PluginUtils.isEnabled("HappyHUD")) {
             Logs.logError("HappyHUD detected with hide_scoreboard_numbers enabled!");
@@ -110,6 +172,18 @@ public class ResourcePack {
         extractInPackIfNotExists(new File(packFolder, "pack.mcmeta"));
         extractInPackIfNotExists(new File(packFolder, "pack.png"));
         updatePackMcmeta();
+
+        // Generate all base assets
+        return generateBaseAssets();
+    }
+
+    /**
+     * Generates all base pack assets (items, fonts, shaders, blocks, etc.).
+     * This is the core generation logic shared between single-pack and multi-version.
+     *
+     * @return List of generated VirtualFiles
+     */
+    private List<VirtualFile> generateBaseAssets() {
 
         // Sorting items to keep only one with models (and generate it if needed)
         final Map<Material, Map<String, ItemBuilder>> texturedItems = extractTexturedItems();
@@ -221,20 +295,25 @@ public class ResourcePack {
 
         generateSound(output);
 
-        SchedulerUtil.runTask(() -> {
-            OraxenPackGeneratedEvent event = new OraxenPackGeneratedEvent(output);
-            EventUtils.callEvent(event);
-            ZipUtils.writeZipFile(pack, event.getOutput());
+        return output;
+    }
 
-            UploadManager uploadManager = OraxenPlugin.get().getUploadManager();
-            if (uploadManager != null) { // If the uploadManager isnt null, this was triggered by a pack-reload
-                uploadManager.uploadAsyncAndSendToPlayers(OraxenPlugin.get().getResourcePack(), true, true);
-            } else { // Otherwise this is was triggered on server-startup
-                uploadManager = new UploadManager(OraxenPlugin.get());
-                OraxenPlugin.get().setUploadManager(uploadManager);
-                uploadManager.uploadAsyncAndSendToPlayers(OraxenPlugin.get().getResourcePack(), false, false);
-            }
-        });
+    /**
+     * Generates multiple resource pack versions for different Minecraft client versions.
+     * This method delegates to MultiVersionPackGenerator when multi_version_packs is enabled.
+     */
+    private void generateMultiVersion() {
+        // Use shared generation logic
+        List<VirtualFile> output = prepareAndGenerateBaseAssets();
+
+        // Early exit if generation is disabled (empty output)
+        if (output.isEmpty()) {
+            return;
+        }
+
+        // Use MultiVersionPackGenerator for multi-version zip and upload
+        MultiVersionPackGenerator multiVersionGenerator = new MultiVersionPackGenerator(packFolder);
+        multiVersionGenerator.generateMultipleVersions(output);
     }
 
     /**
@@ -282,11 +361,20 @@ public class ResourcePack {
             // Add supported_formats for broader client compatibility
             // This tells clients the range of pack formats this pack supports
             MinecraftVersion currentVersion = MinecraftVersion.getCurrentVersion();
-            if (currentVersion.isAtLeast(new MinecraftVersion("1.21.4"))) {
+            if (currentVersion.isAtLeast(new MinecraftVersion("1.21"))) {
                 JsonObject supportedFormats = new JsonObject();
-                supportedFormats.addProperty("min_inclusive", TextShaderTarget.PACK_FORMAT_1_21_4);
+                // Support wide range of 1.21.x pack formats (34 for 1.21, up to 999 for future versions)
+                // This ensures compatibility with 1.21, 1.21.2, 1.21.4, 1.21.11, etc.
+                supportedFormats.addProperty("min_inclusive", 34);
                 // Use a high max to support future versions (Minecraft ignores unknown higher formats)
                 supportedFormats.addProperty("max_inclusive", 999);
+                pack.add("supported_formats", supportedFormats);
+            } else if (currentVersion.isAtLeast(new MinecraftVersion("1.20.2"))) {
+                // For 1.20.2+ versions, support formats 18-33
+                // supported_formats was introduced in MC 1.20.2 (pack format 18)
+                JsonObject supportedFormats = new JsonObject();
+                supportedFormats.addProperty("min_inclusive", 18);
+                supportedFormats.addProperty("max_inclusive", 33);
                 pack.add("supported_formats", supportedFormats);
             }
 

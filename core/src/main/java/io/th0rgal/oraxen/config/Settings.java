@@ -95,6 +95,7 @@ public enum Settings {
 
     //Pack
     GENERATE("Pack.generation.generate"),
+    MULTI_VERSION_PACKS("Pack.generation.multi_version_packs"),
     EXCLUDED_FILE_EXTENSIONS("Pack.generation.excluded_file_extensions"),
     FIX_FORCE_UNICODE_GLYPHS("Pack.generation.fix_force_unicode_glyphs"),
     VERIFY_PACK_FILES("Pack.generation.verify_pack_files"),
