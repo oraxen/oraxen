@@ -66,11 +66,28 @@ public class MultiVersionPackGenerator {
         }
         versionManager.setServerPackVersion(versionString);
 
+        // Materialize all VirtualFile InputStreams to byte arrays ONCE
+        // This prevents stream consumption issues when reusing files across multiple pack versions
+        List<MaterializedFile> materializedFiles = new java.util.ArrayList<>();
+        for (VirtualFile file : output) {
+            // Skip pack.mcmeta as each version needs its own
+            if (file.getPath().equals("pack.mcmeta") || file.getPath().endsWith("/pack.mcmeta")) {
+                continue;
+            }
+
+            try {
+                byte[] content = org.apache.commons.io.IOUtils.toByteArray(file.getInputStream());
+                materializedFiles.add(new MaterializedFile(file.getPath(), content));
+            } catch (Exception e) {
+                Logs.logWarning("Failed to read VirtualFile " + file.getPath() + ": " + e.getMessage());
+            }
+        }
+
         // Generate each pack version
         Collection<PackVersion> versions = versionManager.getAllVersions();
         for (PackVersion packVersion : versions) {
             try {
-                generatePackVersion(packVersion, output);
+                generatePackVersion(packVersion, materializedFiles);
             } catch (Exception e) {
                 Logs.logError("Failed to generate pack for " + packVersion.getMinecraftVersion() + ": " + e.getMessage());
                 if (Settings.DEBUG.toBool()) {
@@ -85,28 +102,18 @@ public class MultiVersionPackGenerator {
         uploadAndSendPacks();
     }
 
-    private void generatePackVersion(PackVersion packVersion, List<VirtualFile> output) throws IOException {
+    private void generatePackVersion(PackVersion packVersion, List<MaterializedFile> materializedFiles) throws IOException {
         Logs.logInfo("Generating pack for Minecraft " + packVersion.getMinecraftVersion() + " (format " + packVersion.getPackFormat() + ")");
 
-        // Deep copy VirtualFiles to avoid shared InputStream consumption
+        // Create fresh VirtualFiles for this pack version
         List<VirtualFile> versionOutput = new java.util.ArrayList<>();
-        for (VirtualFile file : output) {
-            // Skip any existing pack.mcmeta to avoid duplicates
-            if (file.getPath().equals("pack.mcmeta") || file.getPath().endsWith("/pack.mcmeta")) {
-                continue;
-            }
-
-            // Create deep copy with fresh InputStream
-            try {
-                byte[] content = org.apache.commons.io.IOUtils.toByteArray(file.getInputStream());
-                java.io.ByteArrayInputStream freshStream = new java.io.ByteArrayInputStream(content);
-                String path = file.getPath();
-                String parentFolder = path.contains("/") ? path.substring(0, path.lastIndexOf("/")) : "";
-                String name = path.contains("/") ? path.substring(path.lastIndexOf("/") + 1) : path;
-                versionOutput.add(new VirtualFile(parentFolder, name, freshStream));
-            } catch (Exception e) {
-                Logs.logWarning("Failed to copy VirtualFile " + file.getPath() + ": " + e.getMessage());
-            }
+        for (MaterializedFile mFile : materializedFiles) {
+            // Create fresh InputStream for this pack version
+            java.io.ByteArrayInputStream freshStream = new java.io.ByteArrayInputStream(mFile.content);
+            String path = mFile.path;
+            String parentFolder = path.contains("/") ? path.substring(0, path.lastIndexOf("/")) : "";
+            String name = path.contains("/") ? path.substring(path.lastIndexOf("/") + 1) : path;
+            versionOutput.add(new VirtualFile(parentFolder, name, freshStream));
         }
 
         // Create pack.mcmeta for this version
@@ -175,5 +182,19 @@ public class MultiVersionPackGenerator {
 
     public PackVersionManager getVersionManager() {
         return versionManager;
+    }
+
+    /**
+     * Helper class to hold materialized file data (path and content bytes).
+     * Used to prevent InputStream consumption issues when generating multiple pack versions.
+     */
+    private static class MaterializedFile {
+        final String path;
+        final byte[] content;
+
+        MaterializedFile(String path, byte[] content) {
+            this.path = path;
+            this.content = content;
+        }
     }
 }
