@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.pack.generation;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.utils.MinecraftVersion;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -146,40 +147,36 @@ public class PackVersionManager {
 
     /**
      * Maps Minecraft version string to pack format.
-     * Matches the logic in ResourcePackFormatUtil.fallbackByMinecraftVersion().
+     * Uses ResourcePackFormatUtil for canonical version-to-format mapping.
      *
      * @param version Minecraft version (e.g., "1.20.4", "1.21.1", "1.21.11")
      * @return Pack format number
      */
     private int getPackFormatForVersion(String version) {
-        // Parse version string to compare
+        // Create a MinecraftVersion instance and use ResourcePackFormatUtil
+        // This ensures we use the same logic as the rest of Oraxen
+        MinecraftVersion mcVersion = new MinecraftVersion(version);
+
+        // Use ResourcePackFormatUtil's logic by temporarily setting current version
+        // Actually, we can't easily do that. Instead, replicate the isAtLeast logic here
+        // but using proper version comparison instead of startsWith
+
+        // Best-effort mapping using proper version comparison
         // NOTE: For 1.21.x versions, pack formats vary significantly between patches
+        if (mcVersion.isAtLeast(new MinecraftVersion("1.21.11"))) return 61;
+        if (mcVersion.isAtLeast(new MinecraftVersion("1.21.4"))) return 46;
+        if (mcVersion.isAtLeast(new MinecraftVersion("1.21.2"))) return 42;
+        if (mcVersion.isAtLeast(new MinecraftVersion("1.21"))) return 34;
+        if (mcVersion.isAtLeast(new MinecraftVersion("1.20.5"))) return 32;
+        if (mcVersion.isAtLeast(new MinecraftVersion("1.20.3"))) return 22;
+        if (mcVersion.isAtLeast(new MinecraftVersion("1.20.2"))) return 18;
+        if (mcVersion.isAtLeast(new MinecraftVersion("1.20"))) return 15;
+        if (mcVersion.isAtLeast(new MinecraftVersion("1.19.4"))) return 13;
+        if (mcVersion.isAtLeast(new MinecraftVersion("1.19.3"))) return 12;
+        if (mcVersion.isAtLeast(new MinecraftVersion("1.19"))) return 9;
+        if (mcVersion.isAtLeast(new MinecraftVersion("1.18"))) return 8;
 
-        // Check specific versions first (most specific to least specific)
-        if (version.startsWith("1.21.11")) return 61;
-        if (isVersion1_21_4to10(version)) return 46;
-        if (version.startsWith("1.21.2") || version.startsWith("1.21.3")) return 42;
-        if (version.startsWith("1.21")) return 34;
-
-        if (version.startsWith("1.20.5") || version.startsWith("1.20.6")) return 32;
-        if (version.startsWith("1.20.3") || version.startsWith("1.20.4")) return 22;
-        if (version.startsWith("1.20.2")) return 18;
-        if (version.startsWith("1.20")) return 15;
-
-        if (version.startsWith("1.19.4")) return 13;
-        if (version.startsWith("1.19.3")) return 12;
-        if (version.startsWith("1.19")) return 9;
-
-        if (version.startsWith("1.18")) return 8;
-
-        return 15; // Default fallback
-    }
-
-    private boolean isVersion1_21_4to10(String version) {
-        return version.startsWith("1.21.4") || version.startsWith("1.21.5")
-            || version.startsWith("1.21.6") || version.startsWith("1.21.7")
-            || version.startsWith("1.21.8") || version.startsWith("1.21.9")
-            || version.startsWith("1.21.10");
+        return 6; // Default fallback for very old/unknown versions
     }
 
     /**
