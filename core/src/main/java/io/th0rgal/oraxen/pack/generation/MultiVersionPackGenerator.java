@@ -59,7 +59,12 @@ public class MultiVersionPackGenerator {
 
         // Set server pack version based on current server version
         MinecraftVersion currentVersion = MinecraftVersion.getCurrentVersion();
-        versionManager.setServerPackVersion(currentVersion.getVersion());
+        String versionString = currentVersion.getVersion();
+        // Remove "(MC: " prefix and ")" suffix if present
+        if (versionString.startsWith("(MC: ") && versionString.endsWith(")")) {
+            versionString = versionString.substring(5, versionString.length() - 1);
+        }
+        versionManager.setServerPackVersion(versionString);
 
         // Generate each pack version
         Collection<PackVersion> versions = versionManager.getAllVersions();

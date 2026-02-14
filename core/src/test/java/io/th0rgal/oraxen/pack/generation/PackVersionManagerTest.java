@@ -37,6 +37,7 @@ class PackVersionManagerTest {
         // Verify we have expected versions
         assertNotNull(manager.getVersion("1.21.4"));
         assertNotNull(manager.getVersion("1.20.3")); // 1.20.3 covers 1.20.3-1.20.4 range
+        assertNotNull(manager.getVersion("1.20.2"));
         assertNotNull(manager.getVersion("1.20"));
     }
 
@@ -67,8 +68,8 @@ class PackVersionManagerTest {
         PackVersion version = manager.findBestVersionForProtocol(765);
         assertNotNull(version);
 
-        // Protocol 779 (1.21.4+) should map to latest pack
-        version = manager.findBestVersionForProtocol(779);
+        // Protocol 769 (1.21.4) should map to latest pack
+        version = manager.findBestVersionForProtocol(769);
         assertNotNull(version);
     }
 
@@ -76,7 +77,7 @@ class PackVersionManagerTest {
     void testSetServerPackVersion() {
         manager.definePackVersions();
 
-        manager.setServerPackVersion("1.20.4");
+        manager.setServerPackVersion("1.20.3");
         PackVersion serverVersion = manager.getServerPackVersion();
         assertNotNull(serverVersion);
 

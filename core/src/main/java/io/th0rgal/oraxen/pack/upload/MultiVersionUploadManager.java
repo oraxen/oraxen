@@ -64,8 +64,8 @@ public class MultiVersionUploadManager {
                 // Upload all pack versions
                 uploadAllVersions(versionManager);
 
-                // Unregister old listener on reload to prevent duplicates
-                if (reload && packSender != null) {
+                // Unregister old listener to prevent duplicates
+                if (packSender != null) {
                     packSender.unregister();
                 }
 
