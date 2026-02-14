@@ -87,6 +87,12 @@ public class ResourcePack {
         }
 
         if (multiVersionEnabled) {
+            // Unregister single-pack listener if switching from single-pack mode
+            UploadManager oldUploadManager = OraxenPlugin.get().getUploadManager();
+            if (oldUploadManager != null) {
+                oldUploadManager.unregister();
+            }
+
             generateMultiVersion();
             // Create stub UploadManager to prevent NPEs in legacy code paths
             // Multi-version uses MultiVersionUploadManager instead, but some callers
@@ -95,6 +101,12 @@ public class ResourcePack {
                 OraxenPlugin.get().setUploadManager(new UploadManager(OraxenPlugin.get()));
             }
             return;
+        }
+
+        // Unregister multi-version listener if switching from multi-version mode
+        io.th0rgal.oraxen.pack.upload.MultiVersionUploadManager oldMultiVersionManager = OraxenPlugin.get().getMultiVersionUploadManager();
+        if (oldMultiVersionManager != null) {
+            oldMultiVersionManager.unregister();
         }
 
         // Legacy single-pack generation - prepare and generate base assets
@@ -306,7 +318,7 @@ public class ResourcePack {
         }
 
         // Use MultiVersionPackGenerator for multi-version zip and upload
-        MultiVersionPackGenerator multiVersionGenerator = new MultiVersionPackGenerator();
+        MultiVersionPackGenerator multiVersionGenerator = new MultiVersionPackGenerator(packFolder);
         multiVersionGenerator.generateMultipleVersions(output);
     }
 

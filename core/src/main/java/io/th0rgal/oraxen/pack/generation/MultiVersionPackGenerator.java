@@ -32,12 +32,10 @@ public class MultiVersionPackGenerator {
 
     private final File packFolder;
     private final PackVersionManager versionManager;
-    private final ResourcePack baseGenerator;
 
-    public MultiVersionPackGenerator(File packFolder, ResourcePack baseGenerator) {
+    public MultiVersionPackGenerator(File packFolder) {
         this.packFolder = packFolder;
         this.versionManager = new PackVersionManager(packFolder);
-        this.baseGenerator = baseGenerator;
     }
 
     /**

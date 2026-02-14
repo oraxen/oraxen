@@ -69,17 +69,22 @@ public class MultiVersionUploadManager {
                     packSender.unregister();
                 }
 
-                // Create pack sender
+                // Create and register pack sender (unless reload with SEND_ON_RELOAD disabled)
                 packSender = new MultiVersionPackSender(versionManager, hostingProviders);
-                packSender.register();
 
-                // Send to online players if requested
-                if (sendToPlayers && Settings.SEND_PACK.toBool()) {
-                    Bukkit.getScheduler().runTask(plugin, () -> {
-                        for (Player player : Bukkit.getOnlinePlayers()) {
-                            packSender.sendPack(player);
-                        }
-                    });
+                // Only register sender if not a reload, or if SEND_ON_RELOAD is enabled
+                boolean shouldRegister = !reload || Settings.SEND_ON_RELOAD.toBool();
+                if (shouldRegister) {
+                    packSender.register();
+
+                    // Send to online players if requested
+                    if (sendToPlayers && Settings.SEND_PACK.toBool()) {
+                        Bukkit.getScheduler().runTask(plugin, () -> {
+                            for (Player player : Bukkit.getOnlinePlayers()) {
+                                packSender.sendPack(player);
+                            }
+                        });
+                    }
                 }
 
                 Logs.logSuccess("Multi-version pack upload and distribution complete");
