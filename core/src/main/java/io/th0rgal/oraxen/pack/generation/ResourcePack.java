@@ -94,12 +94,6 @@ public class ResourcePack {
             }
 
             generateMultiVersion();
-            // Create stub UploadManager to prevent NPEs in legacy code paths
-            // Multi-version uses MultiVersionUploadManager instead, but some callers
-            // like PackCommand still reference the regular uploadManager
-            if (OraxenPlugin.get().getUploadManager() == null) {
-                OraxenPlugin.get().setUploadManager(new UploadManager(OraxenPlugin.get()));
-            }
             return;
         }
 

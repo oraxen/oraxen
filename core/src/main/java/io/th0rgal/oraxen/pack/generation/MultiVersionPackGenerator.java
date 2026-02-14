@@ -116,18 +116,20 @@ public class MultiVersionPackGenerator {
 
         // Create pack.mcmeta for this version
         File tempMcmeta = createPackMcmeta(packVersion);
-        byte[] mcmetaContent = Files.readAllBytes(tempMcmeta.toPath());
-        java.io.ByteArrayInputStream mcmetaStream = new java.io.ByteArrayInputStream(mcmetaContent);
-        versionOutput.add(new VirtualFile("", "pack.mcmeta", mcmetaStream));
+        try {
+            byte[] mcmetaContent = Files.readAllBytes(tempMcmeta.toPath());
+            java.io.ByteArrayInputStream mcmetaStream = new java.io.ByteArrayInputStream(mcmetaContent);
+            versionOutput.add(new VirtualFile("", "pack.mcmeta", mcmetaStream));
 
-        // Generate the zip file
-        File packFile = packVersion.getPackFile();
-        ZipUtils.writeZipFile(packFile, versionOutput);
+            // Generate the zip file
+            File packFile = packVersion.getPackFile();
+            ZipUtils.writeZipFile(packFile, versionOutput);
 
-        Logs.logSuccess("  Created: " + packFile.getName() + " (" + formatFileSize(packFile.length()) + ")");
-
-        // Clean up temp file
-        tempMcmeta.delete();
+            Logs.logSuccess("  Created: " + packFile.getName() + " (" + formatFileSize(packFile.length()) + ")");
+        } finally {
+            // Always clean up temp file, even if exception occurs
+            tempMcmeta.delete();
+        }
     }
 
     private File createPackMcmeta(PackVersion packVersion) throws IOException {
