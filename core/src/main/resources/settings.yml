@@ -94,6 +94,10 @@ FurnitureUpdater:
 Pack:
   generation:
     generate: true # Unlike Plugin.generation.default_assets, this will enable/disable all pack generation
+    # Enable multi-version pack generation for servers using ViaVersion/ProtocolSupport.
+    # When enabled, generates separate pack files for different Minecraft client versions.
+    # Incompatible with self-host upload type. Requires ViaVersion or ProtocolSupport for version detection.
+    multi_version_packs: false
     # List of file extensions that will not be included in the final zipped ResourcePack
     excluded_file_extensions: []
     # Item appearance systems (1.21.4+).

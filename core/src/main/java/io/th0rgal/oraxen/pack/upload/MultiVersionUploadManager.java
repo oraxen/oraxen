@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.pack.dispatch.MultiVersionPackSender;
 import io.th0rgal.oraxen.pack.dispatch.PlayerVersionDetector;
 import io.th0rgal.oraxen.pack.generation.PackVersion;
 import io.th0rgal.oraxen.pack.generation.PackVersionManager;
+import io.th0rgal.oraxen.pack.receive.PackReceiver;
 import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
 import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -28,6 +29,7 @@ public class MultiVersionUploadManager {
     private final OraxenPlugin plugin;
     private final Map<PackVersion, HostingProvider> hostingProviders = new HashMap<>();
     private MultiVersionPackSender packSender;
+    private PackReceiver receiver;
 
     public MultiVersionUploadManager(OraxenPlugin plugin) {
         this.plugin = plugin;
@@ -58,6 +60,12 @@ public class MultiVersionUploadManager {
 
         // Initialize player version detection
         PlayerVersionDetector.initialize();
+
+        // Register PackReceiver for pack status events (accepted/denied/loaded etc.)
+        if (Settings.RECEIVE_ENABLED.toBool() && receiver == null) {
+            receiver = new PackReceiver();
+            Bukkit.getPluginManager().registerEvents(receiver, plugin);
+        }
 
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
@@ -174,6 +182,11 @@ public class MultiVersionUploadManager {
     public void unregister() {
         if (packSender != null) {
             packSender.unregister();
+        }
+
+        if (receiver != null) {
+            org.bukkit.event.HandlerList.unregisterAll(receiver);
+            receiver = null;
         }
 
         // Clear hosting providers
