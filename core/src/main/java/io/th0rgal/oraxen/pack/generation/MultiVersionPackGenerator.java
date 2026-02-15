@@ -53,12 +53,8 @@ public class MultiVersionPackGenerator {
         versionManager.definePackVersions();
 
         // Set server pack version based on current server version
-        MinecraftVersion currentVersion = MinecraftVersion.getCurrentVersion();
-        String versionString = currentVersion.getVersion();
-        // Remove "(MC: " prefix and ")" suffix if present
-        if (versionString.startsWith("(MC: ") && versionString.endsWith(")")) {
-            versionString = versionString.substring(5, versionString.length() - 1);
-        }
+        // MinecraftVersion.getVersion() returns "1.21.0" format directly
+        String versionString = MinecraftVersion.getCurrentVersion().getVersion();
         versionManager.setServerPackVersion(versionString);
 
         // Materialize all VirtualFile InputStreams to byte arrays ONCE

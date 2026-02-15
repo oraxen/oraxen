@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.pack.dispatch;
 
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.pack.generation.PackVersion;
 import io.th0rgal.oraxen.pack.generation.PackVersionManager;
@@ -79,17 +78,17 @@ public class MultiVersionPackSender implements Listener {
     }
 
     private void sendPackVersion(Player player, PackVersion packVersion) {
-        HostingProvider provider = hostingProviders.get(packVersion);
-        if (provider == null) {
+        if (!hostingProviders.containsKey(packVersion)) {
             Logs.logError("No hosting provider for pack version: " + packVersion);
             return;
         }
 
         String url = packVersion.getPackURL();
         byte[] sha1 = packVersion.getPackSHA1();
+        java.util.UUID uuid = packVersion.getPackUUID();
 
-        if (url == null || sha1 == null) {
-            Logs.logError("Pack version not uploaded: " + packVersion);
+        if (url == null || sha1 == null || uuid == null) {
+            Logs.logError("Pack version not fully uploaded (missing url/sha1/uuid): " + packVersion);
             return;
         }
 
@@ -103,14 +102,14 @@ public class MultiVersionPackSender implements Listener {
         if (VersionUtil.atOrAbove("1.20.3")) {
             if (useBungeeLayer) {
                 // BungeeCord mode: Remove old Oraxen packs, then add without clearing proxy packs
-                player.removeResourcePacks(packVersion.getPackUUID());
-                player.addResourcePack(packVersion.getPackUUID(), url, sha1, legacyPrompt, mandatory);
+                player.removeResourcePacks(uuid);
+                player.addResourcePack(uuid, url, sha1, legacyPrompt, mandatory);
             } else if (VersionUtil.isPaperServer()) {
                 // Standalone Paper: setResourcePack clears all packs, supports Component prompt
-                player.setResourcePack(packVersion.getPackUUID(), url, sha1, componentPrompt, mandatory);
+                player.setResourcePack(uuid, url, sha1, componentPrompt, mandatory);
             } else {
                 // Standalone Spigot: setResourcePack clears all packs, requires String prompt
-                player.setResourcePack(packVersion.getPackUUID(), url, sha1, legacyPrompt, mandatory);
+                player.setResourcePack(uuid, url, sha1, legacyPrompt, mandatory);
             }
         } else {
             // Pre-1.20.3 versions
@@ -144,18 +143,20 @@ public class MultiVersionPackSender implements Listener {
     }
 
     private void sendWelcomeMessage(Player player, boolean delayed) {
-        // Inline welcome message logic (matches PackSender.sendWelcomeMessage behavior)
-        // MultiVersionPackSender doesn't extend PackSender, so we replicate the logic here
-        long delay = (int) Settings.JOIN_MESSAGE_DELAY.getValue();
-        if (delay == -1 || !delayed) {
-            Message.COMMAND_JOIN_MESSAGE.send(player,
-                    AdventureUtils.tagResolver("pack_url", ""),
-                    AdventureUtils.tagResolver("player", player.getName()));
-        } else {
-            SchedulerUtil.runTaskLaterAsync(delay * 20L,
-                    () -> Message.COMMAND_JOIN_MESSAGE.send(player,
-                            AdventureUtils.tagResolver("pack_url", ""),
-                            AdventureUtils.tagResolver("player", player.getName())));
+        // Resolve the player's pack URL for the welcome message placeholder
+        String packUrl = resolvePackUrl(player);
+        PackSender.sendWelcomeMessage(player, delayed, packUrl);
+    }
+
+    private String resolvePackUrl(Player player) {
+        Integer protocolVersion = PlayerVersionDetector.getPlayerProtocolVersion(player);
+        PackVersion packVersion = (protocolVersion != null)
+                ? versionManager.findBestVersionForProtocol(protocolVersion)
+                : null;
+        if (packVersion == null) {
+            packVersion = versionManager.getServerPackVersion();
         }
+        String url = packVersion.getPackURL();
+        return url != null ? url : "";
     }
 }
