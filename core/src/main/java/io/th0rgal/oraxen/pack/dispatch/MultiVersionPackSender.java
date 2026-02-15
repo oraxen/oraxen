@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.pack.dispatch;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.pack.generation.PackVersion;
 import io.th0rgal.oraxen.pack.generation.PackVersionManager;
@@ -26,8 +27,8 @@ public class MultiVersionPackSender implements Listener {
 
     private final PackVersionManager versionManager;
     private final Map<PackVersion, HostingProvider> hostingProviders;
-    private static final String prompt = Settings.SEND_PACK_PROMPT.toString();
-    private static final boolean mandatory = Settings.SEND_PACK_MANDATORY.toBool();
+    private final String prompt = Settings.SEND_PACK_PROMPT.toString();
+    private final boolean mandatory = Settings.SEND_PACK_MANDATORY.toBool();
 
     public MultiVersionPackSender(PackVersionManager versionManager, Map<PackVersion, HostingProvider> hostingProviders) {
         this.versionManager = versionManager;
@@ -140,15 +141,19 @@ public class MultiVersionPackSender implements Listener {
         }
     }
 
-    private void sendWelcomeMessage(Player player, boolean async) {
-        // Delegate to PackSender utility for welcome message
-        // This matches BukkitPackSender behavior
-        if (async) {
-            SchedulerUtil.runTaskLaterAsync(1L, () ->
-                io.th0rgal.oraxen.pack.dispatch.PackSender.sendWelcomeMessage(player)
-            );
+    private void sendWelcomeMessage(Player player, boolean delayed) {
+        // Inline welcome message logic (matches PackSender.sendWelcomeMessage behavior)
+        // MultiVersionPackSender doesn't extend PackSender, so we replicate the logic here
+        long delay = (int) Settings.JOIN_MESSAGE_DELAY.getValue();
+        if (delay == -1 || !delayed) {
+            Message.COMMAND_JOIN_MESSAGE.send(player,
+                    AdventureUtils.tagResolver("pack_url", ""),
+                    AdventureUtils.tagResolver("player", player.getName()));
         } else {
-            io.th0rgal.oraxen.pack.dispatch.PackSender.sendWelcomeMessage(player);
+            SchedulerUtil.runTaskLaterAsync(delay * 20L,
+                    () -> Message.COMMAND_JOIN_MESSAGE.send(player,
+                            AdventureUtils.tagResolver("pack_url", ""),
+                            AdventureUtils.tagResolver("player", player.getName())));
         }
     }
 }

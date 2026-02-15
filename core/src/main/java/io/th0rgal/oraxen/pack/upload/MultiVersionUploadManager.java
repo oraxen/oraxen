@@ -15,10 +15,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.io.IOException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -155,12 +154,9 @@ public class MultiVersionUploadManager {
     }
 
     private HostingProvider createHostingProvider() {
-        java.util.Locale locale = java.util.Locale.ROOT;
-        HostingProvider provider = switch (Settings.UPLOAD_TYPE.toString().toLowerCase(locale)) {
+        HostingProvider provider = switch (Settings.UPLOAD_TYPE.toString().toLowerCase(Locale.ROOT)) {
             case "polymath" -> new io.th0rgal.oraxen.pack.upload.hosts.Polymath(Settings.POLYMATH_SERVER.toString());
-            case "external" -> new io.th0rgal.oraxen.pack.upload.hosts.ExternalHost(Settings.EXTERNAL_PACK_URL.toString());
             case "self-host" -> {
-                // SelfHost is incompatible with multi-version (already validated earlier)
                 Logs.logError("SelfHost cannot be used with multi-version packs");
                 yield null;
             }
@@ -168,8 +164,11 @@ public class MultiVersionUploadManager {
         };
 
         if (provider == null) {
-            Logs.logError("Unknown or incompatible Hosting-Provider type: " + Settings.UPLOAD_TYPE);
-            Logs.logError("Polymath will be used instead.");
+            String uploadType = Settings.UPLOAD_TYPE.toString();
+            if (!"polymath".equalsIgnoreCase(uploadType)) {
+                Logs.logError("Upload type '" + uploadType + "' is not supported for multi-version packs");
+                Logs.logError("Polymath will be used instead.");
+            }
             provider = new io.th0rgal.oraxen.pack.upload.hosts.Polymath(Settings.POLYMATH_SERVER.toString());
         }
         return provider;

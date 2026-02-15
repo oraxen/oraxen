@@ -18,6 +18,7 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
@@ -110,6 +111,17 @@ public class UploadManager {
                 }
             } else if (packSender != null) packSender.unregister();
         });
+    }
+
+    public void unregister() {
+        if (packSender != null) {
+            packSender.unregister();
+            packSender = null;
+        }
+        if (receiver != null) {
+            HandlerList.unregisterAll(receiver);
+            receiver = null;
+        }
     }
 
     private HostingProvider createHostingProvider() {
