@@ -1,12 +1,10 @@
 package io.th0rgal.oraxen.pack.dispatch;
 
-import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 public abstract class PackSender {

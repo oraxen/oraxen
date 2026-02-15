@@ -18,6 +18,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Sends version-appropriate resource packs to players based on their client version.
@@ -85,7 +86,7 @@ public class MultiVersionPackSender implements Listener {
 
         String url = packVersion.getPackURL();
         byte[] sha1 = packVersion.getPackSHA1();
-        java.util.UUID uuid = packVersion.getPackUUID();
+        UUID uuid = packVersion.getPackUUID();
 
         if (url == null || sha1 == null || uuid == null) {
             Logs.logError("Pack version not fully uploaded (missing url/sha1/uuid): " + packVersion);

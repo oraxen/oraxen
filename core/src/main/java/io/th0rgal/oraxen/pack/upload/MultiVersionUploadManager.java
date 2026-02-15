@@ -13,6 +13,7 @@ import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.HandlerList;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -184,7 +185,7 @@ public class MultiVersionUploadManager {
         }
 
         if (receiver != null) {
-            org.bukkit.event.HandlerList.unregisterAll(receiver);
+            HandlerList.unregisterAll(receiver);
             receiver = null;
         }
 
