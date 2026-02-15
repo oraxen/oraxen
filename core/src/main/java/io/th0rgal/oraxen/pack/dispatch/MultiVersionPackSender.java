@@ -58,8 +58,10 @@ public class MultiVersionPackSender implements Listener {
             packVersion = versionManager.findBestVersionForProtocol(protocolVersion);
 
             if (packVersion != null) {
-                String clientVersion = PlayerVersionDetector.getPlayerVersionString(player);
-                Logs.logInfo("Sending " + packVersion.getMinecraftVersion() + " pack to " + player.getName() + " (client: " + clientVersion + ")");
+                if (Settings.DEBUG.toBool()) {
+                    String clientVersion = PlayerVersionDetector.getPlayerVersionString(player);
+                    Logs.logInfo("Sending " + packVersion.getMinecraftVersion() + " pack to " + player.getName() + " (client: " + clientVersion + ")");
+                }
             } else {
                 Logs.logWarning("No compatible pack found for " + player.getName() + " (protocol: " + protocolVersion + "), using server version");
                 packVersion = versionManager.getServerPackVersion();

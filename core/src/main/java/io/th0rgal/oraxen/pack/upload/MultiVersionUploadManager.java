@@ -68,33 +68,33 @@ public class MultiVersionUploadManager {
 
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
-                // Upload all pack versions
+                // Upload all pack versions (async — network I/O)
                 uploadAllVersions(versionManager);
 
-                // Unregister old listener to prevent duplicates
-                if (packSender != null) {
-                    packSender.unregister();
-                }
+                // Switch to main thread for Bukkit API calls (registerEvents is not thread-safe)
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    // Unregister old listener to prevent duplicates
+                    if (packSender != null) {
+                        packSender.unregister();
+                    }
 
-                // Create and register pack sender (unless reload with SEND_ON_RELOAD disabled)
-                packSender = new MultiVersionPackSender(versionManager, hostingProviders);
+                    // Create and register pack sender
+                    packSender = new MultiVersionPackSender(versionManager, hostingProviders);
 
-                // Only register sender if not a reload, or if SEND_ON_RELOAD is enabled
-                boolean shouldRegister = !reload || Settings.SEND_ON_RELOAD.toBool();
-                if (shouldRegister) {
-                    packSender.register();
+                    boolean shouldRegister = !reload || Settings.SEND_ON_RELOAD.toBool();
+                    if (shouldRegister) {
+                        packSender.register();
 
-                    // Send to online players if requested
-                    if (sendToPlayers && Settings.SEND_PACK.toBool()) {
-                        Bukkit.getScheduler().runTask(plugin, () -> {
+                        // Send to online players if requested
+                        if (sendToPlayers && Settings.SEND_PACK.toBool()) {
                             for (Player player : Bukkit.getOnlinePlayers()) {
                                 packSender.sendPack(player);
                             }
-                        });
+                        }
                     }
-                }
 
-                Logs.logSuccess("Multi-version pack upload and distribution complete");
+                    Logs.logSuccess("Multi-version pack upload and distribution complete");
+                });
             } catch (Exception e) {
                 Logs.logError("Failed to upload and send multi-version packs: " + e.getMessage());
                 if (Settings.DEBUG.toBool()) {
@@ -149,7 +149,7 @@ public class MultiVersionUploadManager {
     }
 
     private boolean isSelfHost() {
-        String uploadType = Settings.UPLOAD_TYPE.toString().toLowerCase(java.util.Locale.ROOT);
+        String uploadType = Settings.UPLOAD_TYPE.toString().toLowerCase(Locale.ROOT);
         return "self-host".equals(uploadType);
     }
 

@@ -150,8 +150,8 @@ public class MultiVersionPackGenerator {
 
         root.add("pack", pack);
 
-        // Write to temporary file
-        File tempFile = new File(packFolder, "pack.mcmeta.tmp");
+        // Write to version-specific temporary file to avoid conflicts
+        File tempFile = new File(packFolder, "pack.mcmeta." + packVersion.getFileIdentifier() + ".tmp");
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         Files.writeString(tempFile.toPath(), gson.toJson(root), StandardCharsets.UTF_8);
 
