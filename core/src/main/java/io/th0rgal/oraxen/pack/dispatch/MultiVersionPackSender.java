@@ -5,9 +5,7 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.pack.generation.PackVersion;
 import io.th0rgal.oraxen.pack.generation.PackVersionManager;
 import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
-import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
-import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -93,33 +91,7 @@ public class MultiVersionPackSender implements Listener {
             return;
         }
 
-        String layer = Settings.SEND_PACK_LAYER.toString();
-        boolean useBungeeLayer = layer != null && !layer.isEmpty();
-
-        // Pre-compute prompt conversions
-        net.kyori.adventure.text.Component componentPrompt = AdventureUtils.MINI_MESSAGE.deserialize(prompt);
-        String legacyPrompt = AdventureUtils.LEGACY_SERIALIZER.serialize(componentPrompt);
-
-        if (VersionUtil.atOrAbove("1.20.3")) {
-            if (useBungeeLayer) {
-                // BungeeCord mode: Remove old Oraxen packs, then add without clearing proxy packs
-                player.removeResourcePacks(uuid);
-                player.addResourcePack(uuid, url, sha1, legacyPrompt, mandatory);
-            } else if (VersionUtil.isPaperServer()) {
-                // Standalone Paper: setResourcePack clears all packs, supports Component prompt
-                player.setResourcePack(uuid, url, sha1, componentPrompt, mandatory);
-            } else {
-                // Standalone Spigot: setResourcePack clears all packs, requires String prompt
-                player.setResourcePack(uuid, url, sha1, legacyPrompt, mandatory);
-            }
-        } else {
-            // Pre-1.20.3 versions
-            if (VersionUtil.isPaperServer()) {
-                player.setResourcePack(url, sha1, componentPrompt, mandatory);
-            } else {
-                player.setResourcePack(url, sha1, legacyPrompt, mandatory);
-            }
-        }
+        PackSender.sendResourcePack(player, uuid, url, sha1, prompt, mandatory);
     }
 
     @EventHandler(priority = EventPriority.NORMAL)
