@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.pack.upload;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.events.OraxenPackPreUploadEvent;
+import io.th0rgal.oraxen.api.events.OraxenPackUploadEvent;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.pack.dispatch.MultiVersionPackSender;
 import io.th0rgal.oraxen.pack.dispatch.PlayerVersionDetector;
@@ -10,6 +11,7 @@ import io.th0rgal.oraxen.pack.generation.PackVersionManager;
 import io.th0rgal.oraxen.pack.receive.PackReceiver;
 import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
 import io.th0rgal.oraxen.utils.EventUtils;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -67,13 +69,13 @@ public class MultiVersionUploadManager {
             Bukkit.getPluginManager().registerEvents(receiver, plugin);
         }
 
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        SchedulerUtil.runTaskAsync(() -> {
             try {
                 // Upload all pack versions (async — network I/O)
                 uploadAllVersions(versionManager);
 
                 // Switch to main thread for Bukkit API calls (registerEvents is not thread-safe)
-                Bukkit.getScheduler().runTask(plugin, () -> {
+                SchedulerUtil.runTask(() -> {
                     // Unregister old listener to prevent duplicates
                     if (packSender != null) {
                         packSender.unregister();
@@ -145,6 +147,10 @@ public class MultiVersionUploadManager {
 
         // Store provider
         hostingProviders.put(packVersion, provider);
+
+        // Fire upload event on main thread (matches UploadManager behavior)
+        OraxenPackUploadEvent uploadEvent = new OraxenPackUploadEvent(provider);
+        SchedulerUtil.runTask(() -> Bukkit.getPluginManager().callEvent(uploadEvent));
 
         Logs.logSuccess("  Uploaded: " + packVersion.getMinecraftVersion() + " -> " + provider.getPackURL());
     }
