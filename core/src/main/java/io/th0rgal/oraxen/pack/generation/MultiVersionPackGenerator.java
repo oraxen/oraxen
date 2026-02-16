@@ -60,19 +60,16 @@ public class MultiVersionPackGenerator {
         // Materialize all VirtualFile InputStreams to byte arrays ONCE
         // This prevents stream consumption issues when reusing files across multiple pack versions
         List<MaterializedFile> materializedFiles = new java.util.ArrayList<>();
-        JsonObject originalMcmetaOverlays = null;
+        JsonObject originalMcmeta = null;
         for (VirtualFile file : output) {
-            // Skip pack.mcmeta as each version needs its own, but preserve overlay entries
+            // Skip pack.mcmeta as each version needs its own, but preserve user customizations
             if (file.getPath().equals("pack.mcmeta") || file.getPath().endsWith("/pack.mcmeta")) {
                 try {
                     byte[] mcmetaBytes = org.apache.commons.io.IOUtils.toByteArray(file.getInputStream());
                     String mcmetaContent = new String(mcmetaBytes, StandardCharsets.UTF_8);
-                    JsonObject mcmetaRoot = JsonParser.parseString(mcmetaContent).getAsJsonObject();
-                    if (mcmetaRoot.has("overlays")) {
-                        originalMcmetaOverlays = mcmetaRoot.getAsJsonObject("overlays");
-                    }
+                    originalMcmeta = JsonParser.parseString(mcmetaContent).getAsJsonObject();
                 } catch (Exception e) {
-                    Logs.logWarning("Failed to read pack.mcmeta for overlay extraction: " + e.getMessage());
+                    Logs.logWarning("Failed to read pack.mcmeta: " + e.getMessage());
                 }
                 continue;
             }
@@ -89,7 +86,7 @@ public class MultiVersionPackGenerator {
         Collection<PackVersion> versions = versionManager.getAllVersions();
         for (PackVersion packVersion : versions) {
             try {
-                generatePackVersion(packVersion, materializedFiles, originalMcmetaOverlays);
+                generatePackVersion(packVersion, materializedFiles, originalMcmeta);
             } catch (Exception e) {
                 Logs.logError("Failed to generate pack for " + packVersion.getMinecraftVersion() + ": " + e.getMessage());
                 if (Settings.DEBUG.toBool()) {
@@ -104,7 +101,7 @@ public class MultiVersionPackGenerator {
         uploadAndSendPacks();
     }
 
-    private void generatePackVersion(PackVersion packVersion, List<MaterializedFile> materializedFiles, JsonObject originalOverlays) throws IOException {
+    private void generatePackVersion(PackVersion packVersion, List<MaterializedFile> materializedFiles, JsonObject originalMcmeta) throws IOException {
         Logs.logInfo("Generating pack for Minecraft " + packVersion.getMinecraftVersion() + " (format " + packVersion.getPackFormat() + ")");
 
         // Create fresh VirtualFiles for this pack version
@@ -118,8 +115,8 @@ public class MultiVersionPackGenerator {
             versionOutput.add(new VirtualFile(parentFolder, name, freshStream));
         }
 
-        // Create pack.mcmeta for this version (preserving overlay entries from the original)
-        File tempMcmeta = createPackMcmeta(packVersion, originalOverlays);
+        // Create pack.mcmeta for this version (preserving user customizations from the original)
+        File tempMcmeta = createPackMcmeta(packVersion, originalMcmeta);
         try {
             byte[] mcmetaContent = Files.readAllBytes(tempMcmeta.toPath());
             java.io.ByteArrayInputStream mcmetaStream = new java.io.ByteArrayInputStream(mcmetaContent);
@@ -136,18 +133,23 @@ public class MultiVersionPackGenerator {
         }
     }
 
-    private File createPackMcmeta(PackVersion packVersion, JsonObject originalOverlays) throws IOException {
-        JsonObject root = new JsonObject();
-        JsonObject pack = new JsonObject();
+    private File createPackMcmeta(PackVersion packVersion, JsonObject originalMcmeta) throws IOException {
+        // Start from the original pack.mcmeta if available, to preserve user customizations
+        JsonObject root = (originalMcmeta != null) ? originalMcmeta.deepCopy() : new JsonObject();
 
-        // Set description
-        pack.addProperty("description", "§9§lOraxen §8| §7Extend the Game §7www§8.§7oraxen§8.§7com");
+        JsonObject pack = root.has("pack") && root.get("pack").isJsonObject()
+                ? root.getAsJsonObject("pack")
+                : new JsonObject();
 
-        // Set pack format
+        // Preserve description if present (matches single-pack updatePackMcmeta behavior)
+        if (!pack.has("description")) {
+            pack.addProperty("description", "§9§lOraxen §8| §7Extend the Game §7www§8.§7oraxen§8.§7com");
+        }
+
+        // Override pack format and supported_formats for this specific version
         pack.addProperty("pack_format", packVersion.getPackFormat());
 
         // Add supported_formats for broader compatibility (1.20.2+)
-        // The supported_formats field was introduced in Minecraft 1.20.2 (pack format 18)
         if (packVersion.getPackFormat() >= 18) {
             JsonObject supportedFormats = new JsonObject();
             supportedFormats.addProperty("min_inclusive", packVersion.getMinFormatInclusive());
@@ -156,11 +158,6 @@ public class MultiVersionPackGenerator {
         }
 
         root.add("pack", pack);
-
-        // Preserve overlay entries from the original pack.mcmeta (e.g., shader overlays)
-        if (originalOverlays != null) {
-            root.add("overlays", originalOverlays.deepCopy());
-        }
 
         // Write to version-specific temporary file to avoid conflicts
         File tempFile = new File(packFolder, "pack.mcmeta." + packVersion.getFileIdentifier() + ".tmp");
@@ -173,13 +170,14 @@ public class MultiVersionPackGenerator {
     private void uploadAndSendPacks() {
         SchedulerUtil.runTask(() -> {
             io.th0rgal.oraxen.pack.upload.MultiVersionUploadManager uploadManager = OraxenPlugin.get().getMultiVersionUploadManager();
-            if (uploadManager != null) {
-                uploadManager.uploadAndSendToPlayers(versionManager, true, true);
-            } else {
+            // Detect reload: either the multi-version manager already existed,
+            // or a single-pack UploadManager existed (mode-switch from single to multi)
+            boolean isReload = uploadManager != null || OraxenPlugin.get().getUploadManager() != null;
+            if (uploadManager == null) {
                 uploadManager = new io.th0rgal.oraxen.pack.upload.MultiVersionUploadManager(OraxenPlugin.get());
                 OraxenPlugin.get().setMultiVersionUploadManager(uploadManager);
-                uploadManager.uploadAndSendToPlayers(versionManager, false, false);
             }
+            uploadManager.uploadAndSendToPlayers(versionManager, isReload, isReload);
         });
     }
 
