@@ -82,10 +82,11 @@ public class MultiVersionUploadManager {
                     }
 
                     // Create and register pack sender
-                    packSender = new MultiVersionPackSender(versionManager, hostingProviders);
+                    packSender = new MultiVersionPackSender(versionManager);
 
-                    boolean shouldRegister = !reload || Settings.SEND_ON_RELOAD.toBool();
-                    if (shouldRegister) {
+                    if (reload && !Settings.SEND_ON_RELOAD.toBool()) {
+                        packSender.unregister();
+                    } else if (Settings.SEND_PACK.toBool() || Settings.SEND_JOIN_MESSAGE.toBool()) {
                         packSender.register();
 
                         // Send to online players if requested
@@ -94,6 +95,8 @@ public class MultiVersionUploadManager {
                                 packSender.sendPack(player);
                             }
                         }
+                    } else {
+                        packSender.unregister();
                     }
 
                     Logs.logSuccess("Multi-version pack upload and distribution complete");

@@ -4,7 +4,6 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.pack.generation.PackVersion;
 import io.th0rgal.oraxen.pack.generation.PackVersionManager;
-import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
@@ -15,7 +14,6 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
-import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -24,13 +22,11 @@ import java.util.UUID;
 public class MultiVersionPackSender implements Listener {
 
     private final PackVersionManager versionManager;
-    private final Map<PackVersion, HostingProvider> hostingProviders;
     private final String prompt = Settings.SEND_PACK_PROMPT.toString();
     private final boolean mandatory = Settings.SEND_PACK_MANDATORY.toBool();
 
-    public MultiVersionPackSender(PackVersionManager versionManager, Map<PackVersion, HostingProvider> hostingProviders) {
+    public MultiVersionPackSender(PackVersionManager versionManager) {
         this.versionManager = versionManager;
-        this.hostingProviders = hostingProviders;
     }
 
     public void register() {
@@ -77,11 +73,6 @@ public class MultiVersionPackSender implements Listener {
     }
 
     private void sendPackVersion(Player player, PackVersion packVersion) {
-        if (!hostingProviders.containsKey(packVersion)) {
-            Logs.logError("No hosting provider for pack version: " + packVersion);
-            return;
-        }
-
         String url = packVersion.getPackURL();
         byte[] sha1 = packVersion.getPackSHA1();
         UUID uuid = packVersion.getPackUUID();
