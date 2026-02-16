@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.pack.generation;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.events.OraxenPackGeneratedEvent;
 import io.th0rgal.oraxen.config.Settings;
@@ -59,9 +60,20 @@ public class MultiVersionPackGenerator {
         // Materialize all VirtualFile InputStreams to byte arrays ONCE
         // This prevents stream consumption issues when reusing files across multiple pack versions
         List<MaterializedFile> materializedFiles = new java.util.ArrayList<>();
+        JsonObject originalMcmetaOverlays = null;
         for (VirtualFile file : output) {
-            // Skip pack.mcmeta as each version needs its own
+            // Skip pack.mcmeta as each version needs its own, but preserve overlay entries
             if (file.getPath().equals("pack.mcmeta") || file.getPath().endsWith("/pack.mcmeta")) {
+                try {
+                    byte[] mcmetaBytes = org.apache.commons.io.IOUtils.toByteArray(file.getInputStream());
+                    String mcmetaContent = new String(mcmetaBytes, StandardCharsets.UTF_8);
+                    JsonObject mcmetaRoot = JsonParser.parseString(mcmetaContent).getAsJsonObject();
+                    if (mcmetaRoot.has("overlays")) {
+                        originalMcmetaOverlays = mcmetaRoot.getAsJsonObject("overlays");
+                    }
+                } catch (Exception e) {
+                    Logs.logWarning("Failed to read pack.mcmeta for overlay extraction: " + e.getMessage());
+                }
                 continue;
             }
 
@@ -77,7 +89,7 @@ public class MultiVersionPackGenerator {
         Collection<PackVersion> versions = versionManager.getAllVersions();
         for (PackVersion packVersion : versions) {
             try {
-                generatePackVersion(packVersion, materializedFiles);
+                generatePackVersion(packVersion, materializedFiles, originalMcmetaOverlays);
             } catch (Exception e) {
                 Logs.logError("Failed to generate pack for " + packVersion.getMinecraftVersion() + ": " + e.getMessage());
                 if (Settings.DEBUG.toBool()) {
@@ -92,7 +104,7 @@ public class MultiVersionPackGenerator {
         uploadAndSendPacks();
     }
 
-    private void generatePackVersion(PackVersion packVersion, List<MaterializedFile> materializedFiles) throws IOException {
+    private void generatePackVersion(PackVersion packVersion, List<MaterializedFile> materializedFiles, JsonObject originalOverlays) throws IOException {
         Logs.logInfo("Generating pack for Minecraft " + packVersion.getMinecraftVersion() + " (format " + packVersion.getPackFormat() + ")");
 
         // Create fresh VirtualFiles for this pack version
@@ -106,8 +118,8 @@ public class MultiVersionPackGenerator {
             versionOutput.add(new VirtualFile(parentFolder, name, freshStream));
         }
 
-        // Create pack.mcmeta for this version
-        File tempMcmeta = createPackMcmeta(packVersion);
+        // Create pack.mcmeta for this version (preserving overlay entries from the original)
+        File tempMcmeta = createPackMcmeta(packVersion, originalOverlays);
         try {
             byte[] mcmetaContent = Files.readAllBytes(tempMcmeta.toPath());
             java.io.ByteArrayInputStream mcmetaStream = new java.io.ByteArrayInputStream(mcmetaContent);
@@ -124,7 +136,7 @@ public class MultiVersionPackGenerator {
         }
     }
 
-    private File createPackMcmeta(PackVersion packVersion) throws IOException {
+    private File createPackMcmeta(PackVersion packVersion, JsonObject originalOverlays) throws IOException {
         JsonObject root = new JsonObject();
         JsonObject pack = new JsonObject();
 
@@ -144,6 +156,11 @@ public class MultiVersionPackGenerator {
         }
 
         root.add("pack", pack);
+
+        // Preserve overlay entries from the original pack.mcmeta (e.g., shader overlays)
+        if (originalOverlays != null) {
+            root.add("overlays", originalOverlays.deepCopy());
+        }
 
         // Write to version-specific temporary file to avoid conflicts
         File tempFile = new File(packFolder, "pack.mcmeta." + packVersion.getFileIdentifier() + ".tmp");
