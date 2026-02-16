@@ -172,10 +172,6 @@ public class MultiVersionPackGenerator {
         return String.format("%.1f MB", bytes / (1024.0 * 1024.0));
     }
 
-    public PackVersionManager getVersionManager() {
-        return versionManager;
-    }
-
     /**
      * Helper class to hold materialized file data (path and content bytes).
      * Used to prevent InputStream consumption issues when generating multiple pack versions.
