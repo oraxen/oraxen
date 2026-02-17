@@ -46,6 +46,10 @@ public class MultiVersionUploadManager {
      * @param sendToPlayers Whether to send packs to online players
      */
     public void uploadAndSendToPlayers(PackVersionManager versionManager, boolean reload, boolean sendToPlayers) {
+        // Reset cancelled flag for new upload operation
+        // This is critical when reusing the manager after unregister() was called
+        cancelled = false;
+
         // Check if upload is enabled
         if (!Settings.UPLOAD.toBool()) {
             Logs.logWarning("Pack upload is disabled in settings");

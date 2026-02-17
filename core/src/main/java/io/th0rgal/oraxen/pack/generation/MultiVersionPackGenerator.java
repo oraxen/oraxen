@@ -155,6 +155,8 @@ public class MultiVersionPackGenerator {
             supportedFormats.addProperty("min_inclusive", packVersion.getMinFormatInclusive());
             supportedFormats.addProperty("max_inclusive", packVersion.getMaxFormatInclusive());
             pack.add("supported_formats", supportedFormats);
+        } else {
+            pack.remove("supported_formats");
         }
 
         root.add("pack", pack);

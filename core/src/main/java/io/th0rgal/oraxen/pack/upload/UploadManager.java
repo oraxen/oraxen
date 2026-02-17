@@ -39,6 +39,7 @@ public class UploadManager {
     private final HostingProvider hostingProvider;
     private PackSender packSender;
     private PackReceiver receiver;
+    private volatile boolean cancelled = false;
 
     public UploadManager(final Plugin plugin) {
         this.plugin = plugin;
@@ -58,6 +59,8 @@ public class UploadManager {
         if (!enabled)
             return;
 
+        cancelled = false;
+
         if (Settings.RECEIVE_ENABLED.toBool() && receiver == null) {
             receiver = new PackReceiver();
             Bukkit.getPluginManager().registerEvents(receiver, plugin);
@@ -65,7 +68,11 @@ public class UploadManager {
 
         final long time = System.currentTimeMillis();
         SchedulerUtil.runTaskAsync(() -> {
+            if (cancelled) return;
+
             EventUtils.callEvent(new OraxenPackPreUploadEvent());
+
+            if (cancelled) return;
 
             Message.PACK_UPLOADING.log();
             if (!hostingProvider.uploadPack(resourcePack.getFile())) {
@@ -95,11 +102,15 @@ public class UploadManager {
                 previousSHA1 = currentSHA1;
             }
 
+            if (cancelled) return;
+
             if (packSender == null) packSender = new BukkitPackSender(hostingProvider);
             else if (updatePackSender) {
                 packSender.unregister();
                 packSender = new BukkitPackSender(hostingProvider);
             }
+
+            if (cancelled) return;
 
             if (isReload && !Settings.SEND_ON_RELOAD.toBool() && packSender != null) packSender.unregister();
             else if (Settings.SEND_PACK.toBool() || Settings.SEND_JOIN_MESSAGE.toBool()) {
@@ -114,6 +125,7 @@ public class UploadManager {
     }
 
     public void unregister() {
+        cancelled = true;
         if (packSender != null) {
             packSender.unregister();
             packSender = null;
