@@ -218,7 +218,9 @@ public class ResourcePack {
             }
 
             // generate_predicates: Generate legacy predicate overrides (not needed on 1.21.4+)
-            if (AppearanceMode.shouldGenerateLegacyPredicates()) {
+            // Multi-version mode ALWAYS needs predicates because older target clients (1.20-1.21.3)
+            // cannot use item definitions and rely solely on legacy predicate model overrides.
+            if (AppearanceMode.shouldGenerateLegacyPredicates() || Settings.MULTI_VERSION_PACKS.toBool()) {
                 generatePredicates(filterForPredicates(texturedItems));
             }
         } else {
