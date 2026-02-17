@@ -19,7 +19,7 @@ public class PlayerVersionDetector {
     private static Method protocolSupportGetProtocolVersionMethod;
     private static Object viaApiInstance;
 
-    private static boolean initialized = false;
+    private static volatile boolean initialized = false;
 
     /**
      * Initializes the version detector by checking for available version detection plugins.
