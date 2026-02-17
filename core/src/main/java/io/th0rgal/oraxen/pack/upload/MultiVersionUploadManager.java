@@ -53,78 +53,64 @@ public class MultiVersionUploadManager {
      * @param sendToPlayers Whether to send packs to online players
      */
     public void uploadAndSendToPlayers(PackVersionManager versionManager, boolean reload, boolean sendToPlayers) {
-        // Store version manager for later access (e.g., getPackURL)
         this.versionManager = versionManager;
-        // Reset cancelled flag for new upload operation
-        // This is critical when reusing the manager after unregister() was called
         cancelled = false;
 
-        // Check if upload is enabled
         if (!Settings.UPLOAD.toBool()) {
             Logs.logWarning("Pack upload is disabled in settings");
             return;
         }
 
-        // Validate hosting provider compatibility
-        // Note: SelfHost compatibility is checked earlier in ResourcePack.generate()
-        // This is a safety check in case this method is called directly
         if (isSelfHost()) {
             Logs.logError("SelfHost is incompatible with multi-version packs!");
-            Logs.logError("This should have been caught earlier - no packs will be uploaded.");
             return;
         }
 
-        // Initialize player version detection
         PlayerVersionDetector.initialize();
-
-        // Register PackReceiver for pack status events (accepted/denied/loaded etc.)
-        if (Settings.RECEIVE_ENABLED.toBool() && receiver == null) {
-            receiver = new PackReceiver();
-            Bukkit.getPluginManager().registerEvents(receiver, plugin);
-        }
+        registerReceiverIfNeeded();
 
         SchedulerUtil.runTaskAsync(() -> {
             try {
                 if (cancelled) return;
-
                 boolean contentChanged = uploadAllVersions(versionManager);
-
                 if (cancelled) return;
-
-                SchedulerUtil.runTask(() -> {
-                    if (cancelled) return;
-
-                    if (packSender != null) {
-                        packSender.unregister();
-                    }
-
-                    packSender = new MultiVersionPackSender(versionManager);
-
-                    if (reload && !Settings.SEND_ON_RELOAD.toBool()) {
-                        packSender.unregister();
-                    } else if (Settings.SEND_PACK.toBool() || Settings.SEND_JOIN_MESSAGE.toBool()) {
-                        packSender.register();
-
-                        // Only send to online players if pack content actually changed,
-                        // matching UploadManager behavior to avoid unnecessary re-downloads
-                        if (sendToPlayers && Settings.SEND_PACK.toBool() && contentChanged) {
-                            for (Player player : Bukkit.getOnlinePlayers()) {
-                                packSender.sendPack(player);
-                            }
-                        }
-                    } else {
-                        packSender.unregister();
-                    }
-
-                    Logs.logSuccess("Multi-version pack upload and distribution complete");
-                });
+                SchedulerUtil.runTask(() -> distributePacksToPlayers(reload, sendToPlayers, contentChanged));
             } catch (Exception e) {
                 Logs.logError("Failed to upload and send multi-version packs: " + e.getMessage());
-                if (Settings.DEBUG.toBool()) {
-                    e.printStackTrace();
-                }
+                if (Settings.DEBUG.toBool()) e.printStackTrace();
             }
         });
+    }
+
+    private void registerReceiverIfNeeded() {
+        if (Settings.RECEIVE_ENABLED.toBool() && receiver == null) {
+            receiver = new PackReceiver();
+            Bukkit.getPluginManager().registerEvents(receiver, plugin);
+        }
+    }
+
+    private void distributePacksToPlayers(boolean reload, boolean sendToPlayers, boolean contentChanged) {
+        if (cancelled) return;
+
+        if (packSender != null) {
+            packSender.unregister();
+        }
+        packSender = new MultiVersionPackSender(versionManager);
+
+        if (reload && !Settings.SEND_ON_RELOAD.toBool()) {
+            packSender.unregister();
+        } else if (Settings.SEND_PACK.toBool() || Settings.SEND_JOIN_MESSAGE.toBool()) {
+            packSender.register();
+            if (sendToPlayers && Settings.SEND_PACK.toBool() && contentChanged) {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    packSender.sendPack(player);
+                }
+            }
+        } else {
+            packSender.unregister();
+        }
+
+        Logs.logSuccess("Multi-version pack upload and distribution complete");
     }
 
     /**

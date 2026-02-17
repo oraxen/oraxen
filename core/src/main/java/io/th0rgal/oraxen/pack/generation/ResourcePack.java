@@ -193,43 +193,54 @@ public class ResourcePack {
      * @return List of generated VirtualFiles
      */
     private List<VirtualFile> generateBaseAssets() {
-
-        // Sorting items to keep only one with models (and generate it if needed)
         final Map<Material, Map<String, ItemBuilder>> texturedItems = extractTexturedItems();
 
-        // Appearance systems can be combined on 1.21.4+.
-        // Pre-1.21.4 ALWAYS uses legacy predicates only.
+        generateItemAppearanceAssets(texturedItems);
+        generateMiscAssets();
+        applyPackModifiers();
+
+        List<VirtualFile> output = new ArrayList<>(outputFiles.values());
+        collectPackFiles(output);
+        postProcessOutput(output);
+
+        return output;
+    }
+
+    /**
+     * Generates item appearance assets (predicates, item definitions, model definitions)
+     * based on the server version and appearance mode configuration.
+     */
+    private void generateItemAppearanceAssets(Map<Material, Map<String, ItemBuilder>> texturedItems) {
         final boolean is1_21_4Plus = VersionUtil.atOrAbove("1.21.4");
 
         if (is1_21_4Plus) {
-            // Validate and log any configuration warnings
             AppearanceMode.validateAndLogWarnings();
 
-            // ITEM_PROPERTIES: Generate assets/oraxen/items/<item_id>.json
             if (AppearanceMode.isItemPropertiesEnabled()) {
                 generateModelDefinitions(filterForItemModel(texturedItems));
             }
 
-            // MODEL_DATA_IDS or MODEL_DATA_FLOAT: Generate assets/minecraft/items/<material>.json
             if (AppearanceMode.shouldGenerateVanillaItemDefinitions()) {
                 boolean useSelect = AppearanceMode.shouldUseSelectForVanillaItemDefs();
                 boolean includeBothModes = AppearanceMode.shouldUseBothDispatchModes();
                 generateVanillaItemDefinitions(filterForPredicates(texturedItems), useSelect, includeBothModes);
             }
 
-            // generate_predicates: Generate legacy predicate overrides (not needed on 1.21.4+)
             // Multi-version mode ALWAYS needs predicates because older target clients (1.20-1.21.3)
             // cannot use item definitions and rely solely on legacy predicate model overrides.
             if (AppearanceMode.shouldGenerateLegacyPredicates() || Settings.MULTI_VERSION_PACKS.toBool()) {
                 generatePredicates(filterForPredicates(texturedItems));
             }
         } else {
-            // Pre-1.21.4: Always generate legacy predicate overrides (the only option available)
             generatePredicates(filterForPredicates(texturedItems));
         }
+    }
 
+    /**
+     * Generates non-item assets: fonts, shaders, scoreboard tweaks, armor, texture slicing.
+     */
+    private void generateMiscAssets() {
         generateFont();
-        // Update pack.mcmeta with shader overlays after shaders are generated
         updatePackMcmetaOverlays();
         if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool())
             hideScoreboardNumbers();
@@ -239,46 +250,46 @@ public class ResourcePack {
         if (CustomArmorType.getSetting() == CustomArmorType.SHADER
                 && Settings.CUSTOM_ARMOR_SHADER_GENERATE_FILES.toBool())
             ShaderArmorTextures.generateArmorShaderFiles();
+    }
 
-        for (final Collection<Consumer<File>> packModifiers : packModifiers.values())
-            for (Consumer<File> packModifier : packModifiers)
-                packModifier.accept(packFolder);
-        List<VirtualFile> output = new ArrayList<>(outputFiles.values());
+    /** Runs registered pack modifier callbacks. */
+    private void applyPackModifiers() {
+        for (final Collection<Consumer<File>> modifiers : packModifiers.values())
+            for (Consumer<File> modifier : modifiers)
+                modifier.accept(packFolder);
+    }
 
-        // zipping resourcepack
+    /**
+     * Collects all pack files from the pack folder into the output list,
+     * merges uploaded packs, converts lang files, and handles custom armor.
+     */
+    private void collectPackFiles(List<VirtualFile> output) {
         try {
-            // Adds all non-directory root files
             getFilesInFolder(packFolder, output, packFolder.getCanonicalPath(), packFolder.getName() + ".zip");
 
-            // needs to be ordered, forEach cannot be used
             File[] files = packFolder.listFiles();
             if (files != null)
                 for (final File folder : files) {
-                    if (!folder.isDirectory())
-                        continue;
-                    if (folder.getName().equals("uploads"))
-                        continue;
-                    // Skip macOS metadata directories
-                    if (folder.getName().equals("__MACOSX"))
-                        continue;
+                    if (!folder.isDirectory()) continue;
+                    if (folder.getName().equals("uploads") || folder.getName().equals("__MACOSX")) continue;
                     getAllFiles(folder, output,
                             folder.getName().matches("models|textures|lang|font|sounds") ? "assets/minecraft" : "");
                 }
 
-            // Merge uploaded resource packs (zips)
             mergeUploadedPacks(output);
-
-            // Convert the global.json within the lang-folder to all languages
             convertGlobalLang(output);
-
-            // Handles generation of datapack & other files for custom armor
             handleCustomArmor(output);
-
             Collections.sort(output);
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
 
+    /**
+     * Post-processes the output: verifies textures, generates atlases,
+     * merges duplicates, filters excluded extensions, and generates sounds.
+     */
+    private void postProcessOutput(List<VirtualFile> output) {
         Set<String> malformedTextures = new HashSet<>();
         if (Settings.VERIFY_PACK_FILES.toBool())
             malformedTextures = verifyPackFormatting(output);
@@ -290,23 +301,20 @@ public class ResourcePack {
             DuplicationHandler.mergeFontFiles(output);
         if (Settings.MERGE_ITEM_MODELS.toBool())
             DuplicationHandler.mergeBaseItemFiles(output);
-        // Merge vanilla item definitions for 1.21.4+ (if predicates enabled)
         DuplicationHandler.mergeVanillaItemDefinitions(output);
 
         List<String> excludedExtensions = Settings.EXCLUDED_FILE_EXTENSIONS.toStringList();
         excludedExtensions.removeIf(f -> f.equals("png") || f.equals("json"));
         if (!excludedExtensions.isEmpty() && !output.isEmpty()) {
-            List<VirtualFile> newOutput = new ArrayList<>();
+            List<VirtualFile> excluded = new ArrayList<>();
             for (VirtualFile virtual : output)
                 for (String extension : excludedExtensions)
                     if (virtual.getPath().endsWith(extension))
-                        newOutput.add(virtual);
-            output.removeAll(newOutput);
+                        excluded.add(virtual);
+            output.removeAll(excluded);
         }
 
         generateSound(output);
-
-        return output;
     }
 
     /**
