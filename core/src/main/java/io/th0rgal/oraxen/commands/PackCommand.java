@@ -43,9 +43,10 @@ public class PackCommand {
                     } else {
                         // Single-pack mode: use regular UploadManager
                         var uploadManager = OraxenPlugin.get().getUploadManager();
-                        if (uploadManager == null) return;
+                        var packSender = uploadManager != null ? uploadManager.getSender() : null;
+                        if (packSender == null) return;
                         for (final Player target : targets) {
-                            uploadManager.getSender().sendPack(target);
+                            packSender.sendPack(target);
                         }
                     }
                 });
