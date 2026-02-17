@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
@@ -48,20 +49,30 @@ public class PlayerVersionDetector {
         }
 
         try {
-            // ViaVersion API
             Class<?> viaApiClass = Class.forName("com.viaversion.viaversion.api.ViaAPI");
             Class<?> viaClass = Class.forName("com.viaversion.viaversion.api.Via");
 
-            // Get Via.getAPI() method
             Method getApiMethod = viaClass.getMethod("getAPI");
             viaApiInstance = getApiMethod.invoke(null);
 
-            // Get getPlayerVersion(Player) method from ViaAPI
-            viaVersionGetPlayerVersionMethod = viaApiClass.getMethod("getPlayerVersion", Object.class);
+            if (!tryGetViaVersionMethod(viaApiClass, "getPlayerProtocolVersion")
+                    && !tryGetViaVersionMethod(viaApiClass, "getPlayerVersion")) {
+                Logs.logWarning("ViaVersion detected but neither getPlayerProtocolVersion nor getPlayerVersion method found");
+                return false;
+            }
 
             return true;
         } catch (Exception e) {
             Logs.logWarning("ViaVersion detected but API initialization failed: " + e.getMessage());
+            return false;
+        }
+    }
+
+    private static boolean tryGetViaVersionMethod(Class<?> viaApiClass, String methodName) {
+        try {
+            viaVersionGetPlayerVersionMethod = viaApiClass.getMethod(methodName, Object.class);
+            return true;
+        } catch (NoSuchMethodException e) {
             return false;
         }
     }
@@ -105,7 +116,8 @@ public class PlayerVersionDetector {
                     return null;
             }
         } catch (Exception e) {
-            Logs.logWarning("Failed to detect protocol version for " + player.getName() + ": " + e.getMessage());
+            String playerName = player != null ? player.getName() : "unknown";
+            Logs.logWarning("Failed to detect protocol version for " + playerName + ": " + e.getMessage());
             return null;
         }
     }
@@ -130,18 +142,28 @@ public class PlayerVersionDetector {
             return null;
         }
 
-        Object protocolVersion = protocolSupportGetProtocolVersionMethod.invoke(null, player);
+        try {
+            Object protocolVersion = protocolSupportGetProtocolVersionMethod.invoke(null, player);
 
-        // ProtocolSupport returns a ProtocolVersion enum
-        if (protocolVersion != null) {
-            Method getIdMethod = protocolVersion.getClass().getMethod("getId");
-            Object id = getIdMethod.invoke(protocolVersion);
-            if (id instanceof Integer) {
-                return (Integer) id;
+            if (protocolVersion != null) {
+                try {
+                    Method getIdMethod = protocolVersion.getClass().getMethod("getId");
+                    Object id = getIdMethod.invoke(protocolVersion);
+                    if (id instanceof Integer) {
+                        return (Integer) id;
+                    }
+                } catch (NoSuchMethodException e) {
+                    if (protocolVersion instanceof Integer) {
+                        return (Integer) protocolVersion;
+                    }
+                }
             }
-        }
 
-        return null;
+            return null;
+        } catch (InvocationTargetException e) {
+            Logs.logWarning("ProtocolSupport API error for " + player.getName() + ": " + e.getCause().getMessage());
+            return null;
+        }
     }
 
     /**

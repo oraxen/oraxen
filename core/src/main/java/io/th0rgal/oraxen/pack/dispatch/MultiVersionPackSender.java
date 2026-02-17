@@ -73,6 +73,10 @@ public class MultiVersionPackSender implements Listener {
     }
 
     private void sendPackVersion(Player player, PackVersion packVersion) {
+        if (packVersion == null) {
+            Logs.logError("Cannot send pack: no pack version available for player: " + player.getName());
+            return;
+        }
         String url = packVersion.getPackURL();
         byte[] sha1 = packVersion.getPackSHA1();
         UUID uuid = packVersion.getPackUUID();
