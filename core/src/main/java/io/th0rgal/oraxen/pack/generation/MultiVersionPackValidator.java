@@ -52,18 +52,4 @@ public final class MultiVersionPackValidator {
 
         return !hasErrors;
     }
-
-    /**
-     * Checks if multi-version packs are enabled and properly configured.
-     *
-     * @return true if multi-version mode is active and valid
-     */
-    public static boolean isMultiVersionEnabledAndValid() {
-        if (!Settings.MULTI_VERSION_PACKS.toBool()) {
-            return false;
-        }
-
-        String uploadType = Settings.UPLOAD_TYPE.toString().toLowerCase(Locale.ROOT);
-        return !"self-host".equals(uploadType) && Settings.UPLOAD.toBool();
-    }
 }
