@@ -19,10 +19,15 @@ public class PlayerVersionDetector {
     private static Method protocolSupportGetProtocolVersionMethod;
     private static Object viaApiInstance;
 
+    private static boolean initialized = false;
+
     /**
      * Initializes the version detector by checking for available version detection plugins.
+     * This is called lazily on first use to ensure it's ready when players join.
      */
     public static void initialize() {
+        if (initialized) return;
+        
         // Try ViaVersion first (most popular and reliable)
         if (tryInitializeViaVersion()) {
             detectionMethod = VersionDetectionMethod.VIA_VERSION;
@@ -41,6 +46,8 @@ public class PlayerVersionDetector {
         detectionMethod = VersionDetectionMethod.NONE;
         Logs.logWarning("No version detection plugin found (ViaVersion/ProtocolSupport)");
         Logs.logWarning("All players will receive the server's pack version");
+        
+        initialized = true;
     }
 
     private static boolean tryInitializeViaVersion() {
@@ -104,6 +111,11 @@ public class PlayerVersionDetector {
     public static Integer getPlayerProtocolVersion(Player player) {
         if (player == null) {
             return null;
+        }
+
+        // Ensure detector is initialized (lazy initialization)
+        if (!initialized) {
+            initialize();
         }
 
         try {
