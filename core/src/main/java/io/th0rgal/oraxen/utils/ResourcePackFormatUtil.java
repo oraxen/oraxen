@@ -26,34 +26,43 @@ public final class ResourcePackFormatUtil {
         if (resolved == null) {
             // Fallback: best-effort mapping based on the server version.
             // This should only be used if reflection fails (rare on supported versions).
-            resolved = fallbackByMinecraftVersion();
+            resolved = getPackFormatForVersion(MinecraftVersion.getCurrentVersion());
         }
 
         cached = resolved;
         return resolved;
     }
 
-    private static int fallbackByMinecraftVersion() {
-        MinecraftVersion v = MinecraftVersion.getCurrentVersion();
-
-        // Best-effort mapping for modern versions (used only if NMS reflection fails).
-        // If this becomes outdated, reflection still handles it on supported servers.
+    /**
+     * Gets the pack format for a specific Minecraft version.
+     * This is a best-effort mapping based on known version-to-format relationships.
+     * Used by multi-version pack generation to map server versions to pack formats.
+     *
+     * @param version Minecraft version to get pack format for
+     * @return Pack format number
+     */
+    public static int getPackFormatForVersion(MinecraftVersion version) {
+        // Best-effort mapping for modern versions.
         // NOTE: For 1.21.x versions, pack formats vary significantly between patches
-        if (v.isAtLeast(new MinecraftVersion("1.21.11"))) return 61; // 1.21.11+
-        if (v.isAtLeast(new MinecraftVersion("1.21.4"))) return 46; // 1.21.4-1.21.10
-        if (v.isAtLeast(new MinecraftVersion("1.21.2"))) return 42; // 1.21.2-1.21.3
-        if (v.isAtLeast(new MinecraftVersion("1.21"))) return 34; // 1.21-1.21.1
-        if (v.isAtLeast(new MinecraftVersion("1.20.5"))) return 32;
-        if (v.isAtLeast(new MinecraftVersion("1.20.3"))) return 22;
-        if (v.isAtLeast(new MinecraftVersion("1.20.2"))) return 18;
-        if (v.isAtLeast(new MinecraftVersion("1.20"))) return 15;
-        if (v.isAtLeast(new MinecraftVersion("1.19.4"))) return 13;
-        if (v.isAtLeast(new MinecraftVersion("1.19.3"))) return 12;
-        if (v.isAtLeast(new MinecraftVersion("1.19"))) return 9;
-        if (v.isAtLeast(new MinecraftVersion("1.18"))) return 8;
+        if (version.isAtLeast(new MinecraftVersion("1.21.11"))) return 61; // 1.21.11+
+        if (version.isAtLeast(new MinecraftVersion("1.21.4"))) return 46; // 1.21.4-1.21.10
+        if (version.isAtLeast(new MinecraftVersion("1.21.2"))) return 42; // 1.21.2-1.21.3
+        if (version.isAtLeast(new MinecraftVersion("1.21"))) return 34; // 1.21-1.21.1
+        if (version.isAtLeast(new MinecraftVersion("1.20.5"))) return 32;
+        if (version.isAtLeast(new MinecraftVersion("1.20.3"))) return 22;
+        if (version.isAtLeast(new MinecraftVersion("1.20.2"))) return 18;
+        if (version.isAtLeast(new MinecraftVersion("1.20"))) return 15;
+        if (version.isAtLeast(new MinecraftVersion("1.19.4"))) return 13;
+        if (version.isAtLeast(new MinecraftVersion("1.19.3"))) return 12;
+        if (version.isAtLeast(new MinecraftVersion("1.19"))) return 9;
+        if (version.isAtLeast(new MinecraftVersion("1.18"))) return 8;
 
         // Very old / unknown
         return 6;
+    }
+
+    private static int fallbackByMinecraftVersion() {
+        return getPackFormatForVersion(MinecraftVersion.getCurrentVersion());
     }
 
     @Nullable
