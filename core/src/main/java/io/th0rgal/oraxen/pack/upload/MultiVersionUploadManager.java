@@ -18,6 +18,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 
 import java.io.IOException;
+import java.nio.file.ProviderNotFoundException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Locale;
@@ -214,14 +215,21 @@ public class MultiVersionUploadManager {
     @SuppressWarnings("unchecked")
     private HostingProvider constructExternalHostingProvider(final Class<?> target,
                                                               final org.bukkit.configuration.ConfigurationSection options) {
+        java.lang.reflect.Constructor<? extends HostingProvider> constructor = getConstructor(target);
+
         try {
-            java.lang.reflect.Constructor<? extends HostingProvider> constructor = getConstructor(target);
             return constructor.getParameterCount() == 0 
                     ? constructor.newInstance()
                     : constructor.newInstance(options);
-        } catch (final Exception e) {
-            Logs.logError("Failed to construct external hosting provider: " + e.getMessage());
-            return null;
+        } catch (final java.lang.InstantiationException e) {
+            throw (ProviderNotFoundException) new ProviderNotFoundException("Cannot alloc instance for " + target)
+                    .initCause(e);
+        } catch (final java.lang.IllegalAccessException e) {
+            throw (ProviderNotFoundException) new ProviderNotFoundException("Failed to access " + target)
+                    .initCause(e);
+        } catch (final java.lang.reflect.InvocationTargetException e) {
+            throw (ProviderNotFoundException) new ProviderNotFoundException("Exception in allocating instance.")
+                    .initCause(e.getCause());
         }
     }
 
@@ -240,7 +248,7 @@ public class MultiVersionUploadManager {
         }
 
         if (constructor == null) {
-            throw new java.nio.file.ProviderNotFoundException("Invalid external provider: " + target + " - no valid constructor found");
+            throw new ProviderNotFoundException("Invalid external provider: " + target + " - no valid constructor found");
         }
         return constructor;
     }
