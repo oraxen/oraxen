@@ -19,7 +19,7 @@ public class PlayerVersionDetector {
     private static Method protocolSupportGetProtocolVersionMethod;
     private static Object viaApiInstance;
 
-    private static boolean initialized = false;
+    private static volatile boolean initialized = false;
 
     /**
      * Initializes the version detector by checking for available version detection plugins.
@@ -173,7 +173,9 @@ public class PlayerVersionDetector {
 
             return null;
         } catch (InvocationTargetException e) {
-            Logs.logWarning("ProtocolSupport API error for " + player.getName() + ": " + e.getCause().getMessage());
+            Throwable cause = e.getCause();
+            String errorMessage = cause != null ? cause.getMessage() : "Unknown error";
+            Logs.logWarning("ProtocolSupport API error for " + player.getName() + ": " + errorMessage);
             return null;
         }
     }

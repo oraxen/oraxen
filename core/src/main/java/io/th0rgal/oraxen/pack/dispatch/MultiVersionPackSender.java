@@ -124,6 +124,10 @@ public class MultiVersionPackSender implements Listener {
         if (packVersion == null) {
             packVersion = versionManager.getServerPackVersion();
         }
+        if (packVersion == null) {
+            Logs.logWarning("No pack version available for player: " + player.getName());
+            return "";
+        }
         String url = packVersion.getPackURL();
         return url != null ? url : "";
     }
