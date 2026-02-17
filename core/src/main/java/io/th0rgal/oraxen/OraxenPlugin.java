@@ -17,6 +17,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.nms.GlyphHandlers;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.pack.dispatch.PackLoadingManager;
+import io.th0rgal.oraxen.pack.generation.PackVersionManager;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
@@ -224,6 +225,52 @@ public class OraxenPlugin extends JavaPlugin {
             this.multiVersionUploadManager.unregister();
         }
         this.multiVersionUploadManager = multiVersionUploadManager;
+    }
+
+    /**
+     * Gets the pack URL, works in both single-pack and multi-version modes.
+     * In multi-version mode, returns the server's default pack version URL.
+     */
+    public String getPackURL() {
+        if (multiVersionUploadManager != null) {
+            var versionManager = multiVersionUploadManager.getVersionManager();
+            if (versionManager != null) {
+                var serverVersion = versionManager.getServerPackVersion();
+                if (serverVersion != null && serverVersion.getPackURL() != null) {
+                    return serverVersion.getPackURL();
+                }
+            }
+        }
+        if (uploadManager != null) {
+            return uploadManager.getHostingProvider().getPackURL();
+        }
+        return null;
+    }
+
+    /**
+     * Gets the pack SHA1 hash, works in both single-pack and multi-version modes.
+     * In multi-version mode, returns the server's default pack version SHA1.
+     */
+    public String getPackSHA1() {
+        if (multiVersionUploadManager != null) {
+            var versionManager = multiVersionUploadManager.getVersionManager();
+            if (versionManager != null) {
+                var serverVersion = versionManager.getServerPackVersion();
+                if (serverVersion != null && serverVersion.getPackSHA1() != null) {
+                    // Convert byte[] SHA1 to hex string
+                    byte[] sha1 = serverVersion.getPackSHA1();
+                    StringBuilder sb = new StringBuilder();
+                    for (byte b : sha1) {
+                        sb.append(String.format("%02x", b));
+                    }
+                    return sb.toString();
+                }
+            }
+        }
+        if (uploadManager != null) {
+            return uploadManager.getHostingProvider().getOriginalSHA1();
+        }
+        return null;
     }
 
     public FontManager getFontManager() {

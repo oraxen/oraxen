@@ -33,6 +33,7 @@ public class MultiVersionUploadManager {
     private MultiVersionPackSender packSender;
     private PackReceiver receiver;
     private volatile boolean cancelled = false;
+    private PackVersionManager versionManager;
 
     public MultiVersionUploadManager(OraxenPlugin plugin) {
         this.plugin = plugin;
@@ -46,6 +47,8 @@ public class MultiVersionUploadManager {
      * @param sendToPlayers Whether to send packs to online players
      */
     public void uploadAndSendToPlayers(PackVersionManager versionManager, boolean reload, boolean sendToPlayers) {
+        // Store version manager for later access (e.g., getPackURL)
+        this.versionManager = versionManager;
         // Reset cancelled flag for new upload operation
         // This is critical when reusing the manager after unregister() was called
         cancelled = false;
@@ -171,6 +174,10 @@ public class MultiVersionUploadManager {
 
     public MultiVersionPackSender getPackSender() {
         return packSender;
+    }
+
+    public PackVersionManager getVersionManager() {
+        return versionManager;
     }
 
     public void unregister() {

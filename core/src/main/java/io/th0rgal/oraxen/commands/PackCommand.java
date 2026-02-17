@@ -32,8 +32,22 @@ public class PackCommand {
                 .withOptionalArguments(new EntitySelectorArgument.ManyPlayers("targets"))
                 .executes((sender, args) -> {
                     final Collection<Player> targets = (Collection<Player>) args.getOptional("targets").orElse(sender instanceof Player ? sender : null);
-                    if (targets != null) for (final Player target : targets)
-                        OraxenPlugin.get().getUploadManager().getSender().sendPack(target);
+                    if (targets == null) return;
+                    
+                    var multiVersionManager = OraxenPlugin.get().getMultiVersionUploadManager();
+                    if (multiVersionManager != null && multiVersionManager.getPackSender() != null) {
+                        // Multi-version mode: send version-appropriate packs
+                        for (final Player target : targets) {
+                            multiVersionManager.getPackSender().sendPack(target);
+                        }
+                    } else {
+                        // Single-pack mode: use regular UploadManager
+                        var uploadManager = OraxenPlugin.get().getUploadManager();
+                        if (uploadManager == null) return;
+                        for (final Player target : targets) {
+                            uploadManager.getSender().sendPack(target);
+                        }
+                    }
                 });
     }
 
@@ -44,7 +58,7 @@ public class PackCommand {
                     final Collection<Player> targets = (Collection<Player>) args.getOptional("targets").orElse(sender instanceof Player ? sender : null);
                     if (targets != null) for (final Player target : targets)
                         Message.COMMAND_JOIN_MESSAGE.send(target, AdventureUtils.tagResolver("pack_url",
-                                (OraxenPlugin.get().getUploadManager().getHostingProvider().getPackURL())));
+                                OraxenPlugin.get().getPackURL() != null ? OraxenPlugin.get().getPackURL() : ""));
                 });
     }
 
