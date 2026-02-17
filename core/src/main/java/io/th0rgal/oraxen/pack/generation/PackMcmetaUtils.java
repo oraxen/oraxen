@@ -73,33 +73,24 @@ public class PackMcmetaUtils {
 
     /**
      * Returns the supported_formats range for the server's Minecraft version.
-     * These ranges match the definitions in {@link PackVersionManager#definePackVersions()}
-     * and ensure the single-pack pack.mcmeta has accurate metadata.
+     * Delegates to {@link PackVersionManager#getFormatRangeForPackFormat(int)} so the
+     * version-to-range mapping is defined in exactly one place.
      *
      * @return int[2] with {min_inclusive, max_inclusive}, or {0,0} if unsupported
      */
     public static int[] getSupportedFormatRange(MinecraftVersion serverVersion) {
-        // Ordered from newest to oldest — first match wins
-        if (serverVersion.isAtLeast(new MinecraftVersion("1.21.4"))) return new int[]{46, 999};
-        if (serverVersion.isAtLeast(new MinecraftVersion("1.21.2"))) return new int[]{42, 45};
-        if (serverVersion.isAtLeast(new MinecraftVersion("1.21")))   return new int[]{34, 41};
-        if (serverVersion.isAtLeast(new MinecraftVersion("1.20.5"))) return new int[]{32, 33};
-        if (serverVersion.isAtLeast(new MinecraftVersion("1.20.3"))) return new int[]{22, 31};
-        if (serverVersion.isAtLeast(new MinecraftVersion("1.20.2"))) return new int[]{18, 21};
-        if (serverVersion.isAtLeast(new MinecraftVersion("1.20")))   return new int[]{15, 17};
-
-        // Pre-1.20: supported_formats field not used (introduced in 1.20.2 / format 18)
-        return new int[]{0, 0};
+        int packFormat = ResourcePackFormatUtil.getPackFormatForVersion(serverVersion);
+        return PackVersionManager.getFormatRangeForPackFormat(packFormat);
     }
 
     public static void updatePackMcmetaFile(Path mcmetaPath, MinecraftVersion serverVersion) {
         JsonObject existingMcmeta = readExistingMcmeta(mcmetaPath);
-        
+
         int packFormat = ResourcePackFormatUtil.getPackFormatForVersion(serverVersion);
-        int[] formatRange = getSupportedFormatRange(serverVersion);
-        
+        int[] formatRange = PackVersionManager.getFormatRangeForPackFormat(packFormat);
+
         JsonObject mcmeta = createPackMcmeta(packFormat, formatRange[0], formatRange[1], existingMcmeta);
-        
+
         writePackMcmeta(mcmetaPath, mcmeta);
     }
 }

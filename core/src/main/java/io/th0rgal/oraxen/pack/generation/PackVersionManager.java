@@ -13,8 +13,29 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Manages multiple versions of resource packs for different Minecraft client versions.
+ *
+ * <p>The canonical version-to-format-range mapping lives in {@link #VERSION_DEFINITIONS}.
+ * Both {@link #definePackVersions()} and {@link #getFormatRangeForPackFormat(int)} read
+ * from that single table, so there is exactly one place to update when Minecraft adds
+ * a new pack format.</p>
  */
 public class PackVersionManager {
+
+    /**
+     * Single source of truth for Minecraft version → pack format range mappings.
+     * Order: mcVersion, packFormat, minFormatInclusive, maxFormatInclusive.
+     * Sorted newest-first for readability only; the code does not depend on order.
+     */
+    private static final Object[][] VERSION_DEFINITIONS = {
+        // mcVersion, format, minFormat, maxFormat
+        {"1.21.4", 46, 46, 999},  // 1.21.4+ (latest, open-ended)
+        {"1.21.2", 42, 42, 45},   // 1.21.2-1.21.3
+        {"1.21",   34, 34, 41},   // 1.21-1.21.1
+        {"1.20.5", 32, 32, 33},   // 1.20.5-1.20.6
+        {"1.20.3", 22, 22, 31},   // 1.20.3-1.20.4
+        {"1.20.2", 18, 18, 21},   // 1.20.2
+        {"1.20",   15, 15, 17},   // 1.20-1.20.1
+    };
 
     private final Map<String, PackVersion> packVersions = new ConcurrentHashMap<>();
     private final File packFolder;
@@ -52,36 +73,36 @@ public class PackVersionManager {
 
     /**
      * Defines the pack versions that should be generated based on supported Minecraft versions.
+     * Reads from {@link #VERSION_DEFINITIONS} so the mapping is defined in exactly one place.
      * This should be called before generation starts.
      */
     public void definePackVersions() {
         packVersions.clear();
 
-        // Define pack versions for different Minecraft client versions
-        // Each entry targets a specific Minecraft version range
-
-        // 1.21.4+ (latest format with full Item Properties support)
-        addPackVersion("1.21.4", 46, 46, 999);
-
-        // 1.21.2-1.21.3
-        addPackVersion("1.21.2", 42, 42, 45);
-
-        // 1.21-1.21.1
-        addPackVersion("1.21", 34, 34, 41);
-
-        // 1.20.5-1.20.6
-        addPackVersion("1.20.5", 32, 32, 33);
-
-        // 1.20.3-1.20.4
-        addPackVersion("1.20.3", 22, 22, 31);
-
-        // 1.20.2
-        addPackVersion("1.20.2", 18, 18, 21);
-
-        // 1.20-1.20.1
-        addPackVersion("1.20", 15, 15, 17);
+        for (Object[] def : VERSION_DEFINITIONS) {
+            addPackVersion((String) def[0], (int) def[1], (int) def[2], (int) def[3]);
+        }
 
         logSuccess("Defined " + packVersions.size() + " pack versions for multi-version support");
+    }
+
+    /**
+     * Returns the supported_formats range for a given pack format.
+     * Looks up the range in {@link #VERSION_DEFINITIONS}, the same table
+     * that {@link #definePackVersions()} uses — eliminating data duplication.
+     *
+     * @param packFormat the server's pack format
+     * @return int[2] with {min_inclusive, max_inclusive}, or {0,0} if no range covers this format
+     */
+    public static int[] getFormatRangeForPackFormat(int packFormat) {
+        for (Object[] def : VERSION_DEFINITIONS) {
+            int min = (int) def[2];
+            int max = (int) def[3];
+            if (packFormat >= min && packFormat <= max) {
+                return new int[]{min, max};
+            }
+        }
+        return new int[]{0, 0};
     }
 
     private void addPackVersion(String mcVersion, int format, int minFormat, int maxFormat) {
