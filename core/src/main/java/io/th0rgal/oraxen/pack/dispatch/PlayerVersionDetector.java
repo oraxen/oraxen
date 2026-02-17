@@ -159,7 +159,14 @@ public class PlayerVersionDetector {
         return protocolToVersionString(protocol);
     }
 
-    private static String protocolToVersionString(int protocol) {
+    /**
+     * Converts a protocol version number to a human-readable Minecraft version string.
+     * This is a utility function for logging/debugging and testing purposes.
+     *
+     * @param protocol Protocol version number
+     * @return Version string (e.g., "1.20.4"), or "Unknown (N)" if unknown
+     */
+    public static String protocolToVersionString(int protocol) {
         // Map protocol versions to Minecraft versions (best effort)
         // https://minecraft.wiki/w/Protocol_version
 
