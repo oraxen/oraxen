@@ -19,7 +19,10 @@ import org.bukkit.event.HandlerList;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * Manages uploading and distributing multiple pack versions to players.
@@ -31,6 +34,12 @@ public class MultiVersionUploadManager {
     private PackReceiver receiver;
     private volatile boolean cancelled = false;
     private PackVersionManager versionManager;
+
+    // Tracks SHA1 hashes from the previous upload to detect content changes.
+    // Only sends packs to online players when at least one pack version changed,
+    // matching the change-tracking behavior of UploadManager for single-pack mode.
+    private static final Object trackingLock = new Object();
+    private static Map<String, String> previousSHA1s = new HashMap<>();
 
     public MultiVersionUploadManager(OraxenPlugin plugin) {
         this.plugin = plugin;
@@ -78,7 +87,7 @@ public class MultiVersionUploadManager {
             try {
                 if (cancelled) return;
 
-                uploadAllVersions(versionManager);
+                boolean contentChanged = uploadAllVersions(versionManager);
 
                 if (cancelled) return;
 
@@ -96,7 +105,9 @@ public class MultiVersionUploadManager {
                     } else if (Settings.SEND_PACK.toBool() || Settings.SEND_JOIN_MESSAGE.toBool()) {
                         packSender.register();
 
-                        if (sendToPlayers && Settings.SEND_PACK.toBool()) {
+                        // Only send to online players if pack content actually changed,
+                        // matching UploadManager behavior to avoid unnecessary re-downloads
+                        if (sendToPlayers && Settings.SEND_PACK.toBool() && contentChanged) {
                             for (Player player : Bukkit.getOnlinePlayers()) {
                                 packSender.sendPack(player);
                             }
@@ -116,13 +127,27 @@ public class MultiVersionUploadManager {
         });
     }
 
-    private void uploadAllVersions(PackVersionManager versionManager) {
+    /**
+     * Uploads all pack versions and checks if any content changed since the last upload.
+     *
+     * @return true if at least one pack version had a different SHA1 than the previous upload
+     */
+    private boolean uploadAllVersions(PackVersionManager versionManager) {
         Collection<PackVersion> versions = versionManager.getAllVersions();
         Logs.logInfo("Uploading " + versions.size() + " pack versions...");
 
+        Map<String, String> currentSHA1s = new HashMap<>();
         for (PackVersion packVersion : versions) {
             try {
                 uploadPackVersion(packVersion);
+                // Track the SHA1 for this version (getOriginalSHA1-equivalent from the provider
+                // is stored in PackVersion as byte[], convert to hex for comparison)
+                byte[] sha1Bytes = packVersion.getPackSHA1();
+                if (sha1Bytes != null) {
+                    StringBuilder sb = new StringBuilder();
+                    for (byte b : sha1Bytes) sb.append(String.format("%02x", b));
+                    currentSHA1s.put(packVersion.getMinecraftVersion(), sb.toString());
+                }
             } catch (Exception e) {
                 Logs.logError("Failed to upload pack for " + packVersion.getMinecraftVersion() + ": " + e.getMessage());
                 if (Settings.DEBUG.toBool()) {
@@ -130,6 +155,19 @@ public class MultiVersionUploadManager {
                 }
             }
         }
+
+        // Compare current SHA1s against previous to detect changes
+        boolean anyChanged;
+        synchronized (trackingLock) {
+            anyChanged = !Objects.equals(currentSHA1s, previousSHA1s);
+            previousSHA1s = currentSHA1s;
+        }
+
+        if (Settings.DEBUG.toBool()) {
+            Logs.logInfo("Multi-version pack content " + (anyChanged ? "changed" : "unchanged"));
+        }
+
+        return anyChanged;
     }
 
     private void uploadPackVersion(PackVersion packVersion) throws IOException {
