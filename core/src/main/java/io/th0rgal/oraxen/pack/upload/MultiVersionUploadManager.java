@@ -18,7 +18,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 
 import java.io.IOException;
-import java.nio.file.ProviderNotFoundException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Locale;
@@ -142,7 +141,7 @@ public class MultiVersionUploadManager {
 
         // Create hosting provider for this version
         // Note: SelfHost is not supported for multi-version (validated earlier)
-        HostingProvider provider = createHostingProvider();
+        HostingProvider provider = HostingProviderFactory.createHostingProvider(false);
 
         // Upload pack (provider calculates SHA-1 internally)
         boolean success = provider.uploadPack(packVersion.getPackFile());
@@ -168,89 +167,6 @@ public class MultiVersionUploadManager {
     private boolean isSelfHost() {
         String uploadType = Settings.UPLOAD_TYPE.toString().toLowerCase(Locale.ROOT);
         return "self-host".equals(uploadType);
-    }
-
-    private HostingProvider createHostingProvider() {
-        HostingProvider provider = switch (Settings.UPLOAD_TYPE.toString().toLowerCase(Locale.ROOT)) {
-            case "polymath" -> new io.th0rgal.oraxen.pack.upload.hosts.Polymath(Settings.POLYMATH_SERVER.toString());
-            case "self-host" -> {
-                Logs.logError("SelfHost cannot be used with multi-version packs");
-                yield null;
-            }
-            case "external" -> createExternalProvider();
-            default -> null;
-        };
-
-        if (provider == null) {
-            String uploadType = Settings.UPLOAD_TYPE.toString();
-            Logs.logError("Upload type '" + uploadType + "' is not supported for multi-version packs");
-            Logs.logError("Polymath will be used instead.");
-            provider = new io.th0rgal.oraxen.pack.upload.hosts.Polymath(Settings.POLYMATH_SERVER.toString());
-        }
-        return provider;
-    }
-
-    private HostingProvider createExternalProvider() {
-        final Class<?> target;
-        final org.bukkit.configuration.ConfigurationSection options = 
-                (org.bukkit.configuration.ConfigurationSection) Settings.UPLOAD_OPTIONS.getValue();
-        final String klass = options.getString("class");
-        if (klass == null) {
-            Logs.logError("No external provider class specified in settings");
-            return null;
-        }
-        try {
-            target = Class.forName(klass);
-        } catch (final Exception any) {
-            Logs.logError("External provider not found: " + klass + " - " + any.getMessage());
-            return null;
-        }
-        if (!HostingProvider.class.isAssignableFrom(target)) {
-            Logs.logError(target + " is not a valid HostingProvider");
-            return null;
-        }
-        return constructExternalHostingProvider(target, options);
-    }
-
-    @SuppressWarnings("unchecked")
-    private HostingProvider constructExternalHostingProvider(final Class<?> target,
-                                                              final org.bukkit.configuration.ConfigurationSection options) {
-        java.lang.reflect.Constructor<? extends HostingProvider> constructor = getConstructor(target);
-
-        try {
-            return constructor.getParameterCount() == 0 
-                    ? constructor.newInstance()
-                    : constructor.newInstance(options);
-        } catch (final java.lang.InstantiationException e) {
-            throw (ProviderNotFoundException) new ProviderNotFoundException("Cannot alloc instance for " + target)
-                    .initCause(e);
-        } catch (final java.lang.IllegalAccessException e) {
-            throw (ProviderNotFoundException) new ProviderNotFoundException("Failed to access " + target)
-                    .initCause(e);
-        } catch (final java.lang.reflect.InvocationTargetException e) {
-            throw (ProviderNotFoundException) new ProviderNotFoundException("Exception in allocating instance.")
-                    .initCause(e.getCause());
-        }
-    }
-
-    @org.jetbrains.annotations.NotNull
-    @SuppressWarnings("unchecked")
-    private static java.lang.reflect.Constructor<? extends HostingProvider> getConstructor(Class<?> target) {
-        final Class<? extends HostingProvider> implement = target.asSubclass(HostingProvider.class);
-        java.lang.reflect.Constructor<? extends HostingProvider> constructor = null;
-        for (final java.lang.reflect.Constructor<?> implementConstructor : implement.getConstructors()) {
-            java.lang.reflect.Parameter[] parameters = implementConstructor.getParameters();
-            if (parameters.length == 0 || 
-                    (parameters.length == 1 && parameters[0].getType().equals(org.bukkit.configuration.ConfigurationSection.class))) {
-                constructor = (java.lang.reflect.Constructor<? extends HostingProvider>) implementConstructor;
-                break;
-            }
-        }
-
-        if (constructor == null) {
-            throw new ProviderNotFoundException("Invalid external provider: " + target + " - no valid constructor found");
-        }
-        return constructor;
     }
 
     public MultiVersionPackSender getPackSender() {
