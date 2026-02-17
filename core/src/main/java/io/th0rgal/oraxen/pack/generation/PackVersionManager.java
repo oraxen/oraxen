@@ -43,6 +43,13 @@ public class PackVersionManager {
         } catch (NoClassDefFoundError ignored) {}
     }
 
+    private void logWarning(String message) {
+        if (silentMode) return;
+        try {
+            Logs.logWarning(message);
+        } catch (NoClassDefFoundError ignored) {}
+    }
+
     /**
      * Defines the pack versions that should be generated based on supported Minecraft versions.
      * This should be called before generation starts.
@@ -140,12 +147,17 @@ public class PackVersionManager {
      * @param serverMcVersion Server Minecraft version
      */
     public void setServerPackVersion(String serverMcVersion) {
+        if (serverMcVersion == null) {
+            logWarning("Cannot set server pack version: version is null");
+            return;
+        }
+
         // Find exact match first
         this.serverPackVersion = packVersions.get(serverMcVersion);
 
         // Try normalized version (e.g., "1.21.0" -> "1.21")
         if (this.serverPackVersion == null && serverMcVersion.endsWith(".0")) {
-            String normalized = serverMcVersion.replaceAll("\\.0$", "");
+            String normalized = serverMcVersion.replace(".0", "");
             this.serverPackVersion = packVersions.get(normalized);
         }
 
