@@ -240,7 +240,7 @@ public class MultiVersionUploadManager {
         }
 
         if (constructor == null) {
-            Logs.logError("Invalid external provider: " + target + " - no valid constructor found");
+            throw new java.nio.file.ProviderNotFoundException("Invalid external provider: " + target + " - no valid constructor found");
         }
         return constructor;
     }
