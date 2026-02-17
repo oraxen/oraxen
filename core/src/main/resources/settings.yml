@@ -94,9 +94,21 @@ FurnitureUpdater:
 Pack:
   generation:
     generate: true # Unlike Plugin.generation.default_assets, this will enable/disable all pack generation
-    # Enable multi-version pack generation for servers using ViaVersion/ProtocolSupport.
-    # When enabled, generates separate pack files for different Minecraft client versions.
-    # Incompatible with self-host upload type. Requires ViaVersion or ProtocolSupport for version detection.
+    # MULTI-VERSION RESOURCE PACKS
+    # Enable this for servers with players on multiple Minecraft versions (ViaVersion/ProtocolSupport).
+    # When enabled, generates separate pack files with correct pack_format for each client version.
+    #
+    # Supported versions: 1.20, 1.20.2, 1.20.3-1.20.4, 1.20.5-1.20.6, 1.21-1.21.1, 1.21.2-1.21.3, 1.21.4+
+    # Each pack has appropriate pack_format and supported_formats range for client compatibility.
+    #
+    # Requirements:
+    # - ViaVersion OR ProtocolSupport plugin for version detection (without these, all players get server version pack)
+    # - Upload type must be "polymath" or "external" (NOT "self-host" - can only serve one file)
+    #
+    # How it works:
+    # - On player join, detects their client version via ViaVersion/ProtocolSupport API
+    # - Sends the appropriate pack version matching their client's pack_format
+    # - Players without version detection receive the server's version pack as fallback
     multi_version_packs: false
     # List of file extensions that will not be included in the final zipped ResourcePack
     excluded_file_extensions: []
