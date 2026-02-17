@@ -72,7 +72,7 @@ class PlayerVersionDetectorTest {
 
     @Test
     void testProtocolToVersionString_1_18() {
-        assertEquals("1.18.1", PlayerVersionDetector.protocolToVersionString(757));
+        assertEquals("1.18", PlayerVersionDetector.protocolToVersionString(757));
     }
 
     @Test

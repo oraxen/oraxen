@@ -1,7 +1,5 @@
 package io.th0rgal.oraxen.pack.generation;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.th0rgal.oraxen.OraxenPlugin;
@@ -181,37 +179,15 @@ public class MultiVersionPackGenerator {
     }
 
     private File createPackMcmeta(PackVersion packVersion, JsonObject originalMcmeta) throws IOException {
-        // Start from the original pack.mcmeta if available, to preserve user customizations
-        JsonObject root = (originalMcmeta != null) ? originalMcmeta.deepCopy() : new JsonObject();
+        JsonObject mcmeta = PackMcmetaUtils.createPackMcmeta(
+            packVersion.getPackFormat(),
+            packVersion.getMinFormatInclusive(),
+            packVersion.getMaxFormatInclusive(),
+            originalMcmeta
+        );
 
-        JsonObject pack = root.has("pack") && root.get("pack").isJsonObject()
-                ? root.getAsJsonObject("pack")
-                : new JsonObject();
-
-        // Preserve description if present (matches single-pack updatePackMcmeta behavior)
-        if (!pack.has("description")) {
-            pack.addProperty("description", "§9§lOraxen §8| §7Extend the Game §7www§8.§7oraxen§8.§7com");
-        }
-
-        // Override pack format and supported_formats for this specific version
-        pack.addProperty("pack_format", packVersion.getPackFormat());
-
-        // Add supported_formats for broader compatibility (1.20.2+)
-        if (packVersion.getPackFormat() >= 18) {
-            JsonObject supportedFormats = new JsonObject();
-            supportedFormats.addProperty("min_inclusive", packVersion.getMinFormatInclusive());
-            supportedFormats.addProperty("max_inclusive", packVersion.getMaxFormatInclusive());
-            pack.add("supported_formats", supportedFormats);
-        } else {
-            pack.remove("supported_formats");
-        }
-
-        root.add("pack", pack);
-
-        // Write to version-specific temporary file to avoid conflicts
         File tempFile = new File(packFolder, "pack.mcmeta." + packVersion.getFileIdentifier() + ".tmp");
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        Files.writeString(tempFile.toPath(), gson.toJson(root), StandardCharsets.UTF_8);
+        PackMcmetaUtils.writePackMcmeta(tempFile.toPath(), mcmeta);
 
         return tempFile;
     }

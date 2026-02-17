@@ -340,57 +340,8 @@ public class ResourcePack {
         if (!mcmetaPath.toFile().exists())
             return;
 
-        try {
-            String content = Files.readString(mcmetaPath, StandardCharsets.UTF_8);
-            JsonObject root;
-            try {
-                root = JsonParser.parseString(content).getAsJsonObject();
-            } catch (Exception ignored) {
-                root = new JsonObject();
-            }
-
-            JsonObject pack = root.has("pack") && root.get("pack").isJsonObject()
-                    ? root.getAsJsonObject("pack")
-                    : new JsonObject();
-
-            // Preserve description if present (some users customize it).
-            if (!pack.has("description")) {
-                pack.addProperty("description", "§9§lOraxen §8| §7Extend the Game §7www§8.§7oraxen§8.§7com");
-            }
-
-            int packFormat = ResourcePackFormatUtil.getCurrentResourcePackFormat();
-            pack.addProperty("pack_format", packFormat);
-
-            // Add supported_formats for broader client compatibility
-            // This tells clients the range of pack formats this pack supports
-            MinecraftVersion currentVersion = MinecraftVersion.getCurrentVersion();
-            if (currentVersion.isAtLeast(new MinecraftVersion("1.21"))) {
-                JsonObject supportedFormats = new JsonObject();
-                // Support wide range of 1.21.x pack formats (34 for 1.21, up to 999 for future versions)
-                // This ensures compatibility with 1.21, 1.21.2, 1.21.4, 1.21.11, etc.
-                supportedFormats.addProperty("min_inclusive", 34);
-                // Use a high max to support future versions (Minecraft ignores unknown higher formats)
-                supportedFormats.addProperty("max_inclusive", 999);
-                pack.add("supported_formats", supportedFormats);
-            } else if (currentVersion.isAtLeast(new MinecraftVersion("1.20.2"))) {
-                // For 1.20.2+ versions, support formats 18-33
-                // supported_formats was introduced in MC 1.20.2 (pack format 18)
-                JsonObject supportedFormats = new JsonObject();
-                supportedFormats.addProperty("min_inclusive", 18);
-                supportedFormats.addProperty("max_inclusive", 33);
-                pack.add("supported_formats", supportedFormats);
-            }
-
-            root.add("pack", pack);
-
-            // Use Gson with pretty printing for readable output
-            Gson gson = new GsonBuilder().setPrettyPrinting().create();
-            Files.writeString(mcmetaPath, gson.toJson(root), StandardCharsets.UTF_8);
-        } catch (Exception e) {
-            if (Settings.DEBUG.toBool())
-                e.printStackTrace();
-            Logs.logWarning("Failed to update pack.mcmeta pack_format. Keeping existing file.");
-        }
+        MinecraftVersion currentVersion = MinecraftVersion.getCurrentVersion();
+        PackMcmetaUtils.updatePackMcmetaFile(mcmetaPath, currentVersion);
     }
 
     /**
