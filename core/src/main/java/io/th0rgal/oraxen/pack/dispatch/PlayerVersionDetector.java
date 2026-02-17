@@ -14,7 +14,7 @@ import java.lang.reflect.Method;
  */
 public class PlayerVersionDetector {
 
-    private static VersionDetectionMethod detectionMethod = VersionDetectionMethod.NONE;
+    private static volatile VersionDetectionMethod detectionMethod = VersionDetectionMethod.NONE;
     private static Method viaVersionGetPlayerVersionMethod;
     private static Method protocolSupportGetProtocolVersionMethod;
     private static Object viaApiInstance;

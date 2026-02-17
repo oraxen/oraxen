@@ -197,9 +197,9 @@ public class PackVersionManager {
     /**
      * Gets the server's pack version (used as fallback).
      *
-     * @return Server pack version, or the highest format pack if not set
+     * @return Server pack version, or null if no versions are defined
      */
-    @NotNull
+    @Nullable
     public PackVersion getServerPackVersion() {
         if (serverPackVersion != null) {
             return serverPackVersion;
@@ -208,7 +208,7 @@ public class PackVersionManager {
         // Fallback to highest format pack
         return packVersions.values().stream()
             .max(Comparator.naturalOrder())
-            .orElseThrow(() -> new IllegalStateException("No pack versions defined"));
+            .orElse(null);
     }
 
     /**
