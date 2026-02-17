@@ -24,6 +24,53 @@ import java.util.List;
 /**
  * Generates multiple versions of resource packs for different Minecraft client versions.
  * This allows servers to serve version-appropriate packs to players using ViaVersion/ProtocolSupport.
+ *
+ * <h2>Architecture Overview</h2>
+ *
+ * <p>The multi-version pack system consists of several components:
+ *
+ * <ul>
+ *   <li><b>MultiVersionPackGenerator</b> (this class) - Generates multiple pack ZIP files, each with
+ *       a different pack_format in pack.mcmeta to target specific Minecraft versions.</li>
+ *   <li><b>PackVersionManager</b> - Manages the mapping of Minecraft versions to pack formats
+ *       and provides version lookup functionality.</li>
+ *   <li><b>PackVersion</b> - Represents a single pack version with its format number and
+ *       supported format range.</li>
+ *   <li><b>ProtocolVersion</b> - Maps network protocol versions to pack formats and version strings.</li>
+ *   <li><b>PlayerVersionDetector</b> - Detects player client versions using ViaVersion or ProtocolSupport APIs.</li>
+ *   <li><b>MultiVersionPackSender</b> - Sends the appropriate pack version to each player based on their client.</li>
+ *   <li><b>MultiVersionUploadManager</b> - Handles uploading all pack versions to the hosting provider.</li>
+ * </ul>
+ *
+ * <h2>Flow</h2>
+ *
+ * <ol>
+ *   <li>ResourcePack.generate() checks if multi-version mode is enabled</li>
+ *   <li>If enabled, MultiVersionPackGenerator.generateMultipleVersions() is called</li>
+ *   <li>VirtualFiles are materialized to byte arrays to allow reuse across multiple packs</li>
+ *   <li>For each target Minecraft version, a pack ZIP is created with appropriate pack.mcmeta</li>
+ *   <li>MultiVersionUploadManager uploads all pack versions to the hosting provider</li>
+ *   <li>MultiVersionPackSender registers to listen for player joins</li>
+ *   <li>When a player joins, their client version is detected and the appropriate pack is sent</li>
+ * </ol>
+ *
+ * <h2>Configuration</h2>
+ *
+ * <p>Enable multi-version packs in settings.yml:
+ * <pre>
+ * Pack:
+ *   generation:
+ *     multi_version_packs: true
+ *   upload:
+ *     type: polymath  # self-host is not supported for multi-version
+ * </pre>
+ *
+ * @see PackVersionManager
+ * @see PackVersion
+ * @see ProtocolVersion
+ * @see PlayerVersionDetector
+ * @see io.th0rgal.oraxen.pack.dispatch.MultiVersionPackSender
+ * @see io.th0rgal.oraxen.pack.upload.MultiVersionUploadManager
  */
 public class MultiVersionPackGenerator {
 
