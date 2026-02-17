@@ -18,10 +18,29 @@ public class PackVersionManager {
 
     private final Map<String, PackVersion> packVersions = new ConcurrentHashMap<>();
     private final File packFolder;
-    private PackVersion serverPackVersion; // Pack version for the server's MC version
+    private PackVersion serverPackVersion;
+    private boolean silentMode = false;
 
     public PackVersionManager(File packFolder) {
         this.packFolder = packFolder;
+    }
+
+    public void setSilentMode(boolean silent) {
+        this.silentMode = silent;
+    }
+
+    private void logInfo(String message) {
+        if (silentMode) return;
+        try {
+            Logs.logInfo(message);
+        } catch (NoClassDefFoundError ignored) {}
+    }
+
+    private void logSuccess(String message) {
+        if (silentMode) return;
+        try {
+            Logs.logSuccess(message);
+        } catch (NoClassDefFoundError ignored) {}
     }
 
     /**
@@ -55,14 +74,14 @@ public class PackVersionManager {
         // 1.20-1.20.1
         addPackVersion("1.20", 15, 15, 17);
 
-        Logs.logSuccess("Defined " + packVersions.size() + " pack versions for multi-version support");
+        logSuccess("Defined " + packVersions.size() + " pack versions for multi-version support");
     }
 
     private void addPackVersion(String mcVersion, int format, int minFormat, int maxFormat) {
         File packFile = new File(packFolder, "pack_" + mcVersion.replace(".", "_") + ".zip");
         PackVersion version = new PackVersion(mcVersion, format, minFormat, maxFormat, packFile);
         packVersions.put(mcVersion, version);
-        Logs.logInfo("  - " + mcVersion + ": format " + format + " (supports " + minFormat + "-" + maxFormat + ")");
+        logInfo("  - " + mcVersion + ": format " + format + " (supports " + minFormat + "-" + maxFormat + ")");
     }
 
     /**
@@ -141,7 +160,7 @@ public class PackVersionManager {
         }
 
         if (this.serverPackVersion != null) {
-            Logs.logInfo("Server pack version set to: " + this.serverPackVersion.getMinecraftVersion()
+            logInfo("Server pack version set to: " + this.serverPackVersion.getMinecraftVersion()
                 + " (pack format " + this.serverPackVersion.getPackFormat() + ")");
         }
     }

@@ -20,6 +20,7 @@ class PackVersionManagerTest {
     @BeforeEach
     void setUp() {
         manager = new PackVersionManager(tempDir.toFile());
+        manager.setSilentMode(true); // Suppress logging in tests (no Bukkit available)
     }
 
     @Test

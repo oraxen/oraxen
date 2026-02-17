@@ -32,6 +32,7 @@ public class MultiVersionUploadManager {
     private final Map<PackVersion, HostingProvider> hostingProviders = new HashMap<>();
     private MultiVersionPackSender packSender;
     private PackReceiver receiver;
+    private volatile boolean cancelled = false;
 
     public MultiVersionUploadManager(OraxenPlugin plugin) {
         this.plugin = plugin;
@@ -71,17 +72,19 @@ public class MultiVersionUploadManager {
 
         SchedulerUtil.runTaskAsync(() -> {
             try {
-                // Upload all pack versions (async — network I/O)
+                if (cancelled) return;
+
                 uploadAllVersions(versionManager);
 
-                // Switch to main thread for Bukkit API calls (registerEvents is not thread-safe)
+                if (cancelled) return;
+
                 SchedulerUtil.runTask(() -> {
-                    // Unregister old listener to prevent duplicates
+                    if (cancelled) return;
+
                     if (packSender != null) {
                         packSender.unregister();
                     }
 
-                    // Create and register pack sender
                     packSender = new MultiVersionPackSender(versionManager);
 
                     if (reload && !Settings.SEND_ON_RELOAD.toBool()) {
@@ -89,7 +92,6 @@ public class MultiVersionUploadManager {
                     } else if (Settings.SEND_PACK.toBool() || Settings.SEND_JOIN_MESSAGE.toBool()) {
                         packSender.register();
 
-                        // Send to online players if requested
                         if (sendToPlayers && Settings.SEND_PACK.toBool()) {
                             for (Player player : Bukkit.getOnlinePlayers()) {
                                 packSender.sendPack(player);
@@ -244,6 +246,7 @@ public class MultiVersionUploadManager {
     }
 
     public void unregister() {
+        cancelled = true;
         if (packSender != null) {
             packSender.unregister();
         }
@@ -253,8 +256,6 @@ public class MultiVersionUploadManager {
             receiver = null;
         }
 
-        // Clear hosting providers
-        // Note: SelfHost is not supported in multi-version mode
         hostingProviders.clear();
     }
 }
