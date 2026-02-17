@@ -89,6 +89,23 @@ class PackVersionManagerTest {
     }
 
     @Test
+    void testSetServerPackVersionWithNormalizedVersion() {
+        manager.definePackVersions();
+
+        // Test that "1.21.0" (from MinecraftVersion.getVersion()) matches "1.21" in the map
+        manager.setServerPackVersion("1.21.0");
+        PackVersion serverVersion = manager.getServerPackVersion();
+        assertNotNull(serverVersion);
+        assertEquals("1.21", serverVersion.getMinecraftVersion());
+
+        // Test that "1.20.0" matches "1.20" in the map
+        manager.setServerPackVersion("1.20.0");
+        serverVersion = manager.getServerPackVersion();
+        assertNotNull(serverVersion);
+        assertEquals("1.20", serverVersion.getMinecraftVersion());
+    }
+
+    @Test
     void testGetServerPackVersionFallback() {
         manager.definePackVersions();
 

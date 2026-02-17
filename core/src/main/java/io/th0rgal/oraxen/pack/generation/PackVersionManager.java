@@ -143,6 +143,12 @@ public class PackVersionManager {
         // Find exact match first
         this.serverPackVersion = packVersions.get(serverMcVersion);
 
+        // Try normalized version (e.g., "1.21.0" -> "1.21")
+        if (this.serverPackVersion == null && serverMcVersion.endsWith(".0")) {
+            String normalized = serverMcVersion.replaceAll("\\.0$", "");
+            this.serverPackVersion = packVersions.get(normalized);
+        }
+
         // If no exact match, find compatible version based on pack format
         if (this.serverPackVersion == null) {
             int serverFormat = getPackFormatForVersion(serverMcVersion);
