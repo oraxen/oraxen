@@ -464,6 +464,7 @@ public class FurnitureMechanic extends Mechanic {
         if (checkSpace && this.notEnoughSpace(yaw, location)) return null;
         assert location.getWorld() != null;
         assert location.getWorld() != null;
+        BlockFace resolvedFacing = facing != null ? facing : BlockFace.NORTH;
 
         Class<? extends Entity> entityClass = getFurnitureEntityType().getEntityClass();
         if (entityClass == null) entityClass = ItemFrame.class;
@@ -474,7 +475,7 @@ public class FurnitureMechanic extends Mechanic {
         }
         item.setAmount(1);
 
-        Entity baseEntity = EntityUtils.spawnEntity(correctedSpawnLocation(location, facing), entityClass, (e) -> setEntityData(e, yaw, item, facing));
+        Entity baseEntity = EntityUtils.spawnEntity(correctedSpawnLocation(location, resolvedFacing), entityClass, (e) -> setEntityData(e, yaw, item, resolvedFacing));
         if (this.isModelEngine() && PluginUtils.isEnabled("ModelEngine")) {
             spawnModelEngineFurniture(baseEntity);
         }
@@ -483,6 +484,7 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     private boolean allowWallForLimitedFloor(Location location, BlockFace blockFace) {
+        if (blockFace == null) return false;
         return blockFace.getModY() == 0 && location.getBlock().getRelative(BlockFace.DOWN).isSolid();
     }
 
