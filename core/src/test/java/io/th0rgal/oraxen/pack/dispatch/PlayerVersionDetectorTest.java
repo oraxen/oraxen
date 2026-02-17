@@ -105,12 +105,40 @@ class PlayerVersionDetectorTest {
     void testVersionDetectionMethodEnum() {
         PlayerVersionDetector.VersionDetectionMethod[] methods = PlayerVersionDetector.VersionDetectionMethod.values();
         assertEquals(3, methods.length);
-        
-        assertEquals(PlayerVersionDetector.VersionDetectionMethod.NONE, 
+
+        assertEquals(PlayerVersionDetector.VersionDetectionMethod.NONE,
                      PlayerVersionDetector.VersionDetectionMethod.valueOf("NONE"));
-        assertEquals(PlayerVersionDetector.VersionDetectionMethod.VIA_VERSION, 
+        assertEquals(PlayerVersionDetector.VersionDetectionMethod.VIA_VERSION,
                      PlayerVersionDetector.VersionDetectionMethod.valueOf("VIA_VERSION"));
-        assertEquals(PlayerVersionDetector.VersionDetectionMethod.PROTOCOL_SUPPORT, 
+        assertEquals(PlayerVersionDetector.VersionDetectionMethod.PROTOCOL_SUPPORT,
                      PlayerVersionDetector.VersionDetectionMethod.valueOf("PROTOCOL_SUPPORT"));
+    }
+
+    @Test
+    void testProtocolToVersionStringThreadSafety() throws InterruptedException {
+        // Verify protocolToVersionString is safe to call from multiple threads
+        int threadCount = 8;
+        int iterationsPerThread = 100;
+        Thread[] threads = new Thread[threadCount];
+        boolean[] errors = {false};
+
+        for (int t = 0; t < threadCount; t++) {
+            threads[t] = new Thread(() -> {
+                for (int i = 0; i < iterationsPerThread; i++) {
+                    try {
+                        assertEquals("1.21.4", PlayerVersionDetector.protocolToVersionString(769));
+                        assertEquals("1.20.3", PlayerVersionDetector.protocolToVersionString(765));
+                        assertEquals("1.21", PlayerVersionDetector.protocolToVersionString(767));
+                    } catch (Throwable e) {
+                        errors[0] = true;
+                    }
+                }
+            });
+        }
+
+        for (Thread thread : threads) thread.start();
+        for (Thread thread : threads) thread.join();
+
+        assertFalse(errors[0], "Protocol version lookups should be thread-safe");
     }
 }

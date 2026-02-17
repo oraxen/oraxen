@@ -24,30 +24,36 @@ public class PlayerVersionDetector {
     /**
      * Initializes the version detector by checking for available version detection plugins.
      * This is called lazily on first use to ensure it's ready when players join.
+     * Thread-safe: uses double-checked locking to prevent redundant initialization.
      */
     public static void initialize() {
         if (initialized) return;
-        
-        // Try ViaVersion first (most popular and reliable)
-        if (tryInitializeViaVersion()) {
-            detectionMethod = VersionDetectionMethod.VIA_VERSION;
-            Logs.logSuccess("Player version detection enabled via ViaVersion");
-            return;
-        }
 
-        // Try ProtocolSupport as fallback
-        if (tryInitializeProtocolSupport()) {
-            detectionMethod = VersionDetectionMethod.PROTOCOL_SUPPORT;
-            Logs.logSuccess("Player version detection enabled via ProtocolSupport");
-            return;
-        }
+        synchronized (PlayerVersionDetector.class) {
+            if (initialized) return;
 
-        // No version detection available
-        detectionMethod = VersionDetectionMethod.NONE;
-        Logs.logWarning("No version detection plugin found (ViaVersion/ProtocolSupport)");
-        Logs.logWarning("All players will receive the server's pack version");
-        
-        initialized = true;
+            // Try ViaVersion first (most popular and reliable)
+            if (tryInitializeViaVersion()) {
+                detectionMethod = VersionDetectionMethod.VIA_VERSION;
+                Logs.logSuccess("Player version detection enabled via ViaVersion");
+                initialized = true;
+                return;
+            }
+
+            // Try ProtocolSupport as fallback
+            if (tryInitializeProtocolSupport()) {
+                detectionMethod = VersionDetectionMethod.PROTOCOL_SUPPORT;
+                Logs.logSuccess("Player version detection enabled via ProtocolSupport");
+                initialized = true;
+                return;
+            }
+
+            // No version detection available
+            detectionMethod = VersionDetectionMethod.NONE;
+            Logs.logWarning("No version detection plugin found (ViaVersion/ProtocolSupport)");
+            Logs.logWarning("All players will receive the server's pack version");
+            initialized = true;
+        }
     }
 
     private static boolean tryInitializeViaVersion() {
@@ -128,7 +134,7 @@ public class PlayerVersionDetector {
                     return null;
             }
         } catch (Exception e) {
-            String playerName = player != null ? player.getName() : "unknown";
+            String playerName = player.getName();
             Logs.logWarning("Failed to detect protocol version for " + playerName + ": " + e.getMessage());
             return null;
         }
@@ -223,6 +229,19 @@ public class PlayerVersionDetector {
      */
     public static VersionDetectionMethod getDetectionMethod() {
         return detectionMethod;
+    }
+
+    /**
+     * Resets the detector state. Intended for testing and reload scenarios.
+     */
+    static void resetForTesting() {
+        synchronized (PlayerVersionDetector.class) {
+            initialized = false;
+            detectionMethod = VersionDetectionMethod.NONE;
+            viaVersionGetPlayerVersionMethod = null;
+            protocolSupportGetProtocolVersionMethod = null;
+            viaApiInstance = null;
+        }
     }
 
     public enum VersionDetectionMethod {
