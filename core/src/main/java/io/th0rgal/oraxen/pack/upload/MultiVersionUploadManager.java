@@ -19,9 +19,7 @@ import org.bukkit.event.HandlerList;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 
 /**
  * Manages uploading and distributing multiple pack versions to players.
@@ -29,7 +27,6 @@ import java.util.Map;
 public class MultiVersionUploadManager {
 
     private final OraxenPlugin plugin;
-    private final Map<PackVersion, HostingProvider> hostingProviders = new HashMap<>();
     private MultiVersionPackSender packSender;
     private PackReceiver receiver;
     private volatile boolean cancelled = false;
@@ -157,9 +154,6 @@ public class MultiVersionUploadManager {
         packVersion.setPackSHA1(provider.getSHA1());
         packVersion.setPackUUID(provider.getPackUUID()); // Use provider's content-based UUID
 
-        // Store provider
-        hostingProviders.put(packVersion, provider);
-
         // Fire upload event on main thread (matches UploadManager behavior)
         OraxenPackUploadEvent uploadEvent = new OraxenPackUploadEvent(provider);
         SchedulerUtil.runTask(() -> Bukkit.getPluginManager().callEvent(uploadEvent));
@@ -190,7 +184,5 @@ public class MultiVersionUploadManager {
             HandlerList.unregisterAll(receiver);
             receiver = null;
         }
-
-        hostingProviders.clear();
     }
 }
