@@ -48,20 +48,30 @@ public class PlayerVersionDetector {
         }
 
         try {
-            // ViaVersion API
             Class<?> viaApiClass = Class.forName("com.viaversion.viaversion.api.ViaAPI");
             Class<?> viaClass = Class.forName("com.viaversion.viaversion.api.Via");
 
-            // Get Via.getAPI() method
             Method getApiMethod = viaClass.getMethod("getAPI");
             viaApiInstance = getApiMethod.invoke(null);
 
-            // Get getPlayerVersion(Player) method from ViaAPI
-            viaVersionGetPlayerVersionMethod = viaApiClass.getMethod("getPlayerVersion", Object.class);
+            if (!tryGetViaVersionMethod(viaApiClass, "getPlayerProtocolVersion")
+                    && !tryGetViaVersionMethod(viaApiClass, "getPlayerVersion")) {
+                Logs.logWarning("ViaVersion detected but neither getPlayerProtocolVersion nor getPlayerVersion method found");
+                return false;
+            }
 
             return true;
         } catch (Exception e) {
             Logs.logWarning("ViaVersion detected but API initialization failed: " + e.getMessage());
+            return false;
+        }
+    }
+
+    private static boolean tryGetViaVersionMethod(Class<?> viaApiClass, String methodName) {
+        try {
+            viaVersionGetPlayerVersionMethod = viaApiClass.getMethod(methodName, Object.class);
+            return true;
+        } catch (NoSuchMethodException e) {
             return false;
         }
     }
