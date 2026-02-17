@@ -61,10 +61,6 @@ public final class ResourcePackFormatUtil {
         return 6;
     }
 
-    private static int fallbackByMinecraftVersion() {
-        return getPackFormatForVersion(MinecraftVersion.getCurrentVersion());
-    }
-
     @Nullable
     private static Integer resolveViaMinecraftClasses() {
         try {

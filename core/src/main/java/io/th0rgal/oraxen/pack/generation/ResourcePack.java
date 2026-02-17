@@ -90,20 +90,26 @@ public class ResourcePack {
         }
 
         if (multiVersionEnabled) {
-            // Unregister single-pack listener if switching from single-pack mode
+            // Unregister and clear single-pack manager if switching from single-pack mode.
+            // Clearing the reference prevents getPackURL()/getPackSHA1() from returning
+            // stale data from the old mode's manager.
             UploadManager oldUploadManager = OraxenPlugin.get().getUploadManager();
             if (oldUploadManager != null) {
                 oldUploadManager.unregister();
+                OraxenPlugin.get().setUploadManager(null);
             }
 
             generateMultiVersion();
             return;
         }
 
-        // Unregister multi-version listener if switching from multi-version mode
+        // Unregister and clear multi-version manager if switching from multi-version mode.
+        // Without clearing, OraxenPlugin.getPackURL()/getPackSHA1() would still check
+        // the stale multiVersionUploadManager first and return wrong pack data.
         io.th0rgal.oraxen.pack.upload.MultiVersionUploadManager oldMultiVersionManager = OraxenPlugin.get().getMultiVersionUploadManager();
         if (oldMultiVersionManager != null) {
             oldMultiVersionManager.unregister();
+            OraxenPlugin.get().setMultiVersionUploadManager(null);
         }
 
         // Legacy single-pack generation - prepare and generate base assets
