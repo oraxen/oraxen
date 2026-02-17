@@ -71,12 +71,24 @@ public class PackMcmetaUtils {
         }
     }
 
+    /**
+     * Returns the supported_formats range for the server's Minecraft version.
+     * These ranges match the definitions in {@link PackVersionManager#definePackVersions()}
+     * and ensure the single-pack pack.mcmeta has accurate metadata.
+     *
+     * @return int[2] with {min_inclusive, max_inclusive}, or {0,0} if unsupported
+     */
     public static int[] getSupportedFormatRange(MinecraftVersion serverVersion) {
-        if (serverVersion.isAtLeast(new MinecraftVersion("1.21"))) {
-            return new int[]{34, 999};
-        } else if (serverVersion.isAtLeast(new MinecraftVersion("1.20.2"))) {
-            return new int[]{18, 33};
-        }
+        // Ordered from newest to oldest — first match wins
+        if (serverVersion.isAtLeast(new MinecraftVersion("1.21.4"))) return new int[]{46, 999};
+        if (serverVersion.isAtLeast(new MinecraftVersion("1.21.2"))) return new int[]{42, 45};
+        if (serverVersion.isAtLeast(new MinecraftVersion("1.21")))   return new int[]{34, 41};
+        if (serverVersion.isAtLeast(new MinecraftVersion("1.20.5"))) return new int[]{32, 33};
+        if (serverVersion.isAtLeast(new MinecraftVersion("1.20.3"))) return new int[]{22, 31};
+        if (serverVersion.isAtLeast(new MinecraftVersion("1.20.2"))) return new int[]{18, 21};
+        if (serverVersion.isAtLeast(new MinecraftVersion("1.20")))   return new int[]{15, 17};
+
+        // Pre-1.20: supported_formats field not used (introduced in 1.20.2 / format 18)
         return new int[]{0, 0};
     }
 
