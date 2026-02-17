@@ -197,7 +197,7 @@ public class PlayerVersionDetector {
         return detectionMethod;
     }
 
-    private enum VersionDetectionMethod {
+    public enum VersionDetectionMethod {
         NONE,
         VIA_VERSION,
         PROTOCOL_SUPPORT
