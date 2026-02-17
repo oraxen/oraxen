@@ -74,16 +74,19 @@ public class ResourcePack {
     }
 
     public void generate() {
-        // Check if multi-version pack generation is enabled
         boolean multiVersionEnabled = Settings.MULTI_VERSION_PACKS.toBool();
         boolean isSelfHost = Settings.UPLOAD_TYPE.toString().equalsIgnoreCase("self-host");
 
-        // SelfHost is incompatible with multi-version (can only serve one file)
-        if (multiVersionEnabled && isSelfHost) {
-            Logs.logError("Multi-version packs are incompatible with self-host upload!");
-            Logs.logError("SelfHost can only serve one file at /pack.zip");
-            Logs.logError("Falling back to single-pack mode for this generation");
-            multiVersionEnabled = false; // Force fallback to single-pack
+        if (multiVersionEnabled) {
+            if (isSelfHost) {
+                Logs.logError("Multi-version packs are incompatible with self-host upload!");
+                Logs.logError("SelfHost can only serve one file at /pack.zip");
+                Logs.logError("Falling back to single-pack mode for this generation");
+                multiVersionEnabled = false;
+            } else if (!Settings.UPLOAD.toBool()) {
+                Logs.logWarning("Multi-version packs enabled but upload is disabled - skipping generation");
+                return;
+            }
         }
 
         if (multiVersionEnabled) {

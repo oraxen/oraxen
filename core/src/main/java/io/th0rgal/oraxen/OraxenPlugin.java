@@ -140,6 +140,7 @@ public class OraxenPlugin extends JavaPlugin {
         hudManager.parsedHudDisplays = hudManager.generateHudDisplays();
         Bukkit.getPluginManager().registerEvents(new ItemUpdater(), this);
         Bukkit.getPluginManager().registerEvents(new PackLoadingManager(), this);
+        io.th0rgal.oraxen.pack.generation.MultiVersionPackValidator.validateAndLogWarnings();
         resourcePack.generate();
         RecipesManager.load(this);
         invManager = new InvManager();
