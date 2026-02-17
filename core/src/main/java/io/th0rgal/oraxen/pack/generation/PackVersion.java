@@ -107,24 +107,7 @@ public class PackVersion implements Comparable<PackVersion> {
     }
 
     private int estimatePackFormatFromProtocol(int protocolVersion) {
-        // Protocol to pack format mapping (Minecraft 1.19+)
-        // https://minecraft.wiki/w/Protocol_version
-        // https://minecraft.wiki/w/Pack_format
-
-        if (protocolVersion >= 769) return 46; // 1.21.4 (protocol 769)
-        if (protocolVersion >= 768) return 42; // 1.21.2 (protocol 768+)
-        if (protocolVersion >= 767) return 34; // 1.21 (protocol 767)
-        if (protocolVersion >= 766) return 32; // 1.20.5 (protocol 766)
-        if (protocolVersion >= 765) return 22; // 1.20.3 (protocol 765)
-        if (protocolVersion >= 764) return 18; // 1.20.2 (protocol 764)
-        if (protocolVersion >= 763) return 15; // 1.20 (protocol 763)
-        if (protocolVersion >= 762) return 13; // 1.19.4 (protocol 762)
-        if (protocolVersion >= 761) return 12; // 1.19.3 (protocol 761)
-        if (protocolVersion >= 760) return 9;  // 1.19.1 (protocol 760)
-        if (protocolVersion >= 759) return 9;  // 1.19 (protocol 759)
-        if (protocolVersion >= 758) return 8;  // 1.18.2 (protocol 758)
-
-        return 6; // Fallback for older versions
+        return ProtocolVersion.getPackFormatForProtocol(protocolVersion);
     }
 
     @Override

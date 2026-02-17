@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.pack.dispatch;
 
+import io.th0rgal.oraxen.pack.generation.ProtocolVersion;
 import io.th0rgal.oraxen.utils.PluginUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.entity.Player;
@@ -161,29 +162,13 @@ public class PlayerVersionDetector {
 
     /**
      * Converts a protocol version number to a human-readable Minecraft version string.
-     * This is a utility function for logging/debugging and testing purposes.
+     * Delegates to ProtocolVersion.getVersionStringForProtocol() for consistency.
      *
      * @param protocol Protocol version number
      * @return Version string (e.g., "1.20.4"), or "Unknown (N)" if unknown
      */
     public static String protocolToVersionString(int protocol) {
-        // Map protocol versions to Minecraft versions (best effort)
-        // https://minecraft.wiki/w/Protocol_version
-
-        if (protocol >= 769) return "1.21.4+";
-        if (protocol >= 768) return "1.21.2";
-        if (protocol == 767) return "1.21";
-        if (protocol == 766) return "1.20.5";
-        if (protocol == 765) return "1.20.3";
-        if (protocol == 764) return "1.20.2";
-        if (protocol == 763) return "1.20.1";
-        if (protocol == 762) return "1.19.4";
-        if (protocol == 761) return "1.19.3";
-        if (protocol == 760) return "1.19.1";
-        if (protocol == 759) return "1.19";
-        if (protocol == 758) return "1.18.2";
-
-        return "Unknown (" + protocol + ")";
+        return ProtocolVersion.getVersionStringForProtocol(protocol);
     }
 
     /**
