@@ -9,7 +9,6 @@ import io.th0rgal.oraxen.utils.ResourcePackFormatUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -71,22 +70,11 @@ public class PackMcmetaUtils {
         }
     }
 
-    /**
-     * Returns the supported_formats range for the server's Minecraft version.
-     * Delegates to {@link PackVersionManager#getFormatRangeForPackFormat(int)} so the
-     * version-to-range mapping is defined in exactly one place.
-     *
-     * @return int[2] with {min_inclusive, max_inclusive}, or {0,0} if unsupported
-     */
-    public static int[] getSupportedFormatRange(MinecraftVersion serverVersion) {
-        int packFormat = ResourcePackFormatUtil.getPackFormatForVersion(serverVersion);
-        return PackVersionManager.getFormatRangeForPackFormat(packFormat);
-    }
-
     public static void updatePackMcmetaFile(Path mcmetaPath, MinecraftVersion serverVersion) {
         JsonObject existingMcmeta = readExistingMcmeta(mcmetaPath);
 
-        int packFormat = ResourcePackFormatUtil.getPackFormatForVersion(serverVersion);
+        // Use NMS reflection first (accurate for all versions), fall back to hardcoded mapping
+        int packFormat = ResourcePackFormatUtil.getCurrentResourcePackFormat();
         int[] formatRange = PackVersionManager.getFormatRangeForPackFormat(packFormat);
 
         JsonObject mcmeta = createPackMcmeta(packFormat, formatRange[0], formatRange[1], existingMcmeta);

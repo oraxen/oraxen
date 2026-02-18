@@ -151,6 +151,29 @@ public class PlayerVersionDetector {
             return (Integer) version;
         }
 
+        // ViaVersion 5.x returns a ProtocolVersion object instead of int.
+        // Use reflection to call getVersion() or getId() to extract the int value.
+        if (version != null) {
+            try {
+                Method getVersionMethod = version.getClass().getMethod("getVersion");
+                Object result = getVersionMethod.invoke(version);
+                if (result instanceof Integer) {
+                    return (Integer) result;
+                }
+            } catch (NoSuchMethodException ignored) {
+                // Try getId() as fallback
+            }
+            try {
+                Method getIdMethod = version.getClass().getMethod("getId");
+                Object result = getIdMethod.invoke(version);
+                if (result instanceof Integer) {
+                    return (Integer) result;
+                }
+            } catch (NoSuchMethodException ignored) {
+                // Neither method available
+            }
+        }
+
         return null;
     }
 

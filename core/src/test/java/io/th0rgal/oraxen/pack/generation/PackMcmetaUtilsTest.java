@@ -14,9 +14,8 @@ import static org.junit.jupiter.api.Assertions.*;
  * Tests that validate the supported_formats range data used by PackMcmetaUtils
  * is consistent with the pack version definitions in PackVersionManager.
  *
- * Direct testing of PackMcmetaUtils.createPackMcmeta() and getSupportedFormatRange()
- * requires Gson/Bukkit which are not on the test classpath, so we validate the
- * underlying data model instead.
+ * Direct testing of PackMcmetaUtils.createPackMcmeta() requires Gson/Bukkit
+ * which are not on the test classpath, so we validate the underlying data model instead.
  */
 class PackMcmetaUtilsTest {
 
@@ -26,8 +25,8 @@ class PackMcmetaUtilsTest {
     @Test
     void testPackVersionRangesAreContiguous() {
         // The supported_formats ranges in PackVersionManager (which feed into
-        // PackMcmetaUtils.createPackMcmeta for multi-version packs, and should
-        // match getSupportedFormatRange for single-pack mode) must be contiguous.
+        // PackMcmetaUtils.createPackMcmeta for multi-version packs and
+        // updatePackMcmetaFile for single-pack mode) must be contiguous.
         PackVersionManager manager = new PackVersionManager(tempDir.toFile());
         manager.setSilentMode(true);
         manager.definePackVersions();
@@ -104,7 +103,7 @@ class PackMcmetaUtilsTest {
 
     @Test
     void testExpectedVersionRanges() {
-        // Verify specific known ranges that getSupportedFormatRange should return
+        // Verify specific known ranges for each pack version
         PackVersionManager manager = new PackVersionManager(tempDir.toFile());
         manager.setSilentMode(true);
         manager.definePackVersions();
