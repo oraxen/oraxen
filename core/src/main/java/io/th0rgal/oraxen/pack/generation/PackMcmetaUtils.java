@@ -33,13 +33,14 @@ public class PackMcmetaUtils {
 
         pack.addProperty("pack_format", packFormat);
 
+        // Only add supported_formats when explicitly requested (minFormat > 0).
+        // When minFormat is 0, leave any existing supported_formats untouched
+        // so user customizations in pack.mcmeta are preserved.
         if (packFormat >= 18 && minFormat > 0) {
             JsonObject supportedFormats = new JsonObject();
             supportedFormats.addProperty("min_inclusive", minFormat);
             supportedFormats.addProperty("max_inclusive", maxFormat);
             pack.add("supported_formats", supportedFormats);
-        } else {
-            pack.remove("supported_formats");
         }
 
         root.add("pack", pack);

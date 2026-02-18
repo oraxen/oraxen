@@ -14,9 +14,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * Manages multiple versions of resource packs for different Minecraft client versions.
  *
  * <p>The canonical version-to-format-range mapping lives in {@link #VERSION_DEFINITIONS}.
- * Both {@link #definePackVersions()} and {@link #getFormatRangeForPackFormat(int)} read
- * from that single table, so there is exactly one place to update when Minecraft adds
- * a new pack format.</p>
+ * {@link #definePackVersions()} reads from that single table, so there is exactly
+ * one place to update when Minecraft adds a new pack format.</p>
  */
 public class PackVersionManager {
 
@@ -83,25 +82,6 @@ public class PackVersionManager {
         }
 
         logSuccess("Defined " + packVersions.size() + " pack versions for multi-version support");
-    }
-
-    /**
-     * Returns the supported_formats range for a given pack format.
-     * Looks up the range in {@link #VERSION_DEFINITIONS}, the same table
-     * that {@link #definePackVersions()} uses — eliminating data duplication.
-     *
-     * @param packFormat the server's pack format
-     * @return int[2] with {min_inclusive, max_inclusive}, or {0,0} if no range covers this format
-     */
-    public static int[] getFormatRangeForPackFormat(int packFormat) {
-        for (Object[] def : VERSION_DEFINITIONS) {
-            int min = (int) def[2];
-            int max = (int) def[3];
-            if (packFormat >= min && packFormat <= max) {
-                return new int[]{min, max};
-            }
-        }
-        return new int[]{0, 0};
     }
 
     private void addPackVersion(String mcVersion, int format, int minFormat, int maxFormat) {

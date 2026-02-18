@@ -35,10 +35,11 @@ public class PackCommand {
                     if (targets == null) return;
                     
                     var multiVersionManager = OraxenPlugin.get().getMultiVersionUploadManager();
-                    if (multiVersionManager != null && multiVersionManager.getPackSender() != null) {
+                    var mvPackSender = multiVersionManager != null ? multiVersionManager.getPackSender() : null;
+                    if (mvPackSender != null) {
                         // Multi-version mode: send version-appropriate packs
                         for (final Player target : targets) {
-                            multiVersionManager.getPackSender().sendPack(target);
+                            mvPackSender.sendPack(target);
                         }
                     } else {
                         // Single-pack mode: use regular UploadManager
