@@ -236,8 +236,9 @@ public class OraxenPlugin extends JavaPlugin {
             var versionManager = multiVersionUploadManager.getVersionManager();
             if (versionManager != null) {
                 var serverVersion = versionManager.getServerPackVersion();
-                if (serverVersion != null && serverVersion.getPackURL() != null) {
-                    return serverVersion.getPackURL();
+                if (serverVersion != null) {
+                    String url = serverVersion.getPackURL();
+                    if (url != null) return url;
                 }
             }
         }
@@ -256,8 +257,9 @@ public class OraxenPlugin extends JavaPlugin {
             var versionManager = multiVersionUploadManager.getVersionManager();
             if (versionManager != null) {
                 var serverVersion = versionManager.getServerPackVersion();
-                if (serverVersion != null && serverVersion.getPackSHA1() != null) {
-                    return serverVersion.getPackSHA1Hex();
+                if (serverVersion != null) {
+                    String hex = serverVersion.getPackSHA1Hex();
+                    if (hex != null) return hex;
                 }
             }
         }

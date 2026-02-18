@@ -76,7 +76,10 @@ public class MultiVersionUploadManager {
                 if (cancelled) return;
                 boolean contentChanged = uploadAllVersions(versionManager);
                 if (cancelled) return;
-                SchedulerUtil.runTask(() -> distributePacksToPlayers(reload, sendToPlayers, contentChanged));
+                // Capture the parameter in a local so the lambda cannot observe a
+                // later overwrite of the `this.versionManager` instance field.
+                final PackVersionManager vm = versionManager;
+                SchedulerUtil.runTask(() -> distributePacksToPlayers(vm, reload, sendToPlayers, contentChanged));
             } catch (Exception e) {
                 Logs.logError("Failed to upload and send multi-version packs: " + e.getMessage());
                 if (Settings.DEBUG.toBool()) e.printStackTrace();
@@ -91,13 +94,13 @@ public class MultiVersionUploadManager {
         }
     }
 
-    private void distributePacksToPlayers(boolean reload, boolean sendToPlayers, boolean contentChanged) {
+    private void distributePacksToPlayers(PackVersionManager vm, boolean reload, boolean sendToPlayers, boolean contentChanged) {
         if (cancelled) return;
 
         if (packSender != null) {
             packSender.unregister();
         }
-        packSender = new MultiVersionPackSender(versionManager);
+        packSender = new MultiVersionPackSender(vm);
 
         boolean shouldRegister = (Settings.SEND_PACK.toBool() || Settings.SEND_JOIN_MESSAGE.toBool())
                 && !(reload && !Settings.SEND_ON_RELOAD.toBool());
