@@ -175,10 +175,15 @@ public class PackVersionManager {
         // Find exact match first
         this.serverPackVersion = packVersions.get(serverMcVersion);
 
-        // Try normalized version (e.g., "1.21.0" -> "1.21")
-        if (this.serverPackVersion == null && serverMcVersion.endsWith(".0")) {
-            String normalized = serverMcVersion.substring(0, serverMcVersion.length() - 2);
-            this.serverPackVersion = packVersions.get(normalized);
+        // Try normalized version (e.g., "1.21.0" -> "1.21").
+        // Only strip a trailing ".0" when the last segment is exactly "0",
+        // so "1.21.20" does NOT become "1.21.2".
+        if (this.serverPackVersion == null) {
+            int lastDot = serverMcVersion.lastIndexOf('.');
+            if (lastDot > 0 && serverMcVersion.substring(lastDot + 1).equals("0")) {
+                String normalized = serverMcVersion.substring(0, lastDot);
+                this.serverPackVersion = packVersions.get(normalized);
+            }
         }
 
         // If no exact match, find compatible version based on pack format

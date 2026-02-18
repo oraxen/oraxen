@@ -17,12 +17,14 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * Manages uploading and distributing multiple pack versions to players.
@@ -170,16 +172,45 @@ public class MultiVersionUploadManager {
             throw new IOException("Failed to upload pack");
         }
 
-        // Store URL, SHA1, and UUID from provider
-        packVersion.setPackURL(provider.getPackURL());
-        packVersion.setPackSHA1(provider.getSHA1());
-        packVersion.setPackUUID(provider.getPackUUID());
+        // Capture provider state NOW, before the next upload overwrites it.
+        String url = provider.getPackURL();
+        byte[] sha1 = provider.getSHA1();
+        UUID uuid = provider.getPackUUID();
 
-        // Fire upload event on main thread (matches UploadManager behavior)
-        OraxenPackUploadEvent uploadEvent = new OraxenPackUploadEvent(provider);
+        packVersion.setPackURL(url);
+        packVersion.setPackSHA1(sha1);
+        packVersion.setPackUUID(uuid);
+
+        // Snapshot the provider so the event exposes this upload's data,
+        // not whatever the shared provider holds when the main thread processes it.
+        HostingProvider snapshot = new HostingProviderSnapshot(url, sha1, provider.getOriginalSHA1(), uuid);
+        OraxenPackUploadEvent uploadEvent = new OraxenPackUploadEvent(snapshot);
         SchedulerUtil.runTask(() -> Bukkit.getPluginManager().callEvent(uploadEvent));
 
-        Logs.logSuccess("  Uploaded: " + packVersion.getMinecraftVersion() + " -> " + provider.getPackURL());
+        Logs.logSuccess("  Uploaded: " + packVersion.getMinecraftVersion() + " -> " + url);
+    }
+
+    /** Immutable snapshot of a {@link HostingProvider}'s state at a point in time. */
+    private static final class HostingProviderSnapshot implements HostingProvider {
+        private final String packURL;
+        private final byte[] sha1;
+        private final String originalSHA1;
+        private final UUID packUUID;
+
+        HostingProviderSnapshot(String packURL, byte[] sha1, String originalSHA1, UUID packUUID) {
+            this.packURL = packURL;
+            this.sha1 = sha1;
+            this.originalSHA1 = originalSHA1;
+            this.packUUID = packUUID;
+        }
+
+        @Override public boolean uploadPack(File resourcePack) {
+            throw new UnsupportedOperationException("Snapshot provider is read-only");
+        }
+        @Override public String getPackURL() { return packURL; }
+        @Override public byte[] getSHA1() { return sha1; }
+        @Override public String getOriginalSHA1() { return originalSHA1; }
+        @Override public UUID getPackUUID() { return packUUID; }
     }
 
     private boolean isSelfHost() {
