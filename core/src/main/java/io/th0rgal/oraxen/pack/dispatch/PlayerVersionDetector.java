@@ -236,38 +236,7 @@ public class PlayerVersionDetector {
         return ProtocolVersion.getVersionStringForProtocol(protocol);
     }
 
-    /**
-     * Checks if version detection is available.
-     *
-     * @return true if ViaVersion or ProtocolSupport is available
-     */
-    public static boolean isAvailable() {
-        return detectionMethod != VersionDetectionMethod.NONE;
-    }
-
-    /**
-     * Gets the current detection method.
-     *
-     * @return Detection method being used
-     */
-    public static VersionDetectionMethod getDetectionMethod() {
-        return detectionMethod;
-    }
-
-    /**
-     * Resets the detector state. Intended for testing and reload scenarios.
-     */
-    static void resetForTesting() {
-        synchronized (PlayerVersionDetector.class) {
-            initialized = false;
-            detectionMethod = VersionDetectionMethod.NONE;
-            viaVersionGetPlayerVersionMethod = null;
-            protocolSupportGetProtocolVersionMethod = null;
-            viaApiInstance = null;
-        }
-    }
-
-    public enum VersionDetectionMethod {
+    enum VersionDetectionMethod {
         NONE,
         VIA_VERSION,
         PROTOCOL_SUPPORT

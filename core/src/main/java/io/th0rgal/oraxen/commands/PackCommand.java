@@ -57,9 +57,10 @@ public class PackCommand {
                 .withOptionalArguments(new EntitySelectorArgument.ManyPlayers("targets"))
                 .executes((sender, args) -> {
                     final Collection<Player> targets = (Collection<Player>) args.getOptional("targets").orElse(sender instanceof Player ? sender : null);
+                    String packUrl = OraxenPlugin.get().getPackURL();
                     if (targets != null) for (final Player target : targets)
                         Message.COMMAND_JOIN_MESSAGE.send(target, AdventureUtils.tagResolver("pack_url",
-                                OraxenPlugin.get().getPackURL() != null ? OraxenPlugin.get().getPackURL() : ""));
+                                packUrl != null ? packUrl : ""));
                 });
     }
 
