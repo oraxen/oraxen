@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import io.th0rgal.oraxen.utils.MinecraftVersion;
 import io.th0rgal.oraxen.utils.ResourcePackFormatUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.jetbrains.annotations.Nullable;
@@ -70,7 +69,7 @@ public class PackMcmetaUtils {
         }
     }
 
-    public static void updatePackMcmetaFile(Path mcmetaPath, MinecraftVersion serverVersion) {
+    public static void updatePackMcmetaFile(Path mcmetaPath) {
         JsonObject existingMcmeta = readExistingMcmeta(mcmetaPath);
 
         // Use NMS reflection first (accurate for all versions), fall back to hardcoded mapping

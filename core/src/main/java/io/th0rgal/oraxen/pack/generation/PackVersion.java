@@ -16,9 +16,10 @@ public class PackVersion implements Comparable<PackVersion> {
     private final int minFormatInclusive;
     private final int maxFormatInclusive;
     private final File packFile;
-    private UUID packUUID; // Not final - set by hosting provider after upload
-    private String packURL;
-    private byte[] packSHA1;
+    // Written on async upload thread, read from main/event thread — must be volatile.
+    private volatile UUID packUUID;
+    private volatile String packURL;
+    private volatile byte[] packSHA1;
 
     /**
      * Creates a new pack version.
@@ -36,7 +37,6 @@ public class PackVersion implements Comparable<PackVersion> {
         this.minFormatInclusive = minFormatInclusive;
         this.maxFormatInclusive = maxFormatInclusive;
         this.packFile = packFile;
-        // UUID will be set by hosting provider after upload (content-based for consistency)
         this.packUUID = null;
     }
 
@@ -101,13 +101,8 @@ public class PackVersion implements Comparable<PackVersion> {
      * @return true if this pack likely supports the protocol
      */
     public boolean supportsProtocol(int protocolVersion) {
-        // Map protocol versions to pack formats (best effort)
-        int estimatedFormat = estimatePackFormatFromProtocol(protocolVersion);
+        int estimatedFormat = ProtocolVersion.getPackFormatForProtocol(protocolVersion);
         return supportsFormat(estimatedFormat);
-    }
-
-    private int estimatePackFormatFromProtocol(int protocolVersion) {
-        return ProtocolVersion.getPackFormatForProtocol(protocolVersion);
     }
 
     @Override

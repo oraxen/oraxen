@@ -178,7 +178,7 @@ public class PackVersionManager {
 
         // Try normalized version (e.g., "1.21.0" -> "1.21")
         if (this.serverPackVersion == null && serverMcVersion.endsWith(".0")) {
-            String normalized = serverMcVersion.replace(".0", "");
+            String normalized = serverMcVersion.substring(0, serverMcVersion.length() - 2);
             this.serverPackVersion = packVersions.get(normalized);
         }
 

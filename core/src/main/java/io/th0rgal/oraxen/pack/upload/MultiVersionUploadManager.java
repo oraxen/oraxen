@@ -97,17 +97,16 @@ public class MultiVersionUploadManager {
         }
         packSender = new MultiVersionPackSender(versionManager);
 
-        if (reload && !Settings.SEND_ON_RELOAD.toBool()) {
-            packSender.unregister();
-        } else if (Settings.SEND_PACK.toBool() || Settings.SEND_JOIN_MESSAGE.toBool()) {
+        boolean shouldRegister = (Settings.SEND_PACK.toBool() || Settings.SEND_JOIN_MESSAGE.toBool())
+                && !(reload && !Settings.SEND_ON_RELOAD.toBool());
+
+        if (shouldRegister) {
             packSender.register();
             if (sendToPlayers && Settings.SEND_PACK.toBool() && contentChanged) {
                 for (Player player : Bukkit.getOnlinePlayers()) {
                     packSender.sendPack(player);
                 }
             }
-        } else {
-            packSender.unregister();
         }
 
         Logs.logSuccess("Multi-version pack upload and distribution complete");
@@ -122,12 +121,14 @@ public class MultiVersionUploadManager {
         Collection<PackVersion> versions = versionManager.getAllVersions();
         Logs.logInfo("Uploading " + versions.size() + " pack versions...");
 
+        // Create hosting provider once and reuse for all versions (avoids repeated
+        // reflection/initialization for external providers)
+        HostingProvider provider = HostingProviderFactory.createHostingProvider(false);
+
         Map<String, String> currentSHA1s = new HashMap<>();
         for (PackVersion packVersion : versions) {
             try {
-                uploadPackVersion(packVersion);
-                // Track the SHA1 for this version (getOriginalSHA1-equivalent from the provider
-                // is stored in PackVersion as byte[], convert to hex for comparison)
+                uploadPackVersion(packVersion, provider);
                 byte[] sha1Bytes = packVersion.getPackSHA1();
                 if (sha1Bytes != null) {
                     StringBuilder sb = new StringBuilder();
@@ -156,16 +157,12 @@ public class MultiVersionUploadManager {
         return anyChanged;
     }
 
-    private void uploadPackVersion(PackVersion packVersion) throws IOException {
+    private void uploadPackVersion(PackVersion packVersion, HostingProvider provider) throws IOException {
         Logs.logInfo("Uploading pack for Minecraft " + packVersion.getMinecraftVersion() + "...");
 
         // Fire pre-upload event
         OraxenPackPreUploadEvent event = new OraxenPackPreUploadEvent();
         EventUtils.callEvent(event);
-
-        // Create hosting provider for this version
-        // Note: SelfHost is not supported for multi-version (validated earlier)
-        HostingProvider provider = HostingProviderFactory.createHostingProvider(false);
 
         // Upload pack (provider calculates SHA-1 internally)
         boolean success = provider.uploadPack(packVersion.getPackFile());
@@ -176,7 +173,7 @@ public class MultiVersionUploadManager {
         // Store URL, SHA1, and UUID from provider
         packVersion.setPackURL(provider.getPackURL());
         packVersion.setPackSHA1(provider.getSHA1());
-        packVersion.setPackUUID(provider.getPackUUID()); // Use provider's content-based UUID
+        packVersion.setPackUUID(provider.getPackUUID());
 
         // Fire upload event on main thread (matches UploadManager behavior)
         OraxenPackUploadEvent uploadEvent = new OraxenPackUploadEvent(provider);

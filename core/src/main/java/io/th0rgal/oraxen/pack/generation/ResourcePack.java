@@ -90,6 +90,10 @@ public class ResourcePack {
         }
 
         if (multiVersionEnabled) {
+            // Detect mode-switch BEFORE nulling the old manager, so generateMultiVersion
+            // knows this is a reload even though both managers will be null by then.
+            boolean switchingFromSinglePack = OraxenPlugin.get().getUploadManager() != null;
+
             // Unregister and clear single-pack manager if switching from single-pack mode.
             // Clearing the reference prevents getPackURL()/getPackSHA1() from returning
             // stale data from the old mode's manager.
@@ -99,7 +103,7 @@ public class ResourcePack {
                 OraxenPlugin.get().setUploadManager(null);
             }
 
-            generateMultiVersion();
+            generateMultiVersion(switchingFromSinglePack);
             return;
         }
 
@@ -320,8 +324,10 @@ public class ResourcePack {
     /**
      * Generates multiple resource pack versions for different Minecraft client versions.
      * This method delegates to MultiVersionPackGenerator when multi_version_packs is enabled.
+     *
+     * @param switchingFromSinglePack true if we're switching from single-pack mode (treat as reload)
      */
-    private void generateMultiVersion() {
+    private void generateMultiVersion(boolean switchingFromSinglePack) {
         // Use shared generation logic
         List<VirtualFile> output = prepareAndGenerateBaseAssets();
 
@@ -332,7 +338,7 @@ public class ResourcePack {
 
         // Use MultiVersionPackGenerator for multi-version zip and upload
         MultiVersionPackGenerator multiVersionGenerator = new MultiVersionPackGenerator(packFolder);
-        multiVersionGenerator.generateMultipleVersions(output);
+        multiVersionGenerator.generateMultipleVersions(output, switchingFromSinglePack);
     }
 
     /**
@@ -356,8 +362,7 @@ public class ResourcePack {
         if (!mcmetaPath.toFile().exists())
             return;
 
-        MinecraftVersion currentVersion = MinecraftVersion.getCurrentVersion();
-        PackMcmetaUtils.updatePackMcmetaFile(mcmetaPath, currentVersion);
+        PackMcmetaUtils.updatePackMcmetaFile(mcmetaPath);
     }
 
     /**

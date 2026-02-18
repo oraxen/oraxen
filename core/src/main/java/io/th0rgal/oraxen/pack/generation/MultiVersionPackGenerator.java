@@ -85,8 +85,9 @@ public class MultiVersionPackGenerator {
      * Each version will have a different pack.mcmeta with appropriate pack_format.
      *
      * @param output Virtual files to include in all pack versions
+     * @param switchingFromSinglePack true if switching from single-pack mode (treat as reload)
      */
-    public void generateMultipleVersions(List<VirtualFile> output) {
+    public void generateMultipleVersions(List<VirtualFile> output, boolean switchingFromSinglePack) {
         Logs.logInfo("Generating multi-version resource packs...");
 
         // Fire event to allow modifications before generation
@@ -143,7 +144,7 @@ public class MultiVersionPackGenerator {
         Logs.logSuccess("Generated " + versions.size() + " pack versions successfully");
 
         // Upload and send packs to players
-        uploadAndSendPacks();
+        uploadAndSendPacks(switchingFromSinglePack);
     }
 
     private void generatePackVersion(PackVersion packVersion, List<MaterializedFile> materializedFiles, JsonObject originalMcmeta) throws IOException {
@@ -192,12 +193,12 @@ public class MultiVersionPackGenerator {
         return tempFile;
     }
 
-    private void uploadAndSendPacks() {
+    private void uploadAndSendPacks(boolean switchingFromSinglePack) {
         SchedulerUtil.runTask(() -> {
             io.th0rgal.oraxen.pack.upload.MultiVersionUploadManager uploadManager = OraxenPlugin.get().getMultiVersionUploadManager();
-            // Detect reload: either the multi-version manager already existed,
-            // or a single-pack UploadManager existed (mode-switch from single to multi)
-            boolean isReload = uploadManager != null || OraxenPlugin.get().getUploadManager() != null;
+            // Detect reload: either the multi-version manager already existed (re-generation),
+            // or we're switching from single-pack mode (which cleared the old manager before we got here).
+            boolean isReload = uploadManager != null || switchingFromSinglePack;
             if (uploadManager == null) {
                 uploadManager = new io.th0rgal.oraxen.pack.upload.MultiVersionUploadManager(OraxenPlugin.get());
                 OraxenPlugin.get().setMultiVersionUploadManager(uploadManager);
