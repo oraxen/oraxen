@@ -84,8 +84,9 @@ public class ResourcePack {
                 Logs.logError("Falling back to single-pack mode for this generation");
                 multiVersionEnabled = false;
             } else if (!Settings.UPLOAD.toBool()) {
-                Logs.logWarning("Multi-version packs enabled but upload is disabled - skipping generation");
-                return;
+                Logs.logWarning("Multi-version packs require upload to be enabled!");
+                Logs.logWarning("Falling back to single-pack mode for this generation");
+                multiVersionEnabled = false;
             }
         }
 

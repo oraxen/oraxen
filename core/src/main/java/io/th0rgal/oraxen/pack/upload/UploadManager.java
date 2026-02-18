@@ -118,6 +118,7 @@ public class UploadManager {
     }
 
     private void distributePacksToPlayers(boolean isReload, boolean contentChanged) {
+        if (cancelled) return;
         if (isReload && !Settings.SEND_ON_RELOAD.toBool() && packSender != null) {
             packSender.unregister();
         } else if (Settings.SEND_PACK.toBool() || Settings.SEND_JOIN_MESSAGE.toBool()) {
