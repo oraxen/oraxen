@@ -232,8 +232,9 @@ public class OraxenPlugin extends JavaPlugin {
      * In multi-version mode, returns the server's default pack version URL.
      */
     public String getPackURL() {
-        if (multiVersionUploadManager != null) {
-            var versionManager = multiVersionUploadManager.getVersionManager();
+        var mvManager = multiVersionUploadManager;
+        if (mvManager != null) {
+            var versionManager = mvManager.getVersionManager();
             if (versionManager != null) {
                 var serverVersion = versionManager.getServerPackVersion();
                 if (serverVersion != null) {
@@ -253,8 +254,9 @@ public class OraxenPlugin extends JavaPlugin {
      * In multi-version mode, returns the server's default pack version SHA1.
      */
     public String getPackSHA1() {
-        if (multiVersionUploadManager != null) {
-            var versionManager = multiVersionUploadManager.getVersionManager();
+        var mvManager = multiVersionUploadManager;
+        if (mvManager != null) {
+            var versionManager = mvManager.getVersionManager();
             if (versionManager != null) {
                 var serverVersion = versionManager.getServerPackVersion();
                 if (serverVersion != null) {

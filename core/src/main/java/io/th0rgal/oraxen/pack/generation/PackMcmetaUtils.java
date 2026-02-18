@@ -69,14 +69,20 @@ public class PackMcmetaUtils {
         }
     }
 
+    /**
+     * Updates the pack.mcmeta file for single-pack mode.
+     * Does NOT add supported_formats — single-pack mode targets only
+     * the server's version. Adding supported_formats would narrow the
+     * declared range and cause ViaVersion clients to see it as incompatible.
+     */
     public static void updatePackMcmetaFile(Path mcmetaPath) {
         JsonObject existingMcmeta = readExistingMcmeta(mcmetaPath);
 
         // Use NMS reflection first (accurate for all versions), fall back to hardcoded mapping
         int packFormat = ResourcePackFormatUtil.getCurrentResourcePackFormat();
-        int[] formatRange = PackVersionManager.getFormatRangeForPackFormat(packFormat);
 
-        JsonObject mcmeta = createPackMcmeta(packFormat, formatRange[0], formatRange[1], existingMcmeta);
+        // Pass 0 for minFormat to skip supported_formats in single-pack mode
+        JsonObject mcmeta = createPackMcmeta(packFormat, 0, 0, existingMcmeta);
 
         writePackMcmeta(mcmetaPath, mcmeta);
     }

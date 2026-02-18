@@ -36,8 +36,8 @@ public final class HostingProviderFactory {
             case "polymath" -> new Polymath(Settings.POLYMATH_SERVER.toString());
             case "self-host" -> {
                 if (!allowSelfHost) {
-                    Logs.logError("SelfHost cannot be used with multi-version packs");
-                    yield null;
+                    Logs.logError("SelfHost cannot be used with multi-version packs, falling back to Polymath");
+                    yield new Polymath(Settings.POLYMATH_SERVER.toString());
                 }
                 ConfigurationSection selfHostConfig = OraxenPlugin.get().getConfigsManager().getSettings()
                         .getConfigurationSection("Pack.upload.self-host");
