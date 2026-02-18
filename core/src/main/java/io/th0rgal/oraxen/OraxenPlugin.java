@@ -257,13 +257,7 @@ public class OraxenPlugin extends JavaPlugin {
             if (versionManager != null) {
                 var serverVersion = versionManager.getServerPackVersion();
                 if (serverVersion != null && serverVersion.getPackSHA1() != null) {
-                    // Convert byte[] SHA1 to hex string
-                    byte[] sha1 = serverVersion.getPackSHA1();
-                    StringBuilder sb = new StringBuilder();
-                    for (byte b : sha1) {
-                        sb.append(String.format("%02x", b));
-                    }
-                    return sb.toString();
+                    return serverVersion.getPackSHA1Hex();
                 }
             }
         }

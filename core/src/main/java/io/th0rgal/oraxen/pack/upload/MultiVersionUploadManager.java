@@ -131,11 +131,9 @@ public class MultiVersionUploadManager {
         for (PackVersion packVersion : versions) {
             try {
                 uploadPackVersion(packVersion, provider);
-                byte[] sha1Bytes = packVersion.getPackSHA1();
-                if (sha1Bytes != null) {
-                    StringBuilder sb = new StringBuilder();
-                    for (byte b : sha1Bytes) sb.append(String.format("%02x", b));
-                    currentSHA1s.put(packVersion.getMinecraftVersion(), sb.toString());
+                String sha1Hex = packVersion.getPackSHA1Hex();
+                if (sha1Hex != null) {
+                    currentSHA1s.put(packVersion.getMinecraftVersion(), sha1Hex);
                 }
             } catch (Exception e) {
                 Logs.logError("Failed to upload pack for " + packVersion.getMinecraftVersion() + ": " + e.getMessage());

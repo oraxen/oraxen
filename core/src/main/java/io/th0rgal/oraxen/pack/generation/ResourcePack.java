@@ -110,11 +110,9 @@ public class ResourcePack {
         // Unregister and clear multi-version manager if switching from multi-version mode.
         // Without clearing, OraxenPlugin.getPackURL()/getPackSHA1() would still check
         // the stale multiVersionUploadManager first and return wrong pack data.
-        io.th0rgal.oraxen.pack.upload.MultiVersionUploadManager oldMultiVersionManager = OraxenPlugin.get().getMultiVersionUploadManager();
-        if (oldMultiVersionManager != null) {
-            oldMultiVersionManager.unregister();
-            OraxenPlugin.get().setMultiVersionUploadManager(null);
-        }
+        // setMultiVersionUploadManager(null) internally calls unregister() on the
+        // old manager, so a separate unregister() call is not needed.
+        OraxenPlugin.get().setMultiVersionUploadManager(null);
 
         // Legacy single-pack generation - prepare and generate base assets
         List<VirtualFile> output = prepareAndGenerateBaseAssets();

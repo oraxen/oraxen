@@ -67,7 +67,9 @@ public class UploadManager {
             updatePackSenderInstance(updatePackSender);
             if (cancelled) return;
 
-            distributePacksToPlayers(isReload, contentChanged);
+            // Schedule player distribution on the main thread — Bukkit listener
+            // registration (packSender.register()) is not thread-safe.
+            SchedulerUtil.runTask(() -> distributePacksToPlayers(isReload, contentChanged));
         });
     }
 
