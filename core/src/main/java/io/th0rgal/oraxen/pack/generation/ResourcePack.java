@@ -2223,6 +2223,11 @@ public class ResourcePack {
         if (file.isDirectory() && "__MACOSX".equals(name))
             return true;
 
+        // Exclude all .zip files — these are generated outputs (main pack.zip and
+        // multi-version zips like pack_1_20.zip) and must not be included as pack assets
+        if (!file.isDirectory() && name.toLowerCase().endsWith(".zip"))
+            return true;
+
         return false;
     }
 

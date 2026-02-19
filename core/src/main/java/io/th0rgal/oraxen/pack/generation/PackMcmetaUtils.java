@@ -33,14 +33,17 @@ public class PackMcmetaUtils {
 
         pack.addProperty("pack_format", packFormat);
 
-        // Only add supported_formats when explicitly requested (minFormat > 0).
-        // When minFormat is 0, leave any existing supported_formats untouched
-        // so user customizations in pack.mcmeta are preserved.
         if (packFormat >= 18 && minFormat > 0) {
+            // Add supported_formats for 1.20.2+ packs when explicitly requested
             JsonObject supportedFormats = new JsonObject();
             supportedFormats.addProperty("min_inclusive", minFormat);
             supportedFormats.addProperty("max_inclusive", maxFormat);
             pack.add("supported_formats", supportedFormats);
+        } else if (packFormat < 18) {
+            // Remove any stale supported_formats from deep-copied mcmeta for pre-1.20.2 packs.
+            // supported_formats was introduced in pack_format 18; having it in older packs
+            // produces contradictory metadata (e.g., pack_format 15 with min 46).
+            pack.remove("supported_formats");
         }
 
         root.add("pack", pack);
