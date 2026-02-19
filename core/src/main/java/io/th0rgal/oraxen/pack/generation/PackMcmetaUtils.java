@@ -39,10 +39,12 @@ public class PackMcmetaUtils {
             supportedFormats.addProperty("min_inclusive", minFormat);
             supportedFormats.addProperty("max_inclusive", maxFormat);
             pack.add("supported_formats", supportedFormats);
-        } else if (packFormat < 18) {
-            // Remove any stale supported_formats from deep-copied mcmeta for pre-1.20.2 packs.
-            // supported_formats was introduced in pack_format 18; having it in older packs
-            // produces contradictory metadata (e.g., pack_format 15 with min 46).
+        } else {
+            // Remove any stale supported_formats from deep-copied mcmeta.
+            // For pre-1.20.2 packs (packFormat < 18): supported_formats was introduced
+            // in pack_format 18; having it produces contradictory metadata.
+            // For single-pack mode (minFormat == 0): supported_formats would narrow
+            // the declared range; removing it lets any client accept the pack.
             pack.remove("supported_formats");
         }
 

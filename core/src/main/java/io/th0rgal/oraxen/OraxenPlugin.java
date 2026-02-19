@@ -49,7 +49,7 @@ public class OraxenPlugin extends JavaPlugin {
     private ResourcesManager resourceManager;
     private BukkitAudiences audience;
     private UploadManager uploadManager;
-    private io.th0rgal.oraxen.pack.upload.MultiVersionUploadManager multiVersionUploadManager;
+    private volatile io.th0rgal.oraxen.pack.upload.MultiVersionUploadManager multiVersionUploadManager;
     private FontManager fontManager;
     private HudManager hudManager;
     private SoundManager soundManager;
@@ -243,8 +243,9 @@ public class OraxenPlugin extends JavaPlugin {
                 }
             }
         }
-        if (uploadManager != null) {
-            return uploadManager.getHostingProvider().getPackURL();
+        var um = uploadManager;
+        if (um != null) {
+            return um.getHostingProvider().getPackURL();
         }
         return null;
     }
@@ -265,8 +266,9 @@ public class OraxenPlugin extends JavaPlugin {
                 }
             }
         }
-        if (uploadManager != null) {
-            return uploadManager.getHostingProvider().getOriginalSHA1();
+        var um = uploadManager;
+        if (um != null) {
+            return um.getHostingProvider().getOriginalSHA1();
         }
         return null;
     }
