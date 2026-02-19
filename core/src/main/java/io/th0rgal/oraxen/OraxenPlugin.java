@@ -48,7 +48,7 @@ public class OraxenPlugin extends JavaPlugin {
     private ConfigsManager configsManager;
     private ResourcesManager resourceManager;
     private BukkitAudiences audience;
-    private UploadManager uploadManager;
+    private volatile UploadManager uploadManager;
     private volatile io.th0rgal.oraxen.pack.upload.MultiVersionUploadManager multiVersionUploadManager;
     private FontManager fontManager;
     private HudManager hudManager;
