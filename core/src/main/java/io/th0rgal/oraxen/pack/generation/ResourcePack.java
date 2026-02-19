@@ -51,6 +51,8 @@ public class ResourcePack {
     private final SoundGenerator soundGenerator = new SoundGenerator();
     private PackFileCollector fileCollector;
     private final TextShaderGenerator textShaderGenerator = new TextShaderGenerator();
+    /** Resolved multi-version flag (may differ from Settings if fallback occurred). */
+    private boolean multiVersionResolved = false;
 
     public ResourcePack() {
         // we use maps to avoid duplicate
@@ -74,6 +76,8 @@ public class ResourcePack {
                 multiVersionEnabled = false;
             }
         }
+
+        this.multiVersionResolved = multiVersionEnabled;
 
         if (multiVersionEnabled) {
             // Detect mode-switch BEFORE nulling the old manager, so generateMultiVersion
@@ -213,7 +217,8 @@ public class ResourcePack {
 
             // Multi-version mode ALWAYS needs predicates because older target clients (1.20-1.21.3)
             // cannot use item definitions and rely solely on legacy predicate model overrides.
-            if (AppearanceMode.shouldGenerateLegacyPredicates() || Settings.MULTI_VERSION_PACKS.toBool()) {
+            // Uses the resolved flag (not the raw setting) to respect single-pack fallback.
+            if (AppearanceMode.shouldGenerateLegacyPredicates() || multiVersionResolved) {
                 generatePredicates(filterForPredicates(texturedItems));
             }
         } else {

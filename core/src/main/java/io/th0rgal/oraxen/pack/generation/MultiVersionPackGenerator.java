@@ -130,9 +130,11 @@ public class MultiVersionPackGenerator {
 
         // Generate each pack version
         Collection<PackVersion> versions = versionManager.getAllVersions();
+        int successCount = 0;
         for (PackVersion packVersion : versions) {
             try {
                 generatePackVersion(packVersion, materializedFiles, originalMcmeta);
+                successCount++;
             } catch (Exception e) {
                 Logs.logError("Failed to generate pack for " + packVersion.getMinecraftVersion() + ": " + e.getMessage());
                 if (Settings.DEBUG.toBool()) {
@@ -141,7 +143,11 @@ public class MultiVersionPackGenerator {
             }
         }
 
-        Logs.logSuccess("Generated " + versions.size() + " pack versions successfully");
+        if (successCount == versions.size()) {
+            Logs.logSuccess("Generated " + successCount + " pack versions successfully");
+        } else {
+            Logs.logWarning("Generated " + successCount + "/" + versions.size() + " pack versions (" + (versions.size() - successCount) + " failed)");
+        }
 
         // Upload and send packs to players
         uploadAndSendPacks(switchingFromSinglePack);

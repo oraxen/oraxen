@@ -41,7 +41,7 @@ class PackFileCollector {
         final List<String> blacklist = Arrays.asList(excluded);
         if (files != null)
             for (final File file : files) {
-                if (shouldIgnorePackFile(file))
+                if (shouldIgnorePackFile(file, packFolder))
                     continue;
                 if (file.isDirectory())
                     getAllFiles(file, fileList, newFolder, excluded);
@@ -55,11 +55,15 @@ class PackFileCollector {
         final List<String> blacklist = Arrays.asList(excluded);
         if (files != null)
             for (final File file : files)
-                if (!file.isDirectory() && !blacklist.contains(file.getName()) && !shouldIgnorePackFile(file))
+                if (!file.isDirectory() && !blacklist.contains(file.getName()) && !shouldIgnorePackFile(file, packFolder))
                     readFileToVirtuals(fileList, file, newFolder);
     }
 
     static boolean shouldIgnorePackFile(File file) {
+        return shouldIgnorePackFile(file, null);
+    }
+
+    static boolean shouldIgnorePackFile(File file, File packFolder) {
         String name = file.getName();
         if (".DS_Store".equals(name) || "Thumbs.db".equalsIgnoreCase(name) || "desktop.ini".equalsIgnoreCase(name))
             return true;
@@ -67,9 +71,11 @@ class PackFileCollector {
         if (file.isDirectory() && "__MACOSX".equals(name))
             return true;
 
-        // Exclude all .zip files — these are generated outputs (main pack.zip and
-        // multi-version zips like pack_1_20.zip) and must not be included as pack assets
-        if (!file.isDirectory() && name.toLowerCase().endsWith(".zip"))
+        // Exclude .zip files only at the pack folder root — these are generated outputs
+        // (main pack.zip and multi-version zips like pack_1_20.zip). User .zip assets in
+        // subdirectories (e.g., assets/) are preserved.
+        if (!file.isDirectory() && name.toLowerCase().endsWith(".zip")
+                && packFolder != null && packFolder.equals(file.getParentFile()))
             return true;
 
         return false;
