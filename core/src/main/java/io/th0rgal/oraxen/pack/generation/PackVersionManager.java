@@ -37,7 +37,7 @@ public class PackVersionManager {
 
     private final Map<String, PackVersion> packVersions = new ConcurrentHashMap<>();
     private final File packFolder;
-    private PackVersion serverPackVersion;
+    private volatile PackVersion serverPackVersion;
     private boolean silentMode = false;
 
     public PackVersionManager(File packFolder) {
