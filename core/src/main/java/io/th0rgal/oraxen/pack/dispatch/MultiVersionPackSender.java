@@ -73,16 +73,17 @@ public class MultiVersionPackSender implements Listener {
     }
 
     private void sendPackVersion(Player player, PackVersion packVersion) {
-        if (packVersion == null) {
+        PackVersion resolvedVersion = resolveSendableVersion(packVersion);
+        if (resolvedVersion == null) {
             Logs.logError("Cannot send pack: no pack version available for player: " + player.getName());
             return;
         }
-        String url = packVersion.getPackURL();
-        byte[] sha1 = packVersion.getPackSHA1();
-        UUID uuid = packVersion.getPackUUID();
+        String url = resolvedVersion.getPackURL();
+        byte[] sha1 = resolvedVersion.getPackSHA1();
+        UUID uuid = resolvedVersion.getPackUUID();
 
         if (url == null || sha1 == null || uuid == null) {
-            Logs.logError("Pack version not fully uploaded (missing url/sha1/uuid): " + packVersion);
+            Logs.logError("Pack version not fully uploaded (missing url/sha1/uuid): " + resolvedVersion);
             return;
         }
 
@@ -112,23 +113,47 @@ public class MultiVersionPackSender implements Listener {
 
     private void sendWelcomeMessage(Player player, boolean delayed) {
         // Resolve the player's pack URL for the welcome message placeholder
-        String packUrl = resolvePackUrl(player);
+        String packUrl = resolvePackUrlForPlayer(player);
         PackSender.sendWelcomeMessage(player, delayed, packUrl);
     }
 
-    private String resolvePackUrl(Player player) {
+    public String resolvePackUrlForPlayer(Player player) {
         Integer protocolVersion = PlayerVersionDetector.getPlayerProtocolVersion(player);
         PackVersion packVersion = (protocolVersion != null)
                 ? versionManager.findBestVersionForProtocol(protocolVersion)
                 : null;
-        if (packVersion == null) {
-            packVersion = versionManager.getServerPackVersion();
-        }
+        packVersion = resolveSendableVersion(packVersion);
         if (packVersion == null) {
             Logs.logWarning("No pack version available for player: " + player.getName());
             return "";
         }
         String url = packVersion.getPackURL();
         return url != null ? url : "";
+    }
+
+    private PackVersion resolveSendableVersion(PackVersion preferred) {
+        if (hasUploadData(preferred)) {
+            return preferred;
+        }
+
+        PackVersion serverVersion = versionManager.getServerPackVersion();
+        if (hasUploadData(serverVersion)) {
+            return serverVersion;
+        }
+
+        for (PackVersion candidate : versionManager.getAllVersions()) {
+            if (hasUploadData(candidate)) {
+                return candidate;
+            }
+        }
+
+        return null;
+    }
+
+    private boolean hasUploadData(PackVersion packVersion) {
+        return packVersion != null
+                && packVersion.getPackURL() != null
+                && packVersion.getPackSHA1() != null
+                && packVersion.getPackUUID() != null;
     }
 }

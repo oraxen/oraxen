@@ -8,6 +8,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.UUID;
 
 /**
  * Detects the Minecraft client version of players using ViaVersion, ProtocolSupport, or other APIs.
@@ -16,6 +17,7 @@ public class PlayerVersionDetector {
 
     private static volatile VersionDetectionMethod detectionMethod = VersionDetectionMethod.NONE;
     private static Method viaVersionGetPlayerVersionMethod;
+    private static ViaVersionArgType viaVersionArgType = ViaVersionArgType.NONE;
     private static Method protocolSupportGetProtocolVersionMethod;
     private static Object viaApiInstance;
 
@@ -82,12 +84,17 @@ public class PlayerVersionDetector {
     }
 
     private static boolean tryGetViaVersionMethod(Class<?> viaApiClass, String methodName) {
-        try {
-            viaVersionGetPlayerVersionMethod = viaApiClass.getMethod(methodName, Object.class);
-            return true;
-        } catch (NoSuchMethodException e) {
-            return false;
+        // ViaVersion API signatures vary by version; UUID and Player are both used in the wild.
+        for (ViaVersionArgType argType : new ViaVersionArgType[]{ViaVersionArgType.UUID, ViaVersionArgType.PLAYER, ViaVersionArgType.OBJECT}) {
+            try {
+                viaVersionGetPlayerVersionMethod = viaApiClass.getMethod(methodName, argType.parameterType);
+                viaVersionArgType = argType;
+                return true;
+            } catch (NoSuchMethodException ignored) {
+                // Try next signature
+            }
         }
+        return false;
     }
 
     private static boolean tryInitializeProtocolSupport() {
@@ -146,7 +153,16 @@ public class PlayerVersionDetector {
             return null;
         }
 
-        Object version = viaVersionGetPlayerVersionMethod.invoke(viaApiInstance, player);
+        Object argument = switch (viaVersionArgType) {
+            case UUID -> player.getUniqueId();
+            case PLAYER, OBJECT -> player;
+            default -> null;
+        };
+        if (argument == null) {
+            return null;
+        }
+
+        Object version = viaVersionGetPlayerVersionMethod.invoke(viaApiInstance, argument);
         if (version instanceof Integer) {
             return (Integer) version;
         }
@@ -240,5 +256,18 @@ public class PlayerVersionDetector {
         NONE,
         VIA_VERSION,
         PROTOCOL_SUPPORT
+    }
+
+    private enum ViaVersionArgType {
+        NONE(null),
+        UUID(UUID.class),
+        PLAYER(Player.class),
+        OBJECT(Object.class);
+
+        private final Class<?> parameterType;
+
+        ViaVersionArgType(Class<?> parameterType) {
+            this.parameterType = parameterType;
+        }
     }
 }
