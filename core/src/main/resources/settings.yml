@@ -238,6 +238,7 @@ Pack:
     accepted:
       actions:
         message:
+          enabled: false
           # KICK / CHAT / ACTION_BAR / TITLE
           type: ACTION_BAR
           # Click and Hover elements are only available by using the CHAT type
@@ -255,7 +256,7 @@ Pack:
           # KICK / CHAT / ACTION_BAR / TITLE
           type: CHAT
           # Click and Hover elements are only available by using the CHAT type
-          content: "<red>You refused the ResourcePack, but you need it in order to see the new items. Please </red><click:run_command:'/oraxen pack send @p'><hover:show_text:'<green>Display more informations'><green><bold>CLICK HERE</bold></hover></click> <red>or type <bold>/oraxen pack send @p"
+          content: "<red>You refused the ResourcePack, but you need it in order to see the new items. Please </red><click:run_command:'/oraxen pack send'><hover:show_text:'<green>Display more information'><green><bold>CLICK HERE</bold></hover></click> <red>or type <bold>/oraxen pack send</bold>"
         # If you need to send commands
         commands:
           console: []
@@ -269,7 +270,7 @@ Pack:
           # KICK / CHAT / ACTION_BAR / TITLE
           type: CHAT
           # Click and Hover elements are only available by using the CHAT type
-          content: "<red>You failed to download the ResourcePack, but you need it in order to see the new items. Please </red><click:run_command:'/oraxen pack send @p'><hover:show_text:'<red>! loading the resourcepack from the game can cause lags'><red><bold>CLICK HERE</bold></hover></click> <red>to retry or type <bold>/oraxen pack send @p</bold>"
+          content: "<red>You failed to download the ResourcePack, but you need it in order to see the new items. Please </red><click:run_command:'/oraxen pack send'><hover:show_text:'<red>Loading the resource pack in game can cause lag'><red><bold>CLICK HERE</bold></hover></click> <red>to retry or type <bold>/oraxen pack send</bold>"
         # If you need to send commands
         commands:
           console: []
