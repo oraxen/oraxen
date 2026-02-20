@@ -134,17 +134,18 @@ public class MultiVersionPackSender implements Listener {
     }
 
     private PackVersion resolveSendableVersion(PackVersion preferred, Integer protocolVersion) {
+        int packFormat = protocolVersion != null ? ProtocolVersion.getPackFormatForProtocol(protocolVersion) : -1;
+
         if (hasUploadData(preferred)) {
             return preferred;
         }
 
         PackVersion serverVersion = versionManager.getServerPackVersion();
-        if (hasUploadData(serverVersion)) {
+        if (hasUploadData(serverVersion) && (protocolVersion == null || serverVersion.supportsFormat(packFormat))) {
             return serverVersion;
         }
 
         if (protocolVersion != null) {
-            int packFormat = ProtocolVersion.getPackFormatForProtocol(protocolVersion);
             return versionManager.getAllVersions().stream()
                     .filter(this::hasUploadData)
                     .filter(candidate -> candidate.supportsFormat(packFormat))

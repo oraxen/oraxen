@@ -109,25 +109,25 @@ public class MultiVersionPackGenerator {
         List<MaterializedFile> materializedFiles = new java.util.ArrayList<>();
         JsonObject originalMcmeta = null;
         for (VirtualFile file : output) {
-            // Skip pack.mcmeta as each version needs its own, but preserve user customizations
-            if (file.getPath().equals("pack.mcmeta") || file.getPath().endsWith("/pack.mcmeta")) {
-                try (InputStream inputStream = file.getInputStream()) {
-                    byte[] mcmetaBytes = org.apache.commons.io.IOUtils.toByteArray(inputStream);
-                    String mcmetaContent = new String(mcmetaBytes, StandardCharsets.UTF_8);
-                    originalMcmeta = JsonParser.parseString(mcmetaContent).getAsJsonObject();
-                } catch (Exception e) {
-                    Logs.logWarning("Failed to read pack.mcmeta: " + e.getMessage());
-                }
-                continue;
-            }
-
             try (InputStream inputStream = file.getInputStream()) {
                 byte[] content = org.apache.commons.io.IOUtils.toByteArray(inputStream);
                 materializedFiles.add(new MaterializedFile(file.getPath(), content));
+                if (isPackMcmeta(file.getPath())) {
+                    try {
+                        String mcmetaContent = new String(content, StandardCharsets.UTF_8);
+                        originalMcmeta = JsonParser.parseString(mcmetaContent).getAsJsonObject();
+                    } catch (Exception e) {
+                        Logs.logWarning("Failed to read pack.mcmeta: " + e.getMessage());
+                    }
+                }
             } catch (Exception e) {
                 Logs.logWarning("Failed to read VirtualFile " + file.getPath() + ": " + e.getMessage());
             }
         }
+
+        // Keep legacy pack.zip up to date for API callers using the same post-event
+        // output content as the generated multi-version packs.
+        writeLegacyPack(materializedFiles);
 
         // Generate each pack version
         Collection<PackVersion> versions = versionManager.getAllVersions();
@@ -160,6 +160,9 @@ public class MultiVersionPackGenerator {
         // Create fresh VirtualFiles for this pack version
         List<VirtualFile> versionOutput = new java.util.ArrayList<>();
         for (MaterializedFile mFile : materializedFiles) {
+            if (isPackMcmeta(mFile.path)) {
+                continue;
+            }
             // Create fresh InputStream for this pack version
             java.io.ByteArrayInputStream freshStream = new java.io.ByteArrayInputStream(mFile.content);
             String path = mFile.path;
@@ -201,6 +204,30 @@ public class MultiVersionPackGenerator {
         }
 
         return tempFile;
+    }
+
+    private void writeLegacyPack(List<MaterializedFile> materializedFiles) {
+        File legacyPack = new File(packFolder, packFolder.getName() + ".zip");
+        try {
+            List<VirtualFile> legacyOutput = new java.util.ArrayList<>(materializedFiles.size());
+            for (MaterializedFile mFile : materializedFiles) {
+                java.io.ByteArrayInputStream stream = new java.io.ByteArrayInputStream(mFile.content);
+                String path = mFile.path;
+                String parentFolder = path.contains("/") ? path.substring(0, path.lastIndexOf("/")) : "";
+                String name = path.contains("/") ? path.substring(path.lastIndexOf("/") + 1) : path;
+                legacyOutput.add(new VirtualFile(parentFolder, name, stream));
+            }
+            ZipUtils.writeZipFile(legacyPack, legacyOutput);
+        } catch (Exception e) {
+            Logs.logWarning("Failed to refresh legacy pack.zip in multi-version mode: " + e.getMessage());
+            if (Settings.DEBUG.toBool()) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private boolean isPackMcmeta(String path) {
+        return "pack.mcmeta".equals(path) || path.endsWith("/pack.mcmeta");
     }
 
     private void uploadAndSendPacks(boolean switchingFromSinglePack) {
