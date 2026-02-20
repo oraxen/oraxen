@@ -86,8 +86,12 @@ public class PlayerVersionDetector {
     private static boolean tryGetViaVersionMethod(Class<?> viaApiClass, String methodName) {
         // ViaVersion API signatures vary by version; UUID and Player are both used in the wild.
         for (ViaVersionArgType argType : new ViaVersionArgType[]{ViaVersionArgType.UUID, ViaVersionArgType.PLAYER, ViaVersionArgType.OBJECT}) {
+            Class<?> parameterType = argType.resolveParameterType();
+            if (parameterType == null) {
+                continue;
+            }
             try {
-                viaVersionGetPlayerVersionMethod = viaApiClass.getMethod(methodName, argType.parameterType);
+                viaVersionGetPlayerVersionMethod = viaApiClass.getMethod(methodName, parameterType);
                 viaVersionArgType = argType;
                 return true;
             } catch (NoSuchMethodException ignored) {
@@ -105,7 +109,11 @@ public class PlayerVersionDetector {
         try {
             // ProtocolSupport API
             Class<?> protocolSupportApiClass = Class.forName("protocolsupport.api.ProtocolSupportAPI");
-            protocolSupportGetProtocolVersionMethod = protocolSupportApiClass.getMethod("getProtocolVersion", Player.class);
+            Class<?> playerClass = ViaVersionArgType.PLAYER.resolveParameterType();
+            if (playerClass == null) {
+                return false;
+            }
+            protocolSupportGetProtocolVersionMethod = protocolSupportApiClass.getMethod("getProtocolVersion", playerClass);
 
             return true;
         } catch (Exception e) {
@@ -259,15 +267,37 @@ public class PlayerVersionDetector {
     }
 
     private enum ViaVersionArgType {
-        NONE(null),
+        NONE((Class<?>) null),
         UUID(UUID.class),
-        PLAYER(Player.class),
+        PLAYER("org.bukkit.entity.Player"),
         OBJECT(Object.class);
 
         private final Class<?> parameterType;
+        private final String parameterTypeName;
 
         ViaVersionArgType(Class<?> parameterType) {
             this.parameterType = parameterType;
+            this.parameterTypeName = null;
+        }
+
+        ViaVersionArgType(String parameterTypeName) {
+            this.parameterType = null;
+            this.parameterTypeName = parameterTypeName;
+        }
+
+        @Nullable
+        private Class<?> resolveParameterType() {
+            if (parameterType != null) {
+                return parameterType;
+            }
+            if (parameterTypeName == null) {
+                return null;
+            }
+            try {
+                return Class.forName(parameterTypeName);
+            } catch (ClassNotFoundException ignored) {
+                return null;
+            }
         }
     }
 }
