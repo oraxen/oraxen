@@ -322,6 +322,17 @@ public class ResourcePack {
             return;
         }
 
+        // Keep legacy pack.zip up to date for public API callers (OraxenPack.getPack/uploadPack)
+        // even when multi-version generation is enabled.
+        try {
+            ZipUtils.writeZipFile(pack, output);
+        } catch (Exception e) {
+            Logs.logWarning("Failed to refresh legacy pack.zip in multi-version mode: " + e.getMessage());
+            if (Settings.DEBUG.toBool()) {
+                e.printStackTrace();
+            }
+        }
+
         // Use MultiVersionPackGenerator for multi-version zip and upload
         MultiVersionPackGenerator multiVersionGenerator = new MultiVersionPackGenerator(packFolder);
         multiVersionGenerator.generateMultipleVersions(output, switchingFromSinglePack);
