@@ -81,7 +81,7 @@ command:
   join: |-
     <dark_gray><st>                             </st><dark_gray>{<aqua><bold>Ресурспак</bold><dark_gray>}<dark_gray><st>                          </st>
     <gray><bold>Чтобы увидеть новые предметы, вам нужно использовать специальный ресурспак (но не волнуйтесь, это не мешает вам использовать свои собственные одновременно).</bold>
-    <dark_gray>»<gray> Попробуйте загрузить его прямо в игре, <click:run_command:"oraxen pack send @p"><hover:show_text:"<red>! загрузка ресурспака из игры может вызвать задержки"><red><bold>НАЖМИТЕ ЗДЕСЬ</bold></hover></click>
+    <dark_gray>»<gray> Попробуйте загрузить его прямо в игре, <click:run_command:"/oraxen pack send"><hover:show_text:"<red>! загрузка ресурспака из игры может вызвать задержки"><red><bold>НАЖМИТЕ ЗДЕСЬ</bold></hover></click>
     <dark_gray>»<gray> Чтобы скачать его архивом, <hover:show_text:"<pack_url> <green>! установите его в  Настройки/Наборы ресурсов в вашей игре"><green><bold><click:OPEN_URL:"<pack_url>">НАЖМИТЕ ЗДЕСЬ</click></bold></hover>
 
   recipe:

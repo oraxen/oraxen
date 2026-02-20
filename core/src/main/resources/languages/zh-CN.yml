@@ -82,7 +82,7 @@ command:
 
     <gray><bold>要看到新的物品，你需要使用一个特殊的材质包包 (不用担心，你依然可以使用自己的材质包)。</bold>
 
-    <dark_gray>»<gray> 如果你想直接在游戏内载入它， <click:run_command:/oraxen pack send @p><hover:show_text:\"<red>/!\\ 加载材质包可能会造成卡顿\"><red><bold>点击这里</bold></hover></click>
+    <dark_gray>»<gray> 如果你想直接在游戏内载入它， <click:run_command:/oraxen pack send><hover:show_text:\"<red>/!\\ 加载材质包可能会造成卡顿\"><red><bold>点击这里</bold></hover></click>
 
     <dark_gray>»<gray> 如果想从网上下载， <click:open_url:<pack_url>><hover:show_text:\"<green>/!\\ 自行从游戏载入此材质包\"><green><bold>点击这里</bold></hover></click>
     "

@@ -81,7 +81,7 @@ command:
   join: |-
     <dark_gray><st>                           </st><dark_gray>{<aqua><bold>리소스 팩</bold><dark_gray>}<dark_gray><st>                        </st>
     <gray><bold>새로운 아이템을 보려면 Oraxen전용 리소스 팩을 사용해야합니다 (하지만 걱정하지 마세요, 이것은 동시에 여러분이 사용 중인 리소스 팩을 사용하는 것을 방해하지 않습니다).</bold>
-    <dark_gray>»<gray> 게임에서 직접로드하려면, <click:run_command:"oraxen pack send @p"><hover:show_text:"<red>! 게임에서 리소스 팩을 로드��는 것은 렉을 유발할 수 있습니다"><red><bold>여기를 클릭하세요</bold></hover></click>
+    <dark_gray>»<gray> 게임에서 직접로드하려면, <click:run_command:"/oraxen pack send"><hover:show_text:"<red>! 게임에서 리소스 팩을 로드��는 것은 렉을 유발할 수 있습니다"><red><bold>여기를 클릭하세요</bold></hover></click>
     <dark_gray>»<gray> 인터넷에서 다운로드하려면, <hover:show_text:"<pack_url> <green>! 게임의 옵션/리소스 팩에서 설치하십시오"><green><bold><click:OPEN_URL:"<pack_url>">여기를 클릭하세요</click></bold></hover>
 
   recipe:

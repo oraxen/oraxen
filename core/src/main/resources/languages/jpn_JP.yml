@@ -83,7 +83,7 @@ click></hover>  <#6f737d>»<#b8bbc2> レシピを表示します
   join: |-
     <dark_gray><st>                           </st><dark_gray>{<aqua><bold>リソースパック</bold><dark_gray>}<dark_gray><st>                        </st>
     <gray><bold>新しいアイテムを見るには特別なリソースパックを使用する必要があります（ただし、心配しないでください、これにより自分のリソースパックを同時に使用できるようになります）。</bold>
-    <dark_gray>»<gray> ゲームから直接読み込むためには、<click:run_command:"oraxen pack send @p"><hover:show_text:"<red>！ゲームからリソースパックを読み込むと遅延が発生することがあります"><red><bold>ここをクリック</bold></hover></click>
+    <dark_gray>»<gray> ゲームから直接読み込むためには、<click:run_command:"/oraxen pack send"><hover:show_text:"<red>！ゲームからリソースパックを読み込むと遅延が発生することがあります"><red><bold>ここをクリック</bold></hover></click>
     <dark_gray>»<gray> インターネットからダウンロードするには、<hover:show_text:"<pack_url> <green>！オプション/リソースパックからゲームにインストールしてください"><green><bold><click:OPEN_URL:"<pack_url>">ここをクリック</click></bold></hover>
 
   recipe:

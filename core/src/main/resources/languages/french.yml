@@ -82,7 +82,7 @@ command:
 
     <gray><bold>Pour voir les nouveaux items, vous devez utiliser un pack de ressources spécial (mais ne vous inquiétez pas, cela ne vous empêche pas d'utiliser le vôtre en même temps).</bold>
 
-    <dark_gray>»<gray> Pour essayer de le charger directement depuis le jeu, <click:run_command:/oraxen pack send @p><hover:show_text:\"<red>/!\\ charger le pack de ressources depuis le jeu peut provoquer des lags\"><red><bold>CLIQUER ICI</bold></hover></click>
+    <dark_gray>»<gray> Pour essayer de le charger directement depuis le jeu, <click:run_command:/oraxen pack send><hover:show_text:\"<red>/!\\ charger le pack de ressources depuis le jeu peut provoquer des lags\"><red><bold>CLIQUER ICI</bold></hover></click>
 
     <dark_gray>»<gray> Pour le télécharger depuis internet, <click:open_url:<pack_url>><hover:show_text:\"<green>/!\\ installez-le depuis Options/Pack de ressources dans votre jeu\"><green><bold>CLIQUER ICI</bold></hover></click>
     "
