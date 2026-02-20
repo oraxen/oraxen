@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.pack.upload;
 
-import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.events.OraxenPackPreUploadEvent;
 import io.th0rgal.oraxen.api.events.OraxenPackUploadEvent;
 import io.th0rgal.oraxen.config.Message;
@@ -10,22 +9,14 @@ import io.th0rgal.oraxen.pack.dispatch.PackSender;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.pack.receive.PackReceiver;
 import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
-import io.th0rgal.oraxen.pack.upload.hosts.Polymath;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.Plugin;
-import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Parameter;
-import java.nio.file.ProviderNotFoundException;
-import java.util.Locale;
 import java.util.Objects;
 
 public class UploadManager {
@@ -38,11 +29,12 @@ public class UploadManager {
     private final HostingProvider hostingProvider;
     private PackSender packSender;
     private PackReceiver receiver;
+    private volatile boolean cancelled = false;
 
     public UploadManager(final Plugin plugin) {
         this.plugin = plugin;
         enabled = Settings.UPLOAD.toBool();
-        hostingProvider = createHostingProvider();
+        hostingProvider = HostingProviderFactory.createHostingProvider(true);
     }
 
     public HostingProvider getHostingProvider() {
@@ -57,135 +49,99 @@ public class UploadManager {
         if (!enabled)
             return;
 
+        cancelled = false;
+        registerReceiverIfNeeded();
+
+        final long time = System.currentTimeMillis();
+        SchedulerUtil.runTaskAsync(() -> {
+            if (cancelled) return;
+
+            EventUtils.callEvent(new OraxenPackPreUploadEvent());
+            if (cancelled) return;
+
+            if (!uploadPack(resourcePack, time)) return;
+
+            boolean contentChanged = updateTrackingState();
+            if (cancelled) return;
+
+            updatePackSenderInstance(updatePackSender);
+            if (cancelled) return;
+
+            // Schedule player distribution on the main thread — Bukkit listener
+            // registration (packSender.register()) is not thread-safe.
+            SchedulerUtil.runTask(() -> distributePacksToPlayers(isReload, contentChanged));
+        });
+    }
+
+    private void registerReceiverIfNeeded() {
         if (Settings.RECEIVE_ENABLED.toBool() && receiver == null) {
             receiver = new PackReceiver();
             Bukkit.getPluginManager().registerEvents(receiver, plugin);
         }
-
-        final long time = System.currentTimeMillis();
-        SchedulerUtil.runTaskAsync(() -> {
-            EventUtils.callEvent(new OraxenPackPreUploadEvent());
-
-            Message.PACK_UPLOADING.log();
-            if (!hostingProvider.uploadPack(resourcePack.getFile())) {
-                Message.PACK_NOT_UPLOADED.log();
-                return;
-            }
-
-            OraxenPackUploadEvent uploadEvent = new OraxenPackUploadEvent(hostingProvider);
-            SchedulerUtil.runTask(() ->
-                    Bukkit.getPluginManager().callEvent(uploadEvent));
-
-            Message.PACK_UPLOADED.log(
-                    AdventureUtils.tagResolver("url", hostingProvider.getPackURL()),
-                    AdventureUtils.tagResolver("delay", String.valueOf(System.currentTimeMillis() - time)));
-
-            // Update tracking variables after successful upload, regardless of send settings
-            // This ensures tracking stays current even if settings are disabled
-            // Synchronize to prevent race conditions when multiple uploads occur concurrently
-            String currentSHA1 = hostingProvider.getOriginalSHA1();
-            String currentURL = hostingProvider.getPackURL();
-            boolean urlChanged;
-            boolean sha1Changed;
-            synchronized (trackingLock) {
-                urlChanged = !Objects.equals(currentURL, url);
-                sha1Changed = !Objects.equals(currentSHA1, previousSHA1);
-                url = currentURL;
-                previousSHA1 = currentSHA1;
-            }
-
-            if (packSender == null) packSender = new BukkitPackSender(hostingProvider);
-            else if (updatePackSender) {
-                packSender.unregister();
-                packSender = new BukkitPackSender(hostingProvider);
-            }
-
-            if (isReload && !Settings.SEND_ON_RELOAD.toBool() && packSender != null) packSender.unregister();
-            else if (Settings.SEND_PACK.toBool() || Settings.SEND_JOIN_MESSAGE.toBool()) {
-                packSender.register();
-                // Send pack if URL changed OR SHA1 changed (for self-hosted packs, URL doesn't change but SHA1 does)
-                if (urlChanged || sha1Changed) {
-                    for (Player player : Bukkit.getOnlinePlayers())
-                        packSender.sendPack(player);
-                }
-            } else if (packSender != null) packSender.unregister();
-        });
     }
 
-    private HostingProvider createHostingProvider() {
-        HostingProvider provider = switch (Settings.UPLOAD_TYPE.toString().toLowerCase(Locale.ROOT)) {
-            case "polymath" -> new Polymath(Settings.POLYMATH_SERVER.toString());
-            case "self-host" -> {
-                ConfigurationSection selfHostConfig = OraxenPlugin.get().getConfigsManager().getSettings()
-                        .getConfigurationSection("Pack.upload.self-host");
-                yield new io.th0rgal.oraxen.pack.upload.hosts.SelfHost(selfHostConfig);
-            }
-            case "external" -> createExternalProvider();
-            default -> null;
-        };
-
-        if (provider == null) {
-            Logs.logError("Unknown Hosting-Provider type: " + Settings.UPLOAD_TYPE);
-            Logs.logError("Polymath will be used instead.");
-            provider = new Polymath(Settings.POLYMATH_SERVER.toString());
+    private boolean uploadPack(ResourcePack resourcePack, long startTime) {
+        Message.PACK_UPLOADING.log();
+        if (!hostingProvider.uploadPack(resourcePack.getFile())) {
+            Message.PACK_NOT_UPLOADED.log();
+            return false;
         }
-        return provider;
+
+        OraxenPackUploadEvent uploadEvent = new OraxenPackUploadEvent(hostingProvider);
+        SchedulerUtil.runTask(() -> Bukkit.getPluginManager().callEvent(uploadEvent));
+
+        Message.PACK_UPLOADED.log(
+                AdventureUtils.tagResolver("url", hostingProvider.getPackURL()),
+                AdventureUtils.tagResolver("delay", String.valueOf(System.currentTimeMillis() - startTime)));
+        return true;
     }
 
-    private HostingProvider createExternalProvider() {
-        final Class<?> target;
-        final ConfigurationSection options = (ConfigurationSection) Settings.UPLOAD_OPTIONS.getValue();
-        final String klass = options.getString("class");
-        if (klass == null)
-            throw new ProviderNotFoundException("No provider set.");
-        try {
-            target = Class.forName(klass);
-        } catch (final Exception any) {
-            final ProviderNotFoundException error = new ProviderNotFoundException("Provider not found: " + klass);
-            error.addSuppressed(any);
-            throw error;
-        }
-        if (!HostingProvider.class.isAssignableFrom(target))
-            throw new ProviderNotFoundException(target + " is not a valid HostingProvider.");
-        return constructExternalHostingProvider(target, options);
-    }
-
-    private HostingProvider constructExternalHostingProvider(final Class<?> target,
-                                                             final ConfigurationSection options) {
-        Constructor<? extends HostingProvider> constructor = getConstructor(target);
-
-        try {
-            return constructor.getParameterCount() == 0 ? constructor.newInstance()
-                    : constructor.newInstance(options);
-        } catch (final InstantiationException e) {
-            throw (ProviderNotFoundException) new ProviderNotFoundException("Cannot alloc instance for " + target)
-                    .initCause(e);
-        } catch (final IllegalAccessException e) {
-            throw (ProviderNotFoundException) new ProviderNotFoundException("Failed to access " + target)
-                    .initCause(e);
-        } catch (final InvocationTargetException e) {
-            throw (ProviderNotFoundException) new ProviderNotFoundException("Exception in allocating instance.")
-                    .initCause(e.getCause());
+    /** Updates SHA1/URL tracking state and returns true if content changed. */
+    private boolean updateTrackingState() {
+        String currentSHA1 = hostingProvider.getOriginalSHA1();
+        String currentURL = hostingProvider.getPackURL();
+        synchronized (trackingLock) {
+            boolean changed = !Objects.equals(currentURL, url) || !Objects.equals(currentSHA1, previousSHA1);
+            url = currentURL;
+            previousSHA1 = currentSHA1;
+            return changed;
         }
     }
 
-    @NotNull
-    @SuppressWarnings("unchecked")
-    private static Constructor<? extends HostingProvider> getConstructor(Class<?> target) {
-        final Class<? extends HostingProvider> implement = target.asSubclass(HostingProvider.class);
-        Constructor<? extends HostingProvider> constructor = null;
-        for (final Constructor<?> implementConstructor : implement.getConstructors()) {
-            Parameter[] parameters = implementConstructor.getParameters();
-            if (parameters.length == 0 || (parameters.length == 1 && parameters[0].getType().equals(ConfigurationSection.class))) {
-                constructor = (Constructor<? extends HostingProvider>) implementConstructor;
-                break;
-            }
+    private void updatePackSenderInstance(boolean updatePackSender) {
+        if (packSender == null) {
+            packSender = new BukkitPackSender(hostingProvider);
+        } else if (updatePackSender) {
+            packSender.unregister();
+            packSender = new BukkitPackSender(hostingProvider);
         }
-
-        if (constructor == null) throw new ProviderNotFoundException("Invalid provider: " + target);
-        return constructor;
     }
 
+    private void distributePacksToPlayers(boolean isReload, boolean contentChanged) {
+        if (cancelled) return;
+        if (isReload && !Settings.SEND_ON_RELOAD.toBool() && packSender != null) {
+            packSender.unregister();
+        } else if (Settings.SEND_PACK.toBool() || Settings.SEND_JOIN_MESSAGE.toBool()) {
+            packSender.register();
+            if (contentChanged) {
+                for (Player player : Bukkit.getOnlinePlayers())
+                    packSender.sendPack(player);
+            }
+        } else if (packSender != null) {
+            packSender.unregister();
+        }
+    }
 
+    public void unregister() {
+        cancelled = true;
+        if (packSender != null) {
+            packSender.unregister();
+            packSender = null;
+        }
+        if (receiver != null) {
+            HandlerList.unregisterAll(receiver);
+            receiver = null;
+        }
+    }
 
 }

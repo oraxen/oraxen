@@ -3,9 +3,7 @@ package io.th0rgal.oraxen.pack.dispatch;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
-import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
-import io.th0rgal.oraxen.utils.VersionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -33,38 +31,8 @@ public class BukkitPackSender extends PackSender implements Listener {
 
     @Override
     public void sendPack(Player player) {
-        String layer = Settings.SEND_PACK_LAYER.toString();
-        boolean useBungeeLayer = layer != null && !layer.isEmpty();
-
-        // Pre-compute prompt conversions to avoid repetition
-        net.kyori.adventure.text.Component componentPrompt = AdventureUtils.MINI_MESSAGE.deserialize(prompt);
-        String legacyPrompt = AdventureUtils.LEGACY_SERIALIZER.serialize(componentPrompt);
-
-        if (VersionUtil.atOrAbove("1.20.3")) {
-            if (useBungeeLayer) {
-                // BungeeCord mode: Remove old Oraxen packs, then add without clearing proxy packs
-                player.removeResourcePacks(hostingProvider.getPackUUID());
-                player.addResourcePack(hostingProvider.getPackUUID(), hostingProvider.getPackURL(),
-                    hostingProvider.getSHA1(), legacyPrompt, mandatory);
-            } else if (VersionUtil.isPaperServer()) {
-                // Standalone Paper: setResourcePack clears all packs, supports Component prompt
-                player.setResourcePack(hostingProvider.getPackUUID(), hostingProvider.getPackURL(),
-                    hostingProvider.getSHA1(), componentPrompt, mandatory);
-            } else {
-                // Standalone Spigot: setResourcePack clears all packs, requires String prompt
-                player.setResourcePack(hostingProvider.getPackUUID(), hostingProvider.getPackURL(),
-                    hostingProvider.getSHA1(), legacyPrompt, mandatory);
-            }
-        } else {
-            // Pre-1.20.3 versions
-            if (VersionUtil.isPaperServer()) {
-                player.setResourcePack(hostingProvider.getPackURL(), hostingProvider.getSHA1(),
-                    componentPrompt, mandatory);
-            } else {
-                player.setResourcePack(hostingProvider.getPackURL(), hostingProvider.getSHA1(),
-                    legacyPrompt, mandatory);
-            }
-        }
+        sendResourcePack(player, hostingProvider.getPackUUID(), hostingProvider.getPackURL(),
+                hostingProvider.getSHA1(), prompt, mandatory);
     }
 
     @EventHandler(priority = EventPriority.NORMAL)

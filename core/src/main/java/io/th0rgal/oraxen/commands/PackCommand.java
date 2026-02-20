@@ -32,8 +32,24 @@ public class PackCommand {
                 .withOptionalArguments(new EntitySelectorArgument.ManyPlayers("targets"))
                 .executes((sender, args) -> {
                     final Collection<Player> targets = (Collection<Player>) args.getOptional("targets").orElse(sender instanceof Player ? sender : null);
-                    if (targets != null) for (final Player target : targets)
-                        OraxenPlugin.get().getUploadManager().getSender().sendPack(target);
+                    if (targets == null) return;
+                    
+                    var multiVersionManager = OraxenPlugin.get().getMultiVersionUploadManager();
+                    var mvPackSender = multiVersionManager != null ? multiVersionManager.getPackSender() : null;
+                    if (mvPackSender != null) {
+                        // Multi-version mode: send version-appropriate packs
+                        for (final Player target : targets) {
+                            mvPackSender.sendPack(target);
+                        }
+                    } else {
+                        // Single-pack mode: use regular UploadManager
+                        var uploadManager = OraxenPlugin.get().getUploadManager();
+                        var packSender = uploadManager != null ? uploadManager.getSender() : null;
+                        if (packSender == null) return;
+                        for (final Player target : targets) {
+                            packSender.sendPack(target);
+                        }
+                    }
                 });
     }
 
@@ -42,9 +58,18 @@ public class PackCommand {
                 .withOptionalArguments(new EntitySelectorArgument.ManyPlayers("targets"))
                 .executes((sender, args) -> {
                     final Collection<Player> targets = (Collection<Player>) args.getOptional("targets").orElse(sender instanceof Player ? sender : null);
-                    if (targets != null) for (final Player target : targets)
-                        Message.COMMAND_JOIN_MESSAGE.send(target, AdventureUtils.tagResolver("pack_url",
-                                (OraxenPlugin.get().getUploadManager().getHostingProvider().getPackURL())));
+                    if (targets == null) return;
+
+                    var multiVersionManager = OraxenPlugin.get().getMultiVersionUploadManager();
+                    var mvPackSender = multiVersionManager != null ? multiVersionManager.getPackSender() : null;
+                    String defaultPackUrl = OraxenPlugin.get().getPackURL();
+
+                    for (final Player target : targets) {
+                        String packUrl = mvPackSender != null
+                                ? mvPackSender.resolvePackUrlForPlayer(target)
+                                : (defaultPackUrl != null ? defaultPackUrl : "");
+                        Message.COMMAND_JOIN_MESSAGE.send(target, AdventureUtils.tagResolver("pack_url", packUrl));
+                    }
                 });
     }
 

@@ -17,6 +17,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.nms.GlyphHandlers;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.pack.dispatch.PackLoadingManager;
+import io.th0rgal.oraxen.pack.generation.PackVersionManager;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
@@ -47,7 +48,8 @@ public class OraxenPlugin extends JavaPlugin {
     private ConfigsManager configsManager;
     private ResourcesManager resourceManager;
     private BukkitAudiences audience;
-    private UploadManager uploadManager;
+    private volatile UploadManager uploadManager;
+    private volatile io.th0rgal.oraxen.pack.upload.MultiVersionUploadManager multiVersionUploadManager;
     private FontManager fontManager;
     private HudManager hudManager;
     private SoundManager soundManager;
@@ -139,6 +141,7 @@ public class OraxenPlugin extends JavaPlugin {
         hudManager.parsedHudDisplays = hudManager.generateHudDisplays();
         Bukkit.getPluginManager().registerEvents(new ItemUpdater(), this);
         Bukkit.getPluginManager().registerEvents(new PackLoadingManager(), this);
+        io.th0rgal.oraxen.pack.generation.MultiVersionPackValidator.validateAndLogWarnings();
         resourcePack.generate();
         RecipesManager.load(this);
         invManager = new InvManager();
@@ -211,6 +214,63 @@ public class OraxenPlugin extends JavaPlugin {
 
     public void setUploadManager(final UploadManager uploadManager) {
         this.uploadManager = uploadManager;
+    }
+
+    public io.th0rgal.oraxen.pack.upload.MultiVersionUploadManager getMultiVersionUploadManager() {
+        return multiVersionUploadManager;
+    }
+
+    public void setMultiVersionUploadManager(final io.th0rgal.oraxen.pack.upload.MultiVersionUploadManager multiVersionUploadManager) {
+        if (this.multiVersionUploadManager != null) {
+            this.multiVersionUploadManager.unregister();
+        }
+        this.multiVersionUploadManager = multiVersionUploadManager;
+    }
+
+    /**
+     * Gets the pack URL, works in both single-pack and multi-version modes.
+     * In multi-version mode, returns the server's default pack version URL.
+     */
+    public String getPackURL() {
+        var mvManager = multiVersionUploadManager;
+        if (mvManager != null) {
+            var versionManager = mvManager.getVersionManager();
+            if (versionManager != null) {
+                var serverVersion = versionManager.getServerPackVersion();
+                if (serverVersion != null) {
+                    String url = serverVersion.getPackURL();
+                    if (url != null) return url;
+                }
+            }
+        }
+        var um = uploadManager;
+        if (um != null) {
+            return um.getHostingProvider().getPackURL();
+        }
+        return null;
+    }
+
+    /**
+     * Gets the pack SHA1 hash, works in both single-pack and multi-version modes.
+     * In multi-version mode, returns the server's default pack version SHA1.
+     */
+    public String getPackSHA1() {
+        var mvManager = multiVersionUploadManager;
+        if (mvManager != null) {
+            var versionManager = mvManager.getVersionManager();
+            if (versionManager != null) {
+                var serverVersion = versionManager.getServerPackVersion();
+                if (serverVersion != null) {
+                    String hex = serverVersion.getPackSHA1Hex();
+                    if (hex != null) return hex;
+                }
+            }
+        }
+        var um = uploadManager;
+        if (um != null) {
+            return um.getHostingProvider().getOriginalSHA1();
+        }
+        return null;
     }
 
     public FontManager getFontManager() {
