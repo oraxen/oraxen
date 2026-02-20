@@ -67,11 +67,13 @@ public class PackMcmetaUtils {
         }
     }
 
-    public static void writePackMcmeta(Path mcmetaPath, JsonObject mcmeta) {
+    public static boolean writePackMcmeta(Path mcmetaPath, JsonObject mcmeta) {
         try {
             Files.writeString(mcmetaPath, GSON.toJson(mcmeta), StandardCharsets.UTF_8);
+            return true;
         } catch (IOException e) {
             Logs.logWarning("Failed to write pack.mcmeta: " + e.getMessage());
+            return false;
         }
     }
 

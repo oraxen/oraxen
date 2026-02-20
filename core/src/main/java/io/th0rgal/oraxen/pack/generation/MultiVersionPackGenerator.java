@@ -14,6 +14,7 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Collection;
@@ -110,8 +111,8 @@ public class MultiVersionPackGenerator {
         for (VirtualFile file : output) {
             // Skip pack.mcmeta as each version needs its own, but preserve user customizations
             if (file.getPath().equals("pack.mcmeta") || file.getPath().endsWith("/pack.mcmeta")) {
-                try {
-                    byte[] mcmetaBytes = org.apache.commons.io.IOUtils.toByteArray(file.getInputStream());
+                try (InputStream inputStream = file.getInputStream()) {
+                    byte[] mcmetaBytes = org.apache.commons.io.IOUtils.toByteArray(inputStream);
                     String mcmetaContent = new String(mcmetaBytes, StandardCharsets.UTF_8);
                     originalMcmeta = JsonParser.parseString(mcmetaContent).getAsJsonObject();
                 } catch (Exception e) {
@@ -120,8 +121,8 @@ public class MultiVersionPackGenerator {
                 continue;
             }
 
-            try {
-                byte[] content = org.apache.commons.io.IOUtils.toByteArray(file.getInputStream());
+            try (InputStream inputStream = file.getInputStream()) {
+                byte[] content = org.apache.commons.io.IOUtils.toByteArray(inputStream);
                 materializedFiles.add(new MaterializedFile(file.getPath(), content));
             } catch (Exception e) {
                 Logs.logWarning("Failed to read VirtualFile " + file.getPath() + ": " + e.getMessage());
@@ -181,7 +182,7 @@ public class MultiVersionPackGenerator {
             Logs.logSuccess("  Created: " + packFile.getName() + " (" + formatFileSize(packFile.length()) + ")");
         } finally {
             // Always clean up temp file, even if exception occurs
-            tempMcmeta.delete();
+            Files.deleteIfExists(tempMcmeta.toPath());
         }
     }
 
@@ -194,7 +195,10 @@ public class MultiVersionPackGenerator {
         );
 
         File tempFile = new File(packFolder, "pack.mcmeta." + packVersion.getFileIdentifier() + ".tmp");
-        PackMcmetaUtils.writePackMcmeta(tempFile.toPath(), mcmeta);
+        if (!PackMcmetaUtils.writePackMcmeta(tempFile.toPath(), mcmeta)) {
+            Files.deleteIfExists(tempFile.toPath());
+            throw new IOException("Failed to write temporary pack.mcmeta for " + packVersion.getMinecraftVersion());
+        }
 
         return tempFile;
     }

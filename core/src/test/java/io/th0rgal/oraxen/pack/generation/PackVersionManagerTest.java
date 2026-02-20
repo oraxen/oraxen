@@ -103,6 +103,18 @@ class PackVersionManagerTest {
         serverVersion = manager.getServerPackVersion();
         assertNotNull(serverVersion);
         assertEquals("1.20", serverVersion.getMinecraftVersion());
+
+        // Test that "1.21.1" maps to the representative "1.21" definition
+        manager.setServerPackVersion("1.21.1");
+        serverVersion = manager.getServerPackVersion();
+        assertNotNull(serverVersion);
+        assertEquals("1.21", serverVersion.getMinecraftVersion());
+
+        // Test that build-style trailing zeros normalize correctly: "1.20.5.0" -> "1.20.5"
+        manager.setServerPackVersion("1.20.5.0");
+        serverVersion = manager.getServerPackVersion();
+        assertNotNull(serverVersion);
+        assertEquals("1.20.5", serverVersion.getMinecraftVersion());
     }
 
     @Test

@@ -152,19 +152,8 @@ public class PackVersionManager {
             return;
         }
 
-        // Find exact match first
-        this.serverPackVersion = packVersions.get(serverMcVersion);
-
-        // Try normalized version (e.g., "1.21.0" -> "1.21").
-        // Only strip a trailing ".0" when the last segment is exactly "0",
-        // so "1.21.20" does NOT become "1.21.2".
-        if (this.serverPackVersion == null) {
-            int lastDot = serverMcVersion.lastIndexOf('.');
-            if (lastDot > 0 && serverMcVersion.substring(lastDot + 1).equals("0")) {
-                String normalized = serverMcVersion.substring(0, lastDot);
-                this.serverPackVersion = packVersions.get(normalized);
-            }
-        }
+        // Try exact and normalized keys first before format fallback.
+        this.serverPackVersion = findByVersionKey(serverMcVersion);
 
         // If no exact match, find compatible version based on pack format
         if (this.serverPackVersion == null) {
@@ -186,6 +175,44 @@ public class PackVersionManager {
             logInfo("Server pack version set to: " + this.serverPackVersion.getMinecraftVersion()
                 + " (pack format " + this.serverPackVersion.getPackFormat() + ")");
         }
+    }
+
+    @Nullable
+    private PackVersion findByVersionKey(String serverMcVersion) {
+        LinkedHashSet<String> candidates = new LinkedHashSet<>();
+        candidates.add(serverMcVersion);
+
+        // Strip all trailing ".0" groups (e.g., "1.20.5.0" -> "1.20.5", "1.21.0.0" -> "1.21").
+        String normalized = serverMcVersion;
+        while (true) {
+            int lastDot = normalized.lastIndexOf('.');
+            if (lastDot <= 0) break;
+            if (!"0".equals(normalized.substring(lastDot + 1))) break;
+            normalized = normalized.substring(0, lastDot);
+            candidates.add(normalized);
+        }
+
+        // Map ".0"/".1" patch versions to their major.minor key when present
+        // (e.g., "1.21.1" and "1.21.0" should match key "1.21").
+        String[] parts = normalized.split("\\.");
+        if (parts.length >= 3) {
+            try {
+                int patch = Integer.parseInt(parts[2]);
+                if (patch <= 1) {
+                    candidates.add(parts[0] + "." + parts[1]);
+                }
+            } catch (NumberFormatException ignored) {
+                // Non-numeric versions should fall back to pack-format lookup below.
+            }
+        }
+
+        for (String candidate : candidates) {
+            PackVersion candidateVersion = packVersions.get(candidate);
+            if (candidateVersion != null) {
+                return candidateVersion;
+            }
+        }
+        return null;
     }
 
     /**
