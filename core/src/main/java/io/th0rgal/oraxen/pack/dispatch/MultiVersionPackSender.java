@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.pack.generation.PackVersion;
 import io.th0rgal.oraxen.pack.generation.PackVersionManager;
+import io.th0rgal.oraxen.pack.generation.ProtocolVersion;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
@@ -14,6 +15,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
+import java.util.Comparator;
 import java.util.UUID;
 
 /**
@@ -69,11 +71,11 @@ public class MultiVersionPackSender implements Listener {
         }
 
         // Send the pack
-        sendPackVersion(player, packVersion);
+        sendPackVersion(player, packVersion, protocolVersion);
     }
 
-    private void sendPackVersion(Player player, PackVersion packVersion) {
-        PackVersion resolvedVersion = resolveSendableVersion(packVersion);
+    private void sendPackVersion(Player player, PackVersion packVersion, Integer protocolVersion) {
+        PackVersion resolvedVersion = resolveSendableVersion(packVersion, protocolVersion);
         if (resolvedVersion == null) {
             Logs.logError("Cannot send pack: no pack version available for player: " + player.getName());
             return;
@@ -122,7 +124,7 @@ public class MultiVersionPackSender implements Listener {
         PackVersion packVersion = (protocolVersion != null)
                 ? versionManager.findBestVersionForProtocol(protocolVersion)
                 : null;
-        packVersion = resolveSendableVersion(packVersion);
+        packVersion = resolveSendableVersion(packVersion, protocolVersion);
         if (packVersion == null) {
             Logs.logWarning("No pack version available for player: " + player.getName());
             return "";
@@ -131,7 +133,7 @@ public class MultiVersionPackSender implements Listener {
         return url != null ? url : "";
     }
 
-    private PackVersion resolveSendableVersion(PackVersion preferred) {
+    private PackVersion resolveSendableVersion(PackVersion preferred, Integer protocolVersion) {
         if (hasUploadData(preferred)) {
             return preferred;
         }
@@ -141,13 +143,19 @@ public class MultiVersionPackSender implements Listener {
             return serverVersion;
         }
 
-        for (PackVersion candidate : versionManager.getAllVersions()) {
-            if (hasUploadData(candidate)) {
-                return candidate;
-            }
+        if (protocolVersion != null) {
+            int packFormat = ProtocolVersion.getPackFormatForProtocol(protocolVersion);
+            return versionManager.getAllVersions().stream()
+                    .filter(this::hasUploadData)
+                    .filter(candidate -> candidate.supportsFormat(packFormat))
+                    .max(Comparator.naturalOrder())
+                    .orElse(null);
         }
 
-        return null;
+        return versionManager.getAllVersions().stream()
+                .filter(this::hasUploadData)
+                .max(Comparator.naturalOrder())
+                .orElse(null);
     }
 
     private boolean hasUploadData(PackVersion packVersion) {

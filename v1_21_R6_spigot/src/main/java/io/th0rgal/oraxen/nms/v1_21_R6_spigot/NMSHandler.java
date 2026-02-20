@@ -11,6 +11,10 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.components.FoodComponent;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.util.Set;
+
 /**
  * NMS Handler for Spigot 1.21.11 (uses Spigot mappings).
  *
@@ -63,9 +67,249 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
     @Override
     public ItemStack copyItemNBTTags(ItemStack oldItem, ItemStack newItem) {
-        // Spigot 1.21.11 BuildTools mappings differ across builds. Keep this no-op fallback
-        // to avoid hard dependency on unstable internals.
-        return newItem;
+        try {
+            Class<?> craftItemStackClass = resolveCraftItemStackClass();
+            if (craftItemStackClass == null) {
+                return newItem;
+            }
+
+            Object oldNms = asNmsCopy(craftItemStackClass, oldItem);
+            Object newNms = asNmsCopy(craftItemStackClass, newItem);
+            if (oldNms == null || newNms == null) {
+                return newItem;
+            }
+
+            Class<?> tagClass = resolveTagClass();
+            if (tagClass == null) {
+                return newItem;
+            }
+
+            Object oldTag = saveItemTag(oldNms, tagClass);
+            Object newTag = saveItemTag(newNms, tagClass);
+            if (oldTag == null || newTag == null) {
+                return newItem;
+            }
+
+            copyCustomTagEntries(oldTag, newTag);
+            if (!applyItemTag(newNms, tagClass, newTag)) {
+                return newItem;
+            }
+
+            ItemStack converted = asBukkitCopy(craftItemStackClass, newNms);
+            return converted != null ? converted : newItem;
+        } catch (Exception e) {
+            if (io.th0rgal.oraxen.config.Settings.DEBUG.toBool()) {
+                Logs.logWarning("Failed to copy NBT tags on Spigot: " + e.getMessage());
+            }
+            return newItem;
+        }
+    }
+
+    private Class<?> resolveTagClass() {
+        try {
+            return Class.forName("net.minecraft.nbt.NBTTagCompound");
+        } catch (ClassNotFoundException ignored) {
+        }
+        try {
+            return Class.forName("net.minecraft.nbt.CompoundTag");
+        } catch (ClassNotFoundException ignored) {
+        }
+        return null;
+    }
+
+    private Class<?> resolveCraftItemStackClass() {
+        for (String className : new String[]{
+                "org.bukkit.craftbukkit.inventory.CraftItemStack",
+                "org.bukkit.craftbukkit.v1_21_R7.inventory.CraftItemStack",
+                "org.bukkit.craftbukkit.v1_21_R6.inventory.CraftItemStack"
+        }) {
+            try {
+                return Class.forName(className);
+            } catch (ClassNotFoundException ignored) {
+            }
+        }
+        return null;
+    }
+
+    private Object asNmsCopy(Class<?> craftItemStackClass, ItemStack item) throws Exception {
+        Method asNmsCopy = craftItemStackClass.getMethod("asNMSCopy", ItemStack.class);
+        return asNmsCopy.invoke(null, item);
+    }
+
+    private ItemStack asBukkitCopy(Class<?> craftItemStackClass, Object nmsItem) throws Exception {
+        for (Method method : craftItemStackClass.getMethods()) {
+            if (!"asBukkitCopy".equals(method.getName())) {
+                continue;
+            }
+            if (method.getParameterCount() != 1) {
+                continue;
+            }
+            if (!method.getParameterTypes()[0].isAssignableFrom(nmsItem.getClass())
+                    && !nmsItem.getClass().isAssignableFrom(method.getParameterTypes()[0])) {
+                continue;
+            }
+            Object result = method.invoke(null, nmsItem);
+            if (result instanceof ItemStack bukkitItem) {
+                return bukkitItem;
+            }
+        }
+        return null;
+    }
+
+    private Object saveItemTag(Object nmsItem, Class<?> tagClass) throws Exception {
+        Constructor<?> ctor = tagClass.getDeclaredConstructor();
+        ctor.setAccessible(true);
+        Object tag = ctor.newInstance();
+
+        Method save = findMethod(nmsItem.getClass(), tagClass, tagClass);
+        if (save == null) {
+            return null;
+        }
+        save.setAccessible(true);
+        return save.invoke(nmsItem, tag);
+    }
+
+    private boolean applyItemTag(Object nmsItem, Class<?> tagClass, Object tag) throws Exception {
+        Method setTag = findSetterMethod(nmsItem.getClass(), tagClass);
+        if (setTag == null) {
+            return false;
+        }
+        setTag.setAccessible(true);
+        setTag.invoke(nmsItem, tag);
+        return true;
+    }
+
+    @SuppressWarnings("unchecked")
+    private void copyCustomTagEntries(Object oldTag, Object newTag) throws Exception {
+        Set<String> keys = getTagKeys(oldTag);
+        if (keys == null || keys.isEmpty()) {
+            return;
+        }
+
+        Method getMethod = findTagGetMethod(oldTag.getClass());
+        Method putMethod = findMethodWithFirstParamStringAndSecondTag(newTag.getClass());
+        Method removeMethod = findTagRemoveMethod(newTag.getClass());
+        if (getMethod == null || putMethod == null) {
+            return;
+        }
+
+        getMethod.setAccessible(true);
+        putMethod.setAccessible(true);
+        if (removeMethod != null) {
+            removeMethod.setAccessible(true);
+        }
+
+        for (String key : keys) {
+            if (vanillaKeys.contains(key)) {
+                continue;
+            }
+
+            Object value = getMethod.invoke(oldTag, key);
+            if (value != null) {
+                putMethod.invoke(newTag, key, value);
+            } else if (removeMethod != null) {
+                removeMethod.invoke(newTag, key);
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Set<String> getTagKeys(Object tag) throws Exception {
+        for (String methodName : new String[]{"getAllKeys", "e", "c", "keySet"}) {
+            try {
+                Method method = tag.getClass().getMethod(methodName);
+                if (Set.class.isAssignableFrom(method.getReturnType())) {
+                    method.setAccessible(true);
+                    return (Set<String>) method.invoke(tag);
+                }
+            } catch (NoSuchMethodException ignored) {
+            }
+        }
+        return null;
+    }
+
+    private Method findMethod(Class<?> owner, Class<?> expectedReturnType, Class<?>... params) {
+        for (Method method : owner.getMethods()) {
+            if (method.getParameterCount() != params.length) {
+                continue;
+            }
+            Class<?>[] actualParams = method.getParameterTypes();
+            boolean matches = true;
+            for (int i = 0; i < params.length; i++) {
+                if (!actualParams[i].isAssignableFrom(params[i]) && !params[i].isAssignableFrom(actualParams[i])) {
+                    matches = false;
+                    break;
+                }
+            }
+            if (!matches) {
+                continue;
+            }
+            if (expectedReturnType != null
+                    && !expectedReturnType.isAssignableFrom(method.getReturnType())
+                    && !method.getReturnType().isAssignableFrom(expectedReturnType)) {
+                continue;
+            }
+            return method;
+        }
+        return null;
+    }
+
+    private Method findMethodWithFirstParamStringAndSecondTag(Class<?> owner) {
+        for (Method method : owner.getMethods()) {
+            if (method.getParameterCount() != 2) {
+                continue;
+            }
+            Class<?>[] params = method.getParameterTypes();
+            if (!String.class.isAssignableFrom(params[0])) {
+                continue;
+            }
+            if (!params[1].getName().startsWith("net.minecraft.nbt")) {
+                continue;
+            }
+            return method;
+        }
+        return null;
+    }
+
+    private Method findSetterMethod(Class<?> owner, Class<?> paramType) {
+        for (Method method : owner.getMethods()) {
+            if (method.getParameterCount() != 1) {
+                continue;
+            }
+            if (!method.getParameterTypes()[0].isAssignableFrom(paramType)
+                    && !paramType.isAssignableFrom(method.getParameterTypes()[0])) {
+                continue;
+            }
+            if (method.getReturnType() == Void.TYPE || method.getReturnType() == Boolean.TYPE) {
+                return method;
+            }
+        }
+        return null;
+    }
+
+    private Method findTagGetMethod(Class<?> owner) {
+        for (String methodName : new String[]{"get", "c"}) {
+            try {
+                Method method = owner.getMethod(methodName, String.class);
+                if (!method.getReturnType().getName().startsWith("net.minecraft.nbt")) {
+                    continue;
+                }
+                return method;
+            } catch (NoSuchMethodException ignored) {
+            }
+        }
+        return null;
+    }
+
+    private Method findTagRemoveMethod(Class<?> owner) {
+        for (String methodName : new String[]{"remove", "r"}) {
+            try {
+                Method method = owner.getMethod(methodName, String.class);
+                return method;
+            } catch (NoSuchMethodException ignored) {
+            }
+        }
+        return null;
     }
 
     @Override
