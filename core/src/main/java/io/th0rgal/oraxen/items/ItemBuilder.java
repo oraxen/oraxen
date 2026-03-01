@@ -819,7 +819,9 @@ public class ItemBuilder {
     }
 
     public ItemBuilder clone() {
-        return new ItemBuilder(itemStack.clone());
+        ItemBuilder clonedBuilder = new ItemBuilder(itemStack.clone());
+        clonedBuilder.genericComponents.putAll(genericComponents);
+        return clonedBuilder;
     }
 
     @SuppressWarnings("unchecked")
