@@ -98,7 +98,7 @@ Pack:
     # Enable this for servers with players on multiple Minecraft versions (ViaVersion/ProtocolSupport).
     # When enabled, generates separate pack files with correct pack_format for each client version.
     #
-    # Supported versions: 1.20, 1.20.2, 1.20.3-1.20.4, 1.20.5-1.20.6, 1.21-1.21.1, 1.21.2-1.21.3, 1.21.4+
+    # Supported versions: 1.20, 1.20.2, 1.20.3-1.20.4, 1.20.5-1.20.6, 1.21-1.21.1, 1.21.2-1.21.3, 1.21.4, 1.21.5, 1.21.6, 1.21.7-1.21.8, 1.21.9+
     # Each pack has appropriate pack_format and supported_formats range for client compatibility.
     #
     # Requirements:

@@ -23,8 +23,9 @@ class ProtocolVersionTest {
     @Test
     void testFromProtocol_BestMatch() {
         assertEquals(ProtocolVersion.MC_1_21_5, ProtocolVersion.fromProtocol(770));
-        assertEquals(ProtocolVersion.MC_1_21_5, ProtocolVersion.fromProtocol(771));
-        assertEquals(ProtocolVersion.MC_1_21_5, ProtocolVersion.fromProtocol(773));
+        assertEquals(ProtocolVersion.MC_1_21_6, ProtocolVersion.fromProtocol(771));
+        assertEquals(ProtocolVersion.MC_1_21_7, ProtocolVersion.fromProtocol(772));
+        assertEquals(ProtocolVersion.MC_1_21_9, ProtocolVersion.fromProtocol(773));
         assertEquals(ProtocolVersion.MC_1_21_11, ProtocolVersion.fromProtocol(774));
         assertEquals(ProtocolVersion.MC_1_21_11, ProtocolVersion.fromProtocol(775));
         assertEquals(ProtocolVersion.MC_1_21_11, ProtocolVersion.fromProtocol(800));
@@ -49,10 +50,10 @@ class ProtocolVersionTest {
 
     @Test
     void testGetPackFormatForProtocol() {
-        assertEquals(61, ProtocolVersion.getPackFormatForProtocol(774));
-        assertEquals(48, ProtocolVersion.getPackFormatForProtocol(770));
-        assertEquals(48, ProtocolVersion.getPackFormatForProtocol(771));
-        assertEquals(48, ProtocolVersion.getPackFormatForProtocol(773));
+        assertEquals(75, ProtocolVersion.getPackFormatForProtocol(774));
+        assertEquals(55, ProtocolVersion.getPackFormatForProtocol(770));
+        assertEquals(63, ProtocolVersion.getPackFormatForProtocol(771));
+        assertEquals(69, ProtocolVersion.getPackFormatForProtocol(773));
         assertEquals(46, ProtocolVersion.getPackFormatForProtocol(769));
         assertEquals(42, ProtocolVersion.getPackFormatForProtocol(768));
         assertEquals(34, ProtocolVersion.getPackFormatForProtocol(767));
@@ -89,9 +90,9 @@ class ProtocolVersionTest {
         assertEquals("1.21.11+", ProtocolVersion.getVersionStringForProtocol(775));
         assertEquals("1.21.11+", ProtocolVersion.getVersionStringForProtocol(776));
         assertEquals("1.21.11+", ProtocolVersion.getVersionStringForProtocol(800));
-        assertEquals("1.21.5+", ProtocolVersion.getVersionStringForProtocol(771));
-        assertEquals("1.21.5+", ProtocolVersion.getVersionStringForProtocol(772));
-        assertEquals("1.21.5+", ProtocolVersion.getVersionStringForProtocol(773));
+        assertEquals("1.21.6", ProtocolVersion.getVersionStringForProtocol(771));
+        assertEquals("1.21.7", ProtocolVersion.getVersionStringForProtocol(772));
+        assertEquals("1.21.9", ProtocolVersion.getVersionStringForProtocol(773));
         assertEquals("1.21.11", ProtocolVersion.getVersionStringForProtocol(774));
         assertEquals("1.21.5", ProtocolVersion.getVersionStringForProtocol(770));
     }
@@ -106,11 +107,11 @@ class ProtocolVersionTest {
     @Test
     void testEnumProperties() {
         assertEquals(774, ProtocolVersion.MC_1_21_11.getProtocol());
-        assertEquals(61, ProtocolVersion.MC_1_21_11.getPackFormat());
+        assertEquals(75, ProtocolVersion.MC_1_21_11.getPackFormat());
         assertEquals("1.21.11", ProtocolVersion.MC_1_21_11.getVersionString());
 
         assertEquals(770, ProtocolVersion.MC_1_21_5.getProtocol());
-        assertEquals(48, ProtocolVersion.MC_1_21_5.getPackFormat());
+        assertEquals(55, ProtocolVersion.MC_1_21_5.getPackFormat());
         assertEquals("1.21.5", ProtocolVersion.MC_1_21_5.getVersionString());
 
         assertEquals(769, ProtocolVersion.MC_1_21_4.getProtocol());

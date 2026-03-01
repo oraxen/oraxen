@@ -14,8 +14,8 @@ import org.bukkit.event.player.PlayerJoinEvent;
 
 public class BukkitPackSender extends PackSender implements Listener {
 
-    private static final String prompt = Settings.SEND_PACK_PROMPT.toString();
-    private static final boolean mandatory = Settings.SEND_PACK_MANDATORY.toBool();
+    private final String prompt = Settings.SEND_PACK_PROMPT.toString();
+    private final boolean mandatory = Settings.SEND_PACK_MANDATORY.toBool();
 
     public BukkitPackSender(HostingProvider hostingProvider) {
         super(hostingProvider);

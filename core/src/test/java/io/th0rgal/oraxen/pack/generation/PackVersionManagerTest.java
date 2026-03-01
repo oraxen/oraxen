@@ -51,12 +51,17 @@ class PackVersionManagerTest {
         assertNotNull(version);
         assertTrue(version.supportsFormat(22));
 
-        // Format 46 should match 1.21.4+ pack
+        // Format 46 should match 1.21.4 pack
         version = manager.findBestVersionForFormat(46);
         assertNotNull(version);
         assertEquals(46, version.getPackFormat());
 
-        // Unknown format should return null or best match
+        // Format 55 should match 1.21.5 pack
+        version = manager.findBestVersionForFormat(55);
+        assertNotNull(version);
+        assertEquals(55, version.getPackFormat());
+
+        // Unknown high format should match 1.21.9 pack (open-ended)
         version = manager.findBestVersionForFormat(999);
         assertNotNull(version); // Should return highest format pack
     }
@@ -161,8 +166,8 @@ class PackVersionManagerTest {
             .orElse(null);
 
         assertNotNull(highest);
-        assertEquals(46, highest.getPackFormat(), "max() should return highest pack format (46 for 1.21.4)");
-        assertEquals("1.21.4", highest.getMinecraftVersion());
+        assertEquals(69, highest.getPackFormat(), "max() should return highest pack format (69 for 1.21.9)");
+        assertEquals("1.21.9", highest.getMinecraftVersion());
     }
 
     @Test
