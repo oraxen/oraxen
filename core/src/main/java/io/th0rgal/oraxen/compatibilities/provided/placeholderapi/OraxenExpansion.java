@@ -40,9 +40,9 @@ public class OraxenExpansion extends PlaceholderExpansion {
     @Override
     public String onRequest(final OfflinePlayer player, @NotNull final String params) {
         if (params.equals("pack_url"))
-            return plugin.getUploadManager().getHostingProvider().getPackURL();
+            return plugin.getPackURL();
         else if (params.equals("pack_hash"))
-            return plugin.getUploadManager().getHostingProvider().getOriginalSHA1();
+            return plugin.getPackSHA1();
 
         // Handle positive shift: %oraxen_shift_N%
         if (params.startsWith("shift_")) {

@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.pack.upload.hosts;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
+import io.th0rgal.oraxen.utils.SHA1Utils;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.http.HttpEntity;
@@ -77,13 +78,7 @@ public class Polymath implements HostingProvider {
 
     @Override
     public byte[] getSHA1() {
-        int len = sha1.length();
-        byte[] data = new byte[len / 2];
-        for (int i = 0; i < len; i += 2) {
-            data[i / 2] = (byte) ((Character.digit(sha1.charAt(i), 16) << 4)
-                    + Character.digit(sha1.charAt(i + 1), 16));
-        }
-        return data;
+        return SHA1Utils.hexToBytes(sha1);
     }
 
     @Override

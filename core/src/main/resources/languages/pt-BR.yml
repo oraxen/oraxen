@@ -80,7 +80,7 @@ command:
   join: |-
     <dark_gray><st>                           </st><dark_gray>{<aqua><bold>Pacote de Recursos</bold><dark_gray>}<dark_gray><st>                        </st>
     <gray><bold>Para ver os novos itens, você precisa usar um pacote de recursos especial (mas não se preocupe, isso não impede que você use o seu ao mesmo tempo).</bold>
-    <dark_gray>»<gray> Para tentar carregá-lo diretamente do jogo, <click:run_command:oraxen pack send @p><hover:show_text:"<red>! carregar o pacote de recursos do jogo pode causar lag"><red><bold>CLIQUE AQUI</bold></hover></click>
+    <dark_gray>»<gray> Para tentar carregá-lo diretamente do jogo, <click:run_command:/oraxen pack send><hover:show_text:"<red>! carregar o pacote de recursos do jogo pode causar lag"><red><bold>CLIQUE AQUI</bold></hover></click>
     <dark_gray>»<gray> Para baixá-lo da internet, <hover:show_text:'<pack_url>' <green>! instale-o em Opções/Pacote de Recursos em seu jogo"><green><bold><click:OPEN_URL:'<pack_url>'>CLIQUE AQUI</click></bold></hover>."
 
   recipe:

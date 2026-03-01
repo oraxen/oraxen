@@ -82,7 +82,7 @@ command:
 
     <gray><bold>Abys viděl nové předměty, musíš mít speciální resourcepack (ale neboj, můžeš používat i vlastní ve stejnou chvíli).</bold>
 
-    <dark_gray>»<gray> Abyste jej nahráli přímo ze hry, <click:run_command:/oraxen pack send @p><hover:show_text:\"<red>/!\\ nahrání resourcepacku ze hry může způsobit lagy\"><red><bold>KLIK ZDE</bold></hover></click>
+    <dark_gray>»<gray> Abyste jej nahráli přímo ze hry, <click:run_command:/oraxen pack send><hover:show_text:\"<red>/!\\ nahrání resourcepacku ze hry může způsobit lagy\"><red><bold>KLIK ZDE</bold></hover></click>
 
     <dark_gray>»<gray> Pro stažení z internetu, <click:open_url:<pack_url>><hover:show_text:\"<green>/!\\ instalujte jej z Nastavení/Balíčky modifikací ve hře\"><green><bold>KLIK ZDE</bold></hover></click>
     "

@@ -80,7 +80,7 @@ command:
   join: |-
     <dark_gray><st>                           </st><dark_gray>{<aqua><bold>Resource Pack</bold><dark_gray>}<dark_gray><st>                        </st>
     <gray><bold>To see the new items you need to use a special resourcepack (but don't worry, this doesn't prevent you from using yours at the same time).</bold>
-    <dark_gray>»<gray> To try to load it directly from the game, <click:run_command:"oraxen pack send @p"><hover:show_text:"<red>! loading the resourcepack from the game can cause lags"><red><bold>CLICK HERE</bold></hover></click>
+    <dark_gray>»<gray> To try to load it directly from the game, <click:run_command:"/oraxen pack send"><hover:show_text:"<red>! loading the resourcepack from the game can cause lags"><red><bold>CLICK HERE</bold></hover></click>
     <dark_gray>»<gray> To download it from the internet, <hover:show_text:"<pack_url> <green>! install it from Options/ResourcePacks in your game"><green><bold><click:OPEN_URL:"<pack_url>">CLICK HERE</click></bold></hover>
 
   recipe:

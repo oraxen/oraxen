@@ -37,7 +37,7 @@ public class PackAction {
             ConfigurationSection messageSection = configurationSection.getConfigurationSection("message");
             assert messageSection != null;
             messageType = messageSection.getString("type");
-            if (messageSection.getBoolean("enabled", true)) {
+            if (messageSection.getBoolean("enabled", false)) {
                 messageContent = AdventureUtils.MINI_MESSAGE.deserialize(messageSection.getString("content", ""), tagResolver);
             }
         }

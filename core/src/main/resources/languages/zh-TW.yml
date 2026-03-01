@@ -82,7 +82,7 @@ command:
 
     <gray><bold>要看到新的物品，你需要使用一個特殊的材質包包 (不用擔心，你依然可以使用自己的材質包)。</bold>
 
-    <dark_gray>»<gray> 如果你想直接在遊戲內載入它， <click:run_command:/oraxen pack send @p><hover:show_text:\"<red>/!\\ 載入材質包可能會造成卡頓\"><red><bold>點選這裡</bold></hover></click>
+    <dark_gray>»<gray> 如果你想直接在遊戲內載入它， <click:run_command:/oraxen pack send><hover:show_text:\"<red>/!\\ 載入材質包可能會造成卡頓\"><red><bold>點選這裡</bold></hover></click>
 
     <dark_gray>»<gray> 如果想從網上下載， <click:open_url:<pack_url>><hover:show_text:\"<green>/!\\ 自行從遊戲載入此材質包\"><green><bold>點選這裡</bold></hover></click>
     "

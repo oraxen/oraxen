@@ -80,7 +80,7 @@ command:
   join: "
         <dark_gray><strikethrough>                           </strikethrough><dark_gray>{<aqua><bold> Resource Pack </bold><dark_gray>}<dark_gray><strikethrough>                        </strikethrough>
         <gray><bold>Um die neuen Gegenstände zu sehen, müsst ihr ein spezielles Ressourcenpaket verwenden (Keine Sorge, das hindert euch nicht daran, eure eigenen gleichzeitig zu verwenden).</bold>
-        <dark_gray>»<gray> Über das Spiel herunterladen, <click:run_command:/oraxen pack send @p><hover:show_text:\"<red>/!\\ Das Ressourcenpack über das Spiel zu laden kann zu Lag führen\"><red><bold>KLICK HIER</bold></hover></click>
+        <dark_gray>»<gray> Über das Spiel herunterladen, <click:run_command:/oraxen pack send><hover:show_text:\"<red>/!\\ Das Ressourcenpack über das Spiel zu laden kann zu Lag führen\"><red><bold>KLICK HIER</bold></hover></click>
         <dark_gray>»<gray> Direkt aus dem Internet herunterladen, <click:open_url:<pack_url>><hover:show_text:\"<green>/!\\ Installieren Sie es unter Optionen/Ressourcenpack in Ihrem Spiel\"><green><bold>KLICK HIER</bold></hover></click>
         "
 

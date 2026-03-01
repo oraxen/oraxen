@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.pack.upload.hosts;
 
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import io.th0rgal.oraxen.utils.SHA1Utils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.ConfigurationSection;
 
@@ -64,11 +65,7 @@ public class SelfHost implements HostingProvider {
             }
         }
         byte[] hashBytes = digest.digest();
-        StringBuilder sb = new StringBuilder();
-        for (byte b : hashBytes) {
-            sb.append(String.format("%02x", b));
-        }
-        this.sha1 = sb.toString();
+        this.sha1 = SHA1Utils.bytesToHex(hashBytes);
         this.packUUID = UUID.nameUUIDFromBytes(sha1.getBytes());
     }
 
@@ -141,13 +138,7 @@ public class SelfHost implements HostingProvider {
 
     @Override
     public byte[] getSHA1() {
-        int len = sha1.length();
-        byte[] data = new byte[len / 2];
-        for (int i = 0; i < len; i += 2) {
-            data[i / 2] = (byte) ((Character.digit(sha1.charAt(i), 16) << 4)
-                    + Character.digit(sha1.charAt(i + 1), 16));
-        }
-        return data;
+        return SHA1Utils.hexToBytes(sha1);
     }
 
     @Override
