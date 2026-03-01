@@ -234,6 +234,10 @@ public class StorageMechanic {
         if (gui != null) {
             return gui.getInventory().getContents();
         }
+        PersistentDataContainer pdc = baseEntity.getPersistentDataContainer();
+        if (pdc.has(STORAGE_KEY, DataType.ITEM_STACK_ARRAY)) {
+            return pdc.getOrDefault(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{});
+        }
         if (isShulker()) {
             ItemStack furnitureItem = FurnitureMechanic.getFurnitureItem(baseEntity);
             if (furnitureItem != null) {
@@ -244,7 +248,6 @@ public class StorageMechanic {
                 }
             }
         }
-        PersistentDataContainer pdc = baseEntity.getPersistentDataContainer();
         return pdc.getOrDefault(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{});
     }
 
