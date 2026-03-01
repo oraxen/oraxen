@@ -819,7 +819,9 @@ public class ItemBuilder {
     }
 
     public ItemBuilder clone() {
-        return new ItemBuilder(itemStack.clone());
+        ItemBuilder clonedBuilder = new ItemBuilder(itemStack.clone());
+        clonedBuilder.genericComponents.putAll(genericComponents);
+        return clonedBuilder;
     }
 
     @SuppressWarnings("unchecked")
@@ -847,6 +849,7 @@ public class ItemBuilder {
 
         itemStack.setItemMeta(itemMeta);
         finalItemStack = applyConsumableComponent(itemStack);
+        finalItemStack = applyGenericComponents(finalItemStack);
 
         return this;
     }
@@ -1030,6 +1033,15 @@ public class ItemBuilder {
         if (Settings.DEBUG.toBool()) {
             OraxenPlugin.get().getLogger()
                     .warning("NMSHandler is null - consumableComponent features will not work");
+        }
+        return itemStack;
+    }
+
+    private ItemStack applyGenericComponents(ItemStack itemStack) {
+        if (genericComponents.isEmpty()) return itemStack;
+        NMSHandler handler = NMSHandlers.getHandler();
+        if (handler != null) {
+            return handler.applyGenericComponents(itemStack, genericComponents);
         }
         return itemStack;
     }

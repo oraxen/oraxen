@@ -222,6 +222,51 @@ public class StorageMechanic {
         return openSound;
     }
 
+    /**
+     * Gets the stored items for an entity-based furniture storage without requiring player interaction.
+     * Reads directly from the entity's PersistentDataContainer.
+     *
+     * @param baseEntity The furniture base entity
+     * @return The stored items, or an empty array if no items are stored
+     */
+    public ItemStack[] getStorageContents(Entity baseEntity) {
+        StorageGui gui = frameStorages.get(baseEntity);
+        if (gui != null) {
+            return gui.getInventory().getContents();
+        }
+        PersistentDataContainer pdc = baseEntity.getPersistentDataContainer();
+        if (pdc.has(STORAGE_KEY, DataType.ITEM_STACK_ARRAY)) {
+            return pdc.getOrDefault(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{});
+        }
+        if (isShulker()) {
+            ItemStack furnitureItem = FurnitureMechanic.getFurnitureItem(baseEntity);
+            if (furnitureItem != null) {
+                ItemMeta itemMeta = furnitureItem.getItemMeta();
+                if (itemMeta != null) {
+                    PersistentDataContainer shulkerPDC = itemMeta.getPersistentDataContainer();
+                    return shulkerPDC.getOrDefault(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{});
+                }
+            }
+        }
+        return pdc.getOrDefault(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{});
+    }
+
+    /**
+     * Gets the stored items for a block-based storage without requiring player interaction.
+     * Reads directly from the block's PersistentDataContainer.
+     *
+     * @param block The storage block
+     * @return The stored items, or an empty array if no items are stored
+     */
+    public ItemStack[] getStorageContents(Block block) {
+        StorageGui gui = blockStorages.get(block);
+        if (gui != null) {
+            return gui.getInventory().getContents();
+        }
+        PersistentDataContainer pdc = BlockHelpers.getPDC(block);
+        return pdc.getOrDefault(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{});
+    }
+
     public boolean hasCloseSound() {
         return closeSound != null;
     }
