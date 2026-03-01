@@ -283,85 +283,69 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public boolean setComponent(ItemBuilder item, String componentKey, Object component) {
         try {
-            net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(new ItemStack(item.getType()));
             Object componentLocation = ResourceLocationHelper.parse("minecraft:" + componentKey.toLowerCase());
             if (componentLocation == null)
                 return false;
 
-            // Use reflection to call getOptional with the correct type
             net.minecraft.core.component.DataComponentType<?> componentType = getDataComponentType(componentLocation);
             if (componentType == null)
                 return false;
 
             if (component instanceof ConfigurationSection config) {
-                // Handle YAML configuration
                 net.minecraft.nbt.CompoundTag nbt = new net.minecraft.nbt.CompoundTag();
                 convertConfigToNBT(config, nbt);
 
-                // Get default component
-                Object defaultComponent = nmsItem.getComponents().get(componentType);
-                if (defaultComponent == null) {
-                    try {
-                        Class<?> componentClass = componentType.getClass();
-                        if (componentClass.getMethod("builder").getReturnType().getSimpleName().endsWith("Builder")) {
-                            defaultComponent = componentClass.getMethod("builder").invoke(null);
-                            defaultComponent = componentClass.getMethod("build").invoke(defaultComponent);
-                        } else {
-                            Constructor<?> constructor = componentClass.getDeclaredConstructor();
-                            constructor.setAccessible(true);
-                            defaultComponent = constructor.newInstance();
-                        }
-                    } catch (Exception e) {
-                        io.th0rgal.oraxen.utils.logs.Logs
-                                .logWarning("Failed to create default component for " + componentKey);
-                        return false;
-                    }
-                }
+                // Use Codec-based deserialization (works for all components including records)
+                com.mojang.serialization.Codec<?> codec = componentType.codecOrThrow();
+                var registryAccess = ((org.bukkit.craftbukkit.CraftServer) org.bukkit.Bukkit.getServer())
+                        .getServer().registryAccess();
+                var ops = net.minecraft.resources.RegistryOps.create(
+                        net.minecraft.nbt.NbtOps.INSTANCE, registryAccess);
+                var result = codec.parse(ops, nbt);
 
-                // Apply NBT to component
-                try {
-                    Method fromTag = defaultComponent.getClass().getMethod("fromTag",
-                            net.minecraft.nbt.CompoundTag.class);
-                    fromTag.setAccessible(true);
-                    Object parsedComponent = fromTag.invoke(defaultComponent, nbt);
-
-                    // Use reflection to access and modify the components map
-                    Field componentsField = net.minecraft.world.item.ItemStack.class.getDeclaredField("components");
-                    componentsField.setAccessible(true);
-                    Map components = (Map) componentsField.get(nmsItem);
-                    components.put(componentType, parsedComponent);
-
+                var parsedOptional = result.result();
+                if (parsedOptional.isPresent()) {
+                    item.setComponent(componentKey, parsedOptional.get());
                     return true;
-                } catch (Exception e) {
-                    io.th0rgal.oraxen.utils.logs.Logs
-                            .logWarning("Failed to apply NBT data to component " + componentKey);
-                    if (io.th0rgal.oraxen.config.Settings.DEBUG.toBool())
-                        e.printStackTrace();
+                } else {
+                    Logs.logWarning("Failed to parse component '" + componentKey + "': " +
+                            result.error().map(e -> e.message()).orElse("unknown error"));
                     return false;
                 }
             } else {
-                // Handle direct component object
-                try {
-                    // Use reflection to access and modify the components map
-                    Field componentsField = net.minecraft.world.item.ItemStack.class.getDeclaredField("components");
-                    componentsField.setAccessible(true);
-                    Map components = (Map) componentsField.get(nmsItem);
-                    components.put(componentType, component);
-
-                    return true;
-                } catch (Exception e) {
-                    io.th0rgal.oraxen.utils.logs.Logs.logWarning("Failed to set component " + componentKey);
-                    if (io.th0rgal.oraxen.config.Settings.DEBUG.toBool())
-                        e.printStackTrace();
-                    return false;
-                }
+                item.setComponent(componentKey, component);
+                return true;
             }
         } catch (Exception e) {
-            io.th0rgal.oraxen.utils.logs.Logs.logWarning("Failed to set component " + componentKey);
+            Logs.logWarning("Failed to set component " + componentKey);
             if (io.th0rgal.oraxen.config.Settings.DEBUG.toBool())
                 e.printStackTrace();
             return false;
         }
+    }
+
+    @Override
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    public ItemStack applyGenericComponents(ItemStack itemStack, java.util.Map<String, Object> components) {
+        if (components.isEmpty()) return itemStack;
+
+        net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(itemStack);
+        for (var entry : components.entrySet()) {
+            try {
+                Object location = ResourceLocationHelper.parse("minecraft:" + entry.getKey().toLowerCase());
+                if (location == null) continue;
+
+                DataComponentType componentType = getDataComponentType(location);
+                if (componentType == null) continue;
+
+                nmsItem.set(componentType, entry.getValue());
+            } catch (Exception e) {
+                Logs.logWarning("Failed to apply component '" + entry.getKey() + "'");
+                if (io.th0rgal.oraxen.config.Settings.DEBUG.toBool())
+                    e.printStackTrace();
+            }
+        }
+        return CraftItemStack.asBukkitCopy(nmsItem);
     }
 
     private void convertConfigToNBT(ConfigurationSection config, net.minecraft.nbt.CompoundTag nbt) {

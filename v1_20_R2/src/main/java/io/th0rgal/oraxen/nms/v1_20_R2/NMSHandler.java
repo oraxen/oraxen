@@ -195,4 +195,9 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         // Not supported in this version
         return false;
     }
+
+    @Override
+    public org.bukkit.inventory.ItemStack applyGenericComponents(org.bukkit.inventory.ItemStack itemStack, java.util.Map<String, Object> components) {
+        return itemStack;
+    }
 }

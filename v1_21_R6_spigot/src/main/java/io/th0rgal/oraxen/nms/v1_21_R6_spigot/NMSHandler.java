@@ -337,6 +337,11 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         return false;
     }
 
+    @Override
+    public org.bukkit.inventory.ItemStack applyGenericComponents(org.bukkit.inventory.ItemStack itemStack, java.util.Map<String, Object> components) {
+        return itemStack;
+    }
+
     @SuppressWarnings("UnstableApiUsage")
     @Override
     public void foodComponent(ItemBuilder item, ConfigurationSection foodSection) {

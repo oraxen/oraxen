@@ -10,6 +10,7 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Map;
 import java.util.Set;
 
 public interface NMSHandler {
@@ -134,14 +135,26 @@ public interface NMSHandler {
     }
 
     /**
-     * Sets a component on an item using the DataComponents registry
+     * Sets a component on an item using the DataComponents registry.
+     * The parsed component is stored in ItemBuilder's generic components map
+     * and applied later during {@link #applyGenericComponents}.
      *
      * @param item         The ItemBuilder to modify
-     * @param componentKey The component key (e.g. "food", "tool", etc.)
-     * @param component    The component data
-     * @return true if the component was successfully set
+     * @param componentKey The component key (e.g. "food", "tool", "repairable")
+     * @param component    The component data (ConfigurationSection or direct object)
+     * @return true if the component was successfully parsed and stored
      */
     boolean setComponent(ItemBuilder item, String componentKey, Object component);
+
+    /**
+     * Applies all stored generic components to the final built ItemStack via NMS.
+     * Called after ItemMeta is set during item building.
+     *
+     * @param itemStack  The ItemStack to apply components to
+     * @param components Map of component keys to parsed NMS component objects
+     * @return The modified ItemStack
+     */
+    ItemStack applyGenericComponents(ItemStack itemStack, Map<String, Object> components);
 
     class EmptyNMSHandler implements NMSHandler {
 
@@ -202,6 +215,11 @@ public interface NMSHandler {
         @Override
         public boolean setComponent(ItemBuilder item, String componentKey, Object component) {
             return false;
+        }
+
+        @Override
+        public ItemStack applyGenericComponents(ItemStack itemStack, Map<String, Object> components) {
+            return itemStack;
         }
     }
 }

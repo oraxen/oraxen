@@ -356,6 +356,11 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         }
     }
 
+    @Override
+    public org.bukkit.inventory.ItemStack applyGenericComponents(org.bukkit.inventory.ItemStack itemStack, java.util.Map<String, Object> components) {
+        return itemStack;
+    }
+
     private void convertConfigToNBT(ConfigurationSection config, CompoundTag nbt) {
         for (String key : config.getKeys(false)) {
             Object value = config.get(key);
