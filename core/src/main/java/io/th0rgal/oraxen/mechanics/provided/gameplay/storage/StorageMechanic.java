@@ -88,17 +88,17 @@ public class StorageMechanic {
     public void openStorage(Block block, Player player) {
         Material blockType = block.getType();
         if (blockType != Material.NOTE_BLOCK && blockType != Material.TRIPWIRE && blockType != Material.CHORUS_PLANT) return;
-        StorageGui storageGui = (blockStorages.containsKey(block) ? blockStorages.get(block) : createGui(block, null));
+        StorageGui storageGui = blockStorages.computeIfAbsent(block, b -> createGui(b, null));
+        if (storageGui == null) return;
         storageGui.open(player);
-        blockStorages.put(block, storageGui);
         if (hasOpenSound() && block.getLocation().isWorldLoaded())
             Objects.requireNonNull(block.getWorld()).playSound(block.getLocation(), openSound, volume, pitch);
     }
 
     public void openStorage(Entity baseEntity, Player player) {
-        StorageGui storageGui = (frameStorages.containsKey(baseEntity) ? frameStorages.get(baseEntity) : createGui(baseEntity));
+        StorageGui storageGui = frameStorages.computeIfAbsent(baseEntity, this::createGui);
+        if (storageGui == null) return;
         storageGui.open(player);
-        frameStorages.put(baseEntity, storageGui);
         playOpenAnimation(baseEntity, openAnimation);
         if (hasOpenSound() && baseEntity.getLocation().isWorldLoaded())
             Objects.requireNonNull(baseEntity.getWorld()).playSound(baseEntity.getLocation(), openSound, volume, pitch);
@@ -329,12 +329,14 @@ public class StorageMechanic {
         });
 
         // If it's a shulker, get the itemstack array of the items pdc, otherwise use the frame pdc
-        gui.setOpenGuiAction(event -> gui.getInventory().setContents(
-                (!shulker && storagePDC.has(STORAGE_KEY, DataType.ITEM_STACK_ARRAY)
-                        ? storagePDC.getOrDefault(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{})
-                        : (shulker && shulkerPDC.has(STORAGE_KEY, DataType.ITEM_STACK_ARRAY))
-                        ? shulkerPDC.getOrDefault(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{})
-                        : new ItemStack[]{})));
+        gui.setOpenGuiAction(event -> {
+            if (gui.getInventory().getViewers().size() > 1) return;
+            gui.getInventory().setContents(!shulker && storagePDC.has(STORAGE_KEY, DataType.ITEM_STACK_ARRAY)
+                    ? storagePDC.getOrDefault(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{})
+                    : (shulker && shulkerPDC.has(STORAGE_KEY, DataType.ITEM_STACK_ARRAY))
+                    ? shulkerPDC.getOrDefault(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{})
+                    : new ItemStack[]{});
+        });
 
         gui.setCloseGuiAction(event -> {
             if (gui.getInventory().getViewers().size() <= 1) {
