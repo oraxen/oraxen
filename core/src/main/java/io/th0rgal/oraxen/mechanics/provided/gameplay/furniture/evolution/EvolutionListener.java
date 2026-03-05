@@ -26,6 +26,7 @@ public class EvolutionListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBoneMeal(PlayerInteractEntityEvent event) {
+        if (!FurnitureFactory.isEnabled()) return;
         if (event.getHand() != EquipmentSlot.HAND) return;
         Entity entity = event.getRightClicked();
         Player player = event.getPlayer();

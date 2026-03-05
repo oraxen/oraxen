@@ -42,8 +42,7 @@ public class ChorusBlockMechanicFactory extends MechanicFactory {
         variants.add("east=false,north=false,south=false,west=false,up=false,down=false",
                 getModelJson("block/chorus_plant"));
         toolTypes = section.getStringList("tool_types");
-        customSounds = OraxenPlugin.get().getConfigsManager().getMechanics()
-                .getConfigurationSection("custom_block_sounds").getBoolean("chorusblock", true);
+        customSounds = areCustomSoundsEnabled();
 
         // Register blockstate modifier for chorus_plant.json
         OraxenPlugin.get().getResourcePack().addModifiers(getMechanicID(),
@@ -101,7 +100,13 @@ public class ChorusBlockMechanicFactory extends MechanicFactory {
     }
 
     public static boolean isEnabled() {
-        return instance != null;
+        return instance != null && MechanicsManager.isMechanicEnabled("chorusblock");
+    }
+
+    public static boolean areCustomSoundsEnabled() {
+        ConfigurationSection customSoundsSection = OraxenPlugin.get().getConfigsManager().getMechanics()
+                .getConfigurationSection("custom_block_sounds");
+        return customSoundsSection == null || customSoundsSection.getBoolean("chorusblock", true);
     }
 
     public static ChorusBlockMechanicFactory getInstance() {

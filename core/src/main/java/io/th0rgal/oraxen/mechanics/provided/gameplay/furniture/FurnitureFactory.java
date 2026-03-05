@@ -41,7 +41,7 @@ public class FurnitureFactory extends MechanicFactory {
         );
         evolvingFurnitures = false;
         instance = this;
-        customSounds = OraxenPlugin.get().getConfigsManager().getMechanics().getConfigurationSection("custom_block_sounds").getBoolean("stringblock_and_furniture", true);
+        customSounds = areCustomSoundsEnabled();
 
         if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new FurnitureSoundListener());
         detectViabackwards = OraxenPlugin.get().getConfigsManager().getMechanics().getConfigurationSection("furniture").getBoolean("detect_viabackwards", true);
@@ -63,7 +63,13 @@ public class FurnitureFactory extends MechanicFactory {
     }
 
     public static boolean isEnabled() {
-        return instance != null;
+        return instance != null && MechanicsManager.isMechanicEnabled("furniture");
+    }
+
+    public static boolean areCustomSoundsEnabled() {
+        ConfigurationSection customSoundsSection = OraxenPlugin.get().getConfigsManager().getMechanics()
+                .getConfigurationSection("custom_block_sounds");
+        return customSoundsSection == null || customSoundsSection.getBoolean("stringblock_and_furniture", true);
     }
 
     public static FurnitureFactory getInstance() {

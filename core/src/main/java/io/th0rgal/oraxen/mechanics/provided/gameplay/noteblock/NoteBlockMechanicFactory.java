@@ -50,7 +50,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         toolTypes = section.getStringList("tool_types");
         farmBlockCheckDelay = section.getInt("farmblock_check_delay");
         farmBlock = false;
-        customSounds = OraxenPlugin.get().getConfigsManager().getMechanics().getConfigurationSection("custom_block_sounds").getBoolean("noteblock_and_block", true);
+        customSounds = areCustomSoundsEnabled();
         removeMineableTag = section.getBoolean("remove_mineable_tag", false);
 
         // this modifier should be executed when all the items have been parsed, just
@@ -152,7 +152,13 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     }
 
     public static boolean isEnabled() {
-        return instance != null;
+        return instance != null && MechanicsManager.isMechanicEnabled("noteblock");
+    }
+
+    public static boolean areCustomSoundsEnabled() {
+        ConfigurationSection customSoundsSection = OraxenPlugin.get().getConfigsManager().getMechanics()
+                .getConfigurationSection("custom_block_sounds");
+        return customSoundsSection == null || customSoundsSection.getBoolean("noteblock_and_block", true);
     }
 
     public static NoteBlockMechanicFactory getInstance() {
