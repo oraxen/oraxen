@@ -39,6 +39,7 @@ public class FurnitureSoundListener implements Listener {
 
     @EventHandler
     public void onWorldUnload(WorldUnloadEvent event) {
+        if (!FurnitureFactory.isEnabled() || !FurnitureFactory.areCustomSoundsEnabled()) return;
         for (Map.Entry<Location, SchedulerUtil.ScheduledTask> entry : breakerPlaySound.entrySet()) {
             if (entry.getKey().isWorldLoaded() || entry.getValue().isCancelled()) continue;
             entry.getValue().cancel();
@@ -49,6 +50,7 @@ public class FurnitureSoundListener implements Listener {
     // Play sound due to furniture/barrier custom sound replacing stone
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlacingStone(final BlockPlaceEvent event) {
+        if (!FurnitureFactory.isEnabled() || !FurnitureFactory.areCustomSoundsEnabled()) return;
         Block block = event.getBlock();
 
         if (OraxenBlocks.isOraxenStringBlock(block)) return;
@@ -59,6 +61,7 @@ public class FurnitureSoundListener implements Listener {
     // Play sound due to furniture/barrier custom sound replacing stone
     @EventHandler(priority = EventPriority.HIGH)
     public void onBreakingStone(final BlockBreakEvent event) {
+        if (!FurnitureFactory.isEnabled() || !FurnitureFactory.areCustomSoundsEnabled()) return;
         Block block = event.getBlock();
         Location location = block.getLocation();
         StringBlockMechanic mechanicBelow = OraxenBlocks.getStringMechanic(block.getRelative(BlockFace.DOWN));
@@ -78,6 +81,7 @@ public class FurnitureSoundListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onHitStone(final BlockDamageEvent event) {
+        if (!FurnitureFactory.isEnabled() || !FurnitureFactory.areCustomSoundsEnabled()) return;
         Block block = event.getBlock();
         Location location = block.getLocation();
         SoundGroup soundGroup = block.getBlockData().getSoundGroup();
@@ -93,6 +97,7 @@ public class FurnitureSoundListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onStopHittingStone(final BlockDamageAbortEvent event) {
+        if (!FurnitureFactory.isEnabled() || !FurnitureFactory.areCustomSoundsEnabled()) return;
         Location location = event.getBlock().getLocation();
         SchedulerUtil.ScheduledTask task = breakerPlaySound.remove(location);
         if (task != null) task.cancel();
@@ -100,6 +105,7 @@ public class FurnitureSoundListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onStepFall(final GenericGameEvent event) {
+        if (!FurnitureFactory.isEnabled() || !FurnitureFactory.areCustomSoundsEnabled()) return;
         Entity entity = event.getEntity();
         if (!(entity instanceof LivingEntity)) return;
         Location entityLoc = entity.getLocation();
@@ -138,6 +144,7 @@ public class FurnitureSoundListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlacingFurniture(final OraxenFurniturePlaceEvent event) {
+        if (!FurnitureFactory.isEnabled() || !FurnitureFactory.areCustomSoundsEnabled()) return;
         final FurnitureMechanic mechanic = event.getMechanic();
         if (!mechanic.hasBlockSounds()) return;
         BlockSounds blockSounds = mechanic.getBlockSounds();
@@ -147,6 +154,7 @@ public class FurnitureSoundListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBreakingFurniture(final OraxenFurnitureBreakEvent event) {
+        if (!FurnitureFactory.isEnabled() || !FurnitureFactory.areCustomSoundsEnabled()) return;
         Location loc = event.getBlock() != null ? event.getBlock().getLocation() : event.getBaseEntity().getLocation();
         final FurnitureMechanic mechanic = event.getMechanic();
         if (!mechanic.hasBlockSounds()) return;

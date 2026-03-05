@@ -25,6 +25,7 @@ public class StringBlockSoundListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPistonPush(BlockPistonExtendEvent event) {
+        if (!StringBlockMechanicFactory.isEnabled() || !StringBlockMechanicFactory.areCustomSoundsEnabled()) return;
         // Run at HIGH priority (before HIGHEST physics listener) to capture mechanics
         // before blocks are set to AIR. We only play sounds here, no block modification.
         for (Block block : event.getBlocks()) {
@@ -42,6 +43,7 @@ public class StringBlockSoundListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlaceString(OraxenStringBlockPlaceEvent event) {
+        if (!StringBlockMechanicFactory.isEnabled() || !StringBlockMechanicFactory.areCustomSoundsEnabled()) return;
         final StringBlockMechanic mechanic = event.getMechanic();
         if (!mechanic.hasBlockSounds()) return;
         BlockSounds blockSounds = mechanic.getBlockSounds();
@@ -51,6 +53,7 @@ public class StringBlockSoundListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBreakString(OraxenStringBlockBreakEvent event) {
+        if (!StringBlockMechanicFactory.isEnabled() || !StringBlockMechanicFactory.areCustomSoundsEnabled()) return;
         final StringBlockMechanic mechanic = event.getMechanic();
         if (!mechanic.hasBlockSounds()) return;
         BlockSounds blockSounds = mechanic.getBlockSounds();
@@ -60,6 +63,7 @@ public class StringBlockSoundListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onStepFall(final GenericGameEvent event) {
+        if (!StringBlockMechanicFactory.isEnabled() || !StringBlockMechanicFactory.areCustomSoundsEnabled()) return;
         Entity entity = event.getEntity();
         if (!(entity instanceof LivingEntity)) return;
         Location entityLoc = entity.getLocation();

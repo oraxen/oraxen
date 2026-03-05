@@ -96,8 +96,8 @@ public class ReloadCommand {
                         default -> {
                             MechanicsManager.unloadListeners();
                             MechanicsManager.unregisterTasks();
-                            MechanicsManager.registerNativeMechanics();
                             OraxenPlugin.get().reloadConfigs();
+                            MechanicsManager.registerNativeMechanics();
                             reloadItems(sender);
                             reloadPack(sender);
                             reloadHud(sender);

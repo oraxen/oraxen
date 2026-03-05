@@ -89,6 +89,7 @@ public class FurnitureListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onItemFrameRotate(PlayerInteractEntityEvent event) {
+        if (!FurnitureFactory.isEnabled()) return;
         if (!(event.getRightClicked() instanceof ItemFrame frame))
             return;
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(frame);
@@ -99,6 +100,7 @@ public class FurnitureListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void onLimitedPlacing(final PlayerInteractEvent event) {
+        if (!FurnitureFactory.isEnabled()) return;
         Block block = event.getClickedBlock();
         BlockFace blockFace = event.getBlockFace();
         ItemStack item = event.getItem();
@@ -139,6 +141,7 @@ public class FurnitureListener implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.NORMAL)
     public void onFurniturePlace(final PlayerInteractEvent event) {
+        if (!FurnitureFactory.isEnabled()) return;
         final Player player = event.getPlayer();
         final Block placedAgainst = event.getClickedBlock();
         final EquipmentSlot hand = event.getHand();
@@ -255,6 +258,7 @@ public class FurnitureListener implements Listener {
      */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onHangingBreak(final HangingBreakEvent event) {
+        if (!FurnitureFactory.isEnabled()) return;
         Entity entity = event.getEntity();
         if (event.getCause() == HangingBreakEvent.RemoveCause.ENTITY)
             return;
@@ -274,6 +278,7 @@ public class FurnitureListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlayerBreakHanging(final EntityDamageByEntityEvent event) {
+        if (!FurnitureFactory.isEnabled()) return;
         Entity entity = event.getEntity();
         if (!(event.getDamager() instanceof Player player))
             return;
@@ -300,6 +305,7 @@ public class FurnitureListener implements Listener {
     // Otherwise check hardness and handle breaking like normal
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBreakingCustomFurniture(final BlockBreakEvent event) {
+        if (!FurnitureFactory.isEnabled()) return;
         final Block block = event.getBlock();
         Player player = event.getPlayer();
 
@@ -323,6 +329,7 @@ public class FurnitureListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onProjectileHitFurniture(final ProjectileHitEvent event) {
+        if (!FurnitureFactory.isEnabled()) return;
         Block block = event.getHitBlock();
         Entity hitEntity = event.getHitEntity();
         Projectile projectile = event.getEntity();
@@ -345,6 +352,7 @@ public class FurnitureListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onProjectileDamageFurniture(final EntityDamageByEntityEvent event) {
+        if (!FurnitureFactory.isEnabled()) return;
         Entity furniture = event.getEntity();
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(furniture);
         if (mechanic == null || !(event.getDamager() instanceof Projectile projectile))
@@ -366,6 +374,7 @@ public class FurnitureListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlayerInteractFurniture(PlayerInteractEntityEvent event) {
+        if (!FurnitureFactory.isEnabled()) return;
         Entity baseEntity = event.getRightClicked();
         final Player player = event.getPlayer();
         EquipmentSlot hand = event.getHand();
@@ -391,6 +400,7 @@ public class FurnitureListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlayerClickOnFurniture(final PlayerInteractEvent event) {
+        if (!FurnitureFactory.isEnabled()) return;
         final Block block = event.getClickedBlock();
         final Player player = event.getPlayer();
         EquipmentSlot hand = event.getHand();
@@ -417,6 +427,7 @@ public class FurnitureListener implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onFurnitureInteract(OraxenFurnitureInteractEvent event) {
+        if (!FurnitureFactory.isEnabled()) return;
         Player player = event.getPlayer();
         FurnitureMechanic mechanic = event.getMechanic();
         Block block = event.getBlock();
@@ -450,6 +461,7 @@ public class FurnitureListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onMiddleClick(final InventoryCreativeEvent event) {
+        if (!FurnitureFactory.isEnabled()) return;
         final Player player = (Player) event.getInventory().getHolder();
         if (event.getClickedInventory() == null || player == null)
             return;
@@ -480,6 +492,7 @@ public class FurnitureListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void updateLightOnBlockBreak(BlockBreakEvent event) {
+        if (!FurnitureFactory.isEnabled()) return;
         // Block block = event.getBlock();
         // if (!OraxenFurniture.isFurniture(block))
         // LightMechanic.refreshBlockLight(block);
@@ -487,6 +500,7 @@ public class FurnitureListener implements Listener {
 
     @EventHandler
     public void onPlayerQuitEvent(final PlayerQuitEvent event) {
+        if (!FurnitureFactory.isEnabled()) return;
         final Player player = event.getPlayer();
         if (OraxenFurniture.isFurniture(player.getVehicle()))
             player.leaveVehicle();

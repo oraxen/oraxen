@@ -35,6 +35,7 @@ public class NoteBlockSoundListener implements Listener {
 
     @EventHandler
     public void onWorldUnload(WorldUnloadEvent event) {
+        if (!NoteBlockMechanicFactory.isEnabled() || !NoteBlockMechanicFactory.areCustomSoundsEnabled()) return;
         for (Map.Entry<Location, SchedulerUtil.ScheduledTask> entry : breakerPlaySound.entrySet()) {
             if (entry.getKey().isWorldLoaded() || entry.getValue().isCancelled()) continue;
             entry.getValue().cancel();
@@ -44,6 +45,7 @@ public class NoteBlockSoundListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlacingWood(final BlockPlaceEvent event) {
+        if (!NoteBlockMechanicFactory.isEnabled() || !NoteBlockMechanicFactory.areCustomSoundsEnabled()) return;
         Block placed = event.getBlockPlaced();
         if (placed.getBlockData().getSoundGroup().getPlaceSound() != Sound.BLOCK_WOOD_PLACE) return;
         if (OraxenBlocks.isOraxenNoteBlock(placed)) return;
@@ -54,6 +56,7 @@ public class NoteBlockSoundListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onBreakingWood(final BlockBreakEvent event) {
+        if (!NoteBlockMechanicFactory.isEnabled() || !NoteBlockMechanicFactory.areCustomSoundsEnabled()) return;
         final Block block = event.getBlock();
         Location location = block.getLocation();
 
@@ -70,6 +73,7 @@ public class NoteBlockSoundListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onHitWood(final BlockDamageEvent event) {
+        if (!NoteBlockMechanicFactory.isEnabled() || !NoteBlockMechanicFactory.areCustomSoundsEnabled()) return;
         Block block = event.getBlock();
         Location location = block.getLocation();
         SoundGroup soundGroup = block.getBlockData().getSoundGroup();
@@ -91,6 +95,7 @@ public class NoteBlockSoundListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onStopHittingWood(final BlockDamageAbortEvent event) {
+        if (!NoteBlockMechanicFactory.isEnabled() || !NoteBlockMechanicFactory.areCustomSoundsEnabled()) return;
         Location location = event.getBlock().getLocation();
         if (breakerPlaySound.containsKey(location)) {
             breakerPlaySound.get(location).cancel();
@@ -100,6 +105,7 @@ public class NoteBlockSoundListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onStepFall(final GenericGameEvent event) {
+        if (!NoteBlockMechanicFactory.isEnabled() || !NoteBlockMechanicFactory.areCustomSoundsEnabled()) return;
         Entity entity = event.getEntity();
         if (!(entity instanceof LivingEntity)) return;
         Location entityLoc = entity.getLocation();
@@ -139,6 +145,7 @@ public class NoteBlockSoundListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlacing(final OraxenNoteBlockPlaceEvent event) {
+        if (!NoteBlockMechanicFactory.isEnabled() || !NoteBlockMechanicFactory.areCustomSoundsEnabled()) return;
         NoteBlockMechanic mechanic = event.getMechanic();
         if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
             mechanic = mechanic.getDirectional().getParentMechanic();
@@ -150,6 +157,7 @@ public class NoteBlockSoundListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBreaking(final OraxenNoteBlockBreakEvent event) {
+        if (!NoteBlockMechanicFactory.isEnabled() || !NoteBlockMechanicFactory.areCustomSoundsEnabled()) return;
         NoteBlockMechanic mechanic = event.getMechanic();
         if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
             mechanic = mechanic.getDirectional().getParentMechanic();

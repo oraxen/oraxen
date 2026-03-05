@@ -35,6 +35,7 @@ public class BlockMechanicListener implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onMushroomPhysics(final BlockPhysicsEvent event) {
+        if (!BlockMechanicFactory.isEnabled()) return;
         if (event.getChangedType() == Material.MUSHROOM_STEM) {
             event.setCancelled(true);
             event.getBlock().getState().update(true, false);
@@ -44,6 +45,7 @@ public class BlockMechanicListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBreakingCustomBlock(final BlockBreakEvent event) {
+        if (!BlockMechanicFactory.isEnabled()) return;
         final Block block = event.getBlock();
         if (block.getType() != Material.MUSHROOM_STEM || !event.isDropItems()) return;
 
@@ -56,6 +58,7 @@ public class BlockMechanicListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlacingMushroomBlock(final BlockPlaceEvent event) {
+        if (!BlockMechanicFactory.isEnabled()) return;
         if (event.getBlockPlaced().getType() != Material.MUSHROOM_STEM
                 || OraxenItems.exists(OraxenItems.getIdByItem(event.getItemInHand())))
             return;
@@ -68,6 +71,7 @@ public class BlockMechanicListener implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onLimitedPlacing(final PlayerInteractEvent event) {
+        if (!BlockMechanicFactory.isEnabled()) return;
         Block block = event.getClickedBlock();
         BlockFace blockFace = event.getBlockFace();
         ItemStack item = event.getItem();
@@ -96,6 +100,7 @@ public class BlockMechanicListener implements Listener {
     // not static here because only instanciated once I think
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPrePlacingCustomBlock(final PlayerInteractEvent event) {
+        if (!BlockMechanicFactory.isEnabled()) return;
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (event.getItem() == null || event.getHand() == null) return;
 
@@ -146,6 +151,7 @@ public class BlockMechanicListener implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onSetFire(final PlayerInteractEvent event) {
+        if (!BlockMechanicFactory.isEnabled()) return;
         Block block = event.getClickedBlock();
         ItemStack item = event.getItem();
         if (block == null || block.getType() != Material.MUSHROOM_STEM) return;
@@ -160,6 +166,7 @@ public class BlockMechanicListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onCatchFire(final BlockIgniteEvent event) {
+        if (!BlockMechanicFactory.isEnabled()) return;
         Block block = event.getBlock();
         BlockMechanic mechanic = OraxenBlocks.getBlockMechanic(block);
         if (block.getType() != Material.MUSHROOM_STEM || mechanic == null) return;

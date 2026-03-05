@@ -63,6 +63,8 @@ public class MechanicsManager {
     private static final Map<String, List<Listener>> MECHANICS_LISTENERS = new HashMap<>();
 
     public static void registerNativeMechanics() {
+        FACTORIES_BY_MECHANIC_ID.clear();
+
         // misc
         registerFactory("armor_effects", ArmorEffectsFactory::new);
         registerFactory("consumable_potion_effects", ConsumablePotionEffectsFactory::new);
@@ -205,12 +207,19 @@ public class MechanicsManager {
     public static void unloadListeners() {
         for (final Listener listener : MECHANICS_LISTENERS.values().stream().flatMap(Collection::stream).toList())
             HandlerList.unregisterAll(listener);
+        MECHANICS_LISTENERS.clear();
     }
 
     public static void unloadListeners(String mechanicId) {
-        for (final Listener listener : MECHANICS_LISTENERS.remove(mechanicId))
+        List<Listener> listeners = MECHANICS_LISTENERS.remove(mechanicId);
+        if (listeners == null) return;
+        for (final Listener listener : listeners)
             HandlerList.unregisterAll(listener);
 
+    }
+
+    public static boolean isMechanicEnabled(String mechanicId) {
+        return FACTORIES_BY_MECHANIC_ID.containsKey(mechanicId);
     }
 
     public static MechanicFactory getMechanicFactory(final String mechanicID) {

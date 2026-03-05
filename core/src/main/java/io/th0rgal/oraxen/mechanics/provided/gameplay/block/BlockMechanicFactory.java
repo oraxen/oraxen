@@ -86,12 +86,18 @@ public class BlockMechanicFactory extends MechanicFactory {
     }
 
     public static BlockMechanic getBlockMechanic(int customVariation) {
+        if (!isEnabled()) return null;
         return BLOCK_PER_VARIATION.get(customVariation);
     }
 
     public static BlockMechanic getBlockMechanic(Block block) {
+        if (!isEnabled()) return null;
         return (block.getType() == Material.MUSHROOM_STEM)
                 ? BLOCK_PER_VARIATION.get(BlockMechanic.getCode(block)) : null;
+    }
+
+    public static boolean isEnabled() {
+        return MechanicsManager.isMechanicEnabled("block");
     }
 
     /**
