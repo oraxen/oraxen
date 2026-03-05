@@ -79,7 +79,7 @@ public class MechanicsManager {
 
     public static void registerNativeMechanics() {
         // reset only native mechanics so external/custom factories work
-        NATIVE_MECHANIC_IDS.forEach(FACTORIES_BY_MECHANIC_ID::remove);
+        NATIVE_MECHANIC_IDS.forEach(MechanicsManager::unregisterMechanicFactory);
 
         // misc
         registerFactory("armor_effects", ArmorEffectsFactory::new);
@@ -206,7 +206,7 @@ public class MechanicsManager {
             value.forEach(task -> {
                 if (task != null) task.cancel();
             });
-            return Collections.emptyList();
+            return null;
         });
     }
 

@@ -99,7 +99,10 @@ public class StringBlockMechanicFactory extends MechanicFactory {
     }
 
     public static boolean areCustomSoundsEnabled() {
-        ConfigurationSection customSoundsSection = OraxenPlugin.get().getConfigsManager().getMechanics()
+        OraxenPlugin plugin = OraxenPlugin.get();
+        if (plugin == null || plugin.getConfigsManager() == null) return true;
+
+        ConfigurationSection customSoundsSection = plugin.getConfigsManager().getMechanics()
                 .getConfigurationSection("custom_block_sounds");
         return customSoundsSection == null || customSoundsSection.getBoolean("stringblock_and_furniture", true);
     }
