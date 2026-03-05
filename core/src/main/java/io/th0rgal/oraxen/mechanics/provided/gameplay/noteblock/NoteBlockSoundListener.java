@@ -35,7 +35,6 @@ public class NoteBlockSoundListener implements Listener {
 
     @EventHandler
     public void onWorldUnload(WorldUnloadEvent event) {
-        if (!NoteBlockMechanicFactory.isEnabled() || !NoteBlockMechanicFactory.areCustomSoundsEnabled()) return;
         for (Map.Entry<Location, SchedulerUtil.ScheduledTask> entry : breakerPlaySound.entrySet()) {
             if (entry.getKey().isWorldLoaded() || entry.getValue().isCancelled()) continue;
             entry.getValue().cancel();
@@ -56,7 +55,6 @@ public class NoteBlockSoundListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onBreakingWood(final BlockBreakEvent event) {
-        if (!NoteBlockMechanicFactory.isEnabled() || !NoteBlockMechanicFactory.areCustomSoundsEnabled()) return;
         final Block block = event.getBlock();
         Location location = block.getLocation();
 
@@ -64,6 +62,7 @@ public class NoteBlockSoundListener implements Listener {
             breakerPlaySound.get(location).cancel();
             breakerPlaySound.remove(location);
         }
+        if (!NoteBlockMechanicFactory.isEnabled() || !NoteBlockMechanicFactory.areCustomSoundsEnabled()) return;
         if (block.getBlockData().getSoundGroup().getBreakSound() != Sound.BLOCK_WOOD_BREAK) return;
         if (OraxenBlocks.isOraxenNoteBlock(block) || block.getType() == Material.MUSHROOM_STEM) return;
 
@@ -95,7 +94,6 @@ public class NoteBlockSoundListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onStopHittingWood(final BlockDamageAbortEvent event) {
-        if (!NoteBlockMechanicFactory.isEnabled() || !NoteBlockMechanicFactory.areCustomSoundsEnabled()) return;
         Location location = event.getBlock().getLocation();
         if (breakerPlaySound.containsKey(location)) {
             breakerPlaySound.get(location).cancel();

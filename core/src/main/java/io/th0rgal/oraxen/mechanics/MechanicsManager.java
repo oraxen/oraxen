@@ -61,9 +61,25 @@ public class MechanicsManager {
     private static final Map<String, MechanicFactory> FACTORIES_BY_MECHANIC_ID = new HashMap<>();
     private static final Map<String, List<SchedulerUtil.ScheduledTask>> MECHANIC_TASKS = new HashMap<>();
     private static final Map<String, List<Listener>> MECHANICS_LISTENERS = new HashMap<>();
+    private static final Set<String> NATIVE_MECHANIC_IDS = Set.of(
+            // misc
+            "armor_effects", "consumable_potion_effects", "soulbound", "itemtype", "consumable", "custom",
+            "commands", "backpack", "music_disc", "misc",
+            // gameplay
+            "food", "repair", "durability", "efficiency", "block", "noteblock", "stringblock", "chorusblock",
+            "shaped_block", "furniture", "toggle_light",
+            // cosmetic
+            "aura", "backpack_cosmetic", "hat", "skin", "skinnable",
+            // combat
+            "thor", "lifeleech", "energyblast", "witherskull", "fireball", "knockback_strike", "bleeding",
+            "spear_lunge",
+            // farming
+            "bigmining", "smelting", "bottledexp", "harvesting", "watering", "bedrockbreak"
+    );
 
     public static void registerNativeMechanics() {
-        FACTORIES_BY_MECHANIC_ID.clear();
+        // reset only native mechanics so external/custom factories work
+        NATIVE_MECHANIC_IDS.forEach(FACTORIES_BY_MECHANIC_ID::remove);
 
         // misc
         registerFactory("armor_effects", ArmorEffectsFactory::new);

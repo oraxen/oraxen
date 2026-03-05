@@ -39,7 +39,6 @@ public class FurnitureSoundListener implements Listener {
 
     @EventHandler
     public void onWorldUnload(WorldUnloadEvent event) {
-        if (!FurnitureFactory.isEnabled() || !FurnitureFactory.areCustomSoundsEnabled()) return;
         for (Map.Entry<Location, SchedulerUtil.ScheduledTask> entry : breakerPlaySound.entrySet()) {
             if (entry.getKey().isWorldLoaded() || entry.getValue().isCancelled()) continue;
             entry.getValue().cancel();
@@ -61,7 +60,6 @@ public class FurnitureSoundListener implements Listener {
     // Play sound due to furniture/barrier custom sound replacing stone
     @EventHandler(priority = EventPriority.HIGH)
     public void onBreakingStone(final BlockBreakEvent event) {
-        if (!FurnitureFactory.isEnabled() || !FurnitureFactory.areCustomSoundsEnabled()) return;
         Block block = event.getBlock();
         Location location = block.getLocation();
         StringBlockMechanic mechanicBelow = OraxenBlocks.getStringMechanic(block.getRelative(BlockFace.DOWN));
@@ -70,6 +68,7 @@ public class FurnitureSoundListener implements Listener {
             breakerPlaySound.get(location).cancel();
             breakerPlaySound.remove(location);
         }
+        if (!FurnitureFactory.isEnabled() || !FurnitureFactory.areCustomSoundsEnabled()) return;
 
         if (OraxenBlocks.isOraxenStringBlock(block) || block.getType() == Material.TRIPWIRE && mechanicBelow != null && mechanicBelow.isTall()) return;
         if (block.getBlockData().getSoundGroup().getBreakSound() != Sound.BLOCK_STONE_BREAK) return;
@@ -97,7 +96,6 @@ public class FurnitureSoundListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onStopHittingStone(final BlockDamageAbortEvent event) {
-        if (!FurnitureFactory.isEnabled() || !FurnitureFactory.areCustomSoundsEnabled()) return;
         Location location = event.getBlock().getLocation();
         SchedulerUtil.ScheduledTask task = breakerPlaySound.remove(location);
         if (task != null) task.cancel();
