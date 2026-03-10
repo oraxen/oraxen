@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.hud;
 
 import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.GameMode;
 import org.bukkit.entity.EntityType;
@@ -25,15 +26,21 @@ public class HudEvents implements Listener {
         String hudId = hudManager.getHudID(hud);
 
         if (hud == null || hudId == null) {
-            Logs.logWarning("[HUD] No default HUD found for player " + player.getName());
+            if (Settings.DEBUG.toBool()) {
+                Logs.logWarning("[HUD] No default HUD found for player " + player.getName());
+            }
             return;
         }
         if (!player.hasPermission(hud.getPerm())) {
-            Logs.logWarning("[HUD] Player " + player.getName() + " doesn't have permission: " + hud.getPerm());
+            if (Settings.DEBUG.toBool()) {
+                Logs.logWarning("[HUD] Player " + player.getName() + " doesn't have permission: " + hud.getPerm());
+            }
             return;
         }
         if (!hudManager.getHudState(player)) {
-            Logs.logWarning("[HUD] HUD is disabled for player " + player.getName());
+            if (Settings.DEBUG.toBool()) {
+                Logs.logWarning("[HUD] HUD is disabled for player " + player.getName());
+            }
             return;
         }
 
@@ -76,5 +83,3 @@ public class HudEvents implements Listener {
         }
     }
 }
-
-

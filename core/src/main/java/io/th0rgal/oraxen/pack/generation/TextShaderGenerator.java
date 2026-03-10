@@ -446,13 +446,18 @@ class TextShaderGenerator {
                         int gRaw = int(Color.g * 255.0 + 0.5);
                         int bRaw = int(Color.b * 255.0 + 0.5);
 
-                        // Check for animation color: R=254 for primary, R≈63 for shadow
+                        // Check for animation color on the primary pass only.
+                        //
+                        // Shadow-pass colors are normal text colors divided by 4, so trying
+                        // to detect animated shadow colors by RGB range causes many false
+                        // positives (e.g. vanilla white text shadow 63,63,63). That makes
+                        // regular text render without shadow. We intentionally only detect
+                        // the primary animation marker here to keep vanilla shadows intact.
                         bool isPrimaryAnim = (rInt == 254);
-                        bool isShadowAnim = (rInt >= 62 && rInt <= 64) && (gRaw >= 1) && (bRaw <= 64);
 
-                        if (ORAXEN_ANIMATED_GLYPHS && (isPrimaryAnim || isShadowAnim)) {
-                            int gInt = isPrimaryAnim ? gRaw : min(255, gRaw * 4);
-                            int bInt = isPrimaryAnim ? bRaw : min(255, bRaw * 4);
+                        if (ORAXEN_ANIMATED_GLYPHS && isPrimaryAnim) {
+                            int gInt = gRaw;
+                            int bInt = bRaw;
 
                             bool loop = (gInt < 128);
                             float fps = max(1.0, float(gInt & 0x7F));
@@ -465,15 +470,11 @@ class TextShaderGenerator {
 
                             float visible = (frameIndex == currentFrame && isPrimaryAnim) ? 1.0 : 0.0;
 
-                            if (isPrimaryAnim) {
-                                vertexColor = %s;
-                            } else {
-                                vertexColor = vec4(0.0);
-                            }
+                            vertexColor = %s;
                         }
 
                         // Text effects: exact trigger color matching
-                        if (ORAXEN_TEXT_EFFECTS && ORAXEN_EFFECT_COUNT > 0 && (!ORAXEN_ANIMATED_GLYPHS || (!isPrimaryAnim && !isShadowAnim))) {
+                        if (ORAXEN_TEXT_EFFECTS && ORAXEN_EFFECT_COUNT > 0 && (!ORAXEN_ANIMATED_GLYPHS || !isPrimaryAnim)) {
                             // Check for exact trigger color match
                             ivec3 colorInt = ivec3(rInt, gRaw, bRaw);
                             int effectType = -1;

@@ -511,6 +511,7 @@ public class OraxenBlocks {
 
     @org.jetbrains.annotations.Nullable
     public static BlockMechanic getBlockMechanic(Block block) {
+        if (!BlockMechanicFactory.isEnabled()) return null;
         if (block.getType() == Material.MUSHROOM_STEM) {
             return BlockMechanicFactory.getBlockMechanic(BlockMechanic.getCode(block));
         } else return null;

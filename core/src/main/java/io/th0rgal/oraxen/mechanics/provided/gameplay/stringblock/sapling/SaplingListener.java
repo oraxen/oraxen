@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.compatibilities.provided.worldedit.WrappedWorldEdit;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.PluginUtils;
 import org.bukkit.Effect;
@@ -27,6 +28,7 @@ public class SaplingListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onBoneMeal(PlayerInteractEvent event) {
+        if (!StringBlockMechanicFactory.isEnabled()) return;
         Block block = event.getClickedBlock();
         Player player = event.getPlayer();
         ItemStack item = event.getItem();
@@ -60,5 +62,4 @@ public class SaplingListener implements Listener {
         } else pdc.set(SAPLING_KEY, PersistentDataType.INTEGER, growthTimeRemains);
     }
 }
-
 

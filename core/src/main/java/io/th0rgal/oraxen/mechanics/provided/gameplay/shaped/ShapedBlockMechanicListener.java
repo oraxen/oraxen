@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.shaped;
 import com.jeff_media.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
@@ -256,7 +257,7 @@ public class ShapedBlockMechanicListener implements Listener {
             }
         }
 
-        if (converted > 0) {
+        if (Settings.DEBUG.toBool() && converted > 0) {
             Logs.logInfo("[ShapedBlock] Converted " + converted + " waxed copper blocks in chunk " +
                 chunk.getX() + ", " + chunk.getZ());
         }
@@ -391,7 +392,9 @@ public class ShapedBlockMechanicListener implements Listener {
         }
 
         consumeItem(player, item);
-        Logs.logSuccess("[ShapedBlock] Placed " + itemId + " as " + shapedMechanic.getBlockType());
+        if (Settings.DEBUG.toBool()) {
+            Logs.logSuccess("[ShapedBlock] Placed " + itemId + " as " + shapedMechanic.getBlockType());
+        }
     }
 
     private void revertPlacement(Block targetBlock, ShapedBlockMechanic mechanic, org.bukkit.block.BlockState replacedState) {

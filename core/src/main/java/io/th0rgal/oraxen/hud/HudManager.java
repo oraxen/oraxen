@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.hud;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.ConfigsManager;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import me.clip.placeholderapi.PlaceholderAPI;
@@ -104,21 +105,29 @@ public class HudManager {
 
     public void enableHud(final Player player, Hud hud) {
         if (hud == null) {
-            Logs.logWarning("[HUD] HUD is null for player " + player.getName());
+            if (Settings.DEBUG.toBool()) {
+                Logs.logWarning("[HUD] HUD is null for player " + player.getName());
+            }
             return;
         }
         if (hud.getDisplayText() == null) {
-            Logs.logWarning("[HUD] HUD display text is null for player " + player.getName());
+            if (Settings.DEBUG.toBool()) {
+                Logs.logWarning("[HUD] HUD display text is null for player " + player.getName());
+            }
             return;
         }
         if (!getHudState(player)) {
-            Logs.logWarning("[HUD] HUD is disabled for player " + player.getName());
+            if (Settings.DEBUG.toBool()) {
+                Logs.logWarning("[HUD] HUD is disabled for player " + player.getName());
+            }
             return;
         }
 
         String hudDisplay = parsedHudDisplays.get(hud);
         if (hudDisplay == null) {
-            Logs.logWarning("[HUD] No parsed HUD display found for HUD with text: " + hud.getDisplayText());
+            if (Settings.DEBUG.toBool()) {
+                Logs.logWarning("[HUD] No parsed HUD display found for HUD with text: " + hud.getDisplayText());
+            }
             return;
         }
         hudDisplay = translatePlaceholdersForHudDisplay(player, hudDisplay);
@@ -128,19 +137,25 @@ public class HudManager {
             var component = AdventureUtils.MINI_MESSAGE.deserialize(hudDisplay);
             player.sendActionBar(component);
         } catch (Exception e) {
-            Logs.logWarning("[HUD] Failed to send actionbar: " + e.getMessage());
-            e.printStackTrace();
+            if (Settings.DEBUG.toBool()) {
+                Logs.logWarning("[HUD] Failed to send actionbar: " + e.getMessage());
+                e.printStackTrace();
+            }
         }
     }
 
     public void registerTask() {
         if (hudTaskEnabled) {
-            Logs.logWarning("[HUD] Task already enabled");
+            if (Settings.DEBUG.toBool()) {
+                Logs.logWarning("[HUD] Task already enabled");
+            }
             return;
         }
         if (hudTask != null) hudTask.cancel();
         if (hudUpdateTime == 0) {
-            Logs.logWarning("[HUD] hudUpdateTime is 0, skipping task registration");
+            if (Settings.DEBUG.toBool()) {
+                Logs.logWarning("[HUD] hudUpdateTime is 0, skipping task registration");
+            }
             return;
         }
         if (huds.isEmpty()) {
@@ -166,14 +181,18 @@ public class HudManager {
 
     public void loadHuds(final ConfigurationSection section) {
         if (section == null) {
-            Logs.logWarning("[HUD] HUD section is null");
+            if (Settings.DEBUG.toBool()) {
+                Logs.logWarning("[HUD] HUD section is null");
+            }
             return;
         }
         huds.clear();
         for (final String hudName : section.getKeys(false)) {
             final ConfigurationSection hudSection = section.getConfigurationSection(hudName);
             if (hudSection == null || hudSection.getKeys(false).isEmpty()) {
-                Logs.logWarning("[HUD] Skipping empty HUD: " + hudName);
+                if (Settings.DEBUG.toBool()) {
+                    Logs.logWarning("[HUD] Skipping empty HUD: " + hudName);
+                }
                 continue;
             }
             String displayText = hudSection.getString("display_text");

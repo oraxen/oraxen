@@ -25,6 +25,7 @@ public class ChorusBlockSoundListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPistonPush(BlockPistonExtendEvent event) {
+        if (!ChorusBlockMechanicFactory.isEnabled() || !ChorusBlockMechanicFactory.areCustomSoundsEnabled()) return;
         // Run at HIGH priority (before HIGHEST physics listener) to capture mechanics
         // before blocks are set to AIR. We only play sounds here, no block modification.
         for (Block block : event.getBlocks()) {
@@ -43,6 +44,7 @@ public class ChorusBlockSoundListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlaceChorusBlock(OraxenChorusBlockPlaceEvent event) {
+        if (!ChorusBlockMechanicFactory.isEnabled() || !ChorusBlockMechanicFactory.areCustomSoundsEnabled()) return;
         final ChorusBlockMechanic mechanic = event.getMechanic();
         if (!mechanic.hasBlockSounds()) return;
         BlockSounds blockSounds = mechanic.getBlockSounds();
@@ -53,6 +55,7 @@ public class ChorusBlockSoundListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBreakChorusBlock(OraxenChorusBlockBreakEvent event) {
+        if (!ChorusBlockMechanicFactory.isEnabled() || !ChorusBlockMechanicFactory.areCustomSoundsEnabled()) return;
         final ChorusBlockMechanic mechanic = event.getMechanic();
         if (!mechanic.hasBlockSounds()) return;
         BlockSounds blockSounds = mechanic.getBlockSounds();
@@ -63,6 +66,7 @@ public class ChorusBlockSoundListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onStepFall(final GenericGameEvent event) {
+        if (!ChorusBlockMechanicFactory.isEnabled() || !ChorusBlockMechanicFactory.areCustomSoundsEnabled()) return;
         Entity entity = event.getEntity();
         if (!(entity instanceof LivingEntity)) return;
         Location entityLoc = entity.getLocation();

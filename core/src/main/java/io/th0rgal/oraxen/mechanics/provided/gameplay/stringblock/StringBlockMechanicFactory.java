@@ -48,7 +48,7 @@ public class StringBlockMechanicFactory extends MechanicFactory {
         toolTypes = section.getStringList("tool_types");
         saplingGrowthCheckDelay = section.getInt("sapling_growth_check_delay");
         sapling = false;
-        customSounds = OraxenPlugin.get().getConfigsManager().getMechanics().getConfigurationSection("custom_block_sounds").getBoolean("stringblock_and_furniture", true);
+        customSounds = areCustomSoundsEnabled();
         disableVanillaString = section.getBoolean("disable_vanilla_strings", true);
 
         // this modifier should be executed when all the items have been parsed, just
@@ -95,7 +95,16 @@ public class StringBlockMechanicFactory extends MechanicFactory {
     }
 
     public static boolean isEnabled() {
-        return instance != null;
+        return instance != null && MechanicsManager.isMechanicEnabled("stringblock");
+    }
+
+    public static boolean areCustomSoundsEnabled() {
+        OraxenPlugin plugin = OraxenPlugin.get();
+        if (plugin == null || plugin.getConfigsManager() == null) return true;
+
+        ConfigurationSection customSoundsSection = plugin.getConfigsManager().getMechanics()
+                .getConfigurationSection("custom_block_sounds");
+        return customSoundsSection == null || customSoundsSection.getBoolean("stringblock_and_furniture", true);
     }
 
     public static StringBlockMechanicFactory getInstance() {

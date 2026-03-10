@@ -9,6 +9,7 @@ import io.th0rgal.oraxen.config.AppearanceMode;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenMeta;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.BlockHelpers;
@@ -36,6 +37,7 @@ public class JukeboxListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onInsertDisc(OraxenFurnitureInteractEvent event) {
+        if (!FurnitureFactory.isEnabled()) return;
         Entity baseEntity = event.getBaseEntity();
         Player player = event.getPlayer();
         ItemStack itemStack = player.getInventory().getItemInMainHand();
@@ -71,6 +73,7 @@ public class JukeboxListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onEjectDisc(OraxenFurnitureInteractEvent event) {
+        if (!FurnitureFactory.isEnabled()) return;
         if (!ejectAndStopDisc(event.getBaseEntity(), event.getPlayer()))
             return;
         event.getPlayer().swingMainHand();
@@ -79,6 +82,7 @@ public class JukeboxListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onJukeboxBreak(OraxenFurnitureBreakEvent event) {
+        if (!FurnitureFactory.isEnabled()) return;
         ejectAndStopDisc(event.getBaseEntity(), null);
     }
 

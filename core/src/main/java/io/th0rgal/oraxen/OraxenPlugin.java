@@ -20,6 +20,7 @@ import io.th0rgal.oraxen.pack.dispatch.PackLoadingManager;
 import io.th0rgal.oraxen.pack.generation.PackVersionManager;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
+import io.th0rgal.oraxen.recipes.builders.RecipeBuilder;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.*;
@@ -177,6 +178,8 @@ public class OraxenPlugin extends JavaPlugin {
     public void onDisable() {
         HandlerList.unregisterAll(this);
         FurnitureFactory.unregisterEvolution();
+        MechanicsManager.unregisterTasks();
+        RecipeBuilder.clearAll();
 
         // Clean up backpack cosmetic entities to prevent ghost armor stands
         io.th0rgal.oraxen.mechanics.provided.cosmetic.backpack.BackpackCosmeticManager.getInstance().cleanup();

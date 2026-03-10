@@ -9,6 +9,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Optional;
@@ -35,5 +36,10 @@ public class RecipesBuilderEvents implements Listener {
             return;
 
         recipeBuilder.setInventory(event.getInventory());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        RecipeBuilder.remove(event.getPlayer().getUniqueId());
     }
 }

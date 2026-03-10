@@ -27,22 +27,29 @@ public class FurnitureUpdater implements Listener {
         if (!Settings.UPDATE_FURNITURE.toBool()) return;
         if (Settings.UPDATE_FURNITURE_ON_LOAD.toBool()) {
             Bukkit.getPluginManager().registerEvent(EntitiesLoadEvent.class, this, EventPriority.NORMAL, (listener, event) ->
-                    ((EntitiesLoadEvent) event).getEntities().stream().filter(OraxenFurniture::isBaseEntity).forEach(OraxenFurniture::updateFurniture)
+                    {
+                        if (!FurnitureFactory.isEnabled()) return;
+                        ((EntitiesLoadEvent) event).getEntities().stream().filter(OraxenFurniture::isBaseEntity).forEach(OraxenFurniture::updateFurniture);
+                    }
                     , OraxenPlugin.get());
         }
 
         if (Settings.EXPERIMENTAL_FIX_BROKEN_FURNITURE.toBool()) {
             Bukkit.getPluginManager().registerEvent(ChunkLoadEvent.class, this, EventPriority.NORMAL, ((listener, event) -> {
+                if (!FurnitureFactory.isEnabled()) return;
                 for (Block block : CustomBlockData.getBlocksWithCustomData(OraxenPlugin.get(), ((ChunkLoadEvent) event).getChunk())) {
                     FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
-                    if (mechanic == null) return;
+                    if (mechanic == null) {
+                        if (OraxenFurniture.hasFurnitureBlockMarker(block)) OraxenFurniture.remove(block.getLocation(), null);
+                        continue;
+                    }
                     Entity baseEntity = mechanic.getBaseEntity(block);
-                    // Return if there is a baseEntity
-                    if (baseEntity != null) return;
+                    // Skip if there is a baseEntity
+                    if (baseEntity != null) continue;
 
                     Location rootLoc = new BlockLocation(BlockHelpers.getPDC(block).getOrDefault(ROOT_KEY, DataType.STRING, "")).toLocation(block.getWorld());
                     float yaw = BlockHelpers.getPDC(block).getOrDefault(ORIENTATION_KEY, PersistentDataType.FLOAT, 0f);
-                    if (rootLoc == null) return;
+                    if (rootLoc == null) continue;
 
                     //OraxenFurniture.remove(block.getLocation(), null);
                     mechanic.getLocations(yaw, rootLoc, mechanic.getBarriers()).forEach(loc -> {
