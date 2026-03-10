@@ -103,4 +103,12 @@ public abstract class RecipeBuilder {
     public static RecipeBuilder get(UUID playerUUID) {
         return MAP.get(playerUUID);
     }
+
+    public static void remove(UUID playerUUID) {
+        MAP.remove(playerUUID);
+    }
+
+    public static void clearAll() {
+        MAP.clear();
+    }
 }

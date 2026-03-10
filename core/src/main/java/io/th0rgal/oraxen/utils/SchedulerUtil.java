@@ -21,6 +21,7 @@ public final class SchedulerUtil {
 
     private static Object globalRegionScheduler;
     private static Object asyncScheduler;
+    private static Object regionScheduler;
     private static Method globalRunMethod;
     private static Method globalRunDelayedMethod;
     private static Method globalRunAtFixedRateMethod;
@@ -33,6 +34,7 @@ public final class SchedulerUtil {
     private static Method entityRunMethod;
     private static Method entityRunDelayedMethod;
     private static Method entityRunAtFixedRateMethod;
+    private static Method getEntitySchedulerMethod;
     private static Method taskCancelMethod;
 
     private static boolean foliaInitialized = false;
@@ -92,7 +94,7 @@ public final class SchedulerUtil {
 
         // Get RegionScheduler methods (for location-based scheduling)
         Method getRegionScheduler = Bukkit.class.getMethod("getRegionScheduler");
-        Object regionScheduler = getRegionScheduler.invoke(null);
+        regionScheduler = getRegionScheduler.invoke(null);
         Class<?> regionSchedulerClass = regionScheduler.getClass();
         regionRunMethod = regionSchedulerClass.getMethod("run", Plugin.class, Location.class, Consumer.class);
         regionRunDelayedMethod = regionSchedulerClass.getMethod("runDelayed", Plugin.class, Location.class, Consumer.class, long.class);
@@ -104,7 +106,7 @@ public final class SchedulerUtil {
 
         // Get Entity scheduler methods
         Class<?> entityClass = Entity.class;
-        Method getSchedulerMethod = entityClass.getMethod("getScheduler");
+        getEntitySchedulerMethod = entityClass.getMethod("getScheduler");
         // We'll call this per-entity, so we just need the method references from TaskScheduler
         Class<?> entitySchedulerClass = Class.forName("io.papermc.paper.threadedregions.scheduler.EntityScheduler");
         entityRunMethod = entitySchedulerClass.getMethod("run", Plugin.class, Consumer.class, Runnable.class);
@@ -292,8 +294,6 @@ public final class SchedulerUtil {
     public static ScheduledTask runAtLocation(Plugin plugin, Location location, Runnable runnable) {
         if (VersionUtil.isFoliaServer() && foliaInitialized) {
             try {
-                Method getRegionScheduler = Bukkit.class.getMethod("getRegionScheduler");
-                Object regionScheduler = getRegionScheduler.invoke(null);
                 Consumer<Object> consumer = task -> runnable.run();
                 Object task = regionRunMethod.invoke(regionScheduler, plugin, location, consumer);
                 return new ScheduledTask(task);
@@ -319,8 +319,6 @@ public final class SchedulerUtil {
     public static ScheduledTask runAtLocationLater(Plugin plugin, Location location, long delayTicks, Runnable runnable) {
         if (VersionUtil.isFoliaServer() && foliaInitialized) {
             try {
-                Method getRegionScheduler = Bukkit.class.getMethod("getRegionScheduler");
-                Object regionScheduler = getRegionScheduler.invoke(null);
                 Consumer<Object> consumer = task -> runnable.run();
                 Object task = regionRunDelayedMethod.invoke(regionScheduler, plugin, location, consumer, Math.max(1, delayTicks));
                 return new ScheduledTask(task);
@@ -346,8 +344,6 @@ public final class SchedulerUtil {
     public static ScheduledTask runAtLocationTimer(Plugin plugin, Location location, long delayTicks, long periodTicks, Runnable runnable) {
         if (VersionUtil.isFoliaServer() && foliaInitialized) {
             try {
-                Method getRegionScheduler = Bukkit.class.getMethod("getRegionScheduler");
-                Object regionScheduler = getRegionScheduler.invoke(null);
                 Consumer<Object> consumer = task -> runnable.run();
                 Object task = regionRunAtFixedRateMethod.invoke(regionScheduler, plugin, location, consumer, Math.max(1, delayTicks), Math.max(1, periodTicks));
                 return new ScheduledTask(task);
@@ -392,8 +388,7 @@ public final class SchedulerUtil {
     public static ScheduledTask runForEntity(Plugin plugin, Entity entity, Runnable runnable, Runnable retired) {
         if (VersionUtil.isFoliaServer() && foliaInitialized) {
             try {
-                Method getSchedulerMethod = Entity.class.getMethod("getScheduler");
-                Object entityScheduler = getSchedulerMethod.invoke(entity);
+                Object entityScheduler = getEntitySchedulerMethod.invoke(entity);
                 Consumer<Object> consumer = task -> runnable.run();
                 Object task = entityRunMethod.invoke(entityScheduler, plugin, consumer, retired);
                 return task != null ? new ScheduledTask(task) : null;
@@ -419,8 +414,7 @@ public final class SchedulerUtil {
     public static ScheduledTask runForEntityLater(Plugin plugin, Entity entity, long delayTicks, Runnable runnable, Runnable retired) {
         if (VersionUtil.isFoliaServer() && foliaInitialized) {
             try {
-                Method getSchedulerMethod = Entity.class.getMethod("getScheduler");
-                Object entityScheduler = getSchedulerMethod.invoke(entity);
+                Object entityScheduler = getEntitySchedulerMethod.invoke(entity);
                 Consumer<Object> consumer = task -> runnable.run();
                 Object task = entityRunDelayedMethod.invoke(entityScheduler, plugin, consumer, retired, Math.max(1, delayTicks));
                 return task != null ? new ScheduledTask(task) : null;
@@ -446,8 +440,7 @@ public final class SchedulerUtil {
     public static ScheduledTask runForEntityTimer(Plugin plugin, Entity entity, long delayTicks, long periodTicks, Runnable runnable, Runnable retired) {
         if (VersionUtil.isFoliaServer() && foliaInitialized) {
             try {
-                Method getSchedulerMethod = Entity.class.getMethod("getScheduler");
-                Object entityScheduler = getSchedulerMethod.invoke(entity);
+                Object entityScheduler = getEntitySchedulerMethod.invoke(entity);
                 Consumer<Object> consumer = task -> runnable.run();
                 Object task = entityRunAtFixedRateMethod.invoke(entityScheduler, plugin, consumer, retired, Math.max(1, delayTicks), Math.max(1, periodTicks));
                 return task != null ? new ScheduledTask(task) : null;
