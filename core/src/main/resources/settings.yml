@@ -175,7 +175,7 @@ Pack:
     merge_duplicates: true
     # Removes imported minecraft core shader files from pack/assets and uploads/*.zip merges.
     # Useful when external packs override Oraxen-generated text/scoreboard shaders.
-    remove_core_shaders_from_imported_packs: true
+    remove_core_shaders_from_imported_packs: false
     # Whether the above merger will set the custommodeldata to the same values as in the imported file
     # To avoid issues, only set this to true if you need them to be these values for another plugin
     # This might override some of your other OraxenItems if they have they have their custom_model_data set to the same.
