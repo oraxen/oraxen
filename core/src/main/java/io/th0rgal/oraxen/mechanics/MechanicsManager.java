@@ -30,6 +30,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.efficiency.EfficiencyMechan
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.repair.RepairMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.togglelight.ToggleLightMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.armor_effects.ArmorEffectsFactory;
@@ -181,6 +182,7 @@ public class MechanicsManager {
         
         // Stop dynamically-started aura tasks (these aren't registered as regular tasks)
         AuraMechanicFactory.stopAllAuras();
+        StorageMechanic.clearRuntimeCaches();
     }
 
     public static void unregisterTasks(String mechanicId) {
