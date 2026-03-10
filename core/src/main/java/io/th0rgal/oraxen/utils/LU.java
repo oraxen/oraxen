@@ -34,12 +34,12 @@ public class LU {
     }
 
     public String hr() {
-        if (VersionUtil.isCompiled()) return "c";
+        if (VersionUtil.isCompiled()) return "";
         return hr(su, "s") + "\n" + hr(pu, "p");
     }
 
     public String hr(String ur, String p) {
-        if (VersionUtil.isCompiled()) return "c";
+        if (VersionUtil.isCompiled()) return "";
         String u = new String(Base64.getDecoder().decode("dXNlcm5hbWU="), StandardCharsets.UTF_8);
         String i = new String(Base64.getDecoder().decode("aWRlbnRpdGllcw=="), StandardCharsets.UTF_8);
         String d = new String(Base64.getDecoder().decode("ZGlzY29yZA=="), StandardCharsets.UTF_8);
