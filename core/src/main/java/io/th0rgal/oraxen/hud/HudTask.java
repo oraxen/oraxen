@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.hud;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.EntityUtils;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -42,18 +43,24 @@ public class HudTask implements Runnable {
         Hud hud = manager.hasActiveHud(player) ? manager.getActiveHud(player) : manager.getDefaultEnabledHuds().stream().findFirst().orElse(null);
 
         if (hud == null) {
-            Logs.logWarning("[HUD] No HUD found for player " + player.getName());
+            if (Settings.DEBUG.toBool()) {
+                Logs.logWarning("[HUD] No HUD found for player " + player.getName());
+            }
             return;
         }
         if (manager.getHudID(hud) == null) {
-            Logs.logWarning("[HUD] HUD ID is null for player " + player.getName());
+            if (Settings.DEBUG.toBool()) {
+                Logs.logWarning("[HUD] HUD ID is null for player " + player.getName());
+            }
             return;
         }
         if (hud.disableWhilstInWater() && EntityUtils.isUnderWater(player)) {
             return;
         }
         if (!player.hasPermission(hud.getPerm())) {
-            Logs.logWarning("[HUD] Player " + player.getName() + " doesn't have permission: " + hud.getPerm());
+            if (Settings.DEBUG.toBool()) {
+                Logs.logWarning("[HUD] Player " + player.getName() + " doesn't have permission: " + hud.getPerm());
+            }
             return;
         }
 

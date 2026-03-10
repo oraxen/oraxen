@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.cosmetic.backpack;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.ConfigProperty;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
@@ -57,7 +58,9 @@ public class BackpackCosmeticFactory extends MechanicFactory {
         SchedulerUtil.ScheduledTask refreshTask = SchedulerUtil.runTaskTimer(20L, 20L, manager::refreshAllViewers);
         MechanicsManager.registerTask(getMechanicID(), refreshTask);
 
-        io.th0rgal.oraxen.utils.logs.Logs.logSuccess("BackpackCosmeticFactory initialized");
+        if (Settings.DEBUG.toBool()) {
+            io.th0rgal.oraxen.utils.logs.Logs.logSuccess("BackpackCosmeticFactory initialized");
+        }
     }
 
     public static BackpackCosmeticFactory getInstance() {

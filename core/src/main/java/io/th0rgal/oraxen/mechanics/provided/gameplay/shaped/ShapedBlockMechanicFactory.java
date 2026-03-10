@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.shaped;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.ConfigProperty;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
@@ -77,7 +78,9 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
         MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(),
             new ShapedBlockMechanicListener(this));
 
-        Logs.logSuccess("ShapedBlockMechanicFactory initialized with tool types: " + toolTypes);
+        if (Settings.DEBUG.toBool()) {
+            Logs.logSuccess("ShapedBlockMechanicFactory initialized with tool types: " + toolTypes);
+        }
     }
 
     public static ShapedBlockMechanicFactory getInstance() {
@@ -122,11 +125,15 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
 
         // Store model name for blockstate generation
         String modelName = mechanic.getModel(section.getParent().getParent());
-        Logs.logInfo("Shaped block " + mechanic.getItemID() + " model: " + modelName);
+        if (Settings.DEBUG.toBool()) {
+            Logs.logInfo("Shaped block " + mechanic.getItemID() + " model: " + modelName);
+        }
         if (modelName != null) {
             modelByMaterial.put(mechanic.getPlacedMaterial(), modelName);
             typeByMaterial.put(mechanic.getPlacedMaterial(), type);
-            Logs.logInfo("Stored model for " + mechanic.getPlacedMaterial() + " -> " + modelName);
+            if (Settings.DEBUG.toBool()) {
+                Logs.logInfo("Stored model for " + mechanic.getPlacedMaterial() + " -> " + modelName);
+            }
 
             // Store textures for generating variant models
             // First check for mechanic-level textures (block-specific), then fall back to Pack textures
@@ -139,7 +146,9 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
                 }
             }
             if (!blockTextures.isEmpty()) {
-                Logs.logInfo("Storing textures for " + mechanic.getPlacedMaterial() + ": " + blockTextures);
+                if (Settings.DEBUG.toBool()) {
+                    Logs.logInfo("Storing textures for " + mechanic.getPlacedMaterial() + ": " + blockTextures);
+                }
                 texturesByMaterial.put(mechanic.getPlacedMaterial(), blockTextures);
             }
 
@@ -152,8 +161,10 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
         }
 
         addToImplemented(mechanic);
-        Logs.logSuccess("Registered shaped block item: " + mechanic.getItemID() + " -> " +
-            type + " variation " + variation + " (" + mechanic.getPlacedMaterial() + ")");
+        if (Settings.DEBUG.toBool()) {
+            Logs.logSuccess("Registered shaped block item: " + mechanic.getItemID() + " -> " +
+                type + " variation " + variation + " (" + mechanic.getPlacedMaterial() + ")");
+        }
         return mechanic;
     }
 
@@ -194,7 +205,9 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
      * Generate blockstate files and variant models for all registered shaped blocks
      */
     private void generateBlockstates() {
-        Logs.logInfo("Generating blockstates for " + modelByMaterial.size() + " shaped blocks");
+        if (Settings.DEBUG.toBool()) {
+            Logs.logInfo("Generating blockstates for " + modelByMaterial.size() + " shaped blocks");
+        }
         for (Map.Entry<Material, String> entry : modelByMaterial.entrySet()) {
             Material material = entry.getKey();
             String modelName = entry.getValue();
@@ -213,7 +226,9 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
             OraxenPlugin.get().getResourcePack().writeStringToVirtual(
                 "assets/minecraft/blockstates", blockstateName, blockstateContent);
 
-            Logs.logSuccess("Generated blockstate for " + material + " -> " + modelName);
+            if (Settings.DEBUG.toBool()) {
+                Logs.logSuccess("Generated blockstate for " + material + " -> " + modelName);
+            }
         }
     }
 
@@ -259,7 +274,9 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
         String primaryTexture = normalizeTexturePath(textureList.get(0));
         String secondaryTexture = textureList.size() > 1 ? normalizeTexturePath(textureList.get(1)) : primaryTexture;
 
-        Logs.logInfo("Generating base block model " + modelName + " with textures: " + primaryTexture + ", " + secondaryTexture);
+        if (Settings.DEBUG.toBool()) {
+            Logs.logInfo("Generating base block model " + modelName + " with textures: " + primaryTexture + ", " + secondaryTexture);
+        }
 
         switch (type) {
             case STAIR -> {
@@ -312,7 +329,9 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
                     OraxenPlugin.get().getResourcePack().writeStringToVirtual(
                         "assets/minecraft/models/block", modelName + ".json", model.toString());
 
-                    Logs.logInfo("Generated base block model for " + modelName);
+                    if (Settings.DEBUG.toBool()) {
+                        Logs.logInfo("Generated base block model for " + modelName);
+                    }
                     return;
                 }
 
@@ -335,7 +354,9 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
         OraxenPlugin.get().getResourcePack().writeStringToVirtual(
             "assets/minecraft/models/block", modelName + ".json", model.toString());
 
-        Logs.logInfo("Generated base block model for " + modelName);
+        if (Settings.DEBUG.toBool()) {
+            Logs.logInfo("Generated base block model for " + modelName);
+        }
     }
 
     private JsonObject createCubeElement(double from, double to, boolean includeCullfaces) {
@@ -411,7 +432,9 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
         OraxenPlugin.get().getResourcePack().writeStringToVirtual(
             "assets/minecraft/models/block", modelName + "_double.json", doubleModel.toString());
 
-        Logs.logInfo("Generated slab variant models for " + modelName);
+        if (Settings.DEBUG.toBool()) {
+            Logs.logInfo("Generated slab variant models for " + modelName);
+        }
     }
 
     /**
@@ -444,7 +467,9 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
         OraxenPlugin.get().getResourcePack().writeStringToVirtual(
             "assets/minecraft/models/block", modelName + "_outer.json", outerModel.toString());
 
-        Logs.logInfo("Generated stair variant models for " + modelName);
+        if (Settings.DEBUG.toBool()) {
+            Logs.logInfo("Generated stair variant models for " + modelName);
+        }
     }
 
     /**
@@ -488,7 +513,9 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
                 "assets/minecraft/models/block", modelName + suffix + ".json", model.toString());
         }
 
-        Logs.logInfo("Generated door variant models for " + modelName + " (bottom: " + bottomTexture + ", top: " + topTexture + ")");
+        if (Settings.DEBUG.toBool()) {
+            Logs.logInfo("Generated door variant models for " + modelName + " (bottom: " + bottomTexture + ", top: " + topTexture + ")");
+        }
     }
 
     /**
@@ -538,7 +565,9 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
         OraxenPlugin.get().getResourcePack().writeStringToVirtual(
             "assets/minecraft/models/block", modelName + "_top.json", topModel.toString());
 
-        Logs.logInfo("Generated trapdoor variant models for " + modelName);
+        if (Settings.DEBUG.toBool()) {
+            Logs.logInfo("Generated trapdoor variant models for " + modelName);
+        }
     }
 
     /**
