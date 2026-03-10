@@ -39,10 +39,12 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.RayTraceResult;
 
 import java.util.Objects;
 
+import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.FURNITURE_KEY;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.rotationToYaw;
 
 public class FurnitureListener implements Listener {
@@ -260,8 +262,13 @@ public class FurnitureListener implements Listener {
             return;
 
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
-        if (mechanic == null)
+        if (mechanic == null) {
+            if (!OraxenFurniture.isOrphanFurnitureEntity(entity))
+                return;
+            event.setCancelled(true);
+            OraxenFurniture.remove(entity, null);
             return;
+        }
         entity = mechanic.getBaseEntity(entity);
         if (entity == null)
             return;
@@ -278,8 +285,18 @@ public class FurnitureListener implements Listener {
         if (!(event.getDamager() instanceof Player player))
             return;
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
-        if (mechanic == null)
+        if (mechanic == null) {
+            if (!OraxenFurniture.isOrphanFurnitureEntity(entity))
+                return;
+
+            event.setCancelled(true);
+            if (!ProtectionLib.canBreak(player, entity.getLocation()))
+                return;
+
+            if (OraxenFurniture.remove(entity, player))
+                event.setCancelled(false);
             return;
+        }
 
         event.setCancelled(true);
         entity = mechanic.getBaseEntity(entity);
@@ -304,8 +321,16 @@ public class FurnitureListener implements Listener {
         Player player = event.getPlayer();
 
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
-        if (mechanic == null)
+        if (mechanic == null) {
+            if (!BlockHelpers.getPDC(block).has(FURNITURE_KEY, PersistentDataType.STRING))
+                return;
+
+            event.setCancelled(true);
+            if (OraxenFurniture.remove(block.getLocation(), player))
+                event.setCancelled(false);
+            event.setDropItems(false);
             return;
+        }
         Entity baseEntity = mechanic.getBaseEntity(block);
         if (baseEntity == null)
             return;
@@ -329,8 +354,9 @@ public class FurnitureListener implements Listener {
         Player player = projectile.getShooter() instanceof Player ? (Player) projectile.getShooter() : null;
         Location location = block != null && block.getType() == Material.BARRIER ? block.getLocation()
                 : hitEntity != null ? hitEntity.getLocation() : null;
-        boolean isFurniture = block != null ? OraxenFurniture.isFurniture(block)
-                : hitEntity != null && OraxenFurniture.isFurniture(hitEntity);
+        boolean isFurniture = block != null
+                ? OraxenFurniture.isFurniture(block) || OraxenFurniture.hasFurnitureBlockMarker(block)
+                : hitEntity != null && (OraxenFurniture.isFurniture(hitEntity) || OraxenFurniture.isOrphanFurnitureEntity(hitEntity));
 
         // Do not break furniture with a hitbox unless its explosive
         if (location != null && isFurniture) {
@@ -347,12 +373,14 @@ public class FurnitureListener implements Listener {
     public void onProjectileDamageFurniture(final EntityDamageByEntityEvent event) {
         Entity furniture = event.getEntity();
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(furniture);
-        if (mechanic == null || !(event.getDamager() instanceof Projectile projectile))
+        if (!(event.getDamager() instanceof Projectile projectile))
+            return;
+        if (mechanic == null && !OraxenFurniture.isOrphanFurnitureEntity(furniture))
             return;
         Player player = projectile.getShooter() instanceof Player ? (Player) projectile.getShooter() : null;
 
         event.setCancelled(true);
-        if (mechanic.hasBarriers() || !isDamagingProjectile(projectile))
+        if ((mechanic != null && mechanic.hasBarriers()) || !isDamagingProjectile(projectile))
             return;
         if (player != null && !ProtectionLib.canBreak(player, furniture.getLocation()))
             return;
