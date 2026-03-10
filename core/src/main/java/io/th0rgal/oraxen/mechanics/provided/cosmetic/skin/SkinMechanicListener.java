@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.cosmetic.skin;
 
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.provided.cosmetic.skinnable.SkinnableMechanicFactory;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -19,23 +20,32 @@ public class SkinMechanicListener implements Listener {
     public void onInventoryClick(InventoryClickEvent event) {
         ItemStack skin = event.getCursor();
         ItemStack skinnable = event.getCurrentItem();
+        if (skin == null || skinnable == null) return;
+
         String skinID = OraxenItems.getIdByItem(skin);
         String skinnableID = OraxenItems.getIdByItem(skinnable);
         if (factory.isNotImplementedIn(skinID)
             || SkinnableMechanicFactory.get().isNotImplementedIn(skinnableID))
             return;
-        if (skin == null || skinnable == null) return;
 
         ItemMeta skinMeta = skin.getItemMeta();
         ItemMeta skinnableMeta = skinnable.getItemMeta();
-        if (skinMeta == null || skinnableMeta == null) return;
-        if (!skinMeta.hasCustomModelData() || skin.getType() != skinnable.getType()) return;
+        if (skinMeta == null || skinnableMeta == null || skin.getType() != skinnable.getType()) return;
 
-        int changeSkin = skinMeta.getCustomModelData();
+        if (VersionUtil.atOrAbove("1.21.4")) {
+            if (!skinMeta.hasItemModel()) return;
 
-        if (skinnableMeta.hasCustomModelData() && changeSkin == skinnableMeta.getCustomModelData()) return;
+            if (skinnableMeta.hasItemModel() && skinMeta.getItemModel().equals(skinnableMeta.getItemModel())) return;
+            skinnableMeta.setItemModel(skinMeta.getItemModel());
+        } else {
+            if (!skinMeta.hasCustomModelData()) return;
 
-        skinnableMeta.setCustomModelData(changeSkin);
+            int changeSkin = skinMeta.getCustomModelData();
+
+            if (skinnableMeta.hasCustomModelData() && changeSkin == skinnableMeta.getCustomModelData()) return;
+
+            skinnableMeta.setCustomModelData(changeSkin);
+        }
         skinnable.setItemMeta(skinnableMeta);
 
         SkinMechanic skinMechanic = (SkinMechanic) factory.getMechanic(skinID);
