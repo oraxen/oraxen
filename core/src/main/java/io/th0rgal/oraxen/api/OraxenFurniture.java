@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.api;
 
+import com.jeff_media.customblockdata.CustomBlockData;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import com.jeff_media.persistentdataserializer.PersistentDataSerializer;
 import io.th0rgal.oraxen.OraxenPlugin;
@@ -67,6 +68,20 @@ public class OraxenFurniture {
 
     public static boolean isFurniture(Entity entity) {
         return entity != null && getFurnitureMechanic(entity) != null;
+    }
+
+    public static boolean isOrphanFurnitureEntity(Entity entity) {
+        return hasFurnitureEntityMarker(entity) && getFurnitureMechanic(entity) == null;
+    }
+
+    public static boolean hasFurnitureEntityMarker(Entity entity) {
+        return entity != null && entity.getPersistentDataContainer().has(FURNITURE_KEY, PersistentDataType.STRING);
+    }
+
+    public static boolean hasFurnitureBlockMarker(Block block) {
+        return block != null
+                && block.getType() == Material.BARRIER
+                && BlockHelpers.getPDC(block).has(FURNITURE_KEY, PersistentDataType.STRING);
     }
 
     public static boolean isBaseEntity(Entity entity) {
@@ -154,8 +169,7 @@ public class OraxenFurniture {
         FurnitureMechanic mechanic = getFurnitureMechanic(location.getBlock());
         mechanic = mechanic != null ? mechanic : entity != null ? getFurnitureMechanic(entity) : null;
         ItemStack itemStack = player != null ? player.getInventory().getItemInMainHand() : new ItemStack(Material.AIR);
-        if (mechanic == null) return false;
-        assert entity != null;
+        if (mechanic == null) return removeOrphanFurniture(location);
 
         Entity baseEntity = mechanic.getBaseEntity(location.getBlock());
         baseEntity = baseEntity != null ? baseEntity : mechanic.getBaseEntity(entity);
@@ -199,7 +213,7 @@ public class OraxenFurniture {
     public static boolean remove(Entity baseEntity, @Nullable Player player, @Nullable Drop drop) {
         if (!FurnitureFactory.isEnabled() || baseEntity == null) return false;
         FurnitureMechanic mechanic = getFurnitureMechanic(baseEntity);
-        if (mechanic == null) return false;
+        if (mechanic == null) return removeOrphanFurniture(baseEntity);
         // Ensure the baseEntity is baseEntity and not interactionEntity
         if (OraxenFurniture.isInteractionEntity(baseEntity)) baseEntity = mechanic.getBaseEntity(baseEntity);
         if (baseEntity == null) return false;
@@ -220,6 +234,117 @@ public class OraxenFurniture {
             mechanic.removeSolid(baseEntity, baseEntity.getLocation(), FurnitureMechanic.getFurnitureYaw(baseEntity));
         else mechanic.removeNonSolidFurniture(baseEntity);
         return true;
+    }
+
+    private static boolean removeOrphanFurniture(@NotNull Location location) {
+        if (!location.isWorldLoaded()) return false;
+        assert location.getWorld() != null;
+
+        Entity orphanEntity = location.getWorld().getNearbyEntities(location, 0.5, 0.5, 0.5).stream()
+                .filter(OraxenFurniture::hasFurnitureEntityMarker)
+                .findFirst()
+                .orElse(null);
+        if (orphanEntity != null) return removeOrphanFurniture(orphanEntity);
+
+        Block block = location.getBlock();
+        if (!hasFurnitureBlockMarker(block)) return false;
+
+        UUID baseEntityUUID = BlockHelpers.getPDC(block).get(BASE_ENTITY_KEY, DataType.UUID);
+        if (baseEntityUUID != null) {
+            Entity baseEntity = Bukkit.getEntity(baseEntityUUID);
+            if (baseEntity != null && hasFurnitureEntityMarker(baseEntity))
+                return removeOrphanFurniture(baseEntity);
+        }
+
+        removeOrphanBarrierBlock(block, null);
+        return true;
+    }
+
+    private static boolean removeOrphanFurniture(@NotNull Entity entity) {
+        if (!hasFurnitureEntityMarker(entity)) return false;
+
+        Entity baseEntity = resolveBaseEntity(entity);
+        if (baseEntity == null) {
+            removeOrphanSeat(entity.getPersistentDataContainer());
+            if (!entity.isDead()) entity.remove();
+            return true;
+        }
+
+        removeOrphanBarriers(baseEntity);
+        removeOrphanSeat(baseEntity.getPersistentDataContainer());
+
+        UUID interactionUUID = baseEntity.getPersistentDataContainer().get(INTERACTION_KEY, DataType.UUID);
+        if (interactionUUID != null) {
+            Entity interactionEntity = Bukkit.getEntity(interactionUUID);
+            if (interactionEntity != null && !interactionEntity.isDead()) interactionEntity.remove();
+        }
+
+        if (!baseEntity.isDead()) baseEntity.remove();
+        if (entity != baseEntity && !entity.isDead()) entity.remove();
+        return true;
+    }
+
+    @Nullable
+    private static Entity resolveBaseEntity(@NotNull Entity entity) {
+        UUID baseEntityUUID = entity.getPersistentDataContainer().get(BASE_ENTITY_KEY, DataType.UUID);
+        if (baseEntityUUID != null) {
+            Entity baseEntity = Bukkit.getEntity(baseEntityUUID);
+            if (baseEntity != null) return baseEntity;
+        }
+
+        return entity.getType() == EntityType.INTERACTION ? null : entity;
+    }
+
+    private static void removeOrphanBarriers(@NotNull Entity baseEntity) {
+        List<BlockLocation> barrierLocations = baseEntity.getPersistentDataContainer().getOrDefault(BARRIER_KEY,
+                DataType.asList(BlockLocation.dataType), new ArrayList<>());
+        float yaw = FurnitureMechanic.getFurnitureYaw(baseEntity);
+        Location rootLocation = BlockHelpers.toCenterBlockLocation(baseEntity.getLocation());
+        UUID baseEntityUUID = baseEntity.getUniqueId();
+
+        for (BlockLocation barrierLocation : barrierLocations) {
+            Block block = barrierLocation.groundRotate(yaw).add(rootLocation).getBlock();
+            removeOrphanBarrierBlock(block, baseEntityUUID);
+        }
+
+        int maxOffset = barrierLocations.stream()
+                .mapToInt(loc -> Math.max(Math.abs(loc.getX()), Math.max(Math.abs(loc.getY()), Math.abs(loc.getZ()))))
+                .max()
+                .orElse(0);
+        int scanRadius = Math.max(4, maxOffset + 2);
+        Location center = baseEntity.getLocation();
+
+        for (int x = center.getBlockX() - scanRadius; x <= center.getBlockX() + scanRadius; x++) {
+            for (int y = center.getBlockY() - scanRadius; y <= center.getBlockY() + scanRadius; y++) {
+                for (int z = center.getBlockZ() - scanRadius; z <= center.getBlockZ() + scanRadius; z++) {
+                    Block block = center.getWorld().getBlockAt(x, y, z);
+                    removeOrphanBarrierBlock(block, baseEntityUUID);
+                }
+            }
+        }
+    }
+
+    private static void removeOrphanBarrierBlock(@NotNull Block block, @Nullable UUID baseEntityUUID) {
+        if (!hasFurnitureBlockMarker(block)) return;
+
+        PersistentDataContainer pdc = BlockHelpers.getPDC(block);
+        UUID markerBaseEntityUUID = pdc.get(BASE_ENTITY_KEY, DataType.UUID);
+        if (baseEntityUUID != null && (markerBaseEntityUUID == null || !baseEntityUUID.equals(markerBaseEntityUUID)))
+            return;
+
+        removeOrphanSeat(pdc);
+        block.setType(Material.AIR);
+        new CustomBlockData(block, OraxenPlugin.get()).clear();
+    }
+
+    private static void removeOrphanSeat(@NotNull PersistentDataContainer pdc) {
+        UUID seatUUID = pdc.get(SEAT_KEY, DataType.UUID);
+        if (seatUUID == null) return;
+        Entity seatEntity = Bukkit.getEntity(seatUUID);
+        if (seatEntity instanceof ArmorStand seat) {
+            seat.getPassengers().forEach(seat::removePassenger);
+            if (!seat.isDead()) seat.remove();
+        }
     }
 
     /**

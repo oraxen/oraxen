@@ -69,8 +69,26 @@ public class UpdateCommand {
                     int radius = (int) args.getOptional("radius").orElse(10);
                     final Collection<Entity> targets = ((Collection<Entity>) args.getOptional("targets").orElse(player.getNearbyEntities(radius, radius, radius))).stream().filter(OraxenFurniture::isBaseEntity).toList();
                     for (Entity entity : targets) OraxenFurniture.updateFurniture(entity);
+                    cleanupOrphanFurniture(player, radius);
                     updateBrokenFurnitureBlocks(player, radius);
                 });
+    }
+
+    private void cleanupOrphanFurniture(Player player, int radius) {
+        for (Entity entity : player.getNearbyEntities(radius, radius, radius)) {
+            if (!OraxenFurniture.isOrphanFurnitureEntity(entity)) continue;
+            OraxenFurniture.remove(entity, null);
+        }
+
+        Set<Chunk> chunks = getChunksAroundPlayer(player, radius);
+        Set<Block> blocks = new HashSet<>();
+        for (Chunk chunk : chunks) blocks.addAll(CustomBlockData.getBlocksWithCustomData(OraxenPlugin.get(), chunk));
+
+        for (Block block : blocks.stream().filter(b -> b.getLocation().distance(player.getLocation()) <= radius).toList()) {
+            if (!OraxenFurniture.hasFurnitureBlockMarker(block)) continue;
+            if (OraxenFurniture.getFurnitureMechanic(block) != null) continue;
+            OraxenFurniture.remove(block.getLocation(), null);
+        }
     }
 
     /**
@@ -83,14 +101,14 @@ public class UpdateCommand {
         for (Chunk chunk : chunks) blocks.addAll(CustomBlockData.getBlocksWithCustomData(OraxenPlugin.get(), chunk));
         for (Block block : blocks.stream().filter(b -> b.getLocation().distance(player.getLocation()) <= radius).toList()) {
             FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
-            if (mechanic == null) return;
+            if (mechanic == null) continue;
             Entity baseEntity = mechanic.getBaseEntity(block);
             // Return if there is a baseEntity
-            if (baseEntity != null) return;
+            if (baseEntity != null) continue;
 
             Location rootLoc = new BlockLocation(BlockHelpers.getPDC(block).getOrDefault(ROOT_KEY, DataType.STRING, "")).toLocation(block.getWorld());
             float yaw = BlockHelpers.getPDC(block).getOrDefault(ORIENTATION_KEY, PersistentDataType.FLOAT, 0f);
-            if (rootLoc == null) return;
+            if (rootLoc == null) continue;
 
             //OraxenFurniture.remove(block.getLocation(), null);
             mechanic.getLocations(yaw, rootLoc, mechanic.getBarriers()).forEach(loc -> {
