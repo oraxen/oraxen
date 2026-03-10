@@ -61,8 +61,26 @@ public class MechanicsManager {
     private static final Map<String, MechanicFactory> FACTORIES_BY_MECHANIC_ID = new HashMap<>();
     private static final Map<String, List<SchedulerUtil.ScheduledTask>> MECHANIC_TASKS = new HashMap<>();
     private static final Map<String, List<Listener>> MECHANICS_LISTENERS = new HashMap<>();
+    private static final Set<String> NATIVE_MECHANIC_IDS = Set.of(
+            // misc
+            "armor_effects", "consumable_potion_effects", "soulbound", "itemtype", "consumable", "custom",
+            "commands", "backpack", "music_disc", "misc",
+            // gameplay
+            "food", "repair", "durability", "efficiency", "block", "noteblock", "stringblock", "chorusblock",
+            "shaped_block", "furniture", "toggle_light",
+            // cosmetic
+            "aura", "backpack_cosmetic", "hat", "skin", "skinnable",
+            // combat
+            "thor", "lifeleech", "energyblast", "witherskull", "fireball", "knockback_strike", "bleeding",
+            "spear_lunge",
+            // farming
+            "bigmining", "smelting", "bottledexp", "harvesting", "watering", "bedrockbreak"
+    );
 
     public static void registerNativeMechanics() {
+        // reset only native mechanics so external/custom factories work
+        NATIVE_MECHANIC_IDS.forEach(MechanicsManager::unregisterMechanicFactory);
+
         // misc
         registerFactory("armor_effects", ArmorEffectsFactory::new);
         registerFactory("consumable_potion_effects", ConsumablePotionEffectsFactory::new);
@@ -188,7 +206,7 @@ public class MechanicsManager {
             value.forEach(task -> {
                 if (task != null) task.cancel();
             });
-            return Collections.emptyList();
+            return null;
         });
     }
 
@@ -205,12 +223,19 @@ public class MechanicsManager {
     public static void unloadListeners() {
         for (final Listener listener : MECHANICS_LISTENERS.values().stream().flatMap(Collection::stream).toList())
             HandlerList.unregisterAll(listener);
+        MECHANICS_LISTENERS.clear();
     }
 
     public static void unloadListeners(String mechanicId) {
-        for (final Listener listener : MECHANICS_LISTENERS.remove(mechanicId))
+        List<Listener> listeners = MECHANICS_LISTENERS.remove(mechanicId);
+        if (listeners == null) return;
+        for (final Listener listener : listeners)
             HandlerList.unregisterAll(listener);
 
+    }
+
+    public static boolean isMechanicEnabled(String mechanicId) {
+        return FACTORIES_BY_MECHANIC_ID.containsKey(mechanicId);
     }
 
     public static MechanicFactory getMechanicFactory(final String mechanicID) {

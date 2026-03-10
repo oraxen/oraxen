@@ -27,12 +27,16 @@ public class FurnitureUpdater implements Listener {
         if (!Settings.UPDATE_FURNITURE.toBool()) return;
         if (Settings.UPDATE_FURNITURE_ON_LOAD.toBool()) {
             Bukkit.getPluginManager().registerEvent(EntitiesLoadEvent.class, this, EventPriority.NORMAL, (listener, event) ->
-                    ((EntitiesLoadEvent) event).getEntities().stream().filter(OraxenFurniture::isBaseEntity).forEach(OraxenFurniture::updateFurniture)
+                    {
+                        if (!FurnitureFactory.isEnabled()) return;
+                        ((EntitiesLoadEvent) event).getEntities().stream().filter(OraxenFurniture::isBaseEntity).forEach(OraxenFurniture::updateFurniture);
+                    }
                     , OraxenPlugin.get());
         }
 
         if (Settings.EXPERIMENTAL_FIX_BROKEN_FURNITURE.toBool()) {
             Bukkit.getPluginManager().registerEvent(ChunkLoadEvent.class, this, EventPriority.NORMAL, ((listener, event) -> {
+                if (!FurnitureFactory.isEnabled()) return;
                 for (Block block : CustomBlockData.getBlocksWithCustomData(OraxenPlugin.get(), ((ChunkLoadEvent) event).getChunk())) {
                     FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
                     if (mechanic == null) return;
