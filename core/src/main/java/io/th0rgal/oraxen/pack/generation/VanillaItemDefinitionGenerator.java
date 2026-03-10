@@ -175,6 +175,13 @@ public class VanillaItemDefinitionGenerator {
      * Wraps the base model with state-based conditions for special items.
      */
     private JsonObject wrapWithStateHandling(JsonObject baseModel, String vanillaModelPath) {
+        if (material == Material.TRIDENT) {
+            return createVanillaTridentModel(baseModel);
+        }
+        if (isSpearMaterial(material)) {
+            return createVanillaSpearModel(baseModel, vanillaModelPath);
+        }
+
         return switch (material) {
             case BOW -> createVanillaBowModel(baseModel, vanillaModelPath);
             case CROSSBOW -> createVanillaCrossbowModel(baseModel, vanillaModelPath);
@@ -182,6 +189,10 @@ public class VanillaItemDefinitionGenerator {
             case SHIELD -> createVanillaShieldModel(baseModel, vanillaModelPath);
             default -> baseModel;
         };
+    }
+
+    private boolean isSpearMaterial(Material mat) {
+        return mat.name().endsWith("_SPEAR");
     }
 
     // =====================================================================
@@ -308,6 +319,13 @@ public class VanillaItemDefinitionGenerator {
      * Wraps an item's model with state-based conditions if configured.
      */
     private JsonObject wrapItemWithStateHandling(JsonObject baseModel, OraxenMeta meta) {
+        if (material == Material.TRIDENT) {
+            return createTridentItemModel(baseModel, meta);
+        }
+        if (isSpearMaterial(material)) {
+            return createSpearItemModel(baseModel, meta);
+        }
+
         return switch (material) {
             case BOW -> meta.hasPullingModels() ? createBowPullingModel(baseModel, meta) : baseModel;
             case CROSSBOW -> createCrossbowModel(baseModel, meta);
@@ -315,6 +333,29 @@ public class VanillaItemDefinitionGenerator {
             case SHIELD -> meta.hasBlockingModel() ? createShieldModel(baseModel, meta) : baseModel;
             default -> baseModel;
         };
+    }
+
+    private JsonObject createTridentItemModel(JsonObject baseModel, OraxenMeta meta) {
+        JsonObject selectModel = createDisplayContextSelect(baseModel);
+
+        String inHandModel = meta.getModelName();
+        String throwingModel = meta.hasCastModel() ? meta.getCastModel() : inHandModel;
+
+        JsonObject conditionModel = new JsonObject();
+        conditionModel.addProperty("type", "minecraft:condition");
+        conditionModel.addProperty("property", "minecraft:using_item");
+        conditionModel.add("on_false", createSpecialModelObject(inHandModel, "minecraft:trident"));
+        conditionModel.add("on_true", createSpecialModelObject(throwingModel, "minecraft:trident"));
+
+        selectModel.add("fallback", conditionModel);
+        return selectModel;
+    }
+
+    private JsonObject createSpearItemModel(JsonObject baseModel, OraxenMeta meta) {
+        JsonObject selectModel = createDisplayContextSelect(baseModel);
+        JsonObject fallback = meta.hasCastModel() ? createModelObject(meta.getCastModel()) : baseModel;
+        selectModel.add("fallback", fallback);
+        return selectModel;
     }
 
     // =====================================================================
@@ -413,6 +454,45 @@ public class VanillaItemDefinitionGenerator {
         // Shield blocking state also needs special model type for proper rendering
         conditionModel.add("on_true", createSpecialModelObject("minecraft:item/shield_blocking", "minecraft:shield"));
         return conditionModel;
+    }
+
+    private JsonObject createVanillaTridentModel(JsonObject baseModel) {
+        JsonObject selectModel = createDisplayContextSelect(baseModel);
+
+        JsonObject conditionModel = new JsonObject();
+        conditionModel.addProperty("type", "minecraft:condition");
+        conditionModel.addProperty("property", "minecraft:using_item");
+        conditionModel.add("on_false", createSpecialModelObject("minecraft:item/trident_in_hand", "minecraft:trident"));
+        conditionModel.add("on_true", createSpecialModelObject("minecraft:item/trident_throwing", "minecraft:trident"));
+
+        selectModel.add("fallback", conditionModel);
+        return selectModel;
+    }
+
+    private JsonObject createVanillaSpearModel(JsonObject baseModel, String vanillaModelPath) {
+        JsonObject selectModel = createDisplayContextSelect(baseModel);
+        selectModel.add("fallback", createModelObject(vanillaModelPath + "_in_hand"));
+        return selectModel;
+    }
+
+    private JsonObject createDisplayContextSelect(JsonObject displayModel) {
+        JsonObject selectModel = new JsonObject();
+        selectModel.addProperty("type", "minecraft:select");
+        selectModel.addProperty("property", "minecraft:display_context");
+
+        JsonArray cases = new JsonArray();
+        JsonObject caseObj = new JsonObject();
+        JsonArray when = new JsonArray();
+        when.add("gui");
+        when.add("ground");
+        when.add("fixed");
+        when.add("on_shelf");
+        caseObj.add("when", when);
+        caseObj.add("model", displayModel);
+        cases.add(caseObj);
+
+        selectModel.add("cases", cases);
+        return selectModel;
     }
 
     // =====================================================================
