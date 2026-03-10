@@ -310,107 +310,107 @@ public class OraxenBlocks {
         return false;
     }
 
-    private static boolean removeNoteBlock(Block block, @Nullable Player player, Drop overrideDrop) {
+    /**
+     * Shared block removal logic. Fires the appropriate break event, handles drops,
+     * light removal, storage cleanup, and sets the block to AIR.
+     *
+     * @param block        The block to remove
+     * @param player       The player who broke the block, can be null
+     * @param overrideDrop Drop to override the default drop, can be null
+     * @param mechanic     The mechanic for this block (must have getDrop/getItemID/isStorage/getStorage/hasLight/getLight)
+     * @param breakEvent   Supplier that creates the break event for this block type given the player
+     * @param getEventDrop Extracts the (possibly modified) drop from the fired event
+     * @param postRemove   Optional callback run after the block is set to AIR (e.g. clientside fix, noteblock check)
+     * @return true if the block was removed
+     */
+    private static <M extends Mechanic, E extends org.bukkit.event.Event & org.bukkit.event.Cancellable> boolean removeCustomBlock(
+            Block block, @Nullable Player player, @Nullable Drop overrideDrop,
+            M mechanic, String itemID, Drop defaultDrop,
+            java.util.function.BiFunction<M, Player, E> breakEvent,
+            java.util.function.Function<E, Drop> getEventDrop,
+            @Nullable Runnable postRemove) {
+
         ItemStack itemInHand = player != null ? player.getInventory().getItemInMainHand() : new ItemStack(Material.AIR);
+        boolean hasOverrideDrop = overrideDrop != null;
+        Drop drop = hasOverrideDrop ? overrideDrop : defaultDrop;
+
+        if (player != null) {
+            E event = breakEvent.apply(mechanic, player);
+            if (!EventUtils.callEvent(event)) return false;
+
+            if (player.getGameMode() == GameMode.CREATIVE)
+                drop = null;
+            else if (hasOverrideDrop || player.getGameMode() != GameMode.CREATIVE)
+                drop = getEventDrop.apply(event);
+
+            if (VersionUtil.isPaperServer())
+                block.getWorld().sendGameEvent(player, GameEvent.BLOCK_DESTROY, block.getLocation().toVector());
+            if (block.getType() == Material.NOTE_BLOCK && VersionUtil.atOrAbove("1.20"))
+                block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, block.getBlockData());
+        }
+
+        if (drop != null) drop.spawns(block.getLocation(), itemInHand);
+
+        removeLight(block, itemID);
+        if (mechanic instanceof NoteBlockMechanic nbm && nbm.isStorage()
+                && nbm.getStorage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
+            nbm.getStorage().dropStorageContent(block);
+        } else if (mechanic instanceof StringBlockMechanic sbm && sbm.isStorage()
+                && sbm.getStorage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
+            sbm.getStorage().dropStorageContent(block);
+        } else if (mechanic instanceof ChorusBlockMechanic cbm && cbm.isStorage()
+                && cbm.getStorage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
+            cbm.getStorage().dropStorageContent(block);
+        }
+
+        block.setType(Material.AIR);
+        if (postRemove != null) postRemove.run();
+        return true;
+    }
+
+    private static boolean removeNoteBlock(Block block, @Nullable Player player, Drop overrideDrop) {
         NoteBlockMechanic mechanic = getNoteBlockMechanic(block);
         if (mechanic == null) return false;
         if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
             mechanic = mechanic.getDirectional().getParentMechanic();
 
         Location loc = block.getLocation();
-        boolean hasOverrideDrop = overrideDrop != null;
-        Drop drop = hasOverrideDrop ? overrideDrop : mechanic.getDrop();
-        if (player != null) {
-            OraxenNoteBlockBreakEvent noteBlockBreakEvent = new OraxenNoteBlockBreakEvent(mechanic, block, player);
-            if (!EventUtils.callEvent(noteBlockBreakEvent)) return false;
-
-            if (player.getGameMode() == GameMode.CREATIVE)
-                drop = null;
-            else if (hasOverrideDrop || player.getGameMode() != GameMode.CREATIVE)
-                drop = noteBlockBreakEvent.getDrop();
-
-            World world = block.getWorld();
-
-            if (VersionUtil.isPaperServer()) world.sendGameEvent(player, GameEvent.BLOCK_DESTROY, loc.toVector());
-            if (VersionUtil.atOrAbove("1.20")) world.playEffect(loc, Effect.STEP_SOUND, block.getBlockData());
-        }
-        if (drop != null) drop.spawns(loc, itemInHand);
-
-        removeLight(block, mechanic.getItemID());
-        if (mechanic.isStorage() && mechanic.getStorage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
-            mechanic.getStorage().dropStorageContent(block);
-        }
-        block.setType(Material.AIR);
-        checkNoteBlockAbove(loc);
-        return true;
+        return removeCustomBlock(block, player, overrideDrop,
+                mechanic, mechanic.getItemID(), mechanic.getDrop(),
+                (m, p) -> new OraxenNoteBlockBreakEvent(m, block, p),
+                OraxenNoteBlockBreakEvent::getDrop,
+                () -> checkNoteBlockAbove(loc));
     }
 
-
     private static boolean removeStringBlock(Block block, @Nullable Player player, @Nullable Drop overrideDrop) {
-
         StringBlockMechanic mechanic = getStringMechanic(block);
-        ItemStack itemInHand = player != null ? player.getInventory().getItemInMainHand() : new ItemStack(Material.AIR);
         if (mechanic == null) return false;
 
-        boolean hasDropOverride = overrideDrop != null;
-        Drop drop = hasDropOverride ? overrideDrop : mechanic.getDrop();
-        if (player != null) {
-            OraxenStringBlockBreakEvent wireBlockBreakEvent = new OraxenStringBlockBreakEvent(mechanic, block, player);
-            if (!EventUtils.callEvent(wireBlockBreakEvent)) return false;
-
-            if (player.getGameMode() == GameMode.CREATIVE)
-                drop = null;
-            else if (hasDropOverride || player.getGameMode() != GameMode.CREATIVE)
-                drop = wireBlockBreakEvent.getDrop();
-
-            if (VersionUtil.isPaperServer()) block.getWorld().sendGameEvent(player, GameEvent.BLOCK_DESTROY, block.getLocation().toVector());
-        }
-        if (drop != null) drop.spawns(block.getLocation(), itemInHand);
-
         final Block blockAbove = block.getRelative(BlockFace.UP);
-        removeLight(block, mechanic.getItemID());
-        if (mechanic.isStorage() && mechanic.getStorage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
-            mechanic.getStorage().dropStorageContent(block);
-        }
-        if (mechanic.isTall()) blockAbove.setType(Material.AIR);
-        block.setType(Material.AIR);
-        SchedulerUtil.runAtLocationLater(block.getLocation(), 1L, () -> {
-            StringBlockMechanicListener.fixClientsideUpdate(block.getLocation());
-            if (blockAbove.getType() == Material.TRIPWIRE)
-                removeStringBlock(blockAbove, player, overrideDrop);
-        });
-        return true;
+        return removeCustomBlock(block, player, overrideDrop,
+                mechanic, mechanic.getItemID(), mechanic.getDrop(),
+                (m, p) -> new OraxenStringBlockBreakEvent(m, block, p),
+                OraxenStringBlockBreakEvent::getDrop,
+                () -> {
+                    if (mechanic.isTall()) blockAbove.setType(Material.AIR);
+                    SchedulerUtil.runAtLocationLater(block.getLocation(), 1L, () -> {
+                        StringBlockMechanicListener.fixClientsideUpdate(block.getLocation());
+                        if (blockAbove.getType() == Material.TRIPWIRE)
+                            removeStringBlock(blockAbove, player, overrideDrop);
+                    });
+                });
     }
 
     private static boolean removeChorusBlock(Block block, @Nullable Player player, @Nullable Drop overrideDrop) {
         ChorusBlockMechanic mechanic = getChorusMechanic(block);
-        ItemStack itemInHand = player != null ? player.getInventory().getItemInMainHand() : new ItemStack(Material.AIR);
         if (mechanic == null) return false;
 
-        boolean hasDropOverride = overrideDrop != null;
-        Drop drop = hasDropOverride ? overrideDrop : mechanic.getDrop();
-        if (player != null) {
-            OraxenChorusBlockBreakEvent chorusBlockBreakEvent = new OraxenChorusBlockBreakEvent(mechanic, block, player);
-            if (!EventUtils.callEvent(chorusBlockBreakEvent)) return false;
-
-            if (player.getGameMode() == GameMode.CREATIVE)
-                drop = null;
-            else if (hasDropOverride || player.getGameMode() != GameMode.CREATIVE)
-                drop = chorusBlockBreakEvent.getDrop();
-
-            if (VersionUtil.isPaperServer()) block.getWorld().sendGameEvent(player, GameEvent.BLOCK_DESTROY, block.getLocation().toVector());
-        }
-        if (drop != null) drop.spawns(block.getLocation(), itemInHand);
-
-        removeLight(block, mechanic.getItemID());
-        if (mechanic.isStorage() && mechanic.getStorage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
-            mechanic.getStorage().dropStorageContent(block);
-        }
-        block.setType(Material.AIR);
-        SchedulerUtil.runAtLocationLater(block.getLocation(), 1L, () -> {
-            ChorusBlockMechanicListener.fixClientsideUpdate(block.getLocation());
-        });
-        return true;
+        return removeCustomBlock(block, player, overrideDrop,
+                mechanic, mechanic.getItemID(), mechanic.getDrop(),
+                (m, p) -> new OraxenChorusBlockBreakEvent(m, block, p),
+                OraxenChorusBlockBreakEvent::getDrop,
+                () -> SchedulerUtil.runAtLocationLater(block.getLocation(), 1L,
+                        () -> ChorusBlockMechanicListener.fixClientsideUpdate(block.getLocation())));
     }
 
     /**
@@ -517,61 +517,41 @@ public class OraxenBlocks {
         } else return null;
     }
 
-    private static void createInitialLight(Block block, String itemID) {
+    private enum LightAction { CREATE, REMOVE }
+
+    private static void applyLightAction(Block block, String itemID, LightAction action) {
         ToggleLightMechanic toggleLight = getToggleLightMechanic(itemID);
-        
-        if (toggleLight != null) {
-            int baseLightLevel = toggleLight.getBaseLightLevel();
-            if (toggleLight.hasToggleLight() || baseLightLevel > 0) {
-                toggleLight.updateLight(block, baseLightLevel);
+
+        if (toggleLight != null && (toggleLight.hasToggleLight() || toggleLight.getBaseLightLevel() > 0)) {
+            toggleLight.updateLight(block, action == LightAction.CREATE ? toggleLight.getBaseLightLevel() : 0);
+            return;
+        }
+
+        // Fallback to regular light mechanics — check each block type
+        Mechanic[] mechanics = {getNoteBlockMechanic(itemID), getStringMechanic(itemID), getChorusMechanic(itemID)};
+        for (Mechanic m : mechanics) {
+            if (m instanceof NoteBlockMechanic nbm && nbm.hasLight()) {
+                if (action == LightAction.CREATE) nbm.getLight().createBlockLight(block);
+                else nbm.getLight().removeBlockLight(block);
+                return;
+            } else if (m instanceof StringBlockMechanic sbm && sbm.hasLight()) {
+                if (action == LightAction.CREATE) sbm.getLight().createBlockLight(block);
+                else sbm.getLight().removeBlockLight(block);
+                return;
+            } else if (m instanceof ChorusBlockMechanic cbm && cbm.hasLight()) {
+                if (action == LightAction.CREATE) cbm.getLight().createBlockLight(block);
+                else cbm.getLight().removeBlockLight(block);
                 return;
             }
         }
-        
-        // Fallback to regular light mechanics
-        NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(itemID);
-        if (noteBlockMechanic != null && noteBlockMechanic.hasLight()) {
-            noteBlockMechanic.getLight().createBlockLight(block);
-            return;
-        }
-        
-        StringBlockMechanic stringBlockMechanic = getStringMechanic(itemID);
-        if (stringBlockMechanic != null && stringBlockMechanic.hasLight()) {
-            stringBlockMechanic.getLight().createBlockLight(block);
-            return;
-        }
+    }
 
-        ChorusBlockMechanic chorusBlockMechanic = getChorusMechanic(itemID);
-        if (chorusBlockMechanic != null && chorusBlockMechanic.hasLight()) {
-            chorusBlockMechanic.getLight().createBlockLight(block);
-        }
+    private static void createInitialLight(Block block, String itemID) {
+        applyLightAction(block, itemID, LightAction.CREATE);
     }
 
     private static void removeLight(Block block, String itemID) {
-        ToggleLightMechanic toggleLight = getToggleLightMechanic(itemID);
-        
-        if (toggleLight != null && (toggleLight.hasToggleLight() || toggleLight.getBaseLightLevel() > 0)) {
-            toggleLight.updateLight(block, 0);
-            return;
-        }
-        
-        // Fallback to regular light mechanics
-        NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(itemID);
-        if (noteBlockMechanic != null && noteBlockMechanic.hasLight()) {
-            noteBlockMechanic.getLight().removeBlockLight(block);
-            return;
-        }
-        
-        StringBlockMechanic stringBlockMechanic = getStringMechanic(itemID);
-        if (stringBlockMechanic != null && stringBlockMechanic.hasLight()) {
-            stringBlockMechanic.getLight().removeBlockLight(block);
-            return;
-        }
-
-        ChorusBlockMechanic chorusBlockMechanic = getChorusMechanic(itemID);
-        if (chorusBlockMechanic != null && chorusBlockMechanic.hasLight()) {
-            chorusBlockMechanic.getLight().removeBlockLight(block);
-        }
+        applyLightAction(block, itemID, LightAction.REMOVE);
     }
 
     @Nullable
