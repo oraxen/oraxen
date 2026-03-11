@@ -168,27 +168,13 @@ public class OraxenFurniture {
         Entity entity = location.getWorld().getNearbyEntities(location, 0.5, 0.5, 0.5).stream().filter(OraxenFurniture::isFurniture).findFirst().orElse(null);
         FurnitureMechanic mechanic = getFurnitureMechanic(location.getBlock());
         mechanic = mechanic != null ? mechanic : entity != null ? getFurnitureMechanic(entity) : null;
-        ItemStack itemStack = player != null ? player.getInventory().getItemInMainHand() : new ItemStack(Material.AIR);
         if (mechanic == null) return removeOrphanFurniture(location);
 
         Entity baseEntity = mechanic.getBaseEntity(location.getBlock());
         baseEntity = baseEntity != null ? baseEntity : mechanic.getBaseEntity(entity);
         if (baseEntity == null) return false;
 
-        if (player != null) {
-            if (player.getGameMode() != GameMode.CREATIVE)
-                (drop != null ? drop : mechanic.getDrop()).furnitureSpawns(baseEntity, itemStack);
-            StorageMechanic storage = mechanic.getStorage();
-            if (storage != null && (storage.isStorage() || storage.isShulker()))
-                storage.dropStorageContent(mechanic, baseEntity);
-
-            if (VersionUtil.isPaperServer()) baseEntity.getWorld().sendGameEvent(player, GameEvent.BLOCK_DESTROY, baseEntity.getLocation().toVector());
-        }
-
-        if (mechanic.hasBarriers())
-            mechanic.removeSolid(baseEntity, baseEntity.getLocation(), FurnitureMechanic.getFurnitureYaw(baseEntity));
-        else mechanic.removeNonSolidFurniture(baseEntity);
-        return true;
+        return removeFurniture(baseEntity, mechanic, player, drop, mechanic.hasBarriers());
     }
 
     /**
@@ -217,8 +203,15 @@ public class OraxenFurniture {
         // Ensure the baseEntity is baseEntity and not interactionEntity
         if (OraxenFurniture.isInteractionEntity(baseEntity)) baseEntity = mechanic.getBaseEntity(baseEntity);
         if (baseEntity == null) return false;
-        // Allows for changing the FurnitureType in config and still remove old entities
 
+        return removeFurniture(baseEntity, mechanic, player, drop, mechanic.hasBarriers(baseEntity));
+    }
+
+    /**
+     * Shared removal logic for furniture: handles drops, storage cleanup, game events, and entity removal.
+     */
+    private static boolean removeFurniture(Entity baseEntity, FurnitureMechanic mechanic,
+                                            @Nullable Player player, @Nullable Drop drop, boolean hasBarriers) {
         if (player != null) {
             ItemStack itemStack = player.getInventory().getItemInMainHand();
             if (player.getGameMode() != GameMode.CREATIVE)
@@ -226,11 +219,11 @@ public class OraxenFurniture {
             StorageMechanic storage = mechanic.getStorage();
             if (storage != null && (storage.isStorage() || storage.isShulker()))
                 storage.dropStorageContent(mechanic, baseEntity);
-            if (VersionUtil.isPaperServer()) baseEntity.getWorld().sendGameEvent(player, GameEvent.BLOCK_DESTROY, baseEntity.getLocation().toVector());
+            if (VersionUtil.isPaperServer())
+                baseEntity.getWorld().sendGameEvent(player, GameEvent.BLOCK_DESTROY, baseEntity.getLocation().toVector());
         }
 
-        // Check if the mechanic or the baseEntity has barriers tied to it
-        if (mechanic.hasBarriers(baseEntity))
+        if (hasBarriers)
             mechanic.removeSolid(baseEntity, baseEntity.getLocation(), FurnitureMechanic.getFurnitureYaw(baseEntity));
         else mechanic.removeNonSolidFurniture(baseEntity);
         return true;
