@@ -122,6 +122,7 @@ public enum Settings {
     MERGE_DUPLICATES("Pack.import.merge_duplicates"),
     RETAIN_CUSTOM_MODEL_DATA("Pack.import.retain_custom_model_data"),
     MERGE_ITEM_MODELS("Pack.import.merge_item_base_models"),
+    REMOVE_CORE_SHADERS_FROM_IMPORTED_PACKS("Pack.import.remove_core_shaders_from_imported_packs"),
 
     UPLOAD_TYPE("Pack.upload.type"),
     UPLOAD("Pack.upload.enabled"),
