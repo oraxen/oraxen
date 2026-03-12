@@ -80,6 +80,7 @@ public class FurnitureMechanic extends Mechanic {
     private final DisplayEntityProperties displayEntityProperties;
     private final FurnitureHitbox hitbox;
     private final boolean isRotatable;
+    private final boolean small;
     private final BlockLockerMechanic blockLocker;
     private final RestrictedRotation restrictedRotation;
 
@@ -102,7 +103,7 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public enum FurnitureType {
-        ITEM_FRAME, GLOW_ITEM_FRAME, DISPLAY_ENTITY;//, ARMOR_STAND;
+        ITEM_FRAME, GLOW_ITEM_FRAME, DISPLAY_ENTITY, ARMOR_STAND;
 
         public static List<Class<? extends Entity>> furnitureEntityClasses() {
             List<Class<? extends Entity>> list = new ArrayList<>(List.of(ItemFrame.class, GlowItemFrame.class, ArmorStand.class));
@@ -151,6 +152,8 @@ public class FurnitureMechanic extends Mechanic {
             Logs.logWarning("Setting type to ITEM_FRAME for furniture: <gold>" + getItemID());
             furnitureType = FurnitureType.ITEM_FRAME;
         }
+
+        small = section.getBoolean("small", furnitureType == FurnitureType.ARMOR_STAND);
 
         section.set("type", furnitureType.name());
 
@@ -466,7 +469,7 @@ public class FurnitureMechanic extends Mechanic {
         assert location.getWorld() != null;
         BlockFace resolvedFacing = facing != null ? facing : BlockFace.NORTH;
 
-        Class<? extends Entity> entityClass = getFurnitureEntityType().getEntityClass();
+        Class<? extends Entity> entityClass = getFurnitureEntityClass();
         if (entityClass == null) entityClass = ItemFrame.class;
 
         ItemStack item = OraxenItems.getOptionalItemById(placedItemId).map(b -> b.build().clone()).orElse(originalItem.clone());
@@ -489,6 +492,10 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     private Location correctedSpawnLocation(Location baseLocation, BlockFace facing) {
+        if (furnitureType == FurnitureType.ARMOR_STAND) {
+            return BlockHelpers.toCenterBlockLocation(baseLocation);
+        }
+
         boolean isWall = hasLimitedPlacing() && limitedPlacing.isWall();
         boolean isRoof = hasLimitedPlacing() && limitedPlacing.isRoof();
         boolean isFixed = hasDisplayEntityProperties() && displayEntityProperties.getDisplayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
@@ -549,6 +556,23 @@ public class FurnitureMechanic extends Mechanic {
                     itemDisplay.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
                 }
                 createInitialLight(location.getBlock(), entity);
+            }
+        } else if (entity instanceof ArmorStand armorStand) {
+            setArmorStandData(armorStand, item, yaw);
+
+            if (hasBarriers()) setBarrierHitbox(entity, location, yaw);
+            else {
+                float width = hasHitbox() ? hitbox.width : 1f;
+                float height = hasHitbox() ? hitbox.height : 1f;
+                Entity interaction = spawnInteractionEntity(armorStand, location, width, height);
+
+                Block block = location.getBlock();
+                if (hasSeat()) {
+                    UUID seatUuid = spawnSeat(block, hasSeatYaw ? seatYaw : yaw);
+                    if (interaction != null) interaction.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
+                    armorStand.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
+                }
+                createInitialLight(block, entity);
             }
         }
         
@@ -658,6 +682,26 @@ public class FurnitureMechanic extends Mechanic {
             else if (limitedPlacing.isRoof() && facing == BlockFace.DOWN)
                 frame.setFacingDirection(BlockFace.DOWN, true);
         }
+    }
+
+    private void setArmorStandData(ArmorStand armorStand, ItemStack item, float yaw) {
+        armorStand.setVisible(false);
+        armorStand.setBasePlate(false);
+        armorStand.setArms(false);
+        armorStand.setSmall(small);
+        armorStand.setInvulnerable(true);
+        armorStand.setGravity(false);
+        armorStand.setSilent(true);
+        armorStand.setCanPickupItems(false);
+        armorStand.setCollidable(false);
+        armorStand.setRotation(yaw, 0);
+        armorStand.addEquipmentLock(EquipmentSlot.HEAD, ArmorStand.LockType.ADDING_OR_CHANGING);
+        armorStand.addEquipmentLock(EquipmentSlot.HAND, ArmorStand.LockType.ADDING_OR_CHANGING);
+        armorStand.addEquipmentLock(EquipmentSlot.OFF_HAND, ArmorStand.LockType.ADDING_OR_CHANGING);
+        armorStand.addEquipmentLock(EquipmentSlot.CHEST, ArmorStand.LockType.ADDING_OR_CHANGING);
+        armorStand.addEquipmentLock(EquipmentSlot.LEGS, ArmorStand.LockType.ADDING_OR_CHANGING);
+        armorStand.addEquipmentLock(EquipmentSlot.FEET, ArmorStand.LockType.ADDING_OR_CHANGING);
+        armorStand.getEquipment().setHelmet(item);
     }
 
     private void setBarrierHitbox(Entity entity, Location location, float yaw) {
@@ -1003,7 +1047,7 @@ public class FurnitureMechanic extends Mechanic {
             case GLOW_ITEM_FRAME -> EntityType.GLOW_ITEM_FRAME;
             case DISPLAY_ENTITY ->
                     OraxenPlugin.supportsDisplayEntities ? EntityType.ITEM_DISPLAY : EntityType.ITEM_FRAME;
-            //case ARMOR_STAND -> EntityType.ARMOR_STAND;
+            case ARMOR_STAND -> EntityType.ARMOR_STAND;
         };
     }
 
@@ -1012,7 +1056,7 @@ public class FurnitureMechanic extends Mechanic {
             case ITEM_FRAME -> ItemFrame.class;
             case GLOW_ITEM_FRAME -> GlowItemFrame.class;
             case DISPLAY_ENTITY -> OraxenPlugin.supportsDisplayEntities ? ItemDisplay.class : ItemFrame.class;
-            //case ARMOR_STAND -> ArmorStand.class;
+            case ARMOR_STAND -> ArmorStand.class;
         };
     }
 

@@ -33,6 +33,7 @@ import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryCreativeEvent;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -97,6 +98,15 @@ public class FurnitureListener implements Listener {
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(frame);
         if (mechanic == null || mechanic.isRotatable())
             return;
+        event.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onArmorStandManipulate(PlayerArmorStandManipulateEvent event) {
+        if (!FurnitureFactory.isEnabled()) return;
+        if (!(event.getRightClicked() instanceof ArmorStand armorStand)) return;
+        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(armorStand);
+        if (mechanic == null || mechanic.getFurnitureType() != FurnitureMechanic.FurnitureType.ARMOR_STAND) return;
         event.setCancelled(true);
     }
 
@@ -462,7 +472,7 @@ public class FurnitureListener implements Listener {
         Entity baseEntity = event.getBaseEntity();
         Entity interactionEntity = event.getInteractionEntity();
         PersistentDataContainer pdc = block != null ? BlockHelpers.getPDC(block)
-                : interactionEntity != null ? interactionEntity.getPersistentDataContainer() : null;
+                : interactionEntity != null ? interactionEntity.getPersistentDataContainer() : baseEntity.getPersistentDataContainer();
 
         mechanic.runClickActions(player);
 

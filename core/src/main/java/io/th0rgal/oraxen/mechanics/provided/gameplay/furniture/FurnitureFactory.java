@@ -119,7 +119,7 @@ public class FurnitureFactory extends MechanicFactory {
     public @NotNull List<MechanicConfigProperty> getConfigSchema() {
         return List.of(
                 MechanicConfigProperty.enumType("type", "Entity type for the furniture",
-                        List.of("DISPLAY_ENTITY", "ITEM_FRAME", "GLOW_ITEM_FRAME")),
+                        List.of("DISPLAY_ENTITY", "ITEM_FRAME", "GLOW_ITEM_FRAME", "ARMOR_STAND")),
                 MechanicConfigProperty.integer("hardness", "Break hardness (higher = slower to break)", 1, 0),
                 MechanicConfigProperty.string("item", "Alternative Oraxen item ID to display"),
                 MechanicConfigProperty.string("modelengine_id", "ModelEngine model ID to use"),
@@ -129,6 +129,7 @@ public class FurnitureFactory extends MechanicFactory {
                 MechanicConfigProperty.enumType("restricted_rotation", "Rotation restriction mode",
                         List.of("NONE", "STRICT", "VERY_STRICT")),
                 MechanicConfigProperty.bool("rotatable", "Whether furniture can be rotated after placement", true),
+                MechanicConfigProperty.bool("small", "Whether an armor stand furniture uses the small variant", true),
                 MechanicConfigProperty.object("hitbox", "Custom hitbox dimensions", Map.of(
                         "width", MechanicConfigProperty.decimal("width", "Hitbox width", 1.0, 0.0, 10.0),
                         "height", MechanicConfigProperty.decimal("height", "Hitbox height", 1.0, 0.0, 10.0)
