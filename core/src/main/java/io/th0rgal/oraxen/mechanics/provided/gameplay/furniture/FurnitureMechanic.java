@@ -37,6 +37,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Transformation;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
@@ -81,6 +82,7 @@ public class FurnitureMechanic extends Mechanic {
     private final FurnitureHitbox hitbox;
     private final boolean isRotatable;
     private final boolean small;
+    private final ArmorStandProperties armorStandProperties;
     private final BlockLockerMechanic blockLocker;
     private final RestrictedRotation restrictedRotation;
 
@@ -153,7 +155,17 @@ public class FurnitureMechanic extends Mechanic {
             furnitureType = FurnitureType.ITEM_FRAME;
         }
 
-        small = section.getBoolean("small", furnitureType == FurnitureType.ARMOR_STAND);
+        boolean smallFromConfig = section.contains("small");
+        // ARMOR_STAND: allow translation (offset) and best-effort scaling.
+        // Prefer explicit armor_stand_properties, but allow reusing display_entity_properties.scale/translation for convenience.
+        ConfigurationSection armorStandProps = section.getConfigurationSection("armor_stand_properties");
+        if (armorStandProps == null && furnitureType == FurnitureType.ARMOR_STAND)
+            armorStandProps = section.getConfigurationSection("display_entity_properties");
+        armorStandProperties = armorStandProps != null ? new ArmorStandProperties(armorStandProps) : new ArmorStandProperties();
+        boolean resolvedSmall = section.getBoolean("small", furnitureType == FurnitureType.ARMOR_STAND);
+        if (furnitureType == FurnitureType.ARMOR_STAND && !smallFromConfig && armorStandProperties.hasScale())
+            resolvedSmall = armorStandProperties.hintSmallFromScale();
+        small = resolvedSmall;
 
         section.set("type", furnitureType.name());
 
@@ -478,7 +490,7 @@ public class FurnitureMechanic extends Mechanic {
         }
         item.setAmount(1);
 
-        Entity baseEntity = EntityUtils.spawnEntity(correctedSpawnLocation(location, resolvedFacing), entityClass, (e) -> setEntityData(e, yaw, item, resolvedFacing));
+        Entity baseEntity = EntityUtils.spawnEntity(correctedSpawnLocation(location, resolvedFacing, yaw), entityClass, (e) -> setEntityData(e, yaw, item, resolvedFacing));
         if (this.isModelEngine() && PluginUtils.isEnabled("ModelEngine")) {
             spawnModelEngineFurniture(baseEntity);
         }
@@ -491,9 +503,14 @@ public class FurnitureMechanic extends Mechanic {
         return blockFace.getModY() == 0 && location.getBlock().getRelative(BlockFace.DOWN).isSolid();
     }
 
-    private Location correctedSpawnLocation(Location baseLocation, BlockFace facing) {
+    private Location correctedSpawnLocation(Location baseLocation, BlockFace facing, float yaw) {
         if (furnitureType == FurnitureType.ARMOR_STAND) {
-            return BlockHelpers.toCenterBlockLocation(baseLocation);
+            Location centered = BlockHelpers.toCenterBlockLocation(baseLocation);
+            if (armorStandProperties.hasTranslation()) {
+                Vector rotated = rotateGroundOffset(armorStandProperties.getTranslation().clone(), yaw);
+                centered.add(rotated);
+            }
+            return centered;
         }
 
         boolean isWall = hasLimitedPlacing() && limitedPlacing.isWall();
@@ -511,8 +528,21 @@ public class FurnitureMechanic extends Mechanic {
         float hitboxOffset = (hasHitbox() ? hitbox.height : 1) - 1;
         double yCorrection = ((isRoof && facing == BlockFace.DOWN) ? isFixed ? 0.49 : -1 * hitboxOffset : 0);
 
-        return correctedLocation.add(0,  yCorrection, 0);
+        return correctedLocation.add(0, yCorrection, 0);
     }
+    
+    private static Vector rotateGroundOffset(Vector offset, float yaw) {
+        // Match BlockLocation.groundRotate() behavior for consistent furniture orientation.
+        float fixedAngle = (360f - yaw);
+        double radians = Math.toRadians(fixedAngle);
+        double x = offset.getX();
+        double z = offset.getZ();
+        double outX = Math.cos(radians) * x - Math.sin(radians) * z;
+        double outZ = Math.sin(radians) * x - Math.cos(radians) * z;
+        if (fixedAngle % 180f > 1f) outZ = -outZ;
+        return new Vector(outX, offset.getY(), outZ);
+    }
+    
 
     public void setEntityData(Entity entity, float yaw, BlockFace facing) {
         setEntityData(entity, yaw, getFurnitureItem(entity), facing);
