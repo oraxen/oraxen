@@ -4,7 +4,7 @@ table:
   Mechanics:
     furniture:
       type: ARMOR_STAND # Valid types are ITEM_FRAME, GLOW_ITEM_FRAME, ARMOR_STAND, and DISPLAY_ENTITY if server is 1.19.4>
-      small: true # Used by ARMOR_STAND furniture; defaults to true for ARMOR_STAND
+      small: false # Used by ARMOR_STAND furniture; defaults to true for ARMOR_STAND
       armor_stand_properties:
         translation: # or "offset"
           x: 0.0
