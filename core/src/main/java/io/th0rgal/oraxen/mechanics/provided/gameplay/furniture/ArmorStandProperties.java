@@ -45,15 +45,19 @@ public class ArmorStandProperties {
     public boolean hasTranslation() {
         return translation != null;
     }
+    @Nullable
     public Vector getTranslation() {
         return translation;
     }
+
     public boolean hasScale() {
         return scaleY != null;
     }
-    public float getScaleY() {
+
+    public Float getScaleY() {
         return scaleY;
     }
+
     /**
      * Best-effort mapping of a continuous scale hint to ArmorStand's discrete size.
      */
