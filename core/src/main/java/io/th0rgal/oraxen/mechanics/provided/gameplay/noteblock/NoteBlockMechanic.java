@@ -29,7 +29,7 @@ public class NoteBlockMechanic extends Mechanic {
     private final StorageMechanic storage;
     private final BlockSounds blockSounds;
     private String model;
-    private final int hardness;
+    private final double hardness;
     private final LightMechanic light;
     private final boolean canIgnite;
     private final boolean isFalling;
@@ -52,7 +52,7 @@ public class NoteBlockMechanic extends Mechanic {
 
         model = section.getString("model");
         customVariation = section.getInt("custom_variation");
-        hardness = section.getInt("hardness", 1);
+        hardness = section.getDouble("hardness", 1.0D);
 
         light = new LightMechanic(section);
         clickActions = ClickAction.parseList(section);
@@ -132,11 +132,11 @@ public class NoteBlockMechanic extends Mechanic {
 
     public boolean hasHardness() {
         if (isDirectional() && !getDirectional().isParentBlock()) {
-            return hardness != -1 || directionalBlock.getParentMechanic().hasHardness();
+            return hardness != -1.0D || directionalBlock.getParentMechanic().hasHardness();
         } else return hardness != -1;
     }
 
-    public int getHardness() {
+    public double getHardness() {
         return hardness;
     }
 

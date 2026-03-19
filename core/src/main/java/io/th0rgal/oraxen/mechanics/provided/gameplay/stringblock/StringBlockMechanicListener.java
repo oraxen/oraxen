@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock;
 
 import io.papermc.paper.event.entity.EntityInsideBlockEvent;
-import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
@@ -10,8 +9,6 @@ import io.th0rgal.oraxen.api.events.stringblock.OraxenStringBlockPlaceEvent;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.*;
-import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
-import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.apache.commons.lang3.Range;
 import org.bukkit.*;
@@ -43,11 +40,6 @@ import java.util.Objects;
 import java.util.Random;
 
 public class StringBlockMechanicListener implements Listener {
-
-    public StringBlockMechanicListener() {
-        if (OraxenPlugin.get().getPacketAdapter().isEnabled())
-            BreakerSystem.MODIFIERS.add(getHardnessModifier());
-    }
 
     public static class StringBlockMechanicPaperListener implements Listener {
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -566,41 +558,6 @@ public class StringBlockMechanicListener implements Listener {
         }
 
         handleFallingOraxenBlockAbove(blockAbove);
-    }
-
-    private HardnessModifier getHardnessModifier() {
-        return new HardnessModifier() {
-
-            @Override
-            public boolean isTriggered(final Player player, final Block block, final ItemStack tool) {
-                if (block.getType() != Material.TRIPWIRE)
-                    return false;
-                final StringBlockMechanic tripwireMechanic = OraxenBlocks.getStringMechanic(block);
-                return tripwireMechanic != null && tripwireMechanic.hasHardness();
-            }
-
-            @Override
-            public void breakBlock(final Player player, final Block block, final ItemStack tool) {
-                block.setType(Material.AIR);
-            }
-
-            @Override
-            public long getPeriod(final Player player, final Block block, final ItemStack tool) {
-                final StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
-                if (mechanic == null)
-                    return 0;
-                final long hardness = mechanic.getHardness();
-                double modifier = 1;
-                if (mechanic.getDrop().canDrop(tool)) {
-                    modifier *= 0.4;
-                    final int diff = mechanic.getDrop().getDiff(tool);
-                    if (diff >= 1)
-                        modifier *= Math.pow(0.9, diff);
-                }
-                long period = (long) (hardness * modifier);
-                return period == 0 && mechanic.hasHardness() ? 1 : period;
-            }
-        };
     }
 
     private void makePlayerPlaceBlock(final Player player, final EquipmentSlot hand, final ItemStack item,
