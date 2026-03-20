@@ -487,6 +487,38 @@ public class StorageMechanic {
         return gui;
     }
 
+    private void persistEntityStorageLater(Entity baseEntity, StorageGui gui, PersistentDataContainer storagePDC) {
+        SchedulerUtil.runForEntityLater(baseEntity, 3L, () -> {
+            if (!canPersistEntityStorage(baseEntity, gui)) return;
+            storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents());
+        }, () -> {});
+    }
+
+    private void loadEntityStorageContents(StorageGui gui, Entity baseEntity, PersistentDataContainer storagePDC,
+                                           boolean shulker, @Nullable PersistentDataContainer shulkerPDC) {
+        if (isEntityStorageLocked(baseEntity)) return;
+        if (gui.getInventory().getViewers().size() > 1) return;
+
+        ItemStack[] contents = !shulker && storagePDC.has(STORAGE_KEY, DataType.ITEM_STACK_ARRAY)
+                ? storagePDC.getOrDefault(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{})
+                : shulker && shulkerPDC != null && shulkerPDC.has(STORAGE_KEY, DataType.ITEM_STACK_ARRAY)
+                ? shulkerPDC.getOrDefault(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{})
+                : new ItemStack[]{};
+        gui.getInventory().setContents(contents);
+    }
+
+    private void persistEntityStorageOnClose(StorageGui gui, Entity baseEntity, PersistentDataContainer storagePDC,
+                                             boolean shulker, @Nullable PersistentDataContainer shulkerPDC) {
+        if (!canPersistEntityStorage(baseEntity, gui)) return;
+        if (gui.getInventory().getViewers().size() <= 1) {
+            if (shulker && shulkerPDC != null) {
+                shulkerPDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents());
+            } else {
+                storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents());
+            }
+        }
+    }
+
     private StorageGui createGui(Entity baseEntity) {
         Location location = baseEntity.getLocation();
         ItemStack furnitureItem = FurnitureMechanic.getFurnitureItem(baseEntity);
@@ -500,34 +532,15 @@ public class StorageMechanic {
         // Slight delay to catch stacks sometimes moving too fast
         gui.setDefaultClickAction(event -> {
             if (event.getCursor() != null && event.getCursor().getType() != Material.AIR || event.getCurrentItem() != null) {
-                SchedulerUtil.runForEntityLater(baseEntity, 3L, () ->
-                        {
-                            if (!canPersistEntityStorage(baseEntity, gui)) return;
-                            storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents());
-                        }, () -> {});
+                persistEntityStorageLater(baseEntity, gui, storagePDC);
             }
         });
 
         // If it's a shulker, get the itemstack array of the items pdc, otherwise use the frame pdc
-        gui.setOpenGuiAction(event -> {
-            if (isEntityStorageLocked(baseEntity)) return;
-            if (gui.getInventory().getViewers().size() > 1) return;
-            gui.getInventory().setContents(!shulker && storagePDC.has(STORAGE_KEY, DataType.ITEM_STACK_ARRAY)
-                    ? storagePDC.getOrDefault(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{})
-                    : (shulker && shulkerPDC.has(STORAGE_KEY, DataType.ITEM_STACK_ARRAY))
-                    ? shulkerPDC.getOrDefault(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{})
-                    : new ItemStack[]{});
-        });
+        gui.setOpenGuiAction(event -> loadEntityStorageContents(gui, baseEntity, storagePDC, shulker, shulkerPDC));
 
         gui.setCloseGuiAction(event -> {
-            if (!canPersistEntityStorage(baseEntity, gui)) return;
-            if (gui.getInventory().getViewers().size() <= 1) {
-                if (shulker) {
-                    shulkerPDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents());
-                } else {
-                    storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents());
-                }
-            }
+            persistEntityStorageOnClose(gui, baseEntity, storagePDC, shulker, shulkerPDC);
             if (hasCloseSound() && BlockHelpers.isLoaded(baseEntity.getLocation()))
                 Objects.requireNonNull(location.getWorld()).playSound(location, closeSound, volume, pitch);
             playOpenAnimation(baseEntity, closeAnimation);
