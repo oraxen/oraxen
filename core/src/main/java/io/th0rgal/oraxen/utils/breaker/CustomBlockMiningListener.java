@@ -37,6 +37,15 @@ public class CustomBlockMiningListener implements Listener {
     private static final NamespacedKey BREAK_SPEED_KEY = NamespacedKey.fromString("oraxen:custom_breaking_speed");
     private final Map<UUID, AttributeModifier> modifierMap = new ConcurrentHashMap<>();
 
+    /**
+     * Returns true if the BLOCK_BREAK_SPEED attribute is available on this server version.
+     * The attribute was added in MC 1.20.5 - on older versions, the BreakerSystem
+     * timer-based approach is used instead.
+     */
+    public static boolean isSupported() {
+        return AttributeWrapper.BLOCK_BREAK_SPEED != null;
+    }
+
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onDamageCustomBlock(final BlockDamageEvent event) {
         final Player player = event.getPlayer();

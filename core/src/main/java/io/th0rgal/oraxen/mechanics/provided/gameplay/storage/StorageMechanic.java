@@ -153,6 +153,9 @@ public class StorageMechanic {
 
     private static void closeGuiViewers(@Nullable StorageGui gui) {
         if (gui == null) return;
+        // Clear the inventory immediately after snapshot to prevent dupe exploits.
+        // Without this, viewers could extract items between snapshot and async close.
+        gui.getInventory().clear();
         HumanEntity[] viewers = gui.getInventory().getViewers().toArray(new HumanEntity[0]);
         for (HumanEntity viewer : viewers) {
             SchedulerUtil.runForEntity(viewer, () -> gui.close(viewer), () -> {});
@@ -274,19 +277,20 @@ public class StorageMechanic {
             ItemStack[] items = gui != null ? snapshotContents(gui) : resolveEntityStorageItems(baseEntity, null);
             pdc.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, items);
 
-            ItemStack furnitureItem = FurnitureMechanic.getFurnitureItem(baseEntity);
-            if (furnitureItem != null) {
-                ItemMeta furnitureMeta = furnitureItem.getItemMeta();
-                if (furnitureMeta != null) {
-                    furnitureMeta.getPersistentDataContainer().set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, items);
-                    furnitureItem.setItemMeta(furnitureMeta);
-                    FurnitureMechanic.setFurnitureItem(baseEntity, furnitureItem);
-                }
-            }
-
             closeGuiViewers(gui);
 
             if (isShulker()) {
+                // Write storage contents to the furniture item PDC only for shulker storage,
+                // since the shulker item keeps its contents when dropped.
+                ItemStack furnitureItem = FurnitureMechanic.getFurnitureItem(baseEntity);
+                if (furnitureItem != null) {
+                    ItemMeta furnitureMeta = furnitureItem.getItemMeta();
+                    if (furnitureMeta != null) {
+                        furnitureMeta.getPersistentDataContainer().set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, items);
+                        furnitureItem.setItemMeta(furnitureMeta);
+                        FurnitureMechanic.setFurnitureItem(baseEntity, furnitureItem);
+                    }
+                }
                 ItemStack defaultItem = OraxenItems.getItemById(mechanic.getItemID()).build();
                 ItemStack shulker = FurnitureMechanic.getFurnitureItem(baseEntity);
                 if (shulker != null) {

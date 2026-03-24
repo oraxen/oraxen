@@ -121,7 +121,9 @@ public class OraxenPlugin extends JavaPlugin {
         });
 
         Bukkit.getPluginManager().registerEvents(new CustomArmorListener(), this);
-        Bukkit.getPluginManager().registerEvents(new CustomBlockMiningListener(), this);
+        if (CustomBlockMiningListener.isSupported()) {
+            Bukkit.getPluginManager().registerEvents(new CustomBlockMiningListener(), this);
+        }
         NMSHandlers.setup();
 
         // Auto-update Paper config for block updates (noteblock, tripwire, chorus)
