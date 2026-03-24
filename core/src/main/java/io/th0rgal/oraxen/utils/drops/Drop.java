@@ -152,6 +152,8 @@ public class Drop {
     }
 
     public void furnitureSpawns(Entity baseEntity, ItemStack itemInHand) {
+        if (sourceID == null || sourceID.isEmpty()) return;
+
         ItemStack baseItem = OraxenItems.getItemById(sourceID).build();
         Location location = BlockHelpers.toBlockLocation(baseEntity.getLocation());
         ItemStack furnitureItem = FurnitureMechanic.getFurnitureItem(baseEntity);
@@ -168,11 +170,20 @@ public class Drop {
             location.getWorld().dropItemNaturally(BlockHelpers.toCenterBlockLocation(location), baseItem);
         } else {
             // Drop all the items that aren't the furniture item
-            dropLoot(loots.stream().filter(loot ->
-                    !loot.getItemStack().isSimilar(baseItem) && !OraxenItems.getIdByItem(loot.getItemStack()).equals(sourceID)).toList(), location, getFortuneMultiplier(itemInHand));
+            dropLoot(loots.stream().filter(loot -> {
+                ItemStack lootItem = loot.getItemStack();
+                if (lootItem == null) return false;
+                String lootItemId = OraxenItems.getIdByItem(lootItem);
+                return !lootItem.isSimilar(baseItem) && !sourceID.equals(lootItemId);
+            }).toList(), location, getFortuneMultiplier(itemInHand));
             // Filter loots down to only the furniture item and drop the item in the actual Furniture to preseve color etc.
             dropLoot(loots.stream()
-                    .filter(loot -> loot.getItemStack().isSimilar(baseItem) || OraxenItems.getIdByItem(loot.getItemStack()).equals(sourceID))
+                    .filter(loot -> {
+                        ItemStack lootItem = loot.getItemStack();
+                        if (lootItem == null) return false;
+                        String lootItemId = OraxenItems.getIdByItem(lootItem);
+                        return lootItem.isSimilar(baseItem) || sourceID.equals(lootItemId);
+                    })
                     .map(loot -> new Loot(sourceID, furnitureItem, loot.getProbability(), 1, loot.getMaxAmount()))
                     .toList(), location, getFortuneMultiplier(itemInHand));
         }
