@@ -1017,6 +1017,9 @@ public class ItemBuilder {
             for (AttributeModifierEntry entry : attributeEntries) {
                 entry.addToComponentBuilder(builder);
             }
+            if (itemFlags != null && itemFlags.contains(ItemFlag.HIDE_ATTRIBUTES)) {
+                builder.showInTooltip(false);
+            }
             itemStack.setData(DataComponentTypes.ATTRIBUTE_MODIFIERS, builder.build());
         } catch (NoClassDefFoundError | NoSuchMethodError e) {
             // DataComponent API not available on this server version — legacy path already applied
