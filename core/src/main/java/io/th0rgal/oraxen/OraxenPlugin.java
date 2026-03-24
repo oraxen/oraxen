@@ -27,6 +27,7 @@ import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.actions.ClickActionManager;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorEquipEvent;
+import io.th0rgal.oraxen.utils.breaker.CustomBlockMiningListener;
 import io.th0rgal.oraxen.utils.breaker.PacketEventsBreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.ProtocolLibBreakerSystem;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmorListener;
@@ -120,6 +121,7 @@ public class OraxenPlugin extends JavaPlugin {
         });
 
         Bukkit.getPluginManager().registerEvents(new CustomArmorListener(), this);
+        Bukkit.getPluginManager().registerEvents(new CustomBlockMiningListener(), this);
         NMSHandlers.setup();
 
         // Auto-update Paper config for block updates (noteblock, tripwire, chorus)
