@@ -2,6 +2,8 @@ package io.th0rgal.oraxen.items;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import io.papermc.paper.datacomponent.DataComponentTypes;
+import io.papermc.paper.datacomponent.item.ItemAttributeModifiers;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
@@ -27,6 +29,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.damage.DamageType;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.TropicalFish;
+import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemRarity;
 import org.bukkit.inventory.ItemStack;
@@ -72,8 +75,7 @@ public class ItemBuilder {
     private boolean unbreakable;
     private boolean unstackable;
     private Set<ItemFlag> itemFlags;
-    private boolean hasAttributeModifiers;
-    private Multimap<Attribute, AttributeModifier> attributeModifiers;
+    private final List<AttributeModifierEntry> attributeEntries = new ArrayList<>();
     @Nullable
     private Integer customModelData;
     /**
@@ -208,9 +210,17 @@ public class ItemBuilder {
         if (!itemMeta.getItemFlags().isEmpty())
             itemFlags = itemMeta.getItemFlags();
 
-        hasAttributeModifiers = itemMeta.hasAttributeModifiers();
-        if (hasAttributeModifiers)
-            attributeModifiers = itemMeta.getAttributeModifiers();
+        if (itemMeta.hasAttributeModifiers()) {
+            Multimap<Attribute, AttributeModifier> existing = itemMeta.getAttributeModifiers();
+            if (existing != null) {
+                for (var entry : existing.entries()) {
+                    EquipmentSlotGroup slot = entry.getValue().getSlotGroup();
+                    attributeEntries.add(new AttributeModifierEntry(
+                            entry.getKey(), entry.getValue(),
+                            slot != null ? slot : EquipmentSlotGroup.ANY));
+                }
+            }
+        }
 
         customModelData = itemMeta.hasCustomModelData() ? itemMeta.getCustomModelData() : null;
 
@@ -755,24 +765,32 @@ public class ItemBuilder {
 
     public ItemBuilder addAttributeModifiers(final Attribute attribute, final AttributeModifier attributeModifier) {
         if (attribute != null && attributeModifier != null) {
-            if (attributeModifiers == null) {
-                attributeModifiers = HashMultimap.create();
-            }
-            attributeModifiers.put(attribute, attributeModifier);
-            hasAttributeModifiers = true;
+            EquipmentSlotGroup slot = attributeModifier.getSlotGroup();
+            attributeEntries.add(new AttributeModifierEntry(
+                    attribute, attributeModifier,
+                    slot != null ? slot : EquipmentSlotGroup.ANY));
+        }
+        return this;
+    }
+
+    public ItemBuilder addAttributeEntry(final AttributeModifierEntry entry) {
+        if (entry != null) {
+            attributeEntries.add(entry);
         }
         return this;
     }
 
     public ItemBuilder addAllAttributeModifiers(final Multimap<Attribute, AttributeModifier> attributeModifiers) {
-        if (!hasAttributeModifiers) {
-            hasAttributeModifiers = true;
-            this.attributeModifiers = HashMultimap.create();
-        }
         if (attributeModifiers != null) {
-            this.attributeModifiers.putAll(attributeModifiers);
+            for (var entry : attributeModifiers.entries()) {
+                addAttributeModifiers(entry.getKey(), entry.getValue());
+            }
         }
         return this;
+    }
+
+    public List<AttributeModifierEntry> getAttributeEntries() {
+        return Collections.unmodifiableList(attributeEntries);
     }
 
     public ItemBuilder setTropicalFishBucketBodyColor(final DyeColor bodyColor) {
@@ -821,6 +839,7 @@ public class ItemBuilder {
     public ItemBuilder clone() {
         ItemBuilder clonedBuilder = new ItemBuilder(itemStack.clone());
         clonedBuilder.genericComponents.putAll(genericComponents);
+        clonedBuilder.attributeEntries.addAll(attributeEntries);
         return clonedBuilder;
     }
 
@@ -848,6 +867,7 @@ public class ItemBuilder {
         applyLore(itemMeta);
 
         itemStack.setItemMeta(itemMeta);
+        applyAttributeModifiersComponent(itemStack);
         finalItemStack = applyConsumableComponent(itemStack);
         finalItemStack = applyGenericComponents(finalItemStack);
 
@@ -972,8 +992,33 @@ public class ItemBuilder {
     }
 
     private void applyAttributeModifiers(ItemMeta itemMeta) {
-        if (hasAttributeModifiers && attributeModifiers != null) {
-            itemMeta.setAttributeModifiers(attributeModifiers);
+        if (attributeEntries.isEmpty()) return;
+
+        // Legacy path: apply via ItemMeta multimap (works on all versions)
+        Multimap<Attribute, AttributeModifier> multimap = HashMultimap.create();
+        for (AttributeModifierEntry entry : attributeEntries) {
+            multimap.put(entry.attribute(), entry.modifier());
+        }
+        itemMeta.setAttributeModifiers(multimap);
+    }
+
+    /**
+     * Applies attribute modifiers using the modern Paper DataComponent API (1.21.2+).
+     * Called after {@code itemStack.setItemMeta()} since DataComponents are set on the stack directly.
+     * Falls back silently if the API is unavailable.
+     */
+    private void applyAttributeModifiersComponent(ItemStack itemStack) {
+        if (attributeEntries.isEmpty()) return;
+        if (!VersionUtil.atOrAbove("1.21.2") || !VersionUtil.isPaperServer()) return;
+
+        try {
+            ItemAttributeModifiers.Builder builder = ItemAttributeModifiers.itemAttributes();
+            for (AttributeModifierEntry entry : attributeEntries) {
+                entry.addToComponentBuilder(builder);
+            }
+            itemStack.setData(DataComponentTypes.ATTRIBUTE_MODIFIERS, builder.build());
+        } catch (NoClassDefFoundError | NoSuchMethodError e) {
+            // DataComponent API not available on this server version — legacy path already applied
         }
     }
 
