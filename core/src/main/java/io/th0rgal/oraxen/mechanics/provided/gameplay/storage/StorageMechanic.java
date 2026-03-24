@@ -244,16 +244,16 @@ public class StorageMechanic {
 
             if (isShulker()) {
                 NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
-                if (mechanic == null) return;
+                if (mechanic != null) {
+                    ItemStack shulker = OraxenItems.getItemById(mechanic.getItemID()).build();
+                    ItemMeta shulkerMeta = shulker.getItemMeta();
 
-                ItemStack shulker = OraxenItems.getItemById(mechanic.getItemID()).build();
-                ItemMeta shulkerMeta = shulker.getItemMeta();
+                    if (shulkerMeta != null)
+                        shulkerMeta.getPersistentDataContainer().set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, items);
 
-                if (shulkerMeta != null)
-                    shulkerMeta.getPersistentDataContainer().set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, items);
-
-                shulker.setItemMeta(shulkerMeta);
-                block.getWorld().dropItemNaturally(block.getLocation(), shulker);
+                    shulker.setItemMeta(shulkerMeta);
+                    block.getWorld().dropItemNaturally(block.getLocation(), shulker);
+                }
             } else for (ItemStack item : items) {
                 if (item == null) continue;
                 block.getWorld().dropItemNaturally(block.getLocation(), item);
@@ -289,15 +289,15 @@ public class StorageMechanic {
             if (isShulker()) {
                 ItemStack defaultItem = OraxenItems.getItemById(mechanic.getItemID()).build();
                 ItemStack shulker = FurnitureMechanic.getFurnitureItem(baseEntity);
-                if (shulker == null) return;
-
-                ItemMeta shulkerMeta = shulker.getItemMeta();
-                if (shulkerMeta != null) {
-                    shulkerMeta.getPersistentDataContainer().set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, items);
-                    shulkerMeta.setDisplayName(defaultItem.getItemMeta() != null ? defaultItem.getItemMeta().getDisplayName() : null);
-                    shulker.setItemMeta(shulkerMeta);
+                if (shulker != null) {
+                    ItemMeta shulkerMeta = shulker.getItemMeta();
+                    if (shulkerMeta != null) {
+                        shulkerMeta.getPersistentDataContainer().set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, items);
+                        shulkerMeta.setDisplayName(defaultItem.getItemMeta() != null ? defaultItem.getItemMeta().getDisplayName() : null);
+                        shulker.setItemMeta(shulkerMeta);
+                    }
+                    baseEntity.getWorld().dropItemNaturally(baseEntity.getLocation(), shulker);
                 }
-                baseEntity.getWorld().dropItemNaturally(baseEntity.getLocation(), shulker);
             } else for (ItemStack item : items) {
                 if (item == null) continue;
                 baseEntity.getWorld().dropItemNaturally(baseEntity.getLocation(), item);

@@ -133,7 +133,7 @@ public class NoteBlockMechanic extends Mechanic {
     public boolean hasHardness() {
         if (isDirectional() && !getDirectional().isParentBlock()) {
             return hardness != -1.0D || directionalBlock.getParentMechanic().hasHardness();
-        } else return hardness != -1;
+        } else return hardness != -1.0D;
     }
 
     public double getHardness() {
