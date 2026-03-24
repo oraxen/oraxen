@@ -121,7 +121,12 @@ public class OraxenPlugin extends JavaPlugin {
         });
 
         Bukkit.getPluginManager().registerEvents(new CustomArmorListener(), this);
-        if (CustomBlockMiningListener.isSupported()) {
+        // Only register the attribute-based mining listener when no packet adapter is
+        // present.  When ProtocolLib/PacketEvents is enabled the BreakerSystem cancels
+        // START_DIGGING packets before BlockDamageEvent fires, so the attribute-based
+        // listener would never receive events.  The BreakerSystem's timer-based
+        // approach handles custom hardness in that case instead.
+        if (CustomBlockMiningListener.isSupported() && !packetAdapter.isEnabled()) {
             Bukkit.getPluginManager().registerEvents(new CustomBlockMiningListener(), this);
         }
         NMSHandlers.setup();

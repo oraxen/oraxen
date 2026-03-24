@@ -68,7 +68,7 @@ public class ChorusBlockMechanicListener implements Listener {
             public long getPeriod(final Player player, final Block block, final ItemStack tool) {
                 final ChorusBlockMechanic mechanic = OraxenBlocks.getChorusMechanic(block);
                 if (mechanic == null) return 0;
-                final long hardness = mechanic.getHardness();
+                final double hardness = mechanic.getHardness();
                 double modifier = 1;
                 if (mechanic.getDrop().canDrop(tool)) {
                     modifier *= 0.4;
