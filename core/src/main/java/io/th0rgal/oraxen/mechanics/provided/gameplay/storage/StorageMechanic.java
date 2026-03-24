@@ -263,7 +263,7 @@ public class StorageMechanic {
             }
             pdc.remove(STORAGE_KEY);
         } finally {
-            blockStorages.remove(block);
+            // blockStorages.remove() already called at start of try block
             lockedBlockStorages.remove(block);
         }
     }
@@ -280,17 +280,6 @@ public class StorageMechanic {
             closeGuiViewers(gui);
 
             if (isShulker()) {
-                // Write storage contents to the furniture item PDC only for shulker storage,
-                // since the shulker item keeps its contents when dropped.
-                ItemStack furnitureItem = FurnitureMechanic.getFurnitureItem(baseEntity);
-                if (furnitureItem != null) {
-                    ItemMeta furnitureMeta = furnitureItem.getItemMeta();
-                    if (furnitureMeta != null) {
-                        furnitureMeta.getPersistentDataContainer().set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, items);
-                        furnitureItem.setItemMeta(furnitureMeta);
-                        FurnitureMechanic.setFurnitureItem(baseEntity, furnitureItem);
-                    }
-                }
                 ItemStack defaultItem = OraxenItems.getItemById(mechanic.getItemID()).build();
                 ItemStack shulker = FurnitureMechanic.getFurnitureItem(baseEntity);
                 if (shulker != null) {
@@ -309,7 +298,7 @@ public class StorageMechanic {
 
             pdc.remove(STORAGE_KEY);
         } finally {
-            frameStorages.remove(baseEntity);
+            // frameStorages.remove() already called at start of try block
             lockedEntityStorages.remove(entityId);
         }
     }
