@@ -10,8 +10,6 @@ import io.th0rgal.oraxen.api.events.chorusblock.OraxenChorusBlockPlaceEvent;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.*;
-import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
-import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.apache.commons.lang3.Range;
 import org.bukkit.*;
@@ -36,6 +34,9 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.RayTraceResult;
 
+import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
+import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -47,6 +48,37 @@ public class ChorusBlockMechanicListener implements Listener {
     public ChorusBlockMechanicListener() {
         if (OraxenPlugin.get().getPacketAdapter().isEnabled())
             BreakerSystem.MODIFIERS.add(getHardnessModifier());
+    }
+
+    private HardnessModifier getHardnessModifier() {
+        return new HardnessModifier() {
+            @Override
+            public boolean isTriggered(final Player player, final Block block, final ItemStack tool) {
+                if (block.getType() != Material.CHORUS_PLANT) return false;
+                final ChorusBlockMechanic mechanic = OraxenBlocks.getChorusMechanic(block);
+                return mechanic != null && mechanic.hasHardness();
+            }
+
+            @Override
+            public void breakBlock(final Player player, final Block block, final ItemStack tool) {
+                block.setType(Material.AIR);
+            }
+
+            @Override
+            public long getPeriod(final Player player, final Block block, final ItemStack tool) {
+                final ChorusBlockMechanic mechanic = OraxenBlocks.getChorusMechanic(block);
+                if (mechanic == null) return 0;
+                final double hardness = mechanic.getHardness();
+                double modifier = 1;
+                if (mechanic.getDrop().canDrop(tool)) {
+                    modifier *= 0.4;
+                    final int diff = mechanic.getDrop().getDiff(tool);
+                    if (diff >= 1) modifier *= Math.pow(0.9, diff);
+                }
+                long period = (long) (hardness * modifier);
+                return period == 0 && mechanic.hasHardness() ? 1 : period;
+            }
+        };
     }
 
     public static class ChorusBlockMechanicPaperListener implements Listener {
@@ -548,41 +580,6 @@ public class ChorusBlockMechanicListener implements Listener {
         if (mechanic.hasLight()) {
             mechanic.getLight().createBlockLight(block);
         }
-    }
-
-    private HardnessModifier getHardnessModifier() {
-        return new HardnessModifier() {
-
-            @Override
-            public boolean isTriggered(final Player player, final Block block, final ItemStack tool) {
-                if (block.getType() != Material.CHORUS_PLANT)
-                    return false;
-                final ChorusBlockMechanic mechanic = OraxenBlocks.getChorusMechanic(block);
-                return mechanic != null && mechanic.hasHardness();
-            }
-
-            @Override
-            public void breakBlock(final Player player, final Block block, final ItemStack tool) {
-                block.setType(Material.AIR);
-            }
-
-            @Override
-            public long getPeriod(final Player player, final Block block, final ItemStack tool) {
-                final ChorusBlockMechanic mechanic = OraxenBlocks.getChorusMechanic(block);
-                if (mechanic == null)
-                    return 0;
-                final long hardness = mechanic.getHardness();
-                double modifier = 1;
-                if (mechanic.getDrop().canDrop(tool)) {
-                    modifier *= 0.4;
-                    final int diff = mechanic.getDrop().getDiff(tool);
-                    if (diff >= 1)
-                        modifier *= Math.pow(0.9, diff);
-                }
-                long period = (long) (hardness * modifier);
-                return period == 0 && mechanic.hasHardness() ? 1 : period;
-            }
-        };
     }
 
     private void makePlayerPlaceBlock(final Player player, final EquipmentSlot hand, final ItemStack item,

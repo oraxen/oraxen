@@ -27,6 +27,7 @@ import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.actions.ClickActionManager;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorEquipEvent;
+import io.th0rgal.oraxen.utils.breaker.CustomBlockMiningListener;
 import io.th0rgal.oraxen.utils.breaker.PacketEventsBreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.ProtocolLibBreakerSystem;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmorListener;
@@ -120,6 +121,14 @@ public class OraxenPlugin extends JavaPlugin {
         });
 
         Bukkit.getPluginManager().registerEvents(new CustomArmorListener(), this);
+        // Only register the attribute-based mining listener when no packet adapter is
+        // present.  When ProtocolLib/PacketEvents is enabled the BreakerSystem cancels
+        // START_DIGGING packets before BlockDamageEvent fires, so the attribute-based
+        // listener would never receive events.  The BreakerSystem's timer-based
+        // approach handles custom hardness in that case instead.
+        if (CustomBlockMiningListener.isSupported() && !packetAdapter.isEnabled()) {
+            Bukkit.getPluginManager().registerEvents(new CustomBlockMiningListener(), this);
+        }
         NMSHandlers.setup();
 
         // Auto-update Paper config for block updates (noteblock, tripwire, chorus)

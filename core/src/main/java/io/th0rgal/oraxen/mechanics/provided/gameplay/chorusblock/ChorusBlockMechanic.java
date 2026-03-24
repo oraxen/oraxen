@@ -24,7 +24,7 @@ public class ChorusBlockMechanic extends Mechanic {
     private final BlockSounds blockSounds;
     private final LimitedPlacing limitedPlacing;
     private final StorageMechanic storage;
-    private final int hardness;
+    private final double hardness;
     private final LightMechanic light;
     private final boolean isFalling;
     private final boolean blastResistant;
@@ -45,7 +45,7 @@ public class ChorusBlockMechanic extends Mechanic {
 
         model = section.getString("model");
         customVariation = section.getInt("custom_variation");
-        hardness = section.getInt("hardness", 1);
+        hardness = section.getDouble("hardness", 1.0D);
         light = new LightMechanic(section);
 
         isFalling = section.getBoolean("is_falling", false);
@@ -126,10 +126,10 @@ public class ChorusBlockMechanic extends Mechanic {
     }
 
     public boolean hasHardness() {
-        return hardness != -1;
+        return hardness != -1.0D;
     }
 
-    public int getHardness() {
+    public double getHardness() {
         return hardness;
     }
 
