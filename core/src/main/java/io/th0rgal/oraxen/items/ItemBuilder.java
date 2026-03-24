@@ -839,6 +839,7 @@ public class ItemBuilder {
     public ItemBuilder clone() {
         ItemBuilder clonedBuilder = new ItemBuilder(itemStack.clone());
         clonedBuilder.genericComponents.putAll(genericComponents);
+        clonedBuilder.attributeEntries.clear();
         clonedBuilder.attributeEntries.addAll(attributeEntries);
         return clonedBuilder;
     }
