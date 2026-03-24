@@ -35,9 +35,10 @@ import java.util.concurrent.ConcurrentHashMap;
 public class StorageMechanic {
 
     // Use thread-safe collections for Folia compatibility (concurrent region thread access)
-    public static Set<Player> playerStorages = ConcurrentHashMap.newKeySet();
-    public static Map<Block, StorageGui> blockStorages = new ConcurrentHashMap<>();
-    public static Map<Entity, StorageGui> frameStorages = new ConcurrentHashMap<>();
+    // Private to enforce all access goes through lock-aware methods and prevent external dupe vectors
+    private static final Set<Player> playerStorages = ConcurrentHashMap.newKeySet();
+    private static final Map<Block, StorageGui> blockStorages = new ConcurrentHashMap<>();
+    private static final Map<Entity, StorageGui> frameStorages = new ConcurrentHashMap<>();
     private static final Set<Block> lockedBlockStorages = ConcurrentHashMap.newKeySet();
     private static final Set<UUID> lockedEntityStorages = ConcurrentHashMap.newKeySet();
     public static final NamespacedKey STORAGE_KEY = new NamespacedKey(OraxenPlugin.get(), "storage");
