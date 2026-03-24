@@ -221,6 +221,11 @@ class PackFileCollector {
         return "assets/" + namespace + "/textures/" + texturePath;
     }
 
+    static boolean isCoreShaderPath(String path) {
+        return path.startsWith("assets/minecraft/shaders/core/")
+                || path.matches("assets/minecraft/overlays/.*/shaders/core/.*");
+    }
+
     private void readFileToVirtuals(final Collection<VirtualFile> output, File file, String newFolder) {
         try {
             final InputStream fis;
@@ -231,8 +236,15 @@ class PackFileCollector {
             else
                 fis = new FileInputStream(file);
 
-            output.add(new VirtualFile(getZipFilePath(file.getParentFile().getCanonicalPath(), newFolder),
-                    file.getName(), fis));
+            String parentPath = getZipFilePath(file.getParentFile().getCanonicalPath(), newFolder);
+            String virtualPath = parentPath.isEmpty() ? file.getName() : parentPath + "/" + file.getName();
+            if (Boolean.TRUE.equals(Settings.REMOVE_CORE_SHADERS_FROM_IMPORTED_PACKS.getValue())
+                    && isCoreShaderPath(virtualPath)) {
+                fis.close();
+                return;
+            }
+
+            output.add(new VirtualFile(parentPath, file.getName(), fis));
         } catch (IOException e) {
             e.printStackTrace();
         }

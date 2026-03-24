@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.pack.generation;
 
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.jetbrains.annotations.NotNull;
@@ -82,7 +83,8 @@ public class PackMerger {
 
         int fileCount = 0;
         int overrideCount = 0;
-        
+        int skippedCoreShaderCount = 0;
+
         try (FileInputStream fis = new FileInputStream(packZip);
              ZipInputStream zis = new ZipInputStream(fis, StandardCharsets.UTF_8)) {
             ZipEntry entry;
@@ -97,6 +99,13 @@ public class PackMerger {
                 // Find which pack root this entry belongs to
                 String normalizedPath = normalizeEntryPath(entryPath, packRoots);
                 if (normalizedPath == null || shouldIgnoreNormalizedPath(normalizedPath)) {
+                    zis.closeEntry();
+                    continue;
+                }
+
+                if (Boolean.TRUE.equals(Settings.REMOVE_CORE_SHADERS_FROM_IMPORTED_PACKS.getValue())
+                        && PackFileCollector.isCoreShaderPath(normalizedPath)) {
+                    skippedCoreShaderCount++;
                     zis.closeEntry();
                     continue;
                 }
@@ -129,6 +138,10 @@ public class PackMerger {
             } else {
                 Logs.logSuccess("Added <green>" + fileCount + "</green> files from <blue>" + packName + "</blue>");
             }
+        }
+        if (skippedCoreShaderCount > 0) {
+            Logs.logInfo("Skipped <yellow>" + skippedCoreShaderCount
+                    + "</yellow> imported core shader file(s) from <blue>" + packName + "</blue>");
         }
     }
 
