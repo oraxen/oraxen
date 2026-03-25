@@ -1,5 +1,5 @@
 table:
-  displayname: "<gray>Table"
+  itemname: <gray>Table
   material: PAPER
   Mechanics:
     furniture:
@@ -10,24 +10,23 @@ table:
           x: 0.0
           y: -1.22
           z: 0.0
-        # Scale has to be manually adjusted in the model file via display.head
-        
+        scale: # This will scale the actual model since armor stands can't be scaled.
+          x: 1.5
+          y: 1.5
+          z: 1.5
+          
       barriers:
         - { y: 2 }
-        
       limited_placing:
         roof: false
         floor: true
         wall: false
-      barrier: true
       light: 5
       drop:
         silktouch: false
         loots:
-          - { oraxen_item: table, probability: 1.0 }
-  Pack:
-    generate_model: false
-    model: default/table
+        - oraxen_item: table
+          probability: 1.0
 
 cart:
   displayname: "<gray>Cart"
