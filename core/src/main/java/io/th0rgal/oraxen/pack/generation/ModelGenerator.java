@@ -1,8 +1,10 @@
 package io.th0rgal.oraxen.pack.generation;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.items.OraxenMeta;
 import io.th0rgal.oraxen.utils.Utils;
+import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +19,7 @@ public class ModelGenerator {
 
         JsonObject textures = buildTextures(oraxenMeta, parentModel);
         json.add("textures", textures);
+        applyDisplay(oraxenMeta);
 
         generateSpecialModels(oraxenMeta);
     }
@@ -145,6 +148,39 @@ public class ModelGenerator {
         if (oraxenMeta.hasCastTexture()) PredicatesGenerator.generateCastModels(oraxenMeta);
         if (oraxenMeta.hasFireworkModel()) PredicatesGenerator.generateFireworkModels(oraxenMeta);
         if (oraxenMeta.hasDamagedModels()) PredicatesGenerator.generateDamageModels(oraxenMeta);
+    }
+
+    private void applyDisplay(OraxenMeta oraxenMeta) {
+        if (!oraxenMeta.hasArmorStandHeadScale()) return;
+
+        Vector scale = oraxenMeta.getArmorStandHeadScale();
+        if (scale == null) return;
+
+        applyHeadScale(json, scale);
+    }
+
+    public static void applyHeadScale(JsonObject modelJson, Vector scale) {
+        if (scale == null) {
+            throw new IllegalArgumentException("scale cannot be null");
+        }
+
+        JsonObject display = modelJson.has("display") && modelJson.get("display").isJsonObject()
+                ? modelJson.getAsJsonObject("display")
+                : new JsonObject();
+        JsonObject head = display.has("head") && display.get("head").isJsonObject()
+                ? display.getAsJsonObject("head")
+                : new JsonObject();
+        head.add("scale", createVectorArray(scale));
+        display.add("head", head);
+        modelJson.add("display", display);
+    }
+
+    private static JsonArray createVectorArray(Vector vector) {
+        JsonArray array = new JsonArray();
+        array.add(vector.getX());
+        array.add(vector.getY());
+        array.add(vector.getZ());
+        return array;
     }
 
     public JsonObject getJson() {
