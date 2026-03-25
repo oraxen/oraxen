@@ -12,6 +12,9 @@ table:
           z: 0.0
         # Scale has to be manually adjusted in the model file via display.head
         
+      barriers:
+        - { y: 2 }
+        
       limited_placing:
         roof: false
         floor: true
