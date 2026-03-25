@@ -1,6 +1,9 @@
 table:
   itemname: <gray>Table
   material: PAPER
+  Pack:
+    generate_model: false
+    model: default/table
   Mechanics:
     furniture:
       type: ARMOR_STAND # Valid types are ITEM_FRAME, GLOW_ITEM_FRAME, ARMOR_STAND, and DISPLAY_ENTITY if server is 1.19.4+
@@ -14,7 +17,6 @@ table:
           x: 1.5
           y: 1.5
           z: 1.5
-          
       barriers:
         - { y: 2 }
       limited_placing:
