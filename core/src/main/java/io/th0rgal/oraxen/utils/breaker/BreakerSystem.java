@@ -15,7 +15,6 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMech
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.ItemUtils;
-import io.th0rgal.oraxen.utils.PotionUtils;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.drops.Drop;
@@ -36,7 +35,6 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.potion.PotionEffect;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -95,13 +93,6 @@ public abstract class BreakerSystem {
                 drop = stringMechanic.getDrop() != null ? stringMechanic.getDrop() : Drop.emptyDrop();
             else drop = null;
 
-            // Use entity scheduler for player operations on Folia (player may move to different region)
-            SchedulerUtil.runForEntity(player, () ->
-                player.addPotionEffect(new PotionEffect(PotionUtils.getEffectType("mining_fatigue"),
-                    (int) (period * 11),
-                    Integer.MAX_VALUE,
-                    false, false, false)));
-
             if (breakerLocations.contains(location)) {
                 SchedulerUtil.ScheduledTask existingTask = breakerTasks.remove(location);
                 if (existingTask != null) existingTask.cancel();
@@ -154,10 +145,6 @@ public abstract class BreakerSystem {
                         modifier.breakBlock(player, block, item);
                     } else stopBlockHitSound(location);
 
-                    // Use entity scheduler for player operations on Folia (player may move to different region)
-                    SchedulerUtil.runForEntity(player, () ->
-                        player.removePotionEffect(PotionUtils.getEffectType("mining_fatigue")));
-
                     stopBlockBreaker(location);
                     stopBlockHitSound(location);
                     for (final Entity entity : world.getNearbyEntities(location, 16, 16, 16)) {
@@ -185,7 +172,6 @@ public abstract class BreakerSystem {
 
             // Use entity scheduler for player operations on Folia (player may move to different region)
             SchedulerUtil.runForEntity(player, () -> {
-                player.removePotionEffect(PotionUtils.getEffectType("mining_fatigue"));
                 if (!ProtectionLib.canBreak(player, location))
                     player.sendBlockChange(location, block.getBlockData());
             });

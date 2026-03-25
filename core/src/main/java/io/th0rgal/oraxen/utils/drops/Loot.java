@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.compatibilities.provided.ecoitems.WrappedEcoItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import net.Indyuce.mmoitems.MMOItems;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -55,28 +56,38 @@ public class Loot {
     public ItemStack getItemStack() {
         if (itemStack != null) return ItemUpdater.updateItem(itemStack);
 
-        if (config.containsKey("oraxen_item")) {
-            String itemId = config.get("oraxen_item").toString();
-            itemStack = OraxenItems.getItemById(itemId).build();
-        } else if (config.containsKey("crucible_item")) {
-            itemStack = new WrappedCrucibleItem(config.get("crucible_item").toString()).build();
-        } else if (config.containsKey("mmoitems_id") && config.containsKey("mmoitems_type")) {
-            String type = config.get("mmoitems_type").toString();
-            String id = config.get("mmoitems_id").toString();
+        String oraxenItemId = getConfigString("oraxen_item");
+        String crucibleItemId = getConfigString("crucible_item");
+        String mmoItemsId = getConfigString("mmoitems_id");
+        String mmoItemsType = getConfigString("mmoitems_type");
+        String ecoItemId = getConfigString("ecoitem");
+        String minecraftType = getConfigString("minecraft_type");
+
+        if (oraxenItemId != null) {
+            if (OraxenItems.getItemById(oraxenItemId) != null)
+                itemStack = OraxenItems.getItemById(oraxenItemId).build();
+        } else if (crucibleItemId != null) {
+            itemStack = new WrappedCrucibleItem(crucibleItemId).build();
+        } else if (mmoItemsId != null && mmoItemsType != null) {
+            String type = mmoItemsType;
+            String id = mmoItemsId;
             itemStack = MMOItems.plugin.getItem(type, id);
-        } else if (config.containsKey("ecoitem")) {
-            itemStack = new WrappedEcoItem(config.get("ecoitem").toString()).build();
-        } else if (config.containsKey("minecraft_type")) {
-            String itemType = config.get("minecraft_type").toString();
-            Material material = Material.getMaterial(itemType);
+        } else if (ecoItemId != null) {
+            itemStack = new WrappedEcoItem(ecoItemId).build();
+        } else if (minecraftType != null) {
+            Material material = Material.getMaterial(minecraftType);
             itemStack = material != null ? new ItemStack(material) : null;
         } else if (config.containsKey("minecraft_item")) {
             itemStack = (ItemStack) config.get("minecraft_item");
         }
 
-        if (itemStack == null) itemStack = OraxenItems.getItemById(sourceID).build();
+        if (itemStack == null && sourceID != null && OraxenItems.getItemById(sourceID) != null)
+            itemStack = OraxenItems.getItemById(sourceID).build();
 
-        return ItemUpdater.updateItem(itemStack);
+        if (itemStack == null)
+            Logs.logWarning("Failed to resolve loot item for source " + sourceID + " with config " + config);
+
+        return itemStack != null ? ItemUpdater.updateItem(itemStack) : null;
     }
 
     public void setItemStack(ItemStack itemStack) {
@@ -101,13 +112,25 @@ public class Loot {
     }
 
     public ItemStack getItem(int amountMultiplier) {
-        ItemStack stack = getItemStack().clone();
+        ItemStack baseStack = getItemStack();
+        if (baseStack == null) return null;
+
+        ItemStack stack = baseStack.clone();
         int dropAmount = ThreadLocalRandom.current().nextInt(amount.getLowerBound(), amount.getUpperBound() + 1);
         stack.setAmount(stack.getAmount() * amountMultiplier * dropAmount);
         return ItemUpdater.updateItem(stack);
     }
 
     private void dropItems(Location location, int amountMultiplier) {
-        if (location.getWorld() != null) location.getWorld().dropItemNaturally(location, getItem(amountMultiplier));
+        ItemStack item = getItem(amountMultiplier);
+        if (location.getWorld() != null && item != null) location.getWorld().dropItemNaturally(location, item);
+    }
+
+    private String getConfigString(String key) {
+        Object value = config.get(key);
+        if (value == null) return null;
+
+        String stringValue = value.toString().trim();
+        return stringValue.isEmpty() ? null : stringValue;
     }
 }
