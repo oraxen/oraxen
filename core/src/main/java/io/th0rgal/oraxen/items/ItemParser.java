@@ -10,6 +10,9 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.ArmorStandProperties;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.nms.NMSHandler;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.*;
@@ -470,6 +473,31 @@ public class ItemParser {
         oraxenMeta.setDisableEnchanting(section.getBoolean("disable_enchanting", false));
         oraxenMeta.setExcludedFromInventory(section.getBoolean("excludeFromInventory", false));
         oraxenMeta.setExcludedFromCommands(section.getBoolean("excludeFromCommands", false));
+        applyArmorStandModelProperties(section);
+    }
+
+    private void applyArmorStandModelProperties(ConfigurationSection section) {
+        oraxenMeta.setArmorStandHeadScale(null);
+
+        ConfigurationSection mechanicsSection = section.getConfigurationSection("Mechanics");
+        if (mechanicsSection == null) return;
+
+        ConfigurationSection furnitureSection = mechanicsSection.getConfigurationSection("furniture");
+        if (furnitureSection == null) return;
+
+        FurnitureMechanic.FurnitureType furnitureType = furnitureSection.isSet("type")
+                ? FurnitureMechanic.FurnitureType.getType(furnitureSection.getString("type", FurnitureMechanic.FurnitureType.DISPLAY_ENTITY.name()))
+                : FurnitureFactory.defaultFurnitureType;
+        if (furnitureType != FurnitureMechanic.FurnitureType.ARMOR_STAND) return;
+
+        ConfigurationSection armorStandSection = furnitureSection.getConfigurationSection("armor_stand_properties");
+        if (armorStandSection == null)
+            armorStandSection = furnitureSection.getConfigurationSection("display_entity_properties");
+        if (armorStandSection == null) return;
+
+        ArmorStandProperties properties = new ArmorStandProperties(armorStandSection);
+        if (properties.hasScale())
+            oraxenMeta.setArmorStandHeadScale(properties.getScale());
     }
 
     @SuppressWarnings({ "unchecked", "deprecation" })

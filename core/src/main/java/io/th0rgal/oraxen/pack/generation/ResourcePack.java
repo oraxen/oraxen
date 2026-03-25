@@ -190,9 +190,59 @@ public class ResourcePack {
 
         List<VirtualFile> output = new ArrayList<>(outputFiles.values());
         collectPackFiles(output);
+        applyArmorStandModelOverrides(output);
         postProcessOutput(output);
 
         return output;
+    }
+
+    private void applyArmorStandModelOverrides(List<VirtualFile> output) {
+        Map<String, org.bukkit.util.Vector> scaleByModelPath = new LinkedHashMap<>();
+
+        for (Map.Entry<String, ItemBuilder> entry : OraxenItems.getEntries()) {
+            ItemBuilder item = entry.getValue();
+            if (!item.hasOraxenMeta()) continue;
+
+            OraxenMeta meta = item.getOraxenMeta();
+            if (!meta.hasPackInfos() || !meta.hasArmorStandHeadScale()) continue;
+
+            String modelFilePath = meta.getModelPath() + "/" + meta.getModelName() + ".json";
+            org.bukkit.util.Vector newScale = meta.getArmorStandHeadScale();
+            org.bukkit.util.Vector existingScale = scaleByModelPath.get(modelFilePath);
+
+            if (existingScale != null && !sameScale(existingScale, newScale)) {
+                Logs.logWarning("Multiple armor-stand furniture items target the same model with different scale values: " + modelFilePath);
+                Logs.logWarning("Using the latest configured scale from item <gold>" + entry.getKey(), true);
+            }
+
+            scaleByModelPath.put(modelFilePath, newScale);
+        }
+
+        if (scaleByModelPath.isEmpty()) return;
+
+        for (VirtualFile virtualFile : output) {
+            org.bukkit.util.Vector scale = scaleByModelPath.get(virtualFile.getPath());
+            if (scale == null) continue;
+
+            JsonObject modelJson = virtualFile.toJsonObject();
+            if (modelJson == null) continue;
+
+            ModelGenerator.applyHeadScale(modelJson, scale);
+            InputStream previousStream = virtualFile.getInputStream();
+            if (previousStream != null) {
+                try {
+                    previousStream.close();
+                } catch (IOException ignored) {
+                }
+            }
+            virtualFile.setInputStream(new ByteArrayInputStream(modelJson.toString().getBytes(StandardCharsets.UTF_8)));
+        }
+    }
+
+    private boolean sameScale(org.bukkit.util.Vector first, org.bukkit.util.Vector second) {
+        return Double.compare(first.getX(), second.getX()) == 0
+                && Double.compare(first.getY(), second.getY()) == 0
+                && Double.compare(first.getZ(), second.getZ()) == 0;
     }
 
     /**

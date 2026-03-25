@@ -158,6 +158,18 @@ public class FurnitureFactory extends MechanicFactory {
                                 "sky", MechanicConfigProperty.integer("sky", "Sky light level", 0, 0, 15)
                         ))
                 )),
+                MechanicConfigProperty.object("armor_stand_properties", "Armor stand-specific display configuration", Map.of(
+                        "scale", MechanicConfigProperty.object("scale", "Scale to inject into generated model display.head", Map.of(
+                                "x", MechanicConfigProperty.decimal("x", "X-axis scale", 1.0),
+                                "y", MechanicConfigProperty.decimal("y", "Y-axis scale", 1.0),
+                                "z", MechanicConfigProperty.decimal("z", "Z-axis scale", 1.0)
+                        )),
+                        "translation", MechanicConfigProperty.object("translation", "Position offset for armor stand furniture", Map.of(
+                                "x", MechanicConfigProperty.decimal("x", "X-axis offset", 0.0),
+                                "y", MechanicConfigProperty.decimal("y", "Y-axis offset", 0.0),
+                                "z", MechanicConfigProperty.decimal("z", "Z-axis offset", 0.0)
+                        ))
+                )),
                 MechanicConfigProperty.object("drop", "Drop configuration when broken", Map.of(
                         "silktouch", MechanicConfigProperty.bool("silktouch", "Require silk touch to drop", false),
                         "loots", MechanicConfigProperty.list("loots", "List of loot entries")
