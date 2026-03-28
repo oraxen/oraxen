@@ -179,12 +179,18 @@ public class OraxenItems {
     }
 
     public static List<ItemBuilder> getUnexcludedItems() {
-        return itemStream().filter(item -> !item.getOraxenMeta().isExcludedFromInventory())
+        return itemStream().filter(OraxenItems::shouldShowInInventory)
                 .toList();
     }
 
     public static List<ItemBuilder> getUnexcludedItems(final File file) {
-        return map.get(file).values().stream().filter(item -> !item.getOraxenMeta().isExcludedFromInventory()).toList();
+        Map<String, ItemBuilder> fileItems = map.get(file);
+        if (fileItems == null) return List.of();
+        return fileItems.values().stream().filter(OraxenItems::shouldShowInInventory).toList();
+    }
+
+    private static boolean shouldShowInInventory(@Nullable ItemBuilder item) {
+        return item != null && item.hasOraxenMeta() && !item.getOraxenMeta().isExcludedFromInventory();
     }
 
     public static List<ItemStack> getItemStacksByName(final List<List<String>> lists) {
