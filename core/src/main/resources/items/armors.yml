@@ -5,6 +5,22 @@
 # Random UUID generator: https://www.uuidgenerator.net/
 # Color codes: https://docs.adventure.kyori.net/minimessage.html#format
 
+magic_elytra:
+  itemname: "<gradient:#9B59B6:#5B6BBF:#1A237E>Magic Elytra</gradient>"
+  material: ELYTRA
+  Components:
+    max_stack_size: 1
+    equippable:
+      slot: CHEST
+      model: oraxen:magic_elytra
+    durability:
+      value: 320
+  Pack:
+    generate_model: true
+    parent_model: item/generated
+    textures:
+    - default/armors/magic_elytra_icon
+
 emerald_helmet:
   displayname: "<gradient:#89E59D:#37C6BA>Emerald Helmet"
   material: PAPER
