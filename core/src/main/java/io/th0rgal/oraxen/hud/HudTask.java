@@ -57,7 +57,7 @@ public class HudTask implements Runnable {
         if (hud.disableWhilstInWater() && EntityUtils.isUnderWater(player)) {
             return;
         }
-        if (!player.hasPermission(hud.getPerm())) {
+        if (!hud.hasPermission(player)) {
             if (Settings.DEBUG.toBool()) {
                 Logs.logWarning("[HUD] Player " + player.getName() + " doesn't have permission: " + hud.getPerm());
             }
