@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.pack.dispatch;
 
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.pack.receive.PackReceiver;
 import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
@@ -122,6 +123,7 @@ public abstract class PackSender {
         String packUrl = OraxenPlugin.get().getPackURL();
         String hash = OraxenPlugin.get().getPackSHA1();
         if (packUrl == null || hash == null) return null;
+        UUID playerId = connection.getProfile().getId();
 
         byte[] hashBytes = hashArray(hash);
         UUID packUUID = UUID.nameUUIDFromBytes(hashBytes);
@@ -138,7 +140,8 @@ public abstract class PackSender {
                 .replace(true)
                 .prompt(AdventureUtils.MINI_MESSAGE.deserialize(Settings.SEND_PACK_PROMPT.toString()))
                 .packs(info)
-                .callback((uuid, status, audience) -> {
+                .callback((requestId, status, audience) -> {
+                    PackReceiver.handleAdventureStatus(playerId, status);
                     if (!status.intermediate()) {
                         if (future != null) future.complete(null);
                         else connection.completeReconfiguration();
