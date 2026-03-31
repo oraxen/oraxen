@@ -6,13 +6,23 @@ import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.logs.Logs;
+import io.th0rgal.oraxen.OraxenPlugin;
+import io.papermc.paper.connection.PlayerConfigurationConnection;
+import net.kyori.adventure.resource.ResourcePackInfo;
+import net.kyori.adventure.resource.ResourcePackRequest;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public abstract class PackSender {
 
     protected final HostingProvider hostingProvider;
+    private static final Object dispatchNormalizationLock = new Object();
+    private static volatile boolean dispatchModeNormalized = false;
 
 
     protected PackSender(HostingProvider hostingProvider) {
@@ -86,6 +96,111 @@ public abstract class PackSender {
             } else {
                 player.setResourcePack(url, sha1, legacyPrompt, mandatory);
             }
+        }
+    }
+
+    public static boolean isSendPreJoinConfigured() {
+        normalizeDispatchModeForServerSupport();
+        return readSendPreJoinConfigured();
+    }
+
+    public static boolean isSendOnJoinConfigured() {
+        normalizeDispatchModeForServerSupport();
+        return readSendOnJoinConfigured();
+    }
+
+    public static boolean isPreJoinDispatchActive() {
+        return isSendPreJoinConfigured() && VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.21.7");
+    }
+
+    public static boolean isAnyDispatchEnabled() {
+        return isSendOnJoinConfigured() || isSendPreJoinConfigured();
+    }
+
+    @Nullable
+    public static CompletableFuture<Void> sendResourcePack(PlayerConfigurationConnection connection, boolean reconfigure) {
+        String packUrl = OraxenPlugin.get().getPackURL();
+        String hash = OraxenPlugin.get().getPackSHA1();
+        if (packUrl == null || hash == null) return null;
+
+        byte[] hashBytes = hashArray(hash);
+        UUID packUUID = UUID.nameUUIDFromBytes(hashBytes);
+        CompletableFuture<Void> future = reconfigure ? null : new CompletableFuture<>();
+
+        ResourcePackInfo info = ResourcePackInfo.resourcePackInfo()
+                .id(packUUID)
+                .uri(java.net.URI.create(packUrl))
+                .hash(hash)
+                .build();
+
+        ResourcePackRequest request = ResourcePackRequest.resourcePackRequest()
+                .required(Settings.SEND_PACK_MANDATORY.toBool())
+                .replace(true)
+                .prompt(AdventureUtils.MINI_MESSAGE.deserialize(Settings.SEND_PACK_PROMPT.toString()))
+                .packs(info)
+                .callback((uuid, status, audience) -> {
+                    if (!status.intermediate()) {
+                        if (future != null) future.complete(null);
+                        else connection.completeReconfiguration();
+                    }
+                })
+                .build();
+
+        connection.getAudience().sendResourcePacks(request);
+        return future;
+    }
+
+    private static byte[] hashArray(String hash) {
+        int length = hash.length();
+        if (length % 2 != 0) throw new IllegalArgumentException("Hash length must be even");
+
+        byte[] result = new byte[length / 2];
+        for (int i = 0; i < result.length; i++) {
+            int from = i * 2;
+            result[i] = (byte) Integer.parseInt(hash.substring(from, from + 2), 16);
+        }
+        return result;
+    }
+
+    private static boolean getBooleanSetting(String path, @Nullable String legacyPath, boolean fallback) {
+        YamlConfiguration settings = OraxenPlugin.get().getConfigsManager().getSettings();
+        Object value = settings.get(path);
+        if (value instanceof Boolean bool) return bool;
+
+        if (legacyPath != null) {
+            Object legacyValue = settings.get(legacyPath);
+            if (legacyValue instanceof Boolean bool) return bool;
+        }
+
+        return fallback;
+    }
+
+    private static boolean readSendPreJoinConfigured() {
+        return getBooleanSetting("Pack.dispatch.send_pre_join", null, true);
+    }
+
+    private static boolean readSendOnJoinConfigured() {
+        return getBooleanSetting("Pack.dispatch.send_on_join", "Pack.dispatch.send_pack", false);
+    }
+
+    private static void normalizeDispatchModeForServerSupport() {
+        if (dispatchModeNormalized) return;
+
+        synchronized (dispatchNormalizationLock) {
+            if (dispatchModeNormalized) return;
+
+            boolean sendPreJoin = readSendPreJoinConfigured();
+            boolean sendOnJoin = readSendOnJoinConfigured();
+            boolean preJoinSupported = VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.21.7");
+
+            if (sendPreJoin && !preJoinSupported && !sendOnJoin) {
+                Settings.SEND_ON_JOIN.setValue(true);
+                if (Settings.DEBUG.toBool()) {
+                    Logs.logInfo("Enabled Pack.dispatch.send_on_join because Pack.dispatch.send_pre_join is unsupported on this server.");
+                }
+            }
+
+            dispatchModeNormalized = true;
         }
     }
 

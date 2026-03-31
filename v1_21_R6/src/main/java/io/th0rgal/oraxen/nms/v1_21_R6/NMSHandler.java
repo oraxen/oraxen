@@ -73,6 +73,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.components.FoodComponent;
+import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -86,9 +87,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
     private final GlyphHandler glyphHandler;
+    private final Listener packDispatchListener;
 
     public NMSHandler() {
         this.glyphHandler = new io.th0rgal.oraxen.nms.v1_21_R6.GlyphHandler();
+        this.packDispatchListener = new PackDispatchListener();
 
         // mineableWith tag handling
         NamespacedKey tagKey = NamespacedKey.fromString("mineable_with_key", OraxenPlugin.get());
@@ -119,6 +122,11 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     @Override
     public GlyphHandler glyphHandler() {
         return glyphHandler;
+    }
+
+    @Override
+    public Listener packDispatchListener() {
+        return packDispatchListener;
     }
 
     @Override

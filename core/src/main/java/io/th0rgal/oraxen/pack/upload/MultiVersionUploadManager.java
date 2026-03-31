@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.api.events.OraxenPackPreUploadEvent;
 import io.th0rgal.oraxen.api.events.OraxenPackUploadEvent;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.pack.dispatch.MultiVersionPackSender;
+import io.th0rgal.oraxen.pack.dispatch.PackSender;
 import io.th0rgal.oraxen.pack.dispatch.PlayerVersionDetector;
 import io.th0rgal.oraxen.pack.generation.PackVersion;
 import io.th0rgal.oraxen.pack.generation.PackVersionManager;
@@ -102,12 +103,12 @@ public class MultiVersionUploadManager {
         }
         packSender = new MultiVersionPackSender(vm);
 
-        boolean shouldRegister = (Settings.SEND_PACK.toBool() || Settings.SEND_JOIN_MESSAGE.toBool())
+        boolean shouldRegister = (PackSender.isAnyDispatchEnabled() || Settings.SEND_JOIN_MESSAGE.toBool())
                 && !(reload && !Settings.SEND_ON_RELOAD.toBool());
 
         if (shouldRegister) {
             packSender.register();
-            if (sendToPlayers && Settings.SEND_PACK.toBool() && contentChanged) {
+            if (sendToPlayers && PackSender.isAnyDispatchEnabled() && contentChanged) {
                 for (Player player : Bukkit.getOnlinePlayers()) {
                     packSender.sendPack(player);
                 }
