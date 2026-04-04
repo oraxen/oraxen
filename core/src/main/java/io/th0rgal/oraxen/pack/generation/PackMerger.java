@@ -268,8 +268,13 @@ public class PackMerger {
             
             String relativePath = entryPath.substring(root.length());
             
-            // Valid resource pack files: assets/*, pack.mcmeta, pack.png
-            if (relativePath.startsWith("assets/") || 
+            // Valid resource pack files:
+            // - base assets: assets/*
+            // - overlay assets: <overlay_directory>/assets/*
+            // - root metadata/files: pack.mcmeta, pack.png
+            if (relativePath.startsWith("assets/")
+                || isOverlayAssetsPath(relativePath)
+                ||
                 relativePath.equals("pack.mcmeta") || 
                 relativePath.equals("pack.png")) {
                 return relativePath;
@@ -277,6 +282,15 @@ public class PackMerger {
         }
         
         return null;
+    }
+
+    /**
+     * Returns true if a path is an overlay-style assets path:
+     * <overlay_directory>/assets/...
+     */
+    private boolean isOverlayAssetsPath(String relativePath) {
+        int assetsIndex = relativePath.indexOf("/assets/");
+        return assetsIndex > 0;
     }
 
     private String getParentFolder(String path) {
