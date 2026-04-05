@@ -36,6 +36,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
 
@@ -112,21 +114,45 @@ public class ResourcePack {
             return;
         }
 
-        // Zip and upload the single pack
+        // Run on server thread then switch to async worker for a bit
         SchedulerUtil.runTask(() -> {
             OraxenPackGeneratedEvent event = new OraxenPackGeneratedEvent(output);
             EventUtils.callEvent(event);
-            ZipUtils.writeZipFile(pack, event.getOutput());
-
-            UploadManager uploadManager = OraxenPlugin.get().getUploadManager();
-            if (uploadManager != null) { // If the uploadManager isnt null, this was triggered by a pack-reload
-                uploadManager.uploadAsyncAndSendToPlayers(OraxenPlugin.get().getResourcePack(), true, true);
-            } else { // Otherwise this is was triggered on server-startup
-                uploadManager = new UploadManager(OraxenPlugin.get());
-                OraxenPlugin.get().setUploadManager(uploadManager);
-                uploadManager.uploadAsyncAndSendToPlayers(OraxenPlugin.get().getResourcePack(), false, false);
-            }
+            writeSinglePackAsync(event.getOutput());
         });
+    }
+
+    private void writeSinglePackAsync(List<VirtualFile> output) {
+        ExecutorService packWriter = Executors.newSingleThreadExecutor(runnable -> {
+            Thread thread = new Thread(runnable, "Oraxen-PackWriter");
+            thread.setDaemon(true);
+            return thread;
+        });
+
+        try {
+            packWriter.submit(() -> {
+                try {
+                    ZipUtils.writeZipFile(pack, output);
+                } finally {
+                    SchedulerUtil.runTask(this::uploadGeneratedPack);
+                    packWriter.shutdown();
+                }
+            });
+        } catch (RuntimeException exception) {
+            packWriter.shutdown();
+            throw exception;
+        }
+    }
+
+    private void uploadGeneratedPack() {
+        UploadManager uploadManager = OraxenPlugin.get().getUploadManager();
+        if (uploadManager != null) { // If the uploadManager isnt null, this was triggered by a pack-reload
+            uploadManager.uploadAsyncAndSendToPlayers(OraxenPlugin.get().getResourcePack(), true, true);
+        } else { // Otherwise this is was triggered on server-startup
+            uploadManager = new UploadManager(OraxenPlugin.get());
+            OraxenPlugin.get().setUploadManager(uploadManager);
+            uploadManager.uploadAsyncAndSendToPlayers(OraxenPlugin.get().getResourcePack(), false, false);
+        }
     }
 
     /**
