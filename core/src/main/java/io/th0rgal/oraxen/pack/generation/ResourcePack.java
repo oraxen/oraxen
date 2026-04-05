@@ -36,6 +36,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
@@ -55,6 +56,7 @@ public class ResourcePack {
     private final TextShaderGenerator textShaderGenerator = new TextShaderGenerator();
     /** Resolved multi-version flag (may differ from Settings if fallback occurred). */
     private boolean multiVersionResolved = false;
+    private final AtomicBoolean generationInProgress = new AtomicBoolean(false);
 
     public ResourcePack() {
         // we use maps to avoid duplicate
@@ -63,84 +65,177 @@ public class ResourcePack {
     }
 
     public void generate() {
+        if (!generationInProgress.compareAndSet(false, true)) {
+            Logs.logWarning("Resource-pack generation is already in progress, skipping duplicate request");
+            return;
+        }
+
         boolean multiVersionEnabled = Settings.MULTI_VERSION_PACKS.toBool();
         boolean isSelfHost = Settings.UPLOAD_TYPE.toString().equalsIgnoreCase("self-host");
 
-        if (multiVersionEnabled) {
-            if (isSelfHost) {
-                Logs.logError("Multi-version packs are incompatible with self-host upload!");
-                Logs.logError("SelfHost can only serve one file at /pack.zip");
-                Logs.logError("Falling back to single-pack mode for this generation");
-                multiVersionEnabled = false;
-            } else if (!Settings.UPLOAD.toBool()) {
-                Logs.logWarning("Multi-version packs require upload to be enabled!");
-                Logs.logWarning("Falling back to single-pack mode for this generation");
-                multiVersionEnabled = false;
-            }
-        }
-
-        this.multiVersionResolved = multiVersionEnabled;
-
-        if (multiVersionEnabled) {
-            // Detect mode-switch BEFORE nulling the old manager, so generateMultiVersion
-            // knows this is a reload even though both managers will be null by then.
-            boolean switchingFromSinglePack = OraxenPlugin.get().getUploadManager() != null;
-
-            // Unregister and clear single-pack manager if switching from single-pack mode.
-            // Clearing the reference prevents getPackURL()/getPackSHA1() from returning
-            // stale data from the old mode's manager.
-            UploadManager oldUploadManager = OraxenPlugin.get().getUploadManager();
-            if (oldUploadManager != null) {
-                oldUploadManager.unregister();
-                OraxenPlugin.get().setUploadManager(null);
+        try {
+            if (multiVersionEnabled) {
+                if (isSelfHost) {
+                    Logs.logError("Multi-version packs are incompatible with self-host upload!");
+                    Logs.logError("SelfHost can only serve one file at /pack.zip");
+                    Logs.logError("Falling back to single-pack mode for this generation");
+                    multiVersionEnabled = false;
+                } else if (!Settings.UPLOAD.toBool()) {
+                    Logs.logWarning("Multi-version packs require upload to be enabled!");
+                    Logs.logWarning("Falling back to single-pack mode for this generation");
+                    multiVersionEnabled = false;
+                }
             }
 
-            generateMultiVersion(switchingFromSinglePack);
-            return;
+            this.multiVersionResolved = multiVersionEnabled;
+
+            if (multiVersionEnabled) {
+                // Detect mode-switch BEFORE nulling the old manager, so generateMultiVersion
+                // knows this is a reload even though both managers will be null by then.
+                boolean switchingFromSinglePack = OraxenPlugin.get().getUploadManager() != null;
+
+                // Unregister and clear single-pack manager if switching from single-pack mode.
+                // Clearing the reference prevents getPackURL()/getPackSHA1() from returning
+                // stale data from the old mode's manager.
+                UploadManager oldUploadManager = OraxenPlugin.get().getUploadManager();
+                if (oldUploadManager != null) {
+                    oldUploadManager.unregister();
+                    OraxenPlugin.get().setUploadManager(null);
+                }
+
+                generateMultiVersion(switchingFromSinglePack);
+                finishGeneration();
+                return;
+            }
+
+            // Unregister and clear multi-version manager if switching from multi-version mode.
+            // Without clearing, OraxenPlugin.getPackURL()/getPackSHA1() would still check
+            // the stale multiVersionUploadManager first and return wrong pack data.
+            // setMultiVersionUploadManager(null) internally calls unregister() on the
+            // old manager, so a separate unregister() call is not needed.
+            OraxenPlugin.get().setMultiVersionUploadManager(null);
+
+            if (!prepareGenerationPreamble()) {
+                finishGeneration();
+                return;
+            }
+
+            startSinglePackGenerationAsync();
+        } catch (RuntimeException exception) {
+            finishGeneration();
+            throw exception;
         }
-
-        // Unregister and clear multi-version manager if switching from multi-version mode.
-        // Without clearing, OraxenPlugin.getPackURL()/getPackSHA1() would still check
-        // the stale multiVersionUploadManager first and return wrong pack data.
-        // setMultiVersionUploadManager(null) internally calls unregister() on the
-        // old manager, so a separate unregister() call is not needed.
-        OraxenPlugin.get().setMultiVersionUploadManager(null);
-
-        // Legacy single-pack generation - prepare and generate base assets
-        List<VirtualFile> output = prepareAndGenerateBaseAssets();
-
-        // Early exit if generation is disabled (empty output)
-        if (output.isEmpty()) {
-            return;
-        }
-
-        // Run on server thread then switch to async worker for a bit
-        SchedulerUtil.runTask(() -> {
-            OraxenPackGeneratedEvent event = new OraxenPackGeneratedEvent(output);
-            EventUtils.callEvent(event);
-            writeSinglePackAsync(event.getOutput());
-        });
     }
 
-    private void writeSinglePackAsync(List<VirtualFile> output) {
-        ExecutorService packWriter = Executors.newSingleThreadExecutor(runnable -> {
-            Thread thread = new Thread(runnable, "Oraxen-PackWriter");
+    private void startSinglePackGenerationAsync() {
+        ExecutorService packWorker = Executors.newSingleThreadExecutor(runnable -> {
+            Thread thread = new Thread(runnable, "Oraxen-PackWorker");
             thread.setDaemon(true);
             return thread;
         });
 
         try {
-            packWriter.submit(() -> {
+            packWorker.submit(() -> {
                 try {
-                    ZipUtils.writeZipFile(pack, output);
-                } finally {
-                    SchedulerUtil.runTask(this::uploadGeneratedPack);
-                    packWriter.shutdown();
+                    generateAsyncSafeItemAssets();
+                    SchedulerUtil.runTask(() -> continueSinglePackGenerationOnMain(packWorker));
+                } catch (Exception exception) {
+                    handleGenerationFailure(packWorker, "async item asset generation", exception);
                 }
             });
         } catch (RuntimeException exception) {
-            packWriter.shutdown();
+            packWorker.shutdown();
+            finishGeneration();
             throw exception;
+        }
+    }
+
+    private void continueSinglePackGenerationOnMain(ExecutorService packWorker) {
+        try {
+            generateMiscAssets();
+            applyPackModifiers();
+
+            List<VirtualFile> output = new ArrayList<>(outputFiles.values());
+            submitAsyncPackCollection(packWorker, output);
+        } catch (Exception exception) {
+            handleGenerationFailure(packWorker, "sync pack generation", exception);
+        }
+    }
+
+    private void submitAsyncPackCollection(ExecutorService packWorker, List<VirtualFile> output) {
+        try {
+            packWorker.submit(() -> {
+                try {
+                    collectPackFilesAsyncSafe(output);
+                    SchedulerUtil.runTask(() -> continuePostCollectionOnMain(packWorker, output));
+                } catch (Exception exception) {
+                    handleGenerationFailure(packWorker, "async pack collection", exception);
+                }
+            });
+        } catch (RuntimeException exception) {
+            handleGenerationFailure(packWorker, "async pack collection scheduling", exception);
+        }
+    }
+
+    private void continuePostCollectionOnMain(ExecutorService packWorker, List<VirtualFile> output) {
+        try {
+            handleCustomArmor(output);
+            Collections.sort(output);
+            submitAsyncPostProcessing(packWorker, output);
+        } catch (Exception exception) {
+            handleGenerationFailure(packWorker, "sync custom armor generation", exception);
+        }
+    }
+
+    private void submitAsyncPostProcessing(ExecutorService packWorker, List<VirtualFile> output) {
+        try {
+            packWorker.submit(() -> {
+                try {
+                    postProcessOutputAsyncSafe(output);
+                    SchedulerUtil.runTask(() -> finishSinglePackOutputOnMain(packWorker, output));
+                } catch (Exception exception) {
+                    handleGenerationFailure(packWorker, "async pack post-processing", exception);
+                }
+            });
+        } catch (RuntimeException exception) {
+            handleGenerationFailure(packWorker, "async pack post-processing scheduling", exception);
+        }
+    }
+
+    private void finishSinglePackOutputOnMain(ExecutorService packWorker, List<VirtualFile> output) {
+        try {
+            soundGenerator.generateSound(output);
+
+            OraxenPackGeneratedEvent event = new OraxenPackGeneratedEvent(output);
+            EventUtils.callEvent(event);
+            writeSinglePackAsync(packWorker, event.getOutput());
+        } catch (Exception exception) {
+            handleGenerationFailure(packWorker, "sync pack finalization", exception);
+        }
+    }
+
+    private void writeSinglePackAsync(ExecutorService packWorker, List<VirtualFile> output) {
+        try {
+            packWorker.submit(() -> {
+                try {
+                    ZipUtils.writeZipFile(pack, output);
+                    SchedulerUtil.runTask(this::uploadGeneratedPackAndFinish);
+                } catch (Exception exception) {
+                    handleGenerationFailure(packWorker, "async pack writing", exception);
+                } finally {
+                    packWorker.shutdown();
+                }
+            });
+        } catch (RuntimeException exception) {
+            handleGenerationFailure(packWorker, "async pack writing scheduling", exception);
+        }
+    }
+
+    private void uploadGeneratedPackAndFinish() {
+        try {
+            uploadGeneratedPack();
+        } finally {
+            finishGeneration();
         }
     }
 
@@ -155,13 +250,26 @@ public class ResourcePack {
         }
     }
 
+    private void finishGeneration() {
+        generationInProgress.set(false);
+    }
+
+    private void handleGenerationFailure(ExecutorService packWorker, String phase, Exception exception) {
+        Logs.logError("Failed during " + phase);
+        if (Settings.DEBUG.toBool()) {
+            exception.printStackTrace();
+        }
+        packWorker.shutdown();
+        SchedulerUtil.runTask(this::finishGeneration);
+    }
+
     /**
      * Prepares the environment and generates all base pack assets.
      * This is shared logic between single-pack and multi-version generation.
      *
      * @return List of generated VirtualFiles ready for zipping
      */
-    private List<VirtualFile> prepareAndGenerateBaseAssets() {
+    private boolean prepareGenerationPreamble() {
         // Reset state
         outputFiles.clear();
         textShaderGenerator.reset();
@@ -179,7 +287,7 @@ public class ResourcePack {
         extractRequired();
 
         if (!Settings.GENERATE.toBool())
-            return new ArrayList<>();
+            return false;
 
         if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool() && PluginUtils.isEnabled("HappyHUD")) {
             Logs.logError("HappyHUD detected with hide_scoreboard_numbers enabled!");
@@ -197,7 +305,21 @@ public class ResourcePack {
         extractInPackIfNotExists(new File(packFolder, "pack.png"));
         updatePackMcmeta();
 
-        // Generate all base assets
+        return true;
+    }
+
+    /**
+     * Prepares the environment and generates all base pack assets.
+     * This is shared logic between single-pack and multi-version generation.
+     *
+     * @return List of generated VirtualFiles ready for zipping
+     */
+    private List<VirtualFile> prepareAndGenerateBaseAssets() {
+        if (!prepareGenerationPreamble()) {
+            return new ArrayList<>();
+        }
+
+        generateAsyncSafeItemAssets();
         return generateBaseAssets();
     }
 
@@ -208,9 +330,6 @@ public class ResourcePack {
      * @return List of generated VirtualFiles
      */
     private List<VirtualFile> generateBaseAssets() {
-        final Map<Material, Map<String, ItemBuilder>> texturedItems = extractTexturedItems();
-
-        generateItemAppearanceAssets(texturedItems);
         generateMiscAssets();
         applyPackModifiers();
 
@@ -219,6 +338,11 @@ public class ResourcePack {
         postProcessOutput(output);
 
         return output;
+    }
+
+    private void generateAsyncSafeItemAssets() {
+        final Map<Material, Map<String, ItemBuilder>> texturedItems = extractTexturedItems();
+        generateItemAppearanceAssets(texturedItems);
     }
 
     /**
@@ -281,19 +405,7 @@ public class ResourcePack {
      */
     private void collectPackFiles(List<VirtualFile> output) {
         try {
-            fileCollector.getFilesInFolder(packFolder, output, packFolder.getCanonicalPath(), packFolder.getName() + ".zip");
-
-            File[] files = packFolder.listFiles();
-            if (files != null)
-                for (final File folder : files) {
-                    if (!folder.isDirectory()) continue;
-                    if (folder.getName().equals("uploads") || folder.getName().equals("__MACOSX")) continue;
-                    fileCollector.getAllFiles(folder, output,
-                            folder.getName().matches("models|textures|lang|font|sounds") ? "assets/minecraft" : "");
-                }
-
-            mergeUploadedPacks(output);
-            convertGlobalLang(output);
+            collectPackFilesAsyncSafe(output);
             handleCustomArmor(output);
             Collections.sort(output);
         } catch (IOException e) {
@@ -301,11 +413,32 @@ public class ResourcePack {
         }
     }
 
+    private void collectPackFilesAsyncSafe(List<VirtualFile> output) throws IOException {
+        fileCollector.getFilesInFolder(packFolder, output, packFolder.getCanonicalPath(), packFolder.getName() + ".zip");
+
+        File[] files = packFolder.listFiles();
+        if (files != null)
+            for (final File folder : files) {
+                if (!folder.isDirectory()) continue;
+                if (folder.getName().equals("uploads") || folder.getName().equals("__MACOSX")) continue;
+                fileCollector.getAllFiles(folder, output,
+                        folder.getName().matches("models|textures|lang|font|sounds") ? "assets/minecraft" : "");
+            }
+
+        mergeUploadedPacks(output);
+        convertGlobalLang(output);
+    }
+
     /**
      * Post-processes the output: verifies textures, generates atlases,
      * merges duplicates, filters excluded extensions, and generates sounds.
      */
     private void postProcessOutput(List<VirtualFile> output) {
+        postProcessOutputAsyncSafe(output);
+        soundGenerator.generateSound(output);
+    }
+
+    private void postProcessOutputAsyncSafe(List<VirtualFile> output) {
         Set<String> malformedTextures = new HashSet<>();
         if (Settings.VERIFY_PACK_FILES.toBool())
             malformedTextures = PackFileCollector.verifyPackFormatting(output);
@@ -329,8 +462,6 @@ public class ResourcePack {
                         excluded.add(virtual);
             output.removeAll(excluded);
         }
-
-        soundGenerator.generateSound(output);
     }
 
     /**
