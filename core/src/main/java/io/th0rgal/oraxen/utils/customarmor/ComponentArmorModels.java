@@ -19,38 +19,60 @@ import javax.json.JsonArray;
 import javax.json.JsonObject;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class ComponentArmorModels {
     public void generatePackFiles(List<VirtualFile> output) {
         Set<String> armorPrefixes = armorPrefixes(output);
-        writeArmorModels(output, armorPrefixes);
+        Set<String> elytraPrefixes = elytraPrefixes(output);
+        writeArmorModels(output, armorPrefixes, elytraPrefixes);
         copyArmorLayerTextures(output);
-        checkOraxenArmorItems(armorPrefixes);
+        checkOraxenArmorItems(armorPrefixes, elytraPrefixes);
     }
 
-    private void writeArmorModels(List<VirtualFile> output, Set<String> armorPrefixes) {
+    private void writeArmorModels(List<VirtualFile> output, Set<String> armorPrefixes, Set<String> elytraPrefixes) {
         for (String armorprefix : armorPrefixes) {
             JsonObject armorModel = Json.createObjectBuilder().add("texture", "oraxen:" + armorprefix).build();
             JsonArray armorModelArray = Json.createArrayBuilder().add(armorModel).build();
-            JsonObject equipmentModel = Json.createObjectBuilder().add("layers", Json.createObjectBuilder()
-                    .add("humanoid", armorModelArray)
-                    .add("humanoid_leggings", armorModelArray).build()).build();
+            JsonObject equipmentModel = Json.createObjectBuilder()
+                    .add("layers", Json.createObjectBuilder()
+                            .add("humanoid", armorModelArray)
+                            .add("humanoid_leggings", armorModelArray)
+                            .build())
+                    .build();
 
-            InputStream equipmentStream = new ByteArrayInputStream(equipmentModel.toString().getBytes());
+            InputStream equipmentStream = new ByteArrayInputStream(
+                    equipmentModel.toString().getBytes(StandardCharsets.UTF_8));
             output.add(new VirtualFile(
                     VersionUtil.atOrAbove("1.21.4") ? "assets/oraxen/equipment" : "assets/oraxen/models/equipment",
                     armorprefix + ".json", equipmentStream));
+
+            if (!elytraPrefixes.contains(armorprefix))
+                continue;
+
+            JsonObject elytraModel = Json.createObjectBuilder()
+                    .add("layers", Json.createObjectBuilder()
+                            .add("wings", armorModelArray)
+                            .build())
+                    .build();
+            InputStream elytraStream = new ByteArrayInputStream(
+                    elytraModel.toString().getBytes(StandardCharsets.UTF_8));
+            output.add(new VirtualFile(
+                    VersionUtil.atOrAbove("1.21.4") ? "assets/oraxen/equipment" : "assets/oraxen/models/equipment",
+                    armorprefix + "_elytra.json", elytraStream));
         }
     }
 
     private void copyArmorLayerTextures(List<VirtualFile> output) {
         for (VirtualFile virtualFile : output) {
             String path = virtualFile.getPath();
-            String armorFolder = path.endsWith("_armor_layer_1.png") ? "humanoid" : "humanoid_leggings";
+            String armorFolder = path.endsWith("_armor_layer_1.png") ? "humanoid"
+                    : path.endsWith("_armor_layer_2.png") ? "humanoid_leggings"
+                            : path.endsWith("_elytra.png") ? "wings" : "";
             String armorPrefix = armorPrefix(virtualFile);
-            if (armorPrefix.isEmpty())
+            if (armorPrefix.isEmpty() || armorFolder.isEmpty())
                 continue;
 
             String armorPath = "assets/oraxen/textures/entity/equipment/%s/%s.png".formatted(armorFolder, armorPrefix);
@@ -58,7 +80,7 @@ public class ComponentArmorModels {
         }
     }
 
-    private void checkOraxenArmorItems(Set<String> armorPrefixes) {
+    private void checkOraxenArmorItems(Set<String> armorPrefixes, Set<String> elytraPrefixes) {
         // No need to log for all 4 armor pieces, so skip to minimise log spam
         List<String> skippedArmorType = new ArrayList<>();
         for (Map.Entry<String, ItemBuilder> entry : OraxenItems.getEntries()) {
@@ -66,7 +88,8 @@ public class ComponentArmorModels {
             ItemBuilder itemBuilder = entry.getValue();
             ItemStack itemStack = itemBuilder.getReferenceClone();
             String armorPrefix = StringUtils.substringBeforeLast(itemId, "_");
-            EquipmentSlot slot = slotFromItem(itemId);
+            EquipmentSlot slot = slotFromItem(itemId, itemStack);
+            boolean isElytra = isElytraItem(itemId, itemStack);
 
             if (!armorPrefixes.contains(armorPrefix) || skippedArmorType.contains(armorPrefix) || slot == null)
                 continue;
@@ -83,10 +106,12 @@ public class ComponentArmorModels {
                 } else {
                     EquippableComponent component = Optional.ofNullable(itemBuilder.getEquippableComponent())
                             .orElse(new ItemStack(Material.PAPER).getItemMeta().getEquippable());
-                    NamespacedKey modelKey = NamespacedKey.fromString("oraxen:" + armorPrefix);
+                    String modelId = isElytra && elytraPrefixes.contains(armorPrefix) ? armorPrefix + "_elytra"
+                            : armorPrefix;
+                    NamespacedKey modelKey = NamespacedKey.fromString("oraxen:" + modelId);
                     if (component.getModel() == null)
                         component.setModel(modelKey);
-                    component.setSlot(slotFromItem(itemId));
+                    component.setSlot(slot);
                     itemBuilder.setEquippableComponent(component);
 
                     itemBuilder.save();
@@ -99,7 +124,9 @@ public class ComponentArmorModels {
     }
 
     @Nullable
-    private EquipmentSlot slotFromItem(String itemId) {
+    private EquipmentSlot slotFromItem(String itemId, @Nullable ItemStack itemStack) {
+        if (isElytraItem(itemId, itemStack))
+            return EquipmentSlot.CHEST;
         return switch (StringUtils.substringAfterLast(itemId, "_").toUpperCase(Locale.ENGLISH)) {
             case "HELMET" -> EquipmentSlot.HEAD;
             case "CHESTPLATE" -> EquipmentSlot.CHEST;
@@ -109,8 +136,24 @@ public class ComponentArmorModels {
         };
     }
 
+    private boolean isElytraItem(String itemId, @Nullable ItemStack itemStack) {
+        if (itemId.toLowerCase(Locale.ENGLISH).endsWith("_elytra"))
+            return true;
+        if (itemStack == null || !itemStack.hasItemMeta())
+            return false;
+        return itemStack.getType() == Material.ELYTRA || itemStack.getItemMeta().isGlider();
+    }
+
     private Set<String> armorPrefixes(List<VirtualFile> output) {
         return output.stream().map(this::armorPrefix).filter(StringUtils::isNotBlank).collect(Collectors.toSet());
+    }
+
+    private Set<String> elytraPrefixes(List<VirtualFile> output) {
+        return output.stream()
+                .filter(file -> file.getPath().endsWith("_elytra.png"))
+                .map(this::armorPrefix)
+                .filter(StringUtils::isNotBlank)
+                .collect(Collectors.toSet());
     }
 
     private String armorPrefix(VirtualFile virtualFile) {
@@ -120,6 +163,9 @@ public class ComponentArmorModels {
                 : virtualFile.getPath().endsWith("_armor_layer_2.png")
                         ? StringUtils.substringAfterLast(
                                 StringUtils.substringBefore(virtualFile.getPath(), "_armor_layer_2.png"), "/")
+                        : virtualFile.getPath().endsWith("_elytra.png")
+                                ? StringUtils.substringAfterLast(
+                                        StringUtils.substringBefore(virtualFile.getPath(), "_elytra.png"), "/")
                         : "";
     }
 }
