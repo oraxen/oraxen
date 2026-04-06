@@ -49,6 +49,7 @@ public class WorldEditHandlers {
 
     static {
         furnitureTypes.add(BukkitAdapter.adapt(EntityType.ITEM_FRAME));
+        furnitureTypes.add(BukkitAdapter.adapt(EntityType.ARMOR_STAND));
         if (VersionUtil.atOrAbove("1.19.4")) {
             furnitureTypes.add(BukkitAdapter.adapt(EntityType.ITEM_DISPLAY));
             furnitureTypes.add(BukkitAdapter.adapt(EntityType.INTERACTION));

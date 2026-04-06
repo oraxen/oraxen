@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -43,6 +44,7 @@ public class OraxenMeta {
     private float swapAnimationScale = 1.0f;
     private boolean excludeFromPredicates = false;
     private boolean excludeFromItemModel = false;
+    private Vector armorStandHeadScale;
     private Map<String, String> additionalModels = new HashMap<>();
 
     public void setExcludedFromInventory(boolean excluded) {
@@ -363,6 +365,19 @@ public class OraxenMeta {
         if (generatedModelPath.isEmpty())
             return generatedModelPath;
         return generatedModelPath + (generatedModelPath.endsWith("/") ? "" : "/");
+    }
+
+    public void setArmorStandHeadScale(@Nullable Vector armorStandHeadScale) {
+        this.armorStandHeadScale = armorStandHeadScale != null ? armorStandHeadScale.clone() : null;
+    }
+
+    public boolean hasArmorStandHeadScale() {
+        return armorStandHeadScale != null;
+    }
+
+    @Nullable
+    public Vector getArmorStandHeadScale() {
+        return armorStandHeadScale != null ? armorStandHeadScale.clone() : null;
     }
 
     public boolean shouldGenerateModel() {
