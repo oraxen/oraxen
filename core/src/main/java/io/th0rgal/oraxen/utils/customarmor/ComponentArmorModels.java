@@ -88,12 +88,14 @@ public class ComponentArmorModels {
             ItemBuilder itemBuilder = entry.getValue();
             ItemStack itemStack = itemBuilder.getReferenceClone();
             String armorPrefix = StringUtils.substringBeforeLast(itemId, "_");
+
+            if (itemStack == null || !itemStack.hasItemMeta())
+                continue;
+
             EquipmentSlot slot = slotFromItem(itemId, itemStack);
             boolean isElytra = isElytraItem(itemId, itemStack);
 
             if (!armorPrefixes.contains(armorPrefix) || skippedArmorType.contains(armorPrefix) || slot == null)
-                continue;
-            if (itemStack == null || !itemStack.hasItemMeta())
                 continue;
 
             if (!itemBuilder.hasEquippableComponent() || itemBuilder.getEquippableComponent().getModel() == null) {

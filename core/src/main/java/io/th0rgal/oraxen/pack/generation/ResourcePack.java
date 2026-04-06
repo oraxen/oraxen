@@ -61,7 +61,7 @@ public class ResourcePack {
     public ResourcePack() {
         // we use maps to avoid duplicate
         packModifiers = new HashMap<>();
-        outputFiles = new HashMap<>();
+        outputFiles = new java.util.concurrent.ConcurrentHashMap<>();
     }
 
     public void generate() {
@@ -69,6 +69,9 @@ public class ResourcePack {
             Logs.logWarning("Resource-pack generation is already in progress, skipping duplicate request");
             return;
         }
+
+        // Re-evaluate dispatch mode normalization on each generation (covers reload)
+        io.th0rgal.oraxen.pack.dispatch.PackSender.resetDispatchNormalization();
 
         boolean multiVersionEnabled = Settings.MULTI_VERSION_PACKS.toBool();
         boolean isSelfHost = Settings.UPLOAD_TYPE.toString().equalsIgnoreCase("self-host");
@@ -256,11 +259,10 @@ public class ResourcePack {
 
     private void handleGenerationFailure(ExecutorService packWorker, String phase, Exception exception) {
         Logs.logError("Failed during " + phase);
-        if (Settings.DEBUG.toBool()) {
-            exception.printStackTrace();
-        }
+        exception.printStackTrace();
         packWorker.shutdown();
-        SchedulerUtil.runTask(this::finishGeneration);
+        // Reset directly — do not rely on scheduler which may be unavailable during shutdown
+        finishGeneration();
     }
 
     /**

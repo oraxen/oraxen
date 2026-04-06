@@ -207,4 +207,12 @@ public abstract class PackSender {
         }
     }
 
+    /**
+     * Resets the dispatch mode normalization flag so it is re-evaluated on next access.
+     * Should be called on plugin reload to pick up changed settings.
+     */
+    public static void resetDispatchNormalization() {
+        dispatchModeNormalized = false;
+    }
+
 }

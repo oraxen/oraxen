@@ -43,6 +43,7 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class FurnitureMechanic extends Mechanic {
 
@@ -532,14 +533,12 @@ public class FurnitureMechanic extends Mechanic {
     }
     
     private static Vector rotateGroundOffset(Vector offset, float yaw) {
-        // Match BlockLocation.groundRotate() behavior for consistent furniture orientation.
-        float fixedAngle = (360f - yaw);
-        double radians = Math.toRadians(fixedAngle);
+        // Standard 2D rotation: rotate the X/Z offset by the negated yaw angle.
+        double radians = Math.toRadians(-(double) yaw);
         double x = offset.getX();
         double z = offset.getZ();
         double outX = Math.cos(radians) * x - Math.sin(radians) * z;
-        double outZ = Math.sin(radians) * x - Math.cos(radians) * z;
-        if (fixedAngle % 180f > 1f) outZ = -outZ;
+        double outZ = Math.sin(radians) * x + Math.cos(radians) * z;
         return new Vector(outX, offset.getY(), outZ);
     }
     
@@ -731,7 +730,8 @@ public class FurnitureMechanic extends Mechanic {
         armorStand.addEquipmentLock(EquipmentSlot.CHEST, ArmorStand.LockType.ADDING_OR_CHANGING);
         armorStand.addEquipmentLock(EquipmentSlot.LEGS, ArmorStand.LockType.ADDING_OR_CHANGING);
         armorStand.addEquipmentLock(EquipmentSlot.FEET, ArmorStand.LockType.ADDING_OR_CHANGING);
-        armorStand.getEquipment().setHelmet(item);
+        var equipment = armorStand.getEquipment();
+        if (equipment != null) equipment.setHelmet(item);
     }
 
     private void setBarrierHitbox(Entity entity, Location location, float yaw) {
@@ -773,7 +773,10 @@ public class FurnitureMechanic extends Mechanic {
 
     public static ItemStack getFurnitureItem(Entity entity) {
         return switch (entity.getType()) {
-            case ARMOR_STAND -> ((ArmorStand) entity).getEquipment().getHelmet();
+            case ARMOR_STAND -> {
+                var equipment = ((ArmorStand) entity).getEquipment();
+                yield equipment != null ? equipment.getHelmet() : null;
+            }
             case ITEM_DISPLAY -> OraxenPlugin.supportsDisplayEntities ? ((ItemDisplay) entity).getItemStack() : null;
             default -> ((ItemFrame) entity).getItem();
         };
@@ -792,7 +795,7 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     // Track which legacy fallback warnings have been logged to avoid spam
-    private static final Set<String> loggedLegacyWarnings = new HashSet<>();
+    private static final Set<String> loggedLegacyWarnings = ConcurrentHashMap.newKeySet();
 
     /**
      * Swaps the item model of a furniture entity to a different model key.

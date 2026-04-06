@@ -286,11 +286,15 @@ public class PackMerger {
 
     /**
      * Returns true if a path is an overlay-style assets path:
-     * <overlay_directory>/assets/...
+     * {@code <overlay_directory>/assets/...}
+     * The overlay directory must be a single path segment (no nested slashes).
      */
     private boolean isOverlayAssetsPath(String relativePath) {
         int assetsIndex = relativePath.indexOf("/assets/");
-        return assetsIndex > 0;
+        if (assetsIndex <= 0) return false;
+        // Ensure the part before /assets/ is a single directory name (no slashes)
+        String overlayDir = relativePath.substring(0, assetsIndex);
+        return !overlayDir.contains("/");
     }
 
     private String getParentFolder(String path) {

@@ -172,7 +172,9 @@ public final class AttributeModifierEntry {
         String operationStr = section.getString("operation", "ADD_NUMBER");
         AttributeModifier.Operation operation;
         try {
-            operation = AttributeModifier.Operation.valueOf(operationStr.toUpperCase());
+            operation = operationStr != null
+                    ? AttributeModifier.Operation.valueOf(operationStr.toUpperCase())
+                    : AttributeModifier.Operation.ADD_NUMBER;
         } catch (IllegalArgumentException e) {
             operation = AttributeModifier.Operation.ADD_NUMBER;
         }
@@ -180,9 +182,10 @@ public final class AttributeModifierEntry {
         String slotStr = section.getString("slot");
         EquipmentSlotGroup slot = parseSlotGroup(slotStr);
 
-        NamespacedKey modifierKey = NamespacedKey.fromString("oraxen:" + itemId + "_" + key);
+        String sanitized = (itemId + "_" + key).toLowerCase().replaceAll("[^a-z0-9_/.-]", "_");
+        NamespacedKey modifierKey = NamespacedKey.fromString("oraxen:" + sanitized);
         if (modifierKey == null) {
-            modifierKey = NamespacedKey.fromString("oraxen:modifier");
+            modifierKey = NamespacedKey.fromString("oraxen:modifier_" + sanitized.hashCode());
         }
 
         AttributeModifier modifier = new AttributeModifier(modifierKey, amount, operation, slot);

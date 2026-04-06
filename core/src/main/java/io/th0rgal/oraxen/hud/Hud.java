@@ -23,7 +23,7 @@ public record Hud(String displayText,
     }
 
     public boolean hasPermission(Player player) {
-        return player == null || perm.isBlank() || player.hasPermission(perm);
+        return player == null || perm == null || perm.isBlank() || player.hasPermission(perm);
     }
 
     public boolean isEnabledByDefault() {
