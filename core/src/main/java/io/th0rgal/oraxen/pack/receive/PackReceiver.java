@@ -22,15 +22,34 @@ import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public class PackReceiver implements Listener {
 
-    private static final ConcurrentMap<UUID, List<PlayerResourcePackStatusEvent.Status>> pendingStatuses = new ConcurrentHashMap<>();
+    /** Max time (ms) to keep pending statuses for players who never complete the join event. */
+    private static final long PENDING_STATUS_TTL_MS = 60_000L;
+
+    private static final ConcurrentMap<UUID, PendingEntry> pendingStatuses = new ConcurrentHashMap<>();
     private static final Object pendingStatusesLock = new Object();
+
+    private static final class PendingEntry {
+        final List<PlayerResourcePackStatusEvent.Status> statuses;
+        final long createdAt;
+
+        PendingEntry(List<PlayerResourcePackStatusEvent.Status> statuses) {
+            this.statuses = statuses;
+            this.createdAt = System.currentTimeMillis();
+        }
+
+        boolean isExpired() {
+            return System.currentTimeMillis() - createdAt > PENDING_STATUS_TTL_MS;
+        }
+    }
 
     @EventHandler(priority = EventPriority.NORMAL)
     public void onPlayerUpdatesPackStatus(PlayerResourcePackStatusEvent event) {
@@ -40,13 +59,14 @@ public class PackReceiver implements Listener {
     @EventHandler(priority = EventPriority.NORMAL)
     public void onPlayerJoin(PlayerJoinEvent event) {
         UUID playerId = event.getPlayer().getUniqueId();
-        List<PlayerResourcePackStatusEvent.Status> queuedStatuses;
+        PendingEntry entry;
         synchronized (pendingStatusesLock) {
-            queuedStatuses = pendingStatuses.remove(playerId);
+            entry = pendingStatuses.remove(playerId);
+            evictExpiredEntries();
         }
-        if (queuedStatuses == null || queuedStatuses.isEmpty()) return;
+        if (entry == null || entry.statuses.isEmpty()) return;
 
-        for (PlayerResourcePackStatusEvent.Status status : queuedStatuses) {
+        for (PlayerResourcePackStatusEvent.Status status : entry.statuses) {
             processStatus(event.getPlayer(), status);
         }
     }
@@ -55,6 +75,14 @@ public class PackReceiver implements Listener {
     public void onPlayerQuit(PlayerQuitEvent event) {
         synchronized (pendingStatusesLock) {
             pendingStatuses.remove(event.getPlayer().getUniqueId());
+        }
+    }
+
+    /** Remove entries older than {@link #PENDING_STATUS_TTL_MS} to prevent unbounded growth. */
+    private static void evictExpiredEntries() {
+        Iterator<Map.Entry<UUID, PendingEntry>> it = pendingStatuses.entrySet().iterator();
+        while (it.hasNext()) {
+            if (it.next().getValue().isExpired()) it.remove();
         }
     }
 
@@ -70,10 +98,10 @@ public class PackReceiver implements Listener {
             if (player != null && player.isOnline()) {
                 playerToProcess = player;
             } else {
-                pendingStatuses.compute(playerId, (uuid, statuses) -> {
-                    List<PlayerResourcePackStatusEvent.Status> list = statuses != null ? statuses : new ArrayList<>();
-                    list.add(bukkitStatus);
-                    return list;
+                pendingStatuses.compute(playerId, (uuid, existing) -> {
+                    PendingEntry entry = existing != null ? existing : new PendingEntry(new ArrayList<>());
+                    entry.statuses.add(bukkitStatus);
+                    return entry;
                 });
             }
         }

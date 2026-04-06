@@ -77,6 +77,8 @@ public class ItemBuilder {
     private Set<ItemFlag> itemFlags;
     private final List<AttributeModifierEntry> attributeEntries = new ArrayList<>();
     @Nullable
+    private Multimap<Attribute, AttributeModifier> legacyAttributeModifiers;
+    @Nullable
     private Integer customModelData;
     /**
      * 1.21.4+ Custom Model Data component strings.
@@ -210,14 +212,18 @@ public class ItemBuilder {
         if (!itemMeta.getItemFlags().isEmpty())
             itemFlags = itemMeta.getItemFlags();
 
-        if (itemMeta.hasAttributeModifiers() && VersionUtil.atOrAbove("1.20.5")) {
+        if (itemMeta.hasAttributeModifiers()) {
             Multimap<Attribute, AttributeModifier> existing = itemMeta.getAttributeModifiers();
             if (existing != null) {
-                for (var entry : existing.entries()) {
-                    EquipmentSlotGroup slot = entry.getValue().getSlotGroup();
-                    attributeEntries.add(new AttributeModifierEntry(
-                            entry.getKey(), entry.getValue(),
-                            slot != null ? slot : EquipmentSlotGroup.ANY));
+                if (VersionUtil.atOrAbove("1.20.5")) {
+                    for (var entry : existing.entries()) {
+                        EquipmentSlotGroup slot = entry.getValue().getSlotGroup();
+                        attributeEntries.add(new AttributeModifierEntry(
+                                entry.getKey(), entry.getValue(),
+                                slot != null ? slot : EquipmentSlotGroup.ANY));
+                    }
+                } else {
+                    legacyAttributeModifiers = HashMultimap.create(existing);
                 }
             }
         }
@@ -764,11 +770,18 @@ public class ItemBuilder {
     }
 
     public ItemBuilder addAttributeModifiers(final Attribute attribute, final AttributeModifier attributeModifier) {
-        if (attribute != null && attributeModifier != null && VersionUtil.atOrAbove("1.20.5")) {
-            EquipmentSlotGroup slot = attributeModifier.getSlotGroup();
-            attributeEntries.add(new AttributeModifierEntry(
-                    attribute, attributeModifier,
-                    slot != null ? slot : EquipmentSlotGroup.ANY));
+        if (attribute != null && attributeModifier != null) {
+            try {
+                EquipmentSlotGroup slot = VersionUtil.atOrAbove("1.20.5")
+                        ? attributeModifier.getSlotGroup() : null;
+                attributeEntries.add(new AttributeModifierEntry(
+                        attribute, attributeModifier,
+                        slot != null ? slot : EquipmentSlotGroup.ANY));
+            } catch (NoClassDefFoundError ignored) {
+                // EquipmentSlotGroup not available pre-1.20.5, store via legacy multimap
+                if (legacyAttributeModifiers == null) legacyAttributeModifiers = HashMultimap.create();
+                legacyAttributeModifiers.put(attribute, attributeModifier);
+            }
         }
         return this;
     }
@@ -841,6 +854,9 @@ public class ItemBuilder {
         clonedBuilder.genericComponents.putAll(genericComponents);
         clonedBuilder.attributeEntries.clear();
         clonedBuilder.attributeEntries.addAll(attributeEntries);
+        if (legacyAttributeModifiers != null) {
+            clonedBuilder.legacyAttributeModifiers = HashMultimap.create(legacyAttributeModifiers);
+        }
         return clonedBuilder;
     }
 
@@ -993,14 +1009,23 @@ public class ItemBuilder {
     }
 
     private void applyAttributeModifiers(ItemMeta itemMeta) {
-        if (attributeEntries.isEmpty()) return;
-
-        // Legacy path: apply via ItemMeta multimap (works on all versions)
-        Multimap<Attribute, AttributeModifier> multimap = HashMultimap.create();
-        for (AttributeModifierEntry entry : attributeEntries) {
-            multimap.put(entry.attribute(), entry.modifier());
+        // Apply modern entries via ItemMeta multimap
+        if (!attributeEntries.isEmpty()) {
+            Multimap<Attribute, AttributeModifier> multimap = HashMultimap.create();
+            for (AttributeModifierEntry entry : attributeEntries) {
+                multimap.put(entry.attribute(), entry.modifier());
+            }
+            itemMeta.setAttributeModifiers(multimap);
         }
-        itemMeta.setAttributeModifiers(multimap);
+
+        // Apply legacy fallback entries (pre-1.20.5 servers where EquipmentSlotGroup is unavailable)
+        if (legacyAttributeModifiers != null && !legacyAttributeModifiers.isEmpty()) {
+            Multimap<Attribute, AttributeModifier> existing = itemMeta.getAttributeModifiers();
+            Multimap<Attribute, AttributeModifier> merged = existing != null
+                    ? HashMultimap.create(existing) : HashMultimap.create();
+            merged.putAll(legacyAttributeModifiers);
+            itemMeta.setAttributeModifiers(merged);
+        }
     }
 
     /**
