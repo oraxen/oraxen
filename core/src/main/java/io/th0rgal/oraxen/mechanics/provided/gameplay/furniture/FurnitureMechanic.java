@@ -1117,7 +1117,9 @@ public class FurnitureMechanic extends Mechanic {
         if (entityUuid != null) {
             Entity stand = Bukkit.getEntity(entityUuid);
             if (stand != null && stand.getPassengers().isEmpty()) {
-                stand.addPassenger(player);
+                // Teleport the seat entity to the correct position asynchronously before mounting
+                FurniturePacketDispatcher.teleportAsync(stand, stand.getLocation());
+                SchedulerUtil.runForEntity(stand, () -> stand.addPassenger(player), null);
             }
         }
     }

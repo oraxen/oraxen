@@ -41,6 +41,7 @@ public class FurnitureFactory extends MechanicFactory {
         );
         evolvingFurnitures = false;
         instance = this;
+        FurniturePacketDispatcher.init();
         customSounds = areCustomSoundsEnabled();
 
         if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new FurnitureSoundListener());
@@ -93,6 +94,7 @@ public class FurnitureFactory extends MechanicFactory {
     public static void unregisterEvolution() {
         if (evolutionTask != null)
             evolutionTask.cancel();
+        FurniturePacketDispatcher.shutdown();
     }
 
     @Override

@@ -197,6 +197,17 @@ public class StringBlockMechanicListener implements Listener {
             return;
         }
 
+        // Handle stackable block interaction: right-click with the same item to stack
+        if (mechanic.isStackable() && event.getItem() != null) {
+            String heldItemId = OraxenItems.getIdByItem(event.getItem());
+            if (heldItemId != null && heldItemId.equals(mechanic.getItemID())) {
+                if (handleStackInteraction(mechanic, block, event.getPlayer(), event.getItem())) {
+                    event.setCancelled(true);
+                    return;
+                }
+            }
+        }
+
         // Handle click actions
         if (mechanic.hasClickActions()) {
             mechanic.runClickActions(event.getPlayer());
@@ -207,6 +218,35 @@ public class StringBlockMechanicListener implements Listener {
             handleStorageInteraction(mechanic, block, event.getPlayer());
             event.setCancelled(true);
         }
+    }
+
+    /**
+     * Handles stacking a block to its next stack level.
+     * Returns true if the block was stacked, false if already at max level.
+     */
+    private boolean handleStackInteraction(StringBlockMechanic mechanic, Block block, Player player, ItemStack item) {
+        Tripwire tripwire = (Tripwire) block.getBlockData();
+        int currentVariation = StringBlockMechanicFactory.getCode(tripwire);
+
+        StringBlockMechanic.StackVariation nextStack = mechanic.getNextStackVariation(currentVariation);
+        if (nextStack == null) return false; // Already at max stack level
+
+        // Swap the block to the next stack variation
+        block.setBlockData(StringBlockMechanicFactory.createTripwireData(nextStack.customVariation()), false);
+
+        if (player.getGameMode() != GameMode.CREATIVE) {
+            item.setAmount(item.getAmount() - 1);
+        }
+
+        // Play placement sound if configured
+        if (mechanic.hasBlockSounds() && mechanic.getBlockSounds().hasPlaceSound()) {
+            block.getWorld().playSound(block.getLocation(),
+                    mechanic.getBlockSounds().getPlaceSound(),
+                    mechanic.getBlockSounds().getPlaceVolume(),
+                    mechanic.getBlockSounds().getPlacePitch());
+        }
+
+        return true;
     }
 
     private void handleStorageInteraction(StringBlockMechanic mechanic, Block block, Player player) {

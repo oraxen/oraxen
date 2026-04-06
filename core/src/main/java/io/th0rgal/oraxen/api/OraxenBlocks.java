@@ -46,6 +46,7 @@ import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import io.th0rgal.oraxen.utils.drops.Loot;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic.FARMBLOCK_KEY;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic.SAPLING_KEY;
@@ -389,9 +390,26 @@ public class OraxenBlocks {
         StringBlockMechanic mechanic = getStringMechanic(block);
         if (mechanic == null) return false;
 
+        // For stackable blocks, multiply drops by the stack level
+        Drop effectiveDrop = mechanic.getDrop();
+        if (mechanic.isStackable() && overrideDrop == null && block.getBlockData() instanceof org.bukkit.block.data.type.Tripwire tripwire) {
+            int variation = StringBlockMechanicFactory.getCode(tripwire);
+            int multiplier = mechanic.getStackDropMultiplier(variation);
+            if (multiplier > 1) {
+                List<Loot> multipliedLoots = new ArrayList<>();
+                for (Loot loot : effectiveDrop.getLoots()) {
+                    for (int i = 0; i < multiplier; i++) {
+                        multipliedLoots.add(loot);
+                    }
+                }
+                effectiveDrop = Drop.clone(effectiveDrop, multipliedLoots);
+            }
+        }
+
         final Block blockAbove = block.getRelative(BlockFace.UP);
+        final Drop dropForEvent = effectiveDrop;
         return removeCustomBlock(block, player, overrideDrop,
-                mechanic, mechanic.getItemID(), mechanic.getDrop(),
+                mechanic, mechanic.getItemID(), dropForEvent,
                 (m, p) -> new OraxenStringBlockBreakEvent(m, block, p),
                 OraxenStringBlockBreakEvent::getDrop,
                 () -> {
