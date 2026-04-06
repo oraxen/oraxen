@@ -158,10 +158,9 @@ public class FontEvents implements Listener {
         if (!Settings.FORMAT_SIGNS.toBool() || manager.useNmsGlyphs()) return;
 
         Player player = event.getPlayer();
-        for (String line : event.getLines()) {
-            line = AdventureUtils.parseLegacyThroughMiniMessage(line);
-            int i = Arrays.stream(event.getLines()).toList().indexOf(line);
-            if (i == -1) continue;
+        String[] lines = event.getLines();
+        for (int i = 0; i < lines.length; i++) {
+            String line = AdventureUtils.parseLegacyThroughMiniMessage(lines[i]);
             for (Character character : manager.getReverseMap().keySet()) {
                 if (!line.contains(String.valueOf(character))) continue;
 
@@ -181,7 +180,7 @@ public class FontEvents implements Listener {
                             : line.replace(entry.getKey(), ChatColor.WHITE + unicode + PapiAliases.setPlaceholders(player, manager.permsChatcolor))
                             .replace(unicode, ChatColor.WHITE + unicode + ChatColor.BLACK);
             }
-            event.setLine(i, AdventureUtils.parseLegacy(line));
+            event.setLine(i, line);
         }
     }
 
