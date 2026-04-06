@@ -81,6 +81,7 @@ public class StringBlockMechanicListener implements Listener {
         };
     }
 
+
     public static class StringBlockMechanicPaperListener implements Listener {
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         public void onEnteringTripwire(EntityInsideBlockEvent event) {

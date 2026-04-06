@@ -546,29 +546,7 @@ public class ItemParser {
             }
         }
 
-        final List<Map<String, Object>> attributes = (List<Map<String, Object>>) section.getList("AttributeModifiers");
-        if (attributes != null) {
-            for (final Map<String, Object> attributeJson : attributes) {
-                try {
-                    attributeJson.putIfAbsent("uuid", UUID.randomUUID().toString());
-                    attributeJson.putIfAbsent("name", "oraxen:modifier");
-                    attributeJson.putIfAbsent("key", "oraxen:modifier");
-
-                    final AttributeModifier attributeModifier = AttributeModifier.deserialize(attributeJson);
-                    final Attribute attribute = AttributeWrapper.fromString((String) attributeJson.get("attribute"));
-
-                    if (attribute != null) {
-                        item.addAttributeModifiers(attribute, attributeModifier);
-                    } else {
-                        Logs.logWarning("Attribute not found for key: " + attributeJson.get("attribute") + " in item: "
-                                + section.getName());
-                    }
-                } catch (final Exception e) {
-                    Logs.logWarning("Error parsing AttributeModifiers in " + section.getName());
-                    Logs.debug(e);
-                }
-            }
-        }
+        parseAttributeModifiers(item, section);
 
         if (section.contains("Enchantments")) {
             final ConfigurationSection enchantSection = section.getConfigurationSection("Enchantments");
@@ -592,6 +570,81 @@ public class ItemParser {
                     Logs.logWarning("Enchantment not found for key: " + enchant + " in item: " + section.getName());
                 } else {
                     item.addEnchant(enchantment, level);
+                }
+            }
+        }
+    }
+
+    /**
+     * Parses AttributeModifiers from the item config section.
+     * Supports two formats:
+     *
+     * <p><b>Modern format</b> (ConfigurationSection-based, recommended for 1.21.2+):
+     * <pre>
+     * AttributeModifiers:
+     *   damage_boost:
+     *     attribute: ATTACK_DAMAGE
+     *     amount: 5.0
+     *     operation: ADD_NUMBER
+     *     slot: mainhand
+     *     display:
+     *       type: hidden
+     * </pre>
+     *
+     * <p><b>Legacy format</b> (map list, backward compatible):
+     * <pre>
+     * AttributeModifiers:
+     *   - attribute: ATTACK_DAMAGE
+     *     amount: 5.0
+     *     operation: ADD_NUMBER
+     *     slot: mainhand
+     * </pre>
+     */
+    @SuppressWarnings("unchecked")
+    private void parseAttributeModifiers(final ItemBuilder item, final ConfigurationSection section) {
+        // Try modern ConfigurationSection format first
+        final ConfigurationSection attrSection = section.getConfigurationSection("AttributeModifiers");
+        if (attrSection != null) {
+            for (final String key : attrSection.getKeys(false)) {
+                final ConfigurationSection modifierSection = attrSection.getConfigurationSection(key);
+                if (modifierSection == null) continue;
+                try {
+                    final AttributeModifierEntry entry =
+                            AttributeModifierEntry.fromConfigSection(section.getName(), key, modifierSection);
+                    if (entry != null) {
+                        item.addAttributeEntry(entry);
+                    } else {
+                        Logs.logWarning("Invalid attribute modifier '" + key + "' in item: " + section.getName());
+                    }
+                } catch (final Exception e) {
+                    Logs.logWarning("Error parsing AttributeModifier '" + key + "' in " + section.getName());
+                    Logs.debug(e);
+                }
+            }
+            return;
+        }
+
+        // Legacy list-of-maps format
+        final List<Map<String, Object>> attributes = (List<Map<String, Object>>) section.getList("AttributeModifiers");
+        if (attributes != null) {
+            for (final Map<String, Object> attributeJson : attributes) {
+                try {
+                    attributeJson.putIfAbsent("uuid", UUID.randomUUID().toString());
+                    attributeJson.putIfAbsent("name", "oraxen:modifier");
+                    attributeJson.putIfAbsent("key", "oraxen:modifier");
+
+                    final AttributeModifier attributeModifier = AttributeModifier.deserialize(attributeJson);
+                    final Attribute attribute = AttributeWrapper.fromString((String) attributeJson.get("attribute"));
+
+                    if (attribute != null) {
+                        item.addAttributeModifiers(attribute, attributeModifier);
+                    } else {
+                        Logs.logWarning("Attribute not found for key: " + attributeJson.get("attribute")
+                                + " in item: " + section.getName());
+                    }
+                } catch (final Exception e) {
+                    Logs.logWarning("Error parsing AttributeModifiers in " + section.getName());
+                    Logs.debug(e);
                 }
             }
         }

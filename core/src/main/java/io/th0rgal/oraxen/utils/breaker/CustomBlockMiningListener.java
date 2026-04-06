@@ -46,6 +46,7 @@ public class CustomBlockMiningListener implements Listener {
         return AttributeWrapper.BLOCK_BREAK_SPEED != null;
     }
 
+
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onDamageCustomBlock(final BlockDamageEvent event) {
         final Player player = event.getPlayer();
