@@ -127,7 +127,7 @@ public abstract class PackSender {
     }
 
     private static boolean readSendPreJoinConfigured() {
-        return getBooleanSetting("Pack.dispatch.send_pre_join", null, true);
+        return getBooleanSetting("Pack.dispatch.send_pre_join", null, false);
     }
 
     private static boolean readSendOnJoinConfigured() {

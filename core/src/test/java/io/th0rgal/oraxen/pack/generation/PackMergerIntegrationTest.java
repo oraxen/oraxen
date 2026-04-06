@@ -392,7 +392,9 @@ public class PackMergerIntegrationTest {
 
         private boolean isOverlayAssetsPath(String relativePath) {
             int assetsIndex = relativePath.indexOf("/assets/");
-            return assetsIndex > 0;
+            if (assetsIndex <= 0) return false;
+            String overlayDir = relativePath.substring(0, assetsIndex);
+            return !overlayDir.contains("/");
         }
 
         private String getParentFolder(String path) {
