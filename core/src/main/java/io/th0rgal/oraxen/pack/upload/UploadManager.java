@@ -121,7 +121,7 @@ public class UploadManager {
         if (cancelled) return;
         if (isReload && !Settings.SEND_ON_RELOAD.toBool() && packSender != null) {
             packSender.unregister();
-        } else if (Settings.SEND_PACK.toBool() || Settings.SEND_JOIN_MESSAGE.toBool()) {
+        } else if (PackSender.isAnyDispatchEnabled() || Settings.SEND_JOIN_MESSAGE.toBool()) {
             packSender.register();
             if (contentChanged) {
                 for (Player player : Bukkit.getOnlinePlayers())

@@ -39,7 +39,14 @@ public class BukkitPackSender extends PackSender implements Listener {
     public void onPlayerConnect(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         if (Settings.SEND_JOIN_MESSAGE.toBool()) sendWelcomeMessage(player, true);
-        if (!Settings.SEND_PACK.toBool()) return;
+
+        boolean sendOnJoin = PackSender.isSendOnJoinConfigured();
+        boolean sendPreJoin = PackSender.isSendPreJoinConfigured();
+        if (!sendOnJoin && !sendPreJoin) return;
+        boolean preJoinActive = PackSender.isPreJoinDispatchActive();
+        if (preJoinActive) return;
+        if (sendPreJoin) sendOnJoin = true;
+
         int delay = (int) Settings.SEND_PACK_DELAY.getValue();
         if (delay <= 0) sendPack(player);
         else SchedulerUtil.runTaskLaterAsync(delay * 20L, () ->

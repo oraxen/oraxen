@@ -101,9 +101,12 @@ public class MultiVersionPackSender implements Listener {
             sendWelcomeMessage(player, true);
         }
 
-        if (!Settings.SEND_PACK.toBool()) {
-            return;
-        }
+        boolean sendOnJoin = PackSender.isSendOnJoinConfigured();
+        boolean sendPreJoin = PackSender.isSendPreJoinConfigured();
+        boolean preJoinActive = PackSender.isPreJoinDispatchActive();
+        boolean effectiveSendOnJoin = sendOnJoin || (sendPreJoin && !preJoinActive);
+        if (!effectiveSendOnJoin) return;
+        if (preJoinActive) return;
 
         int delay = (int) Settings.SEND_PACK_DELAY.getValue();
         if (delay <= 0) {
