@@ -55,11 +55,6 @@ public class OraxenMetrics {
      * Placeholders are replaced by marketplaces (Spigot/Polymart) when downloaded.
      */
     private static String detectDownloadSource() {
-        // Check for leaked copies first
-        if (VersionUtil.isLeaked()) {
-            return "Leaked";
-        }
-
         // Check if compiled from source
         if (VersionUtil.isCompiled()) {
             return VersionUtil.isValidCompiler() ? "Official Build" : "Self Compiled";
@@ -85,10 +80,6 @@ public class OraxenMetrics {
      * Detects license status for Polymart users.
      */
     private static String detectLicenseStatus() {
-        if (VersionUtil.isLeaked()) {
-            return "Leaked";
-        }
-
         if (VersionUtil.isCompiled()) {
             return "Compiled";
         }
