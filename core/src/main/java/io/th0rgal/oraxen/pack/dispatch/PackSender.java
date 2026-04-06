@@ -6,13 +6,19 @@ import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.logs.Logs;
+import io.th0rgal.oraxen.OraxenPlugin;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
 public abstract class PackSender {
 
     protected final HostingProvider hostingProvider;
+    private static final Object dispatchNormalizationLock = new Object();
+    private static volatile boolean dispatchModeNormalized = false;
 
 
     protected PackSender(HostingProvider hostingProvider) {
@@ -87,6 +93,74 @@ public abstract class PackSender {
                 player.setResourcePack(url, sha1, legacyPrompt, mandatory);
             }
         }
+    }
+
+    public static boolean isSendPreJoinConfigured() {
+        normalizeDispatchModeForServerSupport();
+        return readSendPreJoinConfigured();
+    }
+
+    public static boolean isSendOnJoinConfigured() {
+        normalizeDispatchModeForServerSupport();
+        return readSendOnJoinConfigured();
+    }
+
+    public static boolean isPreJoinDispatchActive() {
+        return isSendPreJoinConfigured() && VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.21.7");
+    }
+
+    public static boolean isAnyDispatchEnabled() {
+        return isSendOnJoinConfigured() || isSendPreJoinConfigured();
+    }
+
+    private static boolean getBooleanSetting(String path, @Nullable String legacyPath, boolean fallback) {
+        YamlConfiguration settings = OraxenPlugin.get().getConfigsManager().getSettings();
+        Object value = settings.get(path);
+        if (value instanceof Boolean bool) return bool;
+
+        if (legacyPath != null) {
+            Object legacyValue = settings.get(legacyPath);
+            if (legacyValue instanceof Boolean bool) return bool;
+        }
+
+        return fallback;
+    }
+
+    private static boolean readSendPreJoinConfigured() {
+        return getBooleanSetting("Pack.dispatch.send_pre_join", null, false);
+    }
+
+    private static boolean readSendOnJoinConfigured() {
+        return getBooleanSetting("Pack.dispatch.send_on_join", "Pack.dispatch.send_pack", false);
+    }
+
+    private static void normalizeDispatchModeForServerSupport() {
+        if (dispatchModeNormalized) return;
+
+        synchronized (dispatchNormalizationLock) {
+            if (dispatchModeNormalized) return;
+
+            boolean sendPreJoin = readSendPreJoinConfigured();
+            boolean sendOnJoin = readSendOnJoinConfigured();
+            boolean preJoinSupported = VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.21.7");
+
+            if (sendPreJoin && !preJoinSupported && !sendOnJoin) {
+                Settings.SEND_ON_JOIN.setValue(true);
+                if (Settings.DEBUG.toBool()) {
+                    Logs.logInfo("Enabled Pack.dispatch.send_on_join because Pack.dispatch.send_pre_join is unsupported on this server.");
+                }
+            }
+
+            dispatchModeNormalized = true;
+        }
+    }
+
+    /**
+     * Resets the dispatch mode normalization flag so it is re-evaluated on next access.
+     * Should be called on plugin reload to pick up changed settings.
+     */
+    public static void resetDispatchNormalization() {
+        dispatchModeNormalized = false;
     }
 
 }

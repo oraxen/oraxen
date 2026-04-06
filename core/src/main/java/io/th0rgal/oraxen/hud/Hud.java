@@ -1,5 +1,7 @@
 package io.th0rgal.oraxen.hud;
 
+import org.bukkit.entity.Player;
+
 public record Hud(String displayText,
                   String fontName,
                   String perm,
@@ -20,6 +22,10 @@ public record Hud(String displayText,
         return perm;
     }
 
+    public boolean hasPermission(Player player) {
+        return player == null || perm == null || perm.isBlank() || player.hasPermission(perm);
+    }
+
     public boolean isEnabledByDefault() {
         return enabledByDefault;
     }
@@ -29,6 +35,6 @@ public record Hud(String displayText,
     }
 
     public boolean enableInSpectatorMode() {
-        return true;
+        return this.enableInSpectatorMode;
     }
 }

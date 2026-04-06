@@ -84,6 +84,7 @@ public class NoteBlockMechanicListener implements Listener {
         };
     }
 
+
     public static class NoteBlockMechanicPaperListener implements Listener {
 
         @EventHandler

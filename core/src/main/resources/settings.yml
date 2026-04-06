@@ -198,7 +198,8 @@ Pack:
       domain: "localhost:8080" # The domain/IP:port that players will use to download the pack (e.g., "my-server.com:8080" or "192.168.1.100:8080")
 
   dispatch:
-    send_pack: true
+    send_pre_join: false # Pre-join dispatch (Paper 1.21.7+). Takes priority over send_on_join when supported. Requires explicit opt-in.
+    send_on_join: true # Join dispatch (after full join). Default mode for most servers.
     send_on_reload: true
     delay: -1
     mandatory: true

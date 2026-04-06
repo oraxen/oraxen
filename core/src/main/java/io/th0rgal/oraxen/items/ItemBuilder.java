@@ -2,6 +2,8 @@ package io.th0rgal.oraxen.items;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import io.papermc.paper.datacomponent.DataComponentTypes;
+import io.papermc.paper.datacomponent.item.ItemAttributeModifiers;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
@@ -27,6 +29,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.damage.DamageType;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.TropicalFish;
+import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemRarity;
 import org.bukkit.inventory.ItemStack;
@@ -72,8 +75,9 @@ public class ItemBuilder {
     private boolean unbreakable;
     private boolean unstackable;
     private Set<ItemFlag> itemFlags;
-    private boolean hasAttributeModifiers;
-    private Multimap<Attribute, AttributeModifier> attributeModifiers;
+    private final List<AttributeModifierEntry> attributeEntries = new ArrayList<>();
+    @Nullable
+    private Multimap<Attribute, AttributeModifier> legacyAttributeModifiers;
     @Nullable
     private Integer customModelData;
     /**
@@ -208,9 +212,21 @@ public class ItemBuilder {
         if (!itemMeta.getItemFlags().isEmpty())
             itemFlags = itemMeta.getItemFlags();
 
-        hasAttributeModifiers = itemMeta.hasAttributeModifiers();
-        if (hasAttributeModifiers)
-            attributeModifiers = itemMeta.getAttributeModifiers();
+        if (itemMeta.hasAttributeModifiers()) {
+            Multimap<Attribute, AttributeModifier> existing = itemMeta.getAttributeModifiers();
+            if (existing != null) {
+                if (VersionUtil.atOrAbove("1.20.5")) {
+                    for (var entry : existing.entries()) {
+                        EquipmentSlotGroup slot = entry.getValue().getSlotGroup();
+                        attributeEntries.add(new AttributeModifierEntry(
+                                entry.getKey(), entry.getValue(),
+                                slot != null ? slot : EquipmentSlotGroup.ANY));
+                    }
+                } else {
+                    legacyAttributeModifiers = HashMultimap.create(existing);
+                }
+            }
+        }
 
         customModelData = itemMeta.hasCustomModelData() ? itemMeta.getCustomModelData() : null;
 
@@ -755,24 +771,39 @@ public class ItemBuilder {
 
     public ItemBuilder addAttributeModifiers(final Attribute attribute, final AttributeModifier attributeModifier) {
         if (attribute != null && attributeModifier != null) {
-            if (attributeModifiers == null) {
-                attributeModifiers = HashMultimap.create();
+            try {
+                EquipmentSlotGroup slot = VersionUtil.atOrAbove("1.20.5")
+                        ? attributeModifier.getSlotGroup() : null;
+                attributeEntries.add(new AttributeModifierEntry(
+                        attribute, attributeModifier,
+                        slot != null ? slot : EquipmentSlotGroup.ANY));
+            } catch (NoClassDefFoundError ignored) {
+                // EquipmentSlotGroup not available pre-1.20.5, store via legacy multimap
+                if (legacyAttributeModifiers == null) legacyAttributeModifiers = HashMultimap.create();
+                legacyAttributeModifiers.put(attribute, attributeModifier);
             }
-            attributeModifiers.put(attribute, attributeModifier);
-            hasAttributeModifiers = true;
+        }
+        return this;
+    }
+
+    public ItemBuilder addAttributeEntry(final AttributeModifierEntry entry) {
+        if (entry != null) {
+            attributeEntries.add(entry);
         }
         return this;
     }
 
     public ItemBuilder addAllAttributeModifiers(final Multimap<Attribute, AttributeModifier> attributeModifiers) {
-        if (!hasAttributeModifiers) {
-            hasAttributeModifiers = true;
-            this.attributeModifiers = HashMultimap.create();
-        }
         if (attributeModifiers != null) {
-            this.attributeModifiers.putAll(attributeModifiers);
+            for (var entry : attributeModifiers.entries()) {
+                addAttributeModifiers(entry.getKey(), entry.getValue());
+            }
         }
         return this;
+    }
+
+    public List<AttributeModifierEntry> getAttributeEntries() {
+        return Collections.unmodifiableList(attributeEntries);
     }
 
     public ItemBuilder setTropicalFishBucketBodyColor(final DyeColor bodyColor) {
@@ -821,6 +852,11 @@ public class ItemBuilder {
     public ItemBuilder clone() {
         ItemBuilder clonedBuilder = new ItemBuilder(itemStack.clone());
         clonedBuilder.genericComponents.putAll(genericComponents);
+        clonedBuilder.attributeEntries.clear();
+        clonedBuilder.attributeEntries.addAll(attributeEntries);
+        if (legacyAttributeModifiers != null) {
+            clonedBuilder.legacyAttributeModifiers = HashMultimap.create(legacyAttributeModifiers);
+        }
         return clonedBuilder;
     }
 
@@ -848,6 +884,7 @@ public class ItemBuilder {
         applyLore(itemMeta);
 
         itemStack.setItemMeta(itemMeta);
+        applyAttributeModifiersComponent(itemStack);
         finalItemStack = applyConsumableComponent(itemStack);
         finalItemStack = applyGenericComponents(finalItemStack);
 
@@ -972,8 +1009,58 @@ public class ItemBuilder {
     }
 
     private void applyAttributeModifiers(ItemMeta itemMeta) {
-        if (hasAttributeModifiers && attributeModifiers != null) {
-            itemMeta.setAttributeModifiers(attributeModifiers);
+        // Apply modern entries via ItemMeta multimap
+        if (!attributeEntries.isEmpty()) {
+            Multimap<Attribute, AttributeModifier> multimap = HashMultimap.create();
+            for (AttributeModifierEntry entry : attributeEntries) {
+                multimap.put(entry.attribute(), entry.modifier());
+            }
+            itemMeta.setAttributeModifiers(multimap);
+        }
+
+        // Apply legacy fallback entries (pre-1.20.5 servers where EquipmentSlotGroup is unavailable)
+        if (legacyAttributeModifiers != null && !legacyAttributeModifiers.isEmpty()) {
+            Multimap<Attribute, AttributeModifier> existing = itemMeta.getAttributeModifiers();
+            Multimap<Attribute, AttributeModifier> merged = existing != null
+                    ? HashMultimap.create(existing) : HashMultimap.create();
+            merged.putAll(legacyAttributeModifiers);
+            itemMeta.setAttributeModifiers(merged);
+        }
+    }
+
+    /**
+     * Applies attribute modifiers using the modern Paper DataComponent API (1.21.2+).
+     * Called after {@code itemStack.setItemMeta()} since DataComponents are set on the stack directly.
+     * Falls back silently if the API is unavailable.
+     */
+    private void applyAttributeModifiersComponent(ItemStack itemStack) {
+        boolean hasModern = !attributeEntries.isEmpty();
+        boolean hasLegacy = legacyAttributeModifiers != null && !legacyAttributeModifiers.isEmpty();
+        if (!hasModern && !hasLegacy) return;
+        if (!VersionUtil.atOrAbove("1.21.2") || !VersionUtil.isPaperServer()) return;
+
+        try {
+            ItemAttributeModifiers.Builder builder = ItemAttributeModifiers.itemAttributes();
+            for (AttributeModifierEntry entry : attributeEntries) {
+                entry.addToComponentBuilder(builder);
+            }
+            // Include legacy attribute modifiers so they are not lost when
+            // the DataComponent overwrites the ItemMeta-based attributes
+            if (hasLegacy) {
+                for (var entry : legacyAttributeModifiers.entries()) {
+                    EquipmentSlotGroup slot;
+                    try {
+                        slot = entry.getValue().getSlotGroup();
+                    } catch (NoSuchMethodError ignored) {
+                        slot = EquipmentSlotGroup.ANY;
+                    }
+                    builder.addModifier(entry.getKey(), entry.getValue(),
+                            slot != null ? slot : EquipmentSlotGroup.ANY);
+                }
+            }
+            itemStack.setData(DataComponentTypes.ATTRIBUTE_MODIFIERS, builder.build());
+        } catch (NoClassDefFoundError | NoSuchMethodError e) {
+            // DataComponent API not available on this server version — legacy path already applied
         }
     }
 

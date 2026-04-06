@@ -158,6 +158,23 @@ public class PackMergerIntegrationTest {
         assertTrue(result.isEmpty(), "Should return empty list for invalid pack structure");
     }
 
+    @Test
+    void testOverlayDirectoryAssetsAreMerged() throws IOException {
+        createZipFile(uploadsFolder.resolve("overlay_pack.zip"),
+                "pack.mcmeta", """
+                        {"pack":{"pack_format":34},"overlays":{"entries":[{"directory":"overlay_1_21_6_plus"}]}}
+                        """,
+                "overlay_1_21_6_plus/assets/minecraft/shaders/core/rendertype_text.vsh", "SHADER_DATA",
+                "overlay_1_21_6_plus/assets/minecraft/shaders/core/rendertype_text.json", "{\"vertex\":\"test\"}");
+
+        List<VirtualFile> result = merger.mergeUploadedPacks();
+        List<String> paths = result.stream().map(VirtualFile::getPath).collect(Collectors.toList());
+
+        assertTrue(paths.contains("pack.mcmeta"));
+        assertTrue(paths.contains("overlay_1_21_6_plus/assets/minecraft/shaders/core/rendertype_text.vsh"));
+        assertTrue(paths.contains("overlay_1_21_6_plus/assets/minecraft/shaders/core/rendertype_text.json"));
+    }
+
     private void createZipFile(Path zipPath, String... entries) throws IOException {
         if (entries.length % 2 != 0) {
             throw new IllegalArgumentException("Entries must be path/content pairs");
@@ -363,6 +380,7 @@ public class PackMergerIntegrationTest {
                 String relativePath = entryPath.substring(root.length());
 
                 if (relativePath.startsWith("assets/") ||
+                        isOverlayAssetsPath(relativePath) ||
                         relativePath.equals("pack.mcmeta") ||
                         relativePath.equals("pack.png")) {
                     return relativePath;
@@ -370,6 +388,13 @@ public class PackMergerIntegrationTest {
             }
 
             return null;
+        }
+
+        private boolean isOverlayAssetsPath(String relativePath) {
+            int assetsIndex = relativePath.indexOf("/assets/");
+            if (assetsIndex <= 0) return false;
+            String overlayDir = relativePath.substring(0, assetsIndex);
+            return !overlayDir.contains("/");
         }
 
         private String getParentFolder(String path) {

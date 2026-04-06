@@ -223,4 +223,6 @@ test-server/
 .claude/secrets.json
 secrets.json
 
+.codex
+
 .mizius

@@ -41,6 +41,7 @@ public class FurnitureFactory extends MechanicFactory {
         );
         evolvingFurnitures = false;
         instance = this;
+        FurniturePacketDispatcher.init();
         customSounds = areCustomSoundsEnabled();
 
         if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new FurnitureSoundListener());
@@ -93,6 +94,7 @@ public class FurnitureFactory extends MechanicFactory {
     public static void unregisterEvolution() {
         if (evolutionTask != null)
             evolutionTask.cancel();
+        FurniturePacketDispatcher.shutdown();
     }
 
     @Override
@@ -119,7 +121,7 @@ public class FurnitureFactory extends MechanicFactory {
     public @NotNull List<MechanicConfigProperty> getConfigSchema() {
         return List.of(
                 MechanicConfigProperty.enumType("type", "Entity type for the furniture",
-                        List.of("DISPLAY_ENTITY", "ITEM_FRAME", "GLOW_ITEM_FRAME")),
+                        List.of("DISPLAY_ENTITY", "ITEM_FRAME", "GLOW_ITEM_FRAME", "ARMOR_STAND")),
                 MechanicConfigProperty.integer("hardness", "Break hardness (higher = slower to break)", 1, 0),
                 MechanicConfigProperty.string("item", "Alternative Oraxen item ID to display"),
                 MechanicConfigProperty.string("modelengine_id", "ModelEngine model ID to use"),
@@ -129,6 +131,7 @@ public class FurnitureFactory extends MechanicFactory {
                 MechanicConfigProperty.enumType("restricted_rotation", "Rotation restriction mode",
                         List.of("NONE", "STRICT", "VERY_STRICT")),
                 MechanicConfigProperty.bool("rotatable", "Whether furniture can be rotated after placement", true),
+                MechanicConfigProperty.bool("small", "Whether an armor stand furniture uses the small variant", true),
                 MechanicConfigProperty.object("hitbox", "Custom hitbox dimensions", Map.of(
                         "width", MechanicConfigProperty.decimal("width", "Hitbox width", 1.0, 0.0, 10.0),
                         "height", MechanicConfigProperty.decimal("height", "Hitbox height", 1.0, 0.0, 10.0)
@@ -155,6 +158,18 @@ public class FurnitureFactory extends MechanicFactory {
                         "brightness", MechanicConfigProperty.object("brightness", "Light levels", Map.of(
                                 "block", MechanicConfigProperty.integer("block", "Block light level", 0, 0, 15),
                                 "sky", MechanicConfigProperty.integer("sky", "Sky light level", 0, 0, 15)
+                        ))
+                )),
+                MechanicConfigProperty.object("armor_stand_properties", "Armor stand-specific display configuration", Map.of(
+                        "scale", MechanicConfigProperty.object("scale", "Scale to inject into generated model display.head", Map.of(
+                                "x", MechanicConfigProperty.decimal("x", "X-axis scale", 1.0),
+                                "y", MechanicConfigProperty.decimal("y", "Y-axis scale", 1.0),
+                                "z", MechanicConfigProperty.decimal("z", "Z-axis scale", 1.0)
+                        )),
+                        "translation", MechanicConfigProperty.object("translation", "Position offset for armor stand furniture", Map.of(
+                                "x", MechanicConfigProperty.decimal("x", "X-axis offset", 0.0),
+                                "y", MechanicConfigProperty.decimal("y", "Y-axis offset", 0.0),
+                                "z", MechanicConfigProperty.decimal("z", "Z-axis offset", 0.0)
                         ))
                 )),
                 MechanicConfigProperty.object("drop", "Drop configuration when broken", Map.of(

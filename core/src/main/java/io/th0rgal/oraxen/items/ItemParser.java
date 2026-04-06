@@ -10,6 +10,9 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.ArmorStandProperties;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.nms.NMSHandler;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.*;
@@ -470,6 +473,31 @@ public class ItemParser {
         oraxenMeta.setDisableEnchanting(section.getBoolean("disable_enchanting", false));
         oraxenMeta.setExcludedFromInventory(section.getBoolean("excludeFromInventory", false));
         oraxenMeta.setExcludedFromCommands(section.getBoolean("excludeFromCommands", false));
+        applyArmorStandModelProperties(section);
+    }
+
+    private void applyArmorStandModelProperties(ConfigurationSection section) {
+        oraxenMeta.setArmorStandHeadScale(null);
+
+        ConfigurationSection mechanicsSection = section.getConfigurationSection("Mechanics");
+        if (mechanicsSection == null) return;
+
+        ConfigurationSection furnitureSection = mechanicsSection.getConfigurationSection("furniture");
+        if (furnitureSection == null) return;
+
+        FurnitureMechanic.FurnitureType furnitureType = furnitureSection.isSet("type")
+                ? FurnitureMechanic.FurnitureType.getType(furnitureSection.getString("type", FurnitureMechanic.FurnitureType.DISPLAY_ENTITY.name()))
+                : FurnitureFactory.defaultFurnitureType;
+        if (furnitureType != FurnitureMechanic.FurnitureType.ARMOR_STAND) return;
+
+        ConfigurationSection armorStandSection = furnitureSection.getConfigurationSection("armor_stand_properties");
+        if (armorStandSection == null)
+            armorStandSection = furnitureSection.getConfigurationSection("display_entity_properties");
+        if (armorStandSection == null) return;
+
+        ArmorStandProperties properties = new ArmorStandProperties(armorStandSection);
+        if (properties.hasScale())
+            oraxenMeta.setArmorStandHeadScale(properties.getScale());
     }
 
     @SuppressWarnings({ "unchecked", "deprecation" })
@@ -518,29 +546,7 @@ public class ItemParser {
             }
         }
 
-        final List<Map<String, Object>> attributes = (List<Map<String, Object>>) section.getList("AttributeModifiers");
-        if (attributes != null) {
-            for (final Map<String, Object> attributeJson : attributes) {
-                try {
-                    attributeJson.putIfAbsent("uuid", UUID.randomUUID().toString());
-                    attributeJson.putIfAbsent("name", "oraxen:modifier");
-                    attributeJson.putIfAbsent("key", "oraxen:modifier");
-
-                    final AttributeModifier attributeModifier = AttributeModifier.deserialize(attributeJson);
-                    final Attribute attribute = AttributeWrapper.fromString((String) attributeJson.get("attribute"));
-
-                    if (attribute != null) {
-                        item.addAttributeModifiers(attribute, attributeModifier);
-                    } else {
-                        Logs.logWarning("Attribute not found for key: " + attributeJson.get("attribute") + " in item: "
-                                + section.getName());
-                    }
-                } catch (final Exception e) {
-                    Logs.logWarning("Error parsing AttributeModifiers in " + section.getName());
-                    Logs.debug(e);
-                }
-            }
-        }
+        parseAttributeModifiers(item, section);
 
         if (section.contains("Enchantments")) {
             final ConfigurationSection enchantSection = section.getConfigurationSection("Enchantments");
@@ -564,6 +570,87 @@ public class ItemParser {
                     Logs.logWarning("Enchantment not found for key: " + enchant + " in item: " + section.getName());
                 } else {
                     item.addEnchant(enchantment, level);
+                }
+            }
+        }
+    }
+
+    /**
+     * Parses AttributeModifiers from the item config section.
+     * Supports two formats:
+     *
+     * <p><b>Modern format</b> (ConfigurationSection-based, recommended for 1.21.2+):
+     * <pre>
+     * AttributeModifiers:
+     *   damage_boost:
+     *     attribute: ATTACK_DAMAGE
+     *     amount: 5.0
+     *     operation: ADD_NUMBER
+     *     slot: mainhand
+     *     display:
+     *       type: hidden
+     * </pre>
+     *
+     * <p><b>Legacy format</b> (map list, backward compatible):
+     * <pre>
+     * AttributeModifiers:
+     *   - attribute: ATTACK_DAMAGE
+     *     amount: 5.0
+     *     operation: ADD_NUMBER
+     *     slot: mainhand
+     * </pre>
+     */
+    @SuppressWarnings("unchecked")
+    private void parseAttributeModifiers(final ItemBuilder item, final ConfigurationSection section) {
+        // Try modern ConfigurationSection format first (requires 1.20.5+ for EquipmentSlotGroup)
+        final ConfigurationSection attrSection = section.getConfigurationSection("AttributeModifiers");
+        if (attrSection != null) {
+            if (!VersionUtil.atOrAbove("1.20.5")) {
+                Logs.logWarning("Modern AttributeModifiers config format requires server 1.20.5+, skipping for item: " + section.getName());
+                return;
+            }
+            for (final String key : attrSection.getKeys(false)) {
+                final ConfigurationSection modifierSection = attrSection.getConfigurationSection(key);
+                if (modifierSection == null) continue;
+                try {
+                    final AttributeModifierEntry entry =
+                            AttributeModifierEntry.fromConfigSection(section.getName(), key, modifierSection);
+                    if (entry != null) {
+                        item.addAttributeEntry(entry);
+                    } else {
+                        Logs.logWarning("Invalid attribute modifier '" + key + "' in item: " + section.getName());
+                    }
+                } catch (final NoClassDefFoundError | NoSuchMethodError linkageError) {
+                    Logs.logWarning("Modern attribute API unavailable for '" + key + "' in " + section.getName() + ", skipping");
+                } catch (final Exception e) {
+                    Logs.logWarning("Error parsing AttributeModifier '" + key + "' in " + section.getName());
+                    Logs.debug(e);
+                }
+            }
+            return;
+        }
+
+        // Legacy list-of-maps format
+        final List<Map<String, Object>> attributes = (List<Map<String, Object>>) section.getList("AttributeModifiers");
+        if (attributes != null) {
+            for (final Map<String, Object> attributeJson : attributes) {
+                try {
+                    attributeJson.putIfAbsent("uuid", UUID.randomUUID().toString());
+                    attributeJson.putIfAbsent("name", "oraxen:modifier");
+                    attributeJson.putIfAbsent("key", "oraxen:modifier");
+
+                    final AttributeModifier attributeModifier = AttributeModifier.deserialize(attributeJson);
+                    final Attribute attribute = AttributeWrapper.fromString((String) attributeJson.get("attribute"));
+
+                    if (attribute != null) {
+                        item.addAttributeModifiers(attribute, attributeModifier);
+                    } else {
+                        Logs.logWarning("Attribute not found for key: " + attributeJson.get("attribute")
+                                + " in item: " + section.getName());
+                    }
+                } catch (final Exception e) {
+                    Logs.logWarning("Error parsing AttributeModifiers in " + section.getName());
+                    Logs.debug(e);
                 }
             }
         }

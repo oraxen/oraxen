@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
+import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,6 +54,10 @@ public class NMSHandlers {
                     Logs.logInfo("Oraxen will use the NMSHandler for this version.");
                 }
                 Bukkit.getPluginManager().registerEvents(new NMSListeners(), OraxenPlugin.get());
+                Listener packDispatchListener = handler.packDispatchListener();
+                if (packDispatchListener != null) {
+                    Bukkit.getPluginManager().registerEvents(packDispatchListener, OraxenPlugin.get());
+                }
                 return;
             } catch (ClassNotFoundException | InvocationTargetException | InstantiationException
                     | IllegalAccessException | NoSuchMethodException e) {

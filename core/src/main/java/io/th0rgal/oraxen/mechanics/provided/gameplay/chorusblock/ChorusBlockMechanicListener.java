@@ -81,6 +81,7 @@ public class ChorusBlockMechanicListener implements Listener {
         };
     }
 
+
     public static class ChorusBlockMechanicPaperListener implements Listener {
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         public void onEnteringChorusPlant(EntityInsideBlockEvent event) {

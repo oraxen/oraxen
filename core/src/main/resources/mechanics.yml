@@ -107,7 +107,7 @@ shaped_block:
     enabled: true
 
 furniture:
-  default_furniture_type: DISPLAY_ENTITY # DISPLAY_ENTITY, ITEM_FRAME, GLOW_ITEM_FRAME
+  default_furniture_type: DISPLAY_ENTITY # DISPLAY_ENTITY, ITEM_FRAME, GLOW_ITEM_FRAME, ARMOR_STAND
   tool_types:
     - WOODEN
     - STONE
