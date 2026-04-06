@@ -1,8 +1,8 @@
 {
-  "oraxenVersion": "1.211.0",
+  "oraxenVersion": "1.212.0",
   "minecraftVersion": "1.21.11",
   "serverVersion": "1.21.11-R0.1-SNAPSHOT",
-  "generatedAt": "2026-03-24T17:04:58.202542392Z",
+  "generatedAt": "2026-04-06T19:56:38.933230136Z",
   "enums": {
     "Material": {
       "values": [
@@ -7785,14 +7785,14 @@
           "type": "object",
           "description": "Drop configuration when broken",
           "properties": {
-            "loots": {
-              "type": "array",
-              "description": "List of loot entries"
-            },
             "silktouch": {
               "type": "boolean",
               "description": "Require silk touch",
               "default": false
+            },
+            "loots": {
+              "type": "array",
+              "description": "List of loot entries"
             }
           }
         },
@@ -7822,15 +7822,15 @@
           "type": "object",
           "description": "Farm block configuration",
           "properties": {
+            "dry_block": {
+              "type": "string",
+              "description": "Block ID when dried"
+            },
             "moisture": {
               "type": "integer",
               "description": "Moisture level",
               "default": 0,
               "min": 0
-            },
-            "dry_block": {
-              "type": "string",
-              "description": "Block ID when dried"
             }
           }
         },
@@ -7871,7 +7871,8 @@
           "values": [
             "DISPLAY_ENTITY",
             "ITEM_FRAME",
-            "GLOW_ITEM_FRAME"
+            "GLOW_ITEM_FRAME",
+            "ARMOR_STAND"
           ]
         },
         "hardness": {
@@ -7919,20 +7920,25 @@
           "description": "Whether furniture can be rotated after placement",
           "default": true
         },
+        "small": {
+          "type": "boolean",
+          "description": "Whether an armor stand furniture uses the small variant",
+          "default": true
+        },
         "hitbox": {
           "type": "object",
           "description": "Custom hitbox dimensions",
           "properties": {
-            "height": {
+            "width": {
               "type": "number",
-              "description": "Hitbox height",
+              "description": "Hitbox width",
               "default": 1.0,
               "min": 0.0,
               "max": 10.0
             },
-            "width": {
+            "height": {
               "type": "number",
-              "description": "Hitbox width",
+              "description": "Hitbox height",
               "default": 1.0,
               "min": 0.0,
               "max": 10.0
@@ -7963,42 +7969,6 @@
           "type": "object",
           "description": "Display entity configuration",
           "properties": {
-            "translation": {
-              "type": "object",
-              "description": "Position offset in blocks",
-              "properties": {
-                "y": {
-                  "type": "number",
-                  "description": "Y-axis offset",
-                  "default": 0.0
-                },
-                "x": {
-                  "type": "number",
-                  "description": "X-axis offset",
-                  "default": 0.0
-                },
-                "z": {
-                  "type": "number",
-                  "description": "Z-axis offset",
-                  "default": 0.0
-                }
-              }
-            },
-            "display_transform": {
-              "type": "string",
-              "description": "Display transform mode",
-              "values": [
-                "NONE",
-                "THIRDPERSON_LEFTHAND",
-                "THIRDPERSON_RIGHTHAND",
-                "FIRSTPERSON_LEFTHAND",
-                "FIRSTPERSON_RIGHTHAND",
-                "HEAD",
-                "GUI",
-                "GROUND",
-                "FIXED"
-              ]
-            },
             "brightness": {
               "type": "object",
               "description": "Light levels",
@@ -8023,6 +7993,11 @@
               "type": "object",
               "description": "Scale of the display entity",
               "properties": {
+                "z": {
+                  "type": "number",
+                  "description": "Z-axis scale",
+                  "default": 1.0
+                },
                 "y": {
                   "type": "number",
                   "description": "Y-axis scale",
@@ -8032,11 +8007,90 @@
                   "type": "number",
                   "description": "X-axis scale",
                   "default": 1.0
+                }
+              }
+            },
+            "translation": {
+              "type": "object",
+              "description": "Position offset in blocks",
+              "properties": {
+                "z": {
+                  "type": "number",
+                  "description": "Z-axis offset",
+                  "default": 0.0
                 },
+                "y": {
+                  "type": "number",
+                  "description": "Y-axis offset",
+                  "default": 0.0
+                },
+                "x": {
+                  "type": "number",
+                  "description": "X-axis offset",
+                  "default": 0.0
+                }
+              }
+            },
+            "display_transform": {
+              "type": "string",
+              "description": "Display transform mode",
+              "values": [
+                "NONE",
+                "THIRDPERSON_LEFTHAND",
+                "THIRDPERSON_RIGHTHAND",
+                "FIRSTPERSON_LEFTHAND",
+                "FIRSTPERSON_RIGHTHAND",
+                "HEAD",
+                "GUI",
+                "GROUND",
+                "FIXED"
+              ]
+            }
+          }
+        },
+        "armor_stand_properties": {
+          "type": "object",
+          "description": "Armor stand-specific display configuration",
+          "properties": {
+            "scale": {
+              "type": "object",
+              "description": "Scale to inject into generated model display.head",
+              "properties": {
                 "z": {
                   "type": "number",
                   "description": "Z-axis scale",
                   "default": 1.0
+                },
+                "y": {
+                  "type": "number",
+                  "description": "Y-axis scale",
+                  "default": 1.0
+                },
+                "x": {
+                  "type": "number",
+                  "description": "X-axis scale",
+                  "default": 1.0
+                }
+              }
+            },
+            "translation": {
+              "type": "object",
+              "description": "Position offset for armor stand furniture",
+              "properties": {
+                "z": {
+                  "type": "number",
+                  "description": "Z-axis offset",
+                  "default": 0.0
+                },
+                "y": {
+                  "type": "number",
+                  "description": "Y-axis offset",
+                  "default": 0.0
+                },
+                "x": {
+                  "type": "number",
+                  "description": "X-axis offset",
+                  "default": 0.0
                 }
               }
             }
@@ -8046,14 +8100,14 @@
           "type": "object",
           "description": "Drop configuration when broken",
           "properties": {
-            "loots": {
-              "type": "array",
-              "description": "List of loot entries"
-            },
             "silktouch": {
               "type": "boolean",
               "description": "Require silk touch to drop",
               "default": false
+            },
+            "loots": {
+              "type": "array",
+              "description": "List of loot entries"
             }
           }
         },
@@ -8061,6 +8115,13 @@
           "type": "object",
           "description": "Storage container configuration",
           "properties": {
+            "rows": {
+              "type": "integer",
+              "description": "Number of inventory rows",
+              "default": 1,
+              "min": 1,
+              "max": 6
+            },
             "title": {
               "type": "string",
               "description": "Inventory title"
@@ -8074,13 +8135,6 @@
                 "ENDERCHEST",
                 "DISPOSAL"
               ]
-            },
-            "rows": {
-              "type": "integer",
-              "description": "Number of inventory rows",
-              "default": 1,
-              "min": 1,
-              "max": 6
             }
           }
         }
@@ -8251,14 +8305,14 @@
           "type": "object",
           "description": "Drop configuration when broken",
           "properties": {
-            "loots": {
-              "type": "array",
-              "description": "List of loot entries"
-            },
             "silktouch": {
               "type": "boolean",
               "description": "Require silk touch",
               "default": false
+            },
+            "loots": {
+              "type": "array",
+              "description": "List of loot entries"
             }
           }
         },
@@ -8266,6 +8320,10 @@
           "type": "object",
           "description": "Custom block sounds",
           "properties": {
+            "step_sound": {
+              "type": "string",
+              "description": "Sound when stepped on"
+            },
             "place_sound": {
               "type": "string",
               "description": "Sound when placed"
@@ -8281,10 +8339,6 @@
             "break_sound": {
               "type": "string",
               "description": "Sound when broken"
-            },
-            "step_sound": {
-              "type": "string",
-              "description": "Sound when stepped on"
             }
           }
         },
@@ -8292,13 +8346,13 @@
           "type": "object",
           "description": "Placement restrictions",
           "properties": {
-            "block_types": {
-              "type": "array",
-              "description": "Block types to allow/deny"
-            },
             "type": {
               "type": "string",
               "description": "ALLOW or DENY list type"
+            },
+            "block_types": {
+              "type": "array",
+              "description": "Block types to allow/deny"
             }
           }
         },
@@ -8695,14 +8749,14 @@
           "type": "object",
           "description": "Drop configuration when broken",
           "properties": {
-            "loots": {
-              "type": "array",
-              "description": "List of loot entries"
-            },
             "silktouch": {
               "type": "boolean",
               "description": "Require silk touch",
               "default": false
+            },
+            "loots": {
+              "type": "array",
+              "description": "List of loot entries"
             }
           }
         },
@@ -8710,6 +8764,10 @@
           "type": "object",
           "description": "Sapling growth configuration",
           "properties": {
+            "grow_block": {
+              "type": "string",
+              "description": "Block ID when grown"
+            },
             "min_light": {
               "type": "integer",
               "description": "Minimum light level to grow",
@@ -8723,12 +8781,12 @@
               "default": 0.1,
               "min": 0.0,
               "max": 1.0
-            },
-            "grow_block": {
-              "type": "string",
-              "description": "Block ID when grown"
             }
           }
+        },
+        "stackable": {
+          "type": "array",
+          "description": "List of stack variations (custom_variation + model per level)"
         }
       }
     },
@@ -8736,16 +8794,16 @@
       "category": "farming",
       "description": "Allows breaking bedrock (requires ProtocolLib)",
       "properties": {
-        "delay": {
-          "type": "integer",
-          "description": "Break delay in ticks",
-          "min": 0
-        },
         "probability": {
           "type": "number",
           "description": "Chance to break (0-1)",
           "min": 0,
           "default": 1.0
+        },
+        "delay": {
+          "type": "integer",
+          "description": "Break delay in ticks",
+          "min": 0
         }
       }
     },
