@@ -12,7 +12,6 @@ import net.kyori.adventure.text.minimessage.tag.resolver.ArgumentQueue;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -91,34 +90,13 @@ public class TextEffectTag {
 
         @Override
         public Component apply(@NotNull Component current, int depth) {
-            // Only transform at depth 0 to avoid double-processing
-            if (depth > 0) {
-                return current;
+            // Modifying tags are applied recursively by MiniMessage itself.
+            // Returning a component with existing children would make MiniMessage append
+            // those children again, causing duplicated text.
+            Component transformed = current.font(effectFont).color(triggerColor);
+            if (!current.children().isEmpty()) {
+                transformed = transformed.children(List.of());
             }
-
-            return transformComponent(current);
-        }
-
-        /**
-         * Recursively transforms a component tree, applying effect font/color
-         * while preserving structure, decorations, and events.
-         */
-        private Component transformComponent(Component component) {
-            // Apply effect font and color, preserving other styles
-            // Adventure's style system is additive, so decorations like bold/italic are preserved
-            Component transformed = component.font(effectFont).color(triggerColor);
-
-            // Recursively transform children
-            List<Component> children = component.children();
-            if (!children.isEmpty()) {
-                List<Component> transformedChildren = new ArrayList<>(children.size());
-                for (Component child : children) {
-                    transformedChildren.add(transformComponent(child));
-                }
-                // Build new component with transformed children
-                return transformed.children(transformedChildren);
-            }
-
             return transformed;
         }
     }
