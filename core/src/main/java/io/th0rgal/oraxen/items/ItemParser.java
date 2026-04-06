@@ -602,9 +602,13 @@ public class ItemParser {
      */
     @SuppressWarnings("unchecked")
     private void parseAttributeModifiers(final ItemBuilder item, final ConfigurationSection section) {
-        // Try modern ConfigurationSection format first
+        // Try modern ConfigurationSection format first (requires 1.20.5+ for EquipmentSlotGroup)
         final ConfigurationSection attrSection = section.getConfigurationSection("AttributeModifiers");
         if (attrSection != null) {
+            if (!VersionUtil.atOrAbove("1.20.5")) {
+                Logs.logWarning("Modern AttributeModifiers config format requires server 1.20.5+, skipping for item: " + section.getName());
+                return;
+            }
             for (final String key : attrSection.getKeys(false)) {
                 final ConfigurationSection modifierSection = attrSection.getConfigurationSection(key);
                 if (modifierSection == null) continue;
@@ -616,6 +620,8 @@ public class ItemParser {
                     } else {
                         Logs.logWarning("Invalid attribute modifier '" + key + "' in item: " + section.getName());
                     }
+                } catch (final NoClassDefFoundError | NoSuchMethodError linkageError) {
+                    Logs.logWarning("Modern attribute API unavailable for '" + key + "' in " + section.getName() + ", skipping");
                 } catch (final Exception e) {
                     Logs.logWarning("Error parsing AttributeModifier '" + key + "' in " + section.getName());
                     Logs.debug(e);

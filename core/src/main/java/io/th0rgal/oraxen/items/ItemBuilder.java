@@ -1034,13 +1034,29 @@ public class ItemBuilder {
      * Falls back silently if the API is unavailable.
      */
     private void applyAttributeModifiersComponent(ItemStack itemStack) {
-        if (attributeEntries.isEmpty()) return;
+        boolean hasModern = !attributeEntries.isEmpty();
+        boolean hasLegacy = legacyAttributeModifiers != null && !legacyAttributeModifiers.isEmpty();
+        if (!hasModern && !hasLegacy) return;
         if (!VersionUtil.atOrAbove("1.21.2") || !VersionUtil.isPaperServer()) return;
 
         try {
             ItemAttributeModifiers.Builder builder = ItemAttributeModifiers.itemAttributes();
             for (AttributeModifierEntry entry : attributeEntries) {
                 entry.addToComponentBuilder(builder);
+            }
+            // Include legacy attribute modifiers so they are not lost when
+            // the DataComponent overwrites the ItemMeta-based attributes
+            if (hasLegacy) {
+                for (var entry : legacyAttributeModifiers.entries()) {
+                    EquipmentSlotGroup slot;
+                    try {
+                        slot = entry.getValue().getSlotGroup();
+                    } catch (NoSuchMethodError ignored) {
+                        slot = EquipmentSlotGroup.ANY;
+                    }
+                    builder.addModifier(entry.getKey(), entry.getValue(),
+                            slot != null ? slot : EquipmentSlotGroup.ANY);
+                }
             }
             itemStack.setData(DataComponentTypes.ATTRIBUTE_MODIFIERS, builder.build());
         } catch (NoClassDefFoundError | NoSuchMethodError e) {
