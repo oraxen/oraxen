@@ -36,8 +36,6 @@ public class LogDumpCommand {
                                 .toPath().resolve("logs/latest.log");
                         logfile = Files.readString(path).replaceAll(packUrl, "[REDACTED]");
                         logfile += "\n\n" + new LU().hr();
-                        if (VersionUtil.isLeaked())
-                            logfile = logfile + "\n\nThis server is running a leaked version of Oraxen";
                     } catch (Exception e) {
                         Message.MISSING_LOGS.log();
                         if (Settings.DEBUG.toBool())

@@ -175,10 +175,8 @@ public class VersionUtil {
         return Boolean.parseBoolean(split.get(split.indexOf("Compiled") + 1)) && !isValidCompiler();
     }
 
-    private static final boolean leaked = JarReader.checkIsLeaked();
-
     public static boolean isLeaked() {
-        return leaked;
+        return false;
     }
 
     public static boolean isValidCompiler() {
