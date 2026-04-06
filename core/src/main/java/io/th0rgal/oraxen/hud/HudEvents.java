@@ -31,7 +31,7 @@ public class HudEvents implements Listener {
             }
             return;
         }
-        if (!player.hasPermission(hud.getPerm())) {
+        if (!hud.hasPermission(player)) {
             if (Settings.DEBUG.toBool()) {
                 Logs.logWarning("[HUD] Player " + player.getName() + " doesn't have permission: " + hud.getPerm());
             }
