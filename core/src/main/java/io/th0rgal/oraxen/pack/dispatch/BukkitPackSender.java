@@ -45,7 +45,9 @@ public class BukkitPackSender extends PackSender implements Listener {
         if (!sendOnJoin && !sendPreJoin) return;
         boolean preJoinActive = PackSender.isPreJoinDispatchActive();
         if (preJoinActive) return;
-        if (sendPreJoin) sendOnJoin = true;
+        // If pre-join is configured but not active (unsupported server), fall through to on-join dispatch
+        if (!sendOnJoin && sendPreJoin) sendOnJoin = true;
+        if (!sendOnJoin) return;
 
         int delay = (int) Settings.SEND_PACK_DELAY.getValue();
         if (delay <= 0) sendPack(player);

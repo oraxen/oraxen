@@ -183,6 +183,7 @@ public class ResourcePack {
     private void continuePostCollectionOnMain(ExecutorService packWorker, List<VirtualFile> output) {
         try {
             handleCustomArmor(output);
+            applyArmorStandModelOverrides(output);
             Collections.sort(output);
             submitAsyncPostProcessing(packWorker, output);
         } catch (Exception exception) {
@@ -720,7 +721,7 @@ public class ResourcePack {
                 if (oraxenMeta.shouldGenerateModel()) {
                     writeStringToVirtual(modelPath, modelName, new ModelGenerator(oraxenMeta).getJson().toString());
                 }
-                final Map<String, ItemBuilder> items = texturedItems.computeIfAbsent(item.build().getType(),
+                final Map<String, ItemBuilder> items = texturedItems.computeIfAbsent(item.getType(),
                         k -> new LinkedHashMap<>());
 
                 // Insert in order of CustomModelData
@@ -749,7 +750,7 @@ public class ResourcePack {
                     newItems.put(itemId, item);
                 }
 
-                texturedItems.put(item.build().getType(), newItems);
+                texturedItems.put(item.getType(), newItems);
             }
         }
         return texturedItems;

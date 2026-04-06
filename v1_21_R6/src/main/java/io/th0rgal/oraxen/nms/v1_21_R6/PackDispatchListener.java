@@ -1,13 +1,21 @@
 package io.th0rgal.oraxen.nms.v1_21_R6;
 
 import com.destroystokyo.paper.event.player.PlayerConnectionCloseEvent;
+import io.papermc.paper.connection.PlayerConfigurationConnection;
 import io.papermc.paper.event.connection.configuration.AsyncPlayerConnectionConfigureEvent;
 import io.papermc.paper.event.connection.configuration.PlayerConnectionReconfigureEvent;
+import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.pack.dispatch.PackSender;
+import io.th0rgal.oraxen.pack.receive.PackReceiver;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import net.kyori.adventure.resource.ResourcePackInfo;
+import net.kyori.adventure.resource.ResourcePackRequest;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -33,7 +41,7 @@ public final class PackDispatchListener implements Listener {
         } catch (Exception ignored) {
         }
 
-        CompletableFuture<Void> future = PackSender.sendResourcePack(event.getConnection(), false);
+        CompletableFuture<Void> future = sendResourcePack(event.getConnection(), false);
         if (future != null) {
             futures.put(uuid, future);
             try {
@@ -57,7 +65,7 @@ public final class PackDispatchListener implements Listener {
     @EventHandler
     public void onReconfig(@NotNull PlayerConnectionReconfigureEvent event) {
         if (!PackSender.isPreJoinDispatchActive() || !PackSender.isAnyDispatchEnabled()) return;
-        PackSender.sendResourcePack(event.getConnection(), true);
+        sendResourcePack(event.getConnection(), true);
     }
 
     @EventHandler
@@ -67,5 +75,52 @@ public final class PackDispatchListener implements Listener {
             if (future != null) future.complete(null);
         } catch (Exception ignored) {
         }
+    }
+
+    @Nullable
+    private static CompletableFuture<Void> sendResourcePack(PlayerConfigurationConnection connection, boolean reconfigure) {
+        String packUrl = OraxenPlugin.get().getPackURL();
+        String hash = OraxenPlugin.get().getPackSHA1();
+        if (packUrl == null || hash == null) return null;
+        UUID playerId = connection.getProfile().getId();
+
+        byte[] hashBytes = hashArray(hash);
+        UUID packUUID = UUID.nameUUIDFromBytes(hashBytes);
+        CompletableFuture<Void> future = reconfigure ? null : new CompletableFuture<>();
+
+        ResourcePackInfo info = ResourcePackInfo.resourcePackInfo()
+                .id(packUUID)
+                .uri(java.net.URI.create(packUrl))
+                .hash(hash)
+                .build();
+
+        ResourcePackRequest request = ResourcePackRequest.resourcePackRequest()
+                .required(Settings.SEND_PACK_MANDATORY.toBool())
+                .replace(true)
+                .prompt(AdventureUtils.MINI_MESSAGE.deserialize(Settings.SEND_PACK_PROMPT.toString()))
+                .packs(info)
+                .callback((requestId, status, audience) -> {
+                    PackReceiver.handleAdventureStatus(playerId, status);
+                    if (!status.intermediate()) {
+                        if (future != null) future.complete(null);
+                        else connection.completeReconfiguration();
+                    }
+                })
+                .build();
+
+        connection.getAudience().sendResourcePacks(request);
+        return future;
+    }
+
+    private static byte[] hashArray(String hash) {
+        int length = hash.length();
+        if (length % 2 != 0) throw new IllegalArgumentException("Hash length must be even");
+
+        byte[] result = new byte[length / 2];
+        for (int i = 0; i < result.length; i++) {
+            int from = i * 2;
+            result[i] = (byte) Integer.parseInt(hash.substring(from, from + 2), 16);
+        }
+        return result;
     }
 }

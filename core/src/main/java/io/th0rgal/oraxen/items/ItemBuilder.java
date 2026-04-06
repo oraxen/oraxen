@@ -210,7 +210,7 @@ public class ItemBuilder {
         if (!itemMeta.getItemFlags().isEmpty())
             itemFlags = itemMeta.getItemFlags();
 
-        if (itemMeta.hasAttributeModifiers()) {
+        if (itemMeta.hasAttributeModifiers() && VersionUtil.atOrAbove("1.20.5")) {
             Multimap<Attribute, AttributeModifier> existing = itemMeta.getAttributeModifiers();
             if (existing != null) {
                 for (var entry : existing.entries()) {
@@ -764,7 +764,7 @@ public class ItemBuilder {
     }
 
     public ItemBuilder addAttributeModifiers(final Attribute attribute, final AttributeModifier attributeModifier) {
-        if (attribute != null && attributeModifier != null) {
+        if (attribute != null && attributeModifier != null && VersionUtil.atOrAbove("1.20.5")) {
             EquipmentSlotGroup slot = attributeModifier.getSlotGroup();
             attributeEntries.add(new AttributeModifierEntry(
                     attribute, attributeModifier,

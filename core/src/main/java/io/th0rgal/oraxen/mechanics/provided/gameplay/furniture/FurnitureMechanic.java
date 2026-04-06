@@ -785,7 +785,10 @@ public class FurnitureMechanic extends Mechanic {
     public static void setFurnitureItem(Entity entity, ItemStack item) {
         switch (entity.getType()) {
             case ITEM_FRAME, GLOW_ITEM_FRAME -> ((ItemFrame) entity).setItem(item, false);
-            case ARMOR_STAND -> ((ArmorStand) entity).getEquipment().setHelmet(item);
+            case ARMOR_STAND -> {
+                var equipment = ((ArmorStand) entity).getEquipment();
+                if (equipment != null) equipment.setHelmet(item);
+            }
             case ITEM_DISPLAY -> {
                 if (OraxenPlugin.supportsDisplayEntities) ((ItemDisplay) entity).setItemStack(item);
             }
