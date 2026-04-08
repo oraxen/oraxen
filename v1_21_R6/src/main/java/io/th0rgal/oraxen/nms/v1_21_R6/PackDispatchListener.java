@@ -65,7 +65,10 @@ public final class PackDispatchListener implements Listener {
     @EventHandler
     public void onReconfig(@NotNull PlayerConnectionReconfigureEvent event) {
         if (!PackSender.isPreJoinDispatchActive() || !PackSender.isAnyDispatchEnabled()) return;
-        sendResourcePack(event.getConnection(), true);
+        CompletableFuture<Void> future = sendResourcePack(event.getConnection(), true);
+        if (future == null) {
+            event.getConnection().completeReconfiguration();
+        }
     }
 
     @EventHandler
@@ -83,10 +86,11 @@ public final class PackDispatchListener implements Listener {
         String hash = OraxenPlugin.get().getPackSHA1();
         if (packUrl == null || hash == null) return null;
         UUID playerId = connection.getProfile().getId();
+        if (playerId == null) return null;
 
         byte[] hashBytes = hashArray(hash);
         UUID packUUID = UUID.nameUUIDFromBytes(hashBytes);
-        CompletableFuture<Void> future = reconfigure ? null : new CompletableFuture<>();
+        CompletableFuture<Void> future = new CompletableFuture<>();
 
         ResourcePackInfo info = ResourcePackInfo.resourcePackInfo()
                 .id(packUUID)
@@ -102,8 +106,8 @@ public final class PackDispatchListener implements Listener {
                 .callback((requestId, status, audience) -> {
                     PackReceiver.handleAdventureStatus(playerId, status);
                     if (!status.intermediate()) {
-                        if (future != null) future.complete(null);
-                        else connection.completeReconfiguration();
+                        future.complete(null);
+                        if (reconfigure) connection.completeReconfiguration();
                     }
                 })
                 .build();

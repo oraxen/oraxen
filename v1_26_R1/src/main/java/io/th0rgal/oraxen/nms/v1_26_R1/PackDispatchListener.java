@@ -65,8 +65,14 @@ public final class PackDispatchListener implements Listener {
     @EventHandler
     public void onReconfig(@NotNull PlayerConnectionReconfigureEvent event) {
         if (!PackSender.isPreJoinDispatchActive() || !PackSender.isAnyDispatchEnabled()) return;
-        if (event.getConnection().getProfile().getId() == null) return;
-        sendResourcePack(event.getConnection(), true);
+        if (event.getConnection().getProfile().getId() == null) {
+            event.getConnection().completeReconfiguration();
+            return;
+        }
+        CompletableFuture<Void> future = sendResourcePack(event.getConnection(), true);
+        if (future == null) {
+            event.getConnection().completeReconfiguration();
+        }
     }
 
     @EventHandler
@@ -94,15 +100,15 @@ public final class PackDispatchListener implements Listener {
             Logs.logWarning("Invalid resource pack hash for " + playerId + ": " + hash);
             return null;
         }
-        CompletableFuture<Void> future = reconfigure ? null : new CompletableFuture<>();
+        CompletableFuture<Void> future = new CompletableFuture<>();
 
         java.net.URI packUri;
         try {
             packUri = java.net.URI.create(packUrl);
         } catch (IllegalArgumentException ex) {
             Logs.logWarning("Invalid resource pack URL for " + packUUID + ": " + packUrl);
-            if (future != null) future.complete(null);
-            else connection.completeReconfiguration();
+            future.complete(null);
+            if (reconfigure) connection.completeReconfiguration();
             return null;
         }
 
@@ -120,8 +126,8 @@ public final class PackDispatchListener implements Listener {
                 .callback((requestId, status, audience) -> {
                     PackReceiver.handleAdventureStatus(playerId, status);
                     if (!status.intermediate()) {
-                        if (future != null) future.complete(null);
-                        else connection.completeReconfiguration();
+                        future.complete(null);
+                        if (reconfigure) connection.completeReconfiguration();
                     }
                 })
                 .build();
