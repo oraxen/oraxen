@@ -44,6 +44,12 @@ public class VersionUtil {
             if (version == UNKNOWN) return false;
             NMSVersion serverVersion = getNMSVersion(MinecraftVersion.getCurrentVersion());
 
+            // 26.x currently only has a Paper (Mojang-mapped) handler module.
+            // Prevent loading it on Spigot-mapped runtimes.
+            if (!isPaperServer() && serverVersion == v1_26_R1) {
+                return false;
+            }
+
             // For 1.20.5+ (v1_20_R4 and later), choose between Paper and Spigot variants
             NMSVersion spigotVariant = spigotVariants.get(serverVersion);
             if (spigotVariant != null) {

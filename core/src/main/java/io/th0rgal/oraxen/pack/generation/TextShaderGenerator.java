@@ -210,24 +210,24 @@ class TextShaderGenerator {
 
     private void generateTextShadersForTarget(TextShaderTarget target, TextShaderFeatures features, String pathPrefix) {
         boolean modernShaderFormat = target.isAtLeast("1.21.6");
+        boolean shouldWriteJson = !modernShaderFormat || !pathPrefix.isEmpty();
 
         // Generate shaders (see-through uses a different vertex format on 1.21.6+)
         String vshContent = getAnimationVertexShader(target, features, false);
         String fshContent = getAnimationFragmentShader(target, false);
-        String jsonContent = modernShaderFormat ? null : getAnimationShaderJson(target, false);
+        String jsonContent = shouldWriteJson ? getAnimationShaderJson(target, false) : null;
 
         String vshSeeThrough = getAnimationVertexShader(target, features, true);
         String fshSeeThrough = getAnimationFragmentShader(target, true);
-        String jsonSeeThrough = modernShaderFormat ? null : getAnimationShaderJson(target, true);
+        String jsonSeeThrough = shouldWriteJson ? getAnimationShaderJson(target, true) : null;
 
         String vshIntensity = getAnimationVertexShader(target, features, false);
         String fshIntensity = getAnimationFragmentShader(target, false, true);
-        String jsonIntensity = modernShaderFormat ? null : getAnimationShaderJson(target, "rendertype_text_intensity", false);
+        String jsonIntensity = shouldWriteJson ? getAnimationShaderJson(target, "rendertype_text_intensity", false) : null;
 
         String vshIntensitySeeThrough = getAnimationVertexShader(target, features, true);
         String fshIntensitySeeThrough = getAnimationFragmentShader(target, true, true);
-        String jsonIntensitySeeThrough = modernShaderFormat ? null
-                : getAnimationShaderJson(target, "rendertype_text_intensity_see_through", true);
+        String jsonIntensitySeeThrough = shouldWriteJson ? getAnimationShaderJson(target, "rendertype_text_intensity_see_through", true) : null;
 
         String shaderPath = pathPrefix + "assets/minecraft/shaders/core";
 
