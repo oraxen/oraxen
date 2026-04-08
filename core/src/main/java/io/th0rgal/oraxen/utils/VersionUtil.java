@@ -13,6 +13,7 @@ public class VersionUtil {
 
     public enum NMSVersion {
         // Paper 1.20.5+ uses Mojang mappings at runtime, Spigot uses Spigot mappings
+        v1_26_R1,              // Paper 26.1-26.1.1 (Mojang-mapped)
         v1_21_R6,              // Paper 1.21.11 (Mojang-mapped)
         v1_21_R6_spigot,       // Spigot 1.21.11 (Spigot-mapped)
         v1_21_R6_old,          // Paper 1.21.9-1.21.10 (Mojang-mapped)
@@ -68,6 +69,8 @@ public class VersionUtil {
         spigotVariants.put(NMSVersion.v1_21_R1, NMSVersion.v1_21_R1_spigot);
         spigotVariants.put(NMSVersion.v1_20_R4, NMSVersion.v1_20_R4_spigot);
 
+        versionMap.put(NMSVersion.v1_26_R1,
+                Map.of(27, new MinecraftVersion("26.1"), 28, new MinecraftVersion("26.1.1")));
         versionMap.put(NMSVersion.v1_21_R6,
                 Map.of(26, new MinecraftVersion("1.21.11")));
         versionMap.put(NMSVersion.v1_21_R6_old,

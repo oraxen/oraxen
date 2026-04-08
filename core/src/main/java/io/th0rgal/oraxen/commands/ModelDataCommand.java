@@ -19,10 +19,13 @@ public class ModelDataCommand {
                 .executes((sender, args) -> {
                     Map<Material, Integer> itemMap = new HashMap<>();
                     for (ItemBuilder builder : OraxenItems.getItems()) {
-                        int currentModelData = builder.getOraxenMeta().getCustomModelData();
+                        Integer currentModelData = builder.getOraxenMeta().getCustomModelData();
+                        if (currentModelData == null || currentModelData == 0) {
+                            continue;
+                        }
                         Material type = builder.build().getType();
 
-                        if (currentModelData != 0) itemMap.putIfAbsent(type, currentModelData);
+                        itemMap.putIfAbsent(type, currentModelData);
                         if (itemMap.containsKey(type) && itemMap.get(type) < currentModelData) {
                             itemMap.put(type, currentModelData);
                         }

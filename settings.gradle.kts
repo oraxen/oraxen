@@ -32,6 +32,7 @@ dependencyResolutionManagement {
 // Core and Paper NMS modules (always included)
 include(
     "core",
+    "v1_26_R1",
     "v1_20_R1",
     "v1_20_R2",
     "v1_20_R3",

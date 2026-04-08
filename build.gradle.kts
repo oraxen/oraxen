@@ -9,8 +9,8 @@ plugins {
     //id("com.github.johnrengelman.shadow") version "8.1.1"
     id("xyz.jpenilla.run-paper") version "2.3.1"
     id("net.minecrell.plugin-yml.bukkit") version "0.6.0" // Generates plugin.yml
-    id("io.papermc.paperweight.userdev") version "2.0.0-beta.17" apply false
-    id("io.github.goooler.shadow") version "8.1.8"
+    id("io.papermc.paperweight.userdev") version "2.0.0-beta.21" apply false
+    id("com.gradleup.shadow") version "9.4.1"
 }
 
 
@@ -19,6 +19,7 @@ class NMSVersion(val nmsVersion: String, val serverVersion: String)
 infix fun String.toNms(that: String): NMSVersion = NMSVersion(this, that)
 val isCI = System.getenv("CI") != null
 val SUPPORTED_VERSIONS: List<NMSVersion> = listOfNotNull(
+    "v1_26_R1" toNms "26.1.1.build.29-alpha",
     "v1_20_R1" toNms "1.20.1-R0.1-SNAPSHOT",
     "v1_20_R2" toNms "1.20.2-R0.1-SNAPSHOT",
     "v1_20_R3" toNms "1.20.4-R0.1-SNAPSHOT",
@@ -173,7 +174,7 @@ tasks {
         filteringCharset = Charsets.UTF_8.name()
     }
 
-    val runServerVersion = (findProperty("mcVersion") as String?) ?: "1.21.11"
+    val runServerVersion = (findProperty("mcVersion") as String?) ?: "26.1.1"
 
     runServer {
         downloadPlugins {
@@ -226,7 +227,7 @@ tasks {
                         )
                     }",
                     "Compiled" to (project.findProperty("oraxen_compiled")?.toString() ?: "true").toBoolean(),
-                    // Tell Paper not to remap this plugin - v1_21_R6 module uses Mojang mappings
+                    // Tell Paper not to remap this plugin - modern NMS modules use Mojang mappings
                     "paperweight-mappings-namespace" to "mojang"
                 )
             )

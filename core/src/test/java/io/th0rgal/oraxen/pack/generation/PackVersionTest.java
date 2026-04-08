@@ -121,7 +121,9 @@ class PackVersionTest {
     void testProtocolToPackFormatMappings() {
         File packFile = tempDir.resolve("pack.zip").toFile();
 
-        PackVersion v1_21_5 = new PackVersion("1.21.5", 48, 48, 999, packFile);
+        PackVersion v26_1 = new PackVersion("26.1", 84, 84, 999, packFile);
+        PackVersion v1_21_11 = new PackVersion("1.21.11", 75, 75, 83, packFile);
+        PackVersion v1_21_5 = new PackVersion("1.21.5", 55, 55, 62, packFile);
         PackVersion v1_21_4 = new PackVersion("1.21.4", 46, 46, 47, packFile);
         PackVersion v1_21_2 = new PackVersion("1.21.2", 42, 42, 45, packFile);
         PackVersion v1_21 = new PackVersion("1.21", 34, 34, 41, packFile);
@@ -130,11 +132,14 @@ class PackVersionTest {
         PackVersion v1_20_2 = new PackVersion("1.20.2", 18, 18, 21, packFile);
         PackVersion v1_20 = new PackVersion("1.20", 15, 15, 17, packFile);
 
-        // Protocol 774 (1.21.11) should map to format 61, which is supported by v1_21_5 (range 48-999)
-        assertTrue(v1_21_5.supportsProtocol(774), "Protocol 774 (1.21.11) should match format 61, supported by v1_21_5");
+        // Protocol 775 (26.1.1) should map to format 84.
+        assertTrue(v26_1.supportsProtocol(775), "Protocol 775 (26.1.1) should match format 84");
+
+        // Protocol 774 (1.21.11) should map to format 75.
+        assertTrue(v1_21_11.supportsProtocol(774), "Protocol 774 (1.21.11) should match format 75");
         
-        // Protocol 770 (1.21.5) should map to format 48
-        assertTrue(v1_21_5.supportsProtocol(770), "Protocol 770 (1.21.5) should match format 48");
+        // Protocol 770 (1.21.5) should map to format 55
+        assertTrue(v1_21_5.supportsProtocol(770), "Protocol 770 (1.21.5) should match format 55");
 
         assertTrue(v1_21_4.supportsProtocol(769), "Protocol 769 (1.21.4) should match format 46");
 

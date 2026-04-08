@@ -26,7 +26,9 @@ public class PackVersionManager {
      */
     private static final Object[][] VERSION_DEFINITIONS = {
         // mcVersion, format, minFormat, maxFormat
-        {"1.21.9",  69, 69, 999},  // 1.21.9+ (latest, open-ended)
+        {"26.1",    84, 84, 999},  // 26.1+ (latest, open-ended)
+        {"1.21.11", 75, 75, 83},   // 1.21.11
+        {"1.21.9",  69, 69, 74},   // 1.21.9-1.21.10
         {"1.21.7",  64, 64, 68},   // 1.21.7-1.21.8
         {"1.21.6",  63, 63, 63},   // 1.21.6
         {"1.21.5",  55, 55, 62},   // 1.21.5

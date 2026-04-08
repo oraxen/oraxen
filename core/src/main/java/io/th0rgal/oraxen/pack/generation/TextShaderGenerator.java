@@ -209,41 +209,48 @@ class TextShaderGenerator {
     }
 
     private void generateTextShadersForTarget(TextShaderTarget target, TextShaderFeatures features, String pathPrefix) {
+        boolean modernShaderFormat = target.isAtLeast("1.21.6");
+
         // Generate shaders (see-through uses a different vertex format on 1.21.6+)
         String vshContent = getAnimationVertexShader(target, features, false);
         String fshContent = getAnimationFragmentShader(target, false);
-        String jsonContent = getAnimationShaderJson(target, false);
+        String jsonContent = modernShaderFormat ? null : getAnimationShaderJson(target, false);
 
         String vshSeeThrough = getAnimationVertexShader(target, features, true);
         String fshSeeThrough = getAnimationFragmentShader(target, true);
-        String jsonSeeThrough = getAnimationShaderJson(target, true);
+        String jsonSeeThrough = modernShaderFormat ? null : getAnimationShaderJson(target, true);
 
         String vshIntensity = getAnimationVertexShader(target, features, false);
         String fshIntensity = getAnimationFragmentShader(target, false, true);
-        String jsonIntensity = getAnimationShaderJson(target, "rendertype_text_intensity", false);
+        String jsonIntensity = modernShaderFormat ? null : getAnimationShaderJson(target, "rendertype_text_intensity", false);
 
         String vshIntensitySeeThrough = getAnimationVertexShader(target, features, true);
         String fshIntensitySeeThrough = getAnimationFragmentShader(target, true, true);
-        String jsonIntensitySeeThrough = getAnimationShaderJson(target, "rendertype_text_intensity_see_through", true);
+        String jsonIntensitySeeThrough = modernShaderFormat ? null
+                : getAnimationShaderJson(target, "rendertype_text_intensity_see_through", true);
 
         String shaderPath = pathPrefix + "assets/minecraft/shaders/core";
 
         // Write shaders for both rendertype_text and rendertype_text_see_through
         ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text.vsh", vshContent);
         ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text.fsh", fshContent);
-        ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text.json", jsonContent);
+        if (jsonContent != null)
+            ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text.json", jsonContent);
 
         ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text_see_through.vsh", vshSeeThrough);
         ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text_see_through.fsh", fshSeeThrough);
-        ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text_see_through.json", jsonSeeThrough);
+        if (jsonSeeThrough != null)
+            ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text_see_through.json", jsonSeeThrough);
 
         ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text_intensity.vsh", vshIntensity);
         ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text_intensity.fsh", fshIntensity);
-        ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text_intensity.json", jsonIntensity);
+        if (jsonIntensity != null)
+            ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text_intensity.json", jsonIntensity);
 
         ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text_intensity_see_through.vsh", vshIntensitySeeThrough);
         ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text_intensity_see_through.fsh", fshIntensitySeeThrough);
-        ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text_intensity_see_through.json", jsonIntensitySeeThrough);
+        if (jsonIntensitySeeThrough != null)
+            ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text_intensity_see_through.json", jsonIntensitySeeThrough);
 
         Logs.logSuccess("Generated text shaders for " + target.displayName()
                 + " (shader " + getShaderVersion(target) + ")" + (pathPrefix.isEmpty() ? "" : " [overlay]"));
@@ -546,6 +553,7 @@ class TextShaderGenerator {
                 #moj_import <minecraft:fog.glsl>
                 #moj_import <minecraft:dynamictransforms.glsl>
                 #moj_import <minecraft:projection.glsl>
+                #moj_import <minecraft:sample_lightmap.glsl>
                 #moj_import <minecraft:globals.glsl>
 
                 in vec3 Position;
@@ -631,8 +639,8 @@ class TextShaderGenerator {
                 return new VertexShaderConfig(
                         "sphericalVertexDistance = fog_spherical_distance(pos);\n                        cylindricalVertexDistance = fog_cylindrical_distance(pos);",
                         "sphericalVertexDistance = fog_spherical_distance(pos);\n                            cylindricalVertexDistance = fog_cylindrical_distance(pos);",
-                        "Color * texelFetch(Sampler2, UV2 / 16, 0)",
-                        "vec4(1.0, 1.0, 1.0, visible) * texelFetch(Sampler2, UV2 / 16, 0)",
+                        "Color * sample_lightmap(Sampler2, UV2)",
+                        "vec4(1.0, 1.0, 1.0, visible) * sample_lightmap(Sampler2, UV2)",
                         "(rawFrame % totalFrames)"
                 );
             }

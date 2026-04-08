@@ -43,10 +43,13 @@ public final class ResourcePackFormatUtil {
      */
     public static int getPackFormatForVersion(MinecraftVersion version) {
         // Best-effort mapping for modern versions.
-        // NOTE: For 1.21.x versions, pack formats vary significantly between patches
-        if (version.isAtLeast(new MinecraftVersion("1.21.11"))) return 61; // 1.21.11+
-        if (version.isAtLeast(new MinecraftVersion("1.21.6"))) return 55; // 1.21.6-1.21.10
-        if (version.isAtLeast(new MinecraftVersion("1.21.5"))) return 48; // 1.21.5
+        // NOTE: For modern versions, pack formats vary significantly between patches
+        if (version.isAtLeast(new MinecraftVersion("26.1"))) return 84; // 26.1+
+        if (version.isAtLeast(new MinecraftVersion("1.21.11"))) return 75; // 1.21.11
+        if (version.isAtLeast(new MinecraftVersion("1.21.9"))) return 69; // 1.21.9-1.21.10
+        if (version.isAtLeast(new MinecraftVersion("1.21.7"))) return 64; // 1.21.7-1.21.8
+        if (version.isAtLeast(new MinecraftVersion("1.21.6"))) return 63; // 1.21.6
+        if (version.isAtLeast(new MinecraftVersion("1.21.5"))) return 55; // 1.21.5
         if (version.isAtLeast(new MinecraftVersion("1.21.4"))) return 46; // 1.21.4
         if (version.isAtLeast(new MinecraftVersion("1.21.2"))) return 42; // 1.21.2-1.21.3
         if (version.isAtLeast(new MinecraftVersion("1.21"))) return 34; // 1.21-1.21.1
@@ -141,4 +144,3 @@ public final class ResourcePackFormatUtil {
         return (result instanceof Integer) ? (Integer) result : ((Number) result).intValue();
     }
 }
-
