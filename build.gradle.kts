@@ -174,7 +174,7 @@ tasks {
         filteringCharset = Charsets.UTF_8.name()
     }
 
-    val runServerVersion = (findProperty("mcVersion") as String?) ?: "26.1.1"
+    val runServerVersion = findProperty("mcVersion") as String? ?: "26.1.1"
 
     runServer {
         downloadPlugins {
