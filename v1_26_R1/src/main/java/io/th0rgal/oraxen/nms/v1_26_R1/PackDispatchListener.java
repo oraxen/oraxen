@@ -108,7 +108,6 @@ public final class PackDispatchListener implements Listener {
         } catch (IllegalArgumentException ex) {
             Logs.logWarning("Invalid resource pack URL for " + packUUID + ": " + packUrl);
             future.complete(null);
-            if (reconfigure) connection.completeReconfiguration();
             return null;
         }
 
