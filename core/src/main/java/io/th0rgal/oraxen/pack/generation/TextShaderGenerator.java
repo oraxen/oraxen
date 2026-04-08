@@ -210,7 +210,7 @@ class TextShaderGenerator {
 
     private void generateTextShadersForTarget(TextShaderTarget target, TextShaderFeatures features, String pathPrefix) {
         boolean modernShaderFormat = target.isAtLeast("1.21.6");
-        boolean shouldWriteJson = !modernShaderFormat || !pathPrefix.isEmpty();
+        boolean shouldWriteJson = !modernShaderFormat;
 
         // Generate shaders (see-through uses a different vertex format on 1.21.6+)
         String vshContent = getAnimationVertexShader(target, features, false);

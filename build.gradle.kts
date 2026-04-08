@@ -48,6 +48,8 @@ val devPluginPath = project.findProperty("oraxen_dev_plugin_path")?.toString()
 val foliaPluginPath = project.findProperty("oraxen_folia_plugin_path")?.toString()
 val spigotPluginPath = project.findProperty("oraxen_spigot_plugin_path")?.toString()
 val pluginVersion: String by project
+val runServerVersion = findProperty("mcVersion") as String? ?: "26.1.1"
+val runServerJavaVersion = if (runServerVersion.startsWith("26.")) 25 else 21
 group = "io.th0rgal"
 version = pluginVersion
 
@@ -142,7 +144,7 @@ java {
 tasks.withType(xyz.jpenilla.runtask.task.AbstractRun::class) {
     javaLauncher = javaToolchains.launcherFor {
         vendor = JvmVendorSpec.JETBRAINS
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(runServerJavaVersion)
     }
     jvmArgs("-XX:+AllowEnhancedClassRedefinition")
 }
@@ -173,8 +175,6 @@ tasks {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
         filteringCharset = Charsets.UTF_8.name()
     }
-
-    val runServerVersion = findProperty("mcVersion") as String? ?: "26.1.1"
 
     runServer {
         downloadPlugins {
