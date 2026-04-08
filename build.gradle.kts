@@ -49,7 +49,18 @@ val foliaPluginPath = project.findProperty("oraxen_folia_plugin_path")?.toString
 val spigotPluginPath = project.findProperty("oraxen_spigot_plugin_path")?.toString()
 val pluginVersion: String by project
 val runServerVersion = findProperty("mcVersion") as String? ?: "26.1.1"
-val runServerJavaVersion = if (runServerVersion.startsWith("26.")) 25 else 21
+val runServerMajorVersion = Regex("""^\D*(\d+)""")
+    .find(runServerVersion)
+    ?.groupValues
+    ?.get(1)
+    ?.toIntOrNull()
+val configuredRunJavaVersion = project.findProperty("runJavaVersion")?.toString()
+val runServerJavaVersion = if (configuredRunJavaVersion != null) {
+    configuredRunJavaVersion.toIntOrNull()
+        ?: throw GradleException("Invalid runJavaVersion '$configuredRunJavaVersion'. Expected an integer Java language level (e.g., 21, 25).")
+} else {
+    if ((runServerMajorVersion ?: 0) >= 26) 25 else 21
+}
 group = "io.th0rgal"
 version = pluginVersion
 

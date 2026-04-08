@@ -76,7 +76,12 @@ public class VersionUtil {
         spigotVariants.put(NMSVersion.v1_20_R4, NMSVersion.v1_20_R4_spigot);
 
         versionMap.put(NMSVersion.v1_26_R1,
-                Map.of(27, new MinecraftVersion("26.1"), 28, new MinecraftVersion("26.1.1")));
+                Map.of(
+                        27, new MinecraftVersion("26.1"),
+                        28, new MinecraftVersion("26.1.1"),
+                        // Defensive aliases for non-standard "1.26.x" reporting in forks/wrappers
+                        29, new MinecraftVersion("1.26.1"),
+                        30, new MinecraftVersion("1.26.1.1")));
         versionMap.put(NMSVersion.v1_21_R6,
                 Map.of(26, new MinecraftVersion("1.21.11")));
         versionMap.put(NMSVersion.v1_21_R6_old,
