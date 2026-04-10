@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.pack.generation;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.th0rgal.oraxen.utils.ResourcePackFormatUtil;
@@ -35,17 +34,17 @@ public class PackMcmetaUtils {
         pack.addProperty("pack_format", packFormat);
 
         if (packFormat >= 65) {
-            // 1.21.11+ metadata requires explicit min/max format fields.
+            // pack_format > 64 requires explicit min/max range fields.
             int min = minFormat > 0 ? minFormat : packFormat;
             int max = maxFormat > 0 ? maxFormat : packFormat;
             pack.addProperty("min_format", min);
             pack.addProperty("max_format", max);
             pack.remove("supported_formats");
         } else if (packFormat >= 18 && minFormat > 0) {
-            // Legacy range declaration for pack_format 18..64.
-            JsonArray supportedFormats = new JsonArray();
-            supportedFormats.add(minFormat);
-            supportedFormats.add(maxFormat);
+            // 1.20.2-1.21.x range declaration.
+            JsonObject supportedFormats = new JsonObject();
+            supportedFormats.addProperty("min_inclusive", minFormat);
+            supportedFormats.addProperty("max_inclusive", maxFormat);
             pack.add("supported_formats", supportedFormats);
             pack.remove("min_format");
             pack.remove("max_format");
@@ -94,8 +93,8 @@ public class PackMcmetaUtils {
         // Use NMS reflection first (accurate for all versions), fall back to hardcoded mapping
         int packFormat = ResourcePackFormatUtil.getCurrentResourcePackFormat();
 
-        // For modern pack formats (>=65), createPackMcmeta will set min/max to packFormat.
-        // For older formats this keeps legacy behavior (no supported range in single-pack mode).
+        // For modern formats (>=65), createPackMcmeta sets min/max to packFormat.
+        // Older formats keep legacy behavior (no explicit supported range in single-pack mode).
         JsonObject mcmeta = createPackMcmeta(packFormat, 0, 0, existingMcmeta);
 
         writePackMcmeta(mcmetaPath, mcmeta);

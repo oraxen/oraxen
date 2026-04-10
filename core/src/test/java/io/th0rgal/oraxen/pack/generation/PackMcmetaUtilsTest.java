@@ -188,14 +188,15 @@ class PackMcmetaUtilsTest {
     }
 
     @Test
-    void testPackFormat18To64UsesSupportedFormatsArray() {
+    void testPackFormat18To64UsesSupportedFormatsObject() {
         JsonObject mcmeta = PackMcmetaUtils.createPackMcmeta(50, 50, 64, null);
         JsonObject pack = mcmeta.getAsJsonObject("pack");
 
         assertEquals(50, pack.get("pack_format").getAsInt());
         assertTrue(pack.has("supported_formats"));
-        assertEquals(50, pack.getAsJsonArray("supported_formats").get(0).getAsInt());
-        assertEquals(64, pack.getAsJsonArray("supported_formats").get(1).getAsInt());
+        JsonObject supportedFormats = pack.getAsJsonObject("supported_formats");
+        assertEquals(50, supportedFormats.get("min_inclusive").getAsInt());
+        assertEquals(64, supportedFormats.get("max_inclusive").getAsInt());
         assertFalse(pack.has("min_format"));
         assertFalse(pack.has("max_format"));
     }

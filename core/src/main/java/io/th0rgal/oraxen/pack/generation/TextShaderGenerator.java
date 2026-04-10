@@ -209,8 +209,9 @@ class TextShaderGenerator {
     }
 
     private void generateTextShadersForTarget(TextShaderTarget target, TextShaderFeatures features, String pathPrefix) {
-        boolean modernShaderFormat = target.isAtLeast("1.21.6");
-        boolean shouldWriteJson = !modernShaderFormat;
+        // 1.21.x still expects explicit shader json files in packs.
+        // 26.x moved to generated pipeline metadata and should not be overridden.
+        boolean shouldWriteJson = !target.isAtLeast("26.1");
 
         // Generate shaders (see-through uses a different vertex format on 1.21.6+)
         String vshContent = getAnimationVertexShader(target, features, false);
@@ -521,12 +522,13 @@ class TextShaderGenerator {
 
     private String getAnimationVertexShader(TextShaderTarget target, TextShaderFeatures features, boolean seeThrough) {
         boolean is1_21_6Plus = target.isAtLeast("1.21.6");
+        boolean is26Plus = target.isAtLeast("26.1");
         String textShaderConstants = getTextShaderConstants(target, features);
         TextEffectSnippets snippets = getTextEffectSnippets(target);
         String vertexPrelude = snippets.vertexPrelude();
         String vertexEffects = snippets.vertexEffects();
 
-        VertexShaderConfig config = createVertexShaderConfig(is1_21_6Plus, seeThrough);
+        VertexShaderConfig config = createVertexShaderConfig(is1_21_6Plus, is26Plus, seeThrough);
         String mainBody = getVertexShaderMainBody(config, vertexEffects, false);
 
         if (is1_21_6Plus) {
@@ -547,7 +549,7 @@ class TextShaderGenerator {
                 %s
                 %s
 
-""" : """
+""" : (is26Plus ? """
                 #version 330
 
                 #moj_import <minecraft:fog.glsl>
@@ -571,7 +573,30 @@ class TextShaderGenerator {
                 %s
                 %s
 
-""";
+""" : """
+                #version 330
+
+                #moj_import <minecraft:fog.glsl>
+                #moj_import <minecraft:dynamictransforms.glsl>
+                #moj_import <minecraft:projection.glsl>
+                #moj_import <minecraft:globals.glsl>
+
+                in vec3 Position;
+                in vec4 Color;
+                in vec2 UV0;
+                in ivec2 UV2;
+
+                uniform sampler2D Sampler2;
+
+                out float sphericalVertexDistance;
+                out float cylindricalVertexDistance;
+                out vec4 vertexColor;
+                out vec2 texCoord0;
+                out vec4 effectData;
+                %s
+                %s
+
+""");
             return header.formatted(textShaderConstants, vertexPrelude) + mainBody;
         } else {
             // Pre-1.21.6: use traditional uniform declarations
@@ -625,7 +650,7 @@ class TextShaderGenerator {
         }
     }
 
-    private VertexShaderConfig createVertexShaderConfig(boolean is1_21_6Plus, boolean seeThrough) {
+    private VertexShaderConfig createVertexShaderConfig(boolean is1_21_6Plus, boolean is26Plus, boolean seeThrough) {
         if (is1_21_6Plus) {
             if (seeThrough) {
                 return new VertexShaderConfig(
@@ -636,11 +661,17 @@ class TextShaderGenerator {
                         "(rawFrame % totalFrames)"
                 );
             } else {
+                String litColor = is26Plus
+                        ? "Color * sample_lightmap(Sampler2, UV2)"
+                        : "Color * texelFetch(Sampler2, UV2 / 16, 0)";
+                String animatedLitColor = is26Plus
+                        ? "vec4(1.0, 1.0, 1.0, visible) * sample_lightmap(Sampler2, UV2)"
+                        : "vec4(1.0, 1.0, 1.0, visible) * texelFetch(Sampler2, UV2 / 16, 0)";
                 return new VertexShaderConfig(
                         "sphericalVertexDistance = fog_spherical_distance(pos);\n                        cylindricalVertexDistance = fog_cylindrical_distance(pos);",
                         "sphericalVertexDistance = fog_spherical_distance(pos);\n                            cylindricalVertexDistance = fog_cylindrical_distance(pos);",
-                        "Color * sample_lightmap(Sampler2, UV2)",
-                        "vec4(1.0, 1.0, 1.0, visible) * sample_lightmap(Sampler2, UV2)",
+                        litColor,
+                        animatedLitColor,
                         "(rawFrame % totalFrames)"
                 );
             }
@@ -898,17 +929,43 @@ class TextShaderGenerator {
 
     private String getCombinedVertexShader(TextShaderTarget target, TextShaderFeatures features) {
         boolean is1_21_6Plus = target.isAtLeast("1.21.6");
+        boolean is26Plus = target.isAtLeast("26.1");
         String textShaderConstants = getTextShaderConstants(target, features);
         TextEffectSnippets snippets = getTextEffectSnippets(target);
         String vertexPrelude = snippets.vertexPrelude();
         String vertexEffects = snippets.vertexEffects();
 
         // Combined shader always uses non-seeThrough config (has Sampler2, fog) with scoreboard hiding
-        VertexShaderConfig config = createVertexShaderConfig(is1_21_6Plus, false);
+        VertexShaderConfig config = createVertexShaderConfig(is1_21_6Plus, is26Plus, false);
         String mainBody = getVertexShaderMainBody(config, vertexEffects, true);
 
         if (is1_21_6Plus) {
-            String header = """
+            String header = is26Plus ? """
+                #version 330
+
+                #moj_import <minecraft:fog.glsl>
+                #moj_import <minecraft:dynamictransforms.glsl>
+                #moj_import <minecraft:projection.glsl>
+                #moj_import <minecraft:sample_lightmap.glsl>
+                #moj_import <minecraft:globals.glsl>
+
+                in vec3 Position;
+                in vec4 Color;
+                in vec2 UV0;
+                in ivec2 UV2;
+
+                uniform sampler2D Sampler2;
+                uniform vec2 ScreenSize;
+
+                out float sphericalVertexDistance;
+                out float cylindricalVertexDistance;
+                out vec4 vertexColor;
+                out vec2 texCoord0;
+                out vec4 effectData;
+                %s
+                %s
+
+""" : """
                 #version 330
 
                 #moj_import <minecraft:fog.glsl>
