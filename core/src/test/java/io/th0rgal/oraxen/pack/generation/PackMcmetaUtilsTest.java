@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.pack.generation;
 
+import com.google.gson.JsonObject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -173,5 +174,29 @@ class PackMcmetaUtilsTest {
         assertNotNull(v261);
         assertEquals(84, v261.getMinFormatInclusive());
         assertEquals(999, v261.getMaxFormatInclusive());
+    }
+
+    @Test
+    void testPackFormat65PlusUsesMinAndMaxFormat() {
+        JsonObject mcmeta = PackMcmetaUtils.createPackMcmeta(75, 0, 0, null);
+        JsonObject pack = mcmeta.getAsJsonObject("pack");
+
+        assertEquals(75, pack.get("pack_format").getAsInt());
+        assertEquals(75, pack.get("min_format").getAsInt());
+        assertEquals(75, pack.get("max_format").getAsInt());
+        assertFalse(pack.has("supported_formats"));
+    }
+
+    @Test
+    void testPackFormat18To64UsesSupportedFormatsArray() {
+        JsonObject mcmeta = PackMcmetaUtils.createPackMcmeta(50, 50, 64, null);
+        JsonObject pack = mcmeta.getAsJsonObject("pack");
+
+        assertEquals(50, pack.get("pack_format").getAsInt());
+        assertTrue(pack.has("supported_formats"));
+        assertEquals(50, pack.getAsJsonArray("supported_formats").get(0).getAsInt());
+        assertEquals(64, pack.getAsJsonArray("supported_formats").get(1).getAsInt());
+        assertFalse(pack.has("min_format"));
+        assertFalse(pack.has("max_format"));
     }
 }

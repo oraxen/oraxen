@@ -62,6 +62,7 @@ dependencies {
     testImplementation("net.kyori:adventure-text-minimessage:4.17.0")
     testImplementation("net.kyori:adventure-text-serializer-legacy:4.17.0")
     testImplementation("com.google.guava:guava:33.0.0-jre")
+    testImplementation("com.google.code.gson:gson:2.10.1")
 }
 
 java {
