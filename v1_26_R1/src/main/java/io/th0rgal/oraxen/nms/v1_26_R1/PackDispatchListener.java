@@ -64,7 +64,10 @@ public final class PackDispatchListener implements Listener {
 
     @EventHandler
     public void onReconfig(@NotNull PlayerConnectionReconfigureEvent event) {
-        if (!PackSender.isPreJoinDispatchActive() || !PackSender.isAnyDispatchEnabled()) return;
+        if (!PackSender.isPreJoinDispatchActive() || !PackSender.isAnyDispatchEnabled()) {
+            event.getConnection().completeReconfiguration();
+            return;
+        }
         if (event.getConnection().getProfile().getId() == null) {
             event.getConnection().completeReconfiguration();
             return;

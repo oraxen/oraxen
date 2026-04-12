@@ -64,7 +64,10 @@ public final class PackDispatchListener implements Listener {
 
     @EventHandler
     public void onReconfig(@NotNull PlayerConnectionReconfigureEvent event) {
-        if (!PackSender.isPreJoinDispatchActive() || !PackSender.isAnyDispatchEnabled()) return;
+        if (!PackSender.isPreJoinDispatchActive() || !PackSender.isAnyDispatchEnabled()) {
+            event.getConnection().completeReconfiguration();
+            return;
+        }
         CompletableFuture<Void> future = sendResourcePack(event.getConnection(), true);
         if (future == null) {
             event.getConnection().completeReconfiguration();
