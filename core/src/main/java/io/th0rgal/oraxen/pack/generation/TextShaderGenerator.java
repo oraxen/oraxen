@@ -124,12 +124,14 @@ class TextShaderGenerator {
                         : resolveTextShaderFeatures(hasAnimatedGlyphs);
                 ResourcePack.writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.vsh",
                         getCombinedVertexShader(target, features));
-                ResourcePack.writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.json",
-                        getCombinedShaderJson(target));
-                // Fragment shader stays the same (text shader uses vertex shader for scoreboard hiding)
+                if (!target.isAtLeast("26.1"))
+                    ResourcePack.writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.json",
+                            getCombinedShaderJson(target));
                 Logs.logInfo("Using combined text + scoreboard hiding shaders");
             } else {
-                ResourcePack.writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.json", getScoreboardJson());
+                TextShaderTarget target = TextShaderTarget.current();
+                if (!target.isAtLeast("26.1"))
+                    ResourcePack.writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.json", getScoreboardJson());
                 ResourcePack.writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.vsh", getScoreboardVsh());
             }
         }
