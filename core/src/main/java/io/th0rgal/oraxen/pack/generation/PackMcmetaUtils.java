@@ -34,14 +34,14 @@ public class PackMcmetaUtils {
         pack.addProperty("pack_format", packFormat);
 
         if (packFormat >= 65) {
-            // pack_format > 64 requires explicit min/max range fields.
+            // Resource pack format 65+ (introduced in 25w31a / 1.21.9) uses top-level min/max fields.
             int min = minFormat > 0 ? minFormat : packFormat;
             int max = maxFormat > 0 ? maxFormat : packFormat;
             pack.addProperty("min_format", min);
             pack.addProperty("max_format", max);
             pack.remove("supported_formats");
         } else if (packFormat >= 18 && minFormat > 0) {
-            // 1.20.2-1.21.x range declaration.
+            // 1.20.2-1.21.8 range declaration.
             JsonObject supportedFormats = new JsonObject();
             supportedFormats.addProperty("min_inclusive", minFormat);
             supportedFormats.addProperty("max_inclusive", maxFormat);

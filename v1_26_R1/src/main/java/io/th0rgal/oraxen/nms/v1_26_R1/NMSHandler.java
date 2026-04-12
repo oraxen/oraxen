@@ -254,8 +254,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         return null;
     }
 
-    // Use Object as key type to support both ResourceLocation (1.21.10) and
-    // Identifier (1.21.11)
+    // Use Object as key type to support both ResourceLocation and Identifier
+    // (renamed across mapping generations before/into 26.x).
     private final Map<Object, IntList> tagRegistryMap = createTagRegistryMap();
 
     private Map<Object, IntList> createTagRegistryMap() {
