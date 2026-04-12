@@ -49,7 +49,7 @@ val foliaPluginPath = project.findProperty("oraxen_folia_plugin_path")?.toString
 val spigotPluginPath = project.findProperty("oraxen_spigot_plugin_path")?.toString()
 val pluginVersion: String by project
 val runServerVersion = findProperty("mcVersion") as String? ?: "26.1.1"
-val runServerMajorVersion = Regex("""^\D*(\d+)""")
+val runServerMajorVersion = Regex("""^\D*(?:1\.)?(\d+)""")
     .find(runServerVersion)
     ?.groupValues
     ?.get(1)
