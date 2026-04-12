@@ -515,34 +515,35 @@ public class GlyphHandler implements io.th0rgal.oraxen.nms.GlyphHandler {
 
         @Override
         protected void decode(ChannelHandlerContext ctx, ByteBuf buffer, List<Object> out) throws IOException {
-            final ByteBuf bufferCopy = buffer.copy();
-            try {
-                if (buffer.readableBytes() == 0)
-                    return;
+            if (buffer.readableBytes() == 0)
+                return;
 
-                CustomDataSerializer dataSerializer = new CustomDataSerializer(player, buffer);
-                int packetID = dataSerializer.readVarInt();
-                Attribute<ConnectionCodec> attribute = ctx.channel().attr(CODEC_ATTRIBUTE_KEY);
-                ConnectionCodec codec = attribute.get();
-                if (codec == null) {
-                    throw new IOException("Missing codec mapping for channel " + ctx.channel());
-                }
-                Packet<?> packet = codec.codec.decode(dataSerializer);
+            int savedReaderIndex = buffer.readerIndex();
+            CustomDataSerializer dataSerializer = new CustomDataSerializer(player, buffer);
+            int packetID = dataSerializer.readVarInt();
+            Attribute<ConnectionCodec> attribute = ctx.channel().attr(CODEC_ATTRIBUTE_KEY);
+            ConnectionCodec codec = attribute.get();
+            if (codec == null) {
+                throw new IOException("Missing codec mapping for channel " + ctx.channel());
+            }
+            Packet<?> packet = codec.codec.decode(dataSerializer);
 
-                if (dataSerializer.readableBytes() > 0) {
-                    throw new IOException("Packet " + packetID + " " + packet + " was larger than expected, found "
-                            + dataSerializer.readableBytes() + " bytes extra whilst reading the packet " + packetID);
-                } else if (packet instanceof ServerboundChatPacket) {
+            if (dataSerializer.readableBytes() > 0) {
+                throw new IOException("Packet " + packetID + " " + packet + " was larger than expected, found "
+                        + dataSerializer.readableBytes() + " bytes extra whilst reading the packet " + packetID);
+            } else if (packet instanceof ServerboundChatPacket) {
+                ByteBuf bufferCopy = buffer.copy(savedReaderIndex, buffer.readerIndex() - savedReaderIndex);
+                try {
                     FriendlyByteBuf baseSerializer = new FriendlyByteBuf(bufferCopy);
                     baseSerializer.readVarInt();
                     packet = codec.codec.decode(baseSerializer);
+                } finally {
+                    bufferCopy.release();
                 }
-
-                out.add(packet);
-                swapProtocolIfNeeded(attribute, packet);
-            } finally {
-                bufferCopy.release();
             }
+
+            out.add(packet);
+            swapProtocolIfNeeded(attribute, packet);
         }
     }
 }

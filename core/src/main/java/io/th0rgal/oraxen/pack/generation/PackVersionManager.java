@@ -212,6 +212,23 @@ public class PackVersionManager {
             }
         }
 
+        // Normalize "1.26.x" runtimes to "26.x" namespace.
+        // Some server forks/wrappers report 26.x as "1.26.x"; the VERSION_DEFINITIONS
+        // table uses "26.1" as the canonical key.
+        if (parts.length >= 2) {
+            try {
+                int majorPart = Integer.parseInt(parts[0]);
+                int minorPart = Integer.parseInt(parts[1]);
+                if (majorPart == 1 && minorPart >= 26) {
+                    if (parts.length >= 3) {
+                        candidates.add(minorPart + "." + parts[2]);
+                    }
+                    candidates.add(String.valueOf(minorPart));
+                }
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
         for (String candidate : candidates) {
             PackVersion candidateVersion = packVersions.get(candidate);
             if (candidateVersion != null) {
