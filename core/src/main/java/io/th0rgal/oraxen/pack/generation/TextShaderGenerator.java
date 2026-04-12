@@ -114,24 +114,22 @@ class TextShaderGenerator {
                 && VersionUtil.atOrAbove("1.20.3")) {
             OraxenPlugin.get().getPacketAdapter().registerScoreboardListener();
         } else { // Pre 1.20.3 rely on shaders
-            // Check if text shaders were already generated - need to combine them
-            if (textShadersGenerated) {
-                // Use combined shaders that support both text features and scoreboard hiding
-                TextShaderTarget target = TextShaderTarget.current();
+            TextShaderTarget target = TextShaderTarget.current();
+            if (target.isAtLeast("26")) {
+                Logs.logWarning("Shader-based scoreboard number hiding is not supported on 26.x+.");
+                Logs.logWarning("Use a packet adapter (ProtocolLib or PacketEvents) on Paper 1.20.3+ instead.");
+            } else if (textShadersGenerated) {
                 boolean hasAnimatedGlyphs = !OraxenPlugin.get().getFontManager().getAnimatedGlyphs().isEmpty();
                 TextShaderFeatures features = textShaderFeatures != null
                         ? textShaderFeatures
                         : resolveTextShaderFeatures(hasAnimatedGlyphs);
                 ResourcePack.writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.vsh",
                         getCombinedVertexShader(target, features));
-                if (!target.isAtLeast("26"))
-                    ResourcePack.writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.json",
-                            getCombinedShaderJson(target));
+                ResourcePack.writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.json",
+                        getCombinedShaderJson(target));
                 Logs.logInfo("Using combined text + scoreboard hiding shaders");
             } else {
-                TextShaderTarget target = TextShaderTarget.current();
-                if (!target.isAtLeast("26"))
-                    ResourcePack.writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.json", getScoreboardJson());
+                ResourcePack.writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.json", getScoreboardJson());
                 ResourcePack.writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.vsh", getScoreboardVsh());
             }
         }
