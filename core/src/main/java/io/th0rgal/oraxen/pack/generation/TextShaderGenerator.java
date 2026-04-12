@@ -124,13 +124,13 @@ class TextShaderGenerator {
                         : resolveTextShaderFeatures(hasAnimatedGlyphs);
                 ResourcePack.writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.vsh",
                         getCombinedVertexShader(target, features));
-                if (!target.isAtLeast("26.1"))
+                if (!target.isAtLeast("26"))
                     ResourcePack.writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.json",
                             getCombinedShaderJson(target));
                 Logs.logInfo("Using combined text + scoreboard hiding shaders");
             } else {
                 TextShaderTarget target = TextShaderTarget.current();
-                if (!target.isAtLeast("26.1"))
+                if (!target.isAtLeast("26"))
                     ResourcePack.writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.json", getScoreboardJson());
                 ResourcePack.writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.vsh", getScoreboardVsh());
             }
@@ -213,7 +213,7 @@ class TextShaderGenerator {
     private void generateTextShadersForTarget(TextShaderTarget target, TextShaderFeatures features, String pathPrefix) {
         // 1.21.x still expects explicit shader json files in packs.
         // 26.x moved to generated pipeline metadata and should not be overridden.
-        boolean shouldWriteJson = !target.isAtLeast("26.1");
+        boolean shouldWriteJson = !target.isAtLeast("26");
 
         // Generate shaders (see-through uses a different vertex format on 1.21.6+)
         String vshContent = getAnimationVertexShader(target, features, false);
@@ -524,7 +524,7 @@ class TextShaderGenerator {
 
     private String getAnimationVertexShader(TextShaderTarget target, TextShaderFeatures features, boolean seeThrough) {
         boolean is1_21_6Plus = target.isAtLeast("1.21.6");
-        boolean is26Plus = target.isAtLeast("26.1");
+        boolean is26Plus = target.isAtLeast("26");
         String textShaderConstants = getTextShaderConstants(target, features);
         TextEffectSnippets snippets = getTextEffectSnippets(target);
         String vertexPrelude = snippets.vertexPrelude();
@@ -931,7 +931,7 @@ class TextShaderGenerator {
 
     private String getCombinedVertexShader(TextShaderTarget target, TextShaderFeatures features) {
         boolean is1_21_6Plus = target.isAtLeast("1.21.6");
-        boolean is26Plus = target.isAtLeast("26.1");
+        boolean is26Plus = target.isAtLeast("26");
         String textShaderConstants = getTextShaderConstants(target, features);
         TextEffectSnippets snippets = getTextEffectSnippets(target);
         String vertexPrelude = snippets.vertexPrelude();
