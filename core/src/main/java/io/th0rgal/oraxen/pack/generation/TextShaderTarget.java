@@ -45,7 +45,16 @@ public record TextShaderTarget(int packFormat, MinecraftVersion minecraftVersion
     }
 
     public boolean isAtLeast(String version) {
-        return minecraftVersion.isAtLeast(new MinecraftVersion(version));
+        MinecraftVersion threshold = new MinecraftVersion(version);
+        if (minecraftVersion.isAtLeast(threshold)) return true;
+        // Handle runtimes reporting "1.26.x" instead of "26.x":
+        // normalize by comparing without the legacy "1." prefix.
+        if (threshold.getMajor() >= 26 && minecraftVersion.getMajor() == 1 && minecraftVersion.getMinor() >= 26) {
+            MinecraftVersion normalized = new MinecraftVersion(
+                    minecraftVersion.getMinor(), minecraftVersion.getBuild(), 0);
+            return normalized.isAtLeast(threshold);
+        }
+        return false;
     }
 
     public String displayName() {

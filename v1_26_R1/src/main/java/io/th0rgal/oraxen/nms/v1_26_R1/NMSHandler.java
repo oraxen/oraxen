@@ -155,12 +155,10 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         CustomData oldData = oldItemStack.getComponents().get(type);
         CustomData newData = newNmsItem.getComponents().get(type);
 
-        // Cancels if null.
-        if (oldData == null || newData == null)
+        if (oldData == null)
             return newItem;
-        // Creates new nbt compound.
         CompoundTag oldTag = oldData.copyTag();
-        CompoundTag newTag = newData.copyTag();
+        CompoundTag newTag = newData != null ? newData.copyTag() : new CompoundTag();
 
         for (String key : oldTag.keySet()) {
             if (vanillaKeys.contains(key))
