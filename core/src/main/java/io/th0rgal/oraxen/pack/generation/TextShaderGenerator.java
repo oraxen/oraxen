@@ -205,8 +205,10 @@ class TextShaderGenerator {
 
         if (!generatedOverlays.isEmpty()) {
             shaderOverlaysGenerated = true;
-            Logs.logSuccess("Generated shader overlays for " + generatedOverlays.size()
-                    + " additional format groups (" + serverOverlay.directory() + " is the base)");
+            if (Settings.DEBUG.toBool()) {
+                Logs.logSuccess("Generated shader overlays for " + generatedOverlays.size()
+                        + " additional format groups (" + serverOverlay.directory() + " is the base)");
+            }
         }
     }
 
@@ -255,8 +257,10 @@ class TextShaderGenerator {
         if (jsonIntensitySeeThrough != null)
             ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text_intensity_see_through.json", jsonIntensitySeeThrough);
 
-        Logs.logSuccess("Generated text shaders for " + target.displayName()
-                + " (shader " + getShaderVersion(target) + ")" + (pathPrefix.isEmpty() ? "" : " [overlay]"));
+        if (Settings.DEBUG.toBool()) {
+            Logs.logSuccess("Generated text shaders for " + target.displayName()
+                    + " (shader " + getShaderVersion(target) + ")" + (pathPrefix.isEmpty() ? "" : " [overlay]"));
+        }
     }
 
     private String getShaderVersion(TextShaderTarget target) {

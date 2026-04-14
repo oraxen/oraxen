@@ -566,10 +566,6 @@ public class ResourcePack {
      * This must be called after {@link #generateFont()} to ensure overlay directories exist.
      */
     private void updatePackMcmetaOverlays() {
-        if (!textShaderGenerator.wereShaderOverlaysGenerated()) {
-            return;
-        }
-
         Path mcmetaPath = packFolder.toPath().resolve("pack.mcmeta");
         if (!mcmetaPath.toFile().exists()) {
             return;
@@ -586,7 +582,11 @@ public class ResourcePack {
             }
 
             MinecraftVersion currentVersion = MinecraftVersion.getCurrentVersion();
-            addShaderOverlayEntries(root, currentVersion);
+            boolean overlaysChanged = addShaderOverlayEntries(root, currentVersion);
+
+            if (!overlaysChanged) {
+                return;
+            }
 
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
             Files.writeString(mcmetaPath, gson.toJson(root), StandardCharsets.UTF_8);
@@ -608,7 +608,7 @@ public class ResourcePack {
      * format ranges, so that clients of any supported version see the pack as
      * compatible.</p>
      */
-    private void addShaderOverlayEntries(JsonObject root, MinecraftVersion serverVersion) {
+    private boolean addShaderOverlayEntries(JsonObject root, MinecraftVersion serverVersion) {
         JsonObject overlays;
         if (root.has("overlays")) {
             overlays = root.getAsJsonObject("overlays");
@@ -623,6 +623,7 @@ public class ResourcePack {
             entries = new JsonArray();
         }
 
+        int originalEntriesSize = entries.size();
         Set<String> generatedDirectories = textShaderGenerator.getGeneratedOverlays().stream()
                 .map(ShaderOverlay::directory)
                 .collect(java.util.stream.Collectors.toSet());
@@ -641,7 +642,7 @@ public class ResourcePack {
         }
         entries = filteredEntries;
 
-        int initialSize = entries.size();
+        int filteredEntriesSize = entries.size();
 
         for (ShaderOverlay overlay : textShaderGenerator.getGeneratedOverlays()) {
             JsonObject entry = new JsonObject();
@@ -657,17 +658,29 @@ public class ResourcePack {
             entries.add(entry);
         }
 
-        int newEntriesAdded = entries.size() - initialSize;
-        if (newEntriesAdded > 0) {
-            overlays.add("entries", entries);
-            root.add("overlays", overlays);
+        int newEntriesAdded = entries.size() - filteredEntriesSize;
+        boolean entriesRemoved = filteredEntriesSize != originalEntriesSize;
+        boolean entriesChanged = newEntriesAdded > 0 || entriesRemoved;
+        if (!entriesChanged) {
+            return false;
+        }
 
-            expandSupportedFormatsRange(root, serverVersion);
+        overlays.add("entries", entries);
+        root.add("overlays", overlays);
 
-            if (Settings.DEBUG.toBool()) {
+        expandSupportedFormatsRange(root, serverVersion);
+
+        if (Settings.DEBUG.toBool()) {
+            if (newEntriesAdded > 0 && entriesRemoved) {
+                Logs.logInfo("Refreshed shader overlay entries in pack.mcmeta");
+            } else if (newEntriesAdded > 0) {
                 Logs.logInfo("Added " + newEntriesAdded + " shader overlay entries to pack.mcmeta");
+            } else {
+                Logs.logInfo("Removed stale shader overlay entries from pack.mcmeta");
             }
         }
+
+        return true;
     }
 
     /**
