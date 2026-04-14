@@ -19,7 +19,7 @@ class NMSVersion(val nmsVersion: String, val serverVersion: String)
 infix fun String.toNms(that: String): NMSVersion = NMSVersion(this, that)
 val isCI = System.getenv("CI") != null
 val SUPPORTED_VERSIONS: List<NMSVersion> = listOfNotNull(
-    "v1_26_R1" toNms "26.1.1.build.29-alpha",
+    "v1_26_R1" toNms "26.1.2.build.5-alpha",
     "v1_20_R1" toNms "1.20.1-R0.1-SNAPSHOT",
     "v1_20_R2" toNms "1.20.2-R0.1-SNAPSHOT",
     "v1_20_R3" toNms "1.20.4-R0.1-SNAPSHOT",
