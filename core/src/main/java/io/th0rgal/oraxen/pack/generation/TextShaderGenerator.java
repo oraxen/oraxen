@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -46,11 +47,7 @@ class TextShaderGenerator {
     private TextShaderFeatures textShaderFeatures = null;
     private TextEffectSnippets textEffectSnippets = null;
     private TextShaderTarget textEffectSnippetsTarget = null;
-
-    /** Directory name for 1.21.6+ shader overlay */
-    private static final String OVERLAY_1_21_6_PLUS = "overlay_1_21_6_plus";
-    /** Directory name for 1.21.4/1.21.5 shader overlay */
-    private static final String OVERLAY_1_21_4_5 = "overlay_1_21_4_5";
+    private final List<ShaderOverlay> generatedOverlays = new ArrayList<>();
 
     // Common uniform definitions for shader JSON
     private static final String UNIFORM_MATRIX = """
@@ -75,6 +72,7 @@ class TextShaderGenerator {
         textShaderFeatures = null;
         textEffectSnippets = null;
         textEffectSnippetsTarget = null;
+        generatedOverlays.clear();
     }
 
     boolean wereTextShadersGenerated() {
@@ -90,11 +88,15 @@ class TextShaderGenerator {
     }
 
     String getOverlay1216PlusName() {
-        return OVERLAY_1_21_6_PLUS;
+        return ShaderOverlay.V1_21_6.directory();
     }
 
     String getOverlay12145Name() {
-        return OVERLAY_1_21_4_5;
+        return ShaderOverlay.V1_21_4.directory();
+    }
+
+    List<ShaderOverlay> getGeneratedOverlays() {
+        return List.copyOf(generatedOverlays);
     }
 
     void maybeGenerateTextShaders(boolean hasAnimatedGlyphs) {
@@ -188,23 +190,23 @@ class TextShaderGenerator {
     }
 
     private void generateTextShaders(TextShaderTarget target, TextShaderFeatures features) {
-        // Generate base shaders for the current server version
+        ShaderOverlay serverOverlay = ShaderOverlay.forPackFormat(target.packFormat());
+
         generateTextShadersForTarget(target, features, "");
 
-        // Generate overlay shaders for cross-version compatibility
-        // If server is 1.21.4/1.21.5, also generate 1.21.6+ shaders in overlay directory
-        if (target.isAtLeast("1.21.4") && !target.isAtLeast("1.21.6")) {
-            TextShaderTarget overlayTarget = TextShaderTarget.forVersion("1.21.6");
-            generateTextShadersForTarget(overlayTarget, features, OVERLAY_1_21_6_PLUS + "/");
-            shaderOverlaysGenerated = true;
-            Logs.logSuccess("Generated shader overlay for 1.21.6+ clients");
+        if (serverOverlay == null) return;
+
+        for (ShaderOverlay overlay : ShaderOverlay.values()) {
+            if (overlay == serverOverlay) continue;
+            TextShaderTarget overlayTarget = TextShaderTarget.forVersion(overlay.representativeVersion());
+            generateTextShadersForTarget(overlayTarget, features, overlay.directory() + "/");
+            generatedOverlays.add(overlay);
         }
-        // If server is 1.21.6+, also generate 1.21.4/1.21.5 shaders in overlay directory
-        else if (target.isAtLeast("1.21.6")) {
-            TextShaderTarget overlayTarget = TextShaderTarget.forVersion("1.21.4");
-            generateTextShadersForTarget(overlayTarget, features, OVERLAY_1_21_4_5 + "/");
+
+        if (!generatedOverlays.isEmpty()) {
             shaderOverlaysGenerated = true;
-            Logs.logSuccess("Generated shader overlay for 1.21.4/1.21.5 clients");
+            Logs.logSuccess("Generated shader overlays for " + generatedOverlays.size()
+                    + " additional format groups (" + serverOverlay.directory() + " is the base)");
         }
     }
 
@@ -258,15 +260,12 @@ class TextShaderGenerator {
     }
 
     private String getShaderVersion(TextShaderTarget target) {
-        if (target.isAtLeast("1.21.6")) {
-            return "1.21.6";
-        } else if (target.isAtLeast("1.21.4")) {
-            return "1.21.4";
-        } else if (target.isAtLeast("1.21")) {
-            return "1.21";
-        } else {
-            return "1.20";
-        }
+        if (target.isAtLeast("26")) return "26";
+        if (target.isAtLeast("1.21.9")) return "1.21.9";
+        if (target.isAtLeast("1.21.6")) return "1.21.6";
+        if (target.isAtLeast("1.21.4")) return "1.21.4";
+        if (target.isAtLeast("1.21")) return "1.21";
+        return "1.20";
     }
 
     private String getTextShaderConstants(TextShaderTarget target, TextShaderFeatures features) {
@@ -522,13 +521,14 @@ class TextShaderGenerator {
 
     private String getAnimationVertexShader(TextShaderTarget target, TextShaderFeatures features, boolean seeThrough) {
         boolean is1_21_6Plus = target.isAtLeast("1.21.6");
+        boolean is1_21_9Plus = target.isAtLeast("1.21.9");
         boolean is26Plus = target.isAtLeast("26");
         String textShaderConstants = getTextShaderConstants(target, features);
         TextEffectSnippets snippets = getTextEffectSnippets(target);
         String vertexPrelude = snippets.vertexPrelude();
         String vertexEffects = snippets.vertexEffects();
 
-        VertexShaderConfig config = createVertexShaderConfig(is1_21_6Plus, is26Plus, seeThrough);
+        VertexShaderConfig config = createVertexShaderConfig(is1_21_6Plus, is1_21_9Plus, seeThrough);
         String mainBody = getVertexShaderMainBody(config, vertexEffects, false);
 
         if (is1_21_6Plus) {
@@ -549,7 +549,7 @@ class TextShaderGenerator {
                 %s
                 %s
 
-""" : (is26Plus ? """
+""" : (is1_21_9Plus ? """
                 #version 330
 
                 #moj_import <minecraft:fog.glsl>
@@ -650,8 +650,14 @@ class TextShaderGenerator {
         }
     }
 
-    private VertexShaderConfig createVertexShaderConfig(boolean is1_21_6Plus, boolean is26Plus, boolean seeThrough) {
+    private VertexShaderConfig createVertexShaderConfig(boolean is1_21_6Plus, boolean is1_21_9Plus, boolean seeThrough) {
         if (is1_21_6Plus) {
+            String litColor = is1_21_9Plus
+                    ? "Color * sample_lightmap(Sampler2, UV2)"
+                    : "Color * texelFetch(Sampler2, UV2 / 16, 0)";
+            String animatedLitColor = is1_21_9Plus
+                    ? "vec4(1.0, 1.0, 1.0, visible) * sample_lightmap(Sampler2, UV2)"
+                    : "vec4(1.0, 1.0, 1.0, visible) * texelFetch(Sampler2, UV2 / 16, 0)";
             if (seeThrough) {
                 return new VertexShaderConfig(
                         "",
@@ -661,12 +667,6 @@ class TextShaderGenerator {
                         "(rawFrame % totalFrames)"
                 );
             } else {
-                String litColor = is26Plus
-                        ? "Color * sample_lightmap(Sampler2, UV2)"
-                        : "Color * texelFetch(Sampler2, UV2 / 16, 0)";
-                String animatedLitColor = is26Plus
-                        ? "vec4(1.0, 1.0, 1.0, visible) * sample_lightmap(Sampler2, UV2)"
-                        : "vec4(1.0, 1.0, 1.0, visible) * texelFetch(Sampler2, UV2 / 16, 0)";
                 return new VertexShaderConfig(
                         "sphericalVertexDistance = fog_spherical_distance(pos);\n                        cylindricalVertexDistance = fog_cylindrical_distance(pos);",
                         "sphericalVertexDistance = fog_spherical_distance(pos);\n                            cylindricalVertexDistance = fog_cylindrical_distance(pos);",
@@ -929,18 +929,17 @@ class TextShaderGenerator {
 
     private String getCombinedVertexShader(TextShaderTarget target, TextShaderFeatures features) {
         boolean is1_21_6Plus = target.isAtLeast("1.21.6");
-        boolean is26Plus = target.isAtLeast("26");
+        boolean is1_21_9Plus = target.isAtLeast("1.21.9");
         String textShaderConstants = getTextShaderConstants(target, features);
         TextEffectSnippets snippets = getTextEffectSnippets(target);
         String vertexPrelude = snippets.vertexPrelude();
         String vertexEffects = snippets.vertexEffects();
 
-        // Combined shader always uses non-seeThrough config (has Sampler2, fog) with scoreboard hiding
-        VertexShaderConfig config = createVertexShaderConfig(is1_21_6Plus, is26Plus, false);
+        VertexShaderConfig config = createVertexShaderConfig(is1_21_6Plus, is1_21_9Plus, false);
         String mainBody = getVertexShaderMainBody(config, vertexEffects, true);
 
         if (is1_21_6Plus) {
-            String header = is26Plus ? """
+            String header = is1_21_9Plus ? """
                 #version 330
 
                 #moj_import <minecraft:fog.glsl>

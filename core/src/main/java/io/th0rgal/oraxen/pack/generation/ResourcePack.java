@@ -586,11 +586,8 @@ public class ResourcePack {
             }
 
             MinecraftVersion currentVersion = MinecraftVersion.getCurrentVersion();
-            if (currentVersion.isAtLeast(new MinecraftVersion("1.21.4"))) {
-                addShaderOverlayEntries(root, currentVersion);
-            }
+            addShaderOverlayEntries(root, currentVersion);
 
-            // Use Gson with pretty printing for readable output
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
             Files.writeString(mcmetaPath, gson.toJson(root), StandardCharsets.UTF_8);
         } catch (Exception e) {
@@ -607,19 +604,18 @@ public class ResourcePack {
      * Minecraft client versions. The client automatically selects the appropriate
      * overlay based on its pack_format.</p>
      *
-     * @param root The root pack.mcmeta JSON object
-     * @param serverVersion The server's Minecraft version
+     * <p>Also expands the base pack's supported format range to cover all overlay
+     * format ranges, so that clients of any supported version see the pack as
+     * compatible.</p>
      */
     private void addShaderOverlayEntries(JsonObject root, MinecraftVersion serverVersion) {
-        // Get existing overlays or create new one
         JsonObject overlays;
         if (root.has("overlays")) {
             overlays = root.getAsJsonObject("overlays");
         } else {
             overlays = new JsonObject();
         }
-        
-        // Get existing entries array or create new one
+
         JsonArray entries;
         if (overlays.has("entries")) {
             entries = overlays.getAsJsonArray("entries");
@@ -629,25 +625,13 @@ public class ResourcePack {
 
         int initialSize = entries.size();
 
-        if (serverVersion.isAtLeast(new MinecraftVersion("1.21.6"))) {
-            // Server is 1.21.6+, base shaders are 1.21.6 format
-            // Add overlay for 1.21.4/1.21.5 clients (pack_format 46-54)
+        for (ShaderOverlay overlay : textShaderGenerator.getGeneratedOverlays()) {
             JsonObject entry = new JsonObject();
             JsonObject formats = new JsonObject();
-            formats.addProperty("min_inclusive", TextShaderTarget.PACK_FORMAT_1_21_4);
-            formats.addProperty("max_inclusive", TextShaderTarget.PACK_FORMAT_1_21_6 - 1);
+            formats.addProperty("min_inclusive", overlay.minFormat());
+            formats.addProperty("max_inclusive", overlay.maxFormat());
             entry.add("formats", formats);
-            entry.addProperty("directory", textShaderGenerator.getOverlay12145Name());
-            entries.add(entry);
-        } else if (serverVersion.isAtLeast(new MinecraftVersion("1.21.4"))) {
-            // Server is 1.21.4/1.21.5, base shaders are 1.21.4 format
-            // Add overlay for 1.21.6+ clients (pack_format 55+)
-            JsonObject entry = new JsonObject();
-            JsonObject formats = new JsonObject();
-            formats.addProperty("min_inclusive", TextShaderTarget.PACK_FORMAT_1_21_6);
-            formats.addProperty("max_inclusive", 999); // Support future versions
-            entry.add("formats", formats);
-            entry.addProperty("directory", textShaderGenerator.getOverlay1216PlusName());
+            entry.addProperty("directory", overlay.directory());
             entries.add(entry);
         }
 
@@ -655,10 +639,57 @@ public class ResourcePack {
         if (newEntriesAdded > 0) {
             overlays.add("entries", entries);
             root.add("overlays", overlays);
+
+            expandSupportedFormatsRange(root, serverVersion);
+
             if (Settings.DEBUG.toBool()) {
                 Logs.logInfo("Added " + newEntriesAdded + " shader overlay entries to pack.mcmeta");
             }
         }
+    }
+
+    /**
+     * Expands the base pack's supported_formats / min_format / max_format range
+     * to cover all overlay format ranges, ensuring that clients of any supported
+     * version see the pack as compatible.
+     *
+     * <p>For servers on 1.21.9+ (format 65+), also adds the legacy
+     * {@code supported_formats} field so that pre-1.21.9 clients can read the
+     * format range (they don't understand {@code min_format}/{@code max_format}).</p>
+     */
+    private void expandSupportedFormatsRange(JsonObject root, MinecraftVersion serverVersion) {
+        List<ShaderOverlay> overlayList = textShaderGenerator.getGeneratedOverlays();
+        if (overlayList.isEmpty()) return;
+
+        int minOverlayFormat = overlayList.stream()
+                .mapToInt(ShaderOverlay::minFormat).min().orElse(Integer.MAX_VALUE);
+        int maxOverlayFormat = overlayList.stream()
+                .mapToInt(ShaderOverlay::maxFormat).max().orElse(0);
+
+        JsonObject pack = root.has("pack") && root.get("pack").isJsonObject()
+                ? root.getAsJsonObject("pack") : new JsonObject();
+
+        int serverFormat = ResourcePackFormatUtil.getCurrentResourcePackFormat();
+        int effectiveMin = Math.min(serverFormat, minOverlayFormat);
+        int effectiveMax = Math.max(serverFormat, maxOverlayFormat);
+
+        if (serverFormat >= 65) {
+            pack.addProperty("min_format", effectiveMin);
+            pack.addProperty("max_format", effectiveMax);
+            JsonObject supportedFormats = new JsonObject();
+            supportedFormats.addProperty("min_inclusive", effectiveMin);
+            supportedFormats.addProperty("max_inclusive", effectiveMax);
+            pack.add("supported_formats", supportedFormats);
+        } else if (serverFormat >= 18) {
+            JsonObject supportedFormats = new JsonObject();
+            supportedFormats.addProperty("min_inclusive", effectiveMin);
+            supportedFormats.addProperty("max_inclusive", effectiveMax);
+            pack.add("supported_formats", supportedFormats);
+            pack.remove("min_format");
+            pack.remove("max_format");
+        }
+
+        root.add("pack", pack);
     }
 
 

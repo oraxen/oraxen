@@ -11,10 +11,14 @@ import io.th0rgal.oraxen.utils.ResourcePackFormatUtil;
  */
 public record TextShaderTarget(int packFormat, MinecraftVersion minecraftVersion) {
 
-    /** Pack format for 1.21.4/1.21.5 */
+    /** Pack format for 1.21.4 (format range 46-62 includes 1.21.5) */
     public static final int PACK_FORMAT_1_21_4 = 46;
-    /** Pack format for 1.21.6+ (first version with new shader format) */
-    public static final int PACK_FORMAT_1_21_6 = 55;
+    /** Pack format for 1.21.6 (first version with GLSL 330 + namespaced imports) */
+    public static final int PACK_FORMAT_1_21_6 = 63;
+    /** Pack format for 1.21.9 (first version with sample_lightmap) */
+    public static final int PACK_FORMAT_1_21_9 = 69;
+    /** Pack format for 26.x */
+    public static final int PACK_FORMAT_26 = 84;
 
     public static TextShaderTarget current() {
         return new TextShaderTarget(ResourcePackFormatUtil.getCurrentResourcePackFormat(),
@@ -32,7 +36,8 @@ public record TextShaderTarget(int packFormat, MinecraftVersion minecraftVersion
     }
 
     private static int getPackFormatForVersion(MinecraftVersion version) {
-        // Map major shader-breaking versions to their pack formats
+        if (version.isAtLeast(new MinecraftVersion("26"))) return PACK_FORMAT_26;
+        if (version.isAtLeast(new MinecraftVersion("1.21.9"))) return PACK_FORMAT_1_21_9;
         if (version.isAtLeast(new MinecraftVersion("1.21.6"))) return PACK_FORMAT_1_21_6;
         if (version.isAtLeast(new MinecraftVersion("1.21.4"))) return PACK_FORMAT_1_21_4;
         if (version.isAtLeast(new MinecraftVersion("1.21.2"))) return 42;
@@ -41,7 +46,7 @@ public record TextShaderTarget(int packFormat, MinecraftVersion minecraftVersion
         if (version.isAtLeast(new MinecraftVersion("1.20.3"))) return 22;
         if (version.isAtLeast(new MinecraftVersion("1.20.2"))) return 18;
         if (version.isAtLeast(new MinecraftVersion("1.20"))) return 15;
-        return 15; // fallback
+        return 15;
     }
 
     public boolean isAtLeast(String version) {
