@@ -624,6 +624,9 @@ public class ResourcePack {
         }
 
         int originalEntriesSize = entries.size();
+        Set<String> knownDirectories = java.util.Arrays.stream(ShaderOverlay.values())
+                .map(ShaderOverlay::directory)
+                .collect(java.util.stream.Collectors.toSet());
         Set<String> generatedDirectories = textShaderGenerator.getGeneratedOverlays().stream()
                 .map(ShaderOverlay::directory)
                 .collect(java.util.stream.Collectors.toSet());
@@ -636,7 +639,7 @@ public class ResourcePack {
 
             JsonObject existingEntry = element.getAsJsonObject();
             String directory = existingEntry.has("directory") ? existingEntry.get("directory").getAsString() : null;
-            if (directory == null || !generatedDirectories.contains(directory)) {
+            if (directory == null || !knownDirectories.contains(directory)) {
                 filteredEntries.add(existingEntry);
             }
         }
