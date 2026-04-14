@@ -104,6 +104,57 @@ public final class PaperConfigUpdater {
         return updatedSettings;
     }
 
+    /**
+     * Reads paper-global.yml and checks whether a block-updates setting is enabled.
+     *
+     * @param settingName one of: disable-noteblock-updates, disable-tripwire-updates, disable-chorus-plant-updates
+     * @return true when the setting is explicitly set to true under block-updates
+     */
+    public static boolean isBlockUpdateSettingEnabled(String settingName) {
+        if (!VersionUtil.isPaperServer() || !VersionUtil.atOrAbove("1.20.1")) {
+            return false;
+        }
+
+        Path configPath = Path.of(CONFIG_FILE);
+        if (!Files.exists(configPath)) {
+            return false;
+        }
+
+        try {
+            List<String> lines = Files.readAllLines(configPath);
+            boolean inBlockUpdates = false;
+            int blockUpdatesIndent = -1;
+            Pattern settingPattern = Pattern.compile("^(\\s*)" + Pattern.quote(settingName) + ":\\s*(true|false)\\b.*$", Pattern.CASE_INSENSITIVE);
+
+            for (String line : lines) {
+                String trimmed = line.trim();
+
+                if (trimmed.startsWith("block-updates:")) {
+                    inBlockUpdates = true;
+                    blockUpdatesIndent = getIndent(line);
+                    continue;
+                }
+
+                if (inBlockUpdates && !trimmed.isEmpty() && !trimmed.startsWith("#")) {
+                    int currentIndent = getIndent(line);
+                    if (currentIndent <= blockUpdatesIndent) {
+                        inBlockUpdates = false;
+                        continue;
+                    }
+
+                    Matcher matcher = settingPattern.matcher(line);
+                    if (matcher.matches()) {
+                        return "true".equalsIgnoreCase(matcher.group(2));
+                    }
+                }
+            }
+        } catch (IOException e) {
+            Logs.logWarning("Failed to read paper-global.yml: " + e.getMessage());
+        }
+
+        return false;
+    }
+
     private static String tryUpdateSetting(String line, String settingName, List<String> updatedSettings) {
         // Pattern: "  disable-noteblock-updates: false" -> true
         Pattern pattern = Pattern.compile("^(\\s*)" + Pattern.quote(settingName) + ":\\s*false\\s*$");

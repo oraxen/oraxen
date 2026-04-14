@@ -11,6 +11,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional.Direc
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.farmblock.FarmBlockTask;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.logstrip.LogStripListener;
 import io.th0rgal.oraxen.nms.NMSHandlers;
+import io.th0rgal.oraxen.utils.PaperConfigUpdater;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.lang3.Range;
@@ -68,11 +69,13 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         // Physics-related stuff
         if (VersionUtil.isPaperServer())
             MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockMechanicListener.NoteBlockMechanicPaperListener());
-        if (!VersionUtil.isPaperServer() || !NMSHandlers.isNoteblockUpdatesDisabled())
+        boolean noteblockUpdatesDisabled = NMSHandlers.isNoteblockUpdatesDisabled()
+                || PaperConfigUpdater.isBlockUpdateSettingEnabled("disable-noteblock-updates");
+        if (!VersionUtil.isPaperServer() || !noteblockUpdatesDisabled)
             MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockMechanicListener.NoteBlockMechanicPhysicsListener());
         // Warn if Paper config is not set (auto-update happens earlier in plugin enable)
-        if (VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.20.1") && !NMSHandlers.isNoteblockUpdatesDisabled()) {
-            Logs.logWarning("Papers block-updates.disable-noteblock-updates is not enabled, restart may be required");
+        if (VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.20.1") && !noteblockUpdatesDisabled) {
+            Logs.logWarning("Paper block-updates.disable-noteblock-updates is not enabled, restart may be required");
         }
     }
 
