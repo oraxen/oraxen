@@ -71,6 +71,21 @@ public final class PackDispatchListener implements Listener {
         CompletableFuture<Void> future = sendResourcePack(event.getConnection(), true);
         if (future == null) {
             event.getConnection().completeReconfiguration();
+            return;
+        }
+        try {
+            future.get(10, TimeUnit.SECONDS);
+        } catch (TimeoutException e) {
+            Logs.logWarning("Timed out while waiting for reconfiguration pack callback");
+            future.cancel(true);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            future.cancel(true);
+        } catch (ExecutionException e) {
+            Logs.logWarning("Reconfiguration pack dispatch failed: " + e.getMessage());
+            future.cancel(true);
+        } finally {
+            event.getConnection().completeReconfiguration();
         }
     }
 
