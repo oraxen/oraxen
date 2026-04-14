@@ -4,8 +4,7 @@ public enum ShaderOverlay {
 
     V1_20_2("overlay_1_20_2", 18, 45, "1.20.2"),
     V1_21_4("overlay_1_21_4", 46, 62, "1.21.4"),
-    V1_21_6("overlay_1_21_6", 63, 68, "1.21.6"),
-    V1_21_9("overlay_1_21_9", 69, 83, "1.21.9"),
+    V1_21_6("overlay_1_21_6", 63, 83, "1.21.6"),
     V26("overlay_26", 84, 999, "26");
 
     private final String directory;

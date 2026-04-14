@@ -261,7 +261,6 @@ class TextShaderGenerator {
 
     private String getShaderVersion(TextShaderTarget target) {
         if (target.isAtLeast("26")) return "26";
-        if (target.isAtLeast("1.21.9")) return "1.21.9";
         if (target.isAtLeast("1.21.6")) return "1.21.6";
         if (target.isAtLeast("1.21.4")) return "1.21.4";
         if (target.isAtLeast("1.21")) return "1.21";
@@ -521,14 +520,13 @@ class TextShaderGenerator {
 
     private String getAnimationVertexShader(TextShaderTarget target, TextShaderFeatures features, boolean seeThrough) {
         boolean is1_21_6Plus = target.isAtLeast("1.21.6");
-        boolean is1_21_9Plus = target.isAtLeast("1.21.9");
         boolean is26Plus = target.isAtLeast("26");
         String textShaderConstants = getTextShaderConstants(target, features);
         TextEffectSnippets snippets = getTextEffectSnippets(target);
         String vertexPrelude = snippets.vertexPrelude();
         String vertexEffects = snippets.vertexEffects();
 
-        VertexShaderConfig config = createVertexShaderConfig(is1_21_6Plus, is1_21_9Plus, seeThrough);
+        VertexShaderConfig config = createVertexShaderConfig(is1_21_6Plus, is26Plus, seeThrough);
         String mainBody = getVertexShaderMainBody(config, vertexEffects, false);
 
         if (is1_21_6Plus) {
@@ -549,7 +547,7 @@ class TextShaderGenerator {
                 %s
                 %s
 
-""" : (is1_21_9Plus ? """
+""" : (is26Plus ? """
                 #version 330
 
                 #moj_import <minecraft:fog.glsl>
@@ -650,12 +648,12 @@ class TextShaderGenerator {
         }
     }
 
-    private VertexShaderConfig createVertexShaderConfig(boolean is1_21_6Plus, boolean is1_21_9Plus, boolean seeThrough) {
+    private VertexShaderConfig createVertexShaderConfig(boolean is1_21_6Plus, boolean is26Plus, boolean seeThrough) {
         if (is1_21_6Plus) {
-            String litColor = is1_21_9Plus
+            String litColor = is26Plus
                     ? "Color * sample_lightmap(Sampler2, UV2)"
                     : "Color * texelFetch(Sampler2, UV2 / 16, 0)";
-            String animatedLitColor = is1_21_9Plus
+            String animatedLitColor = is26Plus
                     ? "vec4(1.0, 1.0, 1.0, visible) * sample_lightmap(Sampler2, UV2)"
                     : "vec4(1.0, 1.0, 1.0, visible) * texelFetch(Sampler2, UV2 / 16, 0)";
             if (seeThrough) {
@@ -929,17 +927,17 @@ class TextShaderGenerator {
 
     private String getCombinedVertexShader(TextShaderTarget target, TextShaderFeatures features) {
         boolean is1_21_6Plus = target.isAtLeast("1.21.6");
-        boolean is1_21_9Plus = target.isAtLeast("1.21.9");
+        boolean is26Plus = target.isAtLeast("26");
         String textShaderConstants = getTextShaderConstants(target, features);
         TextEffectSnippets snippets = getTextEffectSnippets(target);
         String vertexPrelude = snippets.vertexPrelude();
         String vertexEffects = snippets.vertexEffects();
 
-        VertexShaderConfig config = createVertexShaderConfig(is1_21_6Plus, is1_21_9Plus, false);
+        VertexShaderConfig config = createVertexShaderConfig(is1_21_6Plus, is26Plus, false);
         String mainBody = getVertexShaderMainBody(config, vertexEffects, true);
 
         if (is1_21_6Plus) {
-            String header = is1_21_9Plus ? """
+            String header = is26Plus ? """
                 #version 330
 
                 #moj_import <minecraft:fog.glsl>

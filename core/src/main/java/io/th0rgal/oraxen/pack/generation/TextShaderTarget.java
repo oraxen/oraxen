@@ -13,11 +13,9 @@ public record TextShaderTarget(int packFormat, MinecraftVersion minecraftVersion
 
     /** Pack format for 1.21.4 (format range 46-62 includes 1.21.5) */
     public static final int PACK_FORMAT_1_21_4 = 46;
-    /** Pack format for 1.21.6 (first version with GLSL 330 + namespaced imports) */
+    /** Pack format for 1.21.6 (format range 63-83; 1.21.6-1.21.11 share the same shader format with texelFetch) */
     public static final int PACK_FORMAT_1_21_6 = 63;
-    /** Pack format for 1.21.9 (first version with sample_lightmap) */
-    public static final int PACK_FORMAT_1_21_9 = 69;
-    /** Pack format for 26.x */
+    /** Pack format for 26.x (first version with sample_lightmap replacing texelFetch) */
     public static final int PACK_FORMAT_26 = 84;
 
     public static TextShaderTarget current() {
@@ -37,7 +35,6 @@ public record TextShaderTarget(int packFormat, MinecraftVersion minecraftVersion
 
     private static int getPackFormatForVersion(MinecraftVersion version) {
         if (version.isAtLeast(new MinecraftVersion("26"))) return PACK_FORMAT_26;
-        if (version.isAtLeast(new MinecraftVersion("1.21.9"))) return PACK_FORMAT_1_21_9;
         if (version.isAtLeast(new MinecraftVersion("1.21.6"))) return PACK_FORMAT_1_21_6;
         if (version.isAtLeast(new MinecraftVersion("1.21.4"))) return PACK_FORMAT_1_21_4;
         if (version.isAtLeast(new MinecraftVersion("1.21.2"))) return 42;

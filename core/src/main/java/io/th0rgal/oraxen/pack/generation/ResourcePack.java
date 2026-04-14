@@ -623,6 +623,24 @@ public class ResourcePack {
             entries = new JsonArray();
         }
 
+        Set<String> generatedDirectories = textShaderGenerator.getGeneratedOverlays().stream()
+                .map(ShaderOverlay::directory)
+                .collect(java.util.stream.Collectors.toSet());
+        JsonArray filteredEntries = new JsonArray();
+        for (JsonElement element : entries) {
+            if (!element.isJsonObject()) {
+                filteredEntries.add(element);
+                continue;
+            }
+
+            JsonObject existingEntry = element.getAsJsonObject();
+            String directory = existingEntry.has("directory") ? existingEntry.get("directory").getAsString() : null;
+            if (directory == null || !generatedDirectories.contains(directory)) {
+                filteredEntries.add(existingEntry);
+            }
+        }
+        entries = filteredEntries;
+
         int initialSize = entries.size();
 
         for (ShaderOverlay overlay : textShaderGenerator.getGeneratedOverlays()) {
@@ -632,6 +650,10 @@ public class ResourcePack {
             formats.addProperty("max_inclusive", overlay.maxFormat());
             entry.add("formats", formats);
             entry.addProperty("directory", overlay.directory());
+            if (overlay.minFormat() > 64 || overlay.maxFormat() > 64) {
+                entry.addProperty("min_format", overlay.minFormat());
+                entry.addProperty("max_format", overlay.maxFormat());
+            }
             entries.add(entry);
         }
 
