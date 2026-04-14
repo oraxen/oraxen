@@ -125,7 +125,6 @@ public final class PackDispatchListener implements Listener {
                     PackReceiver.handleAdventureStatus(playerId, status);
                     if (!status.intermediate()) {
                         future.complete(null);
-                        if (reconfigure) connection.completeReconfiguration();
                     }
                 })
                 .build();
