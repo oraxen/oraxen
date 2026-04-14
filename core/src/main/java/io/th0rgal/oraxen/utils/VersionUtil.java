@@ -111,8 +111,20 @@ public class VersionUtil {
     }
 
     public static NMSVersion getNMSVersion(MinecraftVersion version) {
-        return versionMap.entrySet().stream().filter(e -> e.getValue().containsValue(version)).map(Map.Entry::getKey)
-                .findFirst().orElse(NMSVersion.UNKNOWN);
+        // First try exact match for all versions
+        for (Map.Entry<NMSVersion, Map<Integer, MinecraftVersion>> entry : versionMap.entrySet()) {
+            if (entry.getValue().containsValue(version)) {
+                return entry.getKey();
+            }
+        }
+
+        // For 26.x series, use range-based matching to handle patch versions
+        // Any 26.x.x version where minor >= 1 should match v1_26_R1
+        if (version.getMajor() == 26 && version.getMinor() >= 1) {
+            return NMSVersion.v1_26_R1;
+        }
+
+        return NMSVersion.UNKNOWN;
     }
 
     public static boolean matchesServer(String server) {
