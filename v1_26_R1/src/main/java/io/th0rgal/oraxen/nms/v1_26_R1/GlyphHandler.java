@@ -98,9 +98,11 @@ public class GlyphHandler implements io.th0rgal.oraxen.nms.GlyphHandler {
 
     static {
         Field getToId = Arrays.stream(IdDispatchCodec.class.getDeclaredFields())
-                .filter(f -> Object2IntMap.class.isAssignableFrom(f.getType())).findFirst().orElseThrow();
+                .filter(f -> Object2IntMap.class.isAssignableFrom(f.getType()))
+                .findFirst().orElseThrow(() -> new IllegalStateException("No Object2IntMap field in IdDispatchCodec"));
         Field getById = Arrays.stream(IdDispatchCodec.class.getDeclaredFields())
-                .filter(f -> List.class.isAssignableFrom(f.getType())).findFirst().orElseThrow();
+                .filter(f -> List.class.isAssignableFrom(f.getType()))
+                .findFirst().orElseThrow(() -> new IllegalStateException("No List field in IdDispatchCodec"));
         Class<?> entryClass = Arrays.stream(IdDispatchCodec.class.getDeclaredClasses())
                 .filter(c -> !c.isInterface() && !c.isEnum())
                 .findFirst().orElseThrow(() -> new IllegalStateException("No inner class found in IdDispatchCodec"));
