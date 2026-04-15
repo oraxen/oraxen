@@ -627,9 +627,6 @@ public class ResourcePack {
         Set<String> knownDirectories = java.util.Arrays.stream(ShaderOverlay.values())
                 .map(ShaderOverlay::directory)
                 .collect(java.util.stream.Collectors.toSet());
-        Set<String> generatedDirectories = textShaderGenerator.getGeneratedOverlays().stream()
-                .map(ShaderOverlay::directory)
-                .collect(java.util.stream.Collectors.toSet());
         JsonArray filteredEntries = new JsonArray();
         for (JsonElement element : entries) {
             if (!element.isJsonObject()) {
