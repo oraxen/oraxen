@@ -5,6 +5,8 @@ public enum ShaderOverlay {
     V1_20_2("overlay_1_20_2", 18, 45, "1.20.2"),
     V1_21_4("overlay_1_21_4", 46, 62, "1.21.4"),
     V1_21_6("overlay_1_21_6", 63, 83, "1.21.6"),
+    // 999 intentionally means "open-ended" until a real upper bound is known.
+    // It is written to pack.mcmeta max_format/max_inclusive on purpose.
     V26("overlay_26", 84, 999, "26");
 
     private final String directory;
