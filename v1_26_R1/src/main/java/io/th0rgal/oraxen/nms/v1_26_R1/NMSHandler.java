@@ -492,9 +492,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                     case "remove_effects" -> handleRemoveEffects(consumable, effectSection);
                     case "clear_all_effects" -> consumable.onConsume(new ClearAllStatusEffectsConsumeEffect());
                     case "teleport_randomly" -> {
-                        float diameter = Optional.ofNullable(effectSection.get("diameter"))
-                                .map(d -> Float.parseFloat(d.toString()))
-                                .orElse(16f);
+                        float diameter = parseFloatValue(effectSection.get("diameter"), 16f, "teleport_randomly.diameter");
                         consumable.onConsume(new TeleportRandomlyConsumeEffect(diameter));
                     }
                     case "play_sound" -> handlePlaySound(consumable, effectSection, template);
