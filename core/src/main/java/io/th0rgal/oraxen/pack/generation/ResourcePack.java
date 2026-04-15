@@ -581,8 +581,7 @@ public class ResourcePack {
                 return;
             }
 
-            MinecraftVersion currentVersion = MinecraftVersion.getCurrentVersion();
-            boolean overlaysChanged = addShaderOverlayEntries(root, currentVersion);
+            boolean overlaysChanged = addShaderOverlayEntries(root);
 
             if (!overlaysChanged) {
                 return;
@@ -608,7 +607,7 @@ public class ResourcePack {
      * format ranges, so that clients of any supported version see the pack as
      * compatible.</p>
      */
-    private boolean addShaderOverlayEntries(JsonObject root, MinecraftVersion serverVersion) {
+    private boolean addShaderOverlayEntries(JsonObject root) {
         JsonObject overlays;
         if (root.has("overlays")) {
             overlays = root.getAsJsonObject("overlays");
@@ -668,7 +667,7 @@ public class ResourcePack {
         overlays.add("entries", entries);
         root.add("overlays", overlays);
 
-        expandSupportedFormatsRange(root, serverVersion);
+        expandSupportedFormatsRange(root);
 
         if (Settings.DEBUG.toBool()) {
             if (newEntriesAdded > 0 && entriesRemoved) {
@@ -692,7 +691,7 @@ public class ResourcePack {
      * {@code supported_formats} field so that pre-1.21.9 clients can read the
      * format range (they don't understand {@code min_format}/{@code max_format}).</p>
      */
-    private void expandSupportedFormatsRange(JsonObject root, MinecraftVersion serverVersion) {
+    private void expandSupportedFormatsRange(JsonObject root) {
         List<ShaderOverlay> overlayList = textShaderGenerator.getGeneratedOverlays();
         if (overlayList.isEmpty()) return;
 
