@@ -68,22 +68,21 @@ public final class PackDispatchListener implements Listener {
             event.getConnection().completeReconfiguration();
             return;
         }
-        CompletableFuture<Void> future = sendResourcePack(event.getConnection(), true);
-        if (future == null) {
-            event.getConnection().completeReconfiguration();
-            return;
-        }
         try {
-            future.get(10, TimeUnit.SECONDS);
-        } catch (TimeoutException e) {
-            Logs.logWarning("Timed out while waiting for reconfiguration pack callback");
-            future.cancel(true);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            future.cancel(true);
-        } catch (ExecutionException e) {
-            Logs.logWarning("Reconfiguration pack dispatch failed: " + e.getMessage());
-            future.cancel(true);
+            CompletableFuture<Void> future = sendResourcePack(event.getConnection(), true);
+            if (future == null) return;
+            try {
+                future.get(10, TimeUnit.SECONDS);
+            } catch (TimeoutException e) {
+                Logs.logWarning("Timed out while waiting for reconfiguration pack callback");
+                future.cancel(true);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                future.cancel(true);
+            } catch (ExecutionException e) {
+                Logs.logWarning("Reconfiguration pack dispatch failed: " + e.getMessage());
+                future.cancel(true);
+            }
         } finally {
             event.getConnection().completeReconfiguration();
         }
@@ -106,13 +105,27 @@ public final class PackDispatchListener implements Listener {
         UUID playerId = connection.getProfile().getId();
         if (playerId == null) return null;
 
-        byte[] hashBytes = hashArray(hash);
-        UUID packUUID = UUID.nameUUIDFromBytes(hashBytes);
+        UUID packUUID;
+        try {
+            byte[] hashBytes = hashArray(hash);
+            packUUID = UUID.nameUUIDFromBytes(hashBytes);
+        } catch (IllegalArgumentException exception) {
+            Logs.logWarning("Invalid resource pack hash for " + playerId + ": " + hash);
+            return null;
+        }
         CompletableFuture<Void> future = new CompletableFuture<>();
+
+        java.net.URI packUri;
+        try {
+            packUri = java.net.URI.create(packUrl);
+        } catch (IllegalArgumentException exception) {
+            Logs.logWarning("Invalid resource pack URL for " + playerId + ": " + packUrl);
+            return null;
+        }
 
         ResourcePackInfo info = ResourcePackInfo.resourcePackInfo()
                 .id(packUUID)
-                .uri(java.net.URI.create(packUrl))
+                .uri(packUri)
                 .hash(hash)
                 .build();
 
