@@ -704,8 +704,10 @@ public class ResourcePack {
                 ? root.getAsJsonObject("pack") : new JsonObject();
 
         int serverFormat = ResourcePackFormatUtil.getCurrentResourcePackFormat();
+        ShaderOverlay serverOverlay = ShaderOverlay.forPackFormat(serverFormat);
+        int serverGroupMax = serverOverlay != null ? serverOverlay.maxFormat() : serverFormat;
         int effectiveMin = Math.min(serverFormat, minOverlayFormat);
-        int effectiveMax = Math.max(serverFormat, maxOverlayFormat);
+        int effectiveMax = Math.max(serverGroupMax, maxOverlayFormat);
 
         if (serverFormat >= 65) {
             pack.addProperty("min_format", effectiveMin);
