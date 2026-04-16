@@ -2,7 +2,7 @@ plugins {
     id("java")
     //id("io.papermc.paperweight.userdev") version "1.6.0"
     id("maven-publish")
-    id("io.github.goooler.shadow") version "8.1.8"
+    id("com.gradleup.shadow") version "9.4.1"
     id("org.ajoberstar.grgit.service") version "5.2.0"
 }
 
@@ -26,7 +26,7 @@ tasks.register<JavaExec>("runPackMergerDebug") {
     
     // Pass command line args: ./gradlew :core:runPackMergerDebug --args="path/to/pack.zip"
     if (project.hasProperty("packFile")) {
-        args(project.property("packFile"))
+        args(project.property("packFile").toString())
     }
 }
 
@@ -62,6 +62,7 @@ dependencies {
     testImplementation("net.kyori:adventure-text-minimessage:4.17.0")
     testImplementation("net.kyori:adventure-text-serializer-legacy:4.17.0")
     testImplementation("com.google.guava:guava:33.0.0-jre")
+    testImplementation("com.google.code.gson:gson:2.10.1")
 }
 
 java {

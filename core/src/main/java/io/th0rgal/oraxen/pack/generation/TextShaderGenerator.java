@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -46,11 +47,7 @@ class TextShaderGenerator {
     private TextShaderFeatures textShaderFeatures = null;
     private TextEffectSnippets textEffectSnippets = null;
     private TextShaderTarget textEffectSnippetsTarget = null;
-
-    /** Directory name for 1.21.6+ shader overlay */
-    private static final String OVERLAY_1_21_6_PLUS = "overlay_1_21_6_plus";
-    /** Directory name for 1.21.4/1.21.5 shader overlay */
-    private static final String OVERLAY_1_21_4_5 = "overlay_1_21_4_5";
+    private final List<ShaderOverlay> generatedOverlays = new ArrayList<>();
 
     // Common uniform definitions for shader JSON
     private static final String UNIFORM_MATRIX = """
@@ -75,6 +72,7 @@ class TextShaderGenerator {
         textShaderFeatures = null;
         textEffectSnippets = null;
         textEffectSnippetsTarget = null;
+        generatedOverlays.clear();
     }
 
     boolean wereTextShadersGenerated() {
@@ -90,11 +88,15 @@ class TextShaderGenerator {
     }
 
     String getOverlay1216PlusName() {
-        return OVERLAY_1_21_6_PLUS;
+        return ShaderOverlay.V1_21_6.directory();
     }
 
     String getOverlay12145Name() {
-        return OVERLAY_1_21_4_5;
+        return ShaderOverlay.V1_21_4.directory();
+    }
+
+    List<ShaderOverlay> getGeneratedOverlays() {
+        return List.copyOf(generatedOverlays);
     }
 
     void maybeGenerateTextShaders(boolean hasAnimatedGlyphs) {
@@ -114,10 +116,15 @@ class TextShaderGenerator {
                 && VersionUtil.atOrAbove("1.20.3")) {
             OraxenPlugin.get().getPacketAdapter().registerScoreboardListener();
         } else { // Pre 1.20.3 rely on shaders
-            // Check if text shaders were already generated - need to combine them
-            if (textShadersGenerated) {
-                // Use combined shaders that support both text features and scoreboard hiding
-                TextShaderTarget target = TextShaderTarget.current();
+            TextShaderTarget target = TextShaderTarget.current();
+            if (target.isAtLeast("26")) {
+                Logs.logWarning("Shader-based scoreboard number hiding is not supported on 26.x+.");
+                Logs.logWarning("Use a packet adapter (ProtocolLib or PacketEvents) on Paper 1.20.3+ instead.");
+                if (!textShadersGenerated) {
+                    ResourcePack.deleteFileFromVirtualAndDisk("assets/minecraft/shaders/core/", "rendertype_text.json");
+                    ResourcePack.deleteFileFromVirtualAndDisk("assets/minecraft/shaders/core/", "rendertype_text.vsh");
+                }
+            } else if (textShadersGenerated) {
                 boolean hasAnimatedGlyphs = !OraxenPlugin.get().getFontManager().getAnimatedGlyphs().isEmpty();
                 TextShaderFeatures features = textShaderFeatures != null
                         ? textShaderFeatures
@@ -126,7 +133,6 @@ class TextShaderGenerator {
                         getCombinedVertexShader(target, features));
                 ResourcePack.writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.json",
                         getCombinedShaderJson(target));
-                // Fragment shader stays the same (text shader uses vertex shader for scoreboard hiding)
                 Logs.logInfo("Using combined text + scoreboard hiding shaders");
             } else {
                 ResourcePack.writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.json", getScoreboardJson());
@@ -188,77 +194,93 @@ class TextShaderGenerator {
     }
 
     private void generateTextShaders(TextShaderTarget target, TextShaderFeatures features) {
-        // Generate base shaders for the current server version
+        ShaderOverlay serverOverlay = ShaderOverlay.forPackFormat(target.packFormat());
+
         generateTextShadersForTarget(target, features, "");
 
-        // Generate overlay shaders for cross-version compatibility
-        // If server is 1.21.4/1.21.5, also generate 1.21.6+ shaders in overlay directory
-        if (target.isAtLeast("1.21.4") && !target.isAtLeast("1.21.6")) {
-            TextShaderTarget overlayTarget = TextShaderTarget.forVersion("1.21.6");
-            generateTextShadersForTarget(overlayTarget, features, OVERLAY_1_21_6_PLUS + "/");
-            shaderOverlaysGenerated = true;
-            Logs.logSuccess("Generated shader overlay for 1.21.6+ clients");
+        if (serverOverlay == null) return;
+
+        for (ShaderOverlay overlay : ShaderOverlay.values()) {
+            if (overlay == serverOverlay) continue;
+            TextShaderTarget overlayTarget = TextShaderTarget.forVersion(overlay.representativeVersion());
+            generateTextShadersForTarget(overlayTarget, features, overlay.directory() + "/");
+            generatedOverlays.add(overlay);
         }
-        // If server is 1.21.6+, also generate 1.21.4/1.21.5 shaders in overlay directory
-        else if (target.isAtLeast("1.21.6")) {
-            TextShaderTarget overlayTarget = TextShaderTarget.forVersion("1.21.4");
-            generateTextShadersForTarget(overlayTarget, features, OVERLAY_1_21_4_5 + "/");
+
+        if (!generatedOverlays.isEmpty()) {
             shaderOverlaysGenerated = true;
-            Logs.logSuccess("Generated shader overlay for 1.21.4/1.21.5 clients");
+            if (Settings.DEBUG.toBool()) {
+                Logs.logSuccess("Generated shader overlays for " + generatedOverlays.size()
+                        + " additional format groups (" + serverOverlay.directory() + " is the base)");
+            }
         }
     }
 
     private void generateTextShadersForTarget(TextShaderTarget target, TextShaderFeatures features, String pathPrefix) {
+        // 1.21.x still expects explicit shader json files in packs.
+        // 26.x moved to generated pipeline metadata and should not be overridden.
+        boolean shouldWriteJson = !target.isAtLeast("26");
+
         // Generate shaders (see-through uses a different vertex format on 1.21.6+)
         String vshContent = getAnimationVertexShader(target, features, false);
         String fshContent = getAnimationFragmentShader(target, false);
-        String jsonContent = getAnimationShaderJson(target, false);
+        String jsonContent = shouldWriteJson ? getAnimationShaderJson(target, false) : null;
 
         String vshSeeThrough = getAnimationVertexShader(target, features, true);
         String fshSeeThrough = getAnimationFragmentShader(target, true);
-        String jsonSeeThrough = getAnimationShaderJson(target, true);
+        String jsonSeeThrough = shouldWriteJson ? getAnimationShaderJson(target, true) : null;
 
         String vshIntensity = getAnimationVertexShader(target, features, false);
         String fshIntensity = getAnimationFragmentShader(target, false, true);
-        String jsonIntensity = getAnimationShaderJson(target, "rendertype_text_intensity", false);
+        String jsonIntensity = shouldWriteJson ? getAnimationShaderJson(target, "rendertype_text_intensity", false) : null;
 
         String vshIntensitySeeThrough = getAnimationVertexShader(target, features, true);
         String fshIntensitySeeThrough = getAnimationFragmentShader(target, true, true);
-        String jsonIntensitySeeThrough = getAnimationShaderJson(target, "rendertype_text_intensity_see_through", true);
+        String jsonIntensitySeeThrough = shouldWriteJson ? getAnimationShaderJson(target, "rendertype_text_intensity_see_through", true) : null;
 
         String shaderPath = pathPrefix + "assets/minecraft/shaders/core";
 
         // Write shaders for both rendertype_text and rendertype_text_see_through
         ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text.vsh", vshContent);
         ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text.fsh", fshContent);
-        ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text.json", jsonContent);
+        if (jsonContent != null)
+            ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text.json", jsonContent);
+        else
+            ResourcePack.deleteFileFromVirtualAndDisk(shaderPath, "rendertype_text.json");
 
         ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text_see_through.vsh", vshSeeThrough);
         ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text_see_through.fsh", fshSeeThrough);
-        ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text_see_through.json", jsonSeeThrough);
+        if (jsonSeeThrough != null)
+            ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text_see_through.json", jsonSeeThrough);
+        else
+            ResourcePack.deleteFileFromVirtualAndDisk(shaderPath, "rendertype_text_see_through.json");
 
         ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text_intensity.vsh", vshIntensity);
         ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text_intensity.fsh", fshIntensity);
-        ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text_intensity.json", jsonIntensity);
+        if (jsonIntensity != null)
+            ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text_intensity.json", jsonIntensity);
+        else
+            ResourcePack.deleteFileFromVirtualAndDisk(shaderPath, "rendertype_text_intensity.json");
 
         ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text_intensity_see_through.vsh", vshIntensitySeeThrough);
         ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text_intensity_see_through.fsh", fshIntensitySeeThrough);
-        ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text_intensity_see_through.json", jsonIntensitySeeThrough);
+        if (jsonIntensitySeeThrough != null)
+            ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text_intensity_see_through.json", jsonIntensitySeeThrough);
+        else
+            ResourcePack.deleteFileFromVirtualAndDisk(shaderPath, "rendertype_text_intensity_see_through.json");
 
-        Logs.logSuccess("Generated text shaders for " + target.displayName()
-                + " (shader " + getShaderVersion(target) + ")" + (pathPrefix.isEmpty() ? "" : " [overlay]"));
+        if (Settings.DEBUG.toBool()) {
+            Logs.logSuccess("Generated text shaders for " + target.displayName()
+                    + " (shader " + getShaderVersion(target) + ")" + (pathPrefix.isEmpty() ? "" : " [overlay]"));
+        }
     }
 
     private String getShaderVersion(TextShaderTarget target) {
-        if (target.isAtLeast("1.21.6")) {
-            return "1.21.6";
-        } else if (target.isAtLeast("1.21.4")) {
-            return "1.21.4";
-        } else if (target.isAtLeast("1.21")) {
-            return "1.21";
-        } else {
-            return "1.20";
-        }
+        if (target.isAtLeast("26")) return "26";
+        if (target.isAtLeast("1.21.6")) return "1.21.6";
+        if (target.isAtLeast("1.21.4")) return "1.21.4";
+        if (target.isAtLeast("1.21")) return "1.21";
+        return "1.20";
     }
 
     private String getTextShaderConstants(TextShaderTarget target, TextShaderFeatures features) {
@@ -514,12 +536,13 @@ class TextShaderGenerator {
 
     private String getAnimationVertexShader(TextShaderTarget target, TextShaderFeatures features, boolean seeThrough) {
         boolean is1_21_6Plus = target.isAtLeast("1.21.6");
+        boolean is26Plus = target.isAtLeast("26");
         String textShaderConstants = getTextShaderConstants(target, features);
         TextEffectSnippets snippets = getTextEffectSnippets(target);
         String vertexPrelude = snippets.vertexPrelude();
         String vertexEffects = snippets.vertexEffects();
 
-        VertexShaderConfig config = createVertexShaderConfig(is1_21_6Plus, seeThrough);
+        VertexShaderConfig config = createVertexShaderConfig(is1_21_6Plus, is26Plus, seeThrough);
         String mainBody = getVertexShaderMainBody(config, vertexEffects, false);
 
         if (is1_21_6Plus) {
@@ -534,6 +557,30 @@ class TextShaderGenerator {
                 in vec4 Color;
                 in vec2 UV0;
 
+                out vec4 vertexColor;
+                out vec2 texCoord0;
+                out vec4 effectData;
+                %s
+                %s
+
+""" : (is26Plus ? """
+                #version 330
+
+                #moj_import <minecraft:fog.glsl>
+                #moj_import <minecraft:dynamictransforms.glsl>
+                #moj_import <minecraft:projection.glsl>
+                #moj_import <minecraft:sample_lightmap.glsl>
+                #moj_import <minecraft:globals.glsl>
+
+                in vec3 Position;
+                in vec4 Color;
+                in vec2 UV0;
+                in ivec2 UV2;
+
+                uniform sampler2D Sampler2;
+
+                out float sphericalVertexDistance;
+                out float cylindricalVertexDistance;
                 out vec4 vertexColor;
                 out vec2 texCoord0;
                 out vec4 effectData;
@@ -563,7 +610,7 @@ class TextShaderGenerator {
                 %s
                 %s
 
-""";
+""");
             return header.formatted(textShaderConstants, vertexPrelude) + mainBody;
         } else {
             // Pre-1.21.6: use traditional uniform declarations
@@ -617,8 +664,14 @@ class TextShaderGenerator {
         }
     }
 
-    private VertexShaderConfig createVertexShaderConfig(boolean is1_21_6Plus, boolean seeThrough) {
+    private VertexShaderConfig createVertexShaderConfig(boolean is1_21_6Plus, boolean is26Plus, boolean seeThrough) {
         if (is1_21_6Plus) {
+            String litColor = is26Plus
+                    ? "Color * sample_lightmap(Sampler2, UV2)"
+                    : "Color * texelFetch(Sampler2, UV2 / 16, 0)";
+            String animatedLitColor = is26Plus
+                    ? "vec4(1.0, 1.0, 1.0, visible) * sample_lightmap(Sampler2, UV2)"
+                    : "vec4(1.0, 1.0, 1.0, visible) * texelFetch(Sampler2, UV2 / 16, 0)";
             if (seeThrough) {
                 return new VertexShaderConfig(
                         "",
@@ -631,8 +684,8 @@ class TextShaderGenerator {
                 return new VertexShaderConfig(
                         "sphericalVertexDistance = fog_spherical_distance(pos);\n                        cylindricalVertexDistance = fog_cylindrical_distance(pos);",
                         "sphericalVertexDistance = fog_spherical_distance(pos);\n                            cylindricalVertexDistance = fog_cylindrical_distance(pos);",
-                        "Color * texelFetch(Sampler2, UV2 / 16, 0)",
-                        "vec4(1.0, 1.0, 1.0, visible) * texelFetch(Sampler2, UV2 / 16, 0)",
+                        litColor,
+                        animatedLitColor,
                         "(rawFrame % totalFrames)"
                 );
             }
@@ -890,17 +943,42 @@ class TextShaderGenerator {
 
     private String getCombinedVertexShader(TextShaderTarget target, TextShaderFeatures features) {
         boolean is1_21_6Plus = target.isAtLeast("1.21.6");
+        boolean is26Plus = target.isAtLeast("26");
         String textShaderConstants = getTextShaderConstants(target, features);
         TextEffectSnippets snippets = getTextEffectSnippets(target);
         String vertexPrelude = snippets.vertexPrelude();
         String vertexEffects = snippets.vertexEffects();
 
-        // Combined shader always uses non-seeThrough config (has Sampler2, fog) with scoreboard hiding
-        VertexShaderConfig config = createVertexShaderConfig(is1_21_6Plus, false);
+        VertexShaderConfig config = createVertexShaderConfig(is1_21_6Plus, is26Plus, false);
         String mainBody = getVertexShaderMainBody(config, vertexEffects, true);
 
         if (is1_21_6Plus) {
-            String header = """
+            String header = is26Plus ? """
+                #version 330
+
+                #moj_import <minecraft:fog.glsl>
+                #moj_import <minecraft:dynamictransforms.glsl>
+                #moj_import <minecraft:projection.glsl>
+                #moj_import <minecraft:sample_lightmap.glsl>
+                #moj_import <minecraft:globals.glsl>
+
+                in vec3 Position;
+                in vec4 Color;
+                in vec2 UV0;
+                in ivec2 UV2;
+
+                uniform sampler2D Sampler2;
+                uniform vec2 ScreenSize;
+
+                out float sphericalVertexDistance;
+                out float cylindricalVertexDistance;
+                out vec4 vertexColor;
+                out vec2 texCoord0;
+                out vec4 effectData;
+                %s
+                %s
+
+""" : """
                 #version 330
 
                 #moj_import <minecraft:fog.glsl>

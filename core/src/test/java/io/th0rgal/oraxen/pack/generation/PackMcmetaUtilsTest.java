@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.pack.generation;
 
+import com.google.gson.JsonObject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -98,7 +99,7 @@ class PackMcmetaUtilsTest {
         assertNotNull(highest);
         assertEquals(999, highest.getMaxFormatInclusive(),
             "Highest pack version should have max_inclusive 999");
-        assertEquals("1.21.9", highest.getMinecraftVersion());
+        assertEquals("26.1", highest.getMinecraftVersion());
     }
 
     @Test
@@ -156,10 +157,47 @@ class PackMcmetaUtilsTest {
         assertEquals(55, v1215.getMinFormatInclusive());
         assertEquals(62, v1215.getMaxFormatInclusive());
 
-        // 1.21.9: format 69, range [69, 999]
+        // 1.21.9: format 69, range [69, 74]
         PackVersion v1219 = manager.getVersion("1.21.9");
         assertNotNull(v1219);
         assertEquals(69, v1219.getMinFormatInclusive());
-        assertEquals(999, v1219.getMaxFormatInclusive());
+        assertEquals(74, v1219.getMaxFormatInclusive());
+
+        // 1.21.11: format 75, range [75, 83]
+        PackVersion v12111 = manager.getVersion("1.21.11");
+        assertNotNull(v12111);
+        assertEquals(75, v12111.getMinFormatInclusive());
+        assertEquals(83, v12111.getMaxFormatInclusive());
+
+        // 26.1: format 84, range [84, 999]
+        PackVersion v261 = manager.getVersion("26.1");
+        assertNotNull(v261);
+        assertEquals(84, v261.getMinFormatInclusive());
+        assertEquals(999, v261.getMaxFormatInclusive());
+    }
+
+    @Test
+    void testPackFormat65PlusUsesMinAndMaxFormat() {
+        JsonObject mcmeta = PackMcmetaUtils.createPackMcmeta(75, 0, 0, null);
+        JsonObject pack = mcmeta.getAsJsonObject("pack");
+
+        assertEquals(75, pack.get("pack_format").getAsInt());
+        assertEquals(75, pack.get("min_format").getAsInt());
+        assertEquals(75, pack.get("max_format").getAsInt());
+        assertFalse(pack.has("supported_formats"));
+    }
+
+    @Test
+    void testPackFormat18To64UsesSupportedFormatsObject() {
+        JsonObject mcmeta = PackMcmetaUtils.createPackMcmeta(50, 50, 64, null);
+        JsonObject pack = mcmeta.getAsJsonObject("pack");
+
+        assertEquals(50, pack.get("pack_format").getAsInt());
+        assertTrue(pack.has("supported_formats"));
+        JsonObject supportedFormats = pack.getAsJsonObject("supported_formats");
+        assertEquals(50, supportedFormats.get("min_inclusive").getAsInt());
+        assertEquals(64, supportedFormats.get("max_inclusive").getAsInt());
+        assertFalse(pack.has("min_format"));
+        assertFalse(pack.has("max_format"));
     }
 }

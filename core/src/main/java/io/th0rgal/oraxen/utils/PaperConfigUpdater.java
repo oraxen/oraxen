@@ -7,7 +7,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,6 +24,8 @@ import java.util.regex.Pattern;
 public final class PaperConfigUpdater {
 
     private static final String CONFIG_FILE = "config/paper-global.yml";
+    private static volatile Map<String, Boolean> cachedBlockUpdateSettings;
+    private static volatile Set<String> updatedBlockUpdateSettings = Set.of();
 
     private PaperConfigUpdater() {}
 
@@ -34,6 +39,7 @@ public final class PaperConfigUpdater {
      */
     public static List<String> ensureAllBlockUpdatesDisabled() {
         List<String> updatedSettings = new ArrayList<>();
+        updatedBlockUpdateSettings = Set.of();
 
         // Check if disabled via config or system property
         if (!Settings.AUTO_UPDATE_PAPER_CONFIG.toBool()) {
@@ -95,13 +101,84 @@ public final class PaperConfigUpdater {
             // Only write if we made changes
             if (!updatedSettings.isEmpty()) {
                 Files.write(configPath, updatedLines);
+                cachedBlockUpdateSettings = parseBlockUpdateSettings(updatedLines);
             }
 
         } catch (IOException e) {
             Logs.logWarning("Failed to auto-update paper-global.yml: " + e.getMessage());
         }
 
+        updatedBlockUpdateSettings = Set.copyOf(updatedSettings);
         return updatedSettings;
+    }
+
+    /**
+     * @param settingName one of: disable-noteblock-updates, disable-tripwire-updates, disable-chorus-plant-updates
+     * @return true when this setting was changed from false -> true by Oraxen in this startup
+     */
+    public static boolean wasBlockUpdateSettingUpdated(String settingName) {
+        return updatedBlockUpdateSettings.contains(settingName);
+    }
+
+    /**
+     * Reads paper-global.yml and checks whether a block-updates setting is enabled.
+     *
+     * @param settingName one of: disable-noteblock-updates, disable-tripwire-updates, disable-chorus-plant-updates
+     * @return true when the setting is explicitly set to true under block-updates
+     */
+    public static boolean isBlockUpdateSettingEnabled(String settingName) {
+        if (!VersionUtil.isPaperServer() || !VersionUtil.atOrAbove("1.20.1")) {
+            return false;
+        }
+
+        Map<String, Boolean> settings = cachedBlockUpdateSettings;
+        if (settings == null) {
+            Path configPath = Path.of(CONFIG_FILE);
+            if (!Files.exists(configPath)) {
+                return false;
+            }
+
+            try {
+                settings = parseBlockUpdateSettings(Files.readAllLines(configPath));
+                cachedBlockUpdateSettings = settings;
+            } catch (IOException e) {
+                Logs.logWarning("Failed to read paper-global.yml: " + e.getMessage());
+                return false;
+            }
+        }
+
+        return Boolean.TRUE.equals(settings.get(settingName));
+    }
+
+    private static Map<String, Boolean> parseBlockUpdateSettings(List<String> lines) {
+        Map<String, Boolean> settings = new HashMap<>();
+        boolean inBlockUpdates = false;
+        int blockUpdatesIndent = -1;
+        Pattern settingPattern = Pattern.compile("^(\\s*)(disable-noteblock-updates|disable-tripwire-updates|disable-chorus-plant-updates):\\s*(true|false)\\b.*$", Pattern.CASE_INSENSITIVE);
+
+        for (String line : lines) {
+            String trimmed = line.trim();
+
+            if (trimmed.startsWith("block-updates:")) {
+                inBlockUpdates = true;
+                blockUpdatesIndent = getIndent(line);
+                continue;
+            }
+
+            if (inBlockUpdates && !trimmed.isEmpty() && !trimmed.startsWith("#")) {
+                int currentIndent = getIndent(line);
+                if (currentIndent <= blockUpdatesIndent) {
+                    break;
+                }
+
+                Matcher matcher = settingPattern.matcher(line);
+                if (matcher.matches()) {
+                    settings.put(matcher.group(2), "true".equalsIgnoreCase(matcher.group(3)));
+                }
+            }
+        }
+
+        return settings;
     }
 
     private static String tryUpdateSetting(String line, String settingName, List<String> updatedSettings) {

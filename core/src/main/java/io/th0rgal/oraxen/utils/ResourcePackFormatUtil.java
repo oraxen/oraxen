@@ -14,6 +14,26 @@ import java.lang.reflect.Method;
 public final class ResourcePackFormatUtil {
 
     private static volatile Integer cached;
+    private static final PackFormatThreshold[] PACK_FORMAT_THRESHOLDS = {
+            new PackFormatThreshold("26.1", 84),
+            new PackFormatThreshold("1.26.1", 84),
+            new PackFormatThreshold("1.21.11", 75),
+            new PackFormatThreshold("1.21.9", 69),
+            new PackFormatThreshold("1.21.7", 64),
+            new PackFormatThreshold("1.21.6", 63),
+            new PackFormatThreshold("1.21.5", 55),
+            new PackFormatThreshold("1.21.4", 46),
+            new PackFormatThreshold("1.21.2", 42),
+            new PackFormatThreshold("1.21", 34),
+            new PackFormatThreshold("1.20.5", 32),
+            new PackFormatThreshold("1.20.3", 22),
+            new PackFormatThreshold("1.20.2", 18),
+            new PackFormatThreshold("1.20", 15),
+            new PackFormatThreshold("1.19.4", 13),
+            new PackFormatThreshold("1.19.3", 12),
+            new PackFormatThreshold("1.19", 9),
+            new PackFormatThreshold("1.18", 8)
+    };
 
     private ResourcePackFormatUtil() {
     }
@@ -42,25 +62,20 @@ public final class ResourcePackFormatUtil {
      * @return Pack format number
      */
     public static int getPackFormatForVersion(MinecraftVersion version) {
-        // Best-effort mapping for modern versions.
-        // NOTE: For 1.21.x versions, pack formats vary significantly between patches
-        if (version.isAtLeast(new MinecraftVersion("1.21.11"))) return 61; // 1.21.11+
-        if (version.isAtLeast(new MinecraftVersion("1.21.6"))) return 55; // 1.21.6-1.21.10
-        if (version.isAtLeast(new MinecraftVersion("1.21.5"))) return 48; // 1.21.5
-        if (version.isAtLeast(new MinecraftVersion("1.21.4"))) return 46; // 1.21.4
-        if (version.isAtLeast(new MinecraftVersion("1.21.2"))) return 42; // 1.21.2-1.21.3
-        if (version.isAtLeast(new MinecraftVersion("1.21"))) return 34; // 1.21-1.21.1
-        if (version.isAtLeast(new MinecraftVersion("1.20.5"))) return 32;
-        if (version.isAtLeast(new MinecraftVersion("1.20.3"))) return 22;
-        if (version.isAtLeast(new MinecraftVersion("1.20.2"))) return 18;
-        if (version.isAtLeast(new MinecraftVersion("1.20"))) return 15;
-        if (version.isAtLeast(new MinecraftVersion("1.19.4"))) return 13;
-        if (version.isAtLeast(new MinecraftVersion("1.19.3"))) return 12;
-        if (version.isAtLeast(new MinecraftVersion("1.19"))) return 9;
-        if (version.isAtLeast(new MinecraftVersion("1.18"))) return 8;
+        for (PackFormatThreshold threshold : PACK_FORMAT_THRESHOLDS) {
+            if (version.isAtLeast(threshold.minimumVersion)) {
+                return threshold.packFormat;
+            }
+        }
 
         // Very old / unknown
         return 6;
+    }
+
+    private record PackFormatThreshold(MinecraftVersion minimumVersion, int packFormat) {
+        private PackFormatThreshold(String minimumVersion, int packFormat) {
+            this(new MinecraftVersion(minimumVersion), packFormat);
+        }
     }
 
     @Nullable
@@ -141,4 +156,3 @@ public final class ResourcePackFormatUtil {
         return (result instanceof Integer) ? (Integer) result : ((Number) result).intValue();
     }
 }
-

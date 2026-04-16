@@ -24,6 +24,7 @@ import io.th0rgal.oraxen.utils.customarmor.CustomArmorType;
 import io.th0rgal.oraxen.utils.customarmor.ShaderArmorTextures;
 import io.th0rgal.oraxen.utils.customarmor.TrimArmorDatapack;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Material;
 
@@ -50,6 +51,7 @@ public class ResourcePack {
     private TrimArmorDatapack trimArmorDatapack;
     private ComponentArmorModels componentArmorModels;
     private static final File packFolder = new File(OraxenPlugin.get().getDataFolder(), "pack");
+    private static final Set<String> LEGACY_SHADER_OVERLAY_DIRECTORIES = Set.of("overlay_1_21_6_plus", "overlay_1_21_4_5");
     private final File pack = new File(packFolder, packFolder.getName() + ".zip");
     private final SoundGenerator soundGenerator = new SoundGenerator();
     private PackFileCollector fileCollector;
@@ -278,6 +280,7 @@ public class ResourcePack {
         textShaderGenerator.reset();
 
         makeDirsIfNotExists(packFolder, new File(packFolder, "assets"));
+        cleanLegacyShaderOverlayDirectories();
 
         componentArmorModels = CustomArmorType.getSetting() == CustomArmorType.COMPONENT ? new ComponentArmorModels()
                 : null;
@@ -309,6 +312,22 @@ public class ResourcePack {
         updatePackMcmeta();
 
         return true;
+    }
+
+    private void cleanLegacyShaderOverlayDirectories() {
+        for (String directory : LEGACY_SHADER_OVERLAY_DIRECTORIES) {
+            File legacyOverlayDirectory = new File(packFolder, directory);
+            if (!legacyOverlayDirectory.isDirectory()) continue;
+
+            try {
+                FileUtils.deleteDirectory(legacyOverlayDirectory);
+                if (Settings.DEBUG.toBool()) {
+                    Logs.logInfo("Removed legacy shader overlay directory: " + directory);
+                }
+            } catch (IOException e) {
+                Logs.logWarning("Failed to remove legacy shader overlay directory " + directory + ": " + e.getMessage());
+            }
+        }
     }
 
     /**
@@ -566,10 +585,6 @@ public class ResourcePack {
      * This must be called after {@link #generateFont()} to ensure overlay directories exist.
      */
     private void updatePackMcmetaOverlays() {
-        if (!textShaderGenerator.wereShaderOverlaysGenerated()) {
-            return;
-        }
-
         Path mcmetaPath = packFolder.toPath().resolve("pack.mcmeta");
         if (!mcmetaPath.toFile().exists()) {
             return;
@@ -585,12 +600,12 @@ public class ResourcePack {
                 return;
             }
 
-            MinecraftVersion currentVersion = MinecraftVersion.getCurrentVersion();
-            if (currentVersion.isAtLeast(new MinecraftVersion("1.21.4"))) {
-                addShaderOverlayEntries(root, currentVersion);
+            boolean overlaysChanged = addShaderOverlayEntries(root);
+
+            if (!overlaysChanged) {
+                return;
             }
 
-            // Use Gson with pretty printing for readable output
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
             Files.writeString(mcmetaPath, gson.toJson(root), StandardCharsets.UTF_8);
         } catch (Exception e) {
@@ -607,19 +622,18 @@ public class ResourcePack {
      * Minecraft client versions. The client automatically selects the appropriate
      * overlay based on its pack_format.</p>
      *
-     * @param root The root pack.mcmeta JSON object
-     * @param serverVersion The server's Minecraft version
+     * <p>Also expands the base pack's supported format range to cover all overlay
+     * format ranges, so that clients of any supported version see the pack as
+     * compatible.</p>
      */
-    private void addShaderOverlayEntries(JsonObject root, MinecraftVersion serverVersion) {
-        // Get existing overlays or create new one
+    private boolean addShaderOverlayEntries(JsonObject root) {
         JsonObject overlays;
         if (root.has("overlays")) {
             overlays = root.getAsJsonObject("overlays");
         } else {
             overlays = new JsonObject();
         }
-        
-        // Get existing entries array or create new one
+
         JsonArray entries;
         if (overlays.has("entries")) {
             entries = overlays.getAsJsonArray("entries");
@@ -627,38 +641,111 @@ public class ResourcePack {
             entries = new JsonArray();
         }
 
-        int initialSize = entries.size();
+        int originalEntriesSize = entries.size();
+        Set<String> knownDirectories = new HashSet<>(java.util.Arrays.stream(ShaderOverlay.values())
+                .map(ShaderOverlay::directory)
+                .collect(java.util.stream.Collectors.toSet()));
+        knownDirectories.addAll(LEGACY_SHADER_OVERLAY_DIRECTORIES);
+        JsonArray filteredEntries = new JsonArray();
+        for (JsonElement element : entries) {
+            if (!element.isJsonObject()) {
+                filteredEntries.add(element);
+                continue;
+            }
 
-        if (serverVersion.isAtLeast(new MinecraftVersion("1.21.6"))) {
-            // Server is 1.21.6+, base shaders are 1.21.6 format
-            // Add overlay for 1.21.4/1.21.5 clients (pack_format 46-54)
-            JsonObject entry = new JsonObject();
-            JsonObject formats = new JsonObject();
-            formats.addProperty("min_inclusive", TextShaderTarget.PACK_FORMAT_1_21_4);
-            formats.addProperty("max_inclusive", TextShaderTarget.PACK_FORMAT_1_21_6 - 1);
-            entry.add("formats", formats);
-            entry.addProperty("directory", textShaderGenerator.getOverlay12145Name());
-            entries.add(entry);
-        } else if (serverVersion.isAtLeast(new MinecraftVersion("1.21.4"))) {
-            // Server is 1.21.4/1.21.5, base shaders are 1.21.4 format
-            // Add overlay for 1.21.6+ clients (pack_format 55+)
-            JsonObject entry = new JsonObject();
-            JsonObject formats = new JsonObject();
-            formats.addProperty("min_inclusive", TextShaderTarget.PACK_FORMAT_1_21_6);
-            formats.addProperty("max_inclusive", 999); // Support future versions
-            entry.add("formats", formats);
-            entry.addProperty("directory", textShaderGenerator.getOverlay1216PlusName());
-            entries.add(entry);
-        }
-
-        int newEntriesAdded = entries.size() - initialSize;
-        if (newEntriesAdded > 0) {
-            overlays.add("entries", entries);
-            root.add("overlays", overlays);
-            if (Settings.DEBUG.toBool()) {
-                Logs.logInfo("Added " + newEntriesAdded + " shader overlay entries to pack.mcmeta");
+            JsonObject existingEntry = element.getAsJsonObject();
+            String directory = existingEntry.has("directory") ? existingEntry.get("directory").getAsString() : null;
+            if (directory == null || !knownDirectories.contains(directory)) {
+                filteredEntries.add(existingEntry);
             }
         }
+        entries = filteredEntries;
+
+        int filteredEntriesSize = entries.size();
+
+        for (ShaderOverlay overlay : textShaderGenerator.getGeneratedOverlays()) {
+            JsonObject entry = new JsonObject();
+            JsonObject formats = new JsonObject();
+            formats.addProperty("min_inclusive", overlay.minFormat());
+            formats.addProperty("max_inclusive", overlay.maxFormat());
+            entry.add("formats", formats);
+            entry.addProperty("directory", overlay.directory());
+            if (overlay.minFormat() > 64 || overlay.maxFormat() > 64) {
+                entry.addProperty("min_format", overlay.minFormat());
+                entry.addProperty("max_format", overlay.maxFormat());
+            }
+            entries.add(entry);
+        }
+
+        int newEntriesAdded = entries.size() - filteredEntriesSize;
+        boolean entriesRemoved = filteredEntriesSize != originalEntriesSize;
+        boolean entriesChanged = newEntriesAdded > 0 || entriesRemoved;
+        if (!entriesChanged) {
+            return false;
+        }
+
+        overlays.add("entries", entries);
+        root.add("overlays", overlays);
+
+        expandSupportedFormatsRange(root);
+
+        if (Settings.DEBUG.toBool()) {
+            if (newEntriesAdded > 0 && entriesRemoved) {
+                Logs.logInfo("Refreshed shader overlay entries in pack.mcmeta");
+            } else if (newEntriesAdded > 0) {
+                Logs.logInfo("Added " + newEntriesAdded + " shader overlay entries to pack.mcmeta");
+            } else {
+                Logs.logInfo("Removed stale shader overlay entries from pack.mcmeta");
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Expands the base pack's supported_formats / min_format / max_format range
+     * to cover all overlay format ranges, ensuring that clients of any supported
+     * version see the pack as compatible.
+     *
+     * <p>For servers on 1.21.9+ (format 65+), also adds the legacy
+     * {@code supported_formats} field so that pre-1.21.9 clients can read the
+     * format range (they don't understand {@code min_format}/{@code max_format}).</p>
+     */
+    private void expandSupportedFormatsRange(JsonObject root) {
+        List<ShaderOverlay> overlayList = textShaderGenerator.getGeneratedOverlays();
+        if (overlayList.isEmpty()) return;
+
+        int minOverlayFormat = overlayList.stream()
+                .mapToInt(ShaderOverlay::minFormat).min().orElse(Integer.MAX_VALUE);
+        int maxOverlayFormat = overlayList.stream()
+                .mapToInt(ShaderOverlay::maxFormat).max().orElse(0);
+
+        JsonObject pack = root.has("pack") && root.get("pack").isJsonObject()
+                ? root.getAsJsonObject("pack") : new JsonObject();
+
+        int serverFormat = ResourcePackFormatUtil.getCurrentResourcePackFormat();
+        ShaderOverlay serverOverlay = ShaderOverlay.forPackFormat(serverFormat);
+        int serverGroupMax = serverOverlay != null ? serverOverlay.maxFormat() : serverFormat;
+        int effectiveMin = Math.min(serverFormat, minOverlayFormat);
+        int effectiveMax = Math.max(serverGroupMax, maxOverlayFormat);
+
+        if (serverFormat >= 65) {
+            pack.addProperty("min_format", effectiveMin);
+            pack.addProperty("max_format", effectiveMax);
+            JsonObject supportedFormats = new JsonObject();
+            supportedFormats.addProperty("min_inclusive", effectiveMin);
+            supportedFormats.addProperty("max_inclusive", effectiveMax);
+            pack.add("supported_formats", supportedFormats);
+        } else if (serverFormat >= 18) {
+            JsonObject supportedFormats = new JsonObject();
+            supportedFormats.addProperty("min_inclusive", effectiveMin);
+            supportedFormats.addProperty("max_inclusive", effectiveMax);
+            pack.add("supported_formats", supportedFormats);
+            pack.remove("min_format");
+            pack.remove("max_format");
+        }
+
+        root.add("pack", pack);
     }
 
 
@@ -1160,6 +1247,20 @@ public class ResourcePack {
         folder = !folder.endsWith("/") ? folder : folder.substring(0, folder.length() - 1);
         addOutputFiles(
                 new VirtualFile(folder, name, new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))));
+    }
+
+    public static void deleteFileFromVirtualAndDisk(String folder, String name) {
+        folder = !folder.endsWith("/") ? folder : folder.substring(0, folder.length() - 1);
+        String virtualPath = folder.isEmpty() ? name : folder + "/" + name;
+        outputFiles.remove(virtualPath);
+
+        File file = new File(packFolder, virtualPath);
+        if (file.exists()) {
+            file.delete();
+            if (Settings.DEBUG.toBool()) {
+                Logs.logInfo("Deleted stale file from disk: " + virtualPath);
+            }
+        }
     }
 
     private static void writeImageToVirtual(String folder, String name, BufferedImage image) {

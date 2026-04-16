@@ -33,19 +33,26 @@ public class PackMcmetaUtils {
 
         pack.addProperty("pack_format", packFormat);
 
-        if (packFormat >= 18 && minFormat > 0) {
-            // Add supported_formats for 1.20.2+ packs when explicitly requested
+        if (packFormat >= 65) {
+            // Resource pack format 65+ (introduced in 25w31a / 1.21.9) uses top-level min/max fields.
+            int min = minFormat > 0 ? minFormat : packFormat;
+            int max = maxFormat > 0 ? maxFormat : packFormat;
+            pack.addProperty("min_format", min);
+            pack.addProperty("max_format", max);
+            pack.remove("supported_formats");
+        } else if (packFormat >= 18 && minFormat > 0) {
+            // 1.20.2-1.21.8 range declaration.
             JsonObject supportedFormats = new JsonObject();
             supportedFormats.addProperty("min_inclusive", minFormat);
             supportedFormats.addProperty("max_inclusive", maxFormat);
             pack.add("supported_formats", supportedFormats);
+            pack.remove("min_format");
+            pack.remove("max_format");
         } else {
-            // Remove any stale supported_formats from deep-copied mcmeta.
-            // For pre-1.20.2 packs (packFormat < 18): supported_formats was introduced
-            // in pack_format 18; having it produces contradictory metadata.
-            // For single-pack mode (minFormat == 0): supported_formats would narrow
-            // the declared range; removing it lets any client accept the pack.
+            // Pre-1.20.2 packs do not use range metadata.
             pack.remove("supported_formats");
+            pack.remove("min_format");
+            pack.remove("max_format");
         }
 
         root.add("pack", pack);
@@ -79,9 +86,6 @@ public class PackMcmetaUtils {
 
     /**
      * Updates the pack.mcmeta file for single-pack mode.
-     * Does NOT add supported_formats — single-pack mode targets only
-     * the server's version. Adding supported_formats would narrow the
-     * declared range and cause ViaVersion clients to see it as incompatible.
      */
     public static void updatePackMcmetaFile(Path mcmetaPath) {
         JsonObject existingMcmeta = readExistingMcmeta(mcmetaPath);
@@ -89,7 +93,8 @@ public class PackMcmetaUtils {
         // Use NMS reflection first (accurate for all versions), fall back to hardcoded mapping
         int packFormat = ResourcePackFormatUtil.getCurrentResourcePackFormat();
 
-        // Pass 0 for minFormat to skip supported_formats in single-pack mode
+        // For modern formats (>=65), createPackMcmeta sets min/max to packFormat.
+        // Older formats keep legacy behavior (no explicit supported range in single-pack mode).
         JsonObject mcmeta = createPackMcmeta(packFormat, 0, 0, existingMcmeta);
 
         writePackMcmeta(mcmetaPath, mcmeta);

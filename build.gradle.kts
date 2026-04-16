@@ -9,8 +9,8 @@ plugins {
     //id("com.github.johnrengelman.shadow") version "8.1.1"
     id("xyz.jpenilla.run-paper") version "2.3.1"
     id("net.minecrell.plugin-yml.bukkit") version "0.6.0" // Generates plugin.yml
-    id("io.papermc.paperweight.userdev") version "2.0.0-beta.17" apply false
-    id("io.github.goooler.shadow") version "8.1.8"
+    id("io.papermc.paperweight.userdev") version "2.0.0-beta.21" apply false
+    id("com.gradleup.shadow") version "9.4.1"
 }
 
 
@@ -19,6 +19,7 @@ class NMSVersion(val nmsVersion: String, val serverVersion: String)
 infix fun String.toNms(that: String): NMSVersion = NMSVersion(this, that)
 val isCI = System.getenv("CI") != null
 val SUPPORTED_VERSIONS: List<NMSVersion> = listOfNotNull(
+    "v1_26_R1" toNms "26.1.2.build.5-alpha",
     "v1_20_R1" toNms "1.20.1-R0.1-SNAPSHOT",
     "v1_20_R2" toNms "1.20.2-R0.1-SNAPSHOT",
     "v1_20_R3" toNms "1.20.4-R0.1-SNAPSHOT",
@@ -47,6 +48,19 @@ val devPluginPath = project.findProperty("oraxen_dev_plugin_path")?.toString()
 val foliaPluginPath = project.findProperty("oraxen_folia_plugin_path")?.toString()
 val spigotPluginPath = project.findProperty("oraxen_spigot_plugin_path")?.toString()
 val pluginVersion: String by project
+val runServerVersion = findProperty("mcVersion") as String? ?: "26.1.2"
+val runServerMajorVersion = Regex("""^\D*(?:1\.)?(\d+)""")
+    .find(runServerVersion)
+    ?.groupValues
+    ?.get(1)
+    ?.toIntOrNull()
+val configuredRunJavaVersion = project.findProperty("runJavaVersion")?.toString()
+val runServerJavaVersion = if (configuredRunJavaVersion != null) {
+    configuredRunJavaVersion.toIntOrNull()
+        ?: throw GradleException("Invalid runJavaVersion '$configuredRunJavaVersion'. Expected an integer Java language level (e.g., 21, 25).")
+} else {
+    if ((runServerMajorVersion ?: 0) >= 26) 25 else 21
+}
 group = "io.th0rgal"
 version = pluginVersion
 
@@ -141,7 +155,7 @@ java {
 tasks.withType(xyz.jpenilla.runtask.task.AbstractRun::class) {
     javaLauncher = javaToolchains.launcherFor {
         vendor = JvmVendorSpec.JETBRAINS
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(runServerJavaVersion)
     }
     jvmArgs("-XX:+AllowEnhancedClassRedefinition")
 }
@@ -172,8 +186,6 @@ tasks {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
         filteringCharset = Charsets.UTF_8.name()
     }
-
-    val runServerVersion = (findProperty("mcVersion") as String?) ?: "1.21.11"
 
     runServer {
         downloadPlugins {
@@ -226,7 +238,7 @@ tasks {
                         )
                     }",
                     "Compiled" to (project.findProperty("oraxen_compiled")?.toString() ?: "true").toBoolean(),
-                    // Tell Paper not to remap this plugin - v1_21_R6 module uses Mojang mappings
+                    // Tell Paper not to remap this plugin - modern NMS modules use Mojang mappings
                     "paperweight-mappings-namespace" to "mojang"
                 )
             )

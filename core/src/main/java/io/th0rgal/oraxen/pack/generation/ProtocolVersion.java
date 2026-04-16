@@ -16,6 +16,7 @@ import java.util.Optional;
  * Pack format reference: https://minecraft.wiki/w/Pack_format
  */
 public enum ProtocolVersion {
+    MC_26_1_1(775, 84, "26.1.1"), // Covers 26.1/26.1.1/26.1.2 (same release protocol)
     MC_1_21_11(774, 75, "1.21.11"),
     MC_1_21_9(773, 69, "1.21.9"),
     MC_1_21_7(772, 64, "1.21.7"),

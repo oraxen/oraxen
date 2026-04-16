@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.mechanics.MechanicConfigProperty;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.nms.NMSHandlers;
+import io.th0rgal.oraxen.utils.PaperConfigUpdater;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.lang3.Range;
@@ -63,15 +64,17 @@ public class ChorusBlockMechanicFactory extends MechanicFactory {
             MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(),
                     new ChorusBlockMechanicListener.ChorusBlockMechanicPaperListener());
         }
-        if (!VersionUtil.isPaperServer() || !NMSHandlers.isChorusPlantUpdatesDisabled()) {
+        boolean chorusPlantUpdatesDisabled = NMSHandlers.isChorusPlantUpdatesDisabled();
+        if (!VersionUtil.isPaperServer() || !chorusPlantUpdatesDisabled) {
             MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(),
                     new ChorusBlockMechanicListener.ChorusBlockMechanicPhysicsListener());
         }
 
         // Warn if Paper config is not set (auto-update happens earlier in plugin enable)
         if (VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.20.1")
-                && !NMSHandlers.isChorusPlantUpdatesDisabled()) {
-            Logs.logWarning("Paper's block-updates.disable-chorus-plant-updates is not enabled, restart may be required");
+                && !chorusPlantUpdatesDisabled
+                && PaperConfigUpdater.wasBlockUpdateSettingUpdated("disable-chorus-plant-updates")) {
+            Logs.logWarning("Paper block-updates.disable-chorus-plant-updates is not enabled, restart may be required");
         }
     }
 

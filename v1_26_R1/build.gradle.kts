@@ -4,13 +4,12 @@ plugins {
     id("com.gradleup.shadow") version "9.4.1"
 }
 
-// Paper 1.21.11 dev bundle for v1_21_R6 NMS module
-// Note: 1.21.11 uses Identifier instead of ResourceLocation (handled by ResourceLocationHelper)
-// Note: 1.21.11 dev bundle doesn't provide reobf mappings, so we ship Mojang-mapped
+// Paper 26.1.2 dev bundle for v1_26_R1 NMS module
+// Note: modern Paper dev bundles don't provide reobf mappings, so we ship Mojang-mapped
 
 dependencies {
     compileOnly(project(":core"))
-    paperweight.paperDevBundle("1.21.11-R0.1-SNAPSHOT")
+    paperweight.paperDevBundle("26.1.2.build.5-alpha")
 }
 
 tasks {
@@ -18,8 +17,8 @@ tasks {
         options.encoding = Charsets.UTF_8.name()
     }
 
-    // Disable reobfJar - 1.21.11 dev bundle doesn't provide reobf mappings
-    // and Paper 1.21.11 runs with Mojang mappings anyway
+    // Disable reobfJar - modern dev bundles don't provide reobf mappings
+    // and Paper runs with Mojang mappings anyway
     matching { it.name == "reobfJar" }.configureEach {
         enabled = false
     }
@@ -33,7 +32,5 @@ configurations.named("reobf") {
 }
 
 java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
+    toolchain.languageVersion.set(JavaLanguageVersion.of(25))
 }
-
-

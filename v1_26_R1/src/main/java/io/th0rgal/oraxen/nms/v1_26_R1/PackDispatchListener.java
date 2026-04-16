@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.nms.v1_21_R6;
+package io.th0rgal.oraxen.nms.v1_26_R1;
 
 import com.destroystokyo.paper.event.player.PlayerConnectionCloseEvent;
 import io.papermc.paper.connection.PlayerConfigurationConnection;
@@ -41,7 +41,7 @@ public final class PackDispatchListener implements Listener {
         } catch (Exception ignored) {
         }
 
-        CompletableFuture<Void> future = sendResourcePack(event.getConnection(), false);
+        CompletableFuture<Void> future = sendResourcePack(event.getConnection());
         if (future != null) {
             futures.put(uuid, future);
             try {
@@ -68,8 +68,12 @@ public final class PackDispatchListener implements Listener {
             event.getConnection().completeReconfiguration();
             return;
         }
+        if (event.getConnection().getProfile().getId() == null) {
+            event.getConnection().completeReconfiguration();
+            return;
+        }
         try {
-            CompletableFuture<Void> future = sendResourcePack(event.getConnection(), true);
+            CompletableFuture<Void> future = sendResourcePack(event.getConnection());
             if (future == null) return;
             try {
                 future.get(10, TimeUnit.SECONDS);
@@ -98,7 +102,7 @@ public final class PackDispatchListener implements Listener {
     }
 
     @Nullable
-    private static CompletableFuture<Void> sendResourcePack(PlayerConfigurationConnection connection, boolean reconfigure) {
+    private static CompletableFuture<Void> sendResourcePack(PlayerConfigurationConnection connection) {
         String packUrl = OraxenPlugin.get().getPackURL();
         String hash = OraxenPlugin.get().getPackSHA1();
         if (packUrl == null || hash == null) return null;
@@ -118,7 +122,7 @@ public final class PackDispatchListener implements Listener {
         java.net.URI packUri;
         try {
             packUri = java.net.URI.create(packUrl);
-        } catch (IllegalArgumentException exception) {
+        } catch (IllegalArgumentException ex) {
             Logs.logWarning("Invalid resource pack URL for " + playerId + ": " + packUrl);
             return null;
         }
@@ -147,13 +151,19 @@ public final class PackDispatchListener implements Listener {
     }
 
     private static byte[] hashArray(String hash) {
+        if (hash == null) throw new IllegalArgumentException("Hash cannot be null");
         int length = hash.length();
         if (length % 2 != 0) throw new IllegalArgumentException("Hash length must be even");
 
         byte[] result = new byte[length / 2];
         for (int i = 0; i < result.length; i++) {
             int from = i * 2;
-            result[i] = (byte) Integer.parseInt(hash.substring(from, from + 2), 16);
+            String pair = hash.substring(from, from + 2);
+            try {
+                result[i] = (byte) Integer.parseInt(pair, 16);
+            } catch (NumberFormatException ex) {
+                throw new IllegalArgumentException("Invalid hash byte '" + pair + "' at position " + from, ex);
+            }
         }
         return result;
     }

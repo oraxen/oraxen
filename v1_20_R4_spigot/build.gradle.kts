@@ -1,6 +1,6 @@
 plugins {
     id("java")
-    id("io.github.goooler.shadow") version "8.1.8"
+    id("com.gradleup.shadow") version "9.4.1"
 }
 
 // Spigot 1.20.6 NMS module - uses Spigot mappings (obfuscated)

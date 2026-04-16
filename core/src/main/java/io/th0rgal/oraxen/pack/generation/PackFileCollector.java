@@ -223,7 +223,7 @@ class PackFileCollector {
 
     static boolean isCoreShaderPath(String path) {
         return path.startsWith("assets/minecraft/shaders/core/")
-                || path.matches("assets/minecraft/overlays/.*/shaders/core/.*");
+                || path.matches("[^/]+/assets/minecraft/shaders/core/.*");
     }
 
     private void readFileToVirtuals(final Collection<VirtualFile> output, File file, String newFolder) {

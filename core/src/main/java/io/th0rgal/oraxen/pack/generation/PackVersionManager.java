@@ -26,7 +26,9 @@ public class PackVersionManager {
      */
     private static final Object[][] VERSION_DEFINITIONS = {
         // mcVersion, format, minFormat, maxFormat
-        {"1.21.9",  69, 69, 999},  // 1.21.9+ (latest, open-ended)
+        {"26.1",    84, 84, 999},  // 26.1+ (latest, open-ended)
+        {"1.21.11", 75, 75, 83},   // 1.21.11
+        {"1.21.9",  69, 69, 74},   // 1.21.9-1.21.10
         {"1.21.7",  64, 64, 68},   // 1.21.7-1.21.8
         {"1.21.6",  63, 63, 63},   // 1.21.6
         {"1.21.5",  55, 55, 62},   // 1.21.5
@@ -207,6 +209,23 @@ public class PackVersionManager {
                 }
             } catch (NumberFormatException ignored) {
                 // Non-numeric versions should fall back to pack-format lookup below.
+            }
+        }
+
+        // Normalize "1.26.x" runtimes to "26.x" namespace.
+        // Some server forks/wrappers report 26.x as "1.26.x"; the VERSION_DEFINITIONS
+        // table uses "26.1" as the canonical key.
+        if (parts.length >= 2) {
+            try {
+                int majorPart = Integer.parseInt(parts[0]);
+                int minorPart = Integer.parseInt(parts[1]);
+                if (majorPart == 1 && minorPart >= 26) {
+                    if (parts.length >= 3) {
+                        candidates.add(minorPart + "." + parts[2]);
+                    }
+                    candidates.add(String.valueOf(minorPart));
+                }
+            } catch (NumberFormatException ignored) {
             }
         }
 
