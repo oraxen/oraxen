@@ -24,6 +24,7 @@ import io.th0rgal.oraxen.utils.customarmor.CustomArmorType;
 import io.th0rgal.oraxen.utils.customarmor.ShaderArmorTextures;
 import io.th0rgal.oraxen.utils.customarmor.TrimArmorDatapack;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Material;
 
@@ -50,6 +51,7 @@ public class ResourcePack {
     private TrimArmorDatapack trimArmorDatapack;
     private ComponentArmorModels componentArmorModels;
     private static final File packFolder = new File(OraxenPlugin.get().getDataFolder(), "pack");
+    private static final Set<String> LEGACY_SHADER_OVERLAY_DIRECTORIES = Set.of("overlay_1_21_6_plus", "overlay_1_21_4_5");
     private final File pack = new File(packFolder, packFolder.getName() + ".zip");
     private final SoundGenerator soundGenerator = new SoundGenerator();
     private PackFileCollector fileCollector;
@@ -278,6 +280,7 @@ public class ResourcePack {
         textShaderGenerator.reset();
 
         makeDirsIfNotExists(packFolder, new File(packFolder, "assets"));
+        cleanLegacyShaderOverlayDirectories();
 
         componentArmorModels = CustomArmorType.getSetting() == CustomArmorType.COMPONENT ? new ComponentArmorModels()
                 : null;
@@ -309,6 +312,22 @@ public class ResourcePack {
         updatePackMcmeta();
 
         return true;
+    }
+
+    private void cleanLegacyShaderOverlayDirectories() {
+        for (String directory : LEGACY_SHADER_OVERLAY_DIRECTORIES) {
+            File legacyOverlayDirectory = new File(packFolder, directory);
+            if (!legacyOverlayDirectory.isDirectory()) continue;
+
+            try {
+                FileUtils.deleteDirectory(legacyOverlayDirectory);
+                if (Settings.DEBUG.toBool()) {
+                    Logs.logInfo("Removed legacy shader overlay directory: " + directory);
+                }
+            } catch (IOException e) {
+                Logs.logWarning("Failed to remove legacy shader overlay directory " + directory + ": " + e.getMessage());
+            }
+        }
     }
 
     /**
@@ -623,9 +642,10 @@ public class ResourcePack {
         }
 
         int originalEntriesSize = entries.size();
-        Set<String> knownDirectories = java.util.Arrays.stream(ShaderOverlay.values())
+        Set<String> knownDirectories = new HashSet<>(java.util.Arrays.stream(ShaderOverlay.values())
                 .map(ShaderOverlay::directory)
-                .collect(java.util.stream.Collectors.toSet());
+                .collect(java.util.stream.Collectors.toSet()));
+        knownDirectories.addAll(LEGACY_SHADER_OVERLAY_DIRECTORIES);
         JsonArray filteredEntries = new JsonArray();
         for (JsonElement element : entries) {
             if (!element.isJsonObject()) {
