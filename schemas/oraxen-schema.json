@@ -1,8 +1,8 @@
 {
-  "oraxenVersion": "1.212.0",
+  "oraxenVersion": "1.212.1",
   "minecraftVersion": "1.21.11",
   "serverVersion": "1.21.11-R0.1-SNAPSHOT",
-  "generatedAt": "2026-04-06T19:56:38.933230136Z",
+  "generatedAt": "2026-04-16T19:41:21.889677590Z",
   "enums": {
     "Material": {
       "values": [
@@ -7785,14 +7785,14 @@
           "type": "object",
           "description": "Drop configuration when broken",
           "properties": {
+            "loots": {
+              "type": "array",
+              "description": "List of loot entries"
+            },
             "silktouch": {
               "type": "boolean",
               "description": "Require silk touch",
               "default": false
-            },
-            "loots": {
-              "type": "array",
-              "description": "List of loot entries"
             }
           }
         },
@@ -7929,16 +7929,16 @@
           "type": "object",
           "description": "Custom hitbox dimensions",
           "properties": {
-            "width": {
+            "height": {
               "type": "number",
-              "description": "Hitbox width",
+              "description": "Hitbox height",
               "default": 1.0,
               "min": 0.0,
               "max": 10.0
             },
-            "height": {
+            "width": {
               "type": "number",
-              "description": "Hitbox height",
+              "description": "Hitbox width",
               "default": 1.0,
               "min": 0.0,
               "max": 10.0
@@ -7973,16 +7973,16 @@
               "type": "object",
               "description": "Light levels",
               "properties": {
-                "sky": {
+                "block": {
                   "type": "integer",
-                  "description": "Sky light level",
+                  "description": "Block light level",
                   "default": 0,
                   "min": 0,
                   "max": 15
                 },
-                "block": {
+                "sky": {
                   "type": "integer",
-                  "description": "Block light level",
+                  "description": "Sky light level",
                   "default": 0,
                   "min": 0,
                   "max": 15
@@ -8052,27 +8052,6 @@
           "type": "object",
           "description": "Armor stand-specific display configuration",
           "properties": {
-            "scale": {
-              "type": "object",
-              "description": "Scale to inject into generated model display.head",
-              "properties": {
-                "z": {
-                  "type": "number",
-                  "description": "Z-axis scale",
-                  "default": 1.0
-                },
-                "y": {
-                  "type": "number",
-                  "description": "Y-axis scale",
-                  "default": 1.0
-                },
-                "x": {
-                  "type": "number",
-                  "description": "X-axis scale",
-                  "default": 1.0
-                }
-              }
-            },
             "translation": {
               "type": "object",
               "description": "Position offset for armor stand furniture",
@@ -8093,6 +8072,27 @@
                   "default": 0.0
                 }
               }
+            },
+            "scale": {
+              "type": "object",
+              "description": "Scale to inject into generated model display.head",
+              "properties": {
+                "z": {
+                  "type": "number",
+                  "description": "Z-axis scale",
+                  "default": 1.0
+                },
+                "y": {
+                  "type": "number",
+                  "description": "Y-axis scale",
+                  "default": 1.0
+                },
+                "x": {
+                  "type": "number",
+                  "description": "X-axis scale",
+                  "default": 1.0
+                }
+              }
             }
           }
         },
@@ -8100,14 +8100,14 @@
           "type": "object",
           "description": "Drop configuration when broken",
           "properties": {
+            "loots": {
+              "type": "array",
+              "description": "List of loot entries"
+            },
             "silktouch": {
               "type": "boolean",
               "description": "Require silk touch to drop",
               "default": false
-            },
-            "loots": {
-              "type": "array",
-              "description": "List of loot entries"
             }
           }
         },
@@ -8305,14 +8305,14 @@
           "type": "object",
           "description": "Drop configuration when broken",
           "properties": {
+            "loots": {
+              "type": "array",
+              "description": "List of loot entries"
+            },
             "silktouch": {
               "type": "boolean",
               "description": "Require silk touch",
               "default": false
-            },
-            "loots": {
-              "type": "array",
-              "description": "List of loot entries"
             }
           }
         },
@@ -8346,13 +8346,13 @@
           "type": "object",
           "description": "Placement restrictions",
           "properties": {
-            "type": {
-              "type": "string",
-              "description": "ALLOW or DENY list type"
-            },
             "block_types": {
               "type": "array",
               "description": "Block types to allow/deny"
+            },
+            "type": {
+              "type": "string",
+              "description": "ALLOW or DENY list type"
             }
           }
         },
@@ -8749,14 +8749,14 @@
           "type": "object",
           "description": "Drop configuration when broken",
           "properties": {
+            "loots": {
+              "type": "array",
+              "description": "List of loot entries"
+            },
             "silktouch": {
               "type": "boolean",
               "description": "Require silk touch",
               "default": false
-            },
-            "loots": {
-              "type": "array",
-              "description": "List of loot entries"
             }
           }
         },
