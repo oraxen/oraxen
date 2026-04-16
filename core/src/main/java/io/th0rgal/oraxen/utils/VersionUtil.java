@@ -118,9 +118,10 @@ public class VersionUtil {
             }
         }
 
-        // For 26.x series, use range-based matching to handle patch versions
-        // Any 26.x.x version where minor >= 1 should match v1_26_R1
-        if (version.getMajor() == 26 && version.getMinor() >= 1) {
+        // For 26.x series, use range-based matching to handle patch versions.
+        // Accept both canonical "26.x" and normalized "1.26.x" runtime shapes.
+        if ((version.getMajor() == 26 && version.getMinor() >= 1)
+                || (version.getMajor() == 1 && version.getMinor() == 26 && version.getBuild() >= 1)) {
             return NMSVersion.v1_26_R1;
         }
 
