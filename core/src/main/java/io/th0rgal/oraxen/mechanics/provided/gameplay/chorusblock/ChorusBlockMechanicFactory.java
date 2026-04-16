@@ -64,8 +64,7 @@ public class ChorusBlockMechanicFactory extends MechanicFactory {
             MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(),
                     new ChorusBlockMechanicListener.ChorusBlockMechanicPaperListener());
         }
-        boolean chorusPlantUpdatesDisabled = NMSHandlers.isChorusPlantUpdatesDisabled()
-                || PaperConfigUpdater.isBlockUpdateSettingEnabled("disable-chorus-plant-updates");
+        boolean chorusPlantUpdatesDisabled = NMSHandlers.isChorusPlantUpdatesDisabled();
         if (!VersionUtil.isPaperServer() || !chorusPlantUpdatesDisabled) {
             MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(),
                     new ChorusBlockMechanicListener.ChorusBlockMechanicPhysicsListener());
@@ -73,7 +72,8 @@ public class ChorusBlockMechanicFactory extends MechanicFactory {
 
         // Warn if Paper config is not set (auto-update happens earlier in plugin enable)
         if (VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.20.1")
-                && !chorusPlantUpdatesDisabled) {
+                && !chorusPlantUpdatesDisabled
+                && PaperConfigUpdater.wasBlockUpdateSettingUpdated("disable-chorus-plant-updates")) {
             Logs.logWarning("Paper block-updates.disable-chorus-plant-updates is not enabled, restart may be required");
         }
     }

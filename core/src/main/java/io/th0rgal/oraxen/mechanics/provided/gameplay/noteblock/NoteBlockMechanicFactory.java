@@ -69,12 +69,12 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         // Physics-related stuff
         if (VersionUtil.isPaperServer())
             MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockMechanicListener.NoteBlockMechanicPaperListener());
-        boolean noteblockUpdatesDisabled = NMSHandlers.isNoteblockUpdatesDisabled()
-                || PaperConfigUpdater.isBlockUpdateSettingEnabled("disable-noteblock-updates");
+        boolean noteblockUpdatesDisabled = NMSHandlers.isNoteblockUpdatesDisabled();
         if (!VersionUtil.isPaperServer() || !noteblockUpdatesDisabled)
             MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockMechanicListener.NoteBlockMechanicPhysicsListener());
         // Warn if Paper config is not set (auto-update happens earlier in plugin enable)
-        if (VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.20.1") && !noteblockUpdatesDisabled) {
+        if (VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.20.1") && !noteblockUpdatesDisabled
+                && PaperConfigUpdater.wasBlockUpdateSettingUpdated("disable-noteblock-updates")) {
             Logs.logWarning("Paper block-updates.disable-noteblock-updates is not enabled, restart may be required");
         }
     }

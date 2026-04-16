@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,6 +25,7 @@ public final class PaperConfigUpdater {
 
     private static final String CONFIG_FILE = "config/paper-global.yml";
     private static volatile Map<String, Boolean> cachedBlockUpdateSettings;
+    private static volatile Set<String> updatedBlockUpdateSettings = Set.of();
 
     private PaperConfigUpdater() {}
 
@@ -37,6 +39,7 @@ public final class PaperConfigUpdater {
      */
     public static List<String> ensureAllBlockUpdatesDisabled() {
         List<String> updatedSettings = new ArrayList<>();
+        updatedBlockUpdateSettings = Set.of();
 
         // Check if disabled via config or system property
         if (!Settings.AUTO_UPDATE_PAPER_CONFIG.toBool()) {
@@ -105,7 +108,16 @@ public final class PaperConfigUpdater {
             Logs.logWarning("Failed to auto-update paper-global.yml: " + e.getMessage());
         }
 
+        updatedBlockUpdateSettings = Set.copyOf(updatedSettings);
         return updatedSettings;
+    }
+
+    /**
+     * @param settingName one of: disable-noteblock-updates, disable-tripwire-updates, disable-chorus-plant-updates
+     * @return true when this setting was changed from false -> true by Oraxen in this startup
+     */
+    public static boolean wasBlockUpdateSettingUpdated(String settingName) {
+        return updatedBlockUpdateSettings.contains(settingName);
     }
 
     /**
