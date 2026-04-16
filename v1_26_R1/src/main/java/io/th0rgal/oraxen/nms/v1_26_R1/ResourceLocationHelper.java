@@ -4,11 +4,11 @@ import java.lang.reflect.Method;
 
 /**
  * Reflection-based helper to handle the ResourceLocation → Identifier rename
- * between Minecraft 1.21.10 and 1.21.11.
- * 
- * On 1.21.10 and earlier: net.minecraft.resources.ResourceLocation
- * On 1.21.11+: net.minecraft.resources.Identifier
- * 
+ * that occurred in Paper's 26.x Mojang-mapped API.
+ *
+ * On Paper 1.21.11 and earlier: net.minecraft.resources.ResourceLocation
+ * On Paper 26.x+:               net.minecraft.resources.Identifier
+ *
  * Both classes have the same API (parse(), etc.), just different names.
  */
 public final class ResourceLocationHelper {
@@ -20,12 +20,12 @@ public final class ResourceLocationHelper {
         Class<?> clazz = null;
         Method parseMethod = null;
 
-        // Try 1.21.11+ Identifier first
+        // Try Paper 26.x+ Identifier first
         try {
             clazz = Class.forName("net.minecraft.resources.Identifier");
             parseMethod = clazz.getMethod("parse", String.class);
         } catch (ClassNotFoundException | NoSuchMethodException ignored) {
-            // Fall back to ResourceLocation (1.21.10 and earlier)
+            // Fall back to ResourceLocation (Paper 1.21.11 and earlier)
             try {
                 clazz = Class.forName("net.minecraft.resources.ResourceLocation");
                 parseMethod = clazz.getMethod("parse", String.class);

@@ -123,7 +123,7 @@ public final class PackDispatchListener implements Listener {
         try {
             packUri = java.net.URI.create(packUrl);
         } catch (IllegalArgumentException ex) {
-            Logs.logWarning("Invalid resource pack URL for " + packUUID + ": " + packUrl);
+            Logs.logWarning("Invalid resource pack URL for " + playerId + ": " + packUrl);
             return null;
         }
 
