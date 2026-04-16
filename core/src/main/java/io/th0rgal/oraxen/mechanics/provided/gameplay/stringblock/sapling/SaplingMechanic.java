@@ -33,7 +33,7 @@ public class SaplingMechanic {
         minLightLevel = section.getInt("minLightLevel", 0);
         requiresWaterSource = section.getBoolean("requiresWaterSource", false);
         schematicName = section.getString("schematicName", null);
-        shouldReplaceBlocks = section.getBoolean("shouldReplaceBlocks", false);
+        shouldReplaceBlocks = section.getBoolean("replaceBlocks", section.getBoolean("shouldReplaceBlocks", false));
         shouldCopyBiomes = section.getBoolean("shouldCopyBiomes", false);
         shouldCopyEntities = section.getBoolean("shouldCopyEntities", false);
     }
