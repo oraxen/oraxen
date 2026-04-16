@@ -120,6 +120,10 @@ class TextShaderGenerator {
             if (target.isAtLeast("26")) {
                 Logs.logWarning("Shader-based scoreboard number hiding is not supported on 26.x+.");
                 Logs.logWarning("Use a packet adapter (ProtocolLib or PacketEvents) on Paper 1.20.3+ instead.");
+                if (!textShadersGenerated) {
+                    ResourcePack.deleteFileFromVirtualAndDisk("assets/minecraft/shaders/core/", "rendertype_text.json");
+                    ResourcePack.deleteFileFromVirtualAndDisk("assets/minecraft/shaders/core/", "rendertype_text.vsh");
+                }
             } else if (textShadersGenerated) {
                 boolean hasAnimatedGlyphs = !OraxenPlugin.get().getFontManager().getAnimatedGlyphs().isEmpty();
                 TextShaderFeatures features = textShaderFeatures != null
@@ -241,21 +245,29 @@ class TextShaderGenerator {
         ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text.fsh", fshContent);
         if (jsonContent != null)
             ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text.json", jsonContent);
+        else
+            ResourcePack.deleteFileFromVirtualAndDisk(shaderPath, "rendertype_text.json");
 
         ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text_see_through.vsh", vshSeeThrough);
         ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text_see_through.fsh", fshSeeThrough);
         if (jsonSeeThrough != null)
             ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text_see_through.json", jsonSeeThrough);
+        else
+            ResourcePack.deleteFileFromVirtualAndDisk(shaderPath, "rendertype_text_see_through.json");
 
         ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text_intensity.vsh", vshIntensity);
         ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text_intensity.fsh", fshIntensity);
         if (jsonIntensity != null)
             ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text_intensity.json", jsonIntensity);
+        else
+            ResourcePack.deleteFileFromVirtualAndDisk(shaderPath, "rendertype_text_intensity.json");
 
         ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text_intensity_see_through.vsh", vshIntensitySeeThrough);
         ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text_intensity_see_through.fsh", fshIntensitySeeThrough);
         if (jsonIntensitySeeThrough != null)
             ResourcePack.writeStringToVirtual(shaderPath, "rendertype_text_intensity_see_through.json", jsonIntensitySeeThrough);
+        else
+            ResourcePack.deleteFileFromVirtualAndDisk(shaderPath, "rendertype_text_intensity_see_through.json");
 
         if (Settings.DEBUG.toBool()) {
             Logs.logSuccess("Generated text shaders for " + target.displayName()

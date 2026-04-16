@@ -1249,6 +1249,20 @@ public class ResourcePack {
                 new VirtualFile(folder, name, new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))));
     }
 
+    public static void deleteFileFromVirtualAndDisk(String folder, String name) {
+        folder = !folder.endsWith("/") ? folder : folder.substring(0, folder.length() - 1);
+        String virtualPath = folder.isEmpty() ? name : folder + "/" + name;
+        outputFiles.remove(virtualPath);
+
+        File file = new File(packFolder, virtualPath);
+        if (file.exists()) {
+            file.delete();
+            if (Settings.DEBUG.toBool()) {
+                Logs.logInfo("Deleted stale file from disk: " + virtualPath);
+            }
+        }
+    }
+
     private static void writeImageToVirtual(String folder, String name, BufferedImage image) {
         folder = !folder.endsWith("/") ? folder : folder.substring(0, folder.length() - 1);
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
