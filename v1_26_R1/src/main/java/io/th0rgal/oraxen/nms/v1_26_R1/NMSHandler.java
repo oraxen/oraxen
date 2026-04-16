@@ -287,7 +287,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public boolean setComponent(ItemBuilder item, String componentKey, Object component) {
         try {
-            Object componentLocation = ResourceLocationHelper.parse("minecraft:" + componentKey.toLowerCase());
+            Object componentLocation = ResourceLocationHelper.parse("minecraft:" + componentKey.toLowerCase(java.util.Locale.ROOT));
             if (componentLocation == null)
                 return false;
 
