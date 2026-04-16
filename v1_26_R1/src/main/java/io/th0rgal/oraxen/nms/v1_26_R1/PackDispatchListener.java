@@ -41,7 +41,7 @@ public final class PackDispatchListener implements Listener {
         } catch (Exception ignored) {
         }
 
-        CompletableFuture<Void> future = sendResourcePack(event.getConnection(), false);
+        CompletableFuture<Void> future = sendResourcePack(event.getConnection());
         if (future != null) {
             futures.put(uuid, future);
             try {
@@ -73,7 +73,7 @@ public final class PackDispatchListener implements Listener {
             return;
         }
         try {
-            CompletableFuture<Void> future = sendResourcePack(event.getConnection(), true);
+            CompletableFuture<Void> future = sendResourcePack(event.getConnection());
             if (future == null) return;
             try {
                 future.get(10, TimeUnit.SECONDS);
@@ -102,7 +102,7 @@ public final class PackDispatchListener implements Listener {
     }
 
     @Nullable
-    private static CompletableFuture<Void> sendResourcePack(PlayerConfigurationConnection connection, boolean reconfigure) {
+    private static CompletableFuture<Void> sendResourcePack(PlayerConfigurationConnection connection) {
         String packUrl = OraxenPlugin.get().getPackURL();
         String hash = OraxenPlugin.get().getPackSHA1();
         if (packUrl == null || hash == null) return null;

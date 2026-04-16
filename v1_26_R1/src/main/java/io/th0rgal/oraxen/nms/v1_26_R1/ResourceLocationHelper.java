@@ -4,12 +4,10 @@ import java.lang.reflect.Method;
 
 /**
  * Reflection-based helper to handle the ResourceLocation → Identifier rename
- * that occurred in Paper's 26.x Mojang-mapped API.
+ * that occurred in Paper 26.x's Mojang-mapped API.
  *
- * On Paper 1.21.11 and earlier: net.minecraft.resources.ResourceLocation
- * On Paper 26.x+:               net.minecraft.resources.Identifier
- *
- * Both classes have the same API (parse(), etc.), just different names.
+ * This class is only used by the v1_26_R1 NMS module (Paper 26.x+).
+ * The ResourceLocation fallback is retained for defensive resilience only.
  */
 public final class ResourceLocationHelper {
 
@@ -25,7 +23,7 @@ public final class ResourceLocationHelper {
             clazz = Class.forName("net.minecraft.resources.Identifier");
             parseMethod = clazz.getMethod("parse", String.class);
         } catch (ClassNotFoundException | NoSuchMethodException ignored) {
-            // Fall back to ResourceLocation (Paper 1.21.11 and earlier)
+            // Fall back to ResourceLocation for defensive compatibility
             try {
                 clazz = Class.forName("net.minecraft.resources.ResourceLocation");
                 parseMethod = clazz.getMethod("parse", String.class);
@@ -43,11 +41,11 @@ public final class ResourceLocationHelper {
     }
 
     /**
-     * Parse a resource location string (e.g., "minecraft:stone") into the
-     * appropriate ResourceLocation/Identifier object for the current server version.
-     * 
+     * Parses a resource location string (for example {@code minecraft:stone})
+     * into the server's runtime identifier type.
+     *
      * @param value the resource location string
-     * @return the parsed object (ResourceLocation on 1.21.10, Identifier on 1.21.11)
+     * @return the parsed Identifier, or ResourceLocation if the fallback branch is used
      */
     @SuppressWarnings("unchecked")
     public static <T> T parse(String value) {
@@ -59,15 +57,14 @@ public final class ResourceLocationHelper {
     }
 
     /**
-     * Get the ResourceLocation/Identifier class for the current server version.
-     * Useful for creating Maps with the correct key type.
+     * Returns the runtime identifier class used by this server.
      */
     public static Class<?> getResourceLocationClass() {
         return RESOURCE_LOCATION_CLASS;
     }
 
     /**
-     * Check if running on 1.21.11+ (Identifier) or earlier (ResourceLocation).
+     * Returns whether the runtime identifier type is {@code Identifier}.
      */
     public static boolean usesIdentifier() {
         return RESOURCE_LOCATION_CLASS.getSimpleName().equals("Identifier");
