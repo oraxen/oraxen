@@ -5,6 +5,7 @@ import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text.FurnitureTextRegistry;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -29,7 +30,17 @@ public class FurnitureUpdater implements Listener {
             Bukkit.getPluginManager().registerEvent(EntitiesLoadEvent.class, this, EventPriority.NORMAL, (listener, event) ->
                     {
                         if (!FurnitureFactory.isEnabled()) return;
-                        ((EntitiesLoadEvent) event).getEntities().stream().filter(OraxenFurniture::isBaseEntity).forEach(OraxenFurniture::updateFurniture);
+                        ((EntitiesLoadEvent) event).getEntities().stream().filter(OraxenFurniture::isBaseEntity).forEach(entity -> {
+                            OraxenFurniture.updateFurniture(entity);
+                            registerTextEntity(entity);
+                        });
+                    }
+                    , OraxenPlugin.get());
+        } else {
+            Bukkit.getPluginManager().registerEvent(EntitiesLoadEvent.class, this, EventPriority.NORMAL, (listener, event) ->
+                    {
+                        if (!FurnitureFactory.isEnabled()) return;
+                        ((EntitiesLoadEvent) event).getEntities().stream().filter(OraxenFurniture::isBaseEntity).forEach(FurnitureUpdater::registerTextEntity);
                     }
                     , OraxenPlugin.get());
         }
@@ -60,5 +71,11 @@ public class FurnitureUpdater implements Listener {
                 }
             }), OraxenPlugin.get());
         }
+    }
+
+    private static void registerTextEntity(Entity entity) {
+        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
+        if (mechanic != null && mechanic.hasTextDefinitions())
+            FurnitureTextRegistry.register(entity, mechanic.getTextDefinitions());
     }
 }

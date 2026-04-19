@@ -157,6 +157,11 @@ Pack:
       type: "SPRITE" # "SPRITE" or "DIRECTORY"
     auto_generated_models_follow_texture_path: false
     compression: BEST_COMPRESSION # see Deflater.class
+    obfuscation:
+      # NONE keeps generated resource keys readable.
+      # SIMPLE renames pack-internal model, texture, and sound file paths while preserving namespaces.
+      # FULL also replaces namespaces used by renamed resources.
+      type: NONE
     # protection will use several methods to make your pack impossible to extract
     # with usual tools (native windows unzip, 7zip, winrar, etc) without altering
     # its integrity. Be careful if you activate this option to not try to extract

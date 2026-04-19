@@ -214,7 +214,9 @@ public class ResourcePack {
 
             OraxenPackGeneratedEvent event = new OraxenPackGeneratedEvent(output);
             EventUtils.callEvent(event);
-            writeSinglePackAsync(packWorker, event.getOutput());
+            output = event.getOutput();
+            PackObfuscator.obfuscate(output);
+            writeSinglePackAsync(packWorker, output);
         } catch (Exception exception) {
             handleGenerationFailure(packWorker, "sync pack finalization", exception);
         }

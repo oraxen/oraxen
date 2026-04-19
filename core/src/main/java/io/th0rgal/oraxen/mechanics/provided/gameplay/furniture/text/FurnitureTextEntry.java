@@ -1,0 +1,73 @@
+package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text;
+
+import org.bukkit.Location;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.ConcurrentHashMap;
+
+/**
+ * Runtime registration entry for a placed furniture base that has one or more
+ * virtual text displays attached to it.
+ *
+ * <p>Each entry owns a stable set of "virtual" entity IDs drawn from a negative
+ * id range to avoid any chance of colliding with real server-assigned ids.</p>
+ */
+public final class FurnitureTextEntry {
+
+    private static final AtomicInteger VIRTUAL_ID_COUNTER = new AtomicInteger(-1_000_000_000);
+
+    private final UUID baseUuid;
+    private final int baseEntityId;
+    private final Location baseLocation;
+    private final List<FurnitureTextDefinition> definitions;
+    private final int[] virtualEntityIds;
+    private final UUID[] virtualUuids;
+    private final Set<UUID> viewers = ConcurrentHashMap.newKeySet();
+
+    public FurnitureTextEntry(UUID baseUuid,
+                               int baseEntityId,
+                               Location baseLocation,
+                               List<FurnitureTextDefinition> definitions) {
+        this.baseUuid = baseUuid;
+        this.baseEntityId = baseEntityId;
+        this.baseLocation = baseLocation.clone();
+        this.definitions = definitions;
+        this.virtualEntityIds = new int[definitions.size()];
+        this.virtualUuids = new UUID[definitions.size()];
+        for (int i = 0; i < definitions.size(); i++) {
+            virtualEntityIds[i] = VIRTUAL_ID_COUNTER.getAndDecrement();
+            virtualUuids[i] = UUID.randomUUID();
+        }
+    }
+
+    public UUID getBaseUuid() { return baseUuid; }
+    public int getBaseEntityId() { return baseEntityId; }
+    public Location getBaseLocation() { return baseLocation.clone(); }
+    public List<FurnitureTextDefinition> getDefinitions() { return definitions; }
+    public int[] getVirtualEntityIds() { return Arrays.copyOf(virtualEntityIds, virtualEntityIds.length); }
+    public UUID virtualUuid(int index) { return virtualUuids[index]; }
+    public int virtualEntityId(int index) { return virtualEntityIds[index]; }
+    public int size() { return definitions.size(); }
+    public void addViewer(UUID viewer) { if (viewer != null) viewers.add(viewer); }
+    public void removeViewer(UUID viewer) { if (viewer != null) viewers.remove(viewer); }
+    public Set<UUID> getViewers() { return Set.copyOf(viewers); }
+
+    public boolean needsRefresh() {
+        for (FurnitureTextDefinition definition : definitions) {
+            if (definition.getRefreshTicks() > 0 || definition.usesPlaceholders()) return true;
+        }
+        return false;
+    }
+
+    public boolean shouldRefresh(long tick) {
+        for (FurnitureTextDefinition definition : definitions) {
+            int refreshTicks = definition.getRefreshTicks() > 0 ? definition.getRefreshTicks() : (definition.usesPlaceholders() ? 20 : 0);
+            if (refreshTicks > 0 && tick % refreshTicks == 0) return true;
+        }
+        return false;
+    }
+}

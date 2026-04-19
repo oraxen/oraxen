@@ -106,6 +106,7 @@ public enum Settings {
     GENERATE_MODEL_BASED_ON_TEXTURE_PATH("Pack.generation.auto_generated_models_follow_texture_path"),
     COMPRESSION("Pack.generation.compression"),
     PROTECTION("Pack.generation.protection"),
+    PACK_OBFUSCATION_TYPE("Pack.generation.obfuscation.type"),
     // 1.21.4+ appearance systems (can be combined)
     APPEARANCE_ITEM_PROPERTIES("Pack.generation.appearance.item_properties"),
     APPEARANCE_MODEL_DATA_IDS("Pack.generation.appearance.model_data_ids"),
