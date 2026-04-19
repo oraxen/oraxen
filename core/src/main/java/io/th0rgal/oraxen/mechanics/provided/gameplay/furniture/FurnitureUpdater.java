@@ -25,27 +25,19 @@ import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureM
 public class FurnitureUpdater implements Listener {
 
     public FurnitureUpdater() {
-        if (!Settings.UPDATE_FURNITURE.toBool()) return;
-        if (Settings.UPDATE_FURNITURE_ON_LOAD.toBool()) {
-            Bukkit.getPluginManager().registerEvent(EntitiesLoadEvent.class, this, EventPriority.NORMAL, (listener, event) ->
-                    {
-                        if (!FurnitureFactory.isEnabled()) return;
-                        ((EntitiesLoadEvent) event).getEntities().stream().filter(OraxenFurniture::isBaseEntity).forEach(entity -> {
+        Bukkit.getPluginManager().registerEvent(EntitiesLoadEvent.class, this, EventPriority.NORMAL, (listener, event) ->
+                {
+                    if (!FurnitureFactory.isEnabled()) return;
+                    ((EntitiesLoadEvent) event).getEntities().stream().filter(OraxenFurniture::isBaseEntity).forEach(entity -> {
+                        if (Settings.UPDATE_FURNITURE.toBool() && Settings.UPDATE_FURNITURE_ON_LOAD.toBool()) {
                             OraxenFurniture.updateFurniture(entity);
-                            registerTextEntity(entity);
-                        });
-                    }
-                    , OraxenPlugin.get());
-        } else {
-            Bukkit.getPluginManager().registerEvent(EntitiesLoadEvent.class, this, EventPriority.NORMAL, (listener, event) ->
-                    {
-                        if (!FurnitureFactory.isEnabled()) return;
-                        ((EntitiesLoadEvent) event).getEntities().stream().filter(OraxenFurniture::isBaseEntity).forEach(FurnitureUpdater::registerTextEntity);
-                    }
-                    , OraxenPlugin.get());
-        }
+                        }
+                        registerTextEntity(entity);
+                    });
+                }
+                , OraxenPlugin.get());
 
-        if (Settings.EXPERIMENTAL_FIX_BROKEN_FURNITURE.toBool()) {
+        if (Settings.UPDATE_FURNITURE.toBool() && Settings.EXPERIMENTAL_FIX_BROKEN_FURNITURE.toBool()) {
             Bukkit.getPluginManager().registerEvent(ChunkLoadEvent.class, this, EventPriority.NORMAL, ((listener, event) -> {
                 if (!FurnitureFactory.isEnabled()) return;
                 for (Block block : CustomBlockData.getBlocksWithCustomData(OraxenPlugin.get(), ((ChunkLoadEvent) event).getChunk())) {

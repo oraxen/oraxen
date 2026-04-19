@@ -526,13 +526,12 @@ public class FurnitureMechanic extends Mechanic {
         }
         item.setAmount(1);
 
-        Entity baseEntity = EntityUtils.spawnEntity(correctedSpawnLocation(location, resolvedFacing, yaw), entityClass, (e) -> setEntityData(e, yaw, item, resolvedFacing));
+        Entity baseEntity = EntityUtils.spawnEntity(correctedSpawnLocation(location, resolvedFacing, yaw), entityClass, (e) -> {
+            setEntityData(e, yaw, item, resolvedFacing);
+            if (hasTextDefinitions()) FurnitureTextRegistry.register(e, textDefinitions);
+        });
         if (this.isModelEngine() && PluginUtils.isEnabled("ModelEngine")) {
             spawnModelEngineFurniture(baseEntity);
-        }
-
-        if (hasTextDefinitions()) {
-            FurnitureTextRegistry.register(baseEntity, textDefinitions);
         }
 
         return baseEntity;

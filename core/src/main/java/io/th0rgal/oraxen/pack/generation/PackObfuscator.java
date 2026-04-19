@@ -77,9 +77,10 @@ public final class PackObfuscator {
 
             for (FileData file : files) {
                 String originalPath = file.path;
-                file.path = filePaths.getOrDefault(file.path, file.path);
                 if (file.isJson()) rewriteJson(file);
-                if (!file.path.equals(originalPath)) file.virtualFile.setPath(file.path);
+                String rewrittenPath = filePaths.getOrDefault(originalPath, originalPath);
+                if (!rewrittenPath.equals(originalPath)) file.virtualFile.setPath(rewrittenPath);
+                file.path = rewrittenPath;
                 file.virtualFile.setInputStream(new ByteArrayInputStream(file.content));
             }
 
@@ -193,7 +194,9 @@ public final class PackObfuscator {
 
             if (prop.equals("file") || prop.equals("texture") || prop.equals("resource") || prop.equals("sprite")
                     || prop.equals("particle") || prop.startsWith("layer") || isTextureFace(prop)) {
-                String replacement = lookup(textureKeys, value, namespace);
+                String replacement = prop.equals("file")
+                        ? lookup(textureKeys, value, namespace, extensionFrom(value))
+                        : lookup(textureKeys, value, namespace);
                 if (replacement != null) return replacement;
             }
 
@@ -228,14 +231,18 @@ public final class PackObfuscator {
         }
 
         private String lookup(Map<String, String> map, String value, String namespace) {
+            return lookup(map, value, namespace, "");
+        }
+
+        private String lookup(Map<String, String> map, String value, String namespace, String suffix) {
             String direct = stripKnownExtension(value);
-            if (direct.contains(":")) return map.get(direct);
+            if (direct.contains(":")) return appendSuffix(map.get(direct), suffix);
 
             String local = namespace + ":" + direct;
             String replacement = map.get(local);
-            if (replacement != null) return replacement;
+            if (replacement != null) return appendSuffix(replacement, suffix);
 
-            return map.get("minecraft:" + direct);
+            return appendSuffix(map.get("minecraft:" + direct), suffix);
         }
 
         private String obfuscateKey(String originalKey, String prefix) {
@@ -272,6 +279,18 @@ public final class PackObfuscator {
             if (stripped.endsWith(".png")) stripped = stripped.substring(0, stripped.length() - 4);
             if (stripped.endsWith(".ogg")) stripped = stripped.substring(0, stripped.length() - 4);
             return stripped;
+        }
+
+        private static String extensionFrom(String value) {
+            if (value == null) return "";
+            if (value.endsWith(".json")) return ".json";
+            if (value.endsWith(".png")) return ".png";
+            if (value.endsWith(".ogg")) return ".ogg";
+            return "";
+        }
+
+        private static String appendSuffix(String value, String suffix) {
+            return value == null ? null : value + suffix;
         }
 
         private static String keyFromPackPath(String path, String marker, String suffix) {
