@@ -65,9 +65,18 @@ public final class FurnitureTextEntry {
 
     public boolean shouldRefresh(long tick) {
         for (FurnitureTextDefinition definition : definitions) {
-            int refreshTicks = definition.getRefreshTicks() > 0 ? definition.getRefreshTicks() : (definition.usesPlaceholders() ? 20 : 0);
+            int refreshTicks = refreshInterval(definition);
             if (refreshTicks > 0 && tick % refreshTicks == 0) return true;
         }
         return false;
+    }
+
+    public boolean shouldRefresh(FurnitureTextDefinition definition, long tick) {
+        int refreshTicks = refreshInterval(definition);
+        return refreshTicks > 0 && tick % refreshTicks == 0;
+    }
+
+    private static int refreshInterval(FurnitureTextDefinition definition) {
+        return definition.getRefreshTicks() > 0 ? definition.getRefreshTicks() : (definition.usesPlaceholders() ? 20 : 0);
     }
 }

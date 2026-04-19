@@ -32,7 +32,7 @@ public class FurnitureUpdater implements Listener {
                         if (Settings.UPDATE_FURNITURE.toBool() && Settings.UPDATE_FURNITURE_ON_LOAD.toBool()) {
                             OraxenFurniture.updateFurniture(entity);
                         }
-                        registerTextEntity(entity);
+                        if (entity.isValid()) registerTextEntity(entity);
                     });
                 }
                 , OraxenPlugin.get());

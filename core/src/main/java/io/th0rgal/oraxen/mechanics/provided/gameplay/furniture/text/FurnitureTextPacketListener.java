@@ -169,14 +169,15 @@ public class FurnitureTextPacketListener implements PacketListener {
 
             for (UUID viewerId : entry.getViewers()) {
                 Player viewer = Bukkit.getPlayer(viewerId);
-                if (viewer == null || !viewer.isOnline() || !isWithinRange(entry, viewer)) {
+                if (viewer == null || !viewer.isOnline()) {
                     entry.removeViewer(viewerId);
                     continue;
                 }
+                if (!isWithinRange(entry, viewer)) continue;
 
                 for (int i = 0; i < entry.size(); i++) {
                     FurnitureTextDefinition def = entry.getDefinitions().get(i);
-                    if (def.getRefreshTicks() <= 0 && !def.usesPlaceholders()) continue;
+                    if (!entry.shouldRefresh(def, tick)) continue;
                     PacketEvents.getAPI().getPlayerManager().sendPacket(viewer,
                             new WrapperPlayServerEntityMetadata(entry.virtualEntityId(i), buildMetadata(def, viewer)));
                 }
@@ -225,7 +226,7 @@ public class FurnitureTextPacketListener implements PacketListener {
             case CENTER -> (byte) 3;
         };
         data.add(new EntityData<>(DATA_DISPLAY_BILLBOARD, EntityDataTypes.BYTE, billboard));
-        data.add(new EntityData<>(DATA_DISPLAY_VIEW_RANGE, EntityDataTypes.FLOAT, def.getViewRange()));
+        data.add(new EntityData<>(DATA_DISPLAY_VIEW_RANGE, EntityDataTypes.FLOAT, def.getViewRange() / 64.0f));
 
         Component text = def.renderComponent(viewer);
         data.add(new EntityData<>(DATA_TEXT_DISPLAY_TEXT, EntityDataTypes.ADV_COMPONENT, text));

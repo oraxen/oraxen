@@ -40,7 +40,12 @@ public final class FurnitureTextPacketBridge {
             refreshTask.cancel();
             refreshTask = null;
         }
-        if (registered == null) return;
+        FurnitureTextRegistry.clear();
+        if (registered == null) {
+            listener = null;
+            tick = 0L;
+            return;
+        }
         try {
             PacketEvents.getAPI().getEventManager().unregisterListener(registered);
         } catch (Throwable ignored) {
@@ -48,6 +53,5 @@ public final class FurnitureTextPacketBridge {
         registered = null;
         listener = null;
         tick = 0L;
-        FurnitureTextRegistry.clear();
     }
 }

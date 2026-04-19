@@ -29,7 +29,8 @@ public final class PackObfuscator {
     }
 
     public static void obfuscate(List<VirtualFile> output) {
-        obfuscate(output, Settings.PACK_OBFUSCATION_TYPE.toString(), true);
+        Object rawType = Settings.PACK_OBFUSCATION_TYPE.getValue();
+        obfuscate(output, rawType == null ? null : rawType.toString(), true);
     }
 
     static void obfuscate(List<VirtualFile> output, String rawType) {
