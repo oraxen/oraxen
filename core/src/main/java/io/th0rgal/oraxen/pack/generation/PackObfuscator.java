@@ -29,11 +29,19 @@ public final class PackObfuscator {
     }
 
     public static void obfuscate(List<VirtualFile> output) {
-        Type type = Type.from(Settings.PACK_OBFUSCATION_TYPE.toString());
+        obfuscate(output, Settings.PACK_OBFUSCATION_TYPE.toString(), true);
+    }
+
+    static void obfuscate(List<VirtualFile> output, String rawType) {
+        obfuscate(output, rawType, true);
+    }
+
+    static void obfuscate(List<VirtualFile> output, String rawType, boolean logSummary) {
+        Type type = Type.from(rawType);
         if (type == Type.NONE || output == null || output.isEmpty()) return;
 
         try {
-            new Pass(type).run(output);
+            new Pass(type, logSummary).run(output);
         } catch (Exception exception) {
             Logs.logError("Failed to obfuscate resource pack. Keeping readable pack output.");
             if (Settings.DEBUG.toBool()) exception.printStackTrace();
@@ -60,14 +68,16 @@ public final class PackObfuscator {
 
     private static final class Pass {
         private final Type type;
+        private final boolean logSummary;
         private final Map<String, String> namespaceMap = new LinkedHashMap<>();
         private final Map<String, String> modelKeys = new LinkedHashMap<>();
         private final Map<String, String> textureKeys = new LinkedHashMap<>();
         private final Map<String, String> soundKeys = new LinkedHashMap<>();
         private final Map<String, String> filePaths = new LinkedHashMap<>();
 
-        private Pass(Type type) {
+        private Pass(Type type, boolean logSummary) {
             this.type = type;
+            this.logSummary = logSummary;
         }
 
         private void run(List<VirtualFile> output) throws Exception {
@@ -84,8 +94,10 @@ public final class PackObfuscator {
                 file.virtualFile.setInputStream(new ByteArrayInputStream(file.content));
             }
 
-            Logs.logInfo("Obfuscated resource pack keys: " + modelKeys.size() + " models, "
-                    + textureKeys.size() + " textures, " + soundKeys.size() + " sounds");
+            if (logSummary) {
+                Logs.logInfo("Obfuscated resource pack keys: " + modelKeys.size() + " models, "
+                        + textureKeys.size() + " textures, " + soundKeys.size() + " sounds");
+            }
         }
 
         private List<FileData> materialize(List<VirtualFile> output) throws Exception {
@@ -205,10 +217,10 @@ public final class PackObfuscator {
                 if (replacement != null) return replacement;
             }
 
-            String model = lookup(modelKeys, value, namespace);
-            if (model != null) return model;
             String texture = lookup(textureKeys, value, namespace);
             if (texture != null) return texture;
+            String model = lookup(modelKeys, value, namespace);
+            if (model != null) return model;
             String sound = lookup(soundKeys, value, namespace);
             return sound != null ? sound : value;
         }
