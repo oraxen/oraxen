@@ -200,23 +200,8 @@ public final class PackObfuscator {
             if (value == null || value.isBlank() || value.startsWith("#")) return value;
             String prop = property == null ? "" : property.toLowerCase(Locale.ROOT);
 
-            if (prop.equals("parent") || prop.equals("model") || prop.equals("base")) {
-                String replacement = lookup(modelKeys, value, namespace);
-                if (replacement != null) return replacement;
-            }
-
-            if (prop.equals("file") || prop.equals("texture") || prop.equals("resource") || prop.equals("sprite")
-                    || prop.equals("particle") || prop.startsWith("layer") || isTextureFace(prop)) {
-                String replacement = prop.equals("file")
-                        ? lookup(textureKeys, value, namespace, extensionFrom(value))
-                        : lookup(textureKeys, value, namespace);
-                if (replacement != null) return replacement;
-            }
-
-            if (prop.equals("name") || prop.equals("sounds")) {
-                String replacement = lookup(soundKeys, value, namespace);
-                if (replacement != null) return replacement;
-            }
+            String propertyReplacement = rewriteKnownProperty(prop, value, namespace);
+            if (propertyReplacement != null) return propertyReplacement;
 
             String model = lookup(modelKeys, value, namespace);
             if (model != null) return model;
@@ -224,6 +209,32 @@ public final class PackObfuscator {
             if (texture != null) return texture;
             String sound = lookup(soundKeys, value, namespace);
             return sound != null ? sound : value;
+        }
+
+        private String rewriteKnownProperty(String prop, String value, String namespace) {
+            if (isModelProperty(prop)) return lookup(modelKeys, value, namespace);
+            if (isTextureProperty(prop)) return lookupTextureProperty(prop, value, namespace);
+            if (isSoundProperty(prop)) return lookup(soundKeys, value, namespace);
+            return null;
+        }
+
+        private String lookupTextureProperty(String prop, String value, String namespace) {
+            return prop.equals("file")
+                    ? lookup(textureKeys, value, namespace, extensionFrom(value))
+                    : lookup(textureKeys, value, namespace);
+        }
+
+        private static boolean isModelProperty(String prop) {
+            return prop.equals("parent") || prop.equals("model") || prop.equals("base");
+        }
+
+        private static boolean isTextureProperty(String prop) {
+            return prop.equals("file") || prop.equals("texture") || prop.equals("resource") || prop.equals("sprite")
+                    || prop.equals("particle") || prop.startsWith("layer") || isTextureFace(prop);
+        }
+
+        private static boolean isSoundProperty(String prop) {
+            return prop.equals("name") || prop.equals("sounds");
         }
 
         private void addAtlasSingles(JsonObject atlas) {
