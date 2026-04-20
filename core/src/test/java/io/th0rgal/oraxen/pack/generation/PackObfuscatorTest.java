@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PackObfuscatorTest {
@@ -40,6 +41,66 @@ class PackObfuscatorTest {
 
         assertTrue(layer0.startsWith("oraxen:t/"), layer0);
         assertNotEquals("default/sword", layer0);
+    }
+
+    @Test
+    void soundArrayValuesPreferSoundKeysWhenAssetsSharePath() throws Exception {
+        List<VirtualFile> files = new ArrayList<>();
+        files.add(file("assets/oraxen/sounds.json", """
+                {
+                  "default.sword": {
+                    "sounds": [
+                      "default/sword",
+                      { "name": "default/sword" }
+                    ]
+                  }
+                }
+                """));
+        files.add(file("assets/oraxen/models/default/sword.json", "{}"));
+        files.add(file("assets/oraxen/textures/default/sword.png", "png"));
+        files.add(file("assets/oraxen/sounds/default/sword.ogg", "ogg"));
+
+        PackObfuscator.obfuscate(files, "SIMPLE", false);
+
+        VirtualFile soundsFile = files.stream()
+                .filter(file -> file.getPath().endsWith("/sounds.json"))
+                .findFirst()
+                .orElseThrow();
+        String soundsContent = new String(soundsFile.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        JsonObject sounds = JsonParser.parseString(soundsContent).getAsJsonObject()
+                .getAsJsonObject("default.sword");
+        String arrayValue = sounds.getAsJsonArray("sounds").get(0).getAsString();
+        String objectValue = sounds.getAsJsonArray("sounds").get(1).getAsJsonObject().get("name").getAsString();
+
+        assertTrue(arrayValue.startsWith("oraxen:s/"), arrayValue);
+        assertEquals(arrayValue, objectValue);
+    }
+
+    @Test
+    void genericValuesPreferModelKeysWhenModelAndTextureSharePath() throws Exception {
+        List<VirtualFile> files = new ArrayList<>();
+        files.add(file("assets/oraxen/models/default/holder.json", """
+                {
+                  "custom_model": "default/sword"
+                }
+                """));
+        files.add(file("assets/oraxen/models/default/sword.json", "{}"));
+        files.add(file("assets/oraxen/textures/default/sword.png", "png"));
+
+        PackObfuscator.obfuscate(files, "SIMPLE", false);
+
+        String customModel = null;
+        for (VirtualFile file : files) {
+            if (!file.getPath().contains("/models/")) continue;
+            String content = new String(file.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            JsonObject json = JsonParser.parseString(content).getAsJsonObject();
+            if (json.has("custom_model")) {
+                customModel = json.get("custom_model").getAsString();
+                break;
+            }
+        }
+
+        assertTrue(customModel.startsWith("oraxen:m/"), customModel);
     }
 
     private static VirtualFile file(String path, String content) {

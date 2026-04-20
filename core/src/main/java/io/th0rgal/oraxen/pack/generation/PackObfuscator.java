@@ -213,15 +213,15 @@ public final class PackObfuscator {
                 if (replacement != null) return replacement;
             }
 
-            if (prop.equals("name")) {
+            if (prop.equals("name") || prop.equals("sounds")) {
                 String replacement = lookup(soundKeys, value, namespace);
                 if (replacement != null) return replacement;
             }
 
-            String texture = lookup(textureKeys, value, namespace);
-            if (texture != null) return texture;
             String model = lookup(modelKeys, value, namespace);
             if (model != null) return model;
+            String texture = lookup(textureKeys, value, namespace);
+            if (texture != null) return texture;
             String sound = lookup(soundKeys, value, namespace);
             return sound != null ? sound : value;
         }
