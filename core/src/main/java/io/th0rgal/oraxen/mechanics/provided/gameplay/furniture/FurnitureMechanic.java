@@ -32,6 +32,7 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.MemoryConfiguration;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -286,10 +287,9 @@ public class FurnitureMechanic extends Mechanic {
             for (int i = 0; i < list.size(); i++) {
                 Object raw = list.get(i);
                 if (raw instanceof Map<?, ?> map) {
-                    ConfigurationSection temp = section.createSection("_tmp_text_entity_" + i);
+                    ConfigurationSection temp = new MemoryConfiguration();
                     copyMapToSection(map, temp);
                     defs.add(FurnitureTextDefinition.parse(temp));
-                    section.set("_tmp_text_entity_" + i, null);
                 }
             }
         }

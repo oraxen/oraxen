@@ -265,6 +265,37 @@ class PackObfuscatorTest {
         assertEquals(0, paintingsSources);
     }
 
+    @Test
+    void nonBlockAtlasSinglesAreAddedForReferencedDirectories() throws Exception {
+        List<VirtualFile> files = new ArrayList<>();
+        files.add(file("assets/minecraft/atlases/paintings.json", """
+                {
+                  "sources": [
+                    {
+                      "type": "directory",
+                      "source": "painting",
+                      "prefix": "painting/"
+                    }
+                  ]
+                }
+                """));
+        files.add(file("assets/minecraft/textures/painting/custom.png", "png"));
+        files.add(file("assets/minecraft/textures/item/diamond_sword.png", "png"));
+
+        PackObfuscator.obfuscate(files, "SIMPLE", false);
+
+        VirtualFile atlasFile = files.stream()
+                .filter(file -> file.getPath().endsWith("/atlases/paintings.json"))
+                .findFirst()
+                .orElseThrow();
+        String content = new String(atlasFile.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        JsonObject atlas = JsonParser.parseString(content).getAsJsonObject();
+
+        assertEquals(2, atlas.getAsJsonArray("sources").size());
+        assertTrue(files.stream().anyMatch(file -> file.getPath().startsWith("assets/minecraft/textures/t/")));
+        assertTrue(files.stream().anyMatch(file -> file.getPath().equals("assets/minecraft/textures/item/diamond_sword.png")));
+    }
+
     private static VirtualFile file(String path, String content) {
         int slash = path.lastIndexOf('/');
         return new VirtualFile(path.substring(0, slash), path.substring(slash + 1),

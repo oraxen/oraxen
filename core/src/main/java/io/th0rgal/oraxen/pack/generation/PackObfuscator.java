@@ -176,8 +176,41 @@ public final class PackObfuscator {
                     continue;
                 }
                 collectReferencedTextureKeys(parsed, null, namespaceFromPath(file.path), keys);
+                if (isAtlas(file.path)) collectAtlasTextureKeys(parsed, namespaceFromPath(file.path), files, keys);
             }
             return keys;
+        }
+
+        private void collectAtlasTextureKeys(JsonElement atlas, String namespace, List<FileData> files, Set<String> keys) {
+            if (atlas == null || !atlas.isJsonObject()) return;
+            JsonObject object = atlas.getAsJsonObject();
+            if (!object.has("sources") || !object.get("sources").isJsonArray()) return;
+
+            for (JsonElement sourceElement : object.getAsJsonArray("sources")) {
+                if (!sourceElement.isJsonObject()) continue;
+                JsonObject source = sourceElement.getAsJsonObject();
+                String type = source.has("type") && source.get("type").isJsonPrimitive()
+                        ? source.get("type").getAsString()
+                        : "";
+                if (type.endsWith("single")) {
+                    addAtlasSingleReference(source, "resource", namespace, keys);
+                    addAtlasSingleReference(source, "sprite", namespace, keys);
+                } else if (type.endsWith("directory")) {
+                    addAtlasDirectoryReferences(source, namespace, files, keys);
+                }
+            }
+        }
+
+        private void addAtlasDirectoryReferences(JsonObject source, String namespace, List<FileData> files, Set<String> keys) {
+            if (!source.has("source") || !source.get("source").isJsonPrimitive()) return;
+            String directory = stripKnownExtension(source.get("source").getAsString());
+            String explicitNamespace = directory.contains(":") ? directory.substring(0, directory.indexOf(':')) : namespace;
+            String path = directory.contains(":") ? directory.substring(directory.indexOf(':') + 1) : directory;
+            for (FileData file : files) {
+                if (!isTexture(file.path)) continue;
+                String key = keyFromPackPath(file.path, "/textures/", ".png");
+                if (isKeyUnderDirectory(key, explicitNamespace, path)) keys.add(key);
+            }
         }
 
         private Set<String> collectReferencedSoundKeys(List<FileData> files) {
@@ -248,7 +281,9 @@ public final class PackObfuscator {
             String namespace = namespaceFromPath(file.path);
             boolean soundsJson = isSoundsJson(file.path);
             JsonElement rewritten = rewriteElement(parsed, null, namespace, soundsJson);
-            if (isBlocksAtlas(file.path) && rewritten.isJsonObject()) addAtlasSingles(rewritten.getAsJsonObject());
+            if (isAtlas(file.path) && rewritten.isJsonObject()) {
+                addAtlasSingles(rewritten.getAsJsonObject(), parsed, namespace, isBlocksAtlas(file.path));
+            }
             file.content = GSON.toJson(rewritten).getBytes(StandardCharsets.UTF_8);
         }
 
@@ -321,13 +356,18 @@ public final class PackObfuscator {
             return prop.equals("name") || prop.equals("sounds");
         }
 
-        private void addAtlasSingles(JsonObject atlas) {
+        private void addAtlasSingles(JsonObject atlas, JsonElement originalAtlas, String namespace, boolean includeAll) {
             if (textureKeys.isEmpty()) return;
+            Set<String> atlasTextureKeys = includeAll ? textureKeys.keySet() : collectAtlasTextureKeys(originalAtlas, namespace);
+            if (atlasTextureKeys.isEmpty()) return;
+
             JsonArray sources = atlas.has("sources") && atlas.get("sources").isJsonArray()
                     ? atlas.getAsJsonArray("sources")
                     : new JsonArray();
 
-            for (String obfuscatedKey : textureKeys.values()) {
+            for (String originalKey : atlasTextureKeys) {
+                String obfuscatedKey = textureKeys.get(originalKey);
+                if (obfuscatedKey == null) continue;
                 JsonObject source = new JsonObject();
                 source.addProperty("type", "single");
                 source.addProperty("resource", obfuscatedKey);
@@ -336,6 +376,57 @@ public final class PackObfuscator {
             }
 
             atlas.add("sources", sources);
+        }
+
+        private Set<String> collectAtlasTextureKeys(JsonElement atlas, String namespace) {
+            Set<String> keys = new HashSet<>();
+            if (atlas == null || !atlas.isJsonObject()) return keys;
+            JsonObject object = atlas.getAsJsonObject();
+            if (!object.has("sources") || !object.get("sources").isJsonArray()) return keys;
+
+            for (JsonElement sourceElement : object.getAsJsonArray("sources")) {
+                if (!sourceElement.isJsonObject()) continue;
+                JsonObject source = sourceElement.getAsJsonObject();
+                String type = source.has("type") && source.get("type").isJsonPrimitive()
+                        ? source.get("type").getAsString()
+                        : "";
+                if (type.endsWith("single")) {
+                    addAtlasSingleReference(source, "resource", namespace, keys);
+                    addAtlasSingleReference(source, "sprite", namespace, keys);
+                } else if (type.endsWith("directory")) {
+                    addAtlasDirectoryReferences(source, namespace, keys);
+                }
+            }
+            return keys;
+        }
+
+        private void addAtlasSingleReference(JsonObject source, String property, String namespace, Set<String> keys) {
+            if (!source.has(property) || !source.get(property).isJsonPrimitive()) return;
+            String value = stripKnownExtension(source.get(property).getAsString());
+            if (value.contains(":")) {
+                keys.add(value);
+            } else {
+                keys.add(namespace + ":" + value);
+                keys.add("minecraft:" + value);
+            }
+        }
+
+        private void addAtlasDirectoryReferences(JsonObject source, String namespace, Set<String> keys) {
+            if (!source.has("source") || !source.get("source").isJsonPrimitive()) return;
+            String directory = stripKnownExtension(source.get("source").getAsString());
+            String explicitNamespace = directory.contains(":") ? directory.substring(0, directory.indexOf(':')) : namespace;
+            String path = directory.contains(":") ? directory.substring(directory.indexOf(':') + 1) : directory;
+            for (String key : textureKeys.keySet()) {
+                if (isKeyUnderDirectory(key, explicitNamespace, path)) keys.add(key);
+            }
+        }
+
+        private static boolean isKeyUnderDirectory(String key, String namespace, String directory) {
+            int split = key.indexOf(':');
+            if (split < 0) return false;
+            String keyNamespace = key.substring(0, split);
+            String keyPath = key.substring(split + 1);
+            return keyNamespace.equals(namespace) && (keyPath.equals(directory) || keyPath.startsWith(directory + "/"));
         }
 
         private String lookup(Map<String, String> map, String value, String namespace) {
@@ -478,6 +569,10 @@ public final class PackObfuscator {
 
         private static boolean isSound(String path) {
             return path.startsWith("assets/") && path.contains("/sounds/") && path.endsWith(".ogg");
+        }
+
+        private static boolean isAtlas(String path) {
+            return path.startsWith("assets/") && path.contains("/atlases/") && path.endsWith(".json");
         }
 
         private static boolean isBlocksAtlas(String path) {
