@@ -313,16 +313,23 @@ class PackObfuscatorTest {
 
         int blocksSources = -1;
         int paintingsSources = -1;
+        JsonObject blocksSource = null;
         for (VirtualFile file : files) {
             String path = file.getPath();
             if (!path.endsWith("/atlases/blocks.json") && !path.endsWith("/atlases/paintings.json")) continue;
             String content = new String(file.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
             int sources = JsonParser.parseString(content).getAsJsonObject().getAsJsonArray("sources").size();
-            if (path.endsWith("/atlases/blocks.json")) blocksSources = sources;
+            if (path.endsWith("/atlases/blocks.json")) {
+                JsonObject atlas = JsonParser.parseString(content).getAsJsonObject();
+                blocksSources = sources;
+                blocksSource = atlas.getAsJsonArray("sources").get(0).getAsJsonObject();
+            }
             if (path.endsWith("/atlases/paintings.json")) paintingsSources = sources;
         }
 
         assertEquals(1, blocksSources);
+        assertTrue(blocksSource.get("resource").getAsString().startsWith("oraxen:t/"));
+        assertEquals("oraxen:default/sword", blocksSource.get("sprite").getAsString());
         assertEquals(0, paintingsSources);
     }
 

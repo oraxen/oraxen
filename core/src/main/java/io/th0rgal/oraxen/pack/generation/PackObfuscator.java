@@ -404,7 +404,7 @@ public final class PackObfuscator {
         private void addAtlasSingles(JsonObject atlas, JsonElement originalAtlas, String namespace, boolean includeAll) {
             if (textureKeys.isEmpty()) return;
             Map<String, String> atlasSprites = includeAll
-                    ? new LinkedHashMap<>(textureKeys)
+                    ? collectAllAtlasSprites()
                     : collectAtlasSprites(originalAtlas, namespace);
             if (atlasSprites.isEmpty()) return;
 
@@ -424,6 +424,14 @@ public final class PackObfuscator {
             }
 
             atlas.add("sources", sources);
+        }
+
+        private Map<String, String> collectAllAtlasSprites() {
+            Map<String, String> sprites = new LinkedHashMap<>();
+            for (String key : textureKeys.keySet()) {
+                sprites.put(key, key);
+            }
+            return sprites;
         }
 
         private Map<String, String> collectAtlasSprites(JsonElement atlas, String namespace) {
