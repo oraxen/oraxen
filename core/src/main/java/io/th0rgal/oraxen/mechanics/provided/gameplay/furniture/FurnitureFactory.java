@@ -43,6 +43,7 @@ public class FurnitureFactory extends MechanicFactory {
         evolvingFurnitures = false;
         instance = this;
         FurniturePacketDispatcher.init();
+        FurnitureTextPacketBridge.unregister();
         FurnitureTextPacketBridge.register();
         customSounds = areCustomSoundsEnabled();
 

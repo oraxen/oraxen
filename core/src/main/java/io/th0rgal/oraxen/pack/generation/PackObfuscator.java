@@ -122,6 +122,7 @@ public final class PackObfuscator {
         }
 
         private void collectRenames(List<FileData> files) {
+            Set<String> referencedModelKeys = collectReferencedModelKeys(files);
             Set<String> referencedTextureKeys = collectReferencedTextureKeys(files);
             Set<String> referencedSoundKeys = collectReferencedSoundKeys(files);
 
@@ -149,6 +150,7 @@ public final class PackObfuscator {
 
                 if (isModel(path) && !isStableModelRoot(path)) {
                     String originalKey = keyFromPackPath(path, "/models/", ".json");
+                    if (isUntrackedVanillaModel(originalKey, referencedModelKeys)) continue;
                     String obfuscatedKey = obfuscateKey(originalKey, "m");
                     modelKeys.put(originalKey, obfuscatedKey);
                     filePaths.put(path, modelPath(obfuscatedKey));
@@ -179,6 +181,42 @@ public final class PackObfuscator {
                 if (isAtlas(file.path)) collectAtlasTextureKeys(parsed, namespaceFromPath(file.path), files, keys);
             }
             return keys;
+        }
+
+        private Set<String> collectReferencedModelKeys(List<FileData> files) {
+            Set<String> keys = new HashSet<>();
+            for (FileData file : files) {
+                if (!file.isJson()) continue;
+                JsonElement parsed;
+                try {
+                    parsed = JsonParser.parseString(new String(file.content, StandardCharsets.UTF_8));
+                } catch (Exception ignored) {
+                    continue;
+                }
+                collectReferencedModelKeys(parsed, null, namespaceFromPath(file.path), keys);
+            }
+            return keys;
+        }
+
+        private void collectReferencedModelKeys(JsonElement element, String property, String namespace, Set<String> keys) {
+            if (element == null || element.isJsonNull()) return;
+            if (element.isJsonObject()) {
+                for (Map.Entry<String, JsonElement> entry : element.getAsJsonObject().entrySet()) {
+                    collectReferencedModelKeys(entry.getValue(), entry.getKey(), namespace, keys);
+                }
+                return;
+            }
+            if (element.isJsonArray()) {
+                for (JsonElement child : element.getAsJsonArray()) {
+                    collectReferencedModelKeys(child, property, namespace, keys);
+                }
+                return;
+            }
+            if (!element.isJsonPrimitive() || !element.getAsJsonPrimitive().isString()) return;
+
+            String prop = property == null ? "" : property.toLowerCase(Locale.ROOT);
+            if (!isModelProperty(prop)) return;
+            addResourceReference(element.getAsString(), namespace, keys);
         }
 
         private void collectAtlasTextureKeys(JsonElement atlas, String namespace, List<FileData> files, Set<String> keys) {
@@ -246,7 +284,7 @@ public final class PackObfuscator {
 
             String prop = property == null ? "" : property.toLowerCase(Locale.ROOT);
             if (!isSoundProperty(prop)) return;
-            addSoundReference(element.getAsString(), namespace, keys);
+            addResourceReference(element.getAsString(), namespace, keys);
         }
 
         private void collectReferencedTextureKeys(JsonElement element, String property, String namespace, Set<String> keys) {
@@ -267,7 +305,7 @@ public final class PackObfuscator {
 
             String prop = property == null ? "" : property.toLowerCase(Locale.ROOT);
             if (!isTextureProperty(prop)) return;
-            addTextureReference(element.getAsString(), namespace, keys);
+            addResourceReference(element.getAsString(), namespace, keys);
         }
 
         private void rewriteJson(FileData file) {
@@ -495,22 +533,16 @@ public final class PackObfuscator {
             return key.startsWith("minecraft:") && !referencedTextureKeys.contains(key);
         }
 
+        private static boolean isUntrackedVanillaModel(String key, Set<String> referencedModelKeys) {
+            return key.startsWith("minecraft:") && !referencedModelKeys.contains(key);
+        }
+
         private static boolean isUntrackedVanillaSound(String key, Set<String> referencedSoundKeys) {
             return key.startsWith("minecraft:") && !referencedSoundKeys.contains(key);
         }
 
-        private static void addTextureReference(String value, String namespace, Set<String> keys) {
+        private static void addResourceReference(String value, String namespace, Set<String> keys) {
             if (value == null || value.isBlank() || value.startsWith("#")) return;
-            String stripped = stripKnownExtension(value);
-            if (stripped.contains(":")) {
-                keys.add(stripped);
-                return;
-            }
-            keys.add(namespace + ":" + stripped);
-        }
-
-        private static void addSoundReference(String value, String namespace, Set<String> keys) {
-            if (value == null || value.isBlank()) return;
             String stripped = stripKnownExtension(value);
             if (stripped.contains(":")) {
                 keys.add(stripped);

@@ -4,6 +4,7 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerCommon;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
@@ -33,6 +34,7 @@ final class FurnitureTextPacketRegistration {
             FurnitureTextPacketListener activeListener = listener;
             if (activeListener != null) activeListener.refresh(++tick);
         });
+        MechanicsManager.registerTask("furniture", refreshTask);
     }
 
     static void unregister() {

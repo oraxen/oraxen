@@ -213,6 +213,23 @@ class PackObfuscatorTest {
     }
 
     @Test
+    void vanillaModelOnlyOverridesKeepOriginalPathWhenUnreferenced() {
+        List<VirtualFile> files = new ArrayList<>();
+        files.add(file("assets/minecraft/models/custom/override.json", "{}"));
+        files.add(file("assets/oraxen/models/default/holder.json", """
+                {
+                  "model": "default/model"
+                }
+                """));
+        files.add(file("assets/oraxen/models/default/model.json", "{}"));
+
+        PackObfuscator.obfuscate(files, "SIMPLE", false);
+
+        assertTrue(files.stream().anyMatch(file -> file.getPath().equals("assets/minecraft/models/custom/override.json")));
+        assertTrue(files.stream().anyMatch(file -> file.getPath().startsWith("assets/oraxen/models/m/")));
+    }
+
+    @Test
     void namePropertiesOutsideSoundsJsonCanRewriteModelReferences() throws Exception {
         List<VirtualFile> files = new ArrayList<>();
         files.add(file("assets/oraxen/models/default/holder.json", """
