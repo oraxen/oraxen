@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * In-memory registry of placed furniture bases that own virtual text entities.
@@ -19,6 +20,7 @@ public final class FurnitureTextRegistry {
 
     private static final Map<UUID, FurnitureTextEntry> BY_UUID = new ConcurrentHashMap<>();
     private static final Map<Integer, FurnitureTextEntry> BY_ENTITY_ID = new ConcurrentHashMap<>();
+    private static final AtomicInteger REFRESHABLE_ENTRIES = new AtomicInteger();
 
     private FurnitureTextRegistry() {
     }
@@ -36,6 +38,7 @@ public final class FurnitureTextRegistry {
         previous = BY_UUID.put(uuid, entry);
         if (previous != null) BY_ENTITY_ID.remove(previous.getBaseEntityId());
         BY_ENTITY_ID.put(entityId, entry);
+        updateRefreshableCount(previous, entry);
         return entry;
     }
 
@@ -56,13 +59,14 @@ public final class FurnitureTextRegistry {
         if (uuid == null) return;
         FurnitureTextEntry entry = BY_UUID.remove(uuid);
         if (entry != null) BY_ENTITY_ID.remove(entry.getBaseEntityId());
+        updateRefreshableCount(entry, null);
     }
 
     public static void unregister(UUID uuid, int entityId) {
         if (uuid == null) return;
         FurnitureTextEntry entry = BY_UUID.get(uuid);
         if (entry == null || entry.getBaseEntityId() != entityId) return;
-        BY_UUID.remove(uuid, entry);
+        if (BY_UUID.remove(uuid, entry)) updateRefreshableCount(entry, null);
         BY_ENTITY_ID.remove(entityId, entry);
     }
 
@@ -75,10 +79,7 @@ public final class FurnitureTextRegistry {
     }
 
     public static boolean hasRefreshableEntries() {
-        for (FurnitureTextEntry entry : BY_UUID.values()) {
-            if (entry.needsRefresh()) return true;
-        }
-        return false;
+        return REFRESHABLE_ENTRIES.get() > 0;
     }
 
     public static void removeViewer(UUID viewer) {
@@ -91,5 +92,11 @@ public final class FurnitureTextRegistry {
     public static void clear() {
         BY_UUID.clear();
         BY_ENTITY_ID.clear();
+        REFRESHABLE_ENTRIES.set(0);
+    }
+
+    private static void updateRefreshableCount(FurnitureTextEntry previous, FurnitureTextEntry current) {
+        if (previous != null && previous.needsRefresh()) REFRESHABLE_ENTRIES.decrementAndGet();
+        if (current != null && current.needsRefresh()) REFRESHABLE_ENTRIES.incrementAndGet();
     }
 }

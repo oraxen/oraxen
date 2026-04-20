@@ -79,10 +79,6 @@ public class FurnitureTextPacketListener implements PacketListener {
         sendTextEntry(entry, viewer, user, baseEntityId, basePos);
     }
 
-    void sendTextEntry(FurnitureTextEntry entry, Player viewer) {
-        sendTextEntry(entry, viewer, false);
-    }
-
     void sendTextEntry(FurnitureTextEntry entry, Player viewer, boolean ignoreRange) {
         if (entry == null || viewer == null || !viewer.isOnline()) return;
         if (!ignoreRange && !isWithinRange(entry, viewer)) return;
@@ -90,10 +86,6 @@ public class FurnitureTextPacketListener implements PacketListener {
         org.bukkit.Location location = entry.getBaseLocation();
         Vector3d basePos = new Vector3d(location.getX(), location.getY(), location.getZ());
         sendTextEntry(entry, viewer, null, entry.getBaseEntityId(), basePos);
-    }
-
-    void sendTextMetadata(FurnitureTextEntry entry, Player viewer) {
-        sendTextMetadata(entry, viewer, false);
     }
 
     void sendTextMetadata(FurnitureTextEntry entry, Player viewer, boolean ignoreRange) {
