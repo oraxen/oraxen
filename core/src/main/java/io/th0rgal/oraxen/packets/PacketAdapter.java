@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.packets;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.efficiency.EfficiencyMechanicFactory;
 import io.th0rgal.oraxen.utils.PluginUtils;
 import io.th0rgal.oraxen.utils.SnapshotVersion;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Nullable;
 
@@ -10,7 +11,14 @@ import java.util.function.Consumer;
 
 public interface PacketAdapter {
     static boolean isPacketEventsEnabled() {
-        return PluginUtils.isEnabled("PacketEvents");
+        return getPacketEventsPlugin() != null;
+    }
+    @Nullable
+    static Plugin getPacketEventsPlugin() {
+        Plugin plugin = Bukkit.getPluginManager().getPlugin("PacketEvents");
+        if (plugin != null && plugin.isEnabled()) return plugin;
+        plugin = Bukkit.getPluginManager().getPlugin("packetevents");
+        return plugin != null && plugin.isEnabled() ? plugin : null;
     }
     static boolean isProtocolLibEnabled() {
         return PluginUtils.isEnabled("ProtocolLib");
