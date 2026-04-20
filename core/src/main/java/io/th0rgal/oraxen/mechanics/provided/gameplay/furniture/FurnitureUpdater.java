@@ -17,6 +17,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.world.EntitiesLoadEvent;
+import org.bukkit.event.world.EntitiesUnloadEvent;
 import org.bukkit.persistence.PersistentDataType;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.ORIENTATION_KEY;
@@ -34,6 +35,15 @@ public class FurnitureUpdater implements Listener {
                         }
                         if (entity.isValid()) registerTextEntity(entity);
                     });
+                }
+                , OraxenPlugin.get());
+
+        Bukkit.getPluginManager().registerEvent(EntitiesUnloadEvent.class, this, EventPriority.NORMAL, (listener, event) ->
+                {
+                    if (!FurnitureFactory.isEnabled()) return;
+                    ((EntitiesUnloadEvent) event).getEntities().stream()
+                            .filter(OraxenFurniture::isBaseEntity)
+                            .forEach(entity -> FurnitureTextRegistry.unregister(entity.getUniqueId()));
                 }
                 , OraxenPlugin.get());
 

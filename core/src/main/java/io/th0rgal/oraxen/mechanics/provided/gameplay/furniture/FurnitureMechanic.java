@@ -938,10 +938,11 @@ public class FurnitureMechanic extends Mechanic {
 
     private void removeBaseEntity(Entity baseEntity) {
         if (baseEntity == null) return;
-        FurnitureTextRegistry.unregister(baseEntity.getUniqueId());
+        UUID baseUuid = baseEntity.getUniqueId();
         removeSubEntitiesOfFurniture(baseEntity);
         removeLight(baseEntity.getLocation().getBlock());
         if (!baseEntity.isDead()) baseEntity.remove();
+        Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> FurnitureTextRegistry.unregister(baseUuid));
     }
 
     private void removeSubEntitiesOfFurniture(Entity baseEntity) {
