@@ -15,6 +15,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.Evolvin
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.GrowthStage;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox.JukeboxBlock;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text.FurnitureTextDefinition;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text.FurnitureTextEntry;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text.FurnitureTextPacketBridge;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text.FurnitureTextRegistry;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
@@ -537,12 +538,18 @@ public class FurnitureMechanic extends Mechanic {
         }
         item.setAmount(1);
 
+        final FurnitureTextEntry[] textEntry = new FurnitureTextEntry[1];
         Entity baseEntity = EntityUtils.spawnEntity(correctedSpawnLocation(location, resolvedFacing, yaw), entityClass, (e) -> {
             setEntityData(e, yaw, item, resolvedFacing);
-            if (hasTextDefinitions()) FurnitureTextRegistry.register(e, textDefinitions);
+            if (hasTextDefinitions()) textEntry[0] = FurnitureTextRegistry.register(e, textDefinitions);
         });
         if (this.isModelEngine() && PluginUtils.isEnabled("ModelEngine")) {
             spawnModelEngineFurniture(baseEntity);
+        }
+        if (textEntry[0] != null) {
+            SchedulerUtil.runTaskLater(1L, () -> {
+                if (textEntry[0].getViewers().isEmpty()) FurnitureTextPacketBridge.spawnForTrackedViewers(textEntry[0]);
+            });
         }
 
         return baseEntity;
