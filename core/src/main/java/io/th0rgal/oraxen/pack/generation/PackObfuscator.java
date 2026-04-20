@@ -291,7 +291,8 @@ public final class PackObfuscator {
             if (element == null || element.isJsonNull()) return;
             if (element.isJsonObject()) {
                 for (Map.Entry<String, JsonElement> entry : element.getAsJsonObject().entrySet()) {
-                    collectReferencedTextureKeys(entry.getValue(), entry.getKey(), namespace, keys);
+                    String childProperty = "textures".equalsIgnoreCase(property) ? "texture" : entry.getKey();
+                    collectReferencedTextureKeys(entry.getValue(), childProperty, namespace, keys);
                 }
                 return;
             }
@@ -331,7 +332,8 @@ public final class PackObfuscator {
                 JsonObject object = element.getAsJsonObject();
                 JsonObject copy = new JsonObject();
                 for (Map.Entry<String, JsonElement> entry : object.entrySet()) {
-                    copy.add(entry.getKey(), rewriteElement(entry.getValue(), entry.getKey(), namespace, soundsJson));
+                    String childProperty = "textures".equalsIgnoreCase(property) ? "texture" : entry.getKey();
+                    copy.add(entry.getKey(), rewriteElement(entry.getValue(), childProperty, namespace, soundsJson));
                 }
                 return copy;
             }

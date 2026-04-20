@@ -44,6 +44,46 @@ class PackObfuscatorTest {
     }
 
     @Test
+    void arbitraryTextureObjectKeysPreferTextureKeys() throws Exception {
+        List<VirtualFile> files = new ArrayList<>();
+        files.add(file("assets/oraxen/models/default/sword.json", """
+                {
+                  "parent": "item/generated",
+                  "textures": {
+                    "end": "default/sword"
+                  }
+                }
+                """));
+        files.add(file("assets/oraxen/models/default/sword_ref.json", """
+                {
+                  "model": "default/sword"
+                }
+                """));
+        files.add(file("assets/oraxen/textures/default/sword.png", "png"));
+
+        PackObfuscator.obfuscate(files, "SIMPLE", false);
+
+        VirtualFile modelFile = files.stream()
+                .filter(file -> file.getPath().contains("/models/"))
+                .filter(file -> {
+                    try {
+                        String content = new String(file.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                        file.setInputStream(new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)));
+                        return content.contains("\"textures\"");
+                    } catch (Exception ignored) {
+                        return false;
+                    }
+                })
+                .findFirst()
+                .orElseThrow();
+        String modelContent = new String(modelFile.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        JsonObject model = JsonParser.parseString(modelContent).getAsJsonObject();
+        String end = model.getAsJsonObject("textures").get("end").getAsString();
+
+        assertTrue(end.startsWith("oraxen:t/"), end);
+    }
+
+    @Test
     void soundArrayValuesPreferSoundKeysWhenAssetsSharePath() throws Exception {
         List<VirtualFile> files = new ArrayList<>();
         files.add(file("assets/oraxen/sounds.json", """
