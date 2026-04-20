@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -79,11 +80,12 @@ final class FurnitureTextPacketRegistration {
         }
     }
 
-    static void spawnForWorldViewers(FurnitureTextEntry entry) {
+    static void spawnForTrackedViewers(FurnitureTextEntry entry) {
         FurnitureTextPacketListener activeListener = listener;
         if (entry == null || activeListener == null) return;
-        for (Player viewer : Bukkit.getOnlinePlayers()) {
-            if (!viewer.getWorld().equals(entry.getBaseLocation().getWorld())) continue;
+        Entity baseEntity = Bukkit.getEntity(entry.getBaseUuid());
+        if (baseEntity == null) return;
+        for (Player viewer : baseEntity.getTrackedBy()) {
             activeListener.sendTextEntry(entry, viewer, true);
         }
     }
