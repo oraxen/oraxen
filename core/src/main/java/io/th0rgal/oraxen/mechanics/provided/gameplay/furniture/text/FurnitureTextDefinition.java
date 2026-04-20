@@ -137,13 +137,28 @@ public final class FurnitureTextDefinition {
         }
         Object raw = section.get(path);
         if (raw instanceof List<?> list && list.size() == 3) {
+            Float x = parseFloat(list.get(0));
+            Float y = parseFloat(list.get(1));
+            Float z = parseFloat(list.get(2));
+            if (x == null || y == null || z == null) return new Vector3f(fallback);
             return new Vector3f(
-                    ((Number) list.get(0)).floatValue(),
-                    ((Number) list.get(1)).floatValue(),
-                    ((Number) list.get(2)).floatValue()
+                    x,
+                    y,
+                    z
             );
         }
         return new Vector3f(fallback);
+    }
+
+    private static Float parseFloat(Object value) {
+        if (value instanceof Number number) return number.floatValue();
+        if (value instanceof String string) {
+            try {
+                return Float.parseFloat(string);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return null;
     }
 
     private static Alignment parseAlignment(String value) {
