@@ -459,7 +459,7 @@ class PackObfuscatorTest {
 
         assertEquals(1, blocksSources);
         assertTrue(blocksSource.get("resource").getAsString().startsWith("oraxen:t/"));
-        assertEquals("oraxen:default/sword", blocksSource.get("sprite").getAsString());
+        assertTrue(blocksSource.get("sprite").getAsString().startsWith("oraxen:t/"));
         assertEquals(0, paintingsSources);
     }
 
@@ -491,7 +491,7 @@ class PackObfuscatorTest {
         JsonObject addedSource = atlas.getAsJsonArray("sources").get(1).getAsJsonObject();
 
         assertEquals(2, atlas.getAsJsonArray("sources").size());
-        assertEquals("minecraft:painting/custom", addedSource.get("sprite").getAsString());
+        assertTrue(addedSource.get("sprite").getAsString().startsWith("minecraft:t/"));
         assertTrue(addedSource.get("resource").getAsString().startsWith("minecraft:t/"));
         assertTrue(files.stream().anyMatch(file -> file.getPath().startsWith("assets/minecraft/textures/t/")));
         assertTrue(files.stream().anyMatch(file -> file.getPath().equals("assets/minecraft/textures/item/diamond_sword.png")));

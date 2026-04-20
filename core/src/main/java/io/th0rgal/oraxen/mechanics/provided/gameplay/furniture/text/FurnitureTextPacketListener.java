@@ -198,7 +198,8 @@ public class FurnitureTextPacketListener implements PacketListener {
     }
 
     static boolean isWithinRange(FurnitureTextEntry entry, Player viewer) {
-        if (entry.getBaseLocation().getWorld() == null || !entry.getBaseLocation().getWorld().equals(viewer.getWorld())) {
+        org.bukkit.Location baseLocation = entry.getBaseLocation();
+        if (baseLocation.getWorld() == null || !baseLocation.getWorld().equals(viewer.getWorld())) {
             return false;
         }
         double maxRange = 0.0;
@@ -206,7 +207,7 @@ public class FurnitureTextPacketListener implements PacketListener {
             maxRange = Math.max(maxRange, definition.getViewRange());
         }
         double range = Math.max(8.0, maxRange);
-        return entry.getBaseLocation().distanceSquared(viewer.getLocation()) <= range * range;
+        return baseLocation.distanceSquared(viewer.getLocation()) <= range * range;
     }
 
     private static int[] appendUnique(int[] base, int[] extra) {

@@ -362,8 +362,7 @@ public final class PackObfuscator {
         }
 
         private boolean shouldKeepRawValue(JsonObject object, String property, boolean soundsJson) {
-            return "sprite".equals(property) && isAtlasSource(object)
-                    || soundsJson && "name".equalsIgnoreCase(property) && isSoundEventReference(object);
+            return soundsJson && "name".equalsIgnoreCase(property) && isSoundEventReference(object);
         }
 
         private String rewriteString(String property, String value, String namespace, boolean soundsJson) {
@@ -432,7 +431,7 @@ public final class PackObfuscator {
                 JsonObject source = new JsonObject();
                 source.addProperty("type", "single");
                 source.addProperty("resource", obfuscatedKey);
-                source.addProperty("sprite", entry.getValue());
+                source.addProperty("sprite", replaceOrOriginal(textureKeys, entry.getValue(), namespace));
                 sources.add(source);
             }
 
