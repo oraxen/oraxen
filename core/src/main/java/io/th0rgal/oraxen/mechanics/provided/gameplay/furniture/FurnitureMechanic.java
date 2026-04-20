@@ -287,15 +287,25 @@ public class FurnitureMechanic extends Mechanic {
                 Object raw = list.get(i);
                 if (raw instanceof Map<?, ?> map) {
                     ConfigurationSection temp = section.createSection("_tmp_text_entity_" + i);
-                    for (Map.Entry<?, ?> entry : map.entrySet()) {
-                        temp.set(entry.getKey().toString(), entry.getValue());
-                    }
+                    copyMapToSection(map, temp);
                     defs.add(FurnitureTextDefinition.parse(temp));
                     section.set("_tmp_text_entity_" + i, null);
                 }
             }
         }
         return defs.isEmpty() ? List.of() : List.copyOf(defs);
+    }
+
+    private static void copyMapToSection(Map<?, ?> map, ConfigurationSection section) {
+        for (Map.Entry<?, ?> entry : map.entrySet()) {
+            String key = entry.getKey().toString();
+            Object value = entry.getValue();
+            if (value instanceof Map<?, ?> nested) {
+                copyMapToSection(nested, section.createSection(key));
+            } else {
+                section.set(key, value);
+            }
+        }
     }
 
     public boolean hasTextDefinitions() {
