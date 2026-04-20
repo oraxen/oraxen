@@ -108,6 +108,7 @@ class PackObfuscatorTest {
         List<VirtualFile> files = new ArrayList<>();
         files.add(file("assets/minecraft/textures/item/diamond_sword.png", "png"));
         files.add(file("assets/minecraft/textures/item/diamond_sword.png.mcmeta", "{}"));
+        files.add(file("assets/minecraft/textures/default/sword.png", "png"));
         files.add(file("assets/oraxen/models/default/sword.json", """
                 {
                   "textures": {
@@ -121,6 +122,7 @@ class PackObfuscatorTest {
 
         assertTrue(files.stream().anyMatch(file -> file.getPath().equals("assets/minecraft/textures/item/diamond_sword.png")));
         assertTrue(files.stream().anyMatch(file -> file.getPath().equals("assets/minecraft/textures/item/diamond_sword.png.mcmeta")));
+        assertTrue(files.stream().anyMatch(file -> file.getPath().equals("assets/minecraft/textures/default/sword.png")));
     }
 
     @Test
@@ -193,6 +195,7 @@ class PackObfuscatorTest {
     void vanillaSoundOnlyOverridesKeepOriginalPathWhenUnreferenced() {
         List<VirtualFile> files = new ArrayList<>();
         files.add(file("assets/minecraft/sounds/item/trident/throw.ogg", "ogg"));
+        files.add(file("assets/minecraft/sounds/custom/sound.ogg", "ogg"));
         files.add(file("assets/oraxen/sounds.json", """
                 {
                   "custom.sound": {
@@ -205,6 +208,7 @@ class PackObfuscatorTest {
         PackObfuscator.obfuscate(files, "SIMPLE", false);
 
         assertTrue(files.stream().anyMatch(file -> file.getPath().equals("assets/minecraft/sounds/item/trident/throw.ogg")));
+        assertTrue(files.stream().anyMatch(file -> file.getPath().equals("assets/minecraft/sounds/custom/sound.ogg")));
         assertTrue(files.stream().anyMatch(file -> file.getPath().startsWith("assets/oraxen/sounds/s/")));
     }
 

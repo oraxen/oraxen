@@ -43,7 +43,9 @@ public class FurnitureUpdater implements Listener {
                     if (!FurnitureFactory.isEnabled()) return;
                     ((EntitiesUnloadEvent) event).getEntities().stream()
                             .filter(OraxenFurniture::isBaseEntity)
-                            .forEach(entity -> FurnitureTextRegistry.unregister(entity.getUniqueId()));
+                            .map(Entity::getUniqueId)
+                            .forEach(uuid -> Bukkit.getScheduler().runTask(OraxenPlugin.get(),
+                                    () -> FurnitureTextRegistry.unregister(uuid)));
                 }
                 , OraxenPlugin.get());
 

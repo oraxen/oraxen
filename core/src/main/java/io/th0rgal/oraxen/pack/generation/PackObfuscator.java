@@ -407,7 +407,6 @@ public final class PackObfuscator {
                 keys.add(value);
             } else {
                 keys.add(namespace + ":" + value);
-                keys.add("minecraft:" + value);
             }
         }
 
@@ -508,7 +507,6 @@ public final class PackObfuscator {
                 return;
             }
             keys.add(namespace + ":" + stripped);
-            keys.add("minecraft:" + stripped);
         }
 
         private static void addSoundReference(String value, String namespace, Set<String> keys) {
@@ -519,7 +517,6 @@ public final class PackObfuscator {
                 return;
             }
             keys.add(namespace + ":" + stripped);
-            keys.add("minecraft:" + stripped);
         }
 
         private static String keyFromPackPath(String path, String marker, String suffix) {
