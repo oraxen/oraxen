@@ -79,6 +79,28 @@ final class FurnitureTextPacketRegistration {
         }
     }
 
+    static void spawnForNearbyViewers(FurnitureTextEntry entry) {
+        FurnitureTextPacketListener activeListener = listener;
+        if (entry == null || activeListener == null) return;
+        for (Player viewer : Bukkit.getOnlinePlayers()) {
+            if (!FurnitureTextPacketListener.isWithinRange(entry, viewer)) continue;
+            activeListener.sendTextEntry(entry, viewer);
+        }
+    }
+
+    static void updateTrackedViewers(FurnitureTextEntry entry) {
+        FurnitureTextPacketListener activeListener = listener;
+        if (entry == null || activeListener == null) return;
+        for (UUID viewerId : entry.getViewers()) {
+            Player viewer = Bukkit.getPlayer(viewerId);
+            if (viewer == null || !viewer.isOnline()) {
+                entry.removeViewer(viewerId);
+                continue;
+            }
+            activeListener.sendTextMetadata(entry, viewer);
+        }
+    }
+
     private static final class ViewerCleanupListener implements Listener {
         @EventHandler
         public void onPlayerQuit(PlayerQuitEvent event) {

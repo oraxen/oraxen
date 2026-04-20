@@ -16,6 +16,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerDe
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityMetadata;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetPassengers;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSpawnEntity;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -37,16 +38,7 @@ import java.util.UUID;
 public class FurnitureTextPacketListener implements PacketListener {
 
     private static final int DATA_SHARED_FLAGS = 0;
-    private static final int DATA_DISPLAY_TRANSLATION = 11;
-    private static final int DATA_DISPLAY_SCALE = 12;
-    private static final int DATA_DISPLAY_LEFT_ROTATION = 13;
-    private static final int DATA_DISPLAY_BILLBOARD = 15;
-    private static final int DATA_DISPLAY_VIEW_RANGE = 17;
-    private static final int DATA_TEXT_DISPLAY_TEXT = 23;
-    private static final int DATA_TEXT_DISPLAY_LINE_WIDTH = 24;
-    private static final int DATA_TEXT_DISPLAY_BACKGROUND = 25;
-    private static final int DATA_TEXT_DISPLAY_OPACITY = 26;
-    private static final int DATA_TEXT_DISPLAY_FLAGS = 27;
+    private static final MetadataIndices DATA = MetadataIndices.current();
 
     private static final byte FLAG_SHADOW = 0x01;
     private static final byte FLAG_SEE_THROUGH = 0x02;
@@ -82,7 +74,28 @@ public class FurnitureTextPacketListener implements PacketListener {
 
         Vector3d basePos = spawn.getPosition();
         int baseEntityId = spawn.getEntityId();
+        sendTextEntry(entry, viewer, user, baseEntityId, basePos);
+    }
 
+    void sendTextEntry(FurnitureTextEntry entry, Player viewer) {
+        if (entry == null || viewer == null || !viewer.isOnline() || !isWithinRange(entry, viewer)) return;
+        entry.addViewer(viewer.getUniqueId());
+        org.bukkit.Location location = entry.getBaseLocation();
+        Vector3d basePos = new Vector3d(location.getX(), location.getY(), location.getZ());
+        sendTextEntry(entry, viewer, null, entry.getBaseEntityId(), basePos);
+    }
+
+    void sendTextMetadata(FurnitureTextEntry entry, Player viewer) {
+        if (entry == null || viewer == null || !viewer.isOnline() || !isWithinRange(entry, viewer)) return;
+        entry.addViewer(viewer.getUniqueId());
+        for (int i = 0; i < entry.size(); i++) {
+            FurnitureTextDefinition def = entry.getDefinitions().get(i);
+            PacketEvents.getAPI().getPlayerManager().sendPacket(viewer,
+                    new WrapperPlayServerEntityMetadata(entry.virtualEntityId(i), buildMetadata(def, viewer)));
+        }
+    }
+
+    private void sendTextEntry(FurnitureTextEntry entry, Player viewer, User user, int baseEntityId, Vector3d basePos) {
         List<Integer> passengerIds = new ArrayList<>(entry.size());
 
         for (int i = 0; i < entry.size(); i++) {
@@ -105,8 +118,8 @@ public class FurnitureTextPacketListener implements PacketListener {
                     buildMetadata(def, viewer)
             );
 
-            user.sendPacket(textSpawn);
-            user.sendPacket(textMeta);
+            sendPacket(user, viewer, textSpawn);
+            sendPacket(user, viewer, textMeta);
             passengerIds.add(virtualId);
         }
 
@@ -115,7 +128,15 @@ public class FurnitureTextPacketListener implements PacketListener {
             for (int i = 0; i < ids.length; i++) ids[i] = passengerIds.get(i);
 
             WrapperPlayServerSetPassengers setPassengers = new WrapperPlayServerSetPassengers(baseEntityId, ids);
-            user.sendPacket(setPassengers);
+            sendPacket(user, viewer, setPassengers);
+        }
+    }
+
+    private static void sendPacket(User user, Player viewer, Object packet) {
+        if (user != null) {
+            user.sendPacket(packet);
+        } else if (viewer != null) {
+            PacketEvents.getAPI().getPlayerManager().sendPacket(viewer, packet);
         }
     }
 
@@ -185,7 +206,7 @@ public class FurnitureTextPacketListener implements PacketListener {
         }
     }
 
-    private static boolean isWithinRange(FurnitureTextEntry entry, Player viewer) {
+    static boolean isWithinRange(FurnitureTextEntry entry, Player viewer) {
         if (entry.getBaseLocation().getWorld() == null || !entry.getBaseLocation().getWorld().equals(viewer.getWorld())) {
             return false;
         }
@@ -214,9 +235,9 @@ public class FurnitureTextPacketListener implements PacketListener {
 
         Vector3f translation = convertVector(def.getTranslation());
         Vector3f scale = convertVector(def.getScale());
-        data.add(new EntityData<>(DATA_DISPLAY_TRANSLATION, EntityDataTypes.VECTOR3F, translation));
-        data.add(new EntityData<>(DATA_DISPLAY_SCALE, EntityDataTypes.VECTOR3F, scale));
-        data.add(new EntityData<>(DATA_DISPLAY_LEFT_ROTATION, EntityDataTypes.QUATERNION,
+        data.add(new EntityData<>(DATA.displayTranslation, EntityDataTypes.VECTOR3F, translation));
+        data.add(new EntityData<>(DATA.displayScale, EntityDataTypes.VECTOR3F, scale));
+        data.add(new EntityData<>(DATA.displayLeftRotation, EntityDataTypes.QUATERNION,
                 new Quaternion4f(0f, 0f, 0f, 1f)));
 
         byte billboard = switch (def.getBillboard()) {
@@ -225,14 +246,14 @@ public class FurnitureTextPacketListener implements PacketListener {
             case HORIZONTAL -> (byte) 2;
             case CENTER -> (byte) 3;
         };
-        data.add(new EntityData<>(DATA_DISPLAY_BILLBOARD, EntityDataTypes.BYTE, billboard));
-        data.add(new EntityData<>(DATA_DISPLAY_VIEW_RANGE, EntityDataTypes.FLOAT, def.getViewRange() / 64.0f));
+        data.add(new EntityData<>(DATA.displayBillboard, EntityDataTypes.BYTE, billboard));
+        data.add(new EntityData<>(DATA.displayViewRange, EntityDataTypes.FLOAT, def.getViewRange() / 64.0f));
 
         Component text = def.renderComponent(viewer);
-        data.add(new EntityData<>(DATA_TEXT_DISPLAY_TEXT, EntityDataTypes.ADV_COMPONENT, text));
-        data.add(new EntityData<>(DATA_TEXT_DISPLAY_LINE_WIDTH, EntityDataTypes.INT, def.getLineWidth()));
-        data.add(new EntityData<>(DATA_TEXT_DISPLAY_BACKGROUND, EntityDataTypes.INT, def.getBackgroundArgb()));
-        data.add(new EntityData<>(DATA_TEXT_DISPLAY_OPACITY, EntityDataTypes.BYTE, def.getTextOpacity()));
+        data.add(new EntityData<>(DATA.textDisplayText, EntityDataTypes.ADV_COMPONENT, text));
+        data.add(new EntityData<>(DATA.textDisplayLineWidth, EntityDataTypes.INT, def.getLineWidth()));
+        data.add(new EntityData<>(DATA.textDisplayBackground, EntityDataTypes.INT, def.getBackgroundArgb()));
+        data.add(new EntityData<>(DATA.textDisplayOpacity, EntityDataTypes.BYTE, def.getTextOpacity()));
 
         byte flags = 0;
         if (def.hasShadow()) flags |= FLAG_SHADOW;
@@ -243,7 +264,7 @@ public class FurnitureTextPacketListener implements PacketListener {
             case RIGHT -> flags |= FLAG_ALIGN_RIGHT;
             case CENTER -> { /* default */ }
         }
-        data.add(new EntityData<>(DATA_TEXT_DISPLAY_FLAGS, EntityDataTypes.BYTE, flags));
+        data.add(new EntityData<>(DATA.textDisplayFlags, EntityDataTypes.BYTE, flags));
 
         return data;
     }
@@ -255,5 +276,35 @@ public class FurnitureTextPacketListener implements PacketListener {
     private static Player viewerFromEvent(PacketSendEvent event) {
         Object player = event.getPlayer();
         return player instanceof Player p ? p : null;
+    }
+
+    private static final class MetadataIndices {
+        private final int displayTranslation;
+        private final int displayScale;
+        private final int displayLeftRotation;
+        private final int displayBillboard;
+        private final int displayViewRange;
+        private final int textDisplayText;
+        private final int textDisplayLineWidth;
+        private final int textDisplayBackground;
+        private final int textDisplayOpacity;
+        private final int textDisplayFlags;
+
+        private MetadataIndices(int offset) {
+            this.displayTranslation = 11 + offset;
+            this.displayScale = 12 + offset;
+            this.displayLeftRotation = 13 + offset;
+            this.displayBillboard = 15 + offset;
+            this.displayViewRange = 17 + offset;
+            this.textDisplayText = 23 + offset;
+            this.textDisplayLineWidth = 24 + offset;
+            this.textDisplayBackground = 25 + offset;
+            this.textDisplayOpacity = 26 + offset;
+            this.textDisplayFlags = 27 + offset;
+        }
+
+        private static MetadataIndices current() {
+            return new MetadataIndices(VersionUtil.atOrAbove("1.20.2") ? 0 : -1);
+        }
     }
 }

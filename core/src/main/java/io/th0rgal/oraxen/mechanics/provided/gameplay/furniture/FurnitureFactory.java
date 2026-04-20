@@ -10,6 +10,7 @@ import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolutionListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolutionTask;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox.JukeboxListener;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text.FurnitureTextEntry;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text.FurnitureTextPacketBridge;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text.FurnitureTextRegistry;
 import org.bukkit.Bukkit;
@@ -99,10 +100,17 @@ public class FurnitureFactory extends MechanicFactory {
     static void registerTextEntity(Entity entity) {
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
         if (mechanic != null && mechanic.hasTextDefinitions()) {
-            if (!FurnitureTextRegistry.canReuse(entity.getUniqueId(), mechanic.getTextDefinitions().size())) {
+            FurnitureTextEntry previous = FurnitureTextRegistry.byUuid(entity.getUniqueId());
+            boolean reused = FurnitureTextRegistry.canReuse(entity.getUniqueId(), mechanic.getTextDefinitions().size());
+            if (!reused) {
                 FurnitureTextPacketBridge.destroyAndUnregister(entity.getUniqueId());
             }
-            FurnitureTextRegistry.register(entity, mechanic.getTextDefinitions());
+            FurnitureTextEntry entry = FurnitureTextRegistry.register(entity, mechanic.getTextDefinitions());
+            if (previous != null && reused) {
+                FurnitureTextPacketBridge.updateTrackedViewers(entry);
+            } else {
+                FurnitureTextPacketBridge.spawnForNearbyViewers(entry);
+            }
         } else {
             FurnitureTextPacketBridge.destroyAndUnregister(entity.getUniqueId());
         }

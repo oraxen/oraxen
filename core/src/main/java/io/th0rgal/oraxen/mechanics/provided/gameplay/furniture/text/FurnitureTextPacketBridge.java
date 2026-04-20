@@ -37,4 +37,20 @@ public final class FurnitureTextPacketBridge {
         }
         FurnitureTextRegistry.unregister(uuid);
     }
+
+    public static void spawnForNearbyViewers(FurnitureTextEntry entry) {
+        if (!PacketAdapter.isPacketEventsEnabled()) return;
+        try {
+            FurnitureTextPacketRegistration.spawnForNearbyViewers(entry);
+        } catch (NoClassDefFoundError ignored) {
+        }
+    }
+
+    public static void updateTrackedViewers(FurnitureTextEntry entry) {
+        if (!PacketAdapter.isPacketEventsEnabled()) return;
+        try {
+            FurnitureTextPacketRegistration.updateTrackedViewers(entry);
+        } catch (NoClassDefFoundError ignored) {
+        }
+    }
 }
