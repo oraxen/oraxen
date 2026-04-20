@@ -15,6 +15,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.Evolvin
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.GrowthStage;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox.JukeboxBlock;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text.FurnitureTextDefinition;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text.FurnitureTextPacketBridge;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text.FurnitureTextRegistry;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.light.LightMechanic;
@@ -540,6 +541,13 @@ public class FurnitureMechanic extends Mechanic {
             setEntityData(e, yaw, item, resolvedFacing);
             if (hasTextDefinitions()) FurnitureTextRegistry.register(e, textDefinitions);
         });
+        if (hasTextDefinitions()) {
+            SchedulerUtil.runTask(() -> {
+                if (baseEntity.isValid()) {
+                    FurnitureTextPacketBridge.spawnForTrackedViewers(FurnitureTextRegistry.byUuid(baseEntity.getUniqueId()));
+                }
+            });
+        }
         if (this.isModelEngine() && PluginUtils.isEnabled("ModelEngine")) {
             spawnModelEngineFurniture(baseEntity);
         }
