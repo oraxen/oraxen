@@ -268,7 +268,9 @@ public final class PackObfuscator {
         private void collectReferencedSoundKeys(JsonElement element, String property, String namespace, Set<String> keys) {
             if (element == null || element.isJsonNull()) return;
             if (element.isJsonObject()) {
-                for (Map.Entry<String, JsonElement> entry : element.getAsJsonObject().entrySet()) {
+                JsonObject object = element.getAsJsonObject();
+                for (Map.Entry<String, JsonElement> entry : object.entrySet()) {
+                    if ("name".equalsIgnoreCase(entry.getKey()) && isSoundEventReference(object)) continue;
                     collectReferencedSoundKeys(entry.getValue(), entry.getKey(), namespace, keys);
                 }
                 return;
@@ -610,16 +612,23 @@ public final class PackObfuscator {
 
         private static String keyFromPackPath(String path, String marker, String suffix) {
             String normalized = path.replace('\\', '/');
-            String namespace = normalized.substring("assets/".length(), normalized.indexOf('/', "assets/".length()));
-            String resourcePath = normalized.substring(normalized.indexOf(marker) + marker.length(), normalized.length() - suffix.length());
+            int namespaceEnd = normalized.indexOf('/', "assets/".length());
+            String namespace = normalized.substring("assets/".length(), namespaceEnd);
+            int resourceStart = normalized.indexOf(marker, namespaceEnd) + marker.length();
+            String resourcePath = normalized.substring(resourceStart, normalized.length() - suffix.length());
             return namespace + ":" + resourcePath;
         }
 
         private static String namespaceFromPath(String path) {
             String normalized = path.replace('\\', '/');
-            if (!normalized.startsWith("assets/")) return "minecraft";
-            int end = normalized.indexOf('/', "assets/".length());
-            return end == -1 ? "minecraft" : normalized.substring("assets/".length(), end);
+            if (normalized.startsWith("assets/")) return namespaceFromPath(normalized, "assets/");
+            if (normalized.startsWith("data/")) return namespaceFromPath(normalized, "data/");
+            return "minecraft";
+        }
+
+        private static String namespaceFromPath(String normalized, String root) {
+            int end = normalized.indexOf('/', root.length());
+            return end == -1 ? "minecraft" : normalized.substring(root.length(), end);
         }
 
         private static String modelPath(String key) {

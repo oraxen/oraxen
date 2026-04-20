@@ -316,6 +316,25 @@ class PackObfuscatorTest {
     }
 
     @Test
+    void typeEventNamesDoNotMarkVanillaSoundOverridesAsReferenced() {
+        List<VirtualFile> files = new ArrayList<>();
+        files.add(file("assets/minecraft/sounds.json", """
+                {
+                  "custom.alias": {
+                    "sounds": [
+                      { "name": "minecraft:item/trident/throw", "type": "minecraft:event" }
+                    ]
+                  }
+                }
+                """));
+        files.add(file("assets/minecraft/sounds/item/trident/throw.ogg", "ogg"));
+
+        PackObfuscator.obfuscate(files, "SIMPLE", false);
+
+        assertTrue(files.stream().anyMatch(file -> file.getPath().equals("assets/minecraft/sounds/item/trident/throw.ogg")));
+    }
+
+    @Test
     void vanillaModelOnlyOverridesKeepOriginalPathWhenUnreferenced() {
         List<VirtualFile> files = new ArrayList<>();
         files.add(file("assets/minecraft/models/custom/override.json", "{}"));
@@ -330,6 +349,54 @@ class PackObfuscatorTest {
 
         assertTrue(files.stream().anyMatch(file -> file.getPath().equals("assets/minecraft/models/custom/override.json")));
         assertTrue(files.stream().anyMatch(file -> file.getPath().startsWith("assets/oraxen/models/m/")));
+    }
+
+    @Test
+    void namespaceNamesMatchingResourceDirectoriesUseCorrectResourcePath() throws Exception {
+        List<VirtualFile> files = new ArrayList<>();
+        files.add(file("assets/textures/models/custom/item.json", """
+                {
+                  "textures": {
+                    "layer0": "custom/item"
+                  }
+                }
+                """));
+        files.add(file("assets/textures/textures/custom/item.png", "png"));
+
+        PackObfuscator.obfuscate(files, "SIMPLE", false);
+
+        VirtualFile modelFile = files.stream()
+                .filter(file -> file.getPath().contains("/models/"))
+                .findFirst()
+                .orElseThrow();
+        String content = new String(modelFile.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        String layer0 = JsonParser.parseString(content).getAsJsonObject()
+                .getAsJsonObject("textures").get("layer0").getAsString();
+
+        assertTrue(layer0.startsWith("textures:t/"), layer0);
+    }
+
+    @Test
+    void dataPackJsonUsesDataNamespaceForBareResourceReferences() throws Exception {
+        List<VirtualFile> files = new ArrayList<>();
+        files.add(file("data/oraxen/custom/entry.json", """
+                {
+                  "model": "default/model"
+                }
+                """));
+        files.add(file("assets/oraxen/models/default/model.json", "{}"));
+        files.add(file("assets/minecraft/models/default/model.json", "{}"));
+
+        PackObfuscator.obfuscate(files, "SIMPLE", false);
+
+        VirtualFile dataFile = files.stream()
+                .filter(file -> file.getPath().equals("data/oraxen/custom/entry.json"))
+                .findFirst()
+                .orElseThrow();
+        String content = new String(dataFile.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        String model = JsonParser.parseString(content).getAsJsonObject().get("model").getAsString();
+
+        assertTrue(model.startsWith("oraxen:m/"), model);
     }
 
     @Test
