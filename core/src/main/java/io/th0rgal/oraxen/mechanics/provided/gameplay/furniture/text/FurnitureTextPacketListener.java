@@ -48,6 +48,7 @@ public class FurnitureTextPacketListener implements PacketListener {
 
     @Override
     public void onPacketSend(PacketSendEvent event) {
+        if (event.isCancelled()) return;
         if (FurnitureTextRegistry.isEmpty()) return;
 
         if (event.getPacketType() == PacketType.Play.Server.SPAWN_ENTITY) {

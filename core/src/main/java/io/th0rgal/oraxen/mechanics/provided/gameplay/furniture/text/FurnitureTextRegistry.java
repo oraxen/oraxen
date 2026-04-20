@@ -41,7 +41,7 @@ public final class FurnitureTextRegistry {
 
     public static boolean canReuse(UUID uuid, int definitionCount) {
         FurnitureTextEntry entry = byUuid(uuid);
-        return entry == null || entry.size() == definitionCount;
+        return entry != null && entry.size() == definitionCount;
     }
 
     public static FurnitureTextEntry byUuid(UUID uuid) {

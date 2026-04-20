@@ -31,7 +31,7 @@ final class FurnitureTextPacketRegistration {
         if (registered != null) return;
         listener = new FurnitureTextPacketListener();
         registered = PacketEvents.getAPI().getEventManager()
-                .registerListener(listener, PacketListenerPriority.NORMAL);
+                .registerListener(listener, PacketListenerPriority.MONITOR);
         bukkitListener = new ViewerCleanupListener();
         Bukkit.getPluginManager().registerEvents(bukkitListener, OraxenPlugin.get());
         refreshTask = SchedulerUtil.runTaskTimer(1L, 1L, () -> {

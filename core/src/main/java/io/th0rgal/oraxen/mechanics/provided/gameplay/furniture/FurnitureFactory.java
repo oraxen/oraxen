@@ -93,22 +93,26 @@ public class FurnitureFactory extends MechanicFactory {
         for (org.bukkit.World world : Bukkit.getWorlds()) {
             world.getEntities().stream()
                     .filter(OraxenFurniture::isBaseEntity)
-                    .forEach(FurnitureFactory::registerTextEntity);
+                    .forEach(entity -> registerTextEntity(entity, true));
         }
     }
 
     static void registerTextEntity(Entity entity) {
+        registerTextEntity(entity, false);
+    }
+
+    static void registerTextEntity(Entity entity, boolean spawnForMissingViewers) {
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
         if (mechanic != null && mechanic.hasTextDefinitions()) {
             FurnitureTextEntry previous = FurnitureTextRegistry.byUuid(entity.getUniqueId());
             boolean reused = FurnitureTextRegistry.canReuse(entity.getUniqueId(), mechanic.getTextDefinitions().size());
-            if (!reused) {
+            if (previous != null && !reused) {
                 FurnitureTextPacketBridge.destroyAndUnregister(entity.getUniqueId());
             }
             FurnitureTextEntry entry = FurnitureTextRegistry.register(entity, mechanic.getTextDefinitions());
             if (previous != null && reused) {
                 FurnitureTextPacketBridge.updateTrackedViewers(entry);
-            } else {
+            } else if (spawnForMissingViewers) {
                 FurnitureTextPacketBridge.spawnForNearbyViewers(entry);
             }
         } else {
