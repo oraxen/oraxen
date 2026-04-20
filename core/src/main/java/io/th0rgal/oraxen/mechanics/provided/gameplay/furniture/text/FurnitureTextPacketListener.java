@@ -19,7 +19,6 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSp
 import io.th0rgal.oraxen.utils.VersionUtil;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -75,8 +74,7 @@ public class FurnitureTextPacketListener implements PacketListener {
         if (viewer != null) entry.addViewer(viewer.getUniqueId());
 
         Vector3d basePos = spawn.getPosition();
-        int baseEntityId = spawn.getEntityId();
-        sendTextEntry(entry, viewer, user, baseEntityId, basePos);
+        sendTextEntry(entry, viewer, user, basePos);
     }
 
     void sendTextEntry(FurnitureTextEntry entry, Player viewer, boolean ignoreRange) {
@@ -85,7 +83,7 @@ public class FurnitureTextPacketListener implements PacketListener {
         entry.addViewer(viewer.getUniqueId());
         org.bukkit.Location location = entry.getBaseLocation();
         Vector3d basePos = new Vector3d(location.getX(), location.getY(), location.getZ());
-        sendTextEntry(entry, viewer, null, entry.getBaseEntityId(), basePos);
+        sendTextEntry(entry, viewer, null, basePos);
     }
 
     void sendTextMetadata(FurnitureTextEntry entry, Player viewer, boolean ignoreRange) {
@@ -99,18 +97,17 @@ public class FurnitureTextPacketListener implements PacketListener {
         }
     }
 
-    private void sendTextEntry(FurnitureTextEntry entry, Player viewer, User user, int baseEntityId, Vector3d basePos) {
+    private void sendTextEntry(FurnitureTextEntry entry, Player viewer, User user, Vector3d basePos) {
         for (int i = 0; i < entry.size(); i++) {
             FurnitureTextDefinition def = entry.getDefinitions().get(i);
             int virtualId = entry.virtualEntityId(i);
             UUID virtualUuid = entry.virtualUuid(i);
-            Vector3f offset = convertVector(def.getTranslation());
 
             WrapperPlayServerSpawnEntity textSpawn = new WrapperPlayServerSpawnEntity(
                     virtualId,
                     virtualUuid,
                     EntityTypes.TEXT_DISPLAY,
-                    new Location(basePos.x + offset.x, basePos.y + offset.y, basePos.z + offset.z, 0f, 0f),
+                    new Location(basePos.x, basePos.y, basePos.z, 0f, 0f),
                     0f,
                     0,
                     null
@@ -124,12 +121,6 @@ public class FurnitureTextPacketListener implements PacketListener {
             sendPacket(user, viewer, textSpawn);
             sendPacket(user, viewer, textMeta);
         }
-    }
-
-    private static int[] currentPassengerIds(FurnitureTextEntry entry) {
-        Entity entity = Bukkit.getEntity(entry.getBaseUuid());
-        if (entity == null || entity.getPassengers().isEmpty()) return new int[0];
-        return entity.getPassengers().stream().mapToInt(Entity::getEntityId).toArray();
     }
 
     private static void sendPacket(User user, Player viewer, Object packet) {
