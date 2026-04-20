@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
+import io.th0rgal.oraxen.api.events.OraxenItemsLoadedEvent;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicConfigProperty;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
@@ -14,6 +15,8 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text.FurnitureTex
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Entity;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,14 +45,14 @@ public class FurnitureFactory extends MechanicFactory {
                 new FurnitureListener(),
                 new FurnitureUpdater(),
                 new EvolutionListener(),
-                new JukeboxListener()
+                new JukeboxListener(),
+                new FurnitureTextLoadListener()
         );
         evolvingFurnitures = false;
         instance = this;
         FurniturePacketDispatcher.init();
         FurnitureTextPacketBridge.unregister();
         FurnitureTextPacketBridge.register();
-        registerLoadedFurnitureText();
         customSounds = areCustomSoundsEnabled();
 
         if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new FurnitureSoundListener());
@@ -97,6 +100,13 @@ public class FurnitureFactory extends MechanicFactory {
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
         if (mechanic != null && mechanic.hasTextDefinitions())
             FurnitureTextRegistry.register(entity, mechanic.getTextDefinitions());
+    }
+
+    private static final class FurnitureTextLoadListener implements Listener {
+        @EventHandler
+        public void onItemsLoaded(OraxenItemsLoadedEvent event) {
+            registerLoadedFurnitureText();
+        }
     }
 
     public static EvolutionTask getEvolutionTask() {
