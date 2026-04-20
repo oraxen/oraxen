@@ -100,18 +100,17 @@ public class FurnitureTextPacketListener implements PacketListener {
     }
 
     private void sendTextEntry(FurnitureTextEntry entry, Player viewer, User user, int baseEntityId, Vector3d basePos) {
-        List<Integer> passengerIds = new ArrayList<>(entry.size());
-
         for (int i = 0; i < entry.size(); i++) {
             FurnitureTextDefinition def = entry.getDefinitions().get(i);
             int virtualId = entry.virtualEntityId(i);
             UUID virtualUuid = entry.virtualUuid(i);
+            Vector3f offset = convertVector(def.getTranslation());
 
             WrapperPlayServerSpawnEntity textSpawn = new WrapperPlayServerSpawnEntity(
                     virtualId,
                     virtualUuid,
                     EntityTypes.TEXT_DISPLAY,
-                    new Location(basePos.x, basePos.y, basePos.z, 0f, 0f),
+                    new Location(basePos.x + offset.x, basePos.y + offset.y, basePos.z + offset.z, 0f, 0f),
                     0f,
                     0,
                     null
@@ -124,16 +123,6 @@ public class FurnitureTextPacketListener implements PacketListener {
 
             sendPacket(user, viewer, textSpawn);
             sendPacket(user, viewer, textMeta);
-            passengerIds.add(virtualId);
-        }
-
-        if (!passengerIds.isEmpty()) {
-            int[] virtualIds = new int[passengerIds.size()];
-            for (int i = 0; i < virtualIds.length; i++) virtualIds[i] = passengerIds.get(i);
-            int[] ids = user == null ? appendUnique(currentPassengerIds(entry), virtualIds) : virtualIds;
-
-            WrapperPlayServerSetPassengers setPassengers = new WrapperPlayServerSetPassengers(baseEntityId, ids);
-            sendPacket(user, viewer, setPassengers);
         }
     }
 
