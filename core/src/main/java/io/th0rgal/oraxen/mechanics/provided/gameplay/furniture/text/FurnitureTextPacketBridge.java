@@ -39,16 +39,20 @@ public final class FurnitureTextPacketBridge {
     }
 
     public static void spawnForTrackedViewers(FurnitureTextEntry entry) {
+        if (!OraxenPlugin.supportsDisplayEntities) return;
         if (!PacketAdapter.isPacketEventsEnabled()) return;
         try {
+            FurnitureTextPacketRegistration.register();
             FurnitureTextPacketRegistration.spawnForTrackedViewers(entry);
         } catch (NoClassDefFoundError ignored) {
         }
     }
 
     public static void updateTrackedViewers(FurnitureTextEntry entry) {
+        if (!OraxenPlugin.supportsDisplayEntities) return;
         if (!PacketAdapter.isPacketEventsEnabled()) return;
         try {
+            FurnitureTextPacketRegistration.register();
             FurnitureTextPacketRegistration.updateTrackedViewers(entry);
         } catch (NoClassDefFoundError ignored) {
         }
