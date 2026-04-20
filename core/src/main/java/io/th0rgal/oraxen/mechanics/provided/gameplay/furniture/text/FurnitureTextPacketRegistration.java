@@ -15,6 +15,10 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 final class FurnitureTextPacketRegistration {
@@ -85,9 +89,29 @@ final class FurnitureTextPacketRegistration {
         if (entry == null || activeListener == null) return;
         Entity baseEntity = Bukkit.getEntity(entry.getBaseUuid());
         if (baseEntity == null) return;
-        for (Player viewer : baseEntity.getTrackedBy()) {
+        for (Player viewer : trackedViewers(entry, baseEntity)) {
             activeListener.sendTextEntry(entry, viewer, true);
         }
+    }
+
+    private static List<Player> trackedViewers(FurnitureTextEntry entry, Entity baseEntity) {
+        try {
+            Object tracked = Entity.class.getMethod("getTrackedBy").invoke(baseEntity);
+            if (tracked instanceof Collection<?> collection) {
+                List<Player> viewers = new ArrayList<>(collection.size());
+                for (Object candidate : collection) {
+                    if (candidate instanceof Player player) viewers.add(player);
+                }
+                return viewers;
+            }
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | LinkageError ignored) {
+        }
+
+        List<Player> viewers = new ArrayList<>();
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (FurnitureTextPacketListener.isWithinRange(entry, player)) viewers.add(player);
+        }
+        return viewers;
     }
 
     static void updateTrackedViewers(FurnitureTextEntry entry) {

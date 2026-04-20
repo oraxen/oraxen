@@ -541,13 +541,6 @@ public class FurnitureMechanic extends Mechanic {
             setEntityData(e, yaw, item, resolvedFacing);
             if (hasTextDefinitions()) FurnitureTextRegistry.register(e, textDefinitions);
         });
-        if (hasTextDefinitions()) {
-            SchedulerUtil.runTask(() -> {
-                if (baseEntity.isValid()) {
-                    FurnitureTextPacketBridge.spawnForTrackedViewers(FurnitureTextRegistry.byUuid(baseEntity.getUniqueId()));
-                }
-            });
-        }
         if (this.isModelEngine() && PluginUtils.isEnabled("ModelEngine")) {
             spawnModelEngineFurniture(baseEntity);
         }

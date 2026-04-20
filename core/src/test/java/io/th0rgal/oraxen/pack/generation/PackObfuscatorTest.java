@@ -253,6 +253,38 @@ class PackObfuscatorTest {
     }
 
     @Test
+    void soundEventIdsAreNotRewrittenAsRawSoundResources() throws Exception {
+        List<VirtualFile> files = new ArrayList<>();
+        files.add(file("assets/oraxen/sounds.json", """
+                {
+                  "custom.sound": {
+                    "sounds": ["custom/sound"]
+                  }
+                }
+                """));
+        files.add(file("assets/oraxen/sounds/custom/sound.ogg", "ogg"));
+        files.add(file("data/oraxen/jukebox_song/custom_sound.json", """
+                {
+                  "sound_event": {
+                    "sound_id": "oraxen:custom/sound"
+                  }
+                }
+                """));
+
+        PackObfuscator.obfuscate(files, "SIMPLE", false);
+
+        VirtualFile songFile = files.stream()
+                .filter(file -> file.getPath().equals("data/oraxen/jukebox_song/custom_sound.json"))
+                .findFirst()
+                .orElseThrow();
+        String content = new String(songFile.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        JsonObject song = JsonParser.parseString(content).getAsJsonObject();
+        String soundId = song.getAsJsonObject("sound_event").get("sound_id").getAsString();
+
+        assertEquals("oraxen:custom/sound", soundId);
+    }
+
+    @Test
     void vanillaModelOnlyOverridesKeepOriginalPathWhenUnreferenced() {
         List<VirtualFile> files = new ArrayList<>();
         files.add(file("assets/minecraft/models/custom/override.json", "{}"));

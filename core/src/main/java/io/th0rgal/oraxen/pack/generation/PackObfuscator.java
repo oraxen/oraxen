@@ -372,9 +372,7 @@ public final class PackObfuscator {
             String model = lookup(modelKeys, value, namespace);
             if (model != null) return model;
             String texture = lookup(textureKeys, value, namespace);
-            if (texture != null) return texture;
-            String sound = lookup(soundKeys, value, namespace);
-            return sound != null ? sound : value;
+            return texture != null ? texture : value;
         }
 
         private String replaceOrOriginal(Map<String, String> map, String value, String namespace) {
