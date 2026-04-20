@@ -44,6 +44,19 @@ public final class FurnitureTextEntry {
         }
     }
 
+    FurnitureTextEntry(FurnitureTextEntry previous,
+                       int baseEntityId,
+                       Location baseLocation,
+                       List<FurnitureTextDefinition> definitions) {
+        this.baseUuid = previous.baseUuid;
+        this.baseEntityId = baseEntityId;
+        this.baseLocation = baseLocation.clone();
+        this.definitions = definitions;
+        this.virtualEntityIds = Arrays.copyOf(previous.virtualEntityIds, previous.virtualEntityIds.length);
+        this.virtualUuids = Arrays.copyOf(previous.virtualUuids, previous.virtualUuids.length);
+        this.viewers.addAll(previous.viewers);
+    }
+
     public UUID getBaseUuid() { return baseUuid; }
     public int getBaseEntityId() { return baseEntityId; }
     public Location getBaseLocation() { return baseLocation.clone(); }

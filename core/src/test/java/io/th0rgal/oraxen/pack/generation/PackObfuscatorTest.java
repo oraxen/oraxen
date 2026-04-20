@@ -360,6 +360,40 @@ class PackObfuscatorTest {
         assertTrue(files.stream().anyMatch(file -> file.getPath().equals("assets/minecraft/textures/item/diamond_sword.png")));
     }
 
+    @Test
+    void atlasSingleSpriteKeepsOriginalLookupName() throws Exception {
+        List<VirtualFile> files = new ArrayList<>();
+        files.add(file("assets/minecraft/atlases/paintings.json", """
+                {
+                  "sources": [
+                    {
+                      "type": "single",
+                      "resource": "painting/custom",
+                      "sprite": "painting/lookup_name"
+                    }
+                  ]
+                }
+                """));
+        files.add(file("assets/minecraft/textures/painting/custom.png", "png"));
+        files.add(file("assets/minecraft/textures/painting/lookup_name.png", "png"));
+
+        PackObfuscator.obfuscate(files, "SIMPLE", false);
+
+        VirtualFile atlasFile = files.stream()
+                .filter(file -> file.getPath().endsWith("/atlases/paintings.json"))
+                .findFirst()
+                .orElseThrow();
+        String content = new String(atlasFile.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        JsonObject atlas = JsonParser.parseString(content).getAsJsonObject();
+        JsonObject originalSource = atlas.getAsJsonArray("sources").get(0).getAsJsonObject();
+        JsonObject addedSource = atlas.getAsJsonArray("sources").get(1).getAsJsonObject();
+
+        assertTrue(originalSource.get("resource").getAsString().startsWith("minecraft:t/"));
+        assertEquals("painting/lookup_name", originalSource.get("sprite").getAsString());
+        assertEquals("minecraft:painting/lookup_name", addedSource.get("sprite").getAsString());
+        assertTrue(files.stream().anyMatch(file -> file.getPath().equals("assets/minecraft/textures/painting/lookup_name.png")));
+    }
+
     private static VirtualFile file(String path, String content) {
         int slash = path.lastIndexOf('/');
         return new VirtualFile(path.substring(0, slash), path.substring(slash + 1),

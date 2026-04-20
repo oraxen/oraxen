@@ -99,6 +99,9 @@ public class FurnitureFactory extends MechanicFactory {
     static void registerTextEntity(Entity entity) {
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
         if (mechanic != null && mechanic.hasTextDefinitions()) {
+            if (!FurnitureTextRegistry.canReuse(entity.getUniqueId(), mechanic.getTextDefinitions().size())) {
+                FurnitureTextPacketBridge.destroyAndUnregister(entity.getUniqueId());
+            }
             FurnitureTextRegistry.register(entity, mechanic.getTextDefinitions());
         } else {
             FurnitureTextPacketBridge.destroyAndUnregister(entity.getUniqueId());

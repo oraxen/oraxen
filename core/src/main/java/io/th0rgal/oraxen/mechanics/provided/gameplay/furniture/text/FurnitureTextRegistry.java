@@ -28,11 +28,20 @@ public final class FurnitureTextRegistry {
         UUID uuid = baseEntity.getUniqueId();
         int entityId = baseEntity.getEntityId();
         Location location = baseEntity.getLocation();
-        FurnitureTextEntry entry = new FurnitureTextEntry(uuid, entityId, location, List.copyOf(definitions));
-        FurnitureTextEntry previous = BY_UUID.put(uuid, entry);
+        FurnitureTextEntry previous = BY_UUID.get(uuid);
+        List<FurnitureTextDefinition> copiedDefinitions = List.copyOf(definitions);
+        FurnitureTextEntry entry = previous != null && previous.size() == copiedDefinitions.size()
+                ? new FurnitureTextEntry(previous, entityId, location, copiedDefinitions)
+                : new FurnitureTextEntry(uuid, entityId, location, copiedDefinitions);
+        previous = BY_UUID.put(uuid, entry);
         if (previous != null) BY_ENTITY_ID.remove(previous.getBaseEntityId());
         BY_ENTITY_ID.put(entityId, entry);
         return entry;
+    }
+
+    public static boolean canReuse(UUID uuid, int definitionCount) {
+        FurnitureTextEntry entry = byUuid(uuid);
+        return entry == null || entry.size() == definitionCount;
     }
 
     public static FurnitureTextEntry byUuid(UUID uuid) {
