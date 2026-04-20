@@ -3,6 +3,8 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.packets.PacketAdapter;
 
+import java.util.UUID;
+
 public final class FurnitureTextPacketBridge {
 
     private FurnitureTextPacketBridge() {
@@ -23,5 +25,16 @@ public final class FurnitureTextPacketBridge {
             }
         }
         FurnitureTextRegistry.clear();
+    }
+
+    public static void destroyAndUnregister(UUID uuid) {
+        FurnitureTextEntry entry = FurnitureTextRegistry.byUuid(uuid);
+        if (PacketAdapter.isPacketEventsEnabled()) {
+            try {
+                FurnitureTextPacketRegistration.destroyTextEntry(entry);
+            } catch (NoClassDefFoundError ignored) {
+            }
+        }
+        FurnitureTextRegistry.unregister(uuid);
     }
 }

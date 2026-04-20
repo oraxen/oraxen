@@ -63,14 +63,19 @@ final class FurnitureTextPacketRegistration {
 
     static void destroyRegisteredTextEntities() {
         for (FurnitureTextEntry entry : FurnitureTextRegistry.all()) {
-            int[] virtualIds = entry.getVirtualEntityIds();
-            if (virtualIds.length == 0) continue;
-            WrapperPlayServerDestroyEntities destroy = new WrapperPlayServerDestroyEntities(virtualIds);
-            for (UUID viewerId : entry.getViewers()) {
-                Player viewer = Bukkit.getPlayer(viewerId);
-                if (viewer == null || !viewer.isOnline()) continue;
-                PacketEvents.getAPI().getPlayerManager().getUser(viewer).sendPacket(destroy);
-            }
+            destroyTextEntry(entry);
+        }
+    }
+
+    static void destroyTextEntry(FurnitureTextEntry entry) {
+        if (entry == null) return;
+        int[] virtualIds = entry.getVirtualEntityIds();
+        if (virtualIds.length == 0) return;
+        WrapperPlayServerDestroyEntities destroy = new WrapperPlayServerDestroyEntities(virtualIds);
+        for (UUID viewerId : entry.getViewers()) {
+            Player viewer = Bukkit.getPlayer(viewerId);
+            if (viewer == null || !viewer.isOnline()) continue;
+            PacketEvents.getAPI().getPlayerManager().getUser(viewer).sendPacket(destroy);
         }
     }
 
