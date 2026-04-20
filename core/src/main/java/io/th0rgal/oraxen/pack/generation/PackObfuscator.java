@@ -448,28 +448,6 @@ public final class PackObfuscator {
             return sprites;
         }
 
-        private Set<String> collectAtlasTextureKeys(JsonElement atlas, String namespace) {
-            Set<String> keys = new HashSet<>();
-            if (atlas == null || !atlas.isJsonObject()) return keys;
-            JsonObject object = atlas.getAsJsonObject();
-            if (!object.has("sources") || !object.get("sources").isJsonArray()) return keys;
-
-            for (JsonElement sourceElement : object.getAsJsonArray("sources")) {
-                if (!sourceElement.isJsonObject()) continue;
-                JsonObject source = sourceElement.getAsJsonObject();
-                String type = source.has("type") && source.get("type").isJsonPrimitive()
-                        ? source.get("type").getAsString()
-                        : "";
-                if (type.endsWith("single")) {
-                    addAtlasSingleReference(source, "resource", namespace, keys);
-                    addAtlasSingleReference(source, "sprite", namespace, keys);
-                } else if (type.endsWith("directory")) {
-                    addAtlasDirectoryReferences(source, namespace, keys);
-                }
-            }
-            return keys;
-        }
-
         private void addAtlasSingleReference(JsonObject source, String property, String namespace, Set<String> keys) {
             if (!source.has(property) || !source.get(property).isJsonPrimitive()) return;
             String value = stripKnownExtension(source.get(property).getAsString());
@@ -510,16 +488,6 @@ public final class PackObfuscator {
 
         private static String namespacedKey(String value, String namespace) {
             return value.contains(":") ? value : namespace + ":" + value;
-        }
-
-        private void addAtlasDirectoryReferences(JsonObject source, String namespace, Set<String> keys) {
-            if (!source.has("source") || !source.get("source").isJsonPrimitive()) return;
-            String directory = stripKnownExtension(source.get("source").getAsString());
-            String explicitNamespace = directory.contains(":") ? directory.substring(0, directory.indexOf(':')) : namespace;
-            String path = directory.contains(":") ? directory.substring(directory.indexOf(':') + 1) : directory;
-            for (String key : textureKeys.keySet()) {
-                if (isKeyUnderDirectory(key, explicitNamespace, path)) keys.add(key);
-            }
         }
 
         private static boolean isKeyUnderDirectory(String key, String namespace, String directory) {
