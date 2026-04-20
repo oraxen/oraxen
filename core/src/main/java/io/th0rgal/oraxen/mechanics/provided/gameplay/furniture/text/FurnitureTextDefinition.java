@@ -81,7 +81,8 @@ public final class FurnitureTextDefinition {
 
         int lineWidth = section.getInt("line_width", 200);
         int backgroundArgb = parseColor(section.getString("background_color", "#40000000"));
-        byte textOpacity = (byte) Math.max(-1, Math.min(127, section.getInt("text_opacity", -1)));
+        int rawTextOpacity = section.getInt("text_opacity", -1);
+        byte textOpacity = (byte) (rawTextOpacity < 0 ? -1 : Math.min(255, rawTextOpacity));
         boolean seeThrough = section.getBoolean("see_through", false);
         boolean shadow = section.getBoolean("shadow", false);
         boolean defaultBackground = section.getBoolean("default_background", false);

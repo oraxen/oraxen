@@ -64,6 +64,13 @@ public final class FurnitureTextRegistry {
         return false;
     }
 
+    public static void removeViewer(UUID viewer) {
+        if (viewer == null) return;
+        for (FurnitureTextEntry entry : BY_UUID.values()) {
+            entry.removeViewer(viewer);
+        }
+    }
+
     public static void clear() {
         BY_UUID.clear();
         BY_ENTITY_ID.clear();

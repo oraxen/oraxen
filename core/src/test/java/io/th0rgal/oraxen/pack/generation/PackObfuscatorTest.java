@@ -103,6 +103,54 @@ class PackObfuscatorTest {
         assertTrue(customModel.startsWith("oraxen:m/"), customModel);
     }
 
+    @Test
+    void vanillaTextureOnlyOverridesKeepOriginalPathWhenUnreferenced() {
+        List<VirtualFile> files = new ArrayList<>();
+        files.add(file("assets/minecraft/textures/item/diamond_sword.png", "png"));
+        files.add(file("assets/minecraft/textures/item/diamond_sword.png.mcmeta", "{}"));
+        files.add(file("assets/oraxen/models/default/sword.json", """
+                {
+                  "textures": {
+                    "layer0": "default/sword"
+                  }
+                }
+                """));
+        files.add(file("assets/oraxen/textures/default/sword.png", "png"));
+
+        PackObfuscator.obfuscate(files, "SIMPLE", false);
+
+        assertTrue(files.stream().anyMatch(file -> file.getPath().equals("assets/minecraft/textures/item/diamond_sword.png")));
+        assertTrue(files.stream().anyMatch(file -> file.getPath().equals("assets/minecraft/textures/item/diamond_sword.png.mcmeta")));
+    }
+
+    @Test
+    void knownTexturePropertyDoesNotFallBackToModelKey() throws Exception {
+        List<VirtualFile> files = new ArrayList<>();
+        files.add(file("assets/oraxen/models/default/holder.json", """
+                {
+                  "textures": {
+                    "layer0": "default/model_only"
+                  }
+                }
+                """));
+        files.add(file("assets/oraxen/models/default/model_only.json", "{}"));
+
+        PackObfuscator.obfuscate(files, "SIMPLE", false);
+
+        String layer0 = null;
+        for (VirtualFile file : files) {
+            if (!file.getPath().contains("/models/")) continue;
+            String content = new String(file.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            JsonObject json = JsonParser.parseString(content).getAsJsonObject();
+            if (json.has("textures")) {
+                layer0 = json.getAsJsonObject("textures").get("layer0").getAsString();
+                break;
+            }
+        }
+
+        assertEquals("default/model_only", layer0);
+    }
+
     private static VirtualFile file(String path, String content) {
         int slash = path.lastIndexOf('/');
         return new VirtualFile(path.substring(0, slash), path.substring(slash + 1),

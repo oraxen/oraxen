@@ -16,10 +16,12 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 public final class PackObfuscator {
 
@@ -120,11 +122,14 @@ public final class PackObfuscator {
         }
 
         private void collectRenames(List<FileData> files) {
+            Set<String> referencedTextureKeys = collectReferencedTextureKeys(files);
+
             for (FileData file : files) {
                 String path = file.path;
 
                 if (isTexture(path)) {
                     String originalKey = keyFromPackPath(path, "/textures/", ".png");
+                    if (isUntrackedVanillaTexture(originalKey, referencedTextureKeys)) continue;
                     String obfuscatedKey = obfuscateKey(originalKey, "t");
                     textureKeys.put(originalKey, obfuscatedKey);
                     filePaths.put(path, texturePath(obfuscatedKey, ".png"));
@@ -134,6 +139,7 @@ public final class PackObfuscator {
                 if (isTextureMetadata(path)) {
                     String pngPath = path.substring(0, path.length() - ".mcmeta".length());
                     String originalKey = keyFromPackPath(pngPath, "/textures/", ".png");
+                    if (isUntrackedVanillaTexture(originalKey, referencedTextureKeys)) continue;
                     String obfuscatedKey = obfuscateKey(originalKey, "t");
                     textureKeys.put(originalKey, obfuscatedKey);
                     filePaths.put(path, texturePath(obfuscatedKey, ".png.mcmeta"));
@@ -155,6 +161,42 @@ public final class PackObfuscator {
                     filePaths.put(path, soundPath(obfuscatedKey));
                 }
             }
+        }
+
+        private Set<String> collectReferencedTextureKeys(List<FileData> files) {
+            Set<String> keys = new HashSet<>();
+            for (FileData file : files) {
+                if (!file.isJson()) continue;
+                JsonElement parsed;
+                try {
+                    parsed = JsonParser.parseString(new String(file.content, StandardCharsets.UTF_8));
+                } catch (Exception ignored) {
+                    continue;
+                }
+                collectReferencedTextureKeys(parsed, null, namespaceFromPath(file.path), keys);
+            }
+            return keys;
+        }
+
+        private void collectReferencedTextureKeys(JsonElement element, String property, String namespace, Set<String> keys) {
+            if (element == null || element.isJsonNull()) return;
+            if (element.isJsonObject()) {
+                for (Map.Entry<String, JsonElement> entry : element.getAsJsonObject().entrySet()) {
+                    collectReferencedTextureKeys(entry.getValue(), entry.getKey(), namespace, keys);
+                }
+                return;
+            }
+            if (element.isJsonArray()) {
+                for (JsonElement child : element.getAsJsonArray()) {
+                    collectReferencedTextureKeys(child, property, namespace, keys);
+                }
+                return;
+            }
+            if (!element.isJsonPrimitive() || !element.getAsJsonPrimitive().isString()) return;
+
+            String prop = property == null ? "" : property.toLowerCase(Locale.ROOT);
+            if (!isTextureProperty(prop)) return;
+            addTextureReference(element.getAsString(), namespace, keys);
         }
 
         private void rewriteJson(FileData file) {
@@ -200,8 +242,12 @@ public final class PackObfuscator {
             if (value == null || value.isBlank() || value.startsWith("#")) return value;
             String prop = property == null ? "" : property.toLowerCase(Locale.ROOT);
 
-            String propertyReplacement = rewriteKnownProperty(prop, value, namespace);
-            if (propertyReplacement != null) return propertyReplacement;
+            if (isModelProperty(prop)) return replaceOrOriginal(modelKeys, value, namespace);
+            if (isTextureProperty(prop)) {
+                String replacement = lookupTextureProperty(prop, value, namespace);
+                return replacement != null ? replacement : value;
+            }
+            if (isSoundProperty(prop)) return replaceOrOriginal(soundKeys, value, namespace);
 
             String model = lookup(modelKeys, value, namespace);
             if (model != null) return model;
@@ -211,11 +257,9 @@ public final class PackObfuscator {
             return sound != null ? sound : value;
         }
 
-        private String rewriteKnownProperty(String prop, String value, String namespace) {
-            if (isModelProperty(prop)) return lookup(modelKeys, value, namespace);
-            if (isTextureProperty(prop)) return lookupTextureProperty(prop, value, namespace);
-            if (isSoundProperty(prop)) return lookup(soundKeys, value, namespace);
-            return null;
+        private String replaceOrOriginal(Map<String, String> map, String value, String namespace) {
+            String replacement = lookup(map, value, namespace);
+            return replacement != null ? replacement : value;
         }
 
         private String lookupTextureProperty(String prop, String value, String namespace) {
@@ -315,6 +359,21 @@ public final class PackObfuscator {
 
         private static String appendSuffix(String value, String suffix) {
             return value == null ? null : value + suffix;
+        }
+
+        private static boolean isUntrackedVanillaTexture(String key, Set<String> referencedTextureKeys) {
+            return key.startsWith("minecraft:") && !referencedTextureKeys.contains(key);
+        }
+
+        private static void addTextureReference(String value, String namespace, Set<String> keys) {
+            if (value == null || value.isBlank() || value.startsWith("#")) return;
+            String stripped = stripKnownExtension(value);
+            if (stripped.contains(":")) {
+                keys.add(stripped);
+                return;
+            }
+            keys.add(namespace + ":" + stripped);
+            keys.add("minecraft:" + stripped);
         }
 
         private static String keyFromPackPath(String path, String marker, String suffix) {
