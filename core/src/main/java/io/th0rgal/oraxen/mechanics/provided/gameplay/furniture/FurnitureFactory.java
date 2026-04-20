@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicConfigProperty;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
@@ -9,7 +10,10 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.Evoluti
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolutionTask;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox.JukeboxListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text.FurnitureTextPacketBridge;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text.FurnitureTextRegistry;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,6 +49,7 @@ public class FurnitureFactory extends MechanicFactory {
         FurniturePacketDispatcher.init();
         FurnitureTextPacketBridge.unregister();
         FurnitureTextPacketBridge.register();
+        registerLoadedFurnitureText();
         customSounds = areCustomSoundsEnabled();
 
         if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new FurnitureSoundListener());
@@ -78,6 +83,20 @@ public class FurnitureFactory extends MechanicFactory {
 
     public static FurnitureFactory getInstance() {
         return instance;
+    }
+
+    private static void registerLoadedFurnitureText() {
+        for (org.bukkit.World world : Bukkit.getWorlds()) {
+            world.getEntities().stream()
+                    .filter(OraxenFurniture::isBaseEntity)
+                    .forEach(FurnitureFactory::registerLoadedFurnitureText);
+        }
+    }
+
+    private static void registerLoadedFurnitureText(Entity entity) {
+        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
+        if (mechanic != null && mechanic.hasTextDefinitions())
+            FurnitureTextRegistry.register(entity, mechanic.getTextDefinitions());
     }
 
     public static EvolutionTask getEvolutionTask() {

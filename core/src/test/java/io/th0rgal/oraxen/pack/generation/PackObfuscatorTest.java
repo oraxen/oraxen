@@ -311,8 +311,11 @@ class PackObfuscatorTest {
                 .orElseThrow();
         String content = new String(atlasFile.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
         JsonObject atlas = JsonParser.parseString(content).getAsJsonObject();
+        JsonObject addedSource = atlas.getAsJsonArray("sources").get(1).getAsJsonObject();
 
         assertEquals(2, atlas.getAsJsonArray("sources").size());
+        assertEquals("minecraft:painting/custom", addedSource.get("sprite").getAsString());
+        assertTrue(addedSource.get("resource").getAsString().startsWith("minecraft:t/"));
         assertTrue(files.stream().anyMatch(file -> file.getPath().startsWith("assets/minecraft/textures/t/")));
         assertTrue(files.stream().anyMatch(file -> file.getPath().equals("assets/minecraft/textures/item/diamond_sword.png")));
     }

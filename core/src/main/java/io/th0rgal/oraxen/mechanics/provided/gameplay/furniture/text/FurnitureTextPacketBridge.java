@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text;
 
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.packets.PacketAdapter;
 
 public final class FurnitureTextPacketBridge {
@@ -8,6 +9,7 @@ public final class FurnitureTextPacketBridge {
     }
 
     public static void register() {
+        if (!OraxenPlugin.supportsDisplayEntities) return;
         if (!PacketAdapter.isPacketEventsEnabled()) return;
         FurnitureTextPacketRegistration.register();
     }

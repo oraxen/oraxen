@@ -49,6 +49,14 @@ public final class FurnitureTextRegistry {
         if (entry != null) BY_ENTITY_ID.remove(entry.getBaseEntityId());
     }
 
+    public static void unregister(UUID uuid, int entityId) {
+        if (uuid == null) return;
+        FurnitureTextEntry entry = BY_UUID.get(uuid);
+        if (entry == null || entry.getBaseEntityId() != entityId) return;
+        BY_UUID.remove(uuid, entry);
+        BY_ENTITY_ID.remove(entityId, entry);
+    }
+
     public static boolean isEmpty() {
         return BY_UUID.isEmpty();
     }
