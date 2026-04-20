@@ -15,11 +15,13 @@ public final class FurnitureTextPacketBridge {
     }
 
     public static void unregister() {
-        FurnitureTextRegistry.clear();
-        if (!PacketAdapter.isPacketEventsEnabled()) return;
-        try {
-            FurnitureTextPacketRegistration.unregister();
-        } catch (NoClassDefFoundError ignored) {
+        if (PacketAdapter.isPacketEventsEnabled()) {
+            try {
+                FurnitureTextPacketRegistration.destroyRegisteredTextEntities();
+                FurnitureTextPacketRegistration.unregister();
+            } catch (NoClassDefFoundError ignored) {
+            }
         }
+        FurnitureTextRegistry.clear();
     }
 }

@@ -3,14 +3,18 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerCommon;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerDestroyEntities;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
+
+import java.util.UUID;
 
 final class FurnitureTextPacketRegistration {
 
@@ -55,6 +59,19 @@ final class FurnitureTextPacketRegistration {
         registered = null;
         listener = null;
         tick = 0L;
+    }
+
+    static void destroyRegisteredTextEntities() {
+        for (FurnitureTextEntry entry : FurnitureTextRegistry.all()) {
+            int[] virtualIds = entry.getVirtualEntityIds();
+            if (virtualIds.length == 0) continue;
+            WrapperPlayServerDestroyEntities destroy = new WrapperPlayServerDestroyEntities(virtualIds);
+            for (UUID viewerId : entry.getViewers()) {
+                Player viewer = Bukkit.getPlayer(viewerId);
+                if (viewer == null || !viewer.isOnline()) continue;
+                PacketEvents.getAPI().getPlayerManager().getUser(viewer).sendPacket(destroy);
+            }
+        }
     }
 
     private static final class ViewerCleanupListener implements Listener {

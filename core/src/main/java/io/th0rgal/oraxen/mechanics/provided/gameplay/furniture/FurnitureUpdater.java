@@ -36,7 +36,7 @@ public class FurnitureUpdater implements Listener {
                         if (Settings.UPDATE_FURNITURE.toBool() && Settings.UPDATE_FURNITURE_ON_LOAD.toBool()) {
                             OraxenFurniture.updateFurniture(entity);
                         }
-                        if (entity.isValid()) registerTextEntity(entity);
+                        if (entity.isValid()) FurnitureFactory.registerTextEntity(entity);
                     });
                 }
                 , OraxenPlugin.get());
@@ -82,9 +82,4 @@ public class FurnitureUpdater implements Listener {
         }
     }
 
-    private static void registerTextEntity(Entity entity) {
-        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
-        if (mechanic != null && mechanic.hasTextDefinitions())
-            FurnitureTextRegistry.register(entity, mechanic.getTextDefinitions());
-    }
 }

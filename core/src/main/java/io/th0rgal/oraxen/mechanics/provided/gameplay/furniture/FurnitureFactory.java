@@ -92,11 +92,11 @@ public class FurnitureFactory extends MechanicFactory {
         for (org.bukkit.World world : Bukkit.getWorlds()) {
             world.getEntities().stream()
                     .filter(OraxenFurniture::isBaseEntity)
-                    .forEach(FurnitureFactory::registerLoadedFurnitureText);
+                    .forEach(FurnitureFactory::registerTextEntity);
         }
     }
 
-    private static void registerLoadedFurnitureText(Entity entity) {
+    static void registerTextEntity(Entity entity) {
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
         if (mechanic != null && mechanic.hasTextDefinitions())
             FurnitureTextRegistry.register(entity, mechanic.getTextDefinitions());
