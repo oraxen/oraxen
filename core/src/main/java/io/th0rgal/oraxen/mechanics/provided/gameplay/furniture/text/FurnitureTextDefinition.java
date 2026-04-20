@@ -96,7 +96,7 @@ public final class FurnitureTextDefinition {
         int refreshTicks = Math.max(0, section.getInt("refresh_ticks", 0));
 
         boolean usesPlaceholders = refreshTicks > 0
-                || lines.stream().anyMatch(line -> line.contains("%") || line.contains("{"));
+                || lines.stream().anyMatch(FurnitureTextDefinition::hasPlaceholderToken);
 
         return new FurnitureTextDefinition(
                 List.copyOf(lines),
@@ -114,6 +114,16 @@ public final class FurnitureTextDefinition {
                 refreshTicks,
                 usesPlaceholders
         );
+    }
+
+    private static boolean hasPlaceholderToken(String line) {
+        int start = line.indexOf('%');
+        while (start >= 0) {
+            int end = line.indexOf('%', start + 1);
+            if (end > start + 1) return true;
+            start = end;
+        }
+        return false;
     }
 
     private static Vector3f readVector(ConfigurationSection section, String path, Vector3f fallback) {

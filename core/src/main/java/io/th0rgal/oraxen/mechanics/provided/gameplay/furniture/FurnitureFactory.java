@@ -102,6 +102,7 @@ public class FurnitureFactory extends MechanicFactory {
     }
 
     static void registerTextEntity(Entity entity, boolean spawnForMissingViewers) {
+        if (!OraxenPlugin.supportsDisplayEntities) return;
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
         if (mechanic != null && mechanic.hasTextDefinitions()) {
             FurnitureTextEntry previous = FurnitureTextRegistry.byUuid(entity.getUniqueId());

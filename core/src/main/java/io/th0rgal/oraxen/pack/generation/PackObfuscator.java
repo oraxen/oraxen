@@ -329,32 +329,39 @@ public final class PackObfuscator {
 
         private JsonElement rewriteElement(JsonElement element, String property, String namespace, boolean soundsJson) {
             if (element == null || element.isJsonNull()) return element;
-            if (element.isJsonObject()) {
-                JsonObject object = element.getAsJsonObject();
-                JsonObject copy = new JsonObject();
-                for (Map.Entry<String, JsonElement> entry : object.entrySet()) {
-                    String childProperty = "textures".equalsIgnoreCase(property) ? "texture" : entry.getKey();
-                    if ("sprite".equals(childProperty) && isAtlasSource(object)) {
-                        copy.add(entry.getKey(), entry.getValue());
-                        continue;
-                    }
-                    copy.add(entry.getKey(), rewriteElement(entry.getValue(), childProperty, namespace, soundsJson));
-                }
-                return copy;
-            }
-            if (element.isJsonArray()) {
-                JsonArray array = element.getAsJsonArray();
-                JsonArray copy = new JsonArray();
-                for (JsonElement child : array) {
-                    copy.add(rewriteElement(child, property, namespace, soundsJson));
-                }
-                return copy;
-            }
+            if (element.isJsonObject()) return rewriteObject(element.getAsJsonObject(), property, namespace, soundsJson);
+            if (element.isJsonArray()) return rewriteArray(element.getAsJsonArray(), property, namespace, soundsJson);
             if (!element.isJsonPrimitive() || !element.getAsJsonPrimitive().isString()) return element;
 
             String value = element.getAsString();
             String replacement = rewriteString(property, value, namespace, soundsJson);
             return replacement.equals(value) ? element : new JsonPrimitive(replacement);
+        }
+
+        private JsonObject rewriteObject(JsonObject object, String property, String namespace, boolean soundsJson) {
+            JsonObject copy = new JsonObject();
+            for (Map.Entry<String, JsonElement> entry : object.entrySet()) {
+                String childProperty = "textures".equalsIgnoreCase(property) ? "texture" : entry.getKey();
+                if (shouldKeepRawValue(object, childProperty, soundsJson)) {
+                    copy.add(entry.getKey(), entry.getValue());
+                    continue;
+                }
+                copy.add(entry.getKey(), rewriteElement(entry.getValue(), childProperty, namespace, soundsJson));
+            }
+            return copy;
+        }
+
+        private JsonArray rewriteArray(JsonArray array, String property, String namespace, boolean soundsJson) {
+            JsonArray copy = new JsonArray();
+            for (JsonElement child : array) {
+                copy.add(rewriteElement(child, property, namespace, soundsJson));
+            }
+            return copy;
+        }
+
+        private boolean shouldKeepRawValue(JsonObject object, String property, boolean soundsJson) {
+            return "sprite".equals(property) && isAtlasSource(object)
+                    || soundsJson && "name".equalsIgnoreCase(property) && isSoundEventReference(object);
         }
 
         private String rewriteString(String property, String value, String namespace, boolean soundsJson) {
@@ -397,6 +404,12 @@ public final class PackObfuscator {
 
         private static boolean isSoundProperty(String prop) {
             return prop.equals("name") || prop.equals("sounds");
+        }
+
+        private static boolean isSoundEventReference(JsonObject object) {
+            if (!object.has("type") || !object.get("type").isJsonPrimitive()) return false;
+            String type = object.get("type").getAsString();
+            return type.equals("event") || type.equals("minecraft:event");
         }
 
         private void addAtlasSingles(JsonObject atlas, JsonElement originalAtlas, String namespace, boolean includeAll) {

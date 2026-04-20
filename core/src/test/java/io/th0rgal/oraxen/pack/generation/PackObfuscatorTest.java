@@ -285,6 +285,37 @@ class PackObfuscatorTest {
     }
 
     @Test
+    void soundsJsonTypeEventNamesAreNotRewrittenAsRawSoundResources() throws Exception {
+        List<VirtualFile> files = new ArrayList<>();
+        files.add(file("assets/oraxen/sounds.json", """
+                {
+                  "custom.alias": {
+                    "sounds": [
+                      { "name": "custom/sound", "type": "event" },
+                      { "name": "custom/sound" }
+                    ]
+                  }
+                }
+                """));
+        files.add(file("assets/oraxen/sounds/custom/sound.ogg", "ogg"));
+
+        PackObfuscator.obfuscate(files, "SIMPLE", false);
+
+        VirtualFile soundsFile = files.stream()
+                .filter(file -> file.getPath().endsWith("/sounds.json"))
+                .findFirst()
+                .orElseThrow();
+        String soundsContent = new String(soundsFile.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        JsonObject sounds = JsonParser.parseString(soundsContent).getAsJsonObject()
+                .getAsJsonObject("custom.alias");
+        JsonObject eventReference = sounds.getAsJsonArray("sounds").get(0).getAsJsonObject();
+        JsonObject rawSoundReference = sounds.getAsJsonArray("sounds").get(1).getAsJsonObject();
+
+        assertEquals("custom/sound", eventReference.get("name").getAsString());
+        assertTrue(rawSoundReference.get("name").getAsString().startsWith("oraxen:s/"));
+    }
+
+    @Test
     void vanillaModelOnlyOverridesKeepOriginalPathWhenUnreferenced() {
         List<VirtualFile> files = new ArrayList<>();
         files.add(file("assets/minecraft/models/custom/override.json", "{}"));
