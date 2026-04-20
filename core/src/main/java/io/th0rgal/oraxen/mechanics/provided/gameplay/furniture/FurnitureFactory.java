@@ -113,7 +113,7 @@ public class FurnitureFactory extends MechanicFactory {
             if (previous != null && reused) {
                 FurnitureTextPacketBridge.updateTrackedViewers(entry);
             } else if (spawnForMissingViewers) {
-                FurnitureTextPacketBridge.spawnForNearbyViewers(entry);
+                FurnitureTextPacketBridge.spawnForWorldViewers(entry);
             }
         } else {
             FurnitureTextPacketBridge.destroyAndUnregister(entity.getUniqueId());

@@ -79,12 +79,12 @@ final class FurnitureTextPacketRegistration {
         }
     }
 
-    static void spawnForNearbyViewers(FurnitureTextEntry entry) {
+    static void spawnForWorldViewers(FurnitureTextEntry entry) {
         FurnitureTextPacketListener activeListener = listener;
         if (entry == null || activeListener == null) return;
         for (Player viewer : Bukkit.getOnlinePlayers()) {
-            if (!FurnitureTextPacketListener.isWithinRange(entry, viewer)) continue;
-            activeListener.sendTextEntry(entry, viewer);
+            if (!viewer.getWorld().equals(entry.getBaseLocation().getWorld())) continue;
+            activeListener.sendTextEntry(entry, viewer, true);
         }
     }
 
@@ -97,7 +97,7 @@ final class FurnitureTextPacketRegistration {
                 entry.removeViewer(viewerId);
                 continue;
             }
-            activeListener.sendTextMetadata(entry, viewer);
+            activeListener.sendTextMetadata(entry, viewer, true);
         }
     }
 

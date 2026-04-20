@@ -19,6 +19,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSp
 import io.th0rgal.oraxen.utils.VersionUtil;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -79,7 +80,12 @@ public class FurnitureTextPacketListener implements PacketListener {
     }
 
     void sendTextEntry(FurnitureTextEntry entry, Player viewer) {
-        if (entry == null || viewer == null || !viewer.isOnline() || !isWithinRange(entry, viewer)) return;
+        sendTextEntry(entry, viewer, false);
+    }
+
+    void sendTextEntry(FurnitureTextEntry entry, Player viewer, boolean ignoreRange) {
+        if (entry == null || viewer == null || !viewer.isOnline()) return;
+        if (!ignoreRange && !isWithinRange(entry, viewer)) return;
         entry.addViewer(viewer.getUniqueId());
         org.bukkit.Location location = entry.getBaseLocation();
         Vector3d basePos = new Vector3d(location.getX(), location.getY(), location.getZ());
@@ -87,7 +93,12 @@ public class FurnitureTextPacketListener implements PacketListener {
     }
 
     void sendTextMetadata(FurnitureTextEntry entry, Player viewer) {
-        if (entry == null || viewer == null || !viewer.isOnline() || !isWithinRange(entry, viewer)) return;
+        sendTextMetadata(entry, viewer, false);
+    }
+
+    void sendTextMetadata(FurnitureTextEntry entry, Player viewer, boolean ignoreRange) {
+        if (entry == null || viewer == null || !viewer.isOnline()) return;
+        if (!ignoreRange && !isWithinRange(entry, viewer)) return;
         entry.addViewer(viewer.getUniqueId());
         for (int i = 0; i < entry.size(); i++) {
             FurnitureTextDefinition def = entry.getDefinitions().get(i);
@@ -125,12 +136,19 @@ public class FurnitureTextPacketListener implements PacketListener {
         }
 
         if (!passengerIds.isEmpty()) {
-            int[] ids = new int[passengerIds.size()];
-            for (int i = 0; i < ids.length; i++) ids[i] = passengerIds.get(i);
+            int[] virtualIds = new int[passengerIds.size()];
+            for (int i = 0; i < virtualIds.length; i++) virtualIds[i] = passengerIds.get(i);
+            int[] ids = user == null ? appendUnique(currentPassengerIds(entry), virtualIds) : virtualIds;
 
             WrapperPlayServerSetPassengers setPassengers = new WrapperPlayServerSetPassengers(baseEntityId, ids);
             sendPacket(user, viewer, setPassengers);
         }
+    }
+
+    private static int[] currentPassengerIds(FurnitureTextEntry entry) {
+        Entity entity = Bukkit.getEntity(entry.getBaseUuid());
+        if (entity == null || entity.getPassengers().isEmpty()) return new int[0];
+        return entity.getPassengers().stream().mapToInt(Entity::getEntityId).toArray();
     }
 
     private static void sendPacket(User user, Player viewer, Object packet) {

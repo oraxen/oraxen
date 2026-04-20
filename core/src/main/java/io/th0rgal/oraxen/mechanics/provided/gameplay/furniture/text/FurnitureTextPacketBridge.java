@@ -38,10 +38,10 @@ public final class FurnitureTextPacketBridge {
         FurnitureTextRegistry.unregister(uuid);
     }
 
-    public static void spawnForNearbyViewers(FurnitureTextEntry entry) {
+    public static void spawnForWorldViewers(FurnitureTextEntry entry) {
         if (!PacketAdapter.isPacketEventsEnabled()) return;
         try {
-            FurnitureTextPacketRegistration.spawnForNearbyViewers(entry);
+            FurnitureTextPacketRegistration.spawnForWorldViewers(entry);
         } catch (NoClassDefFoundError ignored) {
         }
     }
