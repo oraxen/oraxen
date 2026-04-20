@@ -151,6 +151,120 @@ class PackObfuscatorTest {
         assertEquals("default/model_only", layer0);
     }
 
+    @Test
+    void itemSelectWhenValuesAreNotRewrittenAsModelReferences() throws Exception {
+        List<VirtualFile> files = new ArrayList<>();
+        files.add(file("assets/minecraft/items/diamond_sword.json", """
+                {
+                  "model": {
+                    "type": "minecraft:select",
+                    "property": "minecraft:custom_model_data",
+                    "cases": [
+                      {
+                        "when": "oraxen:sword",
+                        "model": {
+                          "type": "minecraft:model",
+                          "model": "oraxen:sword"
+                        }
+                      }
+                    ]
+                  }
+                }
+                """));
+        files.add(file("assets/oraxen/models/sword.json", "{}"));
+
+        PackObfuscator.obfuscate(files, "SIMPLE", false);
+
+        VirtualFile itemFile = files.stream()
+                .filter(file -> file.getPath().equals("assets/minecraft/items/diamond_sword.json"))
+                .findFirst()
+                .orElseThrow();
+        String content = new String(itemFile.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        JsonObject item = JsonParser.parseString(content).getAsJsonObject();
+        JsonObject selectCase = item.getAsJsonObject("model").getAsJsonArray("cases").get(0).getAsJsonObject();
+        String when = selectCase.get("when").getAsString();
+        String model = selectCase.getAsJsonObject("model").get("model").getAsString();
+
+        assertEquals("oraxen:sword", when);
+        assertTrue(model.startsWith("oraxen:m/"), model);
+    }
+
+    @Test
+    void vanillaSoundOnlyOverridesKeepOriginalPathWhenUnreferenced() {
+        List<VirtualFile> files = new ArrayList<>();
+        files.add(file("assets/minecraft/sounds/item/trident/throw.ogg", "ogg"));
+        files.add(file("assets/oraxen/sounds.json", """
+                {
+                  "custom.sound": {
+                    "sounds": ["custom/sound"]
+                  }
+                }
+                """));
+        files.add(file("assets/oraxen/sounds/custom/sound.ogg", "ogg"));
+
+        PackObfuscator.obfuscate(files, "SIMPLE", false);
+
+        assertTrue(files.stream().anyMatch(file -> file.getPath().equals("assets/minecraft/sounds/item/trident/throw.ogg")));
+        assertTrue(files.stream().anyMatch(file -> file.getPath().startsWith("assets/oraxen/sounds/s/")));
+    }
+
+    @Test
+    void namePropertiesOutsideSoundsJsonCanRewriteModelReferences() throws Exception {
+        List<VirtualFile> files = new ArrayList<>();
+        files.add(file("assets/oraxen/models/default/holder.json", """
+                {
+                  "name": "default/model"
+                }
+                """));
+        files.add(file("assets/oraxen/models/default/model.json", "{}"));
+
+        PackObfuscator.obfuscate(files, "SIMPLE", false);
+
+        String name = null;
+        for (VirtualFile file : files) {
+            if (!file.getPath().contains("/models/")) continue;
+            String content = new String(file.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            JsonObject json = JsonParser.parseString(content).getAsJsonObject();
+            if (json.has("name")) {
+                name = json.get("name").getAsString();
+                break;
+            }
+        }
+
+        assertTrue(name.startsWith("oraxen:m/"), name);
+    }
+
+    @Test
+    void atlasSinglesAreOnlyAddedToBlocksAtlas() throws Exception {
+        List<VirtualFile> files = new ArrayList<>();
+        files.add(file("assets/minecraft/atlases/blocks.json", "{\"sources\":[]}"));
+        files.add(file("assets/minecraft/atlases/paintings.json", "{\"sources\":[]}"));
+        files.add(file("assets/oraxen/models/default/sword.json", """
+                {
+                  "textures": {
+                    "layer0": "default/sword"
+                  }
+                }
+                """));
+        files.add(file("assets/oraxen/textures/default/sword.png", "png"));
+
+        PackObfuscator.obfuscate(files, "SIMPLE", false);
+
+        int blocksSources = -1;
+        int paintingsSources = -1;
+        for (VirtualFile file : files) {
+            String path = file.getPath();
+            if (!path.endsWith("/atlases/blocks.json") && !path.endsWith("/atlases/paintings.json")) continue;
+            String content = new String(file.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            int sources = JsonParser.parseString(content).getAsJsonObject().getAsJsonArray("sources").size();
+            if (path.endsWith("/atlases/blocks.json")) blocksSources = sources;
+            if (path.endsWith("/atlases/paintings.json")) paintingsSources = sources;
+        }
+
+        assertEquals(1, blocksSources);
+        assertEquals(0, paintingsSources);
+    }
+
     private static VirtualFile file(String path, String content) {
         int slash = path.lastIndexOf('/');
         return new VirtualFile(path.substring(0, slash), path.substring(slash + 1),

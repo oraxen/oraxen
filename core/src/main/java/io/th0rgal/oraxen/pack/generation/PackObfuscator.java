@@ -123,6 +123,7 @@ public final class PackObfuscator {
 
         private void collectRenames(List<FileData> files) {
             Set<String> referencedTextureKeys = collectReferencedTextureKeys(files);
+            Set<String> referencedSoundKeys = collectReferencedSoundKeys(files);
 
             for (FileData file : files) {
                 String path = file.path;
@@ -156,6 +157,7 @@ public final class PackObfuscator {
 
                 if (isSound(path)) {
                     String originalKey = keyFromPackPath(path, "/sounds/", ".ogg");
+                    if (isUntrackedVanillaSound(originalKey, referencedSoundKeys)) continue;
                     String obfuscatedKey = obfuscateKey(originalKey, "s");
                     soundKeys.put(originalKey, obfuscatedKey);
                     filePaths.put(path, soundPath(obfuscatedKey));
@@ -176,6 +178,42 @@ public final class PackObfuscator {
                 collectReferencedTextureKeys(parsed, null, namespaceFromPath(file.path), keys);
             }
             return keys;
+        }
+
+        private Set<String> collectReferencedSoundKeys(List<FileData> files) {
+            Set<String> keys = new HashSet<>();
+            for (FileData file : files) {
+                if (!isSoundsJson(file.path)) continue;
+                JsonElement parsed;
+                try {
+                    parsed = JsonParser.parseString(new String(file.content, StandardCharsets.UTF_8));
+                } catch (Exception ignored) {
+                    continue;
+                }
+                collectReferencedSoundKeys(parsed, null, namespaceFromPath(file.path), keys);
+            }
+            return keys;
+        }
+
+        private void collectReferencedSoundKeys(JsonElement element, String property, String namespace, Set<String> keys) {
+            if (element == null || element.isJsonNull()) return;
+            if (element.isJsonObject()) {
+                for (Map.Entry<String, JsonElement> entry : element.getAsJsonObject().entrySet()) {
+                    collectReferencedSoundKeys(entry.getValue(), entry.getKey(), namespace, keys);
+                }
+                return;
+            }
+            if (element.isJsonArray()) {
+                for (JsonElement child : element.getAsJsonArray()) {
+                    collectReferencedSoundKeys(child, property, namespace, keys);
+                }
+                return;
+            }
+            if (!element.isJsonPrimitive() || !element.getAsJsonPrimitive().isString()) return;
+
+            String prop = property == null ? "" : property.toLowerCase(Locale.ROOT);
+            if (!isSoundProperty(prop)) return;
+            addSoundReference(element.getAsString(), namespace, keys);
         }
 
         private void collectReferencedTextureKeys(JsonElement element, String property, String namespace, Set<String> keys) {
@@ -208,18 +246,19 @@ public final class PackObfuscator {
             }
 
             String namespace = namespaceFromPath(file.path);
-            JsonElement rewritten = rewriteElement(parsed, null, namespace);
-            if (isAtlas(file.path) && rewritten.isJsonObject()) addAtlasSingles(rewritten.getAsJsonObject());
+            boolean soundsJson = isSoundsJson(file.path);
+            JsonElement rewritten = rewriteElement(parsed, null, namespace, soundsJson);
+            if (isBlocksAtlas(file.path) && rewritten.isJsonObject()) addAtlasSingles(rewritten.getAsJsonObject());
             file.content = GSON.toJson(rewritten).getBytes(StandardCharsets.UTF_8);
         }
 
-        private JsonElement rewriteElement(JsonElement element, String property, String namespace) {
+        private JsonElement rewriteElement(JsonElement element, String property, String namespace, boolean soundsJson) {
             if (element == null || element.isJsonNull()) return element;
             if (element.isJsonObject()) {
                 JsonObject object = element.getAsJsonObject();
                 JsonObject copy = new JsonObject();
                 for (Map.Entry<String, JsonElement> entry : object.entrySet()) {
-                    copy.add(entry.getKey(), rewriteElement(entry.getValue(), entry.getKey(), namespace));
+                    copy.add(entry.getKey(), rewriteElement(entry.getValue(), entry.getKey(), namespace, soundsJson));
                 }
                 return copy;
             }
@@ -227,18 +266,18 @@ public final class PackObfuscator {
                 JsonArray array = element.getAsJsonArray();
                 JsonArray copy = new JsonArray();
                 for (JsonElement child : array) {
-                    copy.add(rewriteElement(child, property, namespace));
+                    copy.add(rewriteElement(child, property, namespace, soundsJson));
                 }
                 return copy;
             }
             if (!element.isJsonPrimitive() || !element.getAsJsonPrimitive().isString()) return element;
 
             String value = element.getAsString();
-            String replacement = rewriteString(property, value, namespace);
+            String replacement = rewriteString(property, value, namespace, soundsJson);
             return replacement.equals(value) ? element : new JsonPrimitive(replacement);
         }
 
-        private String rewriteString(String property, String value, String namespace) {
+        private String rewriteString(String property, String value, String namespace, boolean soundsJson) {
             if (value == null || value.isBlank() || value.startsWith("#")) return value;
             String prop = property == null ? "" : property.toLowerCase(Locale.ROOT);
 
@@ -247,7 +286,8 @@ public final class PackObfuscator {
                 String replacement = lookupTextureProperty(prop, value, namespace);
                 return replacement != null ? replacement : value;
             }
-            if (isSoundProperty(prop)) return replaceOrOriginal(soundKeys, value, namespace);
+            if (soundsJson && isSoundProperty(prop)) return replaceOrOriginal(soundKeys, value, namespace);
+            if (prop.equals("when")) return value;
 
             String model = lookup(modelKeys, value, namespace);
             if (model != null) return model;
@@ -365,8 +405,23 @@ public final class PackObfuscator {
             return key.startsWith("minecraft:") && !referencedTextureKeys.contains(key);
         }
 
+        private static boolean isUntrackedVanillaSound(String key, Set<String> referencedSoundKeys) {
+            return key.startsWith("minecraft:") && !referencedSoundKeys.contains(key);
+        }
+
         private static void addTextureReference(String value, String namespace, Set<String> keys) {
             if (value == null || value.isBlank() || value.startsWith("#")) return;
+            String stripped = stripKnownExtension(value);
+            if (stripped.contains(":")) {
+                keys.add(stripped);
+                return;
+            }
+            keys.add(namespace + ":" + stripped);
+            keys.add("minecraft:" + stripped);
+        }
+
+        private static void addSoundReference(String value, String namespace, Set<String> keys) {
+            if (value == null || value.isBlank()) return;
             String stripped = stripKnownExtension(value);
             if (stripped.contains(":")) {
                 keys.add(stripped);
@@ -425,8 +480,12 @@ public final class PackObfuscator {
             return path.startsWith("assets/") && path.contains("/sounds/") && path.endsWith(".ogg");
         }
 
-        private static boolean isAtlas(String path) {
-            return path.startsWith("assets/") && path.contains("/atlases/") && path.endsWith(".json");
+        private static boolean isBlocksAtlas(String path) {
+            return path.endsWith("/atlases/blocks.json");
+        }
+
+        private static boolean isSoundsJson(String path) {
+            return path.startsWith("assets/") && path.endsWith("/sounds.json");
         }
 
         private static boolean isStableModelRoot(String path) {
