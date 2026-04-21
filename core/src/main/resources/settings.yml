@@ -4,7 +4,7 @@ Plugin:
   language: "english" # Valid options are "czech", "english", "french", "german",  "jpn_JP", "korean", "ru-RU", "zh-CN", "zh-TW"
   introduction:
     console_sent: false
-    player_pending: false
+    player_pending: true
   commands:
     repair:
       oraxen_durability_only: false # will not repair vanilla items if set to true
