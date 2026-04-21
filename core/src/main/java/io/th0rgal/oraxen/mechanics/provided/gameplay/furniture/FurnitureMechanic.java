@@ -1200,6 +1200,9 @@ public class FurnitureMechanic extends Mechanic {
         Rotation newRotation = rotateClockwise(yawToRotation(yaw));
         if (baseEntity instanceof ItemFrame frame) frame.setRotation(newRotation);
         else baseEntity.setRotation(FurnitureMechanic.rotationToYaw(newRotation), baseEntity.getLocation().getPitch());
+
+        FurnitureTextEntry textEntry = FurnitureTextRegistry.updateBaseEntity(baseEntity);
+        if (textEntry != null) FurnitureTextPacketBridge.respawnTrackedViewers(textEntry);
     }
 
     private Rotation rotateClockwise(Rotation rotation) {

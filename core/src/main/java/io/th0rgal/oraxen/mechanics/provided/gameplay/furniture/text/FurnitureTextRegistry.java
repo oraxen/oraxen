@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text;
 
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 
@@ -29,7 +30,7 @@ public final class FurnitureTextRegistry {
         if (baseEntity == null || definitions == null || definitions.isEmpty()) return null;
         UUID uuid = baseEntity.getUniqueId();
         int entityId = baseEntity.getEntityId();
-        Location location = baseEntity.getLocation();
+        Location location = baseLocation(baseEntity);
         FurnitureTextEntry previous = BY_UUID.get(uuid);
         List<FurnitureTextDefinition> copiedDefinitions = List.copyOf(definitions);
         FurnitureTextEntry entry = previous != null && previous.size() == copiedDefinitions.size()
@@ -55,6 +56,14 @@ public final class FurnitureTextRegistry {
 
     public static FurnitureTextEntry byEntityId(int entityId) {
         return BY_ENTITY_ID.get(entityId);
+    }
+
+    public static FurnitureTextEntry updateBaseEntity(Entity baseEntity) {
+        if (baseEntity == null) return null;
+        FurnitureTextEntry entry = byUuid(baseEntity.getUniqueId());
+        if (entry == null || entry.getBaseEntityId() != baseEntity.getEntityId()) return null;
+        entry.updateBaseLocation(baseLocation(baseEntity));
+        return entry;
     }
 
     public static void unregister(UUID uuid) {
@@ -104,5 +113,11 @@ public final class FurnitureTextRegistry {
     private static void updateRefreshableCount(FurnitureTextEntry previous, FurnitureTextEntry current) {
         if (previous != null && previous.needsRefresh()) REFRESHABLE_ENTRIES.decrementAndGet();
         if (current != null && current.needsRefresh()) REFRESHABLE_ENTRIES.incrementAndGet();
+    }
+
+    private static Location baseLocation(Entity baseEntity) {
+        Location location = baseEntity.getLocation();
+        location.setYaw(FurnitureMechanic.getFurnitureYaw(baseEntity));
+        return location;
     }
 }

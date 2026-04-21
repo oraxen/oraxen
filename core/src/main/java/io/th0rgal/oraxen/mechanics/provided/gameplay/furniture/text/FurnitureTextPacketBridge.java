@@ -57,4 +57,15 @@ public final class FurnitureTextPacketBridge {
         } catch (NoClassDefFoundError ignored) {
         }
     }
+
+    public static void respawnTrackedViewers(FurnitureTextEntry entry) {
+        if (!OraxenPlugin.supportsDisplayEntities) return;
+        if (!PacketAdapter.isPacketEventsEnabled()) return;
+        try {
+            FurnitureTextPacketRegistration.register();
+            FurnitureTextPacketRegistration.destroyTextEntry(entry);
+            FurnitureTextPacketRegistration.spawnForTrackedViewers(entry);
+        } catch (NoClassDefFoundError ignored) {
+        }
+    }
 }

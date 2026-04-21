@@ -20,7 +20,7 @@ public final class FurnitureTextEntry {
 
     private final UUID baseUuid;
     private final int baseEntityId;
-    private final Location baseLocation;
+    private volatile Location baseLocation;
     private final List<FurnitureTextDefinition> definitions;
     private final int[] virtualEntityIds;
     private final UUID[] virtualUuids;
@@ -58,6 +58,9 @@ public final class FurnitureTextEntry {
     public UUID getBaseUuid() { return baseUuid; }
     public int getBaseEntityId() { return baseEntityId; }
     public Location getBaseLocation() { return baseLocation.clone(); }
+    public void updateBaseLocation(Location location) {
+        if (location != null) baseLocation = location.clone();
+    }
     public List<FurnitureTextDefinition> getDefinitions() { return definitions; }
     public int[] getVirtualEntityIds() { return Arrays.copyOf(virtualEntityIds, virtualEntityIds.length); }
     public UUID virtualUuid(int index) { return virtualUuids[index]; }
