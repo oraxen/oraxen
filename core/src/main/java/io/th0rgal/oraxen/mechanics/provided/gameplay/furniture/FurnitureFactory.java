@@ -1,6 +1,8 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.OraxenFurniture;
+import io.th0rgal.oraxen.api.events.OraxenItemsLoadedEvent;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicConfigProperty;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
@@ -8,7 +10,14 @@ import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolutionListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolutionTask;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox.JukeboxListener;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text.FurnitureTextEntry;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text.FurnitureTextPacketBridge;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text.FurnitureTextRegistry;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Entity;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,11 +46,14 @@ public class FurnitureFactory extends MechanicFactory {
                 new FurnitureListener(),
                 new FurnitureUpdater(),
                 new EvolutionListener(),
-                new JukeboxListener()
+                new JukeboxListener(),
+                new FurnitureTextLoadListener()
         );
         evolvingFurnitures = false;
         instance = this;
         FurniturePacketDispatcher.init();
+        FurnitureTextPacketBridge.unregister();
+        FurnitureTextPacketBridge.register();
         customSounds = areCustomSoundsEnabled();
 
         if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new FurnitureSoundListener());
@@ -77,6 +89,45 @@ public class FurnitureFactory extends MechanicFactory {
         return instance;
     }
 
+    private static void registerLoadedFurnitureText() {
+        for (org.bukkit.World world : Bukkit.getWorlds()) {
+            world.getEntities().stream()
+                    .filter(OraxenFurniture::isBaseEntity)
+                    .forEach(entity -> registerTextEntity(entity, true));
+        }
+    }
+
+    static void registerTextEntity(Entity entity) {
+        registerTextEntity(entity, false);
+    }
+
+    static void registerTextEntity(Entity entity, boolean spawnForMissingViewers) {
+        if (!OraxenPlugin.supportsDisplayEntities) return;
+        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
+        if (mechanic != null && mechanic.hasTextDefinitions()) {
+            FurnitureTextEntry previous = FurnitureTextRegistry.byUuid(entity.getUniqueId());
+            boolean reused = FurnitureTextRegistry.canReuse(entity.getUniqueId(), mechanic.getTextDefinitions().size());
+            if (previous != null && !reused) {
+                FurnitureTextPacketBridge.destroyAndUnregister(entity.getUniqueId());
+            }
+            FurnitureTextEntry entry = FurnitureTextRegistry.register(entity, mechanic.getTextDefinitions());
+            if (previous != null && reused) {
+                FurnitureTextPacketBridge.updateTrackedViewers(entry);
+            } else if (spawnForMissingViewers) {
+                FurnitureTextPacketBridge.spawnForTrackedViewers(entry);
+            }
+        } else {
+            FurnitureTextPacketBridge.destroyAndUnregister(entity.getUniqueId());
+        }
+    }
+
+    private static final class FurnitureTextLoadListener implements Listener {
+        @EventHandler
+        public void onItemsLoaded(OraxenItemsLoadedEvent event) {
+            registerLoadedFurnitureText();
+        }
+    }
+
     public static EvolutionTask getEvolutionTask() {
         return evolutionTask;
     }
@@ -95,6 +146,7 @@ public class FurnitureFactory extends MechanicFactory {
         if (evolutionTask != null)
             evolutionTask.cancel();
         FurniturePacketDispatcher.shutdown();
+        FurnitureTextPacketBridge.unregister();
     }
 
     @Override

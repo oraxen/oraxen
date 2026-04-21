@@ -14,6 +14,10 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolvingFurniture;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.GrowthStage;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox.JukeboxBlock;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text.FurnitureTextDefinition;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text.FurnitureTextEntry;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text.FurnitureTextPacketBridge;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text.FurnitureTextRegistry;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.light.LightMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
@@ -30,6 +34,7 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.MemoryConfiguration;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -86,6 +91,7 @@ public class FurnitureMechanic extends Mechanic {
     private final ArmorStandProperties armorStandProperties;
     private final BlockLockerMechanic blockLocker;
     private final RestrictedRotation restrictedRotation;
+    private final List<FurnitureTextDefinition> textDefinitions;
 
     public record FurnitureHitbox(float width, float height) {
     }
@@ -269,6 +275,47 @@ public class FurnitureMechanic extends Mechanic {
 
         ConfigurationSection blockLockerSection = section.getConfigurationSection("blocklocker");
         blockLocker = blockLockerSection != null ? new BlockLockerMechanic(blockLockerSection) : null;
+
+        textDefinitions = parseTextDefinitions(section);
+    }
+
+    private static List<FurnitureTextDefinition> parseTextDefinitions(ConfigurationSection section) {
+        List<FurnitureTextDefinition> defs = new ArrayList<>();
+        ConfigurationSection single = section.getConfigurationSection("text_entity");
+        if (single != null) defs.add(FurnitureTextDefinition.parse(single));
+
+        List<?> list = section.getList("text_entities");
+        if (list != null) {
+            for (int i = 0; i < list.size(); i++) {
+                Object raw = list.get(i);
+                if (raw instanceof Map<?, ?> map) {
+                    ConfigurationSection temp = new MemoryConfiguration();
+                    copyMapToSection(map, temp);
+                    defs.add(FurnitureTextDefinition.parse(temp));
+                }
+            }
+        }
+        return defs.isEmpty() ? List.of() : List.copyOf(defs);
+    }
+
+    private static void copyMapToSection(Map<?, ?> map, ConfigurationSection section) {
+        for (Map.Entry<?, ?> entry : map.entrySet()) {
+            String key = entry.getKey().toString();
+            Object value = entry.getValue();
+            if (value instanceof Map<?, ?> nested) {
+                copyMapToSection(nested, section.createSection(key));
+            } else {
+                section.set(key, value);
+            }
+        }
+    }
+
+    public boolean hasTextDefinitions() {
+        return !textDefinitions.isEmpty();
+    }
+
+    public List<FurnitureTextDefinition> getTextDefinitions() {
+        return textDefinitions;
     }
 
     public boolean isModelEngine() {
@@ -491,7 +538,11 @@ public class FurnitureMechanic extends Mechanic {
         }
         item.setAmount(1);
 
-        Entity baseEntity = EntityUtils.spawnEntity(correctedSpawnLocation(location, resolvedFacing, yaw), entityClass, (e) -> setEntityData(e, yaw, item, resolvedFacing));
+        boolean registerText = OraxenPlugin.supportsDisplayEntities && hasTextDefinitions();
+        Entity baseEntity = EntityUtils.spawnEntity(correctedSpawnLocation(location, resolvedFacing, yaw), entityClass, (e) -> {
+            setEntityData(e, yaw, item, resolvedFacing);
+            if (registerText) FurnitureTextRegistry.register(e, textDefinitions);
+        });
         if (this.isModelEngine() && PluginUtils.isEnabled("ModelEngine")) {
             spawnModelEngineFurniture(baseEntity);
         }
@@ -890,9 +941,12 @@ public class FurnitureMechanic extends Mechanic {
 
     private void removeBaseEntity(Entity baseEntity) {
         if (baseEntity == null) return;
+        UUID baseUuid = baseEntity.getUniqueId();
+        int baseEntityId = baseEntity.getEntityId();
         removeSubEntitiesOfFurniture(baseEntity);
         removeLight(baseEntity.getLocation().getBlock());
         if (!baseEntity.isDead()) baseEntity.remove();
+        SchedulerUtil.runTask(() -> FurnitureTextRegistry.unregister(baseUuid, baseEntityId));
     }
 
     private void removeSubEntitiesOfFurniture(Entity baseEntity) {
@@ -1136,6 +1190,9 @@ public class FurnitureMechanic extends Mechanic {
         Rotation newRotation = rotateClockwise(yawToRotation(yaw));
         if (baseEntity instanceof ItemFrame frame) frame.setRotation(newRotation);
         else baseEntity.setRotation(FurnitureMechanic.rotationToYaw(newRotation), baseEntity.getLocation().getPitch());
+
+        FurnitureTextEntry textEntry = FurnitureTextRegistry.updateBaseEntity(baseEntity);
+        if (textEntry != null) FurnitureTextPacketBridge.respawnTrackedViewers(textEntry);
     }
 
     private Rotation rotateClockwise(Rotation rotation) {

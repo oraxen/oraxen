@@ -5,7 +5,9 @@ import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text.FurnitureTextRegistry;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -16,7 +18,10 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.world.EntitiesLoadEvent;
+import org.bukkit.event.world.EntitiesUnloadEvent;
 import org.bukkit.persistence.PersistentDataType;
+
+import java.util.UUID;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.ORIENTATION_KEY;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.ROOT_KEY;
@@ -24,17 +29,32 @@ import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureM
 public class FurnitureUpdater implements Listener {
 
     public FurnitureUpdater() {
-        if (!Settings.UPDATE_FURNITURE.toBool()) return;
-        if (Settings.UPDATE_FURNITURE_ON_LOAD.toBool()) {
-            Bukkit.getPluginManager().registerEvent(EntitiesLoadEvent.class, this, EventPriority.NORMAL, (listener, event) ->
-                    {
-                        if (!FurnitureFactory.isEnabled()) return;
-                        ((EntitiesLoadEvent) event).getEntities().stream().filter(OraxenFurniture::isBaseEntity).forEach(OraxenFurniture::updateFurniture);
-                    }
-                    , OraxenPlugin.get());
-        }
+        Bukkit.getPluginManager().registerEvent(EntitiesLoadEvent.class, this, EventPriority.NORMAL, (listener, event) ->
+                {
+                    if (!FurnitureFactory.isEnabled()) return;
+                    ((EntitiesLoadEvent) event).getEntities().stream().filter(OraxenFurniture::isBaseEntity).forEach(entity -> {
+                        if (Settings.UPDATE_FURNITURE.toBool() && Settings.UPDATE_FURNITURE_ON_LOAD.toBool()) {
+                            OraxenFurniture.updateFurniture(entity);
+                        }
+                        if (entity.isValid()) FurnitureFactory.registerTextEntity(entity);
+                    });
+                }
+                , OraxenPlugin.get());
 
-        if (Settings.EXPERIMENTAL_FIX_BROKEN_FURNITURE.toBool()) {
+        Bukkit.getPluginManager().registerEvent(EntitiesUnloadEvent.class, this, EventPriority.NORMAL, (listener, event) ->
+                {
+                    if (!FurnitureFactory.isEnabled()) return;
+                    ((EntitiesUnloadEvent) event).getEntities().stream()
+                            .filter(OraxenFurniture::isBaseEntity)
+                            .forEach(entity -> {
+                                UUID uuid = entity.getUniqueId();
+                                int entityId = entity.getEntityId();
+                                SchedulerUtil.runTask(() -> FurnitureTextRegistry.unregister(uuid, entityId));
+                            });
+                }
+                , OraxenPlugin.get());
+
+        if (Settings.UPDATE_FURNITURE.toBool() && Settings.EXPERIMENTAL_FIX_BROKEN_FURNITURE.toBool()) {
             Bukkit.getPluginManager().registerEvent(ChunkLoadEvent.class, this, EventPriority.NORMAL, ((listener, event) -> {
                 if (!FurnitureFactory.isEnabled()) return;
                 for (Block block : CustomBlockData.getBlocksWithCustomData(OraxenPlugin.get(), ((ChunkLoadEvent) event).getChunk())) {
@@ -61,4 +81,5 @@ public class FurnitureUpdater implements Listener {
             }), OraxenPlugin.get());
         }
     }
+
 }

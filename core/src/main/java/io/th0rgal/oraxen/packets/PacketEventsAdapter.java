@@ -12,7 +12,6 @@ import io.th0rgal.oraxen.packets.packetevents.ScoreboardPacketListener;
 import io.th0rgal.oraxen.packets.packetevents.TitlePacketListener;
 import io.th0rgal.oraxen.packets.packetevents.mechanics.provided.gameplay.efficiency.EfficiencyMechanicListener;
 import io.th0rgal.oraxen.utils.SnapshotVersion;
-import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Nullable;
 
@@ -90,7 +89,7 @@ public class PacketEventsAdapter implements PacketAdapter {
     @Nullable
     @Override
     public Plugin getPlugin() {
-        return Bukkit.getPluginManager().getPlugin("PacketEvents");
+        return PacketAdapter.getPacketEventsPlugin();
     }
 
     private PacketListenerCommon register(PacketListener listener, PacketListenerPriority priority) {
