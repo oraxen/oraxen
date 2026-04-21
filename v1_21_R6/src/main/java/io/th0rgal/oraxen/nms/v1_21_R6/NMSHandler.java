@@ -75,6 +75,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.components.FoodComponent;
 import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Vector3f;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
@@ -847,8 +848,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
     @Override
     public boolean spawnTextDisplay(Player viewer, int entityId, UUID uuid, Location location,
-                                    net.kyori.adventure.text.Component text, byte billboard,
-                                    float viewRange, int backgroundArgb, byte flags) {
+                                    net.kyori.adventure.text.Component text, Vector3f scale, byte billboard,
+                                    float viewRange, int lineWidth, int backgroundArgb, byte textOpacity, byte flags) {
         ServerPlayer serverPlayer = ((CraftPlayer) viewer).getHandle();
         Connection connection = serverPlayer.connection.connection;
 
@@ -863,19 +864,24 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                 0.0
         );
         connection.send(spawnPacket);
-        sendTextDisplayMetadata(viewer, entityId, text, billboard, viewRange, backgroundArgb, flags);
+        sendTextDisplayMetadata(viewer, entityId, text, scale, billboard, viewRange, lineWidth, backgroundArgb, textOpacity, flags);
         return true;
     }
 
     @Override
     public boolean sendTextDisplayMetadata(Player viewer, int entityId, net.kyori.adventure.text.Component text,
-                                           byte billboard, float viewRange, int backgroundArgb, byte flags) {
+                                           Vector3f scale, byte billboard, float viewRange, int lineWidth,
+                                           int backgroundArgb, byte textOpacity, byte flags) {
         ServerPlayer serverPlayer = ((CraftPlayer) viewer).getHandle();
         Connection connection = serverPlayer.connection.connection;
         List<SynchedEntityData.DataValue<?>> metadata = new ArrayList<>();
 
         metadata.add(SynchedEntityData.DataValue.create(
                 new EntityDataAccessor<>(5, EntityDataSerializers.BOOLEAN), true));
+        if (scale != null && (scale.x != 1f || scale.y != 1f || scale.z != 1f)) {
+            metadata.add(SynchedEntityData.DataValue.create(
+                    new EntityDataAccessor<>(12, EntityDataSerializers.VECTOR3), scale));
+        }
         metadata.add(SynchedEntityData.DataValue.create(
                 new EntityDataAccessor<>(15, EntityDataSerializers.BYTE), billboard));
         metadata.add(SynchedEntityData.DataValue.create(
@@ -885,8 +891,16 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         metadata.add(SynchedEntityData.DataValue.create(
                 new EntityDataAccessor<>(23, EntityDataSerializers.COMPONENT), vanillaText));
 
+        if (lineWidth != 200) {
+            metadata.add(SynchedEntityData.DataValue.create(
+                    new EntityDataAccessor<>(24, EntityDataSerializers.INT), lineWidth));
+        }
         metadata.add(SynchedEntityData.DataValue.create(
                 new EntityDataAccessor<>(25, EntityDataSerializers.INT), backgroundArgb));
+        if (textOpacity != (byte) -1) {
+            metadata.add(SynchedEntityData.DataValue.create(
+                    new EntityDataAccessor<>(26, EntityDataSerializers.BYTE), textOpacity));
+        }
         metadata.add(SynchedEntityData.DataValue.create(
                 new EntityDataAccessor<>(27, EntityDataSerializers.BYTE), flags));
 

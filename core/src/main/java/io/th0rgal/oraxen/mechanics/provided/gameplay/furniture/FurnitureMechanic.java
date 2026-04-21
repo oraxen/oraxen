@@ -538,15 +538,16 @@ public class FurnitureMechanic extends Mechanic {
         }
         item.setAmount(1);
 
-        final FurnitureTextEntry[] textEntry = new FurnitureTextEntry[1];
+        boolean registerText = OraxenPlugin.supportsDisplayEntities && hasTextDefinitions();
+        final FurnitureTextEntry[] textEntry = registerText ? new FurnitureTextEntry[1] : null;
         Entity baseEntity = EntityUtils.spawnEntity(correctedSpawnLocation(location, resolvedFacing, yaw), entityClass, (e) -> {
             setEntityData(e, yaw, item, resolvedFacing);
-            if (hasTextDefinitions()) textEntry[0] = FurnitureTextRegistry.register(e, textDefinitions);
+            if (registerText) textEntry[0] = FurnitureTextRegistry.register(e, textDefinitions);
         });
         if (this.isModelEngine() && PluginUtils.isEnabled("ModelEngine")) {
             spawnModelEngineFurniture(baseEntity);
         }
-        if (textEntry[0] != null) {
+        if (textEntry != null && textEntry[0] != null) {
             SchedulerUtil.runTaskLater(1L, () -> {
                 FurnitureTextPacketBridge.spawnForTrackedViewers(textEntry[0]);
             });

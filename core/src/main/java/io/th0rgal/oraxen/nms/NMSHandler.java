@@ -11,6 +11,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3f;
 
 import java.util.Map;
 import java.util.Set;
@@ -118,12 +119,14 @@ public interface NMSHandler {
     }
 
     default boolean spawnTextDisplay(Player viewer, int entityId, UUID uuid, Location location, Component text,
-                                     byte billboard, float viewRange, int backgroundArgb, byte flags) {
+                                     Vector3f scale, byte billboard, float viewRange, int lineWidth,
+                                     int backgroundArgb, byte textOpacity, byte flags) {
         return false;
     }
 
     default boolean sendTextDisplayMetadata(Player viewer, int entityId, Component text,
-                                            byte billboard, float viewRange, int backgroundArgb, byte flags) {
+                                            Vector3f scale, byte billboard, float viewRange, int lineWidth,
+                                            int backgroundArgb, byte textOpacity, byte flags) {
         return false;
     }
 

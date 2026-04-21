@@ -13,7 +13,6 @@ import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerDestroyEntities;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityMetadata;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSpawnEntity;
-import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
@@ -91,7 +90,8 @@ public class FurnitureTextPacketListener implements PacketListener {
             FurnitureTextDefinition def = entry.getDefinitions().get(i);
             Component text = def.renderComponent(viewer);
             if (NMSHandlers.getHandler().sendTextDisplayMetadata(viewer, entry.virtualEntityId(i), text,
-                    billboardByte(def), def.getViewRange(), def.getBackgroundArgb(), textFlags(def))) {
+                    def.getScale(), billboardByte(def), def.getViewRange(), def.getLineWidth(),
+                    def.getBackgroundArgb(), def.getTextOpacity(), textFlags(def))) {
                 continue;
             }
             PacketEvents.getAPI().getPlayerManager().sendPacket(viewer,
@@ -133,7 +133,8 @@ public class FurnitureTextPacketListener implements PacketListener {
             Component text = def.renderComponent(viewer);
             org.bukkit.Location textLocation = new org.bukkit.Location(baseLocation.getWorld(), textPos.x, textPos.y, textPos.z, yaw, pitch);
             if (viewer != null && NMSHandlers.getHandler().spawnTextDisplay(viewer, virtualId, virtualUuid, textLocation,
-                    text, billboardByte(def), def.getViewRange(), def.getBackgroundArgb(), textFlags(def))) {
+                    text, def.getScale(), billboardByte(def), def.getViewRange(), def.getLineWidth(),
+                    def.getBackgroundArgb(), def.getTextOpacity(), textFlags(def))) {
                 continue;
             }
 
@@ -201,7 +202,8 @@ public class FurnitureTextPacketListener implements PacketListener {
                     if (!entry.shouldRefresh(def, tick)) continue;
                     Component text = def.renderComponent(viewer);
                     if (NMSHandlers.getHandler().sendTextDisplayMetadata(viewer, entry.virtualEntityId(i), text,
-                            billboardByte(def), def.getViewRange(), def.getBackgroundArgb(), textFlags(def))) {
+                            def.getScale(), billboardByte(def), def.getViewRange(), def.getLineWidth(),
+                            def.getBackgroundArgb(), def.getTextOpacity(), textFlags(def))) {
                         continue;
                     }
                     PacketEvents.getAPI().getPlayerManager().sendPacket(viewer,
@@ -239,7 +241,7 @@ public class FurnitureTextPacketListener implements PacketListener {
         data.add(new EntityData<>(DATA.displayViewRange, EntityDataTypes.FLOAT, def.getViewRange()));
 
         Component text = def.renderComponent(viewer);
-        data.add(new EntityData<>(DATA.textDisplayText, EntityDataTypes.COMPONENT, AdventureUtils.GSON_SERIALIZER.serialize(text)));
+        data.add(new EntityData<>(DATA.textDisplayText, EntityDataTypes.ADV_COMPONENT, text));
         if (def.getLineWidth() != 200) {
             data.add(new EntityData<>(DATA.textDisplayLineWidth, EntityDataTypes.INT, def.getLineWidth()));
         }

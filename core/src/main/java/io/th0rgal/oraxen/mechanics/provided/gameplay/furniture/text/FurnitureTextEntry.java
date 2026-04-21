@@ -1,12 +1,12 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text;
 
+import io.th0rgal.oraxen.nms.NMSHandlers;
 import org.bukkit.Location;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -15,7 +15,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class FurnitureTextEntry {
 
-    private static final AtomicInteger VIRTUAL_ID_COUNTER = new AtomicInteger(20_000);
+    private static final int FALLBACK_VIRTUAL_ID_START = Integer.MAX_VALUE / 2;
+    private static int fallbackVirtualId = FALLBACK_VIRTUAL_ID_START;
 
     private final UUID baseUuid;
     private final int baseEntityId;
@@ -36,7 +37,7 @@ public final class FurnitureTextEntry {
         this.virtualEntityIds = new int[definitions.size()];
         this.virtualUuids = new UUID[definitions.size()];
         for (int i = 0; i < definitions.size(); i++) {
-            virtualEntityIds[i] = VIRTUAL_ID_COUNTER.getAndIncrement();
+            virtualEntityIds[i] = nextVirtualEntityId();
             virtualUuids[i] = UUID.randomUUID();
         }
     }
@@ -88,5 +89,11 @@ public final class FurnitureTextEntry {
 
     private static int refreshInterval(FurnitureTextDefinition definition) {
         return definition.getRefreshTicks() > 0 ? definition.getRefreshTicks() : (definition.usesPlaceholders() ? 20 : 0);
+    }
+
+    private static synchronized int nextVirtualEntityId() {
+        int entityId = NMSHandlers.getHandler().getNextEntityId();
+        if (entityId != -1) return entityId;
+        return --fallbackVirtualId;
     }
 }
