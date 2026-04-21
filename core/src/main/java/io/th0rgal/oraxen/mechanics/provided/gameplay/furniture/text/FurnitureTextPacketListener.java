@@ -63,6 +63,7 @@ public class FurnitureTextPacketListener implements PacketListener {
 
         FurnitureTextEntry entry = FurnitureTextRegistry.byUuid(baseUuid);
         if (entry == null) return;
+        int baseEntityId = spawn.getEntityId();
 
         User user = event.getUser();
         if (user == null) return;
@@ -70,7 +71,11 @@ public class FurnitureTextPacketListener implements PacketListener {
         if (viewer != null) entry.addViewer(viewer.getUniqueId());
 
         Vector3d basePos = spawn.getPosition();
-        SchedulerUtil.runTaskLater(1L, () -> sendTextEntry(entry, viewer, null, basePos));
+        SchedulerUtil.runTaskLater(1L, () -> {
+            FurnitureTextEntry current = FurnitureTextRegistry.byUuid(baseUuid);
+            if (current == null || current.getBaseEntityId() != baseEntityId) return;
+            sendTextEntry(current, viewer, null, basePos);
+        });
     }
 
     void sendTextEntry(FurnitureTextEntry entry, Player viewer, boolean ignoreRange) {
@@ -107,7 +112,7 @@ public class FurnitureTextPacketListener implements PacketListener {
             FurnitureTextDefinition def = entry.getDefinitions().get(i);
             int virtualId = entry.virtualEntityId(i);
             UUID virtualUuid = entry.virtualUuid(i);
-            Vector3f offset = convertVector(def.getTranslation());
+            Vector3f offset = rotateOffset(convertVector(def.getTranslation()), yaw);
             Vector3d basePos = packetBasePos != null
                     ? packetBasePos
                     : new Vector3d(baseLocation.getX(), baseLocation.getY(), baseLocation.getZ());
@@ -276,6 +281,17 @@ public class FurnitureTextPacketListener implements PacketListener {
 
     private static Vector3f convertVector(org.joml.Vector3f v) {
         return new Vector3f(v.x, v.y, v.z);
+    }
+
+    private static Vector3f rotateOffset(Vector3f offset, float yaw) {
+        double radians = Math.toRadians(-(double) yaw);
+        double x = offset.x;
+        double z = offset.z;
+        return new Vector3f(
+                (float) (Math.cos(radians) * x - Math.sin(radians) * z),
+                offset.y,
+                (float) (Math.sin(radians) * x + Math.cos(radians) * z)
+        );
     }
 
     private static Player viewerFromEvent(PacketSendEvent event) {

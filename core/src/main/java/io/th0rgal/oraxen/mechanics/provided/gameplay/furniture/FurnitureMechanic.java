@@ -548,8 +548,12 @@ public class FurnitureMechanic extends Mechanic {
             spawnModelEngineFurniture(baseEntity);
         }
         if (textEntry != null && textEntry[0] != null) {
+            UUID baseUuid = textEntry[0].getBaseUuid();
+            int baseEntityId = textEntry[0].getBaseEntityId();
             SchedulerUtil.runTaskLater(1L, () -> {
-                FurnitureTextPacketBridge.spawnForTrackedViewers(textEntry[0]);
+                FurnitureTextEntry current = FurnitureTextRegistry.byUuid(baseUuid);
+                if (current == null || current.getBaseEntityId() != baseEntityId) return;
+                FurnitureTextPacketBridge.spawnForTrackedViewers(current);
             });
         }
 
