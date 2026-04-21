@@ -51,6 +51,11 @@ public class IntroductionGuide implements Listener {
             Message.INTRODUCTION_GUIDE.log();
         }
 
+        if (consoleSentSnapshot && !playerPendingSnapshot) {
+            HandlerList.unregisterAll(this);
+            return;
+        }
+
         sendToFirstEligibleOnlinePlayer();
     }
 
