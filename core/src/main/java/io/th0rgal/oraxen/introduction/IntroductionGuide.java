@@ -32,18 +32,18 @@ public class IntroductionGuide implements Listener {
 
     public void start() {
         boolean sendConsoleMessage = false;
-        boolean consoleSentSnapshot = false;
-        boolean playerPendingSnapshot = false;
+        boolean consoleSentSnapshot;
+        boolean playerPendingSnapshot;
         synchronized (lock) {
             if (!consoleSent) {
                 consoleSent = true;
                 sendConsoleMessage = true;
-                consoleSentSnapshot = consoleSent;
-                playerPendingSnapshot = playerPending;
             }
+            consoleSentSnapshot = consoleSent;
+            playerPendingSnapshot = playerPending;
         }
 
-        if (sendConsoleMessage) {
+        if (sendConsoleMessage || playerPendingSnapshot) {
             saveState(consoleSentSnapshot, playerPendingSnapshot);
         }
 
@@ -106,7 +106,7 @@ public class IntroductionGuide implements Listener {
 
         saveState(consoleSentSnapshot, playerPendingSnapshot);
         Message.INTRODUCTION_GUIDE.send(player);
-        HandlerList.unregisterAll(this);
+        SchedulerUtil.runTask(plugin, () -> HandlerList.unregisterAll(this));
     }
 
     private boolean isEligible(Player player) {
