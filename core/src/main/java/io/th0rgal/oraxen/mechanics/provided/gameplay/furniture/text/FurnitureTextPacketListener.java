@@ -95,7 +95,7 @@ public class FurnitureTextPacketListener implements PacketListener {
                 continue;
             }
             PacketEvents.getAPI().getPlayerManager().sendPacket(viewer,
-                    new WrapperPlayServerEntityMetadata(entry.virtualEntityId(i), buildMetadata(def, viewer)));
+                    new WrapperPlayServerEntityMetadata(entry.virtualEntityId(i), buildMetadata(def, viewer, text)));
         }
     }
 
@@ -125,11 +125,6 @@ public class FurnitureTextPacketListener implements PacketListener {
                     Optional.of(new Vector3d(0.0, 0.0, 0.0))
             );
 
-            WrapperPlayServerEntityMetadata textMeta = new WrapperPlayServerEntityMetadata(
-                    virtualId,
-                    buildMetadata(def, viewer)
-            );
-
             Component text = def.renderComponent(viewer);
             org.bukkit.Location textLocation = new org.bukkit.Location(baseLocation.getWorld(), textPos.x, textPos.y, textPos.z, yaw, pitch);
             if (viewer != null && NMSHandlers.getHandler().spawnTextDisplay(viewer, virtualId, virtualUuid, textLocation,
@@ -138,6 +133,10 @@ public class FurnitureTextPacketListener implements PacketListener {
                 continue;
             }
 
+            WrapperPlayServerEntityMetadata textMeta = new WrapperPlayServerEntityMetadata(
+                    virtualId,
+                    buildMetadata(def, viewer, text)
+            );
             sendPacket(user, viewer, textSpawn);
             SchedulerUtil.runTaskLater(1L, () -> sendPacket(user, viewer, textMeta));
         }
@@ -207,7 +206,7 @@ public class FurnitureTextPacketListener implements PacketListener {
                         continue;
                     }
                     PacketEvents.getAPI().getPlayerManager().sendPacket(viewer,
-                            new WrapperPlayServerEntityMetadata(entry.virtualEntityId(i), buildMetadata(def, viewer)));
+                            new WrapperPlayServerEntityMetadata(entry.virtualEntityId(i), buildMetadata(def, viewer, text)));
                 }
             }
         }
@@ -227,33 +226,28 @@ public class FurnitureTextPacketListener implements PacketListener {
     }
 
     List<EntityData<?>> buildMetadata(FurnitureTextDefinition def, Player viewer) {
+        return buildMetadata(def, viewer, def.renderComponent(viewer));
+    }
+
+    private List<EntityData<?>> buildMetadata(FurnitureTextDefinition def, Player viewer, Component text) {
         List<EntityData<?>> data = new ArrayList<>(8);
 
         data.add(new EntityData<>(DATA_NO_GRAVITY, EntityDataTypes.BOOLEAN, true));
 
         Vector3f scale = convertVector(def.getScale());
-        if (scale.x != 1f || scale.y != 1f || scale.z != 1f) {
-            data.add(new EntityData<>(DATA.displayScale, EntityDataTypes.VECTOR3F, scale));
-        }
+        data.add(new EntityData<>(DATA.displayScale, EntityDataTypes.VECTOR3F, scale));
 
         byte billboard = billboardByte(def);
         data.add(new EntityData<>(DATA.displayBillboard, EntityDataTypes.BYTE, billboard));
         data.add(new EntityData<>(DATA.displayViewRange, EntityDataTypes.FLOAT, def.getViewRange()));
 
-        Component text = def.renderComponent(viewer);
         data.add(new EntityData<>(DATA.textDisplayText, EntityDataTypes.ADV_COMPONENT, text));
-        if (def.getLineWidth() != 200) {
-            data.add(new EntityData<>(DATA.textDisplayLineWidth, EntityDataTypes.INT, def.getLineWidth()));
-        }
-        if (def.getBackgroundArgb() != 0x40000000) {
-            data.add(new EntityData<>(DATA.textDisplayBackground, EntityDataTypes.INT, def.getBackgroundArgb()));
-        }
-        if (def.getTextOpacity() != (byte) -1) {
-            data.add(new EntityData<>(DATA.textDisplayOpacity, EntityDataTypes.BYTE, def.getTextOpacity()));
-        }
+        data.add(new EntityData<>(DATA.textDisplayLineWidth, EntityDataTypes.INT, def.getLineWidth()));
+        data.add(new EntityData<>(DATA.textDisplayBackground, EntityDataTypes.INT, def.getBackgroundArgb()));
+        data.add(new EntityData<>(DATA.textDisplayOpacity, EntityDataTypes.BYTE, def.getTextOpacity()));
 
         byte flags = textFlags(def);
-        if (flags != 0) data.add(new EntityData<>(DATA.textDisplayFlags, EntityDataTypes.BYTE, flags));
+        data.add(new EntityData<>(DATA.textDisplayFlags, EntityDataTypes.BYTE, flags));
 
         return data;
     }

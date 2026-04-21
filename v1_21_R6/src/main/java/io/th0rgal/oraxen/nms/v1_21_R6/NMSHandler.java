@@ -878,7 +878,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
         metadata.add(SynchedEntityData.DataValue.create(
                 new EntityDataAccessor<>(5, EntityDataSerializers.BOOLEAN), true));
-        if (scale != null && (scale.x != 1f || scale.y != 1f || scale.z != 1f)) {
+        if (scale != null) {
             metadata.add(SynchedEntityData.DataValue.create(
                     new EntityDataAccessor<>(12, EntityDataSerializers.VECTOR3), scale));
         }
@@ -891,16 +891,12 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         metadata.add(SynchedEntityData.DataValue.create(
                 new EntityDataAccessor<>(23, EntityDataSerializers.COMPONENT), vanillaText));
 
-        if (lineWidth != 200) {
-            metadata.add(SynchedEntityData.DataValue.create(
-                    new EntityDataAccessor<>(24, EntityDataSerializers.INT), lineWidth));
-        }
+        metadata.add(SynchedEntityData.DataValue.create(
+                new EntityDataAccessor<>(24, EntityDataSerializers.INT), lineWidth));
         metadata.add(SynchedEntityData.DataValue.create(
                 new EntityDataAccessor<>(25, EntityDataSerializers.INT), backgroundArgb));
-        if (textOpacity != (byte) -1) {
-            metadata.add(SynchedEntityData.DataValue.create(
-                    new EntityDataAccessor<>(26, EntityDataSerializers.BYTE), textOpacity));
-        }
+        metadata.add(SynchedEntityData.DataValue.create(
+                new EntityDataAccessor<>(26, EntityDataSerializers.BYTE), textOpacity));
         metadata.add(SynchedEntityData.DataValue.create(
                 new EntityDataAccessor<>(27, EntityDataSerializers.BYTE), flags));
 
