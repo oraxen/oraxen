@@ -375,7 +375,7 @@ public final class PackObfuscator {
                 return replacement != null ? replacement : value;
             }
             if (soundsJson && isSoundProperty(prop)) return replaceOrOriginal(soundKeys, value, namespace);
-            if (prop.equals("when")) return value;
+            if (prop.equals("type") || prop.equals("when")) return value;
 
             String model = lookup(modelKeys, value, namespace);
             if (model != null) return model;

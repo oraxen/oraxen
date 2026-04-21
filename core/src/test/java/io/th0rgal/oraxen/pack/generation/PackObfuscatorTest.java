@@ -531,6 +531,36 @@ class PackObfuscatorTest {
         assertTrue(files.stream().anyMatch(file -> file.getPath().equals("assets/minecraft/textures/painting/lookup_name.png")));
     }
 
+    @Test
+    void structuralTypeValuesAreNotRewrittenWhenTheyMatchResourceKeys() throws Exception {
+        List<VirtualFile> files = new ArrayList<>();
+        files.add(file("assets/oraxen/atlases/blocks.json", """
+                {
+                  "sources": [
+                    {
+                      "type": "single",
+                      "resource": "default/sword"
+                    }
+                  ]
+                }
+                """));
+        files.add(file("assets/oraxen/models/single.json", "{}"));
+        files.add(file("assets/oraxen/textures/default/sword.png", "png"));
+
+        PackObfuscator.obfuscate(files, "SIMPLE", false);
+
+        VirtualFile atlasFile = files.stream()
+                .filter(file -> file.getPath().endsWith("/atlases/blocks.json"))
+                .findFirst()
+                .orElseThrow();
+        String content = new String(atlasFile.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        JsonObject source = JsonParser.parseString(content).getAsJsonObject()
+                .getAsJsonArray("sources").get(0).getAsJsonObject();
+
+        assertEquals("single", source.get("type").getAsString());
+        assertTrue(source.get("resource").getAsString().startsWith("oraxen:t/"));
+    }
+
     private static VirtualFile file(String path, String content) {
         int slash = path.lastIndexOf('/');
         return new VirtualFile(path.substring(0, slash), path.substring(slash + 1),
