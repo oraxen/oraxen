@@ -37,7 +37,6 @@ public class IntroductionGuide implements Listener {
         synchronized (lock) {
             if (!consoleSent) {
                 consoleSent = true;
-                playerPending = true;
                 sendConsoleMessage = true;
                 consoleSentSnapshot = consoleSent;
                 playerPendingSnapshot = playerPending;
