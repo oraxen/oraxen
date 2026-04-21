@@ -9,6 +9,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
@@ -31,13 +32,20 @@ public class IntroductionGuide implements Listener {
 
     public void start() {
         boolean sendConsoleMessage = false;
+        boolean consoleSentSnapshot = false;
+        boolean playerPendingSnapshot = false;
         synchronized (lock) {
             if (!consoleSent) {
                 consoleSent = true;
                 playerPending = true;
-                saveState();
                 sendConsoleMessage = true;
+                consoleSentSnapshot = consoleSent;
+                playerPendingSnapshot = playerPending;
             }
+        }
+
+        if (sendConsoleMessage) {
+            saveState(consoleSentSnapshot, playerPendingSnapshot);
         }
 
         if (sendConsoleMessage) {
@@ -78,15 +86,28 @@ public class IntroductionGuide implements Listener {
     }
 
     private void sendToPlayer(Player player) {
+        boolean shouldSend;
+        boolean consoleSentSnapshot;
+        boolean playerPendingSnapshot;
         synchronized (lock) {
-            if (!playerPending || !player.isOnline() || !isEligible(player))
-                return;
-
-            playerPending = false;
-            saveState();
+            if (!playerPending || !player.isOnline() || !isEligible(player)) {
+                shouldSend = false;
+                consoleSentSnapshot = false;
+                playerPendingSnapshot = false;
+            } else {
+                playerPending = false;
+                shouldSend = true;
+                consoleSentSnapshot = consoleSent;
+                playerPendingSnapshot = playerPending;
+            }
         }
 
+        if (!shouldSend)
+            return;
+
+        saveState(consoleSentSnapshot, playerPendingSnapshot);
         Message.INTRODUCTION_GUIDE.send(player);
+        HandlerList.unregisterAll(this);
     }
 
     private boolean isEligible(Player player) {
@@ -94,11 +115,11 @@ public class IntroductionGuide implements Listener {
     }
 
     private void loadState() {
-        consoleSent = Settings.INTRODUCTION_CONSOLE_SENT.toBool();
-        playerPending = Settings.INTRODUCTION_PLAYER_PENDING.toBool();
+        consoleSent = Boolean.TRUE.equals(Settings.INTRODUCTION_CONSOLE_SENT.toBool());
+        playerPending = Boolean.TRUE.equals(Settings.INTRODUCTION_PLAYER_PENDING.toBool());
     }
 
-    private void saveState() {
+    private void saveState(boolean consoleSent, boolean playerPending) {
         YamlConfiguration settings = plugin.getConfigsManager().getSettings();
         settings.set(Settings.INTRODUCTION_CONSOLE_SENT.getPath(), consoleSent);
         settings.set(Settings.INTRODUCTION_PLAYER_PENDING.getPath(), playerPending);
