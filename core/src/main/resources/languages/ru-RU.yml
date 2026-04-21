@@ -25,6 +25,14 @@ general:
   not_enough_space: "<prefix><#fa4943>Вам нужно больше места, чтобы разместить эту декорацию"
   exit_menu: "<gradient:#FA7CBB:#F14658>Выход"
   no_emojis: "<prefix><#fa4943>Эмодзи не найдены"
+  introduction_guide:
+    <br>
+    <dark_gray><st>                      </st><gold><bold> Добро пожаловать в Oraxen... </bold><dark_gray><st>                      </st><br>
+    <gray> Oraxen впервые успешно загружен, давайте начнем.<br>
+    <dark_gray> » <gray>Чтобы убрать <yellow>стандартный брендинг</yellow>, следуйте руководству на <blue>https://oraxen.mizius.com/usage/tutorials/d017g<gray>.<br>
+    <dark_gray> » <gray>Большинство ваших вопросов и проблем можно решить через нашу <yellow>Документацию</yellow>, обязательно ознакомьтесь <yellow>с обеими</yellow> документациями<gray> на </gray><blue>https://oraxen.mizius.com/</blue><gray> и <blue>https://docs.oraxen.com</blue><gray>.<br>
+    <dark_gray> » <gray>Если вам все еще нужна помощь, посетите наш Discord: <blue>https://discord.gg/9EehAG54aU</blue>.<br>
+    <dark_gray><st>                                                                                                         </st><br>
   datapack_generated: "<prefix><#55ffa4>Датапак успешно сгенерирован"
 
 logs:
