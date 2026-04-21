@@ -43,7 +43,7 @@ public class IntroductionGuide implements Listener {
             playerPendingSnapshot = playerPending;
         }
 
-        if (sendConsoleMessage || playerPendingSnapshot) {
+        if (sendConsoleMessage) {
             saveState(consoleSentSnapshot, playerPendingSnapshot);
         }
 
