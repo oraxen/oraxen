@@ -102,7 +102,7 @@ final class FurnitureTextPacketRegistration {
                 for (Object candidate : collection) {
                     if (candidate instanceof Player player) viewers.add(player);
                 }
-                return viewers;
+                if (!viewers.isEmpty()) return viewers;
             }
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | LinkageError ignored) {
         }

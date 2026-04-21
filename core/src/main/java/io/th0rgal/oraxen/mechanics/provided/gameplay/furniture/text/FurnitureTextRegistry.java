@@ -37,12 +37,10 @@ public final class FurnitureTextRegistry {
                 : new FurnitureTextEntry(uuid, entityId, location, copiedDefinitions);
         previous = BY_UUID.put(uuid, entry);
         if (previous != null) {
-            previous.removeTextDisplays();
             BY_ENTITY_ID.remove(previous.getBaseEntityId());
         }
         BY_ENTITY_ID.put(entityId, entry);
         updateRefreshableCount(previous, entry);
-        entry.spawnTextDisplays();
         return entry;
     }
 
@@ -63,7 +61,6 @@ public final class FurnitureTextRegistry {
         if (uuid == null) return;
         FurnitureTextEntry entry = BY_UUID.remove(uuid);
         if (entry != null) {
-            entry.removeTextDisplays();
             BY_ENTITY_ID.remove(entry.getBaseEntityId());
         }
         updateRefreshableCount(entry, null);
@@ -74,7 +71,6 @@ public final class FurnitureTextRegistry {
         FurnitureTextEntry entry = BY_UUID.get(uuid);
         if (entry == null || entry.getBaseEntityId() != entityId) return;
         if (BY_UUID.remove(uuid, entry)) {
-            entry.removeTextDisplays();
             updateRefreshableCount(entry, null);
         }
         BY_ENTITY_ID.remove(entityId, entry);
@@ -100,9 +96,6 @@ public final class FurnitureTextRegistry {
     }
 
     public static void clear() {
-        for (FurnitureTextEntry entry : BY_UUID.values()) {
-            entry.removeTextDisplays();
-        }
         BY_UUID.clear();
         BY_ENTITY_ID.clear();
         REFRESHABLE_ENTRIES.set(0);

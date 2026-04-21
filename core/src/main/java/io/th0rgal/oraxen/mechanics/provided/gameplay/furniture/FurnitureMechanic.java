@@ -548,7 +548,7 @@ public class FurnitureMechanic extends Mechanic {
         }
         if (textEntry[0] != null) {
             SchedulerUtil.runTaskLater(1L, () -> {
-                if (textEntry[0].getViewers().isEmpty()) FurnitureTextPacketBridge.spawnForTrackedViewers(textEntry[0]);
+                FurnitureTextPacketBridge.spawnForTrackedViewers(textEntry[0]);
             });
         }
 

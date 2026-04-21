@@ -845,4 +845,53 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         }
     }
 
+    @Override
+    public boolean spawnTextDisplay(Player viewer, int entityId, UUID uuid, Location location,
+                                    net.kyori.adventure.text.Component text, byte billboard,
+                                    float viewRange, int backgroundArgb, byte flags) {
+        ServerPlayer serverPlayer = ((CraftPlayer) viewer).getHandle();
+        Connection connection = serverPlayer.connection.connection;
+
+        ClientboundAddEntityPacket spawnPacket = new ClientboundAddEntityPacket(
+                entityId,
+                uuid,
+                location.getX(), location.getY(), location.getZ(),
+                location.getPitch(), location.getYaw(),
+                EntityType.TEXT_DISPLAY,
+                0,
+                Vec3.ZERO,
+                0.0
+        );
+        connection.send(spawnPacket);
+        sendTextDisplayMetadata(viewer, entityId, text, billboard, viewRange, backgroundArgb, flags);
+        return true;
+    }
+
+    @Override
+    public boolean sendTextDisplayMetadata(Player viewer, int entityId, net.kyori.adventure.text.Component text,
+                                           byte billboard, float viewRange, int backgroundArgb, byte flags) {
+        ServerPlayer serverPlayer = ((CraftPlayer) viewer).getHandle();
+        Connection connection = serverPlayer.connection.connection;
+        List<SynchedEntityData.DataValue<?>> metadata = new ArrayList<>();
+
+        metadata.add(SynchedEntityData.DataValue.create(
+                new EntityDataAccessor<>(5, EntityDataSerializers.BOOLEAN), true));
+        metadata.add(SynchedEntityData.DataValue.create(
+                new EntityDataAccessor<>(15, EntityDataSerializers.BYTE), billboard));
+        metadata.add(SynchedEntityData.DataValue.create(
+                new EntityDataAccessor<>(17, EntityDataSerializers.FLOAT), viewRange));
+
+        net.minecraft.network.chat.Component vanillaText = io.papermc.paper.adventure.PaperAdventure.asVanilla(text);
+        metadata.add(SynchedEntityData.DataValue.create(
+                new EntityDataAccessor<>(23, EntityDataSerializers.COMPONENT), vanillaText));
+
+        metadata.add(SynchedEntityData.DataValue.create(
+                new EntityDataAccessor<>(25, EntityDataSerializers.INT), backgroundArgb));
+        metadata.add(SynchedEntityData.DataValue.create(
+                new EntityDataAccessor<>(27, EntityDataSerializers.BYTE), flags));
+
+        connection.send(new ClientboundSetEntityDataPacket(entityId, metadata));
+        return true;
+    }
+
 }

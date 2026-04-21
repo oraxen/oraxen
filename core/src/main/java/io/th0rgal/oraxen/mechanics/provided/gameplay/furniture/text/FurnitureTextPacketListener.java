@@ -8,36 +8,35 @@ import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
 import com.github.retrooper.packetevents.protocol.entity.data.EntityDataTypes;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.world.Location;
-import com.github.retrooper.packetevents.util.Quaternion4f;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerDestroyEntities;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityMetadata;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetPassengers;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSpawnEntity;
+import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
- * PacketEvents listener that appends virtual text-display entities to furniture
- * when it is spawned client-side, and destroys them when the base entity is
- * destroyed client-side.
+ * PacketEvents listener that spawns virtual text-display entities beside
+ * furniture when it is spawned client-side, and destroys them when the base
+ * entity is destroyed client-side.
  *
  * <p>No real entities are created server-side; we simply ride on top of the
  * server's existing visibility/tracker logic for the base furniture entity.</p>
  */
 public class FurnitureTextPacketListener implements PacketListener {
 
-    private static final int DATA_SHARED_FLAGS = 0;
+    private static final int DATA_NO_GRAVITY = 5;
     private static final MetadataIndices DATA = MetadataIndices.current();
 
     private static final byte FLAG_SHADOW = 0x01;
@@ -55,8 +54,6 @@ public class FurnitureTextPacketListener implements PacketListener {
             handleSpawn(event);
         } else if (event.getPacketType() == PacketType.Play.Server.DESTROY_ENTITIES) {
             handleDestroy(event);
-        } else if (event.getPacketType() == PacketType.Play.Server.SET_PASSENGERS) {
-            handlePassengers(event);
         }
     }
 
@@ -74,7 +71,7 @@ public class FurnitureTextPacketListener implements PacketListener {
         if (viewer != null) entry.addViewer(viewer.getUniqueId());
 
         Vector3d basePos = spawn.getPosition();
-        sendTextEntry(entry, viewer, user, basePos);
+        SchedulerUtil.runTaskLater(1L, () -> sendTextEntry(entry, viewer, null, basePos));
     }
 
     void sendTextEntry(FurnitureTextEntry entry, Player viewer, boolean ignoreRange) {
@@ -92,25 +89,40 @@ public class FurnitureTextPacketListener implements PacketListener {
         entry.addViewer(viewer.getUniqueId());
         for (int i = 0; i < entry.size(); i++) {
             FurnitureTextDefinition def = entry.getDefinitions().get(i);
+            Component text = def.renderComponent(viewer);
+            if (NMSHandlers.getHandler().sendTextDisplayMetadata(viewer, entry.virtualEntityId(i), text,
+                    billboardByte(def), def.getViewRange(), def.getBackgroundArgb(), textFlags(def))) {
+                continue;
+            }
             PacketEvents.getAPI().getPlayerManager().sendPacket(viewer,
                     new WrapperPlayServerEntityMetadata(entry.virtualEntityId(i), buildMetadata(def, viewer)));
         }
     }
 
-    private void sendTextEntry(FurnitureTextEntry entry, Player viewer, User user, Vector3d basePos) {
+    private void sendTextEntry(FurnitureTextEntry entry, Player viewer, User user, Vector3d packetBasePos) {
+        org.bukkit.Location baseLocation = entry.getBaseLocation();
+        float pitch = baseLocation.getPitch();
+        float yaw = baseLocation.getYaw();
         for (int i = 0; i < entry.size(); i++) {
             FurnitureTextDefinition def = entry.getDefinitions().get(i);
             int virtualId = entry.virtualEntityId(i);
             UUID virtualUuid = entry.virtualUuid(i);
+            Vector3f offset = convertVector(def.getTranslation());
+            Vector3d basePos = packetBasePos != null
+                    ? packetBasePos
+                    : new Vector3d(baseLocation.getX(), baseLocation.getY(), baseLocation.getZ());
+            Vector3d textPos = new Vector3d(basePos.x + offset.x, basePos.y + offset.y, basePos.z + offset.z);
 
             WrapperPlayServerSpawnEntity textSpawn = new WrapperPlayServerSpawnEntity(
                     virtualId,
-                    virtualUuid,
+                    Optional.of(virtualUuid),
                     EntityTypes.TEXT_DISPLAY,
-                    new Location(basePos.x, basePos.y, basePos.z, 0f, 0f),
+                    textPos,
+                    pitch,
+                    yaw,
                     0f,
                     0,
-                    null
+                    Optional.of(new Vector3d(0.0, 0.0, 0.0))
             );
 
             WrapperPlayServerEntityMetadata textMeta = new WrapperPlayServerEntityMetadata(
@@ -118,8 +130,15 @@ public class FurnitureTextPacketListener implements PacketListener {
                     buildMetadata(def, viewer)
             );
 
+            Component text = def.renderComponent(viewer);
+            org.bukkit.Location textLocation = new org.bukkit.Location(baseLocation.getWorld(), textPos.x, textPos.y, textPos.z, yaw, pitch);
+            if (viewer != null && NMSHandlers.getHandler().spawnTextDisplay(viewer, virtualId, virtualUuid, textLocation,
+                    text, billboardByte(def), def.getViewRange(), def.getBackgroundArgb(), textFlags(def))) {
+                continue;
+            }
+
             sendPacket(user, viewer, textSpawn);
-            sendPacket(user, viewer, textMeta);
+            SchedulerUtil.runTaskLater(1L, () -> sendPacket(user, viewer, textMeta));
         }
     }
 
@@ -163,16 +182,6 @@ public class FurnitureTextPacketListener implements PacketListener {
         event.markForReEncode(true);
     }
 
-    private void handlePassengers(PacketSendEvent event) {
-        WrapperPlayServerSetPassengers passengers = new WrapperPlayServerSetPassengers(event);
-        FurnitureTextEntry entry = FurnitureTextRegistry.byEntityId(passengers.getEntityId());
-        if (entry == null) return;
-
-        int[] combined = appendUnique(passengers.getPassengers(), entry.getVirtualEntityIds());
-        passengers.setPassengers(combined);
-        event.markForReEncode(true);
-    }
-
     void refresh(long tick) {
         if (!FurnitureTextRegistry.hasRefreshableEntries()) return;
 
@@ -190,6 +199,11 @@ public class FurnitureTextPacketListener implements PacketListener {
                 for (int i = 0; i < entry.size(); i++) {
                     FurnitureTextDefinition def = entry.getDefinitions().get(i);
                     if (!entry.shouldRefresh(def, tick)) continue;
+                    Component text = def.renderComponent(viewer);
+                    if (NMSHandlers.getHandler().sendTextDisplayMetadata(viewer, entry.virtualEntityId(i), text,
+                            billboardByte(def), def.getViewRange(), def.getBackgroundArgb(), textFlags(def))) {
+                        continue;
+                    }
                     PacketEvents.getAPI().getPlayerManager().sendPacket(viewer,
                             new WrapperPlayServerEntityMetadata(entry.virtualEntityId(i), buildMetadata(def, viewer)));
                 }
@@ -210,43 +224,48 @@ public class FurnitureTextPacketListener implements PacketListener {
         return baseLocation.distanceSquared(viewer.getLocation()) <= range * range;
     }
 
-    private static int[] appendUnique(int[] base, int[] extra) {
-        Set<Integer> ids = new LinkedHashSet<>();
-        if (base != null) for (int id : base) ids.add(id);
-        for (int id : extra) ids.add(id);
-        int[] combined = new int[ids.size()];
-        int index = 0;
-        for (int id : ids) combined[index++] = id;
-        return combined;
-    }
-
     List<EntityData<?>> buildMetadata(FurnitureTextDefinition def, Player viewer) {
         List<EntityData<?>> data = new ArrayList<>(8);
 
-        data.add(new EntityData<>(DATA_SHARED_FLAGS, EntityDataTypes.BYTE, (byte) 0));
+        data.add(new EntityData<>(DATA_NO_GRAVITY, EntityDataTypes.BOOLEAN, true));
 
-        Vector3f translation = convertVector(def.getTranslation());
         Vector3f scale = convertVector(def.getScale());
-        data.add(new EntityData<>(DATA.displayTranslation, EntityDataTypes.VECTOR3F, translation));
-        data.add(new EntityData<>(DATA.displayScale, EntityDataTypes.VECTOR3F, scale));
-        data.add(new EntityData<>(DATA.displayLeftRotation, EntityDataTypes.QUATERNION,
-                new Quaternion4f(0f, 0f, 0f, 1f)));
+        if (scale.x != 1f || scale.y != 1f || scale.z != 1f) {
+            data.add(new EntityData<>(DATA.displayScale, EntityDataTypes.VECTOR3F, scale));
+        }
 
-        byte billboard = switch (def.getBillboard()) {
+        byte billboard = billboardByte(def);
+        data.add(new EntityData<>(DATA.displayBillboard, EntityDataTypes.BYTE, billboard));
+        data.add(new EntityData<>(DATA.displayViewRange, EntityDataTypes.FLOAT, def.getViewRange()));
+
+        Component text = def.renderComponent(viewer);
+        data.add(new EntityData<>(DATA.textDisplayText, EntityDataTypes.COMPONENT, AdventureUtils.GSON_SERIALIZER.serialize(text)));
+        if (def.getLineWidth() != 200) {
+            data.add(new EntityData<>(DATA.textDisplayLineWidth, EntityDataTypes.INT, def.getLineWidth()));
+        }
+        if (def.getBackgroundArgb() != 0x40000000) {
+            data.add(new EntityData<>(DATA.textDisplayBackground, EntityDataTypes.INT, def.getBackgroundArgb()));
+        }
+        if (def.getTextOpacity() != (byte) -1) {
+            data.add(new EntityData<>(DATA.textDisplayOpacity, EntityDataTypes.BYTE, def.getTextOpacity()));
+        }
+
+        byte flags = textFlags(def);
+        if (flags != 0) data.add(new EntityData<>(DATA.textDisplayFlags, EntityDataTypes.BYTE, flags));
+
+        return data;
+    }
+
+    private static byte billboardByte(FurnitureTextDefinition def) {
+        return switch (def.getBillboard()) {
             case FIXED -> (byte) 0;
             case VERTICAL -> (byte) 1;
             case HORIZONTAL -> (byte) 2;
             case CENTER -> (byte) 3;
         };
-        data.add(new EntityData<>(DATA.displayBillboard, EntityDataTypes.BYTE, billboard));
-        data.add(new EntityData<>(DATA.displayViewRange, EntityDataTypes.FLOAT, def.getViewRange() / 64.0f));
+    }
 
-        Component text = def.renderComponent(viewer);
-        data.add(new EntityData<>(DATA.textDisplayText, EntityDataTypes.ADV_COMPONENT, text));
-        data.add(new EntityData<>(DATA.textDisplayLineWidth, EntityDataTypes.INT, def.getLineWidth()));
-        data.add(new EntityData<>(DATA.textDisplayBackground, EntityDataTypes.INT, def.getBackgroundArgb()));
-        data.add(new EntityData<>(DATA.textDisplayOpacity, EntityDataTypes.BYTE, def.getTextOpacity()));
-
+    private static byte textFlags(FurnitureTextDefinition def) {
         byte flags = 0;
         if (def.hasShadow()) flags |= FLAG_SHADOW;
         if (def.isSeeThrough()) flags |= FLAG_SEE_THROUGH;
@@ -256,9 +275,7 @@ public class FurnitureTextPacketListener implements PacketListener {
             case RIGHT -> flags |= FLAG_ALIGN_RIGHT;
             case CENTER -> { /* default */ }
         }
-        data.add(new EntityData<>(DATA.textDisplayFlags, EntityDataTypes.BYTE, flags));
-
-        return data;
+        return flags;
     }
 
     private static Vector3f convertVector(org.joml.Vector3f v) {
@@ -271,9 +288,7 @@ public class FurnitureTextPacketListener implements PacketListener {
     }
 
     private static final class MetadataIndices {
-        private final int displayTranslation;
         private final int displayScale;
-        private final int displayLeftRotation;
         private final int displayBillboard;
         private final int displayViewRange;
         private final int textDisplayText;
@@ -283,9 +298,7 @@ public class FurnitureTextPacketListener implements PacketListener {
         private final int textDisplayFlags;
 
         private MetadataIndices(int offset) {
-            this.displayTranslation = 11 + offset;
             this.displayScale = 12 + offset;
-            this.displayLeftRotation = 13 + offset;
             this.displayBillboard = 15 + offset;
             this.displayViewRange = 17 + offset;
             this.textDisplayText = 23 + offset;
