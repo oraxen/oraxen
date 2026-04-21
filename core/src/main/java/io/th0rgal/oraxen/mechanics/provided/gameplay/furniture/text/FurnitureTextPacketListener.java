@@ -72,6 +72,7 @@ public class FurnitureTextPacketListener implements PacketListener {
 
         Vector3d basePos = spawn.getPosition();
         SchedulerUtil.runTaskLater(1L, () -> {
+            if (viewer == null || !viewer.isOnline()) return;
             FurnitureTextEntry current = FurnitureTextRegistry.byUuid(baseUuid);
             if (current == null || current.getBaseEntityId() != baseEntityId) return;
             sendTextEntry(current, viewer, null, basePos);
