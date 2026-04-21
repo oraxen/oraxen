@@ -12,11 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Parsed configuration for a single virtual text entity attached to a furniture base.
- *
- * <p>The text is rendered client-side via packet-spawned TextDisplay entities;
- * no real entities are created server-side, so chunk saves, collisions, and
- * AI tick costs are all avoided.</p>
+ * Parsed configuration for a single text entity attached to a furniture base.
  */
 public final class FurnitureTextDefinition {
 

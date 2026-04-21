@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * In-memory registry of placed furniture bases that own virtual text entities.
+ * In-memory registry of placed furniture bases that own text entities.
  *
  * <p>Lookup is done by the base entity's UUID (matches the UUID carried in the
  * SPAWN_ENTITY packet for the base ItemDisplay/ArmorStand/ItemFrame) as well as
@@ -36,9 +36,13 @@ public final class FurnitureTextRegistry {
                 ? new FurnitureTextEntry(previous, entityId, location, copiedDefinitions)
                 : new FurnitureTextEntry(uuid, entityId, location, copiedDefinitions);
         previous = BY_UUID.put(uuid, entry);
-        if (previous != null) BY_ENTITY_ID.remove(previous.getBaseEntityId());
+        if (previous != null) {
+            previous.removeTextDisplays();
+            BY_ENTITY_ID.remove(previous.getBaseEntityId());
+        }
         BY_ENTITY_ID.put(entityId, entry);
         updateRefreshableCount(previous, entry);
+        entry.spawnTextDisplays();
         return entry;
     }
 
@@ -58,7 +62,10 @@ public final class FurnitureTextRegistry {
     public static void unregister(UUID uuid) {
         if (uuid == null) return;
         FurnitureTextEntry entry = BY_UUID.remove(uuid);
-        if (entry != null) BY_ENTITY_ID.remove(entry.getBaseEntityId());
+        if (entry != null) {
+            entry.removeTextDisplays();
+            BY_ENTITY_ID.remove(entry.getBaseEntityId());
+        }
         updateRefreshableCount(entry, null);
     }
 
@@ -66,7 +73,10 @@ public final class FurnitureTextRegistry {
         if (uuid == null) return;
         FurnitureTextEntry entry = BY_UUID.get(uuid);
         if (entry == null || entry.getBaseEntityId() != entityId) return;
-        if (BY_UUID.remove(uuid, entry)) updateRefreshableCount(entry, null);
+        if (BY_UUID.remove(uuid, entry)) {
+            entry.removeTextDisplays();
+            updateRefreshableCount(entry, null);
+        }
         BY_ENTITY_ID.remove(entityId, entry);
     }
 
@@ -90,6 +100,9 @@ public final class FurnitureTextRegistry {
     }
 
     public static void clear() {
+        for (FurnitureTextEntry entry : BY_UUID.values()) {
+            entry.removeTextDisplays();
+        }
         BY_UUID.clear();
         BY_ENTITY_ID.clear();
         REFRESHABLE_ENTRIES.set(0);
