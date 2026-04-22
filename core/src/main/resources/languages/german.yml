@@ -27,7 +27,7 @@ general:
   no_emojis: "<prefix><#fa4943>Keine Emojis gefunden"
   introduction_guide:
     <br>
-    <dark_gray><st>                      </st><gold><bold> Willkommen bei Oraxen... </bold><dark_gray><st>                      </st><br>
+    <dark_gray><st>                                         </st><gold><bold> Willkommen bei Oraxen... </bold><dark_gray><st>                                         </st><br>
     <gray> Oraxen wurde zum ersten Mal erfolgreich geladen, legen wir los.<br>
     <dark_gray> » <gray>Um das <yellow>Standard-Branding</yellow> zu entfernen, folge bitte dem Tutorial unter <blue>https://oraxen.mizius.com/usage/tutorials/d017g<gray>.<br>
     <dark_gray> » <gray>Die meisten deiner Fragen und Probleme lassen sich über unsere <yellow>Dokumentation</yellow> lösen, schau dir unbedingt <yellow>beide</yellow> Dokumentationen<gray> unter </gray><blue>https://oraxen.mizius.com/</blue><gray> und <blue>https://docs.oraxen.com</blue><gray> an.<br>
@@ -121,3 +121,4 @@ mechanics:
   not_enough_exp: "<prefix><#fa4943>Sie brauchen mehr Erfahrung, um dies zu tun"
   backpack_stacked: "<prefix><#fa4943>Cannot open stacked backpack"
   jukebox_now_playing: "<dark_purple>Jetzt spielen <disc>"
+

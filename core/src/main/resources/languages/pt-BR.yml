@@ -27,7 +27,7 @@ general:
   no_emojis: "<prefix><#fa4943>Nenhum emoji encontrado."
   introduction_guide:
     <br>
-    <dark_gray><st>                      </st><gold><bold> Bem-vindo ao Oraxen... </bold><dark_gray><st>                      </st><br>
+    <dark_gray><st>                                         </st><gold><bold> Bem-vindo ao Oraxen... </bold><dark_gray><st>                                         </st><br>
     <gray> Oraxen foi carregado com sucesso pela primeira vez, vamos começar.<br>
     <dark_gray> » <gray>Para remover a <yellow>identidade visual padrão</yellow>, siga o tutorial em <blue>https://oraxen.mizius.com/usage/tutorials/d017g<gray>.<br>
     <dark_gray> » <gray>A maioria das suas dúvidas e problemas pode ser resolvida pela nossa <yellow>Documentação</yellow>, não deixe de conferir <yellow>as duas</yellow> documentações<gray> em </gray><blue>https://oraxen.mizius.com/</blue><gray> e <blue>https://docs.oraxen.com</blue><gray>.<br>
@@ -120,3 +120,4 @@ mechanics:
   not_enough_exp: "<prefix><#fa4943>Você precisa de mais experiência para realizar esta ação."
   backpack_stacked: "<prefix><#fa4943>Não é possível abrir mochilas empilhadas!"
   jukebox_now_playing: "<dark_purple>Tocando agora: <disc>"
+

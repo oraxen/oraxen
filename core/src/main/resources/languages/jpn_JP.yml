@@ -27,7 +27,7 @@ general:
   no_emojis: "<prefix><#fa4943>絵文字が見つかりません"
   introduction_guide:
     <br>
-    <dark_gray><st>                      </st><gold><bold> Oraxen へようこそ... </bold><dark_gray><st>                      </st><br>
+    <dark_gray><st>                                         </st><gold><bold> Oraxen へようこそ... </bold><dark_gray><st>                                         </st><br>
     <gray> Oraxen が初回起動で正常に読み込まれました。さっそく始めましょう。<br>
     <dark_gray> » <gray><yellow>デフォルトのブランディング</yellow>を削除するには、<blue>https://oraxen.mizius.com/usage/tutorials/d017g<gray> のチュートリアルをご確認ください。<br>
     <dark_gray> » <gray>ほとんどの質問や問題は <yellow>ドキュメント</yellow> で解決できます。<yellow>両方</yellow>のドキュメント<gray>を </gray><blue>https://oraxen.mizius.com/</blue><gray> と <blue>https://docs.oraxen.com</blue><gray> で必ず確認してください。<br>
@@ -123,3 +123,4 @@ mechanics:
   not_enough_exp: "<prefix><#fa4943>これを行うにはもっと経験験値が必要です"
   backpack_stacked: "<prefix><#fa4943>スタックされたバックパックを開くことができません"
   jukebox_now_playing: "<dark_purple>再生中 <disc>"
+

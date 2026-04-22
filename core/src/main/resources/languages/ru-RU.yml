@@ -27,7 +27,7 @@ general:
   no_emojis: "<prefix><#fa4943>Эмодзи не найдены"
   introduction_guide:
     <br>
-    <dark_gray><st>                      </st><gold><bold> Добро пожаловать в Oraxen... </bold><dark_gray><st>                      </st><br>
+    <dark_gray><st>                                         </st><gold><bold> Добро пожаловать в Oraxen... </bold><dark_gray><st>                                         </st><br>
     <gray> Oraxen впервые успешно загружен, давайте начнем.<br>
     <dark_gray> » <gray>Чтобы убрать <yellow>стандартный брендинг</yellow>, следуйте руководству на <blue>https://oraxen.mizius.com/usage/tutorials/d017g<gray>.<br>
     <dark_gray> » <gray>Большинство ваших вопросов и проблем можно решить через нашу <yellow>Документацию</yellow>, обязательно ознакомьтесь <yellow>с обеими</yellow> документациями<gray> на </gray><blue>https://oraxen.mizius.com/</blue><gray> и <blue>https://docs.oraxen.com</blue><gray>.<br>
@@ -121,3 +121,4 @@ mechanics:
   not_enough_exp: "<prefix><#fa4943>Вам нужно больше очков опыта, чтобы сделать это"
   backpack_stacked: "<prefix><#fa4943>Невозможно открыть стакнутый рюкзак"
   jukebox_now_playing: "<dark_purple>Сейчас играет: <disc>"
+
