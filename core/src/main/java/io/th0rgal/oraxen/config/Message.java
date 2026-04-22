@@ -37,6 +37,7 @@ public enum Message {
     NOT_ENOUGH_SPACE("general.not_enough_space"),
     EXIT_MENU("general.exit_menu"),
     NO_EMOJIS("general.no_emojis"),
+    INTRODUCTION_GUIDE("general.introduction_guide"),
 
     // logs
     PLUGIN_LOADED("logs.loaded"),
