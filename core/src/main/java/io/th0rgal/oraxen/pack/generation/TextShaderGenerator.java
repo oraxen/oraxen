@@ -136,9 +136,11 @@ class TextShaderGenerator {
                     ResourcePack.deleteFileFromVirtualAndDisk("assets/minecraft/shaders/core/", "rendertype_text.vsh");
                 }
             } else if (baseShadersSkipped) {
-                // Base shaders were skipped (multi-version mode on 1.21.4+); writing combined scoreboard shaders
-                // to the base path would leak 1.21.4+ format shaders into 1.21.3- packs.
-                Logs.logInfo("Skipping base scoreboard shader generation because text shaders are overlay-only.");
+                // Base text shaders were skipped (multi-version mode); the combined text+scoreboard
+                // shader would leak 1.21.4+ format into 1.21.3- packs, but the standalone scoreboard
+                // shader uses #version 150 and is safe for all client versions.
+                ResourcePack.writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.json", getScoreboardJson());
+                ResourcePack.writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.vsh", getScoreboardVsh());
             } else if (textShadersGenerated) {
                 boolean hasAnimatedGlyphs = !OraxenPlugin.get().getFontManager().getAnimatedGlyphs().isEmpty();
                 TextShaderFeatures features = textShaderFeatures != null
