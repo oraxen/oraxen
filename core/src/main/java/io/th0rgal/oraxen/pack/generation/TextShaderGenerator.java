@@ -128,7 +128,6 @@ class TextShaderGenerator {
             OraxenPlugin.get().getPacketAdapter().registerScoreboardListener();
         } else { // Pre 1.20.3 rely on shaders
             TextShaderTarget target = TextShaderTarget.current();
-            boolean serverIs1214Plus = target.packFormat() >= TextShaderTarget.PACK_FORMAT_1_21_4;
             if (target.isAtLeast("26")) {
                 Logs.logWarning("Shader-based scoreboard number hiding is not supported on 26.x+.");
                 Logs.logWarning("Use a packet adapter (ProtocolLib or PacketEvents) on Paper 1.20.3+ instead.");
@@ -168,7 +167,6 @@ class TextShaderGenerator {
             scoreTabBackground = scoreTabBackground.replace("//TABLIST.a", "vertexColor.a");
 
         if (!scoreTabBackground.isEmpty()) {
-            TextShaderTarget target = TextShaderTarget.current();
             if (baseShadersSkipped) {
                 Logs.logInfo("Skipping base scoreboard/tablist background shader generation because shaders are overlay-only.");
             } else {
@@ -213,10 +211,6 @@ class TextShaderGenerator {
         }
 
         return new TextShaderFeatures(includeAnimated, includeEffects);
-    }
-
-    private void generateTextShaders(TextShaderTarget target, TextShaderFeatures features) {
-        generateTextShaders(target, features, false, 0);
     }
 
     private void generateTextShaders(TextShaderTarget target, TextShaderFeatures features, boolean skipBaseShaders, int minOverlayPackFormat) {
