@@ -44,6 +44,7 @@ class TextShaderGenerator {
 
     private boolean textShadersGenerated = false;
     private boolean shaderOverlaysGenerated = false;
+    private boolean baseShadersSkipped = false;
     private TextShaderFeatures textShaderFeatures = null;
     private TextEffectSnippets textEffectSnippets = null;
     private TextShaderTarget textEffectSnippetsTarget = null;
@@ -69,6 +70,7 @@ class TextShaderGenerator {
     void reset() {
         textShadersGenerated = false;
         shaderOverlaysGenerated = false;
+        baseShadersSkipped = false;
         textShaderFeatures = null;
         textEffectSnippets = null;
         textEffectSnippetsTarget = null;
@@ -77,6 +79,10 @@ class TextShaderGenerator {
 
     boolean wereTextShadersGenerated() {
         return textShadersGenerated;
+    }
+
+    boolean wereBaseShadersSkipped() {
+        return baseShadersSkipped;
     }
 
     boolean wereShaderOverlaysGenerated() {
@@ -109,6 +115,7 @@ class TextShaderGenerator {
         TextShaderFeatures features = resolveTextShaderFeatures(hasAnimatedGlyphs);
         if (!features.anyEnabled()) return;
 
+        this.baseShadersSkipped = skipBaseShaders;
         TextShaderTarget target = TextShaderTarget.current();
         generateTextShaders(target, features, skipBaseShaders, minOverlayPackFormat);
         textShaderFeatures = features;
@@ -121,6 +128,7 @@ class TextShaderGenerator {
             OraxenPlugin.get().getPacketAdapter().registerScoreboardListener();
         } else { // Pre 1.20.3 rely on shaders
             TextShaderTarget target = TextShaderTarget.current();
+            boolean serverIs1214Plus = target.packFormat() >= TextShaderTarget.PACK_FORMAT_1_21_4;
             if (target.isAtLeast("26")) {
                 Logs.logWarning("Shader-based scoreboard number hiding is not supported on 26.x+.");
                 Logs.logWarning("Use a packet adapter (ProtocolLib or PacketEvents) on Paper 1.20.3+ instead.");
@@ -128,6 +136,10 @@ class TextShaderGenerator {
                     ResourcePack.deleteFileFromVirtualAndDisk("assets/minecraft/shaders/core/", "rendertype_text.json");
                     ResourcePack.deleteFileFromVirtualAndDisk("assets/minecraft/shaders/core/", "rendertype_text.vsh");
                 }
+            } else if (baseShadersSkipped && serverIs1214Plus) {
+                // Base shaders were skipped (multi-version mode on 1.21.4+); writing combined scoreboard shaders
+                // to the base path would leak 1.21.4+ format shaders into 1.21.3- packs.
+                Logs.logInfo("Skipping base scoreboard shader generation because text shaders are overlay-only.");
             } else if (textShadersGenerated) {
                 boolean hasAnimatedGlyphs = !OraxenPlugin.get().getFontManager().getAnimatedGlyphs().isEmpty();
                 TextShaderFeatures features = textShaderFeatures != null
@@ -155,8 +167,15 @@ class TextShaderGenerator {
         if (Settings.HIDE_TABLIST_BACKGROUND.toBool() && VersionUtil.atOrAbove("1.21"))
             scoreTabBackground = scoreTabBackground.replace("//TABLIST.a", "vertexColor.a");
 
-        if (!scoreTabBackground.isEmpty())
-            ResourcePack.writeStringToVirtual("assets/minecraft/shaders/core/", fileName, scoreTabBackground);
+        if (!scoreTabBackground.isEmpty()) {
+            TextShaderTarget target = TextShaderTarget.current();
+            boolean serverIs1214Plus = target.packFormat() >= TextShaderTarget.PACK_FORMAT_1_21_4;
+            if (baseShadersSkipped && serverIs1214Plus) {
+                Logs.logInfo("Skipping base scoreboard/tablist background shader generation because shaders are overlay-only.");
+            } else {
+                ResourcePack.writeStringToVirtual("assets/minecraft/shaders/core/", fileName, scoreTabBackground);
+            }
+        }
     }
 
     // --- Internal methods ---
@@ -209,8 +228,8 @@ class TextShaderGenerator {
         }
 
         for (ShaderOverlay overlay : ShaderOverlay.values()) {
-            if (overlay == serverOverlay) continue;
             if (overlay.minFormat() < minOverlayPackFormat) continue;
+            if (overlay == serverOverlay && !skipBaseShaders) continue;
             TextShaderTarget overlayTarget = TextShaderTarget.forVersion(overlay.representativeVersion());
             generateTextShadersForTarget(overlayTarget, features, overlay.directory() + "/");
             generatedOverlays.add(overlay);
@@ -222,6 +241,8 @@ class TextShaderGenerator {
                 String message = "Generated shader overlays for " + generatedOverlays.size() + " format groups";
                 if (serverOverlay != null && !skipBaseShaders) {
                     message += " (" + serverOverlay.directory() + " is the base)";
+                } else if (serverOverlay != null && skipBaseShaders) {
+                    message += " (" + serverOverlay.directory() + " included as overlay)";
                 }
                 Logs.logSuccess(message);
             }
