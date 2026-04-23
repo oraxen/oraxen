@@ -136,7 +136,7 @@ class TextShaderGenerator {
                     ResourcePack.deleteFileFromVirtualAndDisk("assets/minecraft/shaders/core/", "rendertype_text.json");
                     ResourcePack.deleteFileFromVirtualAndDisk("assets/minecraft/shaders/core/", "rendertype_text.vsh");
                 }
-            } else if (baseShadersSkipped && serverIs1214Plus) {
+            } else if (baseShadersSkipped) {
                 // Base shaders were skipped (multi-version mode on 1.21.4+); writing combined scoreboard shaders
                 // to the base path would leak 1.21.4+ format shaders into 1.21.3- packs.
                 Logs.logInfo("Skipping base scoreboard shader generation because text shaders are overlay-only.");
