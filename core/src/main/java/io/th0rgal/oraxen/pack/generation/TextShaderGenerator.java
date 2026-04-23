@@ -169,8 +169,7 @@ class TextShaderGenerator {
 
         if (!scoreTabBackground.isEmpty()) {
             TextShaderTarget target = TextShaderTarget.current();
-            boolean serverIs1214Plus = target.packFormat() >= TextShaderTarget.PACK_FORMAT_1_21_4;
-            if (baseShadersSkipped && serverIs1214Plus) {
+            if (baseShadersSkipped) {
                 Logs.logInfo("Skipping base scoreboard/tablist background shader generation because shaders are overlay-only.");
             } else {
                 ResourcePack.writeStringToVirtual("assets/minecraft/shaders/core/", fileName, scoreTabBackground);
