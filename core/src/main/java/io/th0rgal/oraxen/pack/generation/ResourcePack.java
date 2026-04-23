@@ -1052,9 +1052,6 @@ public class ResourcePack {
                 // MultiVersionPacks enabled: put ALL text shaders into overlays so that
                 // only packs targeting 1.21.4+ receive them. Base shaders are skipped.
                 textShaderGenerator.maybeGenerateTextShaders(hasAnimatedGlyphs, true, TextShaderTarget.PACK_FORMAT_1_21_4);
-            } else if (!serverIs1214Plus) {
-                // Single-pack mode on 1.21.3-: already handled above, but kept for clarity
-                textShaderGenerator.maybeGenerateTextShaders(hasAnimatedGlyphs);
             } else {
                 textShaderGenerator.maybeGenerateTextShaders(hasAnimatedGlyphs);
             }
