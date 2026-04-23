@@ -167,11 +167,10 @@ class TextShaderGenerator {
             scoreTabBackground = scoreTabBackground.replace("//TABLIST.a", "vertexColor.a");
 
         if (!scoreTabBackground.isEmpty()) {
-            if (baseShadersSkipped) {
-                Logs.logInfo("Skipping base scoreboard/tablist background shader generation because shaders are overlay-only.");
-            } else {
-                ResourcePack.writeStringToVirtual("assets/minecraft/shaders/core/", fileName, scoreTabBackground);
-            }
+            // rendertype_gui.vsh / position_color.fsh are version-independent GLSL 150 shaders
+            // unrelated to rendertype_text.*, so they are safe to write to the base pack path
+            // even when base text shaders are skipped in multi-version mode.
+            ResourcePack.writeStringToVirtual("assets/minecraft/shaders/core/", fileName, scoreTabBackground);
         }
     }
 
