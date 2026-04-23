@@ -100,13 +100,17 @@ class TextShaderGenerator {
     }
 
     void maybeGenerateTextShaders(boolean hasAnimatedGlyphs) {
+        maybeGenerateTextShaders(hasAnimatedGlyphs, false, 0);
+    }
+
+    void maybeGenerateTextShaders(boolean hasAnimatedGlyphs, boolean skipBaseShaders, int minOverlayPackFormat) {
         if (textShadersGenerated) return;
 
         TextShaderFeatures features = resolveTextShaderFeatures(hasAnimatedGlyphs);
         if (!features.anyEnabled()) return;
 
         TextShaderTarget target = TextShaderTarget.current();
-        generateTextShaders(target, features);
+        generateTextShaders(target, features, skipBaseShaders, minOverlayPackFormat);
         textShaderFeatures = features;
         textShadersGenerated = true;
     }
@@ -194,14 +198,19 @@ class TextShaderGenerator {
     }
 
     private void generateTextShaders(TextShaderTarget target, TextShaderFeatures features) {
+        generateTextShaders(target, features, false, 0);
+    }
+
+    private void generateTextShaders(TextShaderTarget target, TextShaderFeatures features, boolean skipBaseShaders, int minOverlayPackFormat) {
         ShaderOverlay serverOverlay = ShaderOverlay.forPackFormat(target.packFormat());
 
-        generateTextShadersForTarget(target, features, "");
-
-        if (serverOverlay == null) return;
+        if (!skipBaseShaders) {
+            generateTextShadersForTarget(target, features, "");
+        }
 
         for (ShaderOverlay overlay : ShaderOverlay.values()) {
             if (overlay == serverOverlay) continue;
+            if (overlay.minFormat() < minOverlayPackFormat) continue;
             TextShaderTarget overlayTarget = TextShaderTarget.forVersion(overlay.representativeVersion());
             generateTextShadersForTarget(overlayTarget, features, overlay.directory() + "/");
             generatedOverlays.add(overlay);
@@ -210,8 +219,11 @@ class TextShaderGenerator {
         if (!generatedOverlays.isEmpty()) {
             shaderOverlaysGenerated = true;
             if (Settings.DEBUG.toBool()) {
-                Logs.logSuccess("Generated shader overlays for " + generatedOverlays.size()
-                        + " additional format groups (" + serverOverlay.directory() + " is the base)");
+                String message = "Generated shader overlays for " + generatedOverlays.size() + " format groups";
+                if (serverOverlay != null && !skipBaseShaders) {
+                    message += " (" + serverOverlay.directory() + " is the base)";
+                }
+                Logs.logSuccess(message);
             }
         }
     }

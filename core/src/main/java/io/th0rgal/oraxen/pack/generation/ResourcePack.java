@@ -1029,14 +1029,27 @@ public class ResourcePack {
         // Generate the dedicated shift font (still useful for explicit font references)
         generateShiftFont(fontManager);
 
-        // Generate effect fonts for text effects
-        generateEffectFonts();
+        boolean serverIs1214Plus = VersionUtil.atOrAbove("1.21.4");
+        if (!serverIs1214Plus && !multiVersionResolved) {
+            // MultiVersionPacks disabled + Server is 1.21.3 or lower
+            // -> No TextEffects and animated Glyphs should be generated (no Shaders)
+            Logs.logInfo("Skipping text effects and animated glyphs generation (server is 1.21.3 or lower without multi-version packs)");
+        } else {
+            // Generate effect fonts for text effects
+            generateEffectFonts();
 
-        // Process animated glyph fonts
-        boolean hasAnimatedGlyphs = processAnimatedGlyphs(fontManager);
+            // Process animated glyph fonts
+            boolean hasAnimatedGlyphs = processAnimatedGlyphs(fontManager);
 
-        // Generate text shaders when needed (animated glyphs and/or text effects).
-        textShaderGenerator.maybeGenerateTextShaders(hasAnimatedGlyphs);
+            // Generate text shaders when needed (animated glyphs and/or text effects).
+            if (!serverIs1214Plus && multiVersionResolved) {
+                // MultiVersionPacks enabled + Server is 1.21.3 or lower
+                // -> Shaders only generated for Packs that are above 1.21.4+
+                textShaderGenerator.maybeGenerateTextShaders(hasAnimatedGlyphs, true, TextShaderTarget.PACK_FORMAT_1_21_4);
+            } else {
+                textShaderGenerator.maybeGenerateTextShaders(hasAnimatedGlyphs);
+            }
+        }
     }
 
     /**
