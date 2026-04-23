@@ -44,6 +44,7 @@ class TextShaderGenerator {
 
     private boolean textShadersGenerated = false;
     private boolean shaderOverlaysGenerated = false;
+    private boolean baseShadersSkipped = false;
     private TextShaderFeatures textShaderFeatures = null;
     private TextEffectSnippets textEffectSnippets = null;
     private TextShaderTarget textEffectSnippetsTarget = null;
@@ -69,6 +70,7 @@ class TextShaderGenerator {
     void reset() {
         textShadersGenerated = false;
         shaderOverlaysGenerated = false;
+        baseShadersSkipped = false;
         textShaderFeatures = null;
         textEffectSnippets = null;
         textEffectSnippetsTarget = null;
@@ -77,6 +79,10 @@ class TextShaderGenerator {
 
     boolean wereTextShadersGenerated() {
         return textShadersGenerated;
+    }
+
+    boolean wereBaseShadersSkipped() {
+        return baseShadersSkipped;
     }
 
     boolean wereShaderOverlaysGenerated() {
@@ -100,13 +106,18 @@ class TextShaderGenerator {
     }
 
     void maybeGenerateTextShaders(boolean hasAnimatedGlyphs) {
+        maybeGenerateTextShaders(hasAnimatedGlyphs, false, 0);
+    }
+
+    void maybeGenerateTextShaders(boolean hasAnimatedGlyphs, boolean skipBaseShaders, int minOverlayPackFormat) {
         if (textShadersGenerated) return;
 
         TextShaderFeatures features = resolveTextShaderFeatures(hasAnimatedGlyphs);
         if (!features.anyEnabled()) return;
 
+        this.baseShadersSkipped = skipBaseShaders;
         TextShaderTarget target = TextShaderTarget.current();
-        generateTextShaders(target, features);
+        generateTextShaders(target, features, skipBaseShaders, minOverlayPackFormat);
         textShaderFeatures = features;
         textShadersGenerated = true;
     }
@@ -124,6 +135,12 @@ class TextShaderGenerator {
                     ResourcePack.deleteFileFromVirtualAndDisk("assets/minecraft/shaders/core/", "rendertype_text.json");
                     ResourcePack.deleteFileFromVirtualAndDisk("assets/minecraft/shaders/core/", "rendertype_text.vsh");
                 }
+            } else if (baseShadersSkipped) {
+                // Base text shaders were skipped (multi-version mode); the combined text+scoreboard
+                // shader would leak 1.21.4+ format into 1.21.3- packs, but the standalone scoreboard
+                // shader uses #version 150 and is safe for all client versions.
+                ResourcePack.writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.json", getScoreboardJson());
+                ResourcePack.writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.vsh", getScoreboardVsh());
             } else if (textShadersGenerated) {
                 boolean hasAnimatedGlyphs = !OraxenPlugin.get().getFontManager().getAnimatedGlyphs().isEmpty();
                 TextShaderFeatures features = textShaderFeatures != null
@@ -151,8 +168,12 @@ class TextShaderGenerator {
         if (Settings.HIDE_TABLIST_BACKGROUND.toBool() && VersionUtil.atOrAbove("1.21"))
             scoreTabBackground = scoreTabBackground.replace("//TABLIST.a", "vertexColor.a");
 
-        if (!scoreTabBackground.isEmpty())
+        if (!scoreTabBackground.isEmpty()) {
+            // rendertype_gui.vsh / position_color.fsh are version-independent GLSL 150 shaders
+            // unrelated to rendertype_text.*, so they are safe to write to the base pack path
+            // even when base text shaders are skipped in multi-version mode.
             ResourcePack.writeStringToVirtual("assets/minecraft/shaders/core/", fileName, scoreTabBackground);
+        }
     }
 
     // --- Internal methods ---
@@ -193,15 +214,16 @@ class TextShaderGenerator {
         return new TextShaderFeatures(includeAnimated, includeEffects);
     }
 
-    private void generateTextShaders(TextShaderTarget target, TextShaderFeatures features) {
+    private void generateTextShaders(TextShaderTarget target, TextShaderFeatures features, boolean skipBaseShaders, int minOverlayPackFormat) {
         ShaderOverlay serverOverlay = ShaderOverlay.forPackFormat(target.packFormat());
 
-        generateTextShadersForTarget(target, features, "");
-
-        if (serverOverlay == null) return;
+        if (!skipBaseShaders) {
+            generateTextShadersForTarget(target, features, "");
+        }
 
         for (ShaderOverlay overlay : ShaderOverlay.values()) {
-            if (overlay == serverOverlay) continue;
+            if (overlay.minFormat() < minOverlayPackFormat) continue;
+            if (overlay == serverOverlay && !skipBaseShaders) continue;
             TextShaderTarget overlayTarget = TextShaderTarget.forVersion(overlay.representativeVersion());
             generateTextShadersForTarget(overlayTarget, features, overlay.directory() + "/");
             generatedOverlays.add(overlay);
@@ -210,8 +232,13 @@ class TextShaderGenerator {
         if (!generatedOverlays.isEmpty()) {
             shaderOverlaysGenerated = true;
             if (Settings.DEBUG.toBool()) {
-                Logs.logSuccess("Generated shader overlays for " + generatedOverlays.size()
-                        + " additional format groups (" + serverOverlay.directory() + " is the base)");
+                String message = "Generated shader overlays for " + generatedOverlays.size() + " format groups";
+                if (serverOverlay != null && !skipBaseShaders) {
+                    message += " (" + serverOverlay.directory() + " is the base)";
+                } else if (serverOverlay != null && skipBaseShaders) {
+                    message += " (" + serverOverlay.directory() + " included as overlay)";
+                }
+                Logs.logSuccess(message);
             }
         }
     }
