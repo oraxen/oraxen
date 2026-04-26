@@ -1,5 +1,7 @@
 package io.th0rgal.oraxen.pack.generation;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -295,12 +297,18 @@ class PackFileCollector {
         return new ByteArrayInputStream(parsedContent.getBytes(StandardCharsets.UTF_8));
     }
 
+    // Default Gson HTML-escapes '<' and '>' to '\u003c' / '\u003e', which would
+    // (a) bloat lang files now full of MiniMessage tags, (b) change pack hashes
+    // and force re-downloads, and (c) make the trailing `\<` cleanup a no-op.
+    // Disable HTML escaping so MiniMessage tags survive serialization unchanged.
+    private static final Gson LANG_JSON_GSON = new GsonBuilder().disableHtmlEscaping().create();
+
     private static String processLangJsonContent(String content) {
         try {
             JsonElement parsedJson = JsonParser.parseString(content);
             Map<String, String> cache = new HashMap<>();
             processJsonElement(parsedJson, cache);
-            return parsedJson.toString().replace("\\<", "<");
+            return LANG_JSON_GSON.toJson(parsedJson).replace("\\<", "<");
         } catch (JsonSyntaxException syntaxError) {
             Logs.debug("Lang JSON failed structural parse, falling back to raw MiniMessage: " + syntaxError.getMessage());
             return AdventureUtils.parseLegacyThroughMiniMessage(content).replace("\\<", "<");

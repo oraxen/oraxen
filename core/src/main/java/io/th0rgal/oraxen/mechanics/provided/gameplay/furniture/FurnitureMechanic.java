@@ -960,8 +960,12 @@ public class FurnitureMechanic extends Mechanic {
             maxZ = Math.max(maxZ, loc.getZ());
         }
         // Pad by 1 to catch off-by-one rotations
-        minX -= 1; minY -= 1; minZ -= 1;
-        maxX += 1; maxY += 1; maxZ += 1;
+        minX -= 1;
+        minY -= 1;
+        minZ -= 1;
+        maxX += 1;
+        maxY += 1;
+        maxZ += 1;
 
         int rx = rootLocation.getBlockX();
         int ry = rootLocation.getBlockY();
