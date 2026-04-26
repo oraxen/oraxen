@@ -920,19 +920,42 @@ public class FurnitureMechanic extends Mechanic {
         if (hasLimitedPlacing() && limitedPlacing.isRoof() && furnitureType == FurnitureType.DISPLAY_ENTITY)
             orientation = orientation - 180;
         List<BlockLocation> blockLocations = baseEntity.getPersistentDataContainer().getOrDefault(BARRIER_KEY, DataType.asList(BlockLocation.dataType), new ArrayList<>());
-        List<Location> barrierLocations = getLocations(orientation, rootLocation, blockLocations.isEmpty() ? getBarriers() : blockLocations);
+        List<BlockLocation> barriersToRemove = blockLocations.isEmpty() ? getBarriers() : blockLocations;
+        Location barrierRootLocation = BlockHelpers.toCenterBlockLocation(rootLocation);
+        List<Location> barrierLocations = getLocations(orientation, barrierRootLocation, barriersToRemove);
 
         for (Location location : barrierLocations) {
             Block block = location.getBlock();
             if (hasSeat) removeFurnitureSeat(location);
-            if (block.getType() != Material.BARRIER) continue;
-            if (!BlockHelpers.getPDC(block).getOrDefault(BASE_ENTITY_KEY, DataType.UUID, UUID.randomUUID()).equals(baseEntity.getUniqueId())) continue;
-
-            block.setType(Material.AIR);
-            new CustomBlockData(location.getBlock(), OraxenPlugin.get()).clear();
-            removeLight(block);
+            removeBarrierBlock(block, baseEntity);
         }
+        removeNearbyMarkedBarriers(baseEntity, barrierRootLocation, barriersToRemove);
         removeBaseEntity(baseEntity);
+    }
+
+    private void removeNearbyMarkedBarriers(Entity baseEntity, Location rootLocation, List<BlockLocation> barrierLocations) {
+        int maxOffset = barrierLocations.stream()
+                .mapToInt(loc -> Math.max(Math.abs(loc.getX()), Math.max(Math.abs(loc.getY()), Math.abs(loc.getZ()))))
+                .max()
+                .orElse(0);
+        int scanRadius = Math.max(4, maxOffset + 2);
+
+        for (int x = rootLocation.getBlockX() - scanRadius; x <= rootLocation.getBlockX() + scanRadius; x++) {
+            for (int y = rootLocation.getBlockY() - scanRadius; y <= rootLocation.getBlockY() + scanRadius; y++) {
+                for (int z = rootLocation.getBlockZ() - scanRadius; z <= rootLocation.getBlockZ() + scanRadius; z++) {
+                    removeBarrierBlock(rootLocation.getWorld().getBlockAt(x, y, z), baseEntity);
+                }
+            }
+        }
+    }
+
+    private void removeBarrierBlock(Block block, Entity baseEntity) {
+        if (block.getType() != Material.BARRIER) return;
+        if (!BlockHelpers.getPDC(block).getOrDefault(BASE_ENTITY_KEY, DataType.UUID, UUID.randomUUID()).equals(baseEntity.getUniqueId())) return;
+
+        block.setType(Material.AIR);
+        new CustomBlockData(block, OraxenPlugin.get()).clear();
+        removeLight(block);
     }
 
     public void removeNonSolidFurniture(Entity baseEntity) {
