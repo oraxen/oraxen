@@ -39,7 +39,11 @@ public class IntroductionGuide implements Listener {
     }
 
     public void start() {
-        if (!Boolean.TRUE.equals(Settings.INTRODUCTION_ENABLED.toBool())) {
+        // Treat missing key as enabled (default true) so upgraded installs
+        // with a stale settings.yml still receive the introduction. Only an
+        // explicit false in settings.yml acts as a kill-switch.
+        Boolean enabled = Settings.INTRODUCTION_ENABLED.toBool();
+        if (Boolean.FALSE.equals(enabled)) {
             HandlerList.unregisterAll(this);
             return;
         }

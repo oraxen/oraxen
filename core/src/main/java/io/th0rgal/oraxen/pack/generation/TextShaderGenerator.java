@@ -154,6 +154,23 @@ class TextShaderGenerator {
                 // shader uses #version 150 and is safe for all client versions.
                 ResourcePack.writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.json", getScoreboardJson());
                 ResourcePack.writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.vsh", getScoreboardVsh());
+                // Overlay shader files written by generateTextShadersForTarget() at
+                // overlay_*/assets/minecraft/shaders/core/rendertype_text.* are
+                // animation/effect-only and would otherwise hide the base scoreboard
+                // shader from clients matched to those overlays. Re-emit per-overlay
+                // combined (animation+scoreboard) shaders using each overlay's target,
+                // so 1.21.4+ clients keep both effects and scoreboard number hiding.
+                if (textShadersGenerated && textShaderFeatures != null && !generatedOverlays.isEmpty()) {
+                    for (ShaderOverlay overlay : generatedOverlays) {
+                        TextShaderTarget overlayTarget = TextShaderTarget.forVersion(overlay.representativeVersion());
+                        if (overlayTarget.isAtLeast("26")) continue; // 26+ uses pipeline metadata, not shader override
+                        String overlayShaderPath = overlay.directory() + "/assets/minecraft/shaders/core/";
+                        ResourcePack.writeStringToVirtual(overlayShaderPath, "rendertype_text.vsh",
+                                getCombinedVertexShader(overlayTarget, textShaderFeatures));
+                        ResourcePack.writeStringToVirtual(overlayShaderPath, "rendertype_text.json",
+                                getCombinedShaderJson(overlayTarget));
+                    }
+                }
             } else if (textShadersGenerated) {
                 boolean hasAnimatedGlyphs = !OraxenPlugin.get().getFontManager().getAnimatedGlyphs().isEmpty();
                 TextShaderFeatures features = textShaderFeatures != null
