@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.pack.generation;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSyntaxException;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
@@ -274,12 +275,55 @@ class PackFileCollector {
     }
 
     static InputStream processJson(String content) {
-        String parsedContent = AdventureUtils.parseLegacyThroughMiniMessage(content).replace("\\<", "<");
+        String parsedContent = processJsonContent(content);
         try (InputStream newStream = new ByteArrayInputStream(parsedContent.getBytes(StandardCharsets.UTF_8))) {
             return newStream;
         } catch (IOException e) {
             return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
         }
+    }
+
+    private static String processJsonContent(String content) {
+        try {
+            JsonElement parsedJson = JsonParser.parseString(content);
+            processJsonElement(parsedJson);
+            return parsedJson.toString().replace("\\<", "<");
+        } catch (JsonSyntaxException ignored) {
+            return AdventureUtils.parseLegacyThroughMiniMessage(content).replace("\\<", "<");
+        }
+    }
+
+    private static void processJsonElement(JsonElement element) {
+        if (element == null || element.isJsonNull() || element.isJsonPrimitive())
+            return;
+
+        if (element.isJsonArray()) {
+            for (int i = 0; i < element.getAsJsonArray().size(); i++) {
+                JsonElement child = element.getAsJsonArray().get(i);
+                if (child != null && child.isJsonPrimitive() && child.getAsJsonPrimitive().isString())
+                    element.getAsJsonArray().set(i, parseJsonString(child.getAsString()));
+                else
+                    processJsonElement(child);
+            }
+            return;
+        }
+
+        JsonObject jsonObject = element.getAsJsonObject();
+        for (Map.Entry<String, JsonElement> entry : jsonObject.entrySet()) {
+            JsonElement child = entry.getValue();
+            if (child == null || child.isJsonNull())
+                continue;
+
+            if (child.isJsonPrimitive() && child.getAsJsonPrimitive().isString()) {
+                jsonObject.add(entry.getKey(), parseJsonString(child.getAsString()));
+            } else {
+                processJsonElement(child);
+            }
+        }
+    }
+
+    private static JsonElement parseJsonString(String value) {
+        return new JsonPrimitive(AdventureUtils.parseLegacyThroughMiniMessage(value).replace("\\<", "<"));
     }
 
     private String getZipFilePath(String path, String newFolder) throws IOException {
