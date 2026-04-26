@@ -266,7 +266,8 @@ bukkit {
         "packetevents",
         "LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "MythicMobs", "BossShopPro",
         "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared",
-        "NBTAPI", "ModelEngine", "ViaBackwards", "HuskClaims", "HuskTowns", "BentoBox", "Skript", "Iris"
+        "NBTAPI", "ModelEngine", "ViaBackwards", "HuskClaims", "HuskTowns", "BentoBox", "Skript", "Iris",
+        "ExecutableItems"
     )
     loadBefore = listOf("Realistic_World")
     permissions.create("oraxen.command") {

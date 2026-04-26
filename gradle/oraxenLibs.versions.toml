@@ -51,6 +51,10 @@ ecoitems = { module = "com.willfp:EcoItems", version = "5.64.0" }
 eco = { module = "com.willfp:eco", version = "6.73.0" }
 libreforge = { module = "com.willfp:libreforge", version = "4.36.0" }
 
+# ExecutableItems (SCore) https://github.com/Ssomar-Developement/SCore
+# Repo: JitPack
+score = { module = "com.github.Ssomar-Developement:SCore", version = "5.25.3.9" }
+
 # BlockLocker https://github.com/rutgerkok/BlockLocker
 # Repo: https://repo.codemc.org/repository/maven-public/
 blocklocker = { module = "nl.rutgerkok:blocklocker", version = "1.13-SNAPSHOT" }
@@ -190,4 +194,5 @@ plugins = [
     "blocklocker",      # BlockLocker
     "skript",           # Skript
     "iris",             # Iris World Generator
+    "score",            # ExecutableItems (SCore)
 ]

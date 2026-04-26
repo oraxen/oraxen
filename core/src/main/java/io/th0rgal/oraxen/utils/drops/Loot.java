@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.utils.drops;
 import io.th0rgal.oraxen.utils.IntegerRange;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.provided.ecoitems.WrappedEcoItem;
+import io.th0rgal.oraxen.compatibilities.provided.executableitems.WrappedExecutableItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.utils.Utils;
@@ -61,6 +62,7 @@ public class Loot {
         String mmoItemsId = getConfigString("mmoitems_id");
         String mmoItemsType = getConfigString("mmoitems_type");
         String ecoItemId = getConfigString("ecoitem");
+        String executableItemId = getConfigString("executableitem");
         String minecraftType = getConfigString("minecraft_type");
 
         if (oraxenItemId != null) {
@@ -74,6 +76,8 @@ public class Loot {
             itemStack = MMOItems.plugin.getItem(type, id);
         } else if (ecoItemId != null) {
             itemStack = new WrappedEcoItem(ecoItemId).build();
+        } else if (executableItemId != null) {
+            itemStack = new WrappedExecutableItem(executableItemId).build();
         } else if (minecraftType != null) {
             Material material = Material.getMaterial(minecraftType);
             itemStack = material != null ? new ItemStack(material) : null;
