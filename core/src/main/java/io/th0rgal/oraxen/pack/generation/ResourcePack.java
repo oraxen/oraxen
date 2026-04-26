@@ -426,19 +426,24 @@ public class ResourcePack {
     private void generateItemAppearanceAssets(Map<Material, Map<String, ItemBuilder>> texturedItems) {
         final boolean is1_21_4Plus = VersionUtil.atOrAbove("1.21.4");
 
-        if (is1_21_4Plus) {
-            AppearanceMode.validateAndLogWarnings();
-
-            if (AppearanceMode.isItemPropertiesEnabled()) {
-                generateModelDefinitions(filterForItemModel(texturedItems));
+        if (is1_21_4Plus || multiVersionResolved) {
+            // In multi-version mode, model definitions must always be generated regardless
+            // of server version because some target pack versions serve 1.21.4+ clients.
+            if (is1_21_4Plus) {
+                AppearanceMode.validateAndLogWarnings();
             }
+
+            // Always generate model definitions for 1.21.4+ and multi-version mode
+            generateModelDefinitions(filterForItemModel(texturedItems));
 
             if (AppearanceMode.shouldGenerateVanillaItemDefinitions()) {
                 boolean useSelect = AppearanceMode.shouldUseSelectForVanillaItemDefs();
                 boolean includeBothModes = AppearanceMode.shouldUseBothDispatchModes();
                 generateVanillaItemDefinitions(filterForPredicates(texturedItems), useSelect, includeBothModes);
             }
+        }
 
+        if (is1_21_4Plus) {
             // Multi-version mode ALWAYS needs predicates because older target clients (1.20-1.21.3)
             // cannot use item definitions and rely solely on legacy predicate model overrides.
             // Uses the resolved flag (not the raw setting) to respect single-pack fallback.
@@ -446,6 +451,7 @@ public class ResourcePack {
                 generatePredicates(filterForPredicates(texturedItems));
             }
         } else {
+            // On 1.21.3- servers, predicates are the primary (or only) item appearance system.
             generatePredicates(filterForPredicates(texturedItems));
         }
     }
@@ -524,7 +530,7 @@ public class ResourcePack {
             DuplicationHandler.mergeFontFiles(output);
         if (Settings.MERGE_ITEM_MODELS.toBool())
             DuplicationHandler.mergeBaseItemFiles(output);
-        DuplicationHandler.mergeVanillaItemDefinitions(output);
+        DuplicationHandler.mergeVanillaItemDefinitions(output, multiVersionResolved);
 
         List<String> excludedExtensions = Settings.EXCLUDED_FILE_EXTENSIONS.toStringList();
         excludedExtensions.removeIf(f -> f.equals("png") || f.equals("json"));
@@ -1029,14 +1035,27 @@ public class ResourcePack {
         // Generate the dedicated shift font (still useful for explicit font references)
         generateShiftFont(fontManager);
 
-        // Generate effect fonts for text effects
-        generateEffectFonts();
+        boolean serverIs1214Plus = VersionUtil.atOrAbove("1.21.4");
+        if (!serverIs1214Plus && !multiVersionResolved) {
+            // MultiVersionPacks disabled + Server is 1.21.3 or lower
+            // -> No TextEffects and animated Glyphs should be generated (no Shaders)
+            Logs.logInfo("Skipping text effects and animated glyphs generation (server is 1.21.3 or lower without multi-version packs)");
+        } else {
+            // Generate effect fonts for text effects
+            generateEffectFonts();
 
-        // Process animated glyph fonts
-        boolean hasAnimatedGlyphs = processAnimatedGlyphs(fontManager);
+            // Process animated glyph fonts
+            boolean hasAnimatedGlyphs = processAnimatedGlyphs(fontManager);
 
-        // Generate text shaders when needed (animated glyphs and/or text effects).
-        textShaderGenerator.maybeGenerateTextShaders(hasAnimatedGlyphs);
+            // Generate text shaders when needed (animated glyphs and/or text effects).
+            if (multiVersionResolved) {
+                // MultiVersionPacks enabled: put ALL text shaders into overlays so that
+                // only packs targeting 1.21.4+ receive them. Base shaders are skipped.
+                textShaderGenerator.maybeGenerateTextShaders(hasAnimatedGlyphs, true, TextShaderTarget.PACK_FORMAT_1_21_4);
+            } else {
+                textShaderGenerator.maybeGenerateTextShaders(hasAnimatedGlyphs);
+            }
+        }
     }
 
     /**
