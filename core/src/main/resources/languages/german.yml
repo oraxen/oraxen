@@ -25,14 +25,14 @@ general:
   not_enough_space: "<prefix><#fa4943>Sie brauchen mehr Platz, um diese Möbel zu platzieren"
   exit_menu: "<gradient:#FA7CBB:#F14658>Beenden"
   no_emojis: "<prefix><#fa4943>Keine Emojis gefunden"
-  introduction_guide:
-    <br>
-    <dark_gray><st>                                         </st><gold><bold> Willkommen bei Oraxen... </bold><dark_gray><st>                                         </st><br>
-    <gray> Oraxen wurde zum ersten Mal erfolgreich geladen, legen wir los.<br>
-    <dark_gray> » <gray>Um das <yellow>Standard-Branding</yellow> zu entfernen, folge bitte dem Tutorial unter <blue>https://oraxen.mizius.com/usage/tutorials/d017g<gray>.<br>
-    <dark_gray> » <gray>Die meisten deiner Fragen und Probleme lassen sich über unsere <yellow>Dokumentation</yellow> lösen, schau dir unbedingt <yellow>beide</yellow> Dokumentationen<gray> unter </gray><blue>https://oraxen.mizius.com/</blue><gray> und <blue>https://docs.oraxen.com</blue><gray> an.<br>
-    <dark_gray> » <gray>Wenn du weiterhin Hilfe brauchst, besuche unseren Discord unter <blue>https://discord.gg/9EehAG54aU</blue>.<br>
-    <dark_gray><st>                                                                                                         </st><br>
+  introduction_guide: |-
+    
+    <dark_gray><st>                                         </st><gold><bold> Willkommen bei Oraxen... </bold><dark_gray><st>                                         </st>
+    <gray> Oraxen wurde zum ersten Mal erfolgreich geladen, legen wir los.
+    <dark_gray> » <gray>Um das <yellow>Standard-Branding</yellow> zu entfernen, folge bitte dem Tutorial unter <blue>https://oraxen.mizius.com/usage/tutorials/d017g<gray>.
+    <dark_gray> » <gray>Die meisten deiner Fragen und Probleme lassen sich über unsere <yellow>Dokumentation</yellow> lösen, schau dir unbedingt <yellow>beide</yellow> Dokumentationen<gray> unter </gray><blue>https://oraxen.mizius.com/</blue><gray> und <blue>https://docs.oraxen.com</blue><gray> an.
+    <dark_gray> » <gray>Wenn du weiterhin Hilfe brauchst, besuche unseren Discord unter <blue>https://discord.gg/9EehAG54aU</blue>.
+    <dark_gray><st>                                                                                                         </st>
   datapack_generated: "<prefix><#55ffa4>Datapack wurde erfolgreich generiert"
 
 logs:

@@ -3,8 +3,8 @@ Plugin:
   keep_this_up_to_date: true # Oraxen will delete old settings
   language: "english" # Valid options are "czech", "english", "french", "german",  "jpn_JP", "korean", "ru-RU", "zh-CN", "zh-TW"
   introduction:
-    console_sent: false
-    player_pending: true
+    enabled: true # Set to false to suppress the first-run welcome message entirely
+    console_sent: false # Internal flag — set to true after the welcome message has been shown
   commands:
     repair:
       oraxen_durability_only: false # will not repair vanilla items if set to true

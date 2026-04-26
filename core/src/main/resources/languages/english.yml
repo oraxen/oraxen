@@ -25,14 +25,14 @@ general:
   not_enough_space: "<prefix><#fa4943>You need more space to place this furniture"
   exit_menu: "<gradient:#FA7CBB:#F14658>Exit"
   no_emojis: "<prefix><#fa4943>No emojis found"
-  introduction_guide:
-    <br>
-    <dark_gray><st>                                         </st><gold><bold> Welcome to Oraxen... </bold><dark_gray><st>                                         </st><br>
-    <gray> Oraxen loaded successfully for the first time, let's get you started.<br>
-    <dark_gray> » <gray>To remove the <yellow>default branding</yellow> please follow the tutorial at <blue>https://oraxen.mizius.com/usage/tutorials/d017g<gray>.<br>
-    <dark_gray> » <gray>Most of your questions and issues are resolvable via our <yellow>Documentation</yellow>, make sure to checkout <yellow>both</yellow> Documentations<gray> at </gray><blue>https://oraxen.mizius.com/</blue><gray> and <blue>https://docs.oraxen.com</blue><gray>.<br>
-    <dark_gray> » <gray>If you still need help, please visit our discord at <blue>https://discord.gg/9EehAG54aU</blue>.<br>
-    <dark_gray><st>                                                                                                         </st><br>
+  introduction_guide: |-
+    
+    <dark_gray><st>                                         </st><gold><bold> Welcome to Oraxen... </bold><dark_gray><st>                                         </st>
+    <gray> Oraxen loaded successfully for the first time, let's get you started.
+    <dark_gray> » <gray>To remove the <yellow>default branding</yellow> please follow the tutorial at <blue>https://oraxen.mizius.com/usage/tutorials/d017g<gray>.
+    <dark_gray> » <gray>Most of your questions and issues are resolvable via our <yellow>Documentation</yellow>, make sure to checkout <yellow>both</yellow> Documentations<gray> at </gray><blue>https://oraxen.mizius.com/</blue><gray> and <blue>https://docs.oraxen.com</blue><gray>.
+    <dark_gray> » <gray>If you still need help, please visit our discord at <blue>https://discord.gg/9EehAG54aU</blue>.
+    <dark_gray><st>                                                                                                         </st>
 
 logs:
   # Log prefix colors:

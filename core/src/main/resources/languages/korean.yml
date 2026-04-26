@@ -25,14 +25,14 @@ general:
   not_enough_space: "<prefix><#fa4943>가구를 놓을 공간이 부족합니다"
   exit_menu: "<gradient:#FA7CBB:#F14658>나가기"
   no_emojis: "<prefix><#fa4943>이모지를 찾을 수 없습니다"
-  introduction_guide:
-    <br>
-    <dark_gray><st>                                         </st><gold><bold> Oraxen에 오신 것을 환영합니다... </bold><dark_gray><st>                                         </st><br>
-    <gray> Oraxen이 처음으로 성공적으로 로드되었습니다. 이제 시작해봅시다.<br>
-    <dark_gray> » <gray><yellow>기본 브랜딩</yellow>을 제거하려면 <blue>https://oraxen.mizius.com/usage/tutorials/d017g<gray> 튜토리얼을 따라주세요.<br>
-    <dark_gray> » <gray>대부분의 질문과 문제는 <yellow>문서</yellow>를 통해 해결할 수 있습니다. <yellow>두 개의</yellow> 문서<gray>를 </gray><blue>https://oraxen.mizius.com/</blue><gray> 및 <blue>https://docs.oraxen.com</blue><gray>에서 꼭 확인해 주세요.<br>
-    <dark_gray> » <gray>그래도 도움이 필요하면 <blue>https://discord.gg/9EehAG54aU</blue>의 디스코드를 방문해 주세요.<br>
-    <dark_gray><st>                                                                                                         </st><br>
+  introduction_guide: |-
+    
+    <dark_gray><st>                                         </st><gold><bold> Oraxen에 오신 것을 환영합니다... </bold><dark_gray><st>                                         </st>
+    <gray> Oraxen이 처음으로 성공적으로 로드되었습니다. 이제 시작해봅시다.
+    <dark_gray> » <gray><yellow>기본 브랜딩</yellow>을 제거하려면 <blue>https://oraxen.mizius.com/usage/tutorials/d017g<gray> 튜토리얼을 따라주세요.
+    <dark_gray> » <gray>대부분의 질문과 문제는 <yellow>문서</yellow>를 통해 해결할 수 있습니다. <yellow>두 개의</yellow> 문서<gray>를 </gray><blue>https://oraxen.mizius.com/</blue><gray> 및 <blue>https://docs.oraxen.com</blue><gray>에서 꼭 확인해 주세요.
+    <dark_gray> » <gray>그래도 도움이 필요하면 <blue>https://discord.gg/9EehAG54aU</blue>의 디스코드를 방문해 주세요.
+    <dark_gray><st>                                                                                                         </st>
   datapack_generated: "<prefix><#55ffa4>데이터팩이 성공적으로 생성되었습니다"
 
 logs:
