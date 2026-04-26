@@ -924,38 +924,73 @@ public class FurnitureMechanic extends Mechanic {
         Location barrierRootLocation = BlockHelpers.toCenterBlockLocation(rootLocation);
         List<Location> barrierLocations = getLocations(orientation, barrierRootLocation, barriersToRemove);
 
+        Set<Long> alreadyRemoved = new HashSet<>();
         for (Location location : barrierLocations) {
             Block block = location.getBlock();
             if (hasSeat) removeFurnitureSeat(location);
-            removeBarrierBlock(block, baseEntity);
+            if (removeBarrierBlock(block, baseEntity))
+                alreadyRemoved.add(packBlockKey(block.getX(), block.getY(), block.getZ()));
         }
-        removeNearbyMarkedBarriers(baseEntity, barrierRootLocation, barriersToRemove);
+        removeNearbyMarkedBarriers(baseEntity, barrierRootLocation, barriersToRemove, alreadyRemoved);
         removeBaseEntity(baseEntity);
     }
 
-    private void removeNearbyMarkedBarriers(Entity baseEntity, Location rootLocation, List<BlockLocation> barrierLocations) {
-        int maxOffset = barrierLocations.stream()
-                .mapToInt(loc -> Math.max(Math.abs(loc.getX()), Math.max(Math.abs(loc.getY()), Math.abs(loc.getZ()))))
-                .max()
-                .orElse(0);
-        int scanRadius = Math.max(4, maxOffset + 2);
+    /**
+     * Fallback recovery for orphaned barriers tied to the same base entity.
+     * Scans only the AABB enclosing the configured barrier offsets (not a cube
+     * around the root) and skips blocks whose chunks are unloaded so we never
+     * force chunk loading from a removal path. Coordinates already cleaned by
+     * the primary loop are skipped via {@code alreadyRemoved}.
+     */
+    private void removeNearbyMarkedBarriers(Entity baseEntity, Location rootLocation,
+                                            List<BlockLocation> barrierLocations,
+                                            Set<Long> alreadyRemoved) {
+        if (barrierLocations.isEmpty()) return;
+        World world = rootLocation.getWorld();
+        if (world == null) return;
 
-        for (int x = rootLocation.getBlockX() - scanRadius; x <= rootLocation.getBlockX() + scanRadius; x++) {
-            for (int y = rootLocation.getBlockY() - scanRadius; y <= rootLocation.getBlockY() + scanRadius; y++) {
-                for (int z = rootLocation.getBlockZ() - scanRadius; z <= rootLocation.getBlockZ() + scanRadius; z++) {
-                    removeBarrierBlock(rootLocation.getWorld().getBlockAt(x, y, z), baseEntity);
+        int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;
+        int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
+        for (BlockLocation loc : barrierLocations) {
+            minX = Math.min(minX, loc.getX());
+            minY = Math.min(minY, loc.getY());
+            minZ = Math.min(minZ, loc.getZ());
+            maxX = Math.max(maxX, loc.getX());
+            maxY = Math.max(maxY, loc.getY());
+            maxZ = Math.max(maxZ, loc.getZ());
+        }
+        // Pad by 1 to catch off-by-one rotations
+        minX -= 1; minY -= 1; minZ -= 1;
+        maxX += 1; maxY += 1; maxZ += 1;
+
+        int rx = rootLocation.getBlockX();
+        int ry = rootLocation.getBlockY();
+        int rz = rootLocation.getBlockZ();
+
+        for (int x = rx + minX; x <= rx + maxX; x++) {
+            for (int z = rz + minZ; z <= rz + maxZ; z++) {
+                if (!world.isChunkLoaded(x >> 4, z >> 4)) continue;
+                for (int y = ry + minY; y <= ry + maxY; y++) {
+                    if (!alreadyRemoved.add(packBlockKey(x, y, z))) continue;
+                    removeBarrierBlock(world.getBlockAt(x, y, z), baseEntity);
                 }
             }
         }
     }
 
-    private void removeBarrierBlock(Block block, Entity baseEntity) {
-        if (block.getType() != Material.BARRIER) return;
-        if (!BlockHelpers.getPDC(block).getOrDefault(BASE_ENTITY_KEY, DataType.UUID, UUID.randomUUID()).equals(baseEntity.getUniqueId())) return;
+    private static long packBlockKey(int x, int y, int z) {
+        return ((long) (x & 0x3FFFFFF) << 38) | ((long) (z & 0x3FFFFFF) << 12) | (y & 0xFFF);
+    }
+
+    private boolean removeBarrierBlock(Block block, Entity baseEntity) {
+        if (block.getType() != Material.BARRIER) return false;
+        UUID owner = BlockHelpers.getPDC(block).get(BASE_ENTITY_KEY, DataType.UUID);
+        if (owner == null || !owner.equals(baseEntity.getUniqueId())) return false;
 
         block.setType(Material.AIR);
         new CustomBlockData(block, OraxenPlugin.get()).clear();
         removeLight(block);
+        return true;
     }
 
     public void removeNonSolidFurniture(Entity baseEntity) {
