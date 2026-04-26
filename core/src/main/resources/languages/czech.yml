@@ -25,6 +25,14 @@ general:
   not_enough_space: "<prefix><#fa4943>Potřebuješ více místa pro položení tohoto nábytku"
   exit_menu: "<gradient:#FA7CBB:#F14658>Odejít"
   no_emojis: "<prefix><#fa4943>No emojis found"
+  introduction_guide:
+    <br>
+    <dark_gray><st>                                         </st><gold><bold> Vítejte v Oraxenu... </bold><dark_gray><st>                                         </st><br>
+    <gray> Oraxen se poprvé úspěšně načetl, pojďme vás nastavit.<br>
+    <dark_gray> » <gray>Pro odstranění <yellow>výchozího brandingu</yellow> postupujte podle návodu na <blue>https://oraxen.mizius.com/usage/tutorials/d017g<gray>.<br>
+    <dark_gray> » <gray>Většinu vašich otázek a problémů lze vyřešit v naší <yellow>Dokumentaci</yellow>, nezapomeňte si projít <yellow>obě</yellow> dokumentace<gray> na </gray><blue>https://oraxen.mizius.com/</blue><gray> a <blue>https://docs.oraxen.com</blue><gray>.<br>
+    <dark_gray> » <gray>Pokud stále potřebujete pomoc, navštivte náš Discord na <blue>https://discord.gg/9EehAG54aU</blue>.<br>
+    <dark_gray><st>                                                                                                         </st><br>
   datapack_generated: "<prefix><#55ffa4>Datapack byl úspěšně vygenerován"
 
 logs:
@@ -116,3 +124,4 @@ mechanics:
   not_enough_exp: "<prefix><#fa4943>Pro tohle potřebuješ více zkušeností"
   backpack_stacked: "<prefix><#fa4943>Nelze otevřít naskládaný batoh"
   jukebox_now_playing: "<dark_purple>Nyní se přehrává <disc>"
+

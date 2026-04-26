@@ -25,6 +25,14 @@ general:
   not_enough_space: "<prefix><#fa4943>Vous avez besoin de plus de place pour placer cet équipement"
   exit_menu: "<gradient:#FA7CBB:#F14658>Quitter"
   no_emojis: "<prefix><#fa4943>Aucun émoji trouvé"
+  introduction_guide:
+    <br>
+    <dark_gray><st>                                         </st><gold><bold> Bienvenue sur Oraxen... </bold><dark_gray><st>                                         </st><br>
+    <gray> Oraxen s'est chargé avec succès pour la première fois, commençons.<br>
+    <dark_gray> » <gray>Pour supprimer le <yellow>branding par défaut</yellow>, veuillez suivre le tutoriel sur <blue>https://oraxen.mizius.com/usage/tutorials/d017g<gray>.<br>
+    <dark_gray> » <gray>La plupart de vos questions et problèmes peuvent être résolus via notre <yellow>Documentation</yellow>, assurez-vous de consulter les <yellow>deux</yellow> documentations<gray> sur </gray><blue>https://oraxen.mizius.com/</blue><gray> et <blue>https://docs.oraxen.com</blue><gray>.<br>
+    <dark_gray> » <gray>Si vous avez encore besoin d'aide, rejoignez notre Discord à l'adresse <blue>https://discord.gg/9EehAG54aU</blue>.<br>
+    <dark_gray><st>                                                                                                         </st><br>
   datapack_generated: "<prefix><#55ffa4>Le datapack a été généré avec succès"
 
 logs:
@@ -116,3 +124,4 @@ mechanics:
   not_enough_exp: "<prefix><#fa4943>Vous avez besoin de plus d'expérience pour faire ceci"
   backpack_stacked: "<prefix><#fa4943>Impossible d'ouvrir un sac à dos empilé"
   jukebox_now_playing: "<dark_purple>Lecture en cours <disc>"
+

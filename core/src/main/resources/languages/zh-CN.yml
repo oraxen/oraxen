@@ -25,6 +25,14 @@ general:
   not_enough_space: "<prefix><#fa4943>你需要更多的空间来放置这个家具"
   exit_menu: "<gradient:#FA7CBB:#F14658>退出"
   no_emojis: "<prefix><#fa4943>No emojis found"
+  introduction_guide:
+    <br>
+    <dark_gray><st>                                         </st><gold><bold> 欢迎使用 Oraxen... </bold><dark_gray><st>                                         </st><br>
+    <gray> Oraxen 已首次成功加载，让我们开始吧。<br>
+    <dark_gray> » <gray>如需移除<yellow>默认品牌标识</yellow>，请参考教程：<blue>https://oraxen.mizius.com/usage/tutorials/d017g<gray>。<br>
+    <dark_gray> » <gray>你的大多数问题都可以通过我们的<yellow>文档</yellow>解决，请务必查看<yellow>两份</yellow>文档<gray>：</gray><blue>https://oraxen.mizius.com/</blue><gray> 和 <blue>https://docs.oraxen.com</blue><gray>。<br>
+    <dark_gray> » <gray>如果你仍需要帮助，请加入我们的 Discord：<blue>https://discord.gg/9EehAG54aU</blue>。<br>
+    <dark_gray><st>                                                                                                         </st><br>
   datapack_generated: "<prefix><#55ffa4>数据包生成成功"
 
 logs:
@@ -118,3 +126,4 @@ mechanics:
   jukebox_now_playing: "<dark_purple>正在播放 <disc>"
 # The author can laugh!
 # -- Translator
+
