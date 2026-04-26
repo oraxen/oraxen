@@ -931,19 +931,25 @@ public class FurnitureMechanic extends Mechanic {
             if (removeBarrierBlock(block, baseEntity))
                 alreadyRemoved.add(packBlockKey(block.getX(), block.getY(), block.getZ()));
         }
-        removeNearbyMarkedBarriers(baseEntity, barrierRootLocation, barriersToRemove, alreadyRemoved);
+        removeNearbyMarkedBarriers(baseEntity, barrierRootLocation, barrierLocations, alreadyRemoved);
         removeBaseEntity(baseEntity);
     }
 
     /**
      * Fallback recovery for orphaned barriers tied to the same base entity.
-     * Scans only the AABB enclosing the configured barrier offsets (not a cube
-     * around the root) and skips blocks whose chunks are unloaded so we never
-     * force chunk loading from a removal path. Coordinates already cleaned by
-     * the primary loop are skipped via {@code alreadyRemoved}.
+     * Scans only the AABB enclosing the *rotated* world-space barrier
+     * positions (not a cube around the root) and skips blocks whose chunks
+     * are unloaded so we never force chunk loading from a removal path.
+     * Coordinates already cleaned by the primary loop are skipped via
+     * {@code alreadyRemoved}.
+     * <p>
+     * Note: callers must pass the rotated {@code barrierLocations} list (as
+     * produced by {@link #getLocations}). Passing raw unrotated
+     * {@link BlockLocation} offsets would leave orphans on rotated
+     * non-symmetric furniture.
      */
     private void removeNearbyMarkedBarriers(Entity baseEntity, Location rootLocation,
-                                            List<BlockLocation> barrierLocations,
+                                            List<Location> barrierLocations,
                                             Set<Long> alreadyRemoved) {
         if (barrierLocations.isEmpty()) return;
         World world = rootLocation.getWorld();
@@ -951,13 +957,16 @@ public class FurnitureMechanic extends Mechanic {
 
         int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;
         int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
-        for (BlockLocation loc : barrierLocations) {
-            minX = Math.min(minX, loc.getX());
-            minY = Math.min(minY, loc.getY());
-            minZ = Math.min(minZ, loc.getZ());
-            maxX = Math.max(maxX, loc.getX());
-            maxY = Math.max(maxY, loc.getY());
-            maxZ = Math.max(maxZ, loc.getZ());
+        for (Location loc : barrierLocations) {
+            int bx = loc.getBlockX();
+            int by = loc.getBlockY();
+            int bz = loc.getBlockZ();
+            minX = Math.min(minX, bx);
+            minY = Math.min(minY, by);
+            minZ = Math.min(minZ, bz);
+            maxX = Math.max(maxX, bx);
+            maxY = Math.max(maxY, by);
+            maxZ = Math.max(maxZ, bz);
         }
         // Pad by 1 to catch off-by-one rotations
         minX -= 1;
@@ -967,14 +976,10 @@ public class FurnitureMechanic extends Mechanic {
         maxY += 1;
         maxZ += 1;
 
-        int rx = rootLocation.getBlockX();
-        int ry = rootLocation.getBlockY();
-        int rz = rootLocation.getBlockZ();
-
-        for (int x = rx + minX; x <= rx + maxX; x++) {
-            for (int z = rz + minZ; z <= rz + maxZ; z++) {
+        for (int x = minX; x <= maxX; x++) {
+            for (int z = minZ; z <= maxZ; z++) {
                 if (!world.isChunkLoaded(x >> 4, z >> 4)) continue;
-                for (int y = ry + minY; y <= ry + maxY; y++) {
+                for (int y = minY; y <= maxY; y++) {
                     if (!alreadyRemoved.add(packBlockKey(x, y, z))) continue;
                     removeBarrierBlock(world.getBlockAt(x, y, z), baseEntity);
                 }

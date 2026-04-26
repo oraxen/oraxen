@@ -1042,29 +1042,24 @@ public class ResourcePack {
         // Generate the dedicated shift font (still useful for explicit font references)
         generateShiftFont(fontManager);
 
-        boolean serverIs1214Plus = VersionUtil.atOrAbove("1.21.4");
-        if (!serverIs1214Plus && !multiVersionResolved) {
-            // MultiVersionPacks disabled + Server is 1.21.3 or lower
-            // -> No TextEffects and animated Glyphs should be generated (no Shaders).
-            // Logged at debug only: this is the normal happy path on legacy single-pack
-            // servers and would otherwise spam every regeneration.
-            if (Settings.DEBUG.toBool())
-                Logs.logInfo("Skipping text effects and animated glyphs generation (server is 1.21.3 or lower without multi-version packs)");
-        } else {
-            // Generate effect fonts for text effects
-            generateEffectFonts();
+        // Always generate effect fonts and animated glyphs. The earlier "skip on
+        // legacy single-pack servers" guard was a workaround for the pre-#1812
+        // shader generator emitting wrong GLSL versions; now that the generator
+        // emits per-target shaders correctly, BASE_ONLY mode produces valid
+        // 1.20-1.21.3 shaders for legacy single-pack servers, so the skip would
+        // silently disable text effects/animated glyphs there (regression vs master).
+        generateEffectFonts();
 
-            // Process animated glyph fonts
-            boolean hasAnimatedGlyphs = processAnimatedGlyphs(fontManager);
+        // Process animated glyph fonts
+        boolean hasAnimatedGlyphs = processAnimatedGlyphs(fontManager);
 
-            // Generate text shaders when needed (animated glyphs and/or text effects).
-            // In multi-version mode we skip base shaders and only emit 1.21.4+ overlays
-            // so 1.21.3- clients never receive #version 330+ GLSL.
-            TextShaderGenerator.ShaderEmissionMode emissionMode = multiVersionResolved
-                    ? TextShaderGenerator.ShaderEmissionMode.OVERLAY_ONLY_1214_PLUS
-                    : TextShaderGenerator.ShaderEmissionMode.BASE_ONLY;
-            textShaderGenerator.maybeGenerateTextShaders(hasAnimatedGlyphs, emissionMode);
-        }
+        // Generate text shaders when needed (animated glyphs and/or text effects).
+        // In multi-version mode we skip base shaders and only emit 1.21.4+ overlays
+        // so 1.21.3- clients never receive #version 330+ GLSL.
+        TextShaderGenerator.ShaderEmissionMode emissionMode = multiVersionResolved
+                ? TextShaderGenerator.ShaderEmissionMode.OVERLAY_ONLY_1214_PLUS
+                : TextShaderGenerator.ShaderEmissionMode.BASE_ONLY;
+        textShaderGenerator.maybeGenerateTextShaders(hasAnimatedGlyphs, emissionMode);
     }
 
     /**
