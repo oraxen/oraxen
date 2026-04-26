@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.pack.generation;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -266,64 +267,86 @@ class PackFileCollector {
             return newStream;
         }
 
+        String normalisedPath = file.getPath().replace("\\", "/");
+
         // If the json file is a font file, do not format it through MiniMessage
-        if (file.getPath().replace("\\", "/").split("assets/.*/font/").length > 1) {
+        if (normalisedPath.split("assets/.*/font/").length > 1) {
             return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
         }
 
-        return processJson(content);
+        // Only lang files are at risk of double-glyph expansion, because their values
+        // are re-rendered through MiniMessage at runtime by the chat/translation system.
+        // Restrict the structural processor to that scope; other JSON keeps the legacy
+        // raw-text path so byte output (and hash-based caches) stay unchanged.
+        return isLangFile(normalisedPath) ? processLangJson(content) : processJson(content);
+    }
+
+    private static boolean isLangFile(String normalisedPath) {
+        return normalisedPath.matches(".*assets/[^/]+/lang/[^/]+\\.json");
     }
 
     static InputStream processJson(String content) {
-        String parsedContent = processJsonContent(content);
-        try (InputStream newStream = new ByteArrayInputStream(parsedContent.getBytes(StandardCharsets.UTF_8))) {
-            return newStream;
-        } catch (IOException e) {
-            return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
-        }
+        String parsedContent = AdventureUtils.parseLegacyThroughMiniMessage(content).replace("\\<", "<");
+        return new ByteArrayInputStream(parsedContent.getBytes(StandardCharsets.UTF_8));
     }
 
-    private static String processJsonContent(String content) {
+    static InputStream processLangJson(String content) {
+        String parsedContent = processLangJsonContent(content);
+        return new ByteArrayInputStream(parsedContent.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private static String processLangJsonContent(String content) {
         try {
             JsonElement parsedJson = JsonParser.parseString(content);
-            processJsonElement(parsedJson);
+            Map<String, String> cache = new HashMap<>();
+            processJsonElement(parsedJson, cache);
             return parsedJson.toString().replace("\\<", "<");
-        } catch (JsonSyntaxException ignored) {
+        } catch (JsonSyntaxException syntaxError) {
+            Logs.debug("Lang JSON failed structural parse, falling back to raw MiniMessage: " + syntaxError.getMessage());
             return AdventureUtils.parseLegacyThroughMiniMessage(content).replace("\\<", "<");
         }
     }
 
-    private static void processJsonElement(JsonElement element) {
-        if (element == null || element.isJsonNull() || element.isJsonPrimitive())
-            return;
+    private static void processJsonElement(JsonElement element, Map<String, String> cache) {
+        // Iterative walk to avoid recursion overflow on deep documents.
+        Deque<JsonElement> stack = new ArrayDeque<>();
+        stack.push(element);
+        while (!stack.isEmpty()) {
+            JsonElement current = stack.pop();
+            if (current == null || current.isJsonNull() || current.isJsonPrimitive()) continue;
 
-        if (element.isJsonArray()) {
-            for (int i = 0; i < element.getAsJsonArray().size(); i++) {
-                JsonElement child = element.getAsJsonArray().get(i);
-                if (child != null && child.isJsonPrimitive() && child.getAsJsonPrimitive().isString())
-                    element.getAsJsonArray().set(i, parseJsonString(child.getAsString()));
-                else
-                    processJsonElement(child);
-            }
-            return;
-        }
-
-        JsonObject jsonObject = element.getAsJsonObject();
-        for (Map.Entry<String, JsonElement> entry : jsonObject.entrySet()) {
-            JsonElement child = entry.getValue();
-            if (child == null || child.isJsonNull())
+            if (current.isJsonArray()) {
+                JsonArray array = current.getAsJsonArray();
+                for (int i = 0; i < array.size(); i++) {
+                    JsonElement child = array.get(i);
+                    if (child != null && child.isJsonPrimitive() && child.getAsJsonPrimitive().isString())
+                        array.set(i, parseJsonString(child.getAsString(), cache));
+                    else
+                        stack.push(child);
+                }
                 continue;
+            }
 
-            if (child.isJsonPrimitive() && child.getAsJsonPrimitive().isString()) {
-                jsonObject.add(entry.getKey(), parseJsonString(child.getAsString()));
-            } else {
-                processJsonElement(child);
+            JsonObject jsonObject = current.getAsJsonObject();
+            // Snapshot keys first because we may mutate the map under iteration.
+            List<String> keys = new ArrayList<>(jsonObject.keySet());
+            for (String key : keys) {
+                JsonElement child = jsonObject.get(key);
+                if (child == null || child.isJsonNull()) continue;
+
+                if (child.isJsonPrimitive() && child.getAsJsonPrimitive().isString()) {
+                    jsonObject.add(key, parseJsonString(child.getAsString(), cache));
+                } else {
+                    stack.push(child);
+                }
             }
         }
     }
 
-    private static JsonElement parseJsonString(String value) {
-        return new JsonPrimitive(AdventureUtils.parseLegacyThroughMiniMessage(value).replace("\\<", "<"));
+    private static JsonElement parseJsonString(String value, Map<String, String> cache) {
+        String transformed = cache.computeIfAbsent(value,
+                v -> AdventureUtils.parseLegacyThroughMiniMessage(v).replace("\\<", "<"));
+        return new JsonPrimitive(transformed);
     }
 
     private String getZipFilePath(String path, String newFolder) throws IOException {
