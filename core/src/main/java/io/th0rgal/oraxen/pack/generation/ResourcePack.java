@@ -437,8 +437,14 @@ public class ResourcePack {
                 AppearanceMode.validateAndLogWarnings();
             }
 
-            // Always generate model definitions for 1.21.4+ and multi-version mode
-            generateModelDefinitions(filterForItemModel(texturedItems));
+            // Multi-version mode always needs model definitions (some target pack
+            // versions serve 1.21.4+ clients regardless of server version).
+            // For non-multi-version 1.21.4+, honor the user's item_properties toggle
+            // so explicitly disabling that appearance system suppresses the
+            // assets/oraxen/items/*.json output as it did pre-#1812.
+            if (multiVersionResolved || AppearanceMode.isItemPropertiesEnabled()) {
+                generateModelDefinitions(filterForItemModel(texturedItems));
+            }
 
             // In multi-version mode, 1.21.4+ targets ALWAYS need vanilla item definitions
             // as a fallback for clients that cannot use legacy CMD predicates. Otherwise,

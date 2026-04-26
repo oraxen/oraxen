@@ -251,6 +251,17 @@ class TextShaderGenerator {
             generateTextShadersForTarget(target, features, "");
         }
 
+        // Skip overlay emission entirely when the server's pack format does not
+        // belong to any ShaderOverlay bucket (pre-1.20.2, format < 18) and the
+        // caller did not explicitly opt into multi-version overlay output via
+        // minOverlayPackFormat. Without this guard, BASE_ONLY mode on a legacy
+        // server would emit 1.20.2+/1.21+ overlay shader trees and feed them to
+        // updatePackMcmetaOverlays, marking newer format ranges as supported on
+        // a pack that only contains legacy base assets.
+        if (serverOverlay == null && minOverlayPackFormat <= 0) {
+            return;
+        }
+
         for (ShaderOverlay overlay : ShaderOverlay.values()) {
             if (overlay.minFormat() < minOverlayPackFormat) continue;
             if (overlay == serverOverlay && !skipBaseShaders) continue;
