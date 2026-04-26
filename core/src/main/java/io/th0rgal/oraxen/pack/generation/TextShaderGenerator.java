@@ -81,10 +81,6 @@ class TextShaderGenerator {
         return textShadersGenerated;
     }
 
-    boolean wereBaseShadersSkipped() {
-        return baseShadersSkipped;
-    }
-
     boolean wereShaderOverlaysGenerated() {
         return shaderOverlaysGenerated;
     }
@@ -105,15 +101,32 @@ class TextShaderGenerator {
         return List.copyOf(generatedOverlays);
     }
 
-    void maybeGenerateTextShaders(boolean hasAnimatedGlyphs) {
-        maybeGenerateTextShaders(hasAnimatedGlyphs, false, 0);
+    /**
+     * Where text shaders should be emitted. Replaces the old
+     * {@code (boolean skipBaseShaders, int minOverlayPackFormat)} pair so
+     * callers cannot construct invalid combinations.
+     */
+    enum ShaderEmissionMode {
+        /** Single-pack: emit base shaders for the server's pack format. */
+        BASE_ONLY,
+        /** Multi-version: skip base shaders and emit only overlays >= 1.21.4. */
+        OVERLAY_ONLY_1214_PLUS
     }
 
-    void maybeGenerateTextShaders(boolean hasAnimatedGlyphs, boolean skipBaseShaders, int minOverlayPackFormat) {
+    void maybeGenerateTextShaders(boolean hasAnimatedGlyphs) {
+        maybeGenerateTextShaders(hasAnimatedGlyphs, ShaderEmissionMode.BASE_ONLY);
+    }
+
+    void maybeGenerateTextShaders(boolean hasAnimatedGlyphs, ShaderEmissionMode mode) {
         if (textShadersGenerated) return;
 
         TextShaderFeatures features = resolveTextShaderFeatures(hasAnimatedGlyphs);
         if (!features.anyEnabled()) return;
+
+        boolean skipBaseShaders = mode == ShaderEmissionMode.OVERLAY_ONLY_1214_PLUS;
+        int minOverlayPackFormat = mode == ShaderEmissionMode.OVERLAY_ONLY_1214_PLUS
+                ? TextShaderTarget.PACK_FORMAT_1_21_4
+                : 0;
 
         this.baseShadersSkipped = skipBaseShaders;
         TextShaderTarget target = TextShaderTarget.current();

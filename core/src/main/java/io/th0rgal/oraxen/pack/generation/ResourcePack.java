@@ -426,7 +426,11 @@ public class ResourcePack {
     private void generateItemAppearanceAssets(Map<Material, Map<String, ItemBuilder>> texturedItems) {
         final boolean is1_21_4Plus = VersionUtil.atOrAbove("1.21.4");
 
-        if (is1_21_4Plus || multiVersionResolved) {
+        // Whether 1.21.4+ clients will consume this pack: either we are running on
+        // such a server, or we are emitting a multi-version pack that targets them.
+        final boolean targets1_21_4Plus = is1_21_4Plus || multiVersionResolved;
+
+        if (targets1_21_4Plus) {
             // In multi-version mode, model definitions must always be generated regardless
             // of server version because some target pack versions serve 1.21.4+ clients.
             if (is1_21_4Plus) {
@@ -436,7 +440,10 @@ public class ResourcePack {
             // Always generate model definitions for 1.21.4+ and multi-version mode
             generateModelDefinitions(filterForItemModel(texturedItems));
 
-            if (AppearanceMode.shouldGenerateVanillaItemDefinitions()) {
+            // In multi-version mode, 1.21.4+ targets ALWAYS need vanilla item definitions
+            // as a fallback for clients that cannot use legacy CMD predicates. Otherwise,
+            // honor the AppearanceMode toggle.
+            if (multiVersionResolved || AppearanceMode.shouldGenerateVanillaItemDefinitions()) {
                 boolean useSelect = AppearanceMode.shouldUseSelectForVanillaItemDefs();
                 boolean includeBothModes = AppearanceMode.shouldUseBothDispatchModes();
                 generateVanillaItemDefinitions(filterForPredicates(texturedItems), useSelect, includeBothModes);
@@ -1038,8 +1045,11 @@ public class ResourcePack {
         boolean serverIs1214Plus = VersionUtil.atOrAbove("1.21.4");
         if (!serverIs1214Plus && !multiVersionResolved) {
             // MultiVersionPacks disabled + Server is 1.21.3 or lower
-            // -> No TextEffects and animated Glyphs should be generated (no Shaders)
-            Logs.logInfo("Skipping text effects and animated glyphs generation (server is 1.21.3 or lower without multi-version packs)");
+            // -> No TextEffects and animated Glyphs should be generated (no Shaders).
+            // Logged at debug only: this is the normal happy path on legacy single-pack
+            // servers and would otherwise spam every regeneration.
+            if (Settings.DEBUG.toBool())
+                Logs.logInfo("Skipping text effects and animated glyphs generation (server is 1.21.3 or lower without multi-version packs)");
         } else {
             // Generate effect fonts for text effects
             generateEffectFonts();
@@ -1048,13 +1058,12 @@ public class ResourcePack {
             boolean hasAnimatedGlyphs = processAnimatedGlyphs(fontManager);
 
             // Generate text shaders when needed (animated glyphs and/or text effects).
-            if (multiVersionResolved) {
-                // MultiVersionPacks enabled: put ALL text shaders into overlays so that
-                // only packs targeting 1.21.4+ receive them. Base shaders are skipped.
-                textShaderGenerator.maybeGenerateTextShaders(hasAnimatedGlyphs, true, TextShaderTarget.PACK_FORMAT_1_21_4);
-            } else {
-                textShaderGenerator.maybeGenerateTextShaders(hasAnimatedGlyphs);
-            }
+            // In multi-version mode we skip base shaders and only emit 1.21.4+ overlays
+            // so 1.21.3- clients never receive #version 330+ GLSL.
+            TextShaderGenerator.ShaderEmissionMode emissionMode = multiVersionResolved
+                    ? TextShaderGenerator.ShaderEmissionMode.OVERLAY_ONLY_1214_PLUS
+                    : TextShaderGenerator.ShaderEmissionMode.BASE_ONLY;
+            textShaderGenerator.maybeGenerateTextShaders(hasAnimatedGlyphs, emissionMode);
         }
     }
 
