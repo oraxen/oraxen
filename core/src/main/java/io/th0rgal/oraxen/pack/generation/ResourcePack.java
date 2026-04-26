@@ -1060,11 +1060,22 @@ public class ResourcePack {
         boolean hasAnimatedGlyphs = processAnimatedGlyphs(fontManager);
 
         // Generate text shaders when needed (animated glyphs and/or text effects).
-        // In multi-version mode we skip base shaders and only emit 1.21.4+ overlays
-        // so 1.21.3- clients never receive #version 330+ GLSL.
-        TextShaderGenerator.ShaderEmissionMode emissionMode = multiVersionResolved
-                ? TextShaderGenerator.ShaderEmissionMode.OVERLAY_ONLY_1214_PLUS
-                : TextShaderGenerator.ShaderEmissionMode.BASE_ONLY;
+        // In multi-version mode the choice depends on the *server* version:
+        //   - 1.21.4+ server: skip base shaders and only emit 1.21.4+ overlays so
+        //     1.21.3- clients never receive #version 330+ GLSL.
+        //   - 1.20-1.21.3 server: emit base shaders for the server's legacy format
+        //     AND 1.21.4+ overlays. Without the base emission, legacy clients on a
+        //     multi-version pack would silently lose animated glyph / text effect
+        //     rendering (the base format is the legacy one in that case).
+        boolean serverIs1214Plus = VersionUtil.atOrAbove("1.21.4");
+        TextShaderGenerator.ShaderEmissionMode emissionMode;
+        if (multiVersionResolved) {
+            emissionMode = serverIs1214Plus
+                    ? TextShaderGenerator.ShaderEmissionMode.OVERLAY_ONLY_1214_PLUS
+                    : TextShaderGenerator.ShaderEmissionMode.BASE_PLUS_1214_OVERLAYS;
+        } else {
+            emissionMode = TextShaderGenerator.ShaderEmissionMode.BASE_ONLY;
+        }
         textShaderGenerator.maybeGenerateTextShaders(hasAnimatedGlyphs, emissionMode);
     }
 

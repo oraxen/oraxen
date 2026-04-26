@@ -982,14 +982,14 @@ public class FurnitureMechanic extends Mechanic {
                 for (int y = minY; y <= maxY; y++) {
                     if (!alreadyRemoved.add(packBlockKey(x, y, z))) continue;
                     Block block = world.getBlockAt(x, y, z);
-                    // Mirror the primary loop: remove any seat tied to this orphan
-                    // barrier first, otherwise hasSeat furniture leaves invisible
-                    // armor stand seats behind that this fallback path is the only
-                    // one to ever visit.
-                    if (hasSeat && block.getType() == Material.BARRIER) {
-                        removeFurnitureSeat(BlockHelpers.toCenterBlockLocation(block.getLocation()));
+                    // Only remove seats after barrier ownership has been verified by
+                    // removeBarrierBlock (returns true). Otherwise, a barrier in the
+                    // padded AABB belonging to a neighboring furniture would have its
+                    // seat deleted as collateral damage.
+                    Location barrierLoc = block.getLocation();
+                    if (removeBarrierBlock(block, baseEntity) && hasSeat) {
+                        removeFurnitureSeat(BlockHelpers.toCenterBlockLocation(barrierLoc));
                     }
-                    removeBarrierBlock(block, baseEntity);
                 }
             }
         }

@@ -109,8 +109,16 @@ class TextShaderGenerator {
     enum ShaderEmissionMode {
         /** Single-pack: emit base shaders for the server's pack format. */
         BASE_ONLY,
-        /** Multi-version: skip base shaders and emit only overlays >= 1.21.4. */
-        OVERLAY_ONLY_1214_PLUS
+        /** Multi-version on 1.21.4+ server: skip base shaders, emit only overlays >= 1.21.4. */
+        OVERLAY_ONLY_1214_PLUS,
+        /**
+         * Multi-version on a legacy (1.20-1.21.3) server: emit base shaders for the
+         * server's legacy format AND overlays >= 1.21.4 so newer clients matched to
+         * the 1.21.4+ overlay still get the modern GLSL variant. Without this, legacy
+         * clients on a multi-version pack would silently lose animated glyph and text
+         * effect rendering because base shaders would be skipped entirely.
+         */
+        BASE_PLUS_1214_OVERLAYS
     }
 
     void maybeGenerateTextShaders(boolean hasAnimatedGlyphs) {
@@ -124,7 +132,8 @@ class TextShaderGenerator {
         if (!features.anyEnabled()) return;
 
         boolean skipBaseShaders = mode == ShaderEmissionMode.OVERLAY_ONLY_1214_PLUS;
-        int minOverlayPackFormat = mode == ShaderEmissionMode.OVERLAY_ONLY_1214_PLUS
+        int minOverlayPackFormat = (mode == ShaderEmissionMode.OVERLAY_ONLY_1214_PLUS
+                || mode == ShaderEmissionMode.BASE_PLUS_1214_OVERLAYS)
                 ? TextShaderTarget.PACK_FORMAT_1_21_4
                 : 0;
 
