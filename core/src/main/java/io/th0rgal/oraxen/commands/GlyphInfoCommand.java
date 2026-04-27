@@ -7,8 +7,10 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
 
 public class GlyphInfoCommand {
 
@@ -21,12 +23,22 @@ public class GlyphInfoCommand {
                     Glyph glyph = OraxenPlugin.get().getFontManager().getGlyphFromID(glyphId);
                     Audience audience = OraxenPlugin.get().getAudience().sender(sender);
                     if (glyph == null) {
-                        audience.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<red>No glyph found with glyph-id <i><dark_red>" + glyphId));
+                        audience.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<prefix><red>No glyph found with glyph-id <white>" + glyphId + "<red>."));
                     } else {
-                        audience.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<dark_aqua>GlyphID: <aqua>" + glyphId));
-                        audience.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<dark_aqua>Texture: <aqua>" + glyph.getTexture()));
-                        audience.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<dark_aqua>Bitmap: <aqua>" + glyph.isBitMap()));
-                        audience.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<dark_aqua>Unicode: <white>" + glyph.getCharacter()).hoverEvent(HoverEvent.showText(AdventureUtils.MINI_MESSAGE.deserialize("<gold>Click to copy to clipboard!"))).clickEvent(ClickEvent.clickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, glyph.getCharacter())));
+                        audience.sendMessage(
+                                Component.empty()
+                                        .append(Component.newline())
+                                        .append(AdventureUtils.MINI_MESSAGE.deserialize("<gray>GlyphID ⏵ <white>" + glyphId))
+                                        .append(Component.newline())
+                                        .append(AdventureUtils.MINI_MESSAGE.deserialize("<gray>Texture ⏵ <white>" + glyph.getTexture()))
+                                        .append(Component.newline())
+                                        .append(AdventureUtils.MINI_MESSAGE.deserialize("<gray>Unicode(s) ⏵ <white>"))
+                                        .append(Component.newline())
+                                        .append(glyph.getGlyphComponent().color(NamedTextColor.WHITE)
+                                               .hoverEvent(HoverEvent.showText(AdventureUtils.MINI_MESSAGE.deserialize("<gold>Click to copy to clipboard.")))
+                                               .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, glyph.getCharacters())))
+                                        .append(Component.newline())
+                        );
                     }
                 })
         );

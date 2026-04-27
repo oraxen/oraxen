@@ -283,7 +283,7 @@ public class ReferenceGlyph {
 
     public Component getGlyphComponent() {
         return Component.textOfChildren(
-                Component.text(getCharacter(), NamedTextColor.WHITE)
+                Component.text(getCharacters(), NamedTextColor.WHITE)
                         .font(getFont())
                         .hoverEvent(getGlyphHoverText()));
     }

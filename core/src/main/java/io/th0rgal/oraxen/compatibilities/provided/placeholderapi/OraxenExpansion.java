@@ -3,11 +3,13 @@ package io.th0rgal.oraxen.compatibilities.provided.placeholderapi;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.font.Glyph;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
+import net.kyori.adventure.key.Key;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
 
 public class OraxenExpansion extends PlaceholderExpansion {
 
+    private static final Key DEFAULT_FONT = Key.key("minecraft", "default");
     private final OraxenPlugin plugin;
 
     public OraxenExpansion(final OraxenPlugin plugin) {
@@ -64,7 +66,7 @@ public class OraxenExpansion extends PlaceholderExpansion {
 
         final Glyph glyph = plugin.getFontManager().getGlyphFromName(params);
         if (glyph != null)
-            return glyph.getCharacter();
+            return DEFAULT_FONT.equals(glyph.getFont()) ? glyph.getFormattedUnicodes() : glyph.getGlyphTag();
         return null; // Placeholder is unknown by the Expansion
     }
 }
