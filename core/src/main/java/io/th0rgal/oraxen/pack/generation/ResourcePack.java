@@ -426,19 +426,37 @@ public class ResourcePack {
     private void generateItemAppearanceAssets(Map<Material, Map<String, ItemBuilder>> texturedItems) {
         final boolean is1_21_4Plus = VersionUtil.atOrAbove("1.21.4");
 
-        if (is1_21_4Plus) {
-            AppearanceMode.validateAndLogWarnings();
+        // Whether 1.21.4+ clients will consume this pack: either we are running on
+        // such a server, or we are emitting a multi-version pack that targets them.
+        final boolean targets1_21_4Plus = is1_21_4Plus || multiVersionResolved;
 
-            if (AppearanceMode.isItemPropertiesEnabled()) {
+        if (targets1_21_4Plus) {
+            // In multi-version mode, model definitions must always be generated regardless
+            // of server version because some target pack versions serve 1.21.4+ clients.
+            if (is1_21_4Plus) {
+                AppearanceMode.validateAndLogWarnings();
+            }
+
+            // Multi-version mode always needs model definitions (some target pack
+            // versions serve 1.21.4+ clients regardless of server version).
+            // For non-multi-version 1.21.4+, honor the user's item_properties toggle
+            // so explicitly disabling that appearance system suppresses the
+            // assets/oraxen/items/*.json output as it did pre-#1812.
+            if (multiVersionResolved || AppearanceMode.isItemPropertiesEnabled()) {
                 generateModelDefinitions(filterForItemModel(texturedItems));
             }
 
-            if (AppearanceMode.shouldGenerateVanillaItemDefinitions()) {
+            // In multi-version mode, 1.21.4+ targets ALWAYS need vanilla item definitions
+            // as a fallback for clients that cannot use legacy CMD predicates. Otherwise,
+            // honor the AppearanceMode toggle.
+            if (multiVersionResolved || AppearanceMode.shouldGenerateVanillaItemDefinitions()) {
                 boolean useSelect = AppearanceMode.shouldUseSelectForVanillaItemDefs();
                 boolean includeBothModes = AppearanceMode.shouldUseBothDispatchModes();
                 generateVanillaItemDefinitions(filterForPredicates(texturedItems), useSelect, includeBothModes);
             }
+        }
 
+        if (is1_21_4Plus) {
             // Multi-version mode ALWAYS needs predicates because older target clients (1.20-1.21.3)
             // cannot use item definitions and rely solely on legacy predicate model overrides.
             // Uses the resolved flag (not the raw setting) to respect single-pack fallback.
@@ -446,6 +464,7 @@ public class ResourcePack {
                 generatePredicates(filterForPredicates(texturedItems));
             }
         } else {
+            // On 1.21.3- servers, predicates are the primary (or only) item appearance system.
             generatePredicates(filterForPredicates(texturedItems));
         }
     }
@@ -524,7 +543,7 @@ public class ResourcePack {
             DuplicationHandler.mergeFontFiles(output);
         if (Settings.MERGE_ITEM_MODELS.toBool())
             DuplicationHandler.mergeBaseItemFiles(output);
-        DuplicationHandler.mergeVanillaItemDefinitions(output);
+        DuplicationHandler.mergeVanillaItemDefinitions(output, multiVersionResolved);
 
         List<String> excludedExtensions = Settings.EXCLUDED_FILE_EXTENSIONS.toStringList();
         excludedExtensions.removeIf(f -> f.equals("png") || f.equals("json"));
@@ -1029,14 +1048,35 @@ public class ResourcePack {
         // Generate the dedicated shift font (still useful for explicit font references)
         generateShiftFont(fontManager);
 
-        // Generate effect fonts for text effects
+        // Always generate effect fonts and animated glyphs. The earlier "skip on
+        // legacy single-pack servers" guard was a workaround for the pre-#1812
+        // shader generator emitting wrong GLSL versions; now that the generator
+        // emits per-target shaders correctly, BASE_ONLY mode produces valid
+        // 1.20-1.21.3 shaders for legacy single-pack servers, so the skip would
+        // silently disable text effects/animated glyphs there (regression vs master).
         generateEffectFonts();
 
         // Process animated glyph fonts
         boolean hasAnimatedGlyphs = processAnimatedGlyphs(fontManager);
 
         // Generate text shaders when needed (animated glyphs and/or text effects).
-        textShaderGenerator.maybeGenerateTextShaders(hasAnimatedGlyphs);
+        // In multi-version mode the choice depends on the *server* version:
+        //   - 1.21.4+ server: skip base shaders and only emit 1.21.4+ overlays so
+        //     1.21.3- clients never receive #version 330+ GLSL.
+        //   - 1.20-1.21.3 server: emit base shaders for the server's legacy format
+        //     AND 1.21.4+ overlays. Without the base emission, legacy clients on a
+        //     multi-version pack would silently lose animated glyph / text effect
+        //     rendering (the base format is the legacy one in that case).
+        boolean serverIs1214Plus = VersionUtil.atOrAbove("1.21.4");
+        TextShaderGenerator.ShaderEmissionMode emissionMode;
+        if (multiVersionResolved) {
+            emissionMode = serverIs1214Plus
+                    ? TextShaderGenerator.ShaderEmissionMode.OVERLAY_ONLY_1214_PLUS
+                    : TextShaderGenerator.ShaderEmissionMode.BASE_PLUS_1214_OVERLAYS;
+        } else {
+            emissionMode = TextShaderGenerator.ShaderEmissionMode.BASE_ONLY;
+        }
+        textShaderGenerator.maybeGenerateTextShaders(hasAnimatedGlyphs, emissionMode);
     }
 
     /**

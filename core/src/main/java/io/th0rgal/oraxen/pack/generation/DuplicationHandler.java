@@ -96,12 +96,17 @@ public class DuplicationHandler {
      * - {@code floats} are used by {@code minecraft:range_dispatch}
      * Oraxen primarily generates {@code minecraft:select} (strings) on 1.21.4+.
      */
-    public static void mergeVanillaItemDefinitions(List<VirtualFile> output) {
-        if (!VersionUtil.atOrAbove("1.21.4"))
+    public static void mergeVanillaItemDefinitions(List<VirtualFile> output, boolean multiVersionMode) {
+        boolean serverIs1214Plus = VersionUtil.atOrAbove("1.21.4");
+
+        // In multi-version mode, convert legacy predicates to modern item definitions
+        // even on 1.21.3 servers so that 1.21.4+ pack versions have assets/minecraft/items/*.json.
+        if (!serverIs1214Plus && !multiVersionMode)
             return;
 
-        // Only merge item definitions when we're generating CMD-based definitions
-        if (!AppearanceMode.shouldGenerateVanillaItemDefinitions())
+        // Only merge item definitions when we're generating CMD-based definitions,
+        // or when in multi-version mode where 1.21.4+ clients need them as a fallback.
+        if (!AppearanceMode.shouldGenerateVanillaItemDefinitions() && !multiVersionMode)
             return;
 
         // First, convert legacy predicate overrides from external packs to modern item
