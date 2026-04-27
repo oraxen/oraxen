@@ -625,6 +625,7 @@ public class ConfigsManager {
     }
 
     private void setConfiguredUnicodeRows(ConfigurationSection section, List<String> unicodeRows) {
+        if (unicodeRows.isEmpty()) return;
         boolean multiBitmap = unicodeRows.size() > 1 || unicodeRows.stream().anyMatch(row -> row.length() > 1);
         section.set("char", multiBitmap ? unicodeRows : unicodeRows.get(0));
     }
