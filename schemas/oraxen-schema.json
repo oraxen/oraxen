@@ -1,8 +1,8 @@
 {
-  "oraxenVersion": "1.212.1",
+  "oraxenVersion": "1.213.0",
   "minecraftVersion": "1.21.11",
   "serverVersion": "1.21.11-R0.1-SNAPSHOT",
-  "generatedAt": "2026-04-27T07:26:18.627600942Z",
+  "generatedAt": "2026-04-27T13:56:51.702044822Z",
   "enums": {
     "Material": {
       "values": [
@@ -7800,21 +7800,21 @@
           "type": "object",
           "description": "Directional block configuration",
           "properties": {
-            "y_block": {
+            "x_block": {
               "type": "string",
-              "description": "Y-axis variant ID"
-            },
-            "parent_block": {
-              "type": "string",
-              "description": "Parent block ID"
+              "description": "X-axis variant ID"
             },
             "z_block": {
               "type": "string",
               "description": "Z-axis variant ID"
             },
-            "x_block": {
+            "parent_block": {
               "type": "string",
-              "description": "X-axis variant ID"
+              "description": "Parent block ID"
+            },
+            "y_block": {
+              "type": "string",
+              "description": "Y-axis variant ID"
             }
           }
         },
@@ -7822,15 +7822,15 @@
           "type": "object",
           "description": "Farm block configuration",
           "properties": {
+            "dry_block": {
+              "type": "string",
+              "description": "Block ID when dried"
+            },
             "moisture": {
               "type": "integer",
               "description": "Moisture level",
               "default": 0,
               "min": 0
-            },
-            "dry_block": {
-              "type": "string",
-              "description": "Block ID when dried"
             }
           }
         },
@@ -7969,6 +7969,68 @@
           "type": "object",
           "description": "Display entity configuration",
           "properties": {
+            "brightness": {
+              "type": "object",
+              "description": "Light levels",
+              "properties": {
+                "sky": {
+                  "type": "integer",
+                  "description": "Sky light level",
+                  "default": 0,
+                  "min": 0,
+                  "max": 15
+                },
+                "block": {
+                  "type": "integer",
+                  "description": "Block light level",
+                  "default": 0,
+                  "min": 0,
+                  "max": 15
+                }
+              }
+            },
+            "scale": {
+              "type": "object",
+              "description": "Scale of the display entity",
+              "properties": {
+                "z": {
+                  "type": "number",
+                  "description": "Z-axis scale",
+                  "default": 1.0
+                },
+                "y": {
+                  "type": "number",
+                  "description": "Y-axis scale",
+                  "default": 1.0
+                },
+                "x": {
+                  "type": "number",
+                  "description": "X-axis scale",
+                  "default": 1.0
+                }
+              }
+            },
+            "translation": {
+              "type": "object",
+              "description": "Position offset in blocks",
+              "properties": {
+                "z": {
+                  "type": "number",
+                  "description": "Z-axis offset",
+                  "default": 0.0
+                },
+                "y": {
+                  "type": "number",
+                  "description": "Y-axis offset",
+                  "default": 0.0
+                },
+                "x": {
+                  "type": "number",
+                  "description": "X-axis offset",
+                  "default": 0.0
+                }
+              }
+            },
             "display_transform": {
               "type": "string",
               "description": "Display transform mode",
@@ -7983,68 +8045,6 @@
                 "GROUND",
                 "FIXED"
               ]
-            },
-            "translation": {
-              "type": "object",
-              "description": "Position offset in blocks",
-              "properties": {
-                "x": {
-                  "type": "number",
-                  "description": "X-axis offset",
-                  "default": 0.0
-                },
-                "y": {
-                  "type": "number",
-                  "description": "Y-axis offset",
-                  "default": 0.0
-                },
-                "z": {
-                  "type": "number",
-                  "description": "Z-axis offset",
-                  "default": 0.0
-                }
-              }
-            },
-            "scale": {
-              "type": "object",
-              "description": "Scale of the display entity",
-              "properties": {
-                "x": {
-                  "type": "number",
-                  "description": "X-axis scale",
-                  "default": 1.0
-                },
-                "y": {
-                  "type": "number",
-                  "description": "Y-axis scale",
-                  "default": 1.0
-                },
-                "z": {
-                  "type": "number",
-                  "description": "Z-axis scale",
-                  "default": 1.0
-                }
-              }
-            },
-            "brightness": {
-              "type": "object",
-              "description": "Light levels",
-              "properties": {
-                "block": {
-                  "type": "integer",
-                  "description": "Block light level",
-                  "default": 0,
-                  "min": 0,
-                  "max": 15
-                },
-                "sky": {
-                  "type": "integer",
-                  "description": "Sky light level",
-                  "default": 0,
-                  "min": 0,
-                  "max": 15
-                }
-              }
             }
           }
         },
@@ -8052,34 +8052,13 @@
           "type": "object",
           "description": "Armor stand-specific display configuration",
           "properties": {
-            "translation": {
-              "type": "object",
-              "description": "Position offset for armor stand furniture",
-              "properties": {
-                "x": {
-                  "type": "number",
-                  "description": "X-axis offset",
-                  "default": 0.0
-                },
-                "y": {
-                  "type": "number",
-                  "description": "Y-axis offset",
-                  "default": 0.0
-                },
-                "z": {
-                  "type": "number",
-                  "description": "Z-axis offset",
-                  "default": 0.0
-                }
-              }
-            },
             "scale": {
               "type": "object",
               "description": "Scale to inject into generated model display.head",
               "properties": {
-                "x": {
+                "z": {
                   "type": "number",
-                  "description": "X-axis scale",
+                  "description": "Z-axis scale",
                   "default": 1.0
                 },
                 "y": {
@@ -8087,10 +8066,31 @@
                   "description": "Y-axis scale",
                   "default": 1.0
                 },
+                "x": {
+                  "type": "number",
+                  "description": "X-axis scale",
+                  "default": 1.0
+                }
+              }
+            },
+            "translation": {
+              "type": "object",
+              "description": "Position offset for armor stand furniture",
+              "properties": {
                 "z": {
                   "type": "number",
-                  "description": "Z-axis scale",
-                  "default": 1.0
+                  "description": "Z-axis offset",
+                  "default": 0.0
+                },
+                "y": {
+                  "type": "number",
+                  "description": "Y-axis offset",
+                  "default": 0.0
+                },
+                "x": {
+                  "type": "number",
+                  "description": "X-axis offset",
+                  "default": 0.0
                 }
               }
             }
@@ -8115,6 +8115,17 @@
           "type": "object",
           "description": "Storage container configuration",
           "properties": {
+            "rows": {
+              "type": "integer",
+              "description": "Number of inventory rows",
+              "default": 1,
+              "min": 1,
+              "max": 6
+            },
+            "title": {
+              "type": "string",
+              "description": "Inventory title"
+            },
             "type": {
               "type": "string",
               "description": "Storage type",
@@ -8124,17 +8135,6 @@
                 "ENDERCHEST",
                 "DISPOSAL"
               ]
-            },
-            "title": {
-              "type": "string",
-              "description": "Inventory title"
-            },
-            "rows": {
-              "type": "integer",
-              "description": "Number of inventory rows",
-              "default": 1,
-              "min": 1,
-              "max": 6
             }
           }
         }
@@ -8320,25 +8320,25 @@
           "type": "object",
           "description": "Custom block sounds",
           "properties": {
-            "hit_sound": {
+            "break_sound": {
               "type": "string",
-              "description": "Sound when hit"
-            },
-            "fall_sound": {
-              "type": "string",
-              "description": "Sound when fallen on"
-            },
-            "place_sound": {
-              "type": "string",
-              "description": "Sound when placed"
+              "description": "Sound when broken"
             },
             "step_sound": {
               "type": "string",
               "description": "Sound when stepped on"
             },
-            "break_sound": {
+            "place_sound": {
               "type": "string",
-              "description": "Sound when broken"
+              "description": "Sound when placed"
+            },
+            "fall_sound": {
+              "type": "string",
+              "description": "Sound when fallen on"
+            },
+            "hit_sound": {
+              "type": "string",
+              "description": "Sound when hit"
             }
           }
         },
@@ -8764,12 +8764,9 @@
           "type": "object",
           "description": "Sapling growth configuration",
           "properties": {
-            "grow_chance": {
-              "type": "number",
-              "description": "Growth chance per check",
-              "default": 0.1,
-              "min": 0.0,
-              "max": 1.0
+            "grow_block": {
+              "type": "string",
+              "description": "Block ID when grown"
             },
             "min_light": {
               "type": "integer",
@@ -8778,9 +8775,12 @@
               "min": 0,
               "max": 15
             },
-            "grow_block": {
-              "type": "string",
-              "description": "Block ID when grown"
+            "grow_chance": {
+              "type": "number",
+              "description": "Growth chance per check",
+              "default": 0.1,
+              "min": 0.0,
+              "max": 1.0
             }
           }
         },

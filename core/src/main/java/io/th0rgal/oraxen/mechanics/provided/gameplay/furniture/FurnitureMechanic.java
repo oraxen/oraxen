@@ -920,19 +920,94 @@ public class FurnitureMechanic extends Mechanic {
         if (hasLimitedPlacing() && limitedPlacing.isRoof() && furnitureType == FurnitureType.DISPLAY_ENTITY)
             orientation = orientation - 180;
         List<BlockLocation> blockLocations = baseEntity.getPersistentDataContainer().getOrDefault(BARRIER_KEY, DataType.asList(BlockLocation.dataType), new ArrayList<>());
-        List<Location> barrierLocations = getLocations(orientation, rootLocation, blockLocations.isEmpty() ? getBarriers() : blockLocations);
+        List<BlockLocation> barriersToRemove = blockLocations.isEmpty() ? getBarriers() : blockLocations;
+        Location barrierRootLocation = BlockHelpers.toCenterBlockLocation(rootLocation);
+        List<Location> barrierLocations = getLocations(orientation, barrierRootLocation, barriersToRemove);
 
+        Set<Long> alreadyRemoved = new HashSet<>();
         for (Location location : barrierLocations) {
             Block block = location.getBlock();
             if (hasSeat) removeFurnitureSeat(location);
-            if (block.getType() != Material.BARRIER) continue;
-            if (!BlockHelpers.getPDC(block).getOrDefault(BASE_ENTITY_KEY, DataType.UUID, UUID.randomUUID()).equals(baseEntity.getUniqueId())) continue;
-
-            block.setType(Material.AIR);
-            new CustomBlockData(location.getBlock(), OraxenPlugin.get()).clear();
-            removeLight(block);
+            if (removeBarrierBlock(block, baseEntity))
+                alreadyRemoved.add(packBlockKey(block.getX(), block.getY(), block.getZ()));
         }
+        removeNearbyMarkedBarriers(baseEntity, barrierRootLocation, barrierLocations, alreadyRemoved);
         removeBaseEntity(baseEntity);
+    }
+
+    /**
+     * Fallback recovery for orphaned barriers tied to the same base entity.
+     * Scans only the AABB enclosing the *rotated* world-space barrier
+     * positions (not a cube around the root) and skips blocks whose chunks
+     * are unloaded so we never force chunk loading from a removal path.
+     * Coordinates already cleaned by the primary loop are skipped via
+     * {@code alreadyRemoved}.
+     * <p>
+     * Note: callers must pass the rotated {@code barrierLocations} list (as
+     * produced by {@link #getLocations}). Passing raw unrotated
+     * {@link BlockLocation} offsets would leave orphans on rotated
+     * non-symmetric furniture.
+     */
+    private void removeNearbyMarkedBarriers(Entity baseEntity, Location rootLocation,
+                                            List<Location> barrierLocations,
+                                            Set<Long> alreadyRemoved) {
+        if (barrierLocations.isEmpty()) return;
+        World world = rootLocation.getWorld();
+        if (world == null) return;
+
+        int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;
+        int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
+        for (Location loc : barrierLocations) {
+            int bx = loc.getBlockX();
+            int by = loc.getBlockY();
+            int bz = loc.getBlockZ();
+            minX = Math.min(minX, bx);
+            minY = Math.min(minY, by);
+            minZ = Math.min(minZ, bz);
+            maxX = Math.max(maxX, bx);
+            maxY = Math.max(maxY, by);
+            maxZ = Math.max(maxZ, bz);
+        }
+        // Pad by 1 to catch off-by-one rotations
+        minX -= 1;
+        minY -= 1;
+        minZ -= 1;
+        maxX += 1;
+        maxY += 1;
+        maxZ += 1;
+
+        for (int x = minX; x <= maxX; x++) {
+            for (int z = minZ; z <= maxZ; z++) {
+                if (!world.isChunkLoaded(x >> 4, z >> 4)) continue;
+                for (int y = minY; y <= maxY; y++) {
+                    if (!alreadyRemoved.add(packBlockKey(x, y, z))) continue;
+                    Block block = world.getBlockAt(x, y, z);
+                    // Only remove seats after barrier ownership has been verified by
+                    // removeBarrierBlock (returns true). Otherwise, a barrier in the
+                    // padded AABB belonging to a neighboring furniture would have its
+                    // seat deleted as collateral damage.
+                    Location barrierLoc = block.getLocation();
+                    if (removeBarrierBlock(block, baseEntity) && hasSeat) {
+                        removeFurnitureSeat(BlockHelpers.toCenterBlockLocation(barrierLoc));
+                    }
+                }
+            }
+        }
+    }
+
+    private static long packBlockKey(int x, int y, int z) {
+        return ((long) (x & 0x3FFFFFF) << 38) | ((long) (z & 0x3FFFFFF) << 12) | (y & 0xFFF);
+    }
+
+    private boolean removeBarrierBlock(Block block, Entity baseEntity) {
+        if (block.getType() != Material.BARRIER) return false;
+        UUID owner = BlockHelpers.getPDC(block).get(BASE_ENTITY_KEY, DataType.UUID);
+        if (owner == null || !owner.equals(baseEntity.getUniqueId())) return false;
+
+        block.setType(Material.AIR);
+        new CustomBlockData(block, OraxenPlugin.get()).clear();
+        removeLight(block);
+        return true;
     }
 
     public void removeNonSolidFurniture(Entity baseEntity) {
