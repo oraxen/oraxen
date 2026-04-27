@@ -466,7 +466,7 @@ public class Glyph {
      * Useful to easily get the MiniMessage-tag for a glyph
      */
     public String getGlyphTag() {
-        return '<' + "glyph;" + name + '>';
+        return "<glyph:" + name + '>';
     }
 
     public String getShortGlyphTag() {
@@ -475,7 +475,7 @@ public class Glyph {
 
     public Component getGlyphComponent() {
         return Component.textOfChildren(
-                Component.text(getCharacters(), NamedTextColor.WHITE)
+                Component.text(getFormattedUnicodes(), NamedTextColor.WHITE)
                         .font(getFont())
                         .hoverEvent(getGlyphHoverText()));
     }

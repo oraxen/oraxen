@@ -449,7 +449,7 @@ public class ConfigsManager {
         List<String> configuredUnicodes = getDefinedUnicodeRows(section);
 
         if (configuredUnicodes != null) {
-            return createConfiguredGlyph(key, section, configuredUnicodes, grid);
+            return createConfiguredGlyph(key, section, configuredUnicodes);
         } else if (grid.isMultiCell()) {
             return createGridGlyph(key, section, grid, ctx);
         } else {
@@ -458,9 +458,9 @@ public class ConfigsManager {
     }
 
     private GlyphParseResult createConfiguredGlyph(String key, ConfigurationSection section,
-            List<String> unicodeRows, GlyphGrid configuredGrid) {
+            List<String> unicodeRows) {
         boolean fileChanged = migrateLegacyUnicodeKeys(section, unicodeRows);
-        GlyphGrid effectiveGrid = configuredGrid.merge(GlyphGrid.fromUnicodeRows(unicodeRows));
+        GlyphGrid effectiveGrid = GlyphGrid.fromUnicodeRows(unicodeRows);
 
         Glyph glyph = new Glyph(key, section, unicodeRows, effectiveGrid);
         glyph.setFileChanged(fileChanged);
