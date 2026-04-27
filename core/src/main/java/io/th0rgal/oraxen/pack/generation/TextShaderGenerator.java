@@ -44,6 +44,7 @@ class TextShaderGenerator {
 
     private boolean textShadersGenerated = false;
     private boolean shaderOverlaysGenerated = false;
+    private boolean baseShadersSkipped = false;
     private TextShaderFeatures textShaderFeatures = null;
     private TextEffectSnippets textEffectSnippets = null;
     private TextShaderTarget textEffectSnippetsTarget = null;
@@ -69,6 +70,7 @@ class TextShaderGenerator {
     void reset() {
         textShadersGenerated = false;
         shaderOverlaysGenerated = false;
+        baseShadersSkipped = false;
         textShaderFeatures = null;
         textEffectSnippets = null;
         textEffectSnippetsTarget = null;
@@ -99,14 +101,45 @@ class TextShaderGenerator {
         return List.copyOf(generatedOverlays);
     }
 
+    /**
+     * Where text shaders should be emitted. Replaces the old
+     * {@code (boolean skipBaseShaders, int minOverlayPackFormat)} pair so
+     * callers cannot construct invalid combinations.
+     */
+    enum ShaderEmissionMode {
+        /** Single-pack: emit base shaders for the server's pack format. */
+        BASE_ONLY,
+        /** Multi-version on 1.21.4+ server: skip base shaders, emit only overlays >= 1.21.4. */
+        OVERLAY_ONLY_1214_PLUS,
+        /**
+         * Multi-version on a legacy (1.20-1.21.3) server: emit base shaders for the
+         * server's legacy format AND overlays >= 1.21.4 so newer clients matched to
+         * the 1.21.4+ overlay still get the modern GLSL variant. Without this, legacy
+         * clients on a multi-version pack would silently lose animated glyph and text
+         * effect rendering because base shaders would be skipped entirely.
+         */
+        BASE_PLUS_1214_OVERLAYS
+    }
+
     void maybeGenerateTextShaders(boolean hasAnimatedGlyphs) {
+        maybeGenerateTextShaders(hasAnimatedGlyphs, ShaderEmissionMode.BASE_ONLY);
+    }
+
+    void maybeGenerateTextShaders(boolean hasAnimatedGlyphs, ShaderEmissionMode mode) {
         if (textShadersGenerated) return;
 
         TextShaderFeatures features = resolveTextShaderFeatures(hasAnimatedGlyphs);
         if (!features.anyEnabled()) return;
 
+        boolean skipBaseShaders = mode == ShaderEmissionMode.OVERLAY_ONLY_1214_PLUS;
+        int minOverlayPackFormat = (mode == ShaderEmissionMode.OVERLAY_ONLY_1214_PLUS
+                || mode == ShaderEmissionMode.BASE_PLUS_1214_OVERLAYS)
+                ? TextShaderTarget.PACK_FORMAT_1_21_4
+                : 0;
+
+        this.baseShadersSkipped = skipBaseShaders;
         TextShaderTarget target = TextShaderTarget.current();
-        generateTextShaders(target, features);
+        generateTextShaders(target, features, skipBaseShaders, minOverlayPackFormat);
         textShaderFeatures = features;
         textShadersGenerated = true;
     }
@@ -123,6 +156,29 @@ class TextShaderGenerator {
                 if (!textShadersGenerated) {
                     ResourcePack.deleteFileFromVirtualAndDisk("assets/minecraft/shaders/core/", "rendertype_text.json");
                     ResourcePack.deleteFileFromVirtualAndDisk("assets/minecraft/shaders/core/", "rendertype_text.vsh");
+                }
+            } else if (baseShadersSkipped) {
+                // Base text shaders were skipped (multi-version mode); the combined text+scoreboard
+                // shader would leak 1.21.4+ format into 1.21.3- packs, but the standalone scoreboard
+                // shader uses #version 150 and is safe for all client versions.
+                ResourcePack.writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.json", getScoreboardJson());
+                ResourcePack.writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.vsh", getScoreboardVsh());
+                // Overlay shader files written by generateTextShadersForTarget() at
+                // overlay_*/assets/minecraft/shaders/core/rendertype_text.* are
+                // animation/effect-only and would otherwise hide the base scoreboard
+                // shader from clients matched to those overlays. Re-emit per-overlay
+                // combined (animation+scoreboard) shaders using each overlay's target,
+                // so 1.21.4+ clients keep both effects and scoreboard number hiding.
+                if (textShadersGenerated && textShaderFeatures != null && !generatedOverlays.isEmpty()) {
+                    for (ShaderOverlay overlay : generatedOverlays) {
+                        TextShaderTarget overlayTarget = TextShaderTarget.forVersion(overlay.representativeVersion());
+                        if (overlayTarget.isAtLeast("26")) continue; // 26+ uses pipeline metadata, not shader override
+                        String overlayShaderPath = overlay.directory() + "/assets/minecraft/shaders/core/";
+                        ResourcePack.writeStringToVirtual(overlayShaderPath, "rendertype_text.vsh",
+                                getCombinedVertexShader(overlayTarget, textShaderFeatures));
+                        ResourcePack.writeStringToVirtual(overlayShaderPath, "rendertype_text.json",
+                                getCombinedShaderJson(overlayTarget));
+                    }
                 }
             } else if (textShadersGenerated) {
                 boolean hasAnimatedGlyphs = !OraxenPlugin.get().getFontManager().getAnimatedGlyphs().isEmpty();
@@ -151,8 +207,12 @@ class TextShaderGenerator {
         if (Settings.HIDE_TABLIST_BACKGROUND.toBool() && VersionUtil.atOrAbove("1.21"))
             scoreTabBackground = scoreTabBackground.replace("//TABLIST.a", "vertexColor.a");
 
-        if (!scoreTabBackground.isEmpty())
+        if (!scoreTabBackground.isEmpty()) {
+            // rendertype_gui.vsh / position_color.fsh are version-independent GLSL 150 shaders
+            // unrelated to rendertype_text.*, so they are safe to write to the base pack path
+            // even when base text shaders are skipped in multi-version mode.
             ResourcePack.writeStringToVirtual("assets/minecraft/shaders/core/", fileName, scoreTabBackground);
+        }
     }
 
     // --- Internal methods ---
@@ -193,15 +253,27 @@ class TextShaderGenerator {
         return new TextShaderFeatures(includeAnimated, includeEffects);
     }
 
-    private void generateTextShaders(TextShaderTarget target, TextShaderFeatures features) {
+    private void generateTextShaders(TextShaderTarget target, TextShaderFeatures features, boolean skipBaseShaders, int minOverlayPackFormat) {
         ShaderOverlay serverOverlay = ShaderOverlay.forPackFormat(target.packFormat());
 
-        generateTextShadersForTarget(target, features, "");
+        if (!skipBaseShaders) {
+            generateTextShadersForTarget(target, features, "");
+        }
 
-        if (serverOverlay == null) return;
+        // Skip overlay emission entirely when the server's pack format does not
+        // belong to any ShaderOverlay bucket (pre-1.20.2, format < 18) and the
+        // caller did not explicitly opt into multi-version overlay output via
+        // minOverlayPackFormat. Without this guard, BASE_ONLY mode on a legacy
+        // server would emit 1.20.2+/1.21+ overlay shader trees and feed them to
+        // updatePackMcmetaOverlays, marking newer format ranges as supported on
+        // a pack that only contains legacy base assets.
+        if (serverOverlay == null && minOverlayPackFormat <= 0) {
+            return;
+        }
 
         for (ShaderOverlay overlay : ShaderOverlay.values()) {
-            if (overlay == serverOverlay) continue;
+            if (overlay.minFormat() < minOverlayPackFormat) continue;
+            if (overlay == serverOverlay && !skipBaseShaders) continue;
             TextShaderTarget overlayTarget = TextShaderTarget.forVersion(overlay.representativeVersion());
             generateTextShadersForTarget(overlayTarget, features, overlay.directory() + "/");
             generatedOverlays.add(overlay);
@@ -210,8 +282,13 @@ class TextShaderGenerator {
         if (!generatedOverlays.isEmpty()) {
             shaderOverlaysGenerated = true;
             if (Settings.DEBUG.toBool()) {
-                Logs.logSuccess("Generated shader overlays for " + generatedOverlays.size()
-                        + " additional format groups (" + serverOverlay.directory() + " is the base)");
+                String message = "Generated shader overlays for " + generatedOverlays.size() + " format groups";
+                if (serverOverlay != null && !skipBaseShaders) {
+                    message += " (" + serverOverlay.directory() + " is the base)";
+                } else if (serverOverlay != null && skipBaseShaders) {
+                    message += " (" + serverOverlay.directory() + " included as overlay)";
+                }
+                Logs.logSuccess(message);
             }
         }
     }
