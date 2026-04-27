@@ -14,7 +14,7 @@ repositories {
 dependencies {
     compileOnly(project(":core"))
     // Use Spigot-mapped jar from BuildTools (via mavenLocal)
-    compileOnly("org.spigotmc:spigot:1.21.11-R0.1-SNAPSHOT")
+    compileOnly("org.spigotmc:spigot:1.21.11-R0.2-SNAPSHOT")
 }
 
 tasks {
