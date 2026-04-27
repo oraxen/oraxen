@@ -341,7 +341,7 @@ public class FontManager {
         List<String> completions = getGlyphByPlaceholderMap().values().stream()
                 .filter(Glyph::hasTabCompletion)
                 .flatMap(glyph -> Settings.UNICODE_COMPLETIONS.toBool()
-                        ? Stream.of(glyph.getFormattedUnicodes())
+                        ? Stream.of(glyph.getCharacters())
                         : Arrays.stream(glyph.getPlaceholders()))
                 .distinct()
                 .toList();
