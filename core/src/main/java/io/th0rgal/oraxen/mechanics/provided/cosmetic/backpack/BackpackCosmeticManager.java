@@ -1,14 +1,14 @@
 package io.th0rgal.oraxen.mechanics.provided.cosmetic.backpack;
 
-import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.util.Vector;
 
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -120,6 +120,23 @@ public class BackpackCosmeticManager {
     }
 
     /**
+     * Re-send the backpack mount packet using the owner's current passengers.
+     * This keeps the fake backpack passenger from replacing real passengers added by
+     * other plugins, such as sitting/riding plugins.
+     */
+    public void resyncBackpackMount(Player owner) {
+        BackpackData data = activeBackpacks.get(owner.getUniqueId());
+        if (data == null) return;
+
+        for (UUID viewerId : data.getViewers()) {
+            Player viewer = Bukkit.getPlayer(viewerId);
+            if (viewer != null && viewer.isOnline()) {
+                sendBackpackMountPacket(viewer, owner, data);
+            }
+        }
+    }
+
+    /**
      * Handle player entering view range of another player
      */
     public void onPlayerEnterViewRange(Player viewer, Player backpackOwner) {
@@ -193,6 +210,8 @@ public class BackpackCosmeticManager {
                 Player viewer = Bukkit.getPlayer(viewerId);
                 return viewer == null || !viewer.isOnline();
             });
+
+            resyncBackpackMount(owner);
         }
     }
 
@@ -228,13 +247,28 @@ public class BackpackCosmeticManager {
             mechanic.isSmallArmorStand()
         );
 
-        // Mount the armor stand to the player for instant position following
-        NMSHandlers.getHandler().sendMountPacket(viewer, owner.getEntityId(), data.getEntityId());
+        // Mount the armor stand to the player for instant position following.
+        sendBackpackMountPacket(viewer, owner, data);
 
         // Send initial head rotation to face the right direction
         NMSHandlers.getHandler().sendEntityHeadRotation(viewer, data.getEntityId(), owner.getBodyYaw());
 
         // Debug: io.th0rgal.oraxen.utils.logs.Logs.logSuccess("[Backpack] Spawned and mounted armor stand for " + owner.getName());
+    }
+
+    private void sendBackpackMountPacket(Player viewer, Player owner, BackpackData data) {
+        int[] passengerIds = getMergedPassengerIds(owner, data.getEntityId());
+        NMSHandlers.getHandler().sendMountPacket(viewer, owner.getEntityId(), passengerIds);
+    }
+
+    private int[] getMergedPassengerIds(Player owner, int backpackEntityId) {
+        Set<Integer> passengerIds = new LinkedHashSet<>();
+        for (Entity passenger : owner.getPassengers()) {
+            passengerIds.add(passenger.getEntityId());
+        }
+        passengerIds.add(backpackEntityId);
+
+        return passengerIds.stream().mapToInt(Integer::intValue).toArray();
     }
 
     private void destroyBackpackForViewers(BackpackData data) {
