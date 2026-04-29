@@ -295,9 +295,8 @@ public class FurnitureMechanic extends Mechanic {
                 FurnitureHitbox parsedHitbox = parseHitbox(hitboxObject);
                 if (parsedHitbox != null) parsedHitboxes.add(parsedHitbox);
             }
+            return List.copyOf(parsedHitboxes);
         }
-
-        if (hasHitboxesSection) return List.copyOf(parsedHitboxes);
 
         ConfigurationSection hitboxSection = section.getConfigurationSection("hitbox");
         if (hitboxSection != null) {
