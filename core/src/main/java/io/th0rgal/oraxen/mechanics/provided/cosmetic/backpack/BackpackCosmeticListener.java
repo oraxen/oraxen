@@ -8,14 +8,15 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDismountEvent;
+import org.bukkit.event.entity.EntityMountEvent;
+import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.event.entity.EntityPickupItemEvent;
 
 /**
  * Listener for backpack cosmetic mechanics.
@@ -112,6 +113,27 @@ public class BackpackCosmeticListener implements Listener {
         if (distSq > POSITION_THRESHOLD * POSITION_THRESHOLD || yawDiff > YAW_THRESHOLD) {
             manager.updateBackpackPosition(player);
         }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onEntityMount(EntityMountEvent event) {
+        if (!(event.getMount() instanceof Player player)) return;
+        if (!manager.hasBackpack(player)) return;
+
+        scheduleBackpackMountResync(player);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onEntityDismount(EntityDismountEvent event) {
+        if (!(event.getDismounted() instanceof Player player)) return;
+        if (!manager.hasBackpack(player)) return;
+
+        scheduleBackpackMountResync(player);
+    }
+
+    private void scheduleBackpackMountResync(Player player) {
+        SchedulerUtil.runTaskLater(1L, () -> manager.resyncBackpackMount(player));
+        SchedulerUtil.runTaskLater(2L, () -> manager.resyncBackpackMount(player));
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
