@@ -65,9 +65,9 @@ public class ItemParser {
         if (section.isString("template"))
             templateItem = ItemTemplate.getParserTemplate(section.getString("template"));
 
-        final ConfigurationSection crucibleSection = section.getConfigurationSection("crucible");
-        final ConfigurationSection mmoSection = section.getConfigurationSection("mmoitem");
-        final ConfigurationSection ecoItemSection = section.getConfigurationSection("ecoitem");
+        final ConfigurationSection crucibleSection = OraxenYaml.getConfigurationSection(section, "crucible");
+        final ConfigurationSection mmoSection = OraxenYaml.getConfigurationSection(section, "mmoitem");
+        final ConfigurationSection ecoItemSection = OraxenYaml.getConfigurationSection(section, "ecoitem");
         if (crucibleSection != null)
             crucibleItem = new WrappedCrucibleItem(crucibleSection);
         else if (section.isString("crucible_id"))
@@ -79,14 +79,14 @@ public class ItemParser {
         else if (mmoSection != null)
             mmoItem = new WrappedMMOItem(mmoSection);
 
-        Material material = Material.getMaterial(section.getString("material", ""));
+        Material material = OraxenYaml.getMaterial(section.getString("material", ""));
         if (material == null)
             material = usesTemplate() ? templateItem.type : Material.PAPER;
         type = material;
 
         oraxenMeta = templateItem != null ? templateItem.oraxenMeta : new OraxenMeta();
-        if (section.isConfigurationSection("Pack")) {
-            final ConfigurationSection packSection = section.getConfigurationSection("Pack");
+        if (OraxenYaml.isConfigurationSection(section, "Pack")) {
+            final ConfigurationSection packSection = OraxenYaml.getConfigurationSection(section, "Pack");
             oraxenMeta.setPackInfos(packSection);
             assert packSection != null;
             if (packSection.isInt("custom_model_data"))
@@ -179,7 +179,7 @@ public class ItemParser {
         else if (section.contains("displayname"))
             item.setItemName(section.getString("displayname"));
 
-        final ConfigurationSection components = section.getConfigurationSection("Components");
+        final ConfigurationSection components = OraxenYaml.getConfigurationSection(section, "Components");
         if (components == null || !VersionUtil.atOrAbove("1.20.5"))
             return;
 
@@ -203,16 +203,16 @@ public class ItemParser {
 
     private void handleLegacyComponents(final ItemBuilder item, final ConfigurationSection components) {
 
-        if (components.contains("durability")) {
+        if (OraxenYaml.contains(components, "durability")) {
             item.setDamagedOnBlockBreak(components.getBoolean("durability.damage_block_break"));
             item.setDamagedOnEntityHit(components.getBoolean("durability.damage_entity_hit"));
             item.setDurability(Math.max(components.getInt("durability.value"), components.getInt("durability", 1)));
         }
-        if (components.contains("fire_resistant"))
+        if (OraxenYaml.contains(components, "fire_resistant"))
             item.setFireResistant(components.getBoolean("fire_resistant"));
-        if (components.contains("hide_tooltip"))
+        if (OraxenYaml.contains(components, "hide_tooltip"))
             item.setHideToolTip(components.getBoolean("hide_tooltip"));
-        if (components.contains("max_stack_size"))
+        if (OraxenYaml.contains(components, "max_stack_size"))
             item.setMaxStackSize(components.getInt("max_stack_size"));
 
         final NMSHandler nmsHandler = NMSHandlers.getHandler();
@@ -222,17 +222,17 @@ public class ItemParser {
                 Logs.logError("Item parsing: " + (section != null ? section.getName() : "unknown section"));
             }
         } else {
-            Optional.ofNullable(components.getConfigurationSection("food"))
+            Optional.ofNullable(OraxenYaml.getConfigurationSection(components, "food"))
                     .ifPresent(food -> nmsHandler.foodComponent(item, food));
         }
 
-        Optional.ofNullable(components.getConfigurationSection("tool"))
+        Optional.ofNullable(OraxenYaml.getConfigurationSection(components, "tool"))
                 .ifPresent(toolSection -> parseToolComponent(item, toolSection));
 
         if (!VersionUtil.atOrAbove("1.21"))
             return;
 
-        final ConfigurationSection jukeboxSection = components.getConfigurationSection("jukebox_playable");
+        final ConfigurationSection jukeboxSection = OraxenYaml.getConfigurationSection(components, "jukebox_playable");
         if (jukeboxSection != null && VersionUtil.isPaperServer()) {
             try {
                 final JukeboxPlayableComponent jukeboxPlayable = new ItemStack(Material.MUSIC_DISC_CREATOR)
@@ -266,10 +266,10 @@ public class ItemParser {
 
         if (!VersionUtil.atOrAbove("1.21.2"))
             return;
-        Optional.ofNullable(components.getConfigurationSection("equippable"))
+        Optional.ofNullable(OraxenYaml.getConfigurationSection(components, "equippable"))
                 .ifPresent(equippable -> parseEquippableComponent(item, equippable));
 
-        Optional.ofNullable(components.getConfigurationSection("use_cooldown")).ifPresent((cooldownSection) -> {
+        Optional.ofNullable(OraxenYaml.getConfigurationSection(components, "use_cooldown")).ifPresent((cooldownSection) -> {
             try {
                 final UseCooldownComponent useCooldownComponent = new ItemStack(Material.PAPER).getItemMeta()
                         .getUseCooldown();
@@ -287,7 +287,7 @@ public class ItemParser {
             }
         });
 
-        Optional.ofNullable(components.getConfigurationSection("use_remainder"))
+        Optional.ofNullable(OraxenYaml.getConfigurationSection(components, "use_remainder"))
                 .ifPresent(useRemainder -> parseUseRemainderComponent(item, useRemainder));
 
         Optional.ofNullable(components.getString("tooltip_style")).map(NamespacedKey::fromString)
@@ -296,25 +296,26 @@ public class ItemParser {
                 .ifPresent(item::setItemModel);
 
         if (nmsHandler != null) {
-            Optional.ofNullable(components.getConfigurationSection("consumable"))
+            Optional.ofNullable(OraxenYaml.getConfigurationSection(components, "consumable"))
                     .ifPresent(consumableSection -> nmsHandler.consumableComponent(item, consumableSection));
         }
     }
 
     private boolean isLegacyComponent(final String key) {
-        return key.equals("durability") ||
-                key.equals("fire_resistant") ||
-                key.equals("hide_tooltip") ||
-                key.equals("max_stack_size") ||
-                key.equals("food") ||
-                key.equals("tool") ||
-                key.equals("jukebox_playable") ||
-                key.equals("equippable") ||
-                key.equals("use_cooldown") ||
-                key.equals("use_remainder") ||
-                key.equals("tooltip_style") ||
-                key.equals("item_model") ||
-                key.equals("consumable");
+        final String normalizedKey = key.toLowerCase(Locale.ROOT);
+        return normalizedKey.equals("durability") ||
+                normalizedKey.equals("fire_resistant") ||
+                normalizedKey.equals("hide_tooltip") ||
+                normalizedKey.equals("max_stack_size") ||
+                normalizedKey.equals("food") ||
+                normalizedKey.equals("tool") ||
+                normalizedKey.equals("jukebox_playable") ||
+                normalizedKey.equals("equippable") ||
+                normalizedKey.equals("use_cooldown") ||
+                normalizedKey.equals("use_remainder") ||
+                normalizedKey.equals("tooltip_style") ||
+                normalizedKey.equals("item_model") ||
+                normalizedKey.equals("consumable");
     }
 
     private void parseUseRemainderComponent(final ItemBuilder item,
@@ -333,7 +334,7 @@ public class ItemParser {
         else if (useRemainderSection.contains("ecoitem_id"))
             result = new WrappedEcoItem(useRemainderSection.getString("ecoitem_id")).build();
         else if (useRemainderSection.contains("minecraft_type")) {
-            final Material material = Material.getMaterial(useRemainderSection.getString("minecraft_type", "AIR"));
+            final Material material = OraxenYaml.getMaterial(useRemainderSection.getString("minecraft_type", "AIR"));
             if (material == null || material.isAir())
                 return;
             result = new ItemStack(material);
@@ -359,7 +360,9 @@ public class ItemParser {
 
             if (ruleEntry.containsKey("material")) {
                 try {
-                    final Material material = Material.valueOf(String.valueOf(ruleEntry.get("material")));
+                    final Material material = OraxenYaml.getMaterial(String.valueOf(ruleEntry.get("material")));
+                    if (material == null)
+                        throw new IllegalArgumentException("Unknown material");
                     if (material.isBlock())
                         materials.add(material);
                 } catch (final Exception e) {
@@ -373,7 +376,9 @@ public class ItemParser {
                 try {
                     final List<String> materialIds = (List<String>) ruleEntry.get("materials");
                     for (final String materialId : materialIds) {
-                        final Material material = Material.valueOf(materialId);
+                        final Material material = OraxenYaml.getMaterial(materialId);
+                        if (material == null)
+                            throw new IllegalArgumentException("Unknown material");
                         if (material.isBlock())
                             materials.add(material);
                     }
@@ -479,10 +484,10 @@ public class ItemParser {
     private void applyArmorStandModelProperties(ConfigurationSection section) {
         oraxenMeta.setArmorStandHeadScale(null);
 
-        ConfigurationSection mechanicsSection = section.getConfigurationSection("Mechanics");
+        ConfigurationSection mechanicsSection = OraxenYaml.getConfigurationSection(section, "Mechanics");
         if (mechanicsSection == null) return;
 
-        ConfigurationSection furnitureSection = mechanicsSection.getConfigurationSection("furniture");
+        ConfigurationSection furnitureSection = OraxenYaml.getConfigurationSection(mechanicsSection, "furniture");
         if (furnitureSection == null) return;
 
         FurnitureMechanic.FurnitureType furnitureType = furnitureSection.isSet("type")
@@ -490,9 +495,9 @@ public class ItemParser {
                 : FurnitureFactory.defaultFurnitureType;
         if (furnitureType != FurnitureMechanic.FurnitureType.ARMOR_STAND) return;
 
-        ConfigurationSection armorStandSection = furnitureSection.getConfigurationSection("armor_stand_properties");
+        ConfigurationSection armorStandSection = OraxenYaml.getConfigurationSection(furnitureSection, "armor_stand_properties");
         if (armorStandSection == null)
-            armorStandSection = furnitureSection.getConfigurationSection("display_entity_properties");
+            armorStandSection = OraxenYaml.getConfigurationSection(furnitureSection, "display_entity_properties");
         if (armorStandSection == null) return;
 
         ArmorStandProperties properties = new ArmorStandProperties(armorStandSection);
@@ -549,7 +554,7 @@ public class ItemParser {
         parseAttributeModifiers(item, section);
 
         if (section.contains("Enchantments")) {
-            final ConfigurationSection enchantSection = section.getConfigurationSection("Enchantments");
+            final ConfigurationSection enchantSection = OraxenYaml.getConfigurationSection(section, "Enchantments");
             if (enchantSection == null)
                 return;
             for (final String enchant : enchantSection.getKeys(false)) {
@@ -603,14 +608,14 @@ public class ItemParser {
     @SuppressWarnings("unchecked")
     private void parseAttributeModifiers(final ItemBuilder item, final ConfigurationSection section) {
         // Try modern ConfigurationSection format first (requires 1.20.5+ for EquipmentSlotGroup)
-        final ConfigurationSection attrSection = section.getConfigurationSection("AttributeModifiers");
+        final ConfigurationSection attrSection = OraxenYaml.getConfigurationSection(section, "AttributeModifiers");
         if (attrSection != null) {
             if (!VersionUtil.atOrAbove("1.20.5")) {
                 Logs.logWarning("Modern AttributeModifiers config format requires server 1.20.5+, skipping for item: " + section.getName());
                 return;
             }
             for (final String key : attrSection.getKeys(false)) {
-                final ConfigurationSection modifierSection = attrSection.getConfigurationSection(key);
+                final ConfigurationSection modifierSection = OraxenYaml.getConfigurationSection(attrSection, key);
                 if (modifierSection == null) continue;
                 try {
                     final AttributeModifierEntry entry =
@@ -663,7 +668,7 @@ public class ItemParser {
 
     private void applyMechanics(ItemBuilder item) {
         final ConfigurationSection merged = mergeWithTemplateSection();
-        final ConfigurationSection mechanicsSection = merged.getConfigurationSection("Mechanics");
+        final ConfigurationSection mechanicsSection = OraxenYaml.getConfigurationSection(merged, "Mechanics");
         if (mechanicsSection == null)
             return;
 
@@ -672,7 +677,7 @@ public class ItemParser {
             if (factory == null)
                 continue;
 
-            final ConfigurationSection mechanicSection = mechanicsSection.getConfigurationSection(mechanicID);
+            final ConfigurationSection mechanicSection = OraxenYaml.getConfigurationSection(mechanicsSection, mechanicID);
             if (mechanicSection == null)
                 continue;
 
@@ -778,7 +783,7 @@ public class ItemParser {
         configUpdated = true;
 
         if (!Settings.DISABLE_AUTOMATIC_MODEL_DATA.toBool()) {
-            Optional.ofNullable(section.getConfigurationSection("Pack"))
+            Optional.ofNullable(OraxenYaml.getConfigurationSection(section, "Pack"))
                     .ifPresent(c -> c.set("custom_model_data", customModelData));
         }
         return customModelData;

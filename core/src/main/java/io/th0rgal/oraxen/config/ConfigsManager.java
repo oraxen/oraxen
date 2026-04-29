@@ -598,8 +598,8 @@ public class ConfigsManager {
                 ConfigurationSection itemSection = configuration.getConfigurationSection(key);
                 if (itemSection == null)
                     continue;
-                ConfigurationSection packSection = itemSection.getConfigurationSection("Pack");
-                Material material = Material.getMaterial(itemSection.getString("material", ""));
+                ConfigurationSection packSection = OraxenYaml.getConfigurationSection(itemSection, "Pack");
+                Material material = OraxenYaml.getMaterial(itemSection.getString("material", ""));
                 if (packSection == null || material == null)
                     continue;
                 int modelData = packSection.getInt("custom_model_data", -1);

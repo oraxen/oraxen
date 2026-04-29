@@ -109,8 +109,9 @@ public class OraxenItems {
                     if (foodComponent == null)
                         continue;
 
-                    ConfigurationSection section = OraxenYaml.loadConfiguration(entry.getKey())
-                            .getConfigurationSection(itemId + ".Components.food.replacement");
+                    ConfigurationSection section = OraxenYaml.getConfigurationSection(
+                            OraxenYaml.loadConfiguration(entry.getKey()),
+                            itemId + ".Components.food.replacement");
                     ItemStack replacementItem = parseFoodComponentReplacement(section);
                     // foodComponent.setUsingConvertsTo(replacementItem);
                     itemBuilder.setFoodComponent(foodComponent).regen();
@@ -125,7 +126,7 @@ public class OraxenItems {
 
         ItemStack replacementItem;
         if (section.isString("minecraft_type")) {
-            Material material = Material.getMaterial(Objects.requireNonNull(section.getString("minecraft_type")));
+            Material material = OraxenYaml.getMaterial(Objects.requireNonNull(section.getString("minecraft_type")));
             if (material == null) {
                 Message.INVALID_MATERIAL.log(AdventureUtils.tagResolver("item", section.getString("minecraft_type")));
                 replacementItem = null;

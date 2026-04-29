@@ -44,6 +44,7 @@ import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanicFactor
 import io.th0rgal.oraxen.mechanics.provided.misc.misc.MiscMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.music_disc.MusicDiscMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.soulbound.SoulBoundMechanicFactory;
+import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -169,7 +170,7 @@ public class MechanicsManager {
         final Entry<File, YamlConfiguration> mechanicsEntry = OraxenPlugin.get().getResourceManager().getMechanicsEntry();
         final YamlConfiguration mechanicsConfig = mechanicsEntry.getValue();
         final boolean updated = false;
-        ConfigurationSection factorySection = mechanicsConfig.getConfigurationSection(mechanicId);
+        ConfigurationSection factorySection = OraxenYaml.getConfigurationSection(mechanicsConfig, mechanicId);
         if (factorySection != null && factorySection.getBoolean("enabled"))
             FACTORIES_BY_MECHANIC_ID.put(mechanicId, constructor.create(factorySection));
 
@@ -237,11 +238,19 @@ public class MechanicsManager {
     }
 
     public static boolean isMechanicEnabled(String mechanicId) {
-        return FACTORIES_BY_MECHANIC_ID.containsKey(mechanicId);
+        return getMechanicFactory(mechanicId) != null;
     }
 
     public static MechanicFactory getMechanicFactory(final String mechanicID) {
-        return FACTORIES_BY_MECHANIC_ID.get(mechanicID);
+        MechanicFactory factory = FACTORIES_BY_MECHANIC_ID.get(mechanicID);
+        if (factory != null)
+            return factory;
+
+        for (Entry<String, MechanicFactory> entry : FACTORIES_BY_MECHANIC_ID.entrySet()) {
+            if (entry.getKey().equalsIgnoreCase(mechanicID))
+                return entry.getValue();
+        }
+        return null;
     }
 
     /**

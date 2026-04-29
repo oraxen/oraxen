@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.compatibilities.provided.ecoitems.WrappedEcoItem;
 import io.th0rgal.oraxen.compatibilities.provided.executableitems.WrappedExecutableItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
 import io.th0rgal.oraxen.items.ItemUpdater;
+import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.Indyuce.mmoitems.MMOItems;
@@ -79,7 +80,7 @@ public class Loot {
         } else if (executableItemId != null) {
             itemStack = new WrappedExecutableItem(executableItemId).build();
         } else if (minecraftType != null) {
-            Material material = Material.getMaterial(minecraftType);
+            Material material = OraxenYaml.getMaterial(minecraftType);
             itemStack = material != null ? new ItemStack(material) : null;
         } else if (config.containsKey("minecraft_item")) {
             itemStack = (ItemStack) config.get("minecraft_item");
