@@ -687,10 +687,11 @@ public class FurnitureMechanic extends Mechanic {
         } else if (entity instanceof ItemDisplay itemDisplay) {
             setItemDisplayData(itemDisplay, item, yaw, displayEntityProperties, facing);
             FurnitureHitbox displayHitbox = hasHitbox() ? hitbox : new FurnitureHitbox(displayEntityProperties.getDisplayWidth(), displayEntityProperties.getDisplayHeight());
-            float height = displayHitbox.height;
+            List<FurnitureHitbox> displayHitboxes = hasHitbox() ? hitboxes : List.of(displayHitbox);
+            float height = getTallestHitboxHeight(displayHitboxes);
             boolean isFixed = displayEntityProperties.getDisplayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
             Location interactionLoc = location.clone().subtract(0, (hasLimitedPlacing() && limitedPlacing.isRoof() && isFixed) ? 1.5 * (height - 1) : 0, 0);
-            List<Interaction> interactions = spawnInteractionEntities(itemDisplay, interactionLoc, yaw, hasHitbox() ? hitboxes : List.of(displayHitbox));
+            List<Interaction> interactions = spawnInteractionEntities(itemDisplay, interactionLoc, yaw, displayHitboxes);
             Interaction interaction = interactions.isEmpty() ? null : interactions.get(0);
             Location barrierLoc = EntityUtils.isNone(itemDisplay) && displayEntityProperties.hasScale()
                             ? location.clone().subtract(0, 0.5 * displayEntityProperties.getScale().y(), 0) : location;
@@ -746,6 +747,12 @@ public class FurnitureMechanic extends Mechanic {
         entity.getPersistentDataContainer().set(INTERACTION_KEY, DataType.UUID, interactionUuids.get(0));
         entity.getPersistentDataContainer().set(INTERACTIONS_KEY, DataType.asList(DataType.UUID), interactionUuids);
         return interactions;
+    }
+
+    private static float getTallestHitboxHeight(List<FurnitureHitbox> hitboxes) {
+        float height = 0;
+        for (FurnitureHitbox hitbox : hitboxes) height = Math.max(height, hitbox.height);
+        return height;
     }
 
     private Interaction spawnInteractionEntity(Entity entity, Location location, float yaw, FurnitureHitbox hitbox) {

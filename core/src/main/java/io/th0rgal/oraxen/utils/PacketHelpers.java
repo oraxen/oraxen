@@ -16,7 +16,12 @@ public class PacketHelpers {
     }
 
     public static String translateJson(String json) {
-        return toJson(readJson(json));
+        if (json == null) return null;
+        try {
+            return toJson(readJson(json));
+        } catch (RuntimeException exception) {
+            return json;
+        }
     }
 
     public static Component translateTitle(Component component) {
