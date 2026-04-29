@@ -83,6 +83,8 @@ public abstract class BreakerSystem {
         cancel.run();
 
         if (finishedDigging) {
+            stopBlockBreaker(location);
+            stopBlockHitSound(location);
             SchedulerUtil.runForEntity(player, () -> player.sendBlockChange(location, block.getBlockData()));
             return;
         }

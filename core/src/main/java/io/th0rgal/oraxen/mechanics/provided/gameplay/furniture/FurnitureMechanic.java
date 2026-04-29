@@ -644,7 +644,7 @@ public class FurnitureMechanic extends Mechanic {
         // Since roof-furniture need to be more or less flipped, we have to add 0.5 (0.49 or it is "inside" the block above) to the Y coordinate
         if (isFixed && isWall && facing.getModY() == 0) correctedLocation.add(-facing.getModX() * (0.49 * scale), 0, -facing.getModZ() * (0.49 * scale));
 
-        float hitboxOffset = (hasHitbox() ? hitbox.height : 1) - 1;
+        float hitboxOffset = (hasHitbox() ? getTallestHitboxHeight(hitboxes) : 1) - 1;
         double yCorrection = ((isRoof && facing == BlockFace.DOWN) ? isFixed ? 0.49 : -1 * hitboxOffset : 0);
 
         return correctedLocation.add(0, yCorrection, 0);
@@ -679,7 +679,6 @@ public class FurnitureMechanic extends Mechanic {
                 Block block = location.getBlock();
                 if (hasSeat() && interaction != null) {
                     UUID seatUuid = spawnSeat(block, hasSeatYaw ? seatYaw : FurnitureMechanic.getFurnitureYaw(frame));
-                    interactions.forEach(i -> i.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid));
                     frame.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
                 }
                 createInitialLight(block, entity);
@@ -700,7 +699,6 @@ public class FurnitureMechanic extends Mechanic {
             else {
                 if (hasSeat() && interaction != null) {
                     UUID seatUuid = spawnSeat(location.getBlock(), hasSeatYaw ? seatYaw : yaw);
-                    interactions.forEach(i -> i.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid));
                     itemDisplay.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
                 }
                 createInitialLight(location.getBlock(), entity);
@@ -716,7 +714,6 @@ public class FurnitureMechanic extends Mechanic {
                 Block block = location.getBlock();
                 if (hasSeat()) {
                     UUID seatUuid = spawnSeat(block, hasSeatYaw ? seatYaw : yaw);
-                    interactions.forEach(i -> i.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid));
                     armorStand.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
                 }
                 createInitialLight(block, entity);
@@ -738,7 +735,7 @@ public class FurnitureMechanic extends Mechanic {
 
         PersistentDataContainer pdc = entity.getPersistentDataContainer();
         List<UUID> existingInteractionUuids = pdc.getOrDefault(INTERACTIONS_KEY, DataType.asList(DataType.UUID), List.of());
-        if (!existingInteractionUuids.isEmpty()) return getInteractionEntities(entity);
+        if (!existingInteractionUuids.isEmpty() || pdc.has(INTERACTION_KEY, DataType.UUID)) return getInteractionEntities(entity);
 
         List<Interaction> interactions = new ArrayList<>();
         List<UUID> interactionUuids = new ArrayList<>();

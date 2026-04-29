@@ -111,20 +111,24 @@ public class CustomBlockMiningListener implements Listener {
                 mechanic = mechanic.getDirectional().getParentMechanic();
                 if (mechanic == null) return null;
             }
-            return mechanic.hasHardness() ? new MiningProfile(mechanic.getHardness(), mechanic.getDrop()) : null;
+            return mechanic.hasHardness() ? new MiningProfile(mechanic.getHardness(), getDropOrEmpty(mechanic.getDrop())) : null;
         }
 
         if (block.getType() == Material.TRIPWIRE) {
             final StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
-            return mechanic != null && mechanic.hasHardness() ? new MiningProfile(mechanic.getHardness(), mechanic.getDrop()) : null;
+            return mechanic != null && mechanic.hasHardness() ? new MiningProfile(mechanic.getHardness(), getDropOrEmpty(mechanic.getDrop())) : null;
         }
 
         if (block.getType() == Material.CHORUS_PLANT) {
             final ChorusBlockMechanic mechanic = OraxenBlocks.getChorusMechanic(block);
-            return mechanic != null && mechanic.hasHardness() ? new MiningProfile(mechanic.getHardness(), mechanic.getDrop()) : null;
+            return mechanic != null && mechanic.hasHardness() ? new MiningProfile(mechanic.getHardness(), getDropOrEmpty(mechanic.getDrop())) : null;
         }
 
         return null;
+    }
+
+    private Drop getDropOrEmpty(final Drop drop) {
+        return drop != null ? drop : Drop.emptyDrop();
     }
 
     @Nullable

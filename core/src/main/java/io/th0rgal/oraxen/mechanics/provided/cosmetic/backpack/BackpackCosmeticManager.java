@@ -188,13 +188,10 @@ public class BackpackCosmeticManager {
             BackpackData data = entry.getValue();
             BackpackCosmeticMechanic mechanic = data.getMechanic();
             int viewDistance = mechanic.getViewDistance();
-            boolean viewersChanged = false;
-
             // Also ensure owner can see their own backpack if enabled
             if (mechanic.isVisibleToSelf() && !data.getViewers().contains(owner.getUniqueId())) {
                 spawnBackpackForViewer(owner, owner, data);
                 data.addViewer(owner.getUniqueId());
-                viewersChanged = true;
             }
 
             // Find new viewers
@@ -207,21 +204,17 @@ public class BackpackCosmeticManager {
                 if (inRange && !isViewer) {
                     spawnBackpackForViewer(potentialViewer, owner, data);
                     data.addViewer(potentialViewer.getUniqueId());
-                    viewersChanged = true;
                 } else if (!inRange && isViewer) {
                     data.getViewers().remove(potentialViewer.getUniqueId());
                     NMSHandlers.getHandler().sendEntityDestroy(potentialViewer, data.getEntityId());
-                    viewersChanged = true;
                 }
             }
 
             // Remove offline viewers
-            viewersChanged |= data.getViewers().removeIf(viewerId -> {
+            data.getViewers().removeIf(viewerId -> {
                 Player viewer = Bukkit.getPlayer(viewerId);
                 return viewer == null || !viewer.isOnline();
             });
-
-            if (viewersChanged) resyncBackpackMount(owner);
         }
     }
 

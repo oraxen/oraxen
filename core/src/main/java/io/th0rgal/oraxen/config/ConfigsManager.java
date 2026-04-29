@@ -288,17 +288,18 @@ public class ConfigsManager {
             }
 
             YamlConfiguration configuration = OraxenYaml.loadConfiguration(file);
-            boolean fileChanged = parseAllGlyphsFromFile(configuration, output, ctx);
-            saveConfigIfChanged(file, configuration, fileChanged);
+            GlyphFileParseResult result = parseAllGlyphsFromFile(configuration, output, ctx);
+            saveConfigIfChanged(file, configuration, result.fileChanged, result.forceSave);
         }
     }
 
     /**
      * Parses all glyph types from a single file.
      */
-    private boolean parseAllGlyphsFromFile(YamlConfiguration configuration, GlyphParseOutput output,
+    private GlyphFileParseResult parseAllGlyphsFromFile(YamlConfiguration configuration, GlyphParseOutput output,
             GlyphParseContext ctx) {
         boolean fileChanged = false;
+        boolean forceSave = false;
 
         for (String key : configuration.getKeys(false)) {
             ConfigurationSection glyphSection = configuration.getConfigurationSection(key);
@@ -334,9 +335,11 @@ public class ConfigsManager {
 
             if (result.fileChanged)
                 fileChanged = true;
+            if (result.forceSave)
+                forceSave = true;
         }
 
-        return fileChanged;
+        return new GlyphFileParseResult(fileChanged, forceSave);
     }
 
     public Collection<Glyph> parseGlyphConfigs() {
@@ -406,18 +409,20 @@ public class ConfigsManager {
     private void parseGlyphFiles(List<File> glyphFiles, List<Glyph> output, GlyphParseContext ctx) {
         for (File file : glyphFiles) {
             YamlConfiguration configuration = OraxenYaml.loadConfiguration(file);
-            boolean fileChanged = parseGlyphsFromFile(configuration, output, ctx);
-            saveConfigIfChanged(file, configuration, fileChanged);
+            GlyphFileParseResult result = parseGlyphsFromFile(configuration, output, ctx);
+            saveConfigIfChanged(file, configuration, result.fileChanged, result.forceSave);
         }
     }
 
     /**
      * Parses all glyphs from a single configuration file.
      *
-     * @return true if the file was modified
+     * @return file modification and save policy state
      */
-    private boolean parseGlyphsFromFile(YamlConfiguration configuration, List<Glyph> output, GlyphParseContext ctx) {
+    private GlyphFileParseResult parseGlyphsFromFile(YamlConfiguration configuration, List<Glyph> output,
+            GlyphParseContext ctx) {
         boolean fileChanged = false;
+        boolean forceSave = false;
 
         for (String key : configuration.getKeys(false)) {
             ConfigurationSection glyphSection = configuration.getConfigurationSection(key);
@@ -430,15 +435,20 @@ public class ConfigsManager {
 
             if (result.fileChanged)
                 fileChanged = true;
+            if (result.forceSave)
+                forceSave = true;
         }
 
-        return fileChanged;
+        return new GlyphFileParseResult(fileChanged, forceSave);
     }
 
     /**
      * Result of creating a single glyph.
      */
-    private record GlyphParseResult(Glyph glyph, boolean fileChanged) {
+    private record GlyphFileParseResult(boolean fileChanged, boolean forceSave) {
+    }
+
+    private record GlyphParseResult(Glyph glyph, boolean fileChanged, boolean forceSave) {
     }
 
     /**
@@ -464,7 +474,7 @@ public class ConfigsManager {
 
         Glyph glyph = new Glyph(key, section, unicodeRows, effectiveGrid);
         glyph.setFileChanged(fileChanged);
-        return new GlyphParseResult(glyph, fileChanged);
+        return new GlyphParseResult(glyph, fileChanged, fileChanged);
     }
 
     private GlyphParseResult createGridGlyph(String key, ConfigurationSection section, GlyphGrid grid,
@@ -506,7 +516,7 @@ public class ConfigsManager {
 
         Glyph glyph = new Glyph(key, section, unicodeRows, grid);
         glyph.setFileChanged(fileChanged);
-        return new GlyphParseResult(glyph, fileChanged);
+        return new GlyphParseResult(glyph, fileChanged, false);
     }
 
     /**
@@ -528,6 +538,7 @@ public class ConfigsManager {
     }
 
     private GlyphParseResult createSingleCharGlyph(String key, ConfigurationSection section, GlyphParseContext ctx) {
+        boolean hadLegacyCode = section.contains("code");
         char character = ctx.charPerGlyph.getOrDefault(key, Character.MIN_VALUE);
         if (character == Character.MIN_VALUE) {
             character = findNextCodepoint(ctx.usedCodepoints, 42000);
@@ -535,11 +546,11 @@ public class ConfigsManager {
             ctx.usedCodepoints.add((int) character);
         }
         Glyph glyph = new Glyph(key, section, character);
-        return new GlyphParseResult(glyph, glyph.isFileChanged());
+        return new GlyphParseResult(glyph, glyph.isFileChanged(), hadLegacyCode);
     }
 
-    private void saveConfigIfChanged(File file, YamlConfiguration configuration, boolean fileChanged) {
-        if (fileChanged && !Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) {
+    private void saveConfigIfChanged(File file, YamlConfiguration configuration, boolean fileChanged, boolean forceSave) {
+        if (fileChanged && (forceSave || !Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool())) {
             try {
                 configuration.save(file);
             } catch (IOException e) {
@@ -611,7 +622,7 @@ public class ConfigsManager {
     private boolean migrateLegacyUnicodeKeys(ConfigurationSection section, List<String> unicodeRows) {
         boolean fileChanged = false;
 
-        if (!section.contains("char") || section.contains("chars")) {
+        if (!section.contains("char")) {
             setConfiguredUnicodeRows(section, unicodeRows);
             fileChanged = true;
         }
