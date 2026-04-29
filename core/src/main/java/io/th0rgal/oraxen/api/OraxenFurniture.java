@@ -462,6 +462,7 @@ public class OraxenFurniture {
 
     private static boolean hasSameHitboxOffset(Interaction interaction, FurnitureMechanic.FurnitureHitbox hitbox) {
         String offset = interaction.getPersistentDataContainer().get(HITBOX_OFFSET_KEY, PersistentDataType.STRING);
-        return offset != null && offset.equals(hitbox.offsetX() + "," + hitbox.offsetY() + "," + hitbox.offsetZ());
+        if (offset == null) return hitbox.offsetX() == 0 && hitbox.offsetY() == 0 && hitbox.offsetZ() == 0;
+        return offset.equals(hitbox.offsetX() + "," + hitbox.offsetY() + "," + hitbox.offsetZ());
     }
 }
