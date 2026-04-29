@@ -441,11 +441,20 @@ public class OraxenFurniture {
 
     private static boolean hasSameHitboxes(List<Interaction> interactions, List<FurnitureMechanic.FurnitureHitbox> hitboxes) {
         if (interactions.size() != hitboxes.size()) return false;
-        for (int i = 0; i < hitboxes.size(); i++) {
-            Interaction interaction = interactions.get(i);
-            FurnitureMechanic.FurnitureHitbox hitbox = hitboxes.get(i);
-            if (interaction.getInteractionWidth() != hitbox.width()) return false;
-            if (interaction.getInteractionHeight() != hitbox.height()) return false;
+
+        List<FurnitureMechanic.FurnitureHitbox> unmatchedHitboxes = new ArrayList<>(hitboxes);
+        for (Interaction interaction : interactions) {
+            int matchingIndex = -1;
+            for (int i = 0; i < unmatchedHitboxes.size(); i++) {
+                FurnitureMechanic.FurnitureHitbox hitbox = unmatchedHitboxes.get(i);
+                if (interaction.getInteractionWidth() == hitbox.width()
+                        && interaction.getInteractionHeight() == hitbox.height()) {
+                    matchingIndex = i;
+                    break;
+                }
+            }
+            if (matchingIndex == -1) return false;
+            unmatchedHitboxes.remove(matchingIndex);
         }
         return true;
     }

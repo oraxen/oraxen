@@ -61,6 +61,7 @@ import java.util.Map.Entry;
 public class MechanicsManager {
 
     private static final Map<String, MechanicFactory> FACTORIES_BY_MECHANIC_ID = new HashMap<>();
+    private static final Map<String, MechanicFactory> FACTORIES_BY_LOWERCASE_MECHANIC_ID = new HashMap<>();
     private static final Map<String, List<SchedulerUtil.ScheduledTask>> MECHANIC_TASKS = new HashMap<>();
     private static final Map<String, List<Listener>> MECHANICS_LISTENERS = new HashMap<>();
     private static final Set<String> NATIVE_MECHANIC_IDS = Set.of(
@@ -145,11 +146,14 @@ public class MechanicsManager {
      * @param enabled    if the mechanic should be enabled by default or not
      */
     public static void registerMechanicFactory(String mechanicId, MechanicFactory factory, boolean enabled) {
-        if (enabled) FACTORIES_BY_MECHANIC_ID.put(mechanicId, factory);
+        if (!enabled) return;
+        FACTORIES_BY_MECHANIC_ID.put(mechanicId, factory);
+        FACTORIES_BY_LOWERCASE_MECHANIC_ID.put(mechanicId.toLowerCase(Locale.ROOT), factory);
     }
 
     public static void unregisterMechanicFactory(String mechanicId) {
         FACTORIES_BY_MECHANIC_ID.remove(mechanicId);
+        FACTORIES_BY_LOWERCASE_MECHANIC_ID.remove(mechanicId.toLowerCase(Locale.ROOT));
         unloadListeners(mechanicId);
         unregisterTasks(mechanicId);
     }
@@ -172,7 +176,7 @@ public class MechanicsManager {
         final boolean updated = false;
         ConfigurationSection factorySection = OraxenYaml.getConfigurationSection(mechanicsConfig, mechanicId);
         if (factorySection != null && factorySection.getBoolean("enabled"))
-            FACTORIES_BY_MECHANIC_ID.put(mechanicId, constructor.create(factorySection));
+            registerMechanicFactory(mechanicId, constructor.create(factorySection), true);
 
         try {
             if (updated) mechanicsConfig.save(mechanicsEntry.getKey());
@@ -246,11 +250,7 @@ public class MechanicsManager {
         if (factory != null)
             return factory;
 
-        for (Entry<String, MechanicFactory> entry : FACTORIES_BY_MECHANIC_ID.entrySet()) {
-            if (entry.getKey().equalsIgnoreCase(mechanicID))
-                return entry.getValue();
-        }
-        return null;
+        return FACTORIES_BY_LOWERCASE_MECHANIC_ID.get(mechanicID.toLowerCase(Locale.ROOT));
     }
 
     /**
