@@ -266,9 +266,15 @@ public class OraxenFurniture {
         removeOrphanBarriers(baseEntity);
         removeOrphanSeat(baseEntity.getPersistentDataContainer());
 
+        List<UUID> interactionUUIDs = baseEntity.getPersistentDataContainer()
+                .getOrDefault(INTERACTIONS_KEY, DataType.asList(DataType.UUID), new ArrayList<>());
         UUID interactionUUID = baseEntity.getPersistentDataContainer().get(INTERACTION_KEY, DataType.UUID);
-        if (interactionUUID != null) {
-            Entity interactionEntity = Bukkit.getEntity(interactionUUID);
+        if (interactionUUID != null && !interactionUUIDs.contains(interactionUUID)) {
+            interactionUUIDs = new ArrayList<>(interactionUUIDs);
+            interactionUUIDs.add(interactionUUID);
+        }
+        for (UUID uuid : interactionUUIDs) {
+            Entity interactionEntity = Bukkit.getEntity(uuid);
             if (interactionEntity != null && !interactionEntity.isDead()) interactionEntity.remove();
         }
 
@@ -410,16 +416,14 @@ public class OraxenFurniture {
                 // Check if barriers changed, if so remove and place new
                 if (mechanic.getBarriers().equals(oldPdc.getOrDefault(BARRIER_KEY, DataType.asList(BlockLocation.dataType), new ArrayList<>()))) {
                     if (OraxenPlugin.supportsDisplayEntities) {
-                        Interaction interaction = mechanic.getInteractionEntity(entity);
+                        List<Interaction> interactions = mechanic.getInteractionEntities(entity);
                         // Check if interaction-hitbox changed, if so remove and place new
-                        if (interaction != null && mechanic.hasHitbox())
-                            if (interaction.getInteractionWidth() == mechanic.getHitbox().width())
-                                if (interaction.getInteractionHeight() == mechanic.getHitbox().height())
-                                    // Check if seat changed, if so remove and place new
-                                    if (oldPdc.has(SEAT_KEY, DataType.UUID) && mechanic.hasSeat())
-                                        // Check if any displayEntity properties changed, if so remove and place new
-                                        if (mechanic.hasDisplayEntityProperties() && mechanic.getDisplayEntityProperties().ensureSameDisplayProperties(entity))
-                                            return;
+                        if (!interactions.isEmpty() && mechanic.hasHitbox() && hasSameHitboxes(interactions, mechanic.getHitboxes()))
+                            // Check if seat changed, if so remove and place new
+                            if (oldPdc.has(SEAT_KEY, DataType.UUID) && mechanic.hasSeat())
+                                // Check if any displayEntity properties changed, if so remove and place new
+                                if (mechanic.hasDisplayEntityProperties() && mechanic.getDisplayEntityProperties().ensureSameDisplayProperties(entity))
+                                    return;
                     } else return;
                 }
             }
@@ -433,5 +437,16 @@ public class OraxenFurniture {
             serializedPdc.removeIf(map -> Stream.of(MUSIC_DISC_KEY, EVOLUTION_KEY, STORAGE_KEY, PERSONAL_STORAGE_KEY).map(NamespacedKey::toString).noneMatch(map::containsValue));
             PersistentDataSerializer.fromMapList(serializedPdc, newEntity.getPersistentDataContainer());
         }
+    }
+
+    private static boolean hasSameHitboxes(List<Interaction> interactions, List<FurnitureMechanic.FurnitureHitbox> hitboxes) {
+        if (interactions.size() != hitboxes.size()) return false;
+        for (int i = 0; i < hitboxes.size(); i++) {
+            Interaction interaction = interactions.get(i);
+            FurnitureMechanic.FurnitureHitbox hitbox = hitboxes.get(i);
+            if (interaction.getInteractionWidth() != hitbox.width()) return false;
+            if (interaction.getInteractionHeight() != hitbox.height()) return false;
+        }
+        return true;
     }
 }
