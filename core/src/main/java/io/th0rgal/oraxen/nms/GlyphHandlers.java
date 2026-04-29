@@ -60,7 +60,7 @@ public class GlyphHandlers {
                 component = component.replaceText(
                         TextReplacementConfig.builder()
                                 .matchLiteral(String.valueOf(character))
-                                .replacement(glyph.getGlyphComponent().font(randomKey))
+                                .replacement(Component.text(character).font(randomKey))
                                 .build()
                 );
             }

@@ -448,7 +448,8 @@ public class OraxenFurniture {
             for (int i = 0; i < unmatchedHitboxes.size(); i++) {
                 FurnitureMechanic.FurnitureHitbox hitbox = unmatchedHitboxes.get(i);
                 if (interaction.getInteractionWidth() == hitbox.width()
-                        && interaction.getInteractionHeight() == hitbox.height()) {
+                        && interaction.getInteractionHeight() == hitbox.height()
+                        && hasSameHitboxOffset(interaction, hitbox)) {
                     matchingIndex = i;
                     break;
                 }
@@ -457,5 +458,10 @@ public class OraxenFurniture {
             unmatchedHitboxes.remove(matchingIndex);
         }
         return true;
+    }
+
+    private static boolean hasSameHitboxOffset(Interaction interaction, FurnitureMechanic.FurnitureHitbox hitbox) {
+        String offset = interaction.getPersistentDataContainer().get(HITBOX_OFFSET_KEY, PersistentDataType.STRING);
+        return offset != null && offset.equals(hitbox.offsetX() + "," + hitbox.offsetY() + "," + hitbox.offsetZ());
     }
 }

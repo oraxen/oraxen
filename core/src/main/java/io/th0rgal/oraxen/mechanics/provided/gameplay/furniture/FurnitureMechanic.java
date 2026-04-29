@@ -56,6 +56,7 @@ public class FurnitureMechanic extends Mechanic {
     public static final NamespacedKey BASE_ENTITY_KEY = new NamespacedKey(OraxenPlugin.get(), "base_entity");
     public static final NamespacedKey INTERACTION_KEY = new NamespacedKey(OraxenPlugin.get(), "interaction");
     public static final NamespacedKey INTERACTIONS_KEY = new NamespacedKey(OraxenPlugin.get(), "interactions");
+    public static final NamespacedKey HITBOX_OFFSET_KEY = new NamespacedKey(OraxenPlugin.get(), "hitbox_offset");
     public static final NamespacedKey MODELENGINE_KEY = new NamespacedKey(OraxenPlugin.get(), "modelengine");
     public static final NamespacedKey SEAT_KEY = new NamespacedKey(OraxenPlugin.get(), "seat");
     public static final NamespacedKey ROOT_KEY = new NamespacedKey(OraxenPlugin.get(), "root");
@@ -738,9 +739,11 @@ public class FurnitureMechanic extends Mechanic {
         List<UUID> interactionUuids = new ArrayList<>();
         for (FurnitureHitbox hitbox : hitboxes) {
             Interaction interaction = spawnInteractionEntity(entity, location, yaw, hitbox);
+            if (interaction == null) continue;
             interactions.add(interaction);
             interactionUuids.add(interaction.getUniqueId());
         }
+        if (interactionUuids.isEmpty()) return interactions;
         entity.getPersistentDataContainer().set(INTERACTION_KEY, DataType.UUID, interactionUuids.get(0));
         entity.getPersistentDataContainer().set(INTERACTIONS_KEY, DataType.asList(DataType.UUID), interactionUuids);
         return interactions;
@@ -755,11 +758,12 @@ public class FurnitureMechanic extends Mechanic {
             i.setInteractionHeight(hitbox.height);
             i.setPersistent(true);
         });
+        if (interaction == null) return null;
 
         PersistentDataContainer pdc = interaction.getPersistentDataContainer();
         pdc.set(FURNITURE_KEY, DataType.STRING, getItemID());
         pdc.set(BASE_ENTITY_KEY, DataType.UUID, entity.getUniqueId());
-        entity.getPersistentDataContainer().set(INTERACTION_KEY, DataType.UUID, interaction.getUniqueId());
+        pdc.set(HITBOX_OFFSET_KEY, PersistentDataType.STRING, hitbox.offsetX + "," + hitbox.offsetY + "," + hitbox.offsetZ);
 
         return interaction;
     }
