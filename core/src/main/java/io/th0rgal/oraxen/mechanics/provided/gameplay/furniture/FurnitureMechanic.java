@@ -735,6 +735,11 @@ public class FurnitureMechanic extends Mechanic {
 
     private List<Interaction> spawnInteractionEntities(Entity entity, Location location, float yaw, List<FurnitureHitbox> hitboxes) {
         if (!OraxenPlugin.supportsDisplayEntities || hitboxes.isEmpty()) return List.of();
+
+        PersistentDataContainer pdc = entity.getPersistentDataContainer();
+        List<UUID> existingInteractionUuids = pdc.getOrDefault(INTERACTIONS_KEY, DataType.asList(DataType.UUID), List.of());
+        if (!existingInteractionUuids.isEmpty()) return getInteractionEntities(entity);
+
         List<Interaction> interactions = new ArrayList<>();
         List<UUID> interactionUuids = new ArrayList<>();
         for (FurnitureHitbox hitbox : hitboxes) {
@@ -744,8 +749,8 @@ public class FurnitureMechanic extends Mechanic {
             interactionUuids.add(interaction.getUniqueId());
         }
         if (interactionUuids.isEmpty()) return interactions;
-        entity.getPersistentDataContainer().set(INTERACTION_KEY, DataType.UUID, interactionUuids.get(0));
-        entity.getPersistentDataContainer().set(INTERACTIONS_KEY, DataType.asList(DataType.UUID), interactionUuids);
+        pdc.set(INTERACTION_KEY, DataType.UUID, interactionUuids.get(0));
+        pdc.set(INTERACTIONS_KEY, DataType.asList(DataType.UUID), interactionUuids);
         return interactions;
     }
 

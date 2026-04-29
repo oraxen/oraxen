@@ -51,7 +51,7 @@ public class OraxenYaml extends YamlConfiguration {
             return null;
 
         String[] parts = path.split("\\.");
-        for (int i = 0; i < parts.length; i++) {
+        for (int i = 0; ; i++) {
             String actualKey = getActualKey(current, parts[i]);
             if (actualKey == null)
                 return null;
@@ -63,8 +63,6 @@ public class OraxenYaml extends YamlConfiguration {
             if (current == null)
                 return null;
         }
-
-        return null;
     }
 
     @Nullable
