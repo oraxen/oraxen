@@ -131,7 +131,7 @@ public class FontEvents implements Listener {
             if (i == 0) continue;
 
             for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet()) {
-                String unicode = String.valueOf(entry.getValue().getCharacter());
+                String unicode = entry.getValue().getFormattedUnicodes();
                 if (entry.getValue().hasPermission(player))
                     page = (manager.permsChatcolor == null)
                             ? page.replace(entry.getKey(), ChatColor.WHITE + unicode + ChatColor.BLACK)
@@ -172,7 +172,7 @@ public class FontEvents implements Listener {
             }
 
             for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet()) {
-                String unicode = String.valueOf(entry.getValue().getCharacter());
+                String unicode = entry.getValue().getFormattedUnicodes();
                 if (entry.getValue().hasPermission(player))
                     line = (manager.permsChatcolor == null)
                             ? line.replace(entry.getKey(), ChatColor.WHITE + unicode + ChatColor.BLACK)
@@ -239,8 +239,8 @@ public class FontEvents implements Listener {
         for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet()) {
             if (!entry.getValue().hasPermission(player)) continue;
             String replacement = (manager.permsChatcolor == null)
-                    ? String.valueOf(entry.getValue().getCharacter())
-                    : ChatColor.WHITE + String.valueOf(entry.getValue().getCharacter())
+                    ? entry.getValue().getFormattedUnicodes()
+                    : ChatColor.WHITE + entry.getValue().getFormattedUnicodes()
                             + PapiAliases.setPlaceholders(player, manager.permsChatcolor);
             displayName = displayName.replace(entry.getKey(), replacement);
         }

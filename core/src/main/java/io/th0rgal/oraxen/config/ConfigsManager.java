@@ -20,6 +20,7 @@ import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -369,32 +370,33 @@ public class ConfigsManager {
      * Also handles legacy 'code' field migration during collection.
      */
     private void collectCodepointsFromSection(String key, ConfigurationSection section, GlyphParseContext ctx) {
-        if (section.isList("chars")) {
-            List<String> charsList = section.getStringList("chars");
-            for (String row : charsList) {
+        List<String> unicodeRows = getDefinedUnicodeRows(section);
+        if (unicodeRows != null) {
+            for (String row : unicodeRows) {
                 for (char c : row.toCharArray()) {
                     ctx.usedCodepoints.add((int) c);
                 }
             }
-            if (!charsList.isEmpty() && !charsList.get(0).isEmpty()) {
-                ctx.charPerGlyph.put(key, charsList.get(0).charAt(0));
+            if (!unicodeRows.isEmpty() && !unicodeRows.get(0).isEmpty()) {
+                ctx.charPerGlyph.put(key, unicodeRows.get(0).charAt(0));
             }
-        } else {
-            // Check for legacy 'code' field first (integer codepoint)
-            // This ensures correct character is used before glyph creation
-            if (section.contains("code") && section.isInt("code")) {
-                char character = (char) section.getInt("code");
-                ctx.charPerGlyph.put(key, character);
-                ctx.usedCodepoints.add((int) character);
-                return;
-            }
+            return;
+        }
 
-            String characterString = section.getString("char", "");
-            if (!characterString.isBlank()) {
-                char character = characterString.charAt(0);
-                ctx.charPerGlyph.put(key, character);
-                ctx.usedCodepoints.add((int) character);
-            }
+        // Check for legacy 'code' field first (integer codepoint)
+        // This ensures correct character is used before glyph creation
+        if (section.contains("code") && section.isInt("code")) {
+            char character = (char) section.getInt("code");
+            ctx.charPerGlyph.put(key, character);
+            ctx.usedCodepoints.add((int) character);
+            return;
+        }
+
+        String characterString = section.getString("char", "");
+        if (!characterString.isBlank()) {
+            char character = characterString.charAt(0);
+            ctx.charPerGlyph.put(key, character);
+            ctx.usedCodepoints.add((int) character);
         }
     }
 
@@ -443,10 +445,11 @@ public class ConfigsManager {
      * Creates a glyph from a configuration section.
      */
     private GlyphParseResult createGlyph(String key, ConfigurationSection section, GlyphParseContext ctx) {
-        GlyphGrid grid = GlyphGrid.fromConfig(section.getConfigurationSection("grid"));
+        GlyphGrid grid = GlyphGrid.fromGlyphConfig(section);
+        List<String> configuredUnicodes = getDefinedUnicodeRows(section);
 
-        if (section.isList("chars")) {
-            return createMultiCharGlyph(key, section, grid);
+        if (configuredUnicodes != null) {
+            return createConfiguredGlyph(key, section, configuredUnicodes);
         } else if (grid.isMultiCell()) {
             return createGridGlyph(key, section, grid, ctx);
         } else {
@@ -454,10 +457,14 @@ public class ConfigsManager {
         }
     }
 
-    private GlyphParseResult createMultiCharGlyph(String key, ConfigurationSection section, GlyphGrid grid) {
-        List<String> unicodeRows = section.getStringList("chars");
-        Glyph glyph = new Glyph(key, section, unicodeRows, grid);
-        return new GlyphParseResult(glyph, false);
+    private GlyphParseResult createConfiguredGlyph(String key, ConfigurationSection section,
+            List<String> unicodeRows) {
+        boolean fileChanged = migrateLegacyUnicodeKeys(section, unicodeRows);
+        GlyphGrid effectiveGrid = GlyphGrid.fromUnicodeRows(unicodeRows);
+
+        Glyph glyph = new Glyph(key, section, unicodeRows, effectiveGrid);
+        glyph.setFileChanged(fileChanged);
+        return new GlyphParseResult(glyph, fileChanged);
     }
 
     private GlyphParseResult createGridGlyph(String key, ConfigurationSection section, GlyphGrid grid,
@@ -484,15 +491,15 @@ public class ConfigsManager {
             if (Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) {
                 // Cache for future reloads within this server session
                 GRID_GLYPH_UNICODE_CACHE.put(key, unicodeRows);
-                Logs.logWarning("Grid glyph '" + key + "' has no 'chars' list defined but " +
+                Logs.logWarning("Grid glyph '" + key + "' has no 'char' list defined but " +
                         Settings.DISABLE_AUTOMATIC_GLYPH_CODE.getPath() + " is enabled.");
                 Logs.logWarning(
                         "Characters will be preserved within this server session, but will change on server restart.");
                 Logs.logWarning("To ensure consistent characters across restarts, either disable " +
                         Settings.DISABLE_AUTOMATIC_GLYPH_CODE.getPath() +
-                        " or manually add a 'chars' list to this glyph's configuration.", true);
+                        " or manually add a 'char' list to this glyph's configuration.", true);
             } else {
-                section.set("chars", unicodeRows);
+                setConfiguredUnicodeRows(section, unicodeRows);
                 fileChanged = true;
             }
         }
@@ -563,6 +570,64 @@ public class ConfigsManager {
         }
 
         return rows;
+    }
+
+    @Nullable
+    private List<String> getDefinedUnicodeRows(ConfigurationSection section) {
+        List<String> unicodeRows = null;
+
+        if (section.isList("char")) {
+            unicodeRows = sanitizeUnicodeRows(section.getStringList("char"));
+        } else if (section.isString("char")) {
+            String unicode = section.getString("char", "");
+            if (!unicode.isBlank()) {
+                unicodeRows = List.of(unicode);
+            }
+        }
+
+        if (unicodeRows != null && !unicodeRows.isEmpty()) {
+            return unicodeRows;
+        }
+
+        if (section.isList("chars")) {
+            unicodeRows = sanitizeUnicodeRows(section.getStringList("chars"));
+        } else if (section.isString("chars")) {
+            String unicode = section.getString("chars", "");
+            if (!unicode.isBlank()) {
+                unicodeRows = List.of(unicode);
+            }
+        }
+
+        return unicodeRows == null || unicodeRows.isEmpty() ? null : unicodeRows;
+    }
+
+    private List<String> sanitizeUnicodeRows(List<String> unicodeRows) {
+        return unicodeRows.stream()
+                .filter(Objects::nonNull)
+                .filter(row -> !row.isBlank())
+                .toList();
+    }
+
+    private boolean migrateLegacyUnicodeKeys(ConfigurationSection section, List<String> unicodeRows) {
+        boolean fileChanged = false;
+
+        if (!section.contains("char") || section.contains("chars")) {
+            setConfiguredUnicodeRows(section, unicodeRows);
+            fileChanged = true;
+        }
+
+        if (section.contains("chars")) {
+            section.set("chars", null);
+            fileChanged = true;
+        }
+
+        return fileChanged;
+    }
+
+    private void setConfiguredUnicodeRows(ConfigurationSection section, List<String> unicodeRows) {
+        if (unicodeRows.isEmpty()) return;
+        boolean multiBitmap = unicodeRows.size() > 1 || unicodeRows.stream().anyMatch(row -> row.length() > 1);
+        section.set("char", multiBitmap ? unicodeRows : unicodeRows.get(0));
     }
 
     /**

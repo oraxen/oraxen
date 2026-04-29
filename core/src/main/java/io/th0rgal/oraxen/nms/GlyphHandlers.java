@@ -50,18 +50,22 @@ public class GlyphHandlers {
     private static Component escapeGlyphs(Component component, @NotNull Player player) {
         component = GlobalTranslator.render(component, player.locale());
         String serialized = AdventureUtils.MINI_MESSAGE.serialize(component);
+        Glyph requiredGlyph = OraxenPlugin.get().getFontManager().getGlyphFromName("required");
+        if (requiredGlyph == null) return component;
 
         // Replace raw unicode usage of non-permissed Glyphs with random font
         // This will always show a white square
         for (Glyph glyph : OraxenPlugin.get().getFontManager().getGlyphs()) {
             if (glyph.hasPermission(player)) continue;
 
-            component = component.replaceText(
-                    TextReplacementConfig.builder()
-                            .matchLiteral(glyph.getCharacter())
-                            .replacement(glyph.getGlyphComponent().font(randomKey))
-                            .build()
-            );
+            for (char character : glyph.getAllChars()) {
+                component = component.replaceText(
+                        TextReplacementConfig.builder()
+                                .matchLiteral(String.valueOf(character))
+                                .replacement(requiredGlyph.getGlyphComponent().font(randomKey))
+                                .build()
+                );
+            }
 
             // Escape all glyph-tags
             Matcher matcher = glyph.baseRegex.matcher(serialized);
