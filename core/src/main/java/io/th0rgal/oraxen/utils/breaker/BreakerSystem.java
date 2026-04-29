@@ -57,7 +57,7 @@ public abstract class BreakerSystem {
 
     protected abstract void sendBlockBreak(final Player player, final Location location, final int stage) ;
 
-    protected void handleEvent(Player player, Block block, Location location, BlockFace blockFace, World world, Runnable cancel, boolean startedDigging) {
+    protected void handleEvent(Player player, Block block, Location location, BlockFace blockFace, World world, Runnable cancel, boolean startedDigging, boolean finishedDigging) {
         if (player.getGameMode() == GameMode.CREATIVE) return;
 
         final ItemStack item = player.getInventory().getItemInMainHand();
@@ -81,6 +81,11 @@ public abstract class BreakerSystem {
         if (block.getType() == Material.BARRIER && furnitureMechanic == null) return;
 
         cancel.run();
+
+        if (finishedDigging) {
+            SchedulerUtil.runForEntity(player, () -> player.sendBlockChange(location, block.getBlockData()));
+            return;
+        }
 
         if (startedDigging) {
             // Get these when block is started being broken to minimize checks & allow for proper damage checks later

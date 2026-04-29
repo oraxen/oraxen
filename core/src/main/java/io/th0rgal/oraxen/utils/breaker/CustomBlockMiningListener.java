@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.chorusblock.ChorusBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
+import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.wrappers.AttributeWrapper;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -23,6 +24,7 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Constructor;
@@ -53,19 +55,20 @@ public class CustomBlockMiningListener implements Listener {
         if (player.getGameMode() == GameMode.CREATIVE) return;
 
         final Block block = event.getBlock();
-        final Double hardness = getHardness(block);
-        if (hardness == null) {
+        final MiningProfile miningProfile = getMiningProfile(block);
+        if (miningProfile == null) {
             removeTransientModifier(player);
             return;
         }
 
+        final double hardness = miningProfile.hardness();
         if (hardness <= 0.0D) {
             removeTransientModifier(player);
             event.setInstaBreak(true);
             return;
         }
 
-        final AttributeModifier modifier = createBreakingModifier(hardness);
+        final AttributeModifier modifier = createBreakingModifier(player, miningProfile);
         if (modifier == null) {
             removeTransientModifier(player);
             return;
@@ -100,7 +103,7 @@ public class CustomBlockMiningListener implements Listener {
     }
 
     @Nullable
-    private Double getHardness(final Block block) {
+    private MiningProfile getMiningProfile(final Block block) {
         if (block.getType() == Material.NOTE_BLOCK) {
             NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
             if (mechanic == null) return null;
@@ -108,31 +111,43 @@ public class CustomBlockMiningListener implements Listener {
                 mechanic = mechanic.getDirectional().getParentMechanic();
                 if (mechanic == null) return null;
             }
-            return mechanic.hasHardness() ? (double) mechanic.getHardness() : null;
+            return mechanic.hasHardness() ? new MiningProfile(mechanic.getHardness(), mechanic.getDrop()) : null;
         }
 
         if (block.getType() == Material.TRIPWIRE) {
             final StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
-            return mechanic != null && mechanic.hasHardness() ? (double) mechanic.getHardness() : null;
+            return mechanic != null && mechanic.hasHardness() ? new MiningProfile(mechanic.getHardness(), mechanic.getDrop()) : null;
         }
 
         if (block.getType() == Material.CHORUS_PLANT) {
             final ChorusBlockMechanic mechanic = OraxenBlocks.getChorusMechanic(block);
-            return mechanic != null && mechanic.hasHardness() ? (double) mechanic.getHardness() : null;
+            return mechanic != null && mechanic.hasHardness() ? new MiningProfile(mechanic.getHardness(), mechanic.getDrop()) : null;
         }
 
         return null;
     }
 
     @Nullable
-    private AttributeModifier createBreakingModifier(final double hardness) {
+    private AttributeModifier createBreakingModifier(final Player player, final MiningProfile miningProfile) {
         final Attribute blockBreakSpeed = AttributeWrapper.BLOCK_BREAK_SPEED;
         if (BREAK_SPEED_KEY == null || blockBreakSpeed == null) return null;
 
-        // Rescale legacy Oraxen hardness values so 1 is close to normal mining speed and
-        // larger values stay usable without becoming excessively slow.
-        final double speedFactor = Math.max(0.05D, 1.2D / hardness);
+        final double speedFactor = Math.max(0.01D,
+                0.24D / miningProfile.hardness() * getToolSpeedMultiplier(player, miningProfile.drop()));
         return instantiateModifier(speedFactor - 1.0D);
+    }
+
+    private double getToolSpeedMultiplier(final Player player, final Drop drop) {
+        final ItemStack tool = player.getInventory().getItemInMainHand();
+        if (!drop.isToolEnough(tool)) return 1.0D;
+
+        double multiplier = 2.5D;
+        if (drop.isTypeEnough(tool)) {
+            final int diff = drop.getDiff(tool);
+            if (diff >= 1) multiplier *= Math.pow(1.1D, diff);
+        }
+
+        return multiplier;
     }
 
     private void addTransientModifier(final Player player, final AttributeModifier modifier) {
@@ -204,4 +219,6 @@ public class CustomBlockMiningListener implements Listener {
             return null;
         }
     }
+
+    private record MiningProfile(double hardness, Drop drop) {}
 }
