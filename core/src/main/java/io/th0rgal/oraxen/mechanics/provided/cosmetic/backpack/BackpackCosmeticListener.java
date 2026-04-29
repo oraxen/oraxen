@@ -117,7 +117,7 @@ public class BackpackCosmeticListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onEntityMount(EntityMountEvent event) {
-        if (!(event.getMount() instanceof Player player)) return;
+        if (!(event.getEntity() instanceof Player player)) return;
         if (!manager.hasBackpack(player)) return;
 
         scheduleBackpackMountResync(player);
@@ -125,7 +125,7 @@ public class BackpackCosmeticListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onEntityDismount(EntityDismountEvent event) {
-        if (!(event.getDismounted() instanceof Player player)) return;
+        if (!(event.getEntity() instanceof Player player)) return;
         if (!manager.hasBackpack(player)) return;
 
         scheduleBackpackMountResync(player);

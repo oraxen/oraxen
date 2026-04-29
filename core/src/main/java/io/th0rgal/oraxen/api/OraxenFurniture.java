@@ -447,8 +447,8 @@ public class OraxenFurniture {
             int matchingIndex = -1;
             for (int i = 0; i < unmatchedHitboxes.size(); i++) {
                 FurnitureMechanic.FurnitureHitbox hitbox = unmatchedHitboxes.get(i);
-                if (interaction.getInteractionWidth() == hitbox.width()
-                        && interaction.getInteractionHeight() == hitbox.height()
+                if (Float.compare(interaction.getInteractionWidth(), hitbox.width()) == 0
+                        && Float.compare(interaction.getInteractionHeight(), hitbox.height()) == 0
                         && hasSameHitboxOffset(interaction, hitbox)) {
                     matchingIndex = i;
                     break;

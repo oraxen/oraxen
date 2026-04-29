@@ -47,6 +47,9 @@ public class OraxenYaml extends YamlConfiguration {
             return exact;
 
         ConfigurationSection current = section;
+        if (path.isBlank())
+            return null;
+
         String[] parts = path.split("\\.");
         for (int i = 0; i < parts.length; i++) {
             String actualKey = getActualKey(current, parts[i]);
