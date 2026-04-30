@@ -11,9 +11,15 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 public class OraxenYaml extends YamlConfiguration {
+
+    private static final Map<ConfigurationSection, Map<String, String>> KEY_CACHE = Collections.synchronizedMap(new WeakHashMap<>());
 
     @Nullable
     public static ConfigurationSection getConfigurationSection(@Nullable ConfigurationSection section,
@@ -46,8 +52,12 @@ public class OraxenYaml extends YamlConfiguration {
         Object value = getIgnoreCase(section, path);
         if (value instanceof Boolean bool)
             return bool;
-        if (value instanceof String string)
-            return Boolean.parseBoolean(string);
+        if (value instanceof String string) {
+            if (string.equalsIgnoreCase("true"))
+                return true;
+            if (string.equalsIgnoreCase("false"))
+                return false;
+        }
         return defaultValue;
     }
 
@@ -120,11 +130,15 @@ public class OraxenYaml extends YamlConfiguration {
         if (section.contains(key))
             return key;
 
-        for (String existingKey : section.getKeys(false)) {
-            if (existingKey.equalsIgnoreCase(key))
-                return existingKey;
-        }
-        return null;
+        return KEY_CACHE.computeIfAbsent(section, OraxenYaml::buildKeyCache).get(key.toLowerCase(Locale.ROOT));
+    }
+
+    @NotNull
+    private static Map<String, String> buildKeyCache(@NotNull ConfigurationSection section) {
+        Map<String, String> keyCache = new HashMap<>();
+        for (String existingKey : section.getKeys(false))
+            keyCache.putIfAbsent(existingKey.toLowerCase(Locale.ROOT), existingKey);
+        return keyCache;
     }
 
     @Nullable
@@ -207,9 +221,15 @@ public class OraxenYaml extends YamlConfiguration {
                 ConfigurationSection targetSection;
                 if (targetValue instanceof ConfigurationSection existingSection) {
                     targetSection = existingSection;
-                } else targetSection = target.createSection(targetKey);
+                } else {
+                    targetSection = target.createSection(targetKey);
+                    KEY_CACHE.remove(target);
+                }
                 copyConfigurationSection(sourceSection, targetSection);
-            } else target.set(targetKey, sourceValue);
+            } else {
+                target.set(targetKey, sourceValue);
+                KEY_CACHE.remove(target);
+            }
         }
     }
 

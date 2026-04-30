@@ -735,7 +735,13 @@ public class FurnitureMechanic extends Mechanic {
 
         PersistentDataContainer pdc = entity.getPersistentDataContainer();
         List<UUID> existingInteractionUuids = pdc.getOrDefault(INTERACTIONS_KEY, DataType.asList(DataType.UUID), List.of());
-        if (!existingInteractionUuids.isEmpty() || pdc.has(INTERACTION_KEY, DataType.UUID)) return getInteractionEntities(entity);
+        if (!existingInteractionUuids.isEmpty() || pdc.has(INTERACTION_KEY, DataType.UUID)) {
+            List<Interaction> existingInteractions = getInteractionEntities(entity);
+            if (!existingInteractions.isEmpty()) return existingInteractions;
+
+            pdc.remove(INTERACTION_KEY);
+            pdc.remove(INTERACTIONS_KEY);
+        }
 
         List<Interaction> interactions = new ArrayList<>();
         List<UUID> interactionUuids = new ArrayList<>();

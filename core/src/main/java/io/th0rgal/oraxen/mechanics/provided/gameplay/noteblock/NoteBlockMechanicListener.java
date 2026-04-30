@@ -73,7 +73,7 @@ public class NoteBlockMechanicListener implements Listener {
                     mechanic = mechanic.getDirectional().getParentMechanic();
                 final double hardness = mechanic.getHardness();
                 double modifier = 1;
-                if (mechanic.getDrop().isToolEnough(tool)) {
+                if (mechanic.getDrop().canDrop(tool)) {
                     modifier *= 0.4;
                     if (mechanic.getDrop().isTypeEnough(tool)) {
                         final int diff = mechanic.getDrop().getDiff(tool);
