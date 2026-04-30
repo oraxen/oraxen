@@ -56,8 +56,11 @@ public record GlyphGrid(int rows, int columns) {
         boolean hasTopLevelRows = section.contains("rows");
         boolean hasTopLevelColumns = section.contains("columns") || section.contains("cols");
         if (hasTopLevelRows || hasTopLevelColumns) {
-            int rows = section.getInt("rows", 1);
-            int columns = section.contains("columns") ? section.getInt("columns", 1) : section.getInt("cols", 1);
+            GlyphGrid legacyGrid = fromConfig(section.getConfigurationSection("grid"));
+            int rows = hasTopLevelRows ? section.getInt("rows", legacyGrid.rows()) : legacyGrid.rows();
+            int columns = hasTopLevelColumns
+                    ? (section.contains("columns") ? section.getInt("columns", legacyGrid.columns()) : section.getInt("cols", legacyGrid.columns()))
+                    : legacyGrid.columns();
             return normalize(rows, columns);
         }
 

@@ -68,6 +68,7 @@ public class GlyphTag {
         // Build base component
         Component glyphComponent = Component.text(chars)
                 .font(glyph.getFont())
+                .style(Style.empty())
                 .hoverEvent(glyph.getGlyphHoverText());
 
         // Apply color (null if colorable, WHITE otherwise)

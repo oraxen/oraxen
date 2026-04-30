@@ -80,16 +80,24 @@ public class OraxenYaml extends YamlConfiguration {
         if (section == null)
             return null;
 
+        if (path.isBlank())
+            return null;
+
+        String[] parts = path.split("\\.", -1);
+        if (parts.length == 0)
+            return null;
+
+        for (String part : parts) {
+            if (part.isEmpty())
+                return null;
+        }
+
         Object exact = section.get(path);
         if (exact != null)
             return exact;
 
         ConfigurationSection current = section;
-        if (path.isBlank())
-            return null;
-
-        String[] parts = path.split("\\.");
-        for (int i = 0; ; i++) {
+        for (int i = 0; i < parts.length; i++) {
             String actualKey = getActualKey(current, parts[i]);
             if (actualKey == null)
                 return null;
@@ -101,6 +109,8 @@ public class OraxenYaml extends YamlConfiguration {
             if (current == null)
                 return null;
         }
+
+        return null;
     }
 
     @Nullable
