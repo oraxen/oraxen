@@ -37,6 +37,44 @@ public class OraxenYaml extends YamlConfiguration {
         return getIgnoreCase(section, path) != null;
     }
 
+    public static boolean getBoolean(@Nullable ConfigurationSection section, @NotNull String path) {
+        return getBoolean(section, path, false);
+    }
+
+    public static boolean getBoolean(@Nullable ConfigurationSection section, @NotNull String path,
+            boolean defaultValue) {
+        Object value = getIgnoreCase(section, path);
+        if (value instanceof Boolean bool)
+            return bool;
+        if (value instanceof String string)
+            return Boolean.parseBoolean(string);
+        return defaultValue;
+    }
+
+    public static int getInt(@Nullable ConfigurationSection section, @NotNull String path) {
+        return getInt(section, path, 0);
+    }
+
+    public static int getInt(@Nullable ConfigurationSection section, @NotNull String path, int defaultValue) {
+        Object value = getIgnoreCase(section, path);
+        if (value instanceof Number number)
+            return number.intValue();
+        if (value instanceof String string) {
+            try {
+                return Integer.parseInt(string);
+            } catch (NumberFormatException ignored) {
+                return defaultValue;
+            }
+        }
+        return defaultValue;
+    }
+
+    @Nullable
+    public static String getString(@Nullable ConfigurationSection section, @NotNull String path) {
+        Object value = getIgnoreCase(section, path);
+        return value != null ? String.valueOf(value) : null;
+    }
+
     @Nullable
     public static Object getIgnoreCase(@Nullable ConfigurationSection section, @NotNull String path) {
         if (section == null)

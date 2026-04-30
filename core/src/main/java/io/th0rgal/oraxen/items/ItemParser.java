@@ -204,16 +204,17 @@ public class ItemParser {
     private void handleLegacyComponents(final ItemBuilder item, final ConfigurationSection components) {
 
         if (OraxenYaml.contains(components, "durability")) {
-            item.setDamagedOnBlockBreak(components.getBoolean("durability.damage_block_break"));
-            item.setDamagedOnEntityHit(components.getBoolean("durability.damage_entity_hit"));
-            item.setDurability(Math.max(components.getInt("durability.value"), components.getInt("durability", 1)));
+            item.setDamagedOnBlockBreak(OraxenYaml.getBoolean(components, "durability.damage_block_break"));
+            item.setDamagedOnEntityHit(OraxenYaml.getBoolean(components, "durability.damage_entity_hit"));
+            item.setDurability(Math.max(OraxenYaml.getInt(components, "durability.value"),
+                    OraxenYaml.getInt(components, "durability", 1)));
         }
         if (OraxenYaml.contains(components, "fire_resistant"))
-            item.setFireResistant(components.getBoolean("fire_resistant"));
+            item.setFireResistant(OraxenYaml.getBoolean(components, "fire_resistant"));
         if (OraxenYaml.contains(components, "hide_tooltip"))
-            item.setHideToolTip(components.getBoolean("hide_tooltip"));
+            item.setHideToolTip(OraxenYaml.getBoolean(components, "hide_tooltip"));
         if (OraxenYaml.contains(components, "max_stack_size"))
-            item.setMaxStackSize(components.getInt("max_stack_size"));
+            item.setMaxStackSize(OraxenYaml.getInt(components, "max_stack_size"));
 
         final NMSHandler nmsHandler = NMSHandlers.getHandler();
         if (nmsHandler == null) {
@@ -290,9 +291,9 @@ public class ItemParser {
         Optional.ofNullable(OraxenYaml.getConfigurationSection(components, "use_remainder"))
                 .ifPresent(useRemainder -> parseUseRemainderComponent(item, useRemainder));
 
-        Optional.ofNullable(components.getString("tooltip_style")).map(NamespacedKey::fromString)
+        Optional.ofNullable(OraxenYaml.getString(components, "tooltip_style")).map(NamespacedKey::fromString)
                 .ifPresent(item::setTooltipStyle);
-        Optional.ofNullable(components.getString("item_model")).map(NamespacedKey::fromString)
+        Optional.ofNullable(OraxenYaml.getString(components, "item_model")).map(NamespacedKey::fromString)
                 .ifPresent(item::setItemModel);
 
         if (nmsHandler != null) {
