@@ -190,6 +190,8 @@ public abstract class BreakerSystem {
     }
 
     private void resetBlockBreakAnimations(World world, List<Location> locations) {
+        if (locations.isEmpty()) return;
+
         SchedulerUtil.runAtLocation(locations.getFirst(), () -> {
             for (final Entity entity : world.getNearbyEntities(locations.getFirst(), 16, 16, 16)) {
                 if (entity instanceof Player viewer) {

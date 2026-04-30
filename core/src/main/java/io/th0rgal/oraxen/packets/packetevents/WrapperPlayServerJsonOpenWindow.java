@@ -1,45 +1,21 @@
 package io.th0rgal.oraxen.packets.packetevents;
 
 import com.github.retrooper.packetevents.event.PacketSendEvent;
-import com.github.retrooper.packetevents.wrapper.PacketWrapper;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenWindow;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 
 @SuppressWarnings("deprecation")
-class WrapperPlayServerJsonOpenWindow extends PacketWrapper<WrapperPlayServerJsonOpenWindow> {
-
-    private int containerId;
-    private int type;
-    private String titleJson;
+class WrapperPlayServerJsonOpenWindow extends WrapperPlayServerOpenWindow {
 
     WrapperPlayServerJsonOpenWindow(PacketSendEvent event) {
         super(event);
     }
 
-    @Override
-    public void read() {
-        containerId = readVarInt();
-        type = readVarInt();
-        titleJson = readComponentJSON();
-    }
-
-    @Override
-    public void write() {
-        writeVarInt(containerId);
-        writeVarInt(type);
-        writeComponentJSON(titleJson);
-    }
-
-    @Override
-    public void copy(WrapperPlayServerJsonOpenWindow wrapper) {
-        containerId = wrapper.containerId;
-        type = wrapper.type;
-        titleJson = wrapper.titleJson;
-    }
-
     String getTitleJson() {
-        return titleJson;
+        return AdventureUtils.GSON_SERIALIZER.serialize(getTitle());
     }
 
     void setTitleJson(String titleJson) {
-        this.titleJson = titleJson;
+        setTitle(AdventureUtils.GSON_SERIALIZER.deserialize(titleJson));
     }
 }
