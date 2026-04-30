@@ -348,7 +348,8 @@ public class GlyphTag {
 
         // Build component with reference glyph's characters
         Component glyphComponent = Component.text(refGlyph.getCharacters())
-                .style(Style.style().font(refGlyph.getFont()).build());
+                .style(Style.style().font(refGlyph.getFont()).build())
+                .hoverEvent(refGlyph.getGlyphHoverText());
 
         // Apply color
         glyphComponent = glyphComponent.color(colorable ? null : NamedTextColor.WHITE);

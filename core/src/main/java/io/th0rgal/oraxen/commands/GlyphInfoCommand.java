@@ -23,12 +23,15 @@ public class GlyphInfoCommand {
                     Glyph glyph = OraxenPlugin.get().getFontManager().getGlyphFromID(glyphId);
                     Audience audience = OraxenPlugin.get().getAudience().sender(sender);
                     if (glyph == null) {
-                        audience.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<prefix><red>No glyph found with glyph-id <white>" + glyphId + "<red>."));
+                        audience.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<prefix><red>No glyph found with glyph-id <white>")
+                                .append(Component.text(glyphId, NamedTextColor.WHITE))
+                                .append(AdventureUtils.MINI_MESSAGE.deserialize("<red>.")));
                     } else {
                         audience.sendMessage(
                                 Component.empty()
                                         .append(Component.newline())
-                                        .append(AdventureUtils.MINI_MESSAGE.deserialize("<gray>GlyphID ⏵ <white>" + glyphId))
+                                        .append(AdventureUtils.MINI_MESSAGE.deserialize("<gray>GlyphID ⏵ <white>"))
+                                        .append(Component.text(glyphId, NamedTextColor.WHITE))
                                         .append(Component.newline())
                                         .append(AdventureUtils.MINI_MESSAGE.deserialize("<gray>Texture ⏵ <white>" + glyph.getTexture()))
                                         .append(Component.newline())
