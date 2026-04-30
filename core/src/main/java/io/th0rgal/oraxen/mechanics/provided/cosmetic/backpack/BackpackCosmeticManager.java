@@ -7,7 +7,6 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -51,7 +50,6 @@ public class BackpackCosmeticManager {
 
         // Spawn the backpack for all nearby players
         spawnBackpackForViewers(player, data);
-        data.setLastPassengerIds(getMergedPassengerIds(player, data.getEntityId()));
     }
 
     /**
@@ -130,14 +128,10 @@ public class BackpackCosmeticManager {
         BackpackData data = activeBackpacks.get(owner.getUniqueId());
         if (data == null) return;
 
-        int[] passengerIds = getMergedPassengerIds(owner, data.getEntityId());
-        if (!data.hasPassengerIdsChanged(passengerIds)) return;
-        data.setLastPassengerIds(passengerIds);
-
         for (UUID viewerId : data.getViewers()) {
             Player viewer = Bukkit.getPlayer(viewerId);
             if (viewer != null && viewer.isOnline()) {
-                sendBackpackMountPacket(viewer, owner, passengerIds);
+                sendBackpackMountPacket(viewer, owner, data);
             }
         }
     }
@@ -215,6 +209,8 @@ public class BackpackCosmeticManager {
                 Player viewer = Bukkit.getPlayer(viewerId);
                 return viewer == null || !viewer.isOnline();
             });
+
+            resyncBackpackMount(owner);
         }
     }
 
@@ -338,7 +334,6 @@ public class BackpackCosmeticManager {
         private final BackpackCosmeticMechanic mechanic;
         private final ItemStack displayItem;
         private final Set<UUID> viewers = ConcurrentHashMap.newKeySet();
-        private int[] lastPassengerIds = new int[0];
         private float lockedYaw;
         private Location lastPosition;
 
@@ -380,14 +375,6 @@ public class BackpackCosmeticManager {
 
         public Set<UUID> getViewers() {
             return viewers;
-        }
-
-        public boolean hasPassengerIdsChanged(int[] passengerIds) {
-            return !Arrays.equals(lastPassengerIds, passengerIds);
-        }
-
-        public void setLastPassengerIds(int[] passengerIds) {
-            lastPassengerIds = passengerIds.clone();
         }
 
         public void addViewer(UUID viewerId) {

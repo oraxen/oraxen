@@ -132,6 +132,7 @@ public class BackpackCosmeticListener implements Listener {
     }
 
     private void scheduleBackpackMountResync(Player player) {
+        SchedulerUtil.runTaskLater(1L, () -> manager.resyncBackpackMount(player));
         SchedulerUtil.runTaskLater(2L, () -> manager.resyncBackpackMount(player));
     }
 
