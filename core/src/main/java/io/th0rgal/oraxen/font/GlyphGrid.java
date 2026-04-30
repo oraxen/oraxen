@@ -79,7 +79,7 @@ public record GlyphGrid(int rows, int columns) {
             return SINGLE;
 
         int rows = unicodeRows.size();
-        int columns = unicodeRows.stream().mapToInt(row -> row != null ? row.length() : 0).max().orElse(1);
+        int columns = unicodeRows.stream().mapToInt(row -> row != null ? row.codePointCount(0, row.length()) : 0).max().orElse(1);
         return normalize(rows, columns);
     }
 

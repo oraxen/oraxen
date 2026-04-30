@@ -33,7 +33,7 @@ public class FontManager {
     public static Map<String, GlyphBitMap> glyphBitMaps = new HashMap<>();
     private final Map<String, Glyph> glyphMap;
     private final Map<String, Glyph> glyphByPlaceholder;
-    private final Map<Character, String> reverse;
+    private final Map<String, String> reverse;
     private final FontEvents fontEvents;
     private final Set<Font> fonts;
     private boolean useNmsGlyphs;
@@ -136,9 +136,9 @@ public class FontManager {
             if (glyph.getCharacter().isBlank())
                 continue;
             glyphMap.put(glyph.getName(), glyph);
-            for (char character : glyph.getAllChars()) {
-                reverse.put(character, glyph.getName());
-            }
+            glyph.getCharacters().codePoints()
+                    .mapToObj(Character::toString)
+                    .forEach(character -> reverse.put(character, glyph.getName()));
             for (final String placeholder : glyph.getPlaceholders())
                 glyphByPlaceholder.put(placeholder, glyph);
         }
@@ -311,7 +311,7 @@ public class FontManager {
         return glyphByPlaceholder;
     }
 
-    public Map<Character, String> getReverseMap() {
+    public Map<String, String> getReverseMap() {
         return reverse;
     }
 

@@ -131,12 +131,18 @@ public class OraxenYaml extends YamlConfiguration {
             return key;
 
         String cacheKey = key.toLowerCase(Locale.ROOT);
-        String actualKey = KEY_CACHE.computeIfAbsent(section, OraxenYaml::buildKeyCache).get(cacheKey);
+        Map<String, String> keyCache = KEY_CACHE.computeIfAbsent(section, OraxenYaml::buildKeyCache);
+        String actualKey = keyCache.get(cacheKey);
         if (actualKey != null)
             return actualKey;
 
-        KEY_CACHE.remove(section);
-        return KEY_CACHE.computeIfAbsent(section, OraxenYaml::buildKeyCache).get(cacheKey);
+        for (String existingKey : section.getKeys(false)) {
+            if (!existingKey.equalsIgnoreCase(key))
+                continue;
+            keyCache.putIfAbsent(cacheKey, existingKey);
+            return existingKey;
+        }
+        return null;
     }
 
     @NotNull

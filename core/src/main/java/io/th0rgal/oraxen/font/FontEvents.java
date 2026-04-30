@@ -104,8 +104,8 @@ public class FontEvents implements Listener {
         for (String page : meta.getPages()) {
             int i = meta.getPages().indexOf(page) + 1;
             if (i == 0) continue;
-            for (Character character : manager.getReverseMap().keySet()) {
-                if (!page.contains(String.valueOf(character))) continue;
+            for (String character : manager.getReverseMap().keySet()) {
+                if (!page.contains(character)) continue;
 
                 Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
                 if (!glyph.hasPermission(event.getPlayer())) {
@@ -161,8 +161,8 @@ public class FontEvents implements Listener {
         String[] lines = event.getLines();
         for (int i = 0; i < lines.length; i++) {
             String line = AdventureUtils.parseLegacyThroughMiniMessage(lines[i]);
-            for (Character character : manager.getReverseMap().keySet()) {
-                if (!line.contains(String.valueOf(character))) continue;
+            for (String character : manager.getReverseMap().keySet()) {
+                if (!line.contains(character)) continue;
 
                 Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
                 if (!glyph.hasPermission(player)) {
@@ -222,14 +222,14 @@ public class FontEvents implements Listener {
     }
 
     private String replaceUnpermittedGlyphs(Player player, String displayName) {
-        for (Character character : manager.getReverseMap().keySet()) {
-            if (!displayName.contains(String.valueOf(character))) continue;
+        for (String character : manager.getReverseMap().keySet()) {
+            if (!displayName.contains(character)) continue;
             Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
             if (!glyph.hasPermission(player)) {
                 Glyph required = manager.getGlyphFromName("required");
                 String replacement = required.hasPermission(player) ? String.valueOf(required.getCharacter()) : "";
                 Message.NO_PERMISSION.send(player, AdventureUtils.tagResolver("permission", glyph.getPermission()));
-                displayName = displayName.replace(String.valueOf(character), replacement);
+                displayName = displayName.replace(character, replacement);
             }
         }
         return displayName;
@@ -280,8 +280,8 @@ public class FontEvents implements Listener {
          */
         private String format(String string, @Nullable Player player) {
             TextComponent component = (TextComponent) AdventureUtils.MINI_MESSAGE_PLAYER(player).deserialize(string);
-            if (player != null) for (Character character : manager.getReverseMap().keySet()) {
-                if (!component.content().contains(String.valueOf(character))) continue;
+            if (player != null) for (String character : manager.getReverseMap().keySet()) {
+                if (!component.content().contains(character)) continue;
                 Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
                 if (!glyph.hasPermission(player)) {
                     Message.NO_PERMISSION.send(player, AdventureUtils.tagResolver("permission", glyph.getPermission()));
@@ -344,13 +344,13 @@ public class FontEvents implements Listener {
     private Component format(Component message, Player player) {
         Key randomKey = Key.key("random");
         String serialized = MINI_MESSAGE.serialize(message);
-        for (Character character : manager.getReverseMap().keySet()) {
-            if (!serialized.contains(character.toString())) continue;
+        for (String character : manager.getReverseMap().keySet()) {
+            if (!serialized.contains(character)) continue;
 
             Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
             if (!glyph.hasPermission(player)) message.replaceText(
                     TextReplacementConfig.builder()
-                            .matchLiteral(character.toString())
+                            .matchLiteral(character)
                             .replacement(glyph.getGlyphComponent().font(randomKey))
                             .build()
             );

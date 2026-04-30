@@ -246,6 +246,9 @@ public class MechanicsManager {
     }
 
     public static MechanicFactory getMechanicFactory(final String mechanicID) {
+        if (mechanicID == null)
+            return null;
+
         MechanicFactory factory = FACTORIES_BY_MECHANIC_ID.get(mechanicID);
         if (factory != null)
             return factory;
