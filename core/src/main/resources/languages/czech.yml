@@ -26,7 +26,7 @@ general:
   exit_menu: "<gradient:#FA7CBB:#F14658>Odejít"
   no_emojis: "<prefix><#fa4943>No emojis found"
   introduction_guide: |-
-    
+
     <dark_gray><st>                                         </st><gold><bold> Vítejte v Oraxenu... </bold><dark_gray><st>                                         </st>
     <gray> Oraxen se poprvé úspěšně načetl, pojďme vás nastavit.
     <dark_gray> » <gray>Pro odstranění <yellow>výchozího brandingu</yellow> postupujte podle návodu na <blue>https://oraxen.mizius.com/usage/tutorials/d017g<gray>.
@@ -117,11 +117,10 @@ command:
     toggle_on: "<prefix><#55ffa4>Toggled '<hud_id>' on!"
     toggle_off: "<prefix><#fa4943>Toggled '<hud_id>' off!"
 
-  debug.toggle: "<prefix><#55ffa4>Debug mode is now <#43fa8c><state><#55ffa4>!"
+  debug.toggle: "<prefix><#55ffa4>Debug mode is now <#43fa8c><state><#55ffa4>."
   version: "<prefix><#55ffa4>Oraxen version: <#43fa8c><version><#55ffa4>!"
 
 mechanics:
   not_enough_exp: "<prefix><#fa4943>Pro tohle potřebuješ více zkušeností"
   backpack_stacked: "<prefix><#fa4943>Nelze otevřít naskládaný batoh"
   jukebox_now_playing: "<dark_purple>Nyní se přehrává <disc>"
-

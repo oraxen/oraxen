@@ -71,7 +71,9 @@ public class BackpackCosmeticFactory extends MechanicFactory {
     public Mechanic parse(ConfigurationSection section) {
         BackpackCosmeticMechanic mechanic = new BackpackCosmeticMechanic(this, section);
         addToImplemented(mechanic);
-        io.th0rgal.oraxen.utils.logs.Logs.logSuccess("Registered backpack cosmetic: " + mechanic.getItemID() + " (slot: " + mechanic.getTriggerSlot() + ")");
+        if (Settings.DEBUG.toBool()) {
+            io.th0rgal.oraxen.utils.logs.Logs.logSuccess("Registered backpack cosmetic: " + mechanic.getItemID() + " (slot: " + mechanic.getTriggerSlot() + ")");
+        }
         return mechanic;
     }
 }
