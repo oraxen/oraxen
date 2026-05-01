@@ -4,7 +4,7 @@ general:
   work_in_progress: "<prefix><#facc43>此功能还在完善呢！"
   not_player: "<prefix><#fa4943>只能以玩家的身份运行！"
   cooldown: "<prefix><#facc43>请等待 <time> 秒！"
-  reload: "<prefix><#55ffa4>重载成功"
+  reload: "<prefix><#55ffa4>成功重载 <reloaded>。"
   pack_uploading: "<prefix><#D5D6D8>材质包自动上传已启用, 上传中..."
   pack_not_uploaded: "<prefix><#fa4943>材质包上传失败"
   pack_uploaded: "<prefix><#55ffa4>材质包上传至 <url> 用时 <delay> 毫秒"

@@ -4,7 +4,7 @@ general:
   work_in_progress: "<prefix><#facc43>Эта функция находится в процессе разработки!"
   not_player: "<prefix><#fa4943>Это может сделать только игрок!"
   cooldown: "<prefix><#facc43>Пожалуйста, подождите ещё <time> сек!"
-  reload: "<prefix><#55ffa4>Успешно перезагружено"
+  reload: "<prefix><#55ffa4>Успешно перезагружено: <reloaded>."
   pack_uploading: "<prefix><#D5D6D8>Автоматическая выгрузка ресурспака включена, выгрузка..."
   pack_not_uploaded: "<prefix><#fa4943>Ресурспак не выгружен"
   pack_uploaded: "<prefix><#55ffa4>Ресурспак выгружен на <url> за <delay> мс"

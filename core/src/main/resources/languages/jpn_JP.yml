@@ -4,7 +4,7 @@ general:
   work_in_progress: "<prefix><#facc43>この機能は進行中です！"
   not_player: "<prefix><#fa4943>これはプレイヤーのみが行えます！"
   cooldown: "<prefix><#facc43>あと<time>秒お待ちください！"
-  reload: "<prefix><#55ffa4>正常にリロードされました"
+  reload: "<prefix><#55ffa4><reloaded> を正常にリロードしました。"
   pack_uploading: "<prefix><#D5D6D8>リソースパックの自動アップロードが有効になっています、アップロード中..."
   pack_not_uploaded: "<prefix><#fa4943>リソースパックがアップロードされていません"
   pack_uploaded: "<prefix><#55ffa4>リソースパックが<delay>ミリ秒で<url>にアップロードされました"

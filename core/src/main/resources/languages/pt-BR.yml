@@ -4,7 +4,7 @@ general:
   work_in_progress: "<prefix><#facc43>Este recurso está em desenvolvimento!"
   not_player: "<prefix><#fa4943>Isso só pode ser feito por um jogador!"
   cooldown: "<prefix><#facc43>Por favor, espere <time> segundos!"
-  reload: "<prefix><#55ffa4>Recarregado com sucesso!"
+  reload: "<prefix><#55ffa4>Recarregado com sucesso: <reloaded>."
   pack_uploading: "<prefix><#D5D6D8>O upload automático do pacote de recursos está ativado, enviando..."
   pack_not_uploaded: "<prefix><#fa4943>O pacote de recursos não foi enviado."
   pack_uploaded: "<prefix><#55ffa4>Pacote de recursos enviado para a URL <url> em <delay> ms."

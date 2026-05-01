@@ -4,7 +4,7 @@ general:
   work_in_progress: "<prefix><#facc43>Diese Funktion ist noch in Arbeit!"
   not_player: "<prefix><#fa4943>Dies kann man nur als Spieler tun!"
   cooldown: "<prefix><#facc43>Bitte warten Sie weitere <time> Sekunden!"
-  reload: "<prefix><#55ffa4>Erfolgreich neu geladen"
+  reload: "<prefix><#55ffa4>Erfolgreich neu geladen: <reloaded>."
   pack_uploading: "<prefix><#D5D6D8>Das automatische Hochladen des Ressourcenpacks ist aktiviert, Hochladen..."
   pack_not_uploaded: "<prefix><#fa4943>Ressourcenpack nicht hochgeladen"
   pack_uploaded: "<prefix><#55ffa4>Ressourcenpack auf Url <url> in <delay> ms hochgeladen"
