@@ -229,14 +229,10 @@ public class FurnitureMechanic extends Mechanic {
             growthStages = new ArrayList<>();
             for (Object stageObj : stagesList) {
                 if (stageObj instanceof Map<?, ?> stageMap) {
-                    // Convert Map to ConfigurationSection-like structure
-                    ConfigurationSection stageSection = section.createSection("_temp_stage_" + growthStages.size());
-                    for (Map.Entry<?, ?> entry : stageMap.entrySet()) {
-                        stageSection.set(entry.getKey().toString(), entry.getValue());
-                    }
+                    ConfigurationSection stageSection = new MemoryConfiguration();
+                    copyMapToSection(stageMap, stageSection);
                     // Pass the item ID for proper drop fallback (avoids NPE from empty sourceID)
                     growthStages.add(new GrowthStage(stageSection, drop, getItemID()));
-                    section.set("_temp_stage_" + (growthStages.size() - 1), null); // Clean up temp section
                 }
             }
             initialStageIndex = section.getInt("initial_stage", 0);
@@ -567,9 +563,7 @@ public class FurnitureMechanic extends Mechanic {
      */
     public boolean isFinalStage(int stageIndex) {
         if (growthStages == null) return true;
-        if (stageIndex >= growthStages.size() - 1) return true;
-        GrowthStage stage = growthStages.get(stageIndex);
-        return !stage.hasEvolution();
+        return stageIndex < 0 || stageIndex >= growthStages.size() - 1;
     }
 
     public boolean isRotatable() {
