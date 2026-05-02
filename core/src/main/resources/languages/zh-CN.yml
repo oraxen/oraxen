@@ -4,7 +4,7 @@ general:
   work_in_progress: "<prefix><#facc43>此功能还在完善呢！"
   not_player: "<prefix><#fa4943>只能以玩家的身份运行！"
   cooldown: "<prefix><#facc43>请等待 <time> 秒！"
-  reload: "<prefix><#55ffa4>重载成功"
+  reload: "<prefix><#55ffa4>成功重载 <reloaded>。"
   pack_uploading: "<prefix><#D5D6D8>材质包自动上传已启用, 上传中..."
   pack_not_uploaded: "<prefix><#fa4943>材质包上传失败"
   pack_uploaded: "<prefix><#55ffa4>材质包上传至 <url> 用时 <delay> 毫秒"
@@ -26,7 +26,7 @@ general:
   exit_menu: "<gradient:#FA7CBB:#F14658>退出"
   no_emojis: "<prefix><#fa4943>No emojis found"
   introduction_guide: |-
-    
+
     <dark_gray><st>                                         </st><gold><bold> 欢迎使用 Oraxen... </bold><dark_gray><st>                                         </st>
     <gray> Oraxen 已首次成功加载，让我们开始吧。
     <dark_gray> » <gray>如需移除<yellow>默认品牌标识</yellow>，请参考教程：<blue>https://oraxen.mizius.com/usage/tutorials/d017g<gray>。
@@ -117,7 +117,7 @@ command:
     toggle_on: "<prefix><#55ffa4>切换 '<hud_id>' 开启!"
     toggle_off: "<prefix><#fa4943>切换 '<hud_id>' 关闭!"
 
-  debug.toggle: "<prefix><#55ffa4>Debug 模式已经 <#43fa8c><state><#55ffa4>!"
+  debug.toggle: "<prefix><#55ffa4>Debug 模式已经 <#43fa8c><state><#55ffa4>."
   version: "<prefix><#55ffa4>Oraxen 版本: <#43fa8c><version><#55ffa4>!"
 
 mechanics:
@@ -126,4 +126,3 @@ mechanics:
   jukebox_now_playing: "<dark_purple>正在播放 <disc>"
 # The author can laugh!
 # -- Translator
-

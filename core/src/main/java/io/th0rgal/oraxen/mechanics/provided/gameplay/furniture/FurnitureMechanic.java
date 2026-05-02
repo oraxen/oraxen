@@ -55,6 +55,8 @@ public class FurnitureMechanic extends Mechanic {
     public static final NamespacedKey FURNITURE_KEY = new NamespacedKey(OraxenPlugin.get(), "furniture");
     public static final NamespacedKey BASE_ENTITY_KEY = new NamespacedKey(OraxenPlugin.get(), "base_entity");
     public static final NamespacedKey INTERACTION_KEY = new NamespacedKey(OraxenPlugin.get(), "interaction");
+    public static final NamespacedKey INTERACTIONS_KEY = new NamespacedKey(OraxenPlugin.get(), "interactions");
+    public static final NamespacedKey HITBOX_OFFSET_KEY = new NamespacedKey(OraxenPlugin.get(), "hitbox_offset");
     public static final NamespacedKey MODELENGINE_KEY = new NamespacedKey(OraxenPlugin.get(), "modelengine");
     public static final NamespacedKey SEAT_KEY = new NamespacedKey(OraxenPlugin.get(), "seat");
     public static final NamespacedKey ROOT_KEY = new NamespacedKey(OraxenPlugin.get(), "root");
@@ -86,6 +88,7 @@ public class FurnitureMechanic extends Mechanic {
     private FurnitureType furnitureType;
     private final DisplayEntityProperties displayEntityProperties;
     private final FurnitureHitbox hitbox;
+    private final List<FurnitureHitbox> hitboxes;
     private final boolean isRotatable;
     private final boolean small;
     private final ArmorStandProperties armorStandProperties;
@@ -93,7 +96,15 @@ public class FurnitureMechanic extends Mechanic {
     private final RestrictedRotation restrictedRotation;
     private final List<FurnitureTextDefinition> textDefinitions;
 
-    public record FurnitureHitbox(float width, float height) {
+    public record FurnitureHitbox(double offsetX, double offsetY, double offsetZ, float width, float height) {
+
+        public FurnitureHitbox(float width, float height) {
+            this(0, 0, 0, width, height);
+        }
+
+        public Vector offset() {
+            return new Vector(offsetX, offsetY, offsetZ);
+        }
     }
 
     public enum RestrictedRotation {
@@ -198,11 +209,8 @@ public class FurnitureMechanic extends Mechanic {
                 }
         }
 
-        ConfigurationSection hitboxSection = section.getConfigurationSection("hitbox");
-        if (hitboxSection != null) {
-            float width = (float) hitboxSection.getDouble("width", 1.0), height = (float) hitboxSection.getDouble("height", 1.0);
-            hitbox = width > 0 && height > 0 ? new FurnitureHitbox(width, height) : null;
-        } else hitbox = !hasBarriers() ? new FurnitureHitbox(1.0f, 1.0f) : null;
+        hitboxes = parseHitboxes(section);
+        hitbox = hitboxes.isEmpty() ? null : hitboxes.get(0);
 
         ConfigurationSection seatSection = section.getConfigurationSection("seat");
         if (seatSection != null) {
@@ -221,14 +229,10 @@ public class FurnitureMechanic extends Mechanic {
             growthStages = new ArrayList<>();
             for (Object stageObj : stagesList) {
                 if (stageObj instanceof Map<?, ?> stageMap) {
-                    // Convert Map to ConfigurationSection-like structure
-                    ConfigurationSection stageSection = section.createSection("_temp_stage_" + growthStages.size());
-                    for (Map.Entry<?, ?> entry : stageMap.entrySet()) {
-                        stageSection.set(entry.getKey().toString(), entry.getValue());
-                    }
+                    ConfigurationSection stageSection = new MemoryConfiguration();
+                    copyMapToSection(stageMap, stageSection);
                     // Pass the item ID for proper drop fallback (avoids NPE from empty sourceID)
                     growthStages.add(new GrowthStage(stageSection, drop, getItemID()));
-                    section.set("_temp_stage_" + (growthStages.size() - 1), null); // Clean up temp section
                 }
             }
             initialStageIndex = section.getInt("initial_stage", 0);
@@ -277,6 +281,61 @@ public class FurnitureMechanic extends Mechanic {
         blockLocker = blockLockerSection != null ? new BlockLockerMechanic(blockLockerSection) : null;
 
         textDefinitions = parseTextDefinitions(section);
+    }
+
+    private List<FurnitureHitbox> parseHitboxes(ConfigurationSection section) {
+        List<FurnitureHitbox> parsedHitboxes = new ArrayList<>();
+        boolean hasHitboxesSection = section.isList("hitboxes");
+        if (hasHitboxesSection) {
+            for (Object hitboxObject : section.getList("hitboxes", new ArrayList<>())) {
+                FurnitureHitbox parsedHitbox = parseHitbox(hitboxObject);
+                if (parsedHitbox != null) parsedHitboxes.add(parsedHitbox);
+            }
+            return List.copyOf(parsedHitboxes);
+        }
+
+        ConfigurationSection hitboxSection = section.getConfigurationSection("hitbox");
+        if (hitboxSection != null) {
+            float width = (float) hitboxSection.getDouble("width", 1.0);
+            float height = (float) hitboxSection.getDouble("height", 1.0);
+            if (width > 0 && height > 0) return List.of(new FurnitureHitbox(width, height));
+            return List.of();
+        }
+
+        return !hasBarriers() ? List.of(new FurnitureHitbox(1.0f, 1.0f)) : List.of();
+    }
+
+    @Nullable
+    private FurnitureHitbox parseHitbox(Object hitboxObject) {
+        if (!(hitboxObject instanceof String string)) {
+            Logs.logError("Invalid hitbox entry for furniture: " + getItemID() + ". Expected '<x>,<y>,<z> <width>,<height>'.");
+            return null;
+        }
+
+        String[] parts = string.trim().split("\\s+");
+        if (parts.length != 2) {
+            Logs.logError("Invalid hitbox entry '" + string + "' for furniture: " + getItemID() + ". Expected '<x>,<y>,<z> <width>,<height>'.");
+            return null;
+        }
+
+        String[] offsetParts = parts[0].split(",");
+        String[] sizeParts = parts[1].split(",");
+        if (offsetParts.length != 3 || sizeParts.length != 2) {
+            Logs.logError("Invalid hitbox entry '" + string + "' for furniture: " + getItemID() + ". Expected '<x>,<y>,<z> <width>,<height>'.");
+            return null;
+        }
+
+        try {
+            double offsetX = Double.parseDouble(offsetParts[0]);
+            double offsetY = Double.parseDouble(offsetParts[1]);
+            double offsetZ = Double.parseDouble(offsetParts[2]);
+            float width = Float.parseFloat(sizeParts[0]);
+            float height = Float.parseFloat(sizeParts[1]);
+            return width > 0 && height > 0 ? new FurnitureHitbox(offsetX, offsetY, offsetZ, width, height) : null;
+        } catch (NumberFormatException exception) {
+            Logs.logError("Invalid hitbox entry '" + string + "' for furniture: " + getItemID() + ". Hitbox values must be numbers.");
+            return null;
+        }
     }
 
     private static List<FurnitureTextDefinition> parseTextDefinitions(ConfigurationSection section) {
@@ -427,6 +486,10 @@ public class FurnitureMechanic extends Mechanic {
         return hitbox;
     }
 
+    public List<FurnitureHitbox> getHitboxes() {
+        return hitboxes;
+    }
+
     public boolean hasSeat() {
         return hasSeat;
     }
@@ -500,9 +563,7 @@ public class FurnitureMechanic extends Mechanic {
      */
     public boolean isFinalStage(int stageIndex) {
         if (growthStages == null) return true;
-        if (stageIndex >= growthStages.size() - 1) return true;
-        GrowthStage stage = growthStages.get(stageIndex);
-        return !stage.hasEvolution();
+        return stageIndex < 0 || stageIndex >= growthStages.size() - 1;
     }
 
     public boolean isRotatable() {
@@ -577,7 +638,7 @@ public class FurnitureMechanic extends Mechanic {
         // Since roof-furniture need to be more or less flipped, we have to add 0.5 (0.49 or it is "inside" the block above) to the Y coordinate
         if (isFixed && isWall && facing.getModY() == 0) correctedLocation.add(-facing.getModX() * (0.49 * scale), 0, -facing.getModZ() * (0.49 * scale));
 
-        float hitboxOffset = (hasHitbox() ? hitbox.height : 1) - 1;
+        float hitboxOffset = (hasHitbox() ? getTallestHitboxHeight(hitboxes) : 1) - 1;
         double yCorrection = ((isRoof && facing == BlockFace.DOWN) ? isFixed ? 0.49 : -1 * hitboxOffset : 0);
 
         return correctedLocation.add(0, yCorrection, 0);
@@ -606,25 +667,26 @@ public class FurnitureMechanic extends Mechanic {
 
             if (hasBarriers()) setBarrierHitbox(entity, location, yaw);
             else {
-                float width = hasHitbox() ? hitbox.width : 1f;
-                float height = hasHitbox() ? hitbox.height : 1f;
-                Entity interaction = spawnInteractionEntity(frame, location, width, height);
+                List<Interaction> interactions = spawnInteractionEntities(frame, location, yaw, hitboxes);
+                Entity interaction = interactions.isEmpty() ? null : interactions.get(0);
 
                 Block block = location.getBlock();
                 if (hasSeat() && interaction != null) {
                     UUID seatUuid = spawnSeat(block, hasSeatYaw ? seatYaw : FurnitureMechanic.getFurnitureYaw(frame));
-                    interaction.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
                     frame.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
+                    interaction.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
                 }
                 createInitialLight(block, entity);
             }
         } else if (entity instanceof ItemDisplay itemDisplay) {
             setItemDisplayData(itemDisplay, item, yaw, displayEntityProperties, facing);
-            float width = hasHitbox() ? hitbox.width : displayEntityProperties.getDisplayWidth();
-            float height = hasHitbox() ? hitbox.height : displayEntityProperties.getDisplayHeight();
+            FurnitureHitbox displayHitbox = hasHitbox() ? hitbox : new FurnitureHitbox(displayEntityProperties.getDisplayWidth(), displayEntityProperties.getDisplayHeight());
+            List<FurnitureHitbox> displayHitboxes = hasHitbox() ? hitboxes : List.of(displayHitbox);
+            float height = getTallestHitboxHeight(displayHitboxes);
             boolean isFixed = displayEntityProperties.getDisplayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
             Location interactionLoc = location.clone().subtract(0, (hasLimitedPlacing() && limitedPlacing.isRoof() && isFixed) ? 1.5 * (height - 1) : 0, 0);
-            Interaction interaction = spawnInteractionEntity(itemDisplay, interactionLoc, width, height);
+            List<Interaction> interactions = spawnInteractionEntities(itemDisplay, interactionLoc, yaw, displayHitboxes);
+            Interaction interaction = interactions.isEmpty() ? null : interactions.get(0);
             Location barrierLoc = EntityUtils.isNone(itemDisplay) && displayEntityProperties.hasScale()
                             ? location.clone().subtract(0, 0.5 * displayEntityProperties.getScale().y(), 0) : location;
 
@@ -632,8 +694,8 @@ public class FurnitureMechanic extends Mechanic {
             else {
                 if (hasSeat() && interaction != null) {
                     UUID seatUuid = spawnSeat(location.getBlock(), hasSeatYaw ? seatYaw : yaw);
-                    interaction.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
                     itemDisplay.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
+                    interaction.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
                 }
                 createInitialLight(location.getBlock(), entity);
             }
@@ -642,15 +704,15 @@ public class FurnitureMechanic extends Mechanic {
 
             if (hasBarriers()) setBarrierHitbox(entity, location, yaw);
             else {
-                float width = hasHitbox() ? hitbox.width : 1f;
-                float height = hasHitbox() ? hitbox.height : 1f;
-                Entity interaction = spawnInteractionEntity(armorStand, location, width, height);
+                List<Interaction> interactions = spawnInteractionEntities(armorStand, location, yaw, hitboxes);
+                Entity interaction = interactions.isEmpty() ? null : interactions.get(0);
 
                 Block block = location.getBlock();
                 if (hasSeat()) {
                     UUID seatUuid = spawnSeat(block, hasSeatYaw ? seatYaw : yaw);
-                    if (interaction != null) interaction.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
                     armorStand.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
+                    if (interaction != null)
+                        interaction.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
                 }
                 createInitialLight(block, entity);
             }
@@ -666,24 +728,54 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
-    private Interaction spawnInteractionEntity(Entity entity, Location location, float width, float height) {
-        if (!OraxenPlugin.supportsDisplayEntities || width <= 0f || height <= 0f) return null;
-        UUID existingInteractionUUID = entity.getPersistentDataContainer().get(INTERACTION_KEY, DataType.UUID);
-        if (existingInteractionUUID != null) {
-            Entity existingInteraction = Bukkit.getEntity(existingInteractionUUID);
-            if (existingInteraction instanceof Interaction interaction) return interaction;
+    private List<Interaction> spawnInteractionEntities(Entity entity, Location location, float yaw, List<FurnitureHitbox> hitboxes) {
+        if (!OraxenPlugin.supportsDisplayEntities || hitboxes.isEmpty()) return List.of();
+
+        PersistentDataContainer pdc = entity.getPersistentDataContainer();
+        List<UUID> existingInteractionUuids = pdc.getOrDefault(INTERACTIONS_KEY, DataType.asList(DataType.UUID), List.of());
+        if (!existingInteractionUuids.isEmpty() || pdc.has(INTERACTION_KEY, DataType.UUID)) {
+            List<Interaction> existingInteractions = getInteractionEntities(entity);
+            if (!existingInteractions.isEmpty()) return existingInteractions;
+
+            pdc.remove(INTERACTION_KEY);
+            pdc.remove(INTERACTIONS_KEY);
         }
 
-        Interaction interaction = EntityUtils.spawnEntity(BlockHelpers.toCenterBlockLocation(location), Interaction.class, (i) -> {
-            i.setInteractionWidth(width);
-            i.setInteractionHeight(height);
+        List<Interaction> interactions = new ArrayList<>();
+        List<UUID> interactionUuids = new ArrayList<>();
+        for (FurnitureHitbox hitbox : hitboxes) {
+            Interaction interaction = spawnInteractionEntity(entity, location, yaw, hitbox);
+            if (interaction == null) continue;
+            interactions.add(interaction);
+            interactionUuids.add(interaction.getUniqueId());
+        }
+        if (interactionUuids.isEmpty()) return interactions;
+        pdc.set(INTERACTION_KEY, DataType.UUID, interactionUuids.get(0));
+        pdc.set(INTERACTIONS_KEY, DataType.asList(DataType.UUID), interactionUuids);
+        return interactions;
+    }
+
+    private static float getTallestHitboxHeight(List<FurnitureHitbox> hitboxes) {
+        float height = 0;
+        for (FurnitureHitbox hitbox : hitboxes) height = Math.max(height, hitbox.height);
+        return height;
+    }
+
+    private Interaction spawnInteractionEntity(Entity entity, Location location, float yaw, FurnitureHitbox hitbox) {
+        Vector offset = rotateGroundOffset(hitbox.offset(), yaw);
+        Location hitboxLocation = BlockHelpers.toCenterBlockLocation(location).add(offset);
+
+        Interaction interaction = EntityUtils.spawnEntity(hitboxLocation, Interaction.class, (i) -> {
+            i.setInteractionWidth(hitbox.width);
+            i.setInteractionHeight(hitbox.height);
             i.setPersistent(true);
         });
+        if (interaction == null) return null;
 
         PersistentDataContainer pdc = interaction.getPersistentDataContainer();
         pdc.set(FURNITURE_KEY, DataType.STRING, getItemID());
         pdc.set(BASE_ENTITY_KEY, DataType.UUID, entity.getUniqueId());
-        entity.getPersistentDataContainer().set(INTERACTION_KEY, DataType.UUID, interaction.getUniqueId());
+        pdc.set(HITBOX_OFFSET_KEY, PersistentDataType.STRING, hitbox.offsetX + "," + hitbox.offsetY + "," + hitbox.offsetZ);
 
         return interaction;
     }
@@ -1029,8 +1121,8 @@ public class FurnitureMechanic extends Mechanic {
         if (hasSeat) removeFurnitureSeat(baseEntity.getLocation());
 
         if (OraxenPlugin.supportsDisplayEntities) {
-            Interaction interaction = getInteractionEntity(baseEntity);
-            if (interaction != null && !interaction.isDead()) interaction.remove();
+            for (Interaction interaction : getInteractionEntities(baseEntity))
+                if (!interaction.isDead()) interaction.remove();
         }
     }
 
@@ -1172,9 +1264,33 @@ public class FurnitureMechanic extends Mechanic {
 
     @Nullable
     public Interaction getInteractionEntity(@NotNull Entity baseEntity) {
-        UUID interactionUUID = baseEntity.getPersistentDataContainer().get(INTERACTION_KEY, DataType.UUID);
-        return OraxenPlugin.supportsDisplayEntities && interactionUUID != null && Bukkit.getEntity(interactionUUID) instanceof Interaction interaction
-                ? interaction : getInteractionEntityAlter(baseEntity);
+        List<Interaction> interactions = getInteractionEntities(baseEntity);
+        return interactions.isEmpty() ? null : interactions.get(0);
+    }
+
+    public List<Interaction> getInteractionEntities(@NotNull Entity baseEntity) {
+        if (!OraxenPlugin.supportsDisplayEntities) return List.of();
+
+        PersistentDataContainer pdc = baseEntity.getPersistentDataContainer();
+        List<UUID> interactionUUIDs = pdc.getOrDefault(INTERACTIONS_KEY, DataType.asList(DataType.UUID), new ArrayList<>());
+        UUID legacyInteractionUUID = pdc.get(INTERACTION_KEY, DataType.UUID);
+        if (legacyInteractionUUID != null && !interactionUUIDs.contains(legacyInteractionUUID)) {
+            List<UUID> mergedInteractionUUIDs = new ArrayList<>();
+            mergedInteractionUUIDs.add(legacyInteractionUUID);
+            mergedInteractionUUIDs.addAll(interactionUUIDs);
+            interactionUUIDs = mergedInteractionUUIDs;
+        }
+
+        List<Interaction> interactions = new ArrayList<>();
+        for (UUID interactionUUID : interactionUUIDs) {
+            if (Bukkit.getEntity(interactionUUID) instanceof Interaction interaction)
+                interactions.add(interaction);
+        }
+
+        if (!interactions.isEmpty()) return interactions;
+
+        Interaction legacyInteraction = getInteractionEntityAlter(baseEntity);
+        return legacyInteraction != null ? List.of(legacyInteraction) : List.of();
     }
 
     /**

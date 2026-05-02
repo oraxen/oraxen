@@ -1,16 +1,15 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution;
 
 import io.th0rgal.oraxen.api.OraxenFurniture;
+import io.th0rgal.oraxen.api.events.furniture.OraxenFurnitureInteractEvent;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import org.bukkit.Effect;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -25,22 +24,18 @@ public class EvolutionListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onBoneMeal(PlayerInteractEntityEvent event) {
+    public void onBoneMeal(OraxenFurnitureInteractEvent event) {
         if (!FurnitureFactory.isEnabled()) return;
         if (event.getHand() != EquipmentSlot.HAND) return;
-        Entity entity = event.getRightClicked();
-        Player player = event.getPlayer();
-
-        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
-        if (mechanic == null || !mechanic.hasEvolution()) return;
-        // Swap entity to baseEntity to handle 1.19.4 Interaction entities
-        entity = mechanic.getBaseEntity(entity);
-        if (entity == null) return;
+        Entity entity = event.getBaseEntity();
+        FurnitureMechanic mechanic = event.getMechanic();
+        if (mechanic == null || entity == null || !mechanic.hasEvolution()) return;
 
         PersistentDataContainer pdc = entity.getPersistentDataContainer();
         if (!pdc.has(EVOLUTION_KEY, PersistentDataType.INTEGER)) return;
 
-        ItemStack itemInteracted = player.getInventory().getItemInMainHand();
+        ItemStack itemInteracted = event.getItemInHand();
+        if (itemInteracted == null) return;
         if (itemInteracted.getType() != Material.BONE_MEAL) return;
 
         event.setCancelled(true);

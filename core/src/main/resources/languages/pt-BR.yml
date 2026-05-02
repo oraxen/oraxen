@@ -4,7 +4,7 @@ general:
   work_in_progress: "<prefix><#facc43>Este recurso está em desenvolvimento!"
   not_player: "<prefix><#fa4943>Isso só pode ser feito por um jogador!"
   cooldown: "<prefix><#facc43>Por favor, espere <time> segundos!"
-  reload: "<prefix><#55ffa4>Recarregado com sucesso!"
+  reload: "<prefix><#55ffa4>Recarregado com sucesso: <reloaded>."
   pack_uploading: "<prefix><#D5D6D8>O upload automático do pacote de recursos está ativado, enviando..."
   pack_not_uploaded: "<prefix><#fa4943>O pacote de recursos não foi enviado."
   pack_uploaded: "<prefix><#55ffa4>Pacote de recursos enviado para a URL <url> em <delay> ms."
@@ -26,7 +26,7 @@ general:
   exit_menu: "<gradient:#FA7CBB:#F14658>Sair"
   no_emojis: "<prefix><#fa4943>Nenhum emoji encontrado."
   introduction_guide: |-
-    
+
     <dark_gray><st>                                         </st><gold><bold> Bem-vindo ao Oraxen... </bold><dark_gray><st>                                         </st>
     <gray> Oraxen foi carregado com sucesso pela primeira vez, vamos começar.
     <dark_gray> » <gray>Para remover a <yellow>identidade visual padrão</yellow>, siga o tutorial em <blue>https://oraxen.mizius.com/usage/tutorials/d017g<gray>.
@@ -113,11 +113,10 @@ command:
     toggle_on: "<prefix><#55ffa4>HUD '<hud_id>' ativada!"
     toggle_off: "<prefix><#fa4943>HUD '<hud_id>' desativada!"
 
-debug.toggle: "<prefix><#55ffa4>O modo de depuração está agora <#43fa8c><state><#55ffa4>!"
+debug.toggle: "<prefix><#55ffa4>O modo de depuração está agora <#43fa8c><state><#55ffa4>."
 version: "<prefix><#55ffa4>Versão atual do Oraxen: <#43fa8c><version><#55ffa4>!"
 
 mechanics:
   not_enough_exp: "<prefix><#fa4943>Você precisa de mais experiência para realizar esta ação."
   backpack_stacked: "<prefix><#fa4943>Não é possível abrir mochilas empilhadas!"
   jukebox_now_playing: "<dark_purple>Tocando agora: <disc>"
-

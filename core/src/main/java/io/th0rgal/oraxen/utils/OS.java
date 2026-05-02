@@ -104,9 +104,10 @@ public class OS {
         if (numericVersion < 10)
             this.osInfo = new OsInfo(name, version, arch, "Mac OS " + version);
         else {
+            String macOsVersionName = Integer.parseInt(versions[0]) >= 12 ? macOs.get(versions[0]) : macOs.get(version);
+            String platformName = macOsVersionName != null ? "macOS " + macOsVersionName + " (" + version + ")" : "macOS " + version;
             this.osInfo = new OsInfo(name, version, arch,
-                    "macOS " + ((Integer.parseInt(versions[0]) >= 12) ? macOs.get(versions[0]) : macOs.get(version))
-                            + " (" + version + ")");
+                    platformName);
         }
     }
 

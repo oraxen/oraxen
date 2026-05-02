@@ -11,6 +11,7 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.translation.GlobalTranslator;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.entity.Player;
@@ -56,12 +57,14 @@ public class GlyphHandlers {
         for (Glyph glyph : OraxenPlugin.get().getFontManager().getGlyphs()) {
             if (glyph.hasPermission(player)) continue;
 
-            component = component.replaceText(
-                    TextReplacementConfig.builder()
-                            .matchLiteral(glyph.getCharacter())
-                            .replacement(glyph.getGlyphComponent().font(randomKey))
-                            .build()
-            );
+            for (char character : glyph.getAllChars()) {
+                component = component.replaceText(
+                        TextReplacementConfig.builder()
+                                .matchLiteral(String.valueOf(character))
+                                .replacement(Component.text(character).font(randomKey).color(NamedTextColor.WHITE))
+                                .build()
+                );
+            }
 
             // Escape all glyph-tags
             Matcher matcher = glyph.baseRegex.matcher(serialized);

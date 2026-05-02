@@ -4,7 +4,7 @@ general:
   work_in_progress: "<prefix><#facc43>この機能は進行中です！"
   not_player: "<prefix><#fa4943>これはプレイヤーのみが行えます！"
   cooldown: "<prefix><#facc43>あと<time>秒お待ちください！"
-  reload: "<prefix><#55ffa4>正常にリロードされました"
+  reload: "<prefix><#55ffa4><reloaded> を正常にリロードしました。"
   pack_uploading: "<prefix><#D5D6D8>リソースパックの自動アップロードが有効になっています、アップロード中..."
   pack_not_uploaded: "<prefix><#fa4943>リソースパックがアップロードされていません"
   pack_uploaded: "<prefix><#55ffa4>リソースパックが<delay>ミリ秒で<url>にアップロードされました"
@@ -26,7 +26,7 @@ general:
   exit_menu: "<gradient:#FA7CBB:#F14658>終了"
   no_emojis: "<prefix><#fa4943>絵文字が見つかりません"
   introduction_guide: |-
-    
+
     <dark_gray><st>                                         </st><gold><bold> Oraxen へようこそ... </bold><dark_gray><st>                                         </st>
     <gray> Oraxen が初回起動で正常に読み込まれました。さっそく始めましょう。
     <dark_gray> » <gray><yellow>デフォルトのブランディング</yellow>を削除するには、<blue>https://oraxen.mizius.com/usage/tutorials/d017g<gray> のチュートリアルをご確認ください。
@@ -116,11 +116,10 @@ click></hover>  <#6f737d>»<#b8bbc2> レシピを表示します
     toggle_on: "<prefix><#55ffa4>'<hud_id>'をオンにしました！"
     toggle_off: "<prefix><#fa4943>'<hud_id>'をオフにしました！"
 
-  debug.toggle: "<prefix><#55ffa4>デバッグモードが<#43fa8c><state><#55ffa4>になりました！"
+  debug.toggle: "<prefix><#55ffa4>デバッグモードが<#43fa8c><state><#55ffa4>になりました."
   version: "<prefix><#55ffa4>Oraxenバージョン：<#43fa8c><version><#55ffa4>！"
 
 mechanics:
   not_enough_exp: "<prefix><#fa4943>これを行うにはもっと経験験値が必要です"
   backpack_stacked: "<prefix><#fa4943>スタックされたバックパックを開くことができません"
   jukebox_now_playing: "<dark_purple>再生中 <disc>"
-

@@ -1128,7 +1128,9 @@ public class ResourcePack {
         // BEFORE animated glyphs are created, ensuring clean codepoint allocation on
         // reload.
 
-        Logs.logInfo("Processing " + animatedGlyphs.size() + " animated glyphs...");
+        if (Settings.DEBUG.toBool()) {
+            Logs.logInfo("Processing " + animatedGlyphs.size() + " animated glyphs...");
+        }
 
         for (AnimatedGlyph animGlyph : animatedGlyphs) {
             processAnimatedGlyph(animGlyph);
@@ -1279,8 +1281,10 @@ public class ResourcePack {
         if (fontJson != null) {
             writeStringToVirtual("assets/oraxen/font/animations", animGlyph.getName() + ".json",
                     fontJson.toString());
-            Logs.logSuccess("Generated animation font for: " + animGlyph.getName() +
-                    " (" + animGlyph.getFrameCount() + " frames @ " + animGlyph.getFps() + " fps)");
+            if (Settings.DEBUG.toBool()) {
+                Logs.logSuccess("Generated animation font for: " + animGlyph.getName() +
+                        " (" + animGlyph.getFrameCount() + " frames @ " + animGlyph.getFps() + " fps)");
+            }
         }
     }
 

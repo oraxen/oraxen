@@ -46,7 +46,9 @@ public class ProtocolLibBreakerSystem extends BreakerSystem {
                 BlockFace.valueOf(dataDirection.read(0).name()) :
                 BlockFace.UP;
 
-            handleEvent(player, block, location, blockFace, world, () -> event.setCancelled(true), type == EnumWrappers.PlayerDigType.START_DESTROY_BLOCK);
+            handleEvent(player, block, location, blockFace, world, () -> event.setCancelled(true),
+                    type == EnumWrappers.PlayerDigType.START_DESTROY_BLOCK,
+                    type == EnumWrappers.PlayerDigType.STOP_DESTROY_BLOCK);
         }
     };
 

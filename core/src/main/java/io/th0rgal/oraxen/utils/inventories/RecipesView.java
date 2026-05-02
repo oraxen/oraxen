@@ -50,7 +50,6 @@ public class RecipesView {
             pane.addItem(new GuiItem((OraxenItems.getItemById("arrow_previous_icon") == null
                     ? new ItemBuilder(Material.ARROW)
                     : OraxenItems.getItemById("arrow_previous_icon"))
-                    .setAmount(page)
                     .setDisplayName(ChatColor.YELLOW + "Open page " + page)
                     .build(),
                     event -> create(page - 1,
@@ -62,7 +61,6 @@ public class RecipesView {
             pane.addItem(new GuiItem((OraxenItems.getItemById("arrow_next_icon") == null
                     ? new ItemBuilder(Material.ARROW)
                     : OraxenItems.getItemById("arrow_next_icon"))
-                    .setAmount(page + 2)
                     .setDisplayName(ChatColor.YELLOW + "Open page " + (page + 2))
                     .build(),
                     event -> create(page + 1, filteredRecipes)

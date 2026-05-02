@@ -62,9 +62,9 @@ public class OraxenExpansion extends PlaceholderExpansion {
             }
         }
 
-        final Glyph glyph = plugin.getFontManager().getGlyphFromName(params);
+        final Glyph glyph = plugin.getFontManager().getGlyphFromID(params);
         if (glyph != null)
-            return glyph.getCharacter();
+            return glyph.getCharacters();
         return null; // Placeholder is unknown by the Expansion
     }
 }
