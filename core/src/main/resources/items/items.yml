@@ -204,5 +204,7 @@ leather_backpack:
       scale: 1.0
       view_distance: 48
       hide_in_spectator: true
+      hide_while_swimming: true
+      hide_while_gliding: true
       small: true
       visible_to_self: true

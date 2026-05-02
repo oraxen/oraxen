@@ -11,12 +11,17 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDismountEvent;
 import org.bukkit.event.entity.EntityMountEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.entity.EntityToggleGlideEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Listener for backpack cosmetic mechanics.
@@ -26,6 +31,7 @@ public class BackpackCosmeticListener implements Listener {
 
     private final BackpackCosmeticFactory factory;
     private final BackpackCosmeticManager manager;
+    private final Set<UUID> hiddenForMovement = ConcurrentHashMap.newKeySet();
 
     // Movement thresholds to reduce unnecessary updates
     // Without mount packets, we need more frequent updates for smooth following
@@ -48,11 +54,13 @@ public class BackpackCosmeticListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerQuit(PlayerQuitEvent event) {
+        hiddenForMovement.remove(event.getPlayer().getUniqueId());
         manager.hideBackpack(event.getPlayer());
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerDeath(PlayerDeathEvent event) {
+        hiddenForMovement.remove(event.getEntity().getUniqueId());
         manager.hideBackpack(event.getEntity());
     }
 
@@ -99,6 +107,7 @@ public class BackpackCosmeticListener implements Listener {
     public void onPlayerMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
 
+        if (updateBackpackVisibilityForMovement(player)) return;
         if (!manager.hasBackpack(player)) return;
 
         // getTo() can return null in some edge cases
@@ -113,6 +122,13 @@ public class BackpackCosmeticListener implements Listener {
         if (distSq > POSITION_THRESHOLD * POSITION_THRESHOLD || yawDiff > YAW_THRESHOLD) {
             manager.updateBackpackPosition(player);
         }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onEntityToggleGlide(EntityToggleGlideEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+
+        SchedulerUtil.runTaskLater(1L, () -> checkAndUpdateBackpack(player));
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -188,16 +204,64 @@ public class BackpackCosmeticListener implements Listener {
         BackpackSearchResult result = findBackpackItem(player);
 
         if (result == null) {
+            hiddenForMovement.remove(player.getUniqueId());
             manager.hideBackpack(player);
             return;
         }
 
         if (player.getGameMode() == GameMode.SPECTATOR && result.mechanic.hideInSpectator()) {
+            hiddenForMovement.remove(player.getUniqueId());
             manager.hideBackpack(player);
             return;
         }
 
+        if (shouldHideBackpackForMovement(player, result.mechanic)) {
+            hiddenForMovement.add(player.getUniqueId());
+            manager.hideBackpack(player);
+            return;
+        }
+
+        hiddenForMovement.remove(player.getUniqueId());
         updateBackpackDisplay(player, result.mechanic, result.item);
+    }
+
+    /**
+     * Update backpack visibility when the player enters or leaves movement states
+     * that should hide the cosmetic backpack.
+     */
+    private boolean updateBackpackVisibilityForMovement(Player player) {
+        UUID playerId = player.getUniqueId();
+        BackpackCosmeticManager.BackpackData data = manager.getBackpackData(player);
+        BackpackCosmeticMechanic mechanic = data != null ? data.getMechanic() : null;
+
+        if (mechanic == null && hiddenForMovement.contains(playerId)) {
+            BackpackSearchResult result = findBackpackItem(player);
+            if (result == null) {
+                hiddenForMovement.remove(playerId);
+                return false;
+            }
+            mechanic = result.mechanic;
+        }
+
+        if (mechanic == null) return false;
+
+        if (shouldHideBackpackForMovement(player, mechanic)) {
+            if (manager.hasBackpack(player)) {
+                hiddenForMovement.add(playerId);
+                manager.hideBackpack(player);
+            }
+            return true;
+        }
+
+        if (hiddenForMovement.remove(playerId)) {
+            SchedulerUtil.runTaskLater(1L, () -> checkAndUpdateBackpack(player));
+        }
+        return false;
+    }
+
+    private boolean shouldHideBackpackForMovement(Player player, BackpackCosmeticMechanic mechanic) {
+        return mechanic.hideWhileGliding() && player.isGliding()
+            || mechanic.hideWhileSwimming() && player.isSwimming();
     }
 
     /**

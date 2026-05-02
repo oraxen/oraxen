@@ -22,6 +22,8 @@ public class BackpackCosmeticMechanic extends Mechanic {
     private final float scale;
     private final int viewDistance;
     private final boolean hideInSpectator;
+    private final boolean hideWhileSwimming;
+    private final boolean hideWhileGliding;
     private final boolean smallArmorStand;
     private final boolean visibleToSelf;
 
@@ -66,6 +68,10 @@ public class BackpackCosmeticMechanic extends Mechanic {
 
         // Hide in spectator mode
         this.hideInSpectator = section.getBoolean("hide_in_spectator", true);
+
+        // Hide while swimming or gliding
+        this.hideWhileSwimming = section.getBoolean("hide_while_swimming", true);
+        this.hideWhileGliding = section.getBoolean("hide_while_gliding", true);
 
         // Use small armor stand
         this.smallArmorStand = section.getBoolean("small", false);
@@ -112,6 +118,14 @@ public class BackpackCosmeticMechanic extends Mechanic {
 
     public boolean hideInSpectator() {
         return hideInSpectator;
+    }
+
+    public boolean hideWhileSwimming() {
+        return hideWhileSwimming;
+    }
+
+    public boolean hideWhileGliding() {
+        return hideWhileGliding;
     }
 
     public boolean isSmallArmorStand() {
