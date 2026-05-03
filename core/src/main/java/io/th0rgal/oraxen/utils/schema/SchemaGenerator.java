@@ -772,6 +772,7 @@ public class SchemaGenerator {
                 Map.of(
                         "barrier", prop("boolean", "Use barrier block for collision", null, false),
                         "light", prop("integer", "Light level (0-15)", 0, null),
+                        "lights", prop("array", "Light entries formatted '<x>,<y>,<z> <level>'", null, null),
                         "hardness", prop("number", "Break hardness", 0, null),
                         "farmland_required", prop("boolean", "Requires farmland below", null, false),
                         "farmblock_required", prop("boolean", "Requires custom farmblock below", null, false),

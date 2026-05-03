@@ -180,6 +180,7 @@ public class FurnitureFactory extends MechanicFactory {
                 MechanicConfigProperty.bool("farmland_required", "Whether farmland is required for placement", false),
                 MechanicConfigProperty.bool("farmblock_required", "Whether farmblock is required for placement", false),
                 MechanicConfigProperty.integer("light", "Light level emitted (0-15)", 0, 0, 15),
+                MechanicConfigProperty.list("lights", "List of light entries formatted '<x>,<y>,<z> <level>'"),
                 MechanicConfigProperty.enumType("restricted_rotation", "Rotation restriction mode",
                         List.of("NONE", "STRICT", "VERY_STRICT")),
                 MechanicConfigProperty.bool("rotatable", "Whether furniture can be rotated after placement", true),

@@ -80,6 +80,7 @@ public class FurnitureMechanic extends Mechanic {
     private final List<GrowthStage> growthStages;  // NEW: Inline growth stages
     private final int initialStageIndex;           // NEW: Initial stage when placed
     private final LightMechanic light;
+    private final List<FurnitureLight> furnitureLights;
     private final String modelEngineID;
     private final String placedItemId;
     private float seatHeight;
@@ -105,6 +106,9 @@ public class FurnitureMechanic extends Mechanic {
         public Vector offset() {
             return new Vector(offsetX, offsetY, offsetZ);
         }
+    }
+
+    public record FurnitureLight(BlockLocation offset, int lightLevel) {
     }
 
     public enum RestrictedRotation {
@@ -152,6 +156,7 @@ public class FurnitureMechanic extends Mechanic {
         farmlandRequired = section.getBoolean("farmland_required", false);
         farmblockRequired = section.getBoolean("farmblock_required", false);
         light = new LightMechanic(section);
+        furnitureLights = parseFurnitureLights(section);
         restrictedRotation = RestrictedRotation.fromString(section.getString("restricted_rotation", "STRICT"));
 
         try {
@@ -303,6 +308,48 @@ public class FurnitureMechanic extends Mechanic {
         }
 
         return !hasBarriers() ? List.of(new FurnitureHitbox(1.0f, 1.0f)) : List.of();
+    }
+
+    private List<FurnitureLight> parseFurnitureLights(ConfigurationSection section) {
+        List<FurnitureLight> parsedLights = new ArrayList<>();
+        if (!section.isList("lights")) return List.of();
+
+        for (Object lightObject : section.getList("lights", new ArrayList<>())) {
+            FurnitureLight parsedLight = parseFurnitureLight(lightObject);
+            if (parsedLight != null) parsedLights.add(parsedLight);
+        }
+        return List.copyOf(parsedLights);
+    }
+
+    @Nullable
+    private FurnitureLight parseFurnitureLight(Object lightObject) {
+        if (!(lightObject instanceof String string)) {
+            Logs.logError("Invalid light entry for furniture: " + getItemID() + ". Expected '<x>,<y>,<z> <level>'.");
+            return null;
+        }
+
+        String[] parts = string.trim().split("\\s+");
+        if (parts.length != 2) {
+            Logs.logError("Invalid light entry '" + string + "' for furniture: " + getItemID() + ". Expected '<x>,<y>,<z> <level>'.");
+            return null;
+        }
+
+        String[] offsetParts = parts[0].split(",");
+        if (offsetParts.length != 3) {
+            Logs.logError("Invalid light entry '" + string + "' for furniture: " + getItemID() + ". Expected '<x>,<y>,<z> <level>'.");
+            return null;
+        }
+
+        try {
+            int offsetX = Integer.parseInt(offsetParts[0]);
+            int offsetY = Integer.parseInt(offsetParts[1]);
+            int offsetZ = Integer.parseInt(offsetParts[2]);
+            int lightLevel = Math.min(15, Math.max(0, Integer.parseInt(parts[1])));
+            return new FurnitureLight(new BlockLocation(offsetX, offsetY, offsetZ), lightLevel);
+        } catch (NumberFormatException exception) {
+            Logs.logError("Invalid light entry '" + string + "' for furniture: " + getItemID() + ". Light offsets and level must be integers.");
+            return null;
+        }
     }
 
     @Nullable
@@ -676,7 +723,7 @@ public class FurnitureMechanic extends Mechanic {
                     frame.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
                     interaction.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
                 }
-                createInitialLight(block, entity);
+                createInitialLight(block, entity, location, yaw);
             }
         } else if (entity instanceof ItemDisplay itemDisplay) {
             setItemDisplayData(itemDisplay, item, yaw, displayEntityProperties, facing);
@@ -697,7 +744,7 @@ public class FurnitureMechanic extends Mechanic {
                     itemDisplay.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
                     interaction.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
                 }
-                createInitialLight(location.getBlock(), entity);
+                createInitialLight(location.getBlock(), entity, location, yaw);
             }
         } else if (entity instanceof ArmorStand armorStand) {
             setArmorStandData(armorStand, item, yaw);
@@ -714,7 +761,7 @@ public class FurnitureMechanic extends Mechanic {
                     if (interaction != null)
                         interaction.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
                 }
-                createInitialLight(block, entity);
+                createInitialLight(block, entity, location, yaw);
             }
         }
         
@@ -893,16 +940,18 @@ public class FurnitureMechanic extends Mechanic {
         // For toggle light mechanics with barriers, use updateAllBarrierBlocks to handle all barriers collectively
         // This prevents lights from adjacent barriers from being incorrectly removed
         ToggleLightMechanic toggleLight = getToggleLightMechanic();
-        if (toggleLight != null && (toggleLight.hasToggleLight() || toggleLight.getBaseLightLevel() > 0)) {
+        if (hasFurnitureLights()) {
+            createFurnitureLights(BlockHelpers.toCenterBlockLocation(location), yaw);
+        } else if (toggleLight != null && (toggleLight.hasToggleLight() || toggleLight.getBaseLightLevel() > 0)) {
             toggleLight.updateAllBarrierBlocks(this, entity);
         } else {
             // Fallback to per-barrier light creation for regular light mechanics
             // This is safe because LightMechanic.createBlockLight doesn't remove lights first
             for (Location barrierLocation : barrierLocations) {
-                createInitialLight(barrierLocation.getBlock(), entity);
+                createInitialLight(barrierLocation.getBlock(), entity, location, yaw);
             }
             // Also create light at base entity location for regular light mechanics
-            createInitialLight(entity.getLocation().getBlock(), entity);
+            createInitialLight(entity.getLocation().getBlock(), entity, location, yaw);
         }
     }
 
@@ -1015,6 +1064,7 @@ public class FurnitureMechanic extends Mechanic {
         List<BlockLocation> barriersToRemove = blockLocations.isEmpty() ? getBarriers() : blockLocations;
         Location barrierRootLocation = BlockHelpers.toCenterBlockLocation(rootLocation);
         List<Location> barrierLocations = getLocations(orientation, barrierRootLocation, barriersToRemove);
+        removeFurnitureLights(barrierRootLocation, orientation);
 
         Set<Long> alreadyRemoved = new HashSet<>();
         for (Location location : barrierLocations) {
@@ -1111,13 +1161,13 @@ public class FurnitureMechanic extends Mechanic {
         UUID baseUuid = baseEntity.getUniqueId();
         int baseEntityId = baseEntity.getEntityId();
         removeSubEntitiesOfFurniture(baseEntity);
-        removeLight(baseEntity.getLocation().getBlock());
+        removeInitialLight(baseEntity);
         if (!baseEntity.isDead()) baseEntity.remove();
         SchedulerUtil.runTask(() -> FurnitureTextRegistry.unregister(baseUuid, baseEntityId));
     }
 
     private void removeSubEntitiesOfFurniture(Entity baseEntity) {
-        removeLight(baseEntity.getLocation().getBlock());
+        removeInitialLight(baseEntity);
         if (hasSeat) removeFurnitureSeat(baseEntity.getLocation());
 
         if (OraxenPlugin.supportsDisplayEntities) {
@@ -1396,14 +1446,27 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public boolean hasLight() {
-        return light.hasLightLevel();
+        return light.hasLightLevel() || hasFurnitureLights();
     }
 
     public LightMechanic getLight() {
         return light;
     }
 
-    private void createInitialLight(Block block, Entity baseEntity) {
+    public boolean hasFurnitureLights() {
+        return !furnitureLights.isEmpty();
+    }
+
+    public List<FurnitureLight> getFurnitureLights() {
+        return furnitureLights;
+    }
+
+    private void createInitialLight(Block block, Entity baseEntity, Location rootLocation, float yaw) {
+        if (hasFurnitureLights()) {
+            createFurnitureLights(BlockHelpers.toCenterBlockLocation(rootLocation), yaw);
+            return;
+        }
+
         ToggleLightMechanic toggleLight = getToggleLightMechanic();
         if (toggleLight != null) {
             int lightLevel;
@@ -1426,6 +1489,20 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
+    private void createFurnitureLights(Location rootLocation, float yaw) {
+        for (FurnitureLight furnitureLight : furnitureLights) {
+            Location lightLocation = furnitureLight.offset().groundRotate(yaw).add(rootLocation);
+            LightMechanic.createBlockLight(lightLocation.getBlock(), furnitureLight.lightLevel());
+        }
+    }
+
+    private List<Location> getFurnitureLightLocations(Location rootLocation, float yaw) {
+        List<Location> locations = new ArrayList<>();
+        for (FurnitureLight furnitureLight : furnitureLights)
+            locations.add(furnitureLight.offset().groundRotate(yaw).add(rootLocation));
+        return locations;
+    }
+
     private ToggleLightMechanic getToggleLightMechanic() {
         ToggleLightMechanicFactory factory = ToggleLightMechanicFactory.getInstance();
         if (factory == null) {
@@ -1446,6 +1523,20 @@ public class FurnitureMechanic extends Mechanic {
         } else if (light.hasLightLevel()) {
             light.removeBlockLight(block);
         }
+    }
+
+    private void removeInitialLight(Entity baseEntity) {
+        if (hasFurnitureLights()) {
+            removeFurnitureLights(BlockHelpers.toCenterBlockLocation(baseEntity.getLocation()), FurnitureMechanic.getFurnitureYaw(baseEntity));
+        } else {
+            removeLight(baseEntity.getLocation().getBlock());
+        }
+    }
+
+    private void removeFurnitureLights(Location rootLocation, float yaw) {
+        if (!hasFurnitureLights()) return;
+        for (Location lightLocation : getFurnitureLightLocations(rootLocation, yaw))
+            LightMechanic.removeBlockLightAt(lightLocation.getBlock());
     }
 
     public void refreshLight(Entity baseEntity) {
