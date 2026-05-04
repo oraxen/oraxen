@@ -348,7 +348,7 @@ public class FontEvents implements Listener {
             if (!serialized.contains(character)) continue;
 
             Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
-            if (!glyph.hasPermission(player)) message.replaceText(
+            if (!glyph.hasPermission(player)) message = message.replaceText(
                     TextReplacementConfig.builder()
                             .matchLiteral(character)
                             .replacement(glyph.getGlyphComponent().font(randomKey))

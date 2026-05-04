@@ -84,17 +84,19 @@ class WrapperPlayServerJsonOpenWindow extends WrapperPlayServerOpenWindow {
 
     @Override
     public void copy(WrapperPlayServerOpenWindow wrapper) {
-        if (!(wrapper instanceof WrapperPlayServerJsonOpenWindow jsonWrapper))
-            throw new IllegalArgumentException("Expected WrapperPlayServerJsonOpenWindow, got " + wrapper.getClass());
+        containerId = wrapper.getContainerId();
+        type = wrapper.getType();
+        legacyType = wrapper.getLegacyType();
+        legacySlots = wrapper.getLegacySlots();
+        horseId = wrapper.getHorseId();
+        titleJson = getSerializers().asJson(wrapper.getTitle());
+        legacyTitle = getSerializers().asLegacy(wrapper.getTitle());
+        useProvidedWindowTitle = wrapper.isUseProvidedWindowTitle();
 
-        containerId = jsonWrapper.containerId;
-        type = jsonWrapper.type;
-        legacyType = jsonWrapper.legacyType;
-        legacySlots = jsonWrapper.legacySlots;
-        horseId = jsonWrapper.horseId;
-        titleJson = jsonWrapper.titleJson;
-        legacyTitle = jsonWrapper.legacyTitle;
-        useProvidedWindowTitle = jsonWrapper.useProvidedWindowTitle;
+        if (wrapper instanceof WrapperPlayServerJsonOpenWindow jsonWrapper) {
+            titleJson = jsonWrapper.titleJson;
+            legacyTitle = jsonWrapper.legacyTitle;
+        }
     }
 
     String getTitleJson() {
