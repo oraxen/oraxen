@@ -123,6 +123,11 @@ public class OraxenYaml extends YamlConfiguration {
         return null;
     }
 
+    /**
+     * Resolves the actual case-sensitive key currently present in a section.
+     * Direct mutations through ConfigurationSection#set/createSection must call
+     * {@link #invalidateKeyCache(ConfigurationSection)} before relying on this lookup again.
+     */
     @Nullable
     public static String getActualKey(@Nullable ConfigurationSection section, @NotNull String key) {
         if (section == null)

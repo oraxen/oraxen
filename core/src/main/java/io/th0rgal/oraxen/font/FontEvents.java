@@ -348,13 +348,14 @@ public class FontEvents implements Listener {
     private Component format(Component message, Player player) {
         Key randomKey = Key.key("random");
         String serialized = MINI_MESSAGE.serialize(message);
-        for (String character : manager.getReverseMap().keySet()) {
-            if (!serialized.contains(character)) continue;
-
-            Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
+        for (Glyph glyph : manager.getGlyphs().stream()
+                .sorted(Comparator.comparingInt((Glyph glyph) -> glyph.getCharacters().length()).reversed())
+                .toList()) {
+            String characters = glyph.getCharacters();
+            if (!serialized.contains(characters)) continue;
             if (!glyph.hasPermission(player)) message = message.replaceText(
                     TextReplacementConfig.builder()
-                            .matchLiteral(character)
+                            .matchLiteral(characters)
                             .replacement(glyph.getGlyphComponent().font(randomKey))
                             .build()
             );
