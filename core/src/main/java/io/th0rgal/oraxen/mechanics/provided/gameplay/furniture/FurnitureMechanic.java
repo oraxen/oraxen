@@ -410,8 +410,10 @@ public class FurnitureMechanic extends Mechanic {
             Object value = entry.getValue();
             if (value instanceof Map<?, ?> nested) {
                 copyMapToSection(nested, section.createSection(key));
+                OraxenYaml.invalidateKeyCache(section);
             } else {
                 section.set(key, value);
+                OraxenYaml.invalidateKeyCache(section);
             }
         }
     }
@@ -610,7 +612,8 @@ public class FurnitureMechanic extends Mechanic {
      */
     public boolean isFinalStage(int stageIndex) {
         if (growthStages == null) return true;
-        return stageIndex < 0 || stageIndex >= growthStages.size() - 1;
+        if (stageIndex < 0 || stageIndex >= growthStages.size() - 1) return true;
+        return !growthStages.get(stageIndex).hasEvolution();
     }
 
     public boolean isRotatable() {

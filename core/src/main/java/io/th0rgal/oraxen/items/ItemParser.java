@@ -785,7 +785,10 @@ public class ItemParser {
 
         if (!Settings.DISABLE_AUTOMATIC_MODEL_DATA.toBool()) {
             Optional.ofNullable(OraxenYaml.getConfigurationSection(section, "Pack"))
-                    .ifPresent(c -> c.set("custom_model_data", customModelData));
+                    .ifPresent(c -> {
+                        c.set("custom_model_data", customModelData);
+                        OraxenYaml.invalidateKeyCache(c);
+                    });
         }
         return customModelData;
     }
@@ -798,6 +801,7 @@ public class ItemParser {
         OraxenYaml.copyConfigurationSection(templateItem.section, merged);
         OraxenYaml.copyConfigurationSection(section, merged);
         merged.set("injectId", true);
+        OraxenYaml.invalidateKeyCache(merged);
 
         return merged;
     }

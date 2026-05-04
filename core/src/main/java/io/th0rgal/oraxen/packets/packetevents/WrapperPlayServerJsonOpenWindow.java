@@ -85,7 +85,7 @@ class WrapperPlayServerJsonOpenWindow extends WrapperPlayServerOpenWindow {
     @Override
     public void copy(WrapperPlayServerOpenWindow wrapper) {
         if (!(wrapper instanceof WrapperPlayServerJsonOpenWindow jsonWrapper))
-            return;
+            throw new IllegalArgumentException("Expected WrapperPlayServerJsonOpenWindow, got " + wrapper.getClass());
 
         containerId = jsonWrapper.containerId;
         type = jsonWrapper.type;

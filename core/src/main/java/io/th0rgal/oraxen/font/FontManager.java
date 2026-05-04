@@ -138,7 +138,11 @@ public class FontManager {
             glyphMap.put(glyph.getName(), glyph);
             glyph.getCharacters().codePoints()
                     .mapToObj(Character::toString)
-                    .forEach(character -> reverse.put(character, glyph.getName()));
+                    .forEach(character -> {
+                        String existing = reverse.put(character, glyph.getName());
+                        if (existing != null && !existing.equals(glyph.getName()))
+                            Logs.logWarning("Character '" + character + "' claimed by both '" + existing + "' and '" + glyph.getName() + "'");
+                    });
             for (final String placeholder : glyph.getPlaceholders())
                 glyphByPlaceholder.put(placeholder, glyph);
         }

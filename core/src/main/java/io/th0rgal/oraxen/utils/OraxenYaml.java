@@ -153,6 +153,15 @@ public class OraxenYaml extends YamlConfiguration {
         return keyCache;
     }
 
+    /**
+     * Invalidates cached case-insensitive key lookups for a section after direct mutations.
+     * Call this when using ConfigurationSection#set/createSection outside copyConfigurationSection.
+     */
+    public static void invalidateKeyCache(@Nullable ConfigurationSection section) {
+        if (section != null)
+            KEY_CACHE.remove(section);
+    }
+
     @Nullable
     public static Material getMaterial(@Nullable String materialName) {
         if (materialName == null || materialName.isBlank())
@@ -235,12 +244,12 @@ public class OraxenYaml extends YamlConfiguration {
                     targetSection = existingSection;
                 } else {
                     targetSection = target.createSection(targetKey);
-                    KEY_CACHE.remove(target);
+                    invalidateKeyCache(target);
                 }
                 copyConfigurationSection(sourceSection, targetSection);
             } else {
                 target.set(targetKey, sourceValue);
-                KEY_CACHE.remove(target);
+                invalidateKeyCache(target);
             }
         }
     }
