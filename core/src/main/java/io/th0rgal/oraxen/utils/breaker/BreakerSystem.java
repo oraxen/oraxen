@@ -80,9 +80,9 @@ public abstract class BreakerSystem {
         if (block.getType() == Material.TRIPWIRE && stringMechanic == null) return;
         if (block.getType() == Material.BARRIER && furnitureMechanic == null) return;
 
-        cancel.run();
-
         if (finishedDigging) {
+            if (furnitureMechanic == null) return;
+            cancel.run();
             final List<Location> breakAnimationLocations = furnitureBarrierLocations(furnitureMechanic, block);
             stopBlockBreaker(location);
             stopBlockHitSound(location);
@@ -90,6 +90,8 @@ public abstract class BreakerSystem {
             resetBlockBreakAnimations(world, breakAnimationLocations);
             return;
         }
+
+        cancel.run();
 
         if (startedDigging) {
             // Get these when block is started being broken to minimize checks & allow for proper damage checks later
