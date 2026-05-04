@@ -82,9 +82,9 @@ public abstract class BreakerSystem {
         if (block.getType() == Material.BARRIER && furnitureMechanic == null) return;
 
         if (finishedDigging) {
-            if (furnitureMechanic == null) return;
             cancel.run();
             final List<Location> breakAnimationLocations = furnitureBarrierLocations(furnitureMechanic, block);
+            stopBlockBreaker(location);
             stopBlockHitSound(location);
             SchedulerUtil.runForEntity(player, () -> player.sendBlockChange(location, block.getBlockData()));
             resetBlockBreakAnimations(world, breakAnimationLocations);

@@ -239,7 +239,8 @@ public class OraxenYaml extends YamlConfiguration {
     public static void copyConfigurationSection(ConfigurationSection source, ConfigurationSection target) {
         for (String key : source.getKeys(false)) {
             String targetKey = getActualKey(target, key);
-            if (targetKey == null)
+            boolean createsKey = targetKey == null;
+            if (createsKey)
                 targetKey = key;
             Object sourceValue = source.get(key), targetValue = target.get(targetKey);
 
@@ -254,7 +255,8 @@ public class OraxenYaml extends YamlConfiguration {
                 copyConfigurationSection(sourceSection, targetSection);
             } else {
                 target.set(targetKey, sourceValue);
-                invalidateKeyCache(target);
+                if (createsKey)
+                    invalidateKeyCache(target);
             }
         }
     }
