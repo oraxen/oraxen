@@ -142,6 +142,8 @@ public class CustomBlockMiningListener implements Listener {
     }
 
     private double getToolSpeedMultiplier(final Player player, final Drop drop) {
+        if (drop == null || drop.isEmpty()) return 1.0D;
+
         final ItemStack tool = player.getInventory().getItemInMainHand();
         if (!drop.isToolEnough(tool)) return 1.0D;
 

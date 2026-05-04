@@ -122,6 +122,11 @@ public class Drop {
         return minimalType;
     }
 
+    public boolean isEmpty() {
+        return (sourceID == null || sourceID.isEmpty()) && loots.isEmpty() && bestTools.isEmpty()
+                && (minimalType == null || minimalType.isEmpty());
+    }
+
     public List<String> getBestTools() {
         return bestTools;
     }

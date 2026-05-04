@@ -724,7 +724,9 @@ public class FurnitureMechanic extends Mechanic {
                 if (hasSeat() && interaction != null) {
                     UUID seatUuid = spawnSeat(block, hasSeatYaw ? seatYaw : FurnitureMechanic.getFurnitureYaw(frame));
                     frame.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
-                    interaction.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
+                    for (Interaction hitbox : interactions) {
+                        hitbox.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
+                    }
                 }
                 createInitialLight(block, entity, location, yaw);
             }
@@ -745,7 +747,9 @@ public class FurnitureMechanic extends Mechanic {
                 if (hasSeat() && interaction != null) {
                     UUID seatUuid = spawnSeat(location.getBlock(), hasSeatYaw ? seatYaw : yaw);
                     itemDisplay.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
-                    interaction.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
+                    for (Interaction hitbox : interactions) {
+                        hitbox.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
+                    }
                 }
                 createInitialLight(location.getBlock(), entity, location, yaw);
             }
@@ -761,8 +765,9 @@ public class FurnitureMechanic extends Mechanic {
                 if (hasSeat()) {
                     UUID seatUuid = spawnSeat(block, hasSeatYaw ? seatYaw : yaw);
                     armorStand.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
-                    if (interaction != null)
-                        interaction.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
+                    for (Interaction hitbox : interactions) {
+                        hitbox.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
+                    }
                 }
                 createInitialLight(block, entity, location, yaw);
             }
