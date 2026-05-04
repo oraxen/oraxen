@@ -84,7 +84,6 @@ public abstract class BreakerSystem {
             if (furnitureMechanic == null) return;
             cancel.run();
             final List<Location> breakAnimationLocations = furnitureBarrierLocations(furnitureMechanic, block);
-            stopBlockBreaker(location);
             stopBlockHitSound(location);
             SchedulerUtil.runForEntity(player, () -> player.sendBlockChange(location, block.getBlockData()));
             resetBlockBreakAnimations(world, breakAnimationLocations);
@@ -194,17 +193,19 @@ public abstract class BreakerSystem {
     private void resetBlockBreakAnimations(World world, List<Location> locations) {
         if (locations.isEmpty()) return;
 
-        SchedulerUtil.runAtLocation(locations.getFirst(), () -> {
-            for (final Entity entity : world.getNearbyEntities(locations.getFirst(), 16, 16, 16)) {
-                if (entity instanceof Player viewer) {
-                    SchedulerUtil.runForEntity(viewer, () -> {
-                        for (Location resetLocation : locations) {
-                            sendBlockBreak(viewer, resetLocation, 10);
-                        }
-                    });
+        for (Location location : locations) {
+            SchedulerUtil.runAtLocation(location, () -> {
+                for (final Entity entity : world.getNearbyEntities(location, 16, 16, 16)) {
+                    if (entity instanceof Player viewer) {
+                        SchedulerUtil.runForEntity(viewer, () -> {
+                            for (Location resetLocation : locations) {
+                                sendBlockBreak(viewer, resetLocation, 10);
+                            }
+                        });
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 
     private List<Location> furnitureBarrierLocations(FurnitureMechanic furnitureMechanic, Block block) {

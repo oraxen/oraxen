@@ -32,6 +32,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Map;
 
 import static io.th0rgal.oraxen.items.ItemBuilder.ORIGINAL_NAME_KEY;
@@ -222,14 +223,16 @@ public class FontEvents implements Listener {
     }
 
     private String replaceUnpermittedGlyphs(Player player, String displayName) {
-        for (String character : manager.getReverseMap().keySet()) {
-            if (!displayName.contains(character)) continue;
-            Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
+        for (Glyph glyph : manager.getGlyphs().stream()
+                .sorted(Comparator.comparingInt((Glyph glyph) -> glyph.getCharacters().length()).reversed())
+                .toList()) {
+            String characters = glyph.getCharacters();
+            if (!displayName.contains(characters)) continue;
             if (!glyph.hasPermission(player)) {
                 Glyph required = manager.getGlyphFromName("required");
-                String replacement = required.hasPermission(player) ? String.valueOf(required.getCharacter()) : "";
+                String replacement = required.hasPermission(player) ? required.getCharacters() : "";
                 Message.NO_PERMISSION.send(player, AdventureUtils.tagResolver("permission", glyph.getPermission()));
-                displayName = displayName.replace(character, replacement);
+                displayName = displayName.replace(characters, replacement);
             }
         }
         return displayName;

@@ -89,13 +89,14 @@ class WrapperPlayServerJsonOpenWindow extends WrapperPlayServerOpenWindow {
         legacyType = wrapper.getLegacyType();
         legacySlots = wrapper.getLegacySlots();
         horseId = wrapper.getHorseId();
-        titleJson = getSerializers().asJson(wrapper.getTitle());
-        legacyTitle = getSerializers().asLegacy(wrapper.getTitle());
         useProvidedWindowTitle = wrapper.isUseProvidedWindowTitle();
 
         if (wrapper instanceof WrapperPlayServerJsonOpenWindow jsonWrapper) {
             titleJson = jsonWrapper.titleJson;
             legacyTitle = jsonWrapper.legacyTitle;
+        } else {
+            titleJson = getSerializers().asJson(wrapper.getTitle());
+            legacyTitle = getSerializers().asLegacy(wrapper.getTitle());
         }
     }
 
