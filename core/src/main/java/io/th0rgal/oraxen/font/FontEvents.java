@@ -105,15 +105,8 @@ public class FontEvents implements Listener {
         for (String page : meta.getPages()) {
             int i = meta.getPages().indexOf(page) + 1;
             if (i == 0) continue;
-            for (String character : manager.getReverseMap().keySet()) {
-                if (!page.contains(character)) continue;
-
-                Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
-                if (!glyph.hasPermission(event.getPlayer())) {
-                    Message.NO_PERMISSION.send(event.getPlayer(), AdventureUtils.tagResolver("permission", glyph.getPermission()));
-                    event.setCancelled(true);
-                }
-            }
+            if (containsUnpermittedGlyph(event.getPlayer(), page))
+                event.setCancelled(true);
         }
     }
 
@@ -162,15 +155,8 @@ public class FontEvents implements Listener {
         String[] lines = event.getLines();
         for (int i = 0; i < lines.length; i++) {
             String line = AdventureUtils.parseLegacyThroughMiniMessage(lines[i]);
-            for (String character : manager.getReverseMap().keySet()) {
-                if (!line.contains(character)) continue;
-
-                Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
-                if (!glyph.hasPermission(player)) {
-                    Message.NO_PERMISSION.send(player, AdventureUtils.tagResolver("permission", glyph.getPermission()));
-                    event.setCancelled(true);
-                }
-            }
+            if (containsUnpermittedGlyph(player, line))
+                event.setCancelled(true);
 
             for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet()) {
                 String unicode = entry.getValue().getCharacters();
@@ -236,6 +222,20 @@ public class FontEvents implements Listener {
             }
         }
         return displayName;
+    }
+
+    private boolean containsUnpermittedGlyph(Player player, String text) {
+        boolean containsUnpermittedGlyph = false;
+        for (Glyph glyph : manager.getGlyphs().stream()
+                .sorted(Comparator.comparingInt((Glyph glyph) -> glyph.getCharacters().length()).reversed())
+                .toList()) {
+            String characters = glyph.getCharacters();
+            if (!text.contains(characters) || glyph.hasPermission(player)) continue;
+
+            Message.NO_PERMISSION.send(player, AdventureUtils.tagResolver("permission", glyph.getPermission()));
+            containsUnpermittedGlyph = true;
+        }
+        return containsUnpermittedGlyph;
     }
 
     private String replaceGlyphPlaceholders(Player player, String displayName) {

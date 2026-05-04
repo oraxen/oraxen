@@ -410,12 +410,11 @@ public class FurnitureMechanic extends Mechanic {
             Object value = entry.getValue();
             if (value instanceof Map<?, ?> nested) {
                 copyMapToSection(nested, section.createSection(key));
-                OraxenYaml.invalidateKeyCache(section);
             } else {
                 section.set(key, value);
-                OraxenYaml.invalidateKeyCache(section);
             }
         }
+        OraxenYaml.invalidateKeyCache(section);
     }
 
     public boolean hasTextDefinitions() {

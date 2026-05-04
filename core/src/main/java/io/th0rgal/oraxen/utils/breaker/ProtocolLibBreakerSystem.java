@@ -46,6 +46,8 @@ public class ProtocolLibBreakerSystem extends BreakerSystem {
                 BlockFace.valueOf(dataDirection.read(0).name()) :
                 BlockFace.UP;
 
+            // Protocol action 2 is STOP_DESTROY_BLOCK, meaning the block was fully broken.
+            // ABORT_DESTROY_BLOCK is action 1 and means the player released mid-dig.
             handleEvent(player, block, location, blockFace, world, () -> event.setCancelled(true),
                     type == EnumWrappers.PlayerDigType.START_DESTROY_BLOCK,
                     type == EnumWrappers.PlayerDigType.STOP_DESTROY_BLOCK);
