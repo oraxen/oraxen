@@ -19,6 +19,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -32,6 +33,7 @@ public class BackpackCosmeticListener implements Listener {
     private final BackpackCosmeticFactory factory;
     private final BackpackCosmeticManager manager;
     private final Set<UUID> hiddenForMovement = ConcurrentHashMap.newKeySet();
+    private final Map<UUID, BackpackCosmeticMechanic> hiddenMovementMechanics = new ConcurrentHashMap<>();
 
     // Movement thresholds to reduce unnecessary updates
     // Without mount packets, we need more frequent updates for smooth following
@@ -54,13 +56,13 @@ public class BackpackCosmeticListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerQuit(PlayerQuitEvent event) {
-        hiddenForMovement.remove(event.getPlayer().getUniqueId());
+        clearMovementHidden(event.getPlayer().getUniqueId());
         manager.hideBackpack(event.getPlayer());
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerDeath(PlayerDeathEvent event) {
-        hiddenForMovement.remove(event.getEntity().getUniqueId());
+        clearMovementHidden(event.getEntity().getUniqueId());
         manager.hideBackpack(event.getEntity());
     }
 
@@ -204,24 +206,24 @@ public class BackpackCosmeticListener implements Listener {
         BackpackSearchResult result = findBackpackItem(player);
 
         if (result == null) {
-            hiddenForMovement.remove(player.getUniqueId());
+            clearMovementHidden(player.getUniqueId());
             manager.hideBackpack(player);
             return;
         }
 
         if (player.getGameMode() == GameMode.SPECTATOR && result.mechanic.hideInSpectator()) {
-            hiddenForMovement.remove(player.getUniqueId());
+            clearMovementHidden(player.getUniqueId());
             manager.hideBackpack(player);
             return;
         }
 
         if (shouldHideBackpackForMovement(player, result.mechanic)) {
-            hiddenForMovement.add(player.getUniqueId());
+            setMovementHidden(player.getUniqueId(), result.mechanic);
             manager.hideBackpack(player);
             return;
         }
 
-        hiddenForMovement.remove(player.getUniqueId());
+        clearMovementHidden(player.getUniqueId());
         updateBackpackDisplay(player, result.mechanic, result.item);
     }
 
@@ -232,31 +234,33 @@ public class BackpackCosmeticListener implements Listener {
     private boolean updateBackpackVisibilityForMovement(Player player) {
         UUID playerId = player.getUniqueId();
         BackpackCosmeticManager.BackpackData data = manager.getBackpackData(player);
-        BackpackCosmeticMechanic mechanic = data != null ? data.getMechanic() : null;
-
-        if (mechanic == null && hiddenForMovement.contains(playerId)) {
-            BackpackSearchResult result = findBackpackItem(player);
-            if (result == null) {
-                hiddenForMovement.remove(playerId);
-                return false;
-            }
-            mechanic = result.mechanic;
-        }
+        BackpackCosmeticMechanic mechanic = data != null ? data.getMechanic() : hiddenMovementMechanics.get(playerId);
 
         if (mechanic == null) return false;
 
         if (shouldHideBackpackForMovement(player, mechanic)) {
             if (manager.hasBackpack(player)) {
-                hiddenForMovement.add(playerId);
+                setMovementHidden(playerId, mechanic);
                 manager.hideBackpack(player);
             }
             return true;
         }
 
         if (hiddenForMovement.remove(playerId)) {
+            hiddenMovementMechanics.remove(playerId);
             SchedulerUtil.runTaskLater(1L, () -> checkAndUpdateBackpack(player));
         }
         return false;
+    }
+
+    private void setMovementHidden(UUID playerId, BackpackCosmeticMechanic mechanic) {
+        hiddenForMovement.add(playerId);
+        hiddenMovementMechanics.put(playerId, mechanic);
+    }
+
+    private void clearMovementHidden(UUID playerId) {
+        hiddenForMovement.remove(playerId);
+        hiddenMovementMechanics.remove(playerId);
     }
 
     private boolean shouldHideBackpackForMovement(Player player, BackpackCosmeticMechanic mechanic) {
