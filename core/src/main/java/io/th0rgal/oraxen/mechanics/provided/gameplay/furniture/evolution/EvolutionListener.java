@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.api.events.furniture.OraxenFurnitureInteractEvent;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import org.bukkit.Effect;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.EventHandler;
@@ -42,19 +43,19 @@ public class EvolutionListener implements Listener {
 
         // NEW: Handle staged evolution
         if (mechanic.hasGrowthStages()) {
-            handleStagedBoneMeal(entity, mechanic, pdc, itemInteracted);
+            handleStagedBoneMeal(entity, mechanic, pdc, itemInteracted, event.getPlayer().getGameMode() != GameMode.CREATIVE);
             return;
         }
 
         // Legacy: Handle single-stage evolution
-        handleLegacyBoneMeal(entity, mechanic, pdc, itemInteracted);
+        handleLegacyBoneMeal(entity, mechanic, pdc, itemInteracted, event.getPlayer().getGameMode() != GameMode.CREATIVE);
     }
 
     /**
      * Handles bone meal for furniture using the new inline stages system.
      */
-    private void handleStagedBoneMeal(Entity entity, FurnitureMechanic mechanic, 
-                                       PersistentDataContainer pdc, ItemStack boneMeal) {
+    private void handleStagedBoneMeal(Entity entity, FurnitureMechanic mechanic,
+                                       PersistentDataContainer pdc, ItemStack boneMeal, boolean consumeBoneMeal) {
         int currentStageIndex = pdc.getOrDefault(STAGE_INDEX_KEY, PersistentDataType.INTEGER, 0);
         
         // Check if at final stage
@@ -64,7 +65,7 @@ public class EvolutionListener implements Listener {
         if (currentStage == null || !currentStage.isBoneMeal()) return;
         
         // Consume bone meal and play effect
-        boneMeal.setAmount(boneMeal.getAmount() - 1);
+        if (consumeBoneMeal) boneMeal.setAmount(boneMeal.getAmount() - 1);
         entity.getWorld().playEffect(entity.getLocation(), Effect.BONE_MEAL_USE, 3);
         
         // Check bone meal success chance
@@ -89,15 +90,15 @@ public class EvolutionListener implements Listener {
     /**
      * Handles bone meal for furniture using the legacy evolution system.
      */
-    private void handleLegacyBoneMeal(Entity entity, FurnitureMechanic mechanic, 
-                                       PersistentDataContainer pdc, ItemStack boneMeal) {
+    private void handleLegacyBoneMeal(Entity entity, FurnitureMechanic mechanic,
+                                       PersistentDataContainer pdc, ItemStack boneMeal, boolean consumeBoneMeal) {
         EvolvingFurniture evolution = mechanic.getEvolution();
         if (evolution == null || !evolution.isBoneMeal() || evolution.getNextStage() == null) return;
         
         FurnitureMechanic nextMechanic = (FurnitureMechanic) FurnitureFactory.instance.getMechanic(evolution.getNextStage());
         if (nextMechanic == null) return;
 
-        boneMeal.setAmount(boneMeal.getAmount() - 1);
+        if (consumeBoneMeal) boneMeal.setAmount(boneMeal.getAmount() - 1);
         entity.getWorld().playEffect(entity.getLocation(), Effect.BONE_MEAL_USE, 3);
         
         if (randomChance(evolution.getBoneMealChance())) {
