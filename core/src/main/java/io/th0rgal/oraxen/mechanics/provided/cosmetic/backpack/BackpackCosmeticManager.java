@@ -210,7 +210,6 @@ public class BackpackCosmeticManager {
                 return viewer == null || !viewer.isOnline();
             });
 
-            resyncBackpackMount(owner);
         }
     }
 

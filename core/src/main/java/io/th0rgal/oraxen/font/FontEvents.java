@@ -233,6 +233,7 @@ public class FontEvents implements Listener {
             if (!text.contains(characters) || glyph.hasPermission(player)) continue;
 
             Message.NO_PERMISSION.send(player, AdventureUtils.tagResolver("permission", glyph.getPermission()));
+            text = text.replace(characters, "");
             containsUnpermittedGlyph = true;
         }
         return containsUnpermittedGlyph;

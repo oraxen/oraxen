@@ -12,10 +12,10 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class OraxenYaml extends YamlConfiguration {
 
@@ -147,7 +147,7 @@ public class OraxenYaml extends YamlConfiguration {
 
     @NotNull
     private static Map<String, String> buildKeyCache(@NotNull ConfigurationSection section) {
-        Map<String, String> keyCache = new HashMap<>();
+        Map<String, String> keyCache = new ConcurrentHashMap<>();
         for (String existingKey : section.getKeys(false))
             keyCache.putIfAbsent(existingKey.toLowerCase(Locale.ROOT), existingKey);
         return keyCache;
