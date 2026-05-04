@@ -32,8 +32,12 @@ import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static io.th0rgal.oraxen.items.ItemBuilder.ORIGINAL_NAME_KEY;
 import static io.th0rgal.oraxen.utils.AdventureUtils.*;
@@ -209,35 +213,65 @@ public class FontEvents implements Listener {
     }
 
     private String replaceUnpermittedGlyphs(Player player, String displayName) {
-        for (Glyph glyph : manager.getGlyphs().stream()
-                .sorted(Comparator.comparingInt((Glyph glyph) -> glyph.getCharacters().length()).reversed())
-                .toList()) {
-            String characters = glyph.getCharacters();
-            if (!displayName.contains(characters)) continue;
-            if (!glyph.hasPermission(player)) {
-                Glyph required = manager.getGlyphFromName("required");
-                String replacement = required.hasPermission(player) ? required.getCharacters() : "";
+        Glyph required = manager.getGlyphFromName("required");
+        String replacement = required.hasPermission(player) ? required.getCharacters() : "";
+        StringBuilder builder = new StringBuilder(displayName);
+        Set<Glyph> warnedGlyphs = new HashSet<>();
+        for (GlyphMatch match : findGlyphMatches(displayName).reversed()) {
+            Glyph glyph = match.glyph();
+            if (glyph.hasPermission(player)) continue;
+
+            if (warnedGlyphs.add(glyph))
                 Message.NO_PERMISSION.send(player, AdventureUtils.tagResolver("permission", glyph.getPermission()));
-                displayName = displayName.replace(characters, replacement);
-            }
+            builder.replace(match.start(), match.end(), replacement);
         }
-        return displayName;
+        return builder.toString();
     }
 
     private boolean containsUnpermittedGlyph(Player player, String text) {
         boolean containsUnpermittedGlyph = false;
-        for (Glyph glyph : manager.getGlyphs().stream()
-                .sorted(Comparator.comparingInt((Glyph glyph) -> glyph.getCharacters().length()).reversed())
-                .toList()) {
-            String characters = glyph.getCharacters();
-            if (!text.contains(characters) || glyph.hasPermission(player)) continue;
+        Set<Glyph> warnedGlyphs = new HashSet<>();
+        for (GlyphMatch match : findGlyphMatches(text)) {
+            Glyph glyph = match.glyph();
+            if (glyph.hasPermission(player)) continue;
 
-            Message.NO_PERMISSION.send(player, AdventureUtils.tagResolver("permission", glyph.getPermission()));
-            text = text.replace(characters, "");
+            if (warnedGlyphs.add(glyph))
+                Message.NO_PERMISSION.send(player, AdventureUtils.tagResolver("permission", glyph.getPermission()));
             containsUnpermittedGlyph = true;
         }
         return containsUnpermittedGlyph;
     }
+
+    private List<GlyphMatch> findGlyphMatches(String text) {
+        List<GlyphMatch> matches = new ArrayList<>();
+        boolean[] occupied = new boolean[text.length()];
+        for (Glyph glyph : manager.getGlyphs().stream()
+                .sorted(Comparator.comparingInt((Glyph glyph) -> glyph.getCharacters().length()).reversed())
+                .toList()) {
+            String characters = glyph.getCharacters();
+            if (characters.isEmpty()) continue;
+            int start = text.indexOf(characters);
+            while (start != -1) {
+                int end = start + characters.length();
+                if (!isOccupied(occupied, start, end)) {
+                    matches.add(new GlyphMatch(glyph, start, end));
+                    for (int i = start; i < end; i++) occupied[i] = true;
+                }
+                start = text.indexOf(characters, start + 1);
+            }
+        }
+        return matches.stream()
+                .sorted(Comparator.comparingInt(GlyphMatch::start))
+                .toList();
+    }
+
+    private boolean isOccupied(boolean[] occupied, int start, int end) {
+        for (int i = start; i < end; i++)
+            if (occupied[i]) return true;
+        return false;
+    }
+
+    private record GlyphMatch(Glyph glyph, int start, int end) {}
 
     private String replaceGlyphPlaceholders(Player player, String displayName) {
         for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet()) {

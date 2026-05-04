@@ -1168,7 +1168,6 @@ public class FurnitureMechanic extends Mechanic {
         UUID baseUuid = baseEntity.getUniqueId();
         int baseEntityId = baseEntity.getEntityId();
         removeSubEntitiesOfFurniture(baseEntity);
-        removeInitialLight(baseEntity);
         if (!baseEntity.isDead()) baseEntity.remove();
         SchedulerUtil.runTask(() -> FurnitureTextRegistry.unregister(baseUuid, baseEntityId));
     }

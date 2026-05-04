@@ -37,7 +37,6 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -194,23 +193,13 @@ public abstract class BreakerSystem {
     private void resetBlockBreakAnimations(World world, List<Location> locations) {
         if (locations.isEmpty()) return;
 
-        Location origin = locations.getFirst();
-        SchedulerUtil.runAtLocation(origin, () -> {
-            Set<Player> viewers = new HashSet<>();
-            for (Entity entity : world.getNearbyEntities(origin, 16, 16, 16)) {
-                if (entity instanceof Player viewer) {
-                    viewers.add(viewer);
+        for (Location resetLocation : locations)
+            SchedulerUtil.runAtLocation(resetLocation, () -> {
+                for (Entity entity : world.getNearbyEntities(resetLocation, 16, 16, 16)) {
+                    if (entity instanceof Player viewer)
+                        SchedulerUtil.runForEntity(viewer, () -> sendBlockBreak(viewer, resetLocation, 10));
                 }
-            }
-
-            for (Player viewer : viewers) {
-                SchedulerUtil.runForEntity(viewer, () -> {
-                    for (Location resetLocation : locations) {
-                        sendBlockBreak(viewer, resetLocation, 10);
-                    }
-                });
-            }
-        });
+            });
     }
 
     private List<Location> furnitureBarrierLocations(FurnitureMechanic furnitureMechanic, Block block) {

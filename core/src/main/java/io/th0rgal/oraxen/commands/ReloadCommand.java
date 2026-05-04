@@ -30,6 +30,7 @@ public class ReloadCommand {
     private static final String PACK_RELOAD = "pack";
     private static final String ITEMS_RELOAD = "items";
     private static final String RECIPES_RELOAD = "recipes";
+    private static final String CONFIGS_RELOAD = "configs";
     private static final String MESSAGES_RELOAD = "messages";
     private static final String HUD_RELOAD = "huds";
 
@@ -86,6 +87,11 @@ public class ReloadCommand {
         RecipesManager.reload();
     }
 
+    public static void reloadConfigs(@Nullable CommandSender sender) {
+        sendReloadMessage(sender, CONFIGS_RELOAD);
+        OraxenPlugin.get().reloadConfigs();
+    }
+
     public static void reloadMessages(@Nullable CommandSender sender) {
         sendReloadMessage(sender, MESSAGES_RELOAD);
         OraxenPlugin.get().reloadConfigs();
@@ -100,13 +106,14 @@ public class ReloadCommand {
                 .withAliases("rl")
                 .withPermission("oraxen.command.reload")
                 .withArguments(new TextArgument("type").replaceSuggestions(
-                        ArgumentSuggestions.strings("items", "pack", "hud", "recipes", "messages", "all")))
+                        ArgumentSuggestions.strings("items", "pack", "hud", "recipes", "configs", "messages", "all")))
                 .executes((sender, args) -> {
                     switch (((String) args.get("type")).toUpperCase()) {
                         case "HUD" -> reloadHud(sender);
                         case "ITEMS" -> reloadItems(sender);
                         case "PACK" -> reloadPack(sender);
                         case "RECIPES" -> reloadRecipes(sender);
+                        case "CONFIGS" -> reloadConfigs(sender);
                         case "MESSAGES" -> reloadMessages(sender);
                         default -> {
                             MechanicsManager.unloadListeners();
