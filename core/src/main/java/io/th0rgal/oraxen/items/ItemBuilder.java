@@ -1256,10 +1256,11 @@ public class ItemBuilder {
     public ItemStack build() {
         if (finalItemStack == null)
             regen();
+        ItemStack builtItem = finalItemStack.clone();
         if (unstackable)
-            return handleUnstackable(finalItemStack);
+            return handleUnstackable(builtItem);
         else
-            return finalItemStack.clone();
+            return builtItem;
     }
 
     private ItemStack handleUnstackable(ItemStack item) {
