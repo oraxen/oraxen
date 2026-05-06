@@ -97,6 +97,7 @@ public enum Settings {
 
     //Pack
     GENERATE("Pack.generation.generate"),
+    DISABLE_MCMETA_GENERATION("Pack.generation.disable_mcmeta_generation"),
     MULTI_VERSION_PACKS("Pack.generation.multi_version_packs"),
     EXCLUDED_FILE_EXTENSIONS("Pack.generation.excluded_file_extensions"),
     FIX_FORCE_UNICODE_GLYPHS("Pack.generation.fix_force_unicode_glyphs"),

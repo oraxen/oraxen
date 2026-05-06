@@ -97,6 +97,10 @@ FurnitureUpdater:
 Pack:
   generation:
     generate: true # Unlike Plugin.generation.default_assets, this will enable/disable all pack generation
+    # If true, Oraxen will not create or modify pack.mcmeta.
+    # The file at plugins/Oraxen/pack/pack.mcmeta will be included in the final pack exactly as provided.
+    # This also disables automatic overlay entries, so you must manage overlays in pack.mcmeta yourself.
+    disable_mcmeta_generation: false
     # MULTI-VERSION RESOURCE PACKS
     # Enable this for servers with players on multiple Minecraft versions (ViaVersion/ProtocolSupport).
     # When enabled, generates separate pack files with correct pack_format for each client version.

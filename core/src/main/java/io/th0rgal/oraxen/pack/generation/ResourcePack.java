@@ -309,7 +309,9 @@ public class ResourcePack {
             e.printStackTrace();
         }
 
-        extractInPackIfNotExists(new File(packFolder, "pack.mcmeta"));
+        if (!isMcmetaGenerationDisabled()) {
+            extractInPackIfNotExists(new File(packFolder, "pack.mcmeta"));
+        }
         extractInPackIfNotExists(new File(packFolder, "pack.png"));
         updatePackMcmeta();
 
@@ -594,6 +596,10 @@ public class ResourcePack {
      * </p>
      */
     private void updatePackMcmeta() {
+        if (isMcmetaGenerationDisabled()) {
+            return;
+        }
+
         Path mcmetaPath = packFolder.toPath().resolve("pack.mcmeta");
         if (!mcmetaPath.toFile().exists())
             return;
@@ -606,6 +612,10 @@ public class ResourcePack {
      * This must be called after {@link #generateFont()} to ensure overlay directories exist.
      */
     private void updatePackMcmetaOverlays() {
+        if (isMcmetaGenerationDisabled()) {
+            return;
+        }
+
         Path mcmetaPath = packFolder.toPath().resolve("pack.mcmeta");
         if (!mcmetaPath.toFile().exists()) {
             return;
@@ -767,6 +777,10 @@ public class ResourcePack {
         }
 
         root.add("pack", pack);
+    }
+
+    private boolean isMcmetaGenerationDisabled() {
+        return Boolean.TRUE.equals(Settings.DISABLE_MCMETA_GENERATION.getValue());
     }
 
 
