@@ -62,6 +62,7 @@ Chat:
 
 CustomArmor:
   type: COMPONENT # Valid types are COMPONENT, SHADER, TRIMS and NONE
+  auto_select_type: true # If true, Oraxen will replace incompatible armor types with the best type for the detected server version
   disable_leather_repair: true # Makes custom armor not repairable with leather, only with copies of said custom armor
   component_settings:
     auto_assign_component: true # If true, the equippable-model component will be automatically assigned to the custom armor piece, unless specified
