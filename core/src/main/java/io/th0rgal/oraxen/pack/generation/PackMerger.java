@@ -1,5 +1,9 @@
 package io.th0rgal.oraxen.pack.generation;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -17,6 +21,7 @@ public class PackMerger {
     private final File uploadsDirectory;
     private static final String UPLOADS_DIR_NAME = "uploads";
     private final Map<String, String> fileOrigins = new LinkedHashMap<>();
+    private final JsonArray mergedOverlayEntries = new JsonArray();
 
     public PackMerger(File packFolder) {
         this.uploadsDirectory = new File(packFolder, UPLOADS_DIR_NAME);
@@ -26,6 +31,7 @@ public class PackMerger {
     public List<VirtualFile> mergeUploadedPacks() {
         Map<String, VirtualFile> mergedFilesMap = new LinkedHashMap<>();
         fileOrigins.clear();
+        clearMergedOverlayEntries();
 
         if (!uploadsDirectory.exists()) {
             uploadsDirectory.mkdirs();
@@ -112,6 +118,12 @@ public class PackMerger {
 
                 byte[] buffer = zis.readAllBytes();
 
+                if (normalizedPath.equals("pack.mcmeta")) {
+                    mergeOverlayEntries(buffer, packName);
+                    zis.closeEntry();
+                    continue;
+                }
+
                 VirtualFile virtualFile = new VirtualFile(
                         getParentFolder(normalizedPath),
                         getFileName(normalizedPath),
@@ -142,6 +154,46 @@ public class PackMerger {
         if (skippedCoreShaderCount > 0) {
             Logs.logInfo("Skipped <yellow>" + skippedCoreShaderCount
                     + "</yellow> imported core shader file(s) from <blue>" + packName + "</blue>");
+        }
+    }
+
+    @NotNull
+    public JsonArray getMergedOverlayEntries() {
+        return mergedOverlayEntries.deepCopy();
+    }
+
+    private void clearMergedOverlayEntries() {
+        while (!mergedOverlayEntries.isEmpty()) {
+            mergedOverlayEntries.remove(0);
+        }
+    }
+
+    private void mergeOverlayEntries(byte[] mcmetaContent, String packName) {
+        JsonArray entries;
+        try {
+            JsonElement parsed = JsonParser.parseString(new String(mcmetaContent, StandardCharsets.UTF_8));
+            if (!parsed.isJsonObject()) {
+                return;
+            }
+
+            JsonObject root = parsed.getAsJsonObject();
+            if (!root.has("overlays") || !root.get("overlays").isJsonObject()) {
+                return;
+            }
+
+            JsonObject overlays = root.getAsJsonObject("overlays");
+            if (!overlays.has("entries") || !overlays.get("entries").isJsonArray()) {
+                return;
+            }
+
+            entries = overlays.getAsJsonArray("entries");
+        } catch (Exception e) {
+            Logs.logWarning("Failed to read overlay entries from <yellow>" + packName + "</yellow> pack.mcmeta: " + e.getMessage());
+            return;
+        }
+
+        for (JsonElement entry : entries) {
+            mergedOverlayEntries.add(entry.deepCopy());
         }
     }
 

@@ -1372,6 +1372,7 @@ public class ResourcePack {
     private void mergeUploadedPacks(List<VirtualFile> output) {
         PackMerger packMerger = new PackMerger(packFolder);
         List<VirtualFile> mergedFiles = packMerger.mergeUploadedPacks();
+        PackMcmetaUtils.mergeOverlayEntriesIntoOutput(output, packMerger.getMergedOverlayEntries());
 
         if (!mergedFiles.isEmpty()) {
             output.addAll(mergedFiles);
