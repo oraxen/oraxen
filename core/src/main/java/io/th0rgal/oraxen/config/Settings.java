@@ -152,6 +152,7 @@ public enum Settings {
     RECEIVE_ENABLED("Pack.receive.enabled"),
     RECEIVE_ALLOWED_ACTIONS("Pack.receive.accepted.actions"),
     RECEIVE_LOADED_ACTIONS("Pack.receive.loaded.actions"),
+    RECEIVE_LOADED_SOUND("Pack.receive.loaded.actions.sound.enabled"),
     RECEIVE_FAILED_ACTIONS("Pack.receive.failed_download.actions"),
     RECEIVE_DENIED_ACTIONS("Pack.receive.denied.actions"),
     RECEIVE_FAILED_RELOAD_ACTIONS("Pack.receive.failed_reload.actions"),

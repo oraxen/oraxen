@@ -117,7 +117,10 @@ click></hover>  <#6f737d>»<#b8bbc2> レシピを表示します
     toggle_off: "<prefix><#fa4943>'<hud_id>'をオフにしました！"
 
   debug.toggle: "<prefix><#55ffa4>デバッグモードが<#43fa8c><state><#55ffa4>になりました."
-  version: "<prefix><#55ffa4>Oraxenバージョン：<#43fa8c><version><#55ffa4>！"
+  version: "<prefix><#55ffa4>現在のOraxenバージョンは<#43fa8c><version><#55ffa4>です。"
+  remove_branding:
+    success: "<prefix><#55ffa4>Oraxenのブランド表示を<#43fa8c><files><#55ffa4>個の言語ファイルから削除しました。デフォルトアセットとウェルカムサウンドを無効化しました。パックと設定を再生成するには<#43c9fa>/oraxen reload all<#55ffa4>を実行してください。"
+    failed: "<prefix><#fa4943>Oraxenのブランド表示を削除できませんでした。詳細はコンソールを確認してください。"
 
 mechanics:
   not_enough_exp: "<prefix><#fa4943>これを行うにはもっと経験験値が必要です"
