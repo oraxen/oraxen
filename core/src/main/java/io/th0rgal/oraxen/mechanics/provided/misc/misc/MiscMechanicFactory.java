@@ -30,6 +30,9 @@ public class MiscMechanicFactory extends MechanicFactory {
     @ConfigProperty(type = PropertyType.BOOLEAN, description = "Whether item can break music discs", defaultValue = "false")
     public static final String PROP_BREAK_MUSIC_DISCS = "break_music_discs";
 
+    @ConfigProperty(type = PropertyType.BOOLEAN, description = "Whether item renaming in anvils is prevented", defaultValue = "false")
+    public static final String PROP_PREVENT_RENAMING = "prevent_renaming";
+
     private static MiscMechanicFactory instance;
 
     public MiscMechanicFactory(ConfigurationSection section) {

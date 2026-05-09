@@ -41,6 +41,8 @@ example_sword:
   Mechanics:
     durability:
       value: 10
+    misc:
+      prevent_renaming: true
 
 example_custom_mechanic:
   displayname: "<gradient:#FA7CBB:#F14658><bold>My Item With A Custom Mechanic"

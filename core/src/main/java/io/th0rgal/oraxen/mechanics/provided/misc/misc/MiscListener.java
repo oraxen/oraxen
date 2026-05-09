@@ -23,11 +23,13 @@ import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.inventory.PrepareAnvilEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.Damageable;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.Arrays;
 
@@ -40,6 +42,19 @@ public class MiscListener implements Listener {
         if (VersionUtil.isPaperServer()) {
             OraxenPlugin.get().getServer().getPluginManager().registerEvents(new PaperOnlyListeners(factory), OraxenPlugin.get());
         }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPreventAnvilRename(PrepareAnvilEvent event) {
+        ItemStack inputItem = event.getInventory().getFirstItem();
+        ItemStack resultItem = event.getResult();
+        if (inputItem == null || resultItem == null || inputItem.getType() == Material.AIR) return;
+
+        MiscMechanic mechanic = MiscMechanicFactory.get().getMechanic(inputItem);
+        if (mechanic == null || !mechanic.preventsRenaming()) return;
+        if (!hasDifferentDisplayName(inputItem, resultItem)) return;
+
+        event.setResult(null);
     }
 
     @EventHandler
@@ -217,6 +232,14 @@ public class MiscListener implements Listener {
         if (itemID == null) return null;
 
         return MiscMechanicFactory.get().getMechanic(itemID);
+    }
+
+    private boolean hasDifferentDisplayName(ItemStack inputItem, ItemStack resultItem) {
+        ItemMeta inputMeta = inputItem.getItemMeta();
+        ItemMeta resultMeta = resultItem.getItemMeta();
+        if (inputMeta == null || resultMeta == null) return false;
+        if (inputMeta.hasDisplayName() != resultMeta.hasDisplayName()) return true;
+        return resultMeta.hasDisplayName() && !inputMeta.getDisplayName().equals(resultMeta.getDisplayName());
     }
 
     private Material getStrippedLog(Material log) {

@@ -14,6 +14,7 @@ public class MiscMechanic extends Mechanic {
     private final boolean canStripLogs;
     private final boolean piglinsIgnoreWhenEquipped;
     private final boolean compostable;
+    private final boolean preventRenaming;
 
     private final boolean allowInVanillaRecipes;
 
@@ -26,6 +27,7 @@ public class MiscMechanic extends Mechanic {
         canStripLogs = section.getBoolean("can_strip_logs", false);
         piglinsIgnoreWhenEquipped = section.getBoolean("piglins_ignore_when_equipped", false);
         compostable = section.getBoolean("compostable", false);
+        preventRenaming = section.getBoolean("prevent_renaming", false);
         allowInVanillaRecipes = section.getBoolean("allow_in_vanilla_recipes", false);
 
         if (VersionUtil.atOrAbove("1.20.5") && (burnsInFire || burnsInLava) && 
@@ -42,6 +44,7 @@ public class MiscMechanic extends Mechanic {
     public boolean canStripLogs() { return canStripLogs; }
     public boolean piglinIgnoreWhenEquipped() { return piglinsIgnoreWhenEquipped; }
     public boolean isCompostable() { return compostable; }
+    public boolean preventsRenaming() { return preventRenaming; }
 
     public boolean isAllowedInVanillaRecipes() { return allowInVanillaRecipes; }
 }
