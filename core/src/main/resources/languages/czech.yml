@@ -122,6 +122,9 @@ command:
   remove_branding:
     success: "<prefix><#55ffa4>Branding Oraxenu byl odstraněn z <#43fa8c><files><#55ffa4> jazykových souborů. Výchozí assety a uvítací zvuk byly vypnuty. Spusťte <#43c9fa>/oraxen reload all<#55ffa4> pro opětovné vygenerování balíčku a konfigurací."
     failed: "<prefix><#fa4943>Nepodařilo se odstranit branding Oraxenu. Podrobnosti najdete v konzoli."
+  remove_defaults:
+    success: "<prefix><#55ffa4>Odstraněno <#43fa8c><files><#55ffa4> výchozích souborů. Výchozí konfigurace, výchozí assety a uvítací zvuk byly vypnuty. Povinné glyfy byly zachovány. Spusťte <#43c9fa>/oraxen reload all<#55ffa4> pro opětovné vygenerování balíčku a konfigurací."
+    failed: "<prefix><#fa4943>Odstraněno <#43fa8c><deleted><#fa4943> výchozích souborů, ale nepodařilo se odstranit <#43fa8c><failed><#fa4943>. Podrobnosti najdete v konzoli."
 
 mechanics:
   not_enough_exp: "<prefix><#fa4943>Pro tohle potřebuješ více zkušeností"

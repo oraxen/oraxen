@@ -118,6 +118,9 @@ command:
   remove_branding:
     success: "<prefix><#55ffa4>A marca Oraxen foi removida de <#43fa8c><files><#55ffa4> arquivo(s) de idioma. Os recursos padrão e o som de boas-vindas foram desativados. Execute <#43c9fa>/oraxen reload all<#55ffa4> para regenerar o pacote e as configurações."
     failed: "<prefix><#fa4943>Não foi possível remover a marca Oraxen. Verifique o console para obter detalhes."
+  remove_defaults:
+    success: "<prefix><#55ffa4><#43fa8c><files><#55ffa4> arquivo(s) padrão removido(s). As configurações padrão, os recursos padrão e o som de boas-vindas foram desativados. Os glifos obrigatórios foram mantidos. Execute <#43c9fa>/oraxen reload all<#55ffa4> para regenerar o pacote e as configurações."
+    failed: "<prefix><#fa4943><#43fa8c><deleted><#fa4943> arquivo(s) padrão removido(s), mas não foi possível remover <#43fa8c><failed><#fa4943>. Verifique o console para obter detalhes."
 
 mechanics:
   not_enough_exp: "<prefix><#fa4943>Você precisa de mais experiência para realizar esta ação."

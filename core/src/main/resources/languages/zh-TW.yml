@@ -122,6 +122,9 @@ command:
   remove_branding:
     success: "<prefix><#55ffa4>已從 <#43fa8c><files><#55ffa4> 個語言檔案中移除 Oraxen 品牌內容。已停用預設資源和歡迎音效。執行 <#43c9fa>/oraxen reload all<#55ffa4> 以重新產生資源包和設定。"
     failed: "<prefix><#fa4943>無法移除 Oraxen 品牌內容。請查看控制台了解詳細資訊。"
+  remove_defaults:
+    success: "<prefix><#55ffa4>已移除 <#43fa8c><files><#55ffa4> 個預設檔案。已停用預設設定、預設資源和歡迎音效。已保留必要字形。執行 <#43c9fa>/oraxen reload all<#55ffa4> 以重新產生資源包和設定。"
+    failed: "<prefix><#fa4943>已移除 <#43fa8c><deleted><#fa4943> 個預設檔案，但無法移除 <#43fa8c><failed><#fa4943>。請查看控制台了解詳細資訊。"
 
 mechanics:
   not_enough_exp: "<prefix><#fa4943>你需要更多經驗欸"

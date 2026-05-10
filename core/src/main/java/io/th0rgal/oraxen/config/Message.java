@@ -70,6 +70,8 @@ public enum Message {
     VERSION("command.version"),
     REMOVE_BRANDING_SUCCESS("command.remove_branding.success"),
     REMOVE_BRANDING_FAILED("command.remove_branding.failed"),
+    REMOVE_DEFAULTS_SUCCESS("command.remove_defaults.success"),
+    REMOVE_DEFAULTS_FAILED("command.remove_defaults.failed"),
 
     RECIPE_NO_BUILDER("command.recipe.no_builder"),
     RECIPE_NO_FURNACE("command.recipe.no_furnace"),

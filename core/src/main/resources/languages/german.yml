@@ -119,6 +119,9 @@ command:
   remove_branding:
     success: "<prefix><#55ffa4>Oraxen-Branding wurde aus <#43fa8c><files><#55ffa4> Sprachdatei(en) entfernt. Standard-Assets und der Begruessungssound wurden deaktiviert. Fuehre <#43c9fa>/oraxen reload all<#55ffa4> aus, um das Paket und die Konfigurationen neu zu generieren."
     failed: "<prefix><#fa4943>Oraxen-Branding konnte nicht entfernt werden. Pruefe die Konsole fuer Details."
+  remove_defaults:
+    success: "<prefix><#55ffa4><#43fa8c><files><#55ffa4> Standarddatei(en) entfernt. Standardkonfigurationen, Standard-Assets und der Begruessungssound wurden deaktiviert. Erforderliche Glyphen wurden beibehalten. Fuehre <#43c9fa>/oraxen reload all<#55ffa4> aus, um das Paket und die Konfigurationen neu zu generieren."
+    failed: "<prefix><#fa4943><#43fa8c><deleted><#fa4943> Standarddatei(en) entfernt, aber <#43fa8c><failed><#fa4943> konnten nicht entfernt werden. Pruefe die Konsole fuer Details."
 
 mechanics:
   not_enough_exp: "<prefix><#fa4943>Sie brauchen mehr Erfahrung, um dies zu tun"
