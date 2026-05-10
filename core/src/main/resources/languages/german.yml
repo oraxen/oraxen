@@ -7,7 +7,7 @@ general:
   reload: "<prefix><#55ffa4>Erfolgreich neu geladen: <reloaded>."
   pack_uploading: "<prefix><#D5D6D8>Das automatische Hochladen des Ressourcenpacks ist aktiviert, Hochladen..."
   pack_not_uploaded: "<prefix><#fa4943>Ressourcenpack nicht hochgeladen"
-  pack_uploaded: "<prefix><#55ffa4>Ressourcenpack auf Url <url> in <delay> ms hochgeladen"
+  pack_uploaded: "<prefix><#55ffa4>Ressourcenpack auf Url <#43c9fa><url></#43c9fa> in <delay>ms hochgeladen."
   pack_regenerated: "<prefix><#55ffa4>Ressourcenpack erfolgreich regeneriert"
   updating_config: "<prefix><#facc43>Konfigurationsoption \"<option>\" nicht gefunden, wird hinzugefügt!"
   removing_config: "<prefix><#facc43>Die Konfigurationsoption \"<option>\" wurde zum Entfernen markiert, entfernen Sie sie!"
@@ -28,10 +28,11 @@ general:
   introduction_guide: |-
 
     <dark_gray><st>                                         </st><gold><bold> Willkommen bei Oraxen... </bold><dark_gray><st>                                         </st>
-    <gray> Oraxen wurde zum ersten Mal erfolgreich geladen, legen wir los.
-    <dark_gray> » <gray>Um das <yellow>Standard-Branding</yellow> zu entfernen, folge bitte dem Tutorial unter <blue>https://oraxen.mizius.com/usage/tutorials/d017g<gray>.
-    <dark_gray> » <gray>Die meisten deiner Fragen und Probleme lassen sich über unsere <yellow>Dokumentation</yellow> lösen, schau dir unbedingt <yellow>beide</yellow> Dokumentationen<gray> unter </gray><blue>https://oraxen.mizius.com/</blue><gray> und <blue>https://docs.oraxen.com</blue><gray> an.
-    <dark_gray> » <gray>Wenn du weiterhin Hilfe brauchst, besuche unseren Discord unter <blue>https://discord.gg/9EehAG54aU</blue>.
+    <#55ffa4>Oraxen wurde zum ersten Mal erfolgreich geladen. Legen wir los.
+    <dark_gray> » <#55ffa4>Um das <#43c9fa>Standard-Branding</#43c9fa> zu entfernen, führe <#43c9fa>/oraxen remove-branding<#55ffa4> aus.
+    <dark_gray> » <#55ffa4>Um die <#43c9fa>Standard-Assets</#43c9fa> zu entfernen, führe <#43c9fa>/oraxen remove-defaults<#55ffa4> aus.
+    <dark_gray> » <#55ffa4>Die meisten Fragen beantwortet die Dokumentation unter <#43c9fa>https://oraxen.mizius.com/</#43c9fa><#55ffa4> und <#43c9fa>https://docs.oraxen.com</#43c9fa><#55ffa4>.
+    <dark_gray> » <#55ffa4>Brauchst du noch Hilfe? Besuche unseren Discord unter <#43c9fa>https://discord.gg/9EehAG54aU</#43c9fa>.
     <dark_gray><st>                                                                                                         </st>
   datapack_generated: "<prefix><#55ffa4>Datapack wurde erfolgreich generiert"
 

@@ -7,7 +7,7 @@ general:
   reload: "<prefix><#55ffa4>Úspěšně znovu načteno: <reloaded>."
   pack_uploading: "<prefix><#D5D6D8>Automatické nahrání resource packu je zapnuto, nahrávám..."
   pack_not_uploaded: "<prefix><#fa4943>Resourcepack nenahrán"
-  pack_uploaded: "<prefix><#55ffa4>Resourcepack nahrán na url <url> za <delay> ms"
+  pack_uploaded: "<prefix><#55ffa4>Resourcepack nahrán na url <#43c9fa><url></#43c9fa> za <delay>ms."
   pack_regenerated: "<prefix><#55ffa4>Resourcepack úspěšně regenerován"
   updating_config: '<prefix><#facc43>Konfigurační možnost "<option>" nenalezena, přidávám!'
   removing_config: Configuration option \"<option>\" has been marked for removal, removing it!"
@@ -28,10 +28,11 @@ general:
   introduction_guide: |-
 
     <dark_gray><st>                                         </st><gold><bold> Vítejte v Oraxenu... </bold><dark_gray><st>                                         </st>
-    <gray> Oraxen se poprvé úspěšně načetl, pojďme vás nastavit.
-    <dark_gray> » <gray>Pro odstranění <yellow>výchozího brandingu</yellow> postupujte podle návodu na <blue>https://oraxen.mizius.com/usage/tutorials/d017g<gray>.
-    <dark_gray> » <gray>Většinu vašich otázek a problémů lze vyřešit v naší <yellow>Dokumentaci</yellow>, nezapomeňte si projít <yellow>obě</yellow> dokumentace<gray> na </gray><blue>https://oraxen.mizius.com/</blue><gray> a <blue>https://docs.oraxen.com</blue><gray>.
-    <dark_gray> » <gray>Pokud stále potřebujete pomoc, navštivte náš Discord na <blue>https://discord.gg/9EehAG54aU</blue>.
+    <#55ffa4>Oraxen byl poprvé úspěšně načten. Pojďme začít.
+    <dark_gray> » <#55ffa4>Pro odstranění <#43c9fa>výchozího brandingu</#43c9fa> spusťte <#43c9fa>/oraxen remove-branding<#55ffa4>.
+    <dark_gray> » <#55ffa4>Pro odstranění <#43c9fa>výchozích assetů</#43c9fa> spusťte <#43c9fa>/oraxen remove-defaults<#55ffa4>.
+    <dark_gray> » <#55ffa4>Většinu otázek zodpoví dokumentace na <#43c9fa>https://oraxen.mizius.com/</#43c9fa><#55ffa4> a <#43c9fa>https://docs.oraxen.com</#43c9fa><#55ffa4>.
+    <dark_gray> » <#55ffa4>Stále potřebujete pomoc? Navštivte náš Discord na <#43c9fa>https://discord.gg/9EehAG54aU</#43c9fa>.
     <dark_gray><st>                                                                                                         </st>
   datapack_generated: "<prefix><#55ffa4>Datapack byl úspěšně vygenerován"
 

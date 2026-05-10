@@ -7,7 +7,7 @@ general:
   reload: "<prefix><#55ffa4><reloaded> を正常にリロードしました。"
   pack_uploading: "<prefix><#D5D6D8>リソースパックの自動アップロードが有効になっています、アップロード中..."
   pack_not_uploaded: "<prefix><#fa4943>リソースパックがアップロードされていません"
-  pack_uploaded: "<prefix><#55ffa4>リソースパックが<delay>ミリ秒で<url>にアップロードされました"
+  pack_uploaded: "<prefix><#55ffa4>リソースパックが<delay>ミリ秒で<#43c9fa><url></#43c9fa>にアップロードされました."
   pack_regenerated: "<prefix><#55ffa4>リソースパックが正常に再生成されました"
   updating_config: "<prefix><#facc43>設定オプション\"<option>\"が見つかりませんでした、追加しています！"
   removing_config: "<prefix><#facc43>設定オプション\"<option>\"が���除のマークされました、削除しています！"
@@ -28,10 +28,11 @@ general:
   introduction_guide: |-
 
     <dark_gray><st>                                         </st><gold><bold> Oraxen へようこそ... </bold><dark_gray><st>                                         </st>
-    <gray> Oraxen が初回起動で正常に読み込まれました。さっそく始めましょう。
-    <dark_gray> » <gray><yellow>デフォルトのブランディング</yellow>を削除するには、<blue>https://oraxen.mizius.com/usage/tutorials/d017g<gray> のチュートリアルをご確認ください。
-    <dark_gray> » <gray>ほとんどの質問や問題は <yellow>ドキュメント</yellow> で解決できます。<yellow>両方</yellow>のドキュメント<gray>を </gray><blue>https://oraxen.mizius.com/</blue><gray> と <blue>https://docs.oraxen.com</blue><gray> で必ず確認してください。
-    <dark_gray> » <gray>それでもサポートが必要な場合は、<blue>https://discord.gg/9EehAG54aU</blue> の Discord に参加してください。
+    <#55ffa4>Oraxen が初回起動で正常に読み込まれました。さっそく始めましょう。
+    <dark_gray> » <#55ffa4><#43c9fa>デフォルトのブランディング</#43c9fa>を削除するには、<#43c9fa>/oraxen remove-branding<#55ffa4> を実行してください。
+    <dark_gray> » <#55ffa4><#43c9fa>デフォルトのアセット</#43c9fa>を削除するには、<#43c9fa>/oraxen remove-defaults<#55ffa4> を実行してください。
+    <dark_gray> » <#55ffa4>ほとんどの質問は <#43c9fa>https://oraxen.mizius.com/</#43c9fa><#55ffa4> と <#43c9fa>https://docs.oraxen.com</#43c9fa><#55ffa4> のドキュメントで解決できます。
+    <dark_gray> » <#55ffa4>まだサポートが必要ですか？ Discord <#43c9fa>https://discord.gg/9EehAG54aU</#43c9fa> に参加してください。
     <dark_gray><st>                                                                                                         </st>
   datapack_generated: "<prefix><#55ffa4>データパックが正常に生成されました"
 

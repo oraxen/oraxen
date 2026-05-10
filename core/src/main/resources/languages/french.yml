@@ -7,7 +7,7 @@ general:
   reload: "<prefix><#55ffa4>Rechargé avec succès : <reloaded>."
   pack_uploading: "<prefix><#D5D6D8>Le téléversement automatique du pack de ressources est activé, Téléversement en cours ..."
   pack_not_uploaded: "<prefix><#fa4943>Le pack de ressources n'a pas été téléversé"
-  pack_uploaded: "<prefix><#55ffa4>Pack de ressources téléversé à l'url <url> en <delay> ms"
+  pack_uploaded: "<prefix><#55ffa4>Pack de ressources téléversé à l'url <#43c9fa><url></#43c9fa> en <delay>ms."
   pack_regenerated: "<prefix><#55ffa4>Pack de ressources régénéré avec succès"
   updating_config: '<prefix><#facc43>Option de configuration "<option>" introuvable, ajout en cours !'
   removing_config: '<prefix><#facc43>Option de configuration "<option>" a été marquée pour suppression, la supprimer !'
@@ -28,10 +28,11 @@ general:
   introduction_guide: |-
 
     <dark_gray><st>                                         </st><gold><bold> Bienvenue sur Oraxen... </bold><dark_gray><st>                                         </st>
-    <gray> Oraxen s'est chargé avec succès pour la première fois, commençons.
-    <dark_gray> » <gray>Pour supprimer le <yellow>branding par défaut</yellow>, veuillez suivre le tutoriel sur <blue>https://oraxen.mizius.com/usage/tutorials/d017g<gray>.
-    <dark_gray> » <gray>La plupart de vos questions et problèmes peuvent être résolus via notre <yellow>Documentation</yellow>, assurez-vous de consulter les <yellow>deux</yellow> documentations<gray> sur </gray><blue>https://oraxen.mizius.com/</blue><gray> et <blue>https://docs.oraxen.com</blue><gray>.
-    <dark_gray> » <gray>Si vous avez encore besoin d'aide, rejoignez notre Discord à l'adresse <blue>https://discord.gg/9EehAG54aU</blue>.
+    <#55ffa4>Oraxen s'est chargé avec succès pour la première fois. Commençons.
+    <dark_gray> » <#55ffa4>Pour supprimer le <#43c9fa>branding par défaut</#43c9fa>, exécutez <#43c9fa>/oraxen remove-branding<#55ffa4>.
+    <dark_gray> » <#55ffa4>Pour supprimer les <#43c9fa>assets par défaut</#43c9fa>, exécutez <#43c9fa>/oraxen remove-defaults<#55ffa4>.
+    <dark_gray> » <#55ffa4>La documentation répond à la plupart des questions sur <#43c9fa>https://oraxen.mizius.com/</#43c9fa><#55ffa4> et <#43c9fa>https://docs.oraxen.com</#43c9fa><#55ffa4>.
+    <dark_gray> » <#55ffa4>Besoin d'aide ? Rejoignez notre Discord sur <#43c9fa>https://discord.gg/9EehAG54aU</#43c9fa>.
     <dark_gray><st>                                                                                                         </st>
   datapack_generated: "<prefix><#55ffa4>Le datapack a été généré avec succès"
 

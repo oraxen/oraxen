@@ -7,7 +7,7 @@ general:
   reload: "<prefix><#55ffa4>Успешно перезагружено: <reloaded>."
   pack_uploading: "<prefix><#D5D6D8>Автоматическая выгрузка ресурспака включена, выгрузка..."
   pack_not_uploaded: "<prefix><#fa4943>Ресурспак не выгружен"
-  pack_uploaded: "<prefix><#55ffa4>Ресурспак выгружен на <url> за <delay> мс"
+  pack_uploaded: "<prefix><#55ffa4>Ресурспак выгружен на <#43c9fa><url></#43c9fa> за <delay> мс."
   pack_regenerated: "<prefix><#55ffa4>Ресурспак успешно перегенерирован"
   updating_config: '<prefix><#facc43>Опция конфигурации "<option>" не найдена, добавляется!'
   removing_config: '<prefix><#facc43>Опция конфигурации "<option>" помечена для удаления, удаляется!'
@@ -28,10 +28,11 @@ general:
   introduction_guide: |-
 
     <dark_gray><st>                                         </st><gold><bold> Добро пожаловать в Oraxen... </bold><dark_gray><st>                                         </st>
-    <gray> Oraxen впервые успешно загружен, давайте начнем.
-    <dark_gray> » <gray>Чтобы убрать <yellow>стандартный брендинг</yellow>, следуйте руководству на <blue>https://oraxen.mizius.com/usage/tutorials/d017g<gray>.
-    <dark_gray> » <gray>Большинство ваших вопросов и проблем можно решить через нашу <yellow>Документацию</yellow>, обязательно ознакомьтесь <yellow>с обеими</yellow> документациями<gray> на </gray><blue>https://oraxen.mizius.com/</blue><gray> и <blue>https://docs.oraxen.com</blue><gray>.
-    <dark_gray> » <gray>Если вам все еще нужна помощь, посетите наш Discord: <blue>https://discord.gg/9EehAG54aU</blue>.
+    <#55ffa4>Oraxen впервые успешно загружен. Давайте начнем.
+    <dark_gray> » <#55ffa4>Чтобы убрать <#43c9fa>стандартный брендинг</#43c9fa>, выполните <#43c9fa>/oraxen remove-branding<#55ffa4>.
+    <dark_gray> » <#55ffa4>Чтобы убрать <#43c9fa>стандартные ассеты</#43c9fa>, выполните <#43c9fa>/oraxen remove-defaults<#55ffa4>.
+    <dark_gray> » <#55ffa4>На большинство вопросов ответит документация на <#43c9fa>https://oraxen.mizius.com/</#43c9fa><#55ffa4> и <#43c9fa>https://docs.oraxen.com</#43c9fa><#55ffa4>.
+    <dark_gray> » <#55ffa4>Все еще нужна помощь? Посетите наш Discord: <#43c9fa>https://discord.gg/9EehAG54aU</#43c9fa>.
     <dark_gray><st>                                                                                                         </st>
   datapack_generated: "<prefix><#55ffa4>Датапак успешно сгенерирован"
 

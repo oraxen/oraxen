@@ -7,7 +7,7 @@ general:
   reload: "<prefix><#55ffa4>成功重载 <reloaded>。"
   pack_uploading: "<prefix><#D5D6D8>材质包自动上传已启用, 上传中..."
   pack_not_uploaded: "<prefix><#fa4943>材质包上传失败"
-  pack_uploaded: "<prefix><#55ffa4>材质包上传至 <url> 用时 <delay> 毫秒"
+  pack_uploaded: "<prefix><#55ffa4>材质包上传至 <#43c9fa><url></#43c9fa> 用时 <delay> 毫秒."
   pack_regenerated: "<prefix><#55ffa4>材质包重新生成成功"
   updating_config: '<prefix><#facc43>未找到配置选项 "<option>"， 添加中！'
   removing_config: Configuration option \"<option>\" has been marked for removal, removing it!"
@@ -28,10 +28,11 @@ general:
   introduction_guide: |-
 
     <dark_gray><st>                                         </st><gold><bold> 欢迎使用 Oraxen... </bold><dark_gray><st>                                         </st>
-    <gray> Oraxen 已首次成功加载，让我们开始吧。
-    <dark_gray> » <gray>如需移除<yellow>默认品牌标识</yellow>，请参考教程：<blue>https://oraxen.mizius.com/usage/tutorials/d017g<gray>。
-    <dark_gray> » <gray>你的大多数问题都可以通过我们的<yellow>文档</yellow>解决，请务必查看<yellow>两份</yellow>文档<gray>：</gray><blue>https://oraxen.mizius.com/</blue><gray> 和 <blue>https://docs.oraxen.com</blue><gray>。
-    <dark_gray> » <gray>如果你仍需要帮助，请加入我们的 Discord：<blue>https://discord.gg/9EehAG54aU</blue>。
+    <#55ffa4>Oraxen 已首次成功加载。让我们开始吧。
+    <dark_gray> » <#55ffa4>如需移除<#43c9fa>默认品牌标识</#43c9fa>，请运行 <#43c9fa>/oraxen remove-branding<#55ffa4>。
+    <dark_gray> » <#55ffa4>如需移除<#43c9fa>默认资源</#43c9fa>，请运行 <#43c9fa>/oraxen remove-defaults<#55ffa4>。
+    <dark_gray> » <#55ffa4>大多数问题都可以在文档 <#43c9fa>https://oraxen.mizius.com/</#43c9fa><#55ffa4> 和 <#43c9fa>https://docs.oraxen.com</#43c9fa><#55ffa4> 中找到答案。
+    <dark_gray> » <#55ffa4>仍需要帮助？请加入我们的 Discord：<#43c9fa>https://discord.gg/9EehAG54aU</#43c9fa>。
     <dark_gray><st>                                                                                                         </st>
   datapack_generated: "<prefix><#55ffa4>数据包生成成功"
 

@@ -7,7 +7,7 @@ general:
   reload: "<prefix><#55ffa4><reloaded> 리로드에 성공했습니다."
   pack_uploading: "<prefix><#D5D6D8>자동 리소스 팩 업로드가 활성화되어 있습니다. 업로드 중..."
   pack_not_uploaded: "<prefix><#fa4943>리소스 팩이 업로드되지 않았습니다"
-  pack_uploaded: "<prefix><#55ffa4>리소스 팩이 <delay>ms 내에 <url>에 업로드되었습니다"
+  pack_uploaded: "<prefix><#55ffa4>리소스 팩이 <delay>ms 내에 <#43c9fa><url></#43c9fa>에 업로드되었습니다."
   pack_regenerated: "<prefix><#55ffa4>리소스 팩이 성공적으로 재생성되었습니다"
   updating_config: '<prefix><#facc43>구성 옵션 "<option>"을(를) 찾을 수 없습니다. 옵션을 추가합니다!'
   removing_config: '<prefix><#facc43>구성 옵션 "<option>"이(가) 제거되어 삭제됩니다!'
@@ -28,10 +28,11 @@ general:
   introduction_guide: |-
 
     <dark_gray><st>                                         </st><gold><bold> Oraxen에 오신 것을 환영합니다... </bold><dark_gray><st>                                         </st>
-    <gray> Oraxen이 처음으로 성공적으로 로드되었습니다. 이제 시작해봅시다.
-    <dark_gray> » <gray><yellow>기본 브랜딩</yellow>을 제거하려면 <blue>https://oraxen.mizius.com/usage/tutorials/d017g<gray> 튜토리얼을 따라주세요.
-    <dark_gray> » <gray>대부분의 질문과 문제는 <yellow>문서</yellow>를 통해 해결할 수 있습니다. <yellow>두 개의</yellow> 문서<gray>를 </gray><blue>https://oraxen.mizius.com/</blue><gray> 및 <blue>https://docs.oraxen.com</blue><gray>에서 꼭 확인해 주세요.
-    <dark_gray> » <gray>그래도 도움이 필요하면 <blue>https://discord.gg/9EehAG54aU</blue>의 디스코드를 방문해 주세요.
+    <#55ffa4>Oraxen이 처음으로 성공적으로 로드되었습니다. 이제 시작해봅시다.
+    <dark_gray> » <#55ffa4><#43c9fa>기본 브랜딩</#43c9fa>을 제거하려면 <#43c9fa>/oraxen remove-branding<#55ffa4>을 실행하세요.
+    <dark_gray> » <#55ffa4><#43c9fa>기본 에셋</#43c9fa>을 제거하려면 <#43c9fa>/oraxen remove-defaults<#55ffa4>을 실행하세요.
+    <dark_gray> » <#55ffa4>대부분의 질문은 <#43c9fa>https://oraxen.mizius.com/</#43c9fa><#55ffa4> 및 <#43c9fa>https://docs.oraxen.com</#43c9fa><#55ffa4> 문서에서 답을 찾을 수 있습니다.
+    <dark_gray> » <#55ffa4>아직 도움이 필요하신가요? Discord <#43c9fa>https://discord.gg/9EehAG54aU</#43c9fa>에 방문해 주세요.
     <dark_gray><st>                                                                                                         </st>
   datapack_generated: "<prefix><#55ffa4>데이터팩이 성공적으로 생성되었습니다"
 
