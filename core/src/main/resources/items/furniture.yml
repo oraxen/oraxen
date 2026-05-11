@@ -23,7 +23,8 @@ table:
         roof: false
         floor: true
         wall: false
-      light: 5
+      lights:
+        - 0,0,0 5
       drop:
         silktouch: false
         loots:
@@ -36,9 +37,8 @@ cart:
   Mechanics:
     furniture:
       type: DISPLAY_ENTITY
-      hitbox:
-        width: 1.0
-        height: 1.0
+      hitboxes:
+        - 0,0,0 1.0,1.0
       display_entity_properties:
         display_transform: FIXED
       barrier: true
@@ -60,9 +60,8 @@ chair:
   Mechanics:
     furniture:
       type: DISPLAY_ENTITY
-      hitbox:
-        width: 1.0
-        height: 2.0
+      hitboxes:
+        - 0,0,0 1.0,2.0
       display_entity_properties:
         display_transform: FIXED
       barrier: true
@@ -70,8 +69,8 @@ chair:
         roof: false
         floor: true
         wall: false
-      seat:
-        height: 0
+      seats:
+        - 0,-1.2,0
       drop:
         silktouch: false
         loots:
@@ -143,7 +142,8 @@ turntable:
         floor: true
         wall: false
       barrier: true
-      light: 5
+      lights:
+        - 0,0,0 5
       drop:
         silktouch: false
         loots:

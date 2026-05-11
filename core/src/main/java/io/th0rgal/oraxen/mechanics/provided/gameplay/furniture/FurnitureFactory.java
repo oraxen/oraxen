@@ -193,6 +193,7 @@ public class FurnitureFactory extends MechanicFactory {
                         "height", MechanicConfigProperty.decimal("height", "Seat height offset", 0.0),
                         "yaw", MechanicConfigProperty.decimal("yaw", "Seat rotation", 0.0)
                 )),
+                MechanicConfigProperty.list("seats", "List of seat offsets relative to the furniture center formatted '<x>,<y>,<z>'"),
                 MechanicConfigProperty.list("barriers", "List of barrier block positions relative to furniture"),
                 MechanicConfigProperty.object("display_entity_properties", "Display entity configuration", Map.of(
                         "display_transform", MechanicConfigProperty.enumType("display_transform", "Display transform mode",

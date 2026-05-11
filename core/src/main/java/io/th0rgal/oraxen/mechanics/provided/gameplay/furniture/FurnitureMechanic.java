@@ -59,6 +59,7 @@ public class FurnitureMechanic extends Mechanic {
     public static final NamespacedKey HITBOX_OFFSET_KEY = new NamespacedKey(OraxenPlugin.get(), "hitbox_offset");
     public static final NamespacedKey MODELENGINE_KEY = new NamespacedKey(OraxenPlugin.get(), "modelengine");
     public static final NamespacedKey SEAT_KEY = new NamespacedKey(OraxenPlugin.get(), "seat");
+    public static final NamespacedKey SEATS_KEY = new NamespacedKey(OraxenPlugin.get(), "seats");
     public static final NamespacedKey ROOT_KEY = new NamespacedKey(OraxenPlugin.get(), "root");
     public static final NamespacedKey ORIENTATION_KEY = new NamespacedKey(OraxenPlugin.get(), "orientation");
     public static final NamespacedKey EVOLUTION_KEY = new NamespacedKey(OraxenPlugin.get(), "evolution");
@@ -75,6 +76,7 @@ public class FurnitureMechanic extends Mechanic {
     private final List<BlockLocation> barriers;
     private final boolean hasSeat;
     private boolean hasSeatYaw;
+    private final List<FurnitureSeat> seats;
     private final Drop drop;
     private final EvolvingFurniture evolvingFurniture;
     private final List<GrowthStage> growthStages;  // NEW: Inline growth stages
@@ -109,6 +111,13 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public record FurnitureLight(BlockLocation offset, int lightLevel) {
+    }
+
+    public record FurnitureSeat(double offsetX, double offsetY, double offsetZ) {
+
+        public Vector offset() {
+            return new Vector(offsetX, offsetY, offsetZ);
+        }
     }
 
     public enum RestrictedRotation {
@@ -217,13 +226,8 @@ public class FurnitureMechanic extends Mechanic {
         hitboxes = parseHitboxes(section);
         hitbox = hitboxes.isEmpty() ? null : hitboxes.get(0);
 
-        ConfigurationSection seatSection = section.getConfigurationSection("seat");
-        if (seatSection != null) {
-            hasSeat = true;
-            seatHeight = (float) seatSection.getDouble("height");
-            hasSeatYaw = seatSection.contains("yaw");
-            if (hasSeatYaw) seatYaw = (float) seatSection.getDouble("yaw");
-        } else hasSeat = false;
+        seats = parseSeats(section);
+        hasSeat = !seats.isEmpty();
 
         ConfigurationSection dropSection = section.getConfigurationSection("drop");
         drop = dropSection != null ? Drop.createDrop(FurnitureFactory.getInstance().toolTypes, dropSection, getItemID()) : new Drop(new ArrayList<>(), false, false, getItemID());
@@ -319,6 +323,49 @@ public class FurnitureMechanic extends Mechanic {
             if (parsedLight != null) parsedLights.add(parsedLight);
         }
         return List.copyOf(parsedLights);
+    }
+
+    private List<FurnitureSeat> parseSeats(ConfigurationSection section) {
+        List<FurnitureSeat> parsedSeats = new ArrayList<>();
+        if (section.isList("seats")) {
+            for (Object seatObject : section.getList("seats", new ArrayList<>())) {
+                FurnitureSeat parsedSeat = parseSeat(seatObject);
+                if (parsedSeat != null) parsedSeats.add(parsedSeat);
+            }
+            return List.copyOf(parsedSeats);
+        }
+
+        ConfigurationSection seatSection = section.getConfigurationSection("seat");
+        if (seatSection == null) return List.of();
+
+        seatHeight = (float) seatSection.getDouble("height");
+        hasSeatYaw = seatSection.contains("yaw");
+        if (hasSeatYaw) seatYaw = (float) seatSection.getDouble("yaw");
+        return List.of(new FurnitureSeat(0, seatHeight - 1, 0));
+    }
+
+    @Nullable
+    private FurnitureSeat parseSeat(Object seatObject) {
+        if (!(seatObject instanceof String string)) {
+            Logs.logError("Invalid seat entry for furniture: " + getItemID() + ". Expected '<x>,<y>,<z>'.");
+            return null;
+        }
+
+        String[] offsetParts = string.trim().split(",");
+        if (offsetParts.length != 3) {
+            Logs.logError("Invalid seat entry '" + string + "' for furniture: " + getItemID() + ". Expected '<x>,<y>,<z>'.");
+            return null;
+        }
+
+        try {
+            double offsetX = Double.parseDouble(offsetParts[0]);
+            double offsetY = Double.parseDouble(offsetParts[1]);
+            double offsetZ = Double.parseDouble(offsetParts[2]);
+            return new FurnitureSeat(offsetX, offsetY, offsetZ);
+        } catch (NumberFormatException exception) {
+            Logs.logError("Invalid seat entry '" + string + "' for furniture: " + getItemID() + ". Seat offsets must be numbers.");
+            return null;
+        }
     }
 
     @Nullable
@@ -450,11 +497,33 @@ public class FurnitureMechanic extends Mechanic {
 
     public static ArmorStand getSeat(Entity baseEntity) {
         PersistentDataContainer pdc = baseEntity.getPersistentDataContainer();
-        if (!pdc.has(SEAT_KEY, DataType.UUID)) return null;
-        UUID seatUUID = pdc.get(SEAT_KEY, DataType.UUID);
-        if (seatUUID == null) return null;
-        Entity seat = Bukkit.getEntity(seatUUID);
-        return seat instanceof ArmorStand ? (ArmorStand) seat : null;
+        for (UUID seatUUID : getSeatUuids(pdc)) {
+            Entity seat = Bukkit.getEntity(seatUUID);
+            if (seat instanceof ArmorStand armorStand) return armorStand;
+        }
+        return null;
+    }
+
+    private static List<UUID> getSeatUuids(PersistentDataContainer pdc) {
+        List<UUID> seatUuids = new ArrayList<>(pdc.getOrDefault(SEATS_KEY, DataType.asList(DataType.UUID), List.of()));
+        UUID legacySeatUuid = pdc.get(SEAT_KEY, DataType.UUID);
+        if (legacySeatUuid != null && !seatUuids.contains(legacySeatUuid)) seatUuids.add(legacySeatUuid);
+
+        String oldUUID = pdc.has(SEAT_KEY, PersistentDataType.STRING) ? pdc.get(SEAT_KEY, PersistentDataType.STRING) : null;
+        if (oldUUID != null) {
+            try {
+                UUID convertedUuid = UUID.fromString(oldUUID);
+                if (!seatUuids.contains(convertedUuid)) seatUuids.add(convertedUuid);
+                pdc.remove(SEAT_KEY);
+                pdc.set(SEAT_KEY, DataType.UUID, convertedUuid);
+            } catch (IllegalArgumentException ignored) {
+                pdc.remove(SEAT_KEY);
+            }
+        }
+
+        if (!seatUuids.isEmpty() && !pdc.has(SEATS_KEY, DataType.asList(DataType.UUID)))
+            pdc.set(SEATS_KEY, DataType.asList(DataType.UUID), seatUuids);
+        return seatUuids;
     }
 
     public boolean hasHardness() {
@@ -540,6 +609,10 @@ public class FurnitureMechanic extends Mechanic {
 
     public boolean hasSeat() {
         return hasSeat;
+    }
+
+    public List<FurnitureSeat> getSeats() {
+        return seats;
     }
 
     public float getSeatHeight() {
@@ -721,11 +794,10 @@ public class FurnitureMechanic extends Mechanic {
 
                 Block block = location.getBlock();
                 if (hasSeat() && interaction != null) {
-                    UUID seatUuid = spawnSeat(block, hasSeatYaw ? seatYaw : FurnitureMechanic.getFurnitureYaw(frame));
-                    frame.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
-                    for (Interaction hitbox : interactions) {
-                        hitbox.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
-                    }
+                    List<UUID> seatUuids = spawnSeats(location, FurnitureMechanic.getFurnitureYaw(frame));
+                    setSeats(frame.getPersistentDataContainer(), seatUuids);
+                    for (Interaction hitbox : interactions)
+                        setSeats(hitbox.getPersistentDataContainer(), seatUuids);
                 }
                 createInitialLight(block, entity, location, yaw);
             }
@@ -744,11 +816,10 @@ public class FurnitureMechanic extends Mechanic {
             if (hasBarriers()) setBarrierHitbox(entity, barrierLoc, yaw);
             else {
                 if (hasSeat() && interaction != null) {
-                    UUID seatUuid = spawnSeat(location.getBlock(), hasSeatYaw ? seatYaw : yaw);
-                    itemDisplay.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
-                    for (Interaction hitbox : interactions) {
-                        hitbox.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
-                    }
+                    List<UUID> seatUuids = spawnSeats(location, yaw);
+                    setSeats(itemDisplay.getPersistentDataContainer(), seatUuids);
+                    for (Interaction hitbox : interactions)
+                        setSeats(hitbox.getPersistentDataContainer(), seatUuids);
                 }
                 createInitialLight(location.getBlock(), entity, location, yaw);
             }
@@ -762,11 +833,10 @@ public class FurnitureMechanic extends Mechanic {
 
                 Block block = location.getBlock();
                 if (hasSeat()) {
-                    UUID seatUuid = spawnSeat(block, hasSeatYaw ? seatYaw : yaw);
-                    armorStand.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
-                    for (Interaction hitbox : interactions) {
-                        hitbox.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
-                    }
+                    List<UUID> seatUuids = spawnSeats(location, yaw);
+                    setSeats(armorStand.getPersistentDataContainer(), seatUuids);
+                    for (Interaction hitbox : interactions)
+                        setSeats(hitbox.getPersistentDataContainer(), seatUuids);
                 }
                 createInitialLight(block, entity, location, yaw);
             }
@@ -933,12 +1003,14 @@ public class FurnitureMechanic extends Mechanic {
 
     private void setBarrierHitbox(Entity entity, Location location, float yaw) {
         List<Location> barrierLocations = getLocations(yaw, BlockHelpers.toCenterBlockLocation(location), barriers);
+        List<UUID> seatUuids = hasSeat ? spawnSeats(location, yaw) : List.of();
+        if (hasSeat) setSeats(entity.getPersistentDataContainer(), seatUuids);
         for (Location barrierLocation : barrierLocations) {
             Block block = barrierLocation.getBlock();
             block.setType(Material.BARRIER);
             PersistentDataContainer data = BlockHelpers.getPDC(block);
             data.set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
-            if (hasSeat) data.set(SEAT_KEY, DataType.UUID, spawnSeat(block, hasSeatYaw ? seatYaw : yaw));
+            if (hasSeat) setSeats(data, seatUuids);
             data.set(ROOT_KEY, PersistentDataType.STRING, new BlockLocation(location.clone()).toString());
             data.set(ORIENTATION_KEY, PersistentDataType.FLOAT, yaw);
             data.set(BASE_ENTITY_KEY, DataType.UUID, entity.getUniqueId());
@@ -1150,9 +1222,11 @@ public class FurnitureMechanic extends Mechanic {
 
     private boolean removeBarrierBlock(Block block, Entity baseEntity) {
         if (block.getType() != Material.BARRIER) return false;
-        UUID owner = BlockHelpers.getPDC(block).get(BASE_ENTITY_KEY, DataType.UUID);
+        PersistentDataContainer pdc = BlockHelpers.getPDC(block);
+        UUID owner = pdc.get(BASE_ENTITY_KEY, DataType.UUID);
         if (owner == null || !owner.equals(baseEntity.getUniqueId())) return false;
 
+        removeFurnitureSeats(pdc);
         block.setType(Material.AIR);
         new CustomBlockData(block, OraxenPlugin.get()).clear();
         removeLight(block);
@@ -1174,7 +1248,10 @@ public class FurnitureMechanic extends Mechanic {
 
     private void removeSubEntitiesOfFurniture(Entity baseEntity) {
         removeInitialLight(baseEntity);
-        if (hasSeat) removeFurnitureSeat(baseEntity.getLocation());
+        if (hasSeat) {
+            removeFurnitureSeats(baseEntity.getPersistentDataContainer());
+            removeFurnitureSeat(baseEntity.getLocation());
+        }
 
         if (OraxenPlugin.supportsDisplayEntities) {
             for (Interaction interaction : getInteractionEntities(baseEntity))
@@ -1187,6 +1264,16 @@ public class FurnitureMechanic extends Mechanic {
         if (seat != null) {
             seat.getPassengers().forEach(seat::removePassenger);
             if (!seat.isDead()) seat.remove();
+        }
+    }
+
+    private static void removeFurnitureSeats(PersistentDataContainer pdc) {
+        for (UUID seatUuid : getSeatUuids(pdc)) {
+            Entity seatEntity = Bukkit.getEntity(seatUuid);
+            if (seatEntity instanceof ArmorStand seat) {
+                seat.getPassengers().forEach(seat::removePassenger);
+                if (!seat.isDead()) seat.remove();
+            }
         }
     }
 
@@ -1234,10 +1321,22 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
-    private UUID spawnSeat(Block target, float yaw) {
-        final ArmorStand seat = EntityUtils.spawnEntity(target.getLocation().add(0.5, seatHeight - 1, 0.5), ArmorStand.class, (ArmorStand stand) -> {
+    private List<UUID> spawnSeats(Location rootLocation, float yaw) {
+        List<UUID> seatUuids = new ArrayList<>();
+        for (FurnitureSeat seat : seats) {
+            UUID seatUuid = spawnSeat(rootLocation, seat, yaw);
+            if (seatUuid != null) seatUuids.add(seatUuid);
+        }
+        return List.copyOf(seatUuids);
+    }
+
+    @Nullable
+    private UUID spawnSeat(Location rootLocation, FurnitureSeat furnitureSeat, float yaw) {
+        Vector rotatedOffset = rotateGroundOffset(furnitureSeat.offset(), yaw);
+        Location seatLocation = BlockHelpers.toCenterBlockLocation(rootLocation).add(rotatedOffset);
+        final ArmorStand seat = EntityUtils.spawnEntity(seatLocation, ArmorStand.class, (ArmorStand stand) -> {
             stand.setVisible(false);
-            stand.setRotation(yaw, 0);
+            stand.setRotation(hasSeatYaw ? seatYaw : yaw, 0);
             stand.setInvulnerable(true);
             stand.setPersistent(true);
             stand.setAI(false);
@@ -1255,7 +1354,13 @@ public class FurnitureMechanic extends Mechanic {
             stand.addEquipmentLock(EquipmentSlot.FEET, ArmorStand.LockType.ADDING_OR_CHANGING);
             stand.getPersistentDataContainer().set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
         });
-        return seat.getUniqueId();
+        return seat != null ? seat.getUniqueId() : null;
+    }
+
+    private static void setSeats(PersistentDataContainer pdc, List<UUID> seatUuids) {
+        if (seatUuids.isEmpty()) return;
+        pdc.set(SEAT_KEY, DataType.UUID, seatUuids.get(0));
+        pdc.set(SEATS_KEY, DataType.asList(DataType.UUID), seatUuids);
     }
 
     @Nullable
@@ -1406,26 +1511,25 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public static void sitOnSeat(PersistentDataContainer pdc, Player player) {
-        UUID entityUuid = pdc.has(SEAT_KEY, DataType.UUID) ? pdc.get(SEAT_KEY, DataType.UUID) : null;
-
-        //Convert old seats to new, remove in a good while
-        if (entityUuid == null) {
-            String oldUUID = pdc.has(SEAT_KEY, PersistentDataType.STRING) ? pdc.get(SEAT_KEY, PersistentDataType.STRING) : null;
-            if (oldUUID != null) {
-                entityUuid = UUID.fromString(oldUUID);
-                pdc.remove(SEAT_KEY);
-                pdc.set(SEAT_KEY, DataType.UUID, entityUuid);
-            }
-        }
-
-        if (entityUuid != null) {
+        Entity bestStand = null;
+        double bestDistance = Double.MAX_VALUE;
+        for (UUID entityUuid : getSeatUuids(pdc)) {
             Entity stand = Bukkit.getEntity(entityUuid);
-            if (stand != null && stand.getPassengers().isEmpty()) {
-                // Teleport the seat entity to the correct position asynchronously before mounting
-                FurniturePacketDispatcher.teleportAsync(stand, stand.getLocation());
-                SchedulerUtil.runForEntity(stand, () -> stand.addPassenger(player), null);
+            if (stand == null || !stand.getPassengers().isEmpty()) continue;
+
+            double distance = stand.getLocation().distanceSquared(player.getLocation());
+            if (distance < bestDistance) {
+                bestStand = stand;
+                bestDistance = distance;
             }
         }
+
+        if (bestStand == null) return;
+
+        // Teleport the seat entity to the correct position asynchronously before mounting
+        FurniturePacketDispatcher.teleportAsync(bestStand, bestStand.getLocation());
+        Entity finalBestStand = bestStand;
+        SchedulerUtil.runForEntity(bestStand, () -> finalBestStand.addPassenger(player), null);
     }
 
     public RestrictedRotation getRestrictedRotation() {
@@ -1437,9 +1541,31 @@ public class FurnitureMechanic extends Mechanic {
         Rotation newRotation = rotateClockwise(yawToRotation(yaw));
         if (baseEntity instanceof ItemFrame frame) frame.setRotation(newRotation);
         else baseEntity.setRotation(FurnitureMechanic.rotationToYaw(newRotation), baseEntity.getLocation().getPitch());
+        updateFurnitureSeats(baseEntity, FurnitureMechanic.rotationToYaw(newRotation));
 
         FurnitureTextEntry textEntry = FurnitureTextRegistry.updateBaseEntity(baseEntity);
         if (textEntry != null) FurnitureTextPacketBridge.respawnTrackedViewers(textEntry);
+    }
+
+    private void updateFurnitureSeats(Entity baseEntity, float yaw) {
+        if (!hasSeat) return;
+
+        List<UUID> seatUuids = getSeatUuids(baseEntity.getPersistentDataContainer());
+        if (seatUuids.isEmpty()) return;
+
+        Location rootLocation = baseEntity.getLocation();
+        int count = Math.min(seatUuids.size(), seats.size());
+        for (int i = 0; i < count; i++) {
+            Entity seatEntity = Bukkit.getEntity(seatUuids.get(i));
+            if (!(seatEntity instanceof ArmorStand seat)) continue;
+
+            Vector rotatedOffset = rotateGroundOffset(seats.get(i).offset(), yaw);
+            Location seatLocation = BlockHelpers.toCenterBlockLocation(rootLocation).add(rotatedOffset);
+            seatLocation.setYaw(hasSeatYaw ? seatYaw : yaw);
+            seatLocation.setPitch(0);
+            seat.teleport(seatLocation);
+            seat.setRotation(hasSeatYaw ? seatYaw : yaw, 0);
+        }
     }
 
     private Rotation rotateClockwise(Rotation rotation) {

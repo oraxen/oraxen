@@ -337,12 +337,16 @@ public class OraxenFurniture {
     }
 
     private static void removeOrphanSeat(@NotNull PersistentDataContainer pdc) {
-        UUID seatUUID = pdc.get(SEAT_KEY, DataType.UUID);
-        if (seatUUID == null) return;
-        Entity seatEntity = Bukkit.getEntity(seatUUID);
-        if (seatEntity instanceof ArmorStand seat) {
-            seat.getPassengers().forEach(seat::removePassenger);
-            if (!seat.isDead()) seat.remove();
+        List<UUID> seatUUIDs = new ArrayList<>(pdc.getOrDefault(FurnitureMechanic.SEATS_KEY, DataType.asList(DataType.UUID), List.of()));
+        UUID legacySeatUUID = pdc.get(SEAT_KEY, DataType.UUID);
+        if (legacySeatUUID != null && !seatUUIDs.contains(legacySeatUUID)) seatUUIDs.add(legacySeatUUID);
+
+        for (UUID seatUUID : seatUUIDs) {
+            Entity seatEntity = Bukkit.getEntity(seatUUID);
+            if (seatEntity instanceof ArmorStand seat) {
+                seat.getPassengers().forEach(seat::removePassenger);
+                if (!seat.isDead()) seat.remove();
+            }
         }
     }
 
