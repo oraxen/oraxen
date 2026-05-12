@@ -1020,7 +1020,7 @@ public class FurnitureMechanic extends Mechanic {
         // This prevents lights from adjacent barriers from being incorrectly removed
         ToggleLightMechanic toggleLight = getToggleLightMechanic();
         if (hasFurnitureLights()) {
-            createFurnitureLights(BlockHelpers.toCenterBlockLocation(location), yaw);
+            createFurnitureLights(BlockHelpers.toCenterBlockLocation(entity.getLocation()), yaw);
         } else if (toggleLight != null && (toggleLight.hasToggleLight() || toggleLight.getBaseLightLevel() > 0)) {
             toggleLight.updateAllBarrierBlocks(this, entity);
         } else {
