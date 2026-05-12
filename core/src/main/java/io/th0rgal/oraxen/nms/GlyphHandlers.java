@@ -57,13 +57,17 @@ public class GlyphHandlers {
         for (Glyph glyph : OraxenPlugin.get().getFontManager().getGlyphs()) {
             if (glyph.hasPermission(player)) continue;
 
-            for (char character : glyph.getAllChars()) {
+            String characters = glyph.getCharacters();
+            for (int offset = 0; offset < characters.length(); ) {
+                int codePoint = characters.codePointAt(offset);
+                String character = new String(Character.toChars(codePoint));
                 component = component.replaceText(
                         TextReplacementConfig.builder()
-                                .matchLiteral(String.valueOf(character))
+                                .matchLiteral(character)
                                 .replacement(Component.text(character).font(randomKey).color(NamedTextColor.WHITE))
                                 .build()
                 );
+                offset += Character.charCount(codePoint);
             }
 
             // Escape all glyph-tags
