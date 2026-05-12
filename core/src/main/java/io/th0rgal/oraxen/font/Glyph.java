@@ -474,7 +474,7 @@ public class Glyph {
     }
 
     public Component getGlyphComponent() {
-        Component component = Component.text(getCharacters(), NamedTextColor.WHITE)
+        Component component = Component.text(getFormattedUnicodes(), NamedTextColor.WHITE)
                 .font(getFont())
                 .hoverEvent(getGlyphHoverText());
         return Component.textOfChildren(GlyphAppearance.applyShadowColor(component, appearance.shadowColor()));
