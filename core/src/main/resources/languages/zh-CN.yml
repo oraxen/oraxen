@@ -108,6 +108,9 @@ command:
     player: "<prefix><#55ffa4>你给了玩家 <#43c9fa><player><#55ffa4> <#43fa8c><amount><#6f737d> × <#fa4362><item><#55ffa4>!"
     players: "<prefix><#55ffa4>你给了 <#43c9fa><count><#55ffa4> 个玩家 <#43fa8c><amount><#6f737d> × <#fa4362><item><#55ffa4>!"
 
+  totem_animation:
+    success: "<prefix><#55ffa4>已为 <#43c9fa><player><#55ffa4> 播放使用 <#43c9fa><item><#55ffa4> 的图腾动画。"
+
   dye:
     success: "<prefix><#55ffa4>你已成功改变此物品的颜色！"
     wrong_color: "<prefix><#fa4943>颜色无法识别，请尝试使用十六进制的颜色，如 #FFFFFF!"

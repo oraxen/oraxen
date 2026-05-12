@@ -107,6 +107,9 @@ click></hover>  <#6f737d>»<#b8bbc2> レシピを表示します
     player: "<prefix><#55ffa4><player><#55ffa4>に<amount><#6f737d> × <#fa4362><item><#55ffa4>を与えました！"
     players: "<prefix><#55ffa4><count><#55ffa4>人のプレイヤーに<amount><#6f737d> × <#fa4362><item><#55ffa4>を与えました！"
 
+  totem_animation:
+    success: "<prefix><#43c9fa><player><#55ffa4>に<#43c9fa><item><#55ffa4>でトーテムアニメーションを再生しました。"
+
   dye:
     success: "<prefix><#55ffa4>このアイテムの色を変更しました！"
     wrong_color: "<prefix><#fa4943>色が認識されません、#FFFFFFのような16進数の色をお試しください！"

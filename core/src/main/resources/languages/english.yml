@@ -104,6 +104,9 @@ command:
     player: "<prefix><#55ffa4>You gave <#43c9fa><player><#55ffa4> <#43fa8c><amount><#6f737d> × <#fa4362><item><#55ffa4>!"
     players: "<prefix><#55ffa4>You gave <#43c9fa><count><#55ffa4> players <#43fa8c><amount><#6f737d> × <#fa4362><item><#55ffa4>!"
 
+  totem_animation:
+    success: "<prefix><#55ffa4>Played totem animation for <#43c9fa><player><#55ffa4> with <#43c9fa><item><#55ffa4>."
+
   dye:
     success: "<prefix><#55ffa4>You successfully changed the color of this item!"
     wrong_color: "<prefix><#fa4943>Color not recognized, try a hexadecimal color like #FFFFFF!"

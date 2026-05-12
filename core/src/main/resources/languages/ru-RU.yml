@@ -105,6 +105,9 @@ command:
     player: "<prefix><#55ffa4>Вы выдали игроку <#43c9fa><player><#55ffa4> <#43fa8c><amount><#6f737d> × <#fa4362><item><#55ffa4>!"
     players: "<prefix><#55ffa4>Вы выдали <#43c9fa><count><#55ffa4> игрокам <#43fa8c><amount><#6f737d> × <#fa4362><item><#55ffa4>!"
 
+  totem_animation:
+    success: "<prefix><#55ffa4>Анимация тотема воспроизведена для <#43c9fa><player><#55ffa4> с <#43c9fa><item><#55ffa4>."
+
   dye:
     success: "<prefix><#55ffa4>Вы успешно изменили цвет этого предмета!"
     wrong_color: "<prefix><#fa4943>Цвет не распознан, попробуйте шестнадцатеричный цвет, например #FFFFFF!"

@@ -105,6 +105,9 @@ command:
     player: "<prefix><#55ffa4>Du gibst <#43c9fa><player><#55ffa4> <#43fa8c><amount><#6f737d> × <#fa4362><item><#55ffa4>!"
     players: "<prefix><#55ffa4>Du gibst <#43c9fa><count><#55ffa4> Spieler <#43fa8c><amount><#6f737d> × <#fa4362><item><#55ffa4>!"
 
+  totem_animation:
+    success: "<prefix><#55ffa4>Totem-Animation für <#43c9fa><player><#55ffa4> mit <#43c9fa><item><#55ffa4> abgespielt."
+
   dye:
     success: "<prefix><#55ffa4>Du hast die Farbe dieses Artikels erfolgreich geändert!"
     wrong_color: "<prefix><#fa4943>Farbe nicht erkannt, versuchen Sie eine hexadezimale Farbe wie #FFFFFF!"
