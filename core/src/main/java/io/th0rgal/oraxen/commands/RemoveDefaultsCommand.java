@@ -9,6 +9,7 @@ import com.google.gson.JsonSyntaxException;
 import dev.jorel.commandapi.CommandAPICommand;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Message;
+import io.th0rgal.oraxen.config.ResourcesManager;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -19,6 +20,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
@@ -54,8 +56,8 @@ public class RemoveDefaultsCommand {
         clearGlobalLang(globalLang, deletedFiles, failedFiles);
         deletePath(dataFolder.resolve("pack/font"), true, deletedFiles, failedFiles);
         deletePath(dataFolder.resolve("pack/sounds"), true, deletedFiles, failedFiles);
-        deletePath(dataFolder.resolve("recipes"), true, deletedFiles, failedFiles);
-        deletePath(dataFolder.resolve("items"), true, deletedFiles, failedFiles);
+        deleteKnownDefaultFiles(dataFolder, "recipes", deletedFiles, failedFiles);
+        deleteKnownDefaultFiles(dataFolder, "items", deletedFiles, failedFiles);
 
         deletePath(dataFolder.resolve("glyphs/animations.yml"), false, deletedFiles, failedFiles);
         deletePath(dataFolder.resolve("glyphs/chat_tags.yml"), false, deletedFiles, failedFiles);
@@ -73,6 +75,20 @@ public class RemoveDefaultsCommand {
 
         Message.REMOVE_DEFAULTS_SUCCESS.send(sender,
                 AdventureUtils.tagResolver("files", String.valueOf(deletedFiles.get())));
+    }
+
+    private void deleteKnownDefaultFiles(Path dataFolder, String folder, AtomicInteger deletedFiles,
+            AtomicInteger failedFiles) {
+        Set<Path> defaultFiles = new HashSet<>();
+        ResourcesManager.browseJar(entry -> {
+            String entryName = entry.getName();
+            if (!entry.isDirectory() && entryName.startsWith(folder + "/"))
+                defaultFiles.add(dataFolder.resolve(entryName));
+        });
+
+        for (Path defaultFile : defaultFiles)
+            if (Files.exists(defaultFile))
+                deleteFile(defaultFile, deletedFiles, failedFiles);
     }
 
     private void deletePath(Path path, boolean keepRoot, AtomicInteger deletedFiles, AtomicInteger failedFiles) {

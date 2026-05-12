@@ -1537,14 +1537,58 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public void rotateFurniture(Entity baseEntity) {
-        float yaw = FurnitureMechanic.getFurnitureYaw(baseEntity);
-        Rotation newRotation = rotateClockwise(yawToRotation(yaw));
+        float oldYaw = FurnitureMechanic.getFurnitureYaw(baseEntity);
+        Rotation newRotation = rotateClockwise(yawToRotation(oldYaw));
+        float newYaw = FurnitureMechanic.rotationToYaw(newRotation);
+        if (hasFurnitureLights())
+            removeFurnitureLights(BlockHelpers.toCenterBlockLocation(baseEntity.getLocation()), oldYaw);
+
         if (baseEntity instanceof ItemFrame frame) frame.setRotation(newRotation);
-        else baseEntity.setRotation(FurnitureMechanic.rotationToYaw(newRotation), baseEntity.getLocation().getPitch());
-        updateFurnitureSeats(baseEntity, FurnitureMechanic.rotationToYaw(newRotation));
+        else baseEntity.setRotation(newYaw, baseEntity.getLocation().getPitch());
+        updateFurnitureHitboxes(baseEntity, newYaw);
+        updateFurnitureSeats(baseEntity, newYaw);
+        if (hasFurnitureLights())
+            createFurnitureLights(BlockHelpers.toCenterBlockLocation(baseEntity.getLocation()), newYaw);
 
         FurnitureTextEntry textEntry = FurnitureTextRegistry.updateBaseEntity(baseEntity);
         if (textEntry != null) FurnitureTextPacketBridge.respawnTrackedViewers(textEntry);
+    }
+
+    private void updateFurnitureHitboxes(Entity baseEntity, float yaw) {
+        List<FurnitureHitbox> activeHitboxes = getActiveHitboxes(baseEntity);
+        if (activeHitboxes.isEmpty()) return;
+
+        List<Interaction> interactions = getInteractionEntities(baseEntity);
+        if (interactions.isEmpty()) return;
+
+        Location rootLocation = getInteractionRootLocation(baseEntity, activeHitboxes);
+        int count = Math.min(interactions.size(), activeHitboxes.size());
+        for (int i = 0; i < count; i++) {
+            Interaction interaction = interactions.get(i);
+            FurnitureHitbox hitbox = activeHitboxes.get(i);
+            Vector rotatedOffset = rotateGroundOffset(hitbox.offset(), yaw);
+            Location hitboxLocation = BlockHelpers.toCenterBlockLocation(rootLocation).add(rotatedOffset);
+            interaction.teleport(hitboxLocation);
+        }
+    }
+
+    private List<FurnitureHitbox> getActiveHitboxes(Entity baseEntity) {
+        if (hasHitbox()) return hitboxes;
+        if (baseEntity instanceof ItemDisplay && hasDisplayEntityProperties())
+            return List.of(new FurnitureHitbox(displayEntityProperties.getDisplayWidth(), displayEntityProperties.getDisplayHeight()));
+        return List.of();
+    }
+
+    private Location getInteractionRootLocation(Entity baseEntity, List<FurnitureHitbox> activeHitboxes) {
+        Location rootLocation = baseEntity.getLocation();
+        if (!(baseEntity instanceof ItemDisplay) || !hasDisplayEntityProperties()) return rootLocation;
+
+        float height = getTallestHitboxHeight(activeHitboxes);
+        boolean isFixed = displayEntityProperties.getDisplayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
+        if (hasLimitedPlacing() && limitedPlacing.isRoof() && isFixed)
+            return rootLocation.clone().subtract(0, 1.5 * (height - 1), 0);
+
+        return rootLocation;
     }
 
     private void updateFurnitureSeats(Entity baseEntity, float yaw) {
