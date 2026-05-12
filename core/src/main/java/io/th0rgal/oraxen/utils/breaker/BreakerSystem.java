@@ -80,7 +80,7 @@ public abstract class BreakerSystem {
         if (block.getType() == Material.TRIPWIRE && stringMechanic == null) return;
         if (block.getType() == Material.BARRIER && furnitureMechanic == null) return;
 
-        if (finishedDigging) {
+        if (finishedDigging && furnitureMechanic != null) {
             cancel.run();
             final List<Location> breakAnimationLocations = furnitureBarrierLocations(furnitureMechanic, block);
             stopBlockBreaker(location);
