@@ -89,10 +89,13 @@ public class GlyphHandlers {
         for (Glyph glyph : OraxenPlugin.get().getFontManager().getGlyphs()) {
             Matcher matcher = glyph.baseRegex.matcher(serialized);
             while (matcher.find()) {
+                String match = matcher.group();
                 component = component.replaceText(
                         TextReplacementConfig.builder().once()
-                                .matchLiteral(matcher.group())
-                                .replacement(glyph.getGlyphComponent())
+                                .matchLiteral(match)
+                                .replacement(match.startsWith("<")
+                                        ? AdventureUtils.MINI_MESSAGE.deserialize(match)
+                                        : glyph.getGlyphComponent())
                                 .build());
             }
 
