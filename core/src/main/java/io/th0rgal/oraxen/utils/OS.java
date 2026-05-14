@@ -99,22 +99,44 @@ public class OS {
     }
 
     private void initMacOsInfo(final String name, final String version, final String arch) {
-        String[] versions = version.split("\\.");
-        double numericVersion = Double.parseDouble(versions[0] + "." + versions[1]);
-        if (numericVersion < 10)
-            this.osInfo = new OsInfo(name, version, arch, "Mac OS " + version);
-        else {
-            String macOsVersionName = Integer.parseInt(versions[0]) >= 12 ? macOs.get(versions[0]) : macOs.get(version);
-            String platformName = macOsVersionName != null ? "macOS " + macOsVersionName + " (" + version + ")" : "macOS " + version;
-            this.osInfo = new OsInfo(name, version, arch,
-                    platformName);
+        if (version == null || version.isBlank()) {
+            this.osInfo = new OsInfo(name, version, arch, "macOS");
+            return;
         }
+        String[] versions = version.split("\\.");
+        int major;
+        try {
+            major = Integer.parseInt(versions[0]);
+        } catch (NumberFormatException e) {
+            this.osInfo = new OsInfo(name, version, arch, "macOS " + version);
+            return;
+        }
+        if (major < 10) {
+            this.osInfo = new OsInfo(name, version, arch, "Mac OS " + version);
+            return;
+        }
+        String macOsVersionName = major >= 12 ? macOs.get(versions[0]) : macOs.get(version);
+        String platformName = macOsVersionName != null
+                ? "macOS " + macOsVersionName + " (" + version + ")"
+                : "macOS " + version;
+        this.osInfo = new OsInfo(name, version, arch, platformName);
     }
 
     private void initDarwinOsInfo(final String name, final String version, final String arch) {
-        String[] versions = version.split("\\.");
-        int numericVersion = Integer.parseInt(versions[0]);
-        this.osInfo = new OsInfo(name, version, arch, "OS X " + darwin.get(numericVersion) + " (" + version + ")");
+        if (version == null || version.isBlank()) {
+            this.osInfo = new OsInfo(name, version, arch, "OS X");
+            return;
+        }
+        int numericVersion;
+        try {
+            numericVersion = Integer.parseInt(version.split("\\.")[0]);
+        } catch (NumberFormatException e) {
+            this.osInfo = new OsInfo(name, version, arch, "OS X " + version);
+            return;
+        }
+        String codename = darwin.get(numericVersion);
+        this.osInfo = new OsInfo(name, version, arch,
+                codename != null ? "OS X " + codename + " (" + version + ")" : "OS X " + version);
     }
 
     private void initLinuxOsInfo(final String name, final String version, final String arch) {

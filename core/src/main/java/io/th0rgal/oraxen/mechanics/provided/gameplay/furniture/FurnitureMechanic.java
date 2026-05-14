@@ -351,7 +351,7 @@ public class FurnitureMechanic extends Mechanic {
             return null;
         }
 
-        String[] offsetParts = string.trim().split(",");
+        String[] offsetParts = string.trim().split("\\s*,\\s*");
         if (offsetParts.length != 3) {
             Logs.logError("Invalid seat entry '" + string + "' for furniture: " + getItemID() + ". Expected '<x>,<y>,<z>'.");
             return null;
@@ -375,7 +375,8 @@ public class FurnitureMechanic extends Mechanic {
             return null;
         }
 
-        String[] parts = string.trim().split("\\s+");
+        // Collapse whitespace around commas first so the outer space-split still produces 2 parts.
+        String[] parts = string.trim().replaceAll("\\s*,\\s*", ",").split("\\s+");
         if (parts.length != 2) {
             Logs.logError("Invalid light entry '" + string + "' for furniture: " + getItemID() + ". Expected '<x>,<y>,<z> <level>'.");
             return null;
@@ -406,7 +407,8 @@ public class FurnitureMechanic extends Mechanic {
             return null;
         }
 
-        String[] parts = string.trim().split("\\s+");
+        // Collapse whitespace around commas first so the outer space-split still produces 2 parts.
+        String[] parts = string.trim().replaceAll("\\s*,\\s*", ",").split("\\s+");
         if (parts.length != 2) {
             Logs.logError("Invalid hitbox entry '" + string + "' for furniture: " + getItemID() + ". Expected '<x>,<y>,<z> <width>,<height>'.");
             return null;
@@ -425,7 +427,11 @@ public class FurnitureMechanic extends Mechanic {
             double offsetZ = Double.parseDouble(offsetParts[2]);
             float width = Float.parseFloat(sizeParts[0]);
             float height = Float.parseFloat(sizeParts[1]);
-            return width > 0 && height > 0 ? new FurnitureHitbox(offsetX, offsetY, offsetZ, width, height) : null;
+            if (width <= 0 || height <= 0) {
+                Logs.logError("Invalid hitbox entry '" + string + "' for furniture: " + getItemID() + ". Width and height must be positive.");
+                return null;
+            }
+            return new FurnitureHitbox(offsetX, offsetY, offsetZ, width, height);
         } catch (NumberFormatException exception) {
             Logs.logError("Invalid hitbox entry '" + string + "' for furniture: " + getItemID() + ". Hitbox values must be numbers.");
             return null;

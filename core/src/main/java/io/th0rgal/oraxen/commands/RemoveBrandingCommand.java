@@ -25,10 +25,16 @@ public class RemoveBrandingCommand {
     private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
 
     CommandAPICommand getRemoveBrandingCommand() {
-        return new CommandAPICommand("remove-branding")
+        CommandAPICommand confirmed = new CommandAPICommand("confirm")
                 .withPermission("oraxen.command.remove-branding")
                 .executes((sender, args) -> {
                     removeBranding(sender);
+                });
+        return new CommandAPICommand("remove-branding")
+                .withPermission("oraxen.command.remove-branding")
+                .withSubcommand(confirmed)
+                .executes((sender, args) -> {
+                    Message.REMOVE_BRANDING_CONFIRM.send(sender);
                 });
     }
 
@@ -72,12 +78,19 @@ public class RemoveBrandingCommand {
         }
     }
 
+    // Vanilla MC populates these keys from the bundled per-locale language file when the
+    // resource pack doesn't override them, so the cleanest "remove branding" is to drop the
+    // Oraxen-injected overrides entirely rather than replace them with English literals.
+    private static final String[] BRANDED_KEYS = {
+            "menu.game",
+            "menu.disconnect",
+            "menu.returnToGame",
+            "resourcePack.server.name"
+    };
+
     private int updateLangFile(Path path) throws IOException {
         JsonObject lang = readLangFile(path);
-        lang.addProperty("menu.game", "");
-        lang.addProperty("menu.disconnect", "<gray>See you soon!");
-        lang.addProperty("menu.returnToGame", "Back to the server");
-        lang.addProperty("resourcePack.server.name", "Resource Pack");
+        for (String key : BRANDED_KEYS) lang.remove(key);
 
         Files.writeString(path, GSON.toJson(lang) + System.lineSeparator(), StandardCharsets.UTF_8);
         return 1;

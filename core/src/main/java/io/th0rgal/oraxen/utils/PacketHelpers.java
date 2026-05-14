@@ -1,5 +1,7 @@
 package io.th0rgal.oraxen.utils;
 
+import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.text.Component;
 
 public class PacketHelpers {
@@ -20,6 +22,9 @@ public class PacketHelpers {
         try {
             return toJson(readJson(json));
         } catch (RuntimeException exception) {
+            if (Settings.DEBUG.toBool()) {
+                Logs.logWarning("PacketHelpers.translateJson failed, returning original payload: " + exception.getMessage());
+            }
             return json;
         }
     }
@@ -27,7 +32,7 @@ public class PacketHelpers {
     public static Component translateTitle(Component component) {
         return AdventureUtils.MINI_MESSAGE.deserialize(
             AdventureUtils.parseMiniMessageThroughLegacy(component)
-                .replaceAll("\\\\(?!u)(?!n)(?!\")", "")
+                .replaceAll(BACKSLASH_REMOVAL_REGEX, "")
         );
     }
 }

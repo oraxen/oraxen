@@ -203,18 +203,16 @@ public abstract class BreakerSystem {
     }
 
     private List<Location> furnitureBarrierLocations(FurnitureMechanic furnitureMechanic, Block block) {
-        if (!breakerLocations.contains(block.getLocation())) return List.of(block.getLocation());
-
         // Get base entity directly - we're already on the correct thread context
         // (main thread for Bukkit, region thread for Folia) from block damage events.
         if (furnitureMechanic == null) return Collections.singletonList(block.getLocation());
-        
+
         Entity furnitureBaseEntity = furnitureMechanic.getBaseEntity(block);
         if (furnitureBaseEntity == null) return Collections.singletonList(block.getLocation());
-        
+
         return furnitureMechanic.getLocations(
                 FurnitureMechanic.getFurnitureYaw(furnitureBaseEntity),
-                furnitureBaseEntity.getLocation(), 
+                furnitureBaseEntity.getLocation(),
                 furnitureMechanic.getBarriers());
     }
 

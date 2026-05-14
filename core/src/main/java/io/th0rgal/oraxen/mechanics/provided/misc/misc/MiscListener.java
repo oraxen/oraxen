@@ -1,9 +1,8 @@
 package io.th0rgal.oraxen.mechanics.provided.misc.misc;
 
-import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.Utils;
-import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -29,7 +28,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.Damageable;
-import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.Arrays;
 
@@ -39,20 +37,25 @@ import static org.bukkit.event.entity.EntityDamageEvent.DamageCause.FIRE_TICK;
 public class MiscListener implements Listener {
 
     public MiscListener(MiscMechanicFactory factory) {
-        if (VersionUtil.isPaperServer()) {
-            OraxenPlugin.get().getServer().getPluginManager().registerEvents(new PaperOnlyListeners(factory), OraxenPlugin.get());
-        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPreventAnvilRename(PrepareAnvilEvent event) {
-        ItemStack inputItem = event.getInventory().getFirstItem();
+        AnvilInventory anvil = event.getInventory();
+        ItemStack inputItem = anvil.getFirstItem();
         ItemStack resultItem = event.getResult();
         if (inputItem == null || resultItem == null || inputItem.getType() == Material.AIR) return;
 
         MiscMechanic mechanic = MiscMechanicFactory.get().getMechanic(inputItem);
         if (mechanic == null || !mechanic.preventsRenaming()) return;
-        if (!hasDifferentDisplayName(inputItem, resultItem)) return;
+
+        // Only cancel when the user actually typed a rename. Repair/enchant operations leave
+        // renameText empty (or matching the original plain-text display name) and must go through.
+        String renameText = anvil.getRenameText();
+        if (renameText == null || renameText.isEmpty()) return;
+
+        String inputPlain = AdventureUtils.PLAIN_TEXT.serialize(inputItem.displayName());
+        if (renameText.equals(inputPlain)) return;
 
         event.setResult(null);
     }
@@ -234,14 +237,6 @@ public class MiscListener implements Listener {
         return MiscMechanicFactory.get().getMechanic(itemID);
     }
 
-    private boolean hasDifferentDisplayName(ItemStack inputItem, ItemStack resultItem) {
-        ItemMeta inputMeta = inputItem.getItemMeta();
-        ItemMeta resultMeta = resultItem.getItemMeta();
-        if (inputMeta == null || resultMeta == null) return false;
-        if (inputMeta.hasDisplayName() != resultMeta.hasDisplayName()) return true;
-        return resultMeta.hasDisplayName() && !inputMeta.getDisplayName().equals(resultMeta.getDisplayName());
-    }
-
     private Material getStrippedLog(Material log) {
         return switch (log) {
             case OAK_LOG -> Material.STRIPPED_OAK_LOG;
@@ -273,8 +268,4 @@ public class MiscListener implements Listener {
         return mechanic != null && mechanic.piglinIgnoreWhenEquipped();
     }
 
-    private record PaperOnlyListeners(MiscMechanicFactory factory) implements Listener {
-
-
-    }
 }

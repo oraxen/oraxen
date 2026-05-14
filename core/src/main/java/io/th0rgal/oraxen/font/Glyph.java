@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 
 public class Glyph {
 
-    public static final Character WHITESPACE_GLYPH = '\ue000';
+    public static final char WHITESPACE_GLYPH = '\ue000';
 
     private boolean fileChanged = false;
 
@@ -280,6 +280,9 @@ public class Glyph {
      * @return JsonObject for the font provider
      */
     public JsonObject toJson() {
+        if (unicodeRows.isEmpty()) {
+            return null;
+        }
         final JsonObject output = new JsonObject();
         final JsonArray chars = new JsonArray();
 
