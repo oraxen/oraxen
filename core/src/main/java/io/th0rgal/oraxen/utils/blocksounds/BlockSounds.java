@@ -77,7 +77,7 @@ public class BlockSounds {
         ConfigurationSection soundSection = section.getConfigurationSection(type);
         if (soundSection == null) {
             return (float) section.getDouble("volume", defaultValue);
-        } else return defaultValue;
+        } else return (float) soundSection.getDouble("volume", defaultValue);
     }
 
     private float getPitch(ConfigurationSection section, String type, float defaultValue) {

@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucible
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.recipes.CustomRecipe;
 import io.th0rgal.oraxen.recipes.listeners.RecipesEventsManager;
+import io.th0rgal.oraxen.utils.OraxenYaml;
 import net.Indyuce.mmoitems.MMOItems;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -30,7 +31,7 @@ public abstract class RecipeLoader {
     }
 
     protected ItemStack getResult() {
-        ConfigurationSection resultSection = getSection().getConfigurationSection("result");
+        ConfigurationSection resultSection = OraxenYaml.getConfigurationSection(getSection(), "result");
         if (resultSection == null) return null;
         ItemStack result;
         int amount = resultSection.getInt("amount", 1);
@@ -44,7 +45,7 @@ public abstract class RecipeLoader {
         else if (resultSection.isString("ecoitem_id"))
             result = new WrappedEcoItem(resultSection.getString("ecoitem_id")).build();
         else if (resultSection.isString("minecraft_type")) {
-            Material material = Material.getMaterial(resultSection.getString("minecraft_type", "AIR"));
+            Material material = OraxenYaml.getMaterial(resultSection.getString("minecraft_type", "AIR"));
             if (material == null || material.isAir()) return null;
             result = new ItemStack(material);
         } else result = resultSection.getItemStack("minecraft_item");
@@ -70,7 +71,7 @@ public abstract class RecipeLoader {
         }
 
         if (ingredientSection.isString("minecraft_type")) {
-            Material material = Material.getMaterial(ingredientSection.getString("minecraft_type", "AIR"));
+            Material material = OraxenYaml.getMaterial(ingredientSection.getString("minecraft_type", "AIR"));
             if (material == null || material.isAir()) return null;
             return new ItemStack(material);
         }
@@ -99,7 +100,7 @@ public abstract class RecipeLoader {
         }
 
         if (ingredientSection.isString("minecraft_type")) {
-            Material material = Material.getMaterial(ingredientSection.getString("minecraft_type", "AIR"));
+            Material material = OraxenYaml.getMaterial(ingredientSection.getString("minecraft_type", "AIR"));
             if (material == null || material.isAir()) return null;
             return new RecipeChoice.MaterialChoice(material);
         }

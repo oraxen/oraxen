@@ -54,13 +54,14 @@ dependencies {
     }
     
     // Test dependencies
+    testImplementation("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.mockito:mockito-core:5.11.0")
     testImplementation("org.mockito:mockito-junit-jupiter:5.11.0")
-    testImplementation("net.kyori:adventure-api:4.17.0")
-    testImplementation("net.kyori:adventure-text-minimessage:4.17.0")
-    testImplementation("net.kyori:adventure-text-serializer-legacy:4.17.0")
+    testImplementation("net.kyori:adventure-api:4.18.0")
+    testImplementation("net.kyori:adventure-text-minimessage:4.18.0")
+    testImplementation("net.kyori:adventure-text-serializer-legacy:4.18.0")
     testImplementation("com.google.guava:guava:33.0.0-jre")
     testImplementation("com.google.code.gson:gson:2.10.1")
 }

@@ -309,7 +309,9 @@ public class ResourcePack {
             e.printStackTrace();
         }
 
-        extractInPackIfNotExists(new File(packFolder, "pack.mcmeta"));
+        if (!isMcmetaGenerationDisabled()) {
+            extractInPackIfNotExists(new File(packFolder, "pack.mcmeta"));
+        }
         extractInPackIfNotExists(new File(packFolder, "pack.png"));
         updatePackMcmeta();
 
@@ -594,6 +596,10 @@ public class ResourcePack {
      * </p>
      */
     private void updatePackMcmeta() {
+        if (isMcmetaGenerationDisabled()) {
+            return;
+        }
+
         Path mcmetaPath = packFolder.toPath().resolve("pack.mcmeta");
         if (!mcmetaPath.toFile().exists())
             return;
@@ -606,6 +612,10 @@ public class ResourcePack {
      * This must be called after {@link #generateFont()} to ensure overlay directories exist.
      */
     private void updatePackMcmetaOverlays() {
+        if (isMcmetaGenerationDisabled()) {
+            return;
+        }
+
         Path mcmetaPath = packFolder.toPath().resolve("pack.mcmeta");
         if (!mcmetaPath.toFile().exists()) {
             return;
@@ -767,6 +777,10 @@ public class ResourcePack {
         }
 
         root.add("pack", pack);
+    }
+
+    private boolean isMcmetaGenerationDisabled() {
+        return Boolean.TRUE.equals(Settings.DISABLE_MCMETA_GENERATION.getValue());
     }
 
 
@@ -1128,7 +1142,9 @@ public class ResourcePack {
         // BEFORE animated glyphs are created, ensuring clean codepoint allocation on
         // reload.
 
-        Logs.logInfo("Processing " + animatedGlyphs.size() + " animated glyphs...");
+        if (Settings.DEBUG.toBool()) {
+            Logs.logInfo("Processing " + animatedGlyphs.size() + " animated glyphs...");
+        }
 
         for (AnimatedGlyph animGlyph : animatedGlyphs) {
             processAnimatedGlyph(animGlyph);
@@ -1279,8 +1295,10 @@ public class ResourcePack {
         if (fontJson != null) {
             writeStringToVirtual("assets/oraxen/font/animations", animGlyph.getName() + ".json",
                     fontJson.toString());
-            Logs.logSuccess("Generated animation font for: " + animGlyph.getName() +
-                    " (" + animGlyph.getFrameCount() + " frames @ " + animGlyph.getFps() + " fps)");
+            if (Settings.DEBUG.toBool()) {
+                Logs.logSuccess("Generated animation font for: " + animGlyph.getName() +
+                        " (" + animGlyph.getFrameCount() + " frames @ " + animGlyph.getFps() + " fps)");
+            }
         }
     }
 
@@ -1354,6 +1372,7 @@ public class ResourcePack {
     private void mergeUploadedPacks(List<VirtualFile> output) {
         PackMerger packMerger = new PackMerger(packFolder);
         List<VirtualFile> mergedFiles = packMerger.mergeUploadedPacks();
+        PackMcmetaUtils.mergeOverlayEntriesIntoOutput(output, packMerger.getMergedOverlayEntries());
 
         if (!mergedFiles.isEmpty()) {
             output.addAll(mergedFiles);

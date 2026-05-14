@@ -8577,6 +8577,16 @@
           "description": "Hide backpack in spectator mode",
           "default": true
         },
+        "hide_while_swimming": {
+          "type": "boolean",
+          "description": "Hide backpack while the player is swimming",
+          "default": true
+        },
+        "hide_while_gliding": {
+          "type": "boolean",
+          "description": "Hide backpack while the player is gliding",
+          "default": true
+        },
         "small": {
           "type": "boolean",
           "description": "Use small armor stand",

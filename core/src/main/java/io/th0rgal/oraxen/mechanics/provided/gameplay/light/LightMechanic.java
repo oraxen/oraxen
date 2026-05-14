@@ -34,21 +34,31 @@ public class LightMechanic {
 
     public void createBlockLight(Block block) {
         if (!hasLightLevel()) return;
+        createBlockLight(block, lightLevel);
+    }
 
+    public static void createBlockLight(Block block, int lightLevel) {
+        int clampedLightLevel = Math.min(15, Math.max(0, lightLevel));
+        Light lightData = (Light) Material.LIGHT.createBlockData();
+        lightData.setLevel(clampedLightLevel);
         // If the block attempted placed at is empty, we only place here
         // This is mainly for furniture with no barrier hitbox
         if (block.getType().isAir()) block.setBlockData(lightData);
         else for (BlockFace face : BLOCK_FACES) {
             Block relative = block.getRelative(face);
             if (!relative.getType().isAir() && relative.getType() != Material.LIGHT) continue;
-            if (relative.getBlockData() instanceof Light relativeLight && relativeLight.getLevel() > lightLevel) continue;
+            if (relative.getBlockData() instanceof Light relativeLight && relativeLight.getLevel() > clampedLightLevel) continue;
 
             relative.setBlockData(lightData);
         }
     }
 
     public void removeBlockLight(Block block) {
-        if (hasLightLevel()) for (BlockFace face : BLOCK_FACES) {
+        if (hasLightLevel()) removeBlockLightAt(block);
+    }
+
+    public static void removeBlockLightAt(Block block) {
+        for (BlockFace face : BLOCK_FACES) {
             Block relative = block.getRelative(face);
             // If relative is Light we want to remove it
             if (relative.getType() == Material.LIGHT)

@@ -4,10 +4,10 @@ general:
   work_in_progress: "<prefix><#facc43>Tato funkce je zatím rozpracovaná!"
   not_player: "<prefix><#fa4943>Tohle lze použít pouze jako hráč!"
   cooldown: "<prefix><#facc43>Prosím, počkej dalších <time> vteřin!"
-  reload: "<prefix><#55ffa4>Úspěšný reload"
+  reload: "<prefix><#55ffa4>Úspěšně znovu načteno: <reloaded>."
   pack_uploading: "<prefix><#D5D6D8>Automatické nahrání resource packu je zapnuto, nahrávám..."
   pack_not_uploaded: "<prefix><#fa4943>Resourcepack nenahrán"
-  pack_uploaded: "<prefix><#55ffa4>Resourcepack nahrán na url <url> za <delay> ms"
+  pack_uploaded: "<prefix><#55ffa4>Resourcepack nahrán na url <#43c9fa><url></#43c9fa> za <delay>ms."
   pack_regenerated: "<prefix><#55ffa4>Resourcepack úspěšně regenerován"
   updating_config: '<prefix><#facc43>Konfigurační možnost "<option>" nenalezena, přidávám!'
   removing_config: Configuration option \"<option>\" has been marked for removal, removing it!"
@@ -26,12 +26,13 @@ general:
   exit_menu: "<gradient:#FA7CBB:#F14658>Odejít"
   no_emojis: "<prefix><#fa4943>No emojis found"
   introduction_guide: |-
-    
+
     <dark_gray><st>                                         </st><gold><bold> Vítejte v Oraxenu... </bold><dark_gray><st>                                         </st>
-    <gray> Oraxen se poprvé úspěšně načetl, pojďme vás nastavit.
-    <dark_gray> » <gray>Pro odstranění <yellow>výchozího brandingu</yellow> postupujte podle návodu na <blue>https://oraxen.mizius.com/usage/tutorials/d017g<gray>.
-    <dark_gray> » <gray>Většinu vašich otázek a problémů lze vyřešit v naší <yellow>Dokumentaci</yellow>, nezapomeňte si projít <yellow>obě</yellow> dokumentace<gray> na </gray><blue>https://oraxen.mizius.com/</blue><gray> a <blue>https://docs.oraxen.com</blue><gray>.
-    <dark_gray> » <gray>Pokud stále potřebujete pomoc, navštivte náš Discord na <blue>https://discord.gg/9EehAG54aU</blue>.
+    <#55ffa4>Oraxen byl poprvé úspěšně načten. Pojďme začít.
+    <dark_gray> » <#55ffa4>Pro odstranění <#43c9fa>výchozího brandingu</#43c9fa> spusťte <#43c9fa>/oraxen remove-branding<#55ffa4>.
+    <dark_gray> » <#55ffa4>Pro odstranění <#43c9fa>výchozích assetů</#43c9fa> spusťte <#43c9fa>/oraxen remove-defaults<#55ffa4>.
+    <dark_gray> » <#55ffa4>Většinu otázek zodpoví dokumentace na <#43c9fa>https://oraxen.mizius.com/</#43c9fa><#55ffa4> a <#43c9fa>https://docs.oraxen.com</#43c9fa><#55ffa4>.
+    <dark_gray> » <#55ffa4>Stále potřebujete pomoc? Navštivte náš Discord na <#43c9fa>https://discord.gg/9EehAG54aU</#43c9fa>.
     <dark_gray><st>                                                                                                         </st>
   datapack_generated: "<prefix><#55ffa4>Datapack byl úspěšně vygenerován"
 
@@ -107,6 +108,9 @@ command:
     player: "<prefix><#55ffa4>Givnut <#43c9fa><player><#55ffa4> <#43fa8c><amount><#6f737d> × <#fa4362><item><#55ffa4>!"
     players: "<prefix><#55ffa4>Givnut <#43c9fa><count><#55ffa4> hráčům <#43fa8c><amount><#6f737d> × <#fa4362><item><#55ffa4>!"
 
+  totem_animation:
+    success: "<prefix><#55ffa4>Přehrána animace totemu pro <#43c9fa><player><#55ffa4> s <#43c9fa><item><#55ffa4>."
+
   dye:
     success: "<prefix><#55ffa4>Úspěšně změněna barva pro tento předmět!"
     wrong_color: "<prefix><#fa4943>Barva nerozpoznána, zkus hexadecimální kód jako #FFFFFF!"
@@ -117,11 +121,16 @@ command:
     toggle_on: "<prefix><#55ffa4>Toggled '<hud_id>' on!"
     toggle_off: "<prefix><#fa4943>Toggled '<hud_id>' off!"
 
-  debug.toggle: "<prefix><#55ffa4>Debug mode is now <#43fa8c><state><#55ffa4>!"
-  version: "<prefix><#55ffa4>Oraxen version: <#43fa8c><version><#55ffa4>!"
+  debug.toggle: "<prefix><#55ffa4>Debug mode is now <#43fa8c><state><#55ffa4>."
+  version: "<prefix><#55ffa4>Používáte Oraxen verze <#43fa8c><version><#55ffa4>."
+  remove_branding:
+    success: "<prefix><#55ffa4>Branding Oraxenu byl odstraněn z <#43fa8c><files><#55ffa4> jazykových souborů. Výchozí assety a uvítací zvuk byly vypnuty. Spusťte <#43c9fa>/oraxen reload all<#55ffa4> pro opětovné vygenerování balíčku a konfigurací."
+    failed: "<prefix><#fa4943>Nepodařilo se odstranit branding Oraxenu. Podrobnosti najdete v konzoli."
+  remove_defaults:
+    success: "<prefix><#55ffa4>Odstraněno <#43fa8c><files><#55ffa4> výchozích souborů. Výchozí konfigurace, výchozí assety a uvítací zvuk byly vypnuty. Povinné glyfy byly zachovány. Spusťte <#43c9fa>/oraxen reload all<#55ffa4> pro opětovné vygenerování balíčku a konfigurací."
+    failed: "<prefix><#fa4943>Odstraněno <#43fa8c><deleted><#fa4943> výchozích souborů, ale nepodařilo se odstranit <#43fa8c><failed><#fa4943>. Podrobnosti najdete v konzoli."
 
 mechanics:
   not_enough_exp: "<prefix><#fa4943>Pro tohle potřebuješ více zkušeností"
   backpack_stacked: "<prefix><#fa4943>Nelze otevřít naskládaný batoh"
   jukebox_now_playing: "<dark_purple>Nyní se přehrává <disc>"
-

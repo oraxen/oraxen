@@ -1,9 +1,13 @@
 package io.th0rgal.oraxen.font;
 
+import io.th0rgal.oraxen.utils.VersionUtil;
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.text.Component;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.lang.reflect.Method;
 
 /**
  * Encapsulates the appearance configuration for glyphs.
@@ -101,5 +105,41 @@ public record GlyphAppearance(@NotNull Key font, @Nullable Integer shadowColor) 
     public boolean hasShadowColor() {
         return shadowColor != null;
     }
-}
 
+    /**
+     * Applies a 1.21.4+ text shadow color while keeping older Adventure versions
+     * compatible.
+     *
+     * @param component   The component to modify
+     * @param shadowColor The ARGB shadow color, or null
+     * @return The modified component when supported, otherwise the original component
+     */
+    @NotNull
+    public static Component applyShadowColor(@NotNull Component component, @Nullable Integer shadowColor) {
+        if (shadowColor == null)
+            return component;
+
+        try {
+            // ShadowColor was added in 1.21.4. Some unit tests exercise this helper
+            // without a booted plugin instance, so version detection may be unavailable.
+            if (!VersionUtil.atOrAbove("1.21.4"))
+                return component;
+        } catch (Throwable ignored) {
+            // Fall through to API capability detection below.
+        }
+
+        try {
+            ClassLoader cl = GlyphAppearance.class.getClassLoader();
+            Class<?> shadowColorClass = Class.forName("net.kyori.adventure.text.format.ShadowColor", false, cl);
+            Class<?> argbLikeClass = Class.forName("net.kyori.adventure.util.ARGBLike", false, cl);
+            Method factory = shadowColorClass.getMethod("shadowColor", int.class);
+            Object shadowColorObj = factory.invoke(null, shadowColor);
+
+            Method shadowMethod = Component.class.getMethod("shadowColor", argbLikeClass);
+            return (Component) shadowMethod.invoke(component, shadowColorObj);
+        } catch (Throwable ignored) {
+            // Graceful degradation for older/incompatible Adventure versions
+            return component;
+        }
+    }
+}

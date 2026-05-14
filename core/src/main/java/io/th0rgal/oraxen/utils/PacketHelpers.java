@@ -15,6 +15,15 @@ public class PacketHelpers {
         return AdventureUtils.GSON_SERIALIZER.serialize(AdventureUtils.MINI_MESSAGE.deserialize(text)).replaceAll(BACKSLASH_REMOVAL_REGEX, "");
     }
 
+    public static String translateJson(String json) {
+        if (json == null) return null;
+        try {
+            return toJson(readJson(json));
+        } catch (RuntimeException exception) {
+            return json;
+        }
+    }
+
     public static Component translateTitle(Component component) {
         return AdventureUtils.MINI_MESSAGE.deserialize(
             AdventureUtils.parseMiniMessageThroughLegacy(component)

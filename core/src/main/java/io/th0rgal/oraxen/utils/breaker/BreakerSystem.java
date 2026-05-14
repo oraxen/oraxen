@@ -57,7 +57,7 @@ public abstract class BreakerSystem {
 
     protected abstract void sendBlockBreak(final Player player, final Location location, final int stage) ;
 
-    protected void handleEvent(Player player, Block block, Location location, BlockFace blockFace, World world, Runnable cancel, boolean startedDigging) {
+    protected void handleEvent(Player player, Block block, Location location, BlockFace blockFace, World world, Runnable cancel, boolean startedDigging, boolean finishedDigging) {
         if (player.getGameMode() == GameMode.CREATIVE) return;
 
         final ItemStack item = player.getInventory().getItemInMainHand();
@@ -79,6 +79,16 @@ public abstract class BreakerSystem {
         if (block.getType() == Material.NOTE_BLOCK && noteMechanic == null) return;
         if (block.getType() == Material.TRIPWIRE && stringMechanic == null) return;
         if (block.getType() == Material.BARRIER && furnitureMechanic == null) return;
+
+        if (finishedDigging && furnitureMechanic != null) {
+            cancel.run();
+            final List<Location> breakAnimationLocations = furnitureBarrierLocations(furnitureMechanic, block);
+            stopBlockBreaker(location);
+            stopBlockHitSound(location);
+            SchedulerUtil.runForEntity(player, () -> player.sendBlockChange(location, block.getBlockData()));
+            resetBlockBreakAnimations(world, breakAnimationLocations);
+            return;
+        }
 
         cancel.run();
 
@@ -176,14 +186,20 @@ public abstract class BreakerSystem {
                     player.sendBlockChange(location, block.getBlockData());
             });
 
-            SchedulerUtil.runAtLocation(location, () -> {
-                for (final Entity entity : world.getNearbyEntities(location, 16, 16, 16)) {
-                    if (entity instanceof Player viewer) {
-                        SchedulerUtil.runForEntity(viewer, () -> sendBlockBreak(viewer, location, 10));
-                    }
+            resetBlockBreakAnimations(world, Collections.singletonList(location));
+        }
+    }
+
+    private void resetBlockBreakAnimations(World world, List<Location> locations) {
+        if (locations.isEmpty()) return;
+
+        for (Location resetLocation : locations)
+            SchedulerUtil.runAtLocation(resetLocation, () -> {
+                for (Entity entity : world.getNearbyEntities(resetLocation, 16, 16, 16)) {
+                    if (entity instanceof Player viewer)
+                        SchedulerUtil.runForEntity(viewer, () -> sendBlockBreak(viewer, resetLocation, 10));
                 }
             });
-        }
     }
 
     private List<Location> furnitureBarrierLocations(FurnitureMechanic furnitureMechanic, Block block) {

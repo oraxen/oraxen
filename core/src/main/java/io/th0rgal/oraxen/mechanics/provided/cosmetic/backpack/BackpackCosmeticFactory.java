@@ -34,6 +34,12 @@ public class BackpackCosmeticFactory extends MechanicFactory {
     @ConfigProperty(type = PropertyType.BOOLEAN, description = "Hide backpack in spectator mode", defaultValue = "true")
     public static final String PROP_HIDE_IN_SPECTATOR = "hide_in_spectator";
 
+    @ConfigProperty(type = PropertyType.BOOLEAN, description = "Hide backpack while the player is swimming", defaultValue = "true")
+    public static final String PROP_HIDE_WHILE_SWIMMING = "hide_while_swimming";
+
+    @ConfigProperty(type = PropertyType.BOOLEAN, description = "Hide backpack while the player is gliding", defaultValue = "true")
+    public static final String PROP_HIDE_WHILE_GLIDING = "hide_while_gliding";
+
     @ConfigProperty(type = PropertyType.BOOLEAN, description = "Use small armor stand", defaultValue = "false")
     public static final String PROP_SMALL = "small";
 
@@ -71,7 +77,9 @@ public class BackpackCosmeticFactory extends MechanicFactory {
     public Mechanic parse(ConfigurationSection section) {
         BackpackCosmeticMechanic mechanic = new BackpackCosmeticMechanic(this, section);
         addToImplemented(mechanic);
-        io.th0rgal.oraxen.utils.logs.Logs.logSuccess("Registered backpack cosmetic: " + mechanic.getItemID() + " (slot: " + mechanic.getTriggerSlot() + ")");
+        if (Settings.DEBUG.toBool()) {
+            io.th0rgal.oraxen.utils.logs.Logs.logSuccess("Registered backpack cosmetic: " + mechanic.getItemID() + " (slot: " + mechanic.getTriggerSlot() + ")");
+        }
         return mechanic;
     }
 }

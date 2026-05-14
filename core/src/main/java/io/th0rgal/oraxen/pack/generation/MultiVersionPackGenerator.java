@@ -172,21 +172,36 @@ public class MultiVersionPackGenerator {
             versionOutput.add(new VirtualFile(parentFolder, name, freshStream));
         }
 
-        // Create pack.mcmeta for this version (preserving user customizations from the original)
-        File tempMcmeta = createPackMcmeta(packVersion, originalMcmeta);
-        try {
-            byte[] mcmetaContent = Files.readAllBytes(tempMcmeta.toPath());
-            java.io.ByteArrayInputStream mcmetaStream = new java.io.ByteArrayInputStream(mcmetaContent);
-            versionOutput.add(new VirtualFile("", "pack.mcmeta", mcmetaStream));
+        if (isMcmetaGenerationDisabled()) {
+            addOriginalPackMcmeta(versionOutput, materializedFiles);
+        } else {
+            // Create pack.mcmeta for this version (preserving user customizations from the original)
+            File tempMcmeta = createPackMcmeta(packVersion, originalMcmeta);
+            try {
+                byte[] mcmetaContent = Files.readAllBytes(tempMcmeta.toPath());
+                java.io.ByteArrayInputStream mcmetaStream = new java.io.ByteArrayInputStream(mcmetaContent);
+                versionOutput.add(new VirtualFile("", "pack.mcmeta", mcmetaStream));
+            } finally {
+                // Always clean up temp file, even if exception occurs
+                Files.deleteIfExists(tempMcmeta.toPath());
+            }
+        }
 
-            // Generate the zip file
-            File packFile = packVersion.getPackFile();
-            ZipUtils.writeZipFile(packFile, versionOutput);
+        // Generate the zip file
+        File packFile = packVersion.getPackFile();
+        ZipUtils.writeZipFile(packFile, versionOutput);
 
-            Logs.logSuccess("  Created: " + packFile.getName() + " (" + formatFileSize(packFile.length()) + ")");
-        } finally {
-            // Always clean up temp file, even if exception occurs
-            Files.deleteIfExists(tempMcmeta.toPath());
+        Logs.logSuccess("  Created: " + packFile.getName() + " (" + formatFileSize(packFile.length()) + ")");
+    }
+
+    private void addOriginalPackMcmeta(List<VirtualFile> versionOutput, List<MaterializedFile> materializedFiles) {
+        for (MaterializedFile mFile : materializedFiles) {
+            if (!isPackMcmeta(mFile.path)) {
+                continue;
+            }
+
+            versionOutput.add(new VirtualFile("", "pack.mcmeta", new java.io.ByteArrayInputStream(mFile.content)));
+            return;
         }
     }
 
@@ -229,6 +244,10 @@ public class MultiVersionPackGenerator {
 
     private boolean isPackMcmeta(String path) {
         return "pack.mcmeta".equals(path) || path.endsWith("/pack.mcmeta");
+    }
+
+    private boolean isMcmetaGenerationDisabled() {
+        return Boolean.TRUE.equals(Settings.DISABLE_MCMETA_GENERATION.getValue());
     }
 
     private void uploadAndSendPacks(boolean switchingFromSinglePack) {

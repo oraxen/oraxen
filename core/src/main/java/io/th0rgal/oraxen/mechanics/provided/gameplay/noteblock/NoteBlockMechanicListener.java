@@ -75,8 +75,10 @@ public class NoteBlockMechanicListener implements Listener {
                 double modifier = 1;
                 if (mechanic.getDrop().canDrop(tool)) {
                     modifier *= 0.4;
-                    final int diff = mechanic.getDrop().getDiff(tool);
-                    if (diff >= 1) modifier *= Math.pow(0.9, diff);
+                    if (mechanic.getDrop().isTypeEnough(tool)) {
+                        final int diff = mechanic.getDrop().getDiff(tool);
+                        if (diff >= 1) modifier *= Math.pow(0.9, diff);
+                    }
                 }
                 long period = (long) (hardness * modifier);
                 return period == 0 && mechanic.hasHardness() ? 1 : period;
@@ -293,6 +295,11 @@ public class NoteBlockMechanicListener implements Listener {
     // If block is not a custom block, play the correct sound according to the below block or default
     @EventHandler(priority = EventPriority.NORMAL)
     public void onNotePlayed(final NotePlayEvent event) {
+        if (OraxenBlocks.isOraxenNoteBlock(event.getBlock())) {
+            event.setCancelled(true);
+            return;
+        }
+
         if (event.getInstrument() != Instrument.PIANO) {
             event.setCancelled(true);
             return;

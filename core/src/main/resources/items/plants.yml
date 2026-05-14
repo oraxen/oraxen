@@ -133,7 +133,7 @@ grape_seeds:
   Mechanics:
     furniture:
       barrier: false
-      farmblock_required: true
+      farmland_required: true
       initial_stage: 0  # Start at stage0 when placed
       # All growth stages defined inline - no separate items needed!
       stages:

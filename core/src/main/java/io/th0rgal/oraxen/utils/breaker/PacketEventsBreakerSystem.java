@@ -38,7 +38,9 @@ public class PacketEventsBreakerSystem extends BreakerSystem {
             final Block block = world.getBlockAt(pos.getX(), pos.getY(), pos.getZ());
             final Location location = block.getLocation();
 
-            handleEvent(player, block, location, blockFace, world, () -> event.setCancelled(true), wrapper.getAction() == DiggingAction.START_DIGGING);
+            handleEvent(player, block, location, blockFace, world, () -> event.setCancelled(true),
+                    wrapper.getAction() == DiggingAction.START_DIGGING,
+                    wrapper.getAction() == DiggingAction.FINISHED_DIGGING);
         }
     };
 

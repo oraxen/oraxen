@@ -4,10 +4,10 @@ general:
   work_in_progress: "<prefix><#facc43>Diese Funktion ist noch in Arbeit!"
   not_player: "<prefix><#fa4943>Dies kann man nur als Spieler tun!"
   cooldown: "<prefix><#facc43>Bitte warten Sie weitere <time> Sekunden!"
-  reload: "<prefix><#55ffa4>Erfolgreich neu geladen"
+  reload: "<prefix><#55ffa4>Erfolgreich neu geladen: <reloaded>."
   pack_uploading: "<prefix><#D5D6D8>Das automatische Hochladen des Ressourcenpacks ist aktiviert, Hochladen..."
   pack_not_uploaded: "<prefix><#fa4943>Ressourcenpack nicht hochgeladen"
-  pack_uploaded: "<prefix><#55ffa4>Ressourcenpack auf Url <url> in <delay> ms hochgeladen"
+  pack_uploaded: "<prefix><#55ffa4>Ressourcenpack auf Url <#43c9fa><url></#43c9fa> in <delay>ms hochgeladen."
   pack_regenerated: "<prefix><#55ffa4>Ressourcenpack erfolgreich regeneriert"
   updating_config: "<prefix><#facc43>Konfigurationsoption \"<option>\" nicht gefunden, wird hinzugefügt!"
   removing_config: "<prefix><#facc43>Die Konfigurationsoption \"<option>\" wurde zum Entfernen markiert, entfernen Sie sie!"
@@ -26,12 +26,13 @@ general:
   exit_menu: "<gradient:#FA7CBB:#F14658>Beenden"
   no_emojis: "<prefix><#fa4943>Keine Emojis gefunden"
   introduction_guide: |-
-    
+
     <dark_gray><st>                                         </st><gold><bold> Willkommen bei Oraxen... </bold><dark_gray><st>                                         </st>
-    <gray> Oraxen wurde zum ersten Mal erfolgreich geladen, legen wir los.
-    <dark_gray> » <gray>Um das <yellow>Standard-Branding</yellow> zu entfernen, folge bitte dem Tutorial unter <blue>https://oraxen.mizius.com/usage/tutorials/d017g<gray>.
-    <dark_gray> » <gray>Die meisten deiner Fragen und Probleme lassen sich über unsere <yellow>Dokumentation</yellow> lösen, schau dir unbedingt <yellow>beide</yellow> Dokumentationen<gray> unter </gray><blue>https://oraxen.mizius.com/</blue><gray> und <blue>https://docs.oraxen.com</blue><gray> an.
-    <dark_gray> » <gray>Wenn du weiterhin Hilfe brauchst, besuche unseren Discord unter <blue>https://discord.gg/9EehAG54aU</blue>.
+    <#55ffa4>Oraxen wurde zum ersten Mal erfolgreich geladen. Legen wir los.
+    <dark_gray> » <#55ffa4>Um das <#43c9fa>Standard-Branding</#43c9fa> zu entfernen, führe <#43c9fa>/oraxen remove-branding<#55ffa4> aus.
+    <dark_gray> » <#55ffa4>Um die <#43c9fa>Standard-Assets</#43c9fa> zu entfernen, führe <#43c9fa>/oraxen remove-defaults<#55ffa4> aus.
+    <dark_gray> » <#55ffa4>Die meisten Fragen beantwortet die Dokumentation unter <#43c9fa>https://oraxen.mizius.com/</#43c9fa><#55ffa4> und <#43c9fa>https://docs.oraxen.com</#43c9fa><#55ffa4>.
+    <dark_gray> » <#55ffa4>Brauchst du noch Hilfe? Besuche unseren Discord unter <#43c9fa>https://discord.gg/9EehAG54aU</#43c9fa>.
     <dark_gray><st>                                                                                                         </st>
   datapack_generated: "<prefix><#55ffa4>Datapack wurde erfolgreich generiert"
 
@@ -104,6 +105,9 @@ command:
     player: "<prefix><#55ffa4>Du gibst <#43c9fa><player><#55ffa4> <#43fa8c><amount><#6f737d> × <#fa4362><item><#55ffa4>!"
     players: "<prefix><#55ffa4>Du gibst <#43c9fa><count><#55ffa4> Spieler <#43fa8c><amount><#6f737d> × <#fa4362><item><#55ffa4>!"
 
+  totem_animation:
+    success: "<prefix><#55ffa4>Totem-Animation für <#43c9fa><player><#55ffa4> mit <#43c9fa><item><#55ffa4> abgespielt."
+
   dye:
     success: "<prefix><#55ffa4>Du hast die Farbe dieses Artikels erfolgreich geändert!"
     wrong_color: "<prefix><#fa4943>Farbe nicht erkannt, versuchen Sie eine hexadezimale Farbe wie #FFFFFF!"
@@ -114,11 +118,16 @@ command:
     toggle_on: "<prefix><#55ffa4>HUD '<hud_id>' aktiviert!"
     toggle_off: "<prefix><#fa4943>HUD '<hud_id>' deaktiviert!"
 
-  debug.toggle: "<prefix><#55ffa4>Debug-Modus ist jetzt <#43fa8c><state><#55ffa4>!"
-  version: "<prefix><#55ffa4>Oraxen Version: <#43fa8c><version><#55ffa4>!"
+  debug.toggle: "<prefix><#55ffa4>Debug-Modus ist jetzt <#43fa8c><state><#55ffa4>."
+  version: "<prefix><#55ffa4>Du verwendest Oraxen Version <#43fa8c><version><#55ffa4>."
+  remove_branding:
+    success: "<prefix><#55ffa4>Oraxen-Branding wurde aus <#43fa8c><files><#55ffa4> Sprachdatei(en) entfernt. Standard-Assets und der Begruessungssound wurden deaktiviert. Fuehre <#43c9fa>/oraxen reload all<#55ffa4> aus, um das Paket und die Konfigurationen neu zu generieren."
+    failed: "<prefix><#fa4943>Oraxen-Branding konnte nicht entfernt werden. Pruefe die Konsole fuer Details."
+  remove_defaults:
+    success: "<prefix><#55ffa4><#43fa8c><files><#55ffa4> Standarddatei(en) entfernt. Standardkonfigurationen, Standard-Assets und der Begruessungssound wurden deaktiviert. Erforderliche Glyphen wurden beibehalten. Fuehre <#43c9fa>/oraxen reload all<#55ffa4> aus, um das Paket und die Konfigurationen neu zu generieren."
+    failed: "<prefix><#fa4943><#43fa8c><deleted><#fa4943> Standarddatei(en) entfernt, aber <#43fa8c><failed><#fa4943> konnten nicht entfernt werden. Pruefe die Konsole fuer Details."
 
 mechanics:
   not_enough_exp: "<prefix><#fa4943>Sie brauchen mehr Erfahrung, um dies zu tun"
   backpack_stacked: "<prefix><#fa4943>Cannot open stacked backpack"
   jukebox_now_playing: "<dark_purple>Jetzt spielen <disc>"
-

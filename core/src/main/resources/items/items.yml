@@ -41,6 +41,8 @@ example_sword:
   Mechanics:
     durability:
       value: 10
+    misc:
+      prevent_renaming: true
 
 example_custom_mechanic:
   displayname: "<gradient:#FA7CBB:#F14658><bold>My Item With A Custom Mechanic"
@@ -204,5 +206,7 @@ leather_backpack:
       scale: 1.0
       view_distance: 48
       hide_in_spectator: true
+      hide_while_swimming: true
+      hide_while_gliding: true
       small: true
       visible_to_self: true

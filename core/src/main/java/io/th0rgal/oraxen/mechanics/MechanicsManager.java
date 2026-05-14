@@ -44,6 +44,7 @@ import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanicFactor
 import io.th0rgal.oraxen.mechanics.provided.misc.misc.MiscMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.music_disc.MusicDiscMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.soulbound.SoulBoundMechanicFactory;
+import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -60,6 +61,7 @@ import java.util.Map.Entry;
 public class MechanicsManager {
 
     private static final Map<String, MechanicFactory> FACTORIES_BY_MECHANIC_ID = new HashMap<>();
+    private static final Map<String, MechanicFactory> FACTORIES_BY_LOWERCASE_MECHANIC_ID = new HashMap<>();
     private static final Map<String, List<SchedulerUtil.ScheduledTask>> MECHANIC_TASKS = new HashMap<>();
     private static final Map<String, List<Listener>> MECHANICS_LISTENERS = new HashMap<>();
     private static final Set<String> NATIVE_MECHANIC_IDS = Set.of(
@@ -144,11 +146,14 @@ public class MechanicsManager {
      * @param enabled    if the mechanic should be enabled by default or not
      */
     public static void registerMechanicFactory(String mechanicId, MechanicFactory factory, boolean enabled) {
-        if (enabled) FACTORIES_BY_MECHANIC_ID.put(mechanicId, factory);
+        if (!enabled) return;
+        FACTORIES_BY_MECHANIC_ID.put(mechanicId, factory);
+        FACTORIES_BY_LOWERCASE_MECHANIC_ID.put(mechanicId.toLowerCase(Locale.ROOT), factory);
     }
 
     public static void unregisterMechanicFactory(String mechanicId) {
         FACTORIES_BY_MECHANIC_ID.remove(mechanicId);
+        FACTORIES_BY_LOWERCASE_MECHANIC_ID.remove(mechanicId.toLowerCase(Locale.ROOT));
         unloadListeners(mechanicId);
         unregisterTasks(mechanicId);
     }
@@ -169,9 +174,9 @@ public class MechanicsManager {
         final Entry<File, YamlConfiguration> mechanicsEntry = OraxenPlugin.get().getResourceManager().getMechanicsEntry();
         final YamlConfiguration mechanicsConfig = mechanicsEntry.getValue();
         final boolean updated = false;
-        ConfigurationSection factorySection = mechanicsConfig.getConfigurationSection(mechanicId);
+        ConfigurationSection factorySection = OraxenYaml.getConfigurationSection(mechanicsConfig, mechanicId);
         if (factorySection != null && factorySection.getBoolean("enabled"))
-            FACTORIES_BY_MECHANIC_ID.put(mechanicId, constructor.create(factorySection));
+            registerMechanicFactory(mechanicId, constructor.create(factorySection), true);
 
         try {
             if (updated) mechanicsConfig.save(mechanicsEntry.getKey());
@@ -237,11 +242,18 @@ public class MechanicsManager {
     }
 
     public static boolean isMechanicEnabled(String mechanicId) {
-        return FACTORIES_BY_MECHANIC_ID.containsKey(mechanicId);
+        return getMechanicFactory(mechanicId) != null;
     }
 
     public static MechanicFactory getMechanicFactory(final String mechanicID) {
-        return FACTORIES_BY_MECHANIC_ID.get(mechanicID);
+        if (mechanicID == null)
+            return null;
+
+        MechanicFactory factory = FACTORIES_BY_MECHANIC_ID.get(mechanicID);
+        if (factory != null)
+            return factory;
+
+        return FACTORIES_BY_LOWERCASE_MECHANIC_ID.get(mechanicID.toLowerCase(Locale.ROOT));
     }
 
     /**

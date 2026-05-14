@@ -87,7 +87,7 @@ public class StringBlockSoundListener implements Listener {
             sound = blockSounds.getStepSound();
             volume = blockSounds.getStepVolume();
             pitch = blockSounds.getStepPitch();
-        } else if (gameEvent == GameEvent.HIT_GROUND && blockSounds.hasStepSound()) {
+        } else if (gameEvent == GameEvent.HIT_GROUND && blockSounds.hasFallSound()) {
             sound = blockSounds.getFallSound();
             volume = blockSounds.getFallVolume();
             pitch = blockSounds.getFallPitch();

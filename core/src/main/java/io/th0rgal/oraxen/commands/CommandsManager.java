@@ -46,6 +46,9 @@ public class CommandsManager {
                         (new VersionCommand()).getVersionCommand(),
                         (new AdminCommand()).getAdminCommand(),
                         (new SchemaCommand()).getSchemaCommand(),
+                        (new RemoveBrandingCommand()).getRemoveBrandingCommand(),
+                        (new RemoveDefaultsCommand()).getRemoveDefaultsCommand(),
+                        (new TotemAnimationCommand()).getTotemAnimationCommand(),
                         (new TextEffectCommand()).getTextEffectCommand(),
                         (new TextEffectCommand()).getTextEffectsListCommand())
                 .executes((sender, args) -> {

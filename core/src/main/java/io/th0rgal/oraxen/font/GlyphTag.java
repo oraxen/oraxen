@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.font;
 
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.utils.VersionUtil;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
@@ -14,7 +13,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.lang.reflect.Method;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -67,14 +65,14 @@ public class GlyphTag {
 
         // Build base component
         Component glyphComponent = Component.text(chars)
-                .font(glyph.getFont())
-                .style(Style.empty());
+                .style(Style.style().font(glyph.getFont()).build())
+                .hoverEvent(glyph.getGlyphHoverText());
 
         // Apply color (null if colorable, WHITE otherwise)
         glyphComponent = glyphComponent.color(options.colorable ? null : NamedTextColor.WHITE);
 
         // Apply shadow color if specified (1.21.4+ only)
-        glyphComponent = applyShadowColor(glyphComponent, options.shadowColor);
+        glyphComponent = GlyphAppearance.applyShadowColor(glyphComponent, options.shadowColor);
 
         // Handle permission check
         if (!glyph.hasPermission(player)) {
@@ -209,42 +207,6 @@ public class GlyphTag {
     }
 
     /**
-     * Applies shadow color to a component.
-     * Only works on 1.21.4+ where ShadowColor is available.
-     *
-     * @param component   The component to modify
-     * @param shadowColor The ARGB shadow color, or null
-     * @return The modified component
-     */
-    private static Component applyShadowColor(Component component, @Nullable Integer shadowColor) {
-        if (shadowColor == null)
-            return component;
-
-        // ShadowColor was added in 1.21.4
-        if (!VersionUtil.atOrAbove("1.21.4"))
-            return component;
-
-        try {
-            // Paper 1.21.1 bundles different Adventure libs. In some cases, the ShadowColor
-            // class exists but fails to load due to missing transitive types (e.g.
-            // ARGBLike),
-            // causing NoClassDefFoundError during class resolution.
-            //
-            // To keep compatibility, use reflection and treat ShadowColor as optional.
-            ClassLoader cl = GlyphTag.class.getClassLoader();
-            Class<?> shadowColorClass = Class.forName("net.kyori.adventure.text.format.ShadowColor", false, cl);
-            Method factory = shadowColorClass.getMethod("shadowColor", int.class);
-            Object shadowColorObj = factory.invoke(null, shadowColor);
-
-            Method shadowMethod = Component.class.getMethod("shadowColor", shadowColorClass);
-            return (Component) shadowMethod.invoke(component, shadowColorObj);
-        } catch (Throwable ignored) {
-            // Graceful degradation for older/incompatible Adventure versions
-            return component;
-        }
-    }
-
-    /**
      * Checks if a string looks like a hex color value.
      * Used to determine if an argument should be consumed as a shadow color.
      * <p>
@@ -348,14 +310,14 @@ public class GlyphTag {
 
         // Build component with reference glyph's characters
         Component glyphComponent = Component.text(refGlyph.getCharacters())
-                .font(refGlyph.getFont())
-                .style(Style.empty());
+                .style(Style.style().font(refGlyph.getFont()).build())
+                .hoverEvent(refGlyph.getGlyphHoverText());
 
         // Apply color
         glyphComponent = glyphComponent.color(colorable ? null : NamedTextColor.WHITE);
 
         // Apply shadow color
-        glyphComponent = applyShadowColor(glyphComponent, shadowColor);
+        glyphComponent = GlyphAppearance.applyShadowColor(glyphComponent, shadowColor);
 
         return Tag.selfClosingInserting(glyphComponent);
     }

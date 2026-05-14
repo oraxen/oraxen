@@ -47,14 +47,14 @@ Glyphs:
 
 # Shader-based text effects (rainbow, wave, shake, etc.)
 # These effects apply to any text using a color encoding detected by shaders.
-# Default encoding (alpha_lsb) preserves the base color by using RGB low bits.
+# Default encoding (effect_font) uses dedicated effect font glyphs.
 # Effect definitions and GLSL snippets live in text_effects.yml.
 # Text effects compatible with 1.21.11+
 TextEffects:
   enabled: true # Master toggle for all text effects
   shader:
     template: auto # auto, effects_only, animated_only
-    encoding: alpha_lsb # Encoding strategy for text effects
+    encoding: effect_font # Encoding strategy for text effects
 
 Chat:
   # If glyphs do not show up in chat, try setting this to LEGACY
@@ -62,6 +62,7 @@ Chat:
 
 CustomArmor:
   type: COMPONENT # Valid types are COMPONENT, SHADER, TRIMS and NONE
+  auto_select_type: true # If true, Oraxen will replace incompatible armor types with the best type for the detected server version
   disable_leather_repair: true # Makes custom armor not repairable with leather, only with copies of said custom armor
   component_settings:
     auto_assign_component: true # If true, the equippable-model component will be automatically assigned to the custom armor piece, unless specified
@@ -97,6 +98,10 @@ FurnitureUpdater:
 Pack:
   generation:
     generate: true # Unlike Plugin.generation.default_assets, this will enable/disable all pack generation
+    # If true, Oraxen will not create or modify pack.mcmeta.
+    # The file at plugins/Oraxen/pack/pack.mcmeta will be included in the final pack exactly as provided.
+    # This also disables automatic overlay entries, so you must manage overlays in pack.mcmeta yourself.
+    disable_mcmeta_generation: false
     # MULTI-VERSION RESOURCE PACKS
     # Enable this for servers with players on multiple Minecraft versions (ViaVersion/ProtocolSupport).
     # When enabled, generates separate pack files with correct pack_format for each client version.

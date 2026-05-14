@@ -68,6 +68,10 @@ public enum Message {
     COMMAND_JOIN_MESSAGE("command.join"),
     DEBUG_TOGGLE("command.debug.toggle"),
     VERSION("command.version"),
+    REMOVE_BRANDING_SUCCESS("command.remove_branding.success"),
+    REMOVE_BRANDING_FAILED("command.remove_branding.failed"),
+    REMOVE_DEFAULTS_SUCCESS("command.remove_defaults.success"),
+    REMOVE_DEFAULTS_FAILED("command.remove_defaults.failed"),
 
     RECIPE_NO_BUILDER("command.recipe.no_builder"),
     RECIPE_NO_FURNACE("command.recipe.no_furnace"),
@@ -78,6 +82,7 @@ public enum Message {
 
     GIVE_PLAYER("command.give.player"),
     GIVE_PLAYERS("command.give.players"),
+    TOTEM_ANIMATION_SUCCESS("command.totem_animation.success"),
 
     DYE_SUCCESS("command.dye.success"),
     DYE_WRONG_COLOR("command.dye.wrong_color"),

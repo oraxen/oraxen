@@ -282,10 +282,10 @@ public class ReferenceGlyph {
     }
 
     public Component getGlyphComponent() {
-        return Component.textOfChildren(
-                Component.text(getCharacter(), NamedTextColor.WHITE)
-                        .font(getFont())
-                        .hoverEvent(getGlyphHoverText()));
+        Component component = Component.text(getCharacters(), NamedTextColor.WHITE)
+                .font(getFont())
+                .hoverEvent(getGlyphHoverText());
+        return Component.textOfChildren(GlyphAppearance.applyShadowColor(component, getAppearance().shadowColor()));
     }
 
     @Nullable

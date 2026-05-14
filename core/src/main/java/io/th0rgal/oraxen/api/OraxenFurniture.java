@@ -266,9 +266,15 @@ public class OraxenFurniture {
         removeOrphanBarriers(baseEntity);
         removeOrphanSeat(baseEntity.getPersistentDataContainer());
 
+        List<UUID> interactionUUIDs = baseEntity.getPersistentDataContainer()
+                .getOrDefault(INTERACTIONS_KEY, DataType.asList(DataType.UUID), new ArrayList<>());
         UUID interactionUUID = baseEntity.getPersistentDataContainer().get(INTERACTION_KEY, DataType.UUID);
-        if (interactionUUID != null) {
-            Entity interactionEntity = Bukkit.getEntity(interactionUUID);
+        if (interactionUUID != null && !interactionUUIDs.contains(interactionUUID)) {
+            interactionUUIDs = new ArrayList<>(interactionUUIDs);
+            interactionUUIDs.add(interactionUUID);
+        }
+        for (UUID uuid : interactionUUIDs) {
+            Entity interactionEntity = Bukkit.getEntity(uuid);
             if (interactionEntity != null && !interactionEntity.isDead()) interactionEntity.remove();
         }
 
@@ -331,12 +337,16 @@ public class OraxenFurniture {
     }
 
     private static void removeOrphanSeat(@NotNull PersistentDataContainer pdc) {
-        UUID seatUUID = pdc.get(SEAT_KEY, DataType.UUID);
-        if (seatUUID == null) return;
-        Entity seatEntity = Bukkit.getEntity(seatUUID);
-        if (seatEntity instanceof ArmorStand seat) {
-            seat.getPassengers().forEach(seat::removePassenger);
-            if (!seat.isDead()) seat.remove();
+        List<UUID> seatUUIDs = new ArrayList<>(pdc.getOrDefault(FurnitureMechanic.SEATS_KEY, DataType.asList(DataType.UUID), List.of()));
+        UUID legacySeatUUID = pdc.get(SEAT_KEY, DataType.UUID);
+        if (legacySeatUUID != null && !seatUUIDs.contains(legacySeatUUID)) seatUUIDs.add(legacySeatUUID);
+
+        for (UUID seatUUID : seatUUIDs) {
+            Entity seatEntity = Bukkit.getEntity(seatUUID);
+            if (seatEntity instanceof ArmorStand seat) {
+                seat.getPassengers().forEach(seat::removePassenger);
+                if (!seat.isDead()) seat.remove();
+            }
         }
     }
 
@@ -410,16 +420,14 @@ public class OraxenFurniture {
                 // Check if barriers changed, if so remove and place new
                 if (mechanic.getBarriers().equals(oldPdc.getOrDefault(BARRIER_KEY, DataType.asList(BlockLocation.dataType), new ArrayList<>()))) {
                     if (OraxenPlugin.supportsDisplayEntities) {
-                        Interaction interaction = mechanic.getInteractionEntity(entity);
+                        List<Interaction> interactions = mechanic.getInteractionEntities(entity);
                         // Check if interaction-hitbox changed, if so remove and place new
-                        if (interaction != null && mechanic.hasHitbox())
-                            if (interaction.getInteractionWidth() == mechanic.getHitbox().width())
-                                if (interaction.getInteractionHeight() == mechanic.getHitbox().height())
-                                    // Check if seat changed, if so remove and place new
-                                    if (oldPdc.has(SEAT_KEY, DataType.UUID) && mechanic.hasSeat())
-                                        // Check if any displayEntity properties changed, if so remove and place new
-                                        if (mechanic.hasDisplayEntityProperties() && mechanic.getDisplayEntityProperties().ensureSameDisplayProperties(entity))
-                                            return;
+                        if (!interactions.isEmpty() && mechanic.hasHitbox() && hasSameHitboxes(interactions, mechanic.getHitboxes()))
+                            // Check if seat changed, if so remove and place new
+                            if (oldPdc.has(SEAT_KEY, DataType.UUID) && mechanic.hasSeat())
+                                // Check if any displayEntity properties changed, if so remove and place new
+                                if (mechanic.hasDisplayEntityProperties() && mechanic.getDisplayEntityProperties().ensureSameDisplayProperties(entity))
+                                    return;
                     } else return;
                 }
             }
@@ -432,6 +440,43 @@ public class OraxenFurniture {
             List<Map<?, ?>> serializedPdc = PersistentDataSerializer.toMapList(oldPdc);
             serializedPdc.removeIf(map -> Stream.of(MUSIC_DISC_KEY, EVOLUTION_KEY, STORAGE_KEY, PERSONAL_STORAGE_KEY).map(NamespacedKey::toString).noneMatch(map::containsValue));
             PersistentDataSerializer.fromMapList(serializedPdc, newEntity.getPersistentDataContainer());
+        }
+    }
+
+    private static boolean hasSameHitboxes(List<Interaction> interactions, List<FurnitureMechanic.FurnitureHitbox> hitboxes) {
+        if (interactions.size() != hitboxes.size()) return false;
+
+        List<FurnitureMechanic.FurnitureHitbox> unmatchedHitboxes = new ArrayList<>(hitboxes);
+        for (Interaction interaction : interactions) {
+            int matchingIndex = -1;
+            for (int i = 0; i < unmatchedHitboxes.size(); i++) {
+                FurnitureMechanic.FurnitureHitbox hitbox = unmatchedHitboxes.get(i);
+                if (Float.compare(interaction.getInteractionWidth(), hitbox.width()) == 0
+                        && Float.compare(interaction.getInteractionHeight(), hitbox.height()) == 0
+                        && hasSameHitboxOffset(interaction, hitbox)) {
+                    matchingIndex = i;
+                    break;
+                }
+            }
+            if (matchingIndex == -1) return false;
+            unmatchedHitboxes.remove(matchingIndex);
+        }
+        return true;
+    }
+
+    private static boolean hasSameHitboxOffset(Interaction interaction, FurnitureMechanic.FurnitureHitbox hitbox) {
+        String offset = interaction.getPersistentDataContainer().get(HITBOX_OFFSET_KEY, PersistentDataType.STRING);
+        if (offset == null) return hitbox.offsetX() == 0 && hitbox.offsetY() == 0 && hitbox.offsetZ() == 0;
+
+        String[] parts = offset.split(",");
+        if (parts.length != 3) return false;
+
+        try {
+            return Double.compare(Double.parseDouble(parts[0]), hitbox.offsetX()) == 0
+                    && Double.compare(Double.parseDouble(parts[1]), hitbox.offsetY()) == 0
+                    && Double.compare(Double.parseDouble(parts[2]), hitbox.offsetZ()) == 0;
+        } catch (NumberFormatException e) {
+            return false;
         }
     }
 }

@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.items;
 
+import io.th0rgal.oraxen.utils.OraxenYaml;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -13,6 +14,7 @@ public class ItemTemplate {
 
     public static void register(@NotNull ConfigurationSection section) {
         section.set("injectId", false);
+        OraxenYaml.invalidateKeyCache(section);
         itemTemplates.put(section.getName(), new ItemParser(section));
     }
 

@@ -32,7 +32,12 @@ import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static io.th0rgal.oraxen.items.ItemBuilder.ORIGINAL_NAME_KEY;
 import static io.th0rgal.oraxen.utils.AdventureUtils.*;
@@ -104,15 +109,8 @@ public class FontEvents implements Listener {
         for (String page : meta.getPages()) {
             int i = meta.getPages().indexOf(page) + 1;
             if (i == 0) continue;
-            for (Character character : manager.getReverseMap().keySet()) {
-                if (!page.contains(String.valueOf(character))) continue;
-
-                Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
-                if (!glyph.hasPermission(event.getPlayer())) {
-                    Message.NO_PERMISSION.send(event.getPlayer(), AdventureUtils.tagResolver("permission", glyph.getPermission()));
-                    event.setCancelled(true);
-                }
-            }
+            if (containsUnpermittedGlyph(event.getPlayer(), page))
+                event.setCancelled(true);
         }
     }
 
@@ -131,7 +129,7 @@ public class FontEvents implements Listener {
             if (i == 0) continue;
 
             for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet()) {
-                String unicode = String.valueOf(entry.getValue().getCharacter());
+                String unicode = entry.getValue().getCharacters();
                 if (entry.getValue().hasPermission(player))
                     page = (manager.permsChatcolor == null)
                             ? page.replace(entry.getKey(), ChatColor.WHITE + unicode + ChatColor.BLACK)
@@ -161,18 +159,11 @@ public class FontEvents implements Listener {
         String[] lines = event.getLines();
         for (int i = 0; i < lines.length; i++) {
             String line = AdventureUtils.parseLegacyThroughMiniMessage(lines[i]);
-            for (Character character : manager.getReverseMap().keySet()) {
-                if (!line.contains(String.valueOf(character))) continue;
-
-                Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
-                if (!glyph.hasPermission(player)) {
-                    Message.NO_PERMISSION.send(player, AdventureUtils.tagResolver("permission", glyph.getPermission()));
-                    event.setCancelled(true);
-                }
-            }
+            if (containsUnpermittedGlyph(player, line))
+                event.setCancelled(true);
 
             for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet()) {
-                String unicode = String.valueOf(entry.getValue().getCharacter());
+                String unicode = entry.getValue().getCharacters();
                 if (entry.getValue().hasPermission(player))
                     line = (manager.permsChatcolor == null)
                             ? line.replace(entry.getKey(), ChatColor.WHITE + unicode + ChatColor.BLACK)
@@ -222,25 +213,72 @@ public class FontEvents implements Listener {
     }
 
     private String replaceUnpermittedGlyphs(Player player, String displayName) {
-        for (Character character : manager.getReverseMap().keySet()) {
-            if (!displayName.contains(String.valueOf(character))) continue;
-            Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
-            if (!glyph.hasPermission(player)) {
-                Glyph required = manager.getGlyphFromName("required");
-                String replacement = required.hasPermission(player) ? String.valueOf(required.getCharacter()) : "";
+        Glyph required = manager.getGlyphFromName("required");
+        String replacement = required.hasPermission(player) ? required.getCharacters() : "";
+        StringBuilder builder = new StringBuilder(displayName);
+        Set<Glyph> warnedGlyphs = new HashSet<>();
+        for (GlyphMatch match : findGlyphMatches(displayName).reversed()) {
+            Glyph glyph = match.glyph();
+            if (glyph.hasPermission(player)) continue;
+
+            if (warnedGlyphs.add(glyph))
                 Message.NO_PERMISSION.send(player, AdventureUtils.tagResolver("permission", glyph.getPermission()));
-                displayName = displayName.replace(String.valueOf(character), replacement);
+            builder.replace(match.start(), match.end(), replacement);
+        }
+        return builder.toString();
+    }
+
+    private boolean containsUnpermittedGlyph(Player player, String text) {
+        boolean containsUnpermittedGlyph = false;
+        Set<Glyph> warnedGlyphs = new HashSet<>();
+        for (GlyphMatch match : findGlyphMatches(text)) {
+            Glyph glyph = match.glyph();
+            if (glyph.hasPermission(player)) continue;
+
+            if (warnedGlyphs.add(glyph))
+                Message.NO_PERMISSION.send(player, AdventureUtils.tagResolver("permission", glyph.getPermission()));
+            containsUnpermittedGlyph = true;
+        }
+        return containsUnpermittedGlyph;
+    }
+
+    private List<GlyphMatch> findGlyphMatches(String text) {
+        List<GlyphMatch> matches = new ArrayList<>();
+        boolean[] occupied = new boolean[text.length()];
+        for (Glyph glyph : manager.getGlyphs().stream()
+                .sorted(Comparator.comparingInt((Glyph glyph) -> glyph.getCharacters().length()).reversed())
+                .toList()) {
+            String characters = glyph.getCharacters();
+            if (characters.isEmpty()) continue;
+            int start = text.indexOf(characters);
+            while (start != -1) {
+                int end = start + characters.length();
+                if (!isOccupied(occupied, start, end)) {
+                    matches.add(new GlyphMatch(glyph, start, end));
+                    for (int i = start; i < end; i++) occupied[i] = true;
+                }
+                start = text.indexOf(characters, start + 1);
             }
         }
-        return displayName;
+        return matches.stream()
+                .sorted(Comparator.comparingInt(GlyphMatch::start))
+                .toList();
     }
+
+    private boolean isOccupied(boolean[] occupied, int start, int end) {
+        for (int i = start; i < end; i++)
+            if (occupied[i]) return true;
+        return false;
+    }
+
+    private record GlyphMatch(Glyph glyph, int start, int end) {}
 
     private String replaceGlyphPlaceholders(Player player, String displayName) {
         for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet()) {
             if (!entry.getValue().hasPermission(player)) continue;
             String replacement = (manager.permsChatcolor == null)
-                    ? String.valueOf(entry.getValue().getCharacter())
-                    : ChatColor.WHITE + String.valueOf(entry.getValue().getCharacter())
+                    ? entry.getValue().getCharacters()
+                    : ChatColor.WHITE + entry.getValue().getCharacters()
                             + PapiAliases.setPlaceholders(player, manager.permsChatcolor);
             displayName = displayName.replace(entry.getKey(), replacement);
         }
@@ -280,8 +318,8 @@ public class FontEvents implements Listener {
          */
         private String format(String string, @Nullable Player player) {
             TextComponent component = (TextComponent) AdventureUtils.MINI_MESSAGE_PLAYER(player).deserialize(string);
-            if (player != null) for (Character character : manager.getReverseMap().keySet()) {
-                if (!component.content().contains(String.valueOf(character))) continue;
+            if (player != null) for (String character : manager.getReverseMap().keySet()) {
+                if (!component.content().contains(character)) continue;
                 Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
                 if (!glyph.hasPermission(player)) {
                     Message.NO_PERMISSION.send(player, AdventureUtils.tagResolver("permission", glyph.getPermission()));
@@ -344,13 +382,14 @@ public class FontEvents implements Listener {
     private Component format(Component message, Player player) {
         Key randomKey = Key.key("random");
         String serialized = MINI_MESSAGE.serialize(message);
-        for (Character character : manager.getReverseMap().keySet()) {
-            if (!serialized.contains(character.toString())) continue;
-
-            Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
-            if (!glyph.hasPermission(player)) message.replaceText(
+        for (Glyph glyph : manager.getGlyphs().stream()
+                .sorted(Comparator.comparingInt((Glyph glyph) -> glyph.getCharacters().length()).reversed())
+                .toList()) {
+            String characters = glyph.getCharacters();
+            if (!serialized.contains(characters)) continue;
+            if (!glyph.hasPermission(player)) message = message.replaceText(
                     TextReplacementConfig.builder()
-                            .matchLiteral(character.toString())
+                            .matchLiteral(characters)
                             .replacement(glyph.getGlyphComponent().font(randomKey))
                             .build()
             );

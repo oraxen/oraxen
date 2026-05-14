@@ -1,6 +1,6 @@
 [versions]
 # often changed version numbers
-adventure = "4.17.0"
+adventure = "4.18.0"
 adventure-platform = "4.3.4"
 commandapi = "11.0.0"
 hopper = "1.4.2"
