@@ -84,6 +84,8 @@ CustomBlocks:
 ItemUpdater:
   # Update the items in player inventory to the latest in config when player joins
   update_items: true
+  update_tile_entity_contents: true # Update items in loaded block inventories, such as chests and furnaces
+  update_entity_contents: true # Update items held by loaded entities, such as item frames, mobs and ender chests
   override_renamed_items: false
   override_item_lore: false # If lore should be overriden, enable to ensure it is identical to the OraxenItem's lore
   update_items_on_reload: true # If Oraxen should update all the items of online players on /oraxen reload items/all

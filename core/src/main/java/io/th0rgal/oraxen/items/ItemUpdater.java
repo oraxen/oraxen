@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.items;
 
+import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import com.jeff_media.persistentdataserializer.PersistentDataSerializer;
 import io.th0rgal.oraxen.OraxenPlugin;
@@ -10,10 +11,20 @@ import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.VersionUtil;
+import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Tag;
+import org.bukkit.World;
+import org.bukkit.block.BlockState;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Item;
+import org.bukkit.entity.ItemDisplay;
+import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -26,7 +37,11 @@ import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.PrepareAnvilEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.*;
@@ -39,17 +54,55 @@ import static io.th0rgal.oraxen.items.ItemBuilder.UNSTACKABLE_KEY;
 
 public class ItemUpdater implements Listener {
 
+    private static final Set<Material> TILE_ENTITY_TYPES = EnumSet.of(
+            Material.BARREL,
+            Material.CHEST,
+            Material.TRAPPED_CHEST,
+            Material.CRAFTER,
+            Material.DECORATED_POT,
+            Material.HOPPER,
+            Material.DROPPER,
+            Material.DISPENSER,
+            Material.CAMPFIRE,
+            Material.SOUL_CAMPFIRE,
+            Material.SMOKER,
+            Material.FURNACE,
+            Material.BLAST_FURNACE,
+            Material.BREWING_STAND,
+            Material.JUKEBOX
+    );
+
+    static {
+        TILE_ENTITY_TYPES.addAll(Tag.SHULKER_BOXES.getValues());
+    }
+
+    public ItemUpdater() {
+        if (!Settings.UPDATE_ITEMS.toBool()) return;
+        SchedulerUtil.runTaskLater(OraxenPlugin.get(), 2L, ItemUpdater::updateLoadedContents);
+    }
+
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         if (!Settings.UPDATE_ITEMS.toBool()) return;
 
-        PlayerInventory inventory = event.getPlayer().getInventory();
-        for (int i = 0; i < inventory.getSize(); i++) {
-            ItemStack oldItem = inventory.getItem(i);
-            ItemStack newItem = ItemUpdater.updateItem(oldItem);
-            if (oldItem == null || oldItem.equals(newItem)) continue;
-            inventory.setItem(i, newItem);
-        }
+        updateInventory(event.getPlayer().getInventory());
+        updateInventory(event.getPlayer().getEnderChest());
+    }
+
+    @EventHandler
+    public void onEntityLoad(EntityAddToWorldEvent event) {
+        if (!Settings.UPDATE_ITEMS.toBool() || !Settings.UPDATE_ENTITY_CONTENTS.toBool()) return;
+
+        Entity entity = event.getEntity();
+        SchedulerUtil.runForEntityLater(entity, 2L, () -> updateEntityInventories(entity), () -> {});
+    }
+
+    @EventHandler
+    public void onChunkLoad(ChunkLoadEvent event) {
+        if (!Settings.UPDATE_ITEMS.toBool() || !Settings.UPDATE_TILE_ENTITY_CONTENTS.toBool() || event.isNewChunk()) return;
+
+        Chunk chunk = event.getChunk();
+        SchedulerUtil.runAtLocation(chunkLocation(chunk), () -> updateTileEntityInventories(chunk));
     }
 
     @EventHandler
@@ -144,6 +197,73 @@ public class ItemUpdater implements Listener {
 
     private static final NamespacedKey IF_UUID = Objects.requireNonNull(NamespacedKey.fromString("oraxen:if-uuid"));
     private static final NamespacedKey MF_GUI = Objects.requireNonNull(NamespacedKey.fromString("oraxen:mf-gui"));
+
+    public static void updateLoadedEntityContents() {
+        if (!Settings.UPDATE_ITEMS.toBool() || !Settings.UPDATE_ENTITY_CONTENTS.toBool()) return;
+
+        for (World world : Bukkit.getWorlds()) {
+            for (Entity entity : world.getEntities()) {
+                SchedulerUtil.runForEntity(entity, () -> updateEntityInventories(entity), () -> {});
+            }
+        }
+    }
+
+    private static void updateLoadedContents() {
+        updateLoadedEntityContents();
+
+        if (!Settings.UPDATE_TILE_ENTITY_CONTENTS.toBool()) return;
+        for (World world : Bukkit.getWorlds()) {
+            for (Chunk chunk : world.getLoadedChunks()) {
+                SchedulerUtil.runAtLocation(chunkLocation(chunk), () -> updateTileEntityInventories(chunk));
+            }
+        }
+    }
+
+    private static Location chunkLocation(Chunk chunk) {
+        return new Location(chunk.getWorld(), chunk.getX() * 16, 0, chunk.getZ() * 16);
+    }
+
+    private static void updateTileEntityInventories(Chunk chunk) {
+        for (BlockState tileEntity : chunk.getTileEntities()) {
+            if (!TILE_ENTITY_TYPES.contains(tileEntity.getType()) || !(tileEntity instanceof InventoryHolder holder)) continue;
+            updateInventory(holder.getInventory());
+        }
+    }
+
+    public static void updateEntityInventories(Entity entity) {
+        if (entity instanceof ItemFrame itemFrame) itemFrame.setItem(updateItem(itemFrame.getItem()), false);
+        if (entity instanceof ItemDisplay itemDisplay) itemDisplay.setItemStack(updateItem(itemDisplay.getItemStack()));
+        if (entity instanceof Item item) item.setItemStack(updateItem(item.getItemStack()));
+        if (entity instanceof InventoryHolder holder) updateInventory(holder.getInventory());
+        if (entity instanceof Player player) updateInventory(player.getEnderChest());
+        if (entity instanceof LivingEntity livingEntity) updateEquipment(livingEntity);
+    }
+
+    private static void updateEquipment(LivingEntity livingEntity) {
+        EntityEquipment equipment = livingEntity.getEquipment();
+        if (equipment == null) return;
+
+        for (EquipmentSlot slot : EquipmentSlot.values()) {
+            try {
+                ItemStack oldItem = equipment.getItem(slot);
+                ItemStack newItem = updateItem(oldItem);
+                if (oldItem == null || oldItem.equals(newItem)) continue;
+                equipment.setItem(slot, newItem);
+            } catch (IllegalArgumentException ignored) {
+                // Some entity types do not support every slot exposed by the API.
+            }
+        }
+    }
+
+    public static void updateInventory(Inventory inventory) {
+        for (int i = 0; i < inventory.getSize(); i++) {
+            ItemStack oldItem = inventory.getItem(i);
+            ItemStack newItem = updateItem(oldItem);
+            if (oldItem == null || oldItem.equals(newItem)) continue;
+            inventory.setItem(i, newItem);
+        }
+    }
+
     public static ItemStack updateItem(ItemStack oldItem) {
         String id = OraxenItems.getIdByItem(oldItem);
         if (id == null) return oldItem;
