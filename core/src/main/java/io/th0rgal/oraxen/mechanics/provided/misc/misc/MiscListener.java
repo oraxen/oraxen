@@ -28,6 +28,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.Damageable;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.Arrays;
 
@@ -51,11 +52,17 @@ public class MiscListener implements Listener {
 
         // Only cancel when the user actually typed a rename. Repair/enchant operations leave
         // renameText empty (or matching the original plain-text display name) and must go through.
+        // Use ItemMeta.displayName() rather than ItemStack.displayName(): the latter wraps the
+        // name in square brackets ([Cool Sword]) but anvil.getRenameText() returns the raw text,
+        // so comparing against the bracketed form would never match.
         String renameText = anvil.getRenameText();
         if (renameText == null || renameText.isEmpty()) return;
 
-        String inputPlain = AdventureUtils.PLAIN_TEXT.serialize(inputItem.displayName());
-        if (renameText.equals(inputPlain)) return;
+        ItemMeta inputMeta = inputItem.getItemMeta();
+        if (inputMeta != null && inputMeta.hasDisplayName()) {
+            String inputPlain = AdventureUtils.PLAIN_TEXT.serialize(inputMeta.displayName());
+            if (renameText.equals(inputPlain)) return;
+        }
 
         event.setResult(null);
     }
