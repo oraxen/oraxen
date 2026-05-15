@@ -84,6 +84,8 @@ CustomBlocks:
 ItemUpdater:
   # Update the items in player inventory to the latest in config when player joins
   update_items: true
+  update_tile_entity_contents: true # Update items in loaded block inventories, such as chests and furnaces
+  update_entity_contents: true # Update items held by loaded entities, such as item frames, mobs and ender chests
   override_renamed_items: false
   override_item_lore: false # If lore should be overriden, enable to ensure it is identical to the OraxenItem's lore
   update_items_on_reload: true # If Oraxen should update all the items of online players on /oraxen reload items/all
@@ -111,7 +113,7 @@ Pack:
     #
     # Requirements:
     # - ViaVersion OR ProtocolSupport plugin for version detection (without these, all players get server version pack)
-    # - Upload type must be "polymath" or "external" (NOT "self-host" - can only serve one file)
+    # - Upload type must be "lobfile", "polymath", or "external" (NOT "self-host" - can only serve one file)
     #
     # How it works:
     # - On player join, detects their client version via ViaVersion/ProtocolSupport API
@@ -201,10 +203,13 @@ Pack:
 
   upload:
     enabled: true
-    type: polymath #transfer.sh, polymath, or self-host
+    type: polymath #lobfile, polymath, self-host, or external
     polymath:
       server: atlas.oraxen.com # you can also host your own polymath instance
       secret: "oraxen" # change this if you host your own polymath to limit access to resource pack uploading
+    lobfile:
+      api-key: ""
+      pack-name: Oraxen # Will use <pack-name>_<version> when using multi version packs
     self-host:
       host: "0.0.0.0" # The IP address to bind the HTTP server to (0.0.0.0 = listen on all interfaces)
       port: 8080 # The port the HTTP server will listen on

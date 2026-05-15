@@ -75,6 +75,8 @@ public enum Settings {
     // ItemUpdater
     UPDATE_ITEMS("ItemUpdater.update_items"),
     UPDATE_ITEMS_ON_RELOAD("ItemUpdater.update_items_on_reload"),
+    UPDATE_TILE_ENTITY_CONTENTS("ItemUpdater.update_tile_entity_contents"),
+    UPDATE_ENTITY_CONTENTS("ItemUpdater.update_entity_contents"),
     OVERRIDE_RENAMED_ITEMS("ItemUpdater.override_renamed_items"),
     OVERRIDE_ITEM_LORE("ItemUpdater.override_item_lore"),
 
@@ -135,6 +137,8 @@ public enum Settings {
 
     POLYMATH_SERVER("Pack.upload.polymath.server"),
     POLYMATH_SECRET("Pack.upload.polymath.secret"),
+    LOBFILE_API_KEY("Pack.upload.lobfile.api-key"),
+    LOBFILE_PACK_NAME("Pack.upload.lobfile.pack-name"),
 
     SEND_PRE_JOIN("Pack.dispatch.send_pre_join"),
     SEND_ON_JOIN("Pack.dispatch.send_on_join"),

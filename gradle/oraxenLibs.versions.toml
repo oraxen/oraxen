@@ -125,10 +125,6 @@ javax-json = { module = "org.glassfish:javax.json", version = "1.1.4" }
 # Repo: https://repo.oraxen.com/releases/
 protectionlib = { module = "io.th0rgal:protectionlib", version = "1.8.1" }
 
-# InventoryFramework https://github.com/stefvanschie/IF
-# Repo: Maven Central
-inventoryframework = { module = "com.github.stefvanschie.inventoryframework:IF", version = "0.11.6" }
-
 # Repo: Maven Central
 # https://github.com/mfnalex/CustomBlockData
 custom-block-data = { module = "com.jeff-media:custom-block-data", version = "2.2.5" }
@@ -170,7 +166,6 @@ libraries-shade = [
     "triumph-gui",
     "javax-json",
     "protectionlib",
-    "inventoryframework",
     "custom-block-data",
     "more-persistent-data-types",
     "persistent-data-serializer",

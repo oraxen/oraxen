@@ -139,7 +139,7 @@ Oraxen supports both ProtocolLib and PacketEvents:
 
 Dependencies are managed via gradle/oraxenLibs.versions.toml:
 - **libraries-bukkit**: Loaded via plugin.yml libraries (Adventure, Gson, etc.)
-- **libraries-shade**: Shaded and relocated (BStats, ProtectionLib, InventoryFramework)
+- **libraries-shade**: Shaded and relocated (BStats, ProtectionLib, TriumphGUI)
 - **plugins**: Soft dependencies (ProtocolLib, PlaceholderAPI, MythicMobs, etc.)
 
 All shaded dependencies are relocated to io.th0rgal.oraxen.shaded.* to avoid conflicts.

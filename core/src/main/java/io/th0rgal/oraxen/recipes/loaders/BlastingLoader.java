@@ -15,7 +15,7 @@ public class BlastingLoader extends RecipeLoader {
 		if (inputSection == null) return;
 		RecipeChoice recipeChoice = getRecipeChoice(inputSection);
 		if (recipeChoice == null) return;
-		BlastingRecipe recipe = new BlastingRecipe(getNamespacedKey(), getResult(),
+		BlastingRecipe recipe = new BlastingRecipe(getNamespacedKey(), getValidResult(),
 				recipeChoice, getSection().getInt("experience"), getSection().getInt("cookingTime"));
 		loadRecipe(recipe);
 	}

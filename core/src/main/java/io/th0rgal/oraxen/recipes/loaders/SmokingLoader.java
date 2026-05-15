@@ -15,7 +15,7 @@ public class SmokingLoader extends RecipeLoader {
 		if (inputSection == null) return;
 		RecipeChoice recipeChoice = getRecipeChoice(inputSection);
 		if (recipeChoice == null) return;
-		SmokingRecipe recipe = new SmokingRecipe(getNamespacedKey(), getResult(),
+		SmokingRecipe recipe = new SmokingRecipe(getNamespacedKey(), getValidResult(),
 				recipeChoice, getSection().getInt("experience"), getSection().getInt("cookingTime"));
 		loadRecipe(recipe);
 	}

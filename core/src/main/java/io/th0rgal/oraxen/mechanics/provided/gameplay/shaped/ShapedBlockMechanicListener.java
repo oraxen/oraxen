@@ -220,15 +220,19 @@ public class ShapedBlockMechanicListener implements Listener {
         if (!event.isNewChunk()) return;
 
         Chunk chunk = event.getChunk();
+        Location chunkLocation = new Location(chunk.getWorld(), chunk.getX() << 4,
+            chunk.getWorld().getMinHeight(), chunk.getZ() << 4);
 
         // Schedule conversion for next tick to ensure chunk is fully loaded
-        SchedulerUtil.runTaskLater(1L, () -> convertWaxedCopperInChunk(chunk));
+        SchedulerUtil.runAtLocationLater(chunkLocation, 1L, () -> convertWaxedCopperInChunk(chunk));
     }
 
     /**
      * Convert all waxed copper blocks in a chunk to non-waxed variants.
      */
     private void convertWaxedCopperInChunk(Chunk chunk) {
+        if (!chunk.isLoaded()) return;
+
         int minY = chunk.getWorld().getMinHeight();
         int maxY = chunk.getWorld().getMaxHeight();
 

@@ -54,6 +54,13 @@ public abstract class RecipeLoader {
         return result;
     }
 
+    protected ItemStack getValidResult() {
+        ItemStack result = getResult();
+        if (result == null || result.isEmpty())
+            throw new IllegalArgumentException("Recipe result is missing or invalid");
+        return result;
+    }
+
     protected ItemStack getIndredientItemStack(ConfigurationSection ingredientSection) {
         if (ingredientSection.isString("oraxen_item"))
             return ItemUpdater.updateItem(OraxenItems.getItemById(ingredientSection.getString("oraxen_item")).build());

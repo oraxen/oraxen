@@ -21,7 +21,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,15 +45,11 @@ public class ReloadCommand {
                 // Use runForEntity for Folia compatibility - inventory must be accessed on player's region thread
                 SchedulerUtil.runForEntity(player, () -> {
                     PlayerInventory inventory = player.getInventory();
-                    for (int i = 0; i < inventory.getSize(); i++) {
-                        ItemStack oldItem = inventory.getItem(i);
-                        ItemStack newItem = ItemUpdater.updateItem(oldItem);
-                        if (oldItem == null || oldItem.equals(newItem))
-                            continue;
-                        inventory.setItem(i, newItem);
-                    }
+                    ItemUpdater.updateInventory(inventory);
+                    ItemUpdater.updateInventory(player.getEnderChest());
                 });
             }
+            ItemUpdater.updateLoadedEntityContents();
         }
 
         if (Settings.UPDATE_FURNITURE.toBool() && Settings.UPDATE_FURNITURE_ON_RELOAD.toBool()) {
