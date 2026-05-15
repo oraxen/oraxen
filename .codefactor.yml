@@ -1,0 +1,3 @@
+exclude:
+  # Version-specific Minecraft internals intentionally duplicate adapter logic.
+  - "v*/src/main/java/io/th0rgal/oraxen/nms/v*/NMSHandler.java"
