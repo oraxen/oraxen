@@ -209,7 +209,7 @@ Pack:
       secret: "oraxen" # change this if you host your own polymath to limit access to resource pack uploading
     lobfile:
       api-key: ""
-      pack-name: Oraxen
+      pack-name: Oraxen # Will use <pack-name>_<version> when using multi version packs
     self-host:
       host: "0.0.0.0" # The IP address to bind the HTTP server to (0.0.0.0 = listen on all interfaces)
       port: 8080 # The port the HTTP server will listen on
