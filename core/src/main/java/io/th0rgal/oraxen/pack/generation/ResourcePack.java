@@ -1038,8 +1038,9 @@ public class ResourcePack {
         final JsonObject output = new JsonObject();
         final JsonArray providers = new JsonArray();
         for (final Glyph glyph : fontManager.getGlyphs()) {
-            if (!glyph.hasBitmap())
-                providers.add(glyph.toJson());
+            if (glyph.hasBitmap()) continue;
+            JsonObject glyphJson = glyph.toJson();
+            if (glyphJson != null) providers.add(glyphJson);
         }
         for (FontManager.GlyphBitMap glyphBitMap : FontManager.glyphBitMaps.values()) {
             providers.add(glyphBitMap.toJson(fontManager));

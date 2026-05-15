@@ -149,7 +149,10 @@ public class BackpackCosmeticListener implements Listener {
         scheduleBackpackMountResync(player);
     }
 
+    // Schedules two resyncs because mount/dismount packets can arrive out of order with the
+    // passenger-list updates the client uses; the second pass is a safety net for that race.
     private void scheduleBackpackMountResync(Player player) {
+        manager.requestResync(player);
         SchedulerUtil.runTaskLater(1L, () -> manager.resyncBackpackMount(player));
         SchedulerUtil.runTaskLater(2L, () -> manager.resyncBackpackMount(player));
     }

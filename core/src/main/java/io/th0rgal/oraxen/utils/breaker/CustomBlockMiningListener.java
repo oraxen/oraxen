@@ -37,7 +37,13 @@ import java.util.concurrent.ConcurrentHashMap;
 public class CustomBlockMiningListener implements Listener {
 
     private static final NamespacedKey BREAK_SPEED_KEY = NamespacedKey.fromString("oraxen:custom_breaking_speed");
+    // Vanilla baseline: a hardness-1 block under a bare hand takes ~4.17 ticks per hit
+    // (1 / 0.24 ≈ 4.17). Dividing 0.24 by the block hardness gives the per-tick fraction we
+    // need to add to the player's BLOCK_BREAK_SPEED attribute to match the custom hardness.
+    private static final double VANILLA_BREAK_SPEED_BASE = 0.24D;
     private final Map<UUID, AttributeModifier> modifierMap = new ConcurrentHashMap<>();
+    // Cache of the resolved AttributeModifier constructor (varies by server version).
+    private static volatile ModifierFactory cachedModifierFactory;
 
     /**
      * Returns true if the BLOCK_BREAK_SPEED attribute is available on this server version.
@@ -137,7 +143,7 @@ public class CustomBlockMiningListener implements Listener {
         if (BREAK_SPEED_KEY == null || blockBreakSpeed == null) return null;
 
         final double speedFactor = Math.max(0.01D,
-                0.24D / miningProfile.hardness() * getToolSpeedMultiplier(player, miningProfile.drop()));
+                VANILLA_BREAK_SPEED_BASE / miningProfile.hardness() * getToolSpeedMultiplier(player, miningProfile.drop()));
         return instantiateModifier(speedFactor - 1.0D);
     }
 
@@ -188,12 +194,29 @@ public class CustomBlockMiningListener implements Listener {
 
     @Nullable
     private AttributeModifier instantiateModifier(final double amount) {
+        ModifierFactory factory = cachedModifierFactory;
+        if (factory == null) {
+            factory = resolveModifierFactory();
+            cachedModifierFactory = factory;
+        }
+        return factory == null ? null : factory.create(amount);
+    }
+
+    @Nullable
+    private ModifierFactory resolveModifierFactory() {
         try {
             final Class<?> slotGroupClass = Class.forName("org.bukkit.inventory.EquipmentSlotGroup");
             final Object handGroup = slotGroupClass.getField("HAND").get(null);
             final Constructor<AttributeModifier> constructor = AttributeModifier.class.getConstructor(
                     NamespacedKey.class, double.class, AttributeModifier.Operation.class, slotGroupClass);
-            return constructor.newInstance(BREAK_SPEED_KEY, amount, AttributeModifier.Operation.MULTIPLY_SCALAR_1, handGroup);
+            return amount -> {
+                try {
+                    return constructor.newInstance(BREAK_SPEED_KEY, amount,
+                            AttributeModifier.Operation.MULTIPLY_SCALAR_1, handGroup);
+                } catch (ReflectiveOperationException ignored) {
+                    return null;
+                }
+            };
         } catch (ReflectiveOperationException ignored) {
             // Fall through to older constructor variants.
         }
@@ -201,13 +224,18 @@ public class CustomBlockMiningListener implements Listener {
         try {
             final Constructor<AttributeModifier> constructor = AttributeModifier.class.getConstructor(
                     UUID.class, String.class, double.class, AttributeModifier.Operation.class, EquipmentSlot.class);
-            return constructor.newInstance(
-                    UUID.nameUUIDFromBytes(BREAK_SPEED_KEY.asString().getBytes()),
-                    BREAK_SPEED_KEY.getKey().toLowerCase(Locale.ROOT),
-                    amount,
-                    AttributeModifier.Operation.MULTIPLY_SCALAR_1,
-                    EquipmentSlot.HAND
-            );
+            return amount -> {
+                try {
+                    return constructor.newInstance(
+                            UUID.nameUUIDFromBytes(BREAK_SPEED_KEY.asString().getBytes()),
+                            BREAK_SPEED_KEY.getKey().toLowerCase(Locale.ROOT),
+                            amount,
+                            AttributeModifier.Operation.MULTIPLY_SCALAR_1,
+                            EquipmentSlot.HAND);
+                } catch (ReflectiveOperationException ignored) {
+                    return null;
+                }
+            };
         } catch (ReflectiveOperationException ignored) {
             // Fall through to the oldest constructor variant.
         }
@@ -215,15 +243,25 @@ public class CustomBlockMiningListener implements Listener {
         try {
             final Constructor<AttributeModifier> constructor = AttributeModifier.class.getConstructor(
                     UUID.class, String.class, double.class, AttributeModifier.Operation.class);
-            return constructor.newInstance(
-                    UUID.nameUUIDFromBytes(BREAK_SPEED_KEY.asString().getBytes()),
-                    BREAK_SPEED_KEY.getKey().toLowerCase(Locale.ROOT),
-                    amount,
-                    AttributeModifier.Operation.MULTIPLY_SCALAR_1
-            );
+            return amount -> {
+                try {
+                    return constructor.newInstance(
+                            UUID.nameUUIDFromBytes(BREAK_SPEED_KEY.asString().getBytes()),
+                            BREAK_SPEED_KEY.getKey().toLowerCase(Locale.ROOT),
+                            amount,
+                            AttributeModifier.Operation.MULTIPLY_SCALAR_1);
+                } catch (ReflectiveOperationException ignored) {
+                    return null;
+                }
+            };
         } catch (ReflectiveOperationException ignored) {
             return null;
         }
+    }
+
+    @FunctionalInterface
+    private interface ModifierFactory {
+        @Nullable AttributeModifier create(double amount);
     }
 
     private record MiningProfile(double hardness, Drop drop) {}

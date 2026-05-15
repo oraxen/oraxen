@@ -189,10 +189,26 @@ public class ConfigsManager {
         for (String key : defaultConfiguration.getKeys(true)) {
             if (!skippedYamlKeys.stream().filter(key::startsWith).toList().isEmpty())
                 continue;
-            if (configuration.get(key) == null) {
+            Object currentValue = configuration.get(key);
+            if (currentValue == null) {
                 updated = true;
                 Message.UPDATING_CONFIG.log(AdventureUtils.tagResolver("option", key));
                 configuration.set(key, defaultConfiguration.get(key));
+                continue;
+            }
+            // Migrate language values that lost a required placeholder (e.g. older
+            // installs of general.reload missing the new <reloaded> tag introduced in 1.214.0).
+            if (configName.startsWith("languages/")
+                    && currentValue instanceof String currentString
+                    && defaultConfiguration.get(key) instanceof String defaultString) {
+                for (String placeholder : REQUIRED_LANG_PLACEHOLDERS.getOrDefault(key, List.of())) {
+                    if (defaultString.contains(placeholder) && !currentString.contains(placeholder)) {
+                        updated = true;
+                        Message.UPDATING_CONFIG.log(AdventureUtils.tagResolver("option", key));
+                        configuration.set(key, defaultString);
+                        break;
+                    }
+                }
             }
         }
 
@@ -220,6 +236,13 @@ public class ConfigsManager {
 
     private final List<String> removedYamlKeys = List.of(
             "armorpotioneffects");
+
+    // Keys in user language files that must be re-migrated if they're missing a
+    // placeholder that the bundled default provides. Without this, servers
+    // upgrading would keep the old reload string and the placeholder would render as nothing.
+    private static final Map<String, List<String>> REQUIRED_LANG_PLACEHOLDERS = Map.of(
+            "general.reload", List.of("<reloaded>")
+    );
 
     /**
      * Holds parsing state for glyph configuration processing.

@@ -6,6 +6,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.ResourcePackFormatUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -169,7 +170,11 @@ public class PackMcmetaUtils {
             file.setInputStream(new ByteArrayInputStream(content));
             JsonElement parsed = JsonParser.parseString(new String(content, StandardCharsets.UTF_8));
             return parsed.isJsonObject() ? parsed.getAsJsonObject() : null;
-        } catch (Exception ignored) {
+        } catch (Exception exception) {
+            if (Settings.DEBUG.toBool()) {
+                Logs.logWarning("PackMcmetaUtils.readVirtualFileJsonObject failed for "
+                        + file.getPath() + ": " + exception.getMessage());
+            }
             return null;
         }
     }
@@ -183,11 +188,21 @@ public class PackMcmetaUtils {
                 ? overlays.getAsJsonArray("entries")
                 : new JsonArray();
 
+        // De-duplicate by directory. Existing entries from the user's pack take precedence
+        // over freshly-imported ones with the same directory.
+        java.util.Set<String> seenDirectories = new java.util.HashSet<>();
         JsonArray mergedEntries = new JsonArray();
-        for (JsonElement entry : additionalEntries) {
-            mergedEntries.add(entry.deepCopy());
-        }
         for (JsonElement entry : existingEntries) {
+            mergedEntries.add(entry.deepCopy());
+            if (entry.isJsonObject() && entry.getAsJsonObject().has("directory")) {
+                seenDirectories.add(entry.getAsJsonObject().get("directory").getAsString());
+            }
+        }
+        for (JsonElement entry : additionalEntries) {
+            String directory = entry.isJsonObject() && entry.getAsJsonObject().has("directory")
+                    ? entry.getAsJsonObject().get("directory").getAsString()
+                    : null;
+            if (directory != null && !seenDirectories.add(directory)) continue;
             mergedEntries.add(entry.deepCopy());
         }
 

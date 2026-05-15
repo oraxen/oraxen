@@ -11,13 +11,11 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class SoulBoundMechanicListener implements Listener {
@@ -34,7 +32,6 @@ public class SoulBoundMechanicListener implements Listener {
         if (event.getKeepInventory())
             return;
 
-        Random random = ThreadLocalRandom.current();
         List<ItemStack> items = new ArrayList<>();
         for (Iterator<ItemStack> iterator = event.getDrops().iterator(); iterator.hasNext();) {
             ItemStack drop = iterator.next();
@@ -43,7 +40,8 @@ public class SoulBoundMechanicListener implements Listener {
                 continue;
 
             SoulBoundMechanic mechanic = (SoulBoundMechanic) factory.getMechanic(itemID);
-            if (random.nextInt(100) >= mechanic.getLoseChance() * 100) {
+            // Keep the drop with probability (1 - loseChance).
+            if (ThreadLocalRandom.current().nextDouble() >= mechanic.getLoseChance()) {
                 items.add(drop);
                 iterator.remove();
             }
@@ -85,8 +83,9 @@ public class SoulBoundMechanicListener implements Listener {
             return null;
 
         try {
-            return (List<ItemStack>) GET_ITEMS_TO_KEEP_METHOD.invoke(event);
-        } catch (IllegalAccessException | InvocationTargetException ignored) {
+            Object result = GET_ITEMS_TO_KEEP_METHOD.invoke(event);
+            return result instanceof List<?> ? (List<ItemStack>) result : null;
+        } catch (ReflectiveOperationException | RuntimeException ignored) {
             return null;
         }
     }

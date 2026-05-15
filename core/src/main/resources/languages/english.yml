@@ -122,9 +122,11 @@ command:
   remove_branding:
     success: "<prefix><#55ffa4>Oraxen branding removed from <#43fa8c><files><#55ffa4> language file(s). Disabled default assets and the welcome sound. Run <#43c9fa>/oraxen reload all<#55ffa4> to regenerate the pack and configs."
     failed: "<prefix><#fa4943>Failed to remove Oraxen branding. Check the console for details."
+    confirm: "<prefix><#fa9343>This will rewrite pack language files. Run <#43c9fa>/oraxen remove-branding confirm<#fa9343> to proceed."
   remove_defaults:
     success: "<prefix><#55ffa4>Removed <#43fa8c><files><#55ffa4> default file(s). Disabled default configs, default assets and the welcome sound. Required glyphs were kept. Run <#43c9fa>/oraxen reload all<#55ffa4> to regenerate the pack and configs."
     failed: "<prefix><#fa4943>Removed <#43fa8c><deleted><#fa4943> default file(s), but failed to remove <#43fa8c><failed><#fa4943>. Check the console for details."
+    confirm: "<prefix><#fa9343>This will permanently delete default items, recipes, glyphs, models and textures shipped with Oraxen. Run <#43c9fa>/oraxen remove-defaults confirm<#fa9343> to proceed."
 
 mechanics:
   not_enough_exp: "<prefix><#fa4943>You need more experience to do this"

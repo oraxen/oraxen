@@ -7,6 +7,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -43,9 +44,7 @@ public class BackpackCosmeticManager {
         // Generate a unique entity ID for the armor stand
         int entityId = NMSHandlers.getHandler().getNextEntityId();
 
-        // Create backpack data with initial yaw locked to body yaw
-        float initialYaw = player.getBodyYaw();
-        BackpackData data = new BackpackData(entityId, mechanic, displayItem, initialYaw, player.getLocation());
+        BackpackData data = new BackpackData(entityId, mechanic, displayItem);
         activeBackpacks.put(playerId, data);
 
         // Spawn the backpack for all nearby players
@@ -182,10 +181,13 @@ public class BackpackCosmeticManager {
             BackpackData data = entry.getValue();
             BackpackCosmeticMechanic mechanic = data.getMechanic();
             int viewDistance = mechanic.getViewDistance();
+            boolean viewersChanged = false;
+
             // Also ensure owner can see their own backpack if enabled
             if (mechanic.isVisibleToSelf() && !data.getViewers().contains(owner.getUniqueId())) {
                 spawnBackpackForViewer(owner, owner, data);
                 data.addViewer(owner.getUniqueId());
+                viewersChanged = true;
             }
 
             // Find new viewers
@@ -198,20 +200,38 @@ public class BackpackCosmeticManager {
                 if (inRange && !isViewer) {
                     spawnBackpackForViewer(potentialViewer, owner, data);
                     data.addViewer(potentialViewer.getUniqueId());
+                    viewersChanged = true;
                 } else if (!inRange && isViewer) {
                     data.getViewers().remove(potentialViewer.getUniqueId());
                     NMSHandlers.getHandler().sendEntityDestroy(potentialViewer, data.getEntityId());
+                    viewersChanged = true;
                 }
             }
 
             // Remove offline viewers
-            data.getViewers().removeIf(viewerId -> {
+            viewersChanged |= data.getViewers().removeIf(viewerId -> {
                 Player viewer = Bukkit.getPlayer(viewerId);
                 return viewer == null || !viewer.isOnline();
             });
 
-            resyncBackpackMount(owner);
+            // Only resync mount packets when the viewer set or passenger list actually changed;
+            // periodic resyncs every tick are an O(N*M) packet storm.
+            int[] currentPassengers = getMergedPassengerIds(owner, data.getEntityId());
+            if (viewersChanged || data.consumeNeedsResync()
+                    || !Arrays.equals(currentPassengers, data.getLastSyncedPassengers())) {
+                resyncBackpackMount(owner);
+                data.setLastSyncedPassengers(currentPassengers);
+            }
         }
+    }
+
+    /**
+     * Force a resync of the mount packets on the next refresh tick.
+     * Called from passenger mount/dismount events.
+     */
+    public void requestResync(Player owner) {
+        BackpackData data = activeBackpacks.get(owner.getUniqueId());
+        if (data != null) data.markNeedsResync();
     }
 
     private void spawnBackpackForViewers(Player owner, BackpackData data) {
@@ -251,8 +271,6 @@ public class BackpackCosmeticManager {
 
         // Send initial head rotation to face the right direction
         NMSHandlers.getHandler().sendEntityHeadRotation(viewer, data.getEntityId(), owner.getBodyYaw());
-
-        // Debug: io.th0rgal.oraxen.utils.logs.Logs.logSuccess("[Backpack] Spawned and mounted armor stand for " + owner.getName());
     }
 
     private void sendBackpackMountPacket(Player viewer, Player owner, BackpackData data) {
@@ -284,32 +302,6 @@ public class BackpackCosmeticManager {
         data.getViewers().clear();
     }
 
-    private Location calculateBackpackLocation(Player player, BackpackData data) {
-        Location loc = player.getLocation().clone();
-        BackpackCosmeticMechanic mechanic = data.getMechanic();
-
-        // Use body yaw directly - in Minecraft, body yaw only changes when player
-        // actually moves/turns their body, not when just looking around with head.
-        // This provides natural backpack behavior without complex tracking.
-        float bodyYaw = player.getBodyYaw();
-        double yawRad = Math.toRadians(bodyYaw);
-
-        double offsetX = mechanic.getOffsetX();
-        double offsetZ = mechanic.getOffsetZ();
-
-        // Rotate offset based on body direction
-        double rotatedX = offsetX * Math.cos(yawRad) - offsetZ * Math.sin(yawRad);
-        double rotatedZ = offsetX * Math.sin(yawRad) + offsetZ * Math.cos(yawRad);
-
-        loc.add(rotatedX, mechanic.getOffsetY(), rotatedZ);
-
-        // Set yaw to body yaw and pitch to 0
-        loc.setYaw(bodyYaw);
-        loc.setPitch(0);
-
-        return loc;
-    }
-
     private boolean isWithinViewDistance(Player viewer, Player target, int viewDistance) {
         if (!viewer.getWorld().equals(target.getWorld())) return false;
         return viewer.getLocation().distanceSquared(target.getLocation()) <= viewDistance * viewDistance;
@@ -319,10 +311,7 @@ public class BackpackCosmeticManager {
      * Clean up when plugin disables
      */
     public void cleanup() {
-        for (Map.Entry<UUID, BackpackData> entry : activeBackpacks.entrySet()) {
-            // Always destroy for all viewers, regardless of owner online status
-            destroyBackpackForViewers(entry.getValue());
-        }
+        activeBackpacks.values().forEach(this::destroyBackpackForViewers);
         activeBackpacks.clear();
     }
 
@@ -334,31 +323,13 @@ public class BackpackCosmeticManager {
         private final BackpackCosmeticMechanic mechanic;
         private final ItemStack displayItem;
         private final Set<UUID> viewers = ConcurrentHashMap.newKeySet();
-        private float lockedYaw;
-        private Location lastPosition;
+        private volatile boolean needsResync;
+        private volatile int[] lastSyncedPassengers = new int[0];
 
-        public BackpackData(int entityId, BackpackCosmeticMechanic mechanic, ItemStack displayItem, float initialYaw, Location initialPosition) {
+        public BackpackData(int entityId, BackpackCosmeticMechanic mechanic, ItemStack displayItem) {
             this.entityId = entityId;
             this.mechanic = mechanic;
             this.displayItem = displayItem;
-            this.lockedYaw = initialYaw;
-            this.lastPosition = initialPosition.clone();
-        }
-
-        public float getLockedYaw() {
-            return lockedYaw;
-        }
-
-        public void setLockedYaw(float yaw) {
-            this.lockedYaw = yaw;
-        }
-
-        public Location getLastPosition() {
-            return lastPosition;
-        }
-
-        public void setLastPosition(Location pos) {
-            this.lastPosition = pos.clone();
         }
 
         public int getEntityId() {
@@ -379,6 +350,24 @@ public class BackpackCosmeticManager {
 
         public void addViewer(UUID viewerId) {
             viewers.add(viewerId);
+        }
+
+        void markNeedsResync() {
+            this.needsResync = true;
+        }
+
+        boolean consumeNeedsResync() {
+            if (!needsResync) return false;
+            needsResync = false;
+            return true;
+        }
+
+        int[] getLastSyncedPassengers() {
+            return lastSyncedPassengers;
+        }
+
+        void setLastSyncedPassengers(int[] passengers) {
+            this.lastSyncedPassengers = passengers;
         }
     }
 }
