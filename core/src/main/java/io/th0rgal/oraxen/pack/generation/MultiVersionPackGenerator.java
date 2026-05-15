@@ -61,7 +61,7 @@ import java.util.List;
  *   generation:
  *     multi_version_packs: true
  *   upload:
- *     type: polymath  # self-host is not supported for multi-version
+ *     type: lobfile  # self-host is not supported for multi-version
  * </pre>
  *
  * @see PackVersionManager

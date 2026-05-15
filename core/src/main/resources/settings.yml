@@ -113,7 +113,7 @@ Pack:
     #
     # Requirements:
     # - ViaVersion OR ProtocolSupport plugin for version detection (without these, all players get server version pack)
-    # - Upload type must be "polymath" or "external" (NOT "self-host" - can only serve one file)
+    # - Upload type must be "lobfile", "polymath", or "external" (NOT "self-host" - can only serve one file)
     #
     # How it works:
     # - On player join, detects their client version via ViaVersion/ProtocolSupport API
@@ -203,10 +203,13 @@ Pack:
 
   upload:
     enabled: true
-    type: polymath #transfer.sh, polymath, or self-host
+    type: polymath #lobfile, polymath, self-host, or external
     polymath:
       server: atlas.oraxen.com # you can also host your own polymath instance
       secret: "oraxen" # change this if you host your own polymath to limit access to resource pack uploading
+    lobfile:
+      api-key: ""
+      pack-name: Oraxen
     self-host:
       host: "0.0.0.0" # The IP address to bind the HTTP server to (0.0.0.0 = listen on all interfaces)
       port: 8080 # The port the HTTP server will listen on

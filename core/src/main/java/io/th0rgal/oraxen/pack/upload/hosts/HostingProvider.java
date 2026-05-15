@@ -7,6 +7,10 @@ public interface HostingProvider {
 
     boolean uploadPack(File resourcePack);
 
+    default boolean uploadPack(File resourcePack, String packName) {
+        return uploadPack(resourcePack);
+    }
+
     String getPackURL();
 
     byte[] getSHA1();

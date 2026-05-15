@@ -137,6 +137,8 @@ public enum Settings {
 
     POLYMATH_SERVER("Pack.upload.polymath.server"),
     POLYMATH_SECRET("Pack.upload.polymath.secret"),
+    LOBFILE_API_KEY("Pack.upload.lobfile.api-key"),
+    LOBFILE_PACK_NAME("Pack.upload.lobfile.pack-name"),
 
     SEND_PRE_JOIN("Pack.dispatch.send_pre_join"),
     SEND_ON_JOIN("Pack.dispatch.send_on_join"),

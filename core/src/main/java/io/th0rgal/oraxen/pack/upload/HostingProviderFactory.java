@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.pack.upload;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
+import io.th0rgal.oraxen.pack.upload.hosts.Lobfile;
 import io.th0rgal.oraxen.pack.upload.hosts.Polymath;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.ConfigurationSection;
@@ -34,6 +35,11 @@ public final class HostingProviderFactory {
     public static HostingProvider createHostingProvider(boolean allowSelfHost) {
         HostingProvider provider = switch (Settings.UPLOAD_TYPE.toString().toLowerCase(Locale.ROOT)) {
             case "polymath" -> new Polymath(Settings.POLYMATH_SERVER.toString());
+            case "lobfile" -> {
+                ConfigurationSection lobfileConfig = OraxenPlugin.get().getConfigsManager().getSettings()
+                        .getConfigurationSection("Pack.upload.lobfile");
+                yield new Lobfile(lobfileConfig);
+            }
             case "self-host" -> {
                 if (!allowSelfHost) {
                     Logs.logError("SelfHost cannot be used with multi-version packs, falling back to Polymath");

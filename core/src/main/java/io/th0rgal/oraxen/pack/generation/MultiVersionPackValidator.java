@@ -32,7 +32,7 @@ public final class MultiVersionPackValidator {
         if ("self-host".equals(uploadType)) {
             Logs.logError("Multi-version packs are incompatible with 'self-host' upload type!");
             Logs.logError("Self-host can only serve a single pack file at /pack.zip");
-            Logs.logError("Change 'Pack.upload.type' to 'polymath' or 'external' to use multi-version packs");
+            Logs.logError("Change 'Pack.upload.type' to 'lobfile', 'polymath', or 'external' to use multi-version packs");
             hasErrors = true;
         }
 

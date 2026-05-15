@@ -169,7 +169,7 @@ public class MultiVersionUploadManager {
         EventUtils.callEvent(event);
 
         // Upload pack (provider calculates SHA-1 internally)
-        boolean success = provider.uploadPack(packVersion.getPackFile());
+        boolean success = provider.uploadPack(packVersion.getPackFile(), packVersion.getMinecraftVersion());
         if (!success) {
             throw new IOException("Failed to upload pack");
         }
