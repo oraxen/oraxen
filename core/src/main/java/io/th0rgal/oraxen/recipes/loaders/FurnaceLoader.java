@@ -16,7 +16,7 @@ public class FurnaceLoader extends RecipeLoader {
         if (inputSection == null) return;
         RecipeChoice recipeChoice = getRecipeChoice(inputSection);
         if (recipeChoice == null) return;
-        FurnaceRecipe recipe = new FurnaceRecipe(getNamespacedKey(), getResult(),
+        FurnaceRecipe recipe = new FurnaceRecipe(getNamespacedKey(), getValidResult(),
                 recipeChoice, getSection().getInt("experience"), getSection().getInt("cookingTime"));
         // addToWhitelistedRecipes(recipe); <- no whitelist for furnace recipes
         loadRecipe(recipe);

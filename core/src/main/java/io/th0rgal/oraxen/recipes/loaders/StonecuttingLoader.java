@@ -15,7 +15,7 @@ public class StonecuttingLoader extends RecipeLoader {
 		if (inputSection == null) return;
 		RecipeChoice recipeChoice = getRecipeChoice(inputSection);
 		if (recipeChoice == null) return;
-		StonecuttingRecipe recipe = new StonecuttingRecipe(getNamespacedKey(), getResult(), recipeChoice);
+		StonecuttingRecipe recipe = new StonecuttingRecipe(getNamespacedKey(), getValidResult(), recipeChoice);
 		loadRecipe(recipe);
 	}
 }

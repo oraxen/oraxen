@@ -15,7 +15,7 @@ public class ShapedLoader extends RecipeLoader {
 
     @Override
     public void registerRecipe() {
-        ShapedRecipe recipe = new ShapedRecipe(getNamespacedKey(), getResult());
+        ShapedRecipe recipe = new ShapedRecipe(getNamespacedKey(), getValidResult());
 
         List<String> shape = getSection().getStringList("shape");
         recipe.shape(shape.toArray(new String[0]));
