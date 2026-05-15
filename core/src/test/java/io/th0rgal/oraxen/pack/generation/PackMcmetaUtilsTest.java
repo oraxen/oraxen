@@ -248,8 +248,8 @@ class PackMcmetaUtilsTest {
 
         JsonArray entries = mcmeta.getAsJsonObject("overlays").getAsJsonArray("entries");
         assertEquals(2, entries.size());
-        assertEquals("betterhud_1_21_2", entries.get(0).getAsJsonObject().get("directory").getAsString());
-        assertEquals("overlay_1_20_2", entries.get(1).getAsJsonObject().get("directory").getAsString());
+        assertEquals("overlay_1_20_2", entries.get(0).getAsJsonObject().get("directory").getAsString());
+        assertEquals("betterhud_1_21_2", entries.get(1).getAsJsonObject().get("directory").getAsString());
     }
 
     @Test
@@ -300,8 +300,8 @@ class PackMcmetaUtilsTest {
         assertEquals("Oraxen", merged.getAsJsonObject("pack").get("description").getAsString());
         JsonArray entries = merged.getAsJsonObject("overlays").getAsJsonArray("entries");
         assertEquals(2, entries.size());
-        assertEquals("betterhud_overlay", entries.get(0).getAsJsonObject().get("directory").getAsString());
-        assertEquals("oraxen_overlay", entries.get(1).getAsJsonObject().get("directory").getAsString());
+        assertEquals("oraxen_overlay", entries.get(0).getAsJsonObject().get("directory").getAsString());
+        assertEquals("betterhud_overlay", entries.get(1).getAsJsonObject().get("directory").getAsString());
     }
 
     private static VirtualFile jsonFile(String parentFolder, String name, String content) {
