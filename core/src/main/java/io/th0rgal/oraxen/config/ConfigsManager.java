@@ -65,7 +65,6 @@ public class ConfigsManager {
     private File itemsFolder;
     private File glyphsFolder;
     private File schematicsFolder;
-    private File gesturesFolder;
 
     public ConfigsManager(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -169,14 +168,6 @@ public class ConfigsManager {
             schematicsFolder.mkdirs();
             if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
                 tempManager.extractConfigsInFolder("schematics", "schem");
-        }
-
-        // check gestures
-        gesturesFolder = new File(plugin.getDataFolder(), "gestures");
-        if (!gesturesFolder.exists()) {
-            gesturesFolder.mkdirs();
-            if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
-                tempManager.extractConfigsInFolder("gestures", "yml");
         }
 
     }
