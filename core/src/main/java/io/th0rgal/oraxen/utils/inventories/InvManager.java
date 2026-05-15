@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.utils.inventories;
 
-import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
+import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.PaginatedGui;
 import io.th0rgal.oraxen.recipes.CustomRecipe;
 import org.bukkit.entity.Player;
@@ -27,7 +27,7 @@ public class InvManager {
     }
 
 
-    public ChestGui getRecipesShowcase(final int page, final List<CustomRecipe> filteredRecipes) {
+    public Gui getRecipesShowcase(final int page, final List<CustomRecipe> filteredRecipes) {
         return new RecipesView().create(page, filteredRecipes);
     }
 }
