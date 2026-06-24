@@ -2,7 +2,7 @@ name: Generate Oraxen Schema
 
 on:
   push:
-    branches: [master, develop]
+    branches: [master, develop, 1.218.0]
     paths:
       - 'core/src/main/java/io/th0rgal/oraxen/utils/schema/**'
       - 'core/src/main/java/io/th0rgal/oraxen/items/**'
@@ -15,7 +15,7 @@ on:
 jobs:
   generate-schema:
     runs-on: ubuntu-latest
-    if: github.repository == 'oraxen/oraxen'
+    # if: github.repository == 'oraxen/oraxen'
     permissions:
       contents: write
 
@@ -25,10 +25,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up JDK 21
+      - name: Set up JDK 25
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
+          java-version: '25'
           distribution: 'temurin'
           cache: 'gradle'
 
@@ -63,20 +63,21 @@ jobs:
         run: |
           mkdir -p test-server/plugins/Oraxen
           cp build/libs/oraxen-*.jar test-server/plugins/
-          
+
           # Download Paper server
           curl -sL -o test-server/paper.jar "https://api.papermc.io/v2/projects/paper/versions/1.21.11/builds/69/downloads/paper-1.21.11-69.jar"
-          
-          # Download CommandAPI (must match version in build.gradle.kts runServer)
-          curl -sL -o test-server/plugins/CommandAPI.jar "https://github.com/CommandAPI/CommandAPI/releases/download/11.1.0/CommandAPI-11.1.0-Paper.jar"
-          
+
+          # Download PacketEvents (must match version in gradle/oraxenLibs.versions.toml)
+          PACKETEVENTS_VERSION="2.10.0"
+          curl -sL -o test-server/plugins/PacketEvents.jar "https://github.com/retrooper/packetevents/releases/download/v${PACKETEVENTS_VERSION}/packetevents-spigot-${PACKETEVENTS_VERSION}.jar"
+
           # Accept EULA
           echo "eula=true" > test-server/eula.txt
-          
+
           # Create minimal server.properties
           echo "online-mode=false" > test-server/server.properties
           echo "max-tick-time=-1" >> test-server/server.properties
-          
+
           # Create Oraxen settings.yml with debug enabled to trigger schema generation
           echo "debug: true" > test-server/plugins/Oraxen/settings.yml
 
@@ -87,7 +88,7 @@ jobs:
           # Start server in background
           java -Xms512M -Xmx1G -jar paper.jar --nogui &
           SERVER_PID=$!
-          
+
           # Wait for schema to be generated
           echo "Waiting for server to start and generate schema..."
           for i in {1..90}; do
@@ -102,19 +103,19 @@ jobs:
             fi
             sleep 2
           done
-          
+
           # Graceful shutdown
           sleep 2
           kill $SERVER_PID 2>/dev/null || true
           sleep 3
-          
+
           # Verify schema was generated
           if [ ! -f "plugins/Oraxen/oraxen-schema.json" ]; then
             echo "ERROR: Schema not generated"
             cat logs/latest.log 2>/dev/null || true
             exit 1
           fi
-          
+
           echo "Schema generated successfully!"
 
       - name: Prepare schema artifacts
@@ -122,10 +123,10 @@ jobs:
           mkdir -p schemas
           cp test-server/plugins/Oraxen/oraxen-schema.json schemas/oraxen-schema.json
           cp test-server/plugins/Oraxen/oraxen-schema.json schemas/oraxen-schema-${{ steps.version.outputs.version }}.json
-          
+
           # Validate JSON
           python3 -c "import json; json.load(open('schemas/oraxen-schema.json'))"
-          
+
           echo "Schema size: $(wc -c < schemas/oraxen-schema.json) bytes"
           echo ""
           echo "Schema sections:"
