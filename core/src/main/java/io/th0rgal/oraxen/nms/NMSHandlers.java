@@ -47,18 +47,21 @@ public class NMSHandlers {
         }
 
         try {
-            handler = (NMSHandler) Class.forName("io.th0rgal.oraxen.nms.handler.NMSHandler")
+            String handlerClass = VersionUtil.getNMSVersion(MinecraftVersion.getCurrentVersion()) == VersionUtil.NMSVersion.v26_1_2
+                    ? "io.th0rgal.oraxen.nms.handler.java25.NMSHandler"
+                    : "io.th0rgal.oraxen.nms.handler.java21.NMSHandler";
+            handler = (NMSHandler) Class.forName(handlerClass)
                     .getConstructor().newInstance();
             if (Settings.DEBUG.toBool()) {
                 Logs.logSuccess("Version " + version + " has been detected.");
-                Logs.logInfo("Oraxen will use the guarded NMSHandler.");
+                Logs.logInfo("Oraxen will use " + handlerClass + ".");
             }
             Bukkit.getPluginManager().registerEvents(new NMSListeners(), OraxenPlugin.get());
             Listener packDispatchListener = handler.packDispatchListener();
             if (packDispatchListener != null) {
                 Bukkit.getPluginManager().registerEvents(packDispatchListener, OraxenPlugin.get());
             }
-        } catch (ReflectiveOperationException e) {
+        } catch (ReflectiveOperationException | LinkageError e) {
             Logs.logWarning("Failed to load guarded NMS handler; NMS features will be disabled...");
             if (Settings.DEBUG.toBool()) e.printStackTrace();
             handler = new NMSHandler.EmptyNMSHandler();

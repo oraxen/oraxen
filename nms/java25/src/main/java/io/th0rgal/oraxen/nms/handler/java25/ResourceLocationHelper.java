@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.nms.handler;
+package io.th0rgal.oraxen.nms.handler.java25;
 
 import java.lang.reflect.Method;
 

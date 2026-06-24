@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.nms.handler;
+package io.th0rgal.oraxen.nms.handler.java21;
 
 import com.destroystokyo.paper.event.player.PlayerConnectionCloseEvent;
 import io.papermc.paper.connection.PlayerConfigurationConnection;

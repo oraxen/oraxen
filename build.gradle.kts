@@ -113,7 +113,6 @@ allprojects {
 
 dependencies {
     implementation(project(path = ":core"))
-    implementation(project(path = ":nms", configuration = "reobf"))
 }
 
 
@@ -168,7 +167,15 @@ tasks {
     }
 
     shadowJar {
-        dependsOn(":nms:jar")
+        val nmsJava21Jar = project(":nms:java21").tasks.named<Jar>("jar")
+        val nmsJava25Jar = project(":nms:java25").tasks.named<Jar>("jar")
+        dependsOn(nmsJava21Jar, nmsJava25Jar)
+        from(nmsJava21Jar.flatMap { it.archiveFile }.map { zipTree(it) }) {
+            exclude("META-INF/**")
+        }
+        from(nmsJava25Jar.flatMap { it.archiveFile }.map { zipTree(it) }) {
+            exclude("META-INF/**")
+        }
 
         archiveClassifier = null
         oraxenLibs.bundles.libraries.shade.get().forEach {

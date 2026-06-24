@@ -1,14 +1,13 @@
 plugins {
     id("java")
     id("io.papermc.paperweight.userdev") version "2.0.0-beta.21"
-    id("com.gradleup.shadow") version "9.4.1"
 }
 
-// Single NMS source set. Version-specific behavior belongs behind runtime
-// VersionUtil/MinecraftVersion guards inside io.th0rgal.oraxen.nms.handler.
+// Java 21 NMS handler for Paper/Paper-fork 1.20.x through 1.21.11.
+// Keep this module free of Java 25 bytecode so it can be loaded on Java 21 servers.
 dependencies {
     compileOnly(project(":core"))
-    paperweight.paperDevBundle("26.1.2.build.5-alpha")
+    paperweight.paperDevBundle("1.21.11-R0.1-SNAPSHOT")
 }
 
 tasks {
@@ -16,7 +15,7 @@ tasks {
         options.encoding = Charsets.UTF_8.name()
     }
 
-    // Modern Paper dev bundles are Mojang-mapped at runtime; no reobf artifact is needed.
+    // Paper 1.21.11 runs Mojang-mapped plugins; publish the plain jar as the NMS artifact.
     matching { it.name == "reobfJar" }.configureEach {
         enabled = false
     }
@@ -28,5 +27,5 @@ configurations.named("reobf") {
 }
 
 java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(25))
+    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
 }
