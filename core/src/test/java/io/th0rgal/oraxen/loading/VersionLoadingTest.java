@@ -144,7 +144,6 @@ public class VersionLoadingTest {
 
         ProcessBuilder builder = gradleWrapper(projectDir, "shadowJar", "-x", "test");
         builder.directory(projectDir.toFile()).redirectErrorStream(true);
-        builder.environment().put("CI", "true");
         Process process = builder.start();
         String output = readAll(process);
         assertTrue(process.waitFor(10, TimeUnit.MINUTES), "Timed out while building Oraxen");
