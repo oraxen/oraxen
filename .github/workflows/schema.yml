@@ -1,21 +1,21 @@
-name: Generate Oraxen Schema
+name: Generate Schema
 
 on:
   push:
-    branches: [master, develop, 1.218.0]
+    branches: [master, develop]
     paths:
       - 'core/src/main/java/io/th0rgal/oraxen/utils/schema/**'
       - 'core/src/main/java/io/th0rgal/oraxen/items/**'
       - 'core/src/main/java/io/th0rgal/oraxen/mechanics/**'
       - 'build.gradle.kts'
       - 'core/build.gradle.kts'
-      - '.github/workflows/generate-schema.yml'
+      - '.github/workflows/schema.yml'
   workflow_dispatch:
 
 jobs:
   generate-schema:
     runs-on: ubuntu-latest
-    # if: github.repository == 'oraxen/oraxen'
+    if: github.repository == 'oraxen/oraxen'
     permissions:
       contents: write
 
@@ -66,10 +66,6 @@ jobs:
 
           # Download Paper server
           curl -sL -o test-server/paper.jar "https://api.papermc.io/v2/projects/paper/versions/1.21.11/builds/69/downloads/paper-1.21.11-69.jar"
-
-          # Download PacketEvents (must match version in gradle/oraxenLibs.versions.toml)
-          PACKETEVENTS_VERSION="2.10.0"
-          curl -sL -o test-server/plugins/PacketEvents.jar "https://github.com/retrooper/packetevents/releases/download/v${PACKETEVENTS_VERSION}/packetevents-spigot-${PACKETEVENTS_VERSION}.jar"
 
           # Accept EULA
           echo "eula=true" > test-server/eula.txt
@@ -148,7 +144,7 @@ jobs:
           # Only commit if changed
           if [ -f "schemas/oraxen-schema.json" ]; then
             git add schemas/oraxen-schema.json
-            git diff --staged --quiet || git commit -m "chore: update oraxen-schema.json for v${{ steps.version.outputs.version }}"
+            git diff --staged --quiet || git commit -m "Update Oraxen schema for v${{ steps.version.outputs.version }}"
             git pull --rebase origin master
             git push
           fi
