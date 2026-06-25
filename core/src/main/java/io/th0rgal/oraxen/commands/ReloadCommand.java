@@ -32,6 +32,7 @@ public class ReloadCommand {
     private static final String MESSAGES_RELOAD = "messages";
     private static final String HUD_RELOAD = "huds";
     private static final String PAINTINGS_RELOAD = "paintings";
+    private static final String DISCS_RELOAD = "discs";
 
     public static void reloadItems(@Nullable CommandSender sender) {
         sendReloadMessage(sender, ITEMS_RELOAD);
@@ -87,6 +88,7 @@ public class ReloadCommand {
         sendReloadMessage(sender, CONFIGS_RELOAD);
         OraxenPlugin.get().reloadConfigs();
         OraxenPlugin.get().reloadCustomPaintings();
+        OraxenPlugin.get().reloadCustomJukeboxSongs();
     }
 
     public static void reloadMessages(@Nullable CommandSender sender) {
@@ -100,6 +102,12 @@ public class ReloadCommand {
         OraxenPlugin.get().reloadCustomPaintings();
     }
 
+    public static void reloadDiscs(@Nullable CommandSender sender) {
+        sendReloadMessage(sender, DISCS_RELOAD);
+        OraxenPlugin.get().reloadConfigs();
+        OraxenPlugin.get().reloadCustomJukeboxSongs();
+    }
+
     private static void sendReloadMessage(@Nullable CommandSender sender, String reloaded) {
         Message.RELOAD.send(sender, AdventureUtils.tagResolver("reloaded", reloaded));
     }
@@ -109,7 +117,7 @@ public class ReloadCommand {
                 .withAliases("rl")
                 .withPermission("oraxen.command.reload")
                 .withArguments(new TextArgument("type").replaceSuggestions(
-                        ArgumentSuggestions.strings("items", "pack", "hud", "recipes", "configs", "messages", "paintings", "all")))
+                        ArgumentSuggestions.strings("items", "pack", "hud", "recipes", "configs", "messages", "paintings", "discs", "all")))
                 .executes((sender, args) -> {
                     switch (((String) args.get("type")).toUpperCase()) {
                         case "HUD" -> reloadHud(sender);
@@ -119,11 +127,13 @@ public class ReloadCommand {
                         case "CONFIGS" -> reloadConfigs(sender);
                         case "MESSAGES" -> reloadMessages(sender);
                         case "PAINTINGS" -> reloadPaintings(sender);
+                        case "DISCS" -> reloadDiscs(sender);
                         default -> {
                             MechanicsManager.unloadListeners();
                             MechanicsManager.unregisterTasks();
                             reloadMessages(sender);
                             reloadPaintings(sender);
+                            reloadDiscs(sender);
                             MechanicsManager.registerNativeMechanics();
                             reloadItems(sender);
                             reloadPack(sender);

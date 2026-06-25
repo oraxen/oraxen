@@ -5,7 +5,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.sounds.CustomSound;
-import io.th0rgal.oraxen.sounds.JukeboxDatapack;
 import io.th0rgal.oraxen.sounds.SoundManager;
 import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
@@ -75,16 +74,6 @@ class SoundGenerator {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
-
-        // Initialize JukeboxDatapack with jukebox sounds after processing all sounds
-        Collection<CustomSound> jukeboxSounds = customSounds.stream()
-                .filter(CustomSound::isJukeboxSound)
-                .toList();
-        if (!jukeboxSounds.isEmpty()) {
-            JukeboxDatapack jukeboxDatapack = new JukeboxDatapack(jukeboxSounds);
-            jukeboxDatapack.clearOldDataPack();
-            jukeboxDatapack.generateAssets(output);
         }
     }
 

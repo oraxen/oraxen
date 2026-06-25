@@ -32,6 +32,7 @@ import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
 import io.th0rgal.oraxen.recipes.builders.RecipeBuilder;
 import io.th0rgal.oraxen.recipes.RecipesManager;
+import io.th0rgal.oraxen.sounds.CustomJukeboxSongRegistry;
 import io.th0rgal.oraxen.sounds.SoundManager;
 import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
@@ -151,7 +152,7 @@ public class OraxenPlugin extends JavaPlugin {
         // CustomBlockData.registerListener(this); //Handle this manually
         hudManager = new HudManager(configsManager);
         fontManager = new FontManager(configsManager);
-        soundManager = new SoundManager(configsManager.getSound());
+        reloadCustomJukeboxSongs();
         OraxenItems.loadItems();
         fontManager.registerEvents();
         fontManager.verifyRequired(); // Verify the required glyph is there
@@ -256,6 +257,11 @@ public class OraxenPlugin extends JavaPlugin {
     public void reloadCustomPaintings() {
         CustomPaintingRegistry.reload(CustomPainting.fromConfigSection(
                 configsManager.getPaintings().getConfigurationSection("paintings")));
+    }
+
+    public void reloadCustomJukeboxSongs() {
+        soundManager = new SoundManager(configsManager.getSound());
+        CustomJukeboxSongRegistry.reload(soundManager.getJukeboxSounds());
     }
 
     public ConfigsManager getConfigsManager() {
