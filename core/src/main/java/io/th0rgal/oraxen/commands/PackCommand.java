@@ -5,9 +5,7 @@ import io.th0rgal.oraxen.commands.arguments.BooleanArgument;
 import io.th0rgal.oraxen.commands.arguments.EntitySelectorArgument;
 import io.th0rgal.oraxen.commands.arguments.TextArgument;
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.configs.Message;
 import io.th0rgal.oraxen.configs.ResourcesManager;
-import io.th0rgal.oraxen.utils.AdventureUtils;
 import org.bukkit.entity.Player;
 
 import java.util.Collection;
@@ -21,7 +19,6 @@ public class PackCommand {
         return new OraxenCommand("pack")
                 .withPermission("oraxen.command.pack")
                 .withSubcommand(sendPackCommand())
-                .withSubcommand(sendPackMessage())
                 .withSubcommand(extractDefaultPackContent());
 
     }
@@ -50,27 +47,6 @@ public class PackCommand {
                         for (final Player target : targets) {
                             packSender.sendPack(target);
                         }
-                    }
-                });
-    }
-
-    private OraxenCommand sendPackMessage() {
-        return new OraxenCommand("msg")
-                .withOptionalArguments(new EntitySelectorArgument.ManyPlayers("targets"))
-                .executes((sender, args) -> {
-                    final Collection<Player> targets = (Collection<Player>) args.getOptional("targets")
-                            .orElse(sender instanceof Player player ? List.of(player) : null);
-                    if (targets == null) return;
-
-                    var multiVersionManager = OraxenPlugin.get().getMultiVersionUploadManager();
-                    var mvPackSender = multiVersionManager != null ? multiVersionManager.getPackSender() : null;
-                    String defaultPackUrl = OraxenPlugin.get().getPackURL();
-
-                    for (final Player target : targets) {
-                        String packUrl = mvPackSender != null
-                                ? mvPackSender.resolvePackUrlForPlayer(target)
-                                : (defaultPackUrl != null ? defaultPackUrl : "");
-                        Message.COMMAND_JOIN_MESSAGE.send(target, AdventureUtils.tagResolver("pack_url", packUrl));
                     }
                 });
     }

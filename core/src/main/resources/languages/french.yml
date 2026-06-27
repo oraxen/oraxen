@@ -69,16 +69,6 @@ logs:
     missing_plugin: "<prefix><#e73f34>MythicCrucible n'est pas installé</#e73f34>"
 
 command:
-  join: "
-    <dark_gray><strikethrough>                           </strikethrough><dark_gray>{<aqua><bold> Resource Pack </bold><dark_gray>}<dark_gray><strikethrough>                        </strikethrough>
-
-    <gray><bold>Pour voir les nouveaux items, vous devez utiliser un pack de ressources spécial (mais ne vous inquiétez pas, cela ne vous empêche pas d'utiliser le vôtre en même temps).</bold>
-
-    <dark_gray>»<gray> Pour essayer de le charger directement depuis le jeu, <click:run_command:/oraxen pack send><hover:show_text:\"<red>/!\\ charger le pack de ressources depuis le jeu peut provoquer des lags\"><red><bold>CLIQUER ICI</bold></hover></click>
-
-    <dark_gray>»<gray> Pour le télécharger depuis internet, <click:open_url:<pack_url>><hover:show_text:\"<green>/!\\ installez-le depuis Options/Pack de ressources dans votre jeu\"><green><bold>CLIQUER ICI</bold></hover></click>
-    "
-
   recipe:
     no_builder: "<prefix><#fa4943>Veuillez d'abord créer une recette !"
     no_furnace: "<prefix><#fa4943>Cette option n'est disponible que pour les recettes avec le four !"

@@ -64,7 +64,6 @@ public enum Message {
     MYTHICCRUCIBLE_MISSING_PLUGIN("logs.mythiccrucible.missing_plugin"),
 
     // command
-    COMMAND_JOIN_MESSAGE("command.join"),
     DEBUG_TOGGLE("command.debug.toggle"),
     VERSION("command.version"),
     REMOVE_BRANDING_SUCCESS("command.remove_branding.success"),

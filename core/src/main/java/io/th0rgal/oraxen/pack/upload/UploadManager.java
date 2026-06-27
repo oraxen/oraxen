@@ -69,7 +69,7 @@ public class UploadManager {
 
             // Schedule player distribution on the main thread — Bukkit listener
             // registration (packSender.register()) is not thread-safe.
-            SchedulerUtil.runTask(() -> distributePacksToPlayers(isReload, contentChanged));
+            SchedulerUtil.runTask(() -> distributePacksToPlayers(contentChanged));
         });
     }
 
@@ -117,11 +117,9 @@ public class UploadManager {
         }
     }
 
-    private void distributePacksToPlayers(boolean isReload, boolean contentChanged) {
+    private void distributePacksToPlayers(boolean contentChanged) {
         if (cancelled) return;
-        if (isReload && !Settings.SEND_ON_RELOAD.toBool() && packSender != null) {
-            packSender.unregister();
-        } else if (PackSender.isAnyDispatchEnabled() || Settings.SEND_JOIN_MESSAGE.toBool()) {
+        if (PackSender.isAnyDispatchEnabled()) {
             packSender.register();
             if (contentChanged) {
                 for (Player player : Bukkit.getOnlinePlayers())

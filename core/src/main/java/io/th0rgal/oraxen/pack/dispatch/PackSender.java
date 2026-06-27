@@ -1,21 +1,18 @@
 package io.th0rgal.oraxen.pack.dispatch;
 
-import io.th0rgal.oraxen.configs.Message;
 import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.SHA1Utils;
-import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import io.th0rgal.oraxen.OraxenPlugin;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.resource.ResourcePackInfo;
 import net.kyori.adventure.resource.ResourcePackRequest;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
+import java.util.Locale;
 import java.util.UUID;
 
 public abstract class PackSender {
@@ -23,7 +20,6 @@ public abstract class PackSender {
     protected final HostingProvider hostingProvider;
     private static final Object dispatchNormalizationLock = new Object();
     private static volatile boolean dispatchModeNormalized = false;
-
 
     protected PackSender(HostingProvider hostingProvider) {
         this.hostingProvider = hostingProvider;
@@ -34,32 +30,6 @@ public abstract class PackSender {
     public abstract void unregister();
 
     public abstract void sendPack(Player player);
-
-    protected void sendWelcomeMessage(Player player, boolean delayed) {
-        sendWelcomeMessage(player, delayed, hostingProvider.getPackURL());
-    }
-
-    /**
-     * Sends a welcome/join message to a player with the given pack URL.
-     * This static utility method is shared between BukkitPackSender and MultiVersionPackSender
-     * to avoid duplicating the welcome message logic.
-     *
-     * @param player Player to send the message to
-     * @param delayed Whether to apply the configured join message delay
-     * @param packUrl The pack URL to use in the message's pack_url placeholder
-     */
-    static void sendWelcomeMessage(Player player, boolean delayed, String packUrl) {
-        long delay = (int) Settings.JOIN_MESSAGE_DELAY.getValue();
-        if (delay == -1 || !delayed)
-            Message.COMMAND_JOIN_MESSAGE.send(player,
-                    AdventureUtils.tagResolver("pack_url", packUrl),
-                    AdventureUtils.tagResolver("player", player.getName()));
-        else
-            SchedulerUtil.runTaskLaterAsync(delay * 20L,
-                    () -> Message.COMMAND_JOIN_MESSAGE.send(player,
-                            AdventureUtils.tagResolver("pack_url", packUrl),
-                            AdventureUtils.tagResolver("player", player.getName())));
-    }
 
     /**
      * Sends a resource pack to a player using the appropriate Bukkit API for the server version.
@@ -100,61 +70,76 @@ public abstract class PackSender {
         }
     }
 
+    static void sendResourcePack(Audience audience, UUID uuid, String url, byte[] sha1,
+                                 String prompt, boolean mandatory) {
+        net.kyori.adventure.text.Component componentPrompt = AdventureUtils.MINI_MESSAGE.deserialize(prompt);
+        audience.sendResourcePacks(createResourcePackRequest(uuid, url, sha1, componentPrompt, mandatory));
+    }
+
     private static void sendPaperResourcePack(Player player, UUID uuid, String url, byte[] sha1,
                                               net.kyori.adventure.text.Component prompt, boolean mandatory) {
-        String hash = SHA1Utils.bytesToHex(sha1);
-        if (hash == null) {
+        if (SHA1Utils.bytesToHex(sha1) == null) {
             player.setResourcePack(uuid, url, sha1, prompt, mandatory);
             return;
         }
 
+        player.sendResourcePacks(createResourcePackRequest(uuid, url, sha1, prompt, mandatory));
+    }
+
+    private static ResourcePackRequest createResourcePackRequest(UUID uuid, String url, byte[] sha1,
+                                                                 net.kyori.adventure.text.Component prompt,
+                                                                 boolean mandatory) {
+        String hash = SHA1Utils.bytesToHex(sha1);
         ResourcePackInfo info = ResourcePackInfo.resourcePackInfo(uuid, URI.create(url), hash);
-        ResourcePackRequest request = ResourcePackRequest.resourcePackRequest()
+
+        return ResourcePackRequest.resourcePackRequest()
                 .required(mandatory)
                 .replace(false)
                 .prompt(prompt)
                 .packs(info)
                 .build();
-        player.sendResourcePacks(request);
     }
 
     public static boolean isSendPreJoinConfigured() {
         normalizeDispatchModeForServerSupport();
-        return readSendPreJoinConfigured();
+        return isDispatchSendEnabled() && getDispatchMode() == DispatchMode.PRE_JOIN;
     }
 
     public static boolean isSendOnJoinConfigured() {
         normalizeDispatchModeForServerSupport();
-        return readSendOnJoinConfigured();
+        return isDispatchSendEnabled() && getDispatchMode() == DispatchMode.JOIN;
     }
 
     public static boolean isPreJoinDispatchActive() {
-        return isSendPreJoinConfigured() && VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.21.7");
+        return isSendPreJoinConfigured() && isPreJoinSupported();
     }
 
     public static boolean isAnyDispatchEnabled() {
-        return isSendOnJoinConfigured() || isSendPreJoinConfigured();
+        normalizeDispatchModeForServerSupport();
+        return isDispatchSendEnabled();
     }
 
-    private static boolean getBooleanSetting(String path, @Nullable String legacyPath, boolean fallback) {
-        YamlConfiguration settings = OraxenPlugin.get().getConfigsManager().getSettings();
-        Object value = settings.get(path);
-        if (value instanceof Boolean bool) return bool;
-
-        if (legacyPath != null) {
-            Object legacyValue = settings.get(legacyPath);
-            if (legacyValue instanceof Boolean bool) return bool;
-        }
-
-        return fallback;
+    private static boolean isDispatchSendEnabled() {
+        Object send = Settings.SEND_PACK.getValue();
+        return send instanceof Boolean bool && bool;
     }
 
-    private static boolean readSendPreJoinConfigured() {
-        return getBooleanSetting("Pack.dispatch.send_pre_join", null, false);
+    private static DispatchMode getDispatchMode() {
+        Object value = Settings.SEND_PACK_MODE.getValue();
+        if (!(value instanceof String mode)) return DispatchMode.JOIN;
+
+        return switch (mode.trim().toUpperCase(Locale.ROOT).replace('_', '-')) {
+            case "PRE-JOIN", "PREJOIN" -> DispatchMode.PRE_JOIN;
+            case "JOIN" -> DispatchMode.JOIN;
+            default -> {
+                Logs.logWarning("Invalid Pack.dispatch.mode '" + mode + "'. Falling back to JOIN.");
+                yield DispatchMode.JOIN;
+            }
+        };
     }
 
-    private static boolean readSendOnJoinConfigured() {
-        return getBooleanSetting("Pack.dispatch.send_on_join", "Pack.dispatch.send_pack", false);
+    private static boolean isPreJoinSupported() {
+        return VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.21.7");
     }
 
     private static void normalizeDispatchModeForServerSupport() {
@@ -163,15 +148,8 @@ public abstract class PackSender {
         synchronized (dispatchNormalizationLock) {
             if (dispatchModeNormalized) return;
 
-            boolean sendPreJoin = readSendPreJoinConfigured();
-            boolean sendOnJoin = readSendOnJoinConfigured();
-            boolean preJoinSupported = VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.21.7");
-
-            if (sendPreJoin && !preJoinSupported && !sendOnJoin) {
-                Settings.SEND_ON_JOIN.setValue(true);
-                if (Settings.DEBUG.toBool()) {
-                    Logs.logInfo("Enabled Pack.dispatch.send_on_join because Pack.dispatch.send_pre_join is unsupported on this server.");
-                }
+            if (isDispatchSendEnabled() && getDispatchMode() == DispatchMode.PRE_JOIN && !isPreJoinSupported()) {
+                Logs.logInfo("Pack.dispatch.mode is set to PRE-JOIN, but pre-join dispatch is not available on this server. Falling back to JOIN.");
             }
 
             dispatchModeNormalized = true;
@@ -184,6 +162,11 @@ public abstract class PackSender {
      */
     public static void resetDispatchNormalization() {
         dispatchModeNormalized = false;
+    }
+
+    private enum DispatchMode {
+        JOIN,
+        PRE_JOIN
     }
 
 }

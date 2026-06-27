@@ -15,6 +15,7 @@ public class SettingsUpdater {
         String oldSettings = settings.saveToString();
 
         settings = updateKeys(settings, UpdatedSettings.toStringMap());
+        settings = migrateDispatchSettings(settings);
         settings = removeKeys(settings, RemovedSettings.toStringList());
 
         if (settings.saveToString().equals(oldSettings)) return;
@@ -38,6 +39,35 @@ public class SettingsUpdater {
             }
         }
         return settings;
+    }
+
+    public YamlConfiguration migrateDispatchSettings(YamlConfiguration settings) {
+        boolean hasLegacySendPreJoin = settings.contains("Pack.dispatch.send_pre_join");
+        boolean hasLegacySendOnJoin = settings.contains("Pack.dispatch.send_on_join");
+        boolean hasLegacySendPack = settings.contains("Pack.dispatch.send_pack");
+
+        if (hasLegacySendPreJoin || hasLegacySendOnJoin || hasLegacySendPack) {
+            boolean sendPreJoin = settings.getBoolean("Pack.dispatch.send_pre_join", false);
+            boolean sendOnJoin = hasLegacySendOnJoin
+                    ? settings.getBoolean("Pack.dispatch.send_on_join", false)
+                    : settings.getBoolean("Pack.dispatch.send_pack", false);
+
+            Logs.logWarning("Found outdated pack dispatch send settings. These will be updated.");
+            settings.set("Pack.dispatch.send", sendPreJoin || sendOnJoin);
+            settings.set("Pack.dispatch.mode", sendPreJoin ? "PRE-JOIN" : "JOIN");
+        }
+
+        migrateKey(settings, "Pack.dispatch.stop", "Pack.dispatch.exclude");
+        migrateKey(settings, "Pack.dispatch.disable_movement_on_load", "Pack.dispatch.disable.movement");
+        migrateKey(settings, "Pack.dispatch.disable_damage_on_load", "Pack.dispatch.disable.damage");
+
+        return settings;
+    }
+
+    private void migrateKey(YamlConfiguration settings, String oldPath, String newPath) {
+        if (!settings.contains(oldPath)) return;
+        Logs.logWarning("Found outdated setting-path " + oldPath + ". This will be updated.");
+        settings.set(newPath, settings.get(oldPath));
     }
 
     public YamlConfiguration removeKeys(YamlConfiguration settings, List<String> keys) {

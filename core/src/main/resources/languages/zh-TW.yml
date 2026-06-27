@@ -69,16 +69,6 @@ logs:
     missing_plugin: "<prefix><#e73f34>未安裝 MythicCrucible</#e73f34>"
 
 command:
-  join: "
-    <dark_gray><strikethrough>                           </strikethrough><dark_gray>{<aqua><bold> 材質包 </bold><dark_gray>}<dark_gray><strikethrough>                        </strikethrough>
-
-    <gray><bold>要看到新的物品，你需要使用一個特殊的材質包包 (不用擔心，你依然可以使用自己的材質包)。</bold>
-
-    <dark_gray>»<gray> 如果你想直接在遊戲內載入它， <click:run_command:/oraxen pack send><hover:show_text:\"<red>/!\\ 載入材質包可能會造成卡頓\"><red><bold>點選這裡</bold></hover></click>
-
-    <dark_gray>»<gray> 如果想從網上下載， <click:open_url:<pack_url>><hover:show_text:\"<green>/!\\ 自行從遊戲載入此材質包\"><green><bold>點選這裡</bold></hover></click>
-    "
-
   recipe:
     no_builder: "<prefix><#fa4943>請先建立一個配方！"
     no_furnace: "<prefix><#fa4943>此選項僅適用於熔爐配方！"

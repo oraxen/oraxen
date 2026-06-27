@@ -71,7 +71,7 @@ public class IntroductionGuide implements Listener {
         Player player = event.getPlayer();
         if (!isEligible(player)) return;
 
-        // Brief delay so the join message lands first.
+        // Brief delay so the player has fully joined before receiving the introduction.
         SchedulerUtil.runForEntityLater(plugin, player, 20L,
                 () -> sendToPlayer(player),
                 () -> {});

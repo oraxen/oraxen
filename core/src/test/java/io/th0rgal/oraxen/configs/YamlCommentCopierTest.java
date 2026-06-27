@@ -48,21 +48,21 @@ class YamlCommentCopierTest {
         YamlConfiguration existing = OraxenYaml.loadConfiguration(new StringReader("""
                 Pack:
                   dispatch:
-                    send_on_reload: true
+                    send: true
                     delay: -1
                 """));
         String defaultYaml = """
                 Pack:
                   dispatch:
-                    send_on_reload: true
-                    stop: [] # Client versions that should not receive the pack.
+                    send: true
+                    exclude: [] # Client versions that should not receive the pack.
                     delay: -1
                 """;
         YamlConfiguration defaults = OraxenYaml.loadConfiguration(new StringReader(defaultYaml));
 
-        YamlCommentCopier.setWithComments(existing, defaults, "Pack.dispatch.stop", defaultYaml);
+        YamlCommentCopier.setWithComments(existing, defaults, "Pack.dispatch.exclude", defaultYaml);
 
         String saved = existing.saveToString();
-        assertTrue(saved.contains("# Client versions that should not receive the pack.\n    stop: []"), saved);
+        assertTrue(saved.contains("# Client versions that should not receive the pack.\n    exclude: []"), saved);
     }
 }

@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.pack.generation.PackVersionManager;
 import io.th0rgal.oraxen.pack.generation.ProtocolVersion;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import net.kyori.adventure.audience.Audience;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -26,6 +27,7 @@ public class MultiVersionPackSender implements Listener {
     private final PackVersionManager versionManager;
     private final String prompt = Settings.SEND_PACK_PROMPT.toString();
     private final boolean mandatory = Settings.SEND_PACK_MANDATORY.toBool();
+    private Listener preJoinListener;
 
     public MultiVersionPackSender(PackVersionManager versionManager) {
         this.versionManager = versionManager;
@@ -33,10 +35,15 @@ public class MultiVersionPackSender implements Listener {
 
     public void register() {
         Bukkit.getPluginManager().registerEvents(this, OraxenPlugin.get());
+        registerPreJoinListener();
     }
 
     public void unregister() {
         HandlerList.unregisterAll(this);
+        if (preJoinListener != null) {
+            HandlerList.unregisterAll(preJoinListener);
+            preJoinListener = null;
+        }
     }
 
     /**
@@ -94,14 +101,42 @@ public class MultiVersionPackSender implements Listener {
         PackSender.sendResourcePack(player, uuid, url, sha1, prompt, mandatory);
     }
 
+    public void sendPack(Object connection, Audience audience) {
+        Integer protocolVersion = PackDispatchFilter.resolveProtocolVersion(connection);
+        PackVersion packVersion = protocolVersion != null
+                ? versionManager.findBestVersionForProtocol(protocolVersion)
+                : versionManager.getServerPackVersion();
+        sendPackVersion(audience, packVersion, protocolVersion);
+    }
+
+    private void sendPackVersion(Audience audience, PackVersion packVersion, Integer protocolVersion) {
+        PackVersion resolvedVersion = resolveSendableVersion(packVersion, protocolVersion);
+        if (resolvedVersion == null) {
+            Logs.logError("Cannot send pre-join pack: no pack version available");
+            return;
+        }
+
+        String url = resolvedVersion.getPackURL();
+        byte[] sha1 = resolvedVersion.getPackSHA1();
+        UUID uuid = resolvedVersion.getPackUUID();
+
+        if (url == null || sha1 == null || uuid == null) {
+            Logs.logError("Pack version not fully uploaded (missing url/sha1/uuid): " + resolvedVersion);
+            return;
+        }
+
+        PackSender.sendResourcePack(audience, uuid, url, sha1, prompt, mandatory);
+    }
+
+    private void registerPreJoinListener() {
+        if (preJoinListener != null || !PackSender.isPreJoinDispatchActive()) return;
+        preJoinListener = new PaperPreJoinPackSender(this::sendPack);
+        Bukkit.getPluginManager().registerEvents(preJoinListener, OraxenPlugin.get());
+    }
+
     @EventHandler(priority = EventPriority.NORMAL)
     public void onPlayerConnect(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-
-        // Send welcome message if enabled
-        if (Settings.SEND_JOIN_MESSAGE.toBool()) {
-            sendWelcomeMessage(player, true);
-        }
 
         boolean sendOnJoin = PackSender.isSendOnJoinConfigured();
         boolean sendPreJoin = PackSender.isSendPreJoinConfigured();
@@ -118,26 +153,6 @@ public class MultiVersionPackSender implements Listener {
         } else {
             SchedulerUtil.runTaskLaterAsync(delay * 20L, () -> sendPack(player));
         }
-    }
-
-    private void sendWelcomeMessage(Player player, boolean delayed) {
-        // Resolve the player's pack URL for the welcome message placeholder
-        String packUrl = resolvePackUrlForPlayer(player);
-        PackSender.sendWelcomeMessage(player, delayed, packUrl);
-    }
-
-    public String resolvePackUrlForPlayer(Player player) {
-        Integer protocolVersion = PlayerVersionDetector.getPlayerProtocolVersion(player);
-        PackVersion packVersion = (protocolVersion != null)
-                ? versionManager.findBestVersionForProtocol(protocolVersion)
-                : null;
-        packVersion = resolveSendableVersion(packVersion, protocolVersion);
-        if (packVersion == null) {
-            Logs.logWarning("No pack version available for player: " + player.getName());
-            return "";
-        }
-        String url = packVersion.getPackURL();
-        return url != null ? url : "";
     }
 
     private PackVersion resolveSendableVersion(PackVersion preferred, Integer protocolVersion) {

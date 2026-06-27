@@ -16,6 +16,7 @@ public class BukkitPackSender extends PackSender implements Listener {
 
     private final String prompt = Settings.SEND_PACK_PROMPT.toString();
     private final boolean mandatory = Settings.SEND_PACK_MANDATORY.toBool();
+    private Listener preJoinListener;
 
     public BukkitPackSender(HostingProvider hostingProvider) {
         super(hostingProvider);
@@ -23,10 +24,15 @@ public class BukkitPackSender extends PackSender implements Listener {
 
     public void register() {
         Bukkit.getPluginManager().registerEvents(this, OraxenPlugin.get());
+        registerPreJoinListener();
     }
 
     public void unregister() {
         HandlerList.unregisterAll(this);
+        if (preJoinListener != null) {
+            HandlerList.unregisterAll(preJoinListener);
+            preJoinListener = null;
+        }
     }
 
     @Override
@@ -36,10 +42,20 @@ public class BukkitPackSender extends PackSender implements Listener {
                 hostingProvider.getSHA1(), prompt, mandatory);
     }
 
+    private void sendPreJoinPack(net.kyori.adventure.audience.Audience audience) {
+        sendResourcePack(audience, hostingProvider.getPackUUID(), hostingProvider.getPackURL(),
+                hostingProvider.getSHA1(), prompt, mandatory);
+    }
+
+    private void registerPreJoinListener() {
+        if (preJoinListener != null || !PackSender.isPreJoinDispatchActive()) return;
+        preJoinListener = new PaperPreJoinPackSender((connection, audience) -> sendPreJoinPack(audience));
+        Bukkit.getPluginManager().registerEvents(preJoinListener, OraxenPlugin.get());
+    }
+
     @EventHandler(priority = EventPriority.NORMAL)
     public void onPlayerConnect(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        if (Settings.SEND_JOIN_MESSAGE.toBool()) sendWelcomeMessage(player, true);
 
         boolean sendOnJoin = PackSender.isSendOnJoinConfigured();
         boolean sendPreJoin = PackSender.isSendPreJoinConfigured();
