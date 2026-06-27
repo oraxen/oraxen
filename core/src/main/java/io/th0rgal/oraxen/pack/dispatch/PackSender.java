@@ -13,13 +13,21 @@ import org.bukkit.entity.Player;
 
 import java.net.URI;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public abstract class PackSender {
+
+    private static final long DEFAULT_PRE_JOIN_TIMEOUT_MILLIS = 30_000L;
+    private static final Pattern TIMEOUT_PATTERN = Pattern.compile("^([0-9]+(?:\\.[0-9]+)?)\\s*(ms|s|m|ticks?|t)?$", Pattern.CASE_INSENSITIVE);
 
     protected final HostingProvider hostingProvider;
     private static final Object dispatchNormalizationLock = new Object();
     private static volatile boolean dispatchModeNormalized = false;
+    private static volatile Object cachedTimeoutSource = null;
+    private static volatile long cachedTimeoutMillis = DEFAULT_PRE_JOIN_TIMEOUT_MILLIS;
 
     protected PackSender(HostingProvider hostingProvider) {
         this.hostingProvider = hostingProvider;
@@ -117,6 +125,42 @@ public abstract class PackSender {
     public static boolean isAnyDispatchEnabled() {
         normalizeDispatchModeForServerSupport();
         return isDispatchSendEnabled();
+    }
+
+    public static long getPreJoinTimeoutMillis() {
+        Object value = Settings.SEND_PACK_TIMEOUT.getValue();
+        if (Objects.equals(value, cachedTimeoutSource)) {
+            return cachedTimeoutMillis;
+        }
+
+        long timeoutMillis = parsePreJoinTimeout(value);
+        cachedTimeoutSource = value;
+        cachedTimeoutMillis = timeoutMillis;
+        return timeoutMillis;
+    }
+
+    private static long parsePreJoinTimeout(Object value) {
+        if (value instanceof Number number) {
+            return Math.max(0L, number.longValue() * 1000L);
+        }
+
+        if (value instanceof String rawTimeout) {
+            Matcher matcher = TIMEOUT_PATTERN.matcher(rawTimeout.trim());
+            if (matcher.matches()) {
+                double amount = Double.parseDouble(matcher.group(1));
+                String unit = matcher.group(2) != null ? matcher.group(2).toLowerCase(Locale.ROOT) : "s";
+                double multiplier = switch (unit) {
+                    case "ms" -> 1D;
+                    case "m" -> 60_000D;
+                    case "tick", "ticks", "t" -> 50D;
+                    default -> 1_000D;
+                };
+                return Math.max(0L, Math.round(amount * multiplier));
+            }
+        }
+
+        Logs.logWarning("Invalid Pack.dispatch.timeout '" + value + "'. Falling back to 30s.");
+        return DEFAULT_PRE_JOIN_TIMEOUT_MILLIS;
     }
 
     private static boolean isDispatchSendEnabled() {

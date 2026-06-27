@@ -139,6 +139,7 @@ public enum Settings {
 
     SEND_PACK("Pack.dispatch.send"),
     SEND_PACK_MODE("Pack.dispatch.mode"),
+    SEND_PACK_TIMEOUT("Pack.dispatch.timeout"),
     DISPATCH_EXCLUDE("Pack.dispatch.exclude"),
     SEND_PACK_DELAY("Pack.dispatch.delay"),
     SEND_PACK_MANDATORY("Pack.dispatch.mandatory"),

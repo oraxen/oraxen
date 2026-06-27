@@ -216,6 +216,7 @@ Pack:
   dispatch:
     send: true # Should the pack be sent to the player.
     mode: "JOIN" # PRE-JOIN, JOIN; Mode to use when sending the pack.
+    timeout: 30s # Time to wait for a response when using PRE-JOIN mode before continuing login.
     exclude: [] # Client versions that should not receive the pack. Quote every rule, e.g. '< 1.12', '= 1.21.11' or '> 1.21.11'.
     delay: -1
     mandatory: true

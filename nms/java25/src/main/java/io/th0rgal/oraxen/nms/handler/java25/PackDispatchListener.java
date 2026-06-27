@@ -46,7 +46,7 @@ public final class PackDispatchListener implements Listener {
         if (future != null) {
             futures.put(uuid, future);
             try {
-                future.get(10, TimeUnit.SECONDS);
+                future.get(PackSender.getPreJoinTimeoutMillis(), TimeUnit.MILLISECONDS);
             } catch (TimeoutException e) {
                 Logs.logWarning("Timed out while waiting for pre-join resource pack callback for " + uuid);
                 future.cancel(true);
@@ -77,7 +77,7 @@ public final class PackDispatchListener implements Listener {
             CompletableFuture<Void> future = sendResourcePack(event.getConnection());
             if (future == null) return;
             try {
-                future.get(10, TimeUnit.SECONDS);
+                future.get(PackSender.getPreJoinTimeoutMillis(), TimeUnit.MILLISECONDS);
             } catch (TimeoutException e) {
                 Logs.logWarning("Timed out while waiting for reconfiguration pack callback");
                 future.cancel(true);
