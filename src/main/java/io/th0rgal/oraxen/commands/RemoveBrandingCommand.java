@@ -44,10 +44,7 @@ public class RemoveBrandingCommand {
         Path langFolder = OraxenPlugin.get().getDataFolder().toPath().resolve("pack/lang");
         int updatedFiles;
         try {
-            Files.createDirectories(langFolder);
             updatedFiles = updateExistingLangFiles(langFolder);
-            if (updatedFiles == 0)
-                updatedFiles = updateLangFile(langFolder.resolve("global.json"));
         } catch (IOException e) {
             Logs.logError("Failed to remove Oraxen branding from pack language files");
             if (Settings.DEBUG.toBool())
@@ -60,6 +57,9 @@ public class RemoveBrandingCommand {
     }
 
     private int updateExistingLangFiles(Path langFolder) throws IOException {
+        if (!Files.isDirectory(langFolder))
+            return 0;
+
         try (Stream<Path> files = Files.list(langFolder)) {
             return files
                     .filter(path -> Files.isRegularFile(path) && path.getFileName().toString().endsWith(".json"))
@@ -89,7 +89,16 @@ public class RemoveBrandingCommand {
 
     private int updateLangFile(Path path) throws IOException {
         JsonObject lang = readLangFile(path);
-        for (String key : BRANDED_KEYS) lang.remove(key);
+        boolean updated = false;
+        for (String key : BRANDED_KEYS) {
+            if (lang.has(key)) {
+                lang.remove(key);
+                updated = true;
+            }
+        }
+
+        if (!updated)
+            return 0;
 
         Files.writeString(path, GSON.toJson(lang) + System.lineSeparator(), StandardCharsets.UTF_8);
         return 1;
@@ -110,7 +119,7 @@ public class RemoveBrandingCommand {
         } catch (JsonSyntaxException ignored) {
         }
 
-        Logs.logWarning("Replacing invalid JSON while removing branding from " + path.getFileName());
+        Logs.logWarning("Skipping invalid JSON while removing branding from " + path.getFileName());
         return new JsonObject();
     }
 }

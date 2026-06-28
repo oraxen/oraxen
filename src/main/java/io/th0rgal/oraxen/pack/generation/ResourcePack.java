@@ -1495,8 +1495,6 @@ public class ResourcePack {
             }
 
             for (Map.Entry<String, JsonElement> entry : globalLang.entrySet()) {
-                if (entry.getKey().equals("DO_NOT_ALTER_THIS_LINE"))
-                    continue;
                 // If the entry already exists in the lang file, we don't want to overwrite it
                 if (langJson.has(entry.getKey()))
                     continue;

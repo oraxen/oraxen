@@ -1,11 +1,5 @@
 package io.th0rgal.oraxen.commands;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.configs.Message;
 import io.th0rgal.oraxen.configs.ResourcesManager;
@@ -15,7 +9,6 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.command.CommandSender;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
@@ -25,9 +18,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 public class RemoveDefaultsCommand {
-
-    private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
-    private static final String GLOBAL_LANG_NOTICE = "This file is for editing all languages at once. To edit a specific language, use the corresponding file in the 'languages' folder.";
 
     OraxenCommand getRemoveDefaultsCommand() {
         OraxenCommand confirmed = new OraxenCommand("confirm")
@@ -56,9 +46,7 @@ public class RemoveDefaultsCommand {
         deletePath(dataFolder.resolve("pack/models/default"), false, deletedFiles, failedFiles);
         deletePath(dataFolder.resolve("pack/textures/animations"), false, deletedFiles, failedFiles);
 
-        Path globalLang = dataFolder.resolve("pack/lang/global.json");
-        deletePath(dataFolder.resolve("pack/lang"), true, Set.of(globalLang), deletedFiles, failedFiles);
-        clearGlobalLang(globalLang, failedFiles);
+        deletePath(dataFolder.resolve("pack/lang"), true, deletedFiles, failedFiles);
         deletePath(dataFolder.resolve("pack/font"), true, deletedFiles, failedFiles);
         deletePath(dataFolder.resolve("pack/sounds"), true, deletedFiles, failedFiles);
         deleteKnownDefaultFiles(dataFolder, "recipes", deletedFiles, failedFiles);
@@ -129,41 +117,6 @@ public class RemoveDefaultsCommand {
             if (Settings.DEBUG.toBool())
                 e.printStackTrace();
         }
-    }
-
-    // The global lang file is rewritten in place rather than deleted, so it does
-    // not contribute to the deleted-files count reported to the player.
-    private void clearGlobalLang(Path globalLang, AtomicInteger failedFiles) {
-        try {
-            Files.createDirectories(globalLang.getParent());
-            JsonObject json = Files.isRegularFile(globalLang) ? readJsonObject(globalLang) : new JsonObject();
-            JsonObject clearedJson = new JsonObject();
-            JsonElement notice = json.get("DO_NOT_ALTER_THIS_LINE");
-            clearedJson.addProperty("DO_NOT_ALTER_THIS_LINE",
-                    notice != null && notice.isJsonPrimitive() ? notice.getAsString() : GLOBAL_LANG_NOTICE);
-            Files.writeString(globalLang, GSON.toJson(clearedJson) + System.lineSeparator(), StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            failedFiles.incrementAndGet();
-            Logs.logWarning("Failed to clear default language entries from global.json");
-            if (Settings.DEBUG.toBool())
-                e.printStackTrace();
-        }
-    }
-
-    private JsonObject readJsonObject(Path path) throws IOException {
-        String content = Files.readString(path, StandardCharsets.UTF_8);
-        if (content.isBlank())
-            return new JsonObject();
-
-        try {
-            JsonElement element = JsonParser.parseString(content);
-            if (element.isJsonObject())
-                return element.getAsJsonObject();
-        } catch (JsonSyntaxException ignored) {
-        }
-
-        Logs.logWarning("Replacing invalid JSON while clearing default language entries from global.json");
-        return new JsonObject();
     }
 
     private void deleteFile(Path path, AtomicInteger deletedFiles, AtomicInteger failedFiles) {
