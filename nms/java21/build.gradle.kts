@@ -6,7 +6,7 @@ plugins {
 // Java 21 NMS handler for Paper/Paper-fork 1.20.x through 1.21.11.
 // Keep this module free of Java 25 bytecode so it can be loaded on Java 21 servers.
 dependencies {
-    compileOnly(project(":core"))
+    compileOnly(rootProject)
     paperweight.paperDevBundle("1.21.11-R0.1-SNAPSHOT")
 }
 

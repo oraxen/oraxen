@@ -35,8 +35,8 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 * Downloads a server jar, cleans up the server, builds and deploys Oraxen to the server, sets the Java Version and verifies Oraxen loads fine on the server.
 * Supports Paper 1.20.1-26.1.2 and Folia 1.21.8-26.1.2.
 *
-* Run all versions via './gradlew :core:test --tests io.th0rgal.oraxen.loading.VersionLoadingTest -PrunVersionLoadingTest=true'.
-* Run a specific version via './gradlew :core:test --tests "io.th0rgal.oraxen.loading.VersionLoadingTest.<Version>" -PrunVersionLoadingTest=true'.
+* Run all versions via './gradlew test --tests io.th0rgal.oraxen.loading.VersionLoadingTest -PrunVersionLoadingTest=true'.
+* Run a specific version via './gradlew test --tests "io.th0rgal.oraxen.loading.VersionLoadingTest.<Version>" -PrunVersionLoadingTest=true'.
 * <Version> can be e.g. 'Paper_1_21_11'.
 * */
 

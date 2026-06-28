@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Integration tests for PackMerger that test with real-world pack structures.
  * Uses a standalone testable version that doesn't depend on Bukkit/Adventure.
  * 
- * Run with: ./gradlew :core:test --tests
+ * Run with: ./gradlew test --tests
  * "io.th0rgal.oraxen.pack.generation.PackMergerIntegrationTest"
  */
 public class PackMergerIntegrationTest {

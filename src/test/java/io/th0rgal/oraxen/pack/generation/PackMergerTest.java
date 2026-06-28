@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Tests for PackMerger functionality.
  * 
- * Run with: ./gradlew :core:test --tests
+ * Run with: ./gradlew test --tests
  * "io.th0rgal.oraxen.pack.generation.PackMergerTest"
  */
 public class PackMergerTest {

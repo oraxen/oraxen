@@ -27,10 +27,9 @@ dependencyResolutionManagement {
     }
 }
 
-// Core plus split Paper/Paper-fork NMS modules. Java 21 handlers are kept
+// Split Paper/Paper-fork NMS modules. Java 21 handlers are kept
 // loadable on older servers, while 26.x-only code is isolated in Java 25 bytecode.
 include(
-    "core",
     "nms:java21",
     "nms:java25"
 )

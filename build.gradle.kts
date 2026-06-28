@@ -9,6 +9,8 @@ plugins {
     id("net.minecrell.plugin-yml.bukkit") version "0.6.0" // Generates plugin.yml
     id("io.papermc.paperweight.userdev") version "2.0.0-beta.21" apply false
     id("com.gradleup.shadow") version "9.4.1"
+    id("maven-publish")
+    id("org.ajoberstar.grgit.service") version "5.2.0"
 }
 
 
@@ -112,7 +114,40 @@ allprojects {
 
 
 dependencies {
-    implementation(project(path = ":core"))
+    compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
+    // libraries in plugin.yml > libraries
+    compileOnly(oraxenLibs.bundles.libraries.bukkit) {
+        exclude("org.jetbrains", "annotations")
+    }
+    // things that are included in minecraft but not exposed
+    compileOnly(oraxenLibs.bundles.libraries.included)
+    // Plugin dependencies
+    compileOnly(oraxenLibs.bundles.plugins) {
+        exclude("org.jetbrains", "annotations")
+        exclude("com.google.code.gson", "gson")
+        exclude("net.kyori")
+    }
+    compileOnly(files("libs/compile/BSP.jar"))
+    // shaded dependencies
+    implementation(oraxenLibs.bundles.libraries.shade) {
+        exclude("com.google.code.gson", "gson")
+        exclude("net.kyori")
+        exclude(group = "com.google.guava")
+    }
+
+    // Test dependencies
+    testImplementation("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("org.mockito:mockito-core:5.11.0")
+    testImplementation("org.mockito:mockito-junit-jupiter:5.11.0")
+    testImplementation(oraxenLibs.spring.expression)
+    testImplementation("net.kyori:adventure-api:4.18.0")
+    testImplementation(oraxenLibs.adventure.platform)
+    testImplementation("net.kyori:adventure-text-minimessage:4.18.0")
+    testImplementation("net.kyori:adventure-text-serializer-legacy:4.18.0")
+    testImplementation("com.google.guava:guava:33.0.0-jre")
+    testImplementation("com.google.code.gson:gson:2.10.1")
 }
 
 
@@ -135,6 +170,31 @@ tasks {
 
     compileJava {
         options.encoding = Charsets.UTF_8.name()
+    }
+
+    compileTestJava {
+        if (!project.hasProperty("runVersionLoadingTest")) {
+            exclude("io/th0rgal/oraxen/loading/versionLoadingTest.java")
+        }
+    }
+
+    test {
+        useJUnitPlatform {
+            if (!project.hasProperty("runVersionLoadingTest")) {
+                excludeTags("version-loading")
+            }
+        }
+
+        if (project.hasProperty("runVersionLoadingTest")) {
+            testLogging {
+                events("passed", "failed", "skipped", "standardOut", "standardError")
+                exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+                showExceptions = true
+                showCauses = true
+                showStackTraces = true
+                showStandardStreams = true
+            }
+        }
     }
 
     javadoc {
@@ -229,6 +289,19 @@ tasks {
     build.get().dependsOn(shadowJar)
 }
 
+// Task to run PackMerger debug tool
+tasks.register<JavaExec>("runPackMergerDebug") {
+    group = "debug"
+    description = "Runs the PackMerger debug tool to analyze resource pack zip files"
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("io.th0rgal.oraxen.pack.generation.PackMergerDebugRunner")
+
+    // Pass command line args: ./gradlew runPackMergerDebug --args="path/to/pack.zip"
+    if (project.hasProperty("packFile")) {
+        args(project.property("packFile").toString())
+    }
+}
+
 
 bukkit {
     load = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.PluginLoadOrder.POSTWORLD
@@ -304,5 +377,81 @@ tasks.register<Exec>("generatePack") {
             throw GradleException("Minecraft version is required. Use -PmcVersion=X.XX.X (e.g., -PmcVersion=1.21.4)")
         }
         println("Generating resource pack for $serverType $mcVersion...")
+    }
+}
+
+publishing {
+    val publishData = PublishData(project)
+    publications {
+        create<MavenPublication>("maven") {
+            groupId = rootProject.group.toString()
+            artifactId = rootProject.name
+            version = publishData.getVersion()
+
+            from(components["java"])
+            //artifact(tasks.shadowJar.get().apply { archiveClassifier.set("") })
+        }
+    }
+
+    repositories {
+        maven {
+            authentication {
+                credentials(PasswordCredentials::class) {
+                    username =
+                        System.getenv("MAVEN_USERNAME") ?: project.findProperty("oraxenUsername") as? String ?: ""
+                    password =
+                        System.getenv("MAVEN_PASSWORD") ?: project.findProperty("oraxenPassword") as? String ?: ""
+                }
+                authentication {
+                    create<BasicAuthentication>("basic")
+                }
+            }
+
+            url = uri(publishData.getRepository())
+            name = "oraxen"
+        }
+    }
+}
+
+class PublishData(private val project: Project) {
+    private var type: Type = getReleaseType()
+    private var hashLength: Int = 7
+
+    private fun getReleaseType(): Type {
+        val ref = System.getenv("GITHUB_REF") ?: ""
+        val branch = getCheckedOutBranch()
+        println("Branch: $branch")
+        return when {
+            ref.startsWith("refs/tags/") -> Type.RELEASE
+            branch.contentEquals("master") -> Type.RELEASE
+            branch.contentEquals("develop") -> Type.SNAPSHOT
+            else -> Type.DEV
+        }
+    }
+
+    private fun getCheckedOutGitCommitHash(): String =
+        System.getenv("GITHUB_SHA")?.substring(0, hashLength) ?: "local"
+
+    private fun getCheckedOutBranch(): String =
+        System.getenv("GITHUB_REF")?.replace("refs/heads/", "")
+            ?: grgitService.service.get().grgit.branch.current().name
+
+    fun getVersion(): String = getVersion(false)
+
+    fun getVersion(appendCommit: Boolean): String =
+        type.append(getVersionString(), appendCommit, getCheckedOutGitCommitHash())
+
+    fun getVersionString(): String =
+        (rootProject.version as String).removeSuffix("-SNAPSHOT").removeSuffix("-DEV")
+
+    fun getRepository(): String = type.repo
+
+    enum class Type(private val append: String, val repo: String, private val addCommit: Boolean) {
+        RELEASE("", "https://repo.oraxen.com/releases/", false),
+        DEV("-DEV", "https://repo.oraxen.com/development/", true),
+        SNAPSHOT("-SNAPSHOT", "https://repo.oraxen.com/snapshots/", true);
+
+        fun append(name: String, appendCommit: Boolean, commitHash: String): String =
+            name.plus(append).plus(if (appendCommit && addCommit) "-".plus(commitHash) else "")
     }
 }

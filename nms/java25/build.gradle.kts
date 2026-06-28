@@ -6,7 +6,7 @@ plugins {
 // Java 25 NMS handler for Paper/Paper-fork 26.x.
 // This module may reference APIs that require the 26.x dev bundle and Java 25 bytecode.
 dependencies {
-    compileOnly(project(":core"))
+    compileOnly(rootProject)
     paperweight.paperDevBundle("26.1.2.build.5-alpha")
 }
 

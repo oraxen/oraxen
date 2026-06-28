@@ -12,7 +12,7 @@ import java.util.zip.ZipOutputStream;
 /**
  * Standalone CLI tool to debug pack merging issues.
  * 
- * Run with: ./gradlew :core:runPackMergerDebug -PpackFile=path/to/pack.zip
+ * Run with: ./gradlew runPackMergerDebug -PpackFile=path/to/pack.zip
  * 
  * Or build and run directly:
  *   javac -d out core/src/test/java/io/th0rgal/oraxen/pack/generation/PackMergerDebugRunner.java
