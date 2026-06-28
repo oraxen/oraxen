@@ -99,7 +99,7 @@ public class IntroductionGuide implements Listener {
             settings.save(plugin.getConfigsManager().getSettingsFile());
             return true;
         } catch (IOException exception) {
-            Logs.logWarning("Failed to save introduction guide state");
+            Logs.logWarning("Failed to save introduction guide state.");
             Logs.debug(exception);
             return false;
         }
