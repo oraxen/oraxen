@@ -54,10 +54,8 @@ public class AdventureUtils {
     public static void sendMessage(CommandSender sender, Component component) {
         if (sender == null || component == null) return;
 
-        // adventure-platform-bukkit currently does not deliver messages on Paper 26.2.
-        // Use Bukkit's legacy sender path there so Oraxen logs and command feedback remain visible.
-        if (VersionUtil.atOrAbove("26.2")) {
-            sender.sendMessage(LEGACY_SERIALIZER.serialize(component));
+        if (VersionUtil.isPaperServer()) {
+            sender.sendMessage(component);
             return;
         }
 
@@ -71,7 +69,7 @@ public class AdventureUtils {
     public static void sendActionBar(Player player, Component component) {
         if (player == null || component == null) return;
 
-        if (VersionUtil.atOrAbove("26.2")) {
+        if (VersionUtil.isPaperServer()) {
             player.sendActionBar(component);
             return;
         }
@@ -86,7 +84,7 @@ public class AdventureUtils {
     public static void showTitle(Player player, Title title) {
         if (player == null || title == null) return;
 
-        if (VersionUtil.atOrAbove("26.2")) {
+        if (VersionUtil.isPaperServer()) {
             player.showTitle(title);
             return;
         }
@@ -101,7 +99,7 @@ public class AdventureUtils {
     public static void openBook(Player player, Book book) {
         if (player == null || book == null) return;
 
-        if (VersionUtil.atOrAbove("26.2")) {
+        if (VersionUtil.isPaperServer()) {
             player.openBook(book);
             return;
         }
@@ -116,7 +114,7 @@ public class AdventureUtils {
     public static void playSound(Player player, Sound sound) {
         if (player == null || sound == null) return;
 
-        if (VersionUtil.atOrAbove("26.2")) {
+        if (VersionUtil.isPaperServer()) {
             player.playSound(sound);
             return;
         }
@@ -131,7 +129,7 @@ public class AdventureUtils {
     public static void stopSound(Player player, Sound sound) {
         if (player == null || sound == null) return;
 
-        if (VersionUtil.atOrAbove("26.2")) {
+        if (VersionUtil.isPaperServer()) {
             player.stopSound(sound);
             return;
         }

@@ -104,7 +104,9 @@ public class OraxenPlugin extends JavaPlugin {
             return;
         }
 
-        audience = BukkitAudiences.create(this);
+        if (!VersionUtil.isPaperServer()) {
+            audience = BukkitAudiences.create(this);
+        }
         clickActionManager = new ClickActionManager(this);
         supportsDisplayEntities = VersionUtil.atOrAbove("1.19.4");
         reloadConfigs();
@@ -244,6 +246,7 @@ public class OraxenPlugin extends JavaPlugin {
         return resourceManager;
     }
 
+    @Nullable
     public BukkitAudiences getAudience() {
         return audience;
     }
