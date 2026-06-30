@@ -340,7 +340,11 @@ public class OraxenCommand {
 
         @Override
         public @NotNull List<String> tabComplete(@NotNull CommandSender sender, @NotNull String alias, @NotNull String[] args) {
-            return command.tabComplete(sender, Arrays.asList(args));
+            try {
+                return command.tabComplete(sender, Arrays.asList(args));
+            } catch (Throwable ignored) {
+                return List.of();
+            }
         }
     }
 
