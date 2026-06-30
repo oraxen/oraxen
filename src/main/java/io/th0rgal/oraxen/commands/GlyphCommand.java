@@ -58,12 +58,12 @@ public class GlyphCommand {
                             }
 
                             pages = pages.append(AdventureUtils.MINI_MESSAGE.deserialize("<glyph:" + emoji.getName() + ">")
-                                    .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, emoji.getCharacters()))
+                                    .clickEvent(ClickEvent.copyToClipboard(emoji.getCharacters()))
                                     .hoverEvent(HoverEvent.hoverEvent(HoverEvent.Action.SHOW_TEXT, Component.text(finalString + permissionMessage))));
                         }
                     }
 
-                    Book book = Book.book(Component.text("Glyph Book"), Component.text("Oraxen"), pages);
+                    Book book = Book.book(Component.text("Glyph Book"), Component.text("Oraxen"), List.of(pages));
                     AdventureUtils.openBook(player, book);
                 });
     }

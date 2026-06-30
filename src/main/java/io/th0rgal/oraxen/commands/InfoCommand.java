@@ -160,7 +160,7 @@ public class InfoCommand {
                         .append(Component.newline())
                         .append(glyph.getGlyphComponent().color(NamedTextColor.WHITE)
                                 .hoverEvent(HoverEvent.showText(AdventureUtils.MINI_MESSAGE.deserialize("<gold>Click to copy to clipboard.")))
-                                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, glyph.getCharacters())))
+                                .clickEvent(ClickEvent.copyToClipboard(glyph.getCharacters())))
         );
     }
 
