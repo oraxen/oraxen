@@ -34,7 +34,6 @@ public class DurabilityMechanicManager implements Listener {
         event.setRepairAmount(0);
     }
 
-    //TODO Support for getting custom durability from second and first if available instead of ItemMeta
     @EventHandler
     public void onItemRepair(PrepareAnvilEvent event) {
         ItemStack firstItem = event.getInventory().getFirstItem();
