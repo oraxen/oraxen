@@ -156,7 +156,7 @@ public final class PackDispatchListener implements Listener {
     private static byte[] hashArray(String hash) {
         if (hash == null) throw new IllegalArgumentException("Hash cannot be null");
         int length = hash.length();
-        if (length % 2 != 0) throw new IllegalArgumentException("Hash length must be even");
+        if (length != 40) throw new IllegalArgumentException("SHA-1 hash must be 40 hexadecimal characters");
 
         byte[] result = new byte[length / 2];
         for (int i = 0; i < result.length; i++) {

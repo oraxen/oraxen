@@ -247,7 +247,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         try {
             return (TagNetworkSerialization.NetworkPayload) constructor.newInstance(tagRegistryMap);
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
+            Logs.debug(e);
         }
         return null;
     }
@@ -323,7 +323,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         } catch (Exception e) {
             Logs.logWarning("Failed to set component " + componentKey);
             if (io.th0rgal.oraxen.configs.Settings.DEBUG.toBool())
-                e.printStackTrace();
+                Logs.debug(e);
             return false;
         }
     }
@@ -346,7 +346,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             } catch (Exception e) {
                 Logs.logWarning("Failed to apply component '" + entry.getKey() + "'");
                 if (io.th0rgal.oraxen.configs.Settings.DEBUG.toBool())
-                    e.printStackTrace();
+                    Logs.debug(e);
             }
         }
         return asBukkitCopy(nmsItem);
@@ -688,7 +688,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(itemStack);
             return nmsItem.get(DataComponents.CONSUMABLE);
         } catch (Exception e) {
-            e.printStackTrace();
+            Logs.debug(e);
         }
         return null;
     }
@@ -702,7 +702,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             nmsItem.set(DataComponents.CONSUMABLE, (Consumable) consumable);
             return asBukkitCopy(nmsItem);
         } catch (Exception e) {
-            e.printStackTrace();
+            Logs.debug(e);
         }
         return itemStack;
     }
@@ -892,7 +892,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             connection.send(mountPacket);
         } catch (Exception e) {
             Logs.logWarning("Failed to send mount packet: " + e.getMessage());
-            e.printStackTrace();
+            Logs.debug(e);
         } finally {
             byteBuf.release();
         }

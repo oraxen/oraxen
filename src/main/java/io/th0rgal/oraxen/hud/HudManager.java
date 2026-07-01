@@ -140,7 +140,7 @@ public class HudManager {
         } catch (Exception e) {
             if (Settings.DEBUG.toBool()) {
                 Logs.logWarning("[HUD] Failed to send actionbar: " + e.getMessage());
-                e.printStackTrace();
+                Logs.debug(e);
             }
         }
     }

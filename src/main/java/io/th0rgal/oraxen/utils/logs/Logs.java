@@ -5,6 +5,8 @@ import io.th0rgal.oraxen.utils.AdventureUtils;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 
+import java.util.logging.Level;
+
 public class Logs {
 
     private Logs() {
@@ -91,7 +93,7 @@ public class Logs {
      */
     public static void debug(Throwable throwable) {
         if (Settings.DEBUG.toBool() && throwable != null) {
-            throwable.printStackTrace();
+            Bukkit.getLogger().log(Level.WARNING, throwable.getMessage(), throwable);
         }
     }
 

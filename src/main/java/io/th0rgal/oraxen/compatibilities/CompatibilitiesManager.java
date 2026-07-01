@@ -53,7 +53,8 @@ public class CompatibilitiesManager {
                 return true;
             }
         } catch (final InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-            e.printStackTrace();
+            Logs.logWarning("Failed to enable compatibility for " + pluginName + ": " + e.getMessage());
+            Logs.debug(e);
             return false;
         }
         return false;

@@ -73,10 +73,7 @@ public class ReloadCommand {
         OraxenPlugin.get().reloadConfigs();
         HudManager hudManager = new HudManager(OraxenPlugin.get().getConfigsManager());
         OraxenPlugin.get().setHudManager(hudManager);
-        hudManager.loadHuds(hudManager.getHudConfigSection());
-        hudManager.parsedHudDisplays = hudManager.generateHudDisplays();
-        hudManager.reregisterEvents();
-        hudManager.restartTask();
+        hudManager.registerTask();
     }
 
     public static void reloadRecipes(@Nullable CommandSender sender) {

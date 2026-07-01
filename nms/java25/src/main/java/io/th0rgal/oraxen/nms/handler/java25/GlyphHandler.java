@@ -192,7 +192,7 @@ public class GlyphHandler implements io.th0rgal.oraxen.nms.GlyphHandler {
                         channel.eventLoop().submit(() -> inject(channel, null));
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    Logs.debug(e);
                 }
             }
         };
@@ -278,7 +278,7 @@ public class GlyphHandler implements io.th0rgal.oraxen.nms.GlyphHandler {
         } catch (Exception e) {
             Logs.logError("Failed to resolve server channel futures: " + e.getMessage());
             if (VersionUtil.atOrAbove("26.1")) {
-                e.printStackTrace();
+                Logs.debug(e);
             }
         }
         Logs.logWarning("Could not resolve server channel futures; glyph network injection may be incomplete.");
