@@ -18,6 +18,7 @@ import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.oraxen.utils.wrappers.AttributeWrapper;
+import io.th0rgal.oraxen.utils.wrappers.EnchantmentWrapper;
 import net.Indyuce.mmoitems.MMOItems;
 import net.kyori.adventure.key.Key;
 import org.apache.commons.lang3.EnumUtils;
@@ -28,7 +29,6 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.enchantments.EnchantmentWrapper;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.EquipmentSlot;
@@ -578,13 +578,7 @@ public class ItemParser {
                     Logs.logWarning("Invalid enchantment key: " + enchant + " in item: " + section.getName());
                     continue;
                 }
-                // Use legacy Enchantment for versions below 1.21
-                final Enchantment enchantment;
-                if (!VersionUtil.atOrAbove("1.21")) {
-                    enchantment = EnchantmentWrapper.getByKey(namespacedKey);
-                } else {
-                    enchantment = Registry.ENCHANTMENT.get(namespacedKey);
-                }
+                final Enchantment enchantment = EnchantmentWrapper.getByKey(namespacedKey);
                 if (enchantment == null) {
                     Logs.logWarning("Enchantment not found for key: " + enchant + " in item: " + section.getName());
                 } else {
