@@ -9,6 +9,8 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 public class ClickListener extends CustomListener {
@@ -17,44 +19,56 @@ public class ClickListener extends CustomListener {
 
     public ClickListener(String itemID, long cooldown, CustomEvent event, ClickAction clickAction) {
         super(itemID, cooldown, event, clickAction);
-        switch (event.getParams().get(0)) {
-            case "right":
-                if (event.getParams().get(1).equals("all")) {
-                    interactActions.add(Action.RIGHT_CLICK_AIR);
-                    interactActions.add(Action.RIGHT_CLICK_BLOCK);
-                } else if (event.getParams().get(1).equals("block")) interactActions.add(Action.RIGHT_CLICK_BLOCK);
-                else
-                    interactActions.add(Action.RIGHT_CLICK_AIR);
-                break;
+        List<String> params = event.getParams();
+        if (params.size() > 2)
+            throw new IllegalArgumentException("CLICK events accept at most two parameters: CLICK:<right|left|all>:<air|block|all>");
 
-            case "left":
-                if (event.getParams().get(1).equals("all")) {
-                    interactActions.add(Action.LEFT_CLICK_AIR);
-                    interactActions.add(Action.LEFT_CLICK_BLOCK);
-                } else if (event.getParams().get(1).equals("block"))
-                    interactActions.add(Action.LEFT_CLICK_BLOCK);
-                else
-                    interactActions.add(Action.LEFT_CLICK_AIR);
+        String button = params.isEmpty() ? "all" : params.get(0).toLowerCase(Locale.ROOT);
+        String target = params.size() < 2 ? "all" : params.get(1).toLowerCase(Locale.ROOT);
 
-                break;
-
+        switch (button) {
+            case "right": addRightClickActions(target); break;
+            case "left": addLeftClickActions(target); break;
             case "all":
-                if (event.getParams().get(1).equals("all")) {
-                    interactActions.add(Action.RIGHT_CLICK_AIR);
-                    interactActions.add(Action.RIGHT_CLICK_BLOCK);
-                    interactActions.add(Action.LEFT_CLICK_AIR);
-                    interactActions.add(Action.LEFT_CLICK_BLOCK);
-                } else if (event.getParams().get(1).equals("block")) {
-                    interactActions.add(Action.RIGHT_CLICK_BLOCK);
-                    interactActions.add(Action.LEFT_CLICK_BLOCK);
-                } else {
-                    interactActions.add(Action.RIGHT_CLICK_AIR);
-                    interactActions.add(Action.LEFT_CLICK_AIR);
-                }
+                addRightClickActions(target);
+                addLeftClickActions(target);
                 break;
-
             default:
-                throw new IllegalStateException("Unexpected value: " + event.getParams().get(0));
+                throw new IllegalArgumentException("Unexpected CLICK button: " + params.get(0));
+        }
+    }
+
+    private void addRightClickActions(String target) {
+        switch (target) {
+            case "all":
+                interactActions.add(Action.RIGHT_CLICK_AIR);
+                interactActions.add(Action.RIGHT_CLICK_BLOCK);
+                break;
+            case "block":
+                interactActions.add(Action.RIGHT_CLICK_BLOCK);
+                break;
+            case "air":
+                interactActions.add(Action.RIGHT_CLICK_AIR);
+                break;
+            default:
+                throw new IllegalArgumentException("Unexpected CLICK target: " + target);
+        }
+    }
+
+    private void addLeftClickActions(String target) {
+        switch (target) {
+            case "all":
+                interactActions.add(Action.LEFT_CLICK_AIR);
+                interactActions.add(Action.LEFT_CLICK_BLOCK);
+                break;
+            case "block":
+                interactActions.add(Action.LEFT_CLICK_BLOCK);
+                break;
+            case "air":
+                interactActions.add(Action.LEFT_CLICK_AIR);
+                break;
+            default:
+                throw new IllegalArgumentException("Unexpected CLICK target: " + target);
         }
     }
 
