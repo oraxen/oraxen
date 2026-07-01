@@ -40,58 +40,25 @@ public abstract class PackSender {
     public abstract void sendPack(Player player);
 
     /**
-     * Sends a resource pack to a player using the appropriate Bukkit API for the server version.
-     * Shared between BukkitPackSender and MultiVersionPackSender to avoid duplicating
-     * the BungeeCord/Paper/Spigot/version-specific branching logic.
+     * Sends a resource pack to a player using Paper's Adventure resource pack API.
      *
-     * @param player Player to send the pack to
+     * @param player Player to send pack to
      * @param uuid Pack UUID
      * @param url Pack download URL
      * @param sha1 Pack SHA-1 hash
      * @param prompt Prompt text (MiniMessage format)
-     * @param mandatory Whether the pack is mandatory
+     * @param mandatory Whether pack is mandatory
      */
     static void sendResourcePack(Player player, UUID uuid, String url, byte[] sha1,
                                   String prompt, boolean mandatory) {
-        String layer = Settings.SEND_PACK_LAYER.toString();
-        boolean useBungeeLayer = layer != null && !layer.isEmpty();
-
         net.kyori.adventure.text.Component componentPrompt = AdventureUtils.MINI_MESSAGE.deserialize(prompt);
-        String legacyPrompt = AdventureUtils.LEGACY_SERIALIZER.serialize(componentPrompt);
-
-        if (VersionUtil.atOrAbove("1.20.3")) {
-            if (useBungeeLayer) {
-                // Do not remove the layer before adding it: proxies that suppress duplicate pack pushes
-                // can otherwise let the remove through and leave the client without the pack.
-                player.addResourcePack(uuid, url, sha1, legacyPrompt, mandatory);
-            } else if (VersionUtil.isPaperServer()) {
-                sendPaperResourcePack(player, uuid, url, sha1, componentPrompt, mandatory);
-            } else {
-                player.setResourcePack(uuid, url, sha1, legacyPrompt, mandatory);
-            }
-        } else {
-            if (VersionUtil.isPaperServer()) {
-                player.setResourcePack(url, sha1, componentPrompt, mandatory);
-            } else {
-                player.setResourcePack(url, sha1, legacyPrompt, mandatory);
-            }
-        }
+        player.sendResourcePacks(createResourcePackRequest(uuid, url, sha1, componentPrompt, mandatory));
     }
 
     static void sendResourcePack(Audience audience, UUID uuid, String url, byte[] sha1,
                                  String prompt, boolean mandatory) {
         net.kyori.adventure.text.Component componentPrompt = AdventureUtils.MINI_MESSAGE.deserialize(prompt);
         audience.sendResourcePacks(createResourcePackRequest(uuid, url, sha1, componentPrompt, mandatory));
-    }
-
-    private static void sendPaperResourcePack(Player player, UUID uuid, String url, byte[] sha1,
-                                              net.kyori.adventure.text.Component prompt, boolean mandatory) {
-        if (SHA1Utils.bytesToHex(sha1) == null) {
-            player.setResourcePack(uuid, url, sha1, prompt, mandatory);
-            return;
-        }
-
-        player.sendResourcePacks(createResourcePackRequest(uuid, url, sha1, prompt, mandatory));
     }
 
     private static ResourcePackRequest createResourcePackRequest(UUID uuid, String url, byte[] sha1,
@@ -183,7 +150,7 @@ public abstract class PackSender {
     }
 
     private static boolean isPreJoinSupported() {
-        return VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.21.7");
+        return VersionUtil.atOrAbove("1.21.7");
     }
 
     private static void normalizeDispatchModeForServerSupport() {
