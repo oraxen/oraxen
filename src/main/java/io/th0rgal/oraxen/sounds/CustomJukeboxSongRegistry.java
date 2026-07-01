@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.sounds;
 
+import io.th0rgal.oraxen.pack.generation.LegacyDatapackCleaner;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -115,13 +116,7 @@ public final class CustomJukeboxSongRegistry {
     }
 
     private static void clearLegacyDatapack() {
-        try {
-            JukeboxDatapack jukeboxDatapack = new JukeboxDatapack(java.util.List.of());
-            jukeboxDatapack.clearOldDataPack();
-            jukeboxDatapack.generateAssets(java.util.List.of());
-        } catch (RuntimeException exception) {
-            Logs.debug(exception);
-        }
+        LegacyDatapackCleaner.clear("oraxen_jukebox");
     }
 
     private static void rememberManagedSongIds(Collection<String> managedSongIds) {

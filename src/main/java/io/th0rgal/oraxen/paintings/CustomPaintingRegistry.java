@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.paintings;
 
+import io.th0rgal.oraxen.pack.generation.LegacyDatapackCleaner;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -119,13 +120,7 @@ public final class CustomPaintingRegistry {
     }
 
     private static void clearLegacyDatapack() {
-        try {
-            PaintingDatapack paintingDatapack = new PaintingDatapack(List.of());
-            paintingDatapack.clearOldDataPack();
-            paintingDatapack.generateAssets(List.of());
-        } catch (RuntimeException exception) {
-            Logs.debug(exception);
-        }
+        LegacyDatapackCleaner.clear("oraxen_paintings");
     }
 
     private static int updatePlaceableRegistryTag(Collection<String> managedVariantIds, Collection<String> randomVariantIds) {
