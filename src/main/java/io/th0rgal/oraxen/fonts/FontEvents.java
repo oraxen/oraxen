@@ -30,6 +30,7 @@ import org.bukkit.event.player.*;
 import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.Nullable;
 
@@ -206,10 +207,12 @@ public class FontEvents implements Listener {
         }
 
         // If displayName is unchanged from input or empty, restore original name
-        String strippedInput = MINI_MESSAGE.stripTags(AdventureUtils.parseLegacy(inputItem.getItemMeta().getDisplayName()));
+        ItemMeta inputMeta = inputItem.getItemMeta();
+        String inputDisplayName = inputMeta != null && inputMeta.hasDisplayName() ? inputMeta.getDisplayName() : "";
+        String strippedInput = MINI_MESSAGE.stripTags(AdventureUtils.parseLegacy(inputDisplayName));
         if (((displayName == null || displayName.isEmpty()) && OraxenItems.exists(inputItem))
                 || strippedInput.equals(displayName)) {
-            return inputItem.getItemMeta().getPersistentDataContainer().get(ORIGINAL_NAME_KEY, PersistentDataType.STRING);
+            return inputMeta != null ? inputMeta.getPersistentDataContainer().get(ORIGINAL_NAME_KEY, PersistentDataType.STRING) : null;
         }
         return displayName;
     }
