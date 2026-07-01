@@ -72,7 +72,8 @@ public class RepairCommand {
             DurabilityMechanic durabilityMechanic = durabilityFactory.getMechanic(itemId);
             PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
             int realMaxDurability = durabilityMechanic.getItemMaxDurability();
-            int damage = realMaxDurability - pdc.get(DurabilityMechanic.DURABILITY_KEY, PersistentDataType.INTEGER);
+            int damage = realMaxDurability - pdc.getOrDefault(DurabilityMechanic.DURABILITY_KEY,
+                    PersistentDataType.INTEGER, realMaxDurability);
             if (damage == 0)
                 return true; // full durability
             pdc.set(DurabilityMechanic.DURABILITY_KEY, PersistentDataType.INTEGER, realMaxDurability);
