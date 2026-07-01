@@ -151,7 +151,7 @@ public class MultiVersionPackSender implements Listener {
         if (delay <= 0) {
             sendPack(player);
         } else {
-            SchedulerUtil.runTaskLaterAsync(delay * 20L, () -> sendPack(player));
+            SchedulerUtil.runForEntityLater(player, delay * 20L, () -> sendPack(player), null);
         }
     }
 
