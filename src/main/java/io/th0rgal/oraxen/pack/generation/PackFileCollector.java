@@ -145,6 +145,13 @@ class PackFileCollector {
                 if (jsonModel.has("textures")) {
                     for (JsonElement element : jsonModel.getAsJsonObject("textures").entrySet().stream()
                             .map(Map.Entry::getValue).toList()) {
+                        if (!element.isJsonPrimitive() || !element.getAsJsonPrimitive().isString()) {
+                            Logs.logWarning("Found invalid texture-path inside model-file <blue>"
+                                    + model.getPath() + "</blue>: " + element);
+                            malformedModels.add(model);
+                            continue;
+                        }
+
                         String jsonTexture = element.getAsString();
                         if (!texturePaths.contains(modelPathToPackPath(jsonTexture))) {
                             if (!jsonTexture.startsWith("#") && !jsonTexture.startsWith("item/")
