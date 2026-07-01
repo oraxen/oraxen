@@ -73,15 +73,21 @@ public class HudManager {
     }
 
     public boolean hasActiveHud(Player player) {
-        return !player.getPersistentDataContainer().getOrDefault(hudDisplayKey, DataType.STRING, "").isEmpty();
+        return getActiveHud(player) != null;
     }
 
     public Hud getActiveHud(Player player) {
-        return huds.get(player.getPersistentDataContainer().get(hudDisplayKey, DataType.STRING));
+        String hudId = player.getPersistentDataContainer().get(hudDisplayKey, DataType.STRING);
+        return hudId != null ? huds.get(hudId) : null;
     }
 
     public void setActiveHud(Player player, Hud hud) {
-        player.getPersistentDataContainer().set(hudDisplayKey, PersistentDataType.STRING, getHudID(hud));
+        String hudId = getHudID(hud);
+        if (hudId == null) {
+            player.getPersistentDataContainer().remove(hudDisplayKey);
+            return;
+        }
+        player.getPersistentDataContainer().set(hudDisplayKey, PersistentDataType.STRING, hudId);
     }
 
     public boolean getHudState(Player player) {

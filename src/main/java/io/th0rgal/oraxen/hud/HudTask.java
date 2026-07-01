@@ -40,7 +40,8 @@ public class HudTask implements Runnable {
     }
 
     private void updatePlayerHud(Player player) {
-        Hud hud = manager.hasActiveHud(player) ? manager.getActiveHud(player) : manager.getDefaultEnabledHuds().stream().findFirst().orElse(null);
+        Hud hud = manager.getActiveHud(player);
+        if (hud == null) hud = manager.getDefaultEnabledHuds().stream().findFirst().orElse(null);
 
         if (hud == null) {
             if (Settings.DEBUG.toBool()) {
@@ -64,6 +65,6 @@ public class HudTask implements Runnable {
             return;
         }
 
-        manager.updateHud(player);
+        manager.enableHud(player, hud);
     }
 }

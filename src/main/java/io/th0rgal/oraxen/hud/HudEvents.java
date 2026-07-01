@@ -21,8 +21,8 @@ public class HudEvents implements Listener {
         HudManager hudManager = OraxenPlugin.get().getHudManager();
         final Player player = event.getPlayer();
         final PersistentDataContainer pdc = player.getPersistentDataContainer();
-        Hud hud = hudManager.hasActiveHud(player)
-                ? hudManager.getActiveHud(player) : hudManager.getDefaultEnabledHuds().stream().findFirst().orElse(null);
+        Hud hud = hudManager.getActiveHud(player);
+        if (hud == null) hud = hudManager.getDefaultEnabledHuds().stream().findFirst().orElse(null);
         String hudId = hudManager.getHudID(hud);
 
         if (hud == null || hudId == null) {
@@ -57,13 +57,11 @@ public class HudEvents implements Listener {
         Player player = (Player) event.getEntity();
         Hud hud = hudManager.getActiveHud(player);
 
-        if (hud == null || !hud.isDisabledWhilstInWater() || !hudManager.getHudState(player)) return;
+        if (hud == null || !hud.isDisabledWhilstInWater()) return;
         if (event.getAmount() < player.getMaximumAir()) {
-            hudManager.setHudState(player, true);
-            hudManager.updateHud(player);
-        } else {
-            hudManager.setHudState(player, false);
             hudManager.disableHud(player);
+        } else if (hudManager.getHudState(player)) {
+            hudManager.updateHud(player);
         }
     }
 
@@ -74,11 +72,9 @@ public class HudEvents implements Listener {
         Hud hud = hudManager.getActiveHud(player);
         if (hud == null) return;
 
-        if (player.getGameMode() == GameMode.SPECTATOR && !hud.enableInSpectatorMode()) {
-            hudManager.setHudState(player, false);
+        if (event.getNewGameMode() == GameMode.SPECTATOR && !hud.enableInSpectatorMode()) {
             hudManager.disableHud(player);
-        } else {
-            hudManager.setHudState(player, true);
+        } else if (hudManager.getHudState(player)) {
             hudManager.updateHud(player);
         }
     }
