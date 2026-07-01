@@ -73,10 +73,16 @@ public class ModelData {
         return newHighestModelData;
     }
 
-    private static int getNextNotSkippedCustomModelData(int i) {
-        List<Integer> sorted = new ArrayList<>(getSkippedCustomModelData());
-        sorted.sort(Comparator.naturalOrder());
-        return sorted.stream().filter(index -> index > i).toList().get(0);
+    static int getNextNotSkippedCustomModelData(int i) {
+        return getNextNotSkippedCustomModelData(i, getSkippedCustomModelData());
+    }
+
+    static int getNextNotSkippedCustomModelData(int i, Set<Integer> skippedCustomModelData) {
+        int nextModelData = i;
+        while (skippedCustomModelData.contains(nextModelData)) {
+            nextModelData++;
+        }
+        return nextModelData;
     }
 
     private static Set<Integer> getSkippedCustomModelData() {
