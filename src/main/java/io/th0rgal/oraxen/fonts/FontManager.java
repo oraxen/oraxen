@@ -344,13 +344,8 @@ public class FontManager {
     private final Map<UUID, List<String>> currentGlyphCompletions = new HashMap<>();
 
     public void sendGlyphTabCompletion(Player player) {
-        List<String> completions = getGlyphByPlaceholderMap().values().stream()
-                .filter(Glyph::hasTabCompletion)
-                .flatMap(glyph -> Settings.UNICODE_COMPLETIONS.toBool()
-                        ? Stream.of(glyph.getCharacters())
-                        : Arrays.stream(glyph.getPlaceholders()))
-                .distinct()
-                .toList();
+        List<String> completions = getGlyphTabCompletions(getGlyphByPlaceholderMap().values(),
+                Settings.UNICODE_COMPLETIONS.toBool());
 
         if (VersionUtil.atOrAbove("1.19.4")) {
             player.removeCustomChatCompletions(
@@ -362,6 +357,17 @@ public class FontManager {
 
     public void clearGlyphTabCompletions(Player player) {
         this.currentGlyphCompletions.remove(player.getUniqueId());
+    }
+
+    public static List<String> getGlyphTabCompletions(Collection<Glyph> glyphs, boolean includeUnicodeCompletions) {
+        return glyphs.stream()
+                .filter(Glyph::hasTabCompletion)
+                .flatMap(glyph -> includeUnicodeCompletions
+                        ? Stream.concat(Arrays.stream(glyph.getPlaceholders()), Stream.of(glyph.getCharacters()))
+                        : Arrays.stream(glyph.getPlaceholders()))
+                .filter(completion -> !completion.isEmpty())
+                .distinct()
+                .toList();
     }
 
     /**
