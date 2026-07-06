@@ -742,6 +742,19 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         return ENTITY_ID_COUNTER.decrementAndGet();
     }
 
+    private static EntityType<?> getEntityType(String entityId) {
+        try {
+            Object location = ResourceLocationHelper.parse(entityId);
+            Method getValue = BuiltInRegistries.ENTITY_TYPE.getClass()
+                    .getMethod("getValue", ResourceLocationHelper.getResourceLocationClass());
+            Object entityType = getValue.invoke(BuiltInRegistries.ENTITY_TYPE, location);
+            if (entityType instanceof EntityType<?> type) return type;
+        } catch (ReflectiveOperationException e) {
+            Logs.debug(e);
+        }
+        throw new IllegalStateException("Could not resolve entity type: " + entityId);
+    }
+
     @Override
     public void spawnBackpackArmorStand(Player viewer, int entityId, Location location, ItemStack displayItem, boolean small) {
         ServerPlayer serverPlayer = ((CraftPlayer) viewer).getHandle();
@@ -763,7 +776,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                 uuid,
                 x, y, z,
                 pitch, yaw,
-                EntityType.ARMOR_STAND,
+                getEntityType("minecraft:armor_stand"),
                 0, // data
                 Vec3.ZERO,
                 0.0 // head yaw
