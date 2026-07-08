@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.hud;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.configs.Settings;
+import io.th0rgal.oraxen.utils.EntityUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.GameMode;
 import org.bukkit.entity.EntityType;
@@ -58,7 +59,7 @@ public class HudEvents implements Listener {
         Hud hud = hudManager.getActiveHud(player);
 
         if (hud == null || !hud.isDisabledWhilstInWater()) return;
-        if (event.getAmount() < player.getMaximumAir()) {
+        if (EntityUtils.isUnderWater(player)) {
             hudManager.disableHud(player);
         } else if (hudManager.getHudState(player)) {
             hudManager.updateHud(player);
