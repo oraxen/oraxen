@@ -379,11 +379,11 @@ public class FurnitureListener implements Listener {
                 ? OraxenFurniture.isFurniture(block) || OraxenFurniture.hasFurnitureBlockMarker(block)
                 : hitEntity != null && (OraxenFurniture.isFurniture(hitEntity) || OraxenFurniture.isOrphanFurnitureEntity(hitEntity));
 
-        // Do not break furniture with a hitbox unless its explosive
+        // Do not break furniture with a hitbox unless it is a block-breaking explosive
         if (location != null && isFurniture) {
             if (player != null && !AntiGriefLib.canBreak(player, location))
                 event.setCancelled(true);
-            else if (projectile instanceof Explosive) {
+            else if (projectile instanceof Explosive && !(projectile instanceof AbstractWindCharge)) {
                 event.setCancelled(true);
                 OraxenFurniture.remove(location, player);
             }
