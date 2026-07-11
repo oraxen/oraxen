@@ -87,8 +87,19 @@ public class NoteBlockSoundListener implements Listener {
         if (soundGroup.getHitSound() != Sound.BLOCK_WOOD_HIT) return;
         if (breakerPlaySound.containsKey(location)) return;
 
+        NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
+        if (mechanic != null && mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
+            mechanic = mechanic.getDirectional().getParentMechanic();
+
+        boolean custom = block.getType() == Material.NOTE_BLOCK && mechanic != null
+                && mechanic.hasBlockSounds() && mechanic.getBlockSounds().hasHitSound();
+        BlockSounds blockSounds = custom ? mechanic.getBlockSounds() : null;
+        String sound = custom ? blockSounds.getHitSound() : VANILLA_WOOD_HIT;
+        float volume = custom ? blockSounds.getHitVolume() : VANILLA_HIT_VOLUME;
+        float pitch = custom ? blockSounds.getHitPitch() : VANILLA_HIT_PITCH;
+
         SchedulerUtil.ScheduledTask task = SchedulerUtil.runAtLocationTimer(location, 2L, 4L, () ->
-                BlockHelpers.playCustomBlockSound(location, VANILLA_WOOD_HIT, VANILLA_HIT_VOLUME, VANILLA_HIT_PITCH));
+                BlockHelpers.playCustomBlockSound(location, sound, volume, pitch));
         breakerPlaySound.put(location, task);
     }
 
