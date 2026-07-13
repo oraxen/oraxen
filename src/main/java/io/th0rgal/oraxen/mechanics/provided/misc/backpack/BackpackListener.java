@@ -51,6 +51,8 @@ public class BackpackListener implements Listener {
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (event.getHand() == EquipmentSlot.OFF_HAND) return;
         if (event.useItemInHand() == Event.Result.DENY) return;
+        if (event.getClickedBlock() != null && isBackpack(event.getItem()))
+            event.setUseInteractedBlock(Event.Result.DENY);
         event.setUseItemInHand(Event.Result.ALLOW);
         openBackpack(event.getPlayer());
     }
