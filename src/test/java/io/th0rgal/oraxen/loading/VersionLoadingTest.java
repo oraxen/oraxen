@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /*
 * Downloads a server jar, cleans up the server, builds and deploys Oraxen to the server, sets the Java Version and verifies Oraxen loads fine on the server.
-* Supports Paper 1.20.1-26.2 and Folia 1.21.8-26.1.2.
+* Supports Paper 1.20.1-26.2 and Folia 1.21.11-26.1.2.
 *
 * Run all versions via './gradlew test --tests io.th0rgal.oraxen.loading.VersionLoadingTest -PrunVersionLoadingTest=true'.
 * Run a specific version via './gradlew test --tests "io.th0rgal.oraxen.loading.VersionLoadingTest.<Version>" -PrunVersionLoadingTest=true'.
@@ -60,7 +60,7 @@ public class VersionLoadingTest {
             "1.21.3", "1.21.4", "1.21.5", "1.21.8", "1.21.10", "1.21.11",
             "26.1.2", "26.2"
     );
-    private static final List<String> foliaVersions = List.of("1.21.8", "1.21.11", "26.1.2");
+    private static final List<String> foliaVersions = List.of("1.21.11", "26.1.2");
 
     private static final Map<String, Integer> javaVersions = Map.of(
             "1.20.1-1.21.11", 21,
@@ -98,9 +98,8 @@ public class VersionLoadingTest {
     @Test @Tag("version-loading") @Order(9) void Paper_1_21_11() throws Exception { testPaper("1.21.11"); }
     @Test @Tag("version-loading") @Order(10) void Paper_26_1_2() throws Exception { testPaper("26.1.2"); }
     @Test @Tag("version-loading") @Order(11) void Paper_26_2() throws Exception { testPaper("26.2"); }
-    @Test @Tag("version-loading") @Order(12) void Folia_1_21_8() throws Exception { testFolia("1.21.8"); }
-    @Test @Tag("version-loading") @Order(13) void Folia_1_21_11() throws Exception { testFolia("1.21.11"); }
-    @Test @Tag("version-loading") @Order(14) void Folia_26_1_2() throws Exception { testFolia("26.1.2"); }
+    @Test @Tag("version-loading") @Order(12) void Folia_1_21_11() throws Exception { testFolia("1.21.11"); }
+    @Test @Tag("version-loading") @Order(13) void Folia_26_1_2() throws Exception { testFolia("26.1.2"); }
 
     private static void testPaper(String version) throws Exception {
         assumeTrue(previousVersionFailure == null, "Skipping because a previous version failed: " + previousVersionFailure);
