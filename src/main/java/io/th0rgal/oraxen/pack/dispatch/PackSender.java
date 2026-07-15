@@ -52,7 +52,16 @@ public abstract class PackSender {
     static void sendResourcePack(Player player, UUID uuid, String url, byte[] sha1,
                                   String prompt, boolean mandatory) {
         net.kyori.adventure.text.Component componentPrompt = AdventureUtils.MINI_MESSAGE.deserialize(prompt);
-        player.sendResourcePacks(createResourcePackRequest(uuid, url, sha1, componentPrompt, mandatory));
+        // The Adventure ResourcePackRequest API (and its MonkeyBars helper) is only available on the
+        // Adventure version bundled with 1.20.3+. On older servers (e.g. 1.20.1) it throws
+        // NoSuchMethodError, so fall back to the legacy Bukkit setResourcePack API.
+        if (VersionUtil.atOrAbove("1.20.3")) {
+            player.sendResourcePacks(createResourcePackRequest(uuid, url, sha1, componentPrompt, mandatory));
+        } else if (VersionUtil.isPaperServer()) {
+            player.setResourcePack(url, sha1, componentPrompt, mandatory);
+        } else {
+            player.setResourcePack(url, sha1, AdventureUtils.LEGACY_SERIALIZER.serialize(componentPrompt), mandatory);
+        }
     }
 
     static void sendResourcePack(Audience audience, UUID uuid, String url, byte[] sha1,
