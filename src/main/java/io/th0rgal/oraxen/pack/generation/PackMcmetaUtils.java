@@ -39,28 +39,31 @@ public class PackMcmetaUtils {
             pack.addProperty("description", "§9§lOraxen §8| §7Extend the Game §7www§8.§7oraxen§8.§7com");
         }
 
+        int min = minFormat > 0 ? minFormat : packFormat;
+        int max = maxFormat > 0 ? maxFormat : packFormat;
         pack.addProperty("pack_format", packFormat);
 
-        if (packFormat >= 65) {
-            // Resource pack format 65+ (introduced in 25w31a / 1.21.9) uses top-level min/max fields.
-            int min = minFormat > 0 ? minFormat : packFormat;
-            int max = maxFormat > 0 ? maxFormat : packFormat;
+        if (max >= 65) {
+            // Resource pack format 65+ (introduced in 25w31a / 1.21.9) requires top-level min/max fields.
             pack.addProperty("min_format", min);
             pack.addProperty("max_format", max);
-            pack.remove("supported_formats");
-        } else if (packFormat >= 18 && minFormat > 0) {
-            // 1.20.2-1.21.8 range declaration.
-            JsonObject supportedFormats = new JsonObject();
-            supportedFormats.addProperty("min_inclusive", minFormat);
-            supportedFormats.addProperty("max_inclusive", maxFormat);
-            pack.add("supported_formats", supportedFormats);
-            pack.remove("min_format");
-            pack.remove("max_format");
         } else {
-            // Pre-1.20.2 packs do not use range metadata.
-            pack.remove("supported_formats");
             pack.remove("min_format");
             pack.remove("max_format");
+        }
+
+        if (min < 65 && max >= 18 && min < max) {
+            // Keep the legacy range declaration whenever the pack supports an actual range of
+            // pre-1.21.9 formats. Older clients ignore min_format/max_format, while 1.21.9+
+            // requires both forms for a range crossing the format-65 metadata boundary.
+            // A degenerate single-format range (min == max) is skipped: it would only duplicate
+            // pack_format and needlessly narrow single-pack acceptance to exactly that format.
+            JsonObject supportedFormats = new JsonObject();
+            supportedFormats.addProperty("min_inclusive", min);
+            supportedFormats.addProperty("max_inclusive", max);
+            pack.add("supported_formats", supportedFormats);
+        } else {
+            pack.remove("supported_formats");
         }
 
         root.add("pack", pack);

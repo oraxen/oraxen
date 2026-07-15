@@ -30,36 +30,39 @@ class PackVersionManagerTest {
         manager.definePackVersions();
 
         assertTrue(manager.hasVersions());
-        assertTrue(manager.getVersionCount() > 0);
+        assertEquals(2, manager.getVersionCount());
 
         Collection<PackVersion> versions = manager.getAllVersions();
         assertFalse(versions.isEmpty());
 
-        // Verify we have expected versions
-        assertNotNull(manager.getVersion("1.21.4"));
-        assertNotNull(manager.getVersion("1.20.3")); // 1.20.3 covers 1.20.3-1.20.4 range
-        assertNotNull(manager.getVersion("1.20.2"));
-        assertNotNull(manager.getVersion("1.20"));
+        // Verify the two generated version groups.
+        PackVersion modern = manager.getVersion("1.21.4");
+        PackVersion legacy = manager.getVersion("1.21.3");
+        assertNotNull(modern);
+        assertNotNull(legacy);
+        assertEquals("pack_1_21_4.zip", modern.getPackFile().getName());
+        assertEquals("pack_1_21_3.zip", legacy.getPackFile().getName());
+        assertEquals(42, legacy.getPackFormat());
     }
 
     @Test
     void testFindBestVersionForFormat() {
         manager.definePackVersions();
 
-        // Format 22 should match 1.20.3 pack (format 22, range 22-31)
+        // Formats through 1.21.3 use the legacy variant.
         PackVersion version = manager.findBestVersionForFormat(22);
         assertNotNull(version);
-        assertTrue(version.supportsFormat(22));
+        assertEquals("1.21.3", version.getMinecraftVersion());
 
         // Format 46 should match 1.21.4 pack
         version = manager.findBestVersionForFormat(46);
         assertNotNull(version);
         assertEquals(46, version.getPackFormat());
 
-        // Format 55 should match 1.21.5 pack
+        // All newer formats use the modern variant.
         version = manager.findBestVersionForFormat(55);
         assertNotNull(version);
-        assertEquals(55, version.getPackFormat());
+        assertEquals("1.21.4", version.getMinecraftVersion());
 
         // Unknown high format should match latest pack (open-ended)
         version = manager.findBestVersionForFormat(999);
@@ -70,13 +73,23 @@ class PackVersionManagerTest {
     void testFindBestVersionForProtocol() {
         manager.definePackVersions();
 
-        // Protocol 765 (1.20.3) should map to appropriate pack
+        // Protocol 765 (1.20.3-1.20.4) should map to the legacy pack.
         PackVersion version = manager.findBestVersionForProtocol(765);
         assertNotNull(version);
+        assertEquals("1.21.3", version.getMinecraftVersion());
 
-        // Protocol 769 (1.21.4) should map to latest pack
+        // Protocol 768 (1.21.2-1.21.3) remains on the legacy pack.
+        version = manager.findBestVersionForProtocol(768);
+        assertNotNull(version);
+        assertEquals("1.21.3", version.getMinecraftVersion());
+
+        // Protocol 769 (1.21.4) and every newer known protocol use the modern pack.
         version = manager.findBestVersionForProtocol(769);
         assertNotNull(version);
+        assertEquals("1.21.4", version.getMinecraftVersion());
+        for (int protocol : new int[] {771, 772, 773, 774, 775, 776}) {
+            assertEquals("1.21.4", manager.findBestVersionForProtocol(protocol).getMinecraftVersion());
+        }
     }
 
     @Test
@@ -97,29 +110,29 @@ class PackVersionManagerTest {
     void testSetServerPackVersionWithNormalizedVersion() {
         manager.definePackVersions();
 
-        // Test that "1.21.0" (from MinecraftVersion.getVersion()) matches "1.21" in the map
+        // Versions without an exact group key resolve by their pack format.
         manager.setServerPackVersion("1.21.0");
         PackVersion serverVersion = manager.getServerPackVersion();
         assertNotNull(serverVersion);
-        assertEquals("1.21", serverVersion.getMinecraftVersion());
+        assertEquals("1.21.3", serverVersion.getMinecraftVersion());
 
-        // Test that "1.20.0" matches "1.20" in the map
+        // Test that "1.20.0" maps to the legacy group.
         manager.setServerPackVersion("1.20.0");
         serverVersion = manager.getServerPackVersion();
         assertNotNull(serverVersion);
-        assertEquals("1.20", serverVersion.getMinecraftVersion());
+        assertEquals("1.21.3", serverVersion.getMinecraftVersion());
 
-        // Test that "1.21.1" maps to the representative "1.21" definition
+        // Test that "1.21.1" maps to the legacy group.
         manager.setServerPackVersion("1.21.1");
         serverVersion = manager.getServerPackVersion();
         assertNotNull(serverVersion);
-        assertEquals("1.21", serverVersion.getMinecraftVersion());
+        assertEquals("1.21.3", serverVersion.getMinecraftVersion());
 
         // Test that build-style trailing zeros normalize correctly: "1.20.5.0" -> "1.20.5"
         manager.setServerPackVersion("1.20.5.0");
         serverVersion = manager.getServerPackVersion();
         assertNotNull(serverVersion);
-        assertEquals("1.20.5", serverVersion.getMinecraftVersion());
+        assertEquals("1.21.3", serverVersion.getMinecraftVersion());
     }
 
     @Test
@@ -166,8 +179,8 @@ class PackVersionManagerTest {
             .orElse(null);
 
         assertNotNull(highest);
-        assertEquals(88, highest.getPackFormat(), "max() should return highest pack format (88 for 26.2)");
-        assertEquals("26.2", highest.getMinecraftVersion());
+        assertEquals(46, highest.getPackFormat());
+        assertEquals("1.21.4", highest.getMinecraftVersion());
     }
 
     @Test

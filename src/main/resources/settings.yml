@@ -104,10 +104,10 @@ Pack:
     disable_mcmeta_generation: false
     # MULTI-VERSION RESOURCE PACKS
     # Enable this for servers with players on multiple Minecraft versions (ViaVersion/ProtocolSupport).
-    # When enabled, generates separate pack files with correct pack_format for each client version.
+    # When enabled, generates two pack files: one for clients on 1.21.3 and below, and one for 1.21.4+.
     #
-    # Supported versions: 1.20, 1.20.2, 1.20.3-1.20.4, 1.20.5-1.20.6, 1.21-1.21.1, 1.21.2-1.21.3, 1.21.4, 1.21.5, 1.21.6, 1.21.7-1.21.8, 1.21.9-1.21.11, 26.1, 26.2+
-    # Each pack has appropriate pack_format and supported_formats range for client compatibility.
+    # Supported versions: 1.20 through 1.21.3, and 1.21.4+
+    # Each pack declares the full metadata range required by clients in its group.
     #
     # Requirements:
     # - ViaVersion OR ProtocolSupport plugin for version detection (without these, all players get server version pack)
@@ -115,7 +115,7 @@ Pack:
     #
     # How it works:
     # - On player join, detects their client version via ViaVersion/ProtocolSupport API
-    # - Sends the appropriate pack version matching their client's pack_format
+    # - Sends the 1.21.3- or 1.21.4+ pack matching their client's pack_format
     # - Players without version detection receive the server's version pack as fallback
     multi_version_packs: false
     # List of file extensions that will not be included in the final zipped ResourcePack

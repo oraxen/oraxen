@@ -13,33 +13,20 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Manages multiple versions of resource packs for different Minecraft client versions.
  *
- * <p>The canonical version-to-format-range mapping lives in {@link #VERSION_DEFINITIONS}.
- * {@link #definePackVersions()} reads from that single table, so there is exactly
- * one place to update when Minecraft adds a new pack format.</p>
+ * <p>The generated client groups and their format ranges live in
+ * {@link #VERSION_DEFINITIONS}. Individual Minecraft versions are mapped into one
+ * of those ranges by their resource pack format.</p>
  */
 public class PackVersionManager {
 
     /**
-     * Single source of truth for Minecraft version → pack format range mappings.
-     * Order: mcVersion, packFormat, minFormatInclusive, maxFormatInclusive.
-     * Sorted newest-first for readability only; the code does not depend on order.
+     * The two resource pack variants generated for supported clients.
+     * Order: representative mcVersion, packFormat, minFormatInclusive, maxFormatInclusive.
      */
     private static final Object[][] VERSION_DEFINITIONS = {
         // mcVersion, format, minFormat, maxFormat
-        {"26.2",    88, 88, 999},  // 26.2+ (latest, open-ended)
-        {"26.1",    84, 84, 87},   // 26.1.x
-        {"1.21.11", 75, 75, 83},   // 1.21.11
-        {"1.21.9",  69, 69, 74},   // 1.21.9-1.21.10
-        {"1.21.7",  64, 64, 68},   // 1.21.7-1.21.8
-        {"1.21.6",  63, 63, 63},   // 1.21.6
-        {"1.21.5",  55, 55, 62},   // 1.21.5
-        {"1.21.4",  46, 46, 54},   // 1.21.4
-        {"1.21.2",  42, 42, 45},   // 1.21.2-1.21.3
-        {"1.21",    34, 34, 41},   // 1.21-1.21.1
-        {"1.20.5",  32, 32, 33},   // 1.20.5-1.20.6
-        {"1.20.3",  22, 22, 31},   // 1.20.3-1.20.4
-        {"1.20.2",  18, 18, 21},   // 1.20.2
-        {"1.20",    15, 15, 17},   // 1.20-1.20.1
+        {"1.21.4", 46, 46, 999}, // 1.21.4 and newer
+        {"1.21.3", 42, 15, 45},  // 1.20 through 1.21.3
     };
 
     private final Map<String, PackVersion> packVersions = new ConcurrentHashMap<>();
@@ -77,8 +64,8 @@ public class PackVersionManager {
     }
 
     /**
-     * Defines the pack versions that should be generated based on supported Minecraft versions.
-     * Reads from {@link #VERSION_DEFINITIONS} so the mapping is defined in exactly one place.
+     * Defines the pack variants generated for the supported client groups.
+     * Reads from {@link #VERSION_DEFINITIONS} so the ranges are defined in exactly one place.
      * This should be called before generation starts.
      */
     public void definePackVersions() {
@@ -210,23 +197,6 @@ public class PackVersionManager {
                 }
             } catch (NumberFormatException ignored) {
                 // Non-numeric versions should fall back to pack-format lookup below.
-            }
-        }
-
-        // Normalize "1.26.x" runtimes to "26.x" namespace.
-        // Some server forks/wrappers report 26.x as "1.26.x"; the VERSION_DEFINITIONS
-        // table uses "26.1" as the canonical key.
-        if (parts.length >= 2) {
-            try {
-                int majorPart = Integer.parseInt(parts[0]);
-                int minorPart = Integer.parseInt(parts[1]);
-                if (majorPart == 1 && minorPart >= 26) {
-                    if (parts.length >= 3) {
-                        candidates.add(minorPart + "." + parts[2]);
-                    }
-                    candidates.add(String.valueOf(minorPart));
-                }
-            } catch (NumberFormatException ignored) {
             }
         }
 

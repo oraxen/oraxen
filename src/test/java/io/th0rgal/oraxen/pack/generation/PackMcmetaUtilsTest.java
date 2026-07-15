@@ -43,7 +43,7 @@ class PackMcmetaUtilsTest {
             .sorted(Comparator.comparingInt(PackVersion::getMinFormatInclusive))
             .toList();
 
-        assertTrue(sorted.size() >= 7, "Should have at least 7 pack versions defined");
+        assertEquals(2, sorted.size());
 
         // Each version's max + 1 should equal the next version's min (no gaps or overlaps)
         for (int i = 0; i < sorted.size() - 1; i++) {
@@ -88,12 +88,12 @@ class PackMcmetaUtilsTest {
         assertNotNull(lowest);
         assertEquals(15, lowest.getMinFormatInclusive(),
             "Lowest pack version should start at format 15 (1.20)");
-        assertEquals("1.20", lowest.getMinecraftVersion());
+        assertEquals("1.21.3", lowest.getMinecraftVersion());
     }
 
     @Test
     void testHighestRangeEndsAt999() {
-        // The highest pack version (1.21.4) should have max 999 (open-ended)
+        // The 1.21.4+ pack should have max 999 (open-ended)
         PackVersionManager manager = new PackVersionManager(tempDir.toFile());
         manager.setSilentMode(true);
         manager.definePackVersions();
@@ -105,87 +105,27 @@ class PackMcmetaUtilsTest {
         assertNotNull(highest);
         assertEquals(999, highest.getMaxFormatInclusive(),
             "Highest pack version should have max_inclusive 999");
-        assertEquals("26.2", highest.getMinecraftVersion());
+        assertEquals("1.21.4", highest.getMinecraftVersion());
     }
 
     @Test
     void testExpectedVersionRanges() {
-        // Verify specific known ranges for each pack version
+        // Verify the two generated groups cover every supported format.
         PackVersionManager manager = new PackVersionManager(tempDir.toFile());
         manager.setSilentMode(true);
         manager.definePackVersions();
 
-        // 1.20: format 15, range [15, 17]
-        PackVersion v120 = manager.getVersion("1.20");
-        assertNotNull(v120);
-        assertEquals(15, v120.getMinFormatInclusive());
-        assertEquals(17, v120.getMaxFormatInclusive());
+        PackVersion legacy = manager.getVersion("1.21.3");
+        assertNotNull(legacy);
+        assertEquals(42, legacy.getPackFormat());
+        assertEquals(15, legacy.getMinFormatInclusive());
+        assertEquals(45, legacy.getMaxFormatInclusive());
 
-        // 1.20.2: format 18, range [18, 21]
-        PackVersion v1202 = manager.getVersion("1.20.2");
-        assertNotNull(v1202);
-        assertEquals(18, v1202.getMinFormatInclusive());
-        assertEquals(21, v1202.getMaxFormatInclusive());
-
-        // 1.20.3: format 22, range [22, 31]
-        PackVersion v1203 = manager.getVersion("1.20.3");
-        assertNotNull(v1203);
-        assertEquals(22, v1203.getMinFormatInclusive());
-        assertEquals(31, v1203.getMaxFormatInclusive());
-
-        // 1.20.5: format 32, range [32, 33]
-        PackVersion v1205 = manager.getVersion("1.20.5");
-        assertNotNull(v1205);
-        assertEquals(32, v1205.getMinFormatInclusive());
-        assertEquals(33, v1205.getMaxFormatInclusive());
-
-        // 1.21: format 34, range [34, 41]
-        PackVersion v121 = manager.getVersion("1.21");
-        assertNotNull(v121);
-        assertEquals(34, v121.getMinFormatInclusive());
-        assertEquals(41, v121.getMaxFormatInclusive());
-
-        // 1.21.2: format 42, range [42, 45]
-        PackVersion v1212 = manager.getVersion("1.21.2");
-        assertNotNull(v1212);
-        assertEquals(42, v1212.getMinFormatInclusive());
-        assertEquals(45, v1212.getMaxFormatInclusive());
-
-        // 1.21.4: format 46, range [46, 54]
         PackVersion v1214 = manager.getVersion("1.21.4");
         assertNotNull(v1214);
+        assertEquals(46, v1214.getPackFormat());
         assertEquals(46, v1214.getMinFormatInclusive());
-        assertEquals(54, v1214.getMaxFormatInclusive());
-
-        // 1.21.5: format 55, range [55, 62]
-        PackVersion v1215 = manager.getVersion("1.21.5");
-        assertNotNull(v1215);
-        assertEquals(55, v1215.getMinFormatInclusive());
-        assertEquals(62, v1215.getMaxFormatInclusive());
-
-        // 1.21.9: format 69, range [69, 74]
-        PackVersion v1219 = manager.getVersion("1.21.9");
-        assertNotNull(v1219);
-        assertEquals(69, v1219.getMinFormatInclusive());
-        assertEquals(74, v1219.getMaxFormatInclusive());
-
-        // 1.21.11: format 75, range [75, 83]
-        PackVersion v12111 = manager.getVersion("1.21.11");
-        assertNotNull(v12111);
-        assertEquals(75, v12111.getMinFormatInclusive());
-        assertEquals(83, v12111.getMaxFormatInclusive());
-
-        // 26.1: format 84, range [84, 87]
-        PackVersion v261 = manager.getVersion("26.1");
-        assertNotNull(v261);
-        assertEquals(84, v261.getMinFormatInclusive());
-        assertEquals(87, v261.getMaxFormatInclusive());
-
-        // 26.2: format 88, range [88, 999]
-        PackVersion v262 = manager.getVersion("26.2");
-        assertNotNull(v262);
-        assertEquals(88, v262.getMinFormatInclusive());
-        assertEquals(999, v262.getMaxFormatInclusive());
+        assertEquals(999, v1214.getMaxFormatInclusive());
     }
 
     @Test
@@ -211,6 +151,46 @@ class PackMcmetaUtilsTest {
         assertEquals(64, supportedFormats.get("max_inclusive").getAsInt());
         assertFalse(pack.has("min_format"));
         assertFalse(pack.has("max_format"));
+    }
+
+    @Test
+    void testSinglePackFormat18To64OmitsRedundantSupportedFormats() {
+        // Single-pack mode passes min/max of 0, so they default to packFormat.
+        // A degenerate range (min == max) must not emit supported_formats, which would
+        // only duplicate pack_format and narrow acceptance to exactly that format.
+        JsonObject mcmeta = PackMcmetaUtils.createPackMcmeta(42, 0, 0, null);
+        JsonObject pack = mcmeta.getAsJsonObject("pack");
+
+        assertEquals(42, pack.get("pack_format").getAsInt());
+        assertFalse(pack.has("supported_formats"));
+        assertFalse(pack.has("min_format"));
+        assertFalse(pack.has("max_format"));
+    }
+
+    @Test
+    void testLegacyGroupMetadataSupportsFormats15Through45() {
+        JsonObject mcmeta = PackMcmetaUtils.createPackMcmeta(42, 15, 45, null);
+        JsonObject pack = mcmeta.getAsJsonObject("pack");
+
+        assertEquals(42, pack.get("pack_format").getAsInt());
+        JsonObject supportedFormats = pack.getAsJsonObject("supported_formats");
+        assertEquals(15, supportedFormats.get("min_inclusive").getAsInt());
+        assertEquals(45, supportedFormats.get("max_inclusive").getAsInt());
+        assertFalse(pack.has("min_format"));
+        assertFalse(pack.has("max_format"));
+    }
+
+    @Test
+    void testModernGroupMetadataCrossesMetadataFormats() {
+        JsonObject mcmeta = PackMcmetaUtils.createPackMcmeta(46, 46, 999, null);
+        JsonObject pack = mcmeta.getAsJsonObject("pack");
+
+        assertEquals(46, pack.get("pack_format").getAsInt());
+        assertEquals(46, pack.get("min_format").getAsInt());
+        assertEquals(999, pack.get("max_format").getAsInt());
+        JsonObject supportedFormats = pack.getAsJsonObject("supported_formats");
+        assertEquals(46, supportedFormats.get("min_inclusive").getAsInt());
+        assertEquals(999, supportedFormats.get("max_inclusive").getAsInt());
     }
 
     @Test

@@ -196,12 +196,11 @@ class MultiVersionPackGeneratorTest {
     }
 
     @Test
-    void testVersionManagerHasMultipleVersions() {
+    void testVersionManagerDefinesTwoVersionGroups() {
         versionManager.definePackVersions();
 
         assertTrue(versionManager.hasVersions(), "Should have pack versions defined");
-        assertTrue(versionManager.getVersionCount() >= 2, 
-                "Should have at least 2 pack versions for multi-version testing");
+        assertEquals(2, versionManager.getVersionCount());
     }
 
     @Test

@@ -765,10 +765,8 @@ public class ResourcePack {
             formats.addProperty("max_inclusive", overlay.maxFormat());
             entry.add("formats", formats);
             entry.addProperty("directory", overlay.directory());
-            if (overlay.minFormat() > 64 || overlay.maxFormat() > 64) {
-                entry.addProperty("min_format", overlay.minFormat());
-                entry.addProperty("max_format", overlay.maxFormat());
-            }
+            entry.addProperty("min_format", overlay.minFormat());
+            entry.addProperty("max_format", overlay.maxFormat());
             entries.add(entry);
         }
 
@@ -802,9 +800,9 @@ public class ResourcePack {
      * to cover all overlay format ranges, ensuring that clients of any supported
      * version see the pack as compatible.
      *
-     * <p>For servers on 1.21.9+ (format 65+), also adds the legacy
-     * {@code supported_formats} field so that pre-1.21.9 clients can read the
-     * format range (they don't understand {@code min_format}/{@code max_format}).</p>
+     * <p>Ranges crossing resource pack format 65 include both metadata forms:
+     * pre-1.21.9 clients read {@code supported_formats}, while newer clients read
+     * {@code min_format}/{@code max_format}.</p>
      */
     private void expandSupportedFormatsRange(JsonObject root) {
         List<ShaderOverlay> overlayList = textShaderGenerator.getGeneratedOverlays();
@@ -824,20 +822,21 @@ public class ResourcePack {
         int effectiveMin = Math.min(serverFormat, minOverlayFormat);
         int effectiveMax = Math.max(serverGroupMax, maxOverlayFormat);
 
-        if (serverFormat >= 65) {
+        if (effectiveMax >= 65) {
             pack.addProperty("min_format", effectiveMin);
             pack.addProperty("max_format", effectiveMax);
-            JsonObject supportedFormats = new JsonObject();
-            supportedFormats.addProperty("min_inclusive", effectiveMin);
-            supportedFormats.addProperty("max_inclusive", effectiveMax);
-            pack.add("supported_formats", supportedFormats);
-        } else if (serverFormat >= 18) {
-            JsonObject supportedFormats = new JsonObject();
-            supportedFormats.addProperty("min_inclusive", effectiveMin);
-            supportedFormats.addProperty("max_inclusive", effectiveMax);
-            pack.add("supported_formats", supportedFormats);
+        } else {
             pack.remove("min_format");
             pack.remove("max_format");
+        }
+
+        if (effectiveMin < 65 && effectiveMax >= 18) {
+            JsonObject supportedFormats = new JsonObject();
+            supportedFormats.addProperty("min_inclusive", effectiveMin);
+            supportedFormats.addProperty("max_inclusive", effectiveMax);
+            pack.add("supported_formats", supportedFormats);
+        } else {
+            pack.remove("supported_formats");
         }
 
         root.add("pack", pack);
