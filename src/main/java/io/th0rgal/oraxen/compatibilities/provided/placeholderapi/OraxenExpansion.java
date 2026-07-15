@@ -65,6 +65,13 @@ public class OraxenExpansion extends PlaceholderExpansion {
         final Glyph glyph = plugin.getFontManager().getGlyphFromID(params);
         if (glyph != null)
             return glyph.getCharacters();
+
+        // %oraxen_hash% is a shorter alias for %oraxen_pack_hash%. Because "hash"
+        // is a generic name, resolve it after glyph lookup so a glyph whose ID is
+        // "hash" is not silently shadowed by the pack SHA-1.
+        if (params.equals("hash"))
+            return plugin.getPackSHA1();
+
         return null; // Placeholder is unknown by the Expansion
     }
 }
