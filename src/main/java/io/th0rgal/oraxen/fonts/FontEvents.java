@@ -106,7 +106,7 @@ public class FontEvents implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onBookGlyph(final PlayerEditBookEvent event) {
-        if (!Settings.FORMAT_BOOKS.toBool() || manager.useNmsGlyphs()) return;
+        if (!Settings.FORMAT_BOOKS.toBool()) return;
 
         BookMeta meta = event.getNewBookMeta();
         for (String page : meta.getPages()) {
@@ -156,7 +156,7 @@ public class FontEvents implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onSignGlyph(final SignChangeEvent event) {
-        if (!Settings.FORMAT_SIGNS.toBool() || manager.useNmsGlyphs()) return;
+        if (!Settings.FORMAT_SIGNS.toBool()) return;
 
         Player player = event.getPlayer();
         String[] lines = event.getLines();
@@ -181,7 +181,7 @@ public class FontEvents implements Listener {
     @EventHandler
     public void onPlayerRename(final InventoryClickEvent event) {
         if (!(event.getClickedInventory() instanceof AnvilInventory clickedInv)) return;
-        if (!Settings.FORMAT_ANVIL.toBool() || manager.useNmsGlyphs() || event.getSlot() != 2) return;
+        if (!Settings.FORMAT_ANVIL.toBool() || event.getSlot() != 2) return;
         if (VersionUtil.atOrAbove("1.20.5")) return;
 
         Player player = (Player) event.getWhoClicked();
@@ -303,7 +303,7 @@ public class FontEvents implements Listener {
     public class LegacyBukkitChatHandler implements Listener {
         @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
         public void onPlayerChat(AsyncPlayerChatEvent event) {
-            if (!Settings.FORMAT_CHAT.toBool() || !ChatHandler.isLegacy() || manager.useNmsGlyphs()) return;
+            if (!Settings.FORMAT_CHAT.toBool() || !ChatHandler.isLegacy()) return;
 
             String format = format(event.getFormat(), null);
             String message = format(event.getMessage(), event.getPlayer());
@@ -362,7 +362,7 @@ public class FontEvents implements Listener {
 
         @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
         public void onPlayerChat(AsyncChatDecorateEvent event) {
-            if (!Settings.FORMAT_CHAT.toBool() || !ChatHandler.isModern() || manager.useNmsGlyphs()) return;
+            if (!Settings.FORMAT_CHAT.toBool() || !ChatHandler.isModern()) return;
             event.result(format(event.result(), event.player()));
         }
 
@@ -372,7 +372,7 @@ public class FontEvents implements Listener {
 
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         public void onPlayerChat(AsyncChatEvent event) {
-            if (!Settings.FORMAT_CHAT.toBool() || !ChatHandler.isModern() || manager.useNmsGlyphs()) return;
+            if (!Settings.FORMAT_CHAT.toBool() || !ChatHandler.isModern()) return;
             // AsyncChatDecorateEvent has formatted the component if server is 1.19.1+
             Component message = VersionUtil.atOrAbove("1.19.1") ? event.message() : format(event.message(), event.getPlayer());
             message = message != null ? message : Component.empty();

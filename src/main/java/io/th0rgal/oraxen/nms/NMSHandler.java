@@ -19,8 +19,6 @@ import java.util.UUID;
 
 public interface NMSHandler {
 
-    GlyphHandler glyphHandler();
-
     default Listener packDispatchListener() {
         return null;
     }
@@ -181,11 +179,6 @@ public interface NMSHandler {
     }
 
     class EmptyNMSHandler implements NMSHandler {
-
-        @Override
-        public GlyphHandler glyphHandler() {
-            return new GlyphHandler.EmptyGlyphHandler();
-        }
 
         @Override
         public boolean noteblockUpdatesDisabled() {

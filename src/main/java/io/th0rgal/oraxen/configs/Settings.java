@@ -35,7 +35,6 @@ public enum Settings {
     WORLDEDIT_FURNITURE("WorldEdit.furniture_mechanic"),
 
     // Glyphs
-    GLYPH_HANDLER("Glyphs.glyph_handler"),
     SHOW_PERMISSION_EMOJIS("Glyphs.emoji_list_permission_only"),
     UNICODE_COMPLETIONS("Glyphs.unicode_completions"),
     GLYPH_HOVER_TEXT("Glyphs.chat_hover_text"),

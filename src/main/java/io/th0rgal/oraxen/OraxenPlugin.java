@@ -21,7 +21,6 @@ import io.th0rgal.oraxen.hud.HudManager;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
-import io.th0rgal.oraxen.nms.GlyphHandlers;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.pack.dispatch.PackLoadingManager;
 import io.th0rgal.oraxen.pack.generation.PackVersionManager;
@@ -47,7 +46,6 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.oraxen.protection.AntiGriefLib;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.Nullable;
@@ -216,10 +214,6 @@ public class OraxenPlugin extends JavaPlugin {
 
         // Clean up backpack cosmetic entities to prevent ghost armor stands
         io.th0rgal.oraxen.mechanics.provided.cosmetic.backpack.BackpackCosmeticManager.getInstance().cleanup();
-
-        for (Player player : Bukkit.getOnlinePlayers())
-            if (GlyphHandlers.isNms())
-                NMSHandlers.getHandler().glyphHandler().uninject(player);
 
         CompatibilitiesManager.disableCompatibilities();
         OraxenCommand.unregisterAll();

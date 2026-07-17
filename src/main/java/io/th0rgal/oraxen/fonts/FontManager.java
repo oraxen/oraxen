@@ -8,8 +8,6 @@ import com.google.gson.JsonPrimitive;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.configs.ConfigsManager;
 import io.th0rgal.oraxen.configs.Settings;
-import io.th0rgal.oraxen.nms.GlyphHandlers;
-import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -38,7 +36,6 @@ public class FontManager {
     private final Map<String, String> reverse;
     private final FontEvents fontEvents;
     private final Set<Font> fonts;
-    private boolean useNmsGlyphs;
 
     // New glyph types
     private final ShiftProvider shiftProvider;
@@ -87,27 +84,9 @@ public class FontManager {
         if (fontConfiguration.isConfigurationSection("fonts"))
             loadFonts(fontConfiguration.getConfigurationSection("fonts"));
 
-        useNmsGlyphs = GlyphHandlers.isNms() && NMSHandlers.getHandler() != null;
-        if (VersionUtil.atOrAbove("1.20.5") && useNmsGlyphs) {
-            Logs.logError("Oraxens NMS Glyph system is not working for 1.20.5...");
-            useNmsGlyphs = false;
-        } else if (useNmsGlyphs) {
-            NMSHandlers.getHandler().glyphHandler().setupNmsGlyphs();
-            Logs.logSuccess("Oraxens NMS Glyph system has been enabled!");
-            Logs.logInfo("Disabling packet-based glyph systems", true);
-            OraxenPlugin.get().getPacketAdapter().whenEnabled(adapter -> {
-                adapter.removeInventoryListener();
-                adapter.removeTitleListener();
-            });
-        }
-
         Logs.logSuccess("Loaded " + glyphMap.size() + " glyphs, " +
                 referenceGlyphMap.size() + " reference glyphs, " +
                 animatedGlyphMap.size() + " animated glyphs");
-    }
-
-    public boolean useNmsGlyphs() {
-        return useNmsGlyphs;
     }
 
     public static GlyphBitMap getGlyphBitMap(String id) {

@@ -13,7 +13,6 @@ public class NMSListeners implements Listener {
         Player player = event.getPlayer();
         if (NMSHandlers.getHandler() == null) return;
 
-        if (GlyphHandlers.isNms()) NMSHandlers.getHandler().glyphHandler().inject(player);
         if (NoteBlockMechanicFactory.isEnabled() && NoteBlockMechanicFactory.getInstance().removeMineableTag())
             NMSHandlers.getHandler().customBlockDefaultTools(player);
     }

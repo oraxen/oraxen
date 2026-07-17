@@ -41,7 +41,6 @@ public class OraxenMetrics {
         // Plugin features
         metrics.addCustomChart(new SingleLineChart("custom_items_count", () -> OraxenItems.getItems().size()));
         metrics.addCustomChart(new SimplePie("pack_upload_type", () -> Settings.UPLOAD_TYPE.toString()));
-        metrics.addCustomChart(new SimplePie("glyph_handler", () -> Settings.GLYPH_HANDLER.toString()));
 
         // Mechanics usage
         metrics.addCustomChart(new AdvancedPie("enabled_mechanics", OraxenMetrics::getEnabledMechanics));
