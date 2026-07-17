@@ -121,6 +121,16 @@ public class FurnitureMechanic extends Mechanic {
             return new Vector(offsetX, offsetY, offsetZ);
         }
 
+        Vector rotatedOffset(float furnitureYaw) {
+            // Seat offsets use the same furniture-local coordinates as barrier offsets.
+            float fixedAngle = 360f - furnitureYaw;
+            double radians = Math.toRadians(fixedAngle);
+            double rotatedX = Math.cos(radians) * offsetX - Math.sin(radians) * offsetZ;
+            double rotatedZ = Math.sin(radians) * offsetX - Math.cos(radians) * offsetZ;
+            if (fixedAngle % 180f > 1f) rotatedZ = -rotatedZ;
+            return new Vector(rotatedX, offsetY, rotatedZ);
+        }
+
         public float yaw(float fallbackYaw) {
             return yaw != null ? yaw : fallbackYaw;
         }
@@ -1351,7 +1361,7 @@ public class FurnitureMechanic extends Mechanic {
 
     @Nullable
     private UUID spawnSeat(Location rootLocation, FurnitureSeat furnitureSeat, float yaw) {
-        Vector rotatedOffset = rotateGroundOffset(furnitureSeat.offset(), yaw);
+        Vector rotatedOffset = furnitureSeat.rotatedOffset(yaw);
         float rotationYaw = furnitureSeat.yaw(yaw);
         Location seatLocation = BlockHelpers.toCenterBlockLocation(rootLocation).add(rotatedOffset);
         seatLocation.setYaw(rotationYaw);
@@ -1626,7 +1636,7 @@ public class FurnitureMechanic extends Mechanic {
             if (!(seatEntity instanceof ArmorStand seat)) continue;
 
             FurnitureSeat furnitureSeat = seats.get(i);
-            Vector rotatedOffset = rotateGroundOffset(furnitureSeat.offset(), yaw);
+            Vector rotatedOffset = furnitureSeat.rotatedOffset(yaw);
             float rotationYaw = furnitureSeat.yaw(yaw);
             Location seatLocation = BlockHelpers.toCenterBlockLocation(rootLocation).add(rotatedOffset);
             seatLocation.setYaw(rotationYaw);
