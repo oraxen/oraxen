@@ -66,9 +66,7 @@ public class GlyphTag {
         String chars = extractCharacters(glyph, options.startIndex, options.endIndex);
 
         // Build base component
-        Component glyphComponent = Component.text(chars)
-                .style(Style.style().font(glyph.getFont()).build())
-                .hoverEvent(glyph.getGlyphHoverText());
+        Component glyphComponent = Component.text(chars).style(Style.style().font(glyph.getFont()).build());
 
         // Apply color (null if colorable, WHITE otherwise)
         glyphComponent = glyphComponent.color(options.colorable ? null : NamedTextColor.WHITE);
@@ -312,8 +310,7 @@ public class GlyphTag {
 
         // Build component with reference glyph's characters
         Component glyphComponent = Component.text(refGlyph.getCharacters())
-                .style(Style.style().font(refGlyph.getFont()).build())
-                .hoverEvent(refGlyph.getGlyphHoverText());
+                .style(Style.style().font(refGlyph.getFont()).build());
 
         // Apply color
         glyphComponent = glyphComponent.color(colorable ? null : NamedTextColor.WHITE);

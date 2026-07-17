@@ -7,8 +7,6 @@ import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.event.HoverEvent;
-import net.kyori.adventure.text.event.HoverEventSource;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -616,15 +614,6 @@ public class AnimatedGlyph {
             return getAnimationComponent();
         }
         return Component.text(getGlyphTag());
-    }
-
-    @Nullable
-    public HoverEventSource<?> getGlyphHoverText() {
-        // Show actual allocated frames (may differ from config if codepoint overflow
-        // occurred)
-        int actualFrames = frameCodepoints.size();
-        return HoverEvent
-                .showText(Component.text("Animated: " + name + " (" + actualFrames + " frames @ " + fps + " fps)"));
     }
 
     /**

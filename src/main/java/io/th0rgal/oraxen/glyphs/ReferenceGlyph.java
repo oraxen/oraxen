@@ -6,7 +6,6 @@ import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.event.HoverEventSource;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -285,17 +284,8 @@ public class ReferenceGlyph {
 
     public Component getGlyphComponent() {
         Component component = Component.text(getCharacters(), NamedTextColor.WHITE)
-                .font(getFont())
-                .hoverEvent(getGlyphHoverText());
+                .font(getFont());
         return GlyphAppearance.applyShadowColor(component, getAppearance().shadowColor());
-    }
-
-    @Nullable
-    public HoverEventSource<?> getGlyphHoverText() {
-        if (!isResolved() || resolvedSourceGlyph == null) {
-            return null;
-        }
-        return resolvedSourceGlyph.getGlyphHoverText();
     }
 
     /**

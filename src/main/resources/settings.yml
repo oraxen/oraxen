@@ -41,7 +41,6 @@ ConfigsTools:
 Glyphs:
   emoji_list_permission_only: true # will only show emojis player has permission to use if set to true
   unicode_completions: true # Whether glyph tab-completions shows unicodes or glyph-pølaceholders
-  chat_hover_text: "<glyph_placeholder>" # The text that will be shown when hovering over a glyph in chat
 
 # Shader-based text effects (rainbow, wave, shake, etc.)
 # These effects apply to any text using a color encoding detected by shaders.

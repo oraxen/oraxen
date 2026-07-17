@@ -6,15 +6,10 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.configs.Settings;
-import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.event.HoverEvent;
-import net.kyori.adventure.text.event.HoverEventSource;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.minimessage.tag.Tag;
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -480,21 +475,7 @@ public class Glyph {
 
     public Component getGlyphComponent() {
         Component component = Component.text(getFormattedUnicodes(), NamedTextColor.WHITE)
-                .font(getFont())
-                .hoverEvent(getGlyphHoverText());
+                .font(getFont());
         return GlyphAppearance.applyShadowColor(component, appearance.shadowColor());
-    }
-
-    @Nullable
-    public HoverEventSource getGlyphHoverText() {
-        String hoverText = Settings.GLYPH_HOVER_TEXT.toString();
-        TagResolver hoverResolver = TagResolver.builder()
-                .tag("glyph_placeholder", Tag
-                        .selfClosingInserting(Component.text(Arrays.stream(getPlaceholders()).findFirst().orElse(""))))
-                .build();
-        Component hoverComponent = AdventureUtils.MINI_MESSAGE.deserialize(hoverText, hoverResolver);
-        if (hoverText.isEmpty() || hoverComponent == Component.empty())
-            return null;
-        return HoverEvent.showText(hoverComponent);
     }
 }

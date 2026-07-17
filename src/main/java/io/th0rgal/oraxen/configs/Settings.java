@@ -37,7 +37,6 @@ public enum Settings {
     // Glyphs
     SHOW_PERMISSION_EMOJIS("Glyphs.emoji_list_permission_only"),
     UNICODE_COMPLETIONS("Glyphs.unicode_completions"),
-    GLYPH_HOVER_TEXT("Glyphs.chat_hover_text"),
 
     // Text Effects (shader-based)
     TEXT_EFFECTS_ENABLED("TextEffects.enabled"),
