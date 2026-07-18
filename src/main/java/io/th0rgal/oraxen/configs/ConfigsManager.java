@@ -137,6 +137,7 @@ public class ConfigsManager {
 
     public void validatesConfig() {
         ResourcesManager tempManager = new ResourcesManager(OraxenPlugin.get());
+        migrateRemovedTextEffectsConfig();
         mechanics = validate(tempManager, "mechanics.yml", defaultMechanics);
         migrateLegacyBlockMechanics();
         settings = validate(tempManager, "settings.yml", defaultSettings);
@@ -177,6 +178,11 @@ public class ConfigsManager {
                 tempManager.extractConfigsInFolder("schematics", "schem");
         }
 
+    }
+
+    private void migrateRemovedTextEffectsConfig() {
+        File textEffectsFile = new File(plugin.getDataFolder(), "text_effects.yml");
+        MigrationBackups.moveToMigrated(plugin.getDataFolder(), textEffectsFile);
     }
 
     private void migrateLegacyBlockMechanics() {
