@@ -5,7 +5,7 @@ import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 
 public enum CustomArmorType {
-    NONE, SHADER, TRIMS, COMPONENT;
+    NONE, TRIMS, COMPONENT;
 
     public static CustomArmorType getSetting() {
         return fromString(Settings.CUSTOM_ARMOR_TYPE.toString());
@@ -19,9 +19,6 @@ public enum CustomArmorType {
 
             if (!VersionUtil.atOrAbove("1.21.2") && customArmorType == COMPONENT) {
                 Logs.logError("Component based custom armor is only supported in 1.21.2 and above.");
-                throw new IllegalArgumentException();
-            } else if (VersionUtil.atOrAbove("1.21.2") && customArmorType == CustomArmorType.SHADER) {
-                Logs.logError("SHADER based CustomArmor is currently not supported on 1.21.2 and above.");
                 throw new IllegalArgumentException();
             }
             return customArmorType;
@@ -41,8 +38,7 @@ public enum CustomArmorType {
      *
      * Components: 1.21.2+
      * Trims:      1.20 - 1.21.1
-     * Shaders:    1.18 - 1.19.4
-     * None:       below 1.18 or when custom armor is not supported
+     * None:       when custom armor is not supported
      */
     private static CustomArmorType getBestForCurrentVersion() {
         if (VersionUtil.atOrAbove("1.21.2")) {

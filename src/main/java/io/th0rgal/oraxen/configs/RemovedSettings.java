@@ -41,7 +41,8 @@ public enum RemovedSettings {
     NMS_GLYPHS_EXPERIMENTAL("Plugin.experimental.nms.glyphs"),
     NMS_GLYPHS_LEGACY("Plugin.experimental.nms_glyphs"),
     NMS_GLYPHS_LEGACY_2("Plugin.experimental.use_nms_glyphs"),
-    GLYPH_HANDLER("Glyphs.glyph_handler")
+    GLYPH_HANDLER("Glyphs.glyph_handler"),
+    CUSTOM_ARMOR_SHADER_SETTINGS("CustomArmor.shader_settings")
 
     ;
 

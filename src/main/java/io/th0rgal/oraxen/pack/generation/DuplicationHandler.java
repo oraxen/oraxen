@@ -822,23 +822,10 @@ public class DuplicationHandler {
             Logs.logWarning("Either disable <#22b14c>" + Settings.HIDE_SCOREBOARD_NUMBERS.getPath()
                     + "</#22b14c> in settings.yml or delete this file");
             return false;
-        } else if (name.startsWith("assets/minecraft/shaders/core/rendertype_armor_cutout_no_cull")
-                && Settings.CUSTOM_ARMOR_SHADER_GENERATE_FILES.toBool()) {
-            Logs.logWarning("You are trying to import a shader file used for custom armor.");
-            Logs.logWarning("This shader file is already in your pack. Deleting...");
-            return true;
         } else if (name.startsWith("assets/minecraft/shaders/core/rendertype")) {
             Logs.logWarning("Failed to migrate duplicate file-entry, file is a shader file");
             Logs.logWarning("Merging this is too advanced and should be migrated manually or deleted.");
             return false;
-        } else if (name.startsWith("assets/minecraft/textures/models/armor/leather_layer")) {
-            Logs.logWarning("Failed to migrate duplicate file-entry, file is a combined custom armor texture");
-            Logs.logWarning("You should not import already combined armor layer files.");
-            Logs.logWarning("If you want to handle these files manually, disable <#22b14c>"
-                    + Settings.CUSTOM_ARMOR_SHADER_GENERATE_CUSTOM_TEXTURES.getPath() + "</#22b14c> in settings.yml");
-            Logs.logWarning(
-                    "Please refer to https://docs.oraxen.com/configuration/custom-armors for more information. Deleting...");
-            return true;
         } else if (name.startsWith("assets/minecraft/textures")) {
             Logs.logWarning("Failed to migrate duplicate file-entry, file is a texture file");
             Logs.logWarning("Cannot migrate texture files, rename this or the duplicate entry");
@@ -847,11 +834,6 @@ public class DuplicationHandler {
             Logs.logWarning("Failed to migrate duplicate file-entry, file is a language file");
             Logs.logWarning("Please combine this with the duplicate file found in Oraxen/pack/lang folder");
             return false;
-        } else if (name.matches("assets/minecraft/optifine/%s/armors/.*/.*.properties"
-                .formatted(VersionUtil.atOrAbove("1.21") ? "cit_single" : "cit"))) {
-            Logs.logWarning("You are trying to import an Optifine CustomArmor file.");
-            Logs.logWarning("Oraxen already generates all these needed files for you. Deleting...");
-            return true;
         } else {
             Logs.logWarning(
                     "Failed to migrate duplicate file-entry, file is not a file that Oraxen can migrate right now");

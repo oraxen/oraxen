@@ -18,7 +18,6 @@ import io.th0rgal.oraxen.pack.upload.UploadManager;
 import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.customarmor.ComponentArmorModels;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmorType;
-import io.th0rgal.oraxen.utils.customarmor.ShaderArmorTextures;
 import io.th0rgal.oraxen.utils.customarmor.TrimArmorDatapack;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.io.FileUtils;
@@ -44,7 +43,6 @@ public class ResourcePack {
 
     private final Map<String, Collection<Consumer<File>>> packModifiers;
     private static Map<String, VirtualFile> outputFiles;
-    private ShaderArmorTextures shaderArmorTextures;
     private TrimArmorDatapack trimArmorDatapack;
     private ComponentArmorModels componentArmorModels;
     private static final File packFolder = new File(OraxenPlugin.get().getDataFolder(), "pack");
@@ -322,8 +320,7 @@ public class ResourcePack {
         componentArmorModels = CustomArmorType.getSetting() == CustomArmorType.COMPONENT ? new ComponentArmorModels()
                 : null;
         trimArmorDatapack = CustomArmorType.getSetting() == CustomArmorType.TRIMS ? new TrimArmorDatapack() : null;
-        shaderArmorTextures = CustomArmorType.getSetting() == CustomArmorType.SHADER ? new ShaderArmorTextures() : null;
-        fileCollector = new PackFileCollector(packFolder, shaderArmorTextures);
+        fileCollector = new PackFileCollector(packFolder);
 
         if (Settings.GENERATE_DEFAULT_ASSETS.toBool())
             extractDefaultFolders();
@@ -514,9 +511,6 @@ public class ResourcePack {
         if (!VersionUtil.atOrAbove("1.21.8") && Settings.HIDE_SCOREBOARD_NUMBERS.toBool())
             textShaderGenerator.hideScoreboardNumbers();
         textShaderGenerator.hideScoreboardOrTablistBackgrounds();
-        if (CustomArmorType.getSetting() == CustomArmorType.SHADER
-                && Settings.CUSTOM_ARMOR_SHADER_GENERATE_FILES.toBool())
-            ShaderArmorTextures.generateArmorShaderFiles();
     }
 
     /** Runs registered pack modifier callbacks. */
@@ -1389,23 +1383,6 @@ public class ResourcePack {
                     trimArmorDatapack = new TrimArmorDatapack();
                 trimArmorDatapack.clearOldDataPack();
                 trimArmorDatapack.generateAssets(output);
-            }
-            case SHADER -> {
-                if (Settings.CUSTOM_ARMOR_SHADER_GENERATE_CUSTOM_TEXTURES.toBool()
-                        && shaderArmorTextures.hasCustomArmors()) {
-                    try {
-                        String armorPath = "assets/minecraft/textures/models/armor";
-                        output.add(
-                                new VirtualFile(armorPath, "leather_layer_1.png", shaderArmorTextures.getLayerOne()));
-                        output.add(
-                                new VirtualFile(armorPath, "leather_layer_2.png", shaderArmorTextures.getLayerTwo()));
-                        if (Settings.CUSTOM_ARMOR_SHADER_GENERATE_SHADER_COMPATIBLE_ARMOR.toBool()) {
-                            output.addAll(shaderArmorTextures.getOptifineFiles());
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
             }
             default -> {
             } // Handle NONE

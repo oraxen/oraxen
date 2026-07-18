@@ -12,8 +12,6 @@ import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VirtualFile;
-import io.th0rgal.oraxen.utils.customarmor.CustomArmorType;
-import io.th0rgal.oraxen.utils.customarmor.ShaderArmorTextures;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Material;
 
@@ -33,11 +31,9 @@ import java.util.stream.Collectors;
 class PackFileCollector {
 
     private final File packFolder;
-    private final ShaderArmorTextures shaderArmorTextures;
 
-    PackFileCollector(File packFolder, ShaderArmorTextures shaderArmorTextures) {
+    PackFileCollector(File packFolder) {
         this.packFolder = packFolder;
-        this.shaderArmorTextures = shaderArmorTextures;
     }
 
     void getAllFiles(File dir, Collection<VirtualFile> fileList, String newFolder, String... excluded) {
@@ -242,8 +238,6 @@ class PackFileCollector {
             final InputStream fis;
             if (file.getName().endsWith(".json"))
                 fis = processJsonFile(file);
-            else if (CustomArmorType.getSetting() == CustomArmorType.SHADER && shaderArmorTextures.registerImage(file))
-                return;
             else
                 fis = new FileInputStream(file);
 

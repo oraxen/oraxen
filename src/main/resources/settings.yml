@@ -47,7 +47,7 @@ Chat:
   chat_handler: MODERN # Valid once are MODERN & LEGACY
 
 CustomArmor:
-  type: COMPONENT # Valid types are COMPONENT, SHADER, TRIMS and NONE
+  type: COMPONENT # Valid types are COMPONENT, TRIMS and NONE
   auto_select_type: true # If true, Oraxen will replace incompatible armor types with the best type for the detected server version
   disable_leather_repair: true # Makes custom armor not repairable with leather, only with copies of said custom armor
   component_settings:
@@ -55,13 +55,6 @@ CustomArmor:
   trims_settings:
     material_replacement: CHAINMAIL # Valid materials are CHAINMAIL, IRON, GOLD, DIAMOND, NETHERITE and LEATHER
     auto_assign_settings: true # If true, the trim & item-flag will be automatically assigned to the custom armor piece, unless specified
-  shader_settings:
-    type: FANCY # Valid types are FANCY and LESS_FANCY
-    armor_resolution: 16 # 64x32 -> 16, 128x64 -> 32...
-    animated_armor_framerate: 24
-    generate_shader_compatible_armor: true
-    generate_armor_shader_files: true
-    generate_custom_armor_textures: true
 
 CustomBlocks:
   block_correction: NMS # Valid types are NMS and LEGACY
