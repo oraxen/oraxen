@@ -8,7 +8,6 @@ import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenMeta;
 import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.Utils;
-import io.th0rgal.oraxen.utils.VersionUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Material;
 import org.bukkit.Tag;
@@ -120,12 +119,12 @@ public class PredicatesGenerator {
             case CONDUIT -> json.add("display", JsonParser.parseString(CONDUIT_DISPLAY).getAsJsonObject());
         }
 
-        if (VersionUtil.atOrAbove("1.20") && material == Material.DECORATED_POT) {
+        if (material == Material.DECORATED_POT) {
             textures.addProperty("particle", "entity/decorated_pot/decorated_pot_side");
             json.add("display", JsonParser.parseString(DECORATED_POT_DISPLAY).getAsJsonObject());
         }
         if (material == Material.COMPASS || material == Material.CLOCK
-                || (VersionUtil.atOrAbove("1.19") && material == Material.RECOVERY_COMPASS)) {
+                || material == Material.RECOVERY_COMPASS) {
             String override = material == Material.CLOCK ? CLOCK_OVERRIDES : COMPASS_OVERRIDES;
             JsonArray jsonArray = JsonParser
                     .parseString(override.replace("X", material.name().toLowerCase(Locale.ROOT))).getAsJsonArray();
@@ -306,7 +305,7 @@ public class PredicatesGenerator {
         if (!model) {
             if (material == Material.COMPASS)
                 return "item/compass_16";
-            if (VersionUtil.atOrAbove("1.19") && material == Material.RECOVERY_COMPASS)
+            if (material == Material.RECOVERY_COMPASS)
                 return "item/recovery_compass_16";
             if (material == Material.DEBUG_STICK)
                 return "item/stick";
@@ -342,13 +341,12 @@ public class PredicatesGenerator {
             return "block/scaffolding_stable";
         if (material == Material.RESPAWN_ANCHOR)
             return "block/respawn_anchor_0";
-        if (VersionUtil.atOrAbove("1.20")
-                && (material == Material.SUSPICIOUS_GRAVEL || material == Material.SUSPICIOUS_SAND))
+        if (material == Material.SUSPICIOUS_GRAVEL || material == Material.SUSPICIOUS_SAND)
             return "block/" + materialName + "_0";
         if (material == Material.CONDUIT || material == Material.SHIELD || material == Material.CHEST
                 || material == Material.TRAPPED_CHEST || material == Material.ENDER_CHEST)
             return "builtin/entity";
-        if (VersionUtil.atOrAbove("1.20") && material == Material.DECORATED_POT)
+        if (material == Material.DECORATED_POT)
             return "builtin/entity";
         if (material == Material.SMALL_DRIPLEAF)
             return "block/small_dripleaf_top";
@@ -362,9 +360,9 @@ public class PredicatesGenerator {
             return "item/amethyst_bud";
         if (material == Material.AMETHYST_CLUSTER)
             return "item/generated";
-        if (VersionUtil.atOrAbove("1.19") && material == Material.SCULK_VEIN)
+        if (material == Material.SCULK_VEIN)
             return "item/generated";
-        if (VersionUtil.atOrAbove("1.20") && material == Material.CALIBRATED_SCULK_SENSOR)
+        if (material == Material.CALIBRATED_SCULK_SENSOR)
             return "block/calibrated_sculk_sensor_inactive";
         if (materialName.contains("infested"))
             return "block/" + StringUtils.substringAfter(materialName, "infested_");
@@ -424,7 +422,7 @@ public class PredicatesGenerator {
             return true;
         if (material == Material.CAMPFIRE || material == Material.SOUL_CAMPFIRE)
             return true;
-        if (VersionUtil.atOrAbove("1.20") && (material == Material.PITCHER_PLANT || material == Material.PINK_PETALS))
+        if (material == Material.PITCHER_PLANT || material == Material.PINK_PETALS)
             return true;
         if (Tag.DOORS.isTagged(material))
             return true;
@@ -432,8 +430,7 @@ public class PredicatesGenerator {
             return true;
         if (Tag.SIGNS.isTagged(material))
             return true;
-        if (VersionUtil.atOrAbove("1.20")
-                && (material == Material.SNIFFER_EGG || Tag.ITEMS_HANGING_SIGNS.isTagged(material)))
+        if (material == Material.SNIFFER_EGG || Tag.ITEMS_HANGING_SIGNS.isTagged(material))
             return true;
 
         return false;

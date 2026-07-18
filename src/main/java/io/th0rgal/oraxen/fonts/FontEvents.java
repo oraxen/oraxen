@@ -79,8 +79,7 @@ public class FontEvents implements Listener {
     public FontEvents(FontManager manager) {
         this.manager = manager;
         if (VersionUtil.isPaperServer()) {
-            if (VersionUtil.atOrAbove("1.19.1"))
-                paperChatHandler = new PaperChatHandler();
+            paperChatHandler = new PaperChatHandler();
             legacyPaperChatHandler = new LegacyPaperChatHandler();
         }
         legacyBukkitChatHandler = new LegacyBukkitChatHandler();
@@ -374,7 +373,7 @@ public class FontEvents implements Listener {
         public void onPlayerChat(AsyncChatEvent event) {
             if (!Settings.FORMAT_CHAT.toBool() || !ChatHandler.isModern()) return;
             // AsyncChatDecorateEvent has formatted the component if server is 1.19.1+
-            Component message = VersionUtil.atOrAbove("1.19.1") ? event.message() : format(event.message(), event.getPlayer());
+            Component message = event.message();
             message = message != null ? message : Component.empty();
             if (!message.equals(Component.empty())) return;
 

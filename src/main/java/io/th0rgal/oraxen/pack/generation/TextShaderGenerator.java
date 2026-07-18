@@ -201,7 +201,7 @@ class TextShaderGenerator {
     void hideScoreboardOrTablistBackgrounds() {
         if (VersionUtil.atOrAbove("1.21.8")) return;
 
-        String fileName = VersionUtil.atOrAbove("1.20.1") ? "rendertype_gui.vsh" : "position_color.fsh";
+        String fileName = "rendertype_gui.vsh";
         String scoreTabBackground = "";
         if (Settings.HIDE_SCOREBOARD_BACKGROUND.toBool() || Settings.HIDE_TABLIST_BACKGROUND.toBool())
             scoreTabBackground = getScoreboardBackground();

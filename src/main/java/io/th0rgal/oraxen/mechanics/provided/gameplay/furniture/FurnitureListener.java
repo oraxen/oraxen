@@ -426,7 +426,7 @@ public class FurnitureListener implements Listener {
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
         if (mechanic == null)
             return;
-        Entity resolvedBaseEntity = OraxenPlugin.supportsDisplayEntities && baseEntity instanceof Interaction interactionEntity
+        Entity resolvedBaseEntity = baseEntity instanceof Interaction interactionEntity
                 ? mechanic.getBaseEntity(interactionEntity) : baseEntity;
         if (!BlockLockerCompatibility.canInteract(player, blockLockerBlock(mechanic, resolvedBaseEntity, baseEntity.getLocation().getBlock()), mechanic)) {
             event.setCancelled(true);
@@ -435,7 +435,7 @@ public class FurnitureListener implements Listener {
         // Swap baseEntity to the baseEntity if interacted with entity is Interaction
         // type
         Entity interaction = null;
-        if (OraxenPlugin.supportsDisplayEntities && baseEntity instanceof Interaction interactionEntity) {
+        if (baseEntity instanceof Interaction interactionEntity) {
             interaction = interactionEntity;
             baseEntity = resolvedBaseEntity != null ? resolvedBaseEntity : interaction;
         }

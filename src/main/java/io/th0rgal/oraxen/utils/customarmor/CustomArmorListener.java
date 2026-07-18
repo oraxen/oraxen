@@ -127,8 +127,6 @@ public class CustomArmorListener implements Listener {
 
     private void setVanillaArmorTrim(ItemStack itemStack) {
         String armorPrefix = Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString();
-        if (!VersionUtil.atOrAbove("1.20"))
-            return;
         if (CustomArmorType.getSetting() != CustomArmorType.TRIMS)
             return;
         if (itemStack == null || !(itemStack.getItemMeta() instanceof ArmorMeta armorMeta))

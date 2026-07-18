@@ -191,7 +191,7 @@ public class ItemBuilder {
             color = effectMeta.hasEffect() ? Utils.getOrDefault(effectMeta.getEffect().getColors(), 0, Color.WHITE)
                     : Color.WHITE;
 
-        if (VersionUtil.atOrAbove("1.20") && itemMeta instanceof ArmorMeta armorMeta && armorMeta.hasTrim())
+        if (itemMeta instanceof ArmorMeta armorMeta && armorMeta.hasTrim())
             trimPattern = armorMeta.getTrim().getMaterial().key();
 
         if (itemMeta instanceof SkullMeta skullMeta)
@@ -428,13 +428,11 @@ public class ItemBuilder {
     }
 
     public boolean hasTrimPattern() {
-        return VersionUtil.atOrAbove("1.20") && trimPattern != null && getTrimPattern() != null;
+        return trimPattern != null && getTrimPattern() != null;
     }
 
     @Nullable
     public Key getTrimPatternKey() {
-        if (!VersionUtil.atOrAbove("1.20"))
-            return null;
         if (!Tag.ITEMS_TRIMMABLE_ARMOR.isTagged(type))
             return null;
         return trimPattern;
@@ -442,8 +440,6 @@ public class ItemBuilder {
 
     @Nullable
     public TrimPattern getTrimPattern() {
-        if (!VersionUtil.atOrAbove("1.20"))
-            return null;
         if (!Tag.ITEMS_TRIMMABLE_ARMOR.isTagged(type))
             return null;
         if (trimPattern == null)
@@ -466,8 +462,6 @@ public class ItemBuilder {
     }
 
     public ItemBuilder setTrimPattern(final Key trimKey) {
-        if (!VersionUtil.atOrAbove("1.20"))
-            return this;
         if (!Tag.ITEMS_TRIMMABLE_ARMOR.isTagged(type))
             return this;
         this.trimPattern = trimKey;
@@ -1229,7 +1223,7 @@ public class ItemBuilder {
                 effectMeta.setEffect(fireWorkBuilder.build());
             } catch (IllegalStateException ignored) {
             }
-        } else if (VersionUtil.atOrAbove("1.20") && itemMeta instanceof ArmorMeta armorMeta && hasTrimPattern()) {
+        } else if (itemMeta instanceof ArmorMeta armorMeta && hasTrimPattern()) {
             armorMeta.setTrim(new ArmorTrim(TrimMaterial.REDSTONE, getTrimPattern()));
         } else if (itemMeta instanceof SkullMeta skullMeta) {
             final OfflinePlayer defaultOwningPlayer = skullMeta.getOwningPlayer();

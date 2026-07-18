@@ -155,9 +155,7 @@ public class FurnitureMechanic extends Mechanic {
         ITEM_FRAME, GLOW_ITEM_FRAME, DISPLAY_ENTITY, ARMOR_STAND;
 
         public static List<Class<? extends Entity>> furnitureEntityClasses() {
-            List<Class<? extends Entity>> list = new ArrayList<>(List.of(ItemFrame.class, GlowItemFrame.class, ArmorStand.class));
-            if (OraxenPlugin.supportsDisplayEntities) list.add(ItemDisplay.class);
-            return list;
+            return List.of(ItemFrame.class, GlowItemFrame.class, ArmorStand.class, ItemDisplay.class);
         }
 
         public static FurnitureType getType(String type) {
@@ -165,8 +163,8 @@ public class FurnitureMechanic extends Mechanic {
                 return FurnitureType.valueOf(type);
             } catch (IllegalArgumentException e) {
                 Logs.logError("Invalid furniture type: " + type + ", set in mechanics.yml.");
-                Logs.logWarning("Using default " + (OraxenPlugin.supportsDisplayEntities ? "DISPLAY_ENTITY" : "ITEM_FRAME"), true);
-                return OraxenPlugin.supportsDisplayEntities ? DISPLAY_ENTITY : ITEM_FRAME;
+                Logs.logWarning("Using default DISPLAY_ENTITY", true);
+                return DISPLAY_ENTITY;
             }
         }
     }
@@ -185,17 +183,8 @@ public class FurnitureMechanic extends Mechanic {
         restrictedRotation = RestrictedRotation.fromString(section.getString("restricted_rotation", "STRICT"));
 
         try {
-            String defaultEntityType;
-            if (OraxenPlugin.supportsDisplayEntities)
-                defaultEntityType = Objects.requireNonNullElse(FurnitureFactory.defaultFurnitureType, FurnitureType.DISPLAY_ENTITY).name();
-            else defaultEntityType = FurnitureType.ITEM_FRAME.name();
+            String defaultEntityType = Objects.requireNonNullElse(FurnitureFactory.defaultFurnitureType, FurnitureType.DISPLAY_ENTITY).name();
             furnitureType = FurnitureType.valueOf(section.getString("type", defaultEntityType));
-            if (furnitureType == FurnitureType.DISPLAY_ENTITY && !OraxenPlugin.supportsDisplayEntities) {
-                Logs.logError("Use of Display Entity on unsupported server version.");
-                Logs.logError("This EntityType is only supported on 1.19.4 and above.");
-                Logs.logWarning("Setting type to ITEM_FRAME for furniture: <i><gold>" + getItemID());
-                furnitureType = FurnitureType.ITEM_FRAME;
-            }
         } catch (IllegalArgumentException e) {
             Logs.logError("Use of illegal EntityType in furniture: <gold>" + getItemID());
             Logs.logWarning("Allowed ones are: <gold>" + Arrays.stream(FurnitureType.values()).map(Enum::name).toList());
@@ -218,10 +207,8 @@ public class FurnitureMechanic extends Mechanic {
         section.set("type", furnitureType.name());
 
         ConfigurationSection displayProperties = section.getConfigurationSection("display_entity_properties");
-        displayEntityProperties = OraxenPlugin.supportsDisplayEntities
-                ? displayProperties != null
-                ? new DisplayEntityProperties(displayProperties) : new DisplayEntityProperties()
-                : null;
+        displayEntityProperties = displayProperties != null
+                ? new DisplayEntityProperties(displayProperties) : new DisplayEntityProperties();
 
         barriers = new ArrayList<>();
         if (section.getBoolean("barrier", false))
@@ -750,7 +737,7 @@ public class FurnitureMechanic extends Mechanic {
         }
         item.setAmount(1);
 
-        boolean registerText = OraxenPlugin.supportsDisplayEntities && hasTextDefinitions();
+        boolean registerText = hasTextDefinitions();
         Entity baseEntity = EntityUtils.spawnEntity(correctedSpawnLocation(location, resolvedFacing, yaw), entityClass, (e) -> {
             setEntityData(e, yaw, item, resolvedFacing);
             if (registerText) FurnitureTextRegistry.register(e, textDefinitions);
@@ -882,7 +869,7 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     private List<Interaction> spawnInteractionEntities(Entity entity, Location location, float yaw, List<FurnitureHitbox> hitboxes) {
-        if (!OraxenPlugin.supportsDisplayEntities || hitboxes.isEmpty()) return List.of();
+        if (hitboxes.isEmpty()) return List.of();
 
         PersistentDataContainer pdc = entity.getPersistentDataContainer();
         List<UUID> existingInteractionUuids = pdc.getOrDefault(INTERACTIONS_KEY, DataType.asList(DataType.UUID), List.of());
@@ -976,17 +963,14 @@ public class FurnitureMechanic extends Mechanic {
         // since FIXED is meant to mimic ItemFrames, we rotate it to match the ItemFrame's rotation
         // 1.20 Fixes this, will break for 1.19.4 but added disclaimer in console
         float pitch;
-        if (VersionUtil.atOrAbove("1.20.1")) {
-            if (hasLimitedPlacing() && isFixed) {
-                if (limitedPlacing.isFloor() && (facing == BlockFace.UP || allowWallForLimitedFloor(itemDisplay.getLocation(), facing))) pitch = -90;
-                else if (limitedPlacing.isRoof() && facing == BlockFace.DOWN) pitch = 90;
-                else pitch = 0;
+        if (hasLimitedPlacing() && isFixed) {
+            if (limitedPlacing.isFloor() && (facing == BlockFace.UP || allowWallForLimitedFloor(itemDisplay.getLocation(), facing))) pitch = -90;
+            else if (limitedPlacing.isRoof() && facing == BlockFace.DOWN) pitch = 90;
+            else pitch = 0;
 
-                if (limitedPlacing.isRoof() && facing == BlockFace.DOWN) yaw -= 180;
-                else if (limitedPlacing.isWall() && facing.getModY() == 0) yaw = 90f * facing.ordinal() - 180;
-            } else pitch = 0;
-        }
-        else pitch = isFixed && hasLimitedPlacing() ? limitedPlacing.isFloor() ? 90 : limitedPlacing.isWall() ? 0 : limitedPlacing.isRoof() ? -90 : 0 : 0;
+            if (limitedPlacing.isRoof() && facing == BlockFace.DOWN) yaw -= 180;
+            else if (limitedPlacing.isWall() && facing.getModY() == 0) yaw = 90f * facing.ordinal() - 180;
+        } else pitch = 0;
 
         itemDisplay.setTransformation(transform);
         itemDisplay.setRotation(yaw, pitch);
@@ -1077,7 +1061,7 @@ public class FurnitureMechanic extends Mechanic {
                 var equipment = ((ArmorStand) entity).getEquipment();
                 yield equipment != null ? equipment.getHelmet() : null;
             }
-            case ITEM_DISPLAY -> OraxenPlugin.supportsDisplayEntities ? ((ItemDisplay) entity).getItemStack() : null;
+            case ITEM_DISPLAY -> ((ItemDisplay) entity).getItemStack();
             default -> ((ItemFrame) entity).getItem();
         };
     }
@@ -1089,9 +1073,7 @@ public class FurnitureMechanic extends Mechanic {
                 var equipment = ((ArmorStand) entity).getEquipment();
                 if (equipment != null) equipment.setHelmet(item);
             }
-            case ITEM_DISPLAY -> {
-                if (OraxenPlugin.supportsDisplayEntities) ((ItemDisplay) entity).setItemStack(item);
-            }
+            case ITEM_DISPLAY -> ((ItemDisplay) entity).setItemStack(item);
             default -> {
             }
         }
@@ -1282,10 +1264,8 @@ public class FurnitureMechanic extends Mechanic {
             removeFurnitureSeat(baseEntity.getLocation());
         }
 
-        if (OraxenPlugin.supportsDisplayEntities) {
-            for (Interaction interaction : getInteractionEntities(baseEntity))
-                if (!interaction.isDead()) interaction.remove();
-        }
+        for (Interaction interaction : getInteractionEntities(baseEntity))
+            if (!interaction.isDead()) interaction.remove();
     }
 
     private void removeFurnitureSeat(Location location) {
@@ -1462,8 +1442,6 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public List<Interaction> getInteractionEntities(@NotNull Entity baseEntity) {
-        if (!OraxenPlugin.supportsDisplayEntities) return List.of();
-
         PersistentDataContainer pdc = baseEntity.getPersistentDataContainer();
         List<UUID> interactionUUIDs = pdc.getOrDefault(INTERACTIONS_KEY, DataType.asList(DataType.UUID), new ArrayList<>());
         UUID legacyInteractionUUID = pdc.get(INTERACTION_KEY, DataType.UUID);
@@ -1494,16 +1472,14 @@ public class FurnitureMechanic extends Mechanic {
      */
     @Nullable
     private Interaction getInteractionEntityAlter(Entity baseEntity) {
-        if (OraxenPlugin.supportsDisplayEntities) {
-            for (Entity entity : baseEntity.getNearbyEntities(0.1, 0.1, 0.1)) {
-                if (!(entity instanceof Interaction interaction)) continue;
-                PersistentDataContainer pdc = interaction.getPersistentDataContainer();
-                if (pdc.has(FURNITURE_KEY, DataType.STRING) && pdc.getOrDefault(FURNITURE_KEY, DataType.STRING, "").equals(getItemID())) {
-                    if (pdc.has(ROOT_KEY, DataType.LOCATION) && Objects.equals(pdc.get(ROOT_KEY, DataType.LOCATION), baseEntity.getLocation())) {
-                        // Update to new format
-                        baseEntity.getPersistentDataContainer().set(INTERACTION_KEY, DataType.UUID, interaction.getUniqueId());
-                        return interaction;
-                    }
+        for (Entity entity : baseEntity.getNearbyEntities(0.1, 0.1, 0.1)) {
+            if (!(entity instanceof Interaction interaction)) continue;
+            PersistentDataContainer pdc = interaction.getPersistentDataContainer();
+            if (pdc.has(FURNITURE_KEY, DataType.STRING) && pdc.getOrDefault(FURNITURE_KEY, DataType.STRING, "").equals(getItemID())) {
+                if (pdc.has(ROOT_KEY, DataType.LOCATION) && Objects.equals(pdc.get(ROOT_KEY, DataType.LOCATION), baseEntity.getLocation())) {
+                    // Update to new format
+                    baseEntity.getPersistentDataContainer().set(INTERACTION_KEY, DataType.UUID, interaction.getUniqueId());
+                    return interaction;
                 }
             }
         }
@@ -1519,8 +1495,7 @@ public class FurnitureMechanic extends Mechanic {
         return switch (furnitureType) {
             case ITEM_FRAME -> EntityType.ITEM_FRAME;
             case GLOW_ITEM_FRAME -> EntityType.GLOW_ITEM_FRAME;
-            case DISPLAY_ENTITY ->
-                    OraxenPlugin.supportsDisplayEntities ? EntityType.ITEM_DISPLAY : EntityType.ITEM_FRAME;
+            case DISPLAY_ENTITY -> EntityType.ITEM_DISPLAY;
             case ARMOR_STAND -> EntityType.ARMOR_STAND;
         };
     }
@@ -1529,7 +1504,7 @@ public class FurnitureMechanic extends Mechanic {
         return switch (furnitureType) {
             case ITEM_FRAME -> ItemFrame.class;
             case GLOW_ITEM_FRAME -> GlowItemFrame.class;
-            case DISPLAY_ENTITY -> OraxenPlugin.supportsDisplayEntities ? ItemDisplay.class : ItemFrame.class;
+            case DISPLAY_ENTITY -> ItemDisplay.class;
             case ARMOR_STAND -> ArmorStand.class;
         };
     }

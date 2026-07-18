@@ -89,12 +89,12 @@ public class OraxenFurniture {
         FurnitureMechanic mechanic = getFurnitureMechanic(entity);
         // Commented out as this breaks FurnitureUpdating when type is different
         //return mechanic != null && mechanic.getFurnitureEntityType() == entity.getType();
-        return mechanic != null && (!OraxenPlugin.supportsDisplayEntities || entity.getType() != EntityType.INTERACTION);
+        return mechanic != null && entity.getType() != EntityType.INTERACTION;
     }
 
     public static boolean isInteractionEntity(@NotNull Entity entity) {
         FurnitureMechanic mechanic = getFurnitureMechanic(entity);
-        return mechanic != null && OraxenPlugin.supportsDisplayEntities && entity.getType() == EntityType.INTERACTION;
+        return mechanic != null && entity.getType() == EntityType.INTERACTION;
     }
 
     /**
@@ -419,16 +419,14 @@ public class OraxenFurniture {
             if (entity.getType() == mechanic.getFurnitureEntityType()) {
                 // Check if barriers changed, if so remove and place new
                 if (mechanic.getBarriers().equals(oldPdc.getOrDefault(BARRIER_KEY, DataType.asList(BlockLocation.dataType), new ArrayList<>()))) {
-                    if (OraxenPlugin.supportsDisplayEntities) {
-                        List<Interaction> interactions = mechanic.getInteractionEntities(entity);
-                        // Check if interaction-hitbox changed, if so remove and place new
-                        if (!interactions.isEmpty() && mechanic.hasHitbox() && hasSameHitboxes(interactions, mechanic.getHitboxes()))
-                            // Check if seat changed, if so remove and place new
-                            if (oldPdc.has(SEAT_KEY, DataType.UUID) && mechanic.hasSeat())
-                                // Check if any displayEntity properties changed, if so remove and place new
-                                if (mechanic.hasDisplayEntityProperties() && mechanic.getDisplayEntityProperties().ensureSameDisplayProperties(entity))
-                                    return;
-                    } else return;
+                    List<Interaction> interactions = mechanic.getInteractionEntities(entity);
+                    // Check if interaction-hitbox changed, if so remove and place new
+                    if (!interactions.isEmpty() && mechanic.hasHitbox() && hasSameHitboxes(interactions, mechanic.getHitboxes()))
+                        // Check if seat changed, if so remove and place new
+                        if (oldPdc.has(SEAT_KEY, DataType.UUID) && mechanic.hasSeat())
+                            // Check if any displayEntity properties changed, if so remove and place new
+                            if (mechanic.hasDisplayEntityProperties() && mechanic.getDisplayEntityProperties().ensureSameDisplayProperties(entity))
+                                return;
                 }
             }
 

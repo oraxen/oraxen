@@ -15,7 +15,7 @@ public class EntityUtils {
     private static Method spawnMethod;
 
     public static boolean isUnderWater(Entity entity) {
-        if (VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.19")) {
+        if (VersionUtil.isPaperServer()) {
             return entity.isUnderWater();
         } else return entity.isInWater();
     }
@@ -29,7 +29,7 @@ public class EntityUtils {
     }
 
     public void teleport(@NotNull Location location, @NotNull Entity entity, PlayerTeleportEvent.TeleportCause cause) {
-        if (VersionUtil.isPaperServer() || VersionUtil.isFoliaServer() && VersionUtil.atOrAbove("1.19.4")) {
+        if (VersionUtil.isPaperServer() || VersionUtil.isFoliaServer()) {
             entity.teleportAsync(location, cause);
         } else entity.teleport(location);
     }
@@ -41,7 +41,7 @@ public class EntityUtils {
      * @param entity The entity to teleport
      */
     public static void teleport(@NotNull Location location, @NotNull Entity entity) {
-        if (VersionUtil.atOrAbove("1.19.4") && (VersionUtil.isPaperServer() || VersionUtil.isFoliaServer())) {
+        if (VersionUtil.isPaperServer() || VersionUtil.isFoliaServer()) {
             entity.teleportAsync(location);
         } else entity.teleport(location);
     }
@@ -120,4 +120,3 @@ public class EntityUtils {
     }
 
 }
-

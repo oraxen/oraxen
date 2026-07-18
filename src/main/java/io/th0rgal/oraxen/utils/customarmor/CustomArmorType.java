@@ -20,9 +20,6 @@ public enum CustomArmorType {
             if (!VersionUtil.atOrAbove("1.21.2") && customArmorType == COMPONENT) {
                 Logs.logError("Component based custom armor is only supported in 1.21.2 and above.");
                 throw new IllegalArgumentException();
-            } else if (!VersionUtil.atOrAbove("1.20") && customArmorType == CustomArmorType.TRIMS) {
-                Logs.logError("Trim based custom armor is only supported in 1.20 and above.");
-                throw new IllegalArgumentException();
             } else if (VersionUtil.atOrAbove("1.21.2") && customArmorType == CustomArmorType.SHADER) {
                 Logs.logError("SHADER based CustomArmor is currently not supported on 1.21.2 and above.");
                 throw new IllegalArgumentException();
@@ -50,12 +47,8 @@ public enum CustomArmorType {
     private static CustomArmorType getBestForCurrentVersion() {
         if (VersionUtil.atOrAbove("1.21.2")) {
             return COMPONENT;
-        } else if (VersionUtil.atOrAbove("1.20")) {
-            return TRIMS;
-        } else if (VersionUtil.atOrAbove("1.18")) {
-            return SHADER;
         } else {
-            return NONE;
+            return TRIMS;
         }
     }
 }

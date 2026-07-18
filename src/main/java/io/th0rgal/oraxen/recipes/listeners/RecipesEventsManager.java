@@ -10,7 +10,6 @@ import io.th0rgal.oraxen.mechanics.provided.misc.misc.MiscMechanic;
 import io.th0rgal.oraxen.mechanics.provided.misc.misc.MiscMechanicFactory;
 import io.th0rgal.oraxen.recipes.CustomRecipe;
 import io.th0rgal.oraxen.utils.InventoryUtils;
-import io.th0rgal.oraxen.utils.VersionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Keyed;
 import org.bukkit.NamespacedKey;
@@ -52,9 +51,7 @@ public class RecipesEventsManager implements Listener {
 
     public void registerEvents() {
         Bukkit.getPluginManager().registerEvents(instance, OraxenPlugin.get());
-        if (VersionUtil.atOrAbove("1.20")) {
-            Bukkit.getPluginManager().registerEvents(new SmithingRecipeEvents(), OraxenPlugin.get());
-        }
+        Bukkit.getPluginManager().registerEvents(new SmithingRecipeEvents(), OraxenPlugin.get());
     }
 
     @EventHandler(ignoreCancelled = true)

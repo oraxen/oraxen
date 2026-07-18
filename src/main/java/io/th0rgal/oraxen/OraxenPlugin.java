@@ -68,7 +68,6 @@ public class OraxenPlugin extends JavaPlugin {
     private ResourcePack resourcePack;
     private ClickActionManager clickActionManager;
     private PacketAdapter packetAdapter;
-    public static boolean supportsDisplayEntities;
 
     public OraxenPlugin() {
         oraxen = this;
@@ -106,7 +105,6 @@ public class OraxenPlugin extends JavaPlugin {
             audience = BukkitAudiences.create(this);
         }
         clickActionManager = new ClickActionManager(this);
-        supportsDisplayEntities = VersionUtil.atOrAbove("1.19.4");
         reloadConfigs();
         AntiGriefLib.setDebug(Settings.DEBUG.toBool());
         AntiGriefLib.init(this);

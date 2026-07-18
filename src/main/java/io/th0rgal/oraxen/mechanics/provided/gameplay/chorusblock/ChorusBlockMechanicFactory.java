@@ -177,7 +177,7 @@ public class ChorusBlockMechanicFactory extends MechanicFactory {
         }
 
         // Warn if Paper config is not set (auto-update happens earlier in plugin enable)
-        if (VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.20.1")
+        if (VersionUtil.isPaperServer()
                 && !chorusPlantUpdatesDisabled
                 && PaperConfigUpdater.wasBlockUpdateSettingUpdated("disable-chorus-plant-updates")) {
             Logs.logWarning("Paper block-updates.disable-chorus-plant-updates is not enabled, restart may be required");

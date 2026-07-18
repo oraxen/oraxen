@@ -38,9 +38,7 @@ public class FurnitureFactory extends MechanicFactory {
 
     public FurnitureFactory(ConfigurationSection section) {
         super(section);
-        if (OraxenPlugin.supportsDisplayEntities)
-            defaultFurnitureType = FurnitureMechanic.FurnitureType.getType(section.getString("default_furniture_type", "DISPLAY_ENTITY"));
-        else defaultFurnitureType = FurnitureMechanic.FurnitureType.ITEM_FRAME;
+        defaultFurnitureType = FurnitureMechanic.FurnitureType.getType(section.getString("default_furniture_type", "DISPLAY_ENTITY"));
         toolTypes = section.getStringList("tool_types");
         evolutionCheckDelay = section.getInt("evolution_check_delay");
         MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(),
@@ -103,7 +101,6 @@ public class FurnitureFactory extends MechanicFactory {
     }
 
     static void registerTextEntity(Entity entity, boolean spawnForMissingViewers) {
-        if (!OraxenPlugin.supportsDisplayEntities) return;
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
         if (mechanic != null && mechanic.hasTextDefinitions()) {
             FurnitureTextEntry previous = FurnitureTextRegistry.byUuid(entity.getUniqueId());

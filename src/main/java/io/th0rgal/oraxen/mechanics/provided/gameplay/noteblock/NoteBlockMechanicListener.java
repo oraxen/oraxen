@@ -138,10 +138,6 @@ public class NoteBlockMechanicListener implements Listener {
             Block block = eventLoc.getBlock();
             if (block == null) return;
 
-            // This GameEvent only exists in 1.19
-            // If server is 1.18 check if its there and if not return
-            // If 1.19 we can check if this event is fired
-            if (!VersionUtil.atOrAbove("1.19")) return;
             if (event.getEvent() != GameEvent.NOTE_BLOCK_PLAY) return;
             if (block.getType() != Material.NOTE_BLOCK) return;
             NoteBlock data = (NoteBlock) block.getBlockData().clone();

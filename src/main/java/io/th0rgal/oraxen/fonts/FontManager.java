@@ -9,7 +9,6 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.configs.ConfigsManager;
 import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.utils.OraxenYaml;
-import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.Configuration;
@@ -323,12 +322,10 @@ public class FontManager {
         List<String> completions = getGlyphTabCompletions(getGlyphByPlaceholderMap().values(),
                 Settings.UNICODE_COMPLETIONS.toBool());
 
-        if (VersionUtil.atOrAbove("1.19.4")) {
-            player.removeCustomChatCompletions(
-                    currentGlyphCompletions.getOrDefault(player.getUniqueId(), new ArrayList<>()));
-            player.addCustomChatCompletions(completions);
-            currentGlyphCompletions.put(player.getUniqueId(), completions);
-        }
+        player.removeCustomChatCompletions(
+                currentGlyphCompletions.getOrDefault(player.getUniqueId(), new ArrayList<>()));
+        player.addCustomChatCompletions(completions);
+        currentGlyphCompletions.put(player.getUniqueId(), completions);
     }
 
     public void clearGlyphTabCompletions(Player player) {

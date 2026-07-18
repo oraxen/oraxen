@@ -417,7 +417,7 @@ public class OraxenBlocks {
     private static void sendBreakEffects(Block block, Player player) {
         if (VersionUtil.isPaperServer())
             block.getWorld().sendGameEvent(player, GameEvent.BLOCK_DESTROY, block.getLocation().toVector());
-        if (block.getType() == Material.NOTE_BLOCK && VersionUtil.atOrAbove("1.20"))
+        if (block.getType() == Material.NOTE_BLOCK)
             block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, block.getBlockData());
     }
 

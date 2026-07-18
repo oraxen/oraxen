@@ -50,7 +50,7 @@ public final class PaperConfigUpdater {
             return updatedSettings;
         }
 
-        if (!VersionUtil.isPaperServer() || !VersionUtil.atOrAbove("1.20.1")) {
+        if (!VersionUtil.isPaperServer()) {
             return updatedSettings;
         }
 
@@ -127,7 +127,7 @@ public final class PaperConfigUpdater {
      * @return true when the setting is explicitly set to true under block-updates
      */
     public static boolean isBlockUpdateSettingEnabled(String settingName) {
-        if (!VersionUtil.isPaperServer() || !VersionUtil.atOrAbove("1.20.1")) {
+        if (!VersionUtil.isPaperServer()) {
             return false;
         }
 
