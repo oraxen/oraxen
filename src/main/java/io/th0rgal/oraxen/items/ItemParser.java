@@ -184,9 +184,9 @@ public class ItemParser {
     private void parseDataComponents(final ItemBuilder item) {
         final ConfigurationSection section = mergeWithTemplateSection();
         if (section.contains("itemname") && VersionUtil.atOrAbove("1.20.5"))
-            item.setItemName(section.getString("itemname"));
+            item.setItemName(AdventureUtils.parseMiniMessage(section.getString("itemname")));
         else if (section.contains("displayname"))
-            item.setItemName(section.getString("displayname"));
+            item.setItemName(AdventureUtils.parseMiniMessage(section.getString("displayname")));
 
         final ConfigurationSection components = OraxenYaml.getConfigurationSection(section, "Components");
         if (components == null || !VersionUtil.atOrAbove("1.20.5"))
