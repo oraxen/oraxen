@@ -4,7 +4,6 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.configs.Message;
 import io.th0rgal.oraxen.glyphs.GlyphTag;
 import io.th0rgal.oraxen.glyphs.ShiftTag;
-import io.th0rgal.oraxen.glyphs.TextEffectTag;
 import net.kyori.adventure.inventory.Book;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
@@ -30,7 +29,7 @@ public class AdventureUtils {
     public static final MiniMessage MINI_MESSAGE_EMPTY = MiniMessage.miniMessage();
 
     public static final TagResolver OraxenTagResolver = TagResolver.resolver(TagResolver.standard(),
-            GlyphTag.RESOLVER, ShiftTag.RESOLVER, TextEffectTag.RESOLVER,
+            GlyphTag.RESOLVER, ShiftTag.RESOLVER,
             TagResolver.resolver("prefix", Tag.selfClosingInserting(MINI_MESSAGE_EMPTY.deserialize(Message.PREFIX.toString())))
     );
 

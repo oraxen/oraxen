@@ -38,9 +38,6 @@ public enum Settings {
     SHOW_PERMISSION_EMOJIS("Glyphs.emoji_list_permission_only"),
     UNICODE_COMPLETIONS("Glyphs.unicode_completions"),
 
-    // Text Effects (shader-based)
-    TEXT_EFFECTS_ENABLED("TextEffects.enabled"),
-
     // Chat
     CHAT_HANDLER("Chat.chat_handler"),
 

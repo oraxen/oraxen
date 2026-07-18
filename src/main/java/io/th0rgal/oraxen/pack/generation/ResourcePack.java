@@ -8,13 +8,10 @@ import io.th0rgal.oraxen.configs.AppearanceMode;
 import io.th0rgal.oraxen.configs.ResourcesManager;
 import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.glyphs.AnimatedGlyph;
-import io.th0rgal.oraxen.fonts.EffectFontProvider;
 import io.th0rgal.oraxen.fonts.Font;
 import io.th0rgal.oraxen.fonts.FontManager;
 import io.th0rgal.oraxen.glyphs.Glyph;
 import io.th0rgal.oraxen.glyphs.ShiftProvider;
-import io.th0rgal.oraxen.glyphs.TextEffect;
-import net.kyori.adventure.key.Key;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenMeta;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
@@ -657,7 +654,7 @@ public class ResourcePack {
      *
      * <p>
      * Also adds overlay entries for cross-version shader compatibility when the server
-     * is running 1.21.4+ and text effects or animated glyphs may be used.
+     * is running 1.21.4+ and animated glyphs may be used.
      * </p>
      */
     private void updatePackMcmeta() {
@@ -1132,24 +1129,16 @@ public class ResourcePack {
         // Generate the dedicated shift font (still useful for explicit font references)
         generateShiftFont(fontManager);
 
-        // Always generate effect fonts and animated glyphs. The earlier "skip on
-        // legacy single-pack servers" guard was a workaround for the pre-#1812
-        // shader generator emitting wrong GLSL versions; now that the generator
-        // emits per-target shaders correctly, BASE_ONLY mode produces valid
-        // 1.20-1.21.3 shaders for legacy single-pack servers, so the skip would
-        // silently disable text effects/animated glyphs there (regression vs master).
-        generateEffectFonts();
-
         // Process animated glyph fonts
         boolean hasAnimatedGlyphs = processAnimatedGlyphs(fontManager);
 
-        // Generate text shaders when needed (animated glyphs and/or text effects).
+        // Generate text shaders when animated glyphs are present.
         // In multi-version mode the choice depends on the *server* version:
         //   - 1.21.4+ server: skip base shaders and only emit 1.21.4+ overlays so
         //     1.21.3- clients never receive #version 330+ GLSL.
         //   - 1.20-1.21.3 server: emit base shaders for the server's legacy format
         //     AND 1.21.4+ overlays. Without the base emission, legacy clients on a
-        //     multi-version pack would silently lose animated glyph / text effect
+        //     multi-version pack would silently lose animated glyph
         //     rendering (the base format is the legacy one in that case).
         boolean serverIs1214Plus = VersionUtil.atOrAbove("1.21.4");
         TextShaderGenerator.ShaderEmissionMode emissionMode;
@@ -1161,31 +1150,6 @@ public class ResourcePack {
             emissionMode = TextShaderGenerator.ShaderEmissionMode.BASE_ONLY;
         }
         textShaderGenerator.maybeGenerateTextShaders(hasAnimatedGlyphs, emissionMode);
-    }
-
-    /**
-     * Generates effect font files for text effects.
-     * Each enabled effect gets a dedicated font that references vanilla glyphs.
-     * <p>
-     * This method now supports unlimited effects (up to 256) by iterating over
-     * all enabled effects rather than a fixed array.
-     */
-    private void generateEffectFonts() {
-        if (!TextEffect.isEnabled() || !TextEffect.hasAnyEffectEnabled()) {
-            return;
-        }
-
-        EffectFontProvider provider = new EffectFontProvider();
-
-        // Generate fonts for all enabled effects (supports unlimited effects)
-        for (TextEffect.Definition def : TextEffect.getEnabledEffects()) {
-            Key fontKey = EffectFontProvider.getFontKey(def.getId());
-            JsonObject fontJson = provider.generateFontJson(def.getId());
-
-            String path = "assets/" + fontKey.namespace() + "/font";
-            String filename = fontKey.value() + ".json";
-            writeStringToVirtual(path, filename, fontJson.toString());
-        }
     }
 
     /**

@@ -58,7 +58,6 @@ public class ConfigsManager {
     private final YamlConfiguration defaultPaintings;
     private final YamlConfiguration defaultLanguage;
     private final YamlConfiguration defaultHud;
-    private final YamlConfiguration defaultTextEffects;
     private YamlConfiguration mechanics;
     private YamlConfiguration settings;
     private YamlConfiguration font;
@@ -66,7 +65,6 @@ public class ConfigsManager {
     private YamlConfiguration paintings;
     private YamlConfiguration language;
     private YamlConfiguration hud;
-    private YamlConfiguration textEffects;
     private File itemsFolder;
     private File glyphsFolder;
     private File schematicsFolder;
@@ -81,7 +79,6 @@ public class ConfigsManager {
         defaultPaintings = extractDefault("paintings.yml");
         defaultLanguage = extractDefault("languages/english.yml");
         defaultHud = extractDefault("hud.yml");
-        defaultTextEffects = extractDefault("text_effects.yml");
     }
 
     public YamlConfiguration getMechanics() {
@@ -114,14 +111,6 @@ public class ConfigsManager {
 
     public YamlConfiguration getPaintings() {
         return paintings != null ? paintings : defaultPaintings;
-    }
-
-    public YamlConfiguration getTextEffects() {
-        return textEffects != null ? textEffects : defaultTextEffects;
-    }
-
-    public File getTextEffectsFile() {
-        return new File(plugin.getDataFolder(), "text_effects.yml");
     }
 
     public File getSchematicsFolder() {
@@ -157,7 +146,6 @@ public class ConfigsManager {
         sound = validate(tempManager, "sounds.yml", defaultSound);
         migrateSoundConfigIfNeeded();
         paintings = validate(tempManager, "paintings.yml", defaultPaintings);
-        textEffects = validate(tempManager, "text_effects.yml", defaultTextEffects);
         File languagesFolder = new File(plugin.getDataFolder(), "languages");
         languagesFolder.mkdir();
         String languageFile = "languages/" + settings.getString(Settings.PLUGIN_LANGUAGE.getPath()) + ".yml";

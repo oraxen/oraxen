@@ -256,9 +256,6 @@ Glyphs:
   emoji_list_permission_only: false
   unicode_completions: false
 
-TextEffects:
-  enabled: false
-
 Chat:
   chat_handler: MODERN
 

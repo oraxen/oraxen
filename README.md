@@ -211,10 +211,6 @@ sounds:
 
 * Crafting, smelting, blasting, smoking, and stonecutting recipes, with an easy-to-use in-game GUI editor.
 
-### Text Effects
-
-* Colored text animations.
-
 ## Building
 See https://oraxen.mizius.com/developers/compiling.
 
