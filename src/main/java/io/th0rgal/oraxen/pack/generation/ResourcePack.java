@@ -507,17 +507,13 @@ public class ResourcePack {
         }
     }
 
-    /**
-     * Generates non-item assets: fonts, shaders, scoreboard tweaks, armor, texture slicing.
-     */
+    /** Generates non-item assets: fonts, shaders, scoreboard tweaks, and armor. */
     private void generateMiscAssets() {
         generateFont();
         updatePackMcmetaOverlays();
         if (!VersionUtil.atOrAbove("1.21.8") && Settings.HIDE_SCOREBOARD_NUMBERS.toBool())
             textShaderGenerator.hideScoreboardNumbers();
         textShaderGenerator.hideScoreboardOrTablistBackgrounds();
-        if (Settings.TEXTURE_SLICER.toBool())
-            PackSlicer.slicePackFiles();
         if (CustomArmorType.getSetting() == CustomArmorType.SHADER
                 && Settings.CUSTOM_ARMOR_SHADER_GENERATE_FILES.toBool())
             ShaderArmorTextures.generateArmorShaderFiles();

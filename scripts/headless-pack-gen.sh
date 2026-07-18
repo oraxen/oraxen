@@ -287,7 +287,6 @@ Pack:
       generate_predicates: false
     verify_pack_files: true
     fix_force_unicode_glyphs: true
-    texture_slicer: true
     atlas:
       exclude_malformed_from_atlas: true
       generate: true
