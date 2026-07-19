@@ -17,8 +17,6 @@ public enum UpdatedSettings {
     EXCLUDE_MALFORMED_ATLAS("Plugin.experimental.exclude_malformed_from_atlas", "Pack.generation.atlas.exclude_malformed_from_atlas"),
     SHOW_PERMISSION_EMOJIS("Plugin.commands.emoji_list.only_show_emojis_with_permission", "Glyphs.emoji_list_permission_only"),
     UNICODE_COMPLETIONS("Misc.unicode_completions", "Glyphs.unicode_completions"),
-    WORLDEDIT_NOTEBLOCKS("Plugin.worldedit.noteblock_mechanic", "WorldEdit.noteblock_mechanic"),
-    WORLDEDIT_STRINGBLOCKS("Plugin.worldedit.stringblock_mechanic", "WorldEdit.stringblock_mechanic"),
     ;
 
     private final String path;

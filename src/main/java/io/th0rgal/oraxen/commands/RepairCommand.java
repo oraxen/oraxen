@@ -4,7 +4,6 @@ import io.th0rgal.oraxen.commands.arguments.ArgumentSuggestions;
 import io.th0rgal.oraxen.commands.arguments.TextArgument;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.configs.Message;
-import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.durability.DurabilityMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.durability.DurabilityMechanicFactory;
 import io.th0rgal.oraxen.utils.AdventureUtils;
@@ -64,8 +63,6 @@ public class RepairCommand {
         if (!(itemMeta instanceof Damageable damageable)) return true;
         DurabilityMechanicFactory durabilityFactory = DurabilityMechanicFactory.get();
         if (durabilityFactory.isNotImplementedIn(itemId)) {
-            if ((boolean) Settings.REPAIR_COMMAND_ORAXEN_DURABILITY.getValue()) // not oraxen item
-                return true;
             if (damageable.getDamage() == 0) // full durability
                 return true;
         } else {

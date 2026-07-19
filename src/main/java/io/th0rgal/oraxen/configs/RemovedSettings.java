@@ -42,7 +42,13 @@ public enum RemovedSettings {
     NMS_GLYPHS_LEGACY("Plugin.experimental.nms_glyphs"),
     NMS_GLYPHS_LEGACY_2("Plugin.experimental.use_nms_glyphs"),
     GLYPH_HANDLER("Glyphs.glyph_handler"),
-    CUSTOM_ARMOR_SHADER_SETTINGS("CustomArmor.shader_settings")
+    CUSTOM_ARMOR_SHADER_SETTINGS("CustomArmor.shader_settings"),
+    REPAIR_COMMAND_ORAXEN_DURABILITY("Plugin.commands.repair.oraxen_durability_only"),
+    REPAIR_COMMAND("Plugin.commands.repair"),
+    WORLDEDIT_STRINGBLOCKS("WorldEdit.stringblock_mechanic"),
+    WORLDEDIT_NOTEBLOCKS("WorldEdit.noteblock_mechanic"),
+    WORLDEDIT_FURNITURE("WorldEdit.furniture_mechanic"),
+    WORLDEDIT("WorldEdit")
 
     ;
 

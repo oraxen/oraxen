@@ -16,7 +16,6 @@ public enum Settings {
     KEEP_UP_TO_DATE("Plugin.keep_this_up_to_date"),
     INTRODUCTION_ENABLED("Plugin.introduction.enabled"),
     INTRODUCTION_CONSOLE_SENT("Plugin.introduction.console_sent"),
-    REPAIR_COMMAND_ORAXEN_DURABILITY("Plugin.commands.repair.oraxen_durability_only"),
     AUTO_UPDATE_PAPER_CONFIG("Plugin.auto_update_paper_config"),
     GENERATE_DEFAULT_ASSETS("Plugin.generation.default_assets"),
     GENERATE_DEFAULT_CONFIGS("Plugin.generation.default_configs"),
@@ -28,11 +27,6 @@ public enum Settings {
     FORMAT_SIGNS("Plugin.formatting.signs"),
     FORMAT_CHAT("Plugin.formatting.chat"),
     FORMAT_BOOKS("Plugin.formatting.books"),
-
-    // WorldEdit
-    WORLDEDIT_NOTEBLOCKS("WorldEdit.noteblock_mechanic"),
-    WORLDEDIT_STRINGBLOCKS("WorldEdit.stringblock_mechanic"),
-    WORLDEDIT_FURNITURE("WorldEdit.furniture_mechanic"),
 
     // Glyphs
     SHOW_PERMISSION_EMOJIS("Glyphs.emoji_list_permission_only"),
