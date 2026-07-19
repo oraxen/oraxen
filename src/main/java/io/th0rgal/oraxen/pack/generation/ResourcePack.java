@@ -329,8 +329,7 @@ public class ResourcePack {
         if (!Settings.GENERATE.toBool())
             return false;
 
-        if (!VersionUtil.atOrAbove("1.21.8") && Settings.HIDE_SCOREBOARD_NUMBERS.toBool()
-                && PluginUtils.isEnabled("HappyHUD")) {
+        if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool() && PluginUtils.isEnabled("HappyHUD")) {
             Logs.logError("HappyHUD detected with hide_scoreboard_numbers enabled!");
             Logs.logWarning(
                     "Recommend following this guide for compatibility: https://docs.oraxen.com/compatibility/happyhud");
@@ -508,7 +507,7 @@ public class ResourcePack {
     private void generateMiscAssets() {
         generateFont();
         updatePackMcmetaOverlays();
-        if (!VersionUtil.atOrAbove("1.21.8") && Settings.HIDE_SCOREBOARD_NUMBERS.toBool())
+        if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool())
             textShaderGenerator.hideScoreboardNumbers();
         textShaderGenerator.hideScoreboardOrTablistBackgrounds();
     }
