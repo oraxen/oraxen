@@ -23,7 +23,6 @@ ConfigsTools:
   # list of model data numbers the automatic system will skip
   # List can take ranges like 1-4 as well as normal singular numbers
   skipped_model_data_numbers: []
-  disable_automatic_model_data: false
   disable_automatic_glyph_code: false
   error_item:
     material: PODZOL
@@ -111,6 +110,7 @@ Pack:
       # MODEL_DATA_IDS (default: false)
       # Uses custom_model_data.strings[0] = "oraxen:<item_id>"
       # Generates assets/minecraft/items/<material>.json using minecraft:select.
+      # Only applies to items that explicitly set Pack.custom_model_data.
       # Good for plugins that read custom_model_data but want stable string identifiers.
       # Cannot be combined with model_data_float (they write to the same file).
       model_data_ids: false
@@ -118,6 +118,7 @@ Pack:
       # MODEL_DATA_FLOAT (default: false)
       # Uses custom_model_data.floats[0] = <Pack.custom_model_data as float>
       # Generates assets/minecraft/items/<material>.json using minecraft:range_dispatch.
+      # Only applies to items that explicitly set Pack.custom_model_data.
       # Also sets integer CustomModelData on items for plugin compatibility.
       # Cannot be combined with model_data_ids (they write to the same file).
       model_data_float: false

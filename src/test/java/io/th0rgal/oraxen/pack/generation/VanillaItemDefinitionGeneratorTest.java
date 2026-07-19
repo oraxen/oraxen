@@ -69,6 +69,21 @@ class VanillaItemDefinitionGeneratorTest {
     }
 
     @Test
+    void selectDefinitionIgnoresItemsWithoutConfiguredCustomModelData() {
+        VanillaItemDefinitionGenerator generator = generator(
+                Material.PAPER,
+                List.of(customItem("configured", 123, "oraxen:item/configured"),
+                        customItem("automatic", null, "oraxen:item/automatic")),
+                true,
+                false);
+
+        JsonObject model = generator.toJSON().getAsJsonObject("model");
+        assertEquals(1, model.getAsJsonArray("cases").size());
+        assertEquals("oraxen:configured", model.getAsJsonArray("cases")
+                .get(0).getAsJsonObject().get("when").getAsString());
+    }
+
+    @Test
     void playerHeadRangeDispatchDefinitionKeepsCustomEntriesAndUsesSpecialHeadFallback() {
         VanillaItemDefinitionGenerator generator = generator(
                 Material.PLAYER_HEAD,
@@ -134,7 +149,7 @@ class VanillaItemDefinitionGeneratorTest {
                 includeBothModes);
     }
 
-    private static ItemBuilder customItem(String itemId, int customModelData, String modelName) {
+    private static ItemBuilder customItem(String itemId, Integer customModelData, String modelName) {
         OraxenMeta meta = new OraxenMeta();
         meta.setModelName(modelName);
         meta.setCustomModelData(customModelData);

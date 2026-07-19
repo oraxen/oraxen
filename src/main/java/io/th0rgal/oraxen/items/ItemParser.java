@@ -774,12 +774,17 @@ public class ItemParser {
         if (oraxenMeta.isExcludedFromPredicates())
             return;
 
+        final Integer customModelData = resolveCustomModelData();
+        if (customModelData == null)
+            return;
+
         final String itemId = section != null ? section.getName() : null;
         if (itemId == null || itemId.isBlank())
             return;
 
         // Set strings[0] = "oraxen:<item_id>" for the minecraft:select dispatcher
         item.setCustomModelDataStrings(List.of(new NamespacedKey(OraxenPlugin.get(), itemId).toString()));
+        oraxenMeta.setCustomModelData(customModelData);
     }
 
     /**
@@ -789,7 +794,7 @@ public class ItemParser {
         if (oraxenMeta.isExcludedFromPredicates())
             return;
 
-        final Integer customModelData = resolveCustomModelData(item);
+        final Integer customModelData = resolveCustomModelData();
         if (customModelData != null) {
             // Set floats[0] = CMD value for the minecraft:range_dispatch dispatcher
             item.setCustomModelDataFloats(List.of((float) customModelData));
@@ -805,32 +810,16 @@ public class ItemParser {
         if (oraxenMeta.isExcludedFromPredicates())
             return;
 
-        final Integer customModelData = resolveCustomModelData(item);
+        final Integer customModelData = resolveCustomModelData();
         if (customModelData != null) {
             item.setCustomModelData(customModelData);
             oraxenMeta.setCustomModelData(customModelData);
         }
     }
 
-    private Integer resolveCustomModelData(ItemBuilder item) {
-        if (MODEL_DATAS_BY_ID.containsKey(section.getName())) {
-            return MODEL_DATAS_BY_ID.get(section.getName()).getModelData();
-        }
-
-        if (!oraxenMeta.hasPackInfos())
-            return null;
-
-        Integer customModelData = ModelData.generateId(oraxenMeta.getModelName(), type);
-        configUpdated = true;
-
-        if (!Settings.DISABLE_AUTOMATIC_MODEL_DATA.toBool()) {
-            Optional.ofNullable(OraxenYaml.getConfigurationSection(section, "Pack"))
-                    .ifPresent(c -> {
-                        c.set("custom_model_data", customModelData);
-                        OraxenYaml.invalidateKeyCache(c);
-                    });
-        }
-        return customModelData;
+    private Integer resolveCustomModelData() {
+        final ModelData modelData = MODEL_DATAS_BY_ID.get(section.getName());
+        return modelData != null ? modelData.getModelData() : null;
     }
 
     private ConfigurationSection mergeWithTemplateSection() {

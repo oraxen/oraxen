@@ -2,6 +2,8 @@ package io.th0rgal.oraxen.items;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
@@ -10,9 +12,39 @@ import java.lang.reflect.Method;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ItemParserTest {
+
+    @AfterEach
+    void clearModelData() {
+        ItemParser.MODEL_DATAS_BY_ID.clear();
+    }
+
+    @Test
+    void onlyResolvesExplicitlyConfiguredCustomModelData() throws Exception {
+        YamlConfiguration config = new YamlConfiguration();
+        config.loadFromString("""
+                configured:
+                  material: PAPER
+                  Pack:
+                    custom_model_data: 123
+                automatic:
+                  material: PAPER
+                  Pack:
+                    model: automatic
+                """);
+
+        Method resolve = ItemParser.class.getDeclaredMethod("resolveCustomModelData");
+        resolve.setAccessible(true);
+
+        ItemParser configured = new ItemParser(config.getConfigurationSection("configured"));
+        ItemParser automatic = new ItemParser(config.getConfigurationSection("automatic"));
+
+        assertEquals(123, resolve.invoke(configured));
+        assertNull(resolve.invoke(automatic));
+    }
 
     @ParameterizedTest
     @CsvSource({
