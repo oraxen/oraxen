@@ -169,7 +169,7 @@ public class OraxenMeta {
         List<String> textures = configSection.getStringList("textures");
         ConfigurationSection parent = configSection.getParent();
         modelName = modelName != null ? modelName
-                : Settings.GENERATE_MODEL_BASED_ON_TEXTURE_PATH.toBool() && !textures.isEmpty() && parent != null
+                : !textures.isEmpty() && parent != null && Settings.GENERATE_MODEL_BASED_ON_TEXTURE_PATH.toBool()
                 ? Utils.getParentDirs(textures.stream().findFirst().get()) + parent.getName()
                 : null;
 

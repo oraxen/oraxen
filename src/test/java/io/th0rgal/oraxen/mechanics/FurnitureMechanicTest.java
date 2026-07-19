@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.mechanics;
 
-import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import org.junit.jupiter.api.Test;
 
@@ -12,7 +11,6 @@ class FurnitureMechanicTest extends MechanicTestSupport {
 
     @Test
     void readsBasicFurnitureSettings() {
-        OraxenPlugin.supportsDisplayEntities = false;
         FurnitureMechanic mechanic = new FurnitureMechanic(mechanicFactory(), mechanicSection("furniture",
                 "hardness", 4,
                 "item", "placed_item",
