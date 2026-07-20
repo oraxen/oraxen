@@ -383,7 +383,7 @@ public class FurnitureListener implements Listener {
         if (location != null && isFurniture) {
             if (player != null && !AntiGriefLib.canBreak(player, location))
                 event.setCancelled(true);
-            else if (projectile instanceof Explosive && !(projectile instanceof AbstractWindCharge)) {
+            else if (projectile instanceof Explosive && !projectile.getType().name().contains("WIND_CHARGE")) {
                 event.setCancelled(true);
                 OraxenFurniture.remove(location, player);
             }

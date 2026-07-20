@@ -13,6 +13,7 @@ public class NMSHandlers {
 
     private static NMSHandler handler;
     private static String version;
+    private static boolean packDispatchListenerRegistered;
 
     @NotNull
     public static NMSHandler getHandler() {
@@ -60,12 +61,17 @@ public class NMSHandlers {
             Listener packDispatchListener = handler.packDispatchListener();
             if (packDispatchListener != null) {
                 Bukkit.getPluginManager().registerEvents(packDispatchListener, OraxenPlugin.get());
+                packDispatchListenerRegistered = true;
             }
         } catch (ReflectiveOperationException | LinkageError e) {
             Logs.logWarning("Failed to load guarded NMS handler; NMS features will be disabled...");
             if (Settings.DEBUG.toBool()) e.printStackTrace();
             handler = new NMSHandler.EmptyNMSHandler();
         }
+    }
+
+    public static boolean hasPackDispatchListener() {
+        return packDispatchListenerRegistered;
     }
 
     public static boolean isTripwireUpdatesDisabled() {

@@ -76,7 +76,7 @@ public class VersionLoadingTest {
             Map.entry("1.21.8", "https://fill-data.papermc.io/v1/objects/8de7c52c3b02403503d16fac58003f1efef7dd7a0256786843927fa92ee57f1e/paper-1.21.8-60.jar"),
             Map.entry("1.21.5", "https://fill-data.papermc.io/v1/objects/2ae6ae22adf417699746e0f89fc2ef6cb6ee050a5f6608cee58f0535d60b509e/paper-1.21.5-114.jar"),
             Map.entry("1.21.4", "https://fill-data.papermc.io/v1/objects/5ee4f542f628a14c644410b08c94ea42e772ef4d29fe92973636b6813d4eaffc/paper-1.21.4-232.jar"),
-            Map.entry("1.21.3", "https://fill-data.papermc.io/v1/objects/5ee4f542f628a14c644410b08c94ea42e772ef4d29fe92973636b6813d4eaffc/paper-1.21.4-232.jar"),
+            Map.entry("1.21.3", "https://fill-data.papermc.io/v1/objects/87e973e1d338e869e7fdbc4b8fadc1579d7bb0246a0e0cf6e5700ace6c8bc17e/paper-1.21.3-83.jar"),
             Map.entry("1.20.6", "https://fill-data.papermc.io/v1/objects/4b011f5adb5f6c72007686a223174fce82f31aeb4b34faf4652abc840b47e640/paper-1.20.6-151.jar"),
             Map.entry("1.20.4", "https://fill-data.papermc.io/v1/objects/cabed3ae77cf55deba7c7d8722bc9cfd5e991201c211665f9265616d9fe5c77b/paper-1.20.4-499.jar"),
             Map.entry("1.20.1", "https://fill-data.papermc.io/v1/objects/234a9b32098100c6fc116664d64e36ccdb58b5b649af0f80bcccb08b0255eaea/paper-1.20.1-196.jar")
@@ -131,15 +131,11 @@ public class VersionLoadingTest {
         }
     }
 
-    private static void buildPluginIfNeeded(Path projectDir) throws Exception {
+    private static void buildPluginIfNeeded(Path projectDir) throws IOException {
         if (builtPluginJar != null && Files.exists(builtPluginJar)) return;
-
-        ProcessBuilder builder = gradleWrapper(projectDir, "shadowJar", "-x", "test");
-        builder.directory(projectDir.toFile()).redirectErrorStream(true);
-        Process process = builder.start();
-        String output = readAll(process);
-        assertTrue(process.waitFor(10, TimeUnit.MINUTES), "Timed out while building Oraxen");
-        assertTrue(process.exitValue() == 0, "Gradle build failed:\n" + output);
+        // The Gradle test task depends on shadowJar when runVersionLoadingTest is enabled.
+        // Never launch a nested Gradle build here: compileJava depends on clean and would
+        // delete the outer test task's in-progress result files.
         builtPluginJar = findBuiltJar(projectDir);
     }
 
@@ -276,6 +272,22 @@ public class VersionLoadingTest {
 
     private static void copyBuiltJar(Path builtJar) throws IOException {
         Files.copy(builtJar, pluginsDir.resolve(builtJar.getFileName()), StandardCopyOption.REPLACE_EXISTING);
+
+        // Test servers must never publish generated packs as a startup side effect.
+        try (JarFile jarFile = new JarFile(builtJar.toFile())) {
+            var settingsEntry = jarFile.getJarEntry("settings.yml");
+            if (settingsEntry == null) return;
+            String settings;
+            try (var input = jarFile.getInputStream(settingsEntry)) {
+                settings = new String(input.readAllBytes(), StandardCharsets.UTF_8);
+            }
+            String uploadEnabled = "  upload:\n    enabled: true\n";
+            assertTrue(settings.contains(uploadEnabled), "Default settings.yml upload flag not found");
+            Path oraxenConfigDir = pluginsDir.resolve("Oraxen");
+            Files.createDirectories(oraxenConfigDir);
+            Files.writeString(oraxenConfigDir.resolve("settings.yml"),
+                    settings.replace(uploadEnabled, "  upload:\n    enabled: false\n"), StandardCharsets.UTF_8);
+        }
     }
 
     private static String javaExecutable(Path javaHome) {

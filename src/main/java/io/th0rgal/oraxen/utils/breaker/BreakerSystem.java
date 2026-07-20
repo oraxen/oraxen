@@ -311,6 +311,7 @@ public abstract class BreakerSystem {
             return;
         }
 
+        stopBlockHitSound(location);
         breakerPlaySound.put(location, SchedulerUtil.runAtLocationTimer(location, 0L, 4L,
                 () -> BlockHelpers.playCustomBlockSound(location, getHitSound(location.getBlock()), blockSounds.getHitVolume(), blockSounds.getHitPitch())));
     }

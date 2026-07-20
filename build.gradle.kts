@@ -186,6 +186,9 @@ tasks {
         }
 
         if (project.hasProperty("runVersionLoadingTest")) {
+            // Build the plugin before JUnit starts. A nested Gradle build from the test would
+            // execute compileJava -> clean and delete the outer test's result files.
+            dependsOn(shadowJar)
             testLogging {
                 events("passed", "failed", "skipped", "standardOut", "standardError")
                 exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL

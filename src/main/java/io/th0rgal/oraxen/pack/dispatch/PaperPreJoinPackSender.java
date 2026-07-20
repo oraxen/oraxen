@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.pack.dispatch;
 
 import io.papermc.paper.event.connection.configuration.PlayerConnectionInitialConfigureEvent;
+import io.th0rgal.oraxen.nms.NMSHandlers;
 import net.kyori.adventure.audience.Audience;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -16,6 +17,9 @@ final class PaperPreJoinPackSender implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL)
     public void onPlayerConfigure(PlayerConnectionInitialConfigureEvent event) {
+        // The NMS listener owns callback-aware pre-join dispatch when available.
+        // Keep this listener only as a fallback for servers where guarded NMS setup failed.
+        if (NMSHandlers.hasPackDispatchListener()) return;
         if (!PackSender.isPreJoinDispatchActive()) return;
         Object connection = event.getConnection();
         if (!PackDispatchFilter.canSendPackForConnection(connection)) return;
