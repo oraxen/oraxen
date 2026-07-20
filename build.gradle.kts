@@ -202,6 +202,10 @@ tasks {
     }
 
     processResources {
+        from("src/main/pack") {
+            into("pack")
+        }
+
         filesNotMatching(
             listOf(
                 "**/*.png",
