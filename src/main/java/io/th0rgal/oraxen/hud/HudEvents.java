@@ -1,0 +1,82 @@
+package io.th0rgal.oraxen.hud;
+
+import com.jeff_media.morepersistentdatatypes.DataType;
+import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.configs.Settings;
+import io.th0rgal.oraxen.utils.EntityUtils;
+import io.th0rgal.oraxen.utils.logs.Logs;
+import org.bukkit.GameMode;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityAirChangeEvent;
+import org.bukkit.event.player.PlayerGameModeChangeEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.persistence.PersistentDataContainer;
+
+public class HudEvents implements Listener {
+
+    @EventHandler
+    public void onJoin(final PlayerJoinEvent event) {
+        HudManager hudManager = OraxenPlugin.get().getHudManager();
+        final Player player = event.getPlayer();
+        final PersistentDataContainer pdc = player.getPersistentDataContainer();
+        Hud hud = hudManager.getActiveHud(player);
+        if (hud == null) hud = hudManager.getDefaultEnabledHuds().stream().findFirst().orElse(null);
+        String hudId = hudManager.getHudID(hud);
+
+        if (hud == null || hudId == null) {
+            if (Settings.DEBUG.toBool()) {
+                Logs.logWarning("[HUD] No default HUD found for player " + player.getName());
+            }
+            return;
+        }
+        if (!hud.hasPermission(player)) {
+            if (Settings.DEBUG.toBool()) {
+                Logs.logWarning("[HUD] Player " + player.getName() + " doesn't have permission: " + hud.getPerm());
+            }
+            return;
+        }
+        if (!hudManager.getHudState(player)) {
+            if (Settings.DEBUG.toBool()) {
+                Logs.logWarning("[HUD] HUD is disabled for player " + player.getName());
+            }
+            return;
+        }
+
+        pdc.set(hudManager.hudDisplayKey, DataType.STRING, hudManager.getHudID(hud));
+        pdc.set(hudManager.hudToggleKey, DataType.BOOLEAN, true);
+        hudManager.updateHud(player);
+    }
+
+    @EventHandler
+    public void onEnterWater(final EntityAirChangeEvent event) {
+        if (event.getEntityType() != EntityType.PLAYER) return;
+
+        HudManager hudManager = OraxenPlugin.get().getHudManager();
+        Player player = (Player) event.getEntity();
+        Hud hud = hudManager.getActiveHud(player);
+
+        if (hud == null || !hud.isDisabledWhilstInWater()) return;
+        if (EntityUtils.isUnderWater(player)) {
+            hudManager.disableHud(player);
+        } else if (hudManager.getHudState(player)) {
+            hudManager.updateHud(player);
+        }
+    }
+
+    @EventHandler
+    public void onGameModeChange(final PlayerGameModeChangeEvent event) {
+        HudManager hudManager = OraxenPlugin.get().getHudManager();
+        Player player = event.getPlayer();
+        Hud hud = hudManager.getActiveHud(player);
+        if (hud == null) return;
+
+        if (event.getNewGameMode() == GameMode.SPECTATOR && !hud.enableInSpectatorMode()) {
+            hudManager.disableHud(player);
+        } else if (hudManager.getHudState(player)) {
+            hudManager.updateHud(player);
+        }
+    }
+}

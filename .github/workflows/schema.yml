@@ -1,0 +1,165 @@
+name: Generate Schema
+
+on:
+  push:
+    branches: [master, develop]
+    paths:
+      - 'src/main/java/io/th0rgal/oraxen/utils/schema/**'
+      - 'src/main/java/io/th0rgal/oraxen/items/**'
+      - 'src/main/java/io/th0rgal/oraxen/mechanics/**'
+      - 'build.gradle.kts'
+      - '.github/workflows/schema.yml'
+  workflow_dispatch:
+
+jobs:
+  generate-schema:
+    runs-on: ubuntu-latest
+    if: github.repository == 'oraxen/oraxen'
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build Oraxen
+        run: |
+          for attempt in 1 2 3; do
+            if [ "$attempt" -eq 1 ]; then
+              ./gradlew shadowJar --no-daemon && exit 0
+            else
+              ./gradlew shadowJar --no-daemon --refresh-dependencies && exit 0
+            fi
+
+            echo "Gradle shadowJar failed on attempt $attempt"
+            if [ "$attempt" -lt 3 ]; then
+              sleep $((attempt * 15))
+            fi
+          done
+
+          exit 1
+
+      - name: Get version
+        id: version
+        run: |
+          VERSION=$(grep "pluginVersion" gradle.properties | cut -d'=' -f2 | tr -d ' ')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Building schema for version: $VERSION"
+
+      - name: Setup test server
+        run: |
+          mkdir -p test-server/plugins/Oraxen
+          cp build/libs/oraxen-*.jar test-server/plugins/
+
+          # Download an immutable Paper build and verify it before execution
+          PAPER_SHA256="49c86f1276e5dded67b6121bf7c2e91401f6eb99769cbb093aa19be07fa612f2"
+          curl -fL --retry 3 --retry-all-errors -A 'Oraxen-Schema-Workflow/1.0' \
+            -o test-server/paper.jar \
+            "https://fill-data.papermc.io/v1/objects/${PAPER_SHA256}/paper-26.2-38.jar"
+          printf '%s  %s\n' "$PAPER_SHA256" test-server/paper.jar | sha256sum -c -
+
+          # Accept EULA
+          echo "eula=true" > test-server/eula.txt
+
+          # Create minimal server.properties
+          echo "online-mode=false" > test-server/server.properties
+          echo "max-tick-time=-1" >> test-server/server.properties
+
+          # Seed complete settings before first startup: enable schema generation, disable pack upload
+          PLUGIN_JAR=$(find build/libs -maxdepth 1 -name 'oraxen-*.jar' -print -quit)
+          test -n "$PLUGIN_JAR"
+          unzip -p "$PLUGIN_JAR" settings.yml > test-server/plugins/Oraxen/settings.yml
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path("test-server/plugins/Oraxen/settings.yml")
+          settings = path.read_text()
+          debug = "debug: false\n"
+          upload = "  upload:\n    enabled: true\n"
+          if settings.count(debug) != 1 or settings.count(upload) != 1:
+              raise SystemExit("Unexpected settings.yml structure")
+          path.write_text(settings.replace(debug, "debug: true\n").replace(upload, "  upload:\n    enabled: false\n"))
+          PY
+
+      - name: Generate schema
+        working-directory: test-server
+        timeout-minutes: 5
+        run: |
+          # Start server in background
+          java -Xms512M -Xmx1G -jar paper.jar --nogui &
+          SERVER_PID=$!
+
+          # Wait for schema to be generated
+          echo "Waiting for server to start and generate schema..."
+          for i in {1..90}; do
+            if [ -f "plugins/Oraxen/oraxen-schema.json" ]; then
+              echo "Schema generated after ~$((i*2)) seconds!"
+              break
+            fi
+            if ! kill -0 $SERVER_PID 2>/dev/null; then
+              echo "Server process died unexpectedly"
+              cat logs/latest.log 2>/dev/null || true
+              exit 1
+            fi
+            sleep 2
+          done
+
+          # Graceful shutdown
+          sleep 2
+          kill $SERVER_PID 2>/dev/null || true
+          sleep 3
+
+          # Verify schema was generated
+          if [ ! -f "plugins/Oraxen/oraxen-schema.json" ]; then
+            echo "ERROR: Schema not generated"
+            cat logs/latest.log 2>/dev/null || true
+            exit 1
+          fi
+
+          echo "Schema generated successfully!"
+
+      - name: Prepare schema artifacts
+        run: |
+          mkdir -p schemas
+          cp test-server/plugins/Oraxen/oraxen-schema.json schemas/oraxen-schema.json
+          cp test-server/plugins/Oraxen/oraxen-schema.json schemas/oraxen-schema-${{ steps.version.outputs.version }}.json
+
+          # Validate JSON
+          python3 -c "import json; json.load(open('schemas/oraxen-schema.json'))"
+
+          echo "Schema size: $(wc -c < schemas/oraxen-schema.json) bytes"
+          echo ""
+          echo "Schema sections:"
+          python3 -c "import json; d=json.load(open('schemas/oraxen-schema.json')); print('Keys:', list(d.keys())); print('Enums:', len(d.get('enums',{}))); print('Mechanics:', len(d.get('mechanics',{})))"
+
+      - name: Upload schema as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: oraxen-schema-${{ steps.version.outputs.version }}
+          path: schemas/
+          retention-days: 90
+
+      - name: Commit schema to repository
+        if: github.ref == 'refs/heads/master'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+          # Only commit if changed
+          if [ -f "schemas/oraxen-schema.json" ]; then
+            git add schemas/oraxen-schema.json
+            git diff --staged --quiet || git commit -m "Update Oraxen schema for v${{ steps.version.outputs.version }}"
+            git pull --rebase origin master
+            git push
+          fi
