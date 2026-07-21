@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.sounds;
 
-import io.th0rgal.oraxen.pack.generation.LegacyDatapackCleaner;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.VersionUtil;
@@ -58,17 +57,19 @@ public final class CustomJukeboxSongRegistry {
     }
 
     private static void reloadLocked(Collection<CustomSound> sounds) {
-        clearLegacyDatapack();
         Collection<CustomSound> jukeboxSounds = sounds.stream()
                 .filter(CustomSound::isJukeboxSound)
                 .toList();
-        if (!supportsCustomJukeboxSongs()) {
+        if (usesDatapackFallback(supportsCustomJukeboxSongs())) {
+            new JukeboxDatapack(jukeboxSounds).generateAssets(List.of());
             if (!jukeboxSounds.isEmpty()) {
-                Logs.logWarning("Custom jukebox songs require Paper 1.21.5 or newer. Skipping "
-                        + jukeboxSounds.size() + " custom jukebox song(s).");
+                Logs.logInfo("Generated legacy jukebox datapack for " + jukeboxSounds.size()
+                        + " custom jukebox song(s).");
             }
             return;
         }
+
+        clearLegacyDatapack();
 
         Set<String> managedSongIds = new LinkedHashSet<>(jukeboxSounds.stream()
                 .map(CustomSound::getJukeboxSongId)
@@ -137,8 +138,12 @@ public final class CustomJukeboxSongRegistry {
         return VersionUtil.atOrAbove("1.21.5") && VersionUtil.isPaperServer();
     }
 
+    static boolean usesDatapackFallback(boolean supportsHotInjection) {
+        return !supportsHotInjection;
+    }
+
     private static void clearLegacyDatapack() {
-        LegacyDatapackCleaner.clear("oraxen_jukebox");
+        new JukeboxDatapack(List.of()).clearOldDataPack();
     }
 
     private static void rememberManagedSongIds(Collection<String> managedSongIds) {
