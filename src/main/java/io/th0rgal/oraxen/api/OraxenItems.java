@@ -6,7 +6,7 @@ import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucible
 import io.th0rgal.oraxen.configs.Message;
 import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.items.ItemBuilder;
-import io.th0rgal.oraxen.items.ItemParser;
+import io.th0rgal.oraxen.items.ItemLoader;
 import io.th0rgal.oraxen.items.ModelData;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
@@ -42,7 +42,7 @@ public class OraxenItems {
 
     public static void loadItems() {
         try {
-            ItemParser.MODEL_DATAS_BY_ID.clear();
+            ItemLoader.MODEL_DATAS_BY_ID.clear();
             ModelData.DATAS.clear();
             OraxenPlugin.get().getConfigsManager().assignAllUsedModelDatas();
             OraxenPlugin.get().getConfigsManager().parseAllItemTemplates();

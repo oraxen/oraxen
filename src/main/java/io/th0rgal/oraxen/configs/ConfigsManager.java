@@ -6,8 +6,9 @@ import io.th0rgal.oraxen.glyphs.Glyph;
 import io.th0rgal.oraxen.glyphs.GlyphGrid;
 import io.th0rgal.oraxen.glyphs.ReferenceGlyph;
 import io.th0rgal.oraxen.items.ItemBuilder;
-import io.th0rgal.oraxen.items.ItemParser;
+import io.th0rgal.oraxen.items.ItemLoader;
 import io.th0rgal.oraxen.items.ItemTemplate;
+import io.th0rgal.oraxen.items.ItemValidator;
 import io.th0rgal.oraxen.items.ModelData;
 import io.th0rgal.oraxen.pack.generation.DuplicationHandler;
 import io.th0rgal.oraxen.sounds.SoundConfigMigration;
@@ -744,7 +745,7 @@ public class ConfigsManager {
 
     public Map<File, Map<String, ItemBuilder>> parseItemConfig() {
         Map<File, Map<String, ItemBuilder>> parseMap = new LinkedHashMap<>();
-        ItemBuilder errorItem = new ItemParser(Settings.ERROR_ITEM.toConfigSection()).buildItem();
+        ItemBuilder errorItem = new ItemLoader(Settings.ERROR_ITEM.toConfigSection()).load().item();
         for (File file : getItemFiles())
             parseMap.put(file, parseItemConfig(file, errorItem));
         return parseMap;
@@ -831,7 +832,7 @@ public class ConfigsManager {
 
     public Map<String, ItemBuilder> parseItemConfig(File itemFile, ItemBuilder errorItem) {
         YamlConfiguration config = OraxenYaml.loadConfiguration(itemFile);
-        Map<String, ItemParser> parseMap = parseItemParsers(config);
+        Map<String, ItemLoader> parseMap = parseItemLoaders(config);
         ParsedItemConfig parsedItemConfig = buildParsedItems(parseMap, errorItem);
 
         if (parsedItemConfig.configUpdated())
@@ -840,37 +841,37 @@ public class ConfigsManager {
         return parsedItemConfig.items();
     }
 
-    private Map<String, ItemParser> parseItemParsers(YamlConfiguration config) {
-        Map<String, ItemParser> parseMap = new LinkedHashMap<>();
+    private Map<String, ItemLoader> parseItemLoaders(YamlConfiguration config) {
+        Map<String, ItemLoader> parseMap = new LinkedHashMap<>();
         for (String itemKey : config.getKeys(false)) {
             ConfigurationSection itemSection = config.getConfigurationSection(itemKey);
             if (itemSection == null || ItemTemplate.isTemplate(itemKey))
                 continue;
-            parseMap.put(itemKey, new ItemParser(itemSection));
+            parseMap.put(itemKey, new ItemLoader(itemSection));
         }
         return parseMap;
     }
 
-    private ParsedItemConfig buildParsedItems(Map<String, ItemParser> parseMap, ItemBuilder errorItem) {
+    private ParsedItemConfig buildParsedItems(Map<String, ItemLoader> parseMap, ItemBuilder errorItem) {
         // because we must have parse all the items before building them to be able to
         // use available models
         Map<String, ItemBuilder> map = new LinkedHashMap<>();
         boolean configUpdated = false;
         boolean blockConfigMigrated = false;
 
-        for (Map.Entry<String, ItemParser> entry : parseMap.entrySet()) {
-            ItemParser itemParser = entry.getValue();
-            map.put(entry.getKey(), buildItem(entry.getKey(), itemParser, errorItem));
-            configUpdated |= itemParser.isConfigUpdated();
-            blockConfigMigrated |= itemParser.isBlockConfigMigrated();
+        for (Map.Entry<String, ItemLoader> entry : parseMap.entrySet()) {
+            ItemValidator.Result result = loadItem(entry.getKey(), entry.getValue(), errorItem);
+            map.put(entry.getKey(), result.item());
+            configUpdated |= result.configUpdated();
+            blockConfigMigrated |= result.blockConfigMigrated();
         }
 
         return new ParsedItemConfig(map, configUpdated, blockConfigMigrated);
     }
 
-    private ItemBuilder buildItem(String itemKey, ItemParser itemParser, ItemBuilder errorItem) {
+    private ItemValidator.Result loadItem(String itemKey, ItemLoader itemLoader, ItemBuilder errorItem) {
         try {
-            return itemParser.buildItem();
+            return itemLoader.load();
         } catch (Exception e) {
             Logs.logError("ERROR BUILDING ITEM \"" + itemKey + "\"");
             if (Settings.DEBUG.toBool()) {
@@ -878,7 +879,7 @@ public class ConfigsManager {
             } else {
                 Logs.logWarning(e.getMessage());
             }
-            return errorItem;
+            return new ItemValidator.Result(errorItem, false, false);
         }
     }
 

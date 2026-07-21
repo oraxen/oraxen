@@ -15,11 +15,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class ItemParserTest {
+class ItemLoaderTest {
 
     @AfterEach
     void clearModelData() {
-        ItemParser.MODEL_DATAS_BY_ID.clear();
+        ItemLoader.MODEL_DATAS_BY_ID.clear();
     }
 
     @Test
@@ -36,11 +36,15 @@ class ItemParserTest {
                     model: automatic
                 """);
 
-        Method resolve = ItemParser.class.getDeclaredMethod("resolveCustomModelData");
+        Method resolve = ItemProperties.class.getDeclaredMethod("resolveCustomModelData");
         resolve.setAccessible(true);
 
-        ItemParser configured = new ItemParser(config.getConfigurationSection("configured"));
-        ItemParser automatic = new ItemParser(config.getConfigurationSection("automatic"));
+        ConfigurationSection configuredSection = config.getConfigurationSection("configured");
+        ConfigurationSection automaticSection = config.getConfigurationSection("automatic");
+        new ItemLoader(configuredSection);
+        new ItemLoader(automaticSection);
+        ItemProperties configured = new ItemProperties(configuredSection, new OraxenMeta(), ItemLoader.MODEL_DATAS_BY_ID);
+        ItemProperties automatic = new ItemProperties(automaticSection, new OraxenMeta(), ItemLoader.MODEL_DATAS_BY_ID);
 
         assertEquals(123, resolve.invoke(configured));
         assertNull(resolve.invoke(automatic));
@@ -68,10 +72,8 @@ class ItemParserTest {
         ConfigurationSection mechanicsSection = itemSection.getConfigurationSection("Mechanics");
         assertNotNull(mechanicsSection);
 
-        ItemParser parser = new ItemParser(itemSection);
-        Method migrate = ItemParser.class.getDeclaredMethod("migrateLegacyBlockMechanics", ConfigurationSection.class);
-        migrate.setAccessible(true);
-        migrate.invoke(parser, mechanicsSection);
+        ItemMigrator migrator = new ItemMigrator(itemSection);
+        migrator.migrateLegacyBlockMechanics(mechanicsSection);
 
         ConfigurationSection blockSection = mechanicsSection.getConfigurationSection("block");
         assertNotNull(blockSection);
@@ -79,5 +81,7 @@ class ItemParserTest {
         assertEquals(1, blockSection.getInt("custom_variation"));
         assertFalse(mechanicsSection.contains(legacyMechanic));
         assertTrue(mechanicsSection.contains("block"));
+        assertTrue(migrator.configUpdated());
+        assertTrue(migrator.blockConfigMigrated());
     }
 }
