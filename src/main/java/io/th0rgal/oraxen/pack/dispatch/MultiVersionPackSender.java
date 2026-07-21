@@ -155,6 +155,14 @@ public class MultiVersionPackSender implements Listener {
         }
     }
 
+    public PackVersion resolvePack(Object connection) {
+        Integer protocolVersion = PackDispatchFilter.resolveProtocolVersion(connection);
+        PackVersion preferred = protocolVersion != null
+                ? versionManager.findBestVersionForProtocol(protocolVersion)
+                : versionManager.getServerPackVersion();
+        return resolveSendableVersion(preferred, protocolVersion);
+    }
+
     private PackVersion resolveSendableVersion(PackVersion preferred, Integer protocolVersion) {
         int packFormat = protocolVersion != null ? ProtocolVersion.getPackFormatForProtocol(protocolVersion) : -1;
 

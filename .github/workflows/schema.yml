@@ -4,11 +4,10 @@ on:
   push:
     branches: [master, develop]
     paths:
-      - 'core/src/main/java/io/th0rgal/oraxen/utils/schema/**'
-      - 'core/src/main/java/io/th0rgal/oraxen/items/**'
-      - 'core/src/main/java/io/th0rgal/oraxen/mechanics/**'
+      - 'src/main/java/io/th0rgal/oraxen/utils/schema/**'
+      - 'src/main/java/io/th0rgal/oraxen/items/**'
+      - 'src/main/java/io/th0rgal/oraxen/mechanics/**'
       - 'build.gradle.kts'
-      - 'core/build.gradle.kts'
       - '.github/workflows/schema.yml'
   workflow_dispatch:
 
@@ -64,8 +63,12 @@ jobs:
           mkdir -p test-server/plugins/Oraxen
           cp build/libs/oraxen-*.jar test-server/plugins/
 
-          # Download Paper server
-          curl -sL -o test-server/paper.jar "https://api.papermc.io/v2/projects/paper/versions/1.21.11/builds/69/downloads/paper-1.21.11-69.jar"
+          # Download an immutable Paper build and verify it before execution
+          PAPER_SHA256="49c86f1276e5dded67b6121bf7c2e91401f6eb99769cbb093aa19be07fa612f2"
+          curl -fL --retry 3 --retry-all-errors -A 'Oraxen-Schema-Workflow/1.0' \
+            -o test-server/paper.jar \
+            "https://fill-data.papermc.io/v1/objects/${PAPER_SHA256}/paper-26.2-38.jar"
+          printf '%s  %s\n' "$PAPER_SHA256" test-server/paper.jar | sha256sum -c -
 
           # Accept EULA
           echo "eula=true" > test-server/eula.txt
@@ -74,8 +77,20 @@ jobs:
           echo "online-mode=false" > test-server/server.properties
           echo "max-tick-time=-1" >> test-server/server.properties
 
-          # Create Oraxen settings.yml with debug enabled to trigger schema generation
-          echo "debug: true" > test-server/plugins/Oraxen/settings.yml
+          # Seed complete settings before first startup: enable schema generation, disable pack upload
+          PLUGIN_JAR=$(find build/libs -maxdepth 1 -name 'oraxen-*.jar' -print -quit)
+          test -n "$PLUGIN_JAR"
+          unzip -p "$PLUGIN_JAR" settings.yml > test-server/plugins/Oraxen/settings.yml
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path("test-server/plugins/Oraxen/settings.yml")
+          settings = path.read_text()
+          debug = "debug: false\n"
+          upload = "  upload:\n    enabled: true\n"
+          if settings.count(debug) != 1 or settings.count(upload) != 1:
+              raise SystemExit("Unexpected settings.yml structure")
+          path.write_text(settings.replace(debug, "debug: true\n").replace(upload, "  upload:\n    enabled: false\n"))
+          PY
 
       - name: Generate schema
         working-directory: test-server

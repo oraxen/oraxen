@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.pack.dispatch.PackDispatchFilter;
 import io.th0rgal.oraxen.pack.dispatch.PackSender;
+import io.th0rgal.oraxen.pack.generation.PackVersion;
 import io.th0rgal.oraxen.pack.receive.PackReceiver;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -108,17 +109,30 @@ public final class PackDispatchListener implements Listener {
 
         String packUrl = OraxenPlugin.get().getPackURL();
         String hash = OraxenPlugin.get().getPackSHA1();
+        UUID packUUID = null;
+
+        var multiVersionManager = OraxenPlugin.get().getMultiVersionUploadManager();
+        if (multiVersionManager != null && multiVersionManager.getPackSender() != null) {
+            PackVersion packVersion = multiVersionManager.getPackSender().resolvePack(connection);
+            if (packVersion != null) {
+                packUrl = packVersion.getPackURL();
+                hash = packVersion.getPackSHA1Hex();
+                packUUID = packVersion.getPackUUID();
+            }
+        }
+
         if (packUrl == null || hash == null) return null;
         UUID playerId = connection.getProfile().getId();
         if (playerId == null) return null;
 
-        UUID packUUID;
-        try {
-            byte[] hashBytes = hashArray(hash);
-            packUUID = UUID.nameUUIDFromBytes(hashBytes);
-        } catch (IllegalArgumentException exception) {
-            Logs.logWarning("Invalid resource pack hash for " + playerId + ": " + hash);
-            return null;
+        if (packUUID == null) {
+            try {
+                byte[] hashBytes = hashArray(hash);
+                packUUID = UUID.nameUUIDFromBytes(hashBytes);
+            } catch (IllegalArgumentException exception) {
+                Logs.logWarning("Invalid resource pack hash for " + playerId + ": " + hash);
+                return null;
+            }
         }
         CompletableFuture<Void> future = new CompletableFuture<>();
 

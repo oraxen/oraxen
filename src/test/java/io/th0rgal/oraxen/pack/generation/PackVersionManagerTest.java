@@ -42,7 +42,8 @@ class PackVersionManagerTest {
         assertNotNull(legacy);
         assertEquals("pack_1_21_4.zip", modern.getPackFile().getName());
         assertEquals("pack_1_21_3.zip", legacy.getPackFile().getName());
-        assertEquals(42, legacy.getPackFormat());
+        // 1.20/1.20.1 ignore supported_formats, so the canonical value must be format 15.
+        assertEquals(15, legacy.getPackFormat());
     }
 
     @Test

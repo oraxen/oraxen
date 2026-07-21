@@ -159,7 +159,11 @@ public abstract class PackSender {
     }
 
     private static boolean isPreJoinSupported() {
-        return VersionUtil.atOrAbove("1.21.7");
+        return isPreJoinSupported(VersionUtil.isPaperServer(), VersionUtil.atOrAbove("1.21.7"));
+    }
+
+    static boolean isPreJoinSupported(boolean isPaperServer, boolean isAtLeast1_21_7) {
+        return isPaperServer && isAtLeast1_21_7;
     }
 
     private static void normalizeDispatchModeForServerSupport() {

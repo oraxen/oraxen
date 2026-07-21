@@ -1,5 +1,10 @@
 package io.th0rgal.oraxen.commands;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.configs.Message;
 import io.th0rgal.oraxen.configs.ResourcesManager;
@@ -11,6 +16,7 @@ import org.bukkit.command.CommandSender;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
@@ -18,6 +24,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 public class RemoveDefaultsCommand {
+
+    private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
 
     OraxenCommand getRemoveDefaultsCommand() {
         OraxenCommand confirmed = new OraxenCommand("confirm")
@@ -46,7 +54,9 @@ public class RemoveDefaultsCommand {
         deletePath(dataFolder.resolve("pack/models/default"), false, deletedFiles, failedFiles);
         deletePath(dataFolder.resolve("pack/textures/animations"), false, deletedFiles, failedFiles);
 
-        deletePath(dataFolder.resolve("pack/lang"), true, deletedFiles, failedFiles);
+        Path languageFolder = dataFolder.resolve("pack/lang");
+        deletePath(languageFolder, true, Set.of(languageFolder.resolve("global.json")), deletedFiles, failedFiles);
+        removeBundledGlobalLanguageEntries(languageFolder.resolve("global.json"), failedFiles);
         deletePath(dataFolder.resolve("pack/font"), true, deletedFiles, failedFiles);
         deletePath(dataFolder.resolve("pack/sounds"), true, deletedFiles, failedFiles);
         deleteKnownDefaultFiles(dataFolder, "recipes", deletedFiles, failedFiles);
@@ -70,6 +80,33 @@ public class RemoveDefaultsCommand {
                 AdventureUtils.tagResolver("files", String.valueOf(deletedFiles.get())));
     }
 
+    void removeBundledGlobalLanguageEntries(Path globalLanguage, AtomicInteger failedFiles) {
+        if (!Files.isRegularFile(globalLanguage)) return;
+
+        try {
+            JsonElement parsed = JsonParser.parseString(Files.readString(globalLanguage, StandardCharsets.UTF_8));
+            if (!parsed.isJsonObject()) return;
+
+            JsonObject language = parsed.getAsJsonObject();
+            boolean updated = removeIfBundled(language, "menu.game", "<glyph:logo>");
+            updated |= removeIfBundled(language, "menu.disconnect",
+                    "<shift:-256><gray>See you soon!<shift:-142><glyph:menu_banner><shift:-327>");
+            if (updated)
+                Files.writeString(globalLanguage, GSON.toJson(language) + System.lineSeparator(), StandardCharsets.UTF_8);
+        } catch (IOException | IllegalArgumentException exception) {
+            failedFiles.incrementAndGet();
+            Logs.logWarning("Failed to remove bundled language entries from " + globalLanguage.getFileName());
+            if (Settings.DEBUG.toBool()) exception.printStackTrace();
+        }
+    }
+
+    private boolean removeIfBundled(JsonObject language, String key, String bundledValue) {
+        JsonElement value = language.get(key);
+        if (value == null || !value.isJsonPrimitive() || !bundledValue.equals(value.getAsString())) return false;
+        language.remove(key);
+        return true;
+    }
+
     private void deleteKnownDefaultFiles(Path dataFolder, String folder, AtomicInteger deletedFiles,
             AtomicInteger failedFiles) {
         Set<Path> defaultFiles = new HashSet<>();
@@ -88,7 +125,7 @@ public class RemoveDefaultsCommand {
         deletePath(path, keepRoot, Set.of(), deletedFiles, failedFiles);
     }
 
-    private void deletePath(Path path, boolean keepRoot, Set<Path> excludedPaths, AtomicInteger deletedFiles,
+    void deletePath(Path path, boolean keepRoot, Set<Path> excludedPaths, AtomicInteger deletedFiles,
             AtomicInteger failedFiles) {
         if (!Files.exists(path))
             return;

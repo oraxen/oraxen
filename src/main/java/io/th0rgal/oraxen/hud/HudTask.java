@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.utils.EntityUtils;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 
 import java.util.List;
@@ -53,6 +54,9 @@ public class HudTask implements Runnable {
             if (Settings.DEBUG.toBool()) {
                 Logs.logWarning("[HUD] HUD ID is null for player " + player.getName());
             }
+            return;
+        }
+        if (player.getGameMode() == GameMode.SPECTATOR && !hud.enableInSpectatorMode()) {
             return;
         }
         if (hud.disableWhilstInWater() && EntityUtils.isUnderWater(player)) {

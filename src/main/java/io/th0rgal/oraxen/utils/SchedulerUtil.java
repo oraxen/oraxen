@@ -121,6 +121,20 @@ public final class SchedulerUtil {
     // ==================== GLOBAL/SYNC TASKS ====================
 
     /**
+     * Returns whether the caller already owns the global execution context.
+     * On Folia, region tick threads are not sufficient for global registry mutation.
+     */
+    public static boolean isGlobalThread() {
+        if (!VersionUtil.isFoliaServer()) return Bukkit.isPrimaryThread();
+        try {
+            Method method = Bukkit.class.getMethod("isGlobalTickThread");
+            return (boolean) method.invoke(null);
+        } catch (ReflectiveOperationException | RuntimeException ignored) {
+            return false;
+        }
+    }
+
+    /**
      * Runs a task on the next server tick (global region on Folia, main thread on Bukkit).
      */
     public static ScheduledTask runTask(Runnable runnable) {

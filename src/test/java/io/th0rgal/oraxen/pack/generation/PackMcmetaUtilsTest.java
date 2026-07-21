@@ -117,7 +117,7 @@ class PackMcmetaUtilsTest {
 
         PackVersion legacy = manager.getVersion("1.21.3");
         assertNotNull(legacy);
-        assertEquals(42, legacy.getPackFormat());
+        assertEquals(15, legacy.getPackFormat());
         assertEquals(15, legacy.getMinFormatInclusive());
         assertEquals(45, legacy.getMaxFormatInclusive());
 
@@ -169,10 +169,11 @@ class PackMcmetaUtilsTest {
 
     @Test
     void testLegacyGroupMetadataSupportsFormats15Through45() {
-        JsonObject mcmeta = PackMcmetaUtils.createPackMcmeta(42, 15, 45, null);
+        JsonObject mcmeta = PackMcmetaUtils.createPackMcmeta(15, 15, 45, null);
         JsonObject pack = mcmeta.getAsJsonObject("pack");
 
-        assertEquals(42, pack.get("pack_format").getAsInt());
+        // 1.20/1.20.1 read only pack_format; 1.20.2+ also honor supported_formats.
+        assertEquals(15, pack.get("pack_format").getAsInt());
         JsonObject supportedFormats = pack.getAsJsonObject("supported_formats");
         assertEquals(15, supportedFormats.get("min_inclusive").getAsInt());
         assertEquals(45, supportedFormats.get("max_inclusive").getAsInt());

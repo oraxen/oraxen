@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.stream.Stream;
 
 public class RemoveBrandingCommand {
@@ -56,14 +57,17 @@ public class RemoveBrandingCommand {
         Message.REMOVE_BRANDING_SUCCESS.send(sender, AdventureUtils.tagResolver("files", String.valueOf(updatedFiles)));
     }
 
-    private int updateExistingLangFiles(Path langFolder) throws IOException {
-        if (!Files.isDirectory(langFolder))
-            return 0;
-
+    int updateExistingLangFiles(Path langFolder) throws IOException {
+        Files.createDirectories(langFolder);
         try (Stream<Path> files = Files.list(langFolder)) {
-            return files
+            List<Path> languageFiles = files
                     .filter(path -> Files.isRegularFile(path) && path.getFileName().toString().endsWith(".json"))
-                    .mapToInt(path -> {
+                    .toList();
+            if (languageFiles.isEmpty()) {
+                Files.writeString(langFolder.resolve("global.json"), "{}" + System.lineSeparator(), StandardCharsets.UTF_8);
+                return 1;
+            }
+            return languageFiles.stream().mapToInt(path -> {
                         try {
                             return updateLangFile(path);
                         } catch (IOException e) {

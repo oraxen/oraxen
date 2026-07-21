@@ -1,7 +1,7 @@
 package io.th0rgal.oraxen.sounds;
 
-import io.th0rgal.oraxen.pack.generation.LegacyDatapackCleaner;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 
@@ -12,6 +12,7 @@ import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -30,23 +31,45 @@ public final class CustomJukeboxSongRegistry {
 
     private static final ConcurrentMap<String, String> INJECTED_SIGNATURES = new ConcurrentHashMap<>();
     private static final Set<String> KNOWN_MANAGED_SONG_IDS = ConcurrentHashMap.newKeySet();
+    private static final Object RELOAD_LOCK = new Object();
 
     private CustomJukeboxSongRegistry() {
         throw new IllegalStateException("Utility class");
     }
 
     public static void reload(Collection<CustomSound> sounds) {
-        clearLegacyDatapack();
+        List<CustomSound> snapshot = List.copyOf(sounds);
+        if (!SchedulerUtil.isGlobalThread()) {
+            SchedulerUtil.runTask(() -> reloadNow(snapshot));
+            return;
+        }
+        reloadNow(snapshot);
+    }
+
+    private static void reloadNow(Collection<CustomSound> sounds) {
+        runWithReloadLock(() -> reloadLocked(sounds));
+    }
+
+    static void runWithReloadLock(Runnable action) {
+        synchronized (RELOAD_LOCK) {
+            action.run();
+        }
+    }
+
+    private static void reloadLocked(Collection<CustomSound> sounds) {
         Collection<CustomSound> jukeboxSounds = sounds.stream()
                 .filter(CustomSound::isJukeboxSound)
                 .toList();
-        if (!supportsCustomJukeboxSongs()) {
+        if (usesDatapackFallback(supportsCustomJukeboxSongs())) {
+            new JukeboxDatapack(jukeboxSounds).generateAssets(List.of());
             if (!jukeboxSounds.isEmpty()) {
-                Logs.logWarning("Custom jukebox songs require Paper 1.21.5 or newer. Skipping "
-                        + jukeboxSounds.size() + " custom jukebox song(s).");
+                Logs.logInfo("Generated legacy jukebox datapack for " + jukeboxSounds.size()
+                        + " custom jukebox song(s).");
             }
             return;
         }
+
+        clearLegacyDatapack();
 
         Set<String> managedSongIds = new LinkedHashSet<>(jukeboxSounds.stream()
                 .map(CustomSound::getJukeboxSongId)
@@ -115,8 +138,12 @@ public final class CustomJukeboxSongRegistry {
         return VersionUtil.atOrAbove("1.21.5") && VersionUtil.isPaperServer();
     }
 
+    static boolean usesDatapackFallback(boolean supportsHotInjection) {
+        return !supportsHotInjection;
+    }
+
     private static void clearLegacyDatapack() {
-        LegacyDatapackCleaner.clear("oraxen_jukebox");
+        new JukeboxDatapack(List.of()).clearOldDataPack();
     }
 
     private static void rememberManagedSongIds(Collection<String> managedSongIds) {
