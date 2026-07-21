@@ -35,4 +35,21 @@ class RemoveDefaultsCommandTest {
         assertEquals(1, deletedFiles.get());
         assertEquals(0, failedFiles.get());
     }
+
+    @Test
+    void removesBundledBrandingButPreservesCustomGlobalOverrides() throws IOException {
+        Path globalLanguage = Files.writeString(tempDir.resolve("global.json"), """
+                {"menu.game":"<glyph:logo>","menu.disconnect":"<shift:-256><gray>See you soon!<shift:-142><glyph:menu_banner><shift:-327>","custom.key":"value","menu.returnToGame":"Custom"}
+                """);
+        AtomicInteger failedFiles = new AtomicInteger();
+
+        new RemoveDefaultsCommand().removeBundledGlobalLanguageEntries(globalLanguage, failedFiles);
+
+        String sanitized = Files.readString(globalLanguage);
+        assertFalse(sanitized.contains("menu.game"));
+        assertFalse(sanitized.contains("menu.disconnect"));
+        assertTrue(sanitized.contains("custom.key"));
+        assertTrue(sanitized.contains("menu.returnToGame"));
+        assertEquals(0, failedFiles.get());
+    }
 }
