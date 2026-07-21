@@ -46,7 +46,8 @@ public class RemoveDefaultsCommand {
         deletePath(dataFolder.resolve("pack/models/default"), false, deletedFiles, failedFiles);
         deletePath(dataFolder.resolve("pack/textures/animations"), false, deletedFiles, failedFiles);
 
-        deletePath(dataFolder.resolve("pack/lang"), true, deletedFiles, failedFiles);
+        Path languageFolder = dataFolder.resolve("pack/lang");
+        deletePath(languageFolder, true, Set.of(languageFolder.resolve("global.json")), deletedFiles, failedFiles);
         deletePath(dataFolder.resolve("pack/font"), true, deletedFiles, failedFiles);
         deletePath(dataFolder.resolve("pack/sounds"), true, deletedFiles, failedFiles);
         deleteKnownDefaultFiles(dataFolder, "recipes", deletedFiles, failedFiles);
@@ -88,7 +89,7 @@ public class RemoveDefaultsCommand {
         deletePath(path, keepRoot, Set.of(), deletedFiles, failedFiles);
     }
 
-    private void deletePath(Path path, boolean keepRoot, Set<Path> excludedPaths, AtomicInteger deletedFiles,
+    void deletePath(Path path, boolean keepRoot, Set<Path> excludedPaths, AtomicInteger deletedFiles,
             AtomicInteger failedFiles) {
         if (!Files.exists(path))
             return;
