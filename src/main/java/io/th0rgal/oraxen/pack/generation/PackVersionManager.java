@@ -26,7 +26,9 @@ public class PackVersionManager {
     private static final Object[][] VERSION_DEFINITIONS = {
         // mcVersion, format, minFormat, maxFormat
         {"1.21.4", 46, 46, 999}, // 1.21.4 and newer
-        {"1.21.3", 42, 15, 45},  // 1.20 through 1.21.3
+        // Keep pack_format at 15 because 1.20/1.20.1 do not understand supported_formats.
+        // Clients on 1.20.2+ use the 15-45 range and accept the same legacy-model pack.
+        {"1.21.3", 15, 15, 45},  // 1.20 through 1.21.3
     };
 
     private final Map<String, PackVersion> packVersions = new ConcurrentHashMap<>();
