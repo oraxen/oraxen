@@ -267,7 +267,7 @@ class TextShaderGenerator {
     private void generateTextShadersForTarget(TextShaderTarget target, TextShaderFeatures features, String pathPrefix) {
         String shaderPath = pathPrefix + "assets/minecraft/shaders/core";
 
-        if (target.isAtLeast("26.2")) {
+        if (target.usesUnifiedTextShader()) {
             writeGeneratedCoreShader(shaderPath, "text.vsh", getAnimationVertexShader26_2(target, features));
             writeGeneratedCoreShader(shaderPath, "text.fsh", getAnimationFragmentShader26_2(target));
             deleteLegacyTextShaderVariants(shaderPath);

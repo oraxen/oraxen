@@ -62,6 +62,10 @@ public record TextShaderTarget(int packFormat, MinecraftVersion minecraftVersion
         return false;
     }
 
+    boolean usesUnifiedTextShader() {
+        return packFormat >= PACK_FORMAT_26_2;
+    }
+
     public String displayName() {
         return minecraftVersion.getVersion() + " (pack_format=" + packFormat + ")";
     }
