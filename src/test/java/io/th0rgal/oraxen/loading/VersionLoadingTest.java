@@ -69,7 +69,7 @@ public class VersionLoadingTest {
     );
 
     private static final Map<String, String> paperURLs = Map.ofEntries(
-            Map.entry("26.2", "https://fill-data.papermc.io/v1/objects/49c86f1276e5dded67b6121bf7c2e91401f6eb99769cbb093aa19be07fa612f2/paper-26.2-38.jar"),
+            Map.entry("26.2", "https://fill-data.papermc.io/v1/objects/36fee4f3a7020eb2e2d6f8d70d849beaf0f024d86f09302b9ccf2d96f266127e/paper-26.2-71.jar"),
             Map.entry("26.1.2", "https://fill-data.papermc.io/v1/objects/d30fae0c74092b10855f0412ca6b265c60301a013d34bc28a2a41bf5682dd80b/paper-26.1.2-69.jar"),
             Map.entry("1.21.11", "https://fill-data.papermc.io/v1/objects/5ffef465eeeb5f2a3c23a24419d97c51afd7dbb4923ff42df9a3f58bba1ccfba/paper-1.21.11-132.jar"),
             Map.entry("1.21.10", "https://fill-data.papermc.io/v1/objects/158703f75a26f842ea656b3dc6d75bf3d1ec176b97a2c36384d0b80b3871af53/paper-1.21.10-130.jar"),
