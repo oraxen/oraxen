@@ -189,6 +189,10 @@ tasks {
             // Build the plugin before JUnit starts. A nested Gradle build from the test would
             // execute compileJava -> clean and delete the outer test's result files.
             dependsOn(shadowJar)
+            systemProperty("junit.jupiter.execution.parallel.enabled", "true")
+            systemProperty("junit.jupiter.execution.parallel.config.strategy", "fixed")
+            systemProperty("junit.jupiter.execution.parallel.config.fixed.parallelism", "5")
+            systemProperty("junit.jupiter.execution.parallel.config.fixed.max-pool-size", "5")
             testLogging {
                 events("passed", "failed", "skipped", "standardOut", "standardError")
                 exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
