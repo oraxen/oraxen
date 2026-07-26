@@ -261,7 +261,6 @@ CustomArmor:
   disable_leather_repair: true
 
 CustomBlocks:
-  block_correction: NMS
   use_legacy_noteblocks: true
 
 ItemUpdater:

@@ -39,6 +39,7 @@ public enum RemovedSettings {
     CONFIGS_VERSION("configs_version"),
     ENABLE_CONFIGS_UPDATER("ConfigsTools.enable_configs_updater"),
     LEGACY_NOTEBLOCKS("CustomBlocks.use_legacy_noteblocks"),
+    BLOCK_CORRECTION("CustomBlocks.block_correction"),
     NMS_GLYPHS("Glyphs.nms_glyphs"),
     NMS_GLYPHS_EXPERIMENTAL("Plugin.experimental.nms.glyphs"),
     NMS_GLYPHS_LEGACY("Plugin.experimental.nms_glyphs"),

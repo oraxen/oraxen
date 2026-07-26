@@ -43,9 +43,6 @@ CustomArmor:
     material_replacement: CHAINMAIL # Valid materials are CHAINMAIL, IRON, GOLD, DIAMOND, NETHERITE and LEATHER
     auto_assign_settings: true # If true, the trim & item-flag will be automatically assigned to the custom armor piece, unless specified
 
-CustomBlocks:
-  block_correction: NMS # Valid types are NMS and LEGACY
-
 ItemUpdater:
   # Update the items in player inventory to the latest in config when player joins
   update_items: true

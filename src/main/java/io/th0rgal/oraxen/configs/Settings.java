@@ -45,9 +45,6 @@ public enum Settings {
     CUSTOM_ARMOR_TRIMS_MATERIAL("CustomArmor.trims_settings.material_replacement"),
     CUSTOM_ARMOR_TRIMS_ASSIGN("CustomArmor.trims_settings.auto_assign_settings"),
 
-    // Custom Blocks
-    BLOCK_CORRECTION("CustomBlocks.block_correction"),
-
     // ItemUpdater
     UPDATE_ITEMS("ItemUpdater.update_items"),
     UPDATE_ITEMS_ON_RELOAD("ItemUpdater.update_items_on_reload"),
