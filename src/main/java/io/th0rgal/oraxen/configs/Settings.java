@@ -32,9 +32,6 @@ public enum Settings {
     SHOW_PERMISSION_EMOJIS("Glyphs.emoji_list_permission_only"),
     UNICODE_COMPLETIONS("Glyphs.unicode_completions"),
 
-    // Chat
-    CHAT_HANDLER("Chat.chat_handler"),
-
     // Config Tools
     DISABLE_AUTOMATIC_GLYPH_CODE("ConfigsTools.disable_automatic_glyph_code"),
     SKIPPED_MODEL_DATA_NUMBERS("ConfigsTools.skipped_model_data_numbers"),

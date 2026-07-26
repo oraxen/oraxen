@@ -33,10 +33,6 @@ Glyphs:
   emoji_list_permission_only: true # will only show emojis player has permission to use if set to true
   unicode_completions: true # Whether glyph tab-completions shows unicodes or glyph-pølaceholders
 
-Chat:
-  # If glyphs do not show up in chat, try setting this to LEGACY
-  chat_handler: MODERN # Valid once are MODERN & LEGACY
-
 CustomArmor:
   type: COMPONENT # Valid types are COMPONENT, TRIMS and NONE
   auto_select_type: true # If true, Oraxen will replace incompatible armor types with the best type for the detected server version

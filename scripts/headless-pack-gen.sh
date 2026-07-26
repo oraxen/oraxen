@@ -256,9 +256,6 @@ Glyphs:
   emoji_list_permission_only: false
   unicode_completions: false
 
-Chat:
-  chat_handler: MODERN
-
 CustomArmor:
   type: COMPONENT
   disable_leather_repair: true

@@ -33,6 +33,7 @@ public enum RemovedSettings {
     SEND_JOIN_MESSAGE("Pack.dispatch.join_message"),
     NMS_BLOCK_CORRECTION("Plugin.experimental.nms.block_correction"),
     SPIGOT_CHAT_FORMATTING("Plugin.experimental.spigot_chat_formatting"),
+    CHAT_HANDLER("Chat.chat_handler"),
     ORAXEN_INV_TYPE("oraxen_inventory.main_menu_type"),
     GESTURES_ENABLED("Gestures.enabled"),
     CONFIGS_VERSION("configs_version"),
