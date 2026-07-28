@@ -134,6 +134,10 @@ public class FurnitureMechanic extends Mechanic {
         public float yaw(float fallbackYaw) {
             return yaw != null ? yaw : fallbackYaw;
         }
+
+        public float rotatedYaw(float furnitureYaw) {
+            return yaw != null ? ((yaw + furnitureYaw) % 360) : furnitureYaw;
+        }
     }
 
     public enum RestrictedRotation {
@@ -1362,7 +1366,7 @@ public class FurnitureMechanic extends Mechanic {
     @Nullable
     private UUID spawnSeat(Location rootLocation, FurnitureSeat furnitureSeat, float yaw) {
         Vector rotatedOffset = furnitureSeat.rotatedOffset(yaw);
-        float rotationYaw = furnitureSeat.yaw(yaw);
+        float rotationYaw = furnitureSeat.rotatedYaw(yaw);
         Location seatLocation = BlockHelpers.toCenterBlockLocation(rootLocation).add(rotatedOffset);
         seatLocation.setYaw(rotationYaw);
         seatLocation.setPitch(0);
@@ -1637,7 +1641,7 @@ public class FurnitureMechanic extends Mechanic {
 
             FurnitureSeat furnitureSeat = seats.get(i);
             Vector rotatedOffset = furnitureSeat.rotatedOffset(yaw);
-            float rotationYaw = furnitureSeat.yaw(yaw);
+            float rotationYaw = furnitureSeat.rotatedYaw(yaw);
             Location seatLocation = BlockHelpers.toCenterBlockLocation(rootLocation).add(rotatedOffset);
             seatLocation.setYaw(rotationYaw);
             seatLocation.setPitch(0);
