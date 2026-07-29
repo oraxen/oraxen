@@ -102,6 +102,13 @@ public class VersionUtil {
     }
 
     /**
+     * Scoreboard/tablist hiding tweaks are only supported on 1.21.6 or higher.
+     */
+    public static boolean supportsScoreboardHiding() {
+        return atOrAbove("1.21.6");
+    }
+
+    /**
      * @return true if the server is Paper or false of not
      * @throws IllegalArgumentException if server is null
      */

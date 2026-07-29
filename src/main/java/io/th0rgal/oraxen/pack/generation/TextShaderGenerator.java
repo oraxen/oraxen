@@ -149,7 +149,7 @@ class TextShaderGenerator {
         if (OraxenPlugin.get().getPacketAdapter().isEnabled() && VersionUtil.isPaperServer()
                 && VersionUtil.atOrAbove("1.20.3")) {
             OraxenPlugin.get().getPacketAdapter().registerScoreboardListener();
-        } else { // Pre 1.20.3 rely on shaders
+        } else { // No packet adapter available; rely on shaders
             TextShaderTarget target = TextShaderTarget.current();
             if (target.isAtLeast("26")) {
                 Logs.logWarning("Shader-based scoreboard number hiding is not supported on 26.x+.");
@@ -199,7 +199,7 @@ class TextShaderGenerator {
     }
 
     void hideScoreboardOrTablistBackgrounds() {
-        if (VersionUtil.atOrAbove("1.21.8")) return;
+        if (!VersionUtil.supportsScoreboardHiding()) return;
 
         String fileName = "rendertype_gui.vsh";
         String scoreTabBackground = "";
@@ -207,12 +207,12 @@ class TextShaderGenerator {
             scoreTabBackground = getScoreboardBackground();
         if (Settings.HIDE_SCOREBOARD_BACKGROUND.toBool())
             scoreTabBackground = scoreTabBackground.replaceFirst("//SCOREBOARD.a", "vertexColor.a");
-        if (Settings.HIDE_TABLIST_BACKGROUND.toBool() && VersionUtil.atOrAbove("1.21"))
+        if (Settings.HIDE_TABLIST_BACKGROUND.toBool())
             scoreTabBackground = scoreTabBackground.replace("//TABLIST.a", "vertexColor.a");
 
         if (!scoreTabBackground.isEmpty()) {
-            // rendertype_gui.vsh / position_color.fsh are version-independent GLSL 150 shaders
-            // unrelated to rendertype_text.*, so they are safe to write to the base pack path
+            // rendertype_gui.vsh is a version-independent GLSL 150 shader
+            // unrelated to rendertype_text.*, so it is safe to write to the base pack path
             // even when base text shaders are skipped in multi-version mode.
             writeGeneratedCoreShader("assets/minecraft/shaders/core/", fileName, scoreTabBackground);
         }

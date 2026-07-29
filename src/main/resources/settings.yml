@@ -291,11 +291,11 @@ Misc:
   # Will add all recipes a player has permission for, to the in-game recipe books
   add_recipes_to_book: true
 
-  # This will hide the red numbers on the side of scoreboards (1.21.4+)
+  # This will hide the red numbers on the side of scoreboards (1.21.6 and above only)
   hide_scoreboard_numbers: false
-  # This will hide the background of scoreboards (1.21.7 and below only)
+  # This will hide the background of scoreboards (1.21.6 and above only)
   hide_scoreboard_background: false
-  # This will hide the background of the tablist (1.21 through 1.21.7 only)
+  # This will hide the background of the tablist (1.21.6 and above only)
   hide_tablist_background: false
 
   # All blocks with an inventory or any blocks that when right clicked shouldn't equip armor.

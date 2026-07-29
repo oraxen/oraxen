@@ -816,6 +816,7 @@ public class DuplicationHandler {
             Logs.logWarning("Found a sounds.json duplicate, trying to migrate it into Oraxen's sounds.yml config");
             return migrateSoundJson(name);
         } else if (name.startsWith("assets/minecraft/shaders/core/rendertype_text")
+                && VersionUtil.supportsScoreboardHiding()
                 && Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) {
             Logs.logWarning("You are importing another copy of a shader file used to hide scoreboard numbers");
             Logs.logWarning("Either disable <#22b14c>" + Settings.HIDE_SCOREBOARD_NUMBERS.getPath()
