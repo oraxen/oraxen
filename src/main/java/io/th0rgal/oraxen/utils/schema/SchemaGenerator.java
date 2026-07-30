@@ -825,7 +825,9 @@ public class SchemaGenerator {
         addMechanicIfAbsent(mechanics, "backpack", "misc", "Portable storage",
                 Map.of(
                         "rows", prop("integer", "Number of rows (1-6)", 1, 3),
-                        "title", prop("string", "Inventory title", null, null)));
+                        "title", prop("string", "Inventory title", null, null),
+                        "blocked-items", prop("array",
+                                "Items that cannot be stored; Oraxen item IDs require the oraxen: prefix", null, null)));
 
         addMechanicIfAbsent(mechanics, "itemtype", "misc", "Define item type behavior",
                 Map.of("type", prop("string", "Item type identifier", null, null)));

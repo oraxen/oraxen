@@ -14,6 +14,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -94,15 +95,27 @@ public class BackpackListener implements Listener {
         gui.disableItemSwap();
 
         gui.setPlayerInventoryAction(event -> {
-            if (isBackpack(event.getCurrentItem()) || isBackpack(event.getCursor())) event.setCancelled(true);
+            if (isBackpack(event.getCurrentItem()) || isBackpack(event.getCursor())
+                    || event.isShiftClick() && mechanic.isBlocked(event.getCurrentItem())) event.setCancelled(true);
         });
 
         gui.setDefaultClickAction(event -> {
             if (isBackpack(event.getCurrentItem()) || isBackpack(event.getCursor())) event.setCancelled(true);
         });
 
+        gui.setDefaultTopClickAction(event -> {
+            int hotbarButton = event.getHotbarButton();
+            ItemStack hotbarItem = hotbarButton >= 0
+                    ? event.getWhoClicked().getInventory().getItem(hotbarButton) : null;
+            ItemStack offhandItem = event.getClick() == ClickType.SWAP_OFFHAND
+                    ? event.getWhoClicked().getInventory().getItemInOffHand() : null;
+            if (mechanic.isBlocked(event.getCursor()) || mechanic.isBlocked(hotbarItem)
+                    || mechanic.isBlocked(offhandItem))
+                event.setCancelled(true);
+        });
+
         gui.setDragAction(event -> {
-            if (isBackpack(event.getCursor())) event.setCancelled(true);
+            if (isBackpack(event.getCursor()) || mechanic.isBlocked(event.getCursor())) event.setCancelled(true);
         });
 
         gui.setOutsideClickAction(event -> {
