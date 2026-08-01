@@ -5,7 +5,6 @@ import dev.triumphteam.gui.guis.GuiItem;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.configs.Message;
-import io.th0rgal.oraxen.fonts.FontManager;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.recipes.CustomRecipe;
 import io.th0rgal.oraxen.utils.AdventureUtils;
@@ -18,13 +17,8 @@ import java.util.List;
 
 public class RecipesView {
 
-    private final FontManager fontManager = OraxenPlugin.get().getFontManager();
-    final String menuTexture = ChatColor.WHITE +
-            fontManager.getShift(-7) +
-            fontManager.getGlyphFromName("menu_recipe").getCharacter();
-
     public Gui create(final int page, final List<CustomRecipe> filteredRecipes) {
-        final Gui gui = Gui.gui().rows(6).title(AdventureUtils.LEGACY_SERIALIZER.deserialize(menuTexture)).create();
+        final Gui gui = Gui.gui().rows(6).title(AdventureUtils.MINI_MESSAGE.deserialize("<shift:-7><glyph:menu_recipe>")).create();
         gui.setDefaultClickAction(event -> event.setCancelled(true));
         gui.setPlayerInventoryAction(event -> event.setCancelled(true));
         gui.setOutsideClickAction(event -> event.setCancelled(true));
