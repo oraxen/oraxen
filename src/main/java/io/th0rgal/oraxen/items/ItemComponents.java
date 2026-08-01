@@ -84,6 +84,8 @@ public final class ItemComponents {
             item.setHideToolTip(OraxenYaml.getBoolean(components, "hide_tooltip"));
         if (OraxenYaml.contains(components, "max_stack_size"))
             item.setMaxStackSize(OraxenYaml.getInt(components, "max_stack_size"));
+        if (OraxenYaml.contains(components, "enchantment_glint_override"))
+            item.setEnchantmentGlintOverride(OraxenYaml.getBoolean(components, "enchantment_glint_override"));
 
         final NMSHandler nmsHandler = NMSHandlers.getHandler();
         if (nmsHandler == null) {
@@ -180,6 +182,7 @@ public final class ItemComponents {
                 normalizedKey.equals("fire_resistant") ||
                 normalizedKey.equals("hide_tooltip") ||
                 normalizedKey.equals("max_stack_size") ||
+                normalizedKey.equals("enchantment_glint_override") ||
                 normalizedKey.equals("food") ||
                 normalizedKey.equals("tool") ||
                 normalizedKey.equals("painting_variant") ||

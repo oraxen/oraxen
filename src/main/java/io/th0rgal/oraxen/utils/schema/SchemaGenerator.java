@@ -534,6 +534,10 @@ public class SchemaGenerator {
         maxStack.addProperty("description", "Maximum stack size for this item");
         components.add("max_stack_size", maxStack);
 
+        // enchantment_glint_override
+        addSimpleComponent(components, "enchantment_glint_override", "boolean",
+                "Override whether the item has an enchantment glint", "1.20.5+");
+
         // food
         JsonObject food = new JsonObject();
         food.addProperty("type", "object");
