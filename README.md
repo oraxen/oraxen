@@ -101,7 +101,7 @@ example-block:
         drops: # Drops when one of these tools is used
           - item: crystalmush_log
             probability: 1.0
-            silk-touch: false # Only drop when the tool has Silk Touch
+            silk-touch: any # "required" only drops with Silk Touch; "forbidden" only drops without it
             fortune: 1 # Percentage increase per Fortune level, where 1 equals 100%
         durability:
           remove: 1 # Remove or add durability when breaking
