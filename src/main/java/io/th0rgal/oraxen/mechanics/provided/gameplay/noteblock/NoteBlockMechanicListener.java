@@ -141,7 +141,12 @@ public class NoteBlockMechanicListener implements Listener {
             if (event.getEvent() != GameEvent.NOTE_BLOCK_PLAY) return;
             if (block.getType() != Material.NOTE_BLOCK) return;
             NoteBlock data = (NoteBlock) block.getBlockData().clone();
-            SchedulerUtil.runAtLocationLater(block.getLocation(), 1L, () -> block.setBlockData(data, false));
+            SchedulerUtil.runAtLocationLater(block.getLocation(), 1L, () -> {
+                // The block may have been broken between the note playing and this task running,
+                // in which case restoring the snapshot would resurrect the block and allow duping
+                if (block.getType() != Material.NOTE_BLOCK) return;
+                block.setBlockData(data, false);
+            });
         }
 
         public void updateAndCheck(Block block) {
