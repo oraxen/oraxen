@@ -26,6 +26,7 @@ import java.util.Objects;
 public class RecipesManager {
 
     private RecipesManager() {}
+    private static boolean builderEventsRegistered;
 
     public static void load(JavaPlugin plugin) {
         if (Settings.RESET_RECIPES.toBool()) {
@@ -38,7 +39,10 @@ public class RecipesManager {
             }
         }
 
-        Bukkit.getPluginManager().registerEvents(new RecipesBuilderEvents(), plugin);
+        if (!builderEventsRegistered) {
+            Bukkit.getPluginManager().registerEvents(new RecipesBuilderEvents(), plugin);
+            builderEventsRegistered = true;
+        }
         File recipesFolder = new File(OraxenPlugin.get().getDataFolder(), "recipes");
         if (!recipesFolder.exists()) {
             recipesFolder.mkdirs();
@@ -52,11 +56,16 @@ public class RecipesManager {
                 new File(recipesFolder, "campfire.yml").createNewFile();
                 new File(recipesFolder, "smoking.yml").createNewFile();
                 new File(recipesFolder, "stonecutting.yml").createNewFile();
+                new File(recipesFolder, "smithing.yml").createNewFile();
+                new File(recipesFolder, "cauldron.yml").createNewFile();
+                new File(recipesFolder, "anvil.yml").createNewFile();
+                new File(recipesFolder, "grindstone.yml").createNewFile();
                 new File(recipesFolder, "disabled.yml").createNewFile();
             } catch (IOException e) {
                 Logs.logError("Error while creating recipes files: " + e.getMessage());
             }
         }
+        if (!Settings.GENERATE_DEFAULT_CONFIGS.toBool()) createRecipeFiles(recipesFolder);
         registerAllConfigRecipesFromFolder(recipesFolder);
         RecipesEventsManager.get().registerEvents();
     }
@@ -79,13 +88,32 @@ public class RecipesManager {
             if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
                 OraxenPlugin.get().getResourceManager().extractConfigsInFolder("recipes", "yml");
         }
+        if (!Settings.GENERATE_DEFAULT_CONFIGS.toBool()) createRecipeFiles(recipesFolder);
         registerAllConfigRecipesFromFolder(recipesFolder);
         RecipesEventsManager.get().registerEvents();
     }
 
     private static void registerAllConfigRecipesFromFolder(File recipesFolder) {
-        for (File configFile : Objects.requireNonNull(recipesFolder.listFiles()))
-            registerConfigRecipes(configFile);
+        CustomWorkstationRegistry.beginReload();
+        RecipesEventsManager.get().beginSmithingReload();
+        try {
+            for (File configFile : Objects.requireNonNull(recipesFolder.listFiles()))
+                registerConfigRecipes(configFile);
+        } finally {
+            CustomWorkstationRegistry.finishReload();
+            RecipesEventsManager.get().finishSmithingReload();
+        }
+    }
+
+    private static void createRecipeFiles(File recipesFolder) {
+        for (String name : List.of("furnace.yml", "shaped.yml", "shapeless.yml", "blasting.yml", "campfire.yml",
+                "smoking.yml", "stonecutting.yml", "smithing.yml", "cauldron.yml", "anvil.yml", "grindstone.yml", "disabled.yml")) {
+            try {
+                new File(recipesFolder, name).createNewFile();
+            } catch (IOException exception) {
+                Logs.logError("Error while creating recipe file " + name + ": " + exception.getMessage());
+            }
+        }
     }
 
     private static void registerConfigRecipes(File configFile) {
@@ -128,6 +156,10 @@ public class RecipesManager {
                 case "campfire.yml" -> new CampfireLoader(recipeSection).registerRecipe();
                 case "smoking.yml" -> new SmokingLoader(recipeSection).registerRecipe();
                 case "stonecutting.yml" -> new StonecuttingLoader(recipeSection).registerRecipe();
+                case "smithing.yml" -> new SmithingLoader(recipeSection).registerRecipe();
+                case "cauldron.yml" -> new WorkstationLoader(recipeSection, CustomWorkstationRecipe.Type.CAULDRON).registerRecipe();
+                case "anvil.yml" -> new WorkstationLoader(recipeSection, CustomWorkstationRecipe.Type.ANVIL).registerRecipe();
+                case "grindstone.yml" -> new WorkstationLoader(recipeSection, CustomWorkstationRecipe.Type.GRINDSTONE).registerRecipe();
                 default -> Logs.logError(configFile.getName());
             }
         } catch (Exception exception) {

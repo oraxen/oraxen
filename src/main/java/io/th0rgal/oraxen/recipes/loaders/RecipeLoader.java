@@ -15,6 +15,7 @@ import net.Indyuce.mmoitems.MMOItems;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Keyed;
 import org.bukkit.Tag;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
@@ -173,15 +174,35 @@ public abstract class RecipeLoader {
     public abstract void registerRecipe();
 
     protected void loadRecipe(Recipe recipe) {
-        Bukkit.addRecipe(recipe);
+        if (recipe instanceof Keyed keyed
+                && keyed.getKey().getNamespace().equals(OraxenPlugin.get().getName().toLowerCase(java.util.Locale.ROOT)))
+            Bukkit.removeRecipe(keyed.getKey());
+        if (!Bukkit.addRecipe(recipe))
+            throw new IllegalStateException("Bukkit rejected recipe '" + getRecipeName() + "'");
         managesPermission(CustomRecipe.fromRecipe(recipe));
     }
 
     private void managesPermission(CustomRecipe recipe) {
-        if (getSection().isString("permission")) {
+        if (recipe != null && getSection().isString("permission")) {
             String permission = getSection().getString("permission");
             RecipesEventsManager.get().addPermissionRecipe(recipe, permission);
         }
+    }
+
+    protected String getPermission() {
+        return getSection().getString("permission");
+    }
+
+    protected RecipeChoice getRequiredChoice(String key) {
+        ConfigurationSection ingredient = getSection().getConfigurationSection(key);
+        RecipeChoice choice = ingredient == null ? null : getRecipeChoice(ingredient);
+        if (choice == null) throw new IllegalArgumentException("Recipe '" + getRecipeName() + "' has an invalid " + key + " ingredient");
+        return choice;
+    }
+
+    protected int getIngredientAmount(String key) {
+        ConfigurationSection ingredient = getSection().getConfigurationSection(key);
+        return ingredient == null ? 1 : Math.max(1, ingredient.getInt("amount", 1));
     }
 
     protected void addToWhitelistedRecipes(Recipe recipe) {

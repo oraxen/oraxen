@@ -41,6 +41,9 @@ public class RecipesEventsManager implements Listener {
     private ArrayList<CustomRecipe> whitelistedCraftRecipesOrdered = new ArrayList<>();
     private Map<String, ShapedOraxenRecipe> shapedOraxenIngredients = new HashMap<>();
     private Map<String, List<String>> shapelessOraxenIngredients = new HashMap<>();
+    private volatile Map<NamespacedKey, String> smithingRecipes = Map.of();
+    private Map<NamespacedKey, String> stagedSmithingRecipes;
+    private boolean eventsRegistered;
 
     public static RecipesEventsManager get() {
         if (instance == null) {
@@ -50,8 +53,11 @@ public class RecipesEventsManager implements Listener {
     }
 
     public void registerEvents() {
+        if (eventsRegistered) return;
         Bukkit.getPluginManager().registerEvents(instance, OraxenPlugin.get());
         Bukkit.getPluginManager().registerEvents(new SmithingRecipeEvents(), OraxenPlugin.get());
+        Bukkit.getPluginManager().registerEvents(new CustomWorkstationEvents(), OraxenPlugin.get());
+        eventsRegistered = true;
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -200,6 +206,30 @@ public class RecipesEventsManager implements Listener {
 
     public void addPermissionRecipe(CustomRecipe recipe, String permission) {
         permissionsPerRecipe.put(recipe, permission);
+    }
+
+    public void beginSmithingReload() {
+        stagedSmithingRecipes = new HashMap<>();
+    }
+
+    public void registerSmithingRecipe(NamespacedKey key, String permission) {
+        if (stagedSmithingRecipes == null) throw new IllegalStateException("Smithing recipe reload has not begun");
+        stagedSmithingRecipes.put(key, permission);
+    }
+
+    public void finishSmithingReload() {
+        smithingRecipes = stagedSmithingRecipes == null ? Map.of()
+                : Collections.unmodifiableMap(new HashMap<>(stagedSmithingRecipes));
+        stagedSmithingRecipes = null;
+    }
+
+    public boolean isConfiguredSmithingRecipe(NamespacedKey key) {
+        return smithingRecipes.containsKey(key);
+    }
+
+    public boolean hasSmithingPermission(CommandSender sender, NamespacedKey key) {
+        String permission = smithingRecipes.get(key);
+        return permission == null || sender.hasPermission(permission);
     }
 
     public void whitelistRecipe(CustomRecipe recipe) {
