@@ -1579,7 +1579,7 @@ public class FurnitureMechanic extends Mechanic {
             FurnitureHitbox hitbox = activeHitboxes.get(i);
             Vector rotatedOffset = rotateGroundOffset(hitbox.offset(), yaw);
             Location hitboxLocation = BlockHelpers.toCenterBlockLocation(rootLocation).add(rotatedOffset);
-            interaction.teleport(hitboxLocation);
+            FurniturePacketDispatcher.teleportAsync(interaction, hitboxLocation);
         }
     }
 
@@ -1620,8 +1620,14 @@ public class FurnitureMechanic extends Mechanic {
             Location seatLocation = BlockHelpers.toCenterBlockLocation(rootLocation).add(rotatedOffset);
             seatLocation.setYaw(rotationYaw);
             seatLocation.setPitch(0);
-            seat.teleport(seatLocation);
-            seat.setRotation(rotationYaw, 0);
+            // Passengers block teleports, so eject them first and re-add them once the
+            // async teleport has completed on the seat's region thread (Folia-safe)
+            List<Entity> passengers = new ArrayList<>(seat.getPassengers());
+            passengers.forEach(seat::removePassenger);
+            FurniturePacketDispatcher.teleportAsync(seat, seatLocation, () -> {
+                seat.setRotation(rotationYaw, 0);
+                passengers.forEach(seat::addPassenger);
+            });
         }
     }
 
