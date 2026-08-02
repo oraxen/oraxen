@@ -39,7 +39,6 @@ public class FontManager {
     // New glyph types
     private final ShiftProvider shiftProvider;
     private final Map<String, ReferenceGlyph> referenceGlyphMap;
-    private final Map<String, ReferenceGlyph> referenceByPlaceholder;
     private final Map<String, AnimatedGlyph> animatedGlyphMap;
     private final Map<String, AnimatedGlyph> animatedByPlaceholder;
 
@@ -67,7 +66,6 @@ public class FontManager {
         // Initialize new glyph type maps
         shiftProvider = new ShiftProvider();
         referenceGlyphMap = new LinkedHashMap<>();
-        referenceByPlaceholder = new LinkedHashMap<>();
         animatedGlyphMap = new LinkedHashMap<>();
         animatedByPlaceholder = new LinkedHashMap<>();
 
@@ -80,7 +78,7 @@ public class FontManager {
         if (fontConfiguration.isConfigurationSection("fonts"))
             loadFonts(fontConfiguration.getConfigurationSection("fonts"));
 
-        Logs.logSuccess("Loaded " + glyphMap.size() + " glyphs, " +
+        Logs.logSuccess("Loaded " + (glyphMap.size() - referenceGlyphMap.size()) + " glyphs, " +
                 referenceGlyphMap.size() + " reference glyphs, " +
                 animatedGlyphMap.size() + " animated glyphs");
     }
@@ -109,10 +107,15 @@ public class FontManager {
 
     private void loadGlyphs(Collection<Glyph> glyphs) {
         verifyRequiredGlyphs();
-        for (Glyph glyph : glyphs) {
-            if (glyph.getCharacter().isBlank())
-                continue;
-            glyphMap.put(glyph.getName(), glyph);
+        for (Glyph glyph : glyphs)
+            registerGlyph(glyph, true);
+    }
+
+    private void registerGlyph(Glyph glyph, boolean registerUnicode) {
+        if (glyph.getCharacter().isBlank())
+            return;
+        glyphMap.put(glyph.getName(), glyph);
+        if (registerUnicode) {
             glyph.getCharacters().codePoints()
                     .mapToObj(Character::toString)
                     .forEach(character -> {
@@ -120,9 +123,9 @@ public class FontManager {
                         if (existing != null && !existing.equals(glyph.getName()))
                             Logs.logWarning("Character '" + character + "' claimed by both '" + existing + "' and '" + glyph.getName() + "'");
                     });
-            for (final String placeholder : glyph.getPlaceholders())
-                glyphByPlaceholder.put(placeholder, glyph);
         }
+        for (final String placeholder : glyph.getPlaceholders())
+            glyphByPlaceholder.put(placeholder, glyph);
     }
 
     /**
@@ -132,9 +135,7 @@ public class FontManager {
         for (ReferenceGlyph refGlyph : referenceGlyphs) {
             if (refGlyph.resolve(this)) {
                 referenceGlyphMap.put(refGlyph.getName(), refGlyph);
-                for (String placeholder : refGlyph.getPlaceholders()) {
-                    referenceByPlaceholder.put(placeholder, refGlyph);
-                }
+                registerGlyph(refGlyph, false);
             }
         }
     }
@@ -196,8 +197,24 @@ public class FontManager {
         tempFile.delete();
     }
 
+    /**
+     * Gets all registered glyphs, including resolved {@link ReferenceGlyph}
+     * instances.
+     * <p>
+     * Note: {@link ReferenceGlyph#toJson()} returns {@code null} since reference
+     * glyphs reuse their source glyph's font provider; callers generating
+     * resource-pack output must null-check {@code toJson()} or use
+     * {@link #getBaseGlyphs()} instead.
+     */
     public final Collection<Glyph> getGlyphs() {
         return glyphMap.values();
+    }
+
+    /**
+     * Gets all registered glyphs excluding {@link ReferenceGlyph} instances.
+     */
+    public final Collection<Glyph> getBaseGlyphs() {
+        return glyphMap.values().stream().filter(glyph -> !(glyph instanceof ReferenceGlyph)).toList();
     }
 
     public final Collection<Glyph> getEmojis() {
@@ -234,7 +251,8 @@ public class FontManager {
      */
     @Nullable
     public ReferenceGlyph getReferenceGlyphFromPlaceholder(String placeholder) {
-        return referenceByPlaceholder.get(placeholder);
+        Glyph glyph = glyphByPlaceholder.get(placeholder);
+        return glyph instanceof ReferenceGlyph referenceGlyph ? referenceGlyph : null;
     }
 
     // Animated glyph accessors
