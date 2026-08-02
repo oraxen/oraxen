@@ -137,6 +137,9 @@ public class ItemBuilder {
     @Nullable
     private ItemStack useRemainder;
     @Nullable
+    private String deferredUseRemainderId;
+    private int deferredUseRemainderAmount;
+    @Nullable
     private Tag<DamageType> damageResistant;
     @Nullable
     private NamespacedKey tooltipStyle;
@@ -538,7 +541,31 @@ public class ItemBuilder {
 
     public ItemBuilder setUseRemainder(@Nullable final ItemStack itemStack) {
         this.useRemainder = itemStack;
+        deferredUseRemainderId = null;
         return this;
+    }
+
+    public ItemBuilder deferUseRemainder(@Nullable final String itemId, final int amount) {
+        useRemainder = null;
+        deferredUseRemainderId = itemId;
+        deferredUseRemainderAmount = amount;
+        return this;
+    }
+
+    public void resolveUseRemainder() {
+        if (deferredUseRemainderId == null)
+            return;
+
+        ItemBuilder remainderBuilder = OraxenItems.getItemById(deferredUseRemainderId);
+        if (remainderBuilder == null) {
+            Logs.logWarning("use_remainder references unknown oraxen_item: '" + deferredUseRemainderId + "'. Component will be skipped.");
+            deferredUseRemainderId = null;
+            return;
+        }
+
+        ItemStack remainder = ItemUpdater.updateItem(remainderBuilder.build());
+        remainder.setAmount(deferredUseRemainderAmount);
+        setUseRemainder(remainder);
     }
 
     public boolean hasUseCooldownComponent() {

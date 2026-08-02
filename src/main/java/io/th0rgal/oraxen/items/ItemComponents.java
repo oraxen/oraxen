@@ -200,10 +200,10 @@ public final class ItemComponents {
         final ItemStack result;
         final int amount = useRemainderSection.getInt("amount", 1);
 
-        if (useRemainderSection.contains("oraxen_item"))
-            result = ItemUpdater
-                    .updateItem(OraxenItems.getItemById(useRemainderSection.getString("oraxen_item")).build());
-        else if (useRemainderSection.contains("crucible_item"))
+        if (useRemainderSection.contains("oraxen_item")) {
+            item.deferUseRemainder(useRemainderSection.getString("oraxen_item"), amount);
+            return;
+        } else if (useRemainderSection.contains("crucible_item"))
             result = new WrappedCrucibleItem(useRemainderSection.getString("crucible_item")).build();
         else if (useRemainderSection.contains("mmoitems_id") && useRemainderSection.isString("mmoitems_type"))
             result = MMOItems.plugin.getItem(useRemainderSection.getString("mmoitems_type"),

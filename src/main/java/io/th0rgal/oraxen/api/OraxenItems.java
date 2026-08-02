@@ -105,6 +105,9 @@ public class OraxenItems {
                     ItemBuilder itemBuilder = subEntry.getValue();
                     if (itemBuilder == null)
                         continue;
+
+                    itemBuilder.resolveUseRemainder();
+
                     FoodComponent foodComponent = itemBuilder.getFoodComponent();
                     if (foodComponent == null)
                         continue;
