@@ -314,6 +314,10 @@ public class ResourcePack {
         outputFiles.clear();
         textShaderGenerator.reset();
 
+        // Snapshot which default folders are missing before any directories get created,
+        // so extraction only ever targets folders the user has not provided themselves.
+        Set<String> missingDefaultFolders = missingDefaultFolders();
+
         makeDirsIfNotExists(packFolder, new File(packFolder, "assets"));
         cleanLegacyShaderOverlayDirectories();
 
@@ -323,7 +327,7 @@ public class ResourcePack {
         fileCollector = new PackFileCollector(packFolder);
 
         if (Settings.GENERATE_DEFAULT_ASSETS.toBool())
-            extractDefaultFolders();
+            extractDefaultFolders(missingDefaultFolders);
         extractRequired();
 
         if (!Settings.GENERATE.toBool())
@@ -835,35 +839,34 @@ public class ResourcePack {
     }
 
 
-    private final boolean extractAssets = !new File(packFolder, "assets").exists();
-    private final boolean extractModels = !new File(packFolder, "models").exists();
-    private final boolean extractFonts = !new File(packFolder, "font").exists();
-    private final boolean extractOptifine = !new File(packFolder, "optifine").exists();
-    private final boolean extractLang = !new File(packFolder, "lang").exists();
-    private final boolean extractTextures = !new File(packFolder, "textures").exists();
-    private final boolean extractSounds = !new File(packFolder, "sounds").exists();
+    private static final List<String> DEFAULT_PACK_FOLDERS = List.of(
+            "assets", "models", "font", "optifine", "lang", "textures", "sounds");
 
-    private void extractDefaultFolders() {
+    /**
+     * Determines which default pack folders are missing at generation time instead of
+     * once at startup, so pack regeneration on reload never overwrites user-provided
+     * files (e.g. pack/lang) in folders that were created after the plugin was enabled.
+     */
+    private Set<String> missingDefaultFolders() {
+        Set<String> missingFolders = new HashSet<>();
+        for (String folder : DEFAULT_PACK_FOLDERS)
+            if (!new File(packFolder, folder).exists())
+                missingFolders.add(folder);
+        return missingFolders;
+    }
+
+    private void extractDefaultFolders(Set<String> foldersToExtract) {
+        if (foldersToExtract.isEmpty())
+            return;
+
         ResourcesManager.browseJar(entry ->
-            extract(entry, OraxenPlugin.get().getResourceManager(), isSuitable(entry.getName()))
+            extract(entry, OraxenPlugin.get().getResourceManager(), isSuitable(entry.getName(), foldersToExtract))
         );
     }
 
-    private boolean isSuitable(String entryName) {
+    private boolean isSuitable(String entryName, Set<String> foldersToExtract) {
         String name = StringUtils.substringAfter(entryName, "pack/").split("/")[0];
-        if (name.equals("textures") && extractTextures)
-            return true;
-        if (name.equals("models") && extractModels)
-            return true;
-        if (name.equals("font") && extractFonts)
-            return true;
-        if (name.equals("optifine") && extractOptifine)
-            return true;
-        if (name.equals("lang") && extractLang)
-            return true;
-        if (name.equals("sounds") && extractSounds)
-            return true;
-        return name.equals("assets") && extractAssets;
+        return foldersToExtract.contains(name);
     }
 
     private void extractRequired() {
