@@ -346,7 +346,11 @@ public class Glyph {
 
         boolean isMinecraftNamespace = !texture.contains(":") || texture.split(":")[0].equals("minecraft");
         String textureName = textureFile.getName().split("\\.")[0].toUpperCase();
-        boolean isVanillaTexture = isMinecraftNamespace && MATERIAL_NAMES.stream().anyMatch(textureName::contains);
+        // Exact match only: a substring check lets textures like
+        // "brewing_stand_recipe_builder" (contains BREWING_STAND) skip the
+        // missing-file validation and ship a broken provider in default.json,
+        // which makes the client's default font fail to load.
+        boolean isVanillaTexture = isMinecraftNamespace && MATERIAL_NAMES.contains(textureName);
         boolean hasUpperCase = texturePath.chars().anyMatch(Character::isUpperCase);
 
         BufferedImage image = loadImage(textureFile);
