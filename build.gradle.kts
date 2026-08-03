@@ -6,7 +6,7 @@ plugins {
     id("java")
     //id("com.github.johnrengelman.shadow") version "8.1.1"
     id("xyz.jpenilla.run-paper") version "2.3.1"
-    id("net.minecrell.plugin-yml.bukkit") version "0.6.0" // Generates plugin.yml
+    id("net.minecrell.plugin-yml.paper") version "0.6.0" // Generates paper-plugin.yml
     id("io.papermc.paperweight.userdev") version "2.0.0-beta.21" apply false
     id("com.gradleup.shadow") version "9.4.1"
     id("maven-publish")
@@ -115,8 +115,8 @@ allprojects {
 
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
-    // libraries in plugin.yml > libraries
-    compileOnly(oraxenLibs.bundles.libraries.bukkit) {
+    // runtime libraries resolved by OraxenPluginLoader via paper-libraries.json
+    paperLibrary(oraxenLibs.bundles.libraries.bukkit) {
         exclude("org.jetbrains", "annotations")
     }
     // things that are included in minecraft but not exposed
@@ -215,7 +215,9 @@ tasks {
                 "**/models/**",
                 "**/textures/**",
                 "**/font/**.json",
-                "**/plugin.yml"
+                "**/plugin.yml",
+                "**/paper-plugin.yml",
+                "**/paper-libraries.json"
             )
         ) {
             expand(mapOf(project.version.toString() to pluginVersion))
@@ -290,7 +292,6 @@ tasks {
         archiveClassifier.set("")
     }
 
-    compileJava.get().dependsOn(clean)
     build.get().dependsOn(shadowJar)
 }
 
@@ -308,23 +309,42 @@ tasks.register<JavaExec>("runPackMergerDebug") {
 }
 
 
-bukkit {
+paper {
     load = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.PluginLoadOrder.POSTWORLD
     main = "io.th0rgal.oraxen.OraxenPlugin"
+    loader = "io.th0rgal.oraxen.OraxenPluginLoader"
     version = pluginVersion
     name = "Oraxen"
-    apiVersion = "1.18"
+    apiVersion = "1.20"
     foliaSupported = true
     authors = listOf("th0rgal", "https://github.com/oraxen/oraxen/blob/master/CONTRIBUTORS.md")
-    softDepend = listOf(
+    // Optional plugins Oraxen hooks into. They must load before Oraxen and join its
+    // classpath, since Paper plugins use isolated classloaders and can only access
+    // classes of plugins declared here.
+    val optionalHooks = listOf(
         "ProtocolLib",
         "packetevents",
-        "LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "MythicMobs", "BossShopPro",
-        "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared",
-        "NBTAPI", "ModelEngine", "ViaBackwards", "HuskClaims", "HuskTowns", "BentoBox", "Skript", "Iris",
-        "ExecutableItems"
+        "LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "BossShopPro",
+        "CrateReloaded", "ItemBridge", "WorldEdit", "FastAsyncWorldEdit", "WorldGuard", "Towny",
+        "Factions", "Lands", "PlotSquared", "NBTAPI", "ModelEngine", "ViaVersion", "ViaBackwards",
+        "ProtocolSupport", "HuskClaims", "HuskTowns", "BentoBox", "Skript", "Iris",
+        "ExecutableItems", "SCore", "EcoItems", "BlockLocker"
     )
-    loadBefore = listOf("Realistic_World")
+    serverDependencies {
+        optionalHooks.forEach { hook ->
+            register(hook) {
+                required = false
+                load = net.minecrell.pluginyml.paper.PaperPluginDescription.RelativeLoadOrder.BEFORE
+                joinClasspath = true
+            }
+        }
+        // Equivalent of the old plugin.yml loadbefore entry
+        register("Realistic_World") {
+            required = false
+            load = net.minecrell.pluginyml.paper.PaperPluginDescription.RelativeLoadOrder.AFTER
+            joinClasspath = false
+        }
+    }
     permissions.create("oraxen.command") {
         description = "Allows the player to use the /oraxen command"
         default = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission.Default.TRUE
@@ -333,7 +353,10 @@ bukkit {
         description = "Allows the player to receive Oraxen's first-run introduction guide"
         default = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission.Default.OP
     }
-    libraries = oraxenLibs.bundles.libraries.bukkit.get().map { it.toString() }
+    // Keep Oraxen's classes visible to legacy Bukkit plugins and other add-ons
+    // that hook into its API (io.th0rgal.oraxen.api.*) via the global classloader group
+    hasOpenClassloader = true
+    generateLibrariesJson = true
 }
 
 
