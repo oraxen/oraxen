@@ -2,95 +2,37 @@ package io.th0rgal.oraxen.utils;
 
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 public class VersionUtil {
-    private static final Map<NMSVersion, Map<Integer, MinecraftVersion>> versionMap = new HashMap<>();
     private static final boolean isPaper;
     private static final boolean isFolia;
-
-    public enum NMSVersion {
-        // Paper/Paper-fork versions using Mojang mappings at runtime
-        v26_1_2,               // Paper 26.1.2+
-        v1_21_R6,              // Paper 1.21.11
-        v1_21_R6_old,          // Paper 1.21.9-1.21.10
-        v1_21_R5,              // Paper 1.21.7-1.21.8
-        v1_21_R4,              // Paper 1.21.5
-        v1_21_R3,              // Paper 1.21.4
-        v1_21_R2,              // Paper 1.21.2-1.21.3
-        v1_21_R1,              // Paper 1.21-1.21.1
-        v1_20_R4,              // Paper 1.20.5-1.20.6
-        v1_20_R3,              // Paper 1.20.3-1.20.4
-        v1_20_R2,              // Paper 1.20.2
-        v1_20_R1,              // Paper 1.20-1.20.1
-        UNKNOWN;
-
-        public static boolean matchesServer(NMSVersion version) {
-            if (version == UNKNOWN) return false;
-            NMSVersion serverVersion = getNMSVersion(MinecraftVersion.getCurrentVersion());
-            return isPaperServer() && serverVersion.equals(version);
-        }
-    }
 
     static {
         isPaper = hasClass("com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent");
         isFolia = hasClass("io.papermc.paper.threadedregions.RegionizedServer");
-
-        versionMap.put(NMSVersion.v26_1_2,
-                Map.of(27, new MinecraftVersion("26.1.2"), 28, new MinecraftVersion("26.2")));
-        versionMap.put(NMSVersion.v1_21_R6,
-                Map.of(26, new MinecraftVersion("1.21.11")));
-        versionMap.put(NMSVersion.v1_21_R6_old,
-                Map.of(24, new MinecraftVersion("1.21.9"), 25, new MinecraftVersion("1.21.10")));
-        versionMap.put(NMSVersion.v1_21_R5,
-                Map.of(22, new MinecraftVersion("1.21.7"), 23, new MinecraftVersion("1.21.8")));
-        versionMap.put(NMSVersion.v1_21_R4,
-                Map.of(20, new MinecraftVersion("1.21.5")));
-        versionMap.put(NMSVersion.v1_21_R3,
-                Map.of(19, new MinecraftVersion("1.21.4")));
-        versionMap.put(NMSVersion.v1_21_R2,
-                Map.of(17, new MinecraftVersion("1.21.2"), 18, new MinecraftVersion("1.21.3")));
-        versionMap.put(NMSVersion.v1_21_R1,
-                Map.of(15, new MinecraftVersion("1.21"), 16, new MinecraftVersion("1.21.1")));
-        versionMap.put(NMSVersion.v1_20_R4,
-                Map.of(13, new MinecraftVersion("1.20.5"), 14, new MinecraftVersion("1.20.6")));
-        versionMap.put(NMSVersion.v1_20_R3,
-                Map.of(11, new MinecraftVersion("1.20.3"), 12, new MinecraftVersion("1.20.4")));
-        versionMap.put(NMSVersion.v1_20_R2, Map.of(10, new MinecraftVersion("1.20.2")));
-        versionMap.put(NMSVersion.v1_20_R1, Map.of(8, new MinecraftVersion("1.20"), 9, new MinecraftVersion("1.20.1")));
     }
 
-    public static NMSVersion getNMSVersion(MinecraftVersion version) {
-        // First try exact match for all versions
-        for (Map.Entry<NMSVersion, Map<Integer, MinecraftVersion>> entry : versionMap.entrySet()) {
-            if (entry.getValue().containsValue(version)) {
-                return entry.getKey();
-            }
-        }
-
-        // Mojang switched the release version namespace after 1.21.11.
-        // 26.1.x and 26.2.x share the same supported NMS structure; use version
-        // guards inside the handler for behavior that changed between releases.
-        if (version.getMajor() == 26 && (version.getMinor() == 1 || version.getMinor() == 2)) {
-            return NMSVersion.v26_1_2;
-        }
-        if (version.getMajor() == 1 && version.getMinor() == 26 && (version.getBuild() == 1 || version.getBuild() == 2)) {
-            return NMSVersion.v26_1_2;
-        }
-
-        return NMSVersion.UNKNOWN;
+    /**
+     * Whether the server runs a release from Mojang's post-1.21.11 version namespace
+     * (26.x and later). These versions are handled by the Java 25 NMS handler.
+     */
+    public static boolean isModernVersionNamespace() {
+        return isModernVersionNamespace(MinecraftVersion.getCurrentVersion());
     }
 
-    public static boolean matchesServer(String server) {
-        return MinecraftVersion.getCurrentVersion().equals(new MinecraftVersion(server));
+    static boolean isModernVersionNamespace(MinecraftVersion version) {
+        // Mojang switched the release version namespace after 1.21.11 (e.g. "26.1.2").
+        // Also accept the "1.26.x" spelling some sources use for the same releases.
+        return version.getMajor() >= 26 || (version.getMajor() == 1 && version.getMinor() >= 26);
     }
 
     public static boolean supportsSingleNmsHandler() {
-        MinecraftVersion version = MinecraftVersion.getCurrentVersion();
-        NMSVersion nmsVersion = getNMSVersion(version);
-        return isPaperServer() && nmsVersion != NMSVersion.UNKNOWN;
+        // The NMS handlers guard version-specific behavior internally, and loading an
+        // incompatible handler on an unknown newer version fails safe via the
+        // LinkageError fallback in NMSHandlers#setup.
+        return isPaperServer() && atOrAbove("1.20");
     }
 
     public static String supportedVersions() {
@@ -139,53 +81,6 @@ public class VersionUtil {
 
     public static boolean isFoliaServer() {
         return isFolia;
-    }
-
-    public static boolean isSupportedVersion(@NotNull NMSVersion serverVersion,
-            @NotNull NMSVersion... supportedVersions) {
-        for (NMSVersion version : supportedVersions) {
-            if (version.equals(serverVersion))
-                return true;
-        }
-
-        Logs.logWarning(
-                String.format("The Server version which you are running is unsupported, you are running version '%s'.",
-                        serverVersion));
-        Logs.logWarning(
-                String.format("The plugin supports following versions %s.", combineVersions(supportedVersions)));
-
-        if (serverVersion == NMSVersion.UNKNOWN) {
-            Logs.logWarning(String.format(
-                    "The Version '%s' can indicate, that you are using a newer Minecraft version than currently supported.",
-                    serverVersion));
-            Logs.logWarning(
-                    "In this case please update to the newest version of this plugin. If this is the newest Version, than please be patient. It can take a few weeks until the plugin is updated.");
-        }
-
-        Logs.logWarning("No compatible Server version found!");
-
-        return false;
-    }
-
-    @NotNull
-    private static String combineVersions(@NotNull NMSVersion... versions) {
-        StringBuilder stringBuilder = new StringBuilder();
-
-        boolean first = true;
-
-        for (NMSVersion version : versions) {
-            if (first) {
-                first = false;
-            } else {
-                stringBuilder.append(" ");
-            }
-
-            stringBuilder.append("'");
-            stringBuilder.append(version);
-            stringBuilder.append("'");
-        }
-
-        return stringBuilder.toString();
     }
 
     private final static String manifest = JarReader.getManifestContent();

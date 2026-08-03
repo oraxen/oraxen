@@ -1,24 +1,19 @@
 package io.th0rgal.oraxen.utils;
 
-import io.th0rgal.oraxen.utils.logs.Logs;
-import org.jetbrains.annotations.Nullable;
-
-import java.lang.reflect.Method;
-
 /**
  * Resolves the correct {@code pack_format} for the server's current Minecraft version.
  *
- * <p>We prefer asking Mojang's own runtime constants via reflection to avoid hard-coding
- * values that change over time.</p>
+ * <p>No Bukkit/Paper API exposes pack formats, so this keeps a maintained
+ * version-to-format mapping that must be extended for new Minecraft releases.</p>
  */
 public final class ResourcePackFormatUtil {
 
-    private static volatile Integer cachedResourcePackFormat;
-    private static volatile Integer cachedDataPackFormat;
+    // Ordering matters: every "26.x" namespace entry must precede all "1.x" entries,
+    // because a major-26 version compares greater than any "1.x" threshold.
     private static final PackFormatThreshold[] PACK_FORMAT_THRESHOLDS = {
             new PackFormatThreshold("26.2", 88),
-            new PackFormatThreshold("1.26.2", 88),
             new PackFormatThreshold("26.1", 84),
+            new PackFormatThreshold("1.26.2", 88),
             new PackFormatThreshold("1.26.1", 84),
             new PackFormatThreshold("1.21.11", 75),
             new PackFormatThreshold("1.21.9", 69),
@@ -63,33 +58,11 @@ public final class ResourcePackFormatUtil {
     }
 
     public static int getCurrentResourcePackFormat() {
-        Integer local = cachedResourcePackFormat;
-        if (local != null) return local;
-
-        Integer resolved = resolveViaMinecraftClasses("CLIENT_RESOURCES");
-        if (resolved == null) {
-            // Fallback: best-effort mapping based on the server version.
-            // This should only be used if reflection fails (rare on supported versions).
-            resolved = getPackFormatForVersion(MinecraftVersion.getCurrentVersion());
-        }
-
-        cachedResourcePackFormat = resolved;
-        return resolved;
+        return getPackFormatForVersion(MinecraftVersion.getCurrentVersion());
     }
 
     public static int getCurrentDataPackFormat() {
-        Integer local = cachedDataPackFormat;
-        if (local != null) return local;
-
-        Integer resolved = resolveViaMinecraftClasses("SERVER_DATA");
-        if (resolved == null) {
-            // Best-effort fallback. Supported servers should resolve this from
-            // Minecraft's own runtime constants.
-            resolved = getDataPackFormatForVersion(MinecraftVersion.getCurrentVersion());
-        }
-
-        cachedDataPackFormat = resolved;
-        return resolved;
+        return getDataPackFormatForVersion(MinecraftVersion.getCurrentVersion());
     }
 
     /**
@@ -123,83 +96,5 @@ public final class ResourcePackFormatUtil {
         private PackFormatThreshold(String minimumVersion, int packFormat) {
             this(new MinecraftVersion(minimumVersion), packFormat);
         }
-    }
-
-    @Nullable
-    private static Integer resolveViaMinecraftClasses(String packTypeName) {
-        try {
-            Object currentVersion = getCurrentGameVersion();
-            if (currentVersion == null) return null;
-
-            Object packType = getPackType(packTypeName);
-            if (packType == null) return null;
-
-            // Try preferred method first, then fallback
-            Integer result = tryGetPackVersionFromVersion(currentVersion, packType);
-            if (result != null) return result;
-
-            return tryGetVersionFromPackType(packType, currentVersion);
-        } catch (Throwable t) {
-            // Don't hard-fail pack generation because of a reflection mismatch
-            return null;
-        }
-    }
-
-    @Nullable
-    private static Object getCurrentGameVersion() throws Exception {
-        Class<?> sharedConstants = Class.forName("net.minecraft.SharedConstants");
-        Method getCurrentVersion = sharedConstants.getMethod("getCurrentVersion");
-        return getCurrentVersion.invoke(null);
-    }
-
-    @Nullable
-    private static Object getPackType(String packTypeName) throws Exception {
-        Class<?> packTypeClass = Class.forName("net.minecraft.server.packs.PackType");
-        Object[] enumConstants = packTypeClass.getEnumConstants();
-        if (enumConstants == null) return null;
-
-        for (Object constant : enumConstants) {
-            if (constant instanceof Enum<?> enumConstant && packTypeName.equals(enumConstant.name())) {
-                return constant;
-            }
-        }
-        return null;
-    }
-
-    @Nullable
-    private static Integer tryGetPackVersionFromVersion(Object currentVersion, Object clientResources) throws Exception {
-        Class<?> packTypeClass = clientResources.getClass();
-        for (Method method : currentVersion.getClass().getMethods()) {
-            if (!"getPackVersion".equals(method.getName())) continue;
-            if (method.getParameterCount() != 1) continue;
-            if (!isIntReturnType(method)) continue;
-            if (!method.getParameterTypes()[0].isAssignableFrom(packTypeClass)) continue;
-
-            return toInteger(method.invoke(currentVersion, clientResources));
-        }
-        return null;
-    }
-
-    @Nullable
-    private static Integer tryGetVersionFromPackType(Object clientResources, Object currentVersion) throws Exception {
-        Class<?> packTypeClass = clientResources.getClass();
-        for (Method method : packTypeClass.getMethods()) {
-            if (!"getVersion".equals(method.getName()) && !"getPackVersion".equals(method.getName())) continue;
-            if (method.getParameterCount() != 1) continue;
-            if (!isIntReturnType(method)) continue;
-            if (!method.getParameterTypes()[0].isAssignableFrom(currentVersion.getClass())) continue;
-
-            return toInteger(method.invoke(clientResources, currentVersion));
-        }
-        return null;
-    }
-
-    private static boolean isIntReturnType(Method method) {
-        Class<?> returnType = method.getReturnType();
-        return returnType.equals(int.class) || returnType.equals(Integer.class);
-    }
-
-    private static Integer toInteger(Object result) {
-        return (result instanceof Integer) ? (Integer) result : ((Number) result).intValue();
     }
 }

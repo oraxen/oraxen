@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.nms;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.configs.Settings;
-import io.th0rgal.oraxen.utils.MinecraftVersion;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
@@ -39,7 +38,7 @@ public class NMSHandlers {
         if (handler != null)
             return;
 
-        version = VersionUtil.getNMSVersion(MinecraftVersion.getCurrentVersion()).name();
+        version = Bukkit.getMinecraftVersion();
         if (!VersionUtil.supportsSingleNmsHandler()) {
             Logs.logWarning("Oraxen does not have a Paper-compatible NMS handler for this server version (" + version + ").");
             Logs.logWarning("NMS features will be disabled or limited...");
@@ -48,7 +47,7 @@ public class NMSHandlers {
         }
 
         try {
-            String handlerClass = VersionUtil.getNMSVersion(MinecraftVersion.getCurrentVersion()) == VersionUtil.NMSVersion.v26_1_2
+            String handlerClass = VersionUtil.isModernVersionNamespace()
                     ? "io.th0rgal.oraxen.nms.handler.java25.NMSHandler"
                     : "io.th0rgal.oraxen.nms.handler.java21.NMSHandler";
             handler = (NMSHandler) Class.forName(handlerClass)

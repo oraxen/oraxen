@@ -13,11 +13,12 @@ class VersionUtilTest {
     }
 
     @Test
-    void nmsVersionMatchesSupported26Releases() {
-        assertEquals(VersionUtil.NMSVersion.v1_21_R6, VersionUtil.getNMSVersion(new MinecraftVersion("1.21.11")));
-        assertEquals(VersionUtil.NMSVersion.v26_1_2, VersionUtil.getNMSVersion(new MinecraftVersion("26.1.2")));
-        assertEquals(VersionUtil.NMSVersion.v26_1_2, VersionUtil.getNMSVersion(new MinecraftVersion("26.1.2-alpha")));
-        assertEquals(VersionUtil.NMSVersion.v26_1_2, VersionUtil.getNMSVersion(new MinecraftVersion("26.2")));
-        assertEquals(VersionUtil.NMSVersion.v26_1_2, VersionUtil.getNMSVersion(new MinecraftVersion("1.26.2")));
+    void modernVersionNamespaceMatches26Releases() {
+        assertFalse(VersionUtil.isModernVersionNamespace(new MinecraftVersion("1.21.11")));
+        assertTrue(VersionUtil.isModernVersionNamespace(new MinecraftVersion("26.1.2")));
+        assertTrue(VersionUtil.isModernVersionNamespace(new MinecraftVersion("26.1.2-alpha")));
+        assertTrue(VersionUtil.isModernVersionNamespace(new MinecraftVersion("26.2")));
+        assertTrue(VersionUtil.isModernVersionNamespace(new MinecraftVersion("1.26.2")));
+        assertTrue(VersionUtil.isModernVersionNamespace(new MinecraftVersion("26.3")));
     }
 }

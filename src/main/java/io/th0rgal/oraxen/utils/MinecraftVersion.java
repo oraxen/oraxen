@@ -21,12 +21,9 @@ import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Ordering;
 import io.th0rgal.oraxen.OraxenPlugin;
 import org.bukkit.Bukkit;
-import org.bukkit.Server;
 
 import java.io.Serializable;
 import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Determine the current Minecraft version.
@@ -39,12 +36,7 @@ public final class MinecraftVersion implements Comparable<MinecraftVersion>, Ser
     private static final long serialVersionUID = -8695133558996459770L;
 
     /**
-     * Regular expression used to parse version strings.
-     */
-    private static final Pattern VERSION_PATTERN = Pattern.compile(".*\\(.*MC.\\s*([a-zA-z0-9\\-.]+).*");
-
-    /**
-     * The current version of minecraft, lazy initialized by MinecraftVersion.currentVersion()
+     * The current version of minecraft, lazy initialized by MinecraftVersion.getCurrentVersion()
      */
     private static MinecraftVersion currentVersion;
 
@@ -57,15 +49,6 @@ public final class MinecraftVersion implements Comparable<MinecraftVersion>, Ser
     // Snapshot?
     private final SnapshotVersion snapshot;
     private volatile Boolean atCurrentOrAbove;
-
-    /**
-     * Determine the current Minecraft version.
-     *
-     * @param server - the Bukkit server that will be used to examine the MC version.
-     */
-    public MinecraftVersion(Server server) {
-        this(extractVersion(server.getVersion()));
-    }
 
     /**
      * Construct a version object from the format major.minor.build, or the snapshot format.
@@ -144,42 +127,17 @@ public final class MinecraftVersion implements Comparable<MinecraftVersion>, Ser
     }
 
     /**
-     * Extract the Minecraft version from CraftBukkit itself.
+     * Retrieve the Minecraft version the server is running, as reported by Paper's
+     * {@link Bukkit#getMinecraftVersion()} (e.g. {@code "1.21.4"}).
      *
-     * @param text - the server version in text form.
-     * @return The underlying MC version.
-     * @throws IllegalStateException If we could not parse the version string.
+     * @return The current Minecraft version.
      */
-    public static String extractVersion(String text) {
-        Matcher version = VERSION_PATTERN.matcher(text);
-
-        if (version.matches() && version.group(1) != null) {
-            return version.group(1);
-        } else {
-            throw new IllegalStateException("Cannot parse version String '" + text + "'");
-        }
-    }
-
-    /**
-     * Parse the given server version into a Minecraft version.
-     *
-     * @param serverVersion - the server version.
-     * @return The resulting Minecraft version.
-     */
-    public static MinecraftVersion fromServerVersion(String serverVersion) {
-        return new MinecraftVersion(extractVersion(serverVersion));
-    }
-
     public static MinecraftVersion getCurrentVersion() {
         if (currentVersion == null) {
-            currentVersion = fromServerVersion(Bukkit.getVersion());
+            currentVersion = new MinecraftVersion(Bukkit.getMinecraftVersion());
         }
 
         return currentVersion;
-    }
-
-    public static void setCurrentVersion(MinecraftVersion version) {
-        currentVersion = version;
     }
 
     private static boolean atOrAbove(MinecraftVersion version) {
@@ -334,7 +292,6 @@ public final class MinecraftVersion implements Comparable<MinecraftVersion>, Ser
 
     @Override
     public String toString() {
-        // Convert to a String that we can parse back again
-        return String.format("(MC: %s)", this.getVersion());
+        return this.getVersion();
     }
 }
