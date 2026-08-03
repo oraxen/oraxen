@@ -841,7 +841,7 @@ public class ResourcePack {
 
 
     private static final List<String> DEFAULT_PACK_FOLDERS = List.of(
-            "assets", "models", "font", "optifine", "lang", "textures", "sounds");
+            "assets", "models", "font", "lang", "textures", "sounds");
 
     /**
      * Determines which default pack folders are missing at generation time instead of
