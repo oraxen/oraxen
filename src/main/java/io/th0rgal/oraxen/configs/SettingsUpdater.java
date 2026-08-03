@@ -20,6 +20,8 @@ public class SettingsUpdater {
 
         if (settings.saveToString().equals(oldSettings)) return;
 
+        Settings.invalidateCache();
+
         try {
             settings.save(OraxenPlugin.get().getDataFolder().getAbsoluteFile().toPath().resolve("settings.yml").toFile());
             Logs.logSuccess("Successfully updated settings.yml", true);

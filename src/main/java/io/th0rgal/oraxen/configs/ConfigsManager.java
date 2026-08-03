@@ -142,6 +142,7 @@ public class ConfigsManager {
         mechanics = validate(tempManager, "mechanics.yml", defaultMechanics);
         migrateLegacyBlockMechanics();
         settings = validate(tempManager, "settings.yml", defaultSettings);
+        Settings.invalidateCache();
         font = validate(tempManager, "font.yml", defaultFont);
         hud = validate(tempManager, "hud.yml", defaultHud);
         migrateLegacySoundFile();

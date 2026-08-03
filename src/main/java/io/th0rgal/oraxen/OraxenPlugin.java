@@ -5,7 +5,6 @@ import io.th0rgal.oraxen.api.events.OraxenItemsLoadedEvent;
 import io.th0rgal.oraxen.commands.CommandsManager;
 import io.th0rgal.oraxen.commands.OraxenCommand;
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
-import io.th0rgal.oraxen.commands.TotemAnimationCommand;
 import io.th0rgal.oraxen.configs.ConfigsManager;
 import io.th0rgal.oraxen.configs.Message;
 import io.th0rgal.oraxen.configs.ResourcesManager;
@@ -202,7 +201,6 @@ public class OraxenPlugin extends JavaPlugin {
         FurnitureFactory.unregisterEvolution();
         MechanicsManager.unregisterTasks();
         RecipeBuilder.clearAll();
-        TotemAnimationCommand.clearReflectionCaches();
 
         // Clean up backpack cosmetic entities to prevent ghost armor stands
         io.th0rgal.oraxen.mechanics.provided.cosmetic.backpack.BackpackCosmeticManager.getInstance().cleanup();

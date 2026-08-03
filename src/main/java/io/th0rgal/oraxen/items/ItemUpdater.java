@@ -52,9 +52,7 @@ import org.bukkit.inventory.meta.MapMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -62,6 +60,9 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static io.th0rgal.oraxen.items.ItemBuilder.ORIGINAL_NAME_KEY;
 import static io.th0rgal.oraxen.items.ItemBuilder.UNSTACKABLE_KEY;
@@ -72,14 +73,14 @@ public class ItemUpdater implements Listener {
     private static final int STARTUP_CHUNK_BATCH_SIZE = 10;
     private static final int CHUNK_LOAD_TILE_ENTITY_BATCH_SIZE = 5;
 
-    private static final Object STARTUP_SCAN_LOCK = new Object();
-    private static final Object TILE_ENTITY_CHUNK_QUEUE_LOCK = new Object();
-    private static final Queue<Chunk> pendingTileEntityChunks = new ArrayDeque<>();
-    private static final Set<ChunkKey> pendingTileEntityChunkKeys = new HashSet<>();
-    private static SchedulerUtil.ScheduledTask startupContentsTask;
-    private static SchedulerUtil.ScheduledTask startupEntityScanTask;
-    private static SchedulerUtil.ScheduledTask startupChunkScanTask;
-    private static SchedulerUtil.ScheduledTask tileEntityChunkQueueTask;
+    // Lock-free primitives so region threads on Folia never contend on a monitor:
+    // task handles swap atomically, and the chunk queue/key-set are concurrent collections.
+    private static final Queue<Chunk> pendingTileEntityChunks = new ConcurrentLinkedQueue<>();
+    private static final Set<ChunkKey> pendingTileEntityChunkKeys = ConcurrentHashMap.newKeySet();
+    private static final AtomicReference<SchedulerUtil.ScheduledTask> startupContentsTask = new AtomicReference<>();
+    private static final AtomicReference<SchedulerUtil.ScheduledTask> startupEntityScanTask = new AtomicReference<>();
+    private static final AtomicReference<SchedulerUtil.ScheduledTask> startupChunkScanTask = new AtomicReference<>();
+    private static final AtomicReference<SchedulerUtil.ScheduledTask> tileEntityChunkQueueTask = new AtomicReference<>();
 
     public ItemUpdater() {
         resetQueuedTasks();
@@ -305,78 +306,54 @@ public class ItemUpdater implements Listener {
     }
 
     private static void replaceStartupContentsTask(SchedulerUtil.ScheduledTask task) {
-        SchedulerUtil.ScheduledTask oldTask;
-        synchronized (STARTUP_SCAN_LOCK) {
-            oldTask = startupContentsTask;
-            startupContentsTask = task;
-        }
-        cancelTask(oldTask);
+        cancelTask(startupContentsTask.getAndSet(task));
     }
 
     private static void clearStartupContentsTask() {
-        synchronized (STARTUP_SCAN_LOCK) {
-            startupContentsTask = null;
-        }
+        startupContentsTask.set(null);
     }
 
     private static void replaceStartupEntityScanTask(SchedulerUtil.ScheduledTask task) {
-        SchedulerUtil.ScheduledTask oldTask;
-        synchronized (STARTUP_SCAN_LOCK) {
-            oldTask = startupEntityScanTask;
-            startupEntityScanTask = task;
-        }
-        cancelTask(oldTask);
+        cancelTask(startupEntityScanTask.getAndSet(task));
     }
 
     private static void registerStartupEntityScanTask(StartupScanTask task, SchedulerUtil.ScheduledTask scheduledTask) {
-        SchedulerUtil.ScheduledTask oldTask;
-        boolean finished;
-        synchronized (STARTUP_SCAN_LOCK) {
-            task.scheduledTask = scheduledTask;
-            finished = task.finished;
-            oldTask = startupEntityScanTask;
-            startupEntityScanTask = finished ? null : scheduledTask;
-        }
-        cancelTask(oldTask);
-        if (finished) cancelTask(scheduledTask);
+        registerStartupScanTask(startupEntityScanTask, task, scheduledTask);
     }
 
     private static void replaceStartupChunkScanTask(SchedulerUtil.ScheduledTask task) {
-        SchedulerUtil.ScheduledTask oldTask;
-        synchronized (STARTUP_SCAN_LOCK) {
-            oldTask = startupChunkScanTask;
-            startupChunkScanTask = task;
-        }
-        cancelTask(oldTask);
+        cancelTask(startupChunkScanTask.getAndSet(task));
     }
 
     private static void registerStartupChunkScanTask(StartupScanTask task, SchedulerUtil.ScheduledTask scheduledTask) {
-        SchedulerUtil.ScheduledTask oldTask;
-        boolean finished;
-        synchronized (STARTUP_SCAN_LOCK) {
-            task.scheduledTask = scheduledTask;
-            finished = task.finished;
-            oldTask = startupChunkScanTask;
-            startupChunkScanTask = finished ? null : scheduledTask;
+        registerStartupScanTask(startupChunkScanTask, task, scheduledTask);
+    }
+
+    private static void registerStartupScanTask(AtomicReference<SchedulerUtil.ScheduledTask> holder,
+                                                StartupScanTask task, SchedulerUtil.ScheduledTask scheduledTask) {
+        // Publish the handle before swapping it in so a concurrent finish can always see it.
+        task.scheduledTask = scheduledTask;
+        cancelTask(holder.getAndSet(scheduledTask));
+        // The scan may have finished before its handle was registered; clean up if so.
+        if (task.finished) {
+            holder.compareAndSet(scheduledTask, null);
+            cancelTask(scheduledTask);
         }
-        cancelTask(oldTask);
-        if (finished) cancelTask(scheduledTask);
     }
 
     private static void finishStartupEntityScanTask(StartupScanTask task) {
-        synchronized (STARTUP_SCAN_LOCK) {
-            task.finished = true;
-            if (startupEntityScanTask == task.scheduledTask) startupEntityScanTask = null;
-        }
-        cancelTask(task.scheduledTask);
+        finishStartupScanTask(startupEntityScanTask, task);
     }
 
     private static void finishStartupChunkScanTask(StartupScanTask task) {
-        synchronized (STARTUP_SCAN_LOCK) {
-            task.finished = true;
-            if (startupChunkScanTask == task.scheduledTask) startupChunkScanTask = null;
-        }
-        cancelTask(task.scheduledTask);
+        finishStartupScanTask(startupChunkScanTask, task);
+    }
+
+    private static void finishStartupScanTask(AtomicReference<SchedulerUtil.ScheduledTask> holder, StartupScanTask task) {
+        task.finished = true;
+        SchedulerUtil.ScheduledTask scheduledTask = task.scheduledTask;
+        if (scheduledTask != null) holder.compareAndSet(scheduledTask, null);
+        cancelTask(scheduledTask);
     }
 
     private static void cancelTask(SchedulerUtil.ScheduledTask task) {
@@ -384,29 +361,21 @@ public class ItemUpdater implements Listener {
     }
 
     public static void resetQueuedTasks() {
-        SchedulerUtil.ScheduledTask contentsTask;
-        SchedulerUtil.ScheduledTask entityTask;
-        SchedulerUtil.ScheduledTask chunkTask;
-        synchronized (STARTUP_SCAN_LOCK) {
-            contentsTask = startupContentsTask;
-            entityTask = startupEntityScanTask;
-            chunkTask = startupChunkScanTask;
-            startupContentsTask = null;
-            startupEntityScanTask = null;
-            startupChunkScanTask = null;
-        }
-        cancelTask(contentsTask);
-        cancelTask(entityTask);
-        cancelTask(chunkTask);
+        cancelTask(startupContentsTask.getAndSet(null));
+        cancelTask(startupEntityScanTask.getAndSet(null));
+        cancelTask(startupChunkScanTask.getAndSet(null));
 
-        SchedulerUtil.ScheduledTask tileEntityTask;
-        synchronized (TILE_ENTITY_CHUNK_QUEUE_LOCK) {
-            tileEntityTask = tileEntityChunkQueueTask;
-            tileEntityChunkQueueTask = null;
-            pendingTileEntityChunks.clear();
-            pendingTileEntityChunkKeys.clear();
+        cancelTask(tileEntityChunkQueueTask.getAndSet(null));
+        // Drain the queue and remove only the drained chunks' keys instead of bulk-clearing
+        // both collections. Enqueuers add the key before the chunk, so a bulk clear could
+        // wipe an in-flight enqueue's key while its chunk arrives afterwards, letting a
+        // later enqueue insert a duplicate entry for the same chunk. Draining keeps key
+        // and chunk paired: an in-flight enqueue keeps its key, publishes its chunk, and
+        // re-arms the queue task itself.
+        Chunk chunk;
+        while ((chunk = pendingTileEntityChunks.poll()) != null) {
+            pendingTileEntityChunkKeys.remove(ChunkKey.from(chunk));
         }
-        cancelTask(tileEntityTask);
     }
 
     private static void updateLoadedContents() {
@@ -416,27 +385,23 @@ public class ItemUpdater implements Listener {
 
     private static void queueTileEntityChunkUpdate(Chunk chunk) {
         ChunkKey key = ChunkKey.from(chunk);
-        synchronized (TILE_ENTITY_CHUNK_QUEUE_LOCK) {
-            if (!pendingTileEntityChunkKeys.add(key)) return;
-            pendingTileEntityChunks.add(chunk);
-            if (tileEntityChunkQueueTask != null) return;
+        if (!pendingTileEntityChunkKeys.add(key)) return;
+        pendingTileEntityChunks.add(chunk);
+        ensureTileEntityChunkQueueTask();
+    }
 
-            tileEntityChunkQueueTask = SchedulerUtil.runTaskTimer(1L, 1L, ItemUpdater::processQueuedTileEntityChunks);
-        }
+    private static void ensureTileEntityChunkQueueTask() {
+        if (tileEntityChunkQueueTask.get() != null) return;
+        SchedulerUtil.ScheduledTask task = SchedulerUtil.runTaskTimer(1L, 1L, ItemUpdater::processQueuedTileEntityChunks);
+        // Lost the race against another scheduler: keep the winner, cancel ours.
+        if (!tileEntityChunkQueueTask.compareAndSet(null, task)) cancelTask(task);
     }
 
     private static void processQueuedTileEntityChunks() {
-        SchedulerUtil.ScheduledTask taskToCancel = null;
         for (int i = 0; i < CHUNK_LOAD_TILE_ENTITY_BATCH_SIZE; i++) {
-            Chunk chunk;
-            synchronized (TILE_ENTITY_CHUNK_QUEUE_LOCK) {
-                chunk = pendingTileEntityChunks.poll();
-                if (chunk == null) {
-                    taskToCancel = finishTileEntityChunkQueueTask();
-                    break;
-                }
-                pendingTileEntityChunkKeys.remove(ChunkKey.from(chunk));
-            }
+            Chunk chunk = pendingTileEntityChunks.poll();
+            if (chunk == null) break;
+            pendingTileEntityChunkKeys.remove(ChunkKey.from(chunk));
 
             SchedulerUtil.runAtLocationLater(chunkLocation(chunk), 1L, () -> {
                 if (!chunk.isLoaded()) return;
@@ -444,19 +409,12 @@ public class ItemUpdater implements Listener {
             });
         }
 
-        if (taskToCancel == null) {
-            synchronized (TILE_ENTITY_CHUNK_QUEUE_LOCK) {
-                if (pendingTileEntityChunks.isEmpty()) taskToCancel = finishTileEntityChunkQueueTask();
-            }
+        if (pendingTileEntityChunks.isEmpty()) {
+            cancelTask(tileEntityChunkQueueTask.getAndSet(null));
+            // A chunk enqueued while we were shutting down may have seen the old task
+            // handle and skipped scheduling; re-arm the timer for it.
+            if (!pendingTileEntityChunks.isEmpty()) ensureTileEntityChunkQueueTask();
         }
-        cancelTask(taskToCancel);
-    }
-
-    private static SchedulerUtil.ScheduledTask finishTileEntityChunkQueueTask() {
-        // Called inside TILE_ENTITY_CHUNK_QUEUE_LOCK; caller must cancel the returned task outside the lock.
-        SchedulerUtil.ScheduledTask task = tileEntityChunkQueueTask;
-        tileEntityChunkQueueTask = null;
-        return task;
     }
 
     private static Location chunkLocation(Chunk chunk) {

@@ -8,6 +8,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 public enum Settings {
     // Generic Plugin stuff
@@ -146,6 +147,25 @@ public enum Settings {
 
     private final String path;
 
+    /**
+     * Cached result of the last YAML lookup for this setting. Hot paths (packet
+     * listeners, per-event handlers) read settings on every call, so a volatile
+     * field read replaces a YamlConfiguration path traversal. {@code null} means
+     * "not cached"; settings that resolve to null are simply re-read each call.
+     * Invalidated by {@link #invalidateCache()} whenever the settings
+     * configuration is (re)loaded or mutated directly.
+     */
+    private volatile Object cachedValue;
+
+    /**
+     * Bumped by every cache invalidation (before the cached values are nulled)
+     * so {@link #getValue()} can detect an invalidation that raced with its
+     * config read and avoid re-publishing a pre-change value. Safe as a static
+     * field because it is only touched from methods, never from the enum
+     * constructor (which runs before static initialization).
+     */
+    private static final AtomicLong CACHE_GENERATION = new AtomicLong();
+
     Settings(String path) {
         this.path = path;
     }
@@ -155,17 +175,43 @@ public enum Settings {
     }
 
     public Object getValue() {
-        return OraxenPlugin.get().getConfigsManager().getSettings().get(path);
+        Object value = cachedValue;
+        if (value == null) {
+            long generation = CACHE_GENERATION.get();
+            value = OraxenPlugin.get().getConfigsManager().getSettings().get(path);
+            cachedValue = value;
+            // An invalidation may have raced with the config read above. Invalidators
+            // bump the generation before nulling caches, so a changed generation means
+            // the value read may predate the change and must not stay cached.
+            if (CACHE_GENERATION.get() != generation) cachedValue = null;
+        }
+        return value;
     }
     public void setValue(Object value) { setValue(value, true); }
     public void setValue(Object value, boolean save) {
         YamlConfiguration settingFile = OraxenPlugin.get().getConfigsManager().getSettings();
         settingFile.set(path, value);
+        CACHE_GENERATION.incrementAndGet();
+        cachedValue = null;
         try {
             if (save) settingFile.save(OraxenPlugin.get().getDataFolder().toPath().resolve("settings.yml").toFile());
         } catch (Exception e) {
             Logs.logError("Failed to apply changes to settings.yml.");
         }
+    }
+
+    /**
+     * Drops every cached setting value so the next read hits the freshly
+     * (re)loaded settings configuration. Must be called whenever the settings
+     * YamlConfiguration is reloaded or mutated without going through
+     * {@link #setValue(Object, boolean)}.
+     */
+    public static void invalidateCache() {
+        // Bump the generation first: a getValue() racing with this call will then
+        // see a changed generation and discard the value it read, instead of
+        // re-publishing a pre-invalidation value after the null below.
+        CACHE_GENERATION.incrementAndGet();
+        for (Settings setting : values()) setting.cachedValue = null;
     }
 
     @Override
