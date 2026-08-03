@@ -9,6 +9,7 @@ import org.bukkit.Location;
 import org.bukkit.block.Block;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 public class AdminCommand {
 
@@ -20,7 +21,8 @@ public class AdminCommand {
 
     private OraxenCommand getNoteblockPlaceRemoveCommand() {
         return new OraxenCommand("block")
-                .withArguments(new TextArgument("block").replaceSuggestions(ArgumentSuggestions.strings(OraxenBlocks.getBlockIDs())))
+                .withArguments(new TextArgument("block").replaceSuggestions(ArgumentSuggestions.strings(info ->
+                        OraxenBlocks.getBlockIDs().toArray(new String[0]))))
                 .withArguments(new TextArgument("type").replaceSuggestions(ArgumentSuggestions.strings("place", "remove")))
                 .withOptionalArguments(new LocationArgument("location"))
                 .withOptionalArguments(new IntegerArgument("radius"))
@@ -44,12 +46,12 @@ public class AdminCommand {
     }
 
     private OraxenCommand getFurniturePlaceRemoveCommand() {
-        Set<String> furnitureIDs = OraxenFurniture.getFurnitureIDs();
-        furnitureIDs.add("all");
         return new OraxenCommand("furniture")
                 .withArguments(
                         new TextArgument("type").replaceSuggestions(ArgumentSuggestions.strings("place", "remove")),
-                        new TextArgument("furniture").replaceSuggestions(ArgumentSuggestions.strings(furnitureIDs))
+                        new TextArgument("furniture").replaceSuggestions(ArgumentSuggestions.strings(info ->
+                                Stream.concat(Stream.of("all"), OraxenFurniture.getFurnitureIDs().stream())
+                                        .toArray(String[]::new)))
                 )
                 .withOptionalArguments(
                         new LocationArgument("location"),

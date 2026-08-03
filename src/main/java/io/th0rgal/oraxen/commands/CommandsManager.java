@@ -144,7 +144,7 @@ public class CommandsManager {
                 .withPermission("oraxen.command.give")
                 .withArguments(new EntitySelectorArgument.ManyPlayers("targets"),
                         new TextArgument("item")
-                                .replaceSuggestions(ArgumentSuggestions.strings(OraxenItems.getItemNames())),
+                                .replaceSuggestions(ArgumentSuggestions.strings(info -> OraxenItems.getItemNames())),
                         new IntegerArgument("amount"))
                 .executes((sender, args) -> {
                     final Collection<Player> targets = (Collection<Player>) args.get(0);
@@ -232,7 +232,7 @@ public class CommandsManager {
                 .withArguments(
                         new EntitySelectorArgument.ManyPlayers("targets"),
                         new TextArgument("item")
-                                .replaceSuggestions(ArgumentSuggestions.strings(OraxenItems.getItemNames())),
+                                .replaceSuggestions(ArgumentSuggestions.strings(info -> OraxenItems.getItemNames())),
                         new IntegerArgument("amount").setOptional(true))
                 .executes((sender, args) -> {
                     final Collection<Player> targets = (Collection<Player>) args.get("targets");

@@ -29,6 +29,11 @@ import java.util.function.Predicate;
 
 public class OraxenCommand {
 
+    // Paper's Brigadier command API (io.papermc.paper.command.brigadier) exists since 1.20.6.
+    // The probe stays in this class so BrigadierCommandRegistrar is never classloaded on
+    // servers where the API is missing (Paper 1.20.1-1.20.4).
+    private static final boolean BRIGADIER_AVAILABLE = detectBrigadierApi();
+
     private static final Set<Command> REGISTERED_COMMANDS = new LinkedHashSet<>();
 
     private final String name;
@@ -92,6 +97,19 @@ public class OraxenCommand {
     }
 
     public void register() {
+        if (BRIGADIER_AVAILABLE) {
+            BrigadierCommandRegistrar.register(this);
+            return;
+        }
+        registerBukkitCommand();
+    }
+
+    /**
+     * Legacy command-map registration for Paper 1.20.1-1.20.4, which predate the Brigadier
+     * command API. Those server versions are frozen, so the reflection below can no longer
+     * break against changing internals.
+     */
+    private void registerBukkitCommand() {
         Plugin plugin = OraxenPlugin.get();
         CommandMap commandMap = getCommandMap();
         BukkitOraxenCommand command = new BukkitOraxenCommand(this);
@@ -104,12 +122,52 @@ public class OraxenCommand {
     }
 
     public static void unregisterAll() {
+        // Brigadier registrations are lifecycle-managed by Paper and need no manual cleanup.
+        if (REGISTERED_COMMANDS.isEmpty()) return;
         CommandMap commandMap = getCommandMap();
         for (Command command : REGISTERED_COMMANDS) {
             command.unregister(commandMap);
         }
         REGISTERED_COMMANDS.clear();
         syncCommands();
+    }
+
+    private static boolean detectBrigadierApi() {
+        try {
+            Class.forName("io.papermc.paper.command.brigadier.CommandSourceStack");
+            Class.forName("io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents");
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
+    String getName() {
+        return name;
+    }
+
+    List<String> getAliases() {
+        return aliases;
+    }
+
+    List<OraxenCommand> getSubcommands() {
+        return subcommands;
+    }
+
+    List<OraxenArgument<?>> getArguments() {
+        return arguments;
+    }
+
+    String getPermission() {
+        return permission;
+    }
+
+    boolean hasAnyExecutor() {
+        return executor != null || playerExecutor != null;
+    }
+
+    void runBrigadierExecutor(CommandSender sender, CommandArguments arguments) {
+        runExecutor(sender, arguments);
     }
 
     private boolean matches(String input) {
