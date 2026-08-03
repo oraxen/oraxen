@@ -44,7 +44,6 @@ import io.th0rgal.oraxen.utils.customarmor.CustomArmorListener;
 import io.th0rgal.oraxen.utils.inventories.InvManager;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.oraxen.protection.AntiGriefLib;
-import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -58,7 +57,6 @@ public class OraxenPlugin extends JavaPlugin {
     private static OraxenPlugin oraxen;
     private ConfigsManager configsManager;
     private ResourcesManager resourceManager;
-    private BukkitAudiences audience;
     private volatile UploadManager uploadManager;
     private volatile io.th0rgal.oraxen.pack.upload.MultiVersionUploadManager multiVersionUploadManager;
     private FontManager fontManager;
@@ -101,9 +99,6 @@ public class OraxenPlugin extends JavaPlugin {
             return;
         }
 
-        if (!VersionUtil.isPaperServer()) {
-            audience = BukkitAudiences.create(this);
-        }
         clickActionManager = new ClickActionManager(this);
         reloadConfigs();
         AntiGriefLib.setDebug(Settings.DEBUG.toBool());
@@ -199,7 +194,6 @@ public class OraxenPlugin extends JavaPlugin {
         if (configsManager == null) {
             HandlerList.unregisterAll(this);
             OraxenCommand.unregisterAll();
-            closeAudience();
             return;
         }
 
@@ -216,7 +210,6 @@ public class OraxenPlugin extends JavaPlugin {
         CompatibilitiesManager.disableCompatibilities();
         OraxenCommand.unregisterAll();
         Message.PLUGIN_UNLOADED.log();
-        closeAudience();
     }
 
     private void cleanupRuntimeResources() {
@@ -228,19 +221,8 @@ public class OraxenPlugin extends JavaPlugin {
         }
     }
 
-    private void closeAudience() {
-        if (audience == null) return;
-        audience.close();
-        audience = null;
-    }
-
     public ResourcesManager getResourceManager() {
         return resourceManager;
-    }
-
-    @Nullable
-    public BukkitAudiences getAudience() {
-        return audience;
     }
 
     public void reloadConfigs() {

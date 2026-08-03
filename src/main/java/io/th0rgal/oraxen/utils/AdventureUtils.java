@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.utils;
 
-import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.configs.Message;
 import io.th0rgal.oraxen.glyphs.GlyphTag;
 import io.th0rgal.oraxen.glyphs.ShiftTag;
@@ -58,77 +57,27 @@ public class AdventureUtils {
 
     public static void sendMessage(CommandSender sender, Component component) {
         if (sender == null || component == null) return;
-
-        if (VersionUtil.isPaperServer()) {
-            sender.sendMessage(component);
-            return;
-        }
-
-        try {
-            OraxenPlugin.get().getAudience().sender(sender).sendMessage(component);
-        } catch (Throwable ignored) {
-            sender.sendMessage(LEGACY_SERIALIZER.serialize(component));
-        }
+        sender.sendMessage(component);
     }
 
     public static void sendActionBar(Player player, Component component) {
         if (player == null || component == null) return;
-
-        if (VersionUtil.isPaperServer()) {
-            player.sendActionBar(component);
-            return;
-        }
-
-        try {
-            OraxenPlugin.get().getAudience().player(player).sendActionBar(component);
-        } catch (Throwable ignored) {
-            player.sendActionBar(component);
-        }
+        player.sendActionBar(component);
     }
 
     public static void showTitle(Player player, Title title) {
         if (player == null || title == null) return;
-
-        if (VersionUtil.isPaperServer()) {
-            player.showTitle(title);
-            return;
-        }
-
-        try {
-            OraxenPlugin.get().getAudience().player(player).showTitle(title);
-        } catch (Throwable ignored) {
-            player.showTitle(title);
-        }
+        player.showTitle(title);
     }
 
     public static void openBook(Player player, Book book) {
         if (player == null || book == null) return;
-
-        if (VersionUtil.isPaperServer()) {
-            player.openBook(book);
-            return;
-        }
-
-        try {
-            OraxenPlugin.get().getAudience().player(player).openBook(book);
-        } catch (Throwable ignored) {
-            player.openBook(book);
-        }
+        player.openBook(book);
     }
 
     public static void playSound(Player player, Sound sound) {
         if (player == null || sound == null) return;
-
-        if (VersionUtil.isPaperServer()) {
-            player.playSound(sound);
-            return;
-        }
-
-        try {
-            OraxenPlugin.get().getAudience().player(player).playSound(sound);
-        } catch (Throwable ignored) {
-            player.playSound(sound);
-        }
+        player.playSound(sound);
     }
 
     public static void playSound(Player player, @Nullable String sound, Sound.Source source, float volume, float pitch) {
@@ -180,17 +129,7 @@ public class AdventureUtils {
 
     public static void stopSound(Player player, Sound sound) {
         if (player == null || sound == null) return;
-
-        if (VersionUtil.isPaperServer()) {
-            player.stopSound(sound);
-            return;
-        }
-
-        try {
-            OraxenPlugin.get().getAudience().player(player).stopSound(sound);
-        } catch (Throwable ignored) {
-            player.stopSound(sound);
-        }
+        player.stopSound(sound);
     }
 
     public static void stopSound(Player player, SoundStop soundStop) {

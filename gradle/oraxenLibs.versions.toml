@@ -1,7 +1,5 @@
 [versions]
 # often changed version numbers
-adventure = "5.2.0"
-adventure-platform = "4.4.1"
 hopper = "1.4.2"
 
 actions = "1.0.0-SNAPSHOT"
@@ -77,16 +75,8 @@ commons-io = { module = "commons-io:commons-io", version = "2.11.0" }
 # Libraries that are in Maven Central
 # And therefore can be in the plugins.yml > libraries section
 #
-gson = { module = "com.google.code.gson:gson", version = "2.10.1" }
 commons-lang3 = { module = "org.apache.commons:commons-lang3", version = "3.14.0" }
-joml = { module = "org.joml:joml", version = "1.10.5" }                             # Because pre 1.19.4 api does not have this in the server-jar
 annotations = { module = "org.jetbrains:annotations", version = "26.0.2" }
-
-# Adventure
-adventure-minimessage = { module = "net.kyori:adventure-text-minimessage", version.ref = "adventure" }
-adventure-plain = { module = "net.kyori:adventure-text-serializer-plain", version.ref = "adventure" }
-adventure-ansi = { module = "net.kyori:adventure-text-serializer-ansi", version.ref = "adventure" }
-adventure-platform = { module = "net.kyori:adventure-platform-bukkit", version.ref = "adventure-platform" }
 
 # Actions https://github.com/iGabyTM/actions
 actions-core = { module = "me.gabytm.util:actions-core", version.ref = "actions" }
@@ -146,12 +136,6 @@ libraries-included = [
 libraries-bukkit = [
     "spring-expression",
     "http",
-    "joml",
-    "adventure-ansi",
-    "adventure-minimessage",
-    "adventure-plain",
-    "adventure-platform",
-    "gson",
     "commons-lang3",
     "mc-logs",
     "creative",
