@@ -141,7 +141,6 @@ public class OraxenPlugin extends JavaPlugin {
 
         resourcePack = new ResourcePack();
         MechanicsManager.registerNativeMechanics();
-        // CustomBlockData.registerListener(this); //Handle this manually
         hudManager = new HudManager(configsManager);
         fontManager = new FontManager(configsManager);
         reloadCustomJukeboxSongs();

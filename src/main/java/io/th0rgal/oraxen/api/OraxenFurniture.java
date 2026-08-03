@@ -1,9 +1,7 @@
 package io.th0rgal.oraxen.api;
 
-import com.jeff_media.customblockdata.CustomBlockData;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import com.jeff_media.persistentdataserializer.PersistentDataSerializer;
-import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.BlockLocation;
@@ -333,7 +331,7 @@ public class OraxenFurniture {
 
         removeOrphanSeat(pdc);
         block.setType(Material.AIR);
-        new CustomBlockData(block, OraxenPlugin.get()).clear();
+        BlockHelpers.removePDC(block);
     }
 
     private static void removeOrphanSeat(@NotNull PersistentDataContainer pdc) {

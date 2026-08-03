@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.utils;
 
 import com.google.common.collect.Sets;
-import com.jeff_media.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
@@ -22,13 +21,21 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataAdapterContext;
 import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.BoundingBox;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class BlockHelpers {
 
@@ -109,19 +116,174 @@ public class BlockHelpers {
                 .toList().isEmpty();
     }
 
-    /** Returns the PersistentDataContainer from CustomBlockData
+    /**
+     * Regex matching the per-block keys used to store block data inside the chunk's PersistentDataContainer.
+     * The encoding (relative x/z within the chunk, absolute y) matches the scheme previously used by the
+     * shaded CustomBlockData library, so existing worlds keep working without migration.
+     */
+    private static final Pattern BLOCK_KEY_REGEX = Pattern.compile("^x(\\d+)y(-?\\d+)z(\\d+)$");
+
+    /** Returns the block-data PersistentDataContainer stored in the block's chunk
      * @param block The block to get the PersistentDataContainer for
      * */
     public static PersistentDataContainer getPDC(Block block) {
         return getPDC(block, OraxenPlugin.get());
     }
 
-    /** Returns the PersistentDataContainer from CustomBlockData
+    /** Returns the block-data PersistentDataContainer stored in the block's chunk
      * @param block The block to get the PersistentDataContainer for
-     * @param plugin The plugin to get the CustomBlockData from
+     * @param plugin The plugin the block data belongs to
      * */
     public static PersistentDataContainer getPDC(Block block, JavaPlugin plugin) {
-        return new CustomBlockData(block, plugin);
+        return new BlockPersistentDataContainer(block, plugin);
+    }
+
+    /** Removes all block data stored for the given block in its chunk's PersistentDataContainer
+     * @param block The block to remove the PersistentDataContainer for
+     * */
+    public static void removePDC(Block block) {
+        removePDC(block, OraxenPlugin.get());
+    }
+
+    /** Removes all block data stored for the given block in its chunk's PersistentDataContainer
+     * @param block The block to remove the PersistentDataContainer for
+     * @param plugin The plugin the block data belongs to
+     * */
+    public static void removePDC(Block block, JavaPlugin plugin) {
+        block.getChunk().getPersistentDataContainer().remove(blockKey(plugin, block));
+    }
+
+    /** Returns all blocks in the given chunk that have block data stored by the given plugin
+     * @param plugin The plugin the block data belongs to
+     * @param chunk The chunk to scan for blocks with block data
+     * */
+    public static Set<Block> getBlocksWithCustomData(Plugin plugin, Chunk chunk) {
+        String namespace = new NamespacedKey(plugin, "dummy").getNamespace();
+        Set<Block> blocks = new HashSet<>();
+        for (NamespacedKey key : chunk.getPersistentDataContainer().getKeys()) {
+            if (!key.getNamespace().equals(namespace)) continue;
+            Block block = blockFromKey(key, chunk);
+            if (block != null) blocks.add(block);
+        }
+        return blocks;
+    }
+
+    private static NamespacedKey blockKey(Plugin plugin, Block block) {
+        return new NamespacedKey(plugin, "x" + (block.getX() & 0xF) + "y" + block.getY() + "z" + (block.getZ() & 0xF));
+    }
+
+    @Nullable
+    private static Block blockFromKey(NamespacedKey key, Chunk chunk) {
+        Matcher matcher = BLOCK_KEY_REGEX.matcher(key.getKey());
+        if (!matcher.matches()) return null;
+        int x, y, z;
+        try {
+            x = Integer.parseInt(matcher.group(1));
+            y = Integer.parseInt(matcher.group(2));
+            z = Integer.parseInt(matcher.group(3));
+        } catch (NumberFormatException e) {
+            return null;
+        }
+        World world = chunk.getWorld();
+        if (x < 0 || x > 15 || z < 0 || z > 15 || y < world.getMinHeight() || y > world.getMaxHeight() - 1) return null;
+        return chunk.getBlock(x, y, z);
+    }
+
+    /**
+     * A PersistentDataContainer for a single block, backed by the chunk's PersistentDataContainer.
+     * Every mutation is saved back to the chunk immediately; the per-block entry is removed once empty.
+     * Must only be used from the thread owning the block's region, like any other block access.
+     */
+    private static final class BlockPersistentDataContainer implements PersistentDataContainer {
+
+        private final Chunk chunk;
+        private final NamespacedKey key;
+        private final PersistentDataContainer pdc;
+
+        private BlockPersistentDataContainer(Block block, Plugin plugin) {
+            this.chunk = block.getChunk();
+            this.key = blockKey(plugin, block);
+            PersistentDataContainer chunkPDC = chunk.getPersistentDataContainer();
+            PersistentDataContainer blockPDC = chunkPDC.get(key, PersistentDataType.TAG_CONTAINER);
+            this.pdc = blockPDC != null ? blockPDC : chunkPDC.getAdapterContext().newPersistentDataContainer();
+        }
+
+        private void save() {
+            if (pdc.isEmpty()) chunk.getPersistentDataContainer().remove(key);
+            else chunk.getPersistentDataContainer().set(key, PersistentDataType.TAG_CONTAINER, pdc);
+        }
+
+        @Override
+        public <P, C> void set(@NotNull NamespacedKey namespacedKey, @NotNull PersistentDataType<P, C> type, @NotNull C value) {
+            pdc.set(namespacedKey, type, value);
+            save();
+        }
+
+        @Override
+        public <P, C> boolean has(@NotNull NamespacedKey namespacedKey, @NotNull PersistentDataType<P, C> type) {
+            return pdc.has(namespacedKey, type);
+        }
+
+        @Override
+        public boolean has(@NotNull NamespacedKey namespacedKey) {
+            return pdc.has(namespacedKey);
+        }
+
+        @Nullable
+        @Override
+        public <P, C> C get(@NotNull NamespacedKey namespacedKey, @NotNull PersistentDataType<P, C> type) {
+            return pdc.get(namespacedKey, type);
+        }
+
+        @NotNull
+        @Override
+        public <P, C> C getOrDefault(@NotNull NamespacedKey namespacedKey, @NotNull PersistentDataType<P, C> type, @NotNull C defaultValue) {
+            return pdc.getOrDefault(namespacedKey, type, defaultValue);
+        }
+
+        @NotNull
+        @Override
+        public Set<NamespacedKey> getKeys() {
+            return pdc.getKeys();
+        }
+
+        @Override
+        public void remove(@NotNull NamespacedKey namespacedKey) {
+            pdc.remove(namespacedKey);
+            save();
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return pdc.isEmpty();
+        }
+
+        @Override
+        public int getSize() {
+            return pdc.getSize();
+        }
+
+        @Override
+        public void copyTo(@NotNull PersistentDataContainer other, boolean replace) {
+            pdc.copyTo(other, replace);
+        }
+
+        @NotNull
+        @Override
+        public PersistentDataAdapterContext getAdapterContext() {
+            return pdc.getAdapterContext();
+        }
+
+        @Override
+        public byte @NotNull [] serializeToBytes() throws IOException {
+            return pdc.serializeToBytes();
+        }
+
+        @Override
+        public void readFromBytes(byte @NotNull [] bytes, boolean clear) throws IOException {
+            pdc.readFromBytes(bytes, clear);
+            save();
+        }
     }
 
     public static final Set<Material> UNBREAKABLE_BLOCKS = Sets.newHashSet(Material.BEDROCK, Material.BARRIER, Material.NETHER_PORTAL, Material.END_PORTAL_FRAME, Material.END_PORTAL, Material.END_GATEWAY);

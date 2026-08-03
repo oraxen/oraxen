@@ -105,8 +105,6 @@ creative = { module = "team.unnamed:creative-api", version = "1.7.3" }
 antigrieflib = { module = "net.momirealms:antigrieflib", version = "1.0.11" }
 
 # Repo: Maven Central
-# https://github.com/mfnalex/CustomBlockData
-custom-block-data = { module = "com.jeff-media:custom-block-data", version = "2.2.5" }
 # https://github.com/mfnalex/MorePersistentDataTypes
 more-persistent-data-types = { module = "com.jeff-media:MorePersistentDataTypes", version = "2.4.0" }
 # https://github.com/mfnalex/PersistentDataSerializer
@@ -137,7 +135,6 @@ libraries-shade = [
     "annotations",
     "triumph-gui",
     "antigrieflib",
-    "custom-block-data",
     "more-persistent-data-types",
     "persistent-data-serializer",
     "actions-spigot",

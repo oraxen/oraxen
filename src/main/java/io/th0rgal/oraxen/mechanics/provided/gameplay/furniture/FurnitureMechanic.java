@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
-import com.jeff_media.customblockdata.CustomBlockData;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import com.ticxo.modelengine.api.ModelEngineAPI;
 import com.ticxo.modelengine.api.model.ActiveModel;
@@ -1243,7 +1242,7 @@ public class FurnitureMechanic extends Mechanic {
 
         removeFurnitureSeats(pdc);
         block.setType(Material.AIR);
-        new CustomBlockData(block, OraxenPlugin.get()).clear();
+        BlockHelpers.removePDC(block);
         removeLight(block);
         return true;
     }

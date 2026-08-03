@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.commands;
 
-import com.jeff_media.customblockdata.CustomBlockData;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.commands.arguments.EntitySelectorArgument;
 import io.th0rgal.oraxen.commands.arguments.IntegerArgument;
@@ -80,7 +79,7 @@ public class UpdateCommand {
 
         Set<Chunk> chunks = getChunksAroundPlayer(player, radius);
         Set<Block> blocks = new HashSet<>();
-        for (Chunk chunk : chunks) blocks.addAll(CustomBlockData.getBlocksWithCustomData(OraxenPlugin.get(), chunk));
+        for (Chunk chunk : chunks) blocks.addAll(BlockHelpers.getBlocksWithCustomData(OraxenPlugin.get(), chunk));
 
         for (Block block : blocks.stream().filter(b -> b.getLocation().distance(player.getLocation()) <= radius).toList()) {
             if (!OraxenFurniture.hasFurnitureBlockMarker(block)) continue;
@@ -96,7 +95,7 @@ public class UpdateCommand {
         if (!Settings.EXPERIMENTAL_FIX_BROKEN_FURNITURE.toBool()) return;
         Set<Chunk> chunks = getChunksAroundPlayer(player, radius);
         Set<Block> blocks = new HashSet<>();
-        for (Chunk chunk : chunks) blocks.addAll(CustomBlockData.getBlocksWithCustomData(OraxenPlugin.get(), chunk));
+        for (Chunk chunk : chunks) blocks.addAll(BlockHelpers.getBlocksWithCustomData(OraxenPlugin.get(), chunk));
         for (Block block : blocks.stream().filter(b -> b.getLocation().distance(player.getLocation()) <= radius).toList()) {
             FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
             if (mechanic == null) continue;
@@ -111,7 +110,7 @@ public class UpdateCommand {
             //OraxenFurniture.remove(block.getLocation(), null);
             mechanic.getLocations(yaw, rootLoc, mechanic.getBarriers()).forEach(loc -> {
                 loc.getBlock().setType(Material.AIR);
-                new CustomBlockData(loc.getBlock(), OraxenPlugin.get()).clear();
+                BlockHelpers.removePDC(loc.getBlock());
             });
             mechanic.place(rootLoc, yaw, BlockFace.UP);
         }

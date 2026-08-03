@@ -1,8 +1,6 @@
 package io.th0rgal.oraxen.api;
 
 import com.jeff_media.morepersistentdatatypes.DataType;
-import com.jeff_media.customblockdata.CustomBlockData;
-import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.events.chorusblock.OraxenChorusBlockBreakEvent;
 import io.th0rgal.oraxen.api.events.noteblock.OraxenNoteBlockBreakEvent;
 import io.th0rgal.oraxen.api.events.shapedblock.OraxenShapedBlockBreakEvent;
@@ -300,7 +298,7 @@ public class OraxenBlocks {
             door.setHalf(org.bukkit.block.data.Bisected.Half.BOTTOM);
             block.setBlockData(door, false);
         }
-        ShapedBlockMechanic.setItemId(new CustomBlockData(block, OraxenPlugin.get()), mechanic.getItemID());
+        ShapedBlockMechanic.setItemId(BlockHelpers.getPDC(block), mechanic.getItemID());
         createInitialLight(block, mechanic.getItemID());
 
         if (mechanic.getBlockType() != ShapedBlockType.DOOR) return;
@@ -310,7 +308,7 @@ public class OraxenBlocks {
             door.setHalf(org.bukkit.block.data.Bisected.Half.TOP);
             upperBlock.setBlockData(door, false);
         }
-        ShapedBlockMechanic.setItemId(new CustomBlockData(upperBlock, OraxenPlugin.get()), mechanic.getItemID());
+        ShapedBlockMechanic.setItemId(BlockHelpers.getPDC(upperBlock), mechanic.getItemID());
         createInitialLight(upperBlock, mechanic.getItemID());
     }
 
@@ -563,7 +561,7 @@ public class OraxenBlocks {
     }
 
     private static void clearShapedBlockData(Block block) {
-        ShapedBlockMechanic.removeItemId(new CustomBlockData(block, OraxenPlugin.get()));
+        ShapedBlockMechanic.removeItemId(BlockHelpers.getPDC(block));
     }
 
     /**
