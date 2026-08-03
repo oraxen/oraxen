@@ -33,8 +33,13 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockDamageAbortEvent;
+import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -46,7 +51,13 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-public abstract class BreakerSystem {
+/**
+ * Drives custom block-breaking (custom hardness, furniture barriers, bedrock-break) from
+ * Paper's {@link BlockDamageEvent}/{@link BlockDamageAbortEvent} and renders the break
+ * animation through {@link Player#sendBlockDamage(Location, float, int)}. Both events fire
+ * on the owning region thread, so this is Folia-safe without any packet-library dependency.
+ */
+public class BreakerSystem implements Listener {
 
     public static final List<HardnessModifier> MODIFIERS = new ArrayList<>();
     // Use thread-safe collections for Folia compatibility (concurrent region thread access)
@@ -54,12 +65,29 @@ public abstract class BreakerSystem {
     private final Map<Location, SchedulerUtil.ScheduledTask> breakerTasks = new ConcurrentHashMap<>();
     private final Map<Location, SchedulerUtil.ScheduledTask> breakerPlaySound = new ConcurrentHashMap<>();
 
-    public abstract void registerListener();
+    @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
+    public void onBlockDamage(final BlockDamageEvent event) {
+        handleEvent(event.getPlayer(), event.getBlock(), event.getBlockFace(), () -> event.setCancelled(true), true);
+    }
 
-    protected abstract void sendBlockBreak(final Player player, final Location location, final int stage) ;
+    @EventHandler(priority = EventPriority.LOW)
+    public void onBlockDamageAbort(final BlockDamageAbortEvent event) {
+        handleEvent(event.getPlayer(), event.getBlock(), BlockFace.UP, () -> {
+        }, false);
+    }
 
-    protected void handleEvent(Player player, Block block, Location location, BlockFace blockFace, World world, Runnable cancel, boolean startedDigging, boolean finishedDigging) {
+    private void sendBlockBreak(final Player player, final Location location, final int stage) {
+        // Paper maps progress 0.0 to the "clear animation" stage; (stage + 1) / 10 maps each
+        // crack stage 0-9 back to itself ((int) (9 * progress)) without ever colliding with 0.
+        final float progress = stage < 0 || stage > 9 ? 0f : (stage + 1) / 10f;
+        player.sendBlockDamage(location, progress, location.hashCode());
+    }
+
+    private void handleEvent(Player player, Block block, BlockFace blockFace, Runnable cancel, boolean startedDigging) {
         if (player.getGameMode() == GameMode.CREATIVE) return;
+
+        final Location location = block.getLocation();
+        final World world = block.getWorld();
 
         final ItemStack item = player.getInventory().getItemInMainHand();
 
@@ -86,16 +114,6 @@ public abstract class BreakerSystem {
         if (CustomBlockMiningListener.isSupported()
                 && (noteMechanic != null || stringMechanic != null || shapedMechanic != null
                 || chorusMechanic != null)) {
-            return;
-        }
-
-        if (finishedDigging && furnitureMechanic != null) {
-            cancel.run();
-            final List<Location> breakAnimationLocations = furnitureBarrierLocations(furnitureMechanic, block);
-            stopBlockBreaker(location);
-            stopBlockHitSound(location);
-            SchedulerUtil.runForEntity(player, () -> player.sendBlockChange(location, block.getBlockData()));
-            resetBlockBreakAnimations(world, breakAnimationLocations);
             return;
         }
 
@@ -132,8 +150,8 @@ public abstract class BreakerSystem {
 
             breakerLocations.add(location);
 
-            // Schedule the rest on main/region thread - packet listeners run on Netty thread
-            // and Bukkit events must be called synchronously on the main thread
+            // Defer the rest to the next tick so the PlayerInteractEvent and Oraxen damage
+            // events fire after BlockDamageEvent processing has fully completed.
             final HardnessModifier modifier = triggeredModifier;
             SchedulerUtil.runAtLocation(location, () -> {
                 // Fire PlayerInteractEvent for plugin support (cancellation state is ignored)
@@ -151,7 +169,13 @@ public abstract class BreakerSystem {
                 final List<Location> furnitureBarrierLocations = furnitureBarrierLocations(furnitureMechanic, block);
                 startBlockHitSound(location);
 
+                // Vanilla per-tick dig progress the client makes on this block (1.0 = finished).
+                // Unbreakable blocks (furniture barriers, bedrock) yield 0, so the guard below
+                // never triggers for them.
+                final float clientBreakSpeed = block.getBreakSpeed(player);
+
                 final int[] valueHolder = {0};
+                final float[] clientProgress = {0f};
                 SchedulerUtil.ScheduledTask breakerTask = SchedulerUtil.runAtLocationTimer(location, period, period, () -> {
                     if (!breakerLocations.contains(location)) {
                         stopBlockBreaker(location);
@@ -161,6 +185,20 @@ public abstract class BreakerSystem {
 
                     if (item.getEnchantmentLevel(EnchantmentWrapper.EFFICIENCY) >= 5)
                         valueHolder[0] = 10;
+
+                    // Replaces the old STOP_DESTROY_BLOCK packet handling: once the client's own
+                    // (vanilla-speed) dig completes, it stops digging without ever sending the abort
+                    // that fires BlockDamageAbortEvent, so this timer would otherwise keep running
+                    // and break the block by itself after the player let go. Stop once the client
+                    // must have finished (or quit); if the player is still holding the button, the
+                    // client re-starts digging and the new BlockDamageEvent restarts this breaker.
+                    clientProgress[0] += clientBreakSpeed * period;
+                    if (valueHolder[0] < 10 && (!player.isOnline() || clientProgress[0] >= 1f)) {
+                        stopBlockBreaker(location);
+                        stopBlockHitSound(location);
+                        resetBlockBreakAnimations(world, Collections.singletonList(location));
+                        return;
+                    }
 
                     sendBlockBreakToViewers(world, location,
                             furnitureMechanic != null ? furnitureBarrierLocations : Collections.singletonList(location),

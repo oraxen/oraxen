@@ -36,9 +36,8 @@ import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.actions.ClickActionManager;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorEquipEvent;
+import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.CustomBlockMiningListener;
-import io.th0rgal.oraxen.utils.breaker.PacketEventsBreakerSystem;
-import io.th0rgal.oraxen.utils.breaker.ProtocolLibBreakerSystem;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmorListener;
 import io.th0rgal.oraxen.utils.inventories.InvManager;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -108,11 +107,9 @@ public class OraxenPlugin extends JavaPlugin {
         if (PacketAdapter.isProtocolLibEnabled()) {
             if (Settings.DEBUG.toBool()) Logs.logInfo("ProtocolLib is enabled, using ProtocolLibAdapter.");
             packetAdapter = new ProtocolLibAdapter();
-            new ProtocolLibBreakerSystem().registerListener();
         } else if (PacketAdapter.isPacketEventsEnabled()) {
             if (Settings.DEBUG.toBool()) Logs.logInfo("PacketEvents is enabled, using PacketEventsAdapter.");
             packetAdapter = new PacketEventsAdapter();
-            new PacketEventsBreakerSystem().registerListener();
         } else {
             Logs.logWarning("Neither ProtocolLib nor PacketEvents is enabled, using EmptyAdapter.");
             packetAdapter = new PacketAdapter.EmptyAdapter();
@@ -125,8 +122,10 @@ public class OraxenPlugin extends JavaPlugin {
         });
 
         Bukkit.getPluginManager().registerEvents(new CustomArmorListener(), this);
-        // Register this even when the packet breaker is active: BreakerSystem cancels START_DIGGING
-        // before Bukkit fires BlockDamageEvent, so CustomBlockMiningListener becomes a no-op there.
+        // BreakerSystem cancels BlockDamageEvent for the blocks it manages (furniture barriers,
+        // bedrock-break, and custom blocks on pre-1.20.5 servers); CustomBlockMiningListener
+        // ignores cancelled events and handles custom blocks via BLOCK_BREAK_SPEED on 1.20.5+.
+        Bukkit.getPluginManager().registerEvents(new BreakerSystem(), this);
         if (CustomBlockMiningListener.isSupported()) {
             Bukkit.getPluginManager().registerEvents(new CustomBlockMiningListener(), this);
         }
