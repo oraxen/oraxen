@@ -6,6 +6,7 @@ import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Levelled;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -71,8 +72,13 @@ public class CustomWorkstationEvents implements Listener {
                 || resultSlot.getAmount() != expected.getAmount()) return;
         if (!grindstone && player.getGameMode() != GameMode.CREATIVE && player.getLevel() < recipe.value()) return;
 
-        if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+        InventoryAction action = event.getAction();
+        if (action == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
             if (!giveToInventory(player.getInventory(), expected)) return;
+        } else if (action == InventoryAction.HOTBAR_SWAP) {
+            if (!giveToHotbar(player.getInventory(), event.getHotbarButton(), expected)) return;
+        } else if (action == InventoryAction.DROP_ALL_SLOT || action == InventoryAction.DROP_ONE_SLOT) {
+            dropResult(player, expected);
         } else {
             ItemStack cursor = event.getCursor();
             if (!cursor.isEmpty() && (!cursor.isSimilar(expected)
@@ -91,7 +97,30 @@ public class CustomWorkstationEvents implements Listener {
     private boolean supportedAction(InventoryAction action) {
         return action == InventoryAction.MOVE_TO_OTHER_INVENTORY || action == InventoryAction.PICKUP_ALL
                 || action == InventoryAction.PICKUP_HALF || action == InventoryAction.PICKUP_ONE
-                || action == InventoryAction.PICKUP_SOME;
+                || action == InventoryAction.PICKUP_SOME || action == InventoryAction.HOTBAR_SWAP
+                || action == InventoryAction.DROP_ALL_SLOT || action == InventoryAction.DROP_ONE_SLOT;
+    }
+
+    /** Moves the result to the pressed hotbar slot (or offhand) if that slot is empty, like vanilla result slots. */
+    private boolean giveToHotbar(PlayerInventory inventory, int hotbarButton, ItemStack result) {
+        if (hotbarButton == -1) { // Offhand swap key
+            if (!inventory.getItemInOffHand().isEmpty()) return false;
+            inventory.setItemInOffHand(result);
+            return true;
+        }
+        if (hotbarButton < 0 || hotbarButton > 8) return false;
+        ItemStack hotbarItem = inventory.getItem(hotbarButton);
+        if (hotbarItem != null && !hotbarItem.isEmpty()) return false;
+        inventory.setItem(hotbarButton, result);
+        return true;
+    }
+
+    /** Tosses the result in front of the player, mirroring a vanilla result-slot drop. */
+    private void dropResult(Player player, ItemStack result) {
+        Item drop = player.getWorld().dropItem(player.getEyeLocation(), result);
+        drop.setVelocity(player.getEyeLocation().getDirection().multiply(0.3));
+        drop.setPickupDelay(40);
+        drop.setThrower(player.getUniqueId());
     }
 
     private Match grindstoneRecipe(ItemStack first, ItemStack second) {

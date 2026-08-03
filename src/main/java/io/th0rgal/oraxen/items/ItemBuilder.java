@@ -139,6 +139,7 @@ public class ItemBuilder {
     @Nullable
     private String deferredUseRemainderId;
     private int deferredUseRemainderAmount;
+    private boolean resolvingUseRemainder;
     @Nullable
     private Tag<DamageType> damageResistant;
     @Nullable
@@ -542,6 +543,10 @@ public class ItemBuilder {
     public ItemBuilder setUseRemainder(@Nullable final ItemStack itemStack) {
         this.useRemainder = itemStack;
         deferredUseRemainderId = null;
+        // Invalidate any stack cached before the remainder was attached. Another
+        // item's use_remainder chain may already have built this item, and build()
+        // would otherwise keep returning the stale clone without the component.
+        finalItemStack = null;
         return this;
     }
 
@@ -553,7 +558,7 @@ public class ItemBuilder {
     }
 
     public void resolveUseRemainder() {
-        if (deferredUseRemainderId == null)
+        if (deferredUseRemainderId == null || resolvingUseRemainder)
             return;
 
         ItemBuilder remainderBuilder = OraxenItems.getItemById(deferredUseRemainderId);
@@ -563,9 +568,18 @@ public class ItemBuilder {
             return;
         }
 
-        ItemStack remainder = ItemUpdater.updateItem(remainderBuilder.build());
-        remainder.setAmount(deferredUseRemainderAmount);
-        setUseRemainder(remainder);
+        resolvingUseRemainder = true;
+        try {
+            // Resolve the referenced item's own remainder chain first so the stack
+            // built below already carries its use_remainder component. The guard
+            // above breaks cycles (a -> b -> a) instead of recursing forever.
+            remainderBuilder.resolveUseRemainder();
+            ItemStack remainder = ItemUpdater.updateItem(remainderBuilder.build());
+            remainder.setAmount(deferredUseRemainderAmount);
+            setUseRemainder(remainder);
+        } finally {
+            resolvingUseRemainder = false;
+        }
     }
 
     public boolean hasUseCooldownComponent() {

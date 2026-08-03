@@ -438,6 +438,11 @@ public class Glyph {
             return "The ascent is bigger than the height for " + name + ". This will break all your glyphs.";
         }
         if (!ctx.isVanillaTexture && (!ctx.textureFile.exists() || ctx.image == null)) {
+            // Only textures whose file name exactly matches a material are auto-detected
+            // as vanilla; anything else (e.g. bow_pulling_0) must ship in the pack folder
+            // so it can be verified, otherwise a typo would break the client's default font.
+            if (!texture.contains(":") || texture.split(":")[0].equals("minecraft"))
+                Logs.logWarning("If this references a vanilla texture, copy the texture file into the pack folder so Oraxen can verify it.");
             return "The texture specified for " + name + " does not exist. This will break all your glyphs.";
         }
         if (ctx.hasUpperCase) {

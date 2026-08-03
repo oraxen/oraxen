@@ -138,8 +138,11 @@ public final class FurniturePacketDispatcher {
             CompletableFuture<Boolean> future = (CompletableFuture<Boolean>) entity.getClass()
                     .getMethod("teleportAsync", org.bukkit.Location.class)
                     .invoke(entity, location);
+            // whenComplete (not thenAccept) so the callback also fires when the future
+            // completes exceptionally; callers rely on it to restore state such as
+            // re-adding ejected seat passengers.
             if (onComplete != null)
-                future.thenAccept(success -> SchedulerUtil.runForEntity(entity, onComplete, null));
+                future.whenComplete((success, error) -> SchedulerUtil.runForEntity(entity, onComplete, null));
         } catch (NoSuchMethodException e) {
             // Non-Paper: fall back to sync teleport on the entity's thread
             SchedulerUtil.runForEntity(entity, () -> {

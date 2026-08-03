@@ -102,9 +102,11 @@ public class VersionUtil {
     }
 
     /**
-     * Scoreboard/tablist hiding tweaks are only supported on 1.21.6 or higher.
+     * Scoreboard/tablist background hiding tweaks are only supported on 1.21.6 or higher.
+     * Scoreboard number hiding is unaffected: it is handled per version by
+     * TextShaderGenerator#hideScoreboardNumbers.
      */
-    public static boolean supportsScoreboardHiding() {
+    public static boolean supportsScoreboardBackgroundHiding() {
         return atOrAbove("1.21.6");
     }
 

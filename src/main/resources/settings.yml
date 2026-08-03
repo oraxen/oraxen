@@ -291,7 +291,8 @@ Misc:
   # Will add all recipes a player has permission for, to the in-game recipe books
   add_recipes_to_book: true
 
-  # This will hide the red numbers on the side of scoreboards (1.21.6 and above only)
+  # This will hide the red numbers on the side of scoreboards
+  # (requires a packet adapter such as ProtocolLib or PacketEvents on 26.x and above)
   hide_scoreboard_numbers: false
   # This will hide the background of scoreboards (1.21.6 and above only)
   hide_scoreboard_background: false
