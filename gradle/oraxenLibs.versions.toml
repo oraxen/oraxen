@@ -14,7 +14,7 @@ actions = "1.0.0-SNAPSHOT"
 protocol-lib = { module = "net.dmulloy2:ProtocolLib", version = "5.4.0" }
 # PacketEvents https://docs.packetevents.com/getting-started
 # Repo: https://repo.codemc.io/repository/maven-releases/
-packet-events = { module = "com.github.retrooper:packetevents-spigot", version = "2.10.0" }
+packet-events = { module = "com.github.retrooper:packetevents-spigot", version = "2.13.0" }
 
 
 # PlaceholderAPI https://github.com/PlaceholderAPI/PlaceholderAPI/wiki/Hook-into-PlaceholderAPI
@@ -75,22 +75,18 @@ commons-io = { module = "commons-io:commons-io", version = "2.11.0" }
 # Libraries that are in Maven Central
 # And therefore can be in the plugins.yml > libraries section
 #
-commons-lang3 = { module = "org.apache.commons:commons-lang3", version = "3.14.0" }
+commons-lang3 = { module = "org.apache.commons:commons-lang3", version = "3.20.0" }
 annotations = { module = "org.jetbrains:annotations", version = "26.0.2" }
 
 # Actions https://github.com/iGabyTM/actions
 actions-core = { module = "me.gabytm.util:actions-core", version.ref = "actions" }
 actions-spigot = { module = "me.gabytm.util:actions-spigot", version.ref = "actions" }
 
-# Spring Expressions
-spring-expression = { module = "org.springframework:spring-expression", version = "6.0.6" }
+# Spring Expressions (SpEL) - used by ClickAction to parse action conditions
+spring-expression = { module = "org.springframework:spring-expression", version = "6.2.19" }
 
 # MCLogs https://github.com/aternosorg/mclogs
 mc-logs = { module = "gs.mclo:java", version = "2.2.1" }
-
-# http https://hc.apache.org/httpcomponents-client-5.5.x/
-# No clue where its used in the code tho??
-http = { module = "org.apache.httpcomponents:httpmime", version = "4.5.13" }
 
 #
 # Libraries that are shaded and relocated
@@ -103,9 +99,6 @@ bstats = { module = "org.bstats:bstats-bukkit", version = "3.1.0" }
 # Creative API https://github.com/unnamed/creative
 # Repo: Maven Central
 creative = { module = "team.unnamed:creative-api", version = "1.7.3" }
-
-# JSON
-javax-json = { module = "org.glassfish:javax.json", version = "1.1.4" }
 
 # AntiGriefLib
 # Repo: https://repo.momirealms.net/releases/
@@ -135,7 +128,6 @@ libraries-included = [
 ]
 libraries-bukkit = [
     "spring-expression",
-    "http",
     "commons-lang3",
     "mc-logs",
     "creative",
@@ -144,7 +136,6 @@ libraries-shade = [
     "bstats",
     "annotations",
     "triumph-gui",
-    "javax-json",
     "antigrieflib",
     "custom-block-data",
     "more-persistent-data-types",

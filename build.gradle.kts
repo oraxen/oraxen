@@ -146,7 +146,7 @@ dependencies {
     testImplementation("net.kyori:adventure-text-minimessage:4.18.0")
     testImplementation("net.kyori:adventure-text-serializer-legacy:4.18.0")
     testImplementation("com.google.guava:guava:33.0.0-jre")
-    testImplementation("com.google.code.gson:gson:2.10.1")
+    testImplementation("com.google.code.gson:gson:2.14.0")
 }
 
 
@@ -262,7 +262,6 @@ tasks {
         // exception for this one dunno who includes that...
         relocate("org.intellij.lang.annotations", "io.th0rgal.oraxen.shaded.intellij.annotations")
         relocate("com.udojava.evalex", "io.th0rgal.oraxen.shaded.udojava.evalex")
-        relocate("javax.json", "io.th0rgal.oraxen.shaded.javax.json")
 
         manifest {
             attributes(
