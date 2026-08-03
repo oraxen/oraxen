@@ -14,6 +14,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
+import net.kyori.adventure.sound.Sound;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -185,7 +186,7 @@ public class StorageMechanic {
         if (baseEntity != null)
             playOpenAnimation(baseEntity, openAnimation);
         if (hasOpenSound() && location.isWorldLoaded())
-            Objects.requireNonNull(location.getWorld()).playSound(location, openSound, volume, pitch);
+            AdventureUtils.playSound(location, openSound, Sound.Source.MASTER, volume, pitch);
     }
 
     public void openDisposal(Player player, Location location, @Nullable Entity baseEntity) {
@@ -195,7 +196,7 @@ public class StorageMechanic {
         if (baseEntity != null)
             playOpenAnimation(baseEntity, openAnimation);
         if (hasOpenSound() && location.isWorldLoaded())
-            Objects.requireNonNull(location.getWorld()).playSound(location, openSound, volume, pitch);
+            AdventureUtils.playSound(location, openSound, Sound.Source.MASTER, volume, pitch);
     }
 
     public void openStorage(Block block, Player player) {
@@ -206,7 +207,7 @@ public class StorageMechanic {
         if (storageGui == null) return;
         storageGui.open(player);
         if (hasOpenSound() && block.getLocation().isWorldLoaded())
-            Objects.requireNonNull(block.getWorld()).playSound(block.getLocation(), openSound, volume, pitch);
+            AdventureUtils.playSound(block.getLocation(), openSound, Sound.Source.MASTER, volume, pitch);
     }
 
     public void openStorage(Entity baseEntity, Player player) {
@@ -216,7 +217,7 @@ public class StorageMechanic {
         storageGui.open(player);
         playOpenAnimation(baseEntity, openAnimation);
         if (hasOpenSound() && baseEntity.getLocation().isWorldLoaded())
-            Objects.requireNonNull(baseEntity.getWorld()).playSound(baseEntity.getLocation(), openSound, volume, pitch);
+            AdventureUtils.playSound(baseEntity.getLocation(), openSound, Sound.Source.MASTER, volume, pitch);
     }
 
     private void playOpenAnimation(Entity baseEntity, String animation) {
@@ -414,7 +415,7 @@ public class StorageMechanic {
         gui.setCloseGuiAction(event -> {
             gui.getInventory().clear();
             if (hasCloseSound() && location.isWorldLoaded())
-                Objects.requireNonNull(location.getWorld()).playSound(location, closeSound, volume, pitch);
+                AdventureUtils.playSound(location, closeSound, Sound.Source.MASTER, volume, pitch);
             if (baseEntity != null) playOpenAnimation(baseEntity, closeAnimation);
         });
         return gui;
@@ -442,7 +443,7 @@ public class StorageMechanic {
             playerStorages.remove(player);
             storagePDC.set(PERSONAL_STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents());
             if (hasCloseSound() && player.getLocation().isWorldLoaded())
-                Objects.requireNonNull(player.getLocation().getWorld()).playSound(player.getLocation(), closeSound, volume, pitch);
+                AdventureUtils.playSound(player.getLocation(), closeSound, Sound.Source.MASTER, volume, pitch);
             if (baseEntity != null) playOpenAnimation(baseEntity, closeAnimation);
         });
 
@@ -474,7 +475,7 @@ public class StorageMechanic {
             if (!canPersistBlockStorage(block, gui)) return;
             storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents());
             if (hasCloseSound() && BlockHelpers.isLoaded(block.getLocation()))
-                Objects.requireNonNull(location.getWorld()).playSound(location, closeSound, volume, pitch);
+                AdventureUtils.playSound(location, closeSound, Sound.Source.MASTER, volume, pitch);
             if (frame != null) playOpenAnimation(frame, closeAnimation);
         });
 
@@ -536,7 +537,7 @@ public class StorageMechanic {
         gui.setCloseGuiAction(event -> {
             persistEntityStorageOnClose(gui, baseEntity, storagePDC, shulker, shulkerPDC);
             if (hasCloseSound() && BlockHelpers.isLoaded(baseEntity.getLocation()))
-                Objects.requireNonNull(location.getWorld()).playSound(location, closeSound, volume, pitch);
+                AdventureUtils.playSound(location, closeSound, Sound.Source.MASTER, volume, pitch);
             playOpenAnimation(baseEntity, closeAnimation);
         });
 

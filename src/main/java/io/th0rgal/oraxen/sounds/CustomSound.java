@@ -4,6 +4,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.SoundStop;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
 import org.bukkit.SoundCategory;
@@ -128,7 +130,7 @@ public class CustomSound {
 
     public void play(@NotNull Player player, @NotNull Location location, @NotNull SoundCategory category, float volume,
             float pitch) {
-        player.playSound(location, getSoundId(), category, volume, pitch);
+        AdventureUtils.playSound(player, location, getSoundId(), AdventureUtils.toSource(category), volume, pitch);
     }
 
     public void stop(@NotNull Player player) {
@@ -136,7 +138,10 @@ public class CustomSound {
     }
 
     public void stop(@NotNull Player player, @Nullable SoundCategory category) {
-        player.stopSound(getSoundId(), category);
+        Key soundKey = Key.key(getSoundId());
+        AdventureUtils.stopSound(player, category != null
+                ? SoundStop.namedOnSource(soundKey, AdventureUtils.toSource(category))
+                : SoundStop.named(soundKey));
     }
 
     /**

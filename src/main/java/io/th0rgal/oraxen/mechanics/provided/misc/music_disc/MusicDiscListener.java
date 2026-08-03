@@ -121,7 +121,7 @@ public class MusicDiscListener implements Listener {
             disc.setAmount(disc.getAmount() - insertedDisc.getAmount());
 
         pdc.set(MusicDiscHelpers.MUSIC_DISC_KEY, DataType.ITEM_STACK, insertedDisc);
-        block.getWorld().playSound(BlockHelpers.toCenterLocation(block.getLocation()), mechanic.getSong(), SoundCategory.RECORDS, 1, 1);
+        AdventureUtils.playSound(BlockHelpers.toCenterLocation(block.getLocation()), mechanic.getSong(), Sound.Source.RECORD, 1, 1);
         return true;
     }
 

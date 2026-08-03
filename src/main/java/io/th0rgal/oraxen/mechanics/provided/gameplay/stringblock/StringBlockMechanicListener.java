@@ -234,7 +234,7 @@ public class StringBlockMechanicListener implements Listener {
 
         // Play placement sound if configured
         if (mechanic.hasBlockSounds() && mechanic.getBlockSounds().hasPlaceSound()) {
-            block.getWorld().playSound(block.getLocation(),
+            BlockHelpers.playCustomBlockSound(block.getLocation(),
                     mechanic.getBlockSounds().getPlaceSound(),
                     mechanic.getBlockSounds().getPlaceVolume(),
                     mechanic.getBlockSounds().getPlacePitch());

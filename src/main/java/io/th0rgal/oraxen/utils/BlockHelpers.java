@@ -15,6 +15,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.block.sign.Side;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -61,7 +62,7 @@ public class BlockHelpers {
 
     public static void playCustomBlockSound(Location location, String sound, SoundCategory category, float volume, float pitch) {
         if (sound == null || location == null || location.getWorld() == null || category == null) return;
-        location.getWorld().playSound(location, validateReplacedSounds(sound), category, volume, pitch);
+        AdventureUtils.playSound(location, validateReplacedSounds(sound), AdventureUtils.toSource(category), volume, pitch);
     }
 
     public static String validateReplacedSounds(String sound) {
@@ -184,7 +185,7 @@ public class BlockHelpers {
         NMSHandlers.getHandler().correctBlockStates(player, hand, item);
 
         Block target = placedAgainst.getRelative(face);
-        if (target.getState() instanceof Sign sign) player.openSign(sign);
+        if (target.getState() instanceof Sign sign) player.openSign(sign, Side.FRONT);
     }
 
     /*

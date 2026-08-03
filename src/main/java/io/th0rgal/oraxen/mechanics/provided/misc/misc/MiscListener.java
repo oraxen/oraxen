@@ -198,12 +198,11 @@ public class MiscListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onDisableBowShoot(EntityShootBowEvent event) {
-        if (!(event.getEntity() instanceof Player player)) return;
+        if (!(event.getEntity() instanceof Player)) return;
         MiscMechanic mechanic = MiscMechanicFactory.get().getMechanic(event.getConsumable());
         if (mechanic == null || !mechanic.isVanillaInteractionDisabled()) return;
         event.setConsumeItem(false);
         event.setCancelled(true);
-        player.updateInventory(); // Client desyncs and "removes" an arrow
         //TODO See if crossbows can have their loading phase cancelled, currently impossible to check loaded projectile
     }
 
@@ -231,7 +230,6 @@ public class MiscListener implements Listener {
         if (mechanic == null || !mechanic.isVanillaInteractionDisabled()) return;
         if (item.getType().name().endsWith("_HORSE_ARMOR")) {
             event.setCancelled(true);
-            //player.updateInventory();
         }
     }
 

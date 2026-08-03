@@ -1355,13 +1355,12 @@ public class FurnitureMechanic extends Mechanic {
             stand.setRotation(rotationYaw, 0);
             stand.setInvulnerable(true);
             stand.setPersistent(true);
-            stand.setAI(false);
+            stand.setMarker(true);
             stand.setCollidable(false);
             stand.setGravity(false);
             stand.setSilent(true);
             stand.setCustomNameVisible(false);
             stand.setCanPickupItems(false);
-            //TODO Maybe marker works here? Was removed for rotation issues but should be fixed
             stand.addEquipmentLock(EquipmentSlot.HEAD, ArmorStand.LockType.ADDING_OR_CHANGING);
             stand.addEquipmentLock(EquipmentSlot.HAND, ArmorStand.LockType.ADDING_OR_CHANGING);
             stand.addEquipmentLock(EquipmentSlot.OFF_HAND, ArmorStand.LockType.ADDING_OR_CHANGING);

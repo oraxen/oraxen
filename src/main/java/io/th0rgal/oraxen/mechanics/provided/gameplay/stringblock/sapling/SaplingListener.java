@@ -4,8 +4,10 @@ import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.compatibilities.provided.worldedit.WrappedWorldEdit;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicFactory;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.PluginUtils;
+import net.kyori.adventure.sound.Sound;
 import org.bukkit.Effect;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -57,7 +59,7 @@ public class SaplingListener implements Listener {
         if (growthTimeRemains <= 0) {
             block.setType(Material.AIR, false);
             if (sapling.hasGrowSound())
-                player.playSound(loc, sapling.getGrowSound(), 1.0f, 0.8f);
+                AdventureUtils.playSound(player, loc, sapling.getGrowSound(), Sound.Source.MASTER, 1.0f, 0.8f);
             WrappedWorldEdit.pasteSchematic(loc, sapling.getSchematic(), sapling.replaceBlocks(), sapling.copyBiomes(), sapling.copyEntities());
         } else pdc.set(SAPLING_KEY, PersistentDataType.INTEGER, growthTimeRemains);
     }

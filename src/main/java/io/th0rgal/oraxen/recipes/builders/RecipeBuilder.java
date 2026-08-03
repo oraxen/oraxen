@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.recipes.builders;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.utils.OraxenYaml;
+import net.kyori.adventure.text.Component;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -34,12 +35,12 @@ public abstract class RecipeBuilder {
         UUID playerId = player.getUniqueId();
         inventory = MAP.containsKey(playerId) && MAP.get(playerId).builderName.equals(builderName)
                 ? MAP.get(playerId).inventory
-                : createInventory(player, inventoryTitle);
+                : createInventory(player, Component.text(inventoryTitle));
         player.openInventory(inventory);
         MAP.put(playerId, this);
     }
 
-    abstract Inventory createInventory(Player player, String inventoryTitle);
+    abstract Inventory createInventory(Player player, Component inventoryTitle);
 
     void close() {
         MAP.remove(player.getUniqueId());

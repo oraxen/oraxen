@@ -11,7 +11,6 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.sound.SoundStop;
 import org.bukkit.Material;
-import org.bukkit.SoundCategory;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.block.Jukebox;
@@ -55,14 +54,14 @@ public class MusicDiscHelpers {
             Key soundId = Key.key(OraxenPlugin.get().getSoundManager().songKeyToSoundId(songKey));
             Float range = OraxenPlugin.get().getSoundManager().jukeboxRange(songKey);
 
+            Sound sound = Sound.sound(soundId, Sound.Source.RECORD, volume, pitch);
             if (range != null) {
                 double radius = Math.max(1.0D, range);
                 entity.getWorld().getNearbyEntities(entity.getLocation(), radius, radius, radius, e -> e instanceof Player)
                         .stream().map(Player.class::cast)
-                        .forEach(player -> player.playSound(entity.getLocation(), soundId.asString(),
-                                SoundCategory.RECORDS, volume, pitch));
+                        .forEach(player -> AdventureUtils.playSound(player, entity.getLocation(), sound));
             } else {
-                entity.getWorld().playSound(entity.getLocation(), soundId.asString(), SoundCategory.RECORDS, volume, pitch);
+                AdventureUtils.playSound(entity.getLocation(), sound);
             }
         }
         pdc.set(MUSIC_DISC_KEY, DataType.ITEM_STACK, record);

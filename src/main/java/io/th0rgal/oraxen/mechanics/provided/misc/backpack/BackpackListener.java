@@ -6,6 +6,7 @@ import dev.triumphteam.gui.guis.StorageGui;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.InventoryUtils;
+import net.kyori.adventure.sound.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
@@ -127,7 +128,7 @@ public class BackpackListener implements Listener {
             ItemStack[] contents = pdc.get(BACKPACK_KEY, DataType.ITEM_STACK_ARRAY);
             if (contents != null) gui.getInventory().setContents(contents);
             if (mechanic.hasOpenSound())
-                player.playSound(player.getLocation(), mechanic.getOpenSound(), mechanic.getVolume(), mechanic.getPitch());
+                AdventureUtils.playSound(player, mechanic.getOpenSound(), Sound.Source.MASTER, mechanic.getVolume(), mechanic.getPitch());
         });
 
         gui.setCloseGuiAction(event -> {
@@ -135,7 +136,7 @@ public class BackpackListener implements Listener {
             pdc.set(BACKPACK_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents());
             backpack.setItemMeta(backpackMeta);
             if (mechanic.hasCloseSound())
-                player.getWorld().playSound(player.getLocation(), mechanic.getCloseSound(), mechanic.getVolume(), mechanic.getPitch());
+                AdventureUtils.playSound(player.getLocation(), mechanic.getCloseSound(), Sound.Source.MASTER, mechanic.getVolume(), mechanic.getPitch());
         });
 
         return gui;

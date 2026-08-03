@@ -4,8 +4,12 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.configs.Message;
 import io.th0rgal.oraxen.glyphs.GlyphTag;
 import io.th0rgal.oraxen.glyphs.ShiftTag;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.inventory.Book;
+import net.kyori.adventure.key.InvalidKeyException;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
+import net.kyori.adventure.sound.SoundStop;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.Tag;
@@ -15,6 +19,8 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.kyori.adventure.title.Title;
 import net.kyori.adventure.translation.GlobalTranslator;
+import org.bukkit.Location;
+import org.bukkit.SoundCategory;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
@@ -125,6 +131,53 @@ public class AdventureUtils {
         }
     }
 
+    public static void playSound(Player player, @Nullable String sound, Sound.Source source, float volume, float pitch) {
+        playSound(player, sound(sound, source, volume, pitch));
+    }
+
+    public static void playSound(Player player, Location location, Sound sound) {
+        if (player == null || sound == null) return;
+        if (location == null) {
+            playSound(player, sound);
+            return;
+        }
+
+        if (VersionUtil.isPaperServer()) {
+            player.playSound(sound, location.getX(), location.getY(), location.getZ());
+            return;
+        }
+
+        try {
+            OraxenPlugin.get().getAudience().player(player).playSound(sound, location.getX(), location.getY(), location.getZ());
+        } catch (Throwable ignored) {
+            player.playSound(sound, location.getX(), location.getY(), location.getZ());
+        }
+    }
+
+    public static void playSound(Player player, Location location, @Nullable String sound, Sound.Source source, float volume, float pitch) {
+        playSound(player, location, sound(sound, source, volume, pitch));
+    }
+
+    public static void playSound(Location location, Sound sound) {
+        if (location == null || sound == null || location.getWorld() == null) return;
+
+        if (VersionUtil.isPaperServer()) {
+            location.getWorld().playSound(sound, location.getX(), location.getY(), location.getZ());
+            return;
+        }
+
+        // Match vanilla's audible range for positional sounds: max(1.0, volume) * 16 blocks
+        double range = Math.max(1.0, sound.volume()) * 16.0;
+        double rangeSquared = range * range;
+        for (Player player : location.getWorld().getPlayers())
+            if (player.getLocation().distanceSquared(location) <= rangeSquared)
+                playSound(player, location, sound);
+    }
+
+    public static void playSound(Location location, @Nullable String sound, Sound.Source source, float volume, float pitch) {
+        playSound(location, sound(sound, source, volume, pitch));
+    }
+
     public static void stopSound(Player player, Sound sound) {
         if (player == null || sound == null) return;
 
@@ -138,6 +191,53 @@ public class AdventureUtils {
         } catch (Throwable ignored) {
             player.stopSound(sound);
         }
+    }
+
+    public static void stopSound(Player player, SoundStop soundStop) {
+        if (player == null || soundStop == null) return;
+
+        if (VersionUtil.isPaperServer()) {
+            player.stopSound(soundStop);
+            return;
+        }
+
+        try {
+            OraxenPlugin.get().getAudience().player(player).stopSound(soundStop);
+        } catch (Throwable ignored) {
+            player.stopSound(soundStop);
+        }
+    }
+
+    /**
+     * Builds an Adventure {@link Sound} from a config-provided sound id.
+     *
+     * @return the sound, or null if the id is null, blank or not a valid key
+     */
+    @Nullable
+    public static Sound sound(@Nullable String sound, Sound.Source source, float volume, float pitch) {
+        if (sound == null || sound.isBlank()) return null;
+        try {
+            return Sound.sound(Key.key(sound.trim().toLowerCase(Locale.ROOT)), source, volume, pitch);
+        } catch (InvalidKeyException e) {
+            Logs.logWarning("Invalid sound key: " + sound);
+            return null;
+        }
+    }
+
+    public static Sound.Source toSource(@Nullable SoundCategory category) {
+        if (category == null) return Sound.Source.MASTER;
+        return switch (category) {
+            case MUSIC -> Sound.Source.MUSIC;
+            case RECORDS -> Sound.Source.RECORD;
+            case WEATHER -> Sound.Source.WEATHER;
+            case BLOCKS -> Sound.Source.BLOCK;
+            case HOSTILE -> Sound.Source.HOSTILE;
+            case NEUTRAL -> Sound.Source.NEUTRAL;
+            case PLAYERS -> Sound.Source.PLAYER;
+            case AMBIENT -> Sound.Source.AMBIENT;
+            case VOICE -> Sound.Source.VOICE;
+            default -> Sound.Source.MASTER;
+        };
     }
 
     /**

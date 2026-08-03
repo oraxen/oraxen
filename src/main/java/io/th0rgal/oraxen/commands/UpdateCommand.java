@@ -53,7 +53,6 @@ public class UpdateCommand {
                             p.getInventory().setItem(i, newItem);
                             updated++;
                         }
-                        p.updateInventory();
                         Message.UPDATED_ITEMS.send(player, AdventureUtils.tagResolver("amount", String.valueOf(updated)),
                                 AdventureUtils.tagResolver("player", p.getDisplayName()));
                     }
