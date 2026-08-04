@@ -91,16 +91,7 @@ public class AdventureUtils {
             return;
         }
 
-        if (VersionUtil.isPaperServer()) {
-            player.playSound(sound, location.getX(), location.getY(), location.getZ());
-            return;
-        }
-
-        try {
-            OraxenPlugin.get().getAudience().player(player).playSound(sound, location.getX(), location.getY(), location.getZ());
-        } catch (Throwable ignored) {
-            player.playSound(sound, location.getX(), location.getY(), location.getZ());
-        }
+        player.playSound(sound, location.getX(), location.getY(), location.getZ());
     }
 
     public static void playSound(Player player, Location location, @Nullable String sound, Sound.Source source, float volume, float pitch) {
@@ -135,16 +126,7 @@ public class AdventureUtils {
     public static void stopSound(Player player, SoundStop soundStop) {
         if (player == null || soundStop == null) return;
 
-        if (VersionUtil.isPaperServer()) {
-            player.stopSound(soundStop);
-            return;
-        }
-
-        try {
-            OraxenPlugin.get().getAudience().player(player).stopSound(soundStop);
-        } catch (Throwable ignored) {
-            player.stopSound(soundStop);
-        }
+        player.stopSound(soundStop);
     }
 
     /**

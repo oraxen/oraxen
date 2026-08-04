@@ -25,9 +25,12 @@ public final class SchedulerUtil {
     /**
      * Returns whether the caller already owns the global execution context.
      * On Folia, region tick threads are not sufficient for global registry mutation.
+     * On non-Folia servers the global context is the main thread; older Paper versions
+     * do not expose {@code Bukkit.isGlobalTickThread()}, so it must only be called on Folia.
      */
     public static boolean isGlobalThread() {
-        return Bukkit.isGlobalTickThread();
+        if (VersionUtil.isFoliaServer()) return Bukkit.isGlobalTickThread();
+        return Bukkit.isPrimaryThread();
     }
 
     /**

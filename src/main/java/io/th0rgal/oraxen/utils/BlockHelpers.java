@@ -275,12 +275,12 @@ public class BlockHelpers {
         }
 
         @Override
-        public byte @NotNull [] serializeToBytes() throws IOException {
+        public byte[] serializeToBytes() throws IOException {
             return pdc.serializeToBytes();
         }
 
         @Override
-        public void readFromBytes(byte @NotNull [] bytes, boolean clear) throws IOException {
+        public void readFromBytes(byte[] bytes, boolean clear) throws IOException {
             pdc.readFromBytes(bytes, clear);
             save();
         }
