@@ -62,8 +62,10 @@ blocklocker = { module = "nl.rutgerkok:blocklocker", version = "1.13-SNAPSHOT" }
 skript = { module = "com.github.SkriptLang:Skript", version = "2.13.2" }
 
 # Iris https://github.com/VolmitSoftware/Iris
-# Repo: JitPack
-iris = { module = "com.github.VolmitSoftware:Iris", version = "6a89b8bd" }
+# Repo: JitPack, via fork https://github.com/miziusArchives/Iris (adds jitpack.yml for Java 21;
+# upstream has no jitpack.yml, so its artifacts can never be rebuilt once JitPack evicts them)
+# Version = master commit (3.9.2) + jitpack.yml + Sentry/publishing fixes for tokenless builds
+iris = { module = "com.github.miziusArchives:Iris", version = "927681394c040d8ffab12d83e517f8560475e6ce" }
 
 #
 # Libraries that are included in MC
