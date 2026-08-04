@@ -37,6 +37,8 @@ public class OraxenMetrics {
 
         // Server information (minecraft_version is provided natively by bStats)
         metrics.addCustomChart(new SimplePie("server_type", OraxenMetrics::detectServerType));
+        metrics.addCustomChart(new DrilldownPie("minecraft_version_per_oraxen_version",
+                () -> getMinecraftVersionByOraxenVersion(plugin)));
 
         // Plugin features
         metrics.addCustomChart(new SingleLineChart("custom_items_count", () -> OraxenItems.getItems().size()));
@@ -106,6 +108,16 @@ public class OraxenMetrics {
             return "Paper";
         }
         return "Other";
+    }
+
+    /**
+     * Gets the current Minecraft and Oraxen versions for the DrilldownPie chart.
+     * Groups by Minecraft version -> Oraxen version.
+     */
+    private static Map<String, Map<String, Integer>> getMinecraftVersionByOraxenVersion(OraxenPlugin plugin) {
+        return Map.of(
+                plugin.getServer().getMinecraftVersion(),
+                Map.of(plugin.getDescription().getVersion(), 1));
     }
 
     /**
