@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import io.th0rgal.oraxen.utils.MultipartBody;
-import io.th0rgal.oraxen.utils.SHA1Utils;
+import io.th0rgal.oraxen.utils.HashUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;
@@ -72,7 +72,7 @@ public class Lobfile implements HostingProvider {
         try (HttpClient httpClient = HttpClient.newBuilder().connectTimeout(CONNECT_TIMEOUT).build()) {
             PackHashes packHashes = calculateHashes(resourcePack);
             sha1 = packHashes.sha1();
-            packUUID = UUID.nameUUIDFromBytes(SHA1Utils.hexToBytes(sha1));
+            packUUID = UUID.nameUUIDFromBytes(HashUtils.hexToBytes(sha1));
 
             MultipartBody body = MultipartBody.create()
                     .addPart("file", resourcePack, buildUploadFileName(uploadPackName), "application/octet-stream")
@@ -128,7 +128,7 @@ public class Lobfile implements HostingProvider {
                 sha256.update(buffer, 0, read);
             }
         }
-        return new PackHashes(SHA1Utils.bytesToHex(sha1.digest()), SHA1Utils.bytesToHex(sha256.digest()));
+        return new PackHashes(HashUtils.bytesToHex(sha1.digest()), HashUtils.bytesToHex(sha256.digest()));
     }
 
     private record PackHashes(String sha1, String sha256) {
@@ -187,7 +187,7 @@ public class Lobfile implements HostingProvider {
 
     @Override
     public byte[] getSHA1() {
-        return sha1 != null ? SHA1Utils.hexToBytes(sha1) : null;
+        return sha1 != null ? HashUtils.hexToBytes(sha1) : null;
     }
 
     @Override

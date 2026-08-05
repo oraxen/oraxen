@@ -82,7 +82,7 @@ public class ItemUtils {
             int finalDamage = damage;
             editItemMeta(itemStack, meta -> {
                 if (meta instanceof Damageable damageable
-                        && EventUtils.callEvent(new PlayerItemDamageEvent(player, itemStack, finalDamage))) {
+                        && new PlayerItemDamageEvent(player, itemStack, finalDamage).callEvent()) {
                     damageable.setDamage(damageable.getDamage() + 1);
                 }
             });

@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.block;
 
 import io.th0rgal.oraxen.mechanics.provided.gameplay.durability.DurabilityMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.durability.DurabilityMechanicFactory;
-import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import org.bukkit.GameMode;
@@ -75,7 +74,7 @@ public final class BlockDurability {
 
     private static void damageItem(Player player, ItemStack item, int amount) {
         PlayerItemDamageEvent damageEvent = new PlayerItemDamageEvent(player, item, amount);
-        if (!EventUtils.callEvent(damageEvent)) return;
+        if (!damageEvent.callEvent()) return;
 
         int damage = damageEvent.getDamage();
         if (damage <= 0 || ItemUtils.isInvalidItem(item)) return;
@@ -87,7 +86,7 @@ public final class BlockDurability {
 
         int newDamage = damageable.getDamage() + damage;
         if (newDamage >= maxDamage) {
-            EventUtils.callEvent(new PlayerItemBreakEvent(player, item));
+            new PlayerItemBreakEvent(player, item).callEvent();
             item.setAmount(0);
             return;
         }

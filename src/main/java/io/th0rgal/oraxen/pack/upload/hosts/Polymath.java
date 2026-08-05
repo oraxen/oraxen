@@ -5,7 +5,7 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.utils.MultipartBody;
-import io.th0rgal.oraxen.utils.SHA1Utils;
+import io.th0rgal.oraxen.utils.HashUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 
 import java.io.File;
@@ -56,7 +56,7 @@ public class Polymath implements HostingProvider {
             if (jsonOutput.has("url") && jsonOutput.has("sha1")) {
                 packUrl = jsonOutput.get("url").getAsString();
                 sha1 = jsonOutput.get("sha1").getAsString();
-                packUUID = UUID.nameUUIDFromBytes(SHA1Utils.hexToBytes(sha1));
+                packUUID = UUID.nameUUIDFromBytes(HashUtils.hexToBytes(sha1));
                 return true;
             }
 
@@ -86,7 +86,7 @@ public class Polymath implements HostingProvider {
 
     @Override
     public byte[] getSHA1() {
-        return SHA1Utils.hexToBytes(sha1);
+        return HashUtils.hexToBytes(sha1);
     }
 
     @Override

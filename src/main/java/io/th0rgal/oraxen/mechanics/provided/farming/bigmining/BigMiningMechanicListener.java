@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.farming.bigmining;
 
 import io.th0rgal.oraxen.utils.BlockHelpers;
-import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.protection.AntiGriefLib;
 import org.bukkit.Location;
@@ -69,7 +68,7 @@ public class BigMiningMechanicListener implements Listener {
         blocksToProcess += 1; // to avoid this method to call itself <- need other way to handle players using
         // the same tool at the same time
         final BlockBreakEvent event = new BlockBreakEvent(block, player);
-        if (!factory.callEvents() || !EventUtils.callEvent(event)) return;
+        if (!factory.callEvents() || !event.callEvent()) return;
         if (event.isDropItems())
             if (VersionUtil.isPaperServer()) block.breakNaturally(itemStack, true);
             else block.breakNaturally();

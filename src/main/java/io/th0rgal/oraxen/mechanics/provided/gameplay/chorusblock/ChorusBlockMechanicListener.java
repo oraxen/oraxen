@@ -18,7 +18,6 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.MultipleFacing;
 import org.bukkit.entity.*;
-import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -210,7 +209,7 @@ public class ChorusBlockMechanicListener implements Listener {
         OraxenChorusBlockInteractEvent interactEvent = new OraxenChorusBlockInteractEvent(
                 mechanic, event.getPlayer(), event.getItem(),
                 event.getHand(), block, event.getBlockFace());
-        if (!EventUtils.callEvent(interactEvent)) {
+        if (!interactEvent.callEvent()) {
             event.setCancelled(true);
             return;
         }
@@ -606,7 +605,7 @@ public class ChorusBlockMechanicListener implements Listener {
             blockPlaceEvent.setCancelled(true);
 
         // Call the event and check if it is cancelled, if so reset BlockData
-        if (!EventUtils.callEvent(blockPlaceEvent) || !blockPlaceEvent.canBuild()) {
+        if (!blockPlaceEvent.callEvent() || !blockPlaceEvent.canBuild()) {
             target.setBlockData(oldData);
             return;
         }
@@ -615,7 +614,7 @@ public class ChorusBlockMechanicListener implements Listener {
 
         OraxenChorusBlockPlaceEvent oraxenPlaceEvent = new OraxenChorusBlockPlaceEvent(mechanic, target, player,
                 item, hand);
-        if (!EventUtils.callEvent(oraxenPlaceEvent)) {
+        if (!oraxenPlaceEvent.callEvent()) {
             target.setBlockData(oldData);
             return;
         }

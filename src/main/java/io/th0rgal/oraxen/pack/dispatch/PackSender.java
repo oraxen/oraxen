@@ -3,7 +3,7 @@ package io.th0rgal.oraxen.pack.dispatch;
 import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
 import io.th0rgal.oraxen.utils.AdventureUtils;
-import io.th0rgal.oraxen.utils.SHA1Utils;
+import io.th0rgal.oraxen.utils.HashUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.audience.Audience;
@@ -73,7 +73,7 @@ public abstract class PackSender {
     private static ResourcePackRequest createResourcePackRequest(UUID uuid, String url, byte[] sha1,
                                                                  net.kyori.adventure.text.Component prompt,
                                                                  boolean mandatory) {
-        String hash = SHA1Utils.bytesToHex(sha1);
+        String hash = HashUtils.bytesToHex(sha1);
         ResourcePackInfo info = ResourcePackInfo.resourcePackInfo(uuid, URI.create(url), hash);
 
         return ResourcePackRequest.resourcePackRequest()

@@ -771,7 +771,7 @@ public class FurnitureMechanic extends Mechanic {
         boolean isRoof = hasLimitedPlacing() && limitedPlacing.isRoof();
         boolean isFixed = hasDisplayEntityProperties() && displayEntityProperties.getDisplayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
         Location correctedLocation = isFixed && (facing == BlockFace.UP || allowWallForLimitedFloor(baseLocation, facing))
-                ? BlockHelpers.toCenterBlockLocation(baseLocation) : BlockHelpers.toCenterLocation(baseLocation);
+                ? BlockHelpers.toCenterBlockLocation(baseLocation) : baseLocation.toCenterLocation();
 
         if (furnitureType != FurnitureType.DISPLAY_ENTITY || !hasDisplayEntityProperties()) return correctedLocation;
         if (displayEntityProperties.getDisplayTransform() != ItemDisplay.ItemDisplayTransform.NONE && !isWall && !isRoof) return correctedLocation;

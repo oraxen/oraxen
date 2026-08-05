@@ -217,7 +217,7 @@ public class FurnitureListener implements Listener {
 
         final OraxenFurniturePlaceEvent furniturePlaceEvent = new OraxenFurniturePlaceEvent(mechanic, block, baseEntity,
                 player, item, hand);
-        if (!EventUtils.callEvent(furniturePlaceEvent)) {
+        if (!furniturePlaceEvent.callEvent()) {
             OraxenFurniture.remove(baseEntity, null);
             block.setBlockData(currentBlockData);
             return;
@@ -325,7 +325,7 @@ public class FurnitureListener implements Listener {
             return;
         OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic, entity, player,
                 entity.getLocation().getBlock());
-        if (!EventUtils.callEvent(furnitureBreakEvent))
+        if (!furnitureBreakEvent.callEvent())
             return;
         if (OraxenFurniture.remove(entity, player, furnitureBreakEvent.getDrop()))
             event.setCancelled(false);
@@ -358,7 +358,7 @@ public class FurnitureListener implements Listener {
         event.setCancelled(true);
         OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic, baseEntity, player,
                 block);
-        if (!EventUtils.callEvent(furnitureBreakEvent))
+        if (!furnitureBreakEvent.callEvent())
             return;
         // If successfully removed, un-cancel the event
         if (OraxenFurniture.remove(block.getLocation(), player, furnitureBreakEvent.getDrop()))
@@ -442,7 +442,7 @@ public class FurnitureListener implements Listener {
 
         ItemStack itemInHand = hand == EquipmentSlot.HAND ? player.getInventory().getItemInMainHand()
                 : player.getInventory().getItemInOffHand();
-        EventUtils.callEvent(new OraxenFurnitureInteractEvent(mechanic, baseEntity, player, itemInHand, hand));
+        new OraxenFurnitureInteractEvent(mechanic, baseEntity, player, itemInHand, hand).callEvent();
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -472,8 +472,8 @@ public class FurnitureListener implements Listener {
         if (baseEntity == null)
             return;
 
-        EventUtils.callEvent(new OraxenFurnitureInteractEvent(mechanic, baseEntity, player, event.getItem(), hand,
-                block, event.getBlockFace()));
+        new OraxenFurnitureInteractEvent(mechanic, baseEntity, player, event.getItem(), hand,
+                block, event.getBlockFace()).callEvent();
     }
 
     private Block blockLockerBlock(FurnitureMechanic mechanic, Entity baseEntity, Block fallback) {

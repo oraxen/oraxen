@@ -5,7 +5,6 @@ import com.google.gson.JsonParser;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.events.OraxenPackGeneratedEvent;
 import io.th0rgal.oraxen.configs.Settings;
-import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.MinecraftVersion;
 import io.th0rgal.oraxen.utils.HashUtils;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
@@ -104,7 +103,7 @@ public class MultiVersionPackGenerator {
 
         // Fire event to allow modifications before generation
         OraxenPackGeneratedEvent event = new OraxenPackGeneratedEvent(output);
-        EventUtils.callEvent(event);
+        event.callEvent();
         output = event.getOutput();
         PackObfuscator.obfuscate(output);
 

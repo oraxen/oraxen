@@ -10,9 +10,9 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSyntaxException;
 import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
-import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import org.apache.commons.io.FilenameUtils;
 import org.bukkit.Material;
 
 import javax.imageio.ImageIO;
@@ -152,7 +152,7 @@ class PackFileCollector {
                         if (!texturePaths.contains(modelPathToPackPath(jsonTexture))) {
                             if (!jsonTexture.startsWith("#") && !jsonTexture.startsWith("item/")
                                     && !jsonTexture.startsWith("block/") && !jsonTexture.startsWith("entity/")) {
-                                if (Material.matchMaterial(Utils.getFileNameOnly(jsonTexture).toUpperCase()) == null) {
+                                if (Material.matchMaterial(FilenameUtils.getBaseName(jsonTexture).toUpperCase()) == null) {
                                     Logs.logWarning("Found invalid texture-path inside model-file <blue>"
                                             + model.getPath() + "</blue>: " + jsonTexture);
                                     Logs.logWarning("Verify that you have a texture in said path.", true);

@@ -15,7 +15,6 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic
 import io.th0rgal.oraxen.mechanics.provided.gameplay.shaped.ShapedBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
-import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.VersionUtil;
@@ -208,7 +207,7 @@ public class BreakerSystem implements Listener {
                     BlockDurability.setSuppressVanillaDamageCancellation(true);
                     boolean canBreak;
                     try {
-                        canBreak = EventUtils.callEvent(new BlockBreakEvent(block, player)) && AntiGriefLib.canBreak(player, location);
+                        canBreak = new BlockBreakEvent(block, player).callEvent() && AntiGriefLib.canBreak(player, location);
                     } finally {
                         BlockDurability.setSuppressVanillaDamageCancellation(false);
                     }

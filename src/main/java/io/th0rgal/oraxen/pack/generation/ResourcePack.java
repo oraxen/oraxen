@@ -227,7 +227,7 @@ public class ResourcePack {
             soundGenerator.generateSound(output);
 
             OraxenPackGeneratedEvent event = new OraxenPackGeneratedEvent(output);
-            EventUtils.callEvent(event);
+            event.callEvent();
             output = event.getOutput();
             PackObfuscator.obfuscate(output);
             writeSinglePackAsync(packWorker, output);

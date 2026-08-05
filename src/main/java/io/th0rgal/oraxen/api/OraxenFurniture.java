@@ -49,7 +49,7 @@ public class OraxenFurniture {
      * @return true if the block is an instance of a Furniture, otherwise false
      */
     public static boolean isFurniture(Block block) {
-        BoundingBox blockBox = BoundingBox.of(BlockHelpers.toCenterLocation(block.getLocation()), 0.5, 0.5, 0.5);
+        BoundingBox blockBox = BoundingBox.of(block.getLocation().toCenterLocation(), 0.5, 0.5, 0.5);
         return (block.getType() == Material.BARRIER && getFurnitureMechanic(block) != null) ||
                 !block.getWorld().getNearbyEntities(blockBox).stream().filter(OraxenFurniture::isFurniture).toList().isEmpty();
     }
@@ -396,7 +396,7 @@ public class OraxenFurniture {
      */
     public static void updateFurniture(@NotNull Entity entity) {
         if (!FurnitureFactory.isEnabled()) return;
-        if (!BlockHelpers.isLoaded(entity.getLocation())) return;
+        if (!entity.getLocation().isChunkLoaded()) return;
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
         if (mechanic == null) return;
         entity = mechanic.getBaseEntity(entity);

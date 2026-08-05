@@ -162,7 +162,7 @@ public class Drop {
     }
 
     public void spawns(Location location, ItemStack itemInHand) {
-        if (!canDrop(itemInHand) || !BlockHelpers.isLoaded(location)) return;
+        if (!canDrop(itemInHand) || !location.isWorldLoaded() || !location.isChunkLoaded()) return;
 
         if (sourceID != null && silktouch
                 && itemInHand.hasItemMeta()
@@ -176,7 +176,7 @@ public class Drop {
         if (sourceID == null || sourceID.isEmpty()) return;
 
         ItemStack baseItem = OraxenItems.getItemById(sourceID).build();
-        Location location = BlockHelpers.toBlockLocation(baseEntity.getLocation());
+        Location location = baseEntity.getLocation().toBlockLocation();
         ItemStack furnitureItem = FurnitureMechanic.getFurnitureItem(baseEntity);
         ItemUtils.editItemMeta(furnitureItem, (itemMeta) -> {
             ItemMeta baseMeta = baseItem.getItemMeta();

@@ -186,7 +186,7 @@ public class StringBlockMechanicListener implements Listener {
         OraxenStringBlockInteractEvent interactEvent = new OraxenStringBlockInteractEvent(
                 mechanic, event.getPlayer(), event.getItem(),
                 event.getHand(), block, event.getBlockFace());
-        if (!EventUtils.callEvent(interactEvent)) {
+        if (!interactEvent.callEvent()) {
             event.setCancelled(true);
             return;
         }
@@ -675,7 +675,7 @@ public class StringBlockMechanicListener implements Listener {
             blockPlaceEvent.setCancelled(true);
 
         // Call the event and check if it is cancelled, if so reset BlockData
-        if (!EventUtils.callEvent(blockPlaceEvent) || !blockPlaceEvent.canBuild()) {
+        if (!blockPlaceEvent.callEvent() || !blockPlaceEvent.canBuild()) {
             target.setBlockData(oldData);
             if (mechanic != null && mechanic.isTall())
                 blockAbove.setBlockData(oldDataAbove);
@@ -687,7 +687,7 @@ public class StringBlockMechanicListener implements Listener {
 
             OraxenStringBlockPlaceEvent oraxenPlaceEvent = new OraxenStringBlockPlaceEvent(mechanic, target, player,
                     item, hand);
-            if (!EventUtils.callEvent(oraxenPlaceEvent)) {
+            if (!oraxenPlaceEvent.callEvent()) {
                 target.setBlockData(oldData);
                 if (mechanic.isTall())
                     blockAbove.setBlockData(oldDataAbove);

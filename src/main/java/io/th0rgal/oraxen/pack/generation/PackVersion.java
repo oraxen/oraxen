@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.pack.generation;
 
-import io.th0rgal.oraxen.utils.SHA1Utils;
+import io.th0rgal.oraxen.utils.HashUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -81,7 +81,7 @@ public class PackVersion implements Comparable<PackVersion> {
      * Returns the SHA1 hash as a lowercase hex string, or null if not set.
      */
     public String getPackSHA1Hex() {
-        return SHA1Utils.bytesToHex(this.packSHA1);
+        return HashUtils.bytesToHex(this.packSHA1);
     }
 
     public void setPackSHA1(byte[] packSHA1) {

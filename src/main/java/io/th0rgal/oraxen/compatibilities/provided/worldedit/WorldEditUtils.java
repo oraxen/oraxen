@@ -98,7 +98,7 @@ public class WorldEditUtils {
                     Location offset = new Location(world, x - origin.x(), y - origin.y(), z - origin.z());
                     Block block = world.getBlockAt(loc.clone().add(offset));
                     if (BlockHelpers.isReplaceable(block)) continue;
-                    if (BlockHelpers.toBlockLocation(loc).equals(BlockHelpers.toBlockLocation(block.getLocation()))) continue;
+                    if (loc.toBlockLocation().equals(block.getLocation().toBlockLocation())) continue;
                     list.add(block);
                 }
             }

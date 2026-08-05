@@ -474,7 +474,7 @@ public class StorageMechanic {
         gui.setCloseGuiAction(event -> {
             if (!canPersistBlockStorage(block, gui)) return;
             storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents());
-            if (hasCloseSound() && BlockHelpers.isLoaded(block.getLocation()))
+            if (hasCloseSound() && block.getLocation().isChunkLoaded())
                 AdventureUtils.playSound(location, closeSound, Sound.Source.MASTER, volume, pitch);
             if (frame != null) playOpenAnimation(frame, closeAnimation);
         });
@@ -536,7 +536,7 @@ public class StorageMechanic {
 
         gui.setCloseGuiAction(event -> {
             persistEntityStorageOnClose(gui, baseEntity, storagePDC, shulker, shulkerPDC);
-            if (hasCloseSound() && BlockHelpers.isLoaded(baseEntity.getLocation()))
+            if (hasCloseSound() && baseEntity.getLocation().isChunkLoaded())
                 AdventureUtils.playSound(location, closeSound, Sound.Source.MASTER, volume, pitch);
             playOpenAnimation(baseEntity, closeAnimation);
         });

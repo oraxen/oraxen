@@ -43,6 +43,7 @@ import io.th0rgal.oraxen.utils.customarmor.CustomArmorListener;
 import io.th0rgal.oraxen.utils.inventories.InvManager;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.oraxen.protection.AntiGriefLib;
+import org.apache.commons.lang3.SystemUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -162,7 +163,7 @@ public class OraxenPlugin extends JavaPlugin {
         new CommandsManager().loadCommands();
         postLoading();
         try {
-            Message.PLUGIN_LOADED.log(AdventureUtils.tagResolver("os", OS.getOs().getPlatformName()));
+            Message.PLUGIN_LOADED.log(AdventureUtils.tagResolver("os", SystemUtils.OS_NAME + " " + SystemUtils.OS_VERSION));
         } catch (Exception ignore) {
         }
         CompatibilitiesManager.enableNativeCompatibilities();

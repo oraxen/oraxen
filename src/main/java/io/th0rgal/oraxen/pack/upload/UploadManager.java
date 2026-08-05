@@ -10,7 +10,6 @@ import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.pack.receive.PackReceiver;
 import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
 import io.th0rgal.oraxen.utils.AdventureUtils;
-import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -56,7 +55,7 @@ public class UploadManager {
         SchedulerUtil.runTaskAsync(() -> {
             if (cancelled) return;
 
-            EventUtils.callEvent(new OraxenPackPreUploadEvent());
+            new OraxenPackPreUploadEvent().callEvent();
             if (cancelled) return;
 
             if (!uploadPack(resourcePack, time)) return;

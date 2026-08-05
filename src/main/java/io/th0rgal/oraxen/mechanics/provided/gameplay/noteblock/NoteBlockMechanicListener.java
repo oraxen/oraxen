@@ -39,8 +39,6 @@ import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
 
 import java.util.*;
 
-import static io.th0rgal.oraxen.utils.BlockHelpers.isLoaded;
-
 public class NoteBlockMechanicListener implements Listener {
 
     public NoteBlockMechanicListener() {
@@ -133,7 +131,7 @@ public class NoteBlockMechanicListener implements Listener {
         @EventHandler(priority = EventPriority.HIGHEST)
         public void onNoteblockPowered(final GenericGameEvent event) {
             Location eventLoc = event.getLocation();
-            if (eventLoc == null || !isLoaded(eventLoc)) return;
+            if (eventLoc == null || !eventLoc.isWorldLoaded() || !eventLoc.isChunkLoaded()) return;
             
             Block block = eventLoc.getBlock();
             if (block == null) return;
@@ -165,7 +163,7 @@ public class NoteBlockMechanicListener implements Listener {
         if (event.getClickedBlock().getType() != Material.NOTE_BLOCK) return;
         NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
         if (mechanic == null) return;
-        if (!EventUtils.callEvent(new OraxenNoteBlockInteractEvent(mechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace(), event.getAction())))
+        if (!new OraxenNoteBlockInteractEvent(mechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace(), event.getAction()).callEvent())
             event.setUseInteractedBlock(Event.Result.DENY);
     }
 
@@ -378,7 +376,7 @@ public class NoteBlockMechanicListener implements Listener {
         if (!mechanic.canIgnite()) return;
         if (item.getType() != Material.FLINT_AND_STEEL && item.getType() != Material.FIRE_CHARGE) return;
 
-        EventUtils.callEvent(new BlockIgniteEvent(block, BlockIgniteEvent.IgniteCause.FLINT_AND_STEEL, event.getPlayer()));
+        new BlockIgniteEvent(block, BlockIgniteEvent.IgniteCause.FLINT_AND_STEEL, event.getPlayer()).callEvent();
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -494,7 +492,7 @@ public class NoteBlockMechanicListener implements Listener {
                 blockPlaceEvent.setCancelled(true);
 
             // Call the event and check if it is cancelled, if so reset BlockData
-            if (!EventUtils.callEvent(blockPlaceEvent) || !blockPlaceEvent.canBuild()) {
+            if (!blockPlaceEvent.callEvent() || !blockPlaceEvent.canBuild()) {
                 target.setBlockData(oldData);
                 return;
             }
@@ -506,7 +504,7 @@ public class NoteBlockMechanicListener implements Listener {
             OraxenBlocks.place(targetOraxen.getItemID(), target.getLocation());
 
             OraxenNoteBlockPlaceEvent oraxenPlaceEvent = new OraxenNoteBlockPlaceEvent(targetOraxen, target, player, item, hand);
-            if (!EventUtils.callEvent(oraxenPlaceEvent)) {
+            if (!oraxenPlaceEvent.callEvent()) {
                 target.setBlockData(oldData);
                 return;
             }

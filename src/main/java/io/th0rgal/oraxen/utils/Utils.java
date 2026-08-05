@@ -5,9 +5,6 @@ import org.bukkit.Color;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -22,7 +19,12 @@ public class Utils {
 
     public static Color toColor(String string) {
         if (string.startsWith("#") || string.startsWith("0x")) {
-            return Color.fromRGB(Integer.parseInt(string.substring(1), 16));
+            try {
+                // Integer#decode understands both the "#" and "0x" prefixes
+                return Color.fromRGB(Integer.decode(string));
+            } catch (IllegalArgumentException e) {
+                return Color.WHITE;
+            }
         }
         else if (string.contains(",")) {
             String[] newString = string.replace(", ", ",").split(",", 3);
@@ -64,72 +66,6 @@ public class Utils {
 
     public static long getVersion(final String format) {
         return Long.parseLong(OffsetDateTime.now().format(DateTimeFormatter.ofPattern(format)));
-    }
-
-    public static String getParentDirs(String string) {
-        return Utils.getStringBeforeLastInSplit(string, "/");
-    }
-
-    public static String removeParentDirs(String s) {
-        return Utils.getLastStringInSplit(s, "/");
-    }
-
-    /**
-     * Removes extension AND parent directories
-     * @param s The path or filename including extension
-     * @return Purely the filename, no extension or path
-     */
-    public static String removeExtension(String s) {
-
-        String separator = System.getProperty("file.separator");
-        String filename;
-
-        // Remove the path upto the filename.
-        int lastSeparatorIndex = s.lastIndexOf(separator);
-        if (lastSeparatorIndex == -1) filename = s;
-        else filename = s.substring(lastSeparatorIndex + 1);
-
-        // Remove the extension.
-        int extensionIndex = filename.lastIndexOf(".");
-        if (extensionIndex == -1)
-            return filename;
-
-        return filename.substring(0, extensionIndex);
-    }
-
-    public static String removeExtensionOnly(String s) {
-        // Remove the extension.
-        int extensionIndex = s.lastIndexOf(".");
-        if (extensionIndex == -1)
-            return s;
-
-        return s.substring(0, extensionIndex);
-    }
-
-    public static String getFileNameOnly(String s) {
-        s = Utils.removeParentDirs(s);
-        s = Utils.removeExtensionOnly(s);
-        return s;
-    }
-
-    public static String getLastStringInSplit(String string, String split) {
-        String[] splitString = string.split(split);
-        return splitString.length > 0 ? splitString[splitString.length - 1] : "";
-    }
-
-    public static String getStringBeforeLastInSplit(String string, String split) {
-        String[] splitString = string.split(split);
-        if (splitString.length == 0) return string;
-        else return string.replace(splitString[splitString.length - 1], "");
-    }
-
-    public static void writeStringToFile(final File file, final String content) {
-        file.getParentFile().mkdirs();
-        try (final FileWriter writer = new FileWriter(file)) {
-            writer.write(content);
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
     }
 
     public static char firstEmpty(Map<String, Character> map, int min) {

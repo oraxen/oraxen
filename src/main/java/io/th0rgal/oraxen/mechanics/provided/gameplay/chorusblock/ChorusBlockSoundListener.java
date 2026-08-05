@@ -19,8 +19,6 @@ import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.world.GenericGameEvent;
 
-import static io.th0rgal.oraxen.utils.BlockHelpers.isLoaded;
-
 public class ChorusBlockSoundListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -70,7 +68,7 @@ public class ChorusBlockSoundListener implements Listener {
         Entity entity = event.getEntity();
         if (!(entity instanceof LivingEntity)) return;
         Location entityLoc = entity.getLocation();
-        if (entityLoc == null || !isLoaded(entityLoc)) return;
+        if (entityLoc == null || !entityLoc.isWorldLoaded() || !entityLoc.isChunkLoaded()) return;
 
         GameEvent gameEvent = event.getEvent();
         if (gameEvent == null) return;

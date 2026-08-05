@@ -27,7 +27,6 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.Sapling
 import io.th0rgal.oraxen.mechanics.provided.gameplay.togglelight.ToggleLightMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.togglelight.ToggleLightMechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
-import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.drops.Drop;
@@ -382,7 +381,7 @@ public class OraxenBlocks {
         if (player != null) {
             E event = breakEvent.apply(mechanic, player);
             setEventDrop.accept(event, drop);
-            if (!EventUtils.callEvent(event)) return false;
+            if (!event.callEvent()) return false;
             drop = resolveDropAfterEvent(player, getEventDrop.apply(event), overrideDrop != null);
             sendBreakEffects(block, player);
             BlockDurability.applyConfigured(player, itemInHand, getDurabilityAction(mechanic, itemInHand));
@@ -515,7 +514,7 @@ public class OraxenBlocks {
         if (player != null) {
             OraxenShapedBlockBreakEvent event = new OraxenShapedBlockBreakEvent(mechanic, block, player);
             event.setDrop(drop);
-            if (!EventUtils.callEvent(event)) return false;
+            if (!event.callEvent()) return false;
             drop = resolveDropAfterEvent(player, event.getDrop(), overrideDrop != null);
             sendBreakEffects(block, player);
             BlockDurability.applyConfigured(player, itemInHand, mechanic.getDurabilityAction(itemInHand));

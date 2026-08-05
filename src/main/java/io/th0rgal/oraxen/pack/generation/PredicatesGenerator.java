@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenMeta;
 import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.Utils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Material;
 import org.bukkit.Tag;
@@ -211,8 +212,8 @@ public class PredicatesGenerator {
             final JsonObject textureJson = new JsonObject();
             textureJson.addProperty("layer0", texture);
             json.add("textures", textureJson);
-            ResourcePack.writeStringToVirtual(OraxenMeta.getModelPath(Utils.getParentDirs(texture)),
-                    Utils.getFileNameOnly(texture) + ".json", json.toString());
+            ResourcePack.writeStringToVirtual(OraxenMeta.getModelPath(FilenameUtils.getFullPath(texture)),
+                    FilenameUtils.getBaseName(texture) + ".json", json.toString());
         }
     }
 
@@ -224,8 +225,8 @@ public class PredicatesGenerator {
         final JsonObject textureJson = new JsonObject();
         textureJson.addProperty("layer0", oraxenMeta.getChargedTexture());
         json.add("textures", textureJson);
-        ResourcePack.writeStringToVirtual(OraxenMeta.getModelPath(Utils.getParentDirs(oraxenMeta.getChargedTexture())),
-                Utils.getFileNameOnly(oraxenMeta.getChargedTexture()) + ".json", json.toString());
+        ResourcePack.writeStringToVirtual(OraxenMeta.getModelPath(FilenameUtils.getFullPath(oraxenMeta.getChargedTexture())),
+                FilenameUtils.getBaseName(oraxenMeta.getChargedTexture()) + ".json", json.toString());
     }
 
     public static void generateBlockingModels(OraxenMeta oraxenMeta) {
@@ -236,8 +237,8 @@ public class PredicatesGenerator {
         final JsonObject textureJson = new JsonObject();
         textureJson.addProperty("layer0", oraxenMeta.getBlockingTexture());
         json.add("textures", textureJson);
-        ResourcePack.writeStringToVirtual(OraxenMeta.getModelPath(Utils.getParentDirs(oraxenMeta.getBlockingTexture())),
-                Utils.getFileNameOnly(oraxenMeta.getBlockingTexture()) + ".json", json.toString());
+        ResourcePack.writeStringToVirtual(OraxenMeta.getModelPath(FilenameUtils.getFullPath(oraxenMeta.getBlockingTexture())),
+                FilenameUtils.getBaseName(oraxenMeta.getBlockingTexture()) + ".json", json.toString());
     }
 
     public static void generateFireworkModels(OraxenMeta oraxenMeta) {
@@ -248,8 +249,8 @@ public class PredicatesGenerator {
         final JsonObject textureJson = new JsonObject();
         textureJson.addProperty("layer0", oraxenMeta.getFireworkTexture());
         json.add("textures", textureJson);
-        ResourcePack.writeStringToVirtual(OraxenMeta.getModelPath(Utils.getParentDirs(oraxenMeta.getFireworkTexture())),
-                Utils.getFileNameOnly(oraxenMeta.getFireworkTexture()) + ".json", json.toString());
+        ResourcePack.writeStringToVirtual(OraxenMeta.getModelPath(FilenameUtils.getFullPath(oraxenMeta.getFireworkTexture())),
+                FilenameUtils.getBaseName(oraxenMeta.getFireworkTexture()) + ".json", json.toString());
     }
 
     public static void generateCastModels(OraxenMeta oraxenMeta) {
@@ -260,8 +261,8 @@ public class PredicatesGenerator {
         final JsonObject textureJson = new JsonObject();
         textureJson.addProperty("layer0", oraxenMeta.getCastTexture());
         json.add("textures", textureJson);
-        ResourcePack.writeStringToVirtual(OraxenMeta.getModelPath(Utils.getParentDirs(oraxenMeta.getCastTexture())),
-                Utils.getFileNameOnly(oraxenMeta.getCastTexture()) + ".json", json.toString());
+        ResourcePack.writeStringToVirtual(OraxenMeta.getModelPath(FilenameUtils.getFullPath(oraxenMeta.getCastTexture())),
+                FilenameUtils.getBaseName(oraxenMeta.getCastTexture()) + ".json", json.toString());
     }
 
     public static void generateDamageModels(OraxenMeta oraxenMeta) {
@@ -273,8 +274,8 @@ public class PredicatesGenerator {
             final JsonObject textureJson = new JsonObject();
             textureJson.addProperty("layer0", texture);
             json.add("textures", textureJson);
-            ResourcePack.writeStringToVirtual(OraxenMeta.getModelPath(Utils.getParentDirs(texture)),
-                    Utils.getFileNameOnly(texture) + ".json", json.toString());
+            ResourcePack.writeStringToVirtual(OraxenMeta.getModelPath(FilenameUtils.getFullPath(texture)),
+                    FilenameUtils.getBaseName(texture) + ".json", json.toString());
         }
     }
 

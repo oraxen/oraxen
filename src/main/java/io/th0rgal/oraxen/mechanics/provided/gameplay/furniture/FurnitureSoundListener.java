@@ -29,7 +29,6 @@ import org.bukkit.event.world.WorldUnloadEvent;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static io.th0rgal.oraxen.utils.BlockHelpers.isLoaded;
 import static io.th0rgal.oraxen.utils.blocksounds.BlockSounds.*;
 
 public class FurnitureSoundListener implements Listener {
@@ -109,7 +108,7 @@ public class FurnitureSoundListener implements Listener {
         Location eventLoc = event.getLocation();
         Location entityLoc = entity.getLocation();
         if (eventLoc == null || entityLoc == null || eventLoc.getWorld() == null || entityLoc.getWorld() == null) return;
-        if (!eventLoc.getWorld().equals(entityLoc.getWorld()) || !isLoaded(eventLoc)) return;
+        if (!eventLoc.getWorld().equals(entityLoc.getWorld()) || !eventLoc.isChunkLoaded()) return;
 
         GameEvent gameEvent = event.getEvent();
         if (gameEvent == null) return;

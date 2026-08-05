@@ -64,7 +64,7 @@ public class BlockHelpers {
     }
 
     public static void playCustomBlockSound(Location location, String sound, float volume, float pitch) {
-        playCustomBlockSound(toCenterLocation(location), sound, SoundCategory.BLOCKS, volume, pitch);
+        playCustomBlockSound(location.toCenterLocation(), sound, SoundCategory.BLOCKS, volume, pitch);
     }
 
     public static void playCustomBlockSound(Location location, String sound, SoundCategory category, float volume, float pitch) {
@@ -85,31 +85,16 @@ public class BlockHelpers {
         } else return sound;
     }
 
-    public static Location toBlockLocation(Location location) {
-        Location blockLoc = location.clone();
-        blockLoc.setX(location.getBlockX());
-        blockLoc.setY(location.getBlockY());
-        blockLoc.setZ(location.getBlockZ());
-        return blockLoc;
-    }
-
-    public static Location toCenterLocation(Location location) {
-        Location centerLoc = location.clone();
-        centerLoc.setX(location.getBlockX() + 0.5);
-        centerLoc.setY(location.getBlockY() + 0.5);
-        centerLoc.setZ(location.getBlockZ() + 0.5);
-        return centerLoc;
-    }
-
+    /** Centered on the block horizontally, but at the bottom of the block vertically. */
     public static Location toCenterBlockLocation(Location location) {
-        return toCenterLocation(location).subtract(0,0.5,0);
+        return location.toCenterLocation().subtract(0, 0.5, 0);
     }
 
     public static boolean isStandingInside(final Player player, final Block block) {
         if (player == null || block == null) return false;
         // Since the block might be AIR, Block#getBoundingBox returns an empty one
         // Get the block-center and expand it 0.5 to cover the block
-        BoundingBox blockBox = BoundingBox.of(BlockHelpers.toCenterLocation(block.getLocation()), 0.5, 0.5, 0.5);
+        BoundingBox blockBox = BoundingBox.of(block.getLocation().toCenterLocation(), 0.5, 0.5, 0.5);
 
         return !block.getWorld().getNearbyEntities(blockBox).stream()
                 .filter(e -> e instanceof LivingEntity && (!(e instanceof Player p) || p.getGameMode() != GameMode.SPECTATOR))
@@ -348,18 +333,6 @@ public class BlockHelpers {
 
         Block target = placedAgainst.getRelative(face);
         if (target.getState() instanceof Sign sign) player.openSign(sign, Side.FRONT);
-    }
-
-    /*
-     * Calling loc.getChunk() will crash a Paper 1.19 build 62-66 (possibly more) Server if the Chunk does not exist.
-     * Instead, get Chunk location and check with World.isChunkLoaded() if the Chunk is loaded.
-     */
-    public static boolean isLoaded(World world, Location loc) {
-        return world.isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4);
-    }
-
-    public static boolean isLoaded(Location loc) {
-        return loc.getWorld() != null && isLoaded(loc.getWorld(), loc);
     }
 
 }
