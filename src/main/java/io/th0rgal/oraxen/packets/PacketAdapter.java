@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.packets;
 
-import io.th0rgal.oraxen.mechanics.provided.gameplay.efficiency.EfficiencyMechanicFactory;
 import io.th0rgal.oraxen.utils.PluginUtils;
 import io.th0rgal.oraxen.utils.ResourcePackFormatUtil;
 import io.th0rgal.oraxen.utils.SnapshotVersion;
@@ -37,7 +36,6 @@ public interface PacketAdapter {
     void registerTitleListener();
     void removeInventoryListener();
     void removeTitleListener();
-    void reregisterEfficencyMechanicListener(EfficiencyMechanicFactory efficiencyMechanicFactory);
 
     String getLatestMCVersion();
     boolean isNewer(SnapshotVersion snapshot);
@@ -73,11 +71,6 @@ public interface PacketAdapter {
 
         @Override
         public void removeTitleListener() {
-
-        }
-
-        @Override
-        public void reregisterEfficencyMechanicListener(EfficiencyMechanicFactory efficiencyMechanicFactory) {
 
         }
 

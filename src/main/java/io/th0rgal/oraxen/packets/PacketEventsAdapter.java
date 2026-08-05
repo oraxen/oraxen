@@ -6,11 +6,9 @@ import com.github.retrooper.packetevents.event.PacketListenerCommon;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.efficiency.EfficiencyMechanicFactory;
 import io.th0rgal.oraxen.packets.packetevents.InventoryPacketListener;
 import io.th0rgal.oraxen.packets.packetevents.ScoreboardPacketListener;
 import io.th0rgal.oraxen.packets.packetevents.TitlePacketListener;
-import io.th0rgal.oraxen.packets.packetevents.mechanics.provided.gameplay.efficiency.EfficiencyMechanicListener;
 import io.th0rgal.oraxen.utils.SnapshotVersion;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Nullable;
@@ -20,8 +18,6 @@ public class PacketEventsAdapter implements PacketAdapter {
 
     private PacketListenerCommon titlePacketListener;
     private PacketListenerCommon inventoryPacketListener;
-
-    private PacketListenerCommon efficiencyMechanicListener;
 
     @Override
     public boolean isEnabled() {
@@ -67,13 +63,6 @@ public class PacketEventsAdapter implements PacketAdapter {
         if(titlePacketListener != null)
             PacketEvents.getAPI().getEventManager().unregisterListener(titlePacketListener);
         titlePacketListener = null;
-    }
-
-    @Override
-    public void reregisterEfficencyMechanicListener(EfficiencyMechanicFactory efficiencyMechanicFactory) {
-        if (efficiencyMechanicListener != null)
-            PacketEvents.getAPI().getEventManager().unregisterListener(efficiencyMechanicListener);
-        efficiencyMechanicListener =register(new EfficiencyMechanicListener(efficiencyMechanicFactory), PacketListenerPriority.LOW);
     }
 
     @Override
