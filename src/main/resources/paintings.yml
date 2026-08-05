@@ -1,4 +1,4 @@
-# Defines custom painting variants injected through NMS on Paper 1.21.5+.
+# Defines custom painting variants registered during Paper bootstrap on 1.21.3+.
 # Texture assets are resolved as assets/<namespace>/textures/painting/<path>.png.
 # Title and author support MiniMessage formatting.
 #

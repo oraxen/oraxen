@@ -312,6 +312,7 @@ tasks.register<JavaExec>("runPackMergerDebug") {
 paper {
     load = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.PluginLoadOrder.POSTWORLD
     main = "io.th0rgal.oraxen.OraxenPlugin"
+    bootstrapper = "io.th0rgal.oraxen.OraxenPluginBootstrap"
     loader = "io.th0rgal.oraxen.OraxenPluginLoader"
     version = pluginVersion
     name = "Oraxen"

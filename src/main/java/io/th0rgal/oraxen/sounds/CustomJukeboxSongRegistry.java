@@ -37,6 +37,10 @@ public final class CustomJukeboxSongRegistry {
         throw new IllegalStateException("Utility class");
     }
 
+    public static void trackManagedSongIds(Collection<String> managedSongIds) {
+        rememberManagedSongIds(managedSongIds);
+    }
+
     public static void reload(Collection<CustomSound> sounds) {
         List<CustomSound> snapshot = List.copyOf(sounds);
         if (!SchedulerUtil.isGlobalThread()) {
@@ -135,7 +139,7 @@ public final class CustomJukeboxSongRegistry {
     }
 
     private static boolean supportsCustomJukeboxSongs() {
-        return VersionUtil.atOrAbove("1.21.5") && VersionUtil.isPaperServer();
+        return VersionUtil.atOrAbove("1.21.6") && VersionUtil.isPaperServer();
     }
 
     static boolean usesDatapackFallback(boolean supportsHotInjection) {

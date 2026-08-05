@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CustomJukeboxSongRegistryTest {
 
     @Test
-    void retainsDatapackFallbackUntilHotInjectionIsSupported() {
+    void usesDatapackFallbackWhenHotInjectionIsUnavailable() {
         assertTrue(CustomJukeboxSongRegistry.usesDatapackFallback(false));
         assertFalse(CustomJukeboxSongRegistry.usesDatapackFallback(true));
     }

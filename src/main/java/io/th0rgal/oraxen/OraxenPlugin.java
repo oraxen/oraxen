@@ -22,6 +22,7 @@ import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.pack.dispatch.PackLoadingManager;
+import io.th0rgal.oraxen.pack.generation.LegacyDatapackCleaner;
 import io.th0rgal.oraxen.pack.generation.PackVersionManager;
 import io.th0rgal.oraxen.paintings.CustomPainting;
 import io.th0rgal.oraxen.paintings.CustomPaintingListener;
@@ -130,7 +131,7 @@ public class OraxenPlugin extends JavaPlugin {
             Bukkit.getPluginManager().registerEvents(new CustomBlockMiningListener(), this);
         }
         NMSHandlers.setup();
-        reloadCustomPaintings();
+        LegacyDatapackCleaner.clear("oraxen_paintings");
 
         // Auto-update Paper config for block updates (noteblock, tripwire, chorus)
         var updatedSettings = PaperConfigUpdater.ensureAllBlockUpdatesDisabled();
@@ -142,7 +143,7 @@ public class OraxenPlugin extends JavaPlugin {
         MechanicsManager.registerNativeMechanics();
         hudManager = new HudManager(configsManager);
         fontManager = new FontManager(configsManager);
-        reloadCustomJukeboxSongs();
+        initializeSoundManager();
         OraxenItems.loadItems();
         fontManager.registerEvents();
         fontManager.verifyRequired(); // Verify the required glyph is there
@@ -227,14 +228,20 @@ public class OraxenPlugin extends JavaPlugin {
         resourceManager = new ResourcesManager(this);
     }
 
+    private void initializeSoundManager() {
+        soundManager = new SoundManager(configsManager.getSound());
+        soundManager.updateLegacyJukeboxDatapack();
+    }
+
     public void reloadCustomPaintings() {
         CustomPaintingRegistry.reload(CustomPainting.fromConfigSection(
                 configsManager.getPaintings().getConfigurationSection("paintings")));
     }
 
     public void reloadCustomJukeboxSongs() {
-        soundManager = new SoundManager(configsManager.getSound());
-        CustomJukeboxSongRegistry.reload(soundManager.getJukeboxSounds());
+        initializeSoundManager();
+        if (VersionUtil.atOrAbove("1.21.6"))
+            CustomJukeboxSongRegistry.reload(soundManager.getJukeboxSounds());
     }
 
     public ConfigsManager getConfigsManager() {
