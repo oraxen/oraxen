@@ -209,6 +209,18 @@ public final class SchedulerUtil {
 
     /**
      * Runs a task for a specific entity after the specified delay in ticks.
+     * If the entity is retired before execution, the task is silently skipped.
+     *
+     * @param entity     The entity to schedule the task for
+     * @param delayTicks The delay in ticks
+     * @param runnable   The task to run
+     */
+    public static ScheduledTask runForEntityLater(Entity entity, long delayTicks, Runnable runnable) {
+        return runForEntityLater(OraxenPlugin.get(), entity, delayTicks, runnable, null);
+    }
+
+    /**
+     * Runs a task for a specific entity after the specified delay in ticks.
      */
     public static ScheduledTask runForEntityLater(Entity entity, long delayTicks, Runnable runnable, Runnable retired) {
         return runForEntityLater(OraxenPlugin.get(), entity, delayTicks, runnable, retired);

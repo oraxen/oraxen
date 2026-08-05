@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.cosmetic.backpack;
 
 import io.th0rgal.oraxen.nms.NMSHandlers;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -86,14 +87,7 @@ public class BackpackCosmeticManager {
         BackpackData data = activeBackpacks.get(player.getUniqueId());
         if (data == null) return;
 
-        // Only need to update rotation - mounting handles position automatically
-        float bodyYaw = player.getBodyYaw();
-        for (UUID viewerId : data.getViewers()) {
-            Player viewer = Bukkit.getPlayer(viewerId);
-            if (viewer != null && viewer.isOnline()) {
-                NMSHandlers.getHandler().sendEntityHeadRotation(viewer, data.getEntityId(), bodyYaw);
-            }
-        }
+        updateBackpackRotation(player, data);
     }
 
     /**
@@ -105,15 +99,23 @@ public class BackpackCosmeticManager {
             Player owner = Bukkit.getPlayer(entry.getKey());
             if (owner == null || !owner.isOnline()) continue;
 
+            // Reading the owner's body yaw is entity state, so hop to the thread that owns them
             BackpackData data = entry.getValue();
-            float bodyYaw = owner.getBodyYaw();
+            SchedulerUtil.runForEntity(owner, () -> {
+                // The backpack may have been hidden or replaced while this hop was queued
+                if (activeBackpacks.get(owner.getUniqueId()) != data) return;
+                updateBackpackRotation(owner, data);
+            });
+        }
+    }
 
-            // Only update rotation - mounting handles position automatically
-            for (UUID viewerId : data.getViewers()) {
-                Player viewer = Bukkit.getPlayer(viewerId);
-                if (viewer != null && viewer.isOnline()) {
-                    NMSHandlers.getHandler().sendEntityHeadRotation(viewer, data.getEntityId(), bodyYaw);
-                }
+    private void updateBackpackRotation(Player owner, BackpackData data) {
+        // Only need to update rotation - mounting handles position automatically
+        float bodyYaw = owner.getBodyYaw();
+        for (UUID viewerId : data.getViewers()) {
+            Player viewer = Bukkit.getPlayer(viewerId);
+            if (viewer != null && viewer.isOnline()) {
+                NMSHandlers.getHandler().sendEntityHeadRotation(viewer, data.getEntityId(), bodyYaw);
             }
         }
     }
@@ -178,50 +180,60 @@ public class BackpackCosmeticManager {
                 continue;
             }
 
+            // Viewer refreshes read the owner's world, location and passengers, so they must run
+            // on the thread that owns the owner rather than on the global region thread
             BackpackData data = entry.getValue();
-            BackpackCosmeticMechanic mechanic = data.getMechanic();
-            int viewDistance = mechanic.getViewDistance();
-            boolean viewersChanged = false;
+            SchedulerUtil.runForEntity(owner, () -> {
+                // The backpack may have been hidden or replaced while this hop was queued
+                if (activeBackpacks.get(owner.getUniqueId()) != data) return;
+                refreshViewers(owner, data);
+            });
+        }
+    }
 
-            // Also ensure owner can see their own backpack if enabled
-            if (mechanic.isVisibleToSelf() && !data.getViewers().contains(owner.getUniqueId())) {
-                spawnBackpackForViewer(owner, owner, data);
-                data.addViewer(owner.getUniqueId());
+    private void refreshViewers(Player owner, BackpackData data) {
+        BackpackCosmeticMechanic mechanic = data.getMechanic();
+        int viewDistance = mechanic.getViewDistance();
+        boolean viewersChanged = false;
+
+        // Also ensure owner can see their own backpack if enabled
+        if (mechanic.isVisibleToSelf() && !data.getViewers().contains(owner.getUniqueId())) {
+            spawnBackpackForViewer(owner, owner, data);
+            data.addViewer(owner.getUniqueId());
+            viewersChanged = true;
+        }
+
+        // Find new viewers
+        for (Player potentialViewer : owner.getWorld().getPlayers()) {
+            if (potentialViewer.equals(owner)) continue;
+
+            boolean inRange = isWithinViewDistance(potentialViewer, owner, viewDistance);
+            boolean isViewer = data.getViewers().contains(potentialViewer.getUniqueId());
+
+            if (inRange && !isViewer) {
+                spawnBackpackForViewer(potentialViewer, owner, data);
+                data.addViewer(potentialViewer.getUniqueId());
+                viewersChanged = true;
+            } else if (!inRange && isViewer) {
+                data.getViewers().remove(potentialViewer.getUniqueId());
+                NMSHandlers.getHandler().sendEntityDestroy(potentialViewer, data.getEntityId());
                 viewersChanged = true;
             }
+        }
 
-            // Find new viewers
-            for (Player potentialViewer : owner.getWorld().getPlayers()) {
-                if (potentialViewer.equals(owner)) continue;
+        // Remove offline viewers
+        viewersChanged |= data.getViewers().removeIf(viewerId -> {
+            Player viewer = Bukkit.getPlayer(viewerId);
+            return viewer == null || !viewer.isOnline();
+        });
 
-                boolean inRange = isWithinViewDistance(potentialViewer, owner, viewDistance);
-                boolean isViewer = data.getViewers().contains(potentialViewer.getUniqueId());
-
-                if (inRange && !isViewer) {
-                    spawnBackpackForViewer(potentialViewer, owner, data);
-                    data.addViewer(potentialViewer.getUniqueId());
-                    viewersChanged = true;
-                } else if (!inRange && isViewer) {
-                    data.getViewers().remove(potentialViewer.getUniqueId());
-                    NMSHandlers.getHandler().sendEntityDestroy(potentialViewer, data.getEntityId());
-                    viewersChanged = true;
-                }
-            }
-
-            // Remove offline viewers
-            viewersChanged |= data.getViewers().removeIf(viewerId -> {
-                Player viewer = Bukkit.getPlayer(viewerId);
-                return viewer == null || !viewer.isOnline();
-            });
-
-            // Only resync mount packets when the viewer set or passenger list actually changed;
-            // periodic resyncs every tick are an O(N*M) packet storm.
-            int[] currentPassengers = getMergedPassengerIds(owner, data.getEntityId());
-            if (viewersChanged || data.consumeNeedsResync()
-                    || !Arrays.equals(currentPassengers, data.getLastSyncedPassengers())) {
-                resyncBackpackMount(owner);
-                data.setLastSyncedPassengers(currentPassengers);
-            }
+        // Only resync mount packets when the viewer set or passenger list actually changed;
+        // periodic resyncs every tick are an O(N*M) packet storm.
+        int[] currentPassengers = getMergedPassengerIds(owner, data.getEntityId());
+        if (viewersChanged || data.consumeNeedsResync()
+                || !Arrays.equals(currentPassengers, data.getLastSyncedPassengers())) {
+            resyncBackpackMount(owner);
+            data.setLastSyncedPassengers(currentPassengers);
         }
     }
 

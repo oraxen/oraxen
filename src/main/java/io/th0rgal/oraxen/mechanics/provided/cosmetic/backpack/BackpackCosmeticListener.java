@@ -54,7 +54,7 @@ public class BackpackCosmeticListener implements Listener {
         Player player = event.getPlayer();
 
         // Check if player has backpack item equipped
-        SchedulerUtil.runTaskLater(5L, () -> checkAndUpdateBackpack(player));
+        SchedulerUtil.runForEntityLater(player, 5L, () -> checkAndUpdateBackpack(player));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -74,7 +74,7 @@ public class BackpackCosmeticListener implements Listener {
         Player player = event.getPlayer();
 
         // Re-check equipment after respawn
-        SchedulerUtil.runTaskLater(5L, () -> checkAndUpdateBackpack(player));
+        SchedulerUtil.runForEntityLater(player, 5L, () -> checkAndUpdateBackpack(player));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -83,7 +83,7 @@ public class BackpackCosmeticListener implements Listener {
 
         // Hide backpack first, then re-show after world change
         manager.hideBackpack(player);
-        SchedulerUtil.runTaskLater(5L, () -> checkAndUpdateBackpack(player));
+        SchedulerUtil.runForEntityLater(player, 5L, () -> checkAndUpdateBackpack(player));
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -93,7 +93,7 @@ public class BackpackCosmeticListener implements Listener {
         // Check if clicking in player's inventory
         if (event.getClickedInventory() instanceof PlayerInventory) {
             // Delay check to after the inventory update
-            SchedulerUtil.runTaskLater(1L, () -> checkAndUpdateBackpack(player));
+            SchedulerUtil.runForEntityLater(player, 1L, () -> checkAndUpdateBackpack(player));
         }
     }
 
@@ -103,7 +103,8 @@ public class BackpackCosmeticListener implements Listener {
         if (event.getAction().toString().contains("RIGHT_CLICK")) {
             ItemStack item = event.getItem();
             if (item != null && isArmorItem(item)) {
-                SchedulerUtil.runTaskLater(1L, () -> checkAndUpdateBackpack(event.getPlayer()));
+                Player player = event.getPlayer();
+                SchedulerUtil.runForEntityLater(player, 1L, () -> checkAndUpdateBackpack(player));
             }
         }
     }
@@ -133,7 +134,7 @@ public class BackpackCosmeticListener implements Listener {
     public void onEntityToggleGlide(EntityToggleGlideEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
 
-        SchedulerUtil.runTaskLater(1L, () -> checkAndUpdateBackpack(player));
+        SchedulerUtil.runForEntityLater(player, 1L, () -> checkAndUpdateBackpack(player));
     }
 
     /**
@@ -199,8 +200,8 @@ public class BackpackCosmeticListener implements Listener {
     // passenger-list updates the client uses; the second pass is a safety net for that race.
     private void scheduleBackpackMountResync(Player player) {
         manager.requestResync(player);
-        SchedulerUtil.runTaskLater(1L, () -> manager.resyncBackpackMount(player));
-        SchedulerUtil.runTaskLater(2L, () -> manager.resyncBackpackMount(player));
+        SchedulerUtil.runForEntityLater(player, 1L, () -> manager.resyncBackpackMount(player));
+        SchedulerUtil.runForEntityLater(player, 2L, () -> manager.resyncBackpackMount(player));
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -216,7 +217,7 @@ public class BackpackCosmeticListener implements Listener {
                 manager.hideBackpack(player);
             } else if (player.getGameMode() == GameMode.SPECTATOR) {
                 // Re-show when leaving spectator
-                SchedulerUtil.runTaskLater(1L, () -> checkAndUpdateBackpack(player));
+                SchedulerUtil.runForEntityLater(player, 1L, () -> checkAndUpdateBackpack(player));
             }
         }
     }
@@ -225,25 +226,28 @@ public class BackpackCosmeticListener implements Listener {
     public void onItemPickup(EntityPickupItemEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
         // Check after pickup completes
-        SchedulerUtil.runTaskLater(1L, () -> checkAndUpdateBackpack(player));
+        SchedulerUtil.runForEntityLater(player, 1L, () -> checkAndUpdateBackpack(player));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerItemHeld(PlayerItemHeldEvent event) {
         // When player switches held item, check if backpack visibility should change
-        SchedulerUtil.runTaskLater(1L, () -> checkAndUpdateBackpack(event.getPlayer()));
+        Player player = event.getPlayer();
+        SchedulerUtil.runForEntityLater(player, 1L, () -> checkAndUpdateBackpack(player));
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerDropItem(PlayerDropItemEvent event) {
         // When player drops item, check if backpack visibility should change
-        SchedulerUtil.runTaskLater(1L, () -> checkAndUpdateBackpack(event.getPlayer()));
+        Player player = event.getPlayer();
+        SchedulerUtil.runForEntityLater(player, 1L, () -> checkAndUpdateBackpack(player));
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerSwapHandItems(PlayerSwapHandItemsEvent event) {
         // When player swaps hand items, check if backpack visibility should change
-        SchedulerUtil.runTaskLater(1L, () -> checkAndUpdateBackpack(event.getPlayer()));
+        Player player = event.getPlayer();
+        SchedulerUtil.runForEntityLater(player, 1L, () -> checkAndUpdateBackpack(player));
     }
 
     /**
@@ -297,7 +301,7 @@ public class BackpackCosmeticListener implements Listener {
 
         if (hiddenForMovement.remove(playerId)) {
             hiddenMovementMechanics.remove(playerId);
-            SchedulerUtil.runTaskLater(1L, () -> checkAndUpdateBackpack(player));
+            SchedulerUtil.runForEntityLater(player, 1L, () -> checkAndUpdateBackpack(player));
         }
         return false;
     }
