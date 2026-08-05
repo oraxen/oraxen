@@ -1,5 +1,8 @@
 package io.th0rgal.oraxen.utils;
 
+import java.util.Arrays;
+import java.util.Comparator;
+
 /**
  * Resolves the correct {@code pack_format} for the server's current Minecraft version.
  *
@@ -54,7 +57,25 @@ public final class ResourcePackFormatUtil {
             new PackFormatThreshold("1.18", 9)
     };
 
+    private static final MinecraftVersion LATEST_KNOWN_VERSION = Arrays.stream(PACK_FORMAT_THRESHOLDS)
+            .map(PackFormatThreshold::minimumVersion)
+            .max(Comparator.naturalOrder())
+            .orElseThrow();
+
     private ResourcePackFormatUtil() {
+    }
+
+    /**
+     * The newest Minecraft version this mapping knows about.
+     *
+     * <p>The pack-format table is already updated for every Minecraft release, so callers
+     * needing a "latest version" baseline can derive it here instead of keeping their own
+     * hardcoded constant.</p>
+     *
+     * @return The newest Minecraft version present in the pack-format table.
+     */
+    public static MinecraftVersion getLatestKnownVersion() {
+        return LATEST_KNOWN_VERSION;
     }
 
     public static int getCurrentResourcePackFormat() {
