@@ -67,18 +67,18 @@ Pack:
     # This also disables automatic overlay entries, so you must manage overlays in pack.mcmeta yourself.
     disable_mcmeta_generation: false
     # MULTI-VERSION RESOURCE PACKS
-    # Enable this for servers with players on multiple Minecraft versions (ViaVersion/ProtocolSupport).
+    # Enable this for servers with players on multiple Minecraft versions (ViaVersion).
     # When enabled, generates two pack files: one for clients on 1.21.3 and below, and one for 1.21.4+.
     #
     # Supported versions: 1.20 through 1.21.3, and 1.21.4+
     # Each pack declares the full metadata range required by clients in its group.
     #
     # Requirements:
-    # - ViaVersion OR ProtocolSupport plugin for version detection (without these, all players get server version pack)
+    # - ViaVersion plugin for version detection (without it, all players get server version pack)
     # - Upload type must be "lobfile", "polymath", or "external" (NOT "self-host" - can only serve one file)
     #
     # How it works:
-    # - On player join, detects their client version via ViaVersion/ProtocolSupport API
+    # - On player join, detects their client version via the ViaVersion API
     # - Sends the 1.21.3- or 1.21.4+ pack matching their client's pack_format
     # - Players without version detection receive the server's version pack as fallback
     multi_version_packs: false

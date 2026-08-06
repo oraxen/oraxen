@@ -41,7 +41,6 @@ worldguard-bukkit = { module = "com.sk89q.worldguard:worldguard-bukkit", version
 # ModelEngine https://git.lumine.io/mythiccraft/model-engine-4/-/wikis/API
 # Repo: https://mvn.lumine.io/repository/maven-public/
 modelengine = { module = "com.ticxo.modelengine:ModelEngine", version = "R4.0.9" }
-modelengine-api = { module = "com.ticxo.modelengine:api", version = "R3.1.8" }     # not needed just an older version of ModelEngine
 
 # EcoItems https://plugins.auxilor.io/ecoitems/api
 # Repo: https://repo.auxilor.io/repository/maven-public/

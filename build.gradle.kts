@@ -127,7 +127,6 @@ dependencies {
         exclude("com.google.code.gson", "gson")
         exclude("net.kyori")
     }
-    compileOnly(files("libs/compile/BSP.jar"))
     // shaded dependencies
     implementation(oraxenLibs.bundles.libraries.shade) {
         exclude("com.google.code.gson", "gson")
@@ -325,10 +324,10 @@ paper {
     val optionalHooks = listOf(
         "ProtocolLib",
         "packetevents",
-        "LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "BossShopPro",
+        "LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible",
         "CrateReloaded", "ItemBridge", "WorldEdit", "FastAsyncWorldEdit", "WorldGuard", "Towny",
         "Factions", "Lands", "PlotSquared", "NBTAPI", "ModelEngine", "ViaVersion", "ViaBackwards",
-        "ProtocolSupport", "HuskClaims", "HuskTowns", "BentoBox", "Skript", "Iris",
+        "HuskClaims", "HuskTowns", "BentoBox", "Skript", "Iris",
         "ExecutableItems", "SCore", "EcoItems", "BlockLocker"
     )
     serverDependencies {
