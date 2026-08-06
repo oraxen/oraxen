@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+sudo apt-get update
+sudo apt-get install -y gpg
+
+curl -fsSL https://packages.adoptium.net/artifactory/api/gpg/key/public \
+  | gpg --dearmor \
+  | sudo tee /etc/apt/trusted.gpg.d/adoptium.gpg >/dev/null
+echo "deb https://packages.adoptium.net/artifactory/deb $(. /etc/os-release && echo "$VERSION_CODENAME") main" \
+  | sudo tee /etc/apt/sources.list.d/adoptium.list >/dev/null
+
+sudo apt-get update
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y temurin-21-jdk temurin-25-jdk
+
+./gradlew --no-daemon testClasses :nms:java21:classes :nms:java25:classes
