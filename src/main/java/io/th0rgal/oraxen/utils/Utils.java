@@ -5,12 +5,7 @@ import org.bukkit.Color;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 
 public class Utils {
 
@@ -38,40 +33,6 @@ public class Utils {
             }
         }
         return Color.WHITE;
-    }
-
-    public static String replaceLast(String string, String toReplace, String replacement) {
-        int pos = string.lastIndexOf(toReplace);
-        if (pos > -1) {
-            return string.substring(0, pos)
-                    + replacement
-                    + string.substring(pos + toReplace.length());
-        } else {
-            return string;
-        }
-    }
-
-    public static List<String> toLowercaseList(final String... values) {
-        final ArrayList<String> list = new ArrayList<>();
-        for (final String value : values)
-            list.add(value.toLowerCase(Locale.ROOT));
-        return list;
-    }
-
-    public static String[] toLowercase(final String... values) {
-        for (int index = 0; index < values.length; index++)
-            values[index] = values[index].toLowerCase(Locale.ROOT);
-        return values;
-    }
-
-    public static long getVersion(final String format) {
-        return Long.parseLong(OffsetDateTime.now().format(DateTimeFormatter.ofPattern(format)));
-    }
-
-    public static char firstEmpty(Map<String, Character> map, int min) {
-        List<Integer> newMap = map.values().stream().map(c -> (int) c).sorted().toList();
-        while (newMap.contains(min)) min++;
-        return (char) min;
     }
 
     public static void swingHand(Player player, EquipmentSlot hand) {
@@ -109,14 +70,6 @@ public class Utils {
         maxAmount = Math.max(0, maxAmount);
 
         return new IntegerRange(minAmount, maxAmount);
-    }
-
-    public static <T> T getOrNull(List<T> list, int index) {
-        try {
-            return list.get(index);
-        } catch (IndexOutOfBoundsException e) {
-            return null;
-        }
     }
 
     public static <T> T getOrDefault(List<T> list, int index, T defaultValue) {
