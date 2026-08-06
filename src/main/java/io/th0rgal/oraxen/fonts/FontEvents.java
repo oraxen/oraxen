@@ -3,7 +3,6 @@ package io.th0rgal.oraxen.fonts;
 import io.th0rgal.oraxen.glyphs.*;
 
 import io.papermc.paper.event.player.AsyncChatDecorateEvent;
-import io.papermc.paper.event.player.AsyncChatEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.provided.placeholderapi.PapiAliases;
@@ -47,28 +46,21 @@ public class FontEvents implements Listener {
 
     private final FontManager manager;
     @Nullable PaperChatHandler paperChatHandler;
-    @Nullable EmptyPaperChatHandler emptyPaperChatHandler;
 
     public FontEvents(FontManager manager) {
         this.manager = manager;
-        if (VersionUtil.isPaperServer()) {
+        if (VersionUtil.isPaperServer())
             paperChatHandler = new PaperChatHandler();
-            emptyPaperChatHandler = new EmptyPaperChatHandler();
-        }
     }
 
     public void registerChatHandlers() {
         if (paperChatHandler != null)
             Bukkit.getPluginManager().registerEvents(paperChatHandler, OraxenPlugin.get());
-        if (emptyPaperChatHandler != null)
-            Bukkit.getPluginManager().registerEvents(emptyPaperChatHandler, OraxenPlugin.get());
     }
 
     public void unregisterChatHandlers() {
         if (paperChatHandler != null)
             HandlerList.unregisterAll(paperChatHandler);
-        if (emptyPaperChatHandler != null)
-            HandlerList.unregisterAll(emptyPaperChatHandler);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -248,22 +240,6 @@ public class FontEvents implements Listener {
         public void onPlayerChat(AsyncChatDecorateEvent event) {
             if (!Settings.FORMAT_CHAT.toBool()) return;
             event.result(format(event.result(), event.player()));
-        }
-
-    }
-
-    public class EmptyPaperChatHandler implements Listener {
-
-        @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-        public void onPlayerChat(AsyncChatEvent event) {
-            if (!Settings.FORMAT_CHAT.toBool()) return;
-            // AsyncChatDecorateEvent has formatted the component if server is 1.19.1+
-            Component message = event.message();
-            message = message != null ? message : Component.empty();
-            if (!message.equals(Component.empty())) return;
-
-            event.viewers().clear();
-            event.setCancelled(true);
         }
 
     }

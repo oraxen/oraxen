@@ -32,7 +32,7 @@ public class VersionUtil {
         // The NMS handlers guard version-specific behavior internally, and loading an
         // incompatible handler on an unknown newer version fails safe via the
         // LinkageError fallback in NMSHandlers#setup.
-        return isPaperServer() && atOrAbove("1.20");
+        return isPaperServer() && atOrAbove("1.20.1");
     }
 
     public static String supportedVersions() {

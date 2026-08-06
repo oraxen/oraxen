@@ -29,11 +29,7 @@ public final class ResourcePackFormatUtil {
             new PackFormatThreshold("1.20.5", 32),
             new PackFormatThreshold("1.20.3", 22),
             new PackFormatThreshold("1.20.2", 18),
-            new PackFormatThreshold("1.20", 15),
-            new PackFormatThreshold("1.19.4", 13),
-            new PackFormatThreshold("1.19.3", 12),
-            new PackFormatThreshold("1.19", 9),
-            new PackFormatThreshold("1.18", 8)
+            new PackFormatThreshold("1.20", 15)
     };
     private static final PackFormatThreshold[] DATA_PACK_FORMAT_THRESHOLDS = {
             new PackFormatThreshold("26.1", 84),
@@ -50,11 +46,7 @@ public final class ResourcePackFormatUtil {
             new PackFormatThreshold("1.20.5", 41),
             new PackFormatThreshold("1.20.3", 26),
             new PackFormatThreshold("1.20.2", 18),
-            new PackFormatThreshold("1.20", 15),
-            new PackFormatThreshold("1.19.4", 12),
-            new PackFormatThreshold("1.19.3", 10),
-            new PackFormatThreshold("1.19", 10),
-            new PackFormatThreshold("1.18", 9)
+            new PackFormatThreshold("1.20", 15)
     };
 
     private static final MinecraftVersion LATEST_KNOWN_VERSION = Arrays.stream(PACK_FORMAT_THRESHOLDS)
@@ -95,22 +87,21 @@ public final class ResourcePackFormatUtil {
      * @return Pack format number
      */
     public static int getPackFormatForVersion(MinecraftVersion version) {
-        return getFormatForVersion(version, PACK_FORMAT_THRESHOLDS, 6);
+        return getFormatForVersion(version, PACK_FORMAT_THRESHOLDS);
     }
 
     public static int getDataPackFormatForVersion(MinecraftVersion version) {
-        return getFormatForVersion(version, DATA_PACK_FORMAT_THRESHOLDS, 8);
+        return getFormatForVersion(version, DATA_PACK_FORMAT_THRESHOLDS);
     }
 
-    private static int getFormatForVersion(MinecraftVersion version, PackFormatThreshold[] thresholds, int fallback) {
+    private static int getFormatForVersion(MinecraftVersion version, PackFormatThreshold[] thresholds) {
         for (PackFormatThreshold threshold : thresholds) {
             if (version.isAtLeast(threshold.minimumVersion)) {
                 return threshold.packFormat;
             }
         }
 
-        // Very old / unknown
-        return fallback;
+        return thresholds[thresholds.length - 1].packFormat;
     }
 
     private record PackFormatThreshold(MinecraftVersion minimumVersion, int packFormat) {

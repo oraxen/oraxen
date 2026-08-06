@@ -31,22 +31,8 @@ public record TextShaderTarget(int packFormat, MinecraftVersion minecraftVersion
      */
     public static TextShaderTarget forVersion(String version) {
         MinecraftVersion mcVersion = new MinecraftVersion(version);
-        int packFormat = getPackFormatForVersion(mcVersion);
+        int packFormat = ResourcePackFormatUtil.getPackFormatForVersion(mcVersion);
         return new TextShaderTarget(packFormat, mcVersion);
-    }
-
-    private static int getPackFormatForVersion(MinecraftVersion version) {
-        if (version.isAtLeast(new MinecraftVersion("26.2"))) return PACK_FORMAT_26_2;
-        if (version.isAtLeast(new MinecraftVersion("26"))) return PACK_FORMAT_26;
-        if (version.isAtLeast(new MinecraftVersion("1.21.6"))) return PACK_FORMAT_1_21_6;
-        if (version.isAtLeast(new MinecraftVersion("1.21.4"))) return PACK_FORMAT_1_21_4;
-        if (version.isAtLeast(new MinecraftVersion("1.21.2"))) return 42;
-        if (version.isAtLeast(new MinecraftVersion("1.21"))) return 34;
-        if (version.isAtLeast(new MinecraftVersion("1.20.5"))) return 32;
-        if (version.isAtLeast(new MinecraftVersion("1.20.3"))) return 22;
-        if (version.isAtLeast(new MinecraftVersion("1.20.2"))) return 18;
-        if (version.isAtLeast(new MinecraftVersion("1.20"))) return 15;
-        return 15;
     }
 
     public boolean isAtLeast(String version) {
