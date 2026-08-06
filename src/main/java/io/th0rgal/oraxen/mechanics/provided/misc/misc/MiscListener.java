@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.misc.misc;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.protection.AntiGriefLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -29,6 +30,7 @@ import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.view.AnvilView;
 
 import java.util.Arrays;
 
@@ -53,9 +55,11 @@ public class MiscListener implements Listener {
         // Only cancel when the user actually typed a rename. Repair/enchant operations leave
         // renameText empty (or matching the original plain-text display name) and must go through.
         // Use ItemMeta.displayName() rather than ItemStack.displayName(): the latter wraps the
-        // name in square brackets ([Cool Sword]) but anvil.getRenameText() returns the raw text,
+        // name in square brackets ([Cool Sword]) but the anvil view returns the raw text,
         // so comparing against the bracketed form would never match.
-        String renameText = anvil.getRenameText();
+        String renameText = VersionUtil.atOrAbove("1.21.1")
+                ? ((AnvilView) event.getView()).getRenameText()
+                : anvil.getRenameText();
         if (renameText == null || renameText.isEmpty()) return;
 
         ItemMeta inputMeta = inputItem.getItemMeta();

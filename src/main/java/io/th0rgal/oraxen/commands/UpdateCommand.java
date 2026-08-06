@@ -53,7 +53,7 @@ public class UpdateCommand {
                             updated++;
                         }
                         Message.UPDATED_ITEMS.send(player, AdventureUtils.tagResolver("amount", String.valueOf(updated)),
-                                AdventureUtils.tagResolver("player", p.getDisplayName()));
+                                AdventureUtils.tagResolver("player", p.displayName()));
                     }
                 });
     }

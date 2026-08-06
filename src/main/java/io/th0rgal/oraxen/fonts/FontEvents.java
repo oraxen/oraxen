@@ -26,6 +26,7 @@ import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.AnvilInventory;
+import org.bukkit.inventory.view.AnvilView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -75,10 +76,8 @@ public class FontEvents implements Listener {
         if (!Settings.FORMAT_BOOKS.toBool()) return;
 
         BookMeta meta = event.getNewBookMeta();
-        for (String page : meta.getPages()) {
-            int i = meta.getPages().indexOf(page) + 1;
-            if (i == 0) continue;
-            if (containsUnpermittedGlyph(event.getPlayer(), page))
+        for (Component page : meta.pages()) {
+            if (containsUnpermittedGlyph(event.getPlayer(), PLAIN_TEXT.serialize(page)))
                 event.setCancelled(true);
         }
     }
@@ -93,26 +92,10 @@ public class FontEvents implements Listener {
         if (event.getItem().getType() != Material.WRITTEN_BOOK) return;
         if (event.useInteractedBlock() == Event.Result.ALLOW) return;
 
-        for (String page : meta.getPages()) {
-            int i = meta.getPages().indexOf(page) + 1;
-            if (i == 0) continue;
-
-            for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet()) {
-                String unicode = entry.getValue().getCharacters();
-                if (entry.getValue().hasPermission(player))
-                    page = (manager.permsChatcolor == null)
-                            ? page.replace(entry.getKey(), ChatColor.WHITE + unicode + ChatColor.BLACK)
-                            .replace(unicode, ChatColor.WHITE + unicode + ChatColor.BLACK)
-                            : page.replace(entry.getKey(), ChatColor.WHITE + unicode + PapiAliases.setPlaceholders(player, manager.permsChatcolor))
-                            .replace(unicode, ChatColor.WHITE + unicode + ChatColor.BLACK);
-                meta.setPage(i, AdventureUtils.parseLegacy(page));
-            }
-        }
-
         Book book = Book.builder()
-                .title(MINI_MESSAGE.deserialize(meta.getTitle() != null ? meta.getTitle() : ""))
-                .author(MINI_MESSAGE.deserialize(meta.getAuthor() != null ? meta.getAuthor() : ""))
-                .pages(meta.getPages().stream().map(p -> MINI_MESSAGE_EMPTY.deserialize(p, GlyphTag.getResolverForPlayer(player))).toList())
+                .title(meta.title() != null ? meta.title() : Component.empty())
+                .author(meta.author() != null ? meta.author() : Component.empty())
+                .pages(meta.pages().stream().map(page -> format(page, player)).toList())
                 .build();
 
         // Open fake book and deny opening of original book to avoid needing to format the original book
@@ -125,22 +108,12 @@ public class FontEvents implements Listener {
         if (!Settings.FORMAT_SIGNS.toBool()) return;
 
         Player player = event.getPlayer();
-        String[] lines = event.getLines();
-        for (int i = 0; i < lines.length; i++) {
-            String line = AdventureUtils.parseLegacyThroughMiniMessage(lines[i]);
-            if (containsUnpermittedGlyph(player, line))
+        List<Component> lines = event.lines();
+        for (int i = 0; i < lines.size(); i++) {
+            Component line = lines.get(i);
+            if (containsUnpermittedGlyph(player, PLAIN_TEXT.serialize(line)))
                 event.setCancelled(true);
-
-            for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet()) {
-                String unicode = entry.getValue().getCharacters();
-                if (entry.getValue().hasPermission(player))
-                    line = (manager.permsChatcolor == null)
-                            ? line.replace(entry.getKey(), ChatColor.WHITE + unicode + ChatColor.BLACK)
-                            .replace(unicode, ChatColor.WHITE + unicode + ChatColor.BLACK)
-                            : line.replace(entry.getKey(), ChatColor.WHITE + unicode + PapiAliases.setPlaceholders(player, manager.permsChatcolor))
-                            .replace(unicode, ChatColor.WHITE + unicode + ChatColor.BLACK);
-            }
-            event.setLine(i, line);
+            event.line(i, format(line, player));
         }
     }
 
@@ -148,14 +121,16 @@ public class FontEvents implements Listener {
     public void onPlayerRename(final InventoryClickEvent event) {
         if (!(event.getClickedInventory() instanceof AnvilInventory clickedInv)) return;
         if (!Settings.FORMAT_ANVIL.toBool() || event.getSlot() != 2) return;
-        if (VersionUtil.atOrAbove("1.20.5")) return;
 
         Player player = (Player) event.getWhoClicked();
         ItemStack inputItem = clickedInv.getItem(0);
         ItemStack resultItem = clickedInv.getItem(2);
         if (resultItem == null || !OraxenItems.exists(inputItem)) return;
 
-        String displayName = processRenameDisplayName(player, clickedInv.getRenameText(), inputItem);
+        String renameText = VersionUtil.atOrAbove("1.21.1")
+                ? ((AnvilView) event.getView()).getRenameText()
+                : clickedInv.getRenameText();
+        String displayName = processRenameDisplayName(player, renameText, inputItem);
 
         String finalDisplayName = displayName;
         ItemUtils.editItemMeta(resultItem, meta -> {
