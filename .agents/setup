@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+mkdir -p "$HOME/.config/amp"
+cat > "$HOME/.config/amp/settings.json" <<'EOF'
+{
+  "amp.git.commit.ampThread.enabled": false,
+  "amp.git.commit.coauthor.enabled": false
+}
+EOF
+
 sudo apt-get update
 sudo apt-get install -y gpg
 
