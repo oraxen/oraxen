@@ -9,8 +9,9 @@ cat > "$HOME/.config/amp/settings.json" <<'EOF'
 }
 EOF
 
+# Install JDKs in a single operation - remove redundant first apt-get update
 sudo apt-get update
-sudo apt-get install -y gpg
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y gpg
 
 curl -fsSL https://packages.adoptium.net/artifactory/api/gpg/key/public \
   | gpg --dearmor \
@@ -21,4 +22,5 @@ echo "deb https://packages.adoptium.net/artifactory/deb $(. /etc/os-release && e
 sudo apt-get update
 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y temurin-21-jdk temurin-25-jdk
 
-./gradlew --no-daemon testClasses :nms:java21:classes :nms:java25:classes
+# Use Gradle daemon for faster builds, only compile what's needed
+./gradlew testClasses :nms:java21:classes :nms:java25:classes
