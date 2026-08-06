@@ -94,7 +94,6 @@ public class ArmorListener implements Listener {
                 }
                 // e.getCurrentItem() == Unequip
                 // e.getCursor() == Equip
-                // newArmorType = ArmorType.matchType(!isEmpty(e.getCurrentItem()) ? e.getCurrentItem() : e.getCursor());
             }
             if (newArmorType != null && event.getRawSlot() == newArmorType.getSlot()) {
                 ArmorEquipEvent.EquipMethod method = ArmorEquipEvent.EquipMethod.PICK_DROP;
@@ -136,51 +135,6 @@ public class ArmorListener implements Listener {
     static boolean isEmpty(ItemStack item) {
         return (item == null || item.getType().isAir() || item.getAmount() == 0);
     }
-
-//	@EventHandler(priority =  EventPriority.HIGHEST, ignoreCancelled = true)
-//	public void onFOnEmptyArmorSlot(InventoryClickEvent event) {
-//		if(event.getAction() != InventoryAction.HOTBAR_SWAP) {
-//			//System.out.println(1);
-//			return;
-//		}
-//		if(event.getClickedInventory() == null) {
-//			//System.out.println(2);
-//			return;
-//		}
-//		if(event.getSlotType() != SlotType.ARMOR) {
-//			//System.out.println(3);
-//			return;
-//		}
-//		ItemStack existingArmor = event.getView().getItem(event.getRawSlot());
-//		if(event.getHotbarButton() != -1) {
-//			//System.out.println(4);
-//			return;
-//		}
-//		if(!isEmpty(existingArmor)) {
-//			//System.out.println(5);
-//			return;
-//		}
-//		if(!(event.getClickedInventory() instanceof PlayerInventory)) {
-//			//System.out.println(7);
-//			return;
-//		}
-//		PlayerInventory playerInv = (PlayerInventory) event.getClickedInventory();
-//		ItemStack newArmor = playerInv.getItem(EquipmentSlot.OFF_HAND);
-//		ArmorType newArmorType = ArmorType.matchType(newArmor);
-//		if(newArmorType == null) {
-//			return;
-//		}
-//		if(!(event.getWhoClicked() instanceof Player)) {
-//			return;
-//		}
-//		Player player = (Player) event.getWhoClicked();
-//		ArmorEquipEvent equipEvent = new ArmorEquipEvent(player, ArmorEquipEvent.EquipMethod.HOTBAR_SWAP, newArmorType, null, newArmor);
-//		Bukkit.getServer().getPluginManager().callEvent(equipEvent);
-//		if(equipEvent.isCancelled()){
-//			event.setCancelled(true);
-//			player.updateInventory();
-//		}
-//	}
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onDrag(InventoryDragEvent event) {

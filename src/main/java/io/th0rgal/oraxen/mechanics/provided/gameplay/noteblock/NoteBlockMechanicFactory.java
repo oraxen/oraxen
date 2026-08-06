@@ -283,16 +283,6 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         if (farmBlock) return;
         if (farmBlockTask != null) farmBlockTask.cancel();
 
-//        // Dont register if there is no farmblocks in configs
-//        List<String> farmblockList = new ArrayList<>();
-//        for (ItemBuilder itemBuilder : OraxenItems.getItems()) {
-//            String id = OraxenItems.getIdByItem(itemBuilder.build());
-//            NoteBlockMechanic mechanic = (NoteBlockMechanic) NoteBlockMechanicFactory.getInstance().getMechanic(id);
-//            if (mechanic == null || !mechanic.hasDryout()) continue;
-//            farmblockList.add(id);
-//        }
-//        if (farmblockList.isEmpty()) return;
-
         farmBlockTask = new FarmBlockTask(farmBlockCheckDelay);
         MechanicsManager.registerTask(getMechanicID(), farmBlockTask.start(0, farmBlockCheckDelay));
         farmBlock = true;

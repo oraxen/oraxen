@@ -229,8 +229,7 @@ public class NoteBlockMechanicListener implements Listener {
         }
     }
 
-    // TODO Make this function less of a clusterfuck and more readable
-    // Make sure this isnt handling it together with above when placing CB against CB
+    // Avoid handling this together with the preceding listener when placing a custom block against another custom block.
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlaceAgainstNoteBlock(PlayerInteractEvent event) {
         Block block = event.getClickedBlock();
