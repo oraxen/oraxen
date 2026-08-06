@@ -39,8 +39,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -191,26 +189,13 @@ public class CustomPaintingListener implements Listener {
     }
 
     private ItemStack getPlacedItem(HangingPlaceEvent event) {
-        ItemStack eventItem = getPlacedItemFromEvent(event);
+        ItemStack eventItem = event.getItemStack();
         if (!ItemUtils.isEmpty(eventItem)) return eventItem;
 
         if (event.getPlayer() == null) return null;
         EquipmentSlot hand = event.getHand();
         if (hand == EquipmentSlot.OFF_HAND) return event.getPlayer().getInventory().getItemInOffHand();
         return event.getPlayer().getInventory().getItemInMainHand();
-    }
-
-    private ItemStack getPlacedItemFromEvent(HangingPlaceEvent event) {
-        try {
-            Method getItemStack = HangingPlaceEvent.class.getMethod("getItemStack");
-            Object result = getItemStack.invoke(event);
-            return result instanceof ItemStack itemStack ? itemStack : null;
-        } catch (NoSuchMethodException ignored) {
-            return null;
-        } catch (IllegalAccessException | InvocationTargetException exception) {
-            Logs.debug(exception);
-            return null;
-        }
     }
 
     private boolean isDuplicateOffHandPlacement(PlayerInteractEvent event, EquipmentSlot hand) {
