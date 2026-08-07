@@ -137,10 +137,10 @@ public enum Settings {
 
 
     // Inventory
-    ORAXEN_INV_LAYOUT("oraxen_inventory.menu_layout"),
-    ORAXEN_INV_ROWS("oraxen_inventory.menu_rows"),
-    ORAXEN_INV_SIZE("oraxen_inventory.menu_size"),
-    ORAXEN_INV_TITLE("oraxen_inventory.main_menu_title");
+    ORAXEN_INV_LAYOUT("inventory-menu.layout"),
+    ORAXEN_INV_ROWS("inventory-menu.rows"),
+    ORAXEN_INV_SIZE("inventory-menu.slots"),
+    ORAXEN_INV_TITLE("inventory-menu.title");
 
     private final String path;
 

@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public enum UpdatedSettings {
-    GUI_INVENTORY("gui_inventory", "oraxen_inventory.menu_layout"),
+    GUI_INVENTORY("gui_inventory", "inventory-menu.layout"),
     MERGE_ITEM_MODELS("Plugin.experimental.merge_item_base_models", "Pack.import.merge_item_base_models"),
     MERGE_FONTS("Plugin.experimental.merge_font_files", "Pack.import.merge_font_files"),
     GENERATE_ATLAS_FILE("Pack.generation.generate_atlas_file", "Pack.generation.atlas.generate"),

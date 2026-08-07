@@ -83,7 +83,7 @@ public class ItemsView {
 
     private PaginatedGui createSubGUI(final String fileName, final List<ItemBuilder> items) {
         final PaginatedGui gui = Gui.paginated().rows(6).pageSize(45).title(AdventureUtils.MINI_MESSAGE.deserialize(settings.getString(
-                        String.format("oraxen_inventory.menu_layout.%s.title", FilenameUtils.getBaseName(fileName)), Settings.ORAXEN_INV_TITLE.toString())
+                        String.format("inventory-menu.layout.%s.title", FilenameUtils.getBaseName(fileName)), Settings.ORAXEN_INV_TITLE.toString())
                 .replace("<main_menu_title>", Settings.ORAXEN_INV_TITLE.toString()))).create();
         gui.disableAllInteractions();
 
@@ -125,8 +125,8 @@ public class ItemsView {
         ItemStack itemStack;
         String fileName = FilenameUtils.getBaseName(file.getName());
         //Material of category itemstack. if no material is set, set it to the first item of the category
-        Optional<String> icon = Optional.ofNullable(settings.getString(String.format("oraxen_inventory.menu_layout.%s.icon", fileName)));
-        String displayName = settings.getString(String.format("oraxen_inventory.menu_layout.%s.displayname", fileName), "<green>" + file.getName());
+        Optional<String> icon = Optional.ofNullable(settings.getString(String.format("inventory-menu.layout.%s.icon", fileName)));
+        String displayName = settings.getString(String.format("inventory-menu.layout.%s.name", fileName), "<green>" + file.getName());
 
         itemStack = icon.map(OraxenItems::getItemById).map(ItemBuilder::clone)
                 .orElse(OraxenItems.getMap().get(file).values().stream().findFirst().orElse(new ItemBuilder(Material.PAPER)))
@@ -134,7 +134,7 @@ public class ItemsView {
 
         // avoid possible bug if isOraxenItems is available but can't be an itemstack
         if (itemStack == null) itemStack = new ItemBuilder(Material.PAPER).setDisplayName(displayName).build();
-        int slot = settings.getInt(String.format("oraxen_inventory.menu_layout.%s.slot", FilenameUtils.getBaseName(file.getName())), 0) - 1;
+        int slot = settings.getInt(String.format("inventory-menu.layout.%s.slot", FilenameUtils.getBaseName(file.getName())), 0) - 1;
         return new GuiItemSlot(itemStack, slot);
     }
 }

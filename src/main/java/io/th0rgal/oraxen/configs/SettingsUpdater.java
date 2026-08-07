@@ -43,6 +43,33 @@ public class SettingsUpdater {
         return settings;
     }
 
+    static boolean migrateInventoryMenu(YamlConfiguration settings) {
+        ConfigurationSection legacyMenu = settings.getConfigurationSection("oraxen_inventory");
+        if (legacyMenu == null) return false;
+
+        migrateInventoryMenuValue(settings, legacyMenu, "main_menu_title", "title");
+        migrateInventoryMenuValue(settings, legacyMenu, "menu_rows", "rows");
+        migrateInventoryMenuValue(settings, legacyMenu, "menu_size", "slots");
+
+        ConfigurationSection legacyLayout = legacyMenu.getConfigurationSection("menu_layout");
+        if (legacyLayout != null) {
+            for (Map.Entry<String, Object> entry : legacyLayout.getValues(true).entrySet()) {
+                if (entry.getValue() instanceof ConfigurationSection) continue;
+                String path = entry.getKey().replaceAll("(^|\\.)displayname$", "$1name");
+                settings.set("inventory-menu.layout." + path, entry.getValue());
+            }
+        }
+
+        settings.set("oraxen_inventory", null);
+        return true;
+    }
+
+    private static void migrateInventoryMenuValue(YamlConfiguration settings, ConfigurationSection legacyMenu,
+            String oldPath, String newPath) {
+        if (legacyMenu.contains(oldPath))
+            settings.set("inventory-menu." + newPath, legacyMenu.get(oldPath));
+    }
+
     public YamlConfiguration migrateDispatchSettings(YamlConfiguration settings) {
         boolean hasLegacySendPreJoin = settings.contains("Pack.dispatch.send_pre_join");
         boolean hasLegacySendOnJoin = settings.contains("Pack.dispatch.send_on_join");

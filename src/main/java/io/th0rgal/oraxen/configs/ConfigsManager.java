@@ -249,7 +249,7 @@ public class ConfigsManager {
             YamlConfiguration defaultConfiguration) {
         File configurationFile = resourcesManager.extractConfiguration(configName);
         YamlConfiguration configuration = OraxenYaml.loadConfiguration(configurationFile);
-        boolean updated = false;
+        boolean updated = configName.equals("settings.yml") && SettingsUpdater.migrateInventoryMenu(configuration);
         for (String key : defaultConfiguration.getKeys(true)) {
             if (!skippedYamlKeys.stream().filter(key::startsWith).toList().isEmpty())
                 continue;
@@ -298,7 +298,7 @@ public class ConfigsManager {
 
     // Skip optional keys and subkeys
     private final List<String> skippedYamlKeys = List.of(
-            "oraxen_inventory.menu_layout",
+            "inventory-menu.layout",
             "Misc.armor_equip_event_bypass");
 
     private final List<String> removedYamlKeys = List.of(
