@@ -147,12 +147,13 @@ public class FurnitureListener implements Listener {
                     .filter(e -> e.getLocation().distanceSquared(block.getLocation()) <= radius * radius)
                     .count() >= amount)
                 event.setCancelled(true);
-        } else if (limitedPlacing.getType() == LimitedPlacing.LimitedPlacingType.ALLOW)
+        } else if (limitedPlacing.getType() == LimitedPlacing.LimitedPlacingType.ALLOW) {
             if (!limitedPlacing.checkLimitedMechanic(belowPlaced))
                 event.setCancelled(true);
-            else if (limitedPlacing.getType() == LimitedPlacing.LimitedPlacingType.DENY)
-                if (limitedPlacing.checkLimitedMechanic(belowPlaced))
-                    event.setCancelled(true);
+        } else if (limitedPlacing.getType() == LimitedPlacing.LimitedPlacingType.DENY) {
+            if (limitedPlacing.checkLimitedMechanic(belowPlaced))
+                event.setCancelled(true);
+        }
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.NORMAL)
