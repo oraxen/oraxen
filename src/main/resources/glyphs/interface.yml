@@ -1,0 +1,32 @@
+#Simply deleting this file will make the plugin fail to load
+#Make sure you delete all entries found in other files
+#For example, language file uses logo glyph
+logo:
+  texture: required/logo
+  ascent: 20
+  height: 36
+
+menu_banner:
+  texture: required/ui/menu_banner
+  ascent: -10
+  height: 236
+
+menu_recipe:
+  texture: required/recipe_showcase
+  ascent: 40
+  height: 164
+
+menu_items:
+  texture: required/ui/menu_items
+  ascent: 37
+  height: 256
+
+menu_items_overlay:
+  texture: required/ui/menu_items_gems
+  ascent: 37
+  height: 256
+
+recipe_stonecutter:
+  texture: required/recipe_stonecutter
+  ascent: 40
+  height: 164

@@ -1,0 +1,14 @@
+# Defines custom painting variants registered during Paper bootstrap on 1.21.3+.
+# Texture assets are resolved as assets/<namespace>/textures/painting/<path>.png.
+# Title and author support MiniMessage formatting.
+#
+# paintings:
+#   oraxen:edna:
+#     author: the_jan_craft
+#     title: <red>Custom Painting
+#     asset_id: oraxen:edna
+#     width: 1
+#     height: 1
+#     include_in_random: false
+
+paintings: {}

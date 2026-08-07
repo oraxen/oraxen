@@ -1,0 +1,110 @@
+package io.th0rgal.oraxen.pack.generation;
+
+import io.th0rgal.oraxen.utils.platform.BukkitWrapper;
+import io.th0rgal.oraxen.utils.VirtualFile;
+import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.logs.Logs;
+
+import org.apache.commons.io.FileUtils;
+import org.bukkit.Bukkit;
+import org.bukkit.World;
+
+import com.google.gson.JsonObject;
+
+import net.kyori.adventure.key.Key;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
+public abstract class OraxenDatapack {
+    protected static final World defaultWorld = Bukkit.getWorlds().get(0);
+    protected final File datapackFolder;
+    private final File legacyDatapackFolder;
+    protected final JsonObject datapackMeta = new JsonObject();
+    protected final boolean isFirstInstall;
+    protected final boolean datapackEnabled;
+    protected final String name;
+
+    protected OraxenDatapack(String name, String description, int packFormat) {
+        Path worldFolder = defaultWorld.getWorldFolder().toPath();
+        this.datapackFolder = getDatapackRoot(worldFolder).resolve("datapacks/" + name).toFile();
+        this.legacyDatapackFolder = worldFolder.resolve("datapacks/" + name).toFile();
+
+        JsonObject data = new JsonObject();
+        data.addProperty("description", description);
+        data.addProperty("pack_format", packFormat);
+        datapackMeta.add("pack", data);
+
+        this.name = name;
+        this.isFirstInstall = isFirstInstall();
+        this.datapackEnabled = isDatapackEnabled();
+    }
+
+    protected boolean writeMCMeta() {
+        try {
+            FileUtils.forceMkdir(datapackFolder);
+            File packMeta = datapackFolder.toPath().resolve("pack.mcmeta").toFile();
+            FileUtils.writeStringToFile(packMeta, datapackMeta.toString(), StandardCharsets.UTF_8);
+            return true;
+        } catch (IOException e) {
+            Logs.logError("Failed to write datapack pack.mcmeta for " + name + ": " + e.getMessage());
+            Logs.debug(e);
+            return false;
+        }
+    }
+
+    public void clearOldDataPack() {
+        try {
+            FileUtils.deleteDirectory(datapackFolder);
+            if (!datapackFolder.equals(legacyDatapackFolder)) {
+                FileUtils.deleteDirectory(legacyDatapackFolder);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static Path getDatapackRoot(Path worldFolder) {
+        if (!VersionUtil.atOrAbove("26.1")) {
+            return worldFolder;
+        }
+
+        Path normalizedWorldFolder = worldFolder.normalize();
+        if (normalizedWorldFolder.endsWith(Path.of("dimensions", "minecraft", "overworld"))) {
+            Path minecraftFolder = normalizedWorldFolder.getParent();
+            if (minecraftFolder != null && minecraftFolder.getParent() != null
+                    && minecraftFolder.getParent().getParent() != null) {
+                return minecraftFolder.getParent().getParent();
+            }
+        }
+
+        return worldFolder;
+    }
+
+    protected abstract Key getDatapackKey();
+
+    public abstract void generateAssets(List<VirtualFile> output);
+
+    protected boolean isFirstInstall() {
+        return BukkitWrapper.get().isFirstInstall(getDatapackKey());
+    }
+
+    protected boolean isDatapackEnabled() {
+        return BukkitWrapper.get().isDatapackEnabled(getDatapackKey(), defaultWorld);
+    }
+
+    protected void enableDatapack(boolean enabled) {
+        BukkitWrapper.get().setDatapackEnabled(this.name, enabled);
+    }
+
+    public boolean isEnabled() {
+        return datapackEnabled;
+    }
+
+    public boolean isFirstTime() {
+        return isFirstInstall;
+    }
+}

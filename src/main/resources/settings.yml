@@ -1,0 +1,471 @@
+debug: false
+Plugin:
+  keep_this_up_to_date: true # Oraxen will delete old settings
+  language: "english" # Valid options are "czech", "english", "french", "german",  "jpn_JP", "korean", "ru-RU", "zh-CN", "zh-TW"
+  introduction:
+    enabled: true # Set to false to suppress the first-run welcome message entirely
+    console_sent: false # Internal flag — set to true after the welcome message has been shown
+  auto_update_paper_config: true # Auto-update paper-global.yml to disable block updates for custom blocks
+  generation:
+    default_assets: true
+    default_configs: true
+  formatting: # This uses MiniMessage formatting, so legacy colors like §c or &c will not work
+    inventory_titles: true # Formats all inventory titles made by any plugin
+    titles: true # Formats all titles made by any plugin
+    subtitles: true # Formats all subtitles made by any plugin
+    action_bar: true # Formats all action bars made by any plugin
+    anvil: true # Formats the result item based on the Anvil Text made by any plugin
+    signs: true # Formats text on signs when placed or edited
+    chat: true # Formats text and glyphs in chat. Disable if using a chat-plugin and you are experiencing issues
+    books: true # Formats glyphs in books.
+
+ConfigsTools:
+  # list of model data numbers the automatic system will skip
+  # List can take ranges like 1-4 as well as normal singular numbers
+  skipped_model_data_numbers: []
+  disable_automatic_model_data: false
+  disable_automatic_glyph_code: false
+  error_item:
+    material: PODZOL
+    excludeFromInventory: false # set to true if you don't want to display it inside inventory
+    injectID: false
+
+Glyphs:
+  emoji_list_permission_only: true # will only show emojis player has permission to use if set to true
+  unicode_completions: true # Whether glyph tab-completions shows unicodes or glyph-pølaceholders
+
+CustomArmor:
+  type: COMPONENT # Valid types are COMPONENT, TRIMS and NONE
+  auto_select_type: true # If true, Oraxen will replace incompatible armor types with the best type for the detected server version
+  disable_leather_repair: true # Makes custom armor not repairable with leather, only with copies of said custom armor
+  component_settings:
+    auto_assign_component: true # If true, the equippable-model component will be automatically assigned to the custom armor piece, unless specified
+  trims_settings:
+    material_replacement: CHAINMAIL # Valid materials are CHAINMAIL, IRON, GOLD, DIAMOND, NETHERITE and LEATHER
+    auto_assign_settings: true # If true, the trim & item-flag will be automatically assigned to the custom armor piece, unless specified
+
+ItemUpdater:
+  # Update the items in player inventory to the latest in config when player joins
+  update_items: true
+  update_tile_entity_contents: true # Update items in loaded block inventories, such as chests and furnaces
+  update_entity_contents: true # Update items held by loaded entities, such as item frames, mobs and ender chests
+  override_renamed_items: false
+  override_item_lore: false # If lore should be overriden, enable to ensure it is identical to the OraxenItem's lore
+  update_items_on_reload: true # If Oraxen should update all the items of online players on /oraxen reload items/all
+
+FurnitureUpdater:
+  update_furniture: true
+  update_on_reload: false # If furniture should be updated on /oraxen reload items/all
+  update_on_load: false # If Oraxen should update the FurnitureItem whenever an entity is loaded
+  experimental_furniture_type_update: false
+  experimental_fix_broken_furniture: false # Attempts to fix furniture that is not placed/broken correctly
+
+Pack:
+  generation:
+    generate: true # Unlike Plugin.generation.default_assets, this will enable/disable all pack generation
+    # If true, Oraxen will not create or modify pack.mcmeta.
+    # The file at plugins/Oraxen/pack/pack.mcmeta will be included in the final pack exactly as provided.
+    # This also disables automatic overlay entries, so you must manage overlays in pack.mcmeta yourself.
+    disable_mcmeta_generation: false
+    # MULTI-VERSION RESOURCE PACKS
+    # Enable this for servers with players on multiple Minecraft versions (ViaVersion).
+    # When enabled, generates two pack files: one for clients on 1.21.3 and below, and one for 1.21.4+.
+    #
+    # Supported versions: 1.20 through 1.21.3, and 1.21.4+
+    # Each pack declares the full metadata range required by clients in its group.
+    #
+    # Requirements:
+    # - ViaVersion plugin for version detection (without it, all players get server version pack)
+    # - Upload type must be "lobfile", "polymath", or "external" (NOT "self-host" - can only serve one file)
+    #
+    # How it works:
+    # - On player join, detects their client version via the ViaVersion API
+    # - Sends the 1.21.3- or 1.21.4+ pack matching their client's pack_format
+    # - Players without version detection receive the server's version pack as fallback
+    multi_version_packs: false
+    # List of file extensions that will not be included in the final zipped ResourcePack
+    excluded_file_extensions: []
+    # Item appearance systems (1.21.4+).
+    #
+    # 1.21.4+ supports multiple appearance systems that can be COMBINED:
+    # - item_properties: uses minecraft:item_model component
+    # - model_data_ids: uses custom_model_data.strings[0] with minecraft:select
+    # - model_data_float: uses custom_model_data.floats[0] with minecraft:range_dispatch
+    #
+    # Pre-1.21.4 does NOT support item definitions, so Oraxen always falls back to
+    # legacy predicate overrides (assets/minecraft/models/item/*.json) + integer CustomModelData.
+    appearance:
+      # ITEM_PROPERTIES (default: true)
+      # Uses the minecraft:item_model component with Oraxen ids (oraxen:<item_id>).
+      # Generates assets/oraxen/items/<item_id>.json.
+      # Can be combined with model_data_ids or model_data_float.
+      item_properties: true
+
+      # MODEL_DATA_IDS (default: false)
+      # Uses custom_model_data.strings[0] = "oraxen:<item_id>"
+      # Generates assets/minecraft/items/<material>.json using minecraft:select.
+      # Only applies to items that explicitly set Pack.custom_model_data.
+      # Good for plugins that read custom_model_data but want stable string identifiers.
+      # Cannot be combined with model_data_float (they write to the same file).
+      model_data_ids: false
+
+      # MODEL_DATA_FLOAT (default: false)
+      # Uses custom_model_data.floats[0] = <Pack.custom_model_data as float>
+      # Generates assets/minecraft/items/<material>.json using minecraft:range_dispatch.
+      # Only applies to items that explicitly set Pack.custom_model_data.
+      # Also sets integer CustomModelData on items for plugin compatibility.
+      # Cannot be combined with model_data_ids (they write to the same file).
+      model_data_float: false
+
+      # GENERATE_PREDICATES (default: false)
+      # Generates legacy predicate overrides (assets/minecraft/models/item/*.json).
+      # NOT NEEDED on 1.21.4+ since Minecraft uses the new item definition system.
+      # Only enable if you need compatibility with external tools that read legacy JSON files.
+      # Pre-1.21.4 always generates predicates regardless of this setting.
+      generate_predicates: false
+    verify_pack_files: true # Checks all textures and models to make sure they abide by valid Resourcepack formatting
+    fix_force_unicode_glyphs: true # Fixes glyphs not being shown when Force Unicode is enabled
+    atlas:
+      exclude_malformed_from_atlas: true # If a texture is malformed, it will not be included in the atlas
+      generate: true
+      type: "SPRITE" # "SPRITE" or "DIRECTORY"
+    auto_generated_models_follow_texture_path: false
+    compression: BEST_COMPRESSION # see Deflater.class
+    obfuscation:
+      # NONE keeps generated resource keys readable.
+      # SIMPLE renames pack-internal model, texture, and sound file paths while preserving namespaces.
+      # FULL also replaces namespaces used by renamed resources.
+      type: NONE
+    # protection will use several methods to make your pack impossible to extract
+    # with usual tools (native windows unzip, 7zip, winrar, etc) without altering
+    # its integrity. Be careful if you activate this option to not try to extract
+    # the pack, or you might fill your disk.
+    protection: true
+    comment: "The content of this texture pack
+      \nbelongs to the owner of the Oraxen
+      \nplugin and any complete or partial
+      \nuse must comply with the terms and
+      \nconditions of Oraxen."
+
+  import:
+    # Merges duplicate font files, most often default.json into the final pack.
+    # This will not delete the original file, simply exclude all duplicates in favour of the merged one
+    merge_duplicate_fonts: true
+    merge_duplicates: true
+    # Removes imported minecraft core shader files from pack/assets and uploads/*.zip merges.
+    # Useful when external packs override Oraxen-generated text/scoreboard shaders.
+    remove_core_shaders_from_imported_packs: false
+    # Whether the above merger will set the custommodeldata to the same values as in the imported file
+    # To avoid issues, only set this to true if you need them to be these values for another plugin
+    # This might override some of your other OraxenItems if they have they have their custom_model_data set to the same.
+    retain_custom_model_data: true
+    # Unlike duplication handler, this will simply attempt to merge the Jsons for the final pack
+    # This will not be flawless but will not be generating item-configs like above.
+    # The issue of custom-model-data is still here but it will copy it over no matter what [retain_custom_model_data] is set to
+    # [merge_item,_base_models] can be used to merge paper.json etc from imported packs
+    merge_item_base_models: false
+
+  upload:
+    enabled: true
+    type: polymath #lobfile, polymath, self-host, or external
+    polymath:
+      server: atlas.oraxen.com # you can also host your own polymath instance
+      secret: "oraxen" # change this if you host your own polymath to limit access to resource pack uploading
+    lobfile:
+      api-key: ""
+      pack-name: Oraxen # Will use <pack-name>_<version> when using multi version packs
+    self-host:
+      host: "0.0.0.0" # The IP address to bind the HTTP server to (0.0.0.0 = listen on all interfaces)
+      port: 8080 # The port the HTTP server will listen on
+      domain: "localhost:8080" # The domain/IP:port that players will use to download the pack (e.g., "my-server.com:8080" or "192.168.1.100:8080")
+
+  dispatch:
+    send: true # Should the pack be sent to the player.
+    mode: "JOIN" # PRE-JOIN, JOIN; Mode to use when sending the pack.
+    timeout: 30s # Time to wait for a response when using PRE-JOIN mode before continuing login.
+    exclude: [] # Client versions that should not receive the pack. Quote every rule, e.g. '< 1.12', '= 1.21.11' or '> 1.21.11'.
+    delay: -1
+    mandatory: true
+    disable: # Temporarily disable these when the pack loads.
+      movement: true # Disable movement while the pack loads.
+      damage: true # Disable damage while the pack loads.
+    prompt: "<#fa4943>Accept the pack to enjoy a full <b><gradient:#9055FF:#13E2DA>Oraxen</b><#fa4943> experience"
+    layer: "" # The pack layer to use, allowing multiple packs to be used. Set to non empty value to stop Oraxen from clearing resourcepacks sent by your proxy.
+
+  receive:
+    enabled: true
+    loaded:
+      actions:
+        sound:
+          # Enabled by default, just switch to enabled to send
+          # the below sound whenever someone joins
+          enabled: true
+          type: oraxen:welcome
+          volume: 1.0
+          pitch: 1.0
+        delay: 5 # delay in ticks
+        message:
+          enabled: false
+          # KICK / CHAT / ACTION_BAR / TITLE
+          type: ACTION_BAR
+          # Click and Hover elements are only available by using the CHAT type
+          content: "<#55ffa4><bold>ResourcePack loaded"
+        # If you need to send commands
+        commands:
+          console: []
+          player: []
+          opped_player: []
+
+    accepted:
+      actions:
+        message:
+          enabled: false
+          # KICK / CHAT / ACTION_BAR / TITLE
+          type: ACTION_BAR
+          # Click and Hover elements are only available by using the CHAT type
+          content: "<#55ffa4><bold>ResourcePack accepted"
+        # If you need to send commands
+        commands:
+          console: []
+          player: []
+          opped_player: []
+
+    denied:
+      actions:
+        message:
+          enabled: false
+          # KICK / CHAT / ACTION_BAR / TITLE
+          type: CHAT
+          # Click and Hover elements are only available by using the CHAT type
+          content: "<red>You refused the ResourcePack, but you need it in order to see the new items. Please </red><click:run_command:'/oraxen pack send'><hover:show_text:'<green>Display more information'><green><bold>CLICK HERE</bold></hover></click> <red>or type <bold>/oraxen pack send</bold>"
+        # If you need to send commands
+        commands:
+          console: []
+          player: []
+          opped_player: []
+
+    failed_download:
+      actions:
+        message:
+          enabled: false
+          # KICK / CHAT / ACTION_BAR / TITLE
+          type: CHAT
+          # Click and Hover elements are only available by using the CHAT type
+          content: "<red>You failed to download the ResourcePack, but you need it in order to see the new items. Please </red><click:run_command:'/oraxen pack send'><hover:show_text:'<red>Loading the resource pack in game can cause lag'><red><bold>CLICK HERE</bold></hover></click> <red>to retry or type <bold>/oraxen pack send</bold>"
+        # If you need to send commands
+        commands:
+          console: []
+          player: []
+          opped_player: []
+
+    failed_reload: #1.20.3+ only
+      actions:
+        commands:
+          console: []
+          player: []
+          opped_player: []
+
+    downloaded: #1.20.3+ only
+      actions:
+        commands:
+          console: []
+          player: []
+          opped_player: []
+
+    invalid_url: #1.20.3+ only
+      actions:
+        commands:
+          console: []
+          player: []
+          opped_player: []
+
+    discarded: #1.20.3+ only
+      actions:
+        commands:
+          console: []
+          player: []
+          opped_player: []
+Misc:
+  # If this is set to true, Oraxen will reset recipes on reload. This might create conflicts with other plugins
+  # but this makes the things easier if you want to try your oraxen recipes.
+  reset_recipes: true
+  # Will add all recipes a player has permission for, to the in-game recipe books
+  add_recipes_to_book: true
+
+  # This will hide the red numbers on the side of scoreboards
+  # (requires a packet adapter such as ProtocolLib or PacketEvents on 26.x and above)
+  hide_scoreboard_numbers: false
+  # This will hide the background of scoreboards (1.21.6 through 1.21.7 only)
+  hide_scoreboard_background: false
+  # This will hide the background of the tablist (1.21.6 through 1.21.7 only)
+  hide_tablist_background: false
+
+  # All blocks with an inventory or any blocks that when right clicked shouldn't equip armor.
+  armor_equip_event_bypass:
+    - FURNACE
+    - CHEST
+    - TRAPPED_CHEST
+    - BEACON
+    - DISPENSER
+    - DROPPER
+    - HOPPER
+    - WORKBENCH
+    - ENCHANTMENT_TABLE
+    - ENDER_CHEST
+    - ANVIL
+    - BED_BLOCK
+    - FENCE_GATE
+    - SPRUCE_FENCE_GATE
+    - BIRCH_FENCE_GATE
+    - ACACIA_FENCE_GATE
+    - JUNGLE_FENCE_GATE
+    - DARK_OAK_FENCE_GATE
+    - IRON_DOOR_BLOCK
+    - WOODEN_DOOR
+    - SPRUCE_DOOR
+    - BIRCH_DOOR
+    - JUNGLE_DOOR
+    - ACACIA_DOOR
+    - DARK_OAK_DOOR
+    - WOOD_BUTTON
+    - STONE_BUTTON
+    - TRAP_DOOR
+    - IRON_TRAPDOOR
+    - DIODE_BLOCK_OFF
+    - DIODE_BLOCK_ON
+    - REDSTONE_COMPARATOR_OFF
+    - REDSTONE_COMPARATOR_ON
+    - FENCE
+    - SPRUCE_FENCE
+    - BIRCH_FENCE
+    - JUNGLE_FENCE
+    - DARK_OAK_FENCE
+    - ACACIA_FENCE
+    - NETHER_FENCE
+    - BREWING_STAND
+    - CAULDRON
+    - LEGACY_SIGN_POST
+    - LEGACY_WALL_SIGN
+    - LEGACY_SIGN
+    - ACACIA_SIGN
+    - ACACIA_WALL_SIGN
+    - BIRCH_SIGN
+    - BIRCH_WALL_SIGN
+    - DARK_OAK_SIGN
+    - DARK_OAK_WALL_SIGN
+    - JUNGLE_SIGN
+    - JUNGLE_WALL_SIGN
+    - OAK_SIGN
+    - OAK_WALL_SIGN
+    - SPRUCE_SIGN
+    - SPRUCE_WALL_SIGN
+    - LEVER
+    - BLACK_SHULKER_BOX
+    - BLUE_SHULKER_BOX
+    - BROWN_SHULKER_BOX
+    - CYAN_SHULKER_BOX
+    - GRAY_SHULKER_BOX
+    - GREEN_SHULKER_BOX
+    - LIGHT_BLUE_SHULKER_BOX
+    - LIME_SHULKER_BOX
+    - MAGENTA_SHULKER_BOX
+    - ORANGE_SHULKER_BOX
+    - PINK_SHULKER_BOX
+    - PURPLE_SHULKER_BOX
+    - RED_SHULKER_BOX
+    - SILVER_SHULKER_BOX
+    - WHITE_SHULKER_BOX
+    - YELLOW_SHULKER_BOX
+    - DAYLIGHT_DETECTOR_INVERTED
+    - DAYLIGHT_DETECTOR
+    - BARREL
+    - BLAST_FURNACE
+    - SMOKER
+    - CARTOGRAPHY_TABLE
+    - COMPOSTER
+    - GRINDSTONE
+    - LECTERN
+    - LOOM
+    - STONECUTTER
+    - BELL
+
+  # If you want to add shields, Oraxen needs to setup the display options of the default shield, here are the vanilla ones:
+  shield_display: '{"thirdperson_righthand":{"rotation":[0,90,0],"translation":[10,6,-4],"scale":[1,1,1]},"thirdperson_lefthand":{"rotation":[0,90,0],"translation":[10,6,12],"scale":[1,1,1]},"firstperson_righthand":{"rotation":[0,180,5],"translation":[-10,2,-10],"scale":[1.25,1.25,1.25]},"firstperson_lefthand":{"rotation":[0,180,5],"translation":[10,0,-10],"scale":[1.25,1.25,1.25]},"gui":{"rotation":[15,-25,-5],"translation":[2,3,0],"scale":[0.65,0.65,0.65]},"fixed":{"rotation":[0,180,0],"translation":[-2,4,-5],"scale":[0.5,0.5,0.5]},"ground":{"rotation":[0,0,0],"translation":[4,4,2],"scale":[0.25,0.25,0.25]}}'
+
+  # Same for bows:
+  bow_display: '{"thirdperson_righthand":{"rotation":[-80,260,-40],"translation":[-1,-2,2.5],"scale":[0.9,0.9,0.9]},"thirdperson_lefthand":{"rotation":[-80,-280,40],"translation":[-1,-2,2.5],"scale":[0.9,0.9,0.9]},"firstperson_righthand":{"rotation":[0,-90,25],"translation":[1.13,3.2,1.13],"scale":[0.68,0.68,0.68]},"firstperson_lefthand":{"rotation":[0,90,-25],"translation":[1.13,3.2,1.13],"scale":[0.68,0.68,0.68]}}'
+
+  # Same for crossbows:
+  crossbow_display: '{"thirdperson_righthand":{"rotation":[-90,0,-60],"translation":[2,0.1,-3],"scale":[0.9,0.9,0.9]},"thirdperson_lefthand":{"rotation":[-90,0,30],"translation":[2,0.1,-3],"scale":[0.9,0.9,0.9]},"firstperson_righthand":{"rotation":[-90,0,-55],"translation":[1.13,3.2,1.13],"scale":[0.68,0.68,0.68]},"firstperson_lefthand":{"rotation":[-90,0,35],"translation":[1.13,3.2,1.13],"scale":[0.68,0.68,0.68]}}'
+
+inventory-menu:
+  title: "<shift:-18><glyph:menu_items><shift:-193>"
+  rows: 6 # The rows in the GUI.
+  slots: 45 # The amount of slots per page
+
+  layout:
+    armors:
+      slot: 1
+      icon: emerald_chestplate
+      name: "<green>Armors"
+      title: "<main_menu_title><#362753><glyph:menu_items_overlay:colorable>"
+
+    blocks:
+      slot: 2
+      icon: orax_ore
+      name: "<green>Blocks"
+      title: "<main_menu_title><#EDCDEB><glyph:menu_items_overlay:colorable>"
+
+    furniture:
+      slot: 3
+      icon: chair
+      name: "<green>Furniture"
+      title: "<main_menu_title><#F2F2F2><glyph:menu_items_overlay:colorable>"
+
+    flowers:
+      slot: 4
+      icon: dailily
+      name: "<green>Flowers"
+      title: "<main_menu_title><#bf332c><glyph:menu_items_overlay:colorable>"
+
+    hats:
+      slot: 5
+      icon: crown
+      name: "<green>Hats"
+      title: "<main_menu_title><#81B125><glyph:menu_items_overlay:colorable>"
+
+    items:
+      slot: 6
+      icon: ruby
+      name: "<green>Items"
+      title: "<main_menu_title><#DA2E45><glyph:menu_items_overlay:colorable>"
+
+    mystical:
+      slot: 7
+      icon: legendary_hammer
+      name: "<green>Mystical"
+      title: "<main_menu_title><#9AB2E4><glyph:menu_items_overlay:colorable>"
+
+    plants:
+      slot: 8
+      icon: weed_leaf
+      name: "<green>Plants"
+      title: "<main_menu_title><#44C886><glyph:menu_items_overlay:colorable>"
+
+    skins:
+      slot: 9
+      icon: wood_sword
+      name: "<green>Skins"
+      title: "<main_menu_title><#C48E40><glyph:menu_items_overlay:colorable>"
+
+    tools:
+      slot: 10
+      icon: iron_serpe
+      name: "<green>Tools"
+      title: "<main_menu_title><#FFFFFF><glyph:menu_items_overlay:colorable>"
+
+    weapons:
+      slot: 11
+      icon: energy_crystal_sword
+      name: "<green>Weapons"
+      title: "<main_menu_title><#2FB6FF><glyph:menu_items_overlay:colorable>"

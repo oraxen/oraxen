@@ -1,0 +1,218 @@
+# Material list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
+# EntityType list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/EntityType.html
+# Attribute list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/attribute/Attribute.html
+# Potion effects list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/potion/PotionEffectType.html
+# Random UUID generator: https://www.uuidgenerator.net/
+# Color codes: https://docs.adventure.kyori.net/minimessage.html#format
+
+example_sword:
+  displayname: "<gradient:#FA7CBB:#F14658><bold>My Custom Sword"
+  material: WOODEN_SWORD
+  injectID: false # allow Oraxen to recognise the item if true or not set
+
+  ItemFlags:
+    - HIDE_ENCHANTS
+    - HIDE_ATTRIBUTES
+    - HIDE_UNBREAKABLE
+    - HIDE_DESTROYS
+    - HIDE_PLACED_ON
+    - HIDE_POTION_EFFECTS
+
+  PersistentData:
+    - { key: "test:hello", type: STRING, value: "Here is a value" }
+
+  AttributeModifiers:
+    # - attribute: Get the list here: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/attribute/Attribute.html
+    # - operations: 0 for ADD_NUMBER, 1 for ADD_SCALAR, 2 for MULTIPLY_SCALAR_1;
+    # - generate one here: https://www.uuidgenerator.net/
+    # - slot: HAND, OFF_HAND, FEET, LEGS, CHEST or HEAD
+    - {
+        attribute: MOVEMENT_SPEED,
+        amount: 0.1,
+        operation: 0,
+        slot: HAND,
+      }
+
+  Enchantments:
+    protection: 4
+    flame: 34
+    sharpness: 18
+
+  Mechanics:
+    durability:
+      value: 10
+    misc:
+      prevent_renaming: true
+
+example_custom_mechanic:
+  displayname: "<gradient:#FA7CBB:#F14658><bold>My Item With A Custom Mechanic"
+  material: DIAMOND_SWORD
+  Mechanics:
+    custom:
+      test:
+        one_usage: true
+        cooldown: 200 # in ticks
+        event: "CLICK:right:all"
+        conditions:
+          - "#player.hasPermission('example.permission')"
+        actions:
+          - "[console] give <player> cooked_beef 1"
+
+example_efficient_pickaxe:
+  displayname: "<gradient:#59A7EA:#F1D2FF><bold>Turbo Pickaxe"
+  material: DIAMOND_PICKAXE
+  Mechanics:
+    efficiency:
+      amount: 3
+
+example_slow_pickaxe:
+  displayname: "<gradient:#59A7EA:#F1D2FF><bold>Slow Pickaxe"
+  material: DIAMOND_PICKAXE
+  Mechanics:
+    efficiency:
+      amount: -3
+
+example_potion:
+  displayname: "<#6f737d>Wither Potion"
+  material: SPLASH_POTION
+  injectID: false # allow Oraxen to recognise the item if true or not set
+  color: 34, 0, 10
+  PotionEffects:
+    # - type: Get the list here: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/potion/PotionEffectType.html
+    # - duration: in ticks
+    # - amplifier: potion effects level
+    # - ambient: true/false, makes potion effect produce more, translucent, particles.
+    # - particles: true/false, whether this effect has particles or not
+    # - icon: true/false, whether this effect has an icon or not
+    - {
+        type: wither,
+        duration: 200,
+        amplifier: 2,
+        ambient: false,
+        particles: true,
+        icon: true,
+      }
+
+miner_sandwitch:
+  itemname: <gradient:#F69D84:#FAD98D>Miner's sandwitch
+  material: PAPER
+  Pack:
+    generate_model: true
+    parent_model: item/generated
+    textures:
+    - default/sandwitch.png
+  Components:
+    food:
+      nutrition: 8 # Same as cooked beef
+      saturation: 12.8 # Same as cooked beef
+      can_always_eat: true # So it can be eaten even when not hungry
+    consumable:
+      consume_seconds: 5
+      animation: eat
+      sound: entity.generic.eat
+      has_consume_particles: true
+      on_consume_effects:
+      - type: apply_effects
+        effects:
+          minecraft:haste:
+            duration: 3600
+            amplifier: 0
+            ambient: true
+            show_particles: true
+            show_icon: true
+        probability: 1.0
+
+amethyst:
+  displayname: "<gradient:#4B36B1:#6699FF>Amethyst"
+  material: PAPER
+  Pack:
+    generate_model: true
+    parent_model: "item/generated"
+    textures:
+      - default/amethyst.png # .png extension is not mandatory
+
+ruby:
+  displayname: "<gradient:#FA7CBB:#F14658>Ruby"
+  material: PAPER
+  Pack:
+    generate_model: true
+    parent_model: "item/generated"
+    textures:
+      - default/ruby.png # .png extension is not mandatory
+
+onyx:
+  displayname: "<#6f737d>Onyx"
+  material: PAPER
+  Pack:
+    generate_model: true
+    parent_model: "item/generated"
+    textures:
+      - default/onyx.png # .png extension is not mandatory
+
+orax:
+  displayname: "<gradient:#3685EC:#72C1E4>Orax"
+  material: PAPER
+  Pack:
+    generate_model: true
+    parent_model: "item/generated"
+    textures:
+      - default/orax.png # .png extension is not mandatory
+
+fire:
+  displayname: "<gradient:#F06966:#FAD6A6>Fire"
+  material: PAPER
+  Pack:
+    generate_model: false
+    model: block/fire_floor0 # so we use the already existing fire model
+
+welcome_disk:
+  displayname: "<gradient:#9055FF:#13E2DA>Welcome Disk"
+  material: PAPER
+  Components:
+    max_stack_size: 1
+    jukebox_playable:
+      show_in_tooltip: true
+      song_key: "oraxen:welcome"
+  Pack:
+    generate_model: true
+    parent_model: "item/handheld"
+    textures:
+      - default/welcome_disk.png
+
+# Backpack
+# This backpack is displayed on the player's back when held anywhere in inventory.
+# Right-click to open storage. Uses packet-based invisible armor stands for rendering.
+
+leather_backpack:
+  displayname: "<#8B4513>Leather Backpack"
+  material: PAPER
+  Pack:
+    generate_model: false
+    model: default/bag
+  Mechanics:
+    # Storage functionality - right-click to open
+    backpack:
+      rows: 4
+      title: "<#8B4513>Leather Backpack"
+      open_sound: minecraft:item.armor.equip_leather
+      close_sound: minecraft:item.armor.equip_leather
+    # Cosmetic display on player's back
+    backpack_cosmetic:
+      slot: INVENTORY  # Display when item is anywhere in inventory
+      offset:
+        x: 0.0
+        y: 0.0
+        z: 0.0
+      scale: 1.0
+      view_distance: 48
+      hide_in_spectator: true
+      hide_while_swimming: true
+      hide_while_gliding: true
+      small: true
+      visible_to_self: true
+
+# edna:
+#  itemname: "<red>Custom Painting"
+#  material: PAINTING
+#  Components:
+#    painting_variant: oraxen:edna

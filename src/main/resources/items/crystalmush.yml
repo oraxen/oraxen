@@ -1,0 +1,286 @@
+# Crystal Mushroom Block Set
+# Animated magical mushroom-wood blocks with glowing effects
+
+# Crystal Mushroom Log - animated bark texture
+crystalmush_log:
+  displayname: "<gradient:#9966FF:#FF66CC>Crystal Mushroom Log"
+  material: PAPER
+  Pack:
+    generate_model: true
+    parent_model: block/cube_column
+    textures:
+      side: default/crystalmush/wood_crystalmush_side_anim
+      end: default/crystalmush/wood_crystalmush_top_anim
+  Mechanics:
+    block:
+      type: FULL
+      block-sounds:
+        break-sound: block.wood.break
+        place-sound: block.wood.place
+      custom-variation: 5
+      appearance:
+        model: crystalmush_log
+      breaking:
+        - when:
+            - minecraft:iron_axe
+            - minecraft:golden_axe
+            - minecraft:diamond_axe
+            - minecraft:netherite_axe
+          hardness: 2
+          drops:
+            - item: crystalmush_log
+              probability: 1.0
+          durability:
+            add: 0
+            remove: 1
+        - else:
+          hardness: 4
+          drops:
+            - item: crystalmush_log
+              probability: 1.0
+          durability:
+            add: 0
+            remove: 2
+
+# Crystal Mushroom Planks - animated plank texture
+crystalmush_planks:
+  displayname: "<gradient:#9966FF:#FF66CC>Crystal Mushroom Planks"
+  material: PAPER
+  Pack:
+    generate_model: true
+    parent_model: block/cube_all
+    textures:
+      - default/crystalmush/crystalmush_planks_anim
+  Mechanics:
+    block:
+      type: FULL
+      block-sounds:
+        break-sound: block.wood.break
+        place-sound: block.wood.place
+      custom-variation: 6
+      appearance:
+        model: crystalmush_planks
+      breaking:
+        - when:
+            - minecraft:iron_axe
+            - minecraft:golden_axe
+            - minecraft:diamond_axe
+            - minecraft:netherite_axe
+          hardness: 2
+          drops:
+            - item: crystalmush_planks
+              probability: 1.0
+          durability:
+            add: 0
+            remove: 1
+        - else:
+          hardness: 4
+          drops:
+            - item: crystalmush_planks
+              probability: 1.0
+          durability:
+            add: 0
+            remove: 2
+
+# Crystal Mushroom Leaves - transparent animated leaves using copper bulb blockstates
+# BULB type uses copper bulbs which allow custom transparent full blocks with block/leaves parent
+crystalmush_leaves:
+  displayname: "<gradient:#9966FF:#FF66CC>Crystal Mushroom Leaves"
+  material: PAPER
+  Pack:
+    generate_model: true
+    parent_model: block/leaves
+    textures:
+      - default/crystalmush/crystalmush_leaves_anim
+  Mechanics:
+    block:
+      # Use a copper grate as the placed block so Minecraft renders it with cutout rules
+      # (lets the texture alpha show through like real leaves).
+      type: GRATE
+      custom-variation: 2
+      # Emits light by placing minecraft:light blocks nearby (does not change the grate's own light level)
+      light: 12
+      appearance:
+        model: crystalmush_leaves
+      block-sounds:
+        break-sound: block.grass.break
+        place-sound: block.grass.place
+      breaking:
+        - when:
+            - minecraft:shears
+          hardness: 0.2
+          drops:
+            - item: crystalmush_leaves
+              probability: 1.0
+          durability:
+            add: 0
+            remove: 1
+
+        - else:
+          hardness: 1
+          durability:
+            add: 0
+            remove: 2
+
+# Crystal Mushroom Trapdoor - animated trapdoor
+crystalmush_trapdoor:
+  displayname: "<gradient:#9966FF:#FF66CC>Crystal Mushroom Trapdoor"
+  material: PAPER
+  Pack:
+    generate_model: true
+    parent_model: block/template_trapdoor_bottom
+    textures:
+      - default/crystalmush/crystalmush_trapdoor_anim
+  Mechanics:
+    block:
+      type: TRAPDOOR
+      custom-variation: 2
+      appearance:
+        model: crystalmush_trapdoor
+      block-sounds:
+        break-sound: block.wood.break
+        place-sound: block.wood.place
+      breaking:
+        - when:
+            - minecraft:iron_axe
+            - minecraft:golden_axe
+            - minecraft:diamond_axe
+            - minecraft:netherite_axe
+          hardness: 2
+          drops:
+            - item: crystalmush_trapdoor
+              probability: 1.0
+          durability:
+            add: 0
+            remove: 1
+        - else:
+          hardness: 4
+          drops:
+            - item: crystalmush_trapdoor
+              probability: 1.0
+          durability:
+            add: 0
+            remove: 2
+
+# Crystal Mushroom Door
+crystalmush_door:
+  displayname: "<gradient:#9966FF:#FF66CC>Crystal Mushroom Door"
+  material: PAPER
+  Pack:
+    generate_model: true
+    parent_model: item/generated
+    textures:
+      - default/crystalmush/crystalmush_door_icon  # Icon for hand
+  Mechanics:
+    block:
+      type: DOOR
+      custom-variation: 2
+      appearance:
+        model: crystalmush_door
+        textures:
+          bottom: default/crystalmush/crystalmush_door_bottom_anim
+          top: default/crystalmush/crystalmush_door_top_anim
+      block-sounds:
+        break-sound: block.wood.break
+        place-sound: block.wood.place
+      breaking:
+        - when:
+            - minecraft:iron_axe
+            - minecraft:golden_axe
+            - minecraft:diamond_axe
+            - minecraft:netherite_axe
+          hardness: 2
+          drops:
+            - item: crystalmush_door
+              probability: 1.0
+          durability:
+            add: 0
+            remove: 2
+        - else:
+          hardness: 4
+          drops:
+            - item: crystalmush_door
+              probability: 1.0
+          durability:
+            add: 0
+            remove: 2
+
+# Crystal Mushroom Stairs
+crystalmush_stairs:
+  displayname: "<gradient:#9966FF:#FF66CC>Crystal Mushroom Stairs"
+  material: PAPER
+  Pack:
+    generate_model: true
+    parent_model: block/stairs
+    textures:
+      - default/crystalmush/crystalmush_planks_anim
+  Mechanics:
+    block:
+      type: STAIR
+      custom-variation: 3
+      appearance:
+        model: crystalmush_stairs
+      block-sounds:
+        break-sound: block.wood.break
+        place-sound: block.wood.place
+      breaking:
+        - when:
+            - minecraft:iron_axe
+            - minecraft:golden_axe
+            - minecraft:diamond_axe
+            - minecraft:netherite_axe
+          hardness: 2
+          drops:
+            - item: crystalmush_stairs
+              probability: 1.0
+          durability:
+            add: 0
+            remove: 1
+        - else:
+          hardness: 4
+          drops:
+            - item: crystalmush_stairs
+              probability: 1.0
+          durability:
+            add: 0
+            remove: 2
+
+# Crystal Mushroom Slab
+crystalmush_slab:
+  displayname: "<gradient:#9966FF:#FF66CC>Crystal Mushroom Slab"
+  material: PAPER
+  Pack:
+    generate_model: true
+    parent_model: block/slab
+    textures:
+      - default/crystalmush/crystalmush_planks_anim
+  Mechanics:
+    block:
+      type: SLAB
+      custom-variation: 3
+      appearance:
+        model: crystalmush_slab
+      block-sounds:
+        break-sound: block.wood.break
+        place-sound: block.wood.place
+      breaking:
+        - when:
+            - minecraft:iron_axe
+            - minecraft:golden_axe
+            - minecraft:diamond_axe
+            - minecraft:netherite_axe
+          hardness: 2
+          drops:
+            - item: crystalmush_slab
+              probability: 1.0
+          durability:
+            add: 0
+            remove: 1
+        - else:
+          hardness: 4
+          drops:
+            - item: crystalmush_slab
+              probability: 1.0
+          durability:
+            add: 0
+            remove: 2

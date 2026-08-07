@@ -1,0 +1,1151 @@
+package io.th0rgal.oraxen.pack.generation;
+
+import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.configs.Settings;
+import io.th0rgal.oraxen.glyphs.AnimatedGlyph;
+import io.th0rgal.oraxen.utils.HashUtils;
+import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.logs.Logs;
+
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+/**
+ * Generates animated glyph and scoreboard shaders.
+ * Extracted from ResourcePack to reduce class size.
+ *
+ * <p>All shader output is written via {@link ResourcePack#writeStringToVirtual},
+ * which is a public static method that remains in ResourcePack.
+ */
+class TextShaderGenerator {
+
+    // --- Records ---
+
+    record TextShaderFeatures(boolean animatedGlyphs) {
+        boolean anyEnabled() {
+            return animatedGlyphs;
+        }
+    }
+
+    private record VertexShaderConfig(
+            String fogDistanceInit,
+            String vertexColorInit,
+            String vertexColorAnimated,
+            String moduloExpr
+    ) {}
+
+    // --- State ---
+
+    private boolean textShadersGenerated = false;
+    private boolean shaderOverlaysGenerated = false;
+    private boolean baseShadersSkipped = false;
+    private TextShaderFeatures textShaderFeatures = null;
+    private final List<ShaderOverlay> generatedOverlays = new ArrayList<>();
+    private final Map<String, String> generatedCoreShaderHashes = new HashMap<>();
+
+    // Common uniform definitions for shader JSON
+    private static final String UNIFORM_MATRIX = """
+                        { "name": "ModelViewMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+                        { "name": "ProjMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+                        { "name": "ColorModulator", "type": "float", "count": 4, "values": [ 1.0, 1.0, 1.0, 1.0 ] }""";
+    private static final String UNIFORM_FOG = """
+                        { "name": "FogStart", "type": "float", "count": 1, "values": [ 0.0 ] },
+                        { "name": "FogEnd", "type": "float", "count": 1, "values": [ 1.0 ] },
+                        { "name": "FogColor", "type": "float", "count": 4, "values": [ 0.0, 0.0, 0.0, 0.0 ] },
+                        { "name": "FogShape", "type": "int", "count": 1, "values": [ 0 ] }""";
+    private static final String UNIFORM_GAMETIME = """
+                        { "name": "GameTime", "type": "float", "count": 1, "values": [ 0.0 ] }""";
+    private static final String UNIFORM_SCREENSIZE = """
+                        { "name": "ScreenSize", "type": "float", "count": 2, "values": [ 1.0, 1.0 ] }""";
+
+    // --- Public API ---
+
+    void reset() {
+        textShadersGenerated = false;
+        shaderOverlaysGenerated = false;
+        baseShadersSkipped = false;
+        textShaderFeatures = null;
+        generatedOverlays.clear();
+        generatedCoreShaderHashes.clear();
+    }
+
+    boolean wereTextShadersGenerated() {
+        return textShadersGenerated;
+    }
+
+    boolean wereShaderOverlaysGenerated() {
+        return shaderOverlaysGenerated;
+    }
+
+    TextShaderFeatures getTextShaderFeatures() {
+        return textShaderFeatures;
+    }
+
+    String getOverlay1216PlusName() {
+        return ShaderOverlay.V1_21_6.directory();
+    }
+
+    String getOverlay12145Name() {
+        return ShaderOverlay.V1_21_4.directory();
+    }
+
+    List<ShaderOverlay> getGeneratedOverlays() {
+        return List.copyOf(generatedOverlays);
+    }
+
+    Map<String, String> getGeneratedCoreShaderHashes() {
+        return Map.copyOf(generatedCoreShaderHashes);
+    }
+
+    /**
+     * Where text shaders should be emitted. Replaces the old
+     * {@code (boolean skipBaseShaders, int minOverlayPackFormat)} pair so
+     * callers cannot construct invalid combinations.
+     */
+    enum ShaderEmissionMode {
+        /** Single-pack: emit base shaders for the server's pack format. */
+        BASE_ONLY,
+        /** Multi-version on 1.21.4+ server: skip base shaders, emit only overlays >= 1.21.4. */
+        OVERLAY_ONLY_1214_PLUS,
+        /**
+         * Multi-version on a legacy (1.20-1.21.3) server: emit base shaders for the
+         * server's legacy format AND overlays >= 1.21.4 so newer clients matched to
+         * the 1.21.4+ overlay still get the modern GLSL variant. Without this, legacy
+         * clients on a multi-version pack would silently lose animated glyph rendering
+         * because base shaders would be skipped entirely.
+         */
+        BASE_PLUS_1214_OVERLAYS
+    }
+
+    void maybeGenerateTextShaders(boolean hasAnimatedGlyphs) {
+        maybeGenerateTextShaders(hasAnimatedGlyphs, ShaderEmissionMode.BASE_ONLY);
+    }
+
+    void maybeGenerateTextShaders(boolean hasAnimatedGlyphs, ShaderEmissionMode mode) {
+        if (textShadersGenerated) return;
+
+        TextShaderFeatures features = resolveTextShaderFeatures(hasAnimatedGlyphs);
+        if (!features.anyEnabled()) return;
+
+        boolean skipBaseShaders = mode == ShaderEmissionMode.OVERLAY_ONLY_1214_PLUS;
+        int minOverlayPackFormat = (mode == ShaderEmissionMode.OVERLAY_ONLY_1214_PLUS
+                || mode == ShaderEmissionMode.BASE_PLUS_1214_OVERLAYS)
+                ? TextShaderTarget.PACK_FORMAT_1_21_4
+                : 0;
+
+        this.baseShadersSkipped = skipBaseShaders;
+        TextShaderTarget target = TextShaderTarget.current();
+        generateTextShaders(target, features, skipBaseShaders, minOverlayPackFormat);
+        textShaderFeatures = features;
+        textShadersGenerated = true;
+    }
+
+    void hideScoreboardNumbers() {
+        if (OraxenPlugin.get().getPacketAdapter().isEnabled() && VersionUtil.isPaperServer()
+                && VersionUtil.atOrAbove("1.20.3")) {
+            OraxenPlugin.get().getPacketAdapter().registerScoreboardListener();
+        } else { // No packet adapter available; rely on shaders
+            TextShaderTarget target = TextShaderTarget.current();
+            if (target.isAtLeast("26")) {
+                Logs.logWarning("Shader-based scoreboard number hiding is not supported on 26.x+.");
+                Logs.logWarning("Use a packet adapter (ProtocolLib or PacketEvents) on Paper 1.20.3+ instead.");
+                if (!textShadersGenerated) {
+                    ResourcePack.deleteFileFromVirtualAndDisk("assets/minecraft/shaders/core/", "rendertype_text.json");
+                    ResourcePack.deleteFileFromVirtualAndDisk("assets/minecraft/shaders/core/", "rendertype_text.vsh");
+                }
+            } else if (baseShadersSkipped) {
+                // Base text shaders were skipped (multi-version mode); the combined text+scoreboard
+                // shader would leak 1.21.4+ format into 1.21.3- packs, but the standalone scoreboard
+                // shader uses #version 150 and is safe for all client versions.
+                writeGeneratedCoreShader("assets/minecraft/shaders/core/", "rendertype_text.json", getScoreboardJson());
+                writeGeneratedCoreShader("assets/minecraft/shaders/core/", "rendertype_text.vsh", getScoreboardVsh());
+                // Overlay shader files written by generateTextShadersForTarget() at
+                // overlay_*/assets/minecraft/shaders/core/rendertype_text.* are
+                // animation-only and would otherwise hide the base scoreboard
+                // shader from clients matched to those overlays. Re-emit per-overlay
+                // combined (animation+scoreboard) shaders using each overlay's target,
+                // so 1.21.4+ clients keep both effects and scoreboard number hiding.
+                if (textShadersGenerated && textShaderFeatures != null && !generatedOverlays.isEmpty()) {
+                    for (ShaderOverlay overlay : generatedOverlays) {
+                        TextShaderTarget overlayTarget = TextShaderTarget.forVersion(overlay.representativeVersion());
+                        if (overlayTarget.isAtLeast("26")) continue; // 26+ uses pipeline metadata, not shader override
+                        String overlayShaderPath = overlay.directory() + "/assets/minecraft/shaders/core/";
+                        writeGeneratedCoreShader(overlayShaderPath, "rendertype_text.vsh",
+                                getCombinedVertexShader(overlayTarget, textShaderFeatures));
+                        writeGeneratedCoreShader(overlayShaderPath, "rendertype_text.json",
+                                getCombinedShaderJson(overlayTarget));
+                    }
+                }
+            } else if (textShadersGenerated) {
+                boolean hasAnimatedGlyphs = !OraxenPlugin.get().getFontManager().getAnimatedGlyphs().isEmpty();
+                TextShaderFeatures features = textShaderFeatures != null
+                        ? textShaderFeatures
+                        : resolveTextShaderFeatures(hasAnimatedGlyphs);
+                writeGeneratedCoreShader("assets/minecraft/shaders/core/", "rendertype_text.vsh",
+                        getCombinedVertexShader(target, features));
+                writeGeneratedCoreShader("assets/minecraft/shaders/core/", "rendertype_text.json",
+                        getCombinedShaderJson(target));
+                Logs.logInfo("Using combined text + scoreboard hiding shaders");
+            } else {
+                writeGeneratedCoreShader("assets/minecraft/shaders/core/", "rendertype_text.json", getScoreboardJson());
+                writeGeneratedCoreShader("assets/minecraft/shaders/core/", "rendertype_text.vsh", getScoreboardVsh());
+            }
+        }
+    }
+
+    void hideScoreboardOrTablistBackgrounds() {
+        if (!VersionUtil.supportsScoreboardBackgroundHiding()) return;
+
+        String fileName = "rendertype_gui.vsh";
+        String scoreTabBackground = "";
+        if (Settings.HIDE_SCOREBOARD_BACKGROUND.toBool() || Settings.HIDE_TABLIST_BACKGROUND.toBool())
+            scoreTabBackground = getScoreboardBackground();
+        if (Settings.HIDE_SCOREBOARD_BACKGROUND.toBool())
+            scoreTabBackground = scoreTabBackground.replaceFirst("//SCOREBOARD.a", "vertexColor.a");
+        if (Settings.HIDE_TABLIST_BACKGROUND.toBool())
+            scoreTabBackground = scoreTabBackground.replace("//TABLIST.a", "vertexColor.a");
+
+        if (!scoreTabBackground.isEmpty()) {
+            // rendertype_gui.vsh is a version-independent GLSL 150 shader
+            // unrelated to rendertype_text.*, so it is safe to write to the base pack path
+            // even when base text shaders are skipped in multi-version mode.
+            writeGeneratedCoreShader("assets/minecraft/shaders/core/", fileName, scoreTabBackground);
+        }
+    }
+
+    // --- Internal methods ---
+
+    TextShaderFeatures resolveTextShaderFeatures(boolean hasAnimatedGlyphs) {
+        return new TextShaderFeatures(hasAnimatedGlyphs);
+    }
+
+    private void generateTextShaders(TextShaderTarget target, TextShaderFeatures features, boolean skipBaseShaders, int minOverlayPackFormat) {
+        ShaderOverlay serverOverlay = ShaderOverlay.forPackFormat(target.packFormat());
+
+        if (!skipBaseShaders) {
+            generateTextShadersForTarget(target, features, "");
+        }
+
+        // Skip overlay emission entirely when the server's pack format does not
+        // belong to any ShaderOverlay bucket (pre-1.20.2, format < 18) and the
+        // caller did not explicitly opt into multi-version overlay output via
+        // minOverlayPackFormat. Without this guard, BASE_ONLY mode on a legacy
+        // server would emit 1.20.2+/1.21+ overlay shader trees and feed them to
+        // updatePackMcmetaOverlays, marking newer format ranges as supported on
+        // a pack that only contains legacy base assets.
+        if (serverOverlay == null && minOverlayPackFormat <= 0) {
+            return;
+        }
+
+        for (ShaderOverlay overlay : ShaderOverlay.values()) {
+            if (overlay.minFormat() < minOverlayPackFormat) continue;
+            if (overlay == serverOverlay && !skipBaseShaders) continue;
+            TextShaderTarget overlayTarget = TextShaderTarget.forVersion(overlay.representativeVersion());
+            generateTextShadersForTarget(overlayTarget, features, overlay.directory() + "/");
+            generatedOverlays.add(overlay);
+        }
+
+        if (!generatedOverlays.isEmpty()) {
+            shaderOverlaysGenerated = true;
+            if (Settings.DEBUG.toBool()) {
+                String message = "Generated shader overlays for " + generatedOverlays.size() + " format groups";
+                if (serverOverlay != null && !skipBaseShaders) {
+                    message += " (" + serverOverlay.directory() + " is the base)";
+                } else if (serverOverlay != null && skipBaseShaders) {
+                    message += " (" + serverOverlay.directory() + " included as overlay)";
+                }
+                Logs.logSuccess(message);
+            }
+        }
+    }
+
+    private void generateTextShadersForTarget(TextShaderTarget target, TextShaderFeatures features, String pathPrefix) {
+        String shaderPath = pathPrefix + "assets/minecraft/shaders/core";
+
+        if (target.usesUnifiedTextShader()) {
+            writeGeneratedCoreShader(shaderPath, "text.vsh", getAnimationVertexShader26_2(target, features));
+            writeGeneratedCoreShader(shaderPath, "text.fsh", getAnimationFragmentShader26_2(target));
+            deleteLegacyTextShaderVariants(shaderPath);
+
+            if (Settings.DEBUG.toBool()) {
+                Logs.logSuccess("Generated text shaders for " + target.displayName()
+                        + " (shader " + getShaderVersion(target) + ")" + (pathPrefix.isEmpty() ? "" : " [overlay]"));
+            }
+            return;
+        }
+
+        // 1.21.x still expects explicit shader json files in packs.
+        // 26.1.x moved to generated pipeline metadata and should not be overridden.
+        boolean shouldWriteJson = !target.isAtLeast("26");
+
+        writeLegacyTextShaderVariant(shaderPath, "rendertype_text", target, features, false, false, shouldWriteJson);
+        writeLegacyTextShaderVariant(shaderPath, "rendertype_text_see_through", target, features, true, false,
+                shouldWriteJson);
+        writeLegacyTextShaderVariant(shaderPath, "rendertype_text_intensity", target, features, false, true,
+                shouldWriteJson);
+        writeLegacyTextShaderVariant(shaderPath, "rendertype_text_intensity_see_through", target, features, true, true,
+                shouldWriteJson);
+
+        if (Settings.DEBUG.toBool()) {
+            Logs.logSuccess("Generated text shaders for " + target.displayName()
+                    + " (shader " + getShaderVersion(target) + ")" + (pathPrefix.isEmpty() ? "" : " [overlay]"));
+        }
+    }
+
+    private void writeLegacyTextShaderVariant(String shaderPath, String shaderName, TextShaderTarget target,
+            TextShaderFeatures features, boolean seeThrough, boolean intensity, boolean shouldWriteJson) {
+        writeGeneratedCoreShader(shaderPath, shaderName + ".vsh",
+                getAnimationVertexShader(target, features, seeThrough));
+        writeGeneratedCoreShader(shaderPath, shaderName + ".fsh",
+                getAnimationFragmentShader(target, seeThrough, intensity));
+
+        if (shouldWriteJson) {
+            writeGeneratedCoreShader(shaderPath, shaderName + ".json",
+                    getAnimationShaderJson(target, shaderName, seeThrough));
+        } else {
+            ResourcePack.deleteFileFromVirtualAndDisk(shaderPath, shaderName + ".json");
+        }
+    }
+
+    private void deleteLegacyTextShaderVariants(String shaderPath) {
+        for (String shaderName : List.of(
+                "rendertype_text", "rendertype_text_see_through",
+                "rendertype_text_intensity", "rendertype_text_intensity_see_through",
+                "rendertype_text_background", "rendertype_text_background_see_through")) {
+            ResourcePack.deleteFileFromVirtualAndDisk(shaderPath, shaderName + ".json");
+            ResourcePack.deleteFileFromVirtualAndDisk(shaderPath, shaderName + ".vsh");
+            ResourcePack.deleteFileFromVirtualAndDisk(shaderPath, shaderName + ".fsh");
+        }
+    }
+
+    private void writeGeneratedCoreShader(String folder, String name, String content) {
+        ResourcePack.writeStringToVirtual(folder, name, content);
+        generatedCoreShaderHashes.put(ResourcePack.normalizeVirtualPath(folder, name), HashUtils.sha256(content.getBytes(StandardCharsets.UTF_8)));
+    }
+
+    private String getShaderVersion(TextShaderTarget target) {
+        if (target.isAtLeast("26")) return "26";
+        if (target.isAtLeast("1.21.6")) return "1.21.6";
+        if (target.isAtLeast("1.21.4")) return "1.21.4";
+        if (target.isAtLeast("1.21")) return "1.21";
+        return "1.20";
+    }
+
+    private String getTextShaderConstants(TextShaderFeatures features) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format(Locale.ROOT, "const bool ORAXEN_ANIMATED_GLYPHS = %s;\n",
+                features.animatedGlyphs() ? "true" : "false"));
+
+        appendAnimationConstants(sb, features.animatedGlyphs());
+
+        return sb.toString();
+    }
+
+    private void appendAnimationConstants(StringBuilder sb, boolean includeAnimatedGlyphs) {
+        Map<String, int[]> animationConfigs = new LinkedHashMap<>();
+        if (includeAnimatedGlyphs) {
+            for (AnimatedGlyph glyph : OraxenPlugin.get().getFontManager().getAnimatedGlyphs()) {
+                if (!glyph.isProcessed()) continue;
+
+                int fpsValue = Math.max(AnimatedGlyph.MIN_FPS, Math.min(AnimatedGlyph.MAX_FPS, glyph.getFps()));
+                int loopBit = glyph.isLooping() ? 0 : 0x80;
+                int greenChannel = loopBit | fpsValue;
+                int totalFrames = Math.max(1, Math.min(AnimatedGlyph.MAX_FRAMES, glyph.getFrameCount()));
+                String key = greenChannel + ":" + totalFrames;
+                animationConfigs.putIfAbsent(key, new int[]{greenChannel, totalFrames});
+            }
+        }
+
+        int configCount = animationConfigs.size();
+        int arraySize = Math.max(1, configCount);
+        sb.append(String.format(Locale.ROOT, "const int ORAXEN_ANIM_CONFIG_COUNT = %d;\n", configCount));
+        sb.append("const ivec2 ORAXEN_ANIM_CONFIGS[").append(arraySize).append("] = ivec2[](\n");
+        if (animationConfigs.isEmpty()) {
+            sb.append("    ivec2(0, 0)\n");
+        } else {
+            int index = 0;
+            for (int[] config : animationConfigs.values()) {
+                sb.append(String.format(Locale.ROOT, "    ivec2(%d, %d)", config[0], config[1]));
+                if (index < animationConfigs.size() - 1) {
+                    sb.append(",");
+                }
+                sb.append("\n");
+                index++;
+            }
+        }
+        sb.append(");\n");
+    }
+
+    private String getVertexShaderMainBody(VertexShaderConfig config, boolean includeScoreboardHiding) {
+        String scoreboardHiding = includeScoreboardHiding ? """
+
+                        // Scoreboard number hiding
+                        if (Position.z == 0.0 &&
+                                gl_Position.x >= 0.95 && gl_Position.y >= -0.35 &&
+                                vertexColor.g == 84.0/255.0 && vertexColor.r == 252.0/255.0 &&
+                                gl_VertexID <= 4) {
+                            gl_Position = ProjMat * ModelViewMat * vec4(ScreenSize + 100.0, 0.0, 0.0);
+                        }""" : "";
+
+        return """
+                    void main() {
+                        vec3 pos = Position;
+                        gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
+%s                        texCoord0 = UV0;
+                        vertexColor = %s;
+
+                        int rInt = int(Color.r * 255.0 + 0.5);
+                        int gRaw = int(Color.g * 255.0 + 0.5);
+                        int bRaw = int(Color.b * 255.0 + 0.5);
+
+                        // Check for animation color on the primary pass only.
+                        //
+                        // Shadow-pass colors are normal text colors divided by 4, so trying
+                        // to detect animated shadow colors by RGB range causes many false
+                        // positives (e.g. vanilla white text shadow 63,63,63). That makes
+                        // regular text render without shadow. We intentionally only detect
+                        // the primary animation marker here to keep vanilla shadows intact.
+                        //
+                        // A red value of 254 can occur in regular RGB gradients. To avoid
+                        // treating those characters as animated glyphs, require the encoded
+                        // FPS/loop and frame-count tuple to match an actually generated
+                        // animated glyph, and require the frame index to be valid.
+                        bool isPrimaryAnim = false;
+                        if (ORAXEN_ANIMATED_GLYPHS && ORAXEN_ANIM_CONFIG_COUNT > 0 && rInt == 254) {
+                            int candidateFrameIndex = bRaw & 0x0F;
+                            int candidateTotalFrames = ((bRaw >> 4) & 0x0F) + 1;
+                            if (candidateFrameIndex < candidateTotalFrames) {
+                                for (int i = 0; i < ORAXEN_ANIM_CONFIG_COUNT; i++) {
+                                    if (gRaw == ORAXEN_ANIM_CONFIGS[i].x && candidateTotalFrames == ORAXEN_ANIM_CONFIGS[i].y) {
+                                        isPrimaryAnim = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (ORAXEN_ANIMATED_GLYPHS && isPrimaryAnim) {
+                            int gInt = gRaw;
+                            int bInt = bRaw;
+
+                            bool loop = (gInt < 128);
+                            float fps = max(1.0, float(gInt & 0x7F));
+                            int frameIndex = bInt & 0x0F;
+                            int totalFrames = ((bInt >> 4) & 0x0F) + 1;
+
+                            float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
+                            int rawFrame = int(floor(timeSeconds * fps));
+                            int currentFrame = loop ? %s : min(rawFrame, totalFrames - 1);
+
+                            float visible = (frameIndex == currentFrame && isPrimaryAnim) ? 1.0 : 0.0;
+
+                            vertexColor = %s;
+                        }%s
+                    }
+                """.formatted(
+                config.fogDistanceInit.isEmpty() ? "" : "                        " + config.fogDistanceInit + "\n",
+                config.vertexColorInit,
+                config.moduloExpr,
+                config.vertexColorAnimated,
+                scoreboardHiding
+        );
+    }
+
+    private String getAnimationVertexShader26_2(TextShaderTarget target, TextShaderFeatures features) {
+        String textShaderConstants = getTextShaderConstants(features);
+        VertexShaderConfig config = new VertexShaderConfig(
+                "#if !defined(IS_SEE_THROUGH) && !defined(IS_GUI)\n                        sphericalVertexDistance = fog_spherical_distance(pos);\n                        cylindricalVertexDistance = fog_cylindrical_distance(pos);\n                        #endif",
+                "oraxen_lit_text_color(Color)",
+                "oraxen_lit_text_color(vec4(1.0, 1.0, 1.0, visible))",
+                "(rawFrame % totalFrames)"
+        );
+
+        String header = """
+                #version 330
+
+                #moj_import <minecraft:fog.glsl>
+                #moj_import <minecraft:dynamictransforms.glsl>
+                #moj_import <minecraft:projection.glsl>
+                #moj_import <minecraft:sample_lightmap.glsl>
+                #moj_import <minecraft:globals.glsl>
+
+                in vec3 Position;
+                in vec4 Color;
+                in vec2 UV0;
+                #if !defined(IS_SEE_THROUGH) && !defined(IS_GUI)
+                in ivec2 UV2;
+                uniform sampler2D Sampler2;
+                #endif
+
+                out float sphericalVertexDistance;
+                out float cylindricalVertexDistance;
+                out vec4 vertexColor;
+                out vec2 texCoord0;
+                %s
+
+                vec4 oraxen_lit_text_color(vec4 color) {
+                #if defined(IS_SEE_THROUGH) || defined(IS_GUI)
+                    return color;
+                #else
+                    return color * sample_lightmap(Sampler2, UV2);
+                #endif
+                }
+
+                """.formatted(textShaderConstants);
+        return header + getVertexShaderMainBody(config, false);
+    }
+
+    private String getAnimationFragmentShader26_2(TextShaderTarget target) {
+        return """
+                #version 330
+
+                #moj_import <minecraft:fog.glsl>
+                #moj_import <minecraft:dynamictransforms.glsl>
+                #moj_import <minecraft:globals.glsl>
+
+                uniform sampler2D Sampler0;
+
+                in float sphericalVertexDistance;
+                in float cylindricalVertexDistance;
+                in vec4 vertexColor;
+                in vec2 texCoord0;
+
+                out vec4 fragColor;
+
+                vec4 oraxen_sample_text() {
+                    vec4 texel = texture(Sampler0, texCoord0);
+                #ifdef IS_GRAYSCALE
+                    return texel.rrrr;
+                #else
+                    return texel;
+                #endif
+                }
+
+                void main() {
+                    vec4 color = oraxen_sample_text() * vertexColor * ColorModulator;
+
+                    if (color.a < 0.1) {
+                        discard;
+                    }
+                #if defined(IS_SEE_THROUGH) || defined(IS_GUI)
+                    fragColor = color;
+                #else
+                    fragColor = apply_fog(color, sphericalVertexDistance, cylindricalVertexDistance, FogEnvironmentalStart, FogEnvironmentalEnd, FogRenderDistanceStart, FogRenderDistanceEnd, FogColor);
+                #endif
+                }
+                """;
+    }
+
+    private String getAnimationVertexShader(TextShaderTarget target, TextShaderFeatures features, boolean seeThrough) {
+        boolean is1_21_6Plus = target.isAtLeast("1.21.6");
+        boolean is26Plus = target.isAtLeast("26");
+        String textShaderConstants = getTextShaderConstants(features);
+
+        VertexShaderConfig config = createVertexShaderConfig(target, is1_21_6Plus, is26Plus, seeThrough);
+        String mainBody = getVertexShaderMainBody(config, false);
+
+        if (is1_21_6Plus) {
+            String header = seeThrough ? """
+                #version 330
+
+                #moj_import <minecraft:dynamictransforms.glsl>
+                #moj_import <minecraft:projection.glsl>
+                #moj_import <minecraft:globals.glsl>
+
+                in vec3 Position;
+                in vec4 Color;
+                in vec2 UV0;
+
+                out vec4 vertexColor;
+                out vec2 texCoord0;
+                %s
+
+""" : (is26Plus ? """
+                #version 330
+
+                #moj_import <minecraft:fog.glsl>
+                #moj_import <minecraft:dynamictransforms.glsl>
+                #moj_import <minecraft:projection.glsl>
+                #moj_import <minecraft:sample_lightmap.glsl>
+                #moj_import <minecraft:globals.glsl>
+
+                in vec3 Position;
+                in vec4 Color;
+                in vec2 UV0;
+                in ivec2 UV2;
+
+                uniform sampler2D Sampler2;
+
+                out float sphericalVertexDistance;
+                out float cylindricalVertexDistance;
+                out vec4 vertexColor;
+                out vec2 texCoord0;
+                %s
+
+""" : """
+                #version 330
+
+                #moj_import <minecraft:fog.glsl>
+                #moj_import <minecraft:dynamictransforms.glsl>
+                #moj_import <minecraft:projection.glsl>
+                #moj_import <minecraft:globals.glsl>
+
+                in vec3 Position;
+                in vec4 Color;
+                in vec2 UV0;
+                in ivec2 UV2;
+
+                uniform sampler2D Sampler2;
+
+                out float sphericalVertexDistance;
+                out float cylindricalVertexDistance;
+                out vec4 vertexColor;
+                out vec2 texCoord0;
+                %s
+
+""");
+            return header.formatted(textShaderConstants) + mainBody;
+        } else {
+            // Pre-1.21.6: use traditional uniform declarations
+            String imports = getLegacyFogImport(target);
+            String header = seeThrough ? """
+                #version 150
+
+                in vec3 Position;
+                in vec4 Color;
+                in vec2 UV0;
+
+                uniform mat4 ModelViewMat;
+                uniform mat4 ProjMat;
+                uniform float GameTime;
+
+                out vec4 vertexColor;
+                out vec2 texCoord0;
+                %s
+
+""" : """
+                #version 150
+
+                %s
+
+                in vec3 Position;
+                in vec4 Color;
+                in vec2 UV0;
+                in ivec2 UV2;
+
+                uniform sampler2D Sampler2;
+                uniform mat4 ModelViewMat;
+                uniform mat4 ProjMat;
+                uniform int FogShape;
+                uniform float GameTime;
+
+                out float vertexDistance;
+                out vec4 vertexColor;
+                out vec2 texCoord0;
+                %s
+
+""";
+            return seeThrough
+                    ? header.formatted(textShaderConstants) + mainBody
+                    : header.formatted(imports, textShaderConstants) + mainBody;
+        }
+    }
+
+    private String getLegacyFogImport(TextShaderTarget target) {
+        return target.isAtLeast("1.21.2") ? "#moj_import <minecraft:fog.glsl>" : "#moj_import <fog.glsl>";
+    }
+
+    private VertexShaderConfig createVertexShaderConfig(TextShaderTarget target, boolean is1_21_6Plus, boolean is26Plus, boolean seeThrough) {
+        if (is1_21_6Plus) {
+            String litColor = is26Plus
+                    ? "Color * sample_lightmap(Sampler2, UV2)"
+                    : "Color * texelFetch(Sampler2, UV2 / 16, 0)";
+            String animatedLitColor = is26Plus
+                    ? "vec4(1.0, 1.0, 1.0, visible) * sample_lightmap(Sampler2, UV2)"
+                    : "vec4(1.0, 1.0, 1.0, visible) * texelFetch(Sampler2, UV2 / 16, 0)";
+            if (seeThrough) {
+                return new VertexShaderConfig(
+                        "",
+                        "Color",
+                        "vec4(1.0, 1.0, 1.0, visible)",
+                        "(rawFrame % totalFrames)"
+                );
+            } else {
+                return new VertexShaderConfig(
+                        "sphericalVertexDistance = fog_spherical_distance(pos);\n                        cylindricalVertexDistance = fog_cylindrical_distance(pos);",
+                        litColor,
+                        animatedLitColor,
+                        "(rawFrame % totalFrames)"
+                );
+            }
+        } else {
+            String fogDistance = target.isAtLeast("1.20.5")
+                    ? "vertexDistance = fog_distance(pos, FogShape);"
+                    : "vertexDistance = fog_distance(ModelViewMat, pos, FogShape);";
+            if (seeThrough) {
+                return new VertexShaderConfig(
+                        "",
+                        "Color",
+                        "vec4(1.0, 1.0, 1.0, visible)",
+                        "int(mod(float(rawFrame), float(totalFrames)))"
+                );
+            } else {
+                return new VertexShaderConfig(
+                        fogDistance,
+                        "Color * texelFetch(Sampler2, UV2 / 16, 0)",
+                        "vec4(1.0, 1.0, 1.0, visible) * texelFetch(Sampler2, UV2 / 16, 0)",
+                        "int(mod(float(rawFrame), float(totalFrames)))"
+                );
+            }
+        }
+    }
+
+    private String getAnimationFragmentShader(TextShaderTarget target, boolean seeThrough) {
+        return getAnimationFragmentShader(target, seeThrough, false);
+    }
+
+    private String getAnimationFragmentShader(TextShaderTarget target, boolean seeThrough, boolean intensity) {
+        boolean is1_21_6Plus = target.isAtLeast("1.21.6");
+        String sampleExpr = intensity ? "texture(Sampler0, texCoord0).rrrr" : "texture(Sampler0, texCoord0)";
+
+        if (is1_21_6Plus) {
+            if (seeThrough) {
+                return """
+                    #version 330
+
+                    #moj_import <minecraft:dynamictransforms.glsl>
+                    #moj_import <minecraft:globals.glsl>
+
+                    uniform sampler2D Sampler0;
+
+                    in vec4 vertexColor;
+                    in vec2 texCoord0;
+
+                    out vec4 fragColor;
+
+                    void main() {
+                        vec4 color = %s * vertexColor * ColorModulator;
+
+                        if (color.a < 0.1) {
+                            discard;
+                        }
+                        fragColor = color;
+                    }
+                    """.formatted(sampleExpr);
+            }
+
+            return """
+                #version 330
+
+                #moj_import <minecraft:fog.glsl>
+                #moj_import <minecraft:dynamictransforms.glsl>
+                #moj_import <minecraft:globals.glsl>
+
+                uniform sampler2D Sampler0;
+
+                in float sphericalVertexDistance;
+                in float cylindricalVertexDistance;
+                in vec4 vertexColor;
+                in vec2 texCoord0;
+
+                out vec4 fragColor;
+
+                void main() {
+                    vec4 color = %s * vertexColor * ColorModulator;
+
+                    if (color.a < 0.1) {
+                        discard;
+                    }
+                    fragColor = apply_fog(color, sphericalVertexDistance, cylindricalVertexDistance, FogEnvironmentalStart, FogEnvironmentalEnd, FogRenderDistanceStart, FogRenderDistanceEnd, FogColor);
+                }
+                """.formatted(sampleExpr);
+        } else {
+            // Pre-1.21.6: use traditional uniform declarations
+            if (seeThrough) {
+                return """
+                    #version 150
+
+                    uniform sampler2D Sampler0;
+                    uniform vec4 ColorModulator;
+
+                    in vec4 vertexColor;
+                    in vec2 texCoord0;
+
+                    out vec4 fragColor;
+
+                    void main() {
+                        vec4 color = %s * vertexColor * ColorModulator;
+
+                        if (color.a < 0.1) {
+                            discard;
+                        }
+                        fragColor = color;
+                    }
+                    """.formatted(sampleExpr);
+            }
+
+            String imports = getLegacyFogImport(target);
+
+            return """
+                #version 150
+
+                %s
+
+                uniform sampler2D Sampler0;
+                uniform vec4 ColorModulator;
+                uniform float FogStart;
+                uniform float FogEnd;
+                uniform vec4 FogColor;
+
+                in float vertexDistance;
+                in vec4 vertexColor;
+                in vec2 texCoord0;
+
+                out vec4 fragColor;
+
+                void main() {
+                    vec4 color = %s * vertexColor * ColorModulator;
+
+                    if (color.a < 0.1) {
+                        discard;
+                    }
+                    fragColor = linear_fog(color, vertexDistance, FogStart, FogEnd, FogColor);
+                }
+                """.formatted(imports, sampleExpr);
+        }
+    }
+
+    private String build1_21ShaderJson(String shaderName, boolean seeThrough, boolean fullyQualifiedCoreRefs,
+                                       boolean includeFog, boolean includeGameTime, boolean includeScreenSize) {
+        String shaderRef = fullyQualifiedCoreRefs ? "minecraft:core/" + shaderName : shaderName;
+        String samplers = seeThrough
+                ? "{ \"name\": \"Sampler0\" }"
+                : "{ \"name\": \"Sampler0\" }, { \"name\": \"Sampler2\" }";
+
+        StringBuilder uniforms = new StringBuilder(UNIFORM_MATRIX);
+        if (includeFog) uniforms.append(",\n").append(UNIFORM_FOG);
+        if (includeGameTime) uniforms.append(",\n").append(UNIFORM_GAMETIME);
+        if (includeScreenSize) uniforms.append(",\n").append(UNIFORM_SCREENSIZE);
+
+        return """
+            {
+                "vertex": "%s",
+                "fragment": "%s",
+                "samplers": [ %s ],
+                "uniforms": [
+%s
+                ]
+            }
+            """.formatted(shaderRef, shaderRef, samplers, uniforms.toString());
+    }
+
+    private String buildLegacyShaderJson(String shaderName, boolean hasUV2, boolean hasSampler2,
+            boolean hasFog, boolean hasGameTime, boolean hasScreenSize) {
+        String attributes = hasUV2
+                ? "\"Position\", \"Color\", \"UV0\", \"UV2\""
+                : "\"Position\", \"Color\", \"UV0\"";
+        String samplers = hasSampler2
+                ? "{ \"name\": \"Sampler0\" }, { \"name\": \"Sampler2\" }"
+                : "{ \"name\": \"Sampler0\" }";
+
+        StringBuilder uniforms = new StringBuilder(UNIFORM_MATRIX);
+        if (hasFog) uniforms.append(",\n").append(UNIFORM_FOG);
+        if (hasGameTime) uniforms.append(",\n").append(UNIFORM_GAMETIME);
+        if (hasScreenSize) uniforms.append(",\n").append(UNIFORM_SCREENSIZE);
+
+        return """
+            {
+                "blend": {
+                    "func": "add",
+                    "srcrgb": "srcalpha",
+                    "dstrgb": "1-srcalpha"
+                },
+                "vertex": "%s",
+                "fragment": "%s",
+                "attributes": [ %s ],
+                "samplers": [ %s ],
+                "uniforms": [
+%s
+                ]
+            }
+            """.formatted(shaderName, shaderName, attributes, samplers, uniforms.toString());
+    }
+
+    private String getAnimationShaderJson(TextShaderTarget target, boolean seeThrough) {
+        String shaderName = seeThrough ? "rendertype_text_see_through" : "rendertype_text";
+        return getAnimationShaderJson(target, shaderName, seeThrough);
+    }
+
+    private String getAnimationShaderJson(TextShaderTarget target, String shaderName, boolean seeThrough) {
+        boolean is1_21_6Plus = target.isAtLeast("1.21.6");
+        boolean is1_21_4Plus = target.isAtLeast("1.21.4");
+
+        if (is1_21_6Plus) {
+            String samplers = seeThrough
+                    ? "{ \"name\": \"Sampler0\" }"
+                    : "{ \"name\": \"Sampler0\" }, { \"name\": \"Sampler2\" }";
+            return """
+                {
+                    "vertex": "minecraft:core/%s",
+                    "fragment": "minecraft:core/%s",
+                    "samplers": [ %s ]
+                }
+                """.formatted(shaderName, shaderName, samplers);
+        } else if (is1_21_4Plus) {
+            boolean includeFog = !seeThrough;
+            return build1_21ShaderJson(shaderName, seeThrough, true, includeFog, true, false);
+        } else {
+            return buildLegacyShaderJson(shaderName, !seeThrough, !seeThrough, !seeThrough, true, false);
+        }
+    }
+
+    private String getCombinedVertexShader(TextShaderTarget target, TextShaderFeatures features) {
+        boolean is1_21_6Plus = target.isAtLeast("1.21.6");
+        boolean is26Plus = target.isAtLeast("26");
+        String textShaderConstants = getTextShaderConstants(features);
+
+        VertexShaderConfig config = createVertexShaderConfig(target, is1_21_6Plus, is26Plus, false);
+        String mainBody = getVertexShaderMainBody(config, true);
+
+        if (is1_21_6Plus) {
+            String header = is26Plus ? """
+                #version 330
+
+                #moj_import <minecraft:fog.glsl>
+                #moj_import <minecraft:dynamictransforms.glsl>
+                #moj_import <minecraft:projection.glsl>
+                #moj_import <minecraft:sample_lightmap.glsl>
+                #moj_import <minecraft:globals.glsl>
+
+                in vec3 Position;
+                in vec4 Color;
+                in vec2 UV0;
+                in ivec2 UV2;
+
+                uniform sampler2D Sampler2;
+                uniform vec2 ScreenSize;
+
+                out float sphericalVertexDistance;
+                out float cylindricalVertexDistance;
+                out vec4 vertexColor;
+                out vec2 texCoord0;
+                %s
+
+""" : """
+                #version 330
+
+                #moj_import <minecraft:fog.glsl>
+                #moj_import <minecraft:dynamictransforms.glsl>
+                #moj_import <minecraft:projection.glsl>
+                #moj_import <minecraft:globals.glsl>
+
+                in vec3 Position;
+                in vec4 Color;
+                in vec2 UV0;
+                in ivec2 UV2;
+
+                uniform sampler2D Sampler2;
+                uniform vec2 ScreenSize;
+
+                out float sphericalVertexDistance;
+                out float cylindricalVertexDistance;
+                out vec4 vertexColor;
+                out vec2 texCoord0;
+                %s
+
+""";
+            return header.formatted(textShaderConstants) + mainBody;
+        } else {
+            String imports = getLegacyFogImport(target);
+            String header = """
+                #version 150
+
+                %s
+
+                in vec3 Position;
+                in vec4 Color;
+                in vec2 UV0;
+                in ivec2 UV2;
+
+                uniform sampler2D Sampler2;
+                uniform mat4 ModelViewMat;
+                uniform mat4 ProjMat;
+                uniform int FogShape;
+                uniform vec2 ScreenSize;
+                uniform float GameTime;
+
+                out float vertexDistance;
+                out vec4 vertexColor;
+                out vec2 texCoord0;
+                %s
+
+""";
+            return header.formatted(imports, textShaderConstants) + mainBody;
+        }
+    }
+
+    private String getCombinedShaderJson(TextShaderTarget target) {
+        boolean is1_21_6Plus = target.isAtLeast("1.21.6");
+
+        if (is1_21_6Plus) {
+            return """
+                {
+                    "vertex": "minecraft:core/rendertype_text",
+                    "fragment": "minecraft:core/rendertype_text",
+                    "samplers": [ { "name": "Sampler0" }, { "name": "Sampler2" } ],
+                    "uniforms": [ { "name": "ScreenSize", "type": "float", "count": 2, "values": [ 1.0, 1.0 ] } ]
+                }
+                """;
+        } else {
+            return buildLegacyShaderJson("rendertype_text", true, true, true, true, true);
+        }
+    }
+
+    private String getScoreboardVsh() {
+        return """
+                #version 150
+
+                in vec3 Position;
+                in vec4 Color;
+                in vec2 UV0;
+                in ivec2 UV2;
+
+                uniform sampler2D Sampler2;
+
+                uniform mat4 ModelViewMat;
+                uniform mat4 ProjMat;
+
+                uniform vec2 ScreenSize;
+
+                out float vertexDistance;
+                out vec4 vertexColor;
+                out vec2 texCoord0;
+
+                void main() {
+                    gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
+
+                    vertexDistance = length((ModelViewMat * vec4(Position, 1.0)).xyz);
+                    vertexColor = Color * texelFetch(Sampler2, UV2 / 16, 0);
+                    texCoord0 = UV0;
+
+                	// delete sidebar numbers
+                	if(	Position.z == 0.0 && // check if the depth is correct (0 for gui texts)
+                			gl_Position.x >= 0.95 && gl_Position.y >= -0.35 && // check if the position matches the sidebar
+                			vertexColor.r == 252.0/255.0 && vertexColor.g == 84.0/255.0 && vertexColor.b == 84.0/255.0 && // check if the color is the sidebar red color
+                			gl_VertexID <= 4 // check if it's the first character of a string
+                		) gl_Position = ProjMat * ModelViewMat * vec4(ScreenSize + 100.0, 0.0, 0.0); // move the vertices offscreen, idk if this is a good solution for that but vec4(0.0) doesnt do the trick for everyone
+                }
+                """;
+    }
+
+    private String getScoreboardJson() {
+        return """
+                {
+                    "blend": {
+                        "func": "add",
+                        "srcrgb": "srcalpha",
+                        "dstrgb": "1-srcalpha"
+                    },
+                    "vertex": "rendertype_text",
+                    "fragment": "rendertype_text",
+                    "attributes": [
+                        "Position",
+                        "Color",
+                        "UV0",
+                        "UV2"
+                    ],
+                    "samplers": [
+                        { "name": "Sampler0" },
+                        { "name": "Sampler2" }
+                    ],
+                    "uniforms": [
+                        { "name": "ModelViewMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+                        { "name": "ProjMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+                        { "name": "ColorModulator", "type": "float", "count": 4, "values": [ 1.0, 1.0, 1.0, 1.0 ] },
+                        { "name": "FogStart", "type": "float", "count": 1, "values": [ 0.0 ] },
+                        { "name": "FogEnd", "type": "float", "count": 1, "values": [ 1.0 ] },
+                        { "name": "FogColor", "type": "float", "count": 4, "values": [ 0.0, 0.0, 0.0, 0.0 ] },
+                		{ "name": "ScreenSize", "type": "float", "count": 2,  "values": [ 1.0, 1.0 ] }
+                    ]
+                }
+                """;
+    }
+
+    private String getScoreboardBackground() {
+        if (VersionUtil.atOrAbove("1.21"))
+            return """
+                    #version 150
+
+                     in vec3 Position;
+                     in vec4 Color;
+
+                     uniform mat4 ModelViewMat;
+                     uniform mat4 ProjMat;
+
+                     out vec4 vertexColor;
+
+                     void main() {
+                     	gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
+
+                     	vertexColor = Color;
+
+                     	//Isolating Scoreboard Display
+                     	// Mojang Changed the Z position in 1.21, idk exact value but its huge
+                     	if(gl_Position.y > -0.5 && gl_Position.y < 0.85 && gl_Position.x > 0.0 && gl_Position.x <= 1.0 && Position.z > 1000.0 && Position.z < 2750.0) {
+                     		//vertexColor = vec4(vec3(0.0,0.0,1.0),1.0); // Debugger
+                     		//SCOREBOARD.a = 0.0;
+                     	}
+                     	else {
+                         	//vertexColor = vec4(vec3(1.0,0.0,0.0),1.0);
+                     	}
+
+                     	// Uncomment this if you want to make LIST invisible
+                     	if(Position.z > 2750.0 && Position.z < 3000.0) {
+                     		//TABLIST.a = 0.0;
+                     	}
+                     }
+
+                    """;
+        else
+            return """
+                    #version 150
+
+                    in vec4 vertexColor;
+
+                    uniform vec4 ColorModulator;
+
+                    out vec4 fragColor;
+
+                    bool isgray(vec4 a) {
+                        return a.r == 0 && a.g == 0 && a.b == 0 && a.a < 0.3 && a.a > 0.29;
+                    }
+
+                    bool isdarkgray(vec4 a) {
+                    	return a.r == 0 && a.g == 0 && a.b == 0 && a.a == 0.4;
+                    }
+
+                    void main() {
+
+                        vec4 color = vertexColor;
+
+                        if (color.a == 0.0) {
+                            discard;
+                        }
+
+                        fragColor = color * ColorModulator;
+
+                    	if(isgray(fragColor)){
+                    		discard;
+                    	}
+                    	if(isdarkgray(fragColor)){
+                    		discard;
+                    	}
+                    }
+                    // Made by Reytz#9806 for minecraft 1.18.2""";
+    }
+}

@@ -1,0 +1,77 @@
+# Material list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
+# EntityType list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/EntityType.html
+# Attribute list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/attribute/Attribute.html
+# Potion effects list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/potion/PotionEffectType.html
+# Random UUID generator: https://www.uuidgenerator.net/
+# Color codes: https://docs.adventure.kyori.net/minimessage.html#format
+brunnera:
+  displayname: "<#34d8eb>Brunnera"
+  material: PAPER
+  Pack:
+    generate_model: true
+    parent_model: "block/cross"
+    textures:
+      - default/flowers/brunnera.png # .png extension is not mandatory
+  Mechanics:
+    block:
+      type: STRING
+      block-sounds:
+        break-sound: block.grass.break
+        place-sound: block.grass.place
+      custom-variation: 1
+      appearance:
+        model: brunnera
+      breaking:
+        - else:
+          hardness: 2
+          drops:
+            - item: brunnera
+              probability: 1.0
+
+daffodil:
+  displayname: "<#f5ec42>Daffodil"
+  material: PAPER
+  Pack:
+    generate_model: true
+    parent_model: "block/cross"
+    textures:
+      - default/flowers/daffodil.png # .png extension is not mandatory
+  Mechanics:
+    block:
+      type: STRING
+      block-sounds:
+        break-sound: block.grass.break
+        place-sound: block.grass.place
+      custom-variation: 2
+      appearance:
+        model: daffodil
+      breaking:
+        - else:
+          hardness: 2
+          drops:
+            - item: daffodil
+              probability: 1.0
+
+dailily:
+  displayname: "<#bf332c>Dailily"
+  material: PAPER
+  Pack:
+    generate_model: true
+    parent_model: "block/cross"
+    textures:
+      - default/flowers/dailily.png # .png extension is not mandatory
+  Mechanics:
+    block:
+      type: STRING
+      block-sounds:
+        break-sound: block.grass.break
+        place-sound: block.grass.place
+      custom-variation: 3
+      appearance:
+        model: dailily
+      breaking:
+        - else:
+          hardness: 2
+          drops:
+            - item: dailily
+              probability: 1.0

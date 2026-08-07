@@ -1,0 +1,77 @@
+package io.th0rgal.oraxen.compatibilities.provided.placeholderapi;
+
+import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.glyphs.Glyph;
+import me.clip.placeholderapi.expansion.PlaceholderExpansion;
+import org.bukkit.OfflinePlayer;
+import org.jetbrains.annotations.NotNull;
+
+public class OraxenExpansion extends PlaceholderExpansion {
+
+    private final OraxenPlugin plugin;
+
+    public OraxenExpansion(final OraxenPlugin plugin) {
+        this.plugin = plugin;
+    }
+
+    @NotNull
+    @Override
+    public String getAuthor() {
+        return "Th0rgal";
+    }
+
+    @NotNull
+    @Override
+    public String getIdentifier() {
+        return "oraxen";
+    }
+
+    @NotNull
+    @Override
+    public String getVersion() {
+        return plugin.getDescription().getVersion();
+    }
+
+    @Override
+    public boolean persist() {
+        return true;
+    }
+
+    @Override
+    public String onRequest(final OfflinePlayer player, @NotNull final String params) {
+        if (params.equals("pack_url"))
+            return plugin.getPackURL();
+        else if (params.equals("pack_hash"))
+            return plugin.getPackSHA1();
+
+        // Handle positive shift: %oraxen_shift_N%
+        if (params.startsWith("shift_")) {
+            try {
+                int pixels = Integer.parseInt(params.substring(6));
+                return plugin.getFontManager().getShift(pixels);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
+        // Handle negative shift: %oraxen_neg_shift_N%
+        if (params.startsWith("neg_shift_")) {
+            try {
+                int pixels = Integer.parseInt(params.substring(10));
+                return plugin.getFontManager().getShift(-pixels);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
+        final Glyph glyph = plugin.getFontManager().getGlyphFromID(params);
+        if (glyph != null)
+            return glyph.getCharacters();
+
+        // %oraxen_hash% is a shorter alias for %oraxen_pack_hash%. Because "hash"
+        // is a generic name, resolve it after glyph lookup so a glyph whose ID is
+        // "hash" is not silently shadowed by the pack SHA-1.
+        if (params.equals("hash"))
+            return plugin.getPackSHA1();
+
+        return null; // Placeholder is unknown by the Expansion
+    }
+}

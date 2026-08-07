@@ -1,0 +1,9 @@
+# 40 is essentially the highest it goes without dissapearing and reappearing.
+update_time_in_ticks: 40 # If set to 0, hud feature is disabled
+huds:
+  #balance:
+  #  permission: "oraxen.hud.balance"
+  #  display_text: "<shift:100><font:balance_hud>%vault_eco_balance%<font:default><glyph:coin>"
+  #  disabled_whilst_in_water: true
+  #  enabled_by_default: true
+  #  enable_for_spectator_mode: false

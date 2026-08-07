@@ -1,0 +1,1415 @@
+package io.th0rgal.oraxen.items;
+
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+import io.papermc.paper.datacomponent.DataComponentTypes;
+import io.papermc.paper.datacomponent.item.ItemAttributeModifiers;
+import io.papermc.paper.registry.RegistryAccess;
+import io.papermc.paper.registry.RegistryKey;
+import com.jeff_media.morepersistentdatatypes.DataType;
+import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.compatibilities.provided.ecoitems.WrappedEcoItem;
+import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
+import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
+import io.th0rgal.oraxen.configs.Message;
+import io.th0rgal.oraxen.configs.Settings;
+import io.th0rgal.oraxen.nms.NMSHandler;
+import io.th0rgal.oraxen.nms.NMSHandlers;
+import io.th0rgal.oraxen.utils.*;
+import io.th0rgal.oraxen.utils.logs.Logs;
+import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.VersionUtil;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
+import org.bukkit.*;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.damage.DamageType;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.TropicalFish;
+import org.bukkit.inventory.EquipmentSlotGroup;
+import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemRarity;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.*;
+import org.bukkit.inventory.meta.components.*;
+import org.bukkit.inventory.meta.trim.ArmorTrim;
+import org.bukkit.inventory.meta.trim.TrimMaterial;
+import org.bukkit.inventory.meta.trim.TrimPattern;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionType;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.io.IOException;
+import java.util.*;
+
+@SuppressWarnings("ALL")
+public class ItemBuilder {
+
+    public static final NamespacedKey UNSTACKABLE_KEY = new NamespacedKey(OraxenPlugin.get(), "unstackable");
+    public static final NamespacedKey ORIGINAL_NAME_KEY = new NamespacedKey(OraxenPlugin.get(), "original_name");
+
+    private final ItemStack itemStack;
+    private final Map<PersistentDataSpace, Object> persistentDataMap = new HashMap<>();
+    private final PersistentDataContainer persistentDataContainer;
+    private final Map<Enchantment, Integer> enchantments;
+    private OraxenMeta oraxenMeta;
+    private Material type;
+    private int amount;
+    private Color color; // LeatherArmorMeta, PotionMeta, MapMeta & FireWorkEffectMeta
+    private Key trimPattern; // TrimPattern
+    private PotionType potionType;
+    private List<PotionEffect> potionEffects;
+    private OfflinePlayer owningPlayer; // SkullMeta
+    private DyeColor bodyColor; // TropicalFishBucketMeta
+    private TropicalFish.Pattern pattern;
+    private DyeColor patternColor;
+    private String displayName;
+    @Nullable
+    private Message displayNameMessage;
+    private boolean unbreakable;
+    private boolean unstackable;
+    private Set<ItemFlag> itemFlags;
+    private final List<AttributeModifierEntry> attributeEntries = new ArrayList<>();
+    @Nullable
+    private Multimap<Attribute, AttributeModifier> legacyAttributeModifiers;
+    @Nullable
+    private Integer customModelData;
+    /**
+     * 1.21.4+ Custom Model Data component strings.
+     * Used by modern item definitions via {@code minecraft:select} on {@code minecraft:custom_model_data}.
+     */
+    @Nullable
+    private List<String> customModelDataStrings;
+    /**
+     * 1.21.4+ Custom Model Data component floats.
+     * Used by modern item definitions via {@code minecraft:range_dispatch} on {@code minecraft:custom_model_data}.
+     */
+    @Nullable
+    private List<Float> customModelDataFloats;
+    private List<String> lore;
+    private ItemStack finalItemStack;
+
+    // 1.20.5+ properties
+    @Nullable
+    private FoodComponent foodComponent;
+    @Nullable
+    private Object consumableComponent;
+    @Nullable
+    private ToolComponent toolComponent;
+    @Nullable
+    private Boolean enchantmentGlintOverride;
+    @Nullable
+    private Integer maxStackSize;
+    @Nullable
+    private String itemName;
+    @Nullable
+    private Boolean fireResistant;
+    @Nullable
+    private Boolean hideToolTip;
+    @Nullable
+    private ItemRarity rarity;
+    @Nullable
+    private Integer durability;
+    private boolean damagedOnBlockBreak;
+    private boolean damagedOnEntityHit;
+
+    // 1.21+ properties
+    @Nullable
+    private JukeboxPlayableComponent jukeboxPlayable;
+    @Nullable
+    private String paintingVariant;
+
+    // 1.21.2+ properties
+    @Nullable
+    private EquippableComponent equippableComponent;
+    @Nullable
+    private Boolean isGlider;
+    @Nullable
+    private UseCooldownComponent useCooldownComponent;
+    @Nullable
+    private ItemStack useRemainder;
+    @Nullable
+    private String deferredUseRemainderId;
+    private int deferredUseRemainderAmount;
+    private boolean resolvingUseRemainder;
+    @Nullable
+    private Tag<DamageType> damageResistant;
+    @Nullable
+    private NamespacedKey tooltipStyle;
+    @Nullable
+    private NamespacedKey itemModel;
+    @Nullable
+    private Integer enchantable;
+
+    // Generic components storage using String keys
+    private final Map<String, Object> genericComponents = new HashMap<>();
+
+    public ItemBuilder(final Material material) {
+        this(new ItemStack(material));
+    }
+
+    public ItemBuilder(WrappedMMOItem wrapped) {
+        this(wrapped.build());
+    }
+
+    public ItemBuilder(WrappedCrucibleItem wrapped) {
+        this(wrapped.build());
+    }
+
+    public ItemBuilder(WrappedEcoItem wrapped) {
+        this(wrapped.build());
+    }
+
+    public ItemBuilder(@NotNull ItemStack itemStack) {
+
+        this.itemStack = itemStack;
+
+        type = itemStack.getType();
+
+        amount = itemStack.getAmount();
+
+        final ItemMeta itemMeta = itemStack.getItemMeta();
+        assert itemMeta != null;
+
+        if (itemMeta instanceof LeatherArmorMeta leatherArmorMeta)
+            color = leatherArmorMeta.getColor();
+
+        if (itemMeta instanceof PotionMeta potionMeta) {
+            color = potionMeta.getColor();
+            potionType = PotionUtils.getPotionType(potionMeta);
+            potionEffects = new ArrayList<>(potionMeta.getCustomEffects());
+        }
+
+        if (itemMeta instanceof MapMeta mapMeta)
+            color = mapMeta.getColor();
+
+        if (itemMeta instanceof FireworkEffectMeta effectMeta)
+            color = effectMeta.hasEffect() ? Utils.getOrDefault(effectMeta.getEffect().getColors(), 0, Color.WHITE)
+                    : Color.WHITE;
+
+        if (itemMeta instanceof ArmorMeta armorMeta && armorMeta.hasTrim())
+            trimPattern = armorMeta.getTrim().getMaterial().key();
+
+        if (itemMeta instanceof SkullMeta skullMeta)
+            owningPlayer = skullMeta.getOwningPlayer();
+
+        if (itemMeta instanceof TropicalFishBucketMeta tropicalFishBucketMeta && tropicalFishBucketMeta.hasVariant()) {
+            bodyColor = tropicalFishBucketMeta.getBodyColor();
+            pattern = tropicalFishBucketMeta.getPattern();
+            patternColor = tropicalFishBucketMeta.getPatternColor();
+        }
+
+        if (itemMeta.hasDisplayName()) {
+            if (VersionUtil.isPaperServer())
+                displayName = AdventureUtils.MINI_MESSAGE.serialize(itemMeta.displayName());
+            else
+                displayName = itemMeta.getDisplayName();
+        }
+
+        unbreakable = itemMeta.isUnbreakable();
+        unstackable = itemMeta.getPersistentDataContainer().has(UNSTACKABLE_KEY, DataType.UUID);
+
+        if (!itemMeta.getItemFlags().isEmpty())
+            itemFlags = itemMeta.getItemFlags();
+
+        if (itemMeta.hasAttributeModifiers()) {
+            Multimap<Attribute, AttributeModifier> existing = itemMeta.getAttributeModifiers();
+            if (existing != null) {
+                if (VersionUtil.atOrAbove("1.20.5")) {
+                    for (var entry : existing.entries()) {
+                        EquipmentSlotGroup slot = entry.getValue().getSlotGroup();
+                        attributeEntries.add(new AttributeModifierEntry(
+                                entry.getKey(), entry.getValue(),
+                                slot != null ? slot : EquipmentSlotGroup.ANY));
+                    }
+                } else {
+                    legacyAttributeModifiers = HashMultimap.create(existing);
+                }
+            }
+        }
+
+        customModelData = itemMeta.hasCustomModelData() ? itemMeta.getCustomModelData() : null;
+
+        // 1.21.4+: capture custom_model_data component data if present (best-effort)
+        if (VersionUtil.atOrAbove("1.21.4")) {
+            try {
+                CustomModelDataComponent cmd = itemMeta.getCustomModelDataComponent();
+                if (cmd != null) {
+                    if (cmd.getStrings() != null && !cmd.getStrings().isEmpty()) {
+                        customModelDataStrings = new ArrayList<>(cmd.getStrings());
+                    }
+                    if (cmd.getFloats() != null && !cmd.getFloats().isEmpty()) {
+                        customModelDataFloats = new ArrayList<>(cmd.getFloats());
+                    }
+                }
+            } catch (NoSuchMethodError ignored) {
+                // Running on an API/server without the component accessors
+            } catch (Throwable ignored) {
+                // Be resilient across forks/versions
+            }
+        }
+
+        if (itemMeta.hasLore()) {
+            if (VersionUtil.isPaperServer())
+                lore = itemMeta.lore().stream().map(AdventureUtils.MINI_MESSAGE::serialize).toList();
+            else
+                lore = itemMeta.getLore();
+        }
+
+        persistentDataContainer = itemMeta.getPersistentDataContainer();
+
+        enchantments = new HashMap<>();
+
+        if (VersionUtil.atOrAbove("1.20.5")) {
+            if (itemMeta.hasItemName()) {
+                if (VersionUtil.isPaperServer())
+                    itemName = AdventureUtils.MINI_MESSAGE.serialize(itemMeta.itemName());
+                else
+                    itemName = itemMeta.getItemName();
+            } else
+                itemName = null;
+
+            durability = (itemMeta instanceof Damageable damageable) && damageable.hasMaxDamage()
+                    ? damageable.getMaxDamage()
+                    : null;
+            fireResistant = itemMeta.isFireResistant() ? true : null;
+            hideToolTip = itemMeta.isHideTooltip() ? true : null;
+            foodComponent = itemMeta.hasFood() ? itemMeta.getFood() : null;
+            if (VersionUtil.atOrAbove("1.20.6")) {
+                toolComponent = itemMeta.hasTool() ? itemMeta.getTool() : null;
+            }
+            enchantmentGlintOverride = itemMeta.hasEnchantmentGlintOverride() ? itemMeta.getEnchantmentGlintOverride()
+                    : null;
+            rarity = itemMeta.hasRarity() ? itemMeta.getRarity() : null;
+            maxStackSize = itemMeta.hasMaxStackSize() ? itemMeta.getMaxStackSize() : null;
+            if (maxStackSize != null && maxStackSize == 1)
+                unstackable = true;
+        }
+
+        if (VersionUtil.atOrAbove("1.21")) {
+            jukeboxPlayable = itemMeta.hasJukeboxPlayable() ? itemMeta.getJukeboxPlayable() : null;
+        }
+
+        if (VersionUtil.atOrAbove("1.21.2")) {
+            equippableComponent = itemMeta.hasEquippable() ? itemMeta.getEquippable() : null;
+            useCooldownComponent = itemMeta.hasUseCooldown() ? itemMeta.getUseCooldown() : null;
+            useRemainder = itemMeta.hasUseRemainder() ? itemMeta.getUseRemainder() : null;
+            damageResistant = itemMeta.hasDamageResistant() ? itemMeta.getDamageResistant() : null;
+            itemModel = itemMeta.hasItemModel() ? itemMeta.getItemModel() : null;
+            enchantable = itemMeta.hasEnchantable() ? itemMeta.getEnchantable() : null;
+            isGlider = itemMeta.isGlider() ? true : null;
+        }
+
+    }
+
+    public Material getType() {
+        return type;
+    }
+
+    public ItemBuilder setType(final Material type) {
+        this.type = type;
+        return this;
+    }
+
+    public ItemBuilder setAmount(int amount) {
+        if (amount > type.getMaxStackSize())
+            amount = type.getMaxStackSize();
+        this.amount = amount;
+        return this;
+    }
+
+    @Nullable
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public ItemBuilder setDisplayName(final String displayName) {
+        this.displayName = displayName;
+        this.displayNameMessage = null;
+        return this;
+    }
+
+    public ItemBuilder setDisplayName(@NotNull final Message message) {
+        this.displayNameMessage = message;
+        this.displayName = null;
+        return this;
+    }
+
+    public boolean hasItemName() {
+        return itemName != null;
+    }
+
+    @Nullable
+    public String getItemName() {
+        return itemName;
+    }
+
+    public ItemBuilder setItemName(String itemName) {
+        this.itemName = itemName;
+        return this;
+    }
+
+    public boolean hasLores() {
+        return lore != null && !lore.isEmpty();
+    }
+
+    public List<String> getLore() {
+        return lore != null ? lore : new ArrayList<>();
+    }
+
+    public ItemBuilder setLore(final List<String> lore) {
+        this.lore = lore;
+        return this;
+    }
+
+    public ItemBuilder setUnbreakable(final boolean unbreakable) {
+        this.unbreakable = unbreakable;
+        return this;
+    }
+
+    public boolean isUnstackable() {
+        return unstackable;
+    }
+
+    public ItemBuilder setUnstackable(final boolean unstackable) {
+        this.unstackable = unstackable;
+        if (unstackable && VersionUtil.atOrAbove("1.20.5"))
+            maxStackSize = 1;
+        return this;
+    }
+
+    @Nullable
+    public Integer getDurability() {
+        return durability;
+    }
+
+    public ItemBuilder setDurability(@Nullable Integer durability) {
+        this.durability = durability;
+        return this;
+    }
+
+    public boolean isDamagedOnBlockBreak() {
+        return damagedOnBlockBreak;
+    }
+
+    public void setDamagedOnBlockBreak(boolean damagedOnBlockBreak) {
+        this.damagedOnBlockBreak = damagedOnBlockBreak;
+    }
+
+    public boolean isDamagedOnEntityHit() {
+        return damagedOnEntityHit;
+    }
+
+    public void setDamagedOnEntityHit(boolean damagedOnEntityHit) {
+        this.damagedOnEntityHit = damagedOnEntityHit;
+    }
+
+    /**
+     * Check if the ItemBuilder has color.
+     *
+     * @return true if the ItemBuilder has color that is not default
+     *         LeatherMetaColor
+     */
+    public boolean hasColor() {
+        return color != null && !color.equals(Bukkit.getItemFactory().getDefaultLeatherColor());
+    }
+
+    public Color getColor() {
+        return color;
+    }
+
+    public ItemBuilder setColor(final Color color) {
+        this.color = color;
+        return this;
+    }
+
+    public boolean hasTrimPattern() {
+        return trimPattern != null && getTrimPattern() != null;
+    }
+
+    @Nullable
+    public Key getTrimPatternKey() {
+        if (!Tag.ITEMS_TRIMMABLE_ARMOR.isTagged(type))
+            return null;
+        return trimPattern;
+    }
+
+    @Nullable
+    public TrimPattern getTrimPattern() {
+        if (!Tag.ITEMS_TRIMMABLE_ARMOR.isTagged(type))
+            return null;
+        if (trimPattern == null)
+            return null;
+        NamespacedKey key = NamespacedKey.fromString(trimPattern.asString());
+        if (key == null)
+            return null;
+
+        // Only try to get trim pattern if running on Paper
+        if (VersionUtil.isPaperServer()) {
+            try {
+                return Registry.TRIM_PATTERN.get(key);
+            } catch (NoSuchMethodError e) {
+                // Registry.TRIM_PATTERN.get not available - this is expected on non-Paper
+                // servers
+                return null;
+            }
+        }
+        return null;
+    }
+
+    public ItemBuilder setTrimPattern(final Key trimKey) {
+        if (!Tag.ITEMS_TRIMMABLE_ARMOR.isTagged(type))
+            return this;
+        this.trimPattern = trimKey;
+        return this;
+    }
+
+    public boolean hasItemModel() {
+        return VersionUtil.atOrAbove("1.21.2") && itemModel != null;
+    }
+
+    @Nullable
+    public NamespacedKey getItemModel() {
+        return itemModel;
+    }
+
+    public ItemBuilder setItemModel(final NamespacedKey itemModel) {
+        this.itemModel = itemModel;
+        return this;
+    }
+
+    public boolean hasTooltipStyle() {
+        return VersionUtil.atOrAbove("1.21.2") && tooltipStyle != null;
+    }
+
+    public NamespacedKey getTooltipStyle() {
+        return tooltipStyle;
+    }
+
+    public ItemBuilder setTooltipStyle(NamespacedKey tooltipStyle) {
+        this.tooltipStyle = tooltipStyle;
+        return this;
+    }
+
+    public boolean hasEnchantable() {
+        return VersionUtil.atOrAbove("1.21.2") && enchantable != null;
+    }
+
+    @Nullable
+    public Integer getEnchantable() {
+        return enchantable;
+    }
+
+    public ItemBuilder setEnchantable(Integer enchantable) {
+        this.enchantable = enchantable;
+        return this;
+    }
+
+    public boolean hasDamageResistant() {
+        return VersionUtil.atOrAbove("1.21.2") && damageResistant != null;
+    }
+
+    public Tag<DamageType> getDamageResistant() {
+        return damageResistant;
+    }
+
+    public ItemBuilder setDamageResistant(final Tag<DamageType> damageResistant) {
+        this.damageResistant = damageResistant;
+        return this;
+    }
+
+    public ItemBuilder setGlider(final boolean glider) {
+        this.isGlider = glider;
+        return this;
+    }
+
+    public boolean hasUseRemainder() {
+        return VersionUtil.atOrAbove("1.21.2") && useRemainder != null;
+    }
+
+    @Nullable
+    public ItemStack getUseRemainder() {
+        return useRemainder;
+    }
+
+    public ItemBuilder setUseRemainder(@Nullable final ItemStack itemStack) {
+        this.useRemainder = itemStack;
+        deferredUseRemainderId = null;
+        // Invalidate any stack cached before the remainder was attached. Another
+        // item's use_remainder chain may already have built this item, and build()
+        // would otherwise keep returning the stale clone without the component.
+        finalItemStack = null;
+        return this;
+    }
+
+    public ItemBuilder deferUseRemainder(@Nullable final String itemId, final int amount) {
+        useRemainder = null;
+        deferredUseRemainderId = itemId;
+        deferredUseRemainderAmount = amount;
+        return this;
+    }
+
+    public void resolveUseRemainder() {
+        if (deferredUseRemainderId == null || resolvingUseRemainder)
+            return;
+
+        ItemBuilder remainderBuilder = OraxenItems.getItemById(deferredUseRemainderId);
+        if (remainderBuilder == null) {
+            Logs.logWarning("use_remainder references unknown oraxen_item: '" + deferredUseRemainderId + "'. Component will be skipped.");
+            deferredUseRemainderId = null;
+            return;
+        }
+
+        resolvingUseRemainder = true;
+        try {
+            // Resolve the referenced item's own remainder chain first so the stack
+            // built below already carries its use_remainder component. The guard
+            // above breaks cycles (a -> b -> a) instead of recursing forever.
+            remainderBuilder.resolveUseRemainder();
+            ItemStack remainder = ItemUpdater.updateItem(remainderBuilder.build());
+            remainder.setAmount(deferredUseRemainderAmount);
+            setUseRemainder(remainder);
+        } finally {
+            resolvingUseRemainder = false;
+        }
+    }
+
+    public boolean hasUseCooldownComponent() {
+        return VersionUtil.atOrAbove("1.21.2") && useCooldownComponent != null;
+    }
+
+    @Nullable
+    public UseCooldownComponent getUseCooldownComponent() {
+        return useCooldownComponent;
+    }
+
+    public ItemBuilder setUseCooldownComponent(@Nullable final UseCooldownComponent useCooldownComponent) {
+        this.useCooldownComponent = useCooldownComponent;
+        return this;
+    }
+
+    public boolean hasEquippableComponent() {
+        return VersionUtil.atOrAbove("1.21.2") && equippableComponent != null;
+    }
+
+    @Nullable
+    public EquippableComponent getEquippableComponent() {
+        return equippableComponent;
+    }
+
+    public ItemBuilder setEquippableComponent(@Nullable final EquippableComponent equippableComponent) {
+        this.equippableComponent = equippableComponent;
+        return this;
+    }
+
+    public boolean hasFoodComponent() {
+        return VersionUtil.atOrAbove("1.20.5") && foodComponent != null;
+    }
+
+    @Nullable
+    public FoodComponent getFoodComponent() {
+        return foodComponent;
+    }
+
+    public ItemBuilder setFoodComponent(@Nullable FoodComponent foodComponent) {
+        this.foodComponent = foodComponent;
+        return this;
+    }
+
+    public boolean hasConsumableComponent() {
+        return VersionUtil.atOrAbove("1.21.2") && consumableComponent != null;
+    }
+
+    @Nullable
+    public Object getConsumableComponent() {
+        return consumableComponent;
+    }
+
+    public <V> ItemBuilder setConsumableComponent(@Nullable V consumableComponent) {
+        this.consumableComponent = consumableComponent;
+        return this;
+    }
+
+    public boolean hasToolComponent() {
+        return VersionUtil.atOrAbove("1.20.5") && toolComponent != null;
+    }
+
+    @Nullable
+    public ToolComponent getToolComponent() {
+        return toolComponent;
+    }
+
+    public ItemBuilder setToolComponent(@Nullable ToolComponent toolComponent) {
+        this.toolComponent = toolComponent;
+        return this;
+    }
+
+    public boolean hasJukeboxPlayable() {
+        return VersionUtil.atOrAbove("1.21") && jukeboxPlayable != null;
+    }
+
+    @Nullable
+    public JukeboxPlayableComponent getJukeboxPlayable() {
+        return jukeboxPlayable;
+    }
+
+    public ItemBuilder setJukeboxPlayable(@Nullable JukeboxPlayableComponent jukeboxPlayable) {
+        if (!VersionUtil.isPaperServer()) {
+            Logs.logWarning("JukeboxPlayable features are only available on Paper servers.");
+            return this;
+        }
+
+        try {
+            this.jukeboxPlayable = jukeboxPlayable;
+        } catch (Exception e) {
+            Logs.logWarning("Error setting JukeboxPlayable; This component is not available in your server version");
+            if (Settings.DEBUG.toBool()) {
+                e.printStackTrace();
+            }
+        }
+        return this;
+    }
+
+    public boolean hasEnchantmentGlintOverride() {
+        return VersionUtil.atOrAbove("1.20.5") && enchantmentGlintOverride != null;
+    }
+
+    @Nullable
+    public Boolean getEnchantmentGlintOverride() {
+        return enchantmentGlintOverride;
+    }
+
+    public ItemBuilder setEnchantmentGlintOverride(@Nullable Boolean enchantmentGlintOverride) {
+        this.enchantmentGlintOverride = enchantmentGlintOverride;
+        return this;
+    }
+
+    public boolean hasRarity() {
+        return VersionUtil.atOrAbove("1.20.5") && rarity != null;
+    }
+
+    @Nullable
+    public ItemRarity getRarity() {
+        return rarity;
+    }
+
+    public ItemBuilder setRarity(@Nullable ItemRarity rarity) {
+        this.rarity = rarity;
+        return this;
+    }
+
+    public ItemBuilder setFireResistant(boolean fireResistant) {
+        this.fireResistant = fireResistant;
+        return this;
+    }
+
+    public ItemBuilder setHideToolTip(boolean hideToolTip) {
+        this.hideToolTip = hideToolTip;
+        return this;
+    }
+
+    public boolean hasMaxStackSize() {
+        return VersionUtil.atOrAbove("1.20.5") && maxStackSize != null;
+    }
+
+    @Nullable
+    public Integer getMaxStackSize() {
+        return maxStackSize;
+    }
+
+    public ItemBuilder setMaxStackSize(@Nullable Integer maxStackSize) {
+        this.maxStackSize = maxStackSize;
+        this.setUnstackable(maxStackSize != null && maxStackSize == 1);
+        return this;
+    }
+
+    public ItemBuilder setBasePotionType(final PotionType potionType) {
+        this.potionType = potionType;
+        return this;
+    }
+
+    public ItemBuilder addPotionEffect(final PotionEffect potionEffect) {
+        if (potionEffects == null)
+            potionEffects = new ArrayList<>();
+        potionEffects.add(potionEffect);
+        return this;
+    }
+
+    public ItemBuilder setOwningPlayer(final OfflinePlayer owningPlayer) {
+        this.owningPlayer = owningPlayer;
+        return this;
+    }
+
+    public <T, Z> ItemBuilder setCustomTag(final NamespacedKey namespacedKey, final PersistentDataType<T, Z> dataType,
+            final Z data) {
+        persistentDataMap.put(new PersistentDataSpace(namespacedKey, dataType), data);
+        return this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T, Z> Z getCustomTag(final NamespacedKey namespacedKey, final PersistentDataType<T, Z> dataType) {
+        for (final Map.Entry<PersistentDataSpace, Object> dataSpace : persistentDataMap.entrySet())
+            if (dataSpace.getKey().namespacedKey().equals(namespacedKey)
+                    && dataSpace.getKey().dataType().equals(dataType))
+                return (Z) dataSpace.getValue();
+        return null;
+    }
+
+    public boolean hasCustomTag() {
+        return !persistentDataContainer.isEmpty();
+    }
+
+    public <T, Z> void addCustomTag(NamespacedKey key, PersistentDataType<T, Z> type, Z value) {
+        persistentDataMap.put(new PersistentDataSpace(key, type), value);
+    }
+
+    public ItemBuilder removeCustomTag(NamespacedKey key) {
+        persistentDataContainer.remove(key);
+        return this;
+    }
+
+    public ItemBuilder setCustomModelData(final int customModelData) {
+        this.customModelData = customModelData;
+        return this;
+    }
+
+    /**
+     * Sets the 1.21.4+ custom_model_data strings list (used by minecraft:select).
+     * Passing {@code null} clears the strings.
+     */
+    public ItemBuilder setCustomModelDataStrings(@Nullable final List<String> strings) {
+        this.customModelDataStrings = strings != null ? new ArrayList<>(strings) : null;
+        return this;
+    }
+
+    /**
+     * Sets the 1.21.4+ custom_model_data floats list (used by minecraft:range_dispatch).
+     * Passing {@code null} clears the floats.
+     */
+    public ItemBuilder setCustomModelDataFloats(@Nullable final List<Float> floats) {
+        this.customModelDataFloats = floats != null ? new ArrayList<>(floats) : null;
+        return this;
+    }
+
+    public ItemBuilder addItemFlags(final ItemFlag... itemFlags) {
+        if (this.itemFlags == null)
+            this.itemFlags = EnumSet.noneOf(ItemFlag.class); // Use EnumSet for better performance
+        Collections.addAll(this.itemFlags, itemFlags);
+        return this;
+    }
+
+    public List<ItemFlag> getItemFlags() {
+        return itemFlags != null ? new ArrayList<>(itemFlags) : new ArrayList<>();
+    }
+
+    public ItemBuilder addAttributeModifiers(final Attribute attribute, final AttributeModifier attributeModifier) {
+        if (attribute != null && attributeModifier != null) {
+            try {
+                EquipmentSlotGroup slot = VersionUtil.atOrAbove("1.20.5")
+                        ? attributeModifier.getSlotGroup() : null;
+                attributeEntries.add(new AttributeModifierEntry(
+                        attribute, attributeModifier,
+                        slot != null ? slot : EquipmentSlotGroup.ANY));
+            } catch (NoClassDefFoundError ignored) {
+                // EquipmentSlotGroup not available pre-1.20.5, store via legacy multimap
+                if (legacyAttributeModifiers == null) legacyAttributeModifiers = HashMultimap.create();
+                legacyAttributeModifiers.put(attribute, attributeModifier);
+            }
+        }
+        return this;
+    }
+
+    public ItemBuilder addAttributeEntry(final AttributeModifierEntry entry) {
+        if (entry != null) {
+            attributeEntries.add(entry);
+        }
+        return this;
+    }
+
+    public ItemBuilder addAllAttributeModifiers(final Multimap<Attribute, AttributeModifier> attributeModifiers) {
+        if (attributeModifiers != null) {
+            for (var entry : attributeModifiers.entries()) {
+                addAttributeModifiers(entry.getKey(), entry.getValue());
+            }
+        }
+        return this;
+    }
+
+    public List<AttributeModifierEntry> getAttributeEntries() {
+        return Collections.unmodifiableList(attributeEntries);
+    }
+
+    public ItemBuilder setTropicalFishBucketBodyColor(final DyeColor bodyColor) {
+        this.bodyColor = bodyColor;
+        return this;
+    }
+
+    public ItemBuilder setTropicalFishBucketPattern(final TropicalFish.Pattern pattern) {
+        this.pattern = pattern;
+        return this;
+    }
+
+    public ItemBuilder setTropicalFishBucketPatternColor(final DyeColor patternColor) {
+        this.patternColor = patternColor;
+        return this;
+    }
+
+    public ItemBuilder addEnchant(final Enchantment enchant, final int level) {
+        enchantments.put(enchant, level);
+        return this;
+    }
+
+    public ItemBuilder addEnchants(final Map<Enchantment, Integer> enchants) {
+        for (final Map.Entry<Enchantment, Integer> enchant : enchants.entrySet())
+            addEnchant(enchant.getKey(), enchant.getValue());
+        return this;
+    }
+
+    public boolean hasOraxenMeta() {
+        return oraxenMeta != null;
+    }
+
+    public OraxenMeta getOraxenMeta() {
+        return oraxenMeta;
+    }
+
+    public ItemBuilder setOraxenMeta(final OraxenMeta itemResources) {
+        oraxenMeta = itemResources;
+        return this;
+    }
+
+    public ItemStack getReferenceClone() {
+        return itemStack.clone();
+    }
+
+    public ItemBuilder clone() {
+        ItemBuilder clonedBuilder = new ItemBuilder(itemStack.clone());
+        clonedBuilder.genericComponents.putAll(genericComponents);
+        clonedBuilder.paintingVariant = paintingVariant;
+        clonedBuilder.attributeEntries.clear();
+        clonedBuilder.attributeEntries.addAll(attributeEntries);
+        if (legacyAttributeModifiers != null) {
+            clonedBuilder.legacyAttributeModifiers = HashMultimap.create(legacyAttributeModifiers);
+        }
+        return clonedBuilder;
+    }
+
+    @SuppressWarnings("unchecked")
+    public ItemBuilder regen() {
+        final ItemStack itemStack = this.itemStack;
+        if (type != null)
+            itemStack.setType(type);
+        if (amount != itemStack.getAmount())
+            itemStack.setAmount(amount);
+
+        ItemMeta itemMeta = itemStack.getItemMeta();
+
+        applyVersionSpecificProperties(itemMeta);
+        handleVariousMeta(itemMeta);
+        itemMeta.setUnbreakable(unbreakable);
+
+        PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
+        applyDisplayName(itemMeta, pdc);
+        applyItemFlags(itemMeta);
+        applyEnchantments(itemMeta);
+        applyAttributeModifiers(itemMeta);
+        applyCustomModelData(itemMeta);
+        applyPersistentData(pdc);
+        applyLore(itemMeta);
+
+        itemStack.setItemMeta(itemMeta);
+        applyAttributeModifiersComponent(itemStack);
+        finalItemStack = applyConsumableComponent(itemStack);
+        finalItemStack = applyPaintingVariantComponent(finalItemStack);
+        finalItemStack = applyGenericComponents(finalItemStack);
+
+        return this;
+    }
+
+    private void applyVersionSpecificProperties(ItemMeta itemMeta) {
+        if (VersionUtil.atOrAbove("1.20.5")) {
+            applyProperties_1_20_5(itemMeta);
+        }
+        if (VersionUtil.atOrAbove("1.21")) {
+            applyProperties_1_21(itemMeta);
+        }
+        if (VersionUtil.atOrAbove("1.21.2")) {
+            applyProperties_1_21_2(itemMeta);
+        }
+    }
+
+    private void applyProperties_1_20_5(ItemMeta itemMeta) {
+        if (itemMeta instanceof Damageable damageable)
+            damageable.setMaxDamage(durability);
+        if (hasItemName()) {
+            if (VersionUtil.isPaperServer())
+                itemMeta.itemName(AdventureUtils.MINI_MESSAGE.deserialize(itemName));
+            else
+                itemMeta.setItemName(itemName);
+        }
+        if (hasMaxStackSize())
+            itemMeta.setMaxStackSize(maxStackSize);
+        if (hasEnchantmentGlintOverride())
+            itemMeta.setEnchantmentGlintOverride(enchantmentGlintOverride);
+        if (hasRarity())
+            itemMeta.setRarity(rarity);
+        if (hasFoodComponent())
+            itemMeta.setFood(foodComponent);
+        if (hasToolComponent() && VersionUtil.atOrAbove("1.20.6"))
+            itemMeta.setTool(toolComponent);
+        if (fireResistant != null)
+            itemMeta.setFireResistant(fireResistant);
+        if (hideToolTip != null)
+            itemMeta.setHideTooltip(hideToolTip);
+    }
+
+    private void applyProperties_1_21(ItemMeta itemMeta) {
+        if (hasJukeboxPlayable() && VersionUtil.isPaperServer()) {
+            try {
+                itemMeta.setJukeboxPlayable(jukeboxPlayable);
+            } catch (NoSuchMethodError | UnsupportedOperationException e) {
+                if (Settings.DEBUG.toBool()) {
+                    Logs.logWarning("Failed to set JukeboxPlayable - this feature requires Paper");
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private void applyProperties_1_21_2(ItemMeta itemMeta) {
+        if (hasEquippableComponent())
+            itemMeta.setEquippable(equippableComponent);
+        if (hasUseCooldownComponent())
+            itemMeta.setUseCooldown(useCooldownComponent);
+        if (hasDamageResistant())
+            itemMeta.setDamageResistant(damageResistant);
+        if (hasItemModel())
+            itemMeta.setItemModel(itemModel);
+        if (hasTooltipStyle())
+            itemMeta.setTooltipStyle(tooltipStyle);
+        if (hasUseRemainder())
+            itemMeta.setUseRemainder(useRemainder);
+        if (hasEnchantable())
+            itemMeta.setEnchantable(enchantable);
+        if (itemModel != null)
+            itemMeta.setItemModel(itemModel);
+        if (isGlider != null)
+            itemMeta.setGlider(isGlider);
+    }
+
+    private void applyDisplayName(ItemMeta itemMeta, PersistentDataContainer pdc) {
+        if (displayName == null && displayNameMessage == null)
+            return;
+
+        if (!VersionUtil.atOrAbove("1.20.5"))
+            pdc.set(ORIGINAL_NAME_KEY, DataType.STRING,
+                    displayNameMessage != null ? displayNameMessage.toString() : displayName);
+
+        if (VersionUtil.isPaperServer()) {
+            Component nameComponent = buildDisplayNameComponent();
+            nameComponent = nameComponent.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)
+                    .colorIfAbsent(NamedTextColor.WHITE);
+            itemMeta.displayName(nameComponent);
+        } else {
+            itemMeta.setDisplayName(
+                    displayNameMessage != null ? displayNameMessage.toSerializedString() : displayName);
+        }
+    }
+
+    private Component buildDisplayNameComponent() {
+        if (displayNameMessage != null) {
+            return displayNameMessage.toComponent();
+        }
+        String name = this.displayName;
+        if (name != null && isLegacyFormatted(name)) {
+            return AdventureUtils.LEGACY_SERIALIZER.deserialize(name);
+        }
+        return AdventureUtils.MINI_MESSAGE.deserialize(name != null ? name : "");
+    }
+
+    private void applyItemFlags(ItemMeta itemMeta) {
+        if (itemFlags != null)
+            itemMeta.addItemFlags(itemFlags.toArray(new ItemFlag[0]));
+    }
+
+    private void applyEnchantments(ItemMeta itemMeta) {
+        if (enchantments.isEmpty())
+            return;
+        for (final Map.Entry<Enchantment, Integer> enchant : enchantments.entrySet()) {
+            if (enchant.getKey() == null)
+                continue;
+            int lvl = enchant.getValue() != null ? enchant.getValue() : 1;
+            itemMeta.addEnchant(enchant.getKey(), lvl, true);
+        }
+    }
+
+    private void applyAttributeModifiers(ItemMeta itemMeta) {
+        // Apply modern entries via ItemMeta multimap
+        if (!attributeEntries.isEmpty()) {
+            Multimap<Attribute, AttributeModifier> multimap = HashMultimap.create();
+            for (AttributeModifierEntry entry : attributeEntries) {
+                multimap.put(entry.attribute(), entry.modifier());
+            }
+            itemMeta.setAttributeModifiers(multimap);
+        }
+
+        // Apply legacy fallback entries (pre-1.20.5 servers where EquipmentSlotGroup is unavailable)
+        if (legacyAttributeModifiers != null && !legacyAttributeModifiers.isEmpty()) {
+            Multimap<Attribute, AttributeModifier> existing = itemMeta.getAttributeModifiers();
+            Multimap<Attribute, AttributeModifier> merged = existing != null
+                    ? HashMultimap.create(existing) : HashMultimap.create();
+            merged.putAll(legacyAttributeModifiers);
+            itemMeta.setAttributeModifiers(merged);
+        }
+    }
+
+    /**
+     * Applies attribute modifiers using the modern Paper DataComponent API (1.21.2+).
+     * Called after {@code itemStack.setItemMeta()} since DataComponents are set on the stack directly.
+     * Falls back silently if the API is unavailable.
+     */
+    private void applyAttributeModifiersComponent(ItemStack itemStack) {
+        boolean hasModern = !attributeEntries.isEmpty();
+        boolean hasLegacy = legacyAttributeModifiers != null && !legacyAttributeModifiers.isEmpty();
+        if (!hasModern && !hasLegacy) return;
+        if (!VersionUtil.atOrAbove("1.21.2") || !VersionUtil.isPaperServer()) return;
+
+        try {
+            ItemAttributeModifiers.Builder builder = ItemAttributeModifiers.itemAttributes();
+            for (AttributeModifierEntry entry : attributeEntries) {
+                entry.addToComponentBuilder(builder);
+            }
+            // Include legacy attribute modifiers so they are not lost when
+            // the DataComponent overwrites the ItemMeta-based attributes
+            if (hasLegacy) {
+                for (var entry : legacyAttributeModifiers.entries()) {
+                    EquipmentSlotGroup slot;
+                    try {
+                        slot = entry.getValue().getSlotGroup();
+                    } catch (NoSuchMethodError ignored) {
+                        slot = EquipmentSlotGroup.ANY;
+                    }
+                    builder.addModifier(entry.getKey(), entry.getValue(),
+                            slot != null ? slot : EquipmentSlotGroup.ANY);
+                }
+            }
+            itemStack.setData(DataComponentTypes.ATTRIBUTE_MODIFIERS, builder.build());
+        } catch (NoClassDefFoundError | NoSuchMethodError e) {
+            // DataComponent API not available on this server version — legacy path already applied
+        }
+    }
+
+    private void applyCustomModelData(ItemMeta itemMeta) {
+        itemMeta.setCustomModelData(customModelData);
+
+        // 1.21.4+: apply custom_model_data component data for modern item definitions
+        if (!VersionUtil.atOrAbove("1.21.4"))
+            return;
+        if (customModelDataStrings == null && customModelDataFloats == null)
+            return;
+
+        try {
+            CustomModelDataComponent cmd = itemMeta.getCustomModelDataComponent();
+            if (cmd != null) {
+                if (customModelDataStrings != null) {
+                    cmd.setStrings(new ArrayList<>(customModelDataStrings));
+                }
+                if (customModelDataFloats != null) {
+                    cmd.setFloats(new ArrayList<>(customModelDataFloats));
+                }
+                itemMeta.setCustomModelDataComponent(cmd);
+            }
+        } catch (Throwable ignored) {
+            // Server/API doesn't support this component accessor
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void applyPersistentData(PersistentDataContainer pdc) {
+        if (persistentDataMap.isEmpty())
+            return;
+        for (final Map.Entry<PersistentDataSpace, Object> dataSpace : persistentDataMap.entrySet())
+            pdc.set(dataSpace.getKey().namespacedKey(),
+                    (PersistentDataType<?, Object>) dataSpace.getKey().dataType(), dataSpace.getValue());
+    }
+
+    private void applyLore(ItemMeta itemMeta) {
+        if (VersionUtil.isPaperServer()) {
+            @Nullable
+            List<Component> loreLines = lore != null
+                    ? lore.stream().map(AdventureUtils.MINI_MESSAGE::deserialize).toList()
+                    : new ArrayList<>();
+            loreLines = loreLines.stream()
+                    .map(c -> c.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)).toList();
+            itemMeta.lore(lore != null ? loreLines : null);
+        } else {
+            itemMeta.setLore(lore);
+        }
+    }
+
+    private ItemStack applyConsumableComponent(ItemStack itemStack) {
+        NMSHandler handler = NMSHandlers.getHandler();
+        if (handler != null) {
+            return handler.consumableComponent(itemStack, consumableComponent);
+        }
+        if (Settings.DEBUG.toBool()) {
+            OraxenPlugin.get().getLogger()
+                    .warning("NMSHandler is null - consumableComponent features will not work");
+        }
+        return itemStack;
+    }
+
+    private ItemStack applyGenericComponents(ItemStack itemStack) {
+        if (genericComponents.isEmpty()) return itemStack;
+        NMSHandler handler = NMSHandlers.getHandler();
+        if (handler != null) {
+            return handler.applyGenericComponents(itemStack, genericComponents);
+        }
+        return itemStack;
+    }
+
+    private ItemStack applyPaintingVariantComponent(ItemStack itemStack) {
+        if (paintingVariant == null) return itemStack;
+        if (!VersionUtil.atOrAbove("1.21.5") || !VersionUtil.isPaperServer()) return itemStack;
+
+        Key variantKey;
+        try {
+            variantKey = parsePaintingVariantKey(paintingVariant);
+        } catch (IllegalArgumentException exception) {
+            Logs.logWarning("Invalid painting_variant '" + paintingVariant + "'");
+            Logs.debug(exception);
+            return itemStack;
+        }
+
+        try {
+            Registry<Art> paintingRegistry = RegistryAccess.registryAccess()
+                    .getRegistry(RegistryKey.PAINTING_VARIANT);
+            Art painting = paintingRegistry.get(variantKey);
+            if (painting == null) {
+                Logs.logWarning("Unknown painting_variant '" + paintingVariant + "'");
+                return itemStack;
+            }
+            itemStack.setData(DataComponentTypes.PAINTING_VARIANT, painting);
+            return itemStack;
+        } catch (Exception exception) {
+            Logs.logWarning("Failed to set painting_variant '" + paintingVariant + "'");
+            Logs.debug(exception);
+            return itemStack;
+        }
+    }
+
+    private Key parsePaintingVariantKey(String value) {
+        String normalized = value.toLowerCase(Locale.ROOT);
+        return normalized.contains(":") ? Key.key(normalized) : Key.key("oraxen", normalized);
+    }
+
+    public void save() {
+        regen();
+        OraxenItems.getMap().entrySet().stream().filter(entry -> entry.getValue().containsValue(this)).findFirst()
+                .ifPresent(entry -> {
+                    YamlConfiguration yamlConfiguration = OraxenYaml.loadConfiguration(entry.getKey());
+                    String itemId = OraxenItems.getIdByItem(this);
+                    if (this.hasColor()) {
+                        String color = this.color.getRed() + "," + this.color.getGreen() + "," + this.color.getBlue();
+                        yamlConfiguration.set(itemId + ".color", color);
+                    }
+                    if (this.hasTrimPattern()) {
+                        String trimPattern = this.getTrimPatternKey().asString();
+                        yamlConfiguration.set(itemId + ".trim_pattern", trimPattern);
+                    }
+                    if (!getItemFlags().isEmpty())
+                        yamlConfiguration.set(itemId + ".ItemFlags",
+                                this.itemFlags.stream().map(ItemFlag::name).toList());
+                    if (hasEquippableComponent()) {
+                        yamlConfiguration.set(itemId + ".Components.equippable.slot",
+                                this.equippableComponent.getSlot().name());
+                        yamlConfiguration.set(itemId + ".Components.equippable.model",
+                                this.equippableComponent.getModel().toString());
+                    }
+                    try {
+                        yamlConfiguration.save(entry.getKey());
+                    } catch (IOException e) {
+                        if (Settings.DEBUG.toBool())
+                            e.printStackTrace();
+                    }
+                });
+    }
+
+    private void handleVariousMeta(ItemMeta itemMeta) {
+        if (itemMeta instanceof LeatherArmorMeta leatherArmorMeta && color != null
+                && !color.equals(leatherArmorMeta.getColor())) {
+            leatherArmorMeta.setColor(color);
+        } else if (itemMeta instanceof PotionMeta potionMeta) {
+            handlePotionMeta(potionMeta);
+        } else if (itemMeta instanceof MapMeta mapMeta && color != null && !color.equals(mapMeta.getColor())) {
+            mapMeta.setColor(color);
+        } else if (itemMeta instanceof FireworkEffectMeta effectMeta) {
+            FireworkEffect.Builder fireWorkBuilder = effectMeta.clone().hasEffect() ? effectMeta.getEffect().builder()
+                    : FireworkEffect.builder();
+            if (color != null)
+                fireWorkBuilder.withColor(color);
+
+            // If both above fail, the below will throw an exception as builder needs
+            // atleast one color
+            // If so return the base meta
+            try {
+                effectMeta.setEffect(fireWorkBuilder.build());
+            } catch (IllegalStateException ignored) {
+            }
+        } else if (itemMeta instanceof ArmorMeta armorMeta && hasTrimPattern()) {
+            armorMeta.setTrim(new ArmorTrim(TrimMaterial.REDSTONE, getTrimPattern()));
+        } else if (itemMeta instanceof SkullMeta skullMeta) {
+            final OfflinePlayer defaultOwningPlayer = skullMeta.getOwningPlayer();
+            if (!Objects.equals(owningPlayer, defaultOwningPlayer)) {
+                skullMeta.setOwningPlayer(owningPlayer);
+            }
+        } else if (itemMeta instanceof TropicalFishBucketMeta tropicalFishBucketMeta
+                && tropicalFishBucketMeta.hasVariant())
+            handleTropicalFishBucketMeta(tropicalFishBucketMeta);
+    }
+
+    private ItemMeta handlePotionMeta(PotionMeta potionMeta) {
+        if (color != null && !color.equals(potionMeta.getColor()))
+            potionMeta.setColor(color);
+
+        if (potionType != null && !potionType.equals(PotionUtils.getPotionType(potionMeta)))
+            PotionUtils.setPotionType(potionMeta, potionType);
+
+        if (!potionEffects.equals(potionMeta.getCustomEffects()))
+            for (final PotionEffect potionEffect : potionEffects)
+                potionMeta.addCustomEffect(potionEffect, true);
+
+        return potionMeta;
+    }
+
+    private ItemMeta handleTropicalFishBucketMeta(TropicalFishBucketMeta tropicalFishBucketMeta) {
+
+        final DyeColor defaultColor = tropicalFishBucketMeta.getBodyColor();
+        if (!bodyColor.equals(defaultColor))
+            tropicalFishBucketMeta.setBodyColor(bodyColor);
+
+        final TropicalFish.Pattern defaultPattern = tropicalFishBucketMeta.getPattern();
+        if (!pattern.equals(defaultPattern))
+            tropicalFishBucketMeta.setPattern(pattern);
+
+        final DyeColor defaultPatternColor = tropicalFishBucketMeta.getPatternColor();
+        if (!patternColor.equals(defaultPatternColor))
+            tropicalFishBucketMeta.setPatternColor(patternColor);
+
+        return tropicalFishBucketMeta;
+    }
+
+    public ItemStack[] buildArray(final int amount) {
+        final ItemStack built = build();
+        final int max = hasMaxStackSize() ? maxStackSize
+                : type != null ? type.getMaxStackSize() : itemStack.getType().getMaxStackSize();
+        final int rest = max == amount ? amount : amount % max;
+        final int iterations = amount > max ? (amount - rest) / max : 0;
+        final ItemStack[] output = new ItemStack[iterations + (rest > 0 ? 1 : 0)];
+        for (int index = 0; index < iterations; index++) {
+            ItemStack clone = built.clone();
+            clone.setAmount(max);
+            if (unstackable)
+                clone = handleUnstackable(clone);
+            output[index] = ItemUpdater.updateItem(clone);
+        }
+        if (rest != 0) {
+            ItemStack clone = built.clone();
+            clone.setAmount(rest);
+            if (unstackable)
+                clone = handleUnstackable(clone);
+            output[iterations] = ItemUpdater.updateItem(clone);
+        }
+        return output;
+    }
+
+    public ItemStack build() {
+        if (finalItemStack == null)
+            regen();
+        ItemStack builtItem = finalItemStack.clone();
+        if (unstackable)
+            return handleUnstackable(builtItem);
+        else
+            return builtItem;
+    }
+
+    private ItemStack handleUnstackable(ItemStack item) {
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null || VersionUtil.atOrAbove("1.20.5"))
+            return item;
+        meta.getPersistentDataContainer().set(UNSTACKABLE_KEY, DataType.UUID, UUID.randomUUID());
+        item.setItemMeta(meta);
+        item.setAmount(1);
+        return item;
+    }
+
+    @Override
+    public String toString() {
+        // todo
+        return super.toString();
+    }
+
+    private boolean isLegacyFormatted(@Nullable String input) {
+        if (input == null || input.isEmpty())
+            return false;
+        if (input.indexOf('§') >= 0)
+            return true;
+        for (int i = 0; i < input.length() - 1; i++) {
+            if (input.charAt(i) == '&') {
+                char next = input.charAt(i + 1);
+                if ("0123456789AaBbCcDdEeFfKkLlMmNnOoRrXx".indexOf(next) >= 0) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Sets a generic component on this item
+     *
+     * @param type      The component type (e.g. "food", "tool", etc.)
+     * @param component The component object
+     */
+    public void setComponent(String type, Object component) {
+        genericComponents.put(type, component);
+    }
+
+    public String getPaintingVariant() {
+        return paintingVariant;
+    }
+
+    public void setPaintingVariant(String paintingVariant) {
+        this.paintingVariant = paintingVariant;
+    }
+
+    /**
+     * Gets a generic component from this item
+     *
+     * @param type The component type
+     * @return The component object, or null if not found
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T getComponent(String type) {
+        return (T) genericComponents.get(type);
+    }
+
+    /**
+     * Checks if this item has a specific component
+     *
+     * @param type The component type
+     * @return true if the component exists
+     */
+    public boolean hasComponent(String type) {
+        return genericComponents.containsKey(type);
+    }
+
+}

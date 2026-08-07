@@ -1,0 +1,182 @@
+# Material list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
+# EntityType list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/EntityType.html
+# Attribute list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/attribute/Attribute.html
+# Potion effects list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/potion/PotionEffectType.html
+# Random UUID generator: https://www.uuidgenerator.net/
+# Color codes: https://docs.adventure.kyori.net/minimessage.html#format
+
+
+caveblock:
+  displayname: "<#D5D6D8>Cave Block"
+  material: PAPER
+  Pack:
+    generate_model: false # because this is a block, a 2nd model pointing to specified one will be generated anyway
+    model: default/caveblock
+  Mechanics:
+    block:
+      type: FULL
+      block-sounds:
+        break-sound: block.glass.break
+        place-sound: block.glass.place
+      custom-variation: 0
+      appearance:
+        model: default/caveblock
+      breaking:
+        - else:
+          hardness: 1
+          drops:
+            - item: caveblock
+              probability: 1.0
+          durability:
+            add: 0
+            remove: 2
+
+amethyst_ore:
+  displayname: '<gradient:#4B36B1:#6699FF>Amethyst Ore'
+  material: PAPER
+  Pack:
+    generate_model: true
+    parent_model: block/cube_all
+    textures:
+      - default/amethyst_ore
+  Mechanics:
+    block:
+      type: FULL
+      block-sounds:
+        break-sound: block.stone.break
+        place-sound: block.stone.place
+      custom-variation: 1
+      appearance:
+        model: amethyst_ore
+      breaking:
+        - when:
+            - minecraft:iron_pickaxe
+            - minecraft:golden_pickaxe
+            - minecraft:diamond_pickaxe
+            - minecraft:netherite_pickaxe
+          hardness: 4
+          drops:
+            - item: amethyst
+              probability: 1.0
+              fortune: 1.0
+          durability:
+            add: 0
+            remove: 1
+              
+        - else:
+          hardness: 6
+          durability:
+            add: 0
+            remove: 2
+
+ruby_ore:
+  displayname: '<gradient:#FA7CBB:#F14658>Ruby Ore'
+  material: PAPER
+  Pack:
+    generate_model: true
+    parent_model: block/cube_all
+    textures:
+      - default/ruby_ore
+  Mechanics:
+    block:
+      type: FULL
+      block-sounds:
+        break-sound: block.stone.break
+        place-sound: block.stone.place
+      custom-variation: 2
+      appearance:
+        model: ruby_ore
+      breaking:
+        - when:
+            - minecraft:iron_pickaxe
+            - minecraft:golden_pickaxe
+            - minecraft:diamond_pickaxe
+            - minecraft:netherite_pickaxe
+          hardness: 6
+          drops:
+            - item: ruby
+              probability: 1.0
+              fortune: 1.0
+          durability:
+            add: 0
+            remove: 1
+        - else:
+          hardness: 8
+          durability:
+            add: 0
+            remove: 2
+
+
+onyx_ore:
+  displayname: '<#6f737d>Onyx Ore'
+  material: PAPER
+  Pack:
+    generate_model: true
+    parent_model: block/cube_all
+    textures:
+      - default/onyx_ore
+  Mechanics:
+    block:
+      type: FULL
+      block-sounds:
+        break-sound: block.stone.break
+        place-sound: block.stone.place
+      custom-variation: 3
+      appearance:
+        model: onyx_ore
+      breaking:
+        - when:
+            - minecraft:iron_pickaxe
+            - minecraft:golden_pickaxe
+            - minecraft:diamond_pickaxe
+            - minecraft:netherite_pickaxe
+          hardness: 6
+          drops:
+            - item: onyx
+              probability: 1.0
+              fortune: 1.0
+          durability:
+            add: 0
+            remove: 1
+        - else:
+          hardness: 8
+          durability:
+            add: 0
+            remove: 2
+
+orax_ore:
+  displayname: '<gradient:#3685EC:#72C1E4>Orax Ore'
+  material: PAPER
+  Pack:
+    generate_model: true
+    parent_model: block/cube_all
+    textures:
+      - default/orax_ore
+  Mechanics:
+    block:
+      type: FULL
+      block-sounds:
+        break-sound: block.stone.break
+        place-sound: block.stone.place
+      custom-variation: 4
+      appearance:
+        model: orax_ore
+      breaking:
+        - when:
+            - minecraft:iron_pickaxe
+            - minecraft:golden_pickaxe
+            - minecraft:diamond_pickaxe
+            - minecraft:netherite_pickaxe
+          hardness: 6
+          drops:
+            - item: orax
+              probability: 1.0
+              fortune: 1.0
+          durability:
+            add: 0
+            remove: 1
+        - else:
+          hardness: 8
+          durability:
+            add: 0
+            remove: 2

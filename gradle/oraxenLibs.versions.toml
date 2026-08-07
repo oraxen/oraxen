@@ -1,0 +1,162 @@
+[versions]
+# often changed version numbers
+hopper = "1.4.2"
+
+actions = "1.0.0-SNAPSHOT"
+
+[libraries]
+
+#
+# Plugin Dependencies
+#
+# ProtocolLib https://github.com/dmulloy2/ProtocolLib
+# Repo: Maven Central
+protocol-lib = { module = "net.dmulloy2:ProtocolLib", version = "5.4.0" }
+# PacketEvents https://docs.packetevents.com/getting-started
+# Repo: https://repo.codemc.io/repository/maven-releases/
+packet-events = { module = "com.github.retrooper:packetevents-spigot", version = "2.13.0" }
+
+
+# PlaceholderAPI https://github.com/PlaceholderAPI/PlaceholderAPI/wiki/Hook-into-PlaceholderAPI
+# Repo: https://repo.extendedclip.com/content/repositories/placeholderapi
+placeholderapi = { module = "me.clip:placeholderapi", version = "2.11.6" }
+
+# MythicMobs https://git.lumine.io/mythiccraft/MythicMobs/-/wikis/API
+# Repo: https://mvn.lumine.io/repository/maven-public/
+mythicmobs = { module = "io.lumine:Mythic-Dist", version = "5.7.0-SNAPSHOT" }
+# https://git.lumine.io/mythiccraft/mythiccrucible
+# Repo: https://mvn.lumine.io/repository/maven-public/
+mythic-crucible = { module = "io.lumine:MythicCrucible-API", version = "2.2.0-SNAPSHOT" }
+
+# MMOItems https://gitlab.com/phoenix-dvpmt/mmoitems
+# Repo: https://nexus.phoenixdevt.fr/repository/maven-public/
+mmoitems = { module = "net.Indyuce:MMOItems-API", version = "6.9.5-SNAPSHOT" }
+mythic-lib-dist = { module = "io.lumine:MythicLib-dist", version = "1.7.1-SNAPSHOT" }
+
+# WorldEdit / WorldGuard https://worldedit.enginehub.org/en/latest/api/
+# Repo: https://maven.enginehub.org/repo/
+worldedit-bukkit = { module = "com.sk89q.worldedit:worldedit-bukkit", version = "7.4.0-SNAPSHOT" }
+worldguard-bukkit = { module = "com.sk89q.worldguard:worldguard-bukkit", version = "7.0.17" }
+
+# ModelEngine https://git.lumine.io/mythiccraft/model-engine-4/-/wikis/API
+# Repo: https://mvn.lumine.io/repository/maven-public/
+modelengine = { module = "com.ticxo.modelengine:ModelEngine", version = "R4.0.9" }
+
+# EcoItems https://plugins.auxilor.io/ecoitems/api
+# Repo: https://repo.auxilor.io/repository/maven-public/
+ecoitems = { module = "com.willfp:EcoItems", version = "5.64.0" }
+eco = { module = "com.willfp:eco", version = "6.73.0" }
+libreforge = { module = "com.willfp:libreforge", version = "4.36.0" }
+
+# ExecutableItems (SCore) https://github.com/Ssomar-Developement/SCore
+# Repo: JitPack
+score = { module = "com.github.Ssomar-Developement:SCore", version = "5.25.3.9" }
+
+# BlockLocker https://github.com/rutgerkok/BlockLocker
+# Repo: https://repo.codemc.org/repository/maven-public/
+blocklocker = { module = "nl.rutgerkok:blocklocker", version = "1.13-SNAPSHOT" }
+
+# Skript https://github.com/SkriptLang/Skript
+# Repo: https://repo.skriptlang.org/releases (NOT JitPack)
+skript = { module = "com.github.SkriptLang:Skript", version = "2.13.2" }
+
+# Iris https://github.com/VolmitSoftware/Iris
+# Repo: JitPack, via fork https://github.com/miziusArchives/Iris (adds jitpack.yml for Java 21;
+# upstream has no jitpack.yml, so its artifacts can never be rebuilt once JitPack evicts them)
+# Version = master commit (3.9.2) + jitpack.yml + Sentry/publishing fixes for tokenless builds
+iris = { module = "com.github.miziusArchives:Iris", version = "927681394c040d8ffab12d83e517f8560475e6ce" }
+
+#
+# Libraries that are included in MC
+# But are not exposed
+#
+commons-io = { module = "commons-io:commons-io", version = "2.11.0" }
+
+#
+# Libraries that are in Maven Central
+# And therefore can be in the plugins.yml > libraries section
+#
+commons-lang3 = { module = "org.apache.commons:commons-lang3", version = "3.20.0" }
+annotations = { module = "org.jetbrains:annotations", version = "26.0.2" }
+
+# Actions https://github.com/iGabyTM/actions
+actions-core = { module = "me.gabytm.util:actions-core", version.ref = "actions" }
+actions-spigot = { module = "me.gabytm.util:actions-spigot", version.ref = "actions" }
+
+# Spring Expressions (SpEL) - used by ClickAction to parse action conditions
+spring-expression = { module = "org.springframework:spring-expression", version = "6.2.19" }
+
+# MCLogs https://github.com/aternosorg/mclogs
+mc-logs = { module = "gs.mclo:java", version = "2.2.1" }
+
+#
+# Libraries that are shaded and relocated
+#
+
+# BStats https://github.com/Bastian/bstats-metrics
+# Repo: Maven Central
+bstats = { module = "org.bstats:bstats-bukkit", version = "3.1.0" }
+
+# Creative API https://github.com/unnamed/creative
+# Repo: Maven Central
+creative = { module = "team.unnamed:creative-api", version = "1.7.3" }
+
+# AntiGriefLib
+# Repo: https://repo.momirealms.net/releases/
+antigrieflib = { module = "net.momirealms:antigrieflib", version = "1.0.11" }
+
+# Repo: Maven Central
+# https://github.com/mfnalex/MorePersistentDataTypes
+more-persistent-data-types = { module = "com.jeff-media:MorePersistentDataTypes", version = "2.4.0" }
+# https://github.com/mfnalex/PersistentDataSerializer
+persistent-data-serializer = { module = "com.jeff-media:persistent-data-serializer", version = "1.0" }
+
+# Triumph GUI https://github.com/TriumphTeam/triumph-gui
+# Repo: Maven Central
+triumph-gui = { module = "dev.triumphteam:triumph-gui", version = "3.1.10" }
+
+# Hopper - Runtime Dependency Loader https://github.com/oraxen/hopper
+# Repo: https://repo.oraxen.com/releases/
+hopper-bukkit = { module = "md.thomas.hopper:hopper-bukkit", version.ref = "hopper" }
+
+[bundles]
+# libraries that are included somewher but not exposed
+libraries-included = [
+    "commons-io",   # included in minecraft
+    "actions-core", # included in actions-spigot
+]
+libraries-bukkit = [
+    "spring-expression",
+    "commons-lang3",
+    "mc-logs",
+    "creative",
+]
+libraries-shade = [
+    "bstats",
+    "annotations",
+    "triumph-gui",
+    "antigrieflib",
+    "more-persistent-data-types",
+    "persistent-data-serializer",
+    "actions-spigot",
+    "hopper-bukkit",
+]
+plugins = [
+    "mythic-lib-dist",
+    "mmoitems",         # mmo items
+    "mythic-crucible",  # mythic curcible
+    "mythicmobs",       # MythicMobs
+    "modelengine",      # Model Engine
+    "packet-events",    # PacketEvents
+    "protocol-lib",     # ProtocolLib
+    "placeholderapi",   # PlaceholderAPI
+    "worldedit-bukkit", # WorldEdit
+    "worldguard-bukkit", # WorldGuard
+    "eco",
+    "libreforge",
+    "ecoitems",         # EcoÍtems
+    "blocklocker",      # BlockLocker
+    "skript",           # Skript
+    "iris",             # Iris World Generator
+    "score",            # ExecutableItems (SCore)
+]

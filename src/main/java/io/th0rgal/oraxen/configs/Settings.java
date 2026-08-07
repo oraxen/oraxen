@@ -1,0 +1,236 @@
+package io.th0rgal.oraxen.configs;
+
+import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.logs.Logs;
+import net.kyori.adventure.text.Component;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
+
+import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
+
+public enum Settings {
+    // Generic Plugin stuff
+    DEBUG("debug"),
+    PLUGIN_LANGUAGE("Plugin.language"),
+    KEEP_UP_TO_DATE("Plugin.keep_this_up_to_date"),
+    INTRODUCTION_ENABLED("Plugin.introduction.enabled"),
+    INTRODUCTION_CONSOLE_SENT("Plugin.introduction.console_sent"),
+    AUTO_UPDATE_PAPER_CONFIG("Plugin.auto_update_paper_config"),
+    GENERATE_DEFAULT_ASSETS("Plugin.generation.default_assets"),
+    GENERATE_DEFAULT_CONFIGS("Plugin.generation.default_configs"),
+    FORMAT_INVENTORY_TITLES("Plugin.formatting.inventory_titles"),
+    FORMAT_TITLES("Plugin.formatting.titles"),
+    FORMAT_SUBTITLES("Plugin.formatting.subtitles"),
+    FORMAT_ACTION_BAR("Plugin.formatting.action_bar"),
+    FORMAT_ANVIL("Plugin.formatting.anvil"),
+    FORMAT_SIGNS("Plugin.formatting.signs"),
+    FORMAT_CHAT("Plugin.formatting.chat"),
+    FORMAT_BOOKS("Plugin.formatting.books"),
+
+    // Glyphs
+    SHOW_PERMISSION_EMOJIS("Glyphs.emoji_list_permission_only"),
+    UNICODE_COMPLETIONS("Glyphs.unicode_completions"),
+
+    // Config Tools
+    DISABLE_AUTOMATIC_MODEL_DATA("ConfigsTools.disable_automatic_model_data"),
+    DISABLE_AUTOMATIC_GLYPH_CODE("ConfigsTools.disable_automatic_glyph_code"),
+    SKIPPED_MODEL_DATA_NUMBERS("ConfigsTools.skipped_model_data_numbers"),
+    ERROR_ITEM("ConfigsTools.error_item"),
+
+    // Custom Armor
+    CUSTOM_ARMOR_TYPE("CustomArmor.type"),
+    CUSTOM_ARMOR_AUTO_SELECT_TYPE("CustomArmor.auto_select_type"),
+    CUSTOM_ARMOR_COMPONENT_ASSIGN("CustomArmor.component_settings.auto_assign_component"),
+    DISABLE_LEATHER_REPAIR_CUSTOM("CustomArmor.disable_leather_repair"),
+    CUSTOM_ARMOR_TRIMS_MATERIAL("CustomArmor.trims_settings.material_replacement"),
+    CUSTOM_ARMOR_TRIMS_ASSIGN("CustomArmor.trims_settings.auto_assign_settings"),
+
+    // ItemUpdater
+    UPDATE_ITEMS("ItemUpdater.update_items"),
+    UPDATE_ITEMS_ON_RELOAD("ItemUpdater.update_items_on_reload"),
+    UPDATE_TILE_ENTITY_CONTENTS("ItemUpdater.update_tile_entity_contents"),
+    UPDATE_ENTITY_CONTENTS("ItemUpdater.update_entity_contents"),
+    OVERRIDE_RENAMED_ITEMS("ItemUpdater.override_renamed_items"),
+    OVERRIDE_ITEM_LORE("ItemUpdater.override_item_lore"),
+
+    // FurnitureUpdater
+    UPDATE_FURNITURE("FurnitureUpdater.update_furniture"),
+    UPDATE_FURNITURE_ON_RELOAD("FurnitureUpdater.update_on_reload"),
+    UPDATE_FURNITURE_ON_LOAD("FurnitureUpdater.update_on_load"),
+    EXPERIMENTAL_FURNITURE_TYPE_UPDATE("FurnitureUpdater.experimental_furniture_type_update"),
+    EXPERIMENTAL_FIX_BROKEN_FURNITURE("FurnitureUpdater.experimental_fix_broken_furniture"),
+
+    //Misc
+    RESET_RECIPES("Misc.reset_recipes"),
+    ADD_RECIPES_TO_BOOK("Misc.add_recipes_to_book"),
+    ARMOR_EQUIP_EVENT_BYPASS("Misc.armor_equip_event_bypass"),
+    SHIELD_DISPLAY("Misc.shield_display"),
+    BOW_DISPLAY("Misc.bow_display"),
+    CROSSBOW_DISPLAY("Misc.crossbow_display"),
+    HIDE_SCOREBOARD_NUMBERS("Misc.hide_scoreboard_numbers"),
+    HIDE_SCOREBOARD_BACKGROUND("Misc.hide_scoreboard_background"),
+    HIDE_TABLIST_BACKGROUND("Misc.hide_tablist_background"),
+
+    //Pack
+    GENERATE("Pack.generation.generate"),
+    DISABLE_MCMETA_GENERATION("Pack.generation.disable_mcmeta_generation"),
+    MULTI_VERSION_PACKS("Pack.generation.multi_version_packs"),
+    EXCLUDED_FILE_EXTENSIONS("Pack.generation.excluded_file_extensions"),
+    FIX_FORCE_UNICODE_GLYPHS("Pack.generation.fix_force_unicode_glyphs"),
+    VERIFY_PACK_FILES("Pack.generation.verify_pack_files"),
+    GENERATE_ATLAS_FILE("Pack.generation.atlas.generate"),
+    EXCLUDE_MALFORMED_ATLAS("Pack.generation.atlas.exclude_malformed_from_atlas"),
+    ATLAS_GENERATION_TYPE("Pack.generation.atlas.type"),
+    GENERATE_MODEL_BASED_ON_TEXTURE_PATH("Pack.generation.auto_generated_models_follow_texture_path"),
+    COMPRESSION("Pack.generation.compression"),
+    PROTECTION("Pack.generation.protection"),
+    PACK_OBFUSCATION_TYPE("Pack.generation.obfuscation.type"),
+    // 1.21.4+ appearance systems (can be combined)
+    APPEARANCE_ITEM_PROPERTIES("Pack.generation.appearance.item_properties"),
+    APPEARANCE_MODEL_DATA_IDS("Pack.generation.appearance.model_data_ids"),
+    APPEARANCE_MODEL_DATA_FLOAT("Pack.generation.appearance.model_data_float"),
+    APPEARANCE_GENERATE_PREDICATES("Pack.generation.appearance.generate_predicates"),
+    // Deprecated keys (kept for backward compatibility with older configs)
+    @Deprecated APPEARANCE_MODEL_DATA_FLOAT_LEGACY("Pack.generation.appearance.model_data_float_legacy"),
+    @Deprecated APPEARANCE_MODE("Pack.generation.appearance.mode"),
+    @Deprecated APPEARANCE_FORCE_PREDICATES("Pack.generation.appearance.force_predicates"),
+    @Deprecated APPEARANCE_ITEM_MODEL("Pack.generation.appearance.item_model"),
+    @Deprecated APPEARANCE_PREDICATES("Pack.generation.appearance.predicates"),
+    COMMENT("Pack.generation.comment"),
+    MERGE_DUPLICATE_FONTS("Pack.import.merge_duplicate_fonts"),
+    MERGE_DUPLICATES("Pack.import.merge_duplicates"),
+    RETAIN_CUSTOM_MODEL_DATA("Pack.import.retain_custom_model_data"),
+    MERGE_ITEM_MODELS("Pack.import.merge_item_base_models"),
+    REMOVE_CORE_SHADERS_FROM_IMPORTED_PACKS("Pack.import.remove_core_shaders_from_imported_packs"),
+
+    UPLOAD_TYPE("Pack.upload.type"),
+    UPLOAD("Pack.upload.enabled"),
+    UPLOAD_OPTIONS("Pack.upload.options"),
+
+    POLYMATH_SERVER("Pack.upload.polymath.server"),
+    POLYMATH_SECRET("Pack.upload.polymath.secret"),
+    LOBFILE_API_KEY("Pack.upload.lobfile.api-key"),
+    LOBFILE_PACK_NAME("Pack.upload.lobfile.pack-name"),
+
+    SEND_PACK("Pack.dispatch.send"),
+    SEND_PACK_MODE("Pack.dispatch.mode"),
+    SEND_PACK_TIMEOUT("Pack.dispatch.timeout"),
+    DISPATCH_EXCLUDE("Pack.dispatch.exclude"),
+    SEND_PACK_DELAY("Pack.dispatch.delay"),
+    SEND_PACK_MANDATORY("Pack.dispatch.mandatory"),
+    SEND_PACK_PROMPT("Pack.dispatch.prompt"),
+    SEND_PACK_LAYER("Pack.dispatch.layer"),
+    DISABLE_MOVEMENT_ON_LOAD("Pack.dispatch.disable.movement"),
+    DISABLE_DAMAGE_ON_LOAD("Pack.dispatch.disable.damage"),
+
+    RECEIVE_ENABLED("Pack.receive.enabled"),
+    RECEIVE_ALLOWED_ACTIONS("Pack.receive.accepted.actions"),
+    RECEIVE_LOADED_ACTIONS("Pack.receive.loaded.actions"),
+    RECEIVE_LOADED_SOUND("Pack.receive.loaded.actions.sound.enabled"),
+    RECEIVE_FAILED_ACTIONS("Pack.receive.failed_download.actions"),
+    RECEIVE_DENIED_ACTIONS("Pack.receive.denied.actions"),
+    RECEIVE_FAILED_RELOAD_ACTIONS("Pack.receive.failed_reload.actions"),
+    RECEIVE_DOWNLOADED_ACTIONS("Pack.receive.downloaded.actions"),
+    RECEIVE_INVALID_URL_ACTIONS("Pack.receive.invalid_url.actions"),
+    RECEIVE_DISCARDED_ACTIONS("Pack.receive.discarded.actions"),
+
+
+    // Inventory
+    ORAXEN_INV_LAYOUT("inventory-menu.layout"),
+    ORAXEN_INV_ROWS("inventory-menu.rows"),
+    ORAXEN_INV_SIZE("inventory-menu.slots"),
+    ORAXEN_INV_TITLE("inventory-menu.title");
+
+    private final String path;
+
+    /**
+     * Cached result of the last YAML lookup for this setting. Hot paths (packet
+     * listeners, per-event handlers) read settings on every call, so a volatile
+     * field read replaces a YamlConfiguration path traversal. {@code null} means
+     * "not cached"; settings that resolve to null are simply re-read each call.
+     * Invalidated by {@link #invalidateCache()} whenever the settings
+     * configuration is (re)loaded or mutated directly.
+     */
+    private volatile Object cachedValue;
+
+    /**
+     * Bumped by every cache invalidation (before the cached values are nulled)
+     * so {@link #getValue()} can detect an invalidation that raced with its
+     * config read and avoid re-publishing a pre-change value. Safe as a static
+     * field because it is only touched from methods, never from the enum
+     * constructor (which runs before static initialization).
+     */
+    private static final AtomicLong CACHE_GENERATION = new AtomicLong();
+
+    Settings(String path) {
+        this.path = path;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public Object getValue() {
+        Object value = cachedValue;
+        if (value == null) {
+            long generation = CACHE_GENERATION.get();
+            value = OraxenPlugin.get().getConfigsManager().getSettings().get(path);
+            cachedValue = value;
+            // An invalidation may have raced with the config read above. Invalidators
+            // bump the generation before nulling caches, so a changed generation means
+            // the value read may predate the change and must not stay cached.
+            if (CACHE_GENERATION.get() != generation) cachedValue = null;
+        }
+        return value;
+    }
+    public void setValue(Object value) { setValue(value, true); }
+    public void setValue(Object value, boolean save) {
+        YamlConfiguration settingFile = OraxenPlugin.get().getConfigsManager().getSettings();
+        settingFile.set(path, value);
+        CACHE_GENERATION.incrementAndGet();
+        cachedValue = null;
+        try {
+            if (save) settingFile.save(OraxenPlugin.get().getDataFolder().toPath().resolve("settings.yml").toFile());
+        } catch (Exception e) {
+            Logs.logError("Failed to apply changes to settings.yml.");
+        }
+    }
+
+    /**
+     * Drops every cached setting value so the next read hits the freshly
+     * (re)loaded settings configuration. Must be called whenever the settings
+     * YamlConfiguration is reloaded or mutated without going through
+     * {@link #setValue(Object, boolean)}.
+     */
+    public static void invalidateCache() {
+        // Bump the generation first: a getValue() racing with this call will then
+        // see a changed generation and discard the value it read, instead of
+        // re-publishing a pre-invalidation value after the null below.
+        CACHE_GENERATION.incrementAndGet();
+        for (Settings setting : values()) setting.cachedValue = null;
+    }
+
+    @Override
+    public String toString() {
+        return (String) getValue();
+    }
+
+    public Component toComponent() {
+        return AdventureUtils.MINI_MESSAGE.deserialize(getValue().toString());
+    }
+
+    public Boolean toBool() {
+        return (Boolean) getValue();
+    }
+
+    public List<String> toStringList() {
+        return OraxenPlugin.get().getConfigsManager().getSettings().getStringList(path);
+    }
+
+    public ConfigurationSection toConfigSection() {
+        return OraxenPlugin.get().getConfigsManager().getSettings().getConfigurationSection(path);
+    }
+
+}

@@ -1,0 +1,276 @@
+package io.th0rgal.oraxen.mechanics;
+
+import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.events.OraxenNativeMechanicsRegisteredEvent;
+import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
+import io.th0rgal.oraxen.configs.LegacyBlockMechanicMigration;
+import io.th0rgal.oraxen.configs.MigrationBackups;
+import io.th0rgal.oraxen.mechanics.provided.combat.knockbackstrike.KnockbackStrikeMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.combat.bleeding.BleedingMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.combat.lifeleech.LifeLeechMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.combat.spear.SpearLungeMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.combat.spell.energyblast.EnergyBlastMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.combat.spell.fireball.FireballMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.combat.spell.thor.ThorMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.combat.spell.witherskull.WitherSkullMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.cosmetic.aura.AuraMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.cosmetic.backpack.BackpackCosmeticFactory;
+import io.th0rgal.oraxen.mechanics.provided.cosmetic.hat.HatMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.cosmetic.skin.SkinMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.cosmetic.skinnable.SkinnableMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.farming.bedrockbreak.BedrockBreakMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.farming.bigmining.BigMiningMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.farming.bottledexp.BottledExpMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.farming.harvesting.HarvestingMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.farming.smelting.SmeltingMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.farming.watering.WateringMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.durability.DurabilityMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.efficiency.EfficiencyMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.repair.RepairMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.togglelight.ToggleLightMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.misc.armor_effects.ArmorEffectsFactory;
+import io.th0rgal.oraxen.mechanics.provided.misc.backpack.BackpackMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.misc.commands.CommandsMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.misc.consumable.ConsumableMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.misc.consumablepotioneffects.ConsumablePotionEffectsFactory;
+import io.th0rgal.oraxen.mechanics.provided.misc.custom.CustomMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.misc.food.FoodMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.misc.misc.MiscMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.misc.music_disc.MusicDiscMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.misc.soulbound.SoulBoundMechanicFactory;
+import io.th0rgal.oraxen.utils.OraxenYaml;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
+import org.bukkit.Bukkit;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
+import org.bukkit.plugin.java.JavaPlugin;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+import java.util.Map.Entry;
+
+public class MechanicsManager {
+
+    private static final Map<String, MechanicFactory> FACTORIES_BY_MECHANIC_ID = new HashMap<>();
+    private static final Map<String, MechanicFactory> FACTORIES_BY_LOWERCASE_MECHANIC_ID = new HashMap<>();
+    private static final Map<String, List<SchedulerUtil.ScheduledTask>> MECHANIC_TASKS = new HashMap<>();
+    private static final Map<String, List<Listener>> MECHANICS_LISTENERS = new HashMap<>();
+    private static final Set<String> NATIVE_MECHANIC_IDS = Set.of(
+            // misc
+            "armor_effects", "consumable_potion_effects", "soulbound", "itemtype", "consumable", "custom",
+            "commands", "backpack", "music_disc", "misc",
+            // gameplay
+            "food", "repair", "durability", "efficiency", "block", "noteblock", "stringblock", "chorusblock",
+            "shaped_block", "furniture", "toggle_light",
+            // cosmetic
+            "aura", "backpack_cosmetic", "hat", "skin", "skinnable",
+            // combat
+            "thor", "lifeleech", "energyblast", "witherskull", "fireball", "knockback_strike", "bleeding",
+            "spear_lunge",
+            // farming
+            "bigmining", "smelting", "bottledexp", "harvesting", "watering", "bedrockbreak"
+    );
+
+    public static void registerNativeMechanics() {
+        // reset only native mechanics so external/custom factories work
+        NATIVE_MECHANIC_IDS.forEach(MechanicsManager::unregisterMechanicFactory);
+
+        // misc
+        registerFactory("armor_effects", ArmorEffectsFactory::new);
+        registerFactory("consumable_potion_effects", ConsumablePotionEffectsFactory::new);
+        registerFactory("soulbound", SoulBoundMechanicFactory::new);
+        registerFactory("itemtype", ItemTypeMechanicFactory::new);
+        registerFactory("consumable", ConsumableMechanicFactory::new);
+        registerFactory("custom", CustomMechanicFactory::new);
+        registerFactory("commands", CommandsMechanicFactory::new);
+        registerFactory("backpack", BackpackMechanicFactory::new);
+        registerFactory("music_disc", MusicDiscMechanicFactory::new);
+        registerFactory("misc", MiscMechanicFactory::new);
+
+        // gameplay
+        registerFactory("food", FoodMechanicFactory::new);
+        registerFactory("repair", RepairMechanicFactory::new);
+        registerFactory("durability", DurabilityMechanicFactory::new);
+        registerFactory("efficiency", EfficiencyMechanicFactory::new);
+        registerFactory("block", BlockMechanicFactory::new);
+        registerFactory("furniture", FurnitureFactory::new);
+        registerFactory("toggle_light", ToggleLightMechanicFactory::new);
+
+        // cosmetic
+        registerFactory("aura", AuraMechanicFactory::new);
+        registerFactory("backpack_cosmetic", BackpackCosmeticFactory::new);
+        registerFactory("hat", HatMechanicFactory::new);
+        registerFactory("skin", SkinMechanicFactory::new);
+        registerFactory("skinnable", SkinnableMechanicFactory::new);
+
+        // combat
+        registerFactory("thor", ThorMechanicFactory::new);
+        registerFactory("lifeleech", LifeLeechMechanicFactory::new);
+        registerFactory("energyblast", EnergyBlastMechanicFactory::new);
+        registerFactory("witherskull", WitherSkullMechanicFactory::new);
+        registerFactory("fireball", FireballMechanicFactory::new);
+		registerFactory("knockback_strike", KnockbackStrikeMechanicFactory::new);
+        registerFactory("bleeding", BleedingMechanicFactory::new);
+        registerFactory("spear_lunge", SpearLungeMechanicFactory::new);
+
+        // farming
+        registerFactory("bigmining", BigMiningMechanicFactory::new);
+        registerFactory("smelting", SmeltingMechanicFactory::new);
+        registerFactory("bottledexp", BottledExpMechanicFactory::new);
+        registerFactory("harvesting", HarvestingMechanicFactory::new);
+        registerFactory("watering", WateringMechanicFactory::new);
+        if (CompatibilitiesManager.hasPlugin("ProtocolLib"))
+            registerFactory("bedrockbreak", BedrockBreakMechanicFactory::new);
+
+        SchedulerUtil.runTask(() -> Bukkit.getPluginManager().callEvent(new OraxenNativeMechanicsRegisteredEvent()));
+    }
+
+    /**
+     * Register a new MechanicFactory
+     *
+     * @param mechanicId the id of the mechanic
+     * @param factory    the MechanicFactory of the mechanic
+     * @param enabled    if the mechanic should be enabled by default or not
+     */
+    public static void registerMechanicFactory(String mechanicId, MechanicFactory factory, boolean enabled) {
+        if (!enabled) return;
+        FACTORIES_BY_MECHANIC_ID.put(mechanicId, factory);
+        FACTORIES_BY_LOWERCASE_MECHANIC_ID.put(mechanicId.toLowerCase(Locale.ROOT), factory);
+    }
+
+    public static void unregisterMechanicFactory(String mechanicId) {
+        MechanicFactory factory = FACTORIES_BY_MECHANIC_ID.remove(mechanicId);
+        FACTORIES_BY_LOWERCASE_MECHANIC_ID.remove(mechanicId.toLowerCase(Locale.ROOT));
+        if (factory != null) factory.onUnregister();
+        unloadListeners(mechanicId);
+        unregisterTasks(mechanicId);
+    }
+
+    /**
+     * This method is deprecated and will be removed in a future release.<br>
+     * Use {@link #registerMechanicFactory(String, MechanicFactory, boolean)} instead.
+     *
+     * @param mechanicId  the id of the mechanic
+     * @param constructor the constructor of the mechanic
+     */
+    @Deprecated(forRemoval = true, since = "1.158.0")
+    public static void registerMechanicFactory(final String mechanicId, final FactoryConstructor constructor) {
+        registerFactory(mechanicId, constructor);
+    }
+
+    private static boolean migrateLegacyBlockFactory(final String mechanicId, final YamlConfiguration mechanicsConfig) {
+        return "block".equals(mechanicId) && LegacyBlockMechanicMigration.migrate(mechanicsConfig);
+    }
+
+    private static void registerFactory(final String mechanicId, final FactoryConstructor constructor) {
+        final Entry<File, YamlConfiguration> mechanicsEntry = OraxenPlugin.get().getResourceManager().getMechanicsEntry();
+        final YamlConfiguration mechanicsConfig = mechanicsEntry.getValue();
+        final boolean updated = migrateLegacyBlockFactory(mechanicId, mechanicsConfig);
+        ConfigurationSection factorySection = OraxenYaml.getConfigurationSection(mechanicsConfig, mechanicId);
+        if (factorySection != null && factorySection.getBoolean("enabled"))
+            registerMechanicFactory(mechanicId, constructor.create(factorySection), true);
+
+        try {
+            if (updated) {
+                MigrationBackups.moveToMigrated(OraxenPlugin.get().getDataFolder(), mechanicsEntry.getKey());
+                mechanicsConfig.save(mechanicsEntry.getKey());
+            }
+        } catch (final IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Registers a scheduled task for a mechanic so it can be cancelled during reload/unload.
+     */
+    public static void registerTask(String mechanicId, SchedulerUtil.ScheduledTask task) {
+        if (task == null) return;
+        MECHANIC_TASKS.compute(mechanicId, (key, value) -> {
+            if (value == null) value = new ArrayList<>();
+            value.add(task);
+            return value;
+        });
+    }
+
+    public static void unregisterTasks() {
+        MECHANIC_TASKS.values().forEach(tasks -> tasks.forEach(task -> {
+            if (task != null) task.cancel();
+        }));
+        MECHANIC_TASKS.clear();
+        
+        // Stop dynamically-started aura tasks (these aren't registered as regular tasks)
+        AuraMechanicFactory.stopAllAuras();
+        StorageMechanic.clearRuntimeCaches();
+    }
+
+    public static void unregisterTasks(String mechanicId) {
+        MECHANIC_TASKS.computeIfPresent(mechanicId, (key, value) -> {
+            value.forEach(task -> {
+                if (task != null) task.cancel();
+            });
+            return null;
+        });
+    }
+
+    public static void registerListeners(final JavaPlugin plugin, String mechanicId, final Listener... listeners) {
+        for (final Listener listener : listeners)
+            Bukkit.getPluginManager().registerEvents(listener, plugin);
+        MECHANICS_LISTENERS.compute(mechanicId, (key, value) -> {
+            if (value == null) value = new ArrayList<>();
+            value.addAll(Arrays.asList(listeners));
+            return value;
+        });
+    }
+
+    public static void unloadListeners() {
+        for (final Listener listener : MECHANICS_LISTENERS.values().stream().flatMap(Collection::stream).toList())
+            HandlerList.unregisterAll(listener);
+        MECHANICS_LISTENERS.clear();
+    }
+
+    public static void unloadListeners(String mechanicId) {
+        List<Listener> listeners = MECHANICS_LISTENERS.remove(mechanicId);
+        if (listeners == null) return;
+        for (final Listener listener : listeners)
+            HandlerList.unregisterAll(listener);
+
+    }
+
+    public static boolean isMechanicEnabled(String mechanicId) {
+        return getMechanicFactory(mechanicId) != null;
+    }
+
+    public static MechanicFactory getMechanicFactory(final String mechanicID) {
+        if (mechanicID == null)
+            return null;
+
+        MechanicFactory factory = FACTORIES_BY_MECHANIC_ID.get(mechanicID);
+        if (factory != null)
+            return factory;
+
+        return FACTORIES_BY_LOWERCASE_MECHANIC_ID.get(mechanicID.toLowerCase(Locale.ROOT));
+    }
+
+    /**
+     * Returns all registered mechanic factories.
+     * Used by SchemaGenerator for automatic schema extraction.
+     *
+     * @return Unmodifiable map of mechanic ID to factory
+     */
+    public static Map<String, MechanicFactory> getAllFactories() {
+        return Collections.unmodifiableMap(FACTORIES_BY_MECHANIC_ID);
+    }
+
+    @FunctionalInterface
+    public interface FactoryConstructor {
+        MechanicFactory create(ConfigurationSection section);
+    }
+
+}

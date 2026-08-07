@@ -1,0 +1,8 @@
+heart:
+  texture: default/chat/heart
+  ascent: 8
+  height: 8
+  chat:
+    placeholders:
+      - "<3"
+    permission: "oraxen.emoji.heart"

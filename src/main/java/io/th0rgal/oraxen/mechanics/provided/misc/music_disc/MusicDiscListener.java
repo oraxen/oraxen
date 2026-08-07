@@ -1,0 +1,157 @@
+package io.th0rgal.oraxen.mechanics.provided.misc.music_disc;
+
+import com.jeff_media.morepersistentdatatypes.DataType;
+import io.th0rgal.oraxen.api.OraxenFurniture;
+import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.configs.Message;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
+import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.ItemUtils;
+import io.th0rgal.oraxen.utils.MusicDiscHelpers;
+import io.th0rgal.oraxen.utils.VersionUtil;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
+import net.kyori.adventure.text.Component;
+import org.bukkit.*;
+import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockBurnEvent;
+import org.bukkit.event.block.BlockExplodeEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataContainer;
+
+import javax.annotation.Nullable;
+
+@Deprecated(forRemoval = true, since = "1.21")
+public class MusicDiscListener implements Listener {
+
+    private final MusicDiscMechanicFactory factory;
+
+    public MusicDiscListener(MusicDiscMechanicFactory factory) {
+        this.factory = factory;
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onInsertDisc(PlayerInteractEvent event) {
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        if (event.getHand() != EquipmentSlot.HAND) return;
+
+        Player player = event.getPlayer();
+        ItemStack itemStack = player.getInventory().getItemInMainHand();
+        boolean playing = insertAndPlayCustomDisc(event.getClickedBlock(), itemStack, player);
+        if (!playing) return;
+        player.swingMainHand();
+
+        Component discName = null;
+        if (itemStack.hasItemMeta()) {
+            if (VersionUtil.atOrAbove("1.20.5") && itemStack.getItemMeta().hasItemName()) {
+                if (VersionUtil.isPaperServer()) discName = itemStack.getItemMeta().itemName();
+                else discName = AdventureUtils.LEGACY_SERIALIZER.deserialize(itemStack.getItemMeta().getItemName());
+            } else if (itemStack.getItemMeta().hasDisplayName()) {
+                if (VersionUtil.isPaperServer()) discName = itemStack.getItemMeta().displayName();
+                else discName = AdventureUtils.LEGACY_SERIALIZER.deserialize(itemStack.getItemMeta().getDisplayName());
+            }
+        }
+        if (discName == null) discName = Component.empty();
+
+        Component message = AdventureUtils.MINI_MESSAGE.deserialize(Message.MECHANICS_JUKEBOX_NOW_PLAYING.toString(), AdventureUtils.tagResolver("disc", discName));
+        AdventureUtils.sendActionBar(player, message);
+        event.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onEjectDisc(PlayerInteractEvent event) {
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        if (event.getHand() != EquipmentSlot.HAND) return;
+
+        boolean stopped = ejectAndStopCustomDisc(event.getClickedBlock());
+        if (!stopped) return;
+        event.getPlayer().swingMainHand();
+        event.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onJukeboxBreak(BlockBreakEvent event) {
+        ejectAndStopCustomDisc(event.getBlock());
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onJukeboxBreak(BlockExplodeEvent event) {
+        ejectAndStopCustomDisc(event.getBlock());
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onJukeboxBreak(BlockBurnEvent event) {
+        ejectAndStopCustomDisc(event.getBlock());
+    }
+
+    /**
+     * Inserts the custom Oraxen Disc item by storing the ItemStack in the blocks PersistentDataContainer.
+     * Plays the sound attached to the disc, if any.
+     *
+     * @param block The Jukebox block to insert the disc into
+     * @param disc The Oraxen Disc item to insert
+     * @param player The player who inserted the disc, null if inserted by a non-player, i.e hoppers or other entities
+     **/
+    private boolean insertAndPlayCustomDisc(Block block, ItemStack disc, @Nullable Player player) {
+        // ignore vanilla juke boxes with vanilla discs.
+        if(block.getType().equals(Material.JUKEBOX) && ItemUtils.isMusicDisc(disc)) return false;
+
+        String itemID = OraxenItems.getIdByItem(disc);
+        PersistentDataContainer pdc = BlockHelpers.getPDC(block);
+        MusicDiscMechanic mechanic = (MusicDiscMechanic) factory.getMechanic(itemID);
+        FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(block);
+
+        if (block.getType() != Material.JUKEBOX && (furnitureMechanic == null || !furnitureMechanic.isJukebox())) return false;
+        if (pdc.has(MusicDiscHelpers.MUSIC_DISC_KEY, DataType.ITEM_STACK)) return false;
+        if (disc.getType() == Material.AIR || factory.isNotImplementedIn(itemID)) return false;
+        if (mechanic == null || mechanic.hasNoSong()) return false;
+
+        ItemStack insertedDisc = disc.clone();
+        insertedDisc.setAmount(1);
+        if (player != null && player.getGameMode() != GameMode.CREATIVE)
+            disc.setAmount(disc.getAmount() - insertedDisc.getAmount());
+
+        pdc.set(MusicDiscHelpers.MUSIC_DISC_KEY, DataType.ITEM_STACK, insertedDisc);
+        AdventureUtils.playSound(block.getLocation().toCenterLocation(), mechanic.getSong(), Sound.Source.RECORD, 1, 1);
+        return true;
+    }
+
+    /**
+     * Ejects the custom Oraxen Disc item from the Jukebox block.
+     * Stops the sound attached to the disc, if any.
+     * @param block The Jukebox block to eject the disc from
+     */
+    private boolean ejectAndStopCustomDisc(Block block) {
+        // ignore vanilla juke boxes with vanilla discs.
+        if(MusicDiscHelpers.isVanillaJukeboxWithVanillaDisc(block)) return false;
+
+        PersistentDataContainer pdc = BlockHelpers.getPDC(block);
+        ItemStack ejectedDisc = MusicDiscHelpers.getMusicDisc(pdc);
+        String itemID = OraxenItems.getIdByItem(ejectedDisc);
+        MusicDiscMechanic mechanic = (MusicDiscMechanic) factory.getMechanic(itemID);
+        FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(block);
+        Location loc = block.getLocation().toCenterLocation();
+
+        if (block.getType() != Material.JUKEBOX && (furnitureMechanic == null || !furnitureMechanic.isJukebox())) return false;
+        if (!MusicDiscHelpers.hasMusicDisc(pdc)) return false;
+        if (ejectedDisc == null || factory.isNotImplementedIn(itemID)) return false;
+        if (mechanic == null || mechanic.hasNoSong()) return false;
+
+        block.getWorld().getNearbyEntities(loc, 32, 32, 32).stream()
+                .filter(entity -> entity instanceof Player)
+                .map(entity -> (Player) entity)
+                .forEach(p -> AdventureUtils.stopSound(p, Sound.sound(Key.key(mechanic.getSong()), Sound.Source.RECORD, 1, 1)));
+        block.getWorld().dropItemNaturally(loc, ejectedDisc);
+        pdc.remove(MusicDiscHelpers.MUSIC_DISC_KEY);
+        return true;
+    }
+}

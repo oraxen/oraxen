@@ -1,0 +1,36 @@
+# Material list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
+# EntityType list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/EntityType.html
+# Attribute list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/attribute/Attribute.html
+# Potion effects list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/potion/PotionEffectType.html
+# Random UUID generator: https://www.uuidgenerator.net/
+# Color codes: https://docs.adventure.kyori.net/minimessage.html#format
+
+arrow_next_icon:
+  displayname: "<#D5D6D8>Next page"
+  material: PAPER
+  excludeFromInventory: true
+  Pack:
+    generate_model: true
+    parent_model: "item/generated"
+    textures:
+      - required/arrow_next_icon.png # .png extension is not mandatory
+
+arrow_previous_icon:
+  displayname: "<#D5D6D8>Previous page"
+  material: PAPER
+  excludeFromInventory: true
+  Pack:
+    generate_model: true
+    parent_model: "item/generated"
+    textures:
+      - required/arrow_previous_icon.png # .png extension is not mandatory
+
+exit_icon:
+  displayname: "<gradient:#FA7CBB:#F14658>Back to main menu"
+  material: PAPER
+  excludeFromInventory: true
+  Pack:
+    generate_model: true
+    parent_model: "item/generated"
+    textures:
+      - required/exit_icon.png # .png extension is not mandatory

@@ -1,0 +1,117 @@
+settings:
+  # Should Oraxen automatically generate sounds.json according to your settings?
+  automatically_generate: true
+
+sounds:
+  - id: oraxen:welcome
+    sound: welcome.ogg # extension is not mandatory
+    stream: true
+    subtitle: "Welcome Song"
+    # Registered during Paper bootstrap on 1.21.6+; older versions use a datapack.
+    jukebox:
+      description: "<gold>Welcome <yellow>Song</yellow></gold>"
+      duration: 180s
+      comparator_output: 12
+      range: 8
+
+  - id: block.wood.step # Required for custom sounds
+    replace: true
+  - id: block.wood.place
+    replace: true
+  - id: block.wood.break
+    replace: true
+  - id: block.wood.fall
+    replace: true
+  - id: block.wood.hit
+    replace: true
+  - id: required.wood.hit # Required for custom sounds
+    subtitle: "subtitles.block.generic.hit"
+    sounds:
+      - step/wood1
+      - step/wood2
+      - step/wood3
+      - step/wood4
+      - step/wood5
+      - step/wood6
+  - id: required.wood.place
+    subtitle: "subtitles.block.generic.place"
+    sounds:
+      - dig/wood1
+      - dig/wood2
+      - dig/wood3
+      - dig/wood4
+  - id: required.wood.break
+    subtitle: "subtitles.block.generic.break"
+    sounds:
+      - dig/wood1
+      - dig/wood2
+      - dig/wood3
+      - dig/wood4
+  - id: required.wood.step
+    subtitle: "subtitles.block.generic.footsteps"
+    sounds:
+      - step/wood1
+      - step/wood2
+      - step/wood3
+      - step/wood4
+      - step/wood5
+      - step/wood6
+  - id: required.wood.fall
+    sounds:
+      - step/wood1
+      - step/wood2
+      - step/wood3
+      - step/wood4
+      - step/wood5
+      - step/wood6
+
+  - id: block.stone.step # Required for custom furniture sounds
+    replace: true
+  - id: block.stone.place
+    replace: true
+  - id: block.stone.break
+    replace: true
+  - id: block.stone.fall
+    replace: true
+  - id: block.stone.hit
+    replace: true
+  - id: required.stone.hit # Required for custom furniture sounds
+    subtitle: "subtitles.block.generic.hit"
+    sounds:
+      - step/stone1
+      - step/stone2
+      - step/stone3
+      - step/stone4
+      - step/stone5
+      - step/stone6
+  - id: required.stone.place
+    subtitle: "subtitles.block.generic.place"
+    sounds:
+      - dig/stone1
+      - dig/stone2
+      - dig/stone3
+      - dig/stone4
+  - id: required.stone.break
+    subtitle: "subtitles.block.generic.break"
+    sounds:
+      - dig/stone1
+      - dig/stone2
+      - dig/stone3
+      - dig/stone4
+  - id: required.stone.step
+    subtitle: "subtitles.block.generic.footsteps"
+    sounds:
+      - step/stone1
+      - step/stone2
+      - step/stone3
+      - step/stone4
+      - step/stone5
+      - step/stone6
+  - id: required.stone.fall
+    sounds:
+      - step/stone1
+      - step/stone2
+      - step/stone3
+      - step/stone4
+      - step/stone5
+      - step/stone6

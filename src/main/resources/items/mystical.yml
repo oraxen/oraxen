@@ -1,0 +1,197 @@
+# Material list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
+# EntityType list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/EntityType.html
+# Attribute list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/attribute/Attribute.html
+# Potion effects list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/potion/PotionEffectType.html
+# Random UUID generator: https://www.uuidgenerator.net/
+# Color codes: https://docs.adventure.kyori.net/minimessage.html#format
+
+legendary_hammer:
+  displayname: "<gradient:#F06966:#FAD6A6>Legendary Hammer"
+  material: DIAMOND_PICKAXE
+  lore:
+    - "<#ff455b>» <#D5D6D8>Strike your enemies with a devastating blow"
+    - "<#ff455b>» <#D5D6D8>On the 15th hit, the player is launched forward"
+  Pack:
+    generate_model: false
+    model: default/legendary_hammer
+  Mechanics:
+    durability:
+      value: 10000 #diamond sword is 1561
+    knockback_strike:
+      required_hits: 15                     # How many hits required to trigger knockback
+      knockback_horizontal: 2.0             # Horizontal knockback force (forward/backward)
+      knockback_vertical: 1.2               # Vertical knockback force (upward jump)
+      reset_time: 80                        # Hit counter reset time in ticks (20 ticks = 1 second)  
+    # show_counter: false                   # (It can be added, but it's not currently added.) Show hit counter in action bar
+      play_sound: true                      # Play sound effect on trigger
+      sound_type: ENTITY_ENDER_DRAGON_HURT  # Sound type to play
+      sound_volume: 1.5                     # Sound volume level
+      sound_pitch: 0.8                      # Sound pitch (lower = deeper sound)
+      particle:
+        type: DUST                          # Particle type (DUST = colored dust)
+        count: 200                          # Number of particles to spawn
+        spread: 0.5                         # Particle spread radius in blocks
+
+earth_hammer:
+  displayname: "<gradient:#89E59D:#37C6BA>Earth Hammer"
+  material: DIAMOND_PICKAXE
+  Pack:
+    generate_model: false
+    model: default/earth_hammer
+
+magical_wand:
+  displayname: "<gradient:#3685EC:#72C1E4>Magical Wand"
+  material: WOODEN_HOE
+  Pack:
+    generate_model: false
+    model: default/magical_wand
+  Mechanics:
+    aura:
+      type: helix
+      particle: SOUL_FIRE_FLAME
+    energyblast:
+      delay: 20000
+      length: 5
+      damage: 10.0
+      particle:
+        type: REDSTONE #Only REDSTONE particle can change size and color.
+        size: 1
+        color:
+          red: 0
+          green: 255
+          blue: 255
+
+magical_axe:
+  displayname: "<gradient:#89E59D:#37C6BA>Axe of Experience"
+  material: DIAMOND_AXE
+  lore:
+    - "<#6f737d>» <#D5D6D8>Convert experience to bottles"
+  Pack:
+    generate_model: false
+    model: default/magical_axe
+  Mechanics:
+    bottledexp: # Because exp converting is cheated
+      ratio: 0.95 # So you'll lose 1/20 of your exp by converting it
+
+ice_staff:
+  displayname: "<gradient:#3685EC:#72C1E4>Ice Staff"
+  material: WOODEN_HOE
+  Pack:
+    generate_model: false
+    model: default/ice_staff
+
+battle_axe:
+  displayname: '<gradient:#F06966:#FAD6A6>Battle Axe'
+  material: DIAMOND_AXE
+  AttributeModifiers:
+    - attribute: ATTACK_DAMAGE
+      amount: 7
+      operation: 0
+      slot: HAND
+  Pack:
+    generate_model: false
+    model: default/battle_axe
+
+withooker:
+  displayname: "<gradient:#3685EC:#72C1E4>Withooker"
+  material: WOODEN_HOE
+  unbreakable: true
+  Pack:
+    generate_model: false
+    model: default/withooker
+  Mechanics:
+    witherskull:
+      charged: false
+      delay: 3000 # in milliseconds (3000ms = 3s)
+
+divine_shield:
+  displayname: '<gradient:#F69D84:#FAD98D>Divine Shield'
+  material: SHIELD
+  Pack:
+    generate_model: false
+    model: default/divine_shield
+    blocking_model: default/divine_shield_blocking
+
+magic_book:
+  displayname: '<gradient:#3685EC:#72C1E4>Magic Book'
+  material: DIAMOND_SWORD
+  Pack:
+    generate_model: false
+    model: default/magic_book
+  Mechanics:
+    aura:
+      type: simple
+      particle: PORTAL
+    energyblast:
+      delay: 20000
+      length: 5
+      damage: 10.0
+      particle:
+        type: PORTAL
+
+# ════════════════════════════════════════════════════════════════════════════
+# Pike of the Realm - Spear with charge-and-lunge attack
+# Hold right-click to charge, release or left-click to lunge forward
+# ════════════════════════════════════════════════════════════════════════════
+lotr_pike:
+  displayname: "<gradient:#8B7355:#C4A574>Pike of the Realm"
+  material: IRON_SWORD
+  lore:
+    - "<#6f737d>» <#D5D6D8>Hold right-click to charge"
+    - "<#6f737d>» <#D5D6D8>Release to lunge forward"
+  AttributeModifiers:
+    # Low base melee damage - the spear is meant for lunge attacks, not regular swings
+    - { attribute: ATTACK_DAMAGE, amount: 2, operation: 0, slot: HAND }
+    - { attribute: ATTACK_SPEED, amount: 1.2, operation: 0, slot: HAND }
+  Pack:
+    generate_model: false
+    model: default/lotrpikeinactive
+    # Optional: You can also define models here using Pack.models
+    # These are auto-registered as oraxen:lotr_pike/active, oraxen:lotr_pike/frame0, etc.
+    # models:
+    #   active: default/lotrpikeactive
+    #   frame0: default/lotrpike_frame0
+    #   frame1: default/lotrpike_frame1
+  Components:
+    # Cooldown between lunge attacks (1.5 seconds)
+    use_cooldown:
+      group: "oraxen:pike_lunge"
+      seconds: 1.5
+    # Rarity indicator
+    rarity: RARE
+  Mechanics:
+    spear_lunge:
+      # The active model path - mechanic handles registration automatically
+      active_model: default/lotrpikeactive
+      # Intermediate models for smooth animation (in order)
+      intermediate_models:
+        - default/lotrpike_frame0
+        - default/lotrpike_frame1
+      smooth_frames: 2          # Number of intermediate frames to use
+      charge_ticks: 20          # 1 second to fully charge
+      lunge_velocity: 0.9       # Forward velocity on lunge
+      max_range: 7.0            # Hit detection range in blocks (increased spear reach)
+      damage: 12.0              # Lunge damage at full charge (increased)
+      min_damage: 4.0           # Minimum damage at 0% charge (scales up to 'damage' at 100%)
+      knockback: 1.2            # Knockback applied to targets (doubled)
+      hitbox_radius: 0.6        # Hitbox radius for hit detection (higher = easier to hit off-center, max 5.0)
+      min_charge_percent: 0.25  # Minimum charge needed to attack (25%)
+      # Movement while charging
+      charge_slowdown: 0.5      # 50% slower while charging (0.0 = none, 1.0 = frozen)
+      max_hold_ticks: 60        # 3 seconds max hold before auto-cancel to inactive
+      # How many entities can be hit per lunge (set to 1 for single-target)
+      max_targets: 3
+      # Visual feedback
+      particles:
+        enabled: true
+        charge: CRIT            # Particles while charging
+        lunge: SWEEP_ATTACK     # Particles on lunge
+        hit: DAMAGE_INDICATOR   # Particles on hit
+      # Audio feedback
+      sounds:
+        enabled: true
+        charge: item.trident.riptide_1
+        lunge: entity.player.attack.sweep
+        hit: entity.player.attack.strong
+    durability:
+      value: 750                # Between iron (250) and diamond (1561)

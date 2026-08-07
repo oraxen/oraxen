@@ -1,0 +1,750 @@
+package io.th0rgal.oraxen.pack.generation;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.items.ItemBuilder;
+import io.th0rgal.oraxen.items.OraxenMeta;
+import org.bukkit.Material;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
+
+/**
+ * Generates vanilla item model definitions (assets/minecraft/items/*.json) for
+ * 1.21.4+.
+ * <p>
+ * Supports two dispatcher types:
+ * <ul>
+ * <li>{@code useSelect=true} — uses {@code minecraft:select} on
+ * {@code custom_model_data.strings[0]}
+ * with Oraxen item ids as discrete keys (MODEL_DATA_IDS)</li>
+ * <li>{@code useSelect=false} — uses {@code minecraft:range_dispatch} on
+ * {@code custom_model_data.floats[0]}
+ * with numeric thresholds (MODEL_DATA_FLOAT_LEGACY)</li>
+ * </ul>
+ * <p>
+ * Special handling for state-based models is included (bow pulling, crossbow
+ * charged,
+ * shield blocking, fishing rod cast).
+ */
+public class VanillaItemDefinitionGenerator {
+
+    // Threshold constants for bow pulling states
+    private static final float BOW_PULL_THRESHOLD_1 = 0.65f;
+    private static final float BOW_PULL_THRESHOLD_2 = 0.9f;
+    private static final double BOW_USE_DURATION_SCALE = 0.05;
+
+    // Threshold constants for crossbow pulling states
+    private static final float CROSSBOW_PULL_THRESHOLD_1 = 0.58f;
+    private static final float CROSSBOW_PULL_THRESHOLD_2 = 1.0f;
+
+    // Default tint color (white)
+    private static final int DEFAULT_TINT_COLOR = 16578808;
+
+    /**
+     * Index into {@code minecraft:custom_model_data.strings} or {@code floats}.
+     */
+    private static final int CUSTOM_MODEL_DATA_INDEX = 0;
+
+    private final Material material;
+    private final List<ItemBuilder> items;
+    private final PredicatesGenerator predicatesHelper;
+    private final boolean useSelect;
+    private final boolean includeBothModes;
+
+    /**
+     * @param material  the base material
+     * @param items     the custom items using this material
+     * @param useSelect true for {@code minecraft:select} on strings, false for
+     *                  {@code minecraft:range_dispatch} on floats
+     */
+    public VanillaItemDefinitionGenerator(@NotNull Material material, @NotNull List<ItemBuilder> items,
+            boolean useSelect) {
+        this(material, items, useSelect, false);
+    }
+
+    /**
+     * @param material         the base material
+     * @param items            the custom items using this material
+     * @param useSelect        true for {@code minecraft:select} on strings, false for
+     *                         {@code minecraft:range_dispatch} on floats
+     * @param includeBothModes if true, generates both select (strings) AND range_dispatch (floats)
+     *                         dispatchers for maximum compatibility with external plugins
+     */
+    public VanillaItemDefinitionGenerator(@NotNull Material material, @NotNull List<ItemBuilder> items,
+            boolean useSelect, boolean includeBothModes) {
+        this(material, items, new PredicatesGenerator(material, items), useSelect, includeBothModes);
+    }
+
+    VanillaItemDefinitionGenerator(@NotNull Material material, @NotNull List<ItemBuilder> items,
+            @NotNull PredicatesGenerator predicatesHelper, boolean useSelect, boolean includeBothModes) {
+        this.material = material;
+        this.items = new ArrayList<>(items);
+        this.predicatesHelper = predicatesHelper;
+        this.useSelect = useSelect;
+        this.includeBothModes = includeBothModes;
+        sortItemsForMode();
+    }
+
+    private void sortItemsForMode() {
+        // Sort items based on mode:
+        // - useSelect=true (MODEL_DATA_IDS): alphabetically by Oraxen item id
+        // - useSelect=false (MODEL_DATA_FLOAT_LEGACY): by numeric CustomModelData value
+        if (!useSelect) {
+            this.items.sort(Comparator.comparingInt(item -> {
+                OraxenMeta meta = item.getOraxenMeta();
+                return meta != null && meta.getCustomModelData() != null ? meta.getCustomModelData()
+                        : Integer.MAX_VALUE;
+            }));
+        } else {
+            this.items.sort(Comparator.comparing(item -> {
+                String id = OraxenItems.getIdByItem(item);
+                return id != null ? id : "";
+            }));
+        }
+    }
+
+    /**
+     * Returns the file name for this item definition (e.g., "paper.json" for
+     * Material.PAPER).
+     */
+    public String getFileName() {
+        return material.name().toLowerCase(Locale.ROOT) + ".json";
+    }
+
+    /**
+     * Generates the JSON for the vanilla item model definition.
+     */
+    public JsonObject toJSON() {
+        JsonObject root = new JsonObject();
+
+        // Build the base vanilla model reference (with state handling for special
+        // items)
+        JsonObject vanillaModel = createVanillaModelReference();
+
+        // Build the CMD dispatcher(s) with all custom items
+        JsonObject itemModel;
+        if (includeBothModes) {
+            // When both modes are enabled, chain select (strings) -> range_dispatch (floats) -> vanilla
+            // This maximizes compatibility with external plugins using either approach
+            JsonObject rangeDispatchFallback = createCmdRangeDispatch(vanillaModel);
+            itemModel = createCmdSelect(rangeDispatchFallback);
+        } else {
+            itemModel = useSelect ? createCmdSelect(vanillaModel) : createCmdRangeDispatch(vanillaModel);
+        }
+
+        root.add("model", itemModel);
+        return root;
+    }
+
+    /**
+     * Creates a reference to the vanilla model for this material.
+     * Handles special cases like bow pulling, crossbow states, etc.
+     */
+    private JsonObject createVanillaModelReference() {
+        String vanillaModelPath = "minecraft:" + predicatesHelper.getVanillaModelName(material);
+
+        // Use special model types for items that require custom rendering (heads, shield, conduit, etc.)
+        JsonObject baseModel;
+        if (isSpecialHeadMaterial(material)) {
+            baseModel = createSpecialHeadModelObject(material);
+        } else if (isSpecialModelMaterial(material)) {
+            baseModel = createSpecialModelObject(vanillaModelPath, getSpecialModelType(material));
+        } else {
+            baseModel = createModelObject(vanillaModelPath);
+        }
+
+        // Add tints for dyeable/potion items
+        addTintsIfNeeded(baseModel);
+
+        // Wrap with special state handling for specific materials
+        return wrapWithStateHandling(baseModel, vanillaModelPath);
+    }
+
+    /**
+     * Checks if a material requires the skull/head special renderer instead of a regular model.
+     */
+    private boolean isSpecialHeadMaterial(Material mat) {
+        return switch (mat) {
+            case PLAYER_HEAD, SKELETON_SKULL, WITHER_SKELETON_SKULL, ZOMBIE_HEAD,
+                    CREEPER_HEAD, DRAGON_HEAD, PIGLIN_HEAD -> true;
+            default -> false;
+        };
+    }
+
+    /**
+     * Checks if a material requires a special model type instead of a regular model.
+     */
+    private boolean isSpecialModelMaterial(Material mat) {
+        return mat == Material.SHIELD || mat == Material.CONDUIT || mat == Material.DECORATED_POT;
+    }
+
+    /**
+     * Gets the special model type identifier for materials that require custom rendering.
+     */
+    private String getSpecialModelType(Material mat) {
+        return switch (mat) {
+            case SHIELD -> "minecraft:shield";
+            case CONDUIT -> "minecraft:conduit";
+            case DECORATED_POT -> "minecraft:decorated_pot";
+            default -> null;
+        };
+    }
+
+    /**
+     * Creates the vanilla skull/head fallback for 1.21.4+ item definitions.
+     */
+    private JsonObject createSpecialHeadModelObject(Material mat) {
+        if (mat == Material.PLAYER_HEAD) {
+            return createSpecialModelObject("minecraft:item/template_skull", "minecraft:player_head");
+        }
+
+        JsonObject specialObj = new JsonObject();
+        specialObj.addProperty("type", "minecraft:special");
+        specialObj.addProperty("base", "minecraft:item/template_skull");
+
+        JsonObject modelType = new JsonObject();
+        modelType.addProperty("type", "minecraft:head");
+        modelType.addProperty("kind", getHeadKind(mat));
+        specialObj.add("model", modelType);
+
+        return specialObj;
+    }
+
+    private String getHeadKind(Material mat) {
+        return switch (mat) {
+            case SKELETON_SKULL -> "skeleton";
+            case WITHER_SKELETON_SKULL -> "wither_skeleton";
+            case ZOMBIE_HEAD -> "zombie";
+            case CREEPER_HEAD -> "creeper";
+            case DRAGON_HEAD -> "dragon";
+            case PIGLIN_HEAD -> "piglin";
+            default -> throw new IllegalArgumentException("Unsupported head material: " + mat);
+        };
+    }
+
+    /**
+     * Wraps the base model with state-based conditions for special items.
+     */
+    private JsonObject wrapWithStateHandling(JsonObject baseModel, String vanillaModelPath) {
+        if (material == Material.TRIDENT) {
+            return createVanillaTridentModel(baseModel);
+        }
+        if (isSpearMaterial(material)) {
+            return createVanillaSpearModel(baseModel, vanillaModelPath);
+        }
+
+        return switch (material) {
+            case BOW -> createVanillaBowModel(baseModel, vanillaModelPath);
+            case CROSSBOW -> createVanillaCrossbowModel(baseModel, vanillaModelPath);
+            case FISHING_ROD -> createVanillaFishingRodModel(baseModel, vanillaModelPath);
+            case SHIELD -> createVanillaShieldModel(baseModel, vanillaModelPath);
+            default -> baseModel;
+        };
+    }
+
+    private boolean isSpearMaterial(Material mat) {
+        return mat.name().endsWith("_SPEAR");
+    }
+
+    // =====================================================================
+    // MODEL_DATA_IDS: minecraft:select on custom_model_data.strings
+    // =====================================================================
+
+    /**
+     * Creates a {@code minecraft:select} model that switches based on
+     * {@code custom_model_data.strings[index]}.
+     */
+    private JsonObject createCmdSelect(JsonObject fallbackModel) {
+        List<SelectCaseEntry> selectCases = new ArrayList<>();
+        for (ItemBuilder item : items) {
+            OraxenMeta meta = item.getOraxenMeta();
+            if (meta == null || !meta.hasPackInfos())
+                continue;
+
+            final String id = OraxenItems.getIdByItem(item);
+            if (id == null || id.isBlank())
+                continue;
+
+            final String when = toOraxenCustomModelDataKey(id);
+            JsonObject itemModel = createItemModel(meta);
+            selectCases.add(new SelectCaseEntry(when, itemModel));
+        }
+
+        if (selectCases.isEmpty()) {
+            return fallbackModel;
+        }
+
+        selectCases.sort(Comparator.comparing(SelectCaseEntry::when));
+
+        JsonObject select = new JsonObject();
+        select.addProperty("type", "minecraft:select");
+        select.addProperty("property", "minecraft:custom_model_data");
+        select.addProperty("index", CUSTOM_MODEL_DATA_INDEX);
+
+        JsonArray cases = new JsonArray();
+        for (SelectCaseEntry entry : selectCases) {
+            JsonObject caseObj = new JsonObject();
+            caseObj.addProperty("when", entry.when);
+            caseObj.add("model", entry.model);
+            cases.add(caseObj);
+        }
+        select.add("cases", cases);
+        select.add("fallback", fallbackModel);
+
+        return select;
+    }
+
+    private static String toOraxenCustomModelDataKey(@NotNull String itemId) {
+        // Use a stable, low-collision key for custom_model_data.strings[0].
+        // Matches the NamespacedKey format used by minecraft:item_model (e.g.
+        // "oraxen:my_item").
+        return "oraxen:" + itemId;
+    }
+
+    // =====================================================================
+    // MODEL_DATA_FLOAT_LEGACY: minecraft:range_dispatch on custom_model_data.floats
+    // =====================================================================
+
+    /**
+     * Creates a {@code minecraft:range_dispatch} model that switches based on
+     * {@code custom_model_data.floats[index]} using numeric thresholds.
+     */
+    private JsonObject createCmdRangeDispatch(JsonObject fallbackModel) {
+        List<CmdEntry> cmdEntries = new ArrayList<>();
+        for (ItemBuilder item : items) {
+            OraxenMeta meta = item.getOraxenMeta();
+            if (meta == null || meta.getCustomModelData() == null)
+                continue;
+            if (!meta.hasPackInfos())
+                continue;
+
+            int cmd = meta.getCustomModelData();
+            JsonObject itemModel = createItemModel(meta);
+            cmdEntries.add(new CmdEntry(cmd, itemModel));
+        }
+
+        if (cmdEntries.isEmpty()) {
+            return fallbackModel;
+        }
+
+        // Sort by CMD value ascending
+        cmdEntries.sort(Comparator.comparingInt(CmdEntry::cmd));
+
+        JsonObject rangeDispatch = new JsonObject();
+        rangeDispatch.addProperty("type", "minecraft:range_dispatch");
+        rangeDispatch.addProperty("property", "minecraft:custom_model_data");
+        rangeDispatch.addProperty("index", CUSTOM_MODEL_DATA_INDEX);
+
+        JsonArray entries = new JsonArray();
+        for (CmdEntry entry : cmdEntries) {
+            JsonObject entryObj = new JsonObject();
+            entryObj.addProperty("threshold", entry.cmd);
+            entryObj.add("model", entry.model);
+            entries.add(entryObj);
+        }
+        rangeDispatch.add("entries", entries);
+        rangeDispatch.add("fallback", fallbackModel);
+
+        return rangeDispatch;
+    }
+
+    // =====================================================================
+    // Common Item Model Creation
+    // =====================================================================
+
+    /**
+     * Creates the model object for a custom Oraxen item, including any state
+     * handling.
+     */
+    private JsonObject createItemModel(OraxenMeta meta) {
+        JsonObject baseModel = createModelObject(meta.getModelName());
+
+        // Add tints for dyeable/potion materials
+        addTintsIfNeeded(baseModel);
+
+        // Handle state-based models for this specific item
+        return wrapItemWithStateHandling(baseModel, meta);
+    }
+
+    /**
+     * Wraps an item's model with state-based conditions if configured.
+     */
+    private JsonObject wrapItemWithStateHandling(JsonObject baseModel, OraxenMeta meta) {
+        if (material == Material.TRIDENT) {
+            return createTridentItemModel(baseModel, meta);
+        }
+        if (isSpearMaterial(material)) {
+            return createSpearItemModel(baseModel, meta);
+        }
+
+        return switch (material) {
+            case BOW -> meta.hasPullingModels() ? createBowPullingModel(baseModel, meta) : baseModel;
+            case CROSSBOW -> createCrossbowModel(baseModel, meta);
+            case FISHING_ROD -> meta.hasCastModel() ? createFishingRodModel(baseModel, meta) : baseModel;
+            case SHIELD -> meta.hasBlockingModel() ? createShieldModel(baseModel, meta) : baseModel;
+            default -> baseModel;
+        };
+    }
+
+    private JsonObject createTridentItemModel(JsonObject baseModel, OraxenMeta meta) {
+        JsonObject selectModel = createDisplayContextSelect(baseModel);
+
+        String inHandModel = meta.getModelName();
+        String throwingModel = meta.hasCastModel() ? meta.getCastModel() : inHandModel;
+
+        JsonObject conditionModel = new JsonObject();
+        conditionModel.addProperty("type", "minecraft:condition");
+        conditionModel.addProperty("property", "minecraft:using_item");
+        conditionModel.add("on_false", createSpecialModelObject(inHandModel, "minecraft:trident"));
+        conditionModel.add("on_true", createSpecialModelObject(throwingModel, "minecraft:trident"));
+
+        selectModel.add("fallback", conditionModel);
+        return selectModel;
+    }
+
+    private JsonObject createSpearItemModel(JsonObject baseModel, OraxenMeta meta) {
+        JsonObject selectModel = createDisplayContextSelect(baseModel);
+        JsonObject fallback = meta.hasCastModel() ? createModelObject(meta.getCastModel()) : baseModel;
+        selectModel.add("fallback", fallback);
+        return selectModel;
+    }
+
+    // =====================================================================
+    // Vanilla State-Based Models
+    // =====================================================================
+
+    private JsonObject createVanillaBowModel(JsonObject baseModel, String vanillaModelPath) {
+        JsonObject conditionModel = new JsonObject();
+        conditionModel.addProperty("type", "minecraft:condition");
+        conditionModel.addProperty("property", "minecraft:using_item");
+        conditionModel.add("on_false", baseModel);
+
+        JsonObject rangeDispatch = new JsonObject();
+        rangeDispatch.addProperty("type", "minecraft:range_dispatch");
+        rangeDispatch.addProperty("property", "minecraft:use_duration");
+        rangeDispatch.addProperty("scale", BOW_USE_DURATION_SCALE);
+
+        JsonArray entries = new JsonArray();
+        JsonObject entry1 = new JsonObject();
+        entry1.addProperty("threshold", BOW_PULL_THRESHOLD_1);
+        entry1.add("model", createModelObject("minecraft:item/bow_pulling_1"));
+        entries.add(entry1);
+
+        JsonObject entry2 = new JsonObject();
+        entry2.addProperty("threshold", BOW_PULL_THRESHOLD_2);
+        entry2.add("model", createModelObject("minecraft:item/bow_pulling_2"));
+        entries.add(entry2);
+
+        rangeDispatch.add("entries", entries);
+        rangeDispatch.add("fallback", createModelObject("minecraft:item/bow_pulling_0"));
+
+        conditionModel.add("on_true", rangeDispatch);
+        return conditionModel;
+    }
+
+    private JsonObject createVanillaCrossbowModel(JsonObject baseModel, String vanillaModelPath) {
+        JsonObject selectModel = new JsonObject();
+        selectModel.addProperty("type", "minecraft:select");
+        selectModel.addProperty("property", "minecraft:charge_type");
+
+        JsonArray cases = new JsonArray();
+        JsonObject arrowCase = new JsonObject();
+        arrowCase.addProperty("when", "arrow");
+        arrowCase.add("model", createModelObject("minecraft:item/crossbow_arrow"));
+        cases.add(arrowCase);
+
+        JsonObject rocketCase = new JsonObject();
+        rocketCase.addProperty("when", "rocket");
+        rocketCase.add("model", createModelObject("minecraft:item/crossbow_firework"));
+        cases.add(rocketCase);
+
+        selectModel.add("cases", cases);
+        selectModel.add("fallback", baseModel);
+
+        JsonObject pullingCondition = new JsonObject();
+        pullingCondition.addProperty("type", "minecraft:condition");
+        pullingCondition.addProperty("property", "minecraft:using_item");
+        pullingCondition.add("on_false", selectModel);
+
+        JsonObject rangeDispatch = new JsonObject();
+        rangeDispatch.addProperty("type", "minecraft:range_dispatch");
+        rangeDispatch.addProperty("property", "minecraft:crossbow/pull");
+
+        JsonArray entries = new JsonArray();
+        JsonObject entry1 = new JsonObject();
+        entry1.addProperty("threshold", CROSSBOW_PULL_THRESHOLD_1);
+        entry1.add("model", createModelObject("minecraft:item/crossbow_pulling_1"));
+        entries.add(entry1);
+
+        JsonObject entry2 = new JsonObject();
+        entry2.addProperty("threshold", CROSSBOW_PULL_THRESHOLD_2);
+        entry2.add("model", createModelObject("minecraft:item/crossbow_pulling_2"));
+        entries.add(entry2);
+
+        rangeDispatch.add("entries", entries);
+        rangeDispatch.add("fallback", createModelObject("minecraft:item/crossbow_pulling_0"));
+
+        pullingCondition.add("on_true", rangeDispatch);
+        return pullingCondition;
+    }
+
+    private JsonObject createVanillaFishingRodModel(JsonObject baseModel, String vanillaModelPath) {
+        JsonObject conditionModel = new JsonObject();
+        conditionModel.addProperty("type", "minecraft:condition");
+        conditionModel.addProperty("property", "minecraft:fishing_rod/cast");
+        conditionModel.add("on_false", baseModel);
+        conditionModel.add("on_true", createModelObject("minecraft:item/fishing_rod_cast"));
+        return conditionModel;
+    }
+
+    private JsonObject createVanillaShieldModel(JsonObject baseModel, String vanillaModelPath) {
+        JsonObject conditionModel = new JsonObject();
+        conditionModel.addProperty("type", "minecraft:condition");
+        conditionModel.addProperty("property", "minecraft:using_item");
+        conditionModel.add("on_false", baseModel);
+        // Shield blocking state also needs special model type for proper rendering
+        conditionModel.add("on_true", createSpecialModelObject("minecraft:item/shield_blocking", "minecraft:shield"));
+        return conditionModel;
+    }
+
+    private JsonObject createVanillaTridentModel(JsonObject baseModel) {
+        JsonObject selectModel = createDisplayContextSelect(baseModel);
+
+        JsonObject conditionModel = new JsonObject();
+        conditionModel.addProperty("type", "minecraft:condition");
+        conditionModel.addProperty("property", "minecraft:using_item");
+        conditionModel.add("on_false", createSpecialModelObject("minecraft:item/trident_in_hand", "minecraft:trident"));
+        conditionModel.add("on_true", createSpecialModelObject("minecraft:item/trident_throwing", "minecraft:trident"));
+
+        selectModel.add("fallback", conditionModel);
+        return selectModel;
+    }
+
+    private JsonObject createVanillaSpearModel(JsonObject baseModel, String vanillaModelPath) {
+        JsonObject selectModel = createDisplayContextSelect(baseModel);
+        selectModel.add("fallback", createModelObject(vanillaModelPath + "_in_hand"));
+        return selectModel;
+    }
+
+    private JsonObject createDisplayContextSelect(JsonObject displayModel) {
+        JsonObject selectModel = new JsonObject();
+        selectModel.addProperty("type", "minecraft:select");
+        selectModel.addProperty("property", "minecraft:display_context");
+
+        JsonArray cases = new JsonArray();
+        JsonObject caseObj = new JsonObject();
+        JsonArray when = new JsonArray();
+        when.add("gui");
+        when.add("ground");
+        when.add("fixed");
+        when.add("on_shelf");
+        caseObj.add("when", when);
+        caseObj.add("model", displayModel);
+        cases.add(caseObj);
+
+        selectModel.add("cases", cases);
+        return selectModel;
+    }
+
+    // =====================================================================
+    // Custom Item State-Based Models
+    // =====================================================================
+
+    private JsonObject createBowPullingModel(JsonObject baseModel, OraxenMeta meta) {
+        JsonObject conditionModel = new JsonObject();
+        conditionModel.addProperty("type", "minecraft:condition");
+        conditionModel.addProperty("property", "minecraft:using_item");
+        conditionModel.add("on_false", baseModel);
+
+        JsonObject rangeDispatch = new JsonObject();
+        rangeDispatch.addProperty("type", "minecraft:range_dispatch");
+        rangeDispatch.addProperty("property", "minecraft:use_duration");
+        rangeDispatch.addProperty("scale", BOW_USE_DURATION_SCALE);
+
+        List<String> pullingModels = meta.getPullingModels();
+        if (pullingModels == null || pullingModels.isEmpty()) {
+            return baseModel;
+        }
+
+        JsonArray entries = new JsonArray();
+        if (pullingModels.size() >= 2) {
+            JsonObject entry1 = new JsonObject();
+            entry1.addProperty("threshold", BOW_PULL_THRESHOLD_1);
+            entry1.add("model", createModelObject(pullingModels.get(1)));
+            entries.add(entry1);
+        }
+        if (pullingModels.size() >= 3) {
+            JsonObject entry2 = new JsonObject();
+            entry2.addProperty("threshold", BOW_PULL_THRESHOLD_2);
+            entry2.add("model", createModelObject(pullingModels.get(2)));
+            entries.add(entry2);
+        }
+
+        rangeDispatch.add("entries", entries);
+        rangeDispatch.add("fallback", createModelObject(pullingModels.get(0)));
+        conditionModel.add("on_true", rangeDispatch);
+        return conditionModel;
+    }
+
+    private JsonObject createCrossbowModel(JsonObject baseModel, OraxenMeta meta) {
+        JsonObject onFalseModel = baseModel;
+
+        if (meta.hasChargedModel() || meta.hasFireworkModel()) {
+            JsonObject selectModel = new JsonObject();
+            selectModel.addProperty("type", "minecraft:select");
+            selectModel.addProperty("property", "minecraft:charge_type");
+
+            JsonArray cases = new JsonArray();
+            if (meta.hasChargedModel()) {
+                JsonObject arrowCase = new JsonObject();
+                arrowCase.addProperty("when", "arrow");
+                arrowCase.add("model", createModelObject(meta.getChargedModel()));
+                cases.add(arrowCase);
+            }
+            if (meta.hasFireworkModel()) {
+                JsonObject rocketCase = new JsonObject();
+                rocketCase.addProperty("when", "rocket");
+                rocketCase.add("model", createModelObject(meta.getFireworkModel()));
+                cases.add(rocketCase);
+            }
+
+            selectModel.add("cases", cases);
+            selectModel.add("fallback", baseModel);
+            onFalseModel = selectModel;
+        }
+
+        if (!meta.hasPullingModels()) {
+            return onFalseModel;
+        }
+
+        List<String> pullingModels = meta.getPullingModels();
+        if (pullingModels == null || pullingModels.isEmpty()) {
+            return onFalseModel;
+        }
+
+        JsonObject pullingCondition = new JsonObject();
+        pullingCondition.addProperty("type", "minecraft:condition");
+        pullingCondition.addProperty("property", "minecraft:using_item");
+        pullingCondition.add("on_false", onFalseModel);
+
+        JsonObject rangeDispatch = new JsonObject();
+        rangeDispatch.addProperty("type", "minecraft:range_dispatch");
+        rangeDispatch.addProperty("property", "minecraft:crossbow/pull");
+
+        JsonArray entries = new JsonArray();
+        if (pullingModels.size() >= 2) {
+            JsonObject entry1 = new JsonObject();
+            entry1.addProperty("threshold", CROSSBOW_PULL_THRESHOLD_1);
+            entry1.add("model", createModelObject(pullingModels.get(1)));
+            entries.add(entry1);
+        }
+        if (pullingModels.size() >= 3) {
+            JsonObject entry2 = new JsonObject();
+            entry2.addProperty("threshold", CROSSBOW_PULL_THRESHOLD_2);
+            entry2.add("model", createModelObject(pullingModels.get(2)));
+            entries.add(entry2);
+        }
+
+        rangeDispatch.add("entries", entries);
+        rangeDispatch.add("fallback", createModelObject(pullingModels.get(0)));
+        pullingCondition.add("on_true", rangeDispatch);
+        return pullingCondition;
+    }
+
+    private JsonObject createFishingRodModel(JsonObject baseModel, OraxenMeta meta) {
+        JsonObject conditionModel = new JsonObject();
+        conditionModel.addProperty("type", "minecraft:condition");
+        conditionModel.addProperty("property", "minecraft:fishing_rod/cast");
+        conditionModel.add("on_false", baseModel);
+        conditionModel.add("on_true", createModelObject(meta.getCastModel()));
+        return conditionModel;
+    }
+
+    private JsonObject createShieldModel(JsonObject baseModel, OraxenMeta meta) {
+        JsonObject conditionModel = new JsonObject();
+        conditionModel.addProperty("type", "minecraft:condition");
+        conditionModel.addProperty("property", "minecraft:using_item");
+        conditionModel.add("on_false", baseModel);
+        conditionModel.add("on_true", createModelObject(meta.getBlockingModel()));
+        return conditionModel;
+    }
+
+    // =====================================================================
+    // Utility Methods
+    // =====================================================================
+
+    private void addTintsIfNeeded(JsonObject model) {
+        if (material.name().startsWith("LEATHER_")) {
+            addDyeTint(model);
+        } else if (isPotionMaterial(material)) {
+            addPotionTint(model);
+        }
+    }
+
+    private boolean isPotionMaterial(Material material) {
+        return material == Material.POTION
+                || material == Material.SPLASH_POTION
+                || material == Material.LINGERING_POTION;
+    }
+
+    private void addDyeTint(JsonObject model) {
+        JsonArray tints = new JsonArray();
+        JsonObject dye = new JsonObject();
+        dye.addProperty("type", "minecraft:dye");
+        dye.addProperty("default", DEFAULT_TINT_COLOR);
+        tints.add(dye);
+        model.add("tints", tints);
+    }
+
+    private void addPotionTint(JsonObject model) {
+        JsonArray tints = new JsonArray();
+        JsonObject potion = new JsonObject();
+        potion.addProperty("type", "minecraft:potion");
+        potion.addProperty("default", DEFAULT_TINT_COLOR);
+        tints.add(potion);
+        model.add("tints", tints);
+    }
+
+    private JsonObject createModelObject(String modelPath) {
+        JsonObject modelObj = new JsonObject();
+        modelObj.addProperty("type", "minecraft:model");
+        modelObj.addProperty("model", modelPath);
+        return modelObj;
+    }
+
+    /**
+     * Creates a special model object for items that require custom rendering (shield, conduit, etc.).
+     * These use "type": "minecraft:special" with a nested model type instead of "type": "minecraft:model".
+     * 
+     * @param basePath the model path used as the "base" property (for display transformations)
+     * @param specialType the special model type (e.g., "minecraft:shield", "minecraft:conduit")
+     */
+    private JsonObject createSpecialModelObject(String basePath, String specialType) {
+        JsonObject specialObj = new JsonObject();
+        specialObj.addProperty("type", "minecraft:special");
+        specialObj.addProperty("base", basePath);
+        
+        JsonObject modelType = new JsonObject();
+        modelType.addProperty("type", specialType);
+        specialObj.add("model", modelType);
+        
+        return specialObj;
+    }
+
+    /**
+     * Helper record for select cases (MODEL_DATA_IDS mode).
+     */
+    private record SelectCaseEntry(String when, JsonObject model) {
+    }
+
+    /**
+     * Helper record for range_dispatch entries (MODEL_DATA_FLOAT_LEGACY mode).
+     */
+    private record CmdEntry(int cmd, JsonObject model) {
+    }
+}
