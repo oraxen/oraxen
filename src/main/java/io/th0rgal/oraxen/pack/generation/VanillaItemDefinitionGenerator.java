@@ -263,7 +263,7 @@ public class VanillaItemDefinitionGenerator {
         List<SelectCaseEntry> selectCases = new ArrayList<>();
         for (ItemBuilder item : items) {
             OraxenMeta meta = item.getOraxenMeta();
-            if (meta == null || meta.getCustomModelData() == null || !meta.hasPackInfos())
+            if (meta == null || !meta.hasPackInfos())
                 continue;
 
             final String id = OraxenItems.getIdByItem(item);

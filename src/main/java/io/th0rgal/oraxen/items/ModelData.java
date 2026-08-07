@@ -1,9 +1,9 @@
 package io.th0rgal.oraxen.items;
 
+import io.th0rgal.oraxen.configs.Settings;
 import org.bukkit.Material;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class ModelData {
 
@@ -29,15 +29,74 @@ public class ModelData {
     }
 
     public static int generateId(String model, Material type) {
-        Map<String, Integer> usedModelDatas = DATAS.computeIfAbsent(type, ignored -> new HashMap<>());
-        Integer existingModelData = usedModelDatas.get(model);
-        if (existingModelData != null)
-            return existingModelData;
+        Map<String, Integer> usedModelDatas = new HashMap<>();
+        if (!DATAS.containsKey(type) && !getSkippedCustomModelData().contains(STARTING_CMD)) {
+            usedModelDatas.put(model, STARTING_CMD);
+            DATAS.put(type, usedModelDatas);
+            return STARTING_CMD;
+        } else
+            usedModelDatas = DATAS.getOrDefault(type, new HashMap<>());
 
-        int modelData = STARTING_CMD;
-        while (usedModelDatas.containsValue(modelData))
-            modelData++;
-        usedModelDatas.put(model, modelData);
-        return modelData;
+        if (usedModelDatas.containsKey(model)) {
+            return usedModelDatas.get(model);
+        }
+
+        if (usedModelDatas.isEmpty()) {
+            int newModelData = STARTING_CMD;
+            while (getSkippedCustomModelData().contains(newModelData)) {
+                newModelData++;
+            }
+            usedModelDatas.put(model, newModelData);
+            DATAS.put(type, usedModelDatas);
+            return newModelData;
+        }
+
+        int currentHighestModelData = Collections.max(usedModelDatas.values());
+        for (int i = STARTING_CMD; i < currentHighestModelData; i++) {
+            if (!usedModelDatas.containsValue(i)) { // if the id is available
+                if (getSkippedCustomModelData().contains(i))
+                    continue; // if the id should be skipped
+                usedModelDatas.put(model, i);
+                DATAS.put(type, usedModelDatas);
+                return i;
+            }
+        }
+        // if no durability was available between the chosen, let's create a new one
+        // bigger
+        int newHighestModelData = currentHighestModelData + 1;
+        if (getSkippedCustomModelData().contains(newHighestModelData)) { // if the id should be skipped
+            newHighestModelData = getNextNotSkippedCustomModelData(newHighestModelData);
+        }
+
+        usedModelDatas.put(model, newHighestModelData);
+        DATAS.put(type, usedModelDatas);
+        return newHighestModelData;
+    }
+
+    static int getNextNotSkippedCustomModelData(int i) {
+        return getNextNotSkippedCustomModelData(i, getSkippedCustomModelData());
+    }
+
+    static int getNextNotSkippedCustomModelData(int i, Set<Integer> skippedCustomModelData) {
+        int nextModelData = i;
+        while (skippedCustomModelData.contains(nextModelData)) {
+            nextModelData++;
+        }
+        return nextModelData;
+    }
+
+    private static Set<Integer> getSkippedCustomModelData() {
+        Set<Integer> skippedCustomModelData = new HashSet<>();
+        for (String s : Settings.SKIPPED_MODEL_DATA_NUMBERS.toStringList()) {
+            if (s.contains("-")) {
+                String[] s2 = s.split("-");
+                int min = Integer.parseInt(s2[0]);
+                int max = Integer.parseInt(s2[1]);
+                for (int i = min; i <= max; i++)
+                    skippedCustomModelData.add(i);
+            } else
+                skippedCustomModelData.add(Integer.parseInt(s));
+        }
+        return skippedCustomModelData;
     }
 }

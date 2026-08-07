@@ -39,7 +39,11 @@ class FurnitureSeatTest {
             "180, 0, 180, 180",
             "180, 90, 270, 180",
             "270, 0, 270, 270",
-            "270, 90, 0, 270"
+            "270, 90, 0, 270",
+            // Paper hands out yaws in [-180, 180), so both inputs can be negative.
+            "-170, -30, 160, -170",
+            "-90, -90, 180, -90",
+            "-90, 90, 0, -90"
     })
     void seatYawRotatesWithFurniture(float furnitureYaw, float seatYaw, float expectedIfConfigured, float expectedIfNull) {
         FurnitureMechanic.FurnitureSeat configured = new FurnitureMechanic.FurnitureSeat(0, 0, 0, seatYaw);

@@ -15,8 +15,6 @@ public enum RemovedSettings {
     ORAXEN_INV_PREVIOUS_PAGE_ICON("oraxen_inventory.previous_page_icon"),
     AUTOMATICALLY_SET_MODEL_DATA("ConfigsTools.automatically_set_model_data"),
     AUTOMATICALLY_SET_GLYPH_CODE("ConfigsTools.automatically_set_glyph_code"),
-    DISABLE_AUTOMATIC_MODEL_DATA("ConfigsTools.disable_automatic_model_data"),
-    SKIPPED_MODEL_DATA_NUMBERS("ConfigsTools.skipped_model_data_numbers"),
     MERGE_FONTS("Pack.import.merge_font_files"),
     AUTO_UPDATE_ITEMS("ItemUpdater.auto_update_items"),
     OVERRIDE_LORE("ItemUpdater.override_lore"),

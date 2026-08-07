@@ -34,7 +34,9 @@ public enum Settings {
     UNICODE_COMPLETIONS("Glyphs.unicode_completions"),
 
     // Config Tools
+    DISABLE_AUTOMATIC_MODEL_DATA("ConfigsTools.disable_automatic_model_data"),
     DISABLE_AUTOMATIC_GLYPH_CODE("ConfigsTools.disable_automatic_glyph_code"),
+    SKIPPED_MODEL_DATA_NUMBERS("ConfigsTools.skipped_model_data_numbers"),
     ERROR_ITEM("ConfigsTools.error_item"),
 
     // Custom Armor

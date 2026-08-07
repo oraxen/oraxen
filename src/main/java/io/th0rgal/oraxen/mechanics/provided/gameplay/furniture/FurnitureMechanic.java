@@ -135,7 +135,11 @@ public class FurnitureMechanic extends Mechanic {
         }
 
         public float rotatedYaw(float furnitureYaw) {
-            return yaw != null ? ((yaw + furnitureYaw) % 360) : furnitureYaw;
+            if (yaw == null) return furnitureYaw;
+            // Java's % keeps the sign of the dividend, so a negative furniture or seat yaw
+            // would otherwise leave the result outside the [0, 360) range this class works in.
+            float rotated = (yaw + furnitureYaw) % 360f;
+            return rotated < 0f ? rotated + 360f : rotated;
         }
     }
 

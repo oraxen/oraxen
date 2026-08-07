@@ -48,16 +48,21 @@ public final class ItemLoader {
             material = usesTemplate() ? templateItem.type : Material.PAPER;
         type = material;
 
+        // Each item gets its own OraxenMeta: templates are merged in by value, never shared
+        // by reference, so sibling items cannot overwrite each other's pack info.
         oraxenMeta = new OraxenMeta();
-        final ConfigurationSection mergedSection = mergeWithTemplateSection();
-        if (OraxenYaml.isConfigurationSection(mergedSection, "Pack")) {
-            final ConfigurationSection packSection = OraxenYaml.getConfigurationSection(mergedSection, "Pack");
-            oraxenMeta.setPackInfos(packSection);
-            assert packSection != null;
-            if (packSection.isInt("custom_model_data"))
-                MODEL_DATAS_BY_ID.put(section.getName(),
-                        new ModelData(type, oraxenMeta.getModelName(), packSection.getInt("custom_model_data")));
-        }
+        final ConfigurationSection mergedPackSection =
+                OraxenYaml.getConfigurationSection(mergeWithTemplateSection(), "Pack");
+        if (mergedPackSection != null)
+            oraxenMeta.setPackInfos(mergedPackSection);
+
+        // Only an explicitly configured custom_model_data on the item itself is registered.
+        // Template children deliberately do not inherit the template's number, otherwise every
+        // sibling would resolve to the same one; they get an automatically assigned id instead.
+        final ConfigurationSection packSection = OraxenYaml.getConfigurationSection(section, "Pack");
+        if (packSection != null && packSection.isInt("custom_model_data"))
+            MODEL_DATAS_BY_ID.put(section.getName(),
+                    new ModelData(type, oraxenMeta.getModelName(), packSection.getInt("custom_model_data")));
     }
 
     public boolean usesMMOItems() {

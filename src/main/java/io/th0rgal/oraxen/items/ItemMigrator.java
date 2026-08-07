@@ -28,6 +28,14 @@ public final class ItemMigrator {
         configUpdated |= migrated;
     }
 
+    /**
+     * Marks the backing item config as changed so the caller persists it, used when
+     * an automatically assigned custom model data is written back into the item file.
+     */
+    public void markConfigUpdated() {
+        configUpdated = true;
+    }
+
     public void migrateLegacyBlockMechanics(final ConfigurationSection mechanicsSection) {
         if (OraxenYaml.getConfigurationSection(mechanicsSection, "block") != null)
             return;

@@ -6,7 +6,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.mockito.MockedStatic;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -17,7 +16,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mockStatic;
 
 class ItemLoaderTest {
 
@@ -29,70 +27,36 @@ class ItemLoaderTest {
     }
 
     @Test
-    void onlyResolvesExplicitlyConfiguredCustomModelDataOnModernVersions() throws Exception {
+    void registersExplicitlyConfiguredCustomModelData() throws Exception {
         YamlConfiguration config = new YamlConfiguration();
         config.loadFromString("""
                 configured:
                   material: PAPER
                   Pack:
                     custom_model_data: 123
-                automatic:
-                  material: PAPER
-                  Pack:
-                    model: automatic
                 """);
-
-        Method resolve = ItemProperties.class.getDeclaredMethod("resolveCustomModelData");
-        resolve.setAccessible(true);
 
         ConfigurationSection configuredSection = config.getConfigurationSection("configured");
-        ConfigurationSection automaticSection = config.getConfigurationSection("automatic");
+        assertNotNull(configuredSection);
         new ItemLoader(configuredSection);
-        ItemLoader automaticLoader = new ItemLoader(automaticSection);
-        ItemProperties configured = new ItemProperties(configuredSection, org.bukkit.Material.PAPER,
-                new OraxenMeta(), ItemLoader.MODEL_DATAS_BY_ID);
-        ItemProperties automatic = new ItemProperties(automaticSection, org.bukkit.Material.PAPER,
-                getMeta(automaticLoader), ItemLoader.MODEL_DATAS_BY_ID);
 
-        try (MockedStatic<io.th0rgal.oraxen.utils.VersionUtil> versionUtil =
-                mockStatic(io.th0rgal.oraxen.utils.VersionUtil.class)) {
-            versionUtil.when(() -> io.th0rgal.oraxen.utils.VersionUtil.atOrAbove("1.21.4")).thenReturn(true);
-            assertEquals(123, resolve.invoke(configured));
-            assertNull(resolve.invoke(automatic));
-        }
-    }
-
-    @Test
-    void generatesCustomModelDataOnLegacyVersions() throws Exception {
-        YamlConfiguration config = new YamlConfiguration();
-        config.loadFromString("""
-                automatic:
-                  material: PAPER
-                  Pack:
-                    model: automatic
-                """);
-        ConfigurationSection section = config.getConfigurationSection("automatic");
-        assertNotNull(section);
-        ItemLoader loader = new ItemLoader(section);
-        ItemProperties properties = new ItemProperties(section, org.bukkit.Material.PAPER,
-                getMeta(loader), ItemLoader.MODEL_DATAS_BY_ID);
         Method resolve = ItemProperties.class.getDeclaredMethod("resolveCustomModelData");
         resolve.setAccessible(true);
+        ItemProperties configured = new ItemProperties(configuredSection, org.bukkit.Material.PAPER,
+                new OraxenMeta(), ItemLoader.MODEL_DATAS_BY_ID);
 
-        try (MockedStatic<io.th0rgal.oraxen.utils.VersionUtil> versionUtil =
-                mockStatic(io.th0rgal.oraxen.utils.VersionUtil.class)) {
-            versionUtil.when(() -> io.th0rgal.oraxen.utils.VersionUtil.atOrAbove("1.21.4")).thenReturn(false);
-            assertEquals(ModelData.STARTING_CMD, resolve.invoke(properties));
-        }
+        // An explicit number short-circuits before automatic assignment, so this needs no plugin.
+        assertEquals(123, resolve.invoke(configured));
     }
 
     @Test
-    void resolvesCustomModelDataInheritedFromTemplate() throws Exception {
+    void templateChildrenDoNotInheritTheTemplateCustomModelData() throws Exception {
         YamlConfiguration config = new YamlConfiguration();
         config.loadFromString("""
                 base:
                   material: PAPER
                   Pack:
+                    model: base
                     custom_model_data: 321
                 templated:
                   template: base
@@ -103,14 +67,13 @@ class ItemLoaderTest {
         assertNotNull(baseSection);
         assertNotNull(templatedSection);
         ItemTemplate.register(baseSection);
-        new ItemLoader(templatedSection);
+        ItemLoader templated = new ItemLoader(templatedSection);
 
-        Method resolve = ItemProperties.class.getDeclaredMethod("resolveCustomModelData");
-        resolve.setAccessible(true);
-        ItemProperties properties = new ItemProperties(templatedSection, org.bukkit.Material.PAPER,
-                new OraxenMeta(), ItemLoader.MODEL_DATAS_BY_ID);
-
-        assertEquals(321, resolve.invoke(properties));
+        // The child still inherits the template's pack info...
+        assertEquals("base", getMeta(templated).getModelName());
+        // ...but not its number, otherwise every sibling would collide on the same one.
+        assertEquals(321, ItemLoader.MODEL_DATAS_BY_ID.get("base").getModelData());
+        assertNull(ItemLoader.MODEL_DATAS_BY_ID.get("templated"));
     }
 
     @Test

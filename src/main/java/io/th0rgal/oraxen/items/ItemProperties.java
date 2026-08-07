@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.items;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.configs.AppearanceMode;
+import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.ArmorStandProperties;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
@@ -29,13 +30,20 @@ public final class ItemProperties {
     private final Material type;
     private final OraxenMeta oraxenMeta;
     private final Map<String, ModelData> modelDatasById;
+    private final ItemMigrator migrator;
 
     public ItemProperties(final ConfigurationSection section, final Material type, final OraxenMeta oraxenMeta,
             final Map<String, ModelData> modelDatasById) {
+        this(section, type, oraxenMeta, modelDatasById, null);
+    }
+
+    public ItemProperties(final ConfigurationSection section, final Material type, final OraxenMeta oraxenMeta,
+            final Map<String, ModelData> modelDatasById, final ItemMigrator migrator) {
         this.section = section;
         this.type = type;
         this.oraxenMeta = oraxenMeta;
         this.modelDatasById = modelDatasById;
+        this.migrator = migrator;
     }
 
     public boolean applyBasic(final ItemBuilder item) {
@@ -217,12 +225,9 @@ public final class ItemProperties {
 
     private void applyModelDataIds(ItemBuilder item) {
         if (oraxenMeta.isExcludedFromPredicates()) return;
-        final Integer customModelData = resolveCustomModelData();
-        if (customModelData == null) return;
         final String itemId = section != null ? section.getName() : null;
         if (itemId == null || itemId.isBlank()) return;
         item.setCustomModelDataStrings(List.of(new NamespacedKey(OraxenPlugin.get(), itemId).toString()));
-        oraxenMeta.setCustomModelData(customModelData);
     }
 
     private void applyModelDataFloat(ItemBuilder item) {
@@ -247,8 +252,21 @@ public final class ItemProperties {
         final ModelData modelData = modelDatasById.get(section.getName());
         if (modelData != null)
             return modelData.getModelData();
-        if (VersionUtil.atOrAbove("1.21.4") || !oraxenMeta.hasPackInfos())
+
+        if (!oraxenMeta.hasPackInfos())
             return null;
-        return ModelData.generateId(oraxenMeta.getModelName(), type);
+
+        final Integer customModelData = ModelData.generateId(oraxenMeta.getModelName(), type);
+        if (migrator != null)
+            migrator.markConfigUpdated();
+
+        if (!Settings.DISABLE_AUTOMATIC_MODEL_DATA.toBool()) {
+            Optional.ofNullable(OraxenYaml.getConfigurationSection(section, "Pack"))
+                    .ifPresent(packSection -> {
+                        packSection.set("custom_model_data", customModelData);
+                        OraxenYaml.invalidateKeyCache(packSection);
+                    });
+        }
+        return customModelData;
     }
 }
