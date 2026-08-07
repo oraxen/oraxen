@@ -20,6 +20,7 @@ class ItemLoaderTest {
     @AfterEach
     void clearModelData() {
         ItemLoader.MODEL_DATAS_BY_ID.clear();
+        ItemTemplate.getItemTemplates().clear();
     }
 
     @Test
@@ -48,6 +49,32 @@ class ItemLoaderTest {
 
         assertEquals(123, resolve.invoke(configured));
         assertNull(resolve.invoke(automatic));
+    }
+
+    @Test
+    void resolvesCustomModelDataInheritedFromTemplate() throws Exception {
+        YamlConfiguration config = new YamlConfiguration();
+        config.loadFromString("""
+                base:
+                  material: PAPER
+                  Pack:
+                    custom_model_data: 321
+                templated:
+                  template: base
+                """);
+
+        ConfigurationSection baseSection = config.getConfigurationSection("base");
+        ConfigurationSection templatedSection = config.getConfigurationSection("templated");
+        assertNotNull(baseSection);
+        assertNotNull(templatedSection);
+        ItemTemplate.register(baseSection);
+        new ItemLoader(templatedSection);
+
+        Method resolve = ItemProperties.class.getDeclaredMethod("resolveCustomModelData");
+        resolve.setAccessible(true);
+        ItemProperties properties = new ItemProperties(templatedSection, new OraxenMeta(), ItemLoader.MODEL_DATAS_BY_ID);
+
+        assertEquals(321, resolve.invoke(properties));
     }
 
     @ParameterizedTest

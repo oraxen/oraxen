@@ -69,7 +69,7 @@ public class RecipesView {
 
     private ItemBuilder iconOrDefault(String itemId, Material fallback) {
         ItemBuilder icon = OraxenItems.getItemById(itemId);
-        return icon != null ? icon : new ItemBuilder(fallback);
+        return icon != null ? icon.clone() : new ItemBuilder(fallback);
     }
 
     private String pageName(int page) {

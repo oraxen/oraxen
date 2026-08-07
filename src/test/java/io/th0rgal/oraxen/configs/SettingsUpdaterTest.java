@@ -36,4 +36,17 @@ class SettingsUpdaterTest {
     void ignoresSettingsWithoutLegacyInventoryMenu() {
         assertFalse(SettingsUpdater.migrateInventoryMenu(new YamlConfiguration()));
     }
+
+    @Test
+    void renamesDisplayNamesBeforeLegacyGuiInventoryIsRelocated() {
+        YamlConfiguration settings = new YamlConfiguration();
+        settings.set("gui_inventory.custom.displayname", "Custom name");
+        settings.set("gui_inventory.custom.icon", "custom_icon");
+
+        assertTrue(SettingsUpdater.migrateInventoryMenu(settings));
+
+        assertFalse(settings.contains("gui_inventory.custom.displayname"));
+        assertEquals("Custom name", settings.getString("gui_inventory.custom.name"));
+        assertEquals("custom_icon", settings.getString("gui_inventory.custom.icon"));
+    }
 }

@@ -44,8 +44,9 @@ public class SettingsUpdater {
     }
 
     static boolean migrateInventoryMenu(YamlConfiguration settings) {
+        boolean updated = migrateLegacyGuiInventoryLayout(settings);
         ConfigurationSection legacyMenu = settings.getConfigurationSection("oraxen_inventory");
-        if (legacyMenu == null) return false;
+        if (legacyMenu == null) return updated;
 
         migrateInventoryMenuValue(settings, legacyMenu, "main_menu_title", "title");
         migrateInventoryMenuValue(settings, legacyMenu, "menu_rows", "rows");
@@ -62,6 +63,22 @@ public class SettingsUpdater {
 
         settings.set("oraxen_inventory", null);
         return true;
+    }
+
+    private static boolean migrateLegacyGuiInventoryLayout(YamlConfiguration settings) {
+        ConfigurationSection legacyLayout = settings.getConfigurationSection("gui_inventory");
+        if (legacyLayout == null) return false;
+
+        boolean updated = false;
+        for (Map.Entry<String, Object> entry : legacyLayout.getValues(true).entrySet()) {
+            if (entry.getValue() instanceof ConfigurationSection || !entry.getKey().matches("(^|.*\\.)displayname$"))
+                continue;
+            String path = entry.getKey().replaceFirst("displayname$", "name");
+            legacyLayout.set(path, entry.getValue());
+            legacyLayout.set(entry.getKey(), null);
+            updated = true;
+        }
+        return updated;
     }
 
     private static void migrateInventoryMenuValue(YamlConfiguration settings, ConfigurationSection legacyMenu,

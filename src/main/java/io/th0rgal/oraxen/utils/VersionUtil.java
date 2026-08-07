@@ -36,7 +36,7 @@ public class VersionUtil {
     }
 
     public static String supportedVersions() {
-        return "Paper and Paper forks 1.20+ / 26.x through the guarded NMS handler";
+        return "Paper and Paper forks 1.20.1+ / 26.x through the guarded NMS handler";
     }
 
     public static boolean atOrAbove(String versionString) {
@@ -44,12 +44,17 @@ public class VersionUtil {
     }
 
     /**
-     * Scoreboard/tablist background hiding tweaks are only supported on 1.21.6 or higher.
+     * Scoreboard/tablist background hiding tweaks are only supported from 1.21.6 through 1.21.7.
      * Scoreboard number hiding is unaffected: it is handled per version by
      * TextShaderGenerator#hideScoreboardNumbers.
      */
     public static boolean supportsScoreboardBackgroundHiding() {
-        return atOrAbove("1.21.6");
+        return supportsScoreboardBackgroundHiding(MinecraftVersion.getCurrentVersion());
+    }
+
+    static boolean supportsScoreboardBackgroundHiding(MinecraftVersion version) {
+        return version.isAtLeast(new MinecraftVersion("1.21.6"))
+                && !version.isAtLeast(new MinecraftVersion("1.21.8"));
     }
 
     /**

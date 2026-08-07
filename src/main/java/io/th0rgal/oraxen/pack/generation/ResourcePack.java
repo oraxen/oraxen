@@ -1078,7 +1078,7 @@ public class ResourcePack {
             Map<String, ItemBuilder> filteredItems = new LinkedHashMap<>();
             for (Map.Entry<String, ItemBuilder> entry : materialEntry.getValue().entrySet()) {
                 OraxenMeta meta = entry.getValue().getOraxenMeta();
-                if (meta != null && !meta.isExcludedFromPredicates()) {
+                if (meta != null && !meta.isExcludedFromPredicates() && meta.getCustomModelData() != null) {
                     filteredItems.put(entry.getKey(), entry.getValue());
                 }
             }

@@ -21,4 +21,13 @@ class VersionUtilTest {
         assertTrue(VersionUtil.isModernVersionNamespace(new MinecraftVersion("1.26.2")));
         assertTrue(VersionUtil.isModernVersionNamespace(new MinecraftVersion("26.3")));
     }
+
+    @Test
+    void scoreboardBackgroundHidingIsLimitedToCompatibleVersions() {
+        assertFalse(VersionUtil.supportsScoreboardBackgroundHiding(new MinecraftVersion("1.21.5")));
+        assertTrue(VersionUtil.supportsScoreboardBackgroundHiding(new MinecraftVersion("1.21.6")));
+        assertTrue(VersionUtil.supportsScoreboardBackgroundHiding(new MinecraftVersion("1.21.7")));
+        assertFalse(VersionUtil.supportsScoreboardBackgroundHiding(new MinecraftVersion("1.21.8")));
+        assertFalse(VersionUtil.supportsScoreboardBackgroundHiding(new MinecraftVersion("26.1")));
+    }
 }

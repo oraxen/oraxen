@@ -114,7 +114,7 @@ public class ItemsView {
 
     private ItemBuilder iconOrDefault(String itemId, Material fallback) {
         ItemBuilder icon = OraxenItems.getItemById(itemId);
-        return icon != null ? icon : new ItemBuilder(fallback);
+        return icon != null ? icon.clone() : new ItemBuilder(fallback);
     }
 
     private record GuiItemSlot(ItemStack itemStack, Integer slot) {

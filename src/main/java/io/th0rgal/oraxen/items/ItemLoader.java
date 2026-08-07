@@ -57,6 +57,12 @@ public final class ItemLoader {
                 MODEL_DATAS_BY_ID.put(section.getName(),
                         new ModelData(type, oraxenMeta.getModelName(), packSection.getInt("custom_model_data")));
         }
+
+        if (!MODEL_DATAS_BY_ID.containsKey(section.getName()) && templateItem != null) {
+            ModelData templateModelData = MODEL_DATAS_BY_ID.get(templateItem.section.getName());
+            if (templateModelData != null)
+                MODEL_DATAS_BY_ID.put(section.getName(), templateModelData);
+        }
     }
 
     public boolean usesMMOItems() {

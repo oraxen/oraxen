@@ -20,9 +20,6 @@ Plugin:
     books: true # Formats glyphs in books.
 
 ConfigsTools:
-  # list of model data numbers the automatic system will skip
-  # List can take ranges like 1-4 as well as normal singular numbers
-  skipped_model_data_numbers: []
   disable_automatic_glyph_code: false
   error_item:
     material: PODZOL
@@ -294,9 +291,9 @@ Misc:
   # This will hide the red numbers on the side of scoreboards
   # (requires a packet adapter such as ProtocolLib or PacketEvents on 26.x and above)
   hide_scoreboard_numbers: false
-  # This will hide the background of scoreboards (1.21.6 and above only)
+  # This will hide the background of scoreboards (1.21.6 through 1.21.7 only)
   hide_scoreboard_background: false
-  # This will hide the background of the tablist (1.21.6 and above only)
+  # This will hide the background of the tablist (1.21.6 through 1.21.7 only)
   hide_tablist_background: false
 
   # All blocks with an inventory or any blocks that when right clicked shouldn't equip armor.

@@ -12,6 +12,7 @@ class ResourcePackFormatUtilTest {
         // which every major-26 version compares greater than.
         assertEquals(84, ResourcePackFormatUtil.getPackFormatForVersion(new MinecraftVersion("26.1")));
         assertEquals(84, ResourcePackFormatUtil.getPackFormatForVersion(new MinecraftVersion("26.1.2")));
+        assertEquals(84, ResourcePackFormatUtil.getPackFormatForVersion(new MinecraftVersion("26")));
         assertEquals(88, ResourcePackFormatUtil.getPackFormatForVersion(new MinecraftVersion("26.2")));
     }
 
@@ -24,6 +25,7 @@ class ResourcePackFormatUtilTest {
 
     @Test
     void dataPackFormatsResolveForBothNamespaces() {
+        assertEquals(84, ResourcePackFormatUtil.getDataPackFormatForVersion(new MinecraftVersion("26")));
         assertEquals(84, ResourcePackFormatUtil.getDataPackFormatForVersion(new MinecraftVersion("26.1")));
         assertEquals(84, ResourcePackFormatUtil.getDataPackFormatForVersion(new MinecraftVersion("1.26.1")));
         assertEquals(89, ResourcePackFormatUtil.getDataPackFormatForVersion(new MinecraftVersion("1.21.11")));
