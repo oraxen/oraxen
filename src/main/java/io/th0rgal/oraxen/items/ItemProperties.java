@@ -26,12 +26,14 @@ import java.util.*;
 public final class ItemProperties {
 
     private final ConfigurationSection section;
+    private final Material type;
     private final OraxenMeta oraxenMeta;
     private final Map<String, ModelData> modelDatasById;
 
-    public ItemProperties(final ConfigurationSection section, final OraxenMeta oraxenMeta,
+    public ItemProperties(final ConfigurationSection section, final Material type, final OraxenMeta oraxenMeta,
             final Map<String, ModelData> modelDatasById) {
         this.section = section;
+        this.type = type;
         this.oraxenMeta = oraxenMeta;
         this.modelDatasById = modelDatasById;
     }
@@ -243,6 +245,10 @@ public final class ItemProperties {
 
     private Integer resolveCustomModelData() {
         final ModelData modelData = modelDatasById.get(section.getName());
-        return modelData != null ? modelData.getModelData() : null;
+        if (modelData != null)
+            return modelData.getModelData();
+        if (VersionUtil.atOrAbove("1.21.4") || !oraxenMeta.hasPackInfos())
+            return null;
+        return ModelData.generateId(oraxenMeta.getModelName(), type);
     }
 }

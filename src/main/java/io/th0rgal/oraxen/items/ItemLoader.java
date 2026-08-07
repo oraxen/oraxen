@@ -48,20 +48,15 @@ public final class ItemLoader {
             material = usesTemplate() ? templateItem.type : Material.PAPER;
         type = material;
 
-        oraxenMeta = templateItem != null ? templateItem.oraxenMeta : new OraxenMeta();
-        if (OraxenYaml.isConfigurationSection(section, "Pack")) {
-            final ConfigurationSection packSection = OraxenYaml.getConfigurationSection(section, "Pack");
+        oraxenMeta = new OraxenMeta();
+        final ConfigurationSection mergedSection = mergeWithTemplateSection();
+        if (OraxenYaml.isConfigurationSection(mergedSection, "Pack")) {
+            final ConfigurationSection packSection = OraxenYaml.getConfigurationSection(mergedSection, "Pack");
             oraxenMeta.setPackInfos(packSection);
             assert packSection != null;
             if (packSection.isInt("custom_model_data"))
                 MODEL_DATAS_BY_ID.put(section.getName(),
                         new ModelData(type, oraxenMeta.getModelName(), packSection.getInt("custom_model_data")));
-        }
-
-        if (!MODEL_DATAS_BY_ID.containsKey(section.getName()) && templateItem != null) {
-            ModelData templateModelData = MODEL_DATAS_BY_ID.get(templateItem.section.getName());
-            if (templateModelData != null)
-                MODEL_DATAS_BY_ID.put(section.getName(), templateModelData);
         }
     }
 

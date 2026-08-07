@@ -27,7 +27,7 @@ public final class ItemValidator {
 
     public Result validate(final ItemBuilder item) {
         try {
-            final ItemProperties properties = new ItemProperties(section, oraxenMeta, modelDatasById);
+            final ItemProperties properties = new ItemProperties(section, type, oraxenMeta, modelDatasById);
             migrator.recordLegacyNameMigration(properties.applyBasic(item));
             new ItemComponents(section, type).apply(item, mergedSection);
             properties.applyMiscAndVanilla(item, mergedSection);

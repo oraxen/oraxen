@@ -49,4 +49,9 @@ class SettingsUpdaterTest {
         assertEquals("Custom name", settings.getString("gui_inventory.custom.name"));
         assertEquals("custom_icon", settings.getString("gui_inventory.custom.icon"));
     }
+
+    @Test
+    void removesSkippedModelDataNumbersSetting() {
+        assertTrue(RemovedSettings.toStringList().contains("ConfigsTools.skipped_model_data_numbers"));
+    }
 }

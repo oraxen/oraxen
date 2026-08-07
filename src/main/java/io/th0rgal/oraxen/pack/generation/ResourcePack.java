@@ -490,7 +490,7 @@ public class ResourcePack {
             if (multiVersionResolved || AppearanceMode.shouldGenerateVanillaItemDefinitions()) {
                 boolean useSelect = AppearanceMode.shouldUseSelectForVanillaItemDefs();
                 boolean includeBothModes = AppearanceMode.shouldUseBothDispatchModes();
-                generateVanillaItemDefinitions(filterForPredicates(texturedItems), useSelect, includeBothModes);
+                generateVanillaItemDefinitions(filterForModelData(texturedItems), useSelect, includeBothModes);
             }
         }
 
@@ -499,11 +499,11 @@ public class ResourcePack {
             // cannot use item definitions and rely solely on legacy predicate model overrides.
             // Uses the resolved flag (not the raw setting) to respect single-pack fallback.
             if (AppearanceMode.shouldGenerateLegacyPredicates() || multiVersionResolved) {
-                generatePredicates(filterForPredicates(texturedItems));
+                generatePredicates(filterForModelData(texturedItems));
             }
         } else {
             // On 1.21.3- servers, predicates are the primary (or only) item appearance system.
-            generatePredicates(filterForPredicates(texturedItems));
+            generatePredicates(filterForModelData(texturedItems));
         }
     }
 
@@ -1071,7 +1071,7 @@ public class ResourcePack {
         return filtered;
     }
 
-    private Map<Material, Map<String, ItemBuilder>> filterForPredicates(
+    private Map<Material, Map<String, ItemBuilder>> filterForModelData(
             Map<Material, Map<String, ItemBuilder>> texturedItems) {
         Map<Material, Map<String, ItemBuilder>> filtered = new HashMap<>();
         for (Map.Entry<Material, Map<String, ItemBuilder>> materialEntry : texturedItems.entrySet()) {
