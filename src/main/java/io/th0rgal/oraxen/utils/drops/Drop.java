@@ -177,7 +177,8 @@ public class Drop {
 
         ItemStack baseItem = OraxenItems.getItemById(sourceID).build();
         Location location = baseEntity.getLocation().toBlockLocation();
-        ItemStack furnitureItem = FurnitureMechanic.getFurnitureItem(baseEntity);
+        ItemStack placedItem = FurnitureMechanic.getFurnitureItem(baseEntity);
+        ItemStack furnitureItem = sourceID.equals(OraxenItems.getIdByItem(placedItem)) ? placedItem : baseItem;
         ItemUtils.editItemMeta(furnitureItem, (itemMeta) -> {
             ItemMeta baseMeta = baseItem.getItemMeta();
             if (baseMeta != null && baseMeta.hasDisplayName())
