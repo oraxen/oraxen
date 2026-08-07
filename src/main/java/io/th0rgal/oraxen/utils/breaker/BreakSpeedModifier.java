@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.utils.breaker;
 
 import io.th0rgal.oraxen.utils.SchedulerUtil;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.wrappers.AttributeWrapper;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
@@ -9,6 +10,7 @@ import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.EquipmentSlotGroup;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Constructor;
@@ -29,6 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class BreakSpeedModifier {
 
+    private static final boolean SUPPORTS_EQUIPMENT_SLOT_GROUP = VersionUtil.atOrAbove("1.20.5");
     // Cache of the resolved AttributeModifier constructor (varies by server version).
     private static volatile ModifierFactory cachedModifierFactory;
 
@@ -126,22 +129,9 @@ public final class BreakSpeedModifier {
 
     @Nullable
     private static ModifierFactory resolveModifierFactory() {
-        try {
-            final Class<?> slotGroupClass = Class.forName("org.bukkit.inventory.EquipmentSlotGroup");
-            final Object handGroup = slotGroupClass.getField("HAND").get(null);
-            final Constructor<AttributeModifier> constructor = AttributeModifier.class.getConstructor(
-                    NamespacedKey.class, double.class, AttributeModifier.Operation.class, slotGroupClass);
-            return (key, amount) -> {
-                try {
-                    return constructor.newInstance(key, amount,
-                            AttributeModifier.Operation.MULTIPLY_SCALAR_1, handGroup);
-                } catch (ReflectiveOperationException ignored) {
-                    return null;
-                }
-            };
-        } catch (ReflectiveOperationException ignored) {
-            // Fall through to older constructor variants.
-        }
+        if (SUPPORTS_EQUIPMENT_SLOT_GROUP)
+            return (key, amount) -> new AttributeModifier(key, amount,
+                    AttributeModifier.Operation.MULTIPLY_SCALAR_1, EquipmentSlotGroup.HAND);
 
         try {
             final Constructor<AttributeModifier> constructor = AttributeModifier.class.getConstructor(

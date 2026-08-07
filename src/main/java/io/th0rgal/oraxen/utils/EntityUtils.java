@@ -2,16 +2,20 @@ package io.th0rgal.oraxen.utils;
 
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Location;
-import org.bukkit.World;
+import org.bukkit.RegionAccessor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemDisplay;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
 
-@SuppressWarnings({"unchecked", "unused", "deprecation"})
+@SuppressWarnings("unused")
 public class EntityUtils {
-    private static Method spawnMethod;
+
+    // 1.20.2+ exposes the java.util.function.Consumer spawn overload; older servers only have
+    // the org.bukkit.util.Consumer overload, which is gone from the compile-target API.
+    private static final boolean MODERN_SPAWN_CONSUMER = VersionUtil.atOrAbove("1.20.2");
 
     public static boolean isUnderWater(Entity entity) {
         if (VersionUtil.isPaperServer()) {
@@ -23,77 +27,60 @@ public class EntityUtils {
         return itemDisplay.getItemDisplayTransform() == ItemDisplay.ItemDisplayTransform.NONE;
     }
 
-    static {
-        try {
-            // Get the method based on the server version
-            Class<?> entitySpawnerClass = Class.forName("org.bukkit.RegionAccessor"); // Replace with actual path
-            if (VersionUtil.atOrAbove("1.20.2")) {
-                spawnMethod = entitySpawnerClass.getDeclaredMethod("spawn", Location.class, Class.class, java.util.function.Consumer.class);
-            } else {
-                spawnMethod = entitySpawnerClass.getDeclaredMethod("spawn", Location.class, Class.class, org.bukkit.util.Consumer.class);
-            }
-        } catch (ClassNotFoundException | NoSuchMethodException e) {
-            Logs.logWarning(e.getMessage()); // Handle the exception according to your needs
-        }
-    }
-
     /**
-     * Spawns an entity at the given location and applies the consumer to it based on server version
+     * Spawns an entity at the given location and applies the consumer to it.
      * @param location The location to spawn the entity at
      * @param clazz The class of the entity to spawn
      * @param consumer The consumer to apply to the entity
      * @return The entity that was spawned
      */
-    public static <T> T spawnEntity(@NotNull Location location, @NotNull Class<T> clazz, EntityConsumer<T> consumer) {
-       try {
-            T entity;
-            World world = location.getWorld();
-            Object wrappedConsumer;
-
-            // Determine the consumer type and choose the appropriate spawn method
-            // 1.20.2> uses java.util.function.Consumer while 1.20.2< uses org.bukkit.util.Consumer
-            if (VersionUtil.atOrAbove("1.20.2")) wrappedConsumer = new JavaConsumerWrapper<>(consumer);
-            else wrappedConsumer = new BukkitConsumerWrapper<>(consumer);
-
-            entity = (T) spawnMethod.invoke(world, location, clazz, wrappedConsumer);
-
-            return entity;
-        } catch (Exception e) {
-           Logs.logWarning(e.getMessage()); // Handle the exception according to your needs
+    public static <T extends Entity> T spawnEntity(@NotNull Location location, @NotNull Class<T> clazz, EntityConsumer<T> consumer) {
+        try {
+            RegionAccessor regionAccessor = location.getWorld();
+            if (MODERN_SPAWN_CONSUMER)
+                return regionAccessor.spawn(location, clazz, consumer::accept);
+            return LegacySpawner.spawn(regionAccessor, location, clazz, consumer);
+        } catch (RuntimeException e) {
+            Logs.logWarning(e.getMessage());
         }
         return null;
     }
-
-
 
     public interface EntityConsumer<T> {
         void accept(T entity);
     }
 
-    public static class JavaConsumerWrapper<T> implements java.util.function.Consumer<T> {
-        private final EntityConsumer<T> entityConsumer;
+    /**
+     * Isolates the pre-1.20.2 {@code org.bukkit.util.Consumer} spawn overload in a class that is
+     * only loaded on legacy servers, so newer runtimes never link the deprecated types.
+     */
+    @SuppressWarnings("deprecation")
+    private static final class LegacySpawner {
+        private static final Method SPAWN_METHOD = resolveSpawnMethod();
 
-        public JavaConsumerWrapper(EntityConsumer<T> entityConsumer) {
-            this.entityConsumer = entityConsumer;
+        private LegacySpawner() {
         }
 
-        @Override
-        public void accept(T entity) {
-            entityConsumer.accept(entity);
+        @Nullable
+        private static Method resolveSpawnMethod() {
+            try {
+                return RegionAccessor.class.getMethod("spawn", Location.class, Class.class, org.bukkit.util.Consumer.class);
+            } catch (NoSuchMethodException e) {
+                Logs.logWarning(e.getMessage());
+                return null;
+            }
+        }
+
+        @Nullable
+        static <T extends Entity> T spawn(RegionAccessor regionAccessor, Location location, Class<T> clazz, EntityConsumer<T> consumer) {
+            if (SPAWN_METHOD == null) return null;
+            try {
+                org.bukkit.util.Consumer<T> legacyConsumer = consumer::accept;
+                return clazz.cast(SPAWN_METHOD.invoke(regionAccessor, location, clazz, legacyConsumer));
+            } catch (ReflectiveOperationException e) {
+                Logs.logWarning(e.getMessage());
+                return null;
+            }
         }
     }
-
-    public static class BukkitConsumerWrapper<T> implements org.bukkit.util.Consumer<T> {
-        private final EntityConsumer<T> entityConsumer;
-
-        public BukkitConsumerWrapper(EntityConsumer<T> entityConsumer) {
-            this.entityConsumer = entityConsumer;
-        }
-
-        @Override
-        public void accept(T entity) {
-            entityConsumer.accept(entity);
-        }
-    }
-
 }

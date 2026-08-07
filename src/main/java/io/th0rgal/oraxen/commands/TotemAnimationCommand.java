@@ -1,5 +1,7 @@
 package io.th0rgal.oraxen.commands;
 
+import io.papermc.paper.datacomponent.DataComponentTypes;
+import io.papermc.paper.datacomponent.item.DeathProtection;
 import io.th0rgal.oraxen.commands.arguments.ArgumentSuggestions;
 import io.th0rgal.oraxen.commands.arguments.EntitySelectorArgument;
 import io.th0rgal.oraxen.commands.arguments.TextArgument;
@@ -18,7 +20,6 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Locale;
@@ -28,6 +29,8 @@ import java.util.stream.Stream;
 
 public class TotemAnimationCommand {
 
+    private static final boolean SUPPORTS_DEATH_PROTECTION_COMPONENT =
+            VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.21.2");
     private static final AtomicBoolean LOGGED_DEATH_PROTECTION_FAILURE = new AtomicBoolean();
     private static final AtomicBoolean LOGGED_PACKET_EVENTS_FAILURE = new AtomicBoolean();
 
@@ -131,13 +134,9 @@ public class TotemAnimationCommand {
     private ItemStack addDeathProtection(ItemStack itemStack) {
         if (!supportsDeathProtectionComponent() || itemStack.getType() == Material.AIR) return itemStack;
 
-        DeathProtectionAPI api = getDeathProtectionAPI();
-        if (api == null) return itemStack;
-
         try {
-            Object deathProtection = api.deathProtectionMethod.invoke(null);
-            api.setDataMethod.invoke(itemStack, api.deathProtectionType, deathProtection);
-        } catch (ReflectiveOperationException | LinkageError e) {
+            itemStack.setData(DataComponentTypes.DEATH_PROTECTION, DeathProtection.deathProtection());
+        } catch (LinkageError e) {
             logDeathProtectionFailure(e);
         }
 
@@ -148,59 +147,22 @@ public class TotemAnimationCommand {
         if (itemStack.getType() == Material.TOTEM_OF_UNDYING) return true;
         if (!supportsDeathProtectionComponent()) return false;
 
-        DeathProtectionAPI api = getDeathProtectionAPI();
-        if (api == null) return false;
-
         try {
-            return (boolean) api.hasDataMethod.invoke(itemStack, api.dataComponentType.cast(api.deathProtectionType));
-        } catch (ReflectiveOperationException | LinkageError e) {
+            return itemStack.hasData(DataComponentTypes.DEATH_PROTECTION);
+        } catch (LinkageError e) {
             Logs.debug(e);
             return false;
         }
     }
 
     private boolean supportsDeathProtectionComponent() {
-        return VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.21.2");
-    }
-
-    private static @Nullable DeathProtectionAPI getDeathProtectionAPI() {
-        return DeathProtectionHolder.API;
+        return SUPPORTS_DEATH_PROTECTION_COMPONENT;
     }
 
     private static @Nullable PacketEventsAPI getPacketEventsAPI() {
         return PacketEventsHolder.API;
     }
 
-    /**
-     * Lazy holder: the JVM guarantees the reflection lookup runs exactly once,
-     * on first access, without any explicit locking. A failed lookup caches
-     * {@code null}; the resolved classes cannot change within the lifetime of
-     * this classloader, and a plugin reload replaces the classloader anyway.
-     */
-    private static final class DeathProtectionHolder {
-        private static final @Nullable DeathProtectionAPI API = resolve();
-
-        private static @Nullable DeathProtectionAPI resolve() {
-            try {
-                Class<?> dataComponentTypeClass = Class.forName("io.papermc.paper.datacomponent.DataComponentType");
-                Class<?> valuedDataComponentTypeClass = Class.forName("io.papermc.paper.datacomponent.DataComponentType$Valued");
-                Field deathProtectionField = Class.forName("io.papermc.paper.datacomponent.DataComponentTypes").getField("DEATH_PROTECTION");
-                Object deathProtectionType = deathProtectionField.get(null);
-                Method deathProtectionMethod = Class.forName("io.papermc.paper.datacomponent.item.DeathProtection").getMethod("deathProtection");
-                Method setDataMethod = ItemStack.class.getMethod("setData", valuedDataComponentTypeClass, Object.class);
-                Method hasDataMethod = ItemStack.class.getMethod("hasData", dataComponentTypeClass);
-                return new DeathProtectionAPI(deathProtectionType, dataComponentTypeClass, deathProtectionMethod, setDataMethod, hasDataMethod);
-            } catch (Throwable throwable) {
-                // Nothing may escape this method: it runs in the holder's class
-                // initializer, and a thrown ExceptionInInitializerError would turn
-                // every later holder access into an unrecoverable NoClassDefFoundError.
-                logFailureSafely(TotemAnimationCommand::logDeathProtectionFailure, throwable);
-                return null;
-            }
-        }
-    }
-
-    /** See {@link DeathProtectionHolder} for the idiom. */
     private static final class PacketEventsHolder {
         private static final @Nullable PacketEventsAPI API = resolve();
 
@@ -229,8 +191,7 @@ public class TotemAnimationCommand {
                         entityStatusPacketConstructor,
                         entityStatusPacketUsesByte);
             } catch (Throwable throwable) {
-                // See DeathProtectionHolder#resolve: nothing may escape a holder
-                // class initializer.
+                // Nothing may escape a holder class initializer.
                 logFailureSafely(TotemAnimationCommand::logPacketEventsFailure, throwable);
                 return null;
             }
@@ -264,9 +225,6 @@ public class TotemAnimationCommand {
         }
         Logs.debug(throwable);
     }
-
-    private record DeathProtectionAPI(Object deathProtectionType, Class<?> dataComponentType, Method deathProtectionMethod,
-                                      Method setDataMethod, Method hasDataMethod) {}
 
     private record PacketEventsAPI(Method getApiMethod, Method getPlayerManagerMethod, Method sendPacketMethod,
                                    Constructor<?> entityStatusPacketConstructor, boolean entityStatusPacketUsesByte) {}
