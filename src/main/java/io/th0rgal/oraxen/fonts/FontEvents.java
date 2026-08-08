@@ -16,7 +16,6 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.*;
@@ -125,11 +124,8 @@ public class FontEvents implements Listener {
         String displayName = processRenameDisplayName(player, renameText, inputItem);
 
         String finalDisplayName = displayName;
-        ItemUtils.editItemMeta(resultItem, meta -> {
-            if (finalDisplayName == null) meta.setDisplayName(null);
-            else if (VersionUtil.isPaperServer()) meta.displayName(MINI_MESSAGE.deserialize(finalDisplayName));
-            else meta.setDisplayName(finalDisplayName);
-        });
+        ItemUtils.editItemMeta(resultItem, meta ->
+                meta.displayName(finalDisplayName == null ? null : MINI_MESSAGE.deserialize(finalDisplayName)));
     }
 
     private String processRenameDisplayName(Player player, String displayName, ItemStack inputItem) {
@@ -216,7 +212,7 @@ public class FontEvents implements Listener {
             if (!entry.getValue().hasPermission(player)) continue;
             String replacement = (manager.permsChatcolor == null)
                     ? entry.getValue().getCharacters()
-                    : ChatColor.WHITE + entry.getValue().getCharacters()
+                    : "<white>" + entry.getValue().getCharacters()
                             + PapiAliases.setPlaceholders(player, manager.permsChatcolor);
             displayName = displayName.replace(entry.getKey(), replacement);
         }
