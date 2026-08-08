@@ -10,7 +10,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.entity.Player;
 
 import java.util.Arrays;
 import java.util.List;
@@ -19,10 +18,9 @@ public class GlyphCommand {
 
     public OraxenCommand getGlyphCommand() {
         return new OraxenCommand("emojis")
-                .withPermission("oraxen.command.emojis").withPermission("oraxen.command.emoji")
-                .executes((sender, args) -> {
+                .withPermission("oraxen.command.emojis")
+                .executesPlayer((player, args) -> {
                     List<Glyph> emojiList = OraxenPlugin.get().getFontManager().getEmojis().stream().toList();
-                    Player player = ((Player) sender);
                     boolean onlyShowPermissable = Settings.SHOW_PERMISSION_EMOJIS.toBool();
 
                     List<Glyph> emojis = !onlyShowPermissable ? emojiList
