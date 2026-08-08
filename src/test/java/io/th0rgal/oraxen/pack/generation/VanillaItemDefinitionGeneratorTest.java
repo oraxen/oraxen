@@ -81,9 +81,9 @@ class VanillaItemDefinitionGeneratorTest {
         // custom model data was assigned automatically still gets a case.
         JsonObject model = generator.toJSON().getAsJsonObject("model");
         assertEquals(2, model.getAsJsonArray("cases").size());
-        assertEquals("oraxen:configured", model.getAsJsonArray("cases")
-                .get(0).getAsJsonObject().get("when").getAsString());
         assertEquals("oraxen:automatic", model.getAsJsonArray("cases")
+                .get(0).getAsJsonObject().get("when").getAsString());
+        assertEquals("oraxen:configured", model.getAsJsonArray("cases")
                 .get(1).getAsJsonObject().get("when").getAsString());
     }
 
