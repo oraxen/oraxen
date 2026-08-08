@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.configs.Message;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
@@ -12,6 +13,8 @@ import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.inventory.ItemStack;
 
 public class BottledExpMechanicListener implements Listener {
+
+    private static final int MAX_DROPPED_STACKS = 64;
 
     private final BottledExpMechanicFactory factory;
 
@@ -26,7 +29,9 @@ public class BottledExpMechanicListener implements Listener {
         String itemID = OraxenItems.getIdByItem(item);
         Player player = event.getPlayer();
 
-        if (action != Action.LEFT_CLICK_AIR && action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK)
+        if (action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK)
+            return;
+        if (event.useItemInHand() == Event.Result.DENY)
             return;
         if (item == null || factory.isNotImplementedIn(itemID))
             return;
@@ -41,10 +46,19 @@ public class BottledExpMechanicListener implements Listener {
             return;
         }
 
-        ItemStack bottlesStack = new ItemStack(Material.EXPERIENCE_BOTTLE, bottlesAmount);
-        player.getWorld().dropItem(player.getLocation(), bottlesStack);
+        int maxStackSize = Material.EXPERIENCE_BOTTLE.getMaxStackSize();
+        int droppedBottles = Math.min(bottlesAmount, maxStackSize * MAX_DROPPED_STACKS);
+        int remainingBottles = droppedBottles;
+        while (remainingBottles > 0) {
+            int stackAmount = Math.min(remainingBottles, maxStackSize);
+            player.getWorld().dropItem(player.getLocation(), new ItemStack(Material.EXPERIENCE_BOTTLE, stackAmount));
+            remainingBottles -= stackAmount;
+        }
         player.setLevel(0);
         player.setExp(0);
+        int undroppedBottles = bottlesAmount - droppedBottles;
+        if (undroppedBottles > 0)
+            player.giveExp((int) Math.floor(undroppedBottles * 10.0f / mechanic.ratio));
 
         new PlayerItemDamageEvent(player, item, factory.getDurabilityCost()).callEvent();
     }
