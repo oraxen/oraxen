@@ -53,7 +53,8 @@ public class ZipUtils {
 
         try (InputStream in = fis) {
             in.transferTo(zos);
-        } catch (IOException ignored) {
+        } catch (IOException exception) {
+            Logs.logWarning("Failed to write zip entry " + zipFilePath + ": " + exception.getMessage());
         } finally {
             try {
                 zos.closeEntry();
