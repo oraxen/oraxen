@@ -344,8 +344,6 @@ public class StringBlockMechanicListener implements Listener {
                 if (!face.isCartesian() || face.getModZ() != 0)
                     continue;
                 final Block relative = placedAgainst.getRelative(face);
-                if (OraxenBlocks.getNoteBlockMechanic(relative) == null)
-                    continue;
                 if (OraxenBlocks.getStringMechanic(relative) == null)
                     continue;
                 if (item.getItemMeta() instanceof BlockStateMeta)
@@ -566,13 +564,6 @@ public class StringBlockMechanicListener implements Listener {
             }
         }
         event.setCursor(item);
-    }
-
-    @EventHandler(ignoreCancelled = true)
-    public void updateLightOnBlockBreak(BlockBreakEvent event) {
-        Block block = event.getBlock();
-        // if (!OraxenBlocks.isOraxenStringBlock(block))
-        // LightMechanic.refreshBlockLight(block);
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)

@@ -552,14 +552,6 @@ public class FurnitureListener implements Listener {
         event.setCursor(item);
     }
 
-    @EventHandler(ignoreCancelled = true)
-    public void updateLightOnBlockBreak(BlockBreakEvent event) {
-        if (!FurnitureFactory.isEnabled()) return;
-        // Block block = event.getBlock();
-        // if (!OraxenFurniture.isFurniture(block))
-        // LightMechanic.refreshBlockLight(block);
-    }
-
     @EventHandler
     public void onPlayerQuitEvent(final PlayerQuitEvent event) {
         if (!FurnitureFactory.isEnabled()) return;

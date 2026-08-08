@@ -29,7 +29,7 @@ public class OraxenExpansion extends PlaceholderExpansion {
     @NotNull
     @Override
     public String getVersion() {
-        return plugin.getDescription().getVersion();
+        return plugin.getPluginMeta().getVersion();
     }
 
     @Override

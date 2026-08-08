@@ -45,7 +45,7 @@ public class SchemaGenerator {
      */
     public static boolean generateAndSave() {
         try {
-            String version = OraxenPlugin.get().getDescription().getVersion();
+            String version = OraxenPlugin.get().getPluginMeta().getVersion();
             JsonObject schema = generateSchema(version);
 
             File outputFile = new File(OraxenPlugin.get().getDataFolder(), "oraxen-schema.json");

@@ -117,7 +117,7 @@ public class OraxenMetrics {
     private static Map<String, Map<String, Integer>> getMinecraftVersionByOraxenVersion(OraxenPlugin plugin) {
         return Map.of(
                 plugin.getServer().getMinecraftVersion(),
-                Map.of(plugin.getDescription().getVersion(), 1));
+                Map.of(plugin.getPluginMeta().getVersion(), 1));
     }
 
     /**

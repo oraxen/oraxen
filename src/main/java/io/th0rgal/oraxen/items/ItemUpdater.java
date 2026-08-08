@@ -624,8 +624,7 @@ public class ItemUpdater implements Listener {
                 // Preserve old item's equippable data when the new template has none.
                 else if (oldMeta.hasEquippable()) itemMeta.setEquippable(oldMeta.getEquippable());
 
-                if (newMeta.isGlider()) itemMeta.setGlider(true);
-                else if (oldMeta.isGlider()) itemMeta.setGlider(true);
+                itemMeta.setGlider(newMeta.isGlider());
 
                 if (newMeta.hasItemModel()) itemMeta.setItemModel(newMeta.getItemModel());
                 else if (oldMeta.hasItemModel()) itemMeta.setItemModel(oldMeta.getItemModel());

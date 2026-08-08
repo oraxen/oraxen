@@ -14,7 +14,6 @@ public class HudCommand {
     OraxenCommand getHudCommand() {
         return new OraxenCommand("hud")
                 .withPermission("oraxen.command.hud.toggle")
-                .withArguments(new TextArgument("type").replaceSuggestions(ArgumentSuggestions.strings("toggle")))
                 .withSubcommand(disableHudsCommand());
     }
 

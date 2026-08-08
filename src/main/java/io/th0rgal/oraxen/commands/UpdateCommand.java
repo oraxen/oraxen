@@ -58,13 +58,12 @@ public class UpdateCommand {
                 });
     }
 
-    @SuppressWarnings("unchecked")
     private OraxenCommand getFurnitureUpdateCommand() {
         return new OraxenCommand("furniture")
                 .withOptionalArguments(new IntegerArgument("radius"))
                 .executesPlayer((player, args) -> {
                     int radius = (int) args.getOptional("radius").orElse(10);
-                    final Collection<Entity> targets = ((Collection<Entity>) args.getOptional("targets").orElse(player.getNearbyEntities(radius, radius, radius))).stream().filter(OraxenFurniture::isBaseEntity).toList();
+                    final Collection<Entity> targets = player.getNearbyEntities(radius, radius, radius).stream().filter(OraxenFurniture::isBaseEntity).toList();
                     for (Entity entity : targets) OraxenFurniture.updateFurniture(entity);
                     cleanupOrphanFurniture(player, radius);
                     updateBrokenFurnitureBlocks(player, radius);
