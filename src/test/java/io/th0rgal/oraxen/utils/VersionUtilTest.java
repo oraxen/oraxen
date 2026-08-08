@@ -23,6 +23,15 @@ class VersionUtilTest {
     }
 
     @Test
+    void singleNmsHandlerRequires1212OrLater() {
+        assertFalse(VersionUtil.supportsSingleNmsHandler(new MinecraftVersion("1.20.1")));
+        assertFalse(VersionUtil.supportsSingleNmsHandler(new MinecraftVersion("1.21.1")));
+        assertTrue(VersionUtil.supportsSingleNmsHandler(new MinecraftVersion("1.21.2")));
+        assertTrue(VersionUtil.supportsSingleNmsHandler(new MinecraftVersion("26.1.2")));
+        assertEquals("Paper and Paper forks 1.21.2+ / 26.x through the guarded NMS handler", VersionUtil.supportedVersions());
+    }
+
+    @Test
     void scoreboardBackgroundHidingIsLimitedToCompatibleVersions() {
         assertFalse(VersionUtil.supportsScoreboardBackgroundHiding(new MinecraftVersion("1.21.5")));
         assertTrue(VersionUtil.supportsScoreboardBackgroundHiding(new MinecraftVersion("1.21.6")));

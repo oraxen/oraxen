@@ -29,14 +29,18 @@ public class VersionUtil {
     }
 
     public static boolean supportsSingleNmsHandler() {
-        // The NMS handlers guard version-specific behavior internally, and loading an
-        // incompatible handler on an unknown newer version fails safe via the
-        // LinkageError fallback in NMSHandlers#setup.
-        return isPaperServer() && atOrAbove("1.20.1");
+        // The NMS handler requires APIs introduced in 1.21.2. Loading an incompatible
+        // handler on an unknown newer version fails safe via the LinkageError fallback
+        // in NMSHandlers#setup.
+        return isPaperServer() && supportsSingleNmsHandler(MinecraftVersion.getCurrentVersion());
+    }
+
+    static boolean supportsSingleNmsHandler(MinecraftVersion version) {
+        return version.isAtLeast(new MinecraftVersion("1.21.2"));
     }
 
     public static String supportedVersions() {
-        return "Paper and Paper forks 1.20.1+ / 26.x through the guarded NMS handler";
+        return "Paper and Paper forks 1.21.2+ / 26.x through the guarded NMS handler";
     }
 
     public static boolean atOrAbove(String versionString) {
