@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.recipes.listeners;
 
 import io.th0rgal.oraxen.recipes.CustomWorkstationRecipe;
 import io.th0rgal.oraxen.recipes.CustomWorkstationRegistry;
+import io.th0rgal.oraxen.utils.InventoryUtils;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -30,7 +31,7 @@ public class CustomWorkstationEvents implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void prepareAnvil(PrepareAnvilEvent event) {
-        Player player = (Player) event.getView().getPlayer();
+        Player player = InventoryUtils.playerFromView(event);
         CustomWorkstationRecipe recipe = CustomWorkstationRegistry.match(CustomWorkstationRecipe.Type.ANVIL,
                 event.getInventory().getItem(0), event.getInventory().getItem(1));
         if (recipe == null) return;
@@ -44,7 +45,7 @@ public class CustomWorkstationEvents implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void prepareGrindstone(PrepareGrindstoneEvent event) {
-        Player player = (Player) event.getView().getPlayer();
+        Player player = InventoryUtils.playerFromView(event);
         Match match = grindstoneRecipe(event.getInventory().getItem(0), event.getInventory().getItem(1));
         if (match == null) return;
         event.setResult(permitted(match.recipe(), player) ? match.recipe().createResult() : null);
