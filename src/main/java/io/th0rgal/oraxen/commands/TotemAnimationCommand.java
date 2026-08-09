@@ -22,15 +22,12 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 public class TotemAnimationCommand {
 
-    private static final boolean SUPPORTS_DEATH_PROTECTION_COMPONENT =
-            VersionUtil.atOrAbove("1.21.2");
-    private static final AtomicBoolean LOGGED_DEATH_PROTECTION_FAILURE = new AtomicBoolean();
-    private static final AtomicBoolean LOGGED_PACKET_EVENTS_FAILURE = new AtomicBoolean();
+    private static final AtomicBoolean loggedDeathProtectionFailure = new AtomicBoolean();
+    private static final AtomicBoolean loggedPacketEventsFailure = new AtomicBoolean();
 
     OraxenCommand getTotemAnimationCommand() {
         return new OraxenCommand("totem-animation")
@@ -96,11 +93,12 @@ public class TotemAnimationCommand {
         EntityEffect protectedFromDeath = getProtectedFromDeathEffect();
         if (protectedFromDeath != null) {
             target.sendEntityEffect(protectedFromDeath, target);
-        } else if (PacketAdapter.isPacketEventsEnabled() && sendPacketEventsTotemStatus(target)) {
             return;
-        } else {
-            target.playEffect(EntityEffect.TOTEM_RESURRECT);
         }
+
+        if (PacketAdapter.isPacketEventsEnabled() && sendPacketEventsTotemStatus(target)) return;
+
+        target.playEffect(EntityEffect.TOTEM_RESURRECT);
     }
 
     private static EntityEffect getProtectedFromDeathEffect() {
@@ -112,13 +110,13 @@ public class TotemAnimationCommand {
     }
 
     private static boolean sendPacketEventsTotemStatus(Player target) {
-        PacketEventsAPI api = getPacketEventsAPI();
+        PacketEventsAPI api = PacketEventsHolder.API;
         if (api == null) return false;
 
         try {
             Object packetEventsAPI = api.getApiMethod.invoke(null);
             Object playerManager = api.getPlayerManagerMethod.invoke(packetEventsAPI);
-            // entityStatusPacketUsesByte is derived from the resolved constructor signature in getPacketEventsAPI(),
+            // entityStatusPacketUsesByte is derived from the resolved constructor signature,
             // so the boxed status value below always matches the primitive parameter type PacketEvents expects.
             Object packet = api.entityStatusPacketConstructor.newInstance(target.getEntityId(), api.entityStatusPacketUsesByte ? (byte) 35 : 35);
             api.sendPacketMethod.invoke(playerManager, target, packet);
@@ -130,7 +128,7 @@ public class TotemAnimationCommand {
     }
 
     private ItemStack addDeathProtection(ItemStack itemStack) {
-        if (!supportsDeathProtectionComponent() || itemStack.getType() == Material.AIR) return itemStack;
+        if (!VersionUtil.atOrAbove("1.21.2") || itemStack.getType() == Material.AIR) return itemStack;
 
         try {
             DeathProtectionComponentSupport.apply(itemStack);
@@ -143,7 +141,7 @@ public class TotemAnimationCommand {
 
     private boolean isDeathProtectionItem(ItemStack itemStack) {
         if (itemStack.getType() == Material.TOTEM_OF_UNDYING) return true;
-        if (!supportsDeathProtectionComponent()) return false;
+        if (!VersionUtil.atOrAbove("1.21.2")) return false;
 
         try {
             return DeathProtectionComponentSupport.hasDeathProtection(itemStack);
@@ -155,9 +153,9 @@ public class TotemAnimationCommand {
 
     /**
      * Isolates the direct references to Paper's data-component API. This class must only be
-     * loaded behind the {@link #SUPPORTS_DEATH_PROTECTION_COMPONENT} version gate: linking it
-     * on servers older than 1.21.3 throws {@link NoClassDefFoundError} because the
-     * {@code io.papermc.paper.datacomponent} package does not exist there. Callers therefore
+     * loaded behind the 1.21.2 version gate: linking it on servers older than 1.21.3 throws
+     * {@link NoClassDefFoundError} because the {@code io.papermc.paper.datacomponent} package
+     * does not exist there. Callers therefore
      * also catch {@link LinkageError}, which covers the class-load failure itself on server
      * builds where the gate passes but the API is still unavailable.
      */
@@ -174,14 +172,6 @@ public class TotemAnimationCommand {
         static boolean hasDeathProtection(ItemStack itemStack) {
             return itemStack.hasData(io.papermc.paper.datacomponent.DataComponentTypes.DEATH_PROTECTION);
         }
-    }
-
-    private boolean supportsDeathProtectionComponent() {
-        return SUPPORTS_DEATH_PROTECTION_COMPONENT;
-    }
-
-    private static @Nullable PacketEventsAPI getPacketEventsAPI() {
-        return PacketEventsHolder.API;
     }
 
     private static final class PacketEventsHolder {
@@ -213,35 +203,25 @@ public class TotemAnimationCommand {
                         entityStatusPacketUsesByte);
             } catch (Throwable throwable) {
                 // Nothing may escape a holder class initializer.
-                logFailureSafely(TotemAnimationCommand::logPacketEventsFailure, throwable);
+                try {
+                    logPacketEventsFailure(throwable);
+                } catch (Throwable ignored) {
+                    // Logging must never break holder class initialization.
+                }
                 return null;
             }
         }
     }
 
-    /**
-     * Logs a holder resolution failure without letting the logging itself throw:
-     * {@code Logs.logWarning}/{@code Logs.debug} touch plugin state (settings,
-     * Bukkit broadcast) that may be unavailable when the holder initializes, and
-     * an exception here would fail the holder's class initializer.
-     */
-    private static void logFailureSafely(Consumer<Throwable> logger, Throwable throwable) {
-        try {
-            logger.accept(throwable);
-        } catch (Throwable ignored) {
-            // Logging must never break holder class initialization.
-        }
-    }
-
     private static void logDeathProtectionFailure(Throwable throwable) {
-        if (LOGGED_DEATH_PROTECTION_FAILURE.compareAndSet(false, true)) {
+        if (loggedDeathProtectionFailure.compareAndSet(false, true)) {
             Logs.logWarning("Failed to apply Paper death-protection component for totem animation; the animation item may not trigger the protected-from-death effect on this server build. See debug log for details.");
         }
         Logs.debug(throwable);
     }
 
     private static void logPacketEventsFailure(Throwable throwable) {
-        if (LOGGED_PACKET_EVENTS_FAILURE.compareAndSet(false, true)) {
+        if (loggedPacketEventsFailure.compareAndSet(false, true)) {
             Logs.logWarning("Failed to send totem animation via PacketEvents; falling back to Bukkit's deprecated totem effect. See debug log for details.");
         }
         Logs.debug(throwable);
