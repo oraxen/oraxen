@@ -21,6 +21,7 @@ public class CampfireLoader extends RecipeLoader {
 		}
 		CampfireRecipe recipe = new CampfireRecipe(getNamespacedKey(), getValidResult(),
 				recipeChoice, getSection().getInt("experience"), getSection().getInt("cookingTime"));
+		recipe.setGroup(getGroup());
 		loadRecipe(recipe);
 	}
 }

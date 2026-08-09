@@ -17,6 +17,7 @@ public class ShapelessLoader extends RecipeLoader {
     @Override
     public void registerRecipe() {
         ShapelessRecipe recipe = new ShapelessRecipe(getNamespacedKey(), getValidResult());
+        recipe.setGroup(getGroup());
         ConfigurationSection ingredientsSection = getSection().getConfigurationSection("ingredients");
 
         for (String ingredientLetter : Objects.requireNonNull(ingredientsSection).getKeys(false)) {

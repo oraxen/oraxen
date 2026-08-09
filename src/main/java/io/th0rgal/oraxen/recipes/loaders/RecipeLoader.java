@@ -171,6 +171,10 @@ public abstract class RecipeLoader {
         return section.getName();
     }
 
+    protected String getGroup() {
+        return getSection().getString("group", "");
+    }
+
     public abstract void registerRecipe();
 
     protected void loadRecipe(Recipe recipe) {
