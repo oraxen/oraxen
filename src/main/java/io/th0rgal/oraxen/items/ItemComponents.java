@@ -108,7 +108,7 @@ public final class ItemComponents {
                 .ifPresent(item::setPaintingVariant);
 
         final ConfigurationSection jukeboxSection = OraxenYaml.getConfigurationSection(components, "jukebox_playable");
-        if (jukeboxSection != null && VersionUtil.isPaperServer()) {
+        if (jukeboxSection != null) {
             try {
                 final JukeboxPlayableComponent jukeboxPlayable = new ItemStack(Material.MUSIC_DISC_CREATOR)
                         .getItemMeta()
@@ -135,8 +135,6 @@ public final class ItemComponents {
                 Logs.logWarning("Failed to create JukeboxPlayableComponent for item: " + section.getName());
                 Logs.debug(e);
             }
-        } else if (jukeboxSection != null) {
-            Logs.logInfo("JukeboxPlayableComponent is only supported on Paper servers. Skipping this component.");
         }
 
         if (!VersionUtil.atOrAbove("1.21.2"))
@@ -330,8 +328,7 @@ public final class ItemComponents {
         Optional.ofNullable(equippableSection.getString("camera_overlay")).map(NamespacedKey::fromString)
                 .ifPresent(equippableComponent::setCameraOverlay);
 
-        // Only use Registry.SOUNDS::get if we're running on Paper
-        if (VersionUtil.isPaperServer() && equippableSection.contains("equip_sound")) {
+        if (equippableSection.contains("equip_sound")) {
             try {
                 Optional.ofNullable(equippableSection.getString("equip_sound"))
                         .map(Key::key)

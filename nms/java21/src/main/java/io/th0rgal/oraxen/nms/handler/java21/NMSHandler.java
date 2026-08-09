@@ -94,8 +94,6 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
         // mineableWith tag handling
         NamespacedKey tagKey = NamespacedKey.fromString("mineable_with_key", OraxenPlugin.get());
-        if (!VersionUtil.isPaperServer())
-            return;
         if (ChannelInitializeListenerHolder.hasListener(tagKey))
             return;
         ChannelInitializeListenerHolder.addListener(tagKey, (channel -> channel.pipeline().addBefore("packet_handler",
@@ -124,17 +122,17 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
     @Override
     public boolean tripwireUpdatesDisabled() {
-        return VersionUtil.isPaperServer() && GlobalConfiguration.get().blockUpdates.disableTripwireUpdates;
+        return GlobalConfiguration.get().blockUpdates.disableTripwireUpdates;
     }
 
     @Override
     public boolean noteblockUpdatesDisabled() {
-        return VersionUtil.isPaperServer() && GlobalConfiguration.get().blockUpdates.disableNoteblockUpdates;
+        return GlobalConfiguration.get().blockUpdates.disableNoteblockUpdates;
     }
 
     @Override
     public boolean chorusPlantUpdatesDisabled() {
-        return VersionUtil.isPaperServer() && GlobalConfiguration.get().blockUpdates.disableChorusPlantUpdates;
+        return GlobalConfiguration.get().blockUpdates.disableChorusPlantUpdates;
     }
 
     @Override

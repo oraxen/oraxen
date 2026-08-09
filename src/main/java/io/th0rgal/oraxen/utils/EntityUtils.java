@@ -18,9 +18,7 @@ public class EntityUtils {
     private static final boolean MODERN_SPAWN_CONSUMER = VersionUtil.atOrAbove("1.20.2");
 
     public static boolean isUnderWater(Entity entity) {
-        if (VersionUtil.isPaperServer()) {
-            return entity.isUnderWater();
-        } else return entity.isInWater();
+        return entity.isUnderWater();
     }
 
     public static boolean isNone(ItemDisplay itemDisplay) {

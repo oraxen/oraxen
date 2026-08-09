@@ -30,7 +30,7 @@ import java.util.stream.Stream;
 public class TotemAnimationCommand {
 
     private static final boolean SUPPORTS_DEATH_PROTECTION_COMPONENT =
-            VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.21.2");
+            VersionUtil.atOrAbove("1.21.2");
     private static final AtomicBoolean LOGGED_DEATH_PROTECTION_FAILURE = new AtomicBoolean();
     private static final AtomicBoolean LOGGED_PACKET_EVENTS_FAILURE = new AtomicBoolean();
 
@@ -96,7 +96,7 @@ public class TotemAnimationCommand {
     @SuppressWarnings("deprecation")
     private void sendTotemStatus(Player target) {
         EntityEffect protectedFromDeath = getProtectedFromDeathEffect();
-        if (VersionUtil.isPaperServer() && protectedFromDeath != null) {
+        if (protectedFromDeath != null) {
             target.sendEntityEffect(protectedFromDeath, target);
         } else if (PacketAdapter.isPacketEventsEnabled() && sendPacketEventsTotemStatus(target)) {
             return;

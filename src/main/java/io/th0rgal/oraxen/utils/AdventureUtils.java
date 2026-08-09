@@ -101,17 +101,7 @@ public class AdventureUtils {
     public static void playSound(Location location, Sound sound) {
         if (location == null || sound == null || location.getWorld() == null) return;
 
-        if (VersionUtil.isPaperServer()) {
-            location.getWorld().playSound(sound, location.getX(), location.getY(), location.getZ());
-            return;
-        }
-
-        // Match vanilla's audible range for positional sounds: max(1.0, volume) * 16 blocks
-        double range = Math.max(1.0, sound.volume()) * 16.0;
-        double rangeSquared = range * range;
-        for (Player player : location.getWorld().getPlayers())
-            if (player.getLocation().distanceSquared(location) <= rangeSquared)
-                playSound(player, location, sound);
+        location.getWorld().playSound(sound, location.getX(), location.getY(), location.getZ());
     }
 
     public static void playSound(Location location, @Nullable String sound, Sound.Source source, float volume, float pitch) {

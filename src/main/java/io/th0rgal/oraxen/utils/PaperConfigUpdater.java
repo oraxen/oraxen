@@ -33,7 +33,7 @@ public final class PaperConfigUpdater {
      * Ensures all block update settings are disabled in paper-global.yml.
      * Updates: disable-noteblock-updates, disable-tripwire-updates, disable-chorus-plant-updates
      * <p>
-     * Only runs on Paper 1.20.1+ servers.
+     * Intended for Paper 1.20.1+ servers and compatible forks.
      *
      * @return list of setting names that were updated (empty if none changed)
      */
@@ -47,10 +47,6 @@ public final class PaperConfigUpdater {
         }
         String prop = System.getProperty("oraxen.autoUpdatePaperConfig");
         if ("false".equalsIgnoreCase(prop)) {
-            return updatedSettings;
-        }
-
-        if (!VersionUtil.isPaperServer()) {
             return updatedSettings;
         }
 
@@ -127,10 +123,6 @@ public final class PaperConfigUpdater {
      * @return true when the setting is explicitly set to true under block-updates
      */
     public static boolean isBlockUpdateSettingEnabled(String settingName) {
-        if (!VersionUtil.isPaperServer()) {
-            return false;
-        }
-
         Map<String, Boolean> settings = cachedBlockUpdateSettings;
         if (settings == null) {
             Path configPath = Path.of(CONFIG_FILE);

@@ -139,7 +139,7 @@ public final class CustomJukeboxSongRegistry {
     }
 
     private static boolean supportsCustomJukeboxSongs() {
-        return VersionUtil.atOrAbove("1.21.6") && VersionUtil.isPaperServer();
+        return VersionUtil.atOrAbove("1.21.6");
     }
 
     static boolean usesDatapackFallback(boolean supportsHotInjection) {

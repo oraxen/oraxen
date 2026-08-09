@@ -29,7 +29,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -44,22 +43,19 @@ import static io.th0rgal.oraxen.utils.AdventureUtils.*;
 public class FontEvents implements Listener {
 
     private final FontManager manager;
-    @Nullable PaperChatHandler paperChatHandler;
+    private final PaperChatHandler paperChatHandler;
 
     public FontEvents(FontManager manager) {
         this.manager = manager;
-        if (VersionUtil.isPaperServer())
-            paperChatHandler = new PaperChatHandler();
+        this.paperChatHandler = new PaperChatHandler();
     }
 
     public void registerChatHandlers() {
-        if (paperChatHandler != null)
-            Bukkit.getPluginManager().registerEvents(paperChatHandler, OraxenPlugin.get());
+        Bukkit.getPluginManager().registerEvents(paperChatHandler, OraxenPlugin.get());
     }
 
     public void unregisterChatHandlers() {
-        if (paperChatHandler != null)
-            HandlerList.unregisterAll(paperChatHandler);
+        HandlerList.unregisterAll(paperChatHandler);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)

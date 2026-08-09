@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.mechanics.provided.combat.knockbackstrike;
 
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
-import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.oraxen.utils.wrappers.ParticleWrapper;
 import org.bukkit.NamespacedKey;
@@ -261,9 +260,7 @@ public class KnockbackStrikeMechanic extends Mechanic {
         }
 
         try {
-            if (VersionUtil.isPaperServer()) {
-                return Registry.SOUNDS.get(NamespacedKey.minecraft(soundName.toLowerCase(Locale.ROOT)));
-            }
+            return Registry.SOUNDS.get(NamespacedKey.minecraft(soundName.toLowerCase(Locale.ROOT)));
         } catch (Throwable ignored) {
             // Registry API not available on this runtime
         }

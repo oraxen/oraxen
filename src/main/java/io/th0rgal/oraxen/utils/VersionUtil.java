@@ -32,7 +32,7 @@ public class VersionUtil {
         // The NMS handler requires APIs introduced in 1.21.2. Loading an incompatible
         // handler on an unknown newer version fails safe via the LinkageError fallback
         // in NMSHandlers#setup.
-        return isPaperServer() && supportsSingleNmsHandler(MinecraftVersion.getCurrentVersion());
+        return supportsSingleNmsHandler(MinecraftVersion.getCurrentVersion());
     }
 
     static boolean supportsSingleNmsHandler(MinecraftVersion version) {
@@ -72,8 +72,8 @@ public class VersionUtil {
     /**
      * Checks whether the current server implementation is supported by Oraxen.
      * Paper forks (Purpur, DivineMC, etc.) expose Paper classes and are supported.
-     * Unknown hybrid runtimes such as Arclight are not rejected by name; they may continue
-     * with limited NMS support if they do not expose Paper's runtime API.
+     * Unknown hybrid runtimes such as Arclight are not rejected by name; they may fail later
+     * if they do not expose the Paper runtime API used by the plugin.
      */
     public static boolean isSupportedServer() {
         if (isPaper) return true;

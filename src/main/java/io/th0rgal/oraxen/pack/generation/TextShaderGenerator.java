@@ -146,7 +146,7 @@ class TextShaderGenerator {
     }
 
     void hideScoreboardNumbers() {
-        if (OraxenPlugin.get().getPacketAdapter().isEnabled() && VersionUtil.isPaperServer()
+        if (OraxenPlugin.get().getPacketAdapter().isEnabled()
                 && VersionUtil.atOrAbove("1.20.3")) {
             OraxenPlugin.get().getPacketAdapter().registerScoreboardListener();
         } else { // No packet adapter available; rely on shaders

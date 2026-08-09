@@ -6,7 +6,6 @@ import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
 import org.bukkit.inventory.meta.components.FoodComponent;
@@ -76,17 +75,7 @@ public class ItemUtils {
 
         if (damage == 0)
             return;
-        if (VersionUtil.isPaperServer())
-            player.damageItemStack(itemStack, damage);
-        else {
-            int finalDamage = damage;
-            editItemMeta(itemStack, meta -> {
-                if (meta instanceof Damageable damageable
-                        && new PlayerItemDamageEvent(player, itemStack, finalDamage).callEvent()) {
-                    damageable.setDamage(damageable.getDamage() + 1);
-                }
-            });
-        }
+        player.damageItemStack(itemStack, damage);
     }
 
     public static boolean isTool(@NotNull ItemStack itemStack) {

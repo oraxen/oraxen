@@ -53,11 +53,9 @@ public class MusicDiscListener implements Listener {
         Component discName = null;
         if (itemStack.hasItemMeta()) {
             if (VersionUtil.atOrAbove("1.20.5") && itemStack.getItemMeta().hasItemName()) {
-                if (VersionUtil.isPaperServer()) discName = itemStack.getItemMeta().itemName();
-                else discName = AdventureUtils.LEGACY_SERIALIZER.deserialize(itemStack.getItemMeta().getItemName());
+                discName = itemStack.getItemMeta().itemName();
             } else if (itemStack.getItemMeta().hasDisplayName()) {
-                if (VersionUtil.isPaperServer()) discName = itemStack.getItemMeta().displayName();
-                else discName = AdventureUtils.LEGACY_SERIALIZER.deserialize(itemStack.getItemMeta().getDisplayName());
+                discName = itemStack.getItemMeta().displayName();
             }
         }
         if (discName == null) discName = Component.empty();

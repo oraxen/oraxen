@@ -40,8 +40,6 @@ import java.util.Locale;
 public class CustomArmorListener implements Listener {
 
     public CustomArmorListener() {
-        if (!VersionUtil.isPaperServer())
-            return;
         Bukkit.getPluginManager().registerEvents(new Listener() {
             @EventHandler
             public void onPlayerPickup(PlayerAttemptPickupItemEvent event) {
@@ -139,17 +137,12 @@ public class CustomArmorListener implements Listener {
         Key vanillaPatternKey = Key.key("minecraft", armorPrefix.toLowerCase(Locale.ROOT));
 
         @Nullable
-        TrimPattern vanillaPattern = null;
-        if (VersionUtil.isPaperServer()) {
-            try {
-                vanillaPattern = Registry.TRIM_PATTERN.get(NamespacedKey.fromString(vanillaPatternKey.asString()));
-            } catch (NoSuchMethodError e) {
-                Logs.logWarning("Registry.TRIM_PATTERN.get is not available in your server version.");
-                Logs.logWarning("Custom armor with trims requires PaperMC or compatible fork.");
-                return;
-            }
-        } else {
-            Logs.logInfo("Trim patterns are only supported on Paper servers. Skipping trim application.");
+        TrimPattern vanillaPattern;
+        try {
+            vanillaPattern = Registry.TRIM_PATTERN.get(NamespacedKey.fromString(vanillaPatternKey.asString()));
+        } catch (NoSuchMethodError e) {
+            Logs.logWarning("Registry.TRIM_PATTERN.get is not available in your server version.");
+            Logs.logWarning("Custom armor with trims requires PaperMC or compatible fork.");
             return;
         }
 

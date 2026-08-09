@@ -95,17 +95,14 @@ public class AttributeWrapper {
 
         String attributeName = attribute.replace("GENERIC_", "").toLowerCase(Locale.ENGLISH);
 
-        // Only use Registry if we're on Paper
-        if (VersionUtil.isPaperServer()) {
-            try {
-                if (VersionUtil.atOrAbove("1.21.2")) {
-                    return Registry.ATTRIBUTE.get(NamespacedKey.fromString(attributeName));
-                } else {
-                    return Registry.ATTRIBUTE.get(NamespacedKey.fromString("generic." + attributeName));
-                }
-            } catch (NoSuchMethodError e) {
-                // Registry.ATTRIBUTE.get not available on this server
+        try {
+            if (VersionUtil.atOrAbove("1.21.2")) {
+                return Registry.ATTRIBUTE.get(NamespacedKey.fromString(attributeName));
+            } else {
+                return Registry.ATTRIBUTE.get(NamespacedKey.fromString("generic." + attributeName));
             }
+        } catch (NoSuchMethodError e) {
+            // Registry.ATTRIBUTE.get not available on this server
         }
 
         // Fallback to pre-defined constants

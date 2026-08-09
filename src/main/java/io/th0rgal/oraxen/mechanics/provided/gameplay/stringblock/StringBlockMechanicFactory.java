@@ -10,7 +10,6 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.Sapling
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingTask;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.PaperConfigUpdater;
-import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.lang3.Range;
@@ -140,13 +139,12 @@ public class StringBlockMechanicFactory extends MechanicFactory {
         if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new StringBlockSoundListener());
 
         // Physics-related stuff
-        if (VersionUtil.isPaperServer())
-            MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new StringBlockMechanicListener.StringBlockMechanicPaperListener());
+        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new StringBlockMechanicListener.StringBlockMechanicPaperListener());
         boolean tripwireUpdatesDisabled = NMSHandlers.isTripwireUpdatesDisabled();
-        if (!VersionUtil.isPaperServer() || !tripwireUpdatesDisabled)
+        if (!tripwireUpdatesDisabled)
             MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new StringBlockMechanicListener.StringBlockMechanicPhysicsListener());
         // Warn if Paper config is not set (auto-update happens earlier in plugin enable)
-        if (VersionUtil.isPaperServer() && !tripwireUpdatesDisabled
+        if (!tripwireUpdatesDisabled
                 && PaperConfigUpdater.wasBlockUpdateSettingUpdated("disable-tripwire-updates")) {
             Logs.logWarning("Paper block-updates.disable-tripwire-updates is not enabled, restart may be required");
         }

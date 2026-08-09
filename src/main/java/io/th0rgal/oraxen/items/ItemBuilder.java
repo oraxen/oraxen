@@ -207,12 +207,8 @@ public class ItemBuilder {
             patternColor = tropicalFishBucketMeta.getPatternColor();
         }
 
-        if (itemMeta.hasDisplayName()) {
-            if (VersionUtil.isPaperServer())
-                displayName = AdventureUtils.MINI_MESSAGE.serialize(itemMeta.displayName());
-            else
-                displayName = itemMeta.getDisplayName();
-        }
+        if (itemMeta.hasDisplayName())
+            displayName = AdventureUtils.MINI_MESSAGE.serialize(itemMeta.displayName());
 
         unbreakable = itemMeta.isUnbreakable();
         unstackable = itemMeta.getPersistentDataContainer().has(UNSTACKABLE_KEY, DataType.UUID);
@@ -257,24 +253,17 @@ public class ItemBuilder {
             }
         }
 
-        if (itemMeta.hasLore()) {
-            if (VersionUtil.isPaperServer())
-                lore = itemMeta.lore().stream().map(AdventureUtils.MINI_MESSAGE::serialize).toList();
-            else
-                lore = itemMeta.getLore();
-        }
+        if (itemMeta.hasLore())
+            lore = itemMeta.lore().stream().map(AdventureUtils.MINI_MESSAGE::serialize).toList();
 
         persistentDataContainer = itemMeta.getPersistentDataContainer();
 
         enchantments = new HashMap<>();
 
         if (VersionUtil.atOrAbove("1.20.5")) {
-            if (itemMeta.hasItemName()) {
-                if (VersionUtil.isPaperServer())
-                    itemName = AdventureUtils.MINI_MESSAGE.serialize(itemMeta.itemName());
-                else
-                    itemName = itemMeta.getItemName();
-            } else
+            if (itemMeta.hasItemName())
+                itemName = AdventureUtils.MINI_MESSAGE.serialize(itemMeta.itemName());
+            else
                 itemName = null;
 
             durability = (itemMeta instanceof Damageable damageable) && damageable.hasMaxDamage()
@@ -452,17 +441,12 @@ public class ItemBuilder {
         if (key == null)
             return null;
 
-        // Only try to get trim pattern if running on Paper
-        if (VersionUtil.isPaperServer()) {
-            try {
-                return Registry.TRIM_PATTERN.get(key);
-            } catch (NoSuchMethodError e) {
-                // Registry.TRIM_PATTERN.get not available - this is expected on non-Paper
-                // servers
-                return null;
-            }
+        try {
+            return Registry.TRIM_PATTERN.get(key);
+        } catch (NoSuchMethodError e) {
+            // Registry.TRIM_PATTERN.get is not available on this server version.
+            return null;
         }
-        return null;
     }
 
     public ItemBuilder setTrimPattern(final Key trimKey) {
@@ -662,19 +646,7 @@ public class ItemBuilder {
     }
 
     public ItemBuilder setJukeboxPlayable(@Nullable JukeboxPlayableComponent jukeboxPlayable) {
-        if (!VersionUtil.isPaperServer()) {
-            Logs.logWarning("JukeboxPlayable features are only available on Paper servers.");
-            return this;
-        }
-
-        try {
-            this.jukeboxPlayable = jukeboxPlayable;
-        } catch (Exception e) {
-            Logs.logWarning("Error setting JukeboxPlayable; This component is not available in your server version");
-            if (Settings.DEBUG.toBool()) {
-                e.printStackTrace();
-            }
-        }
+        this.jukeboxPlayable = jukeboxPlayable;
         return this;
     }
 
@@ -949,12 +921,8 @@ public class ItemBuilder {
     private void applyProperties_1_20_5(ItemMeta itemMeta) {
         if (itemMeta instanceof Damageable damageable)
             damageable.setMaxDamage(durability);
-        if (hasItemName()) {
-            if (VersionUtil.isPaperServer())
-                itemMeta.itemName(AdventureUtils.MINI_MESSAGE.deserialize(itemName));
-            else
-                itemMeta.setItemName(itemName);
-        }
+        if (hasItemName())
+            itemMeta.itemName(AdventureUtils.MINI_MESSAGE.deserialize(itemName));
         if (hasMaxStackSize())
             itemMeta.setMaxStackSize(maxStackSize);
         if (hasEnchantmentGlintOverride())
@@ -972,7 +940,7 @@ public class ItemBuilder {
     }
 
     private void applyProperties_1_21(ItemMeta itemMeta) {
-        if (hasJukeboxPlayable() && VersionUtil.isPaperServer()) {
+        if (hasJukeboxPlayable()) {
             try {
                 itemMeta.setJukeboxPlayable(jukeboxPlayable);
             } catch (NoSuchMethodError | UnsupportedOperationException e) {
@@ -1013,15 +981,10 @@ public class ItemBuilder {
             pdc.set(ORIGINAL_NAME_KEY, DataType.STRING,
                     displayNameMessage != null ? displayNameMessage.toString() : displayName);
 
-        if (VersionUtil.isPaperServer()) {
-            Component nameComponent = buildDisplayNameComponent();
-            nameComponent = nameComponent.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)
-                    .colorIfAbsent(NamedTextColor.WHITE);
-            itemMeta.displayName(nameComponent);
-        } else {
-            itemMeta.setDisplayName(
-                    displayNameMessage != null ? displayNameMessage.toSerializedString() : displayName);
-        }
+        Component nameComponent = buildDisplayNameComponent();
+        nameComponent = nameComponent.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)
+                .colorIfAbsent(NamedTextColor.WHITE);
+        itemMeta.displayName(nameComponent);
     }
 
     private Component buildDisplayNameComponent() {
@@ -1080,7 +1043,7 @@ public class ItemBuilder {
         boolean hasModern = !attributeEntries.isEmpty();
         boolean hasLegacy = legacyAttributeModifiers != null && !legacyAttributeModifiers.isEmpty();
         if (!hasModern && !hasLegacy) return;
-        if (!VersionUtil.atOrAbove("1.21.2") || !VersionUtil.isPaperServer()) return;
+        if (!VersionUtil.atOrAbove("1.21.2")) return;
 
         try {
             ItemAttributeModifiers.Builder builder = ItemAttributeModifiers.itemAttributes();
@@ -1142,17 +1105,13 @@ public class ItemBuilder {
     }
 
     private void applyLore(ItemMeta itemMeta) {
-        if (VersionUtil.isPaperServer()) {
-            @Nullable
-            List<Component> loreLines = lore != null
-                    ? lore.stream().map(AdventureUtils.MINI_MESSAGE::deserialize).toList()
-                    : new ArrayList<>();
-            loreLines = loreLines.stream()
-                    .map(c -> c.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)).toList();
-            itemMeta.lore(lore != null ? loreLines : null);
-        } else {
-            itemMeta.setLore(lore);
-        }
+        @Nullable
+        List<Component> loreLines = lore != null
+                ? lore.stream().map(AdventureUtils.MINI_MESSAGE::deserialize).toList()
+                : new ArrayList<>();
+        loreLines = loreLines.stream()
+                .map(c -> c.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)).toList();
+        itemMeta.lore(lore != null ? loreLines : null);
     }
 
     private ItemStack applyConsumableComponent(ItemStack itemStack) {
@@ -1178,7 +1137,7 @@ public class ItemBuilder {
 
     private ItemStack applyPaintingVariantComponent(ItemStack itemStack) {
         if (paintingVariant == null) return itemStack;
-        if (!VersionUtil.atOrAbove("1.21.5") || !VersionUtil.isPaperServer()) return itemStack;
+        if (!VersionUtil.atOrAbove("1.21.5")) return itemStack;
 
         Key variantKey;
         try {

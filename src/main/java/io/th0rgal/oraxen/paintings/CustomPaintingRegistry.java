@@ -130,7 +130,7 @@ public final class CustomPaintingRegistry {
     }
 
     private static boolean supportsCustomPaintings() {
-        return VersionUtil.atOrAbove("1.21.3") && VersionUtil.isPaperServer();
+        return VersionUtil.atOrAbove("1.21.3");
     }
 
     private static void clearLegacyDatapack() {

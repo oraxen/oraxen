@@ -119,7 +119,7 @@ public class CustomPaintingListener implements Listener {
     }
 
     private boolean tryPlace(Player player, ItemStack item, EquipmentSlot hand, Block clickedBlock, BlockFace face, ItemBuilder builder) {
-        if (!VersionUtil.atOrAbove("1.21.5") || !VersionUtil.isPaperServer()) return false;
+        if (!VersionUtil.atOrAbove("1.21.5")) return false;
         if (!isWallFace(face)) return false;
 
         Block target = clickedBlock.getRelative(face);

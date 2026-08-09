@@ -85,7 +85,7 @@ public class ItemUpdater implements Listener {
     public ItemUpdater() {
         resetQueuedTasks();
         if (!Settings.UPDATE_ITEMS.toBool()) return;
-        if (VersionUtil.isPaperServer()) Bukkit.getPluginManager().registerEvents(new PaperEntityLoadListener(), OraxenPlugin.get());
+        Bukkit.getPluginManager().registerEvents(new PaperEntityLoadListener(), OraxenPlugin.get());
         replaceStartupContentsTask(SchedulerUtil.runTaskLater(OraxenPlugin.get(), 2L, () -> {
             clearStartupContentsTask();
             updateLoadedContents();
@@ -554,11 +554,9 @@ public class ItemUpdater implements Listener {
 
             // If OraxenItem has no lore, we should assume that 3rd-party plugin has added lore
             if (Settings.OVERRIDE_ITEM_LORE.toBool()) {
-                if (VersionUtil.isPaperServer()) itemMeta.lore(newMeta.lore());
-                else itemMeta.setLore(newMeta.getLore());
+                itemMeta.lore(newMeta.lore());
             } else {
-                if (VersionUtil.isPaperServer()) itemMeta.lore(oldMeta.lore());
-                else itemMeta.setLore(oldMeta.getLore());
+                itemMeta.lore(oldMeta.lore());
             }
 
             // Only change AttributeModifiers if the new item has some
@@ -605,13 +603,8 @@ public class ItemUpdater implements Listener {
                 if (newMeta.hasMaxStackSize()) itemMeta.setMaxStackSize(newMeta.getMaxStackSize());
                 else if (oldMeta.hasMaxStackSize()) itemMeta.setMaxStackSize(oldMeta.getMaxStackSize());
 
-                if (VersionUtil.isPaperServer()) {
-                    if (newMeta.hasItemName()) itemMeta.itemName(newMeta.itemName());
-                    else if (oldMeta.hasItemName()) itemMeta.itemName(oldMeta.itemName());
-                } else {
-                    if (newMeta.hasItemName()) itemMeta.setItemName(newMeta.getItemName());
-                    else if (oldMeta.hasItemName()) itemMeta.setItemName(oldMeta.getItemName());
-                }
+                if (newMeta.hasItemName()) itemMeta.itemName(newMeta.itemName());
+                else if (oldMeta.hasItemName()) itemMeta.itemName(oldMeta.itemName());
             }
 
             if (VersionUtil.atOrAbove("1.21")) {
@@ -648,32 +641,28 @@ public class ItemUpdater implements Listener {
             // On 1.20.5+ we use ItemName which is different from userchanged displaynames
             if (!VersionUtil.atOrAbove("1.20.5")) {
 
-                String oldDisplayName = oldMeta.hasDisplayName() ? AdventureUtils.parseLegacy(VersionUtil.isPaperServer() ? AdventureUtils.MINI_MESSAGE.serialize(oldMeta.displayName()) : AdventureUtils.parseLegacy(oldMeta.getDisplayName())) : null;
+                String oldDisplayName = oldMeta.hasDisplayName()
+                        ? AdventureUtils.parseLegacy(AdventureUtils.MINI_MESSAGE.serialize(oldMeta.displayName()))
+                        : null;
                 String originalName = AdventureUtils.parseLegacy(oldPdc.getOrDefault(ORIGINAL_NAME_KEY, DataType.STRING, ""));
 
                 if (Settings.OVERRIDE_RENAMED_ITEMS.toBool()) {
-                    if (VersionUtil.isPaperServer()) itemMeta.displayName(newMeta.displayName());
-                    else itemMeta.setDisplayName(newMeta.getDisplayName());
+                    itemMeta.displayName(newMeta.displayName());
                 } else if (!originalName.equals(oldDisplayName)) {
-                    if (VersionUtil.isPaperServer()) itemMeta.displayName(oldMeta.displayName());
-                    else itemMeta.setDisplayName(oldMeta.getDisplayName());
+                    itemMeta.displayName(oldMeta.displayName());
                 } else {
-                    if (VersionUtil.isPaperServer()) itemMeta.displayName(newMeta.displayName());
-                    else itemMeta.setDisplayName(newMeta.getDisplayName());
+                    itemMeta.displayName(newMeta.displayName());
                 }
 
-                originalName = newMeta.hasDisplayName() ? VersionUtil.isPaperServer()
+                originalName = newMeta.hasDisplayName()
                         ? AdventureUtils.MINI_MESSAGE.serialize(newMeta.displayName())
-                        : newMeta.getDisplayName()
                         : null;
                 if (originalName != null) itemPdc.set(ORIGINAL_NAME_KEY, DataType.STRING, originalName);
             } else { // Set the displayName/customName if it exists on an item before
                 if (newMeta.hasDisplayName() && !newMeta.getDisplayName().isEmpty()) {
-                    if (VersionUtil.isPaperServer()) itemMeta.displayName(newMeta.displayName());
-                    else itemMeta.setDisplayName(newMeta.getDisplayName());
+                    itemMeta.displayName(newMeta.displayName());
                 } else {
-                    if (VersionUtil.isPaperServer()) itemMeta.displayName(oldMeta.displayName());
-                    else itemMeta.setDisplayName(oldMeta.getDisplayName());
+                    itemMeta.displayName(oldMeta.displayName());
                 }
             }
 

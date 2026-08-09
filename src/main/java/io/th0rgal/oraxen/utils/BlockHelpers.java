@@ -316,11 +316,7 @@ public class BlockHelpers {
     }
 
     public static BlockState getState(Block block) {
-        if(VersionUtil.isPaperServer()) {
-            return block.getState(false);
-        } else {
-            return block.getState();
-        }
+        return block.getState(false);
     }
 
     public static void correctAllBlockStates(Block placedAgainst, Player player, EquipmentSlot hand, BlockFace face, ItemStack item) {

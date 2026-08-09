@@ -635,8 +635,7 @@ public class ChorusBlockMechanicListener implements Listener {
             item.setAmount(item.getAmount() - 1);
         Utils.swingHand(player, hand);
 
-        if (VersionUtil.isPaperServer())
-            target.getWorld().sendGameEvent(player, GameEvent.BLOCK_PLACE, target.getLocation().toVector());
+        target.getWorld().sendGameEvent(player, GameEvent.BLOCK_PLACE, target.getLocation().toVector());
     }
 
     public static void fixClientsideUpdate(Location loc) {

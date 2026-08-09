@@ -16,8 +16,8 @@ public class ParticleWrapper {
 
     static {
         try {
-            // Only use Registry for Paper servers on 1.20.5+ where Registry.PARTICLE_TYPE exists
-            if (VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.20.5")) {
+            // Use Registry on 1.20.5+ where Registry.PARTICLE_TYPE exists
+            if (VersionUtil.atOrAbove("1.20.5")) {
                 try {
                     Particle dust = Registry.PARTICLE_TYPE.get(NamespacedKey.minecraft("dust"));
                     Particle splash = Registry.PARTICLE_TYPE.get(NamespacedKey.minecraft("splash"));
@@ -32,7 +32,7 @@ public class ParticleWrapper {
                     SPLASH_VALUE = getParticleByName("SPLASH", "WATER_SPLASH");
                 }
             } else {
-                // For older versions or non-Paper servers, use direct enum access
+                // For older versions, use direct enum access
                 DUST_VALUE = getParticleByName("DUST", "REDSTONE");
                 SPLASH_VALUE = getParticleByName("SPLASH", "WATER_SPLASH");
             }
