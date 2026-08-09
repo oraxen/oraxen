@@ -1,7 +1,5 @@
 package io.th0rgal.oraxen.commands;
 
-import io.papermc.paper.datacomponent.DataComponentTypes;
-import io.papermc.paper.datacomponent.item.DeathProtection;
 import io.th0rgal.oraxen.commands.arguments.ArgumentSuggestions;
 import io.th0rgal.oraxen.commands.arguments.EntitySelectorArgument;
 import io.th0rgal.oraxen.commands.arguments.TextArgument;
@@ -135,7 +133,7 @@ public class TotemAnimationCommand {
         if (!supportsDeathProtectionComponent() || itemStack.getType() == Material.AIR) return itemStack;
 
         try {
-            itemStack.setData(DataComponentTypes.DEATH_PROTECTION, DeathProtection.deathProtection());
+            DeathProtectionComponentSupport.apply(itemStack);
         } catch (LinkageError e) {
             logDeathProtectionFailure(e);
         }
@@ -148,10 +146,33 @@ public class TotemAnimationCommand {
         if (!supportsDeathProtectionComponent()) return false;
 
         try {
-            return itemStack.hasData(DataComponentTypes.DEATH_PROTECTION);
+            return DeathProtectionComponentSupport.hasDeathProtection(itemStack);
         } catch (LinkageError e) {
             Logs.debug(e);
             return false;
+        }
+    }
+
+    /**
+     * Isolates the direct references to Paper's data-component API. This class must only be
+     * loaded behind the {@link #SUPPORTS_DEATH_PROTECTION_COMPONENT} version gate: linking it
+     * on servers older than 1.21.3 throws {@link NoClassDefFoundError} because the
+     * {@code io.papermc.paper.datacomponent} package does not exist there. Callers therefore
+     * also catch {@link LinkageError}, which covers the class-load failure itself on server
+     * builds where the gate passes but the API is still unavailable.
+     */
+    private static final class DeathProtectionComponentSupport {
+
+        private DeathProtectionComponentSupport() {
+        }
+
+        static void apply(ItemStack itemStack) {
+            itemStack.setData(io.papermc.paper.datacomponent.DataComponentTypes.DEATH_PROTECTION,
+                    io.papermc.paper.datacomponent.item.DeathProtection.deathProtection());
+        }
+
+        static boolean hasDeathProtection(ItemStack itemStack) {
+            return itemStack.hasData(io.papermc.paper.datacomponent.DataComponentTypes.DEATH_PROTECTION);
         }
     }
 
