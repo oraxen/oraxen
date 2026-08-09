@@ -23,13 +23,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 public class FontManager {
 
     public final boolean autoGenerate;
     public final String permsChatcolor;
-    public static Map<String, GlyphBitMap> glyphBitMaps = new HashMap<>();
+    public static volatile Map<String, GlyphBitMap> glyphBitMaps = Map.of();
     private final Map<String, Glyph> glyphMap;
     private final Map<String, Glyph> glyphByPlaceholder;
     private final Map<String, String> reverse;
@@ -47,16 +48,18 @@ public class FontManager {
         final ConfigurationSection bitmapSection = fontConfiguration.getConfigurationSection("bitmaps");
         autoGenerate = fontConfiguration.getBoolean("settings.automatically_generate");
         permsChatcolor = fontConfiguration.getString("settings.perms_chatcolor");
+        final Map<String, GlyphBitMap> loadedGlyphBitMaps = new HashMap<>();
         if (bitmapSection != null) {
-            glyphBitMaps = bitmapSection.getKeys(false).stream().collect(HashMap::new, (map, key) -> {
+            bitmapSection.getKeys(false).forEach(key -> {
                 final ConfigurationSection section = bitmapSection.getConfigurationSection(key);
                 if (section != null) {
-                    map.put(key, new GlyphBitMap(
+                    loadedGlyphBitMaps.put(key, new GlyphBitMap(
                             section.getString("texture"), section.getInt("rows"), section.getInt("columns"),
                             section.getInt("ascent", 8), section.getInt("height", 8)));
                 }
-            }, HashMap::putAll);
+            });
         }
+        glyphBitMaps = Map.copyOf(loadedGlyphBitMaps);
         glyphMap = new LinkedHashMap<>();
         glyphByPlaceholder = new LinkedHashMap<>();
         reverse = new LinkedHashMap<>();
@@ -334,7 +337,7 @@ public class FontManager {
         return shiftProvider.getShiftString(length);
     }
 
-    private final Map<UUID, List<String>> currentGlyphCompletions = new HashMap<>();
+    private final Map<UUID, List<String>> currentGlyphCompletions = new ConcurrentHashMap<>();
 
     public void sendGlyphTabCompletion(Player player) {
         List<String> completions = getGlyphTabCompletions(getGlyphByPlaceholderMap().values(),

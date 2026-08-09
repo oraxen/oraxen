@@ -55,13 +55,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class MechanicsManager {
 
-    private static final Map<String, MechanicFactory> FACTORIES_BY_MECHANIC_ID = new HashMap<>();
-    private static final Map<String, MechanicFactory> FACTORIES_BY_LOWERCASE_MECHANIC_ID = new HashMap<>();
-    private static final Map<String, List<SchedulerUtil.ScheduledTask>> MECHANIC_TASKS = new HashMap<>();
-    private static final Map<String, List<Listener>> MECHANICS_LISTENERS = new HashMap<>();
+    private static final Map<String, MechanicFactory> FACTORIES_BY_MECHANIC_ID = new ConcurrentHashMap<>();
+    private static final Map<String, MechanicFactory> FACTORIES_BY_LOWERCASE_MECHANIC_ID = new ConcurrentHashMap<>();
+    private static final Map<String, List<SchedulerUtil.ScheduledTask>> MECHANIC_TASKS = new ConcurrentHashMap<>();
+    private static final Map<String, List<Listener>> MECHANICS_LISTENERS = new ConcurrentHashMap<>();
     private static final Set<String> NATIVE_MECHANIC_IDS = Set.of(
             // misc
             "armor_effects", "consumable_potion_effects", "soulbound", "itemtype", "consumable", "custom",
