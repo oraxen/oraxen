@@ -191,6 +191,15 @@ public class KnockbackStrikeMechanic extends Mechanic {
             if (particleName.equalsIgnoreCase("SPLASH") || particleName.equalsIgnoreCase("WATER_SPLASH")) {
                 return ParticleWrapper.SPLASH;
             }
+            if (particleName.equalsIgnoreCase("BLOCK") || particleName.equalsIgnoreCase("BLOCK_CRACK")) {
+                return ParticleWrapper.BLOCK;
+            }
+            if (particleName.equalsIgnoreCase("ITEM") || particleName.equalsIgnoreCase("ITEM_CRACK")) {
+                return ParticleWrapper.ITEM;
+            }
+            if (particleName.equalsIgnoreCase("DUST_COLOR_TRANSITION")) {
+                return ParticleWrapper.DUST_COLOR_TRANSITION;
+            }
             return Particle.valueOf(particleName.toUpperCase());
         } catch (IllegalArgumentException e) {
             Logs.logWarning("Invalid particle type: " + particleName + ", using CRIT as fallback");

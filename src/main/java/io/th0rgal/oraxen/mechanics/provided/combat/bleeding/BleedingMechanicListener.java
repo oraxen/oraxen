@@ -4,7 +4,7 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.protection.AntiGriefLib;
-import org.bukkit.Particle;
+import io.th0rgal.oraxen.utils.wrappers.ParticleWrapper;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -68,16 +68,17 @@ public class BleedingMechanicListener implements Listener {
             }
 
             victim.damage(mechanic.getDamagePerTick());
+            // Decrement before spawning particles so a failing particle can never stall the countdown
+            ticksRemaining[0] -= mechanic.getTickInterval();
+
             victim.getWorld().spawnParticle(
-                    Particle.BLOCK,
+                    ParticleWrapper.BLOCK,
                     victim.getLocation().add(0, 1, 0),
                     10,
                     0.3, 0.5, 0.3,
                     0.1,
                     org.bukkit.Material.REDSTONE_BLOCK.createBlockData()
             );
-
-            ticksRemaining[0] -= mechanic.getTickInterval();
         }, () -> bleedingTasks.remove(victimId));
 
         // Only store task if it was successfully scheduled (can be null on Folia if entity is retired)
