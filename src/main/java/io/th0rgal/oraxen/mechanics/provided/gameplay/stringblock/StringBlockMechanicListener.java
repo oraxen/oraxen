@@ -190,6 +190,7 @@ public class StringBlockMechanicListener implements Listener {
             event.setCancelled(true);
             return;
         }
+        if (event.getPlayer().isSneaking()) return;
 
         // Handle stackable block interaction: right-click with the same item to stack
         if (mechanic.isStackable() && event.getItem() != null) {

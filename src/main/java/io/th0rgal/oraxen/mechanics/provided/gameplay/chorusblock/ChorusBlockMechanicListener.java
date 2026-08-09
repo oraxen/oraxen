@@ -213,6 +213,7 @@ public class ChorusBlockMechanicListener implements Listener {
             event.setCancelled(true);
             return;
         }
+        if (event.getPlayer().isSneaking()) return;
 
         // Handle click actions
         if (mechanic.hasClickActions()) {

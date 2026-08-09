@@ -38,6 +38,7 @@ public class BlockMechanicListener implements Listener {
 
         Player player = event.getPlayer();
         if (!AntiGriefLib.canInteract(player, block.getLocation())) return;
+        if (action == Action.RIGHT_CLICK_BLOCK && player.isSneaking()) return;
 
         runBlockEvents(mechanic, player, action);
     }
