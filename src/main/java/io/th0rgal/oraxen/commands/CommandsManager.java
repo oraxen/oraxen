@@ -12,6 +12,7 @@ import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.ItemUtils;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import org.bukkit.Color;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -27,7 +28,7 @@ public class CommandsManager {
     private static final int MAX_GIVE_SLOTS = 36;
 
     public void loadCommands() {
-        new OraxenCommand("oraxen")
+        OraxenCommand command = new OraxenCommand("oraxen")
                 .withAliases("o", "oxn")
                 .withPermission("oraxen.command")
                 .withSubcommands(getDyeCommand(), getInvCommand(), getSimpleGiveCommand(), getGiveCommand(),
@@ -48,12 +49,16 @@ public class CommandsManager {
                         (new AdminCommand()).getAdminCommand(),
                         (new SchemaCommand()).getSchemaCommand(),
                         (new RemoveBrandingCommand()).getRemoveBrandingCommand(),
-                        (new RemoveDefaultsCommand()).getRemoveDefaultsCommand(),
-                        (new TotemAnimationCommand()).getTotemAnimationCommand())
+                        (new RemoveDefaultsCommand()).getRemoveDefaultsCommand())
                 .executes((sender, args) -> {
                     openInventoryOrHelp(sender);
-                })
-                .register();
+                });
+
+        if (VersionUtil.atOrAbove("1.21.2")) {
+            command.withSubcommand(new TotemAnimationCommand().getTotemAnimationCommand());
+        }
+
+        command.register();
     }
 
     private Color hex2Rgb(final String colorStr) throws NumberFormatException {
