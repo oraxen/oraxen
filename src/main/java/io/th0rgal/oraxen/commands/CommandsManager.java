@@ -12,6 +12,7 @@ import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.ItemUtils;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import org.bukkit.Color;
 import org.bukkit.command.CommandSender;
@@ -168,14 +169,19 @@ public class CommandsManager {
                     final int max = itemBuilder.hasMaxStackSize() ? itemBuilder.getMaxStackSize()
                             : itemBuilder.getType().getMaxStackSize();
                     amount = capGiveAmountToInventory(amount, max);
-                    final ItemStack[] items = itemBuilder.buildArray(amount);
+                    // Build a fresh array per target: Inventory#addItem mutates the stacks it is
+                    // handed, and these tasks may run in parallel on different region threads.
+                    final int giveAmount = amount;
 
                     for (final Player target : targets) {
-                        final Map<Integer, ItemStack> output = target.getInventory().addItem(items);
-                        if (!output.isEmpty()) {
-                            for (final ItemStack stack : output.values())
-                                target.getWorld().dropItem(target.getLocation(), stack);
-                        }
+                        SchedulerUtil.runForEntity(target, () -> {
+                            final Map<Integer, ItemStack> output = target.getInventory()
+                                    .addItem(itemBuilder.buildArray(giveAmount));
+                            if (!output.isEmpty()) {
+                                for (final ItemStack stack : output.values())
+                                    target.getWorld().dropItem(target.getLocation(), stack);
+                            }
+                        });
                     }
 
                     if (targets.size() == 1)
@@ -209,13 +215,15 @@ public class CommandsManager {
                     }
 
                     for (final Player target : targets) {
-                        final Map<Integer, ItemStack> output = target.getInventory()
-                                .addItem(ItemUpdater.updateItem(itemBuilder.build()));
-                        if (!output.isEmpty()) {
-                            for (final ItemStack stack : output.values()) {
-                                target.getWorld().dropItem(target.getLocation(), stack);
+                        SchedulerUtil.runForEntity(target, () -> {
+                            final Map<Integer, ItemStack> output = target.getInventory()
+                                    .addItem(ItemUpdater.updateItem(itemBuilder.build()));
+                            if (!output.isEmpty()) {
+                                for (final ItemStack stack : output.values()) {
+                                    target.getWorld().dropItem(target.getLocation(), stack);
+                                }
                             }
-                        }
+                        });
                     }
 
                     if (targets.size() == 1)
@@ -247,36 +255,38 @@ public class CommandsManager {
                         Message.ITEM_NOT_FOUND.send(sender, AdventureUtils.tagResolver("item", itemID));
                     } else
                         for (final Player target : targets) {
-                            if (amount.isEmpty()) {
-                                for (final ItemStack itemStack : target.getInventory().getContents())
-                                    if (!ItemUtils.isEmpty(itemStack)
-                                            && itemID.equals(OraxenItems.getIdByItem(itemStack)))
-                                        target.getInventory().remove(itemStack);
-                            } else {
-                                int toRemove = amount.get();
-                                while (toRemove > 0) {
-                                    final ItemStack[] items = target.getInventory().getStorageContents();
-                                    for (int i = 0; i < items.length; i++) {
-                                        final ItemStack itemStack = items[i];
+                            SchedulerUtil.runForEntity(target, () -> {
+                                if (amount.isEmpty()) {
+                                    for (final ItemStack itemStack : target.getInventory().getContents())
                                         if (!ItemUtils.isEmpty(itemStack)
-                                                && itemID.equals(OraxenItems.getIdByItem(itemStack))) {
-                                            if (itemStack.getAmount() <= toRemove) {
-                                                toRemove -= itemStack.getAmount();
-                                                target.getInventory().clear(i);
-                                            } else {
-                                                itemStack.setAmount(itemStack.getAmount() - toRemove);
-                                                toRemove = 0;
+                                                && itemID.equals(OraxenItems.getIdByItem(itemStack)))
+                                            target.getInventory().remove(itemStack);
+                                } else {
+                                    int toRemove = amount.get();
+                                    while (toRemove > 0) {
+                                        final ItemStack[] items = target.getInventory().getStorageContents();
+                                        for (int i = 0; i < items.length; i++) {
+                                            final ItemStack itemStack = items[i];
+                                            if (!ItemUtils.isEmpty(itemStack)
+                                                    && itemID.equals(OraxenItems.getIdByItem(itemStack))) {
+                                                if (itemStack.getAmount() <= toRemove) {
+                                                    toRemove -= itemStack.getAmount();
+                                                    target.getInventory().clear(i);
+                                                } else {
+                                                    itemStack.setAmount(itemStack.getAmount() - toRemove);
+                                                    toRemove = 0;
+                                                }
+
+                                                if (toRemove == 0)
+                                                    break;
                                             }
-
-                                            if (toRemove == 0)
-                                                break;
                                         }
-                                    }
 
-                                    if (toRemove > 0)
-                                        break;
+                                        if (toRemove > 0)
+                                            break;
+                                    }
                                 }
-                            }
+                            });
                         }
                 });
     }

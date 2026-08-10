@@ -130,14 +130,13 @@ public class NoteBlockMechanicListener implements Listener {
 
         @EventHandler(priority = EventPriority.HIGHEST)
         public void onNoteblockPowered(final GenericGameEvent event) {
-            Location eventLoc = event.getLocation();
-            if (eventLoc == null || !eventLoc.isWorldLoaded() || !eventLoc.isChunkLoaded()) return;
-            
-            Block block = eventLoc.getBlock();
-            if (block == null) return;
-
             if (event.getEvent() != GameEvent.NOTE_BLOCK_PLAY) return;
-            if (block.getType() != Material.NOTE_BLOCK) return;
+            Location eventLoc = event.getLocation();
+            // The event is posted by the region owning this location, so it is already owned by this thread
+            if (eventLoc == null || !eventLoc.isWorldLoaded() || !eventLoc.isChunkLoaded()) return;
+
+            Block block = eventLoc.getBlock();
+            if (block == null || block.getType() != Material.NOTE_BLOCK) return;
             NoteBlock data = (NoteBlock) block.getBlockData().clone();
             SchedulerUtil.runAtLocationLater(block.getLocation(), 1L, () -> {
                 // The block may have been broken between the note playing and this task running,

@@ -64,11 +64,13 @@ public class StringBlockSoundListener implements Listener {
         if (!StringBlockMechanicFactory.isEnabled() || !StringBlockMechanicFactory.areCustomSoundsEnabled()) return;
         Entity entity = event.getEntity();
         if (!(entity instanceof LivingEntity)) return;
+        GameEvent gameEvent = event.getEvent();
+        if (gameEvent == null) return;
+
+        // The event is posted by the region ticking the entity, so it is already owned by this thread
         Location entityLoc = entity.getLocation();
         if (entityLoc == null || !entityLoc.isWorldLoaded() || !entityLoc.isChunkLoaded()) return;
 
-        GameEvent gameEvent = event.getEvent();
-        if (gameEvent == null) return;
         Block block = entityLoc.getBlock();
         EntityDamageEvent cause = entity.getLastDamageCause();
 
