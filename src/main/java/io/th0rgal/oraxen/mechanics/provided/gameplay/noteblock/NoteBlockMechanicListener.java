@@ -305,8 +305,11 @@ public class NoteBlockMechanicListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBreakingCustomBlock(final BlockBreakEvent event) {
-        if (OraxenBlocks.isOraxenNoteBlock(event.getBlock())) event.setDropItems(false);
-        OraxenBlocks.remove(event.getBlock().getLocation(), event.getPlayer());
+        if (!OraxenBlocks.isOraxenNoteBlock(event.getBlock())) return;
+
+        event.setDropItems(false);
+        if (!OraxenBlocks.remove(event.getBlock().getLocation(), event.getPlayer()))
+            event.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -356,7 +359,9 @@ public class NoteBlockMechanicListener implements Listener {
         }
     }
 
-    @EventHandler
+    // Runs at MONITOR with ignoreCancelled so falling blocks above are only handled
+    // once the break has succeeded (e.g. not cancelled by onBreakingCustomBlock at HIGHEST)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBreakBeneathFallingOraxenBlock(BlockBreakEvent event) {
         handleFallingOraxenBlockAbove(event.getBlock());
     }

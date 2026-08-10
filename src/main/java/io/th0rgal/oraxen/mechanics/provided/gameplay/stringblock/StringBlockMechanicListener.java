@@ -381,10 +381,6 @@ public class StringBlockMechanicListener implements Listener {
 
         StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
         if (mechanic != null) {
-            // Drop storage contents before removing block
-            if (mechanic.isStorage()) {
-                mechanic.getStorage().dropStorageContent(block);
-            }
             event.setCancelled(true);
             OraxenBlocks.remove(block.getLocation(), player);
             event.setDropItems(false);
@@ -394,10 +390,6 @@ public class StringBlockMechanicListener implements Listener {
         // Check for tall block mechanics
         StringBlockMechanic mechanicBelow = OraxenBlocks.getStringMechanic(blockBelow);
         if (block.getType() == Material.TRIPWIRE && mechanicBelow != null && mechanicBelow.isTall()) {
-            // Drop storage contents before removing block
-            if (mechanicBelow.isStorage()) {
-                mechanicBelow.getStorage().dropStorageContent(blockBelow);
-            }
             event.setCancelled(true);
             OraxenBlocks.remove(blockBelow.getLocation(), player);
             event.setDropItems(false);
@@ -408,23 +400,17 @@ public class StringBlockMechanicListener implements Listener {
         if (blockAbove.getType() == Material.TRIPWIRE && OraxenBlocks.isOraxenStringBlock(blockAbove)) {
             StringBlockMechanic aboveMechanic = OraxenBlocks.getStringMechanic(blockAbove);
             if (aboveMechanic != null) {
-                if (aboveMechanic.isStorage()) {
-                    aboveMechanic.getStorage().dropStorageContent(blockAbove);
-                }
                 // Handle falling blocks - spawn falling block instead of just removing
                 if (aboveMechanic.isFalling()) {
                     BlockData aboveBlockData = blockAbove.getBlockData();
                     Location fallingLocation = BlockHelpers.toCenterBlockLocation(blockAbove.getLocation());
 
-                    // For tall blocks, also clear the upper part
-                    if (aboveMechanic.isTall()) {
-                        Block upperBlock = blockAbove.getRelative(BlockFace.UP);
-                        if (upperBlock.getType() == Material.TRIPWIRE) {
-                            upperBlock.setType(Material.AIR, false);
-                        }
+                    // OraxenBlocks.remove clears the upper part of tall blocks once the
+                    // break event succeeds, so a failed removal keeps the block intact
+                    if (!OraxenBlocks.remove(blockAbove.getLocation(), null)) {
+                        event.setCancelled(true);
+                        return;
                     }
-
-                    OraxenBlocks.remove(blockAbove.getLocation(), null);
 
                     if (fallingLocation.getNearbyEntitiesByType(FallingBlock.class, 0.25).isEmpty()) {
                         FallingBlock fallingBlock = blockAbove.getWorld().spawnFallingBlock(fallingLocation, aboveBlockData);
@@ -436,7 +422,8 @@ public class StringBlockMechanicListener implements Listener {
                     return;
                 }
             }
-            OraxenBlocks.remove(blockAbove.getLocation(), player);
+            if (!OraxenBlocks.remove(blockAbove.getLocation(), player))
+                event.setCancelled(true);
         }
     }
 
