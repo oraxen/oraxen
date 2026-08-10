@@ -1242,7 +1242,7 @@ public class ItemBuilder {
         if (potionType != null && !potionType.equals(PotionUtils.getPotionType(potionMeta)))
             PotionUtils.setPotionType(potionMeta, potionType);
 
-        if (!potionEffects.equals(potionMeta.getCustomEffects()))
+        if (potionEffects != null && !potionEffects.equals(potionMeta.getCustomEffects()))
             for (final PotionEffect potionEffect : potionEffects)
                 potionMeta.addCustomEffect(potionEffect, true);
 

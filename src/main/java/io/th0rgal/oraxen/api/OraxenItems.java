@@ -37,8 +37,8 @@ import java.util.stream.Stream;
 public class OraxenItems {
 
     public static final NamespacedKey ITEM_ID = new NamespacedKey(OraxenPlugin.get(), "id");
-    private static Map<File, Map<String, ItemBuilder>> map;
-    private static Set<String> items;
+    private static Map<File, Map<String, ItemBuilder>> map = new LinkedHashMap<>();
+    private static Set<String> items = new HashSet<>();
 
     public static void loadItems() {
         try {
@@ -221,7 +221,7 @@ public class OraxenItems {
     }
 
     public static Map<File, Map<String, ItemBuilder>> getMap() {
-        return map != null ? map : new HashMap<>();
+        return map;
     }
 
     public static Map<String, ItemBuilder> getEntriesAsMap() {
