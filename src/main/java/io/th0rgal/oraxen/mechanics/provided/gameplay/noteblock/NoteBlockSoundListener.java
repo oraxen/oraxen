@@ -76,12 +76,11 @@ public class NoteBlockSoundListener implements Listener {
         Location location = block.getLocation();
         SoundGroup soundGroup = block.getBlockData().getSoundGroup();
 
-        if (block.getType() == Material.NOTE_BLOCK || block.getType() == Material.MUSHROOM_STEM) {
-            if (event.getInstaBreak()) {
-                SchedulerUtil.runAtLocationLater(location, 1L, () ->
-                        block.setType(Material.AIR, false));
-                return;
-            }
+        if ((block.getType() == Material.NOTE_BLOCK || block.getType() == Material.MUSHROOM_STEM)
+                && event.getInstaBreak()) {
+            // Let the normal BlockBreakEvent pipeline handle the removal so protection and
+            // custom-block cleanup are applied before the block is changed.
+            return;
         }
         if (soundGroup.getHitSound() != Sound.BLOCK_WOOD_HIT) return;
         if (breakerPlaySound.containsKey(location)) return;
