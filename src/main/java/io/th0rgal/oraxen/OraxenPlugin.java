@@ -124,6 +124,7 @@ public class OraxenPlugin extends JavaPlugin {
         });
 
         Bukkit.getPluginManager().registerEvents(new CustomArmorListener(), this);
+        Bukkit.getPluginManager().registerEvents(new BlockDataListener(this), this);
         // BreakerSystem cancels BlockDamageEvent for the blocks it manages (furniture barriers,
         // bedrock-break, and custom blocks on pre-1.20.5 servers); CustomBlockMiningListener
         // ignores cancelled events and handles custom blocks via BLOCK_BREAK_SPEED on 1.20.5+.

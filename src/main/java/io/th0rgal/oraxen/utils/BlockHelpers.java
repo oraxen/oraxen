@@ -33,11 +33,16 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class BlockHelpers {
+
+    private static final Map<BlockPosition, Object> DIRTY_BLOCKS = new ConcurrentHashMap<>();
 
     /**
      * Returns the block the entity is standing on.<br>
@@ -136,6 +141,27 @@ public class BlockHelpers {
      * */
     public static void removePDC(Block block, JavaPlugin plugin) {
         block.getChunk().getPersistentDataContainer().remove(blockKey(plugin, block));
+        markPDCDirty(block, plugin);
+    }
+
+    static boolean hasPDC(Block block, Plugin plugin) {
+        return block.getChunk().getPersistentDataContainer().has(blockKey(plugin, block), PersistentDataType.TAG_CONTAINER);
+    }
+
+    static boolean isPDCDirty(Block block) {
+        return DIRTY_BLOCKS.containsKey(BlockPosition.of(block));
+    }
+
+    private static void markPDCDirty(Block block, Plugin plugin) {
+        markPDCDirty(BlockPosition.of(block), plugin);
+    }
+
+    private static void markPDCDirty(BlockPosition position, Plugin plugin) {
+        if (!plugin.isEnabled()) return;
+
+        Object write = new Object();
+        DIRTY_BLOCKS.put(position, write);
+        SchedulerUtil.runTaskLater(plugin, 1L, () -> DIRTY_BLOCKS.remove(position, write));
     }
 
     /** Returns all blocks in the given chunk that have block data stored by the given plugin
@@ -184,16 +210,21 @@ public class BlockHelpers {
         private final Chunk chunk;
         private final NamespacedKey key;
         private final PersistentDataContainer pdc;
+        private final BlockPosition position;
+        private final Plugin plugin;
 
         private BlockPersistentDataContainer(Block block, Plugin plugin) {
             this.chunk = block.getChunk();
             this.key = blockKey(plugin, block);
+            this.position = BlockPosition.of(block);
+            this.plugin = plugin;
             PersistentDataContainer chunkPDC = chunk.getPersistentDataContainer();
             PersistentDataContainer blockPDC = chunkPDC.get(key, PersistentDataType.TAG_CONTAINER);
             this.pdc = blockPDC != null ? blockPDC : chunkPDC.getAdapterContext().newPersistentDataContainer();
         }
 
         private void save() {
+            markPDCDirty(position, plugin);
             if (pdc.isEmpty()) chunk.getPersistentDataContainer().remove(key);
             else chunk.getPersistentDataContainer().set(key, PersistentDataType.TAG_CONTAINER, pdc);
         }
@@ -251,6 +282,7 @@ public class BlockHelpers {
         @Override
         public void copyTo(@NotNull PersistentDataContainer other, boolean replace) {
             pdc.copyTo(other, replace);
+            if (other instanceof BlockPersistentDataContainer blockPDC) blockPDC.save();
         }
 
         @NotNull
@@ -268,6 +300,13 @@ public class BlockHelpers {
         public void readFromBytes(byte[] bytes, boolean clear) throws IOException {
             pdc.readFromBytes(bytes, clear);
             save();
+        }
+    }
+
+    private record BlockPosition(UUID worldId, int x, int y, int z) {
+
+        private static BlockPosition of(Block block) {
+            return new BlockPosition(block.getWorld().getUID(), block.getX(), block.getY(), block.getZ());
         }
     }
 

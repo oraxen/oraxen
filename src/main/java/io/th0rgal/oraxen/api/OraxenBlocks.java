@@ -40,6 +40,8 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.MultipleFacing;
 import org.bukkit.block.data.type.NoteBlock;
 import org.bukkit.block.data.type.Tripwire;
+import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -52,6 +54,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -59,6 +62,7 @@ import java.util.stream.Collectors;
 import io.th0rgal.oraxen.utils.drops.Loot;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic.FARMBLOCK_KEY;
+import static io.th0rgal.oraxen.mechanics.provided.gameplay.chorusblock.ChorusBlockMechanicListener.SEAT_KEY;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic.SAPLING_KEY;
 
 public class OraxenBlocks {
@@ -391,6 +395,7 @@ public class OraxenBlocks {
         dropStorageIfPresent(mechanic, block);
         if (preRemove != null) preRemove.run();
         block.setType(Material.AIR);
+        BlockHelpers.removePDC(block);
         if (postRemove != null) postRemove.run();
         return true;
     }
@@ -497,9 +502,27 @@ public class OraxenBlocks {
                 (m, p) -> new OraxenChorusBlockBreakEvent(m, block, p),
                 OraxenChorusBlockBreakEvent::getDrop,
                 OraxenChorusBlockBreakEvent::setDrop,
-                null,
+                mechanic.hasSeat() ? () -> removeChorusSeat(block) : null,
                 () -> SchedulerUtil.runAtLocationLater(block.getLocation(), 1L,
                         () -> ChorusBlockMechanicListener.fixClientsideUpdate(block.getLocation())));
+    }
+
+    private static void removeChorusSeat(Block block) {
+        UUID seatId = BlockHelpers.getPDC(block).get(SEAT_KEY, DataType.UUID);
+        Entity entity = seatId != null ? block.getWorld().getEntity(seatId) : null;
+        if (entity instanceof ArmorStand seat) removeSeatEntity(seat);
+        else block.getWorld().getNearbyEntities(BlockHelpers.toCenterBlockLocation(block.getLocation()), 0.5, 2, 0.5)
+                .stream()
+                .filter(ArmorStand.class::isInstance)
+                .map(ArmorStand.class::cast)
+                .filter(seat -> seat.getPersistentDataContainer().has(SEAT_KEY, PersistentDataType.STRING))
+                .findFirst()
+                .ifPresent(OraxenBlocks::removeSeatEntity);
+    }
+
+    private static void removeSeatEntity(ArmorStand seat) {
+        seat.eject();
+        seat.remove();
     }
 
     private static boolean removeShapedBlock(Block block, @Nullable Player player, @Nullable Drop overrideDrop) {
