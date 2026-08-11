@@ -11,6 +11,7 @@ import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.recipes.CustomRecipe;
 import io.th0rgal.oraxen.recipes.listeners.RecipesEventsManager;
 import io.th0rgal.oraxen.utils.OraxenYaml;
+import io.th0rgal.oraxen.utils.PluginUtils;
 import net.Indyuce.mmoitems.MMOItems;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -48,7 +49,8 @@ public abstract class RecipeLoader {
             result = ItemUpdater.updateItem(builder.build());
         } else if (resultSection.isString("crucible_item"))
             result = new WrappedCrucibleItem(resultSection.getString("crucible_item")).build();
-        else if (resultSection.isString("mmoitems_id") && resultSection.isString("mmoitems_type"))
+        else if (resultSection.isString("mmoitems_id") && resultSection.isString("mmoitems_type")
+                && PluginUtils.isEnabled("MMOItems"))
             result = MMOItems.plugin.getItem(resultSection.getString("mmoitems_type"), resultSection.getString("mmoitems_id"));
         else if (resultSection.isString("ecoitem_id"))
             result = new WrappedEcoItem(resultSection.getString("ecoitem_id")).build();
@@ -82,7 +84,8 @@ public abstract class RecipeLoader {
             return new WrappedCrucibleItem(ingredientSection.getString("crucible_item")).build();
         }
 
-        if (ingredientSection.isString("mmoitems_id") && ingredientSection.isString("mmoitems_type")) {
+        if (ingredientSection.isString("mmoitems_id") && ingredientSection.isString("mmoitems_type")
+                && PluginUtils.isEnabled("MMOItems")) {
             return MMOItems.plugin.getItem(ingredientSection.getString("mmoitems_type"), ingredientSection.getString("mmoitems_id"));
         }
 
@@ -124,7 +127,8 @@ public abstract class RecipeLoader {
             return new RecipeChoice.ExactChoice(ingredient);
         }
 
-        if (ingredientSection.isString("mmoitems_id") && ingredientSection.isString("mmoitems_type")) {
+        if (ingredientSection.isString("mmoitems_id") && ingredientSection.isString("mmoitems_type")
+                && PluginUtils.isEnabled("MMOItems")) {
             ItemStack ingredient = MMOItems.plugin.getItem(ingredientSection.getString("mmoitems_type"), ingredientSection.getString("mmoitems_id"));
             if (ingredient == null || ingredient.getType().isAir()) return null;
             return new RecipeChoice.ExactChoice(ingredient);
