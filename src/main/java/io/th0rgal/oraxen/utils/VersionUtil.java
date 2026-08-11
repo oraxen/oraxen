@@ -4,10 +4,12 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class VersionUtil {
     private static final boolean isPaper;
     private static final boolean isFolia;
+    private static final ConcurrentHashMap<String, Boolean> AT_OR_ABOVE_CACHE = new ConcurrentHashMap<>();
 
     static {
         isPaper = hasClass("com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent");
@@ -44,7 +46,8 @@ public class VersionUtil {
     }
 
     public static boolean atOrAbove(String versionString) {
-        return new MinecraftVersion(versionString).atOrAbove();
+        return AT_OR_ABOVE_CACHE.computeIfAbsent(versionString,
+                version -> new MinecraftVersion(version).atOrAbove());
     }
 
     /**

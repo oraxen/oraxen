@@ -640,7 +640,7 @@ public class StringBlockMechanicListener implements Listener {
         Range<Integer> worldHeightRange = Range.between(target.getWorld().getMinHeight(),
                 target.getWorld().getMaxHeight() - 1);
         if (mechanic != null && mechanic.isTall()) {
-            if (!BlockHelpers.REPLACEABLE_BLOCKS.contains(blockAbove.getType())
+            if (!BlockHelpers.isReplaceable(blockAbove.getType())
                     || !worldHeightRange.contains(blockAbove.getY()))
                 blockPlaceEvent.setCancelled(true);
             else

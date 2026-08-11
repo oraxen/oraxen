@@ -265,7 +265,7 @@ public class OraxenBlocks {
         StringBlockMechanic mechanic = getStringMechanic(location.getBlock());
         if (mechanic == null) return;
         if (mechanic.isTall()) {
-            if (!BlockHelpers.REPLACEABLE_BLOCKS.contains(blockAbove.getType())) return;
+            if (!BlockHelpers.isReplaceable(blockAbove.getType())) return;
             else blockAbove.setType(Material.TRIPWIRE);
         }
 
@@ -293,7 +293,7 @@ public class OraxenBlocks {
         Block block = location.getBlock();
         Block upperBlock = block.getRelative(BlockFace.UP);
         if (mechanic.getBlockType() == ShapedBlockType.DOOR
-                && !BlockHelpers.REPLACEABLE_BLOCKS.contains(upperBlock.getType())) return;
+                && !BlockHelpers.isReplaceable(upperBlock.getType())) return;
 
         block.setType(mechanic.getPlacedMaterial(), false);
         if (block.getBlockData() instanceof org.bukkit.block.data.type.Door door) {

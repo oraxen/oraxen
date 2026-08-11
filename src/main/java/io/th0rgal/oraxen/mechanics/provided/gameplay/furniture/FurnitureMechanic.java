@@ -1303,7 +1303,7 @@ public class FurnitureMechanic extends Mechanic {
     public boolean notEnoughSpace(float yaw, Location rootLocation) {
         if (!hasBarriers()) return false;
         return !getLocations(yaw, rootLocation, getBarriers()).stream().map(l -> l.getBlock().getType())
-                .allMatch(BlockHelpers.REPLACEABLE_BLOCKS::contains);
+                .allMatch(BlockHelpers::isReplaceable);
     }
 
     public static float getFurnitureYaw(Entity entity) {

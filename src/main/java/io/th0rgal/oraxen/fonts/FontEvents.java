@@ -175,9 +175,7 @@ public class FontEvents implements Listener {
     private List<GlyphMatch> findGlyphMatches(String text) {
         List<GlyphMatch> matches = new ArrayList<>();
         boolean[] occupied = new boolean[text.length()];
-        for (Glyph glyph : manager.getGlyphs().stream()
-                .sorted(Comparator.comparingInt((Glyph glyph) -> glyph.getCharacters().length()).reversed())
-                .toList()) {
+        for (Glyph glyph : manager.getGlyphsByCharacterLength()) {
             String characters = glyph.getCharacters();
             if (characters.isEmpty()) continue;
             int start = text.indexOf(characters);
@@ -239,9 +237,7 @@ public class FontEvents implements Listener {
     private Component format(Component message, Player player) {
         Key randomKey = Key.key("random");
         String serialized = MINI_MESSAGE.serialize(message);
-        for (Glyph glyph : manager.getGlyphs().stream()
-                .sorted(Comparator.comparingInt((Glyph glyph) -> glyph.getCharacters().length()).reversed())
-                .toList()) {
+        for (Glyph glyph : manager.getGlyphsByCharacterLength()) {
             String characters = glyph.getCharacters();
             if (!serialized.contains(characters)) continue;
             message = message.replaceText(

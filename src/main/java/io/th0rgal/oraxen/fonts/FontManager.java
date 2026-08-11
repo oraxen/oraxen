@@ -32,6 +32,7 @@ public class FontManager {
     public final String permsChatcolor;
     public static volatile Map<String, GlyphBitMap> glyphBitMaps = Map.of();
     private final Map<String, Glyph> glyphMap;
+    private final List<Glyph> glyphsByCharacterLength;
     private final Map<String, Glyph> glyphByPlaceholder;
     private final Map<String, String> reverse;
     private final FontEvents fontEvents;
@@ -77,6 +78,9 @@ public class FontManager {
         loadGlyphs(glyphOutput.glyphs());
         loadReferenceGlyphs(glyphOutput.referenceGlyphs());
         loadAnimatedGlyphs(glyphOutput.animatedGlyphs());
+        glyphsByCharacterLength = glyphMap.values().stream()
+                .sorted(Comparator.comparingInt((Glyph glyph) -> glyph.getCharacters().length()).reversed())
+                .toList();
 
         if (fontConfiguration.isConfigurationSection("fonts"))
             loadFonts(fontConfiguration.getConfigurationSection("fonts"));
@@ -211,6 +215,13 @@ public class FontManager {
      */
     public final Collection<Glyph> getGlyphs() {
         return glyphMap.values();
+    }
+
+    /**
+     * Gets all registered glyphs sorted from longest to shortest character sequence.
+     */
+    public final List<Glyph> getGlyphsByCharacterLength() {
+        return glyphsByCharacterLength;
     }
 
     /**

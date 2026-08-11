@@ -1,8 +1,6 @@
 package io.th0rgal.oraxen.api;
 
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.compatibilities.provided.ecoitems.WrappedEcoItem;
-import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
 import io.th0rgal.oraxen.configs.Message;
 import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.items.ItemBuilder;
@@ -13,18 +11,16 @@ import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.pack.generation.DuplicationHandler;
 import io.th0rgal.oraxen.utils.AdventureUtils;
-import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import net.Indyuce.mmoitems.MMOItems;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.components.FoodComponent;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.components.JukeboxPlayableComponent;
+import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 import javax.annotation.Nullable;
@@ -38,6 +34,7 @@ public class OraxenItems {
 
     public static final NamespacedKey ITEM_ID = new NamespacedKey(OraxenPlugin.get(), "id");
     private static Map<File, Map<String, ItemBuilder>> map = new LinkedHashMap<>();
+    private static Map<String, ItemBuilder> itemById = new HashMap<>();
     private static Set<String> items = new HashSet<>();
 
     public static void loadItems() {
@@ -78,9 +75,17 @@ public class OraxenItems {
             }
 
             map = OraxenPlugin.get().getConfigsManager().parseItemConfig();
-            items = new HashSet<>();
-            for (final Map<String, ItemBuilder> subMap : map.values())
-                items.addAll(subMap.keySet());
+            Map<String, ItemBuilder> loadedItemsById = new HashMap<>();
+            Set<String> loadedItems = new HashSet<>();
+            for (final Map<String, ItemBuilder> subMap : map.values()) {
+                for (Entry<String, ItemBuilder> entry : subMap.entrySet()) {
+                    if (!loadedItemsById.containsKey(entry.getKey()))
+                        loadedItemsById.put(entry.getKey(), entry.getValue());
+                }
+                loadedItems.addAll(subMap.keySet());
+            }
+            itemById = loadedItemsById;
+            items = loadedItems;
 
             ensureComponentDataHandled();
         } catch (Exception e) {
@@ -93,63 +98,18 @@ public class OraxenItems {
     }
 
     /**
-     * Primarily for handling data that requires OraxenItem's<br>
-     * For example FoodComponent#getUsingConvertsTo
+     * Resolves item references that cannot be handled until all items have loaded.
      */
     private static void ensureComponentDataHandled() {
-        if (VersionUtil.atOrAbove("1.21"))
-            for (final Entry<File, Map<String, ItemBuilder>> entry : map.entrySet()) {
-                Map<String, ItemBuilder> subMap = entry.getValue();
-                for (final Entry<String, ItemBuilder> subEntry : subMap.entrySet()) {
-                    String itemId = subEntry.getKey();
-                    ItemBuilder itemBuilder = subEntry.getValue();
-                    if (itemBuilder == null)
-                        continue;
+        if (!VersionUtil.atOrAbove("1.21"))
+            return;
 
+        for (Map<String, ItemBuilder> subMap : map.values()) {
+            for (ItemBuilder itemBuilder : subMap.values()) {
+                if (itemBuilder != null)
                     itemBuilder.resolveUseRemainder();
-
-                    FoodComponent foodComponent = itemBuilder.getFoodComponent();
-                    if (foodComponent == null)
-                        continue;
-
-                    ConfigurationSection section = OraxenYaml.getConfigurationSection(
-                            OraxenYaml.loadConfiguration(entry.getKey()),
-                            itemId + ".Components.food.replacement");
-                    ItemStack replacementItem = parseFoodComponentReplacement(section);
-                    // foodComponent.setUsingConvertsTo(replacementItem);
-                    itemBuilder.setFoodComponent(foodComponent).regen();
-                }
             }
-    }
-
-    @Nullable
-    private static ItemStack parseFoodComponentReplacement(@Nullable ConfigurationSection section) {
-        if (section == null)
-            return null;
-
-        ItemStack replacementItem;
-        if (section.isString("minecraft_type")) {
-            Material material = OraxenYaml.getMaterial(Objects.requireNonNull(section.getString("minecraft_type")));
-            if (material == null) {
-                Message.INVALID_MATERIAL.log(AdventureUtils.tagResolver("item", section.getString("minecraft_type")));
-                replacementItem = null;
-            } else
-                replacementItem = new ItemStack(material);
-        } else if (section.isString("oraxen_item"))
-            replacementItem = OraxenItems.getItemById(section.getString("oraxen_item")).build();
-        else if (section.isString("crucible_item"))
-            replacementItem = new WrappedCrucibleItem(section.getString("crucible_item")).build();
-        else if (section.isString("mmoitems_id") && section.isString("mmoitems_type"))
-            replacementItem = MMOItems.plugin.getItem(section.getString("mmoitems_type"),
-                    section.getString("mmoitems_id"));
-        else if (section.isString("ecoitem_id"))
-            replacementItem = new WrappedEcoItem(section.getString("ecoitem_id")).build();
-        else if (section.isItemStack("minecraft_item"))
-            replacementItem = section.getItemStack("minecraft_item");
-        else
-            replacementItem = null;
-
-        return replacementItem;
+        }
     }
 
     public static String getIdByItem(final ItemBuilder item) {
@@ -157,9 +117,15 @@ public class OraxenItems {
     }
 
     public static String getIdByItem(final ItemStack item) {
-        return (item == null || item.getItemMeta() == null || item.getItemMeta().getPersistentDataContainer().isEmpty())
-                ? null
-                : item.getItemMeta().getPersistentDataContainer().get(ITEM_ID, PersistentDataType.STRING);
+        if (item == null)
+            return null;
+
+        ItemMeta itemMeta = item.getItemMeta();
+        if (itemMeta == null)
+            return null;
+
+        PersistentDataContainer container = itemMeta.getPersistentDataContainer();
+        return container.isEmpty() ? null : container.get(ITEM_ID, PersistentDataType.STRING);
     }
 
     public static boolean exists(final String itemId) {
@@ -171,7 +137,7 @@ public class OraxenItems {
     }
 
     public static Optional<ItemBuilder> getOptionalItemById(final String id) {
-        return entryStream().filter(entry -> entry.getKey().equals(id)).findFirst().map(Entry::getValue);
+        return id == null ? Optional.empty() : Optional.ofNullable(itemById.get(id));
     }
 
     public static ItemBuilder getItemById(final String id) {

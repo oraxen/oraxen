@@ -320,15 +320,15 @@ public class BlockHelpers {
     public static final List<Material> REPLACEABLE_BLOCKS;
 
     public static boolean isReplaceable(Block block) {
-        return REPLACEABLE_BLOCKS.contains(block.getType());
+        return Tag.REPLACEABLE.isTagged(block.getType());
     }
 
     public static boolean isReplaceable(BlockData blockData) {
-        return REPLACEABLE_BLOCKS.contains(blockData.getMaterial());
+        return Tag.REPLACEABLE.isTagged(blockData.getMaterial());
     }
 
     public static boolean isReplaceable(Material material) {
-        return REPLACEABLE_BLOCKS.contains(material);
+        return Tag.REPLACEABLE.isTagged(material);
     }
 
     /**
