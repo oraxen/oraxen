@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
+import io.th0rgal.oraxen.nms.NMSHandler;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import org.bukkit.*;
@@ -358,15 +359,20 @@ public class BlockHelpers {
         return block.getState(false);
     }
 
-    public static void correctAllBlockStates(Block placedAgainst, Player player, EquipmentSlot hand, BlockFace face, ItemStack item) {
-        if (NMSHandlers.getHandler() == null) return;
-        // TODO Fix boats, currently Item#use in BoatItem calls PlayerInteractEvent
-        // thus causing a StackOverflow, find a workaround
-        if (Tag.ITEMS_BOATS.isTagged(item.getType())) return;
-
-        NMSHandlers.getHandler().correctBlockStates(player, hand, item);
-
+    public static void correctAllBlockStates(Block placedAgainst, Player player, EquipmentSlot hand, BlockFace face, ItemStack item, @Nullable BlockData newData) {
         Block target = placedAgainst.getRelative(face);
+        if (NMSHandlers.getHandler() instanceof NMSHandler.EmptyNMSHandler) {
+            // No working NMS handler (below 1.21.2, or the handler failed to load):
+            // fall back to the Bukkit-API-only correction path
+            LegacyBlockCorrection.correctAllBlockStates(target, player, hand, face, item, newData);
+        } else {
+            // TODO Fix boats, currently Item#use in BoatItem calls PlayerInteractEvent
+            // thus causing a StackOverflow, find a workaround
+            if (Tag.ITEMS_BOATS.isTagged(item.getType())) return;
+
+            NMSHandlers.getHandler().correctBlockStates(player, hand, item);
+        }
+
         if (target.getState() instanceof Sign sign) player.openSign(sign, Side.FRONT);
     }
 

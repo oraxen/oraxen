@@ -696,7 +696,7 @@ public class StringBlockMechanicListener implements Listener {
             Utils.swingHand(player, hand);
         } else {
             target.setType(Material.AIR);
-            BlockHelpers.correctAllBlockStates(placedAgainst, player, hand, face, item);
+            BlockHelpers.correctAllBlockStates(placedAgainst, player, hand, face, item, newData);
         }
         target.getWorld().sendGameEvent(player, GameEvent.BLOCK_PLACE, target.getLocation().toVector());
     }
