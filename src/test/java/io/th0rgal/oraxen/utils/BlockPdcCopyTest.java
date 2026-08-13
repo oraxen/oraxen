@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.utils;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Server;
 import org.bukkit.Tag;
@@ -60,7 +61,7 @@ class BlockPdcCopyTest {
         // constant through Server#getTag; answer with empty tags so the class can load.
         when(server.getTag(anyString(), any(NamespacedKey.class), any())).thenAnswer(invocation -> {
             @SuppressWarnings("unchecked")
-            Tag<Object> tag = mock(Tag.class);
+            Tag<Material> tag = mock(Tag.class);
             when(tag.getValues()).thenReturn(Set.of());
             when(tag.isTagged(any())).thenReturn(false);
             return tag;
@@ -71,6 +72,9 @@ class BlockPdcCopyTest {
     void pistonMoveCopiesBlockDataWithoutClassCastException() {
         JavaPlugin plugin = mock(JavaPlugin.class);
         when(plugin.getName()).thenReturn("oraxen");
+        // NamespacedKey(Plugin, String) resolves the namespace through Plugin#namespace(),
+        // a default method that Mockito would otherwise stub to null.
+        when(plugin.namespace()).thenReturn("oraxen");
 
         World world = mock(World.class);
         when(world.getUID()).thenReturn(UUID.randomUUID());
