@@ -52,14 +52,14 @@ class AntiGriefLibTest {
     }
 
     @Test
-    void allowsActionsWhenAntiGriefProviderThrows() throws Exception {
+    void deniesActionsWhenAntiGriefProviderThrows() throws Exception {
         Player player = mock(Player.class);
         Location location = mock(Location.class);
         TestCompatibility compatibility = new TestCompatibility(null);
         compatibility.throwOnTest = true;
         AntiGriefLib.setInstance(antiGriefLib(compatibility));
 
-        assertTrue(AntiGriefLib.canBreak(player, location));
+        assertFalse(AntiGriefLib.canBreak(player, location));
     }
 
     private static net.momirealms.antigrieflib.AntiGriefLib antiGriefLib(AntiGriefCompatibility compatibility) throws Exception {
