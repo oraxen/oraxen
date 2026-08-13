@@ -1358,7 +1358,10 @@ public class FurnitureMechanic extends Mechanic {
             stand.setRotation(rotationYaw, 0);
             stand.setInvulnerable(true);
             stand.setPersistent(true);
-            stand.setMarker(true);
+            // Do NOT use setMarker(true): marker stands have a zero-height bounding box, which
+            // changes the passenger mount offset and makes players sit visibly lower than on the
+            // non-marker stands persisted by earlier versions (mixed seat heights per world).
+            stand.setAI(false);
             stand.setCollidable(false);
             stand.setGravity(false);
             stand.setSilent(true);
