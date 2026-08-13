@@ -282,8 +282,15 @@ public class BlockHelpers {
 
         @Override
         public void copyTo(@NotNull PersistentDataContainer other, boolean replace) {
-            pdc.copyTo(other, replace);
-            if (other instanceof BlockPersistentDataContainer blockPDC) blockPDC.save();
+            // Paper's CraftPersistentDataContainer#copyTo hard-casts its argument to the Craft
+            // implementation, so the wrapper must be unwrapped before delegating or every copy
+            // (e.g. piston moves in BlockDataListener) throws ClassCastException.
+            if (other instanceof BlockPersistentDataContainer blockPDC) {
+                pdc.copyTo(blockPDC.pdc, replace);
+                blockPDC.save();
+            } else {
+                pdc.copyTo(other, replace);
+            }
         }
 
         @NotNull
