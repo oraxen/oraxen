@@ -3,9 +3,11 @@ package io.th0rgal.oraxen.recipes.listeners;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.provided.misc.misc.MiscMechanic;
 import io.th0rgal.oraxen.mechanics.provided.misc.misc.MiscMechanicFactory;
+import io.th0rgal.oraxen.utils.InventoryUtils;
 import io.th0rgal.oraxen.utils.ItemUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Keyed;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.PrepareSmithingEvent;
@@ -28,7 +30,11 @@ public class SmithingRecipeEvents implements Listener {
         if (ItemUtils.isEmpty(template) || ItemUtils.isEmpty(material) || ItemUtils.isEmpty(input)) return;
         if (inventory.getRecipe() instanceof Keyed keyed
                 && RecipesEventsManager.get().isConfiguredSmithingRecipe(keyed.getKey())) {
-            if (!RecipesEventsManager.get().hasSmithingPermission(event.getView().getPlayer(), keyed.getKey()))
+            // InventoryView is an abstract class below 1.21 but an interface on 1.21+; calling
+            // event.getView().getPlayer() directly compiles to invokeinterface and throws
+            // IncompatibleClassChangeError on 1.20.x. InventoryUtils handles both shapes.
+            Player player = InventoryUtils.playerFromView(event);
+            if (player == null || !RecipesEventsManager.get().hasSmithingPermission(player, keyed.getKey()))
                 event.setResult(null);
             return;
         }
