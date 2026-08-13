@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
-import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
@@ -53,8 +52,8 @@ import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureM
 public class FurnitureListener implements Listener {
 
     public FurnitureListener() {
-        if (OraxenPlugin.get().getPacketAdapter().isEnabled())
-            BreakerSystem.MODIFIERS.add(getHardnessModifier());
+        // BreakerSystem no longer requires a packet library, register unconditionally.
+        BreakerSystem.MODIFIERS.add(getHardnessModifier());
     }
 
     private HardnessModifier getHardnessModifier() {

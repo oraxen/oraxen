@@ -35,7 +35,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.util.RayTraceResult;
 
-import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
 
@@ -46,8 +45,8 @@ import java.util.Random;
 public class StringBlockMechanicListener implements Listener {
 
     public StringBlockMechanicListener() {
-        if (OraxenPlugin.get().getPacketAdapter().isEnabled())
-            BreakerSystem.MODIFIERS.add(getHardnessModifier());
+        // BreakerSystem no longer requires a packet library, register unconditionally.
+        BreakerSystem.MODIFIERS.add(getHardnessModifier());
     }
 
     private HardnessModifier getHardnessModifier() {

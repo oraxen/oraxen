@@ -33,7 +33,6 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.RayTraceResult;
 
-import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
 
@@ -42,8 +41,9 @@ import java.util.*;
 public class NoteBlockMechanicListener implements Listener {
 
     public NoteBlockMechanicListener() {
-        if (OraxenPlugin.get().getPacketAdapter().isEnabled())
-            BreakerSystem.MODIFIERS.add(getHardnessModifier());
+        // BreakerSystem drives break animations through Paper's BlockDamageEvent and
+        // Player#sendBlockDamage, so hardness no longer requires a packet library.
+        BreakerSystem.MODIFIERS.add(getHardnessModifier());
     }
 
     private HardnessModifier getHardnessModifier() {

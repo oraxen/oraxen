@@ -45,8 +45,8 @@ public class ChorusBlockMechanicListener implements Listener {
     public static final NamespacedKey SEAT_KEY = new NamespacedKey(OraxenPlugin.get(), "chorus_seat");
 
     public ChorusBlockMechanicListener() {
-        if (OraxenPlugin.get().getPacketAdapter().isEnabled())
-            BreakerSystem.MODIFIERS.add(getHardnessModifier());
+        // BreakerSystem no longer requires a packet library, register unconditionally.
+        BreakerSystem.MODIFIERS.add(getHardnessModifier());
     }
 
     private HardnessModifier getHardnessModifier() {
