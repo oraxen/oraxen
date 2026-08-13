@@ -328,7 +328,16 @@ paper {
         "CrateReloaded", "ItemBridge", "WorldEdit", "FastAsyncWorldEdit", "WorldGuard", "Towny",
         "Factions", "Lands", "PlotSquared", "NBTAPI", "ModelEngine", "ViaVersion", "ViaBackwards",
         "HuskClaims", "HuskTowns", "BentoBox", "Skript", "Iris",
-        "ExecutableItems", "SCore", "EcoItems", "BlockLocker"
+        "ExecutableItems", "SCore", "EcoItems", "BlockLocker",
+        // Remaining protection plugins detected reflectively by the shaded AntiGriefLib
+        // (net.momirealms:antigrieflib). Without a declared dependency their classes are
+        // invisible to Oraxen's isolated Paper-plugin classloader, so the hook is silently
+        // skipped and protection checks default to "allowed". Keep in sync with the
+        // library's support matrix when bumping its version.
+        "GriefPrevention", "GriefDefender", "Residence", "Kingdoms", "SuperiorSkyblock2",
+        "RedProtect", "PreciousStones", "Dominion", "CrashClaim", "IridiumSkyblock",
+        "FabledSkyBlock", "Landlord", "uSkyBlock", "XClaim", "UltimateClaims",
+        "UltimateClans", "NoBuildPlus"
     )
     serverDependencies {
         optionalHooks.forEach { hook ->

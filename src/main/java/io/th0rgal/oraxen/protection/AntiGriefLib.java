@@ -28,7 +28,9 @@ public final class AntiGriefLib {
             }
 
             antiGriefLib = builder.build();
-        } catch (Exception exception) {
+        } catch (Exception | LinkageError exception) {
+            // LinkageError covers NoClassDefFoundError etc. from protection plugins whose
+            // classes are only partially visible to the isolated Paper-plugin classloader.
             antiGriefLib = null;
             if (debug) exception.printStackTrace();
         }
@@ -73,7 +75,7 @@ public final class AntiGriefLib {
 
         try {
             return antiGriefLib.test(player, flag, value);
-        } catch (Exception exception) {
+        } catch (Exception | LinkageError exception) {
             if (debug) exception.printStackTrace();
             return true;
         }
