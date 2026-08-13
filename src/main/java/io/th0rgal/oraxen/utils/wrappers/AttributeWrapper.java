@@ -22,15 +22,15 @@ public class AttributeWrapper {
     public static final Attribute ATTACK_SPEED = VersionUtil.atOrAbove("1.21.2") ? Attribute.ATTACK_SPEED
             : Registry.ATTRIBUTE.get(NamespacedKey.fromString("generic.attack_speed"));
     public static final Attribute BLOCK_BREAK_SPEED = VersionUtil.atOrAbove("1.21.2") ? Attribute.BLOCK_BREAK_SPEED
-            : Registry.ATTRIBUTE.get(NamespacedKey.fromString("generic.block_break_speed"));
+            : Registry.ATTRIBUTE.get(NamespacedKey.fromString("player.block_break_speed"));
     public static final Attribute BLOCK_INTERACTION_RANGE = VersionUtil.atOrAbove("1.21.2")
             ? Attribute.BLOCK_INTERACTION_RANGE
-            : Registry.ATTRIBUTE.get(NamespacedKey.fromString("generic.block_interaction_range"));
+            : Registry.ATTRIBUTE.get(NamespacedKey.fromString("player.block_interaction_range"));
     public static final Attribute BURNING_TIME = VersionUtil.atOrAbove("1.21.2") ? Attribute.BURNING_TIME
             : Registry.ATTRIBUTE.get(NamespacedKey.fromString("generic.burning_time"));
     public static final Attribute ENTITY_INTERACTION_RANGE = VersionUtil.atOrAbove("1.21.2")
             ? Attribute.ENTITY_INTERACTION_RANGE
-            : Registry.ATTRIBUTE.get(NamespacedKey.fromString("generic.entity_interaction_range"));
+            : Registry.ATTRIBUTE.get(NamespacedKey.fromString("player.entity_interaction_range"));
     public static final Attribute EXPLOSION_KNOCKBACK_RESISTANCE = VersionUtil.atOrAbove("1.21.2")
             ? Attribute.EXPLOSION_KNOCKBACK_RESISTANCE
             : Registry.ATTRIBUTE.get(NamespacedKey.fromString("generic.explosion_knockback_resistance"));
@@ -55,7 +55,7 @@ public class AttributeWrapper {
     public static final Attribute MAX_HEALTH = VersionUtil.atOrAbove("1.21.2") ? Attribute.MAX_HEALTH
             : Registry.ATTRIBUTE.get(NamespacedKey.fromString("generic.max_health"));
     public static final Attribute MINING_EFFICIENCY = VersionUtil.atOrAbove("1.21.2") ? Attribute.MINING_EFFICIENCY
-            : Registry.ATTRIBUTE.get(NamespacedKey.fromString("generic.mining_efficiency"));
+            : Registry.ATTRIBUTE.get(NamespacedKey.fromString("player.mining_efficiency"));
     public static final Attribute MOVEMENT_EFFICIENCY = VersionUtil.atOrAbove("1.21.2") ? Attribute.MOVEMENT_EFFICIENCY
             : Registry.ATTRIBUTE.get(NamespacedKey.fromString("generic.movement_efficiency"));
     public static final Attribute MOVEMENT_SPEED = VersionUtil.atOrAbove("1.21.2") ? Attribute.MOVEMENT_SPEED
@@ -67,7 +67,7 @@ public class AttributeWrapper {
     public static final Attribute SCALE = VersionUtil.atOrAbove("1.21.2") ? Attribute.SCALE
             : Registry.ATTRIBUTE.get(NamespacedKey.fromString("generic.scale"));
     public static final Attribute SNEAKING_SPEED = VersionUtil.atOrAbove("1.21.2") ? Attribute.SNEAKING_SPEED
-            : Registry.ATTRIBUTE.get(NamespacedKey.fromString("generic.sneaking_speed"));
+            : Registry.ATTRIBUTE.get(NamespacedKey.fromString("player.sneaking_speed"));
     public static final Attribute SPAWN_REINFORCEMENTS = VersionUtil.atOrAbove("1.21.2")
             ? Attribute.SPAWN_REINFORCEMENTS
             : Registry.ATTRIBUTE.get(NamespacedKey.fromString("generic.spawn_reinforcements"));
@@ -75,10 +75,10 @@ public class AttributeWrapper {
             : Registry.ATTRIBUTE.get(NamespacedKey.fromString("generic.step_height"));
     public static final Attribute SUBMERGED_MINING_SPEED = VersionUtil.atOrAbove("1.21.2")
             ? Attribute.SUBMERGED_MINING_SPEED
-            : Registry.ATTRIBUTE.get(NamespacedKey.fromString("generic.submerged_mining_speed"));
+            : Registry.ATTRIBUTE.get(NamespacedKey.fromString("player.submerged_mining_speed"));
     public static final Attribute SWEEPING_DAMAGE_RATIO = VersionUtil.atOrAbove("1.21.2")
             ? Attribute.SWEEPING_DAMAGE_RATIO
-            : Registry.ATTRIBUTE.get(NamespacedKey.fromString("generic.sweeping_damage_ratio"));
+            : Registry.ATTRIBUTE.get(NamespacedKey.fromString("player.sweeping_damage_ratio"));
     public static final Attribute TEMPT_RANGE = VersionUtil.atOrAbove("1.21.2") ? Attribute.TEMPT_RANGE
             : Registry.ATTRIBUTE.get(NamespacedKey.fromString("generic.tempt_range"));
 
@@ -93,13 +93,17 @@ public class AttributeWrapper {
             }
         }
 
-        String attributeName = attribute.replace("GENERIC_", "").toLowerCase(Locale.ENGLISH);
+        String attributeName = attribute.replace("GENERIC_", "").replace("PLAYER_", "").toLowerCase(Locale.ENGLISH);
 
         try {
             if (VersionUtil.atOrAbove("1.21.2")) {
                 return Registry.ATTRIBUTE.get(NamespacedKey.fromString(attributeName));
             } else {
-                return Registry.ATTRIBUTE.get(NamespacedKey.fromString("generic." + attributeName));
+                // Pre-1.21.2 attribute keys are prefixed: most are "generic.", but the
+                // player-only attributes (block_break_speed etc.) use "player.".
+                Attribute generic = Registry.ATTRIBUTE.get(NamespacedKey.fromString("generic." + attributeName));
+                if (generic != null) return generic;
+                return Registry.ATTRIBUTE.get(NamespacedKey.fromString("player." + attributeName));
             }
         } catch (NoSuchMethodError e) {
             // Registry.ATTRIBUTE.get not available on this server
