@@ -31,7 +31,10 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class BreakSpeedModifier {
 
-    private static final boolean SUPPORTS_EQUIPMENT_SLOT_GROUP = VersionUtil.atOrAbove("1.20.5");
+    // The AttributeModifier(NamespacedKey, double, Operation, EquipmentSlotGroup) constructor was
+    // added in 1.21; 1.20.5/1.20.6 only offer the UUID-based constructors (resolved reflectively
+    // below), even though EquipmentSlotGroup itself already exists there.
+    private static final boolean SUPPORTS_KEYED_MODIFIER = VersionUtil.atOrAbove("1.21");
     // Cache of the resolved AttributeModifier constructor (varies by server version).
     private static volatile ModifierFactory cachedModifierFactory;
 
@@ -129,7 +132,7 @@ public final class BreakSpeedModifier {
 
     @Nullable
     private static ModifierFactory resolveModifierFactory() {
-        if (SUPPORTS_EQUIPMENT_SLOT_GROUP)
+        if (SUPPORTS_KEYED_MODIFIER)
             return (key, amount) -> new AttributeModifier(key, amount,
                     AttributeModifier.Operation.MULTIPLY_SCALAR_1, EquipmentSlotGroup.HAND);
 
