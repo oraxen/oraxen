@@ -78,7 +78,13 @@ public class FontManager {
         loadGlyphs(glyphOutput.glyphs());
         loadReferenceGlyphs(glyphOutput.referenceGlyphs());
         loadAnimatedGlyphs(glyphOutput.animatedGlyphs());
+        // Reference glyphs alias a subset of their source glyph's characters, so raw character
+        // matching must only ever attribute those characters to the source glyph. Including
+        // references here made the chat component path re-replace inside the source glyph's
+        // replacement with the reference's own permission result (permission bypass or wrongful
+        // obfuscation). Reference permissions still apply to their placeholders.
         glyphsByCharacterLength = glyphMap.values().stream()
+                .filter(glyph -> !(glyph instanceof ReferenceGlyph))
                 .sorted(Comparator.comparingInt((Glyph glyph) -> glyph.getCharacters().length()).reversed())
                 .toList();
 
@@ -218,7 +224,9 @@ public class FontManager {
     }
 
     /**
-     * Gets all registered glyphs sorted from longest to shortest character sequence.
+     * Gets all registered glyphs sorted from longest to shortest character sequence, excluding
+     * {@link ReferenceGlyph} instances: references share their source glyph's characters, so raw
+     * character matching must always resolve to the source glyph.
      */
     public final List<Glyph> getGlyphsByCharacterLength() {
         return glyphsByCharacterLength;
