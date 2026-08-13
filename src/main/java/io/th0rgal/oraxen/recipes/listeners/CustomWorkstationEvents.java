@@ -53,7 +53,10 @@ public class CustomWorkstationEvents implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void takeResult(InventoryClickEvent event) {
-        if (event.getRawSlot() != 2 || !(event.getWhoClicked() instanceof Player player)) return;
+        // A double-click collect can pull the result slot from anywhere in the view, so it must be
+        // handled regardless of which raw slot received the click.
+        boolean collectToCursor = event.getAction() == InventoryAction.COLLECT_TO_CURSOR;
+        if ((event.getRawSlot() != 2 && !collectToCursor) || !(event.getWhoClicked() instanceof Player player)) return;
         Inventory inventory = event.getInventory();
         Match match;
         boolean grindstone = inventory instanceof GrindstoneInventory;
@@ -63,6 +66,11 @@ public class CustomWorkstationEvents implements Listener {
         else if (grindstone) match = grindstoneRecipe(inventory.getItem(0), inventory.getItem(1));
         else return;
         if (match == null) return;
+
+        if (collectToCursor) {
+            collectResultToCursor(event, player, inventory, match, grindstone);
+            return;
+        }
 
         event.setCancelled(true); // A structural match is ours, including stale outputs and permission changes.
         CustomWorkstationRecipe recipe = match.recipe();
@@ -88,6 +96,37 @@ public class CustomWorkstationEvents implements Listener {
             if (!cursor.isEmpty()) transferred.setAmount(cursor.getAmount() + expected.getAmount());
             player.setItemOnCursor(transferred);
         }
+        consume(inventory, match.baseSlot(), recipe.base().amount());
+        if (recipe.addition() != null) consume(inventory, match.additionSlot(), recipe.addition().amount());
+        if (player.getGameMode() != GameMode.CREATIVE && !grindstone) player.setLevel(player.getLevel() - recipe.value());
+        if (grindstone && recipe.value() > 0) player.giveExp(recipe.value());
+        inventory.setItem(2, null);
+    }
+
+    /**
+     * Handles COLLECT_TO_CURSOR (double-click) for custom workstation results. Vanilla's collect
+     * pulls a matching result stack through the vanilla take path, which ignores the configured
+     * ingredient amounts and (for grindstones) pops vanilla XP. Only intervene when the cursor
+     * would actually collect our result; unrelated double-click collection stays vanilla.
+     */
+    private void collectResultToCursor(InventoryClickEvent event, Player player, Inventory inventory,
+                                       Match match, boolean grindstone) {
+        ItemStack cursor = event.getCursor();
+        ItemStack resultSlot = inventory.getItem(2);
+        if (cursor.isEmpty() || resultSlot == null || resultSlot.isEmpty() || !cursor.isSimilar(resultSlot)) return;
+
+        event.setCancelled(true); // Vanilla would collect our result with its own consumption rules.
+        CustomWorkstationRecipe recipe = match.recipe();
+        if (!permitted(recipe, player)) return;
+        ItemStack expected = recipe.createResult();
+        if (!resultSlot.isSimilar(expected) || resultSlot.getAmount() != expected.getAmount()) return;
+        if (!grindstone && player.getGameMode() != GameMode.CREATIVE && player.getLevel() < recipe.value()) return;
+        // No partial takes: the whole result must fit on the cursor, mirroring the pickup path.
+        if (cursor.getAmount() + expected.getAmount() > cursor.getMaxStackSize()) return;
+
+        ItemStack transferred = cursor.clone();
+        transferred.setAmount(cursor.getAmount() + expected.getAmount());
+        player.setItemOnCursor(transferred);
         consume(inventory, match.baseSlot(), recipe.base().amount());
         if (recipe.addition() != null) consume(inventory, match.additionSlot(), recipe.addition().amount());
         if (player.getGameMode() != GameMode.CREATIVE && !grindstone) player.setLevel(player.getLevel() - recipe.value());
