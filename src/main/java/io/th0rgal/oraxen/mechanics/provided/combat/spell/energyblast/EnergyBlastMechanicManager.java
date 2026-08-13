@@ -120,7 +120,7 @@ public class EnergyBlastMechanicManager implements Listener {
                         SchedulerUtil.runForEntity(livingEntity, () -> {
                             if (livingEntity.isDead()) return;
                             EntityDamageByEntityEvent event = new EntityDamageByEntityEvent(player, entity, EntityDamageEvent.DamageCause.MAGIC, DamageSource.builder(DamageType.MAGIC).build(), mechanic.getDamage() * 3.0);
-                            if (event.callEvent()) return;
+                            if (!event.callEvent()) return;
                             entity.setLastDamageCause(event);
                             livingEntity.damage(mechanic.getDamage() * 3.0, player);
                         });
