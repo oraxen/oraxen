@@ -48,24 +48,8 @@ public class RecipesManager {
             recipesFolder.mkdirs();
             if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
                 OraxenPlugin.get().getResourceManager().extractConfigsInFolder("recipes", "yml");
-            else try {
-                new File(recipesFolder, "furnace.yml").createNewFile();
-                new File(recipesFolder, "shaped.yml").createNewFile();
-                new File(recipesFolder, "shapeless.yml").createNewFile();
-                new File(recipesFolder, "blasting.yml").createNewFile();
-                new File(recipesFolder, "campfire.yml").createNewFile();
-                new File(recipesFolder, "smoking.yml").createNewFile();
-                new File(recipesFolder, "stonecutting.yml").createNewFile();
-                new File(recipesFolder, "smithing.yml").createNewFile();
-                new File(recipesFolder, "cauldron.yml").createNewFile();
-                new File(recipesFolder, "anvil.yml").createNewFile();
-                new File(recipesFolder, "grindstone.yml").createNewFile();
-                new File(recipesFolder, "disabled.yml").createNewFile();
-            } catch (IOException e) {
-                Logs.logError("Error while creating recipes files: " + e.getMessage());
-            }
         }
-        if (!Settings.GENERATE_DEFAULT_CONFIGS.toBool()) createRecipeFiles(recipesFolder);
+        createRecipeFiles(recipesFolder);
         registerAllConfigRecipesFromFolder(recipesFolder);
         RecipesEventsManager.get().registerEvents();
     }
@@ -88,7 +72,7 @@ public class RecipesManager {
             if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
                 OraxenPlugin.get().getResourceManager().extractConfigsInFolder("recipes", "yml");
         }
-        if (!Settings.GENERATE_DEFAULT_CONFIGS.toBool()) createRecipeFiles(recipesFolder);
+        createRecipeFiles(recipesFolder);
         registerAllConfigRecipesFromFolder(recipesFolder);
         RecipesEventsManager.get().registerEvents();
     }
@@ -105,6 +89,14 @@ public class RecipesManager {
         }
     }
 
+    /**
+     * Creates any missing default recipe files as empty templates. Runs on every load so servers
+     * upgrading to a release that adds new recipe types (smithing/cauldron/anvil/grindstone)
+     * receive the files too; previously they were only written when the whole folder was missing,
+     * and the backfill was inverted to run only with default generation disabled. Bundled example
+     * recipes are deliberately only extracted into a freshly created folder, never resurrected
+     * into existing setups.
+     */
     private static void createRecipeFiles(File recipesFolder) {
         for (String name : List.of("furnace.yml", "shaped.yml", "shapeless.yml", "blasting.yml", "campfire.yml",
                 "smoking.yml", "stonecutting.yml", "smithing.yml", "cauldron.yml", "anvil.yml", "grindstone.yml", "disabled.yml")) {
