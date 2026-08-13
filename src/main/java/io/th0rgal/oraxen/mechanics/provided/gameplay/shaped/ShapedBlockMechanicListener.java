@@ -60,8 +60,8 @@ public class ShapedBlockMechanicListener implements Listener {
 
     public ShapedBlockMechanicListener(ShapedBlockMechanicFactory factory) {
         this.factory = factory;
-        if (OraxenPlugin.get().getPacketAdapter().isEnabled())
-            registerHardnessModifier();
+        // BreakerSystem no longer requires a packet library, register unconditionally.
+        registerHardnessModifier();
     }
 
     private static void registerHardnessModifier() {
