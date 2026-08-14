@@ -13,6 +13,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -59,8 +60,13 @@ public class UpdateCommand {
                                 p.getInventory().setItem(i, newItem);
                                 updated++;
                             }
-                            Message.UPDATED_ITEMS.send(player, AdventureUtils.tagResolver("amount", String.valueOf(updated)),
-                                    AdventureUtils.tagResolver("player", p.displayName()));
+                            final int updatedCount = updated;
+                            final Component targetName = p.displayName();
+                            // The invoker may be owned by a different region than the
+                            // target; feedback must run on the invoker's owning thread.
+                            SchedulerUtil.runForEntity(player, () -> Message.UPDATED_ITEMS.send(player,
+                                    AdventureUtils.tagResolver("amount", String.valueOf(updatedCount)),
+                                    AdventureUtils.tagResolver("player", targetName)));
                         });
                     }
                 });
