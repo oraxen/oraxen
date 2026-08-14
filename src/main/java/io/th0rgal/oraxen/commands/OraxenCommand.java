@@ -162,6 +162,26 @@ public class OraxenCommand {
         return permission;
     }
 
+    boolean isRoot() {
+        return parent == null;
+    }
+
+    /**
+     * Walks the command chain from the root down to this command and returns the first
+     * permission the sender is missing, or {@code null} when the full chain is permitted.
+     */
+    String firstMissingPermission(CommandSender sender) {
+        List<OraxenCommand> chain = new ArrayList<>();
+        for (OraxenCommand command = this; command != null; command = command.parent) {
+            chain.addFirst(command);
+        }
+        for (OraxenCommand command : chain) {
+            PermissionResult result = command.checkPermission(sender);
+            if (!result.allowed()) return result.permission();
+        }
+        return null;
+    }
+
     boolean hasAnyExecutor() {
         return executor != null || playerExecutor != null;
     }

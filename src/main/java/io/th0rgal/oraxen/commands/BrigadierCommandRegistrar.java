@@ -13,6 +13,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
+import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
@@ -29,9 +30,13 @@ import io.th0rgal.oraxen.commands.arguments.GreedyStringArgument;
 import io.th0rgal.oraxen.commands.arguments.IntegerArgument;
 import io.th0rgal.oraxen.commands.arguments.LocationArgument;
 import io.th0rgal.oraxen.commands.arguments.OraxenArgument;
+import io.th0rgal.oraxen.configs.Message;
+import io.th0rgal.oraxen.utils.AdventureUtils;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -63,10 +68,18 @@ final class BrigadierCommandRegistrar {
      * which the legacy command-map path allowed by splitting on whitespace. Parsing up to the
      * next space keeps every suggestion the plugin offers enterable verbatim, with no quoting
      * or escaping required.
+     *
+     * <p>The client validates against the native quoted-string type, so tokens containing
+     * characters outside {@code [0-9A-Za-z_\-.+]} (e.g. {@code :}) render red unless quoted.
+     * Suggestions for such tokens are therefore quoted (see {@link #quoteIfNeeded(String)}),
+     * and the parser unquotes accordingly.
      */
     private static final ArgumentType<String> TOKEN = new CustomArgumentType<String, String>() {
         @Override
-        public String parse(StringReader reader) {
+        public String parse(StringReader reader) throws CommandSyntaxException {
+            if (reader.canRead() && StringReader.isQuotedStringStart(reader.peek())) {
+                return reader.readQuotedString();
+            }
             int start = reader.getCursor();
             while (reader.canRead() && reader.peek() != ' ') reader.skip();
             return reader.getString().substring(start, reader.getCursor());
@@ -98,8 +111,13 @@ final class BrigadierCommandRegistrar {
 
     private static LiteralCommandNode<CommandSourceStack> build(OraxenCommand command, String label) {
         LiteralArgumentBuilder<CommandSourceStack> literal = Commands.literal(label);
+        // Only the root literal is gated through Brigadier's requires-predicate (hiding the
+        // whole tree from players lacking the base permission, like the legacy command map
+        // did through Command#setPermission). Subcommand permissions are checked inside the
+        // executor instead: a failing requires-predicate makes the client report a generic
+        // "Unknown command", whereas the legacy path sent Oraxen's NO_PERMISSION message.
         String permission = command.getPermission();
-        if (permission != null && !permission.isBlank()) {
+        if (command.isRoot() && permission != null && !permission.isBlank()) {
             literal.requires(source -> source.getSender().hasPermission(permission));
         }
 
@@ -119,10 +137,10 @@ final class BrigadierCommandRegistrar {
         // Arguments on a node without an executor can never run; skip them entirely.
         if (!command.hasAnyExecutor()) return;
 
-        // Constraint: optional arguments must be trailing. Arguments form a single linear
-        // chain, and only positions at or after the last required argument get an executor.
-        // An optional argument placed before a required one therefore silently becomes
-        // required on this path. No current command has that shape; keep it that way.
+        // Arguments form a chain with additional skip-links over optional arguments, so any
+        // optional argument may be omitted individually (matching the legacy command-map
+        // parser, e.g. "/oraxen admin block <id> place 5" without a preceding location).
+        // Only positions at or after the last required argument get an executor.
         List<OraxenArgument<?>> arguments = command.getArguments();
         int lastRequired = -1;
         for (int i = 0; i < arguments.size(); i++) {
@@ -132,29 +150,50 @@ final class BrigadierCommandRegistrar {
         // Executable without any arguments when every argument is optional (or none exist).
         if (lastRequired < 0) literal.executes(executor(command, List.of()));
 
-        List<RequiredArgumentBuilder<CommandSourceStack, ?>> nodes = new ArrayList<>();
-        for (int i = 0; i < arguments.size(); i++) {
+        // Build from the tail so skip-links can attach already-built child nodes: each node
+        // links to the next argument, and additionally to every argument reachable by
+        // skipping over optional ones.
+        int count = arguments.size();
+        List<CommandNode<CommandSourceStack>> built = new ArrayList<>(Collections.nCopies(count, null));
+        for (int i = count - 1; i >= 0; i--) {
             OraxenArgument<?> argument = arguments.get(i);
-            RequiredArgumentBuilder<CommandSourceStack, ?> node =
-                    Commands.argument(argument.getName(), argumentType(argument));
-            if (argument.hasCustomSuggestions()) node.suggests(suggestions(argument));
+            ArgumentType<?> type = argumentType(argument);
+            RequiredArgumentBuilder<CommandSourceStack, ?> node = Commands.argument(argument.getName(), type);
+            if (argument.hasCustomSuggestions()) node.suggests(suggestions(command, argument, type == TOKEN));
             if (i >= lastRequired) node.executes(executor(command, List.copyOf(arguments.subList(0, i + 1))));
-            nodes.add(node);
+            for (int j = i + 1; j < count; j++) {
+                node.then(built.get(j));
+                if (!arguments.get(j).isOptional()) break;
+            }
+            built.set(i, node.build());
         }
-
-        for (int i = nodes.size() - 1; i > 0; i--) {
-            nodes.get(i - 1).then(nodes.get(i));
+        for (int j = 0; j < count; j++) {
+            literal.then(built.get(j));
+            if (!arguments.get(j).isOptional()) break;
         }
-        if (!nodes.isEmpty()) literal.then(nodes.getFirst());
     }
 
     private static Command<CommandSourceStack> executor(OraxenCommand command, List<OraxenArgument<?>> included) {
         return context -> {
+            CommandSender sender = context.getSource().getSender();
+            String missingPermission = command.firstMissingPermission(sender);
+            if (missingPermission != null) {
+                Message.NO_PERMISSION.send(sender, AdventureUtils.tagResolver("permission", missingPermission));
+                return Command.SINGLE_SUCCESS;
+            }
             CommandArguments arguments = new CommandArguments();
             for (OraxenArgument<?> argument : included) {
-                arguments.put(argument.getName(), resolveValue(context, argument));
+                Object value;
+                try {
+                    value = resolveValue(context, argument);
+                } catch (IllegalArgumentException e) {
+                    // Skip-links make optional arguments genuinely absent from the context.
+                    if (argument.isOptional()) continue;
+                    throw e;
+                }
+                arguments.put(argument.getName(), value);
             }
-            command.runBrigadierExecutor(context.getSource().getSender(), arguments);
+            command.runBrigadierExecutor(sender, arguments);
             return Command.SINGLE_SUCCESS;
         };
     }
@@ -193,14 +232,37 @@ final class BrigadierCommandRegistrar {
         return TOKEN;
     }
 
-    private static SuggestionProvider<CommandSourceStack> suggestions(OraxenArgument<?> argument) {
+    private static SuggestionProvider<CommandSourceStack> suggestions(OraxenCommand command, OraxenArgument<?> argument,
+                                                                      boolean quoteUnsafeTokens) {
         return (context, builder) -> {
+            CommandSender sender = context.getSource().getSender();
+            if (command.firstMissingPermission(sender) != null) return builder.buildFuture();
             String remaining = builder.getRemainingLowerCase();
-            for (String suggestion : argument.customSuggestions(context.getSource().getSender())) {
+            // Ignore an opening quote so partially-typed quoted tokens still match.
+            if (remaining.startsWith("\"")) remaining = remaining.substring(1);
+            for (String suggestion : argument.customSuggestions(sender)) {
                 if (suggestion == null || suggestion.isBlank()) continue;
-                if (suggestion.toLowerCase(Locale.ROOT).startsWith(remaining)) builder.suggest(suggestion);
+                if (!suggestion.toLowerCase(Locale.ROOT).startsWith(remaining)) continue;
+                builder.suggest(quoteUnsafeTokens ? quoteIfNeeded(suggestion) : suggestion);
             }
             return builder.buildFuture();
         };
+    }
+
+    /**
+     * Quotes a suggested token when it contains characters the client-side quoted-string
+     * validator rejects unquoted (anything outside {@code [0-9A-Za-z_\-.+]}, notably
+     * {@code :} in namespaced ids), so accepted suggestions no longer render red.
+     */
+    private static String quoteIfNeeded(String token) {
+        boolean safe = true;
+        for (int i = 0; i < token.length(); i++) {
+            if (!StringReader.isAllowedInUnquotedString(token.charAt(i))) {
+                safe = false;
+                break;
+            }
+        }
+        if (safe) return token;
+        return '"' + token.replace("\\", "\\\\").replace("\"", "\\\"") + '"';
     }
 }
