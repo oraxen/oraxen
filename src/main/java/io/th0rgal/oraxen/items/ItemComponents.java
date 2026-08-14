@@ -44,11 +44,29 @@ public final class ItemComponents {
 
     private void parseDataComponents(final ItemBuilder item, final ConfigurationSection section) {
         if (section.contains("itemname") && VersionUtil.atOrAbove("1.20.5"))
-            item.setItemName(AdventureUtils.parseMiniMessage(section.getString("itemname")));
+            applyItemName(item, section, "itemname");
         else if (section.contains("displayname"))
-            item.setItemName(AdventureUtils.parseMiniMessage(section.getString("displayname")));
+            applyItemName(item, section, "displayname");
 
         final ConfigurationSection components = OraxenYaml.getConfigurationSection(section, "Components");
+        applyRemainingComponents(item, components);
+    }
+
+    /**
+     * A non-string value (e.g. an accidental section or list) makes {@code getString} return
+     * null; skip it with a warning instead of NPEing and aborting the item's remaining
+     * parse stages.
+     */
+    private void applyItemName(final ItemBuilder item, final ConfigurationSection configSection, final String key) {
+        final String name = configSection.getString(key);
+        if (name == null) {
+            Logs.logWarning("Invalid non-text \"" + key + "\" value for item \"" + this.section.getName() + "\"; skipping it.");
+            return;
+        }
+        item.setItemName(AdventureUtils.parseMiniMessage(name));
+    }
+
+    private void applyRemainingComponents(final ItemBuilder item, final ConfigurationSection components) {
         if (components == null || !VersionUtil.atOrAbove("1.20.5"))
             return;
 

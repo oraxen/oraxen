@@ -105,9 +105,16 @@ public class OraxenItems {
             return;
 
         for (Map<String, ItemBuilder> subMap : map.values()) {
-            for (ItemBuilder itemBuilder : subMap.values()) {
-                if (itemBuilder != null)
-                    itemBuilder.resolveUseRemainder();
+            for (Map.Entry<String, ItemBuilder> entry : subMap.entrySet()) {
+                if (entry.getValue() == null) continue;
+                try {
+                    entry.getValue().resolveUseRemainder();
+                } catch (Exception e) {
+                    // Isolate failures per item: one broken referenced item must not abort
+                    // use_remainder resolution for every remaining item.
+                    Logs.logWarning("Failed to resolve use_remainder for item \"" + entry.getKey() + "\": " + e.getMessage());
+                    Logs.debug(e);
+                }
             }
         }
     }
