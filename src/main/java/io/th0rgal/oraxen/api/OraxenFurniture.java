@@ -411,7 +411,8 @@ public class OraxenFurniture {
         // Mutates region-owned entity state; when called off the owning thread
         // (public API), re-dispatch onto the entity's scheduler (Folia).
         if (!Bukkit.isOwnedByCurrentRegion(entity)) {
-            SchedulerUtil.runForEntity(entity, () -> updateFurniture(entity));
+            Entity scheduledEntity = entity;
+            SchedulerUtil.runForEntity(scheduledEntity, () -> updateFurniture(scheduledEntity));
             return;
         }
         if (!entity.getLocation().isChunkLoaded()) return;
