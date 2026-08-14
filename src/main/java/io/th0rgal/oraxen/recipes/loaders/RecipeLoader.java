@@ -12,6 +12,7 @@ import io.th0rgal.oraxen.recipes.CustomRecipe;
 import io.th0rgal.oraxen.recipes.listeners.RecipesEventsManager;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.PluginUtils;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import net.Indyuce.mmoitems.MMOItems;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -25,10 +26,18 @@ import org.bukkit.inventory.RecipeChoice;
 
 public abstract class RecipeLoader {
 
+    private static final java.util.Set<NamespacedKey> KEYS_REGISTERED_THIS_PASS =
+            java.util.concurrent.ConcurrentHashMap.newKeySet();
+
     private final ConfigurationSection section;
 
     protected RecipeLoader(ConfigurationSection section) {
         this.section = section;
+    }
+
+    /** Called before each full recipe registration pass so duplicate keys within the pass can be detected. */
+    public static void beginRegistrationPass() {
+        KEYS_REGISTERED_THIS_PASS.clear();
     }
 
     protected ConfigurationSection getSection() {
@@ -183,8 +192,12 @@ public abstract class RecipeLoader {
 
     protected void loadRecipe(Recipe recipe) {
         if (recipe instanceof Keyed keyed
-                && keyed.getKey().getNamespace().equals(OraxenPlugin.get().getName().toLowerCase(java.util.Locale.ROOT)))
+                && keyed.getKey().getNamespace().equals(OraxenPlugin.get().getName().toLowerCase(java.util.Locale.ROOT))) {
+            if (!KEYS_REGISTERED_THIS_PASS.add(keyed.getKey()))
+                Logs.logWarning("Duplicate recipe name '" + getRecipeName() + "': another recipe with key '"
+                        + keyed.getKey() + "' was already loaded and will be replaced. Rename one of the recipes to keep both.");
             Bukkit.removeRecipe(keyed.getKey());
+        }
         if (!Bukkit.addRecipe(recipe))
             throw new IllegalStateException("Bukkit rejected recipe '" + getRecipeName() + "'");
         managesPermission(CustomRecipe.fromRecipe(recipe));

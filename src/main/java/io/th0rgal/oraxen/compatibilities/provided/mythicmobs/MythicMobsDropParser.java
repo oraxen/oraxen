@@ -14,6 +14,7 @@ final class MythicMobsDropParser {
         return switch (lines.length) {
             case 4 -> lines[1];
             case 3 -> isAmount(lines[2]) ? lines[1] : lines[2];
+            case 2 -> lines[1];
             default -> "";
         };
     }

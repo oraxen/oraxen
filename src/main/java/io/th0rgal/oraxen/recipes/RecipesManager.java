@@ -78,6 +78,7 @@ public class RecipesManager {
     }
 
     private static void registerAllConfigRecipesFromFolder(File recipesFolder) {
+        RecipeLoader.beginRegistrationPass();
         CustomWorkstationRegistry.beginReload();
         RecipesEventsManager.get().beginSmithingReload();
         try {
