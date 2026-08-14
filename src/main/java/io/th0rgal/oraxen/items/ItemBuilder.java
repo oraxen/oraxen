@@ -95,7 +95,10 @@ public class ItemBuilder {
     @Nullable
     private List<Float> customModelDataFloats;
     private List<String> lore;
-    private ItemStack finalItemStack;
+    // Built lazily and read from multiple region threads on Folia (e.g. the
+    // /oraxen give fan-out); volatile plus synchronized regen keeps readers
+    // from observing a partially published stack.
+    private volatile ItemStack finalItemStack;
 
     // 1.20.5+ properties
     @Nullable
@@ -875,7 +878,7 @@ public class ItemBuilder {
     }
 
     @SuppressWarnings("unchecked")
-    public ItemBuilder regen() {
+    public synchronized ItemBuilder regen() {
         final ItemStack itemStack = this.itemStack;
         if (type != null)
             itemStack.setType(type);
@@ -899,9 +902,12 @@ public class ItemBuilder {
 
         itemStack.setItemMeta(itemMeta);
         applyAttributeModifiersComponent(itemStack);
-        finalItemStack = applyConsumableComponent(itemStack);
-        finalItemStack = applyPaintingVariantComponent(finalItemStack);
-        finalItemStack = applyGenericComponents(finalItemStack);
+        // Build into a local and publish once so concurrent readers never see
+        // an intermediate stack.
+        ItemStack built = applyConsumableComponent(itemStack);
+        built = applyPaintingVariantComponent(built);
+        built = applyGenericComponents(built);
+        finalItemStack = built;
 
         return this;
     }
@@ -1291,9 +1297,17 @@ public class ItemBuilder {
     }
 
     public ItemStack build() {
-        if (finalItemStack == null)
-            regen();
-        ItemStack builtItem = finalItemStack.clone();
+        ItemStack current = finalItemStack;
+        if (current == null) {
+            synchronized (this) {
+                current = finalItemStack;
+                if (current == null) {
+                    regen();
+                    current = finalItemStack;
+                }
+            }
+        }
+        ItemStack builtItem = current.clone();
         if (unstackable)
             return handleUnstackable(builtItem);
         else
