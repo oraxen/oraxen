@@ -25,11 +25,14 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ChorusBlockMechanicFactory extends MechanicFactory {
 
     public static final int MAX_BLOCK_VARIATION = 63;
-    public static final Map<Integer, ChorusBlockMechanic> BLOCK_PER_VARIATION = new HashMap<>();
+    // Repopulated on reload (a region/command thread on Folia) while every block
+    // event handler reads it from other region threads.
+    public static final Map<Integer, ChorusBlockMechanic> BLOCK_PER_VARIATION = new ConcurrentHashMap<>();
     private static JsonObject variants;
     private static ChorusBlockMechanicFactory instance;
     public final List<String> toolTypes;

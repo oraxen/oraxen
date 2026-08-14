@@ -28,10 +28,13 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class StringBlockMechanicFactory extends MechanicFactory {
 
-    public static final Map<Integer, StringBlockMechanic> BLOCK_PER_VARIATION = new HashMap<>();
+    // Repopulated on reload (a region/command thread on Folia) while every block
+    // event handler reads it from other region threads.
+    public static final Map<Integer, StringBlockMechanic> BLOCK_PER_VARIATION = new ConcurrentHashMap<>();
     private static JsonObject variants;
     private static StringBlockMechanicFactory instance;
     public final List<String> toolTypes;

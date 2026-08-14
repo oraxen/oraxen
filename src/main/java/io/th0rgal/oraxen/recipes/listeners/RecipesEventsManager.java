@@ -29,6 +29,8 @@ import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 import static io.th0rgal.oraxen.mechanics.provided.misc.backpack.BackpackMechanic.BACKPACK_KEY;
@@ -36,11 +38,14 @@ import static io.th0rgal.oraxen.mechanics.provided.misc.backpack.BackpackMechani
 public class RecipesEventsManager implements Listener {
 
     private static RecipesEventsManager instance;
-    private Map<CustomRecipe, String> permissionsPerRecipe = new HashMap<>();
-    private Set<CustomRecipe> whitelistedCraftRecipes = new HashSet<>();
-    private ArrayList<CustomRecipe> whitelistedCraftRecipesOrdered = new ArrayList<>();
-    private Map<String, ShapedOraxenRecipe> shapedOraxenIngredients = new HashMap<>();
-    private Map<String, List<String>> shapelessOraxenIngredients = new HashMap<>();
+    // Rebuilt during reload (a region/command thread on Folia) while crafting
+    // and join events read them concurrently from other region threads; use
+    // concurrent collections and volatile reference swaps.
+    private volatile Map<CustomRecipe, String> permissionsPerRecipe = new ConcurrentHashMap<>();
+    private volatile Set<CustomRecipe> whitelistedCraftRecipes = ConcurrentHashMap.newKeySet();
+    private volatile List<CustomRecipe> whitelistedCraftRecipesOrdered = new CopyOnWriteArrayList<>();
+    private volatile Map<String, ShapedOraxenRecipe> shapedOraxenIngredients = new ConcurrentHashMap<>();
+    private volatile Map<String, List<String>> shapelessOraxenIngredients = new ConcurrentHashMap<>();
     private volatile Map<NamespacedKey, String> smithingRecipes = Map.of();
     private Map<NamespacedKey, String> stagedSmithingRecipes;
     private boolean eventsRegistered;
@@ -197,11 +202,11 @@ public class RecipesEventsManager implements Listener {
     }
 
     public void resetRecipes() {
-        permissionsPerRecipe = new HashMap<>();
-        whitelistedCraftRecipes = new HashSet<>();
-        whitelistedCraftRecipesOrdered = new ArrayList<>();
-        shapedOraxenIngredients = new HashMap<>();
-        shapelessOraxenIngredients = new HashMap<>();
+        permissionsPerRecipe = new ConcurrentHashMap<>();
+        whitelistedCraftRecipes = ConcurrentHashMap.newKeySet();
+        whitelistedCraftRecipesOrdered = new CopyOnWriteArrayList<>();
+        shapedOraxenIngredients = new ConcurrentHashMap<>();
+        shapelessOraxenIngredients = new ConcurrentHashMap<>();
     }
 
     public void addPermissionRecipe(CustomRecipe recipe, String permission) {

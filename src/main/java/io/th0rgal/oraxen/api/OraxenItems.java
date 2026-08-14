@@ -33,9 +33,11 @@ import java.util.stream.Stream;
 public class OraxenItems {
 
     public static final NamespacedKey ITEM_ID = new NamespacedKey(OraxenPlugin.get(), "id");
-    private static Map<File, Map<String, ItemBuilder>> map = new LinkedHashMap<>();
-    private static Map<String, ItemBuilder> itemById = new HashMap<>();
-    private static Set<String> items = new HashSet<>();
+    // loadItems() builds fresh collections and swaps the references; volatile
+    // gives region-thread readers a happens-before edge on reload (Folia).
+    private static volatile Map<File, Map<String, ItemBuilder>> map = new LinkedHashMap<>();
+    private static volatile Map<String, ItemBuilder> itemById = new HashMap<>();
+    private static volatile Set<String> items = new HashSet<>();
 
     public static void loadItems() {
         try {

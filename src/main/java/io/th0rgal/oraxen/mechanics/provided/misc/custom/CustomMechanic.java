@@ -7,12 +7,14 @@ import io.th0rgal.oraxen.mechanics.provided.misc.custom.listeners.CustomListener
 import io.th0rgal.oraxen.utils.actions.ClickAction;
 import org.bukkit.configuration.ConfigurationSection;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class CustomMechanic extends Mechanic {
 
-    private static final Map<String, CustomListener> LOADED_VARIANTS = new HashMap<>();
+    // Mutated during item parsing, which on Folia runs on the reloading
+    // command's region thread across reloads.
+    private static final Map<String, CustomListener> LOADED_VARIANTS = new ConcurrentHashMap<>();
 
     public CustomMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section);

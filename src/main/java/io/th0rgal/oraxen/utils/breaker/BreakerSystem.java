@@ -49,6 +49,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Drives custom block-breaking (custom hardness, furniture barriers, bedrock-break) from
@@ -58,7 +59,9 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class BreakerSystem implements Listener {
 
-    public static final List<HardnessModifier> MODIFIERS = new ArrayList<>();
+    // Re-populated by mechanic factories on every reload while block-damage
+    // handlers iterate it concurrently on region threads (Folia).
+    public static final List<HardnessModifier> MODIFIERS = new CopyOnWriteArrayList<>();
     // Use thread-safe collections for Folia compatibility (concurrent region thread access)
     private final Set<Location> breakerLocations = ConcurrentHashMap.newKeySet();
     private final Map<Location, SchedulerUtil.ScheduledTask> breakerTasks = new ConcurrentHashMap<>();
