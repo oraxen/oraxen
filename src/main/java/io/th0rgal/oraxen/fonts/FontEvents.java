@@ -82,12 +82,23 @@ public class FontEvents implements Listener {
         Book book = Book.builder()
                 .title(meta.title() != null ? meta.title() : Component.empty())
                 .author(meta.author() != null ? meta.author() : Component.empty())
-                .pages(meta.pages().stream().map(page -> format(page, player)).toList())
+                .pages(meta.pages().stream().map(page -> formatBookPage(page, player)).toList())
                 .build();
 
         // Open fake book and deny opening of original book to avoid needing to format the original book
         event.setUseItemInHand(Event.Result.DENY);
         AdventureUtils.openBook(player, book);
+    }
+
+    /**
+     * Formats a displayed book page. Glyph tags ({@code <glyph:...>}) resolve again through the
+     * restricted player-aware resolver (they were lost when pages moved to literal-only
+     * formatting), while the injection fix stays intact: interaction tags such as
+     * {@code <click:run_command>} remain literal text instead of becoming real events.
+     */
+    private Component formatBookPage(Component page, Player player) {
+        String serialized = MINI_MESSAGE_EMPTY.serialize(page).replaceAll("\\\\(?!u)(?!n)(?!\")", "");
+        return format(AdventureUtils.safePlayerInputMiniMessage(player).deserialize(serialized), player);
     }
 
     @EventHandler(ignoreCancelled = true)
