@@ -137,6 +137,7 @@ public class OraxenPlugin extends JavaPlugin {
         }
         NMSHandlers.setup();
         LegacyDatapackCleaner.clear("oraxen_paintings");
+        LegacyDatapackCleaner.clear("oraxen_jukebox");
 
         // Auto-update Paper config for block updates (noteblock, tripwire, chorus)
         var updatedSettings = PaperConfigUpdater.ensureAllBlockUpdatesDisabled();
@@ -149,6 +150,10 @@ public class OraxenPlugin extends JavaPlugin {
         hudManager = new HudManager(configsManager);
         fontManager = new FontManager(configsManager);
         initializeSoundManager();
+        // On 1.21.6+ jukebox songs are registered during bootstrap via RegistryEvents.JUKEBOX_SONG.
+        // 1.21.5 lacks that event, so inject the songs into the live registry once at startup.
+        if (!VersionUtil.atOrAbove("1.21.6"))
+            CustomJukeboxSongRegistry.reload(soundManager.getJukeboxSounds());
         OraxenItems.loadItems();
         fontManager.registerEvents();
         fontManager.verifyRequired(); // Verify the required glyph is there
@@ -237,7 +242,6 @@ public class OraxenPlugin extends JavaPlugin {
 
     private void initializeSoundManager() {
         soundManager = new SoundManager(configsManager.getSound());
-        soundManager.updateLegacyJukeboxDatapack();
     }
 
     public void reloadCustomPaintings() {
@@ -247,8 +251,7 @@ public class OraxenPlugin extends JavaPlugin {
 
     public void reloadCustomJukeboxSongs() {
         initializeSoundManager();
-        if (VersionUtil.atOrAbove("1.21.6"))
-            CustomJukeboxSongRegistry.reload(soundManager.getJukeboxSounds());
+        CustomJukeboxSongRegistry.reload(soundManager.getJukeboxSounds());
     }
 
     public ConfigsManager getConfigsManager() {

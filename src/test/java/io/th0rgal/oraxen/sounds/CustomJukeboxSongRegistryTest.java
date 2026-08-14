@@ -14,12 +14,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CustomJukeboxSongRegistryTest {
 
     @Test
-    void usesDatapackFallbackWhenHotInjectionIsUnavailable() {
-        assertTrue(CustomJukeboxSongRegistry.usesDatapackFallback(false));
-        assertFalse(CustomJukeboxSongRegistry.usesDatapackFallback(true));
-    }
-
-    @Test
     void serializesConcurrentRegistryTransactions() throws Exception {
         CountDownLatch firstInside = new CountDownLatch(1);
         CountDownLatch releaseFirst = new CountDownLatch(1);

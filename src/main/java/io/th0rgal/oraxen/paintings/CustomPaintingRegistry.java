@@ -129,7 +129,7 @@ public final class CustomPaintingRegistry {
         }
     }
 
-    private static boolean supportsCustomPaintings() {
+    public static boolean supportsCustomPaintings() {
         return VersionUtil.atOrAbove("1.21.3");
     }
 

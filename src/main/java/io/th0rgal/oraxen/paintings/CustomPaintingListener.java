@@ -10,7 +10,6 @@ import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.protection.AntiGriefLib;
 import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
-import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import org.bukkit.Art;
@@ -119,7 +118,7 @@ public class CustomPaintingListener implements Listener {
     }
 
     private boolean tryPlace(Player player, ItemStack item, EquipmentSlot hand, Block clickedBlock, BlockFace face, ItemBuilder builder) {
-        if (!VersionUtil.atOrAbove("1.21.5")) return false;
+        if (!CustomPaintingRegistry.supportsCustomPaintings()) return false;
         if (!isWallFace(face)) return false;
 
         Block target = clickedBlock.getRelative(face);
