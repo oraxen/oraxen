@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.recipes.listeners.RecipesEventsManager;
 import io.th0rgal.oraxen.recipes.loaders.*;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.OraxenYaml;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.Keyed;
@@ -55,6 +56,14 @@ public class RecipesManager {
     }
 
     public static void reload() {
+        // The server recipe registry is global state mutated in place; a reload
+        // issued from a player's region thread would race concurrent crafting
+        // resolution on other regions. Re-dispatch onto the global region
+        // thread, mirroring the jukebox/painting registry reloads.
+        if (!SchedulerUtil.isGlobalThread()) {
+            SchedulerUtil.runTask(RecipesManager::reload);
+            return;
+        }
         if (Settings.RESET_RECIPES.toBool()) {
             Iterator<Recipe> recipeIterator = Bukkit.recipeIterator();
             while (recipeIterator.hasNext()) {
