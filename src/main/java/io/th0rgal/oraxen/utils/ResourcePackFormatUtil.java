@@ -33,12 +33,13 @@ public final class ResourcePackFormatUtil {
             new PackFormatThreshold("1.20", 15)
     };
     private static final PackFormatThreshold[] DATA_PACK_FORMAT_THRESHOLDS = {
-            new PackFormatThreshold("26.1", 84),
-            new PackFormatThreshold("26", 84),
-            new PackFormatThreshold("1.26.1", 84),
-            new PackFormatThreshold("1.21.11", 89),
-            new PackFormatThreshold("1.21.10", 88),
-            new PackFormatThreshold("1.21.9", 87),
+            new PackFormatThreshold("26.2", 107),
+            new PackFormatThreshold("26.1", 101),
+            new PackFormatThreshold("26", 101),
+            new PackFormatThreshold("1.26.2", 107),
+            new PackFormatThreshold("1.26.1", 101),
+            new PackFormatThreshold("1.21.11", 94),
+            new PackFormatThreshold("1.21.9", 88),
             new PackFormatThreshold("1.21.7", 81),
             new PackFormatThreshold("1.21.6", 80),
             new PackFormatThreshold("1.21.5", 71),
