@@ -55,17 +55,20 @@ import java.util.jar.JarFile;
 public class OraxenPlugin extends JavaPlugin {
 
     private static OraxenPlugin oraxen;
-    private ConfigsManager configsManager;
-    private ResourcesManager resourceManager;
+    // These managers are reassigned on /oraxen reload, which runs on a region thread on
+    // Folia; volatile ensures other region threads observe the new instances instead of
+    // repopulating caches (e.g. the sticky per-enum Settings cache) from stale managers.
+    private volatile ConfigsManager configsManager;
+    private volatile ResourcesManager resourceManager;
     private volatile UploadManager uploadManager;
     private volatile io.th0rgal.oraxen.pack.upload.MultiVersionUploadManager multiVersionUploadManager;
-    private FontManager fontManager;
-    private HudManager hudManager;
-    private SoundManager soundManager;
-    private InvManager invManager;
-    private ResourcePack resourcePack;
-    private ClickActionManager clickActionManager;
-    private PacketAdapter packetAdapter;
+    private volatile FontManager fontManager;
+    private volatile HudManager hudManager;
+    private volatile SoundManager soundManager;
+    private volatile InvManager invManager;
+    private volatile ResourcePack resourcePack;
+    private volatile ClickActionManager clickActionManager;
+    private volatile PacketAdapter packetAdapter;
 
     public OraxenPlugin() {
         oraxen = this;
