@@ -126,7 +126,9 @@ public class FontEvents implements Listener {
 
     private String processRenameDisplayName(Player player, String displayName, ItemStack inputItem) {
         if (displayName != null) {
-            displayName = AdventureUtils.parseLegacyThroughMiniMessage(displayName);
+            // Restrict player-supplied rename text to the safe cosmetic tag set (style,
+            // glyph and shift tags); interaction tags such as <click>/<hover> stay literal.
+            displayName = AdventureUtils.parseSafePlayerInput(displayName);
             displayName = replaceUnpermittedGlyphs(player, displayName);
             displayName = replaceGlyphPlaceholders(player, displayName);
         }

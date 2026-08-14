@@ -13,6 +13,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import net.kyori.adventure.text.minimessage.tag.standard.StandardTags;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
@@ -49,6 +50,46 @@ public class AdventureUtils {
 
     public static MiniMessage MINI_MESSAGE_PLAYER(Player player) {
         return MiniMessage.builder().tags(TagResolver.resolver(TagResolver.standard(), GlyphTag.getResolverForPlayer(player))).build();
+    }
+
+    /**
+     * Cosmetic style tags that are safe to resolve in player-supplied text. Interaction and
+     * content tags ({@code <click>}, {@code <hover>}, {@code <insertion>}, {@code <translate>},
+     * {@code <selector>}, ...) are deliberately excluded and stay literal.
+     */
+    private static final TagResolver SAFE_STYLE_TAGS = TagResolver.resolver(
+            StandardTags.color(), StandardTags.decorations(), StandardTags.gradient(),
+            StandardTags.rainbow(), StandardTags.transition(), StandardTags.font(),
+            StandardTags.reset());
+
+    /**
+     * MiniMessage instance for player-supplied text (e.g. anvil renames): resolves only the
+     * safe cosmetic style tags plus Oraxen's glyph/shift tags.
+     */
+    public static final MiniMessage SAFE_PLAYER_INPUT_MINI_MESSAGE = MiniMessage.builder()
+            .tags(TagResolver.resolver(SAFE_STYLE_TAGS, GlyphTag.RESOLVER, ShiftTag.RESOLVER))
+            .build();
+
+    /**
+     * Player-aware variant of {@link #SAFE_PLAYER_INPUT_MINI_MESSAGE}: glyph tags resolve with
+     * the player's permissions (unpermitted glyphs stay literal tag text).
+     */
+    public static MiniMessage safePlayerInputMiniMessage(Player player) {
+        return MiniMessage.builder()
+                .tags(TagResolver.resolver(SAFE_STYLE_TAGS, GlyphTag.getResolverForPlayer(player), ShiftTag.RESOLVER))
+                .build();
+    }
+
+    /**
+     * Parses player-supplied text through the legacy serializer (converting legacy codes) and
+     * the restricted {@link #SAFE_PLAYER_INPUT_MINI_MESSAGE} tag set. Unsafe tags stay literal.
+     * The result is a MiniMessage string rather than a legacy string, so styled output survives
+     * a later MiniMessage deserialization instead of degrading into literal section-sign codes.
+     */
+    public static String parseSafePlayerInput(String message) {
+        String miniMessage = MINI_MESSAGE.serialize(LEGACY_SERIALIZER.deserialize(message))
+                .replaceAll("\\\\(?!u)(?!n)(?!\")", "");
+        return MINI_MESSAGE.serialize(SAFE_PLAYER_INPUT_MINI_MESSAGE.deserialize(miniMessage));
     }
 
     public static final GsonComponentSerializer GSON_SERIALIZER = GsonComponentSerializer.gson();
