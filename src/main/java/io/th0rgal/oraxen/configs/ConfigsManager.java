@@ -151,6 +151,7 @@ public class ConfigsManager {
         paintings = validate(tempManager, "paintings.yml", defaultPaintings);
         File languagesFolder = new File(plugin.getDataFolder(), "languages");
         languagesFolder.mkdir();
+        migrateLegacyDiscordInvite(languagesFolder);
         String languageFile = "languages/" + settings.getString(Settings.PLUGIN_LANGUAGE.getPath()) + ".yml";
         language = validate(tempManager, languageFile, defaultLanguage);
 
@@ -180,6 +181,29 @@ public class ConfigsManager {
                 tempManager.extractConfigsInFolder("schematics", "schem");
         }
 
+    }
+
+    /**
+     * Replaces the outdated Discord invite in existing language files. Config validation only
+     * fills in missing keys, so servers that generated their language files before the invite
+     * changed kept pointing users at the dead link. Runs on every start but only rewrites files
+     * that still contain the old invite, making it a one-time migration per file.
+     */
+    private void migrateLegacyDiscordInvite(File languagesFolder) {
+        File[] languageFiles = languagesFolder.listFiles((dir, name) -> name.endsWith(".yml"));
+        if (languageFiles == null) return;
+        for (File languageFile : languageFiles) {
+            try {
+                String content = java.nio.file.Files.readString(languageFile.toPath());
+                if (!content.contains(LEGACY_DISCORD_INVITE)) continue;
+                java.nio.file.Files.writeString(languageFile.toPath(),
+                        content.replace(LEGACY_DISCORD_INVITE, CURRENT_DISCORD_INVITE));
+                Logs.logSuccess("Updated outdated Discord invite in languages/" + languageFile.getName());
+            } catch (IOException e) {
+                Logs.logError("Failed to update Discord invite in languages/" + languageFile.getName());
+                Logs.debug(e);
+            }
+        }
     }
 
     private void migrateRemovedTextEffectsConfig() {
@@ -310,6 +334,11 @@ public class ConfigsManager {
     private static final Map<String, List<String>> REQUIRED_LANG_PLACEHOLDERS = Map.of(
             "general.reload", List.of("<reloaded>")
     );
+
+    // The expired Discord invite that shipped in the introduction guide of older language files
+    // and its current replacement. Used by migrateLegacyDiscordInvite.
+    private static final String LEGACY_DISCORD_INVITE = "discord.gg/9EehAG54aU";
+    private static final String CURRENT_DISCORD_INVITE = "discord.gg/N7AJFJTgBS";
 
     /**
      * Holds parsing state for glyph configuration processing.
