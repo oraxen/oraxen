@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.fonts;
 import io.th0rgal.oraxen.glyphs.*;
 
 import io.papermc.paper.event.player.AsyncChatDecorateEvent;
+import io.papermc.paper.event.player.AsyncChatEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.provided.placeholderapi.PapiAliases;
@@ -243,6 +244,16 @@ public class FontEvents implements Listener {
         public void onPlayerChat(AsyncChatDecorateEvent event) {
             if (!Settings.FORMAT_CHAT.toBool()) return;
             event.result(format(event.result(), event.player()));
+        }
+
+        @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+        public void onPlayerChat(AsyncChatEvent event) {
+            if (!Settings.FORMAT_CHAT.toBool()) return;
+            // The removed legacy chat handler blocked messages containing raw glyph unicodes
+            // the sender lacks permission for; restore that behavior on the modern path
+            // (containsUnpermittedGlyph also sends the NO_PERMISSION message).
+            if (containsUnpermittedGlyph(event.getPlayer(), PLAIN_TEXT.serialize(event.originalMessage())))
+                event.setCancelled(true);
         }
 
     }
