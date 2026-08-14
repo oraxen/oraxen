@@ -181,7 +181,9 @@ public class OraxenPlugin extends JavaPlugin {
 
     private void postLoading() {
         OraxenMetrics.register(this);
-        new LU().l();
+        // Runs synchronous HTTP requests; keep it off the enable path so a stalled
+        // connection cannot block startup.
+        SchedulerUtil.runTaskAsync(this, () -> new LU().l());
         SchedulerUtil.runTask(this, () -> Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent()));
 
         // Auto-generate schema in debug mode (useful for CI/CD)

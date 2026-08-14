@@ -12,6 +12,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Base64;
 
 @SuppressWarnings("ConstantConditions")
@@ -42,8 +43,11 @@ public class LU {
         String i = new String(Base64.getDecoder().decode("aWRlbnRpdGllcw=="), StandardCharsets.UTF_8);
         String d = new String(Base64.getDecoder().decode("ZGlzY29yZA=="), StandardCharsets.UTF_8);
 
-        try (HttpClient httpClient = HttpClient.newHttpClient()) {
-            HttpRequest request = HttpRequest.newBuilder(URI.create(ur)).GET().build();
+        // Bounded timeouts: without them a black-holed connection stalls the caller forever.
+        try (HttpClient httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build()) {
+            HttpRequest request = HttpRequest.newBuilder(URI.create(ur))
+                    .timeout(Duration.ofSeconds(15))
+                    .GET().build();
             String responseString;
             try {
                 responseString = httpClient.send(request, HttpResponse.BodyHandlers.ofString()).body();
