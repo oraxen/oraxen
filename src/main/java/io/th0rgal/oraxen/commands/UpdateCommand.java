@@ -12,6 +12,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.BlockLocation;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -43,17 +44,20 @@ public class UpdateCommand {
                 .withArguments(new EntitySelectorArgument.ManyEntities("targets"))
                 .executesPlayer((player, args) -> {
                     final Collection<Player> targets = ((Collection<Entity>) args.get("targets")).stream().filter(entity -> entity instanceof Player).map(e -> (Player) e).toList();
+                    // Inventory mutation must happen on the thread owning each target (Folia).
                     for (Player p : targets) {
-                        int updated = 0;
-                        for (int i = 0; i < p.getInventory().getSize(); i++) {
-                            final ItemStack oldItem = p.getInventory().getItem(i);
-                            final ItemStack newItem = ItemUpdater.updateItem(oldItem);
-                            if (oldItem == null || oldItem.equals(newItem)) continue;
-                            p.getInventory().setItem(i, newItem);
-                            updated++;
-                        }
-                        Message.UPDATED_ITEMS.send(player, AdventureUtils.tagResolver("amount", String.valueOf(updated)),
-                                AdventureUtils.tagResolver("player", p.displayName()));
+                        SchedulerUtil.runForEntity(p, () -> {
+                            int updated = 0;
+                            for (int i = 0; i < p.getInventory().getSize(); i++) {
+                                final ItemStack oldItem = p.getInventory().getItem(i);
+                                final ItemStack newItem = ItemUpdater.updateItem(oldItem);
+                                if (oldItem == null || oldItem.equals(newItem)) continue;
+                                p.getInventory().setItem(i, newItem);
+                                updated++;
+                            }
+                            Message.UPDATED_ITEMS.send(player, AdventureUtils.tagResolver("amount", String.valueOf(updated)),
+                                    AdventureUtils.tagResolver("player", p.displayName()));
+                        });
                     }
                 });
     }

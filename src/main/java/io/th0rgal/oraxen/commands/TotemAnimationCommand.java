@@ -9,6 +9,7 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.configs.Message;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import org.bukkit.EntityEffect;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -41,10 +42,14 @@ public class TotemAnimationCommand {
                     if (itemStack.getType() != Material.AIR) {
                         itemStack.setData(DataComponentTypes.DEATH_PROTECTION, DeathProtection.deathProtection());
                     }
-                    playAnimation(target, itemStack);
-                    Message.TOTEM_ANIMATION_SUCCESS.send(sender,
-                            AdventureUtils.tagResolver("player", target.getName()),
-                            AdventureUtils.tagResolver("item", itemId));
+                    // The animation reads the target's hand items; hop to the thread owning
+                    // the target (Folia) and only report success once it actually played.
+                    SchedulerUtil.runForEntity(target, () -> {
+                        playAnimation(target, itemStack);
+                        Message.TOTEM_ANIMATION_SUCCESS.send(sender,
+                                AdventureUtils.tagResolver("player", target.getName()),
+                                AdventureUtils.tagResolver("item", itemId));
+                    });
                 });
     }
 

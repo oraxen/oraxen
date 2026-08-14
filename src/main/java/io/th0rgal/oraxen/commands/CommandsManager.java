@@ -19,9 +19,14 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 public class CommandsManager {
 
@@ -144,6 +149,51 @@ public class CommandsManager {
         return slots > MAX_GIVE_SLOTS ? maxStackSize * MAX_GIVE_SLOTS : amount;
     }
 
+    /**
+     * Runs {@code action} on each target's entity scheduler (the thread owning the target on
+     * Folia) and, once every target has either run or retired, hands the players that were
+     * actually served to {@code whenDone}. Targets that retire (e.g. disconnect) before their
+     * task executes are not reported as served.
+     */
+    private static void forEachTargetThenReport(final Collection<Player> targets, final Consumer<Player> action,
+                                                final Consumer<List<Player>> whenDone) {
+        if (targets.isEmpty()) {
+            whenDone.accept(List.of());
+            return;
+        }
+        final List<Player> served = Collections.synchronizedList(new ArrayList<>());
+        final AtomicInteger pending = new AtomicInteger(targets.size());
+        for (final Player target : targets) {
+            final Runnable complete = () -> {
+                if (pending.decrementAndGet() == 0) whenDone.accept(List.copyOf(served));
+            };
+            final SchedulerUtil.ScheduledTask task = SchedulerUtil.runForEntity(target, () -> {
+                try {
+                    action.accept(target);
+                    served.add(target);
+                } finally {
+                    complete.run();
+                }
+            }, complete);
+            // Scheduling is refused (null) when the target already retired; neither callback runs.
+            if (task == null) complete.run();
+        }
+    }
+
+    private void sendGiveReport(final CommandSender sender, final List<Player> served, final int amount,
+                                final String itemID) {
+        if (served.size() == 1)
+            Message.GIVE_PLAYER.send(sender,
+                    AdventureUtils.tagResolver("player", served.getFirst().getName()),
+                    AdventureUtils.tagResolver("amount", String.valueOf(amount)),
+                    AdventureUtils.tagResolver("item", itemID));
+        else
+            Message.GIVE_PLAYERS.send(sender,
+                    AdventureUtils.tagResolver("count", String.valueOf(served.size())),
+                    AdventureUtils.tagResolver("amount", String.valueOf(amount)),
+                    AdventureUtils.tagResolver("item", itemID));
+    }
+
     @SuppressWarnings("unchecked")
     private OraxenCommand getGiveCommand() {
         return new OraxenCommand("give")
@@ -173,28 +223,14 @@ public class CommandsManager {
                     // handed, and these tasks may run in parallel on different region threads.
                     final int giveAmount = amount;
 
-                    for (final Player target : targets) {
-                        SchedulerUtil.runForEntity(target, () -> {
-                            final Map<Integer, ItemStack> output = target.getInventory()
-                                    .addItem(itemBuilder.buildArray(giveAmount));
-                            if (!output.isEmpty()) {
-                                for (final ItemStack stack : output.values())
-                                    target.getWorld().dropItem(target.getLocation(), stack);
-                            }
-                        });
-                    }
-
-                    if (targets.size() == 1)
-                        Message.GIVE_PLAYER
-                                .send(sender,
-                                        AdventureUtils.tagResolver("player", (targets.iterator().next().getName())),
-                                        AdventureUtils.tagResolver("amount", (String.valueOf(amount))),
-                                        AdventureUtils.tagResolver("item", itemID));
-                    else
-                        Message.GIVE_PLAYERS
-                                .send(sender, AdventureUtils.tagResolver("count", String.valueOf(targets.size())),
-                                        AdventureUtils.tagResolver("amount", String.valueOf(amount)),
-                                        AdventureUtils.tagResolver("item", itemID));
+                    forEachTargetThenReport(targets, target -> {
+                        final Map<Integer, ItemStack> output = target.getInventory()
+                                .addItem(itemBuilder.buildArray(giveAmount));
+                        if (!output.isEmpty()) {
+                            for (final ItemStack stack : output.values())
+                                target.getWorld().dropItem(target.getLocation(), stack);
+                        }
+                    }, served -> sendGiveReport(sender, served, giveAmount, itemID));
                 });
     }
 
@@ -214,28 +250,15 @@ public class CommandsManager {
                         return;
                     }
 
-                    for (final Player target : targets) {
-                        SchedulerUtil.runForEntity(target, () -> {
-                            final Map<Integer, ItemStack> output = target.getInventory()
-                                    .addItem(ItemUpdater.updateItem(itemBuilder.build()));
-                            if (!output.isEmpty()) {
-                                for (final ItemStack stack : output.values()) {
-                                    target.getWorld().dropItem(target.getLocation(), stack);
-                                }
+                    forEachTargetThenReport(targets, target -> {
+                        final Map<Integer, ItemStack> output = target.getInventory()
+                                .addItem(ItemUpdater.updateItem(itemBuilder.build()));
+                        if (!output.isEmpty()) {
+                            for (final ItemStack stack : output.values()) {
+                                target.getWorld().dropItem(target.getLocation(), stack);
                             }
-                        });
-                    }
-
-                    if (targets.size() == 1)
-                        Message.GIVE_PLAYER
-                                .send(sender, AdventureUtils.tagResolver("player", targets.iterator().next().getName()),
-                                        AdventureUtils.tagResolver("amount", String.valueOf(1)),
-                                        AdventureUtils.tagResolver("item", itemID));
-                    else
-                        Message.GIVE_PLAYERS
-                                .send(sender, AdventureUtils.tagResolver("count", String.valueOf(targets.size())),
-                                        AdventureUtils.tagResolver("amount", String.valueOf(1)),
-                                        AdventureUtils.tagResolver("item", itemID));
+                        }
+                    }, served -> sendGiveReport(sender, served, 1, itemID));
                 });
     }
 
