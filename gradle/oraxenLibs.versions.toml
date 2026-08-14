@@ -133,7 +133,6 @@ libraries-bukkit = [
 ]
 libraries-shade = [
     "bstats",
-    "annotations",
     "triumph-gui",
     "antigrieflib",
     "more-persistent-data-types",

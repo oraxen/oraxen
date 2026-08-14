@@ -127,11 +127,18 @@ dependencies {
         exclude("com.google.code.gson", "gson")
         exclude("net.kyori")
     }
+    // compile-time only annotations (@NotNull etc); CLASS retention, never needed at runtime
+    compileOnly(oraxenLibs.annotations)
     // shaded dependencies
     implementation(oraxenLibs.bundles.libraries.shade) {
         exclude("com.google.code.gson", "gson")
         exclude("net.kyori")
         exclude(group = "com.google.guava")
+        // compile-time annotations; JVM ignores missing annotation classes at runtime
+        exclude("org.jetbrains", "annotations")
+        // EvalEx is only referenced by actions-core's unused math action type;
+        // Oraxen registers its own action impls and uses Spring SpEL for conditions
+        exclude("com.udojava", "EvalEx")
     }
 
     // Test dependencies
@@ -260,9 +267,7 @@ tasks {
                 exclude("io.th0rgal.oraxen.**")
             }
         }
-        // exception for this one dunno who includes that...
-        relocate("org.intellij.lang.annotations", "io.th0rgal.oraxen.shaded.intellij.annotations")
-        relocate("com.udojava.evalex", "io.th0rgal.oraxen.shaded.udojava.evalex")
+
 
         manifest {
             attributes(
