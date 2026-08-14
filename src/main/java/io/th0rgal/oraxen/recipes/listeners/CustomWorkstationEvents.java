@@ -191,8 +191,11 @@ public class CustomWorkstationEvents implements Listener {
         Block block = event.getClickedBlock();
         for (CustomWorkstationRecipe recipe : CustomWorkstationRegistry.recipes(CustomWorkstationRecipe.Type.CAULDRON)) {
             if (!recipe.base().matches(held) || !matchesCauldron(block, recipe)) continue;
+            // Check permission before cancelling the event: unpermitted players keep vanilla
+            // cauldron behavior (and another matching recipe may still be permitted).
+            if (!permitted(recipe, player)) continue;
             event.setCancelled(true);
-            if (!permitted(recipe, player) || !validTransition(block, recipe)) return;
+            if (!validTransition(block, recipe)) return;
             ItemStack result = recipe.createResult();
             if (player.getGameMode() != GameMode.CREATIVE) held.setAmount(held.getAmount() - recipe.base().amount());
             Map<Integer, ItemStack> overflow = player.getInventory().addItem(result);
