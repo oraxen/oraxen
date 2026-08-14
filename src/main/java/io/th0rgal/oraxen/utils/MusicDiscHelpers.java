@@ -11,6 +11,7 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.sound.SoundStop;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
@@ -62,8 +63,9 @@ public class MusicDiscHelpers {
                 // region; Folia thread-checks the whole box searched by
                 // getNearbyEntities. Iterating the online-player snapshot with a
                 // distance check avoids the scan and keeps any configured range.
+                Location soundLocation = entity.getLocation();
                 forEachPlayerInRange(entity, radius,
-                        player -> AdventureUtils.playSound(player, entity.getLocation(), sound));
+                        player -> AdventureUtils.playSound(player, soundLocation, sound));
             } else {
                 AdventureUtils.playSound(entity.getLocation(), sound);
             }
@@ -94,14 +96,18 @@ public class MusicDiscHelpers {
      * Runs the action for every online player within {@code radius} of the
      * entity. Uses the thread-safe online-player snapshot plus benign location
      * reads instead of {@code getNearbyEntities}, whose searched box is
-     * thread-checked against the owning region on Folia.
+     * thread-checked against the owning region on Folia. Each matched player
+     * may be owned by a different region than the entity, so the action itself
+     * is re-dispatched onto the player's entity scheduler; the action must not
+     * touch the entity's world state.
      */
     private static void forEachPlayerInRange(Entity entity, double radius, java.util.function.Consumer<Player> action) {
         double radiusSquared = radius * radius;
+        Location center = entity.getLocation();
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (!player.getWorld().equals(entity.getWorld())) continue;
-            if (player.getLocation().distanceSquared(entity.getLocation()) > radiusSquared) continue;
-            action.accept(player);
+            if (player.getLocation().distanceSquared(center) > radiusSquared) continue;
+            SchedulerUtil.runForEntity(player, () -> action.accept(player));
         }
     }
 
