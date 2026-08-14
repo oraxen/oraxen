@@ -55,13 +55,33 @@ public class StorageMechanic {
     private final float pitch;
 
     public static void clearRuntimeCaches() {
+        // Reload may run on any command thread; block PDC lives in the chunk and
+        // furniture entities belong to their region, so hop to the owning
+        // region/entity thread before persisting (Folia thread-checks both).
         for (Map.Entry<Block, StorageGui> entry : blockStorages.entrySet()) {
-            persistBlockStorage(entry.getKey(), entry.getValue());
-            closeAllViewers(entry.getValue());
+            Block block = entry.getKey();
+            StorageGui gui = entry.getValue();
+            if (block == null || gui == null) continue;
+            SchedulerUtil.runAtLocation(block.getLocation(), () -> {
+                ItemStack[] items = snapshotContents(gui);
+                // Clear immediately after the snapshot so viewers cannot extract
+                // already-persisted items before the deferred close (dupe).
+                gui.getInventory().clear();
+                BlockHelpers.getPDC(block).set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, items);
+                closeAllViewers(gui);
+            });
         }
         for (Map.Entry<Entity, StorageGui> entry : frameStorages.entrySet()) {
-            persistEntityStorage(entry.getKey(), entry.getValue());
-            closeAllViewers(entry.getValue());
+            Entity entity = entry.getKey();
+            StorageGui gui = entry.getValue();
+            if (entity == null || gui == null) continue;
+            SchedulerUtil.runForEntity(entity, () -> {
+                ItemStack[] items = snapshotContents(gui);
+                gui.getInventory().clear();
+                persistEntityStorage(entity, items);
+                closeAllViewers(gui);
+            }, () -> {
+            });
         }
         for (Player player : playerStorages) {
             persistPersonalStorage(player);
@@ -73,16 +93,9 @@ public class StorageMechanic {
         lockedEntityStorages.clear();
     }
 
-    private static void persistBlockStorage(@Nullable Block block, @Nullable StorageGui gui) {
-        if (block == null) return;
-        PersistentDataContainer pdc = BlockHelpers.getPDC(block);
-        pdc.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, resolveBlockStorageItems(block, gui));
-    }
-
-    private static void persistEntityStorage(@Nullable Entity entity, @Nullable StorageGui gui) {
+    private static void persistEntityStorage(@Nullable Entity entity, ItemStack[] items) {
         if (entity == null) return;
 
-        ItemStack[] items = resolveEntityStorageItems(entity, gui);
         entity.getPersistentDataContainer().set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, items);
 
         ItemStack furnitureItem = FurnitureMechanic.getFurnitureItem(entity);
