@@ -13,13 +13,15 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class RecipeBuilder {
 
-    private static final Map<UUID, RecipeBuilder> MAP = new HashMap<>();
+    // Mutated from commands and inventory events of different players, which on
+    // Folia run concurrently on different region threads.
+    private static final Map<UUID, RecipeBuilder> MAP = new ConcurrentHashMap<>();
 
     private Inventory inventory;
     private File configFile;
