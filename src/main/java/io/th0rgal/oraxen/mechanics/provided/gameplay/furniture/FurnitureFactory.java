@@ -13,6 +13,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox.JukeboxLi
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text.FurnitureTextEntry;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text.FurnitureTextPacketBridge;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text.FurnitureTextRegistry;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -87,10 +88,18 @@ public class FurnitureFactory extends MechanicFactory {
     }
 
     private static void registerLoadedFurnitureText() {
+        // OraxenItemsLoadedEvent fires on the global thread (startup) or a
+        // command thread (reload). Enumerating the world entity list is a safe
+        // snapshot read, but registering reads entity PDC and, for missing
+        // viewers, Entity#getTrackedBy, which Folia thread-checks against the
+        // owning region; hop to each entity's scheduler before touching it.
         for (org.bukkit.World world : Bukkit.getWorlds()) {
-            world.getEntities().stream()
-                    .filter(OraxenFurniture::isBaseEntity)
-                    .forEach(entity -> registerTextEntity(entity, true));
+            for (Entity entity : world.getEntities()) {
+                SchedulerUtil.runForEntity(entity, () -> {
+                    if (!OraxenFurniture.isBaseEntity(entity)) return;
+                    registerTextEntity(entity, true);
+                });
+            }
         }
     }
 
