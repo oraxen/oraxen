@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.fonts;
 import io.th0rgal.oraxen.glyphs.*;
 
 import io.papermc.paper.event.player.AsyncChatDecorateEvent;
+import io.papermc.paper.event.player.AsyncChatEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.provided.placeholderapi.PapiAliases;
@@ -82,12 +83,23 @@ public class FontEvents implements Listener {
         Book book = Book.builder()
                 .title(meta.title() != null ? meta.title() : Component.empty())
                 .author(meta.author() != null ? meta.author() : Component.empty())
-                .pages(meta.pages().stream().map(page -> format(page, player)).toList())
+                .pages(meta.pages().stream().map(page -> formatBookPage(page, player)).toList())
                 .build();
 
         // Open fake book and deny opening of original book to avoid needing to format the original book
         event.setUseItemInHand(Event.Result.DENY);
         AdventureUtils.openBook(player, book);
+    }
+
+    /**
+     * Formats a displayed book page. Glyph tags ({@code <glyph:...>}) resolve again through the
+     * restricted player-aware resolver (they were lost when pages moved to literal-only
+     * formatting), while the injection fix stays intact: interaction tags such as
+     * {@code <click:run_command>} remain literal text instead of becoming real events.
+     */
+    private Component formatBookPage(Component page, Player player) {
+        String serialized = MINI_MESSAGE_EMPTY.serialize(page).replaceAll("\\\\(?!u)(?!n)(?!\")", "");
+        return format(AdventureUtils.safePlayerInputMiniMessage(player).deserialize(serialized), player);
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -126,7 +138,9 @@ public class FontEvents implements Listener {
 
     private String processRenameDisplayName(Player player, String displayName, ItemStack inputItem) {
         if (displayName != null) {
-            displayName = AdventureUtils.parseLegacyThroughMiniMessage(displayName);
+            // Restrict player-supplied rename text to the safe cosmetic tag set (style,
+            // glyph and shift tags); interaction tags such as <click>/<hover> stay literal.
+            displayName = AdventureUtils.parseSafePlayerInput(displayName);
             displayName = replaceUnpermittedGlyphs(player, displayName);
             displayName = replaceGlyphPlaceholders(player, displayName);
         }
@@ -230,6 +244,16 @@ public class FontEvents implements Listener {
         public void onPlayerChat(AsyncChatDecorateEvent event) {
             if (!Settings.FORMAT_CHAT.toBool()) return;
             event.result(format(event.result(), event.player()));
+        }
+
+        @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+        public void onPlayerChat(AsyncChatEvent event) {
+            if (!Settings.FORMAT_CHAT.toBool()) return;
+            // The removed legacy chat handler blocked messages containing raw glyph unicodes
+            // the sender lacks permission for; restore that behavior on the modern path
+            // (containsUnpermittedGlyph also sends the NO_PERMISSION message).
+            if (containsUnpermittedGlyph(event.getPlayer(), PLAIN_TEXT.serialize(event.originalMessage())))
+                event.setCancelled(true);
         }
 
     }

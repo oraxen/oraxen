@@ -34,6 +34,8 @@ public final class OraxenPluginBootstrap implements PluginBootstrap {
                     () -> OraxenRegistryBootstrap.registerPaintings(context));
             registerFeature(context, "block tag edits", () -> OraxenRegistryBootstrap.registerBlockTagEdits(context));
         }
+        // RegistryEvents.JUKEBOX_SONG only exists on 1.21.6+; on 1.21.5 the songs are
+        // injected into the live registry at plugin enable instead.
         if (atOrAbove(minecraftVersion, 1, 21, 6)) {
             registerFeature(context, "custom jukebox songs",
                     () -> OraxenRegistryBootstrap.registerJukeboxSongs(context));

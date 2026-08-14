@@ -116,10 +116,20 @@ public class SettingsUpdater {
         settings.set(newPath, settings.get(oldPath));
     }
 
+    /**
+     * Targeted migration notices for removed settings whose removal changes behavior in a way
+     * server owners should understand, instead of only the generic "outdated setting" log.
+     */
+    private static final Map<String, String> REMOVAL_NOTICES = Map.of(
+            "Chat.chat_handler", "The legacy chat handler has been removed; Oraxen now always uses the modern Paper chat handler. "
+                    + "Messages containing raw glyph characters the sender lacks permission for are blocked with a no-permission notice.");
+
     public YamlConfiguration removeKeys(YamlConfiguration settings, List<String> keys) {
         for (String key : keys) {
             if (settings.contains(key)) {
                 Logs.logWarning("Found outdated setting " + key + ". This will be removed.");
+                String notice = REMOVAL_NOTICES.get(key);
+                if (notice != null) Logs.logWarning(notice);
             }
             settings.set(key, null);
 

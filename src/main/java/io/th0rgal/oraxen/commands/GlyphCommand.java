@@ -17,8 +17,11 @@ import java.util.List;
 public class GlyphCommand {
 
     public OraxenCommand getGlyphCommand() {
+        // Accept both the plural and singular permission: 1.218's chained withPermission calls
+        // overwrote each other, making oraxen.command.emoji the effective permission, so users
+        // granted only the singular form keep access.
         return new OraxenCommand("emojis")
-                .withPermission("oraxen.command.emojis")
+                .withPermission("oraxen.command.emojis;oraxen.command.emoji")
                 .executesPlayer((player, args) -> {
                     List<Glyph> emojiList = OraxenPlugin.get().getFontManager().getEmojis().stream().toList();
                     boolean onlyShowPermissable = Settings.SHOW_PERMISSION_EMOJIS.toBool();

@@ -55,17 +55,20 @@ import java.util.jar.JarFile;
 public class OraxenPlugin extends JavaPlugin {
 
     private static OraxenPlugin oraxen;
-    private ConfigsManager configsManager;
-    private ResourcesManager resourceManager;
+    // These managers are reassigned on /oraxen reload, which runs on a region thread on
+    // Folia; volatile ensures other region threads observe the new instances instead of
+    // repopulating caches (e.g. the sticky per-enum Settings cache) from stale managers.
+    private volatile ConfigsManager configsManager;
+    private volatile ResourcesManager resourceManager;
     private volatile UploadManager uploadManager;
     private volatile io.th0rgal.oraxen.pack.upload.MultiVersionUploadManager multiVersionUploadManager;
-    private FontManager fontManager;
-    private HudManager hudManager;
-    private SoundManager soundManager;
-    private InvManager invManager;
-    private ResourcePack resourcePack;
-    private ClickActionManager clickActionManager;
-    private PacketAdapter packetAdapter;
+    private volatile FontManager fontManager;
+    private volatile HudManager hudManager;
+    private volatile SoundManager soundManager;
+    private volatile InvManager invManager;
+    private volatile ResourcePack resourcePack;
+    private volatile ClickActionManager clickActionManager;
+    private volatile PacketAdapter packetAdapter;
 
     public OraxenPlugin() {
         oraxen = this;
@@ -134,6 +137,7 @@ public class OraxenPlugin extends JavaPlugin {
         }
         NMSHandlers.setup();
         LegacyDatapackCleaner.clear("oraxen_paintings");
+        LegacyDatapackCleaner.clear("oraxen_jukebox");
 
         // Auto-update Paper config for block updates (noteblock, tripwire, chorus)
         var updatedSettings = PaperConfigUpdater.ensureAllBlockUpdatesDisabled();
@@ -146,6 +150,10 @@ public class OraxenPlugin extends JavaPlugin {
         hudManager = new HudManager(configsManager);
         fontManager = new FontManager(configsManager);
         initializeSoundManager();
+        // On 1.21.6+ jukebox songs are registered during bootstrap via RegistryEvents.JUKEBOX_SONG.
+        // 1.21.5 lacks that event, so inject the songs into the live registry once at startup.
+        if (!VersionUtil.atOrAbove("1.21.6"))
+            CustomJukeboxSongRegistry.reload(soundManager.getJukeboxSounds());
         OraxenItems.loadItems();
         fontManager.registerEvents();
         fontManager.verifyRequired(); // Verify the required glyph is there
@@ -178,7 +186,9 @@ public class OraxenPlugin extends JavaPlugin {
 
     private void postLoading() {
         OraxenMetrics.register(this);
-        new LU().l();
+        // Runs synchronous HTTP requests; keep it off the enable path so a stalled
+        // connection cannot block startup.
+        SchedulerUtil.runTaskAsync(this, () -> new LU().l());
         SchedulerUtil.runTask(this, () -> Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent()));
 
         // Auto-generate schema in debug mode (useful for CI/CD)
@@ -232,7 +242,6 @@ public class OraxenPlugin extends JavaPlugin {
 
     private void initializeSoundManager() {
         soundManager = new SoundManager(configsManager.getSound());
-        soundManager.updateLegacyJukeboxDatapack();
     }
 
     public void reloadCustomPaintings() {
@@ -242,8 +251,7 @@ public class OraxenPlugin extends JavaPlugin {
 
     public void reloadCustomJukeboxSongs() {
         initializeSoundManager();
-        if (VersionUtil.atOrAbove("1.21.6"))
-            CustomJukeboxSongRegistry.reload(soundManager.getJukeboxSounds());
+        CustomJukeboxSongRegistry.reload(soundManager.getJukeboxSounds());
     }
 
     public ConfigsManager getConfigsManager() {

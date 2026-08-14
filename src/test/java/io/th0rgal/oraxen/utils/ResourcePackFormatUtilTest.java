@@ -25,9 +25,13 @@ class ResourcePackFormatUtilTest {
 
     @Test
     void dataPackFormatsResolveForBothNamespaces() {
-        assertEquals(84, ResourcePackFormatUtil.getDataPackFormatForVersion(new MinecraftVersion("26")));
-        assertEquals(84, ResourcePackFormatUtil.getDataPackFormatForVersion(new MinecraftVersion("26.1")));
-        assertEquals(84, ResourcePackFormatUtil.getDataPackFormatForVersion(new MinecraftVersion("1.26.1")));
-        assertEquals(89, ResourcePackFormatUtil.getDataPackFormatForVersion(new MinecraftVersion("1.21.11")));
+        assertEquals(101, ResourcePackFormatUtil.getDataPackFormatForVersion(new MinecraftVersion("26")));
+        assertEquals(101, ResourcePackFormatUtil.getDataPackFormatForVersion(new MinecraftVersion("26.1")));
+        assertEquals(107, ResourcePackFormatUtil.getDataPackFormatForVersion(new MinecraftVersion("26.2")));
+        assertEquals(101, ResourcePackFormatUtil.getDataPackFormatForVersion(new MinecraftVersion("1.26.1")));
+        assertEquals(107, ResourcePackFormatUtil.getDataPackFormatForVersion(new MinecraftVersion("1.26.2")));
+        assertEquals(94, ResourcePackFormatUtil.getDataPackFormatForVersion(new MinecraftVersion("1.21.11")));
+        assertEquals(88, ResourcePackFormatUtil.getDataPackFormatForVersion(new MinecraftVersion("1.21.10")));
+        assertEquals(88, ResourcePackFormatUtil.getDataPackFormatForVersion(new MinecraftVersion("1.21.9")));
     }
 }

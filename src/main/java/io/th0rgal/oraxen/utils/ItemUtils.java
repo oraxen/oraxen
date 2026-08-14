@@ -20,6 +20,16 @@ public class ItemUtils {
         return itemStack == null || itemStack.getType() == Material.AIR || itemStack.getAmount() == 0;
     }
 
+    /**
+     * Returns whether the player holds an item in either hand. Vanilla uses this to decide
+     * whether sneaking bypasses block interactions (containers still open when sneaking with
+     * empty hands).
+     */
+    public static boolean hasItemInAnyHand(Player player) {
+        return !isEmpty(player.getInventory().getItemInMainHand())
+                || !isEmpty(player.getInventory().getItemInOffHand());
+    }
+
     public static void subtract(ItemStack itemStack, int amount) {
         itemStack.setAmount(Math.max(0, itemStack.getAmount() - amount));
     }

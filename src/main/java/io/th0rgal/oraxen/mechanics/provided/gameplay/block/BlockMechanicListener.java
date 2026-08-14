@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic
 import io.th0rgal.oraxen.mechanics.provided.gameplay.shaped.ShapedBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
 import io.th0rgal.oraxen.protection.AntiGriefLib;
+import io.th0rgal.oraxen.utils.ItemUtils;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -38,7 +39,9 @@ public class BlockMechanicListener implements Listener {
 
         Player player = event.getPlayer();
         if (!AntiGriefLib.canInteract(player, block.getLocation())) return;
-        if (action == Action.RIGHT_CLICK_BLOCK && player.isSneaking()) return;
+        // Vanilla only bypasses block interactions when sneaking with an item in either
+        // hand; sneaking with empty hands still triggers click actions and storage.
+        if (action == Action.RIGHT_CLICK_BLOCK && player.isSneaking() && ItemUtils.hasItemInAnyHand(player)) return;
 
         runBlockEvents(mechanic, player, action);
     }

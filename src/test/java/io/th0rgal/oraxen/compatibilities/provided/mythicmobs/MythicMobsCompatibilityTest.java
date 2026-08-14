@@ -27,7 +27,12 @@ class MythicMobsCompatibilityTest {
     }
 
     @Test
+    void readsItemIdFromTwoTokenDropLine() {
+        assertEquals("my_item", MythicMobsDropParser.getItemId(new String[]{"oraxen", "my_item"}));
+    }
+
+    @Test
     void returnsEmptyIdForMalformedLine() {
-        assertEquals("", MythicMobsDropParser.getItemId(new String[]{"oraxen", "my_item"}));
+        assertEquals("", MythicMobsDropParser.getItemId(new String[]{"oraxen"}));
     }
 }

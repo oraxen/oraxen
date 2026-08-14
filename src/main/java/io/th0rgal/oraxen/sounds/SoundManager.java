@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.sounds;
 
-import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import org.bukkit.configuration.ConfigurationSection;
@@ -79,20 +78,6 @@ public class SoundManager {
 
     public boolean isAutoGenerate() {
         return autoGenerate;
-    }
-
-    public void updateLegacyJukeboxDatapack() {
-        if (VersionUtil.atOrAbove("1.21.6")) {
-            new JukeboxDatapack(List.of()).clearOldDataPack();
-            return;
-        }
-
-        Collection<CustomSound> jukeboxSounds = getJukeboxSounds();
-        new JukeboxDatapack(jukeboxSounds).generateAssets(List.of());
-        if (!jukeboxSounds.isEmpty()) {
-            Logs.logInfo("Generated legacy jukebox datapack for " + jukeboxSounds.size()
-                    + " custom jukebox song(s).");
-        }
     }
 
     private List<ConfigurationSection> getSoundSections(YamlConfiguration soundConfig) {
