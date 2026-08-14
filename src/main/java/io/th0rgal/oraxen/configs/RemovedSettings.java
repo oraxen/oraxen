@@ -51,6 +51,7 @@ public enum RemovedSettings {
     REPAIR_COMMAND_ORAXEN_DURABILITY("Plugin.commands.repair.oraxen_durability_only"),
     REPAIR_COMMAND("Plugin.commands.repair"),
     PACK_ZIP_PROTECTION("Pack.generation.protection"),
+    TEXT_EFFECTS("TextEffects"),
     WORLDEDIT_STRINGBLOCKS("WorldEdit.stringblock_mechanic"),
     WORLDEDIT_NOTEBLOCKS("WorldEdit.noteblock_mechanic"),
     WORLDEDIT_FURNITURE("WorldEdit.furniture_mechanic"),
