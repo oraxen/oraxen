@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Adjusts mining speed while a player digs with an item carrying the efficiency mechanic.
@@ -34,18 +35,23 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class EfficiencyMechanicListener implements Listener {
 
-    private static final NamespacedKey EFFICIENCY_SPEED_KEY = NamespacedKey.fromString("oraxen:efficiency_mining_speed");
     private static final int FALLBACK_EFFECT_DURATION = 20 * 60 * 5;
+    // Each listener instance gets its own modifier key: on reload the replacement listener
+    // starts applying modifiers while the old listener's async clearAll may still be pending,
+    // and sharing a key would either throw on the duplicate add or let the old clear strip
+    // the new listener's modifier.
+    private static final AtomicInteger INSTANCE_COUNTER = new AtomicInteger();
 
     private final EfficiencyMechanicFactory factory;
-    private final BreakSpeedModifier breakSpeedModifier = new BreakSpeedModifier(EFFICIENCY_SPEED_KEY);
-    private final Map<UUID, PotionEffectType> fallbackEffects = new ConcurrentHashMap<>();
+    private final BreakSpeedModifier breakSpeedModifier = new BreakSpeedModifier(
+            NamespacedKey.fromString("oraxen:efficiency_mining_speed_" + INSTANCE_COUNTER.incrementAndGet()));
+    private final Map<UUID, FallbackEffect> fallbackEffects = new ConcurrentHashMap<>();
 
     public EfficiencyMechanicListener(final EfficiencyMechanicFactory factory) {
         this.factory = factory;
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onStartDigging(final BlockDamageEvent event) {
         final Player player = event.getPlayer();
         if (player.getGameMode() == GameMode.CREATIVE) {
@@ -133,13 +139,21 @@ public class EfficiencyMechanicListener implements Listener {
         if (type == null) return;
 
         clearFallbackEffect(player);
-        fallbackEffects.put(player.getUniqueId(), type);
-        player.addPotionEffect(new PotionEffect(type, FALLBACK_EFFECT_DURATION,
-                mechanic.getAmount() - 1, false, false, false));
+        final PotionEffect applied = new PotionEffect(type, FALLBACK_EFFECT_DURATION,
+                mechanic.getAmount() - 1, false, false, false);
+        // Snapshot any same-type effect from another source (e.g. beacon haste) so clearing
+        // the fallback restores it instead of stripping the effect type entirely.
+        fallbackEffects.put(player.getUniqueId(), new FallbackEffect(applied, player.getPotionEffect(type)));
+        player.addPotionEffect(applied);
     }
 
     private void clearFallbackEffect(final Player player) {
-        final PotionEffectType type = fallbackEffects.remove(player.getUniqueId());
-        if (type != null) player.removePotionEffect(type);
+        final FallbackEffect effect = fallbackEffects.remove(player.getUniqueId());
+        if (effect == null) return;
+
+        player.removePotionEffect(effect.applied().getType());
+        if (effect.previous() != null) player.addPotionEffect(effect.previous());
     }
+
+    private record FallbackEffect(PotionEffect applied, @Nullable PotionEffect previous) {}
 }
