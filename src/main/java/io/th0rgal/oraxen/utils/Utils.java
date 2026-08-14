@@ -1,9 +1,11 @@
 package io.th0rgal.oraxen.utils;
 
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Color;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -13,12 +15,21 @@ public class Utils {
     }
 
     public static Color toColor(String string) {
+        return toColor(string, null);
+    }
+
+    /**
+     * Parses a color from {@code #RRGGBB}/{@code 0xRRGGBB} hex or {@code R,G,B} form.
+     * Malformed values do not fail the caller: they log a warning (with the given context,
+     * e.g. an item id) and default to white.
+     */
+    public static Color toColor(String string, @Nullable String context) {
         if (string.startsWith("#") || string.startsWith("0x")) {
             try {
                 // Integer#decode understands both the "#" and "0x" prefixes
                 return Color.fromRGB(Integer.decode(string));
             } catch (IllegalArgumentException e) {
-                return Color.WHITE;
+                return warnInvalidColor(string, context);
             }
         }
         else if (string.contains(",")) {
@@ -28,10 +39,16 @@ public class Utils {
                 int g = Integer.parseInt(newString[1]);
                 int b = Integer.parseInt(newString[2]);
                 return Color.fromRGB(r, g, b);
-            } catch (NumberFormatException e) {
-                return Color.WHITE;
+            } catch (IllegalArgumentException e) {
+                return warnInvalidColor(string, context);
             }
         }
+        return warnInvalidColor(string, context);
+    }
+
+    private static Color warnInvalidColor(String string, @Nullable String context) {
+        Logs.logWarning("Invalid color value \"" + string + "\"" + (context != null ? " in " + context : "")
+                + ": expected \"#RRGGBB\", \"0xRRGGBB\" or \"R,G,B\". Defaulting to white.");
         return Color.WHITE;
     }
 

@@ -69,7 +69,7 @@ public final class ItemProperties {
         if (section.contains("unstackable"))
             item.setUnstackable(section.getBoolean("unstackable", false));
         if (section.contains("color"))
-            item.setColor(Utils.toColor(section.getString("color", "#FFFFFF")));
+            item.setColor(Utils.toColor(section.getString("color", "#FFFFFF"), "item \"" + section.getName() + "\""));
         if (section.contains("trim_pattern"))
             item.setTrimPattern(Key.key(section.getString("trim_pattern", "")));
         return configUpdated;
