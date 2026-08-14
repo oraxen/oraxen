@@ -10,6 +10,7 @@ import io.th0rgal.oraxen.nms.NMSHandlers;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.sound.SoundStop;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
@@ -57,9 +58,12 @@ public class MusicDiscHelpers {
             Sound sound = Sound.sound(soundId, Sound.Source.RECORD, volume, pitch);
             if (range != null) {
                 double radius = Math.max(1.0D, range);
-                entity.getWorld().getNearbyEntities(entity.getLocation(), radius, radius, radius, e -> e instanceof Player)
-                        .stream().map(Player.class::cast)
-                        .forEach(player -> AdventureUtils.playSound(player, entity.getLocation(), sound));
+                // The range is config-driven and may exceed the chunks owned by this
+                // region; Folia thread-checks the whole box searched by
+                // getNearbyEntities. Iterating the online-player snapshot with a
+                // distance check avoids the scan and keeps any configured range.
+                forEachPlayerInRange(entity, radius,
+                        player -> AdventureUtils.playSound(player, entity.getLocation(), sound));
             } else {
                 AdventureUtils.playSound(entity.getLocation(), sound);
             }
@@ -80,11 +84,25 @@ public class MusicDiscHelpers {
             Key songKey = Key.key(song);
             Key soundId = Key.key(OraxenPlugin.get().getSoundManager().songKeyToSoundId(songKey));
 
-            entity.getWorld().getNearbyEntities(entity.getLocation(), 64, 64, 64, e -> e instanceof Player)
-                .stream().map(Player.class::cast)
-                .forEach(player -> player.stopSound(SoundStop.namedOnSource(soundId, Sound.Source.RECORD)));
+            forEachPlayerInRange(entity, 64,
+                    player -> player.stopSound(SoundStop.namedOnSource(soundId, Sound.Source.RECORD)));
         }
         return record;
+    }
+
+    /**
+     * Runs the action for every online player within {@code radius} of the
+     * entity. Uses the thread-safe online-player snapshot plus benign location
+     * reads instead of {@code getNearbyEntities}, whose searched box is
+     * thread-checked against the owning region on Folia.
+     */
+    private static void forEachPlayerInRange(Entity entity, double radius, java.util.function.Consumer<Player> action) {
+        double radiusSquared = radius * radius;
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (!player.getWorld().equals(entity.getWorld())) continue;
+            if (player.getLocation().distanceSquared(entity.getLocation()) > radiusSquared) continue;
+            action.accept(player);
+        }
     }
 
     public static boolean isVanillaJukeboxWithVanillaDisc(Block block) {

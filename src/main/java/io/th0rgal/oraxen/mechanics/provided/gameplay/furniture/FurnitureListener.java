@@ -140,7 +140,11 @@ public class FurnitureListener implements Listener {
             LimitedPlacing.RadiusLimitation radiusLimitation = limitedPlacing.getRadiusLimitation();
             int radius = radiusLimitation.getRadius();
             int amount = radiusLimitation.getAmount();
-            if (block.getWorld().getNearbyEntities(block.getLocation(), radius, radius, radius).stream()
+            // Folia thread-checks the whole box searched by getNearbyEntities; a
+            // config-sized radius can reach chunks outside the owning region, so
+            // clamp the scan to stay within the region's guaranteed buffer.
+            int scanRadius = Math.min(radius, 32);
+            if (block.getWorld().getNearbyEntities(block.getLocation(), scanRadius, scanRadius, scanRadius).stream()
                     .filter(OraxenFurniture::isBaseEntity)
                     .filter(e -> OraxenFurniture.getFurnitureMechanic(e).getItemID().equals(mechanic.getItemID()))
                     .filter(e -> e.getLocation().distanceSquared(block.getLocation()) <= radius * radius)
