@@ -54,6 +54,11 @@ public class OraxenCommand {
         return this;
     }
 
+    /**
+     * Sets the permission required to run this command. Multiple alternatives may be given
+     * separated by {@code ;} (any one of them grants access), matching Bukkit's
+     * {@link Command#setPermission(String)} semantics.
+     */
     public OraxenCommand withPermission(String permission) {
         this.permission = permission;
         return this;
@@ -262,10 +267,12 @@ public class OraxenCommand {
     }
 
     private PermissionResult checkPermission(CommandSender sender) {
-        if (permission != null && !permission.isBlank() && !sender.hasPermission(permission)) {
-            return new PermissionResult(false, permission);
+        if (permission == null || permission.isBlank()) return new PermissionResult(true, null);
+        String[] alternatives = permission.split(";");
+        for (String alternative : alternatives) {
+            if (!alternative.isBlank() && sender.hasPermission(alternative.trim())) return new PermissionResult(true, null);
         }
-        return new PermissionResult(true, null);
+        return new PermissionResult(false, alternatives[0].trim());
     }
 
     private List<String> tabComplete(CommandSender sender, List<String> input) {

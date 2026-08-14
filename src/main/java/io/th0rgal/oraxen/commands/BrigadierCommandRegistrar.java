@@ -118,7 +118,14 @@ final class BrigadierCommandRegistrar {
         // "Unknown command", whereas the legacy path sent Oraxen's NO_PERMISSION message.
         String permission = command.getPermission();
         if (command.isRoot() && permission != null && !permission.isBlank()) {
-            literal.requires(source -> source.getSender().hasPermission(permission));
+            // ';'-separated alternatives: any one grants access (Bukkit setPermission semantics).
+            String[] alternatives = permission.split(";");
+            literal.requires(source -> {
+                for (String alternative : alternatives) {
+                    if (!alternative.isBlank() && source.getSender().hasPermission(alternative.trim())) return true;
+                }
+                return false;
+            });
         }
 
         for (OraxenCommand child : command.getSubcommands()) {
