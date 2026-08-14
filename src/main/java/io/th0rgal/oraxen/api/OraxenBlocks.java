@@ -29,6 +29,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.togglelight.ToggleLightMech
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.drops.Drop;
+import org.bukkit.Bukkit;
 import org.bukkit.Effect;
 import org.bukkit.GameEvent;
 import org.bukkit.GameMode;
@@ -196,7 +197,22 @@ public class OraxenBlocks {
         return ChorusBlockMechanicFactory.isEnabled() && !ChorusBlockMechanicFactory.getInstance().isNotImplementedIn(itemID);
     }
 
+    /**
+     * Places an OraxenBlock at the given location.
+     * <p>
+     * Thread contract: on Folia this mutates region-owned block state. When
+     * called from a thread that does not own the location's region, the
+     * placement is automatically re-dispatched onto the owning region's
+     * scheduler and completes asynchronously.
+     *
+     * @param itemID   The ItemID of the OraxenBlock
+     * @param location The location to place the block at
+     */
     public static void place(String itemID, Location location) {
+        if (!Bukkit.isOwnedByCurrentRegion(location)) {
+            SchedulerUtil.runAtLocation(location, () -> place(itemID, location));
+            return;
+        }
 
         if (isOraxenNoteBlock(itemID)) {
             placeNoteBlock(location, itemID);
@@ -316,6 +332,11 @@ public class OraxenBlocks {
 
     /**
      * Breaks an OraxenBlock at the given location
+     * <p>
+     * Thread contract: must be called on the thread owning the location's
+     * region (on Folia, use the RegionScheduler); the removal mutates blocks,
+     * drops items and may remove entities, and its return value cannot survive
+     * an asynchronous re-dispatch.
      *
      * @param location The location of the OraxenBlock
      * @param player   The player that broke the block, can be null

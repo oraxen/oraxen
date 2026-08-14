@@ -9,6 +9,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -43,6 +44,10 @@ public class OraxenFurniture {
 
     /**
      * Check if a block is an instance of a Furniture
+     * <p>
+     * Thread contract: searches the entities around the block, which Folia
+     * thread-checks against the owning region; call it on the thread owning
+     * the block's region.
      *
      * @param block The block to check
      * @return true if the block is an instance of a Furniture, otherwise false
@@ -109,6 +114,11 @@ public class OraxenFurniture {
 
     /**
      * Places Furniture at a given location
+     * <p>
+     * Thread contract: spawns entities and may set barrier blocks; must be
+     * called on the thread owning the location's region (on Folia, use the
+     * RegionScheduler), since the placed entity is returned synchronously.
+     *
      * @param location The location to place the Furniture
      * @param itemID The itemID of the Furniture to place
      * @param yaw The yaw of the Furniture
@@ -140,6 +150,10 @@ public class OraxenFurniture {
 
     /**
      * Removes Furniture at a given location, optionally by a player
+     * <p>
+     * Thread contract: mutates blocks and removes entities; must be called on
+     * the thread owning the location's region (on Folia, use the
+     * RegionScheduler), since the result is returned synchronously.
      *
      * @param location The location to remove the Furniture
      * @param player   The player who removed the Furniture, can be null
@@ -394,6 +408,12 @@ public class OraxenFurniture {
      */
     public static void updateFurniture(@NotNull Entity entity) {
         if (!FurnitureFactory.isEnabled()) return;
+        // Mutates region-owned entity state; when called off the owning thread
+        // (public API), re-dispatch onto the entity's scheduler (Folia).
+        if (!Bukkit.isOwnedByCurrentRegion(entity)) {
+            SchedulerUtil.runForEntity(entity, () -> updateFurniture(entity));
+            return;
+        }
         if (!entity.getLocation().isChunkLoaded()) return;
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
         if (mechanic == null) return;
