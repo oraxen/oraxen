@@ -30,14 +30,14 @@ public class VersionUtil {
         return version.getMajor() >= 26 || (version.getMajor() == 1 && version.getMinor() >= 26);
     }
 
-    public static boolean supportsSingleNmsHandler() {
+    public static boolean supportsNmsHandler() {
         // The NMS handler requires APIs introduced in 1.21.2. Loading an incompatible
         // handler on an unknown newer version fails safe via the LinkageError fallback
         // in NMSHandlers#setup.
-        return supportsSingleNmsHandler(MinecraftVersion.getCurrentVersion());
+        return supportsNmsHandler(MinecraftVersion.getCurrentVersion());
     }
 
-    static boolean supportsSingleNmsHandler(MinecraftVersion version) {
+    static boolean supportsNmsHandler(MinecraftVersion version) {
         return version.isAtLeast(new MinecraftVersion("1.21.2"));
     }
 

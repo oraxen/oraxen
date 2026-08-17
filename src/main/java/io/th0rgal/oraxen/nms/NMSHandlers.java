@@ -39,7 +39,7 @@ public class NMSHandlers {
             return;
 
         version = Bukkit.getMinecraftVersion();
-        if (!VersionUtil.supportsSingleNmsHandler()) {
+        if (!VersionUtil.supportsNmsHandler()) {
             Logs.logWarning("Oraxen's NMS handler is unsupported on " + version + "; requires Paper 1.21.2+.");
             Logs.logWarning("NMS features will be disabled or limited...");
             handler = new NMSHandler.EmptyNMSHandler();
