@@ -2,8 +2,11 @@ package io.th0rgal.oraxen.utils;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 
 public final class HashUtils {
+
+    private static final HexFormat HEX = HexFormat.of();
 
     private HashUtils() {
     }
@@ -16,10 +19,24 @@ public final class HashUtils {
         }
     }
 
+    /**
+     * Converts a digest byte array to a lowercase hex string.
+     *
+     * @param hash the digest bytes, or null
+     * @return lowercase hex string, or null if input is null
+     */
     public static String bytesToHex(byte[] hash) {
         if (hash == null) return null;
-        StringBuilder sb = new StringBuilder(hash.length * 2);
-        for (byte b : hash) sb.append(String.format("%02x", b));
-        return sb.toString();
+        return HEX.formatHex(hash);
+    }
+
+    /**
+     * Converts a hex string to a byte array.
+     *
+     * @param hex the hex string (must have even length)
+     * @return the decoded byte array
+     */
+    public static byte[] hexToBytes(String hex) {
+        return HEX.parseHex(hex);
     }
 }

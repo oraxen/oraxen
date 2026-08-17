@@ -11,22 +11,22 @@ import org.bukkit.entity.Player;
 
 public class HudCommand {
 
-    private final HudManager manager = OraxenPlugin.get().getHudManager();
-
     OraxenCommand getHudCommand() {
         return new OraxenCommand("hud")
                 .withPermission("oraxen.command.hud.toggle")
-                .withArguments(new TextArgument("type").replaceSuggestions(ArgumentSuggestions.strings("toggle")))
                 .withSubcommand(disableHudsCommand());
     }
 
     private OraxenCommand disableHudsCommand() {
-        String[] huds = manager.getHuds().keySet().toArray(new String[0]);
+        // Resolve the HudManager lazily: /oraxen reload hud replaces it, and commands are
+        // registered once at startup.
         return new OraxenCommand("toggle")
                 .withPermission("oraxen.command.hud.toggle")
-                .withArguments(new TextArgument("type").replaceSuggestions(ArgumentSuggestions.strings(huds)))
+                .withArguments(new TextArgument("type").replaceSuggestions(ArgumentSuggestions.strings(info ->
+                        OraxenPlugin.get().getHudManager().getHuds().keySet().toArray(new String[0]))))
                 .executes((sender, args) -> {
                     if (sender instanceof Player player) {
+                        HudManager manager = OraxenPlugin.get().getHudManager();
                         String hudId = (String) args.get("type");
                         Hud hud = manager.getHudFromID(hudId);
                         if (hud == null) {

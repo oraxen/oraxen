@@ -10,7 +10,6 @@ import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.protection.AntiGriefLib;
 import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
-import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import org.bukkit.Art;
@@ -39,8 +38,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -121,7 +118,7 @@ public class CustomPaintingListener implements Listener {
     }
 
     private boolean tryPlace(Player player, ItemStack item, EquipmentSlot hand, Block clickedBlock, BlockFace face, ItemBuilder builder) {
-        if (!VersionUtil.atOrAbove("1.21.5") || !VersionUtil.isPaperServer()) return false;
+        if (!CustomPaintingRegistry.supportsCustomPaintings()) return false;
         if (!isWallFace(face)) return false;
 
         Block target = clickedBlock.getRelative(face);
@@ -191,26 +188,13 @@ public class CustomPaintingListener implements Listener {
     }
 
     private ItemStack getPlacedItem(HangingPlaceEvent event) {
-        ItemStack eventItem = getPlacedItemFromEvent(event);
+        ItemStack eventItem = event.getItemStack();
         if (!ItemUtils.isEmpty(eventItem)) return eventItem;
 
         if (event.getPlayer() == null) return null;
         EquipmentSlot hand = event.getHand();
         if (hand == EquipmentSlot.OFF_HAND) return event.getPlayer().getInventory().getItemInOffHand();
         return event.getPlayer().getInventory().getItemInMainHand();
-    }
-
-    private ItemStack getPlacedItemFromEvent(HangingPlaceEvent event) {
-        try {
-            Method getItemStack = HangingPlaceEvent.class.getMethod("getItemStack");
-            Object result = getItemStack.invoke(event);
-            return result instanceof ItemStack itemStack ? itemStack : null;
-        } catch (NoSuchMethodException ignored) {
-            return null;
-        } catch (IllegalAccessException | InvocationTargetException exception) {
-            Logs.debug(exception);
-            return null;
-        }
     }
 
     private boolean isDuplicateOffHandPlacement(PlayerInteractEvent event, EquipmentSlot hand) {

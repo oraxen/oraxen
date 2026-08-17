@@ -8,10 +8,14 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.logging.Level;
+
 public final class AntiGriefLib {
 
     private static @Nullable net.momirealms.antigrieflib.AntiGriefLib antiGriefLib;
     private static boolean debug;
+    private static boolean initFailed;
+    private static boolean testFailureLogged;
 
     private AntiGriefLib() {
     }
@@ -28,9 +32,17 @@ public final class AntiGriefLib {
             }
 
             antiGriefLib = builder.build();
-        } catch (Exception exception) {
+            initFailed = false;
+        } catch (Exception | LinkageError exception) {
+            // LinkageError covers NoClassDefFoundError etc. from protection plugins whose
+            // classes are only partially visible to the isolated Paper-plugin classloader.
+            // Fail closed: a broken protection integration must never grant access to
+            // potentially protected claims, so deny all checks until this is resolved.
             antiGriefLib = null;
-            if (debug) exception.printStackTrace();
+            initFailed = true;
+            plugin.getLogger().log(Level.SEVERE,
+                    "Failed to initialize protection-plugin support; Oraxen will deny all build/break/interact checks until this is resolved.",
+                    exception);
         }
     }
 
@@ -69,17 +81,30 @@ public final class AntiGriefLib {
 
     private static <T> boolean test(Player player, Flag<T> flag, T value) {
         net.momirealms.antigrieflib.AntiGriefLib antiGriefLib = AntiGriefLib.antiGriefLib;
-        if (antiGriefLib == null) return true;
+        // No instance is only a permissive state when initialization succeeded or never
+        // ran; after an initialization failure we cannot know whether a protection
+        // plugin is present, so fail closed.
+        if (antiGriefLib == null) return !initFailed;
 
         try {
             return antiGriefLib.test(player, flag, value);
-        } catch (Exception exception) {
-            if (debug) exception.printStackTrace();
-            return true;
+        } catch (Exception | LinkageError exception) {
+            // Fail closed: never treat a broken protection integration as permission.
+            if (!testFailureLogged) {
+                testFailureLogged = true;
+                Bukkit.getLogger().log(Level.SEVERE,
+                        "Protection check failed; denying the action. Further failures are only logged with Oraxen debug enabled.",
+                        exception);
+            } else if (debug) {
+                exception.printStackTrace();
+            }
+            return false;
         }
     }
 
     static void setInstance(@Nullable net.momirealms.antigrieflib.AntiGriefLib antiGriefLib) {
         AntiGriefLib.antiGriefLib = antiGriefLib;
+        AntiGriefLib.initFailed = false;
+        AntiGriefLib.testFailureLogged = false;
     }
 }

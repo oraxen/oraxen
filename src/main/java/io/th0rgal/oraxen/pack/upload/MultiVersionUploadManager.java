@@ -11,7 +11,6 @@ import io.th0rgal.oraxen.pack.generation.PackVersion;
 import io.th0rgal.oraxen.pack.generation.PackVersionManager;
 import io.th0rgal.oraxen.pack.receive.PackReceiver;
 import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
-import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
@@ -170,7 +169,7 @@ public class MultiVersionUploadManager {
 
         // Fire pre-upload event
         OraxenPackPreUploadEvent event = new OraxenPackPreUploadEvent();
-        EventUtils.callEvent(event);
+        event.callEvent();
         if (cancelled) return;
 
         // Upload pack (provider calculates SHA-1 internally)

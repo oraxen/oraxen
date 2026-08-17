@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.paintings;
 
 import io.th0rgal.oraxen.pack.generation.LegacyDatapackCleaner;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 
@@ -40,11 +41,24 @@ public final class CustomPaintingRegistry {
         throw new IllegalStateException("Utility class");
     }
 
+    public static void trackManagedVariantIds(Collection<String> managedVariantIds) {
+        rememberManagedVariantIds(managedVariantIds);
+    }
+
     public static void reload(Collection<CustomPainting> paintings) {
+        List<CustomPainting> snapshot = List.copyOf(paintings);
+        if (!SchedulerUtil.isGlobalThread()) {
+            SchedulerUtil.runTask(() -> reloadNow(snapshot));
+            return;
+        }
+        reloadNow(snapshot);
+    }
+
+    private static void reloadNow(Collection<CustomPainting> paintings) {
         clearLegacyDatapack();
         if (!supportsCustomPaintings()) {
             if (!paintings.isEmpty()) {
-                Logs.logWarning("Custom paintings require Paper 1.21.5 or newer. Skipping " + paintings.size() + " custom painting(s).");
+                Logs.logWarning("Custom paintings require Paper 1.21.3 or newer. Skipping " + paintings.size() + " custom painting(s).");
             }
             return;
         }
@@ -115,8 +129,8 @@ public final class CustomPaintingRegistry {
         }
     }
 
-    private static boolean supportsCustomPaintings() {
-        return VersionUtil.atOrAbove("1.21.5") && VersionUtil.isPaperServer();
+    public static boolean supportsCustomPaintings() {
+        return VersionUtil.atOrAbove("1.21.3");
     }
 
     private static void clearLegacyDatapack() {

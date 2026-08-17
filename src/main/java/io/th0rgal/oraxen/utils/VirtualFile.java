@@ -4,7 +4,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,7 +21,7 @@ public class VirtualFile implements Comparable<VirtualFile> {
     private InputStream inputStream;
 
     public VirtualFile(String parentFolder, String name, InputStream inputStream) {
-        parentFolder = OS.getOs().getName().startsWith("Windows")
+        parentFolder = SystemUtils.IS_OS_WINDOWS
                 ? parentFolder.replace("\\", "/")
                 : parentFolder;
         this.parentFolder = parentFolder.endsWith("/")
@@ -45,7 +47,7 @@ public class VirtualFile implements Comparable<VirtualFile> {
 
     public void setPath(String newPath) {
         String newParent = newPath.substring(0, newPath.lastIndexOf("/"));
-        this.parentFolder = OS.getOs().getName().startsWith("Windows")
+        this.parentFolder = SystemUtils.IS_OS_WINDOWS
                 ? newParent.replace("\\", "/")
                 : newParent;
         this.name = newPath.substring(newPath.lastIndexOf("/") + 1);
@@ -66,7 +68,7 @@ public class VirtualFile implements Comparable<VirtualFile> {
             inputStream = new ByteArrayInputStream(fontContent.getBytes(StandardCharsets.UTF_8));
             return JsonParser.parseString(fontContent);
         } catch (Exception e) {
-            Logs.logError(Utils.removeParentDirs(getPath()) + " was empty");
+            Logs.logError(FilenameUtils.getName(getPath()) + " was empty");
             return null;
         }
     }

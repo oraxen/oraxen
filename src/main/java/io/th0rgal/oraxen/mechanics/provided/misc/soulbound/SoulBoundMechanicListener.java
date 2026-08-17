@@ -11,7 +11,6 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -19,8 +18,6 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class SoulBoundMechanicListener implements Listener {
-    private static final Method GET_ITEMS_TO_KEEP_METHOD = getItemsToKeepMethod();
-
     private final SoulBoundMechanicFactory factory;
 
     public SoulBoundMechanicListener(SoulBoundMechanicFactory factory) {
@@ -47,15 +44,7 @@ public class SoulBoundMechanicListener implements Listener {
             }
         }
         if (!items.isEmpty()) {
-            List<ItemStack> itemsToKeep = getItemsToKeep(event);
-            if (itemsToKeep != null) {
-                itemsToKeep.addAll(items);
-                return;
-            }
-
-            Player player = event.getEntity();
-            PersistentDataContainer pdc = player.getPersistentDataContainer();
-            pdc.set(SoulBoundMechanic.NAMESPACED_KEY, DataType.ITEM_STACK_ARRAY, items.toArray(ItemStack[]::new));
+            event.getItemsToKeep().addAll(items);
         }
     }
 
@@ -75,19 +64,6 @@ public class SoulBoundMechanicListener implements Listener {
         }
 
         pdc.remove(SoulBoundMechanic.NAMESPACED_KEY);
-    }
-
-    @SuppressWarnings("unchecked")
-    private static List<ItemStack> getItemsToKeep(PlayerDeathEvent event) {
-        if (GET_ITEMS_TO_KEEP_METHOD == null)
-            return null;
-
-        try {
-            Object result = GET_ITEMS_TO_KEEP_METHOD.invoke(event);
-            return result instanceof List<?> ? (List<ItemStack>) result : null;
-        } catch (ReflectiveOperationException | RuntimeException ignored) {
-            return null;
-        }
     }
 
     private static List<ItemStack> getMissingItems(ItemStack[] expectedItems, ItemStack[] currentItems) {
@@ -126,13 +102,5 @@ public class SoulBoundMechanicListener implements Listener {
         }
 
         return missingAmount;
-    }
-
-    private static Method getItemsToKeepMethod() {
-        try {
-            return PlayerDeathEvent.class.getMethod("getItemsToKeep");
-        } catch (NoSuchMethodException ignored) {
-            return null;
-        }
     }
 }

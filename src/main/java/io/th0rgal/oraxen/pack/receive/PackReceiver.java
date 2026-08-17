@@ -151,7 +151,7 @@ public class PackReceiver implements Listener {
 
     private static void sendMessage(Player receiver, String action, Component message) {
         switch (action) {
-            case "KICK" -> receiver.kickPlayer(AdventureUtils.LEGACY_SERIALIZER.serialize(message));
+            case "KICK" -> receiver.kick(message);
             case "CHAT" -> AdventureUtils.sendMessage(receiver, message);
             case "ACTION_BAR" -> AdventureUtils.sendActionBar(receiver, message);
             case "TITLE" -> AdventureUtils.showTitle(receiver,

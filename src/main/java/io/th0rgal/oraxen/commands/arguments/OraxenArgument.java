@@ -33,6 +33,14 @@ public abstract class OraxenArgument<T> {
         return this;
     }
 
+    public boolean hasCustomSuggestions() {
+        return suggestions != null;
+    }
+
+    public List<String> customSuggestions(CommandSender sender) {
+        return suggestions == null ? List.of() : Arrays.asList(suggestions.suggest(sender));
+    }
+
     public ParseResult<T> parse(CommandSender sender, List<String> input, int index) {
         if (index >= input.size()) return ParseResult.failure();
         return parseValue(sender, input, index);

@@ -21,6 +21,7 @@ public class BlastingLoader extends RecipeLoader {
 		}
 		BlastingRecipe recipe = new BlastingRecipe(getNamespacedKey(), getValidResult(),
 				recipeChoice, getSection().getInt("experience"), getSection().getInt("cookingTime"));
+		recipe.setGroup(getGroup());
 		loadRecipe(recipe);
 	}
 }

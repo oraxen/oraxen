@@ -6,7 +6,7 @@ plugins {
     id("java")
     //id("com.github.johnrengelman.shadow") version "8.1.1"
     id("xyz.jpenilla.run-paper") version "2.3.1"
-    id("net.minecrell.plugin-yml.bukkit") version "0.6.0" // Generates plugin.yml
+    id("net.minecrell.plugin-yml.paper") version "0.6.0" // Generates paper-plugin.yml
     id("io.papermc.paperweight.userdev") version "2.0.0-beta.21" apply false
     id("com.gradleup.shadow") version "9.4.1"
     id("maven-publish")
@@ -115,8 +115,8 @@ allprojects {
 
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
-    // libraries in plugin.yml > libraries
-    compileOnly(oraxenLibs.bundles.libraries.bukkit) {
+    // runtime libraries resolved by OraxenPluginLoader via paper-libraries.json
+    paperLibrary(oraxenLibs.bundles.libraries.bukkit) {
         exclude("org.jetbrains", "annotations")
     }
     // things that are included in minecraft but not exposed
@@ -127,12 +127,18 @@ dependencies {
         exclude("com.google.code.gson", "gson")
         exclude("net.kyori")
     }
-    compileOnly(files("libs/compile/BSP.jar"))
+    // compile-time only annotations (@NotNull etc); CLASS retention, never needed at runtime
+    compileOnly(oraxenLibs.annotations)
     // shaded dependencies
     implementation(oraxenLibs.bundles.libraries.shade) {
         exclude("com.google.code.gson", "gson")
         exclude("net.kyori")
         exclude(group = "com.google.guava")
+        // compile-time annotations; JVM ignores missing annotation classes at runtime
+        exclude("org.jetbrains", "annotations")
+        // EvalEx is only referenced by actions-core's unused math action type;
+        // Oraxen registers its own action impls and uses Spring SpEL for conditions
+        exclude("com.udojava", "EvalEx")
     }
 
     // Test dependencies
@@ -143,11 +149,10 @@ dependencies {
     testImplementation("org.mockito:mockito-junit-jupiter:5.11.0")
     testImplementation(oraxenLibs.spring.expression)
     testImplementation("net.kyori:adventure-api:4.18.0")
-    testImplementation(oraxenLibs.adventure.platform)
     testImplementation("net.kyori:adventure-text-minimessage:4.18.0")
     testImplementation("net.kyori:adventure-text-serializer-legacy:4.18.0")
     testImplementation("com.google.guava:guava:33.0.0-jre")
-    testImplementation("com.google.code.gson:gson:2.10.1")
+    testImplementation("com.google.code.gson:gson:2.14.0")
 }
 
 
@@ -189,6 +194,10 @@ tasks {
             // Build the plugin before JUnit starts. A nested Gradle build from the test would
             // execute compileJava -> clean and delete the outer test's result files.
             dependsOn(shadowJar)
+            systemProperty("junit.jupiter.execution.parallel.enabled", "true")
+            systemProperty("junit.jupiter.execution.parallel.config.strategy", "fixed")
+            systemProperty("junit.jupiter.execution.parallel.config.fixed.parallelism", "5")
+            systemProperty("junit.jupiter.execution.parallel.config.fixed.max-pool-size", "5")
             testLogging {
                 events("passed", "failed", "skipped", "standardOut", "standardError")
                 exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
@@ -212,7 +221,9 @@ tasks {
                 "**/models/**",
                 "**/textures/**",
                 "**/font/**.json",
-                "**/plugin.yml"
+                "**/plugin.yml",
+                "**/paper-plugin.yml",
+                "**/paper-libraries.json"
             )
         ) {
             expand(mapOf(project.version.toString() to pluginVersion))
@@ -256,10 +267,7 @@ tasks {
                 exclude("io.th0rgal.oraxen.**")
             }
         }
-        // exception for this one dunno who includes that...
-        relocate("org.intellij.lang.annotations", "io.th0rgal.oraxen.shaded.intellij.annotations")
-        relocate("com.udojava.evalex", "io.th0rgal.oraxen.shaded.udojava.evalex")
-        relocate("javax.json", "io.th0rgal.oraxen.shaded.javax.json")
+
 
         manifest {
             attributes(
@@ -288,7 +296,6 @@ tasks {
         archiveClassifier.set("")
     }
 
-    compileJava.get().dependsOn(clean)
     build.get().dependsOn(shadowJar)
 }
 
@@ -306,23 +313,52 @@ tasks.register<JavaExec>("runPackMergerDebug") {
 }
 
 
-bukkit {
+paper {
     load = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.PluginLoadOrder.POSTWORLD
     main = "io.th0rgal.oraxen.OraxenPlugin"
+    bootstrapper = "io.th0rgal.oraxen.OraxenPluginBootstrap"
+    loader = "io.th0rgal.oraxen.OraxenPluginLoader"
     version = pluginVersion
     name = "Oraxen"
-    apiVersion = "1.18"
+    apiVersion = "1.20"
     foliaSupported = true
     authors = listOf("th0rgal", "https://github.com/oraxen/oraxen/blob/master/CONTRIBUTORS.md")
-    softDepend = listOf(
+    // Optional plugins Oraxen hooks into. They must load before Oraxen and join its
+    // classpath, since Paper plugins use isolated classloaders and can only access
+    // classes of plugins declared here.
+    val optionalHooks = listOf(
         "ProtocolLib",
         "packetevents",
-        "LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "MythicMobs", "BossShopPro",
-        "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared",
-        "NBTAPI", "ModelEngine", "ViaBackwards", "HuskClaims", "HuskTowns", "BentoBox", "Skript", "Iris",
-        "ExecutableItems"
+        "LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible",
+        "CrateReloaded", "ItemBridge", "WorldEdit", "FastAsyncWorldEdit", "WorldGuard", "Towny",
+        "Factions", "Lands", "PlotSquared", "NBTAPI", "ModelEngine", "ViaVersion", "ViaBackwards",
+        "HuskClaims", "HuskTowns", "BentoBox", "Skript", "Iris",
+        "ExecutableItems", "SCore", "EcoItems", "BlockLocker",
+        // Remaining protection plugins detected reflectively by the shaded AntiGriefLib
+        // (net.momirealms:antigrieflib). Without a declared dependency their classes are
+        // invisible to Oraxen's isolated Paper-plugin classloader, so the hook is silently
+        // skipped and protection checks default to "allowed". Keep in sync with the
+        // library's support matrix when bumping its version.
+        "GriefPrevention", "GriefDefender", "Residence", "Kingdoms", "SuperiorSkyblock2",
+        "RedProtect", "PreciousStones", "Dominion", "CrashClaim", "IridiumSkyblock",
+        "FabledSkyBlock", "Landlord", "uSkyBlock", "XClaim", "UltimateClaims",
+        "UltimateClans", "NoBuildPlus"
     )
-    loadBefore = listOf("Realistic_World")
+    serverDependencies {
+        optionalHooks.forEach { hook ->
+            register(hook) {
+                required = false
+                load = net.minecrell.pluginyml.paper.PaperPluginDescription.RelativeLoadOrder.BEFORE
+                joinClasspath = true
+            }
+        }
+        // Equivalent of the old plugin.yml loadbefore entry
+        register("Realistic_World") {
+            required = false
+            load = net.minecrell.pluginyml.paper.PaperPluginDescription.RelativeLoadOrder.AFTER
+            joinClasspath = false
+        }
+    }
     permissions.create("oraxen.command") {
         description = "Allows the player to use the /oraxen command"
         default = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission.Default.TRUE
@@ -331,7 +367,10 @@ bukkit {
         description = "Allows the player to receive Oraxen's first-run introduction guide"
         default = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission.Default.OP
     }
-    libraries = oraxenLibs.bundles.libraries.bukkit.get().map { it.toString() }
+    // Keep Oraxen's classes visible to legacy Bukkit plugins and other add-ons
+    // that hook into its API (io.th0rgal.oraxen.api.*) via the global classloader group
+    hasOpenClassloader = true
+    generateLibrariesJson = true
 }
 
 

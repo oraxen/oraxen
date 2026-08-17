@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.utils.commands;
 
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -38,8 +39,12 @@ public class CommandsParser {
         String playerName = player.getName();
 
         if (consoleCommands != null)
-            for (String command : consoleCommands)
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.replace("%p%", playerName));
+            for (String command : consoleCommands) {
+                // Folia requires console commands to be dispatched from the global
+                // region thread; dispatching them from a region thread throws.
+                String parsed = command.replace("%p%", playerName);
+                SchedulerUtil.runTask(() -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parsed));
+            }
 
         if (playerCommands != null)
             for (String command : playerCommands)
@@ -49,8 +54,12 @@ public class CommandsParser {
             for (String command : oppedPlayerCommands) {
                 boolean wasOp = player.isOp();
                 player.setOp(true);
-                Bukkit.dispatchCommand(player, command.replace("%p%", playerName));
-                player.setOp(wasOp);
+                try {
+                    Bukkit.dispatchCommand(player, command.replace("%p%", playerName));
+                } finally {
+                    // Never leave the player permanently opped if the command throws.
+                    player.setOp(wasOp);
+                }
             }
     }
 

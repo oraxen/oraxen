@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.sounds;
 
+import io.th0rgal.oraxen.pack.generation.LegacyDatapackCleaner;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.VersionUtil;
@@ -37,6 +38,10 @@ public final class CustomJukeboxSongRegistry {
         throw new IllegalStateException("Utility class");
     }
 
+    public static void trackManagedSongIds(Collection<String> managedSongIds) {
+        rememberManagedSongIds(managedSongIds);
+    }
+
     public static void reload(Collection<CustomSound> sounds) {
         List<CustomSound> snapshot = List.copyOf(sounds);
         if (!SchedulerUtil.isGlobalThread()) {
@@ -60,16 +65,14 @@ public final class CustomJukeboxSongRegistry {
         Collection<CustomSound> jukeboxSounds = sounds.stream()
                 .filter(CustomSound::isJukeboxSound)
                 .toList();
-        if (usesDatapackFallback(supportsCustomJukeboxSongs())) {
-            new JukeboxDatapack(jukeboxSounds).generateAssets(List.of());
+        clearLegacyDatapack();
+        if (!supportsCustomJukeboxSongs()) {
             if (!jukeboxSounds.isEmpty()) {
-                Logs.logInfo("Generated legacy jukebox datapack for " + jukeboxSounds.size()
-                        + " custom jukebox song(s).");
+                Logs.logWarning("Custom jukebox songs require Paper 1.21.5 or newer. Skipping "
+                        + jukeboxSounds.size() + " custom jukebox song(s).");
             }
             return;
         }
-
-        clearLegacyDatapack();
 
         Set<String> managedSongIds = new LinkedHashSet<>(jukeboxSounds.stream()
                 .map(CustomSound::getJukeboxSongId)
@@ -135,15 +138,11 @@ public final class CustomJukeboxSongRegistry {
     }
 
     private static boolean supportsCustomJukeboxSongs() {
-        return VersionUtil.atOrAbove("1.21.5") && VersionUtil.isPaperServer();
-    }
-
-    static boolean usesDatapackFallback(boolean supportsHotInjection) {
-        return !supportsHotInjection;
+        return VersionUtil.atOrAbove("1.21.5");
     }
 
     private static void clearLegacyDatapack() {
-        new JukeboxDatapack(List.of()).clearOldDataPack();
+        LegacyDatapackCleaner.clear("oraxen_jukebox");
     }
 
     private static void rememberManagedSongIds(Collection<String> managedSongIds) {

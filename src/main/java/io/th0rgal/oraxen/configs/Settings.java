@@ -8,6 +8,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 public enum Settings {
     // Generic Plugin stuff
@@ -16,7 +17,6 @@ public enum Settings {
     KEEP_UP_TO_DATE("Plugin.keep_this_up_to_date"),
     INTRODUCTION_ENABLED("Plugin.introduction.enabled"),
     INTRODUCTION_CONSOLE_SENT("Plugin.introduction.console_sent"),
-    REPAIR_COMMAND_ORAXEN_DURABILITY("Plugin.commands.repair.oraxen_durability_only"),
     AUTO_UPDATE_PAPER_CONFIG("Plugin.auto_update_paper_config"),
     GENERATE_DEFAULT_ASSETS("Plugin.generation.default_assets"),
     GENERATE_DEFAULT_CONFIGS("Plugin.generation.default_configs"),
@@ -29,20 +29,9 @@ public enum Settings {
     FORMAT_CHAT("Plugin.formatting.chat"),
     FORMAT_BOOKS("Plugin.formatting.books"),
 
-    // WorldEdit
-    WORLDEDIT_NOTEBLOCKS("WorldEdit.noteblock_mechanic"),
-    WORLDEDIT_STRINGBLOCKS("WorldEdit.stringblock_mechanic"),
-    WORLDEDIT_FURNITURE("WorldEdit.furniture_mechanic"),
-
     // Glyphs
     SHOW_PERMISSION_EMOJIS("Glyphs.emoji_list_permission_only"),
     UNICODE_COMPLETIONS("Glyphs.unicode_completions"),
-
-    // Text Effects (shader-based)
-    TEXT_EFFECTS_ENABLED("TextEffects.enabled"),
-
-    // Chat
-    CHAT_HANDLER("Chat.chat_handler"),
 
     // Config Tools
     DISABLE_AUTOMATIC_MODEL_DATA("ConfigsTools.disable_automatic_model_data"),
@@ -57,15 +46,6 @@ public enum Settings {
     DISABLE_LEATHER_REPAIR_CUSTOM("CustomArmor.disable_leather_repair"),
     CUSTOM_ARMOR_TRIMS_MATERIAL("CustomArmor.trims_settings.material_replacement"),
     CUSTOM_ARMOR_TRIMS_ASSIGN("CustomArmor.trims_settings.auto_assign_settings"),
-    CUSTOM_ARMOR_SHADER_TYPE("CustomArmor.shader_settings.type"),
-    CUSTOM_ARMOR_SHADER_RESOLUTION("CustomArmor.shader_settings.armor_resolution"),
-    CUSTOM_ARMOR_SHADER_ANIMATED_FRAMERATE("CustomArmor.shader_settings.animated_armor_framerate"),
-    CUSTOM_ARMOR_SHADER_GENERATE_FILES("CustomArmor.shader_settings.generate_armor_shader_files"),
-    CUSTOM_ARMOR_SHADER_GENERATE_CUSTOM_TEXTURES("CustomArmor.shader_settings.generate_custom_armor_textures"),
-    CUSTOM_ARMOR_SHADER_GENERATE_SHADER_COMPATIBLE_ARMOR("CustomArmor.shader_settings.generate_shader_compatible_armor"),
-
-    // Custom Blocks
-    BLOCK_CORRECTION("CustomBlocks.block_correction"),
 
     // ItemUpdater
     UPDATE_ITEMS("ItemUpdater.update_items"),
@@ -101,12 +81,10 @@ public enum Settings {
     FIX_FORCE_UNICODE_GLYPHS("Pack.generation.fix_force_unicode_glyphs"),
     VERIFY_PACK_FILES("Pack.generation.verify_pack_files"),
     GENERATE_ATLAS_FILE("Pack.generation.atlas.generate"),
-    TEXTURE_SLICER("Pack.generation.texture_slicer"),
     EXCLUDE_MALFORMED_ATLAS("Pack.generation.atlas.exclude_malformed_from_atlas"),
     ATLAS_GENERATION_TYPE("Pack.generation.atlas.type"),
     GENERATE_MODEL_BASED_ON_TEXTURE_PATH("Pack.generation.auto_generated_models_follow_texture_path"),
     COMPRESSION("Pack.generation.compression"),
-    PROTECTION("Pack.generation.protection"),
     PACK_OBFUSCATION_TYPE("Pack.generation.obfuscation.type"),
     // 1.21.4+ appearance systems (can be combined)
     APPEARANCE_ITEM_PROPERTIES("Pack.generation.appearance.item_properties"),
@@ -159,15 +137,31 @@ public enum Settings {
 
 
     // Inventory
-    ORAXEN_INV_LAYOUT("oraxen_inventory.menu_layout"),
-    ORAXEN_INV_ROWS("oraxen_inventory.menu_rows"),
-    ORAXEN_INV_SIZE("oraxen_inventory.menu_size"),
-    ORAXEN_INV_TITLE("oraxen_inventory.main_menu_title"),
-    ORAXEN_INV_NEXT_ICON("oraxen_inventory.next_page_icon"),
-    ORAXEN_INV_PREVIOUS_ICON("oraxen_inventory.previous_page_icon"),
-    ORAXEN_INV_EXIT("oraxen_inventory.exit_icon");
+    ORAXEN_INV_LAYOUT("inventory-menu.layout"),
+    ORAXEN_INV_ROWS("inventory-menu.rows"),
+    ORAXEN_INV_SIZE("inventory-menu.slots"),
+    ORAXEN_INV_TITLE("inventory-menu.title");
 
     private final String path;
+
+    /**
+     * Cached result of the last YAML lookup for this setting. Hot paths (packet
+     * listeners, per-event handlers) read settings on every call, so a volatile
+     * field read replaces a YamlConfiguration path traversal. {@code null} means
+     * "not cached"; settings that resolve to null are simply re-read each call.
+     * Invalidated by {@link #invalidateCache()} whenever the settings
+     * configuration is (re)loaded or mutated directly.
+     */
+    private volatile Object cachedValue;
+
+    /**
+     * Bumped by every cache invalidation (before the cached values are nulled)
+     * so {@link #getValue()} can detect an invalidation that raced with its
+     * config read and avoid re-publishing a pre-change value. Safe as a static
+     * field because it is only touched from methods, never from the enum
+     * constructor (which runs before static initialization).
+     */
+    private static final AtomicLong CACHE_GENERATION = new AtomicLong();
 
     Settings(String path) {
         this.path = path;
@@ -178,17 +172,43 @@ public enum Settings {
     }
 
     public Object getValue() {
-        return OraxenPlugin.get().getConfigsManager().getSettings().get(path);
+        Object value = cachedValue;
+        if (value == null) {
+            long generation = CACHE_GENERATION.get();
+            value = OraxenPlugin.get().getConfigsManager().getSettings().get(path);
+            cachedValue = value;
+            // An invalidation may have raced with the config read above. Invalidators
+            // bump the generation before nulling caches, so a changed generation means
+            // the value read may predate the change and must not stay cached.
+            if (CACHE_GENERATION.get() != generation) cachedValue = null;
+        }
+        return value;
     }
     public void setValue(Object value) { setValue(value, true); }
     public void setValue(Object value, boolean save) {
         YamlConfiguration settingFile = OraxenPlugin.get().getConfigsManager().getSettings();
         settingFile.set(path, value);
+        CACHE_GENERATION.incrementAndGet();
+        cachedValue = null;
         try {
             if (save) settingFile.save(OraxenPlugin.get().getDataFolder().toPath().resolve("settings.yml").toFile());
         } catch (Exception e) {
             Logs.logError("Failed to apply changes to settings.yml.");
         }
+    }
+
+    /**
+     * Drops every cached setting value so the next read hits the freshly
+     * (re)loaded settings configuration. Must be called whenever the settings
+     * YamlConfiguration is reloaded or mutated without going through
+     * {@link #setValue(Object, boolean)}.
+     */
+    public static void invalidateCache() {
+        // Bump the generation first: a getValue() racing with this call will then
+        // see a changed generation and discard the value it read, instead of
+        // re-publishing a pre-invalidation value after the null below.
+        CACHE_GENERATION.incrementAndGet();
+        for (Settings setting : values()) setting.cachedValue = null;
     }
 
     @Override

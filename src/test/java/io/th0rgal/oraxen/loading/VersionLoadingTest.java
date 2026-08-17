@@ -1,10 +1,7 @@
 package io.th0rgal.oraxen.loading;
 
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 
@@ -29,7 +26,6 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /*
 * Downloads a server jar, cleans up the server, builds and deploys Oraxen to the server, sets the Java Version and verifies Oraxen loads fine on the server.
@@ -40,19 +36,13 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 * <Version> can be e.g. 'Paper_1_21_11'.
 * */
 
-@Execution(ExecutionMode.SAME_THREAD)
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@Execution(ExecutionMode.CONCURRENT)
 public class VersionLoadingTest {
 
-    private static final Path serverDir = Path.of(System.getProperty("user.home"), "Oraxen", "Servers");
-    private static final Path pluginsDir = serverDir.resolve("plugins");
-    private static final Path paperDir = serverDir.resolve("Paper");
-    private static final Path foliaDir = serverDir.resolve("Folia");
-    private static final Path logsDir = serverDir.resolve("logs");
-    
+    private static final Path serversDir = Path.of(System.getProperty("user.home"), "Oraxen", "Servers");
+
     private static final Duration serverTimeout = Duration.ofMinutes(3);
     private static final Duration serverStopDelay = Duration.ofSeconds(4);
-    private static volatile Throwable previousVersionFailure;
     private static Path builtPluginJar;
 
     private static final List<String> paperVersions = List.of(
@@ -69,7 +59,7 @@ public class VersionLoadingTest {
     );
 
     private static final Map<String, String> paperURLs = Map.ofEntries(
-            Map.entry("26.2", "https://fill-data.papermc.io/v1/objects/49c86f1276e5dded67b6121bf7c2e91401f6eb99769cbb093aa19be07fa612f2/paper-26.2-38.jar"),
+            Map.entry("26.2", "https://fill-data.papermc.io/v1/objects/36fee4f3a7020eb2e2d6f8d70d849beaf0f024d86f09302b9ccf2d96f266127e/paper-26.2-71.jar"),
             Map.entry("26.1.2", "https://fill-data.papermc.io/v1/objects/d30fae0c74092b10855f0412ca6b265c60301a013d34bc28a2a41bf5682dd80b/paper-26.1.2-69.jar"),
             Map.entry("1.21.11", "https://fill-data.papermc.io/v1/objects/5ffef465eeeb5f2a3c23a24419d97c51afd7dbb4923ff42df9a3f58bba1ccfba/paper-1.21.11-132.jar"),
             Map.entry("1.21.10", "https://fill-data.papermc.io/v1/objects/158703f75a26f842ea656b3dc6d75bf3d1ec176b97a2c36384d0b80b3871af53/paper-1.21.10-130.jar"),
@@ -87,51 +77,41 @@ public class VersionLoadingTest {
             Map.entry("1.21.11", "https://fill-data.papermc.io/v1/objects/f52c408490a0225611e67907a3ca19f7e6da2c6bc899e715d5f46844e7103c39/folia-1.21.11-14.jar")
     );
 
-    @Test @Tag("version-loading") @Order(1) void Paper_1_20_1() throws Exception { testPaper("1.20.1"); }
-    @Test @Tag("version-loading") @Order(2) void Paper_1_20_4() throws Exception { testPaper("1.20.4"); }
-    @Test @Tag("version-loading") @Order(3) void Paper_1_20_6() throws Exception { testPaper("1.20.6"); }
-    @Test @Tag("version-loading") @Order(4) void Paper_1_21_3() throws Exception { testPaper("1.21.3"); }
-    @Test @Tag("version-loading") @Order(5) void Paper_1_21_4() throws Exception { testPaper("1.21.4"); }
-    @Test @Tag("version-loading") @Order(6) void Paper_1_21_5() throws Exception { testPaper("1.21.5"); }
-    @Test @Tag("version-loading") @Order(7) void Paper_1_21_8() throws Exception { testPaper("1.21.8"); }
-    @Test @Tag("version-loading") @Order(8) void Paper_1_21_10() throws Exception { testPaper("1.21.10"); }
-    @Test @Tag("version-loading") @Order(9) void Paper_1_21_11() throws Exception { testPaper("1.21.11"); }
-    @Test @Tag("version-loading") @Order(10) void Paper_26_1_2() throws Exception { testPaper("26.1.2"); }
-    @Test @Tag("version-loading") @Order(11) void Paper_26_2() throws Exception { testPaper("26.2"); }
-    @Test @Tag("version-loading") @Order(12) void Folia_1_21_11() throws Exception { testFolia("1.21.11"); }
-    @Test @Tag("version-loading") @Order(13) void Folia_26_1_2() throws Exception { testFolia("26.1.2"); }
+    @Test @Tag("version-loading") void Paper_1_20_1() throws Exception { testPaper("1.20.1"); }
+    @Test @Tag("version-loading") void Paper_1_20_4() throws Exception { testPaper("1.20.4"); }
+    @Test @Tag("version-loading") void Paper_1_20_6() throws Exception { testPaper("1.20.6"); }
+    @Test @Tag("version-loading") void Paper_1_21_3() throws Exception { testPaper("1.21.3"); }
+    @Test @Tag("version-loading") void Paper_1_21_4() throws Exception { testPaper("1.21.4"); }
+    @Test @Tag("version-loading") void Paper_1_21_5() throws Exception { testPaper("1.21.5"); }
+    @Test @Tag("version-loading") void Paper_1_21_8() throws Exception { testPaper("1.21.8"); }
+    @Test @Tag("version-loading") void Paper_1_21_10() throws Exception { testPaper("1.21.10"); }
+    @Test @Tag("version-loading") void Paper_1_21_11() throws Exception { testPaper("1.21.11"); }
+    @Test @Tag("version-loading") void Paper_26_1_2() throws Exception { testPaper("26.1.2"); }
+    @Test @Tag("version-loading") void Paper_26_2() throws Exception { testPaper("26.2"); }
+    @Test @Tag("version-loading") void Folia_1_21_11() throws Exception { testFolia("1.21.11"); }
+    @Test @Tag("version-loading") void Folia_26_1_2() throws Exception { testFolia("26.1.2"); }
 
     private static void testPaper(String version) throws Exception {
-        assumeTrue(previousVersionFailure == null, "Skipping because a previous version failed: " + previousVersionFailure);
-        try {
-            assertTrue(paperVersions.contains(version), "Unexpected Paper version " + version);
-            Path projectDir = findProjectDir();
-            buildPluginIfNeeded(projectDir);
-            prepareServerDir();
-            copyBuiltJar(builtPluginJar);
-            runServer("paper", "Paper", version, paperDir, paperURLs);
-        } catch (Exception | Error failure) {
-            previousVersionFailure = failure;
-            throw failure;
-        }
+        assertTrue(paperVersions.contains(version), "Unexpected Paper version " + version);
+        testVersion("paper", "Paper", version, paperURLs);
     }
 
     private static void testFolia(String version) throws Exception {
-        assumeTrue(previousVersionFailure == null, "Skipping because a previous version failed: " + previousVersionFailure);
-        try {
-            assertTrue(foliaVersions.contains(version), "Unexpected Folia version " + version);
-            Path projectDir = findProjectDir();
-            buildPluginIfNeeded(projectDir);
-            prepareServerDir();
-            copyBuiltJar(builtPluginJar);
-            runServer("folia", "Folia", version, foliaDir, foliaURLs);
-        } catch (Exception | Error failure) {
-            previousVersionFailure = failure;
-            throw failure;
-        }
+        assertTrue(foliaVersions.contains(version), "Unexpected Folia version " + version);
+        testVersion("folia", "Folia", version, foliaURLs);
     }
 
-    private static void buildPluginIfNeeded(Path projectDir) throws IOException {
+    private static void testVersion(String project, String name, String version, Map<String, String> urls) throws Exception {
+        Path projectDir = findProjectDir();
+        buildPluginIfNeeded(projectDir);
+        Path serverDir = serversDir.resolve(name).resolve(version);
+        ensureServerJar(project, version, serverDir, urls);
+        prepareServerDir(serverDir);
+        copyBuiltJar(builtPluginJar, serverDir.resolve("plugins"));
+        runServer(name, version, serverDir);
+    }
+
+    private static synchronized void buildPluginIfNeeded(Path projectDir) throws IOException {
         if (builtPluginJar != null && Files.exists(builtPluginJar)) return;
         // The Gradle test task depends on shadowJar when runVersionLoadingTest is enabled.
         // Never launch a nested Gradle build here: compileJava depends on clean and would
@@ -139,27 +119,22 @@ public class VersionLoadingTest {
         builtPluginJar = findBuiltJar(projectDir);
     }
 
-    private static void prepareServerDir() throws IOException {
+    private static void prepareServerDir(Path serverDir) throws IOException {
         Files.createDirectories(serverDir);
+        Path serverJar = serverDir.resolve("server.jar");
         try (Stream<Path> paths = Files.walk(serverDir)) {
             paths.sorted(Comparator.reverseOrder())
                     .filter(path -> !path.equals(serverDir))
-                    .filter(path -> !path.equals(paperDir) && !path.startsWith(paperDir))
-                    .filter(path -> !path.equals(foliaDir) && !path.startsWith(foliaDir))
-                    .filter(path -> !path.equals(logsDir) && !path.startsWith(logsDir))
+                    .filter(path -> !path.equals(serverJar))
                     .forEach(VersionLoadingTest::delete);
         }
-        Files.createDirectories(pluginsDir);
-        Files.createDirectories(paperDir);
-        Files.createDirectories(foliaDir);
+        Files.createDirectories(serverDir.resolve("plugins"));
         Files.writeString(serverDir.resolve("eula.txt"), "eula=true\n", StandardCharsets.UTF_8);
     }
 
-    private static void runServer(String project, String name, String version, Path jarDir, Map<String, String> urls) throws Exception {
-        ensureServerJar(project, version, jarDir, urls);
-        Files.deleteIfExists(logsDir.resolve("latest.log"));
+    private static void runServer(String name, String version, Path serverDir) throws Exception {
         Path javaHome = javaHome(version);
-        ProcessBuilder builder = new ProcessBuilder(javaExecutable(javaHome), "-Xmx1G", "-jar", name + "/" + version + ".jar", "--nogui", "--port", "25590");
+        ProcessBuilder builder = new ProcessBuilder(javaExecutable(javaHome), "-Xmx1G", "-jar", "server.jar", "--nogui", "--port", "0");
         builder.directory(serverDir.toFile()).redirectErrorStream(true);
         builder.environment().put("JAVA_HOME", javaHome.toString());
         builder.environment().put("PATH", javaHome.resolve("bin") + System.getProperty("path.separator") + builder.environment().getOrDefault("PATH", ""));
@@ -167,20 +142,20 @@ public class VersionLoadingTest {
         Process process = builder.start();
         StringBuilder output = new StringBuilder();
         try {
-            detectPassOrFail(name, version, process, output);
+            detectPassOrFail(name, version, serverDir, process, output);
         } finally {
             Thread.sleep(serverStopDelay.toMillis());
             stopServer(process);
         }
     }
 
-    private static void detectPassOrFail(String name, String version, Process process, StringBuilder output) throws Exception {
+    private static void detectPassOrFail(String name, String version, Path serverDir, Process process, StringBuilder output) throws Exception {
         boolean enabled = false;
         Instant deadline = Instant.now().plus(serverTimeout);
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
             while (Instant.now().isBefore(deadline)) {
                 if (!reader.ready()) {
-                    if (!process.isAlive()) failWithServerOutput(name, version, name + " exited with code " + process.exitValue() + " before Oraxen loaded", output);
+                    if (!process.isAlive()) failWithServerOutput(name, version, serverDir, name + " exited with code " + process.exitValue() + " before Oraxen loaded", output);
                     Thread.sleep(100);
                     continue;
                 }
@@ -189,20 +164,20 @@ public class VersionLoadingTest {
                 output.append(line).append(System.lineSeparator());
                 String lower = line.toLowerCase();
                 if (lower.contains("enabling oraxen") || lower.contains("oraxen") && lower.contains("enabled")) enabled = true;
-                if (lower.contains("disabling oraxen")) failWithServerOutput(name, version, "Oraxen was disabled during startup", output);
-                if (lower.contains("error occurred while enabling oraxen")) failWithServerOutput(name, version, name + " reported an error while enabling Oraxen", output);
+                if (lower.contains("disabling oraxen")) failWithServerOutput(name, version, serverDir, "Oraxen was disabled during startup", output);
+                if (lower.contains("error occurred while enabling oraxen")) failWithServerOutput(name, version, serverDir, name + " reported an error while enabling Oraxen", output);
                 if (enabled && line.contains("Done (")) return;
             }
         }
-        failWithServerOutput(name, version, "Timed out after " + serverTimeout + " waiting for Oraxen to load", output);
+        failWithServerOutput(name, version, serverDir, "Timed out after " + serverTimeout + " waiting for Oraxen to load", output);
     }
 
     private static Path ensureServerJar(String project, String version, Path jarDir, Map<String, String> urls) throws IOException {
-        Path jar = jarDir.resolve(version + ".jar");
+        Path jar = jarDir.resolve("server.jar");
         if (Files.exists(jar) && !urls.containsKey(version)) return jar;
         String url = Optional.ofNullable(urls.get(version)).orElseGet(() -> latestUrl(project, version));
         Files.createDirectories(jarDir);
-        Path temp = jarDir.resolve(version + ".jar.download");
+        Path temp = jarDir.resolve("server.jar.download");
         try (var input = URI.create(url).toURL().openStream()) {
             Files.copy(input, temp, StandardCopyOption.REPLACE_EXISTING);
         }
@@ -270,7 +245,7 @@ public class VersionLoadingTest {
         }
     }
 
-    private static void copyBuiltJar(Path builtJar) throws IOException {
+    private static void copyBuiltJar(Path builtJar, Path pluginsDir) throws IOException {
         Files.copy(builtJar, pluginsDir.resolve(builtJar.getFileName()), StandardCopyOption.REPLACE_EXISTING);
 
         // Test servers must never publish generated packs as a startup side effect.
@@ -446,7 +421,7 @@ public class VersionLoadingTest {
         if (!process.waitFor(30, TimeUnit.SECONDS)) process.destroyForcibly();
     }
 
-    private static void failWithServerOutput(String name, String version, String reason, StringBuilder output) {
+    private static void failWithServerOutput(String name, String version, Path serverDir, String reason, StringBuilder output) {
         fail(name + " " + version + " failed: " + reason
                 + "\nSee server log at " + serverDir.resolve("logs/latest.log").toAbsolutePath()
                 + (output.isEmpty() ? "" : "\nServer output:\n" + output));

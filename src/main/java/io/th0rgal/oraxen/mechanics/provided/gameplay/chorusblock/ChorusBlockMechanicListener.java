@@ -18,7 +18,6 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.MultipleFacing;
 import org.bukkit.entity.*;
-import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -46,8 +45,8 @@ public class ChorusBlockMechanicListener implements Listener {
     public static final NamespacedKey SEAT_KEY = new NamespacedKey(OraxenPlugin.get(), "chorus_seat");
 
     public ChorusBlockMechanicListener() {
-        if (OraxenPlugin.get().getPacketAdapter().isEnabled())
-            BreakerSystem.MODIFIERS.add(getHardnessModifier());
+        // BreakerSystem no longer requires a packet library, register unconditionally.
+        BreakerSystem.MODIFIERS.add(getHardnessModifier());
     }
 
     private HardnessModifier getHardnessModifier() {
@@ -133,11 +132,7 @@ public class ChorusBlockMechanicListener implements Listener {
                 if (mechanic == null)
                     continue;
 
-                block.setType(Material.AIR, false);
-
-                if (mechanic.hasLight())
-                    mechanic.getLight().removeBlockLight(block);
-                mechanic.getDrop().spawns(block.getLocation(), new ItemStack(Material.AIR));
+                OraxenBlocks.remove(block.getLocation(), null, true);
             }
         }
 
@@ -161,11 +156,7 @@ public class ChorusBlockMechanicListener implements Listener {
                 if (mechanic == null)
                     continue;
 
-                block.setType(Material.AIR, false);
-
-                if (mechanic.hasLight())
-                    mechanic.getLight().removeBlockLight(block);
-                mechanic.getDrop().spawns(block.getLocation(), new ItemStack(Material.AIR));
+                OraxenBlocks.remove(block.getLocation(), null, true);
             }
         }
 
@@ -210,10 +201,13 @@ public class ChorusBlockMechanicListener implements Listener {
         OraxenChorusBlockInteractEvent interactEvent = new OraxenChorusBlockInteractEvent(
                 mechanic, event.getPlayer(), event.getItem(),
                 event.getHand(), block, event.getBlockFace());
-        if (!EventUtils.callEvent(interactEvent)) {
+        if (!interactEvent.callEvent()) {
             event.setCancelled(true);
             return;
         }
+        // Vanilla only bypasses container/interaction handling when sneaking with an item
+        // in either hand; sneaking with empty hands still opens custom storage.
+        if (event.getPlayer().isSneaking() && ItemUtils.hasItemInAnyHand(event.getPlayer())) return;
 
         // Handle click actions
         if (mechanic.hasClickActions()) {
@@ -306,16 +300,6 @@ public class ChorusBlockMechanicListener implements Listener {
         return seat.getUniqueId();
     }
 
-    private void removeSeat(Block block) {
-        ArmorStand seat = getSeat(block);
-        if (seat != null) {
-            seat.getPassengers().forEach(seat::removePassenger);
-            if (!seat.isDead()) seat.remove();
-        }
-        PersistentDataContainer blockPdc = BlockHelpers.getPDC(block);
-        blockPdc.remove(SEAT_KEY);
-    }
-
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onLimitedPlacing(final PlayerInteractEvent event) {
         Block block = event.getClickedBlock();
@@ -395,14 +379,6 @@ public class ChorusBlockMechanicListener implements Listener {
 
         ChorusBlockMechanic mechanic = OraxenBlocks.getChorusMechanic(block);
         if (mechanic != null) {
-            // Drop storage contents before removing block
-            if (mechanic.isStorage()) {
-                mechanic.getStorage().dropStorageContent(block);
-            }
-            // Remove seat if present
-            if (mechanic.hasSeat()) {
-                removeSeat(block);
-            }
             event.setCancelled(true);
             OraxenBlocks.remove(block.getLocation(), player);
             event.setDropItems(false);
@@ -413,12 +389,6 @@ public class ChorusBlockMechanicListener implements Listener {
         if (blockAbove.getType() == Material.CHORUS_PLANT && OraxenBlocks.isOraxenChorusBlock(blockAbove)) {
             ChorusBlockMechanic aboveMechanic = OraxenBlocks.getChorusMechanic(blockAbove);
             if (aboveMechanic != null) {
-                if (aboveMechanic.isStorage()) {
-                    aboveMechanic.getStorage().dropStorageContent(blockAbove);
-                }
-                if (aboveMechanic.hasSeat()) {
-                    removeSeat(blockAbove);
-                }
                 // Handle falling blocks - spawn falling block instead of just removing
                 if (aboveMechanic.isFalling()) {
                     BlockData aboveBlockData = blockAbove.getBlockData();
@@ -606,7 +576,7 @@ public class ChorusBlockMechanicListener implements Listener {
             blockPlaceEvent.setCancelled(true);
 
         // Call the event and check if it is cancelled, if so reset BlockData
-        if (!EventUtils.callEvent(blockPlaceEvent) || !blockPlaceEvent.canBuild()) {
+        if (!blockPlaceEvent.callEvent() || !blockPlaceEvent.canBuild()) {
             target.setBlockData(oldData);
             return;
         }
@@ -615,7 +585,7 @@ public class ChorusBlockMechanicListener implements Listener {
 
         OraxenChorusBlockPlaceEvent oraxenPlaceEvent = new OraxenChorusBlockPlaceEvent(mechanic, target, player,
                 item, hand);
-        if (!EventUtils.callEvent(oraxenPlaceEvent)) {
+        if (!oraxenPlaceEvent.callEvent()) {
             target.setBlockData(oldData);
             return;
         }
@@ -635,8 +605,7 @@ public class ChorusBlockMechanicListener implements Listener {
             item.setAmount(item.getAmount() - 1);
         Utils.swingHand(player, hand);
 
-        if (VersionUtil.isPaperServer())
-            target.getWorld().sendGameEvent(player, GameEvent.BLOCK_PLACE, target.getLocation().toVector());
+        target.getWorld().sendGameEvent(player, GameEvent.BLOCK_PLACE, target.getLocation().toVector());
     }
 
     public static void fixClientsideUpdate(Location loc) {

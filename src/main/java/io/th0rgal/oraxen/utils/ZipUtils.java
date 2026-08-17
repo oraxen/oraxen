@@ -8,7 +8,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.attribute.FileTime;
 import java.util.List;
@@ -52,20 +51,14 @@ public class ZipUtils {
             return;
         }
 
-        final byte[] bytes = new byte[1024];
-        int length;
         try (InputStream in = fis) {
-            while ((length = in.read(bytes)) >= 0)
-                zos.write(bytes, 0, length);
-        } catch (IOException ignored) {
+            in.transferTo(zos);
+        } catch (IOException exception) {
+            Logs.logWarning("Failed to write zip entry " + zipFilePath + ": " + exception.getMessage());
         } finally {
             try {
                 zos.closeEntry();
             } catch (IOException ignored) {
-            }
-            if (Settings.PROTECTION.toBool()) {
-                zipEntry.setCrc(bytes.length);
-                zipEntry.setSize(new BigInteger(bytes).mod(BigInteger.valueOf(Long.MAX_VALUE)).longValue());
             }
         }
     }

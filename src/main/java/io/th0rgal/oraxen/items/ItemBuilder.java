@@ -95,7 +95,10 @@ public class ItemBuilder {
     @Nullable
     private List<Float> customModelDataFloats;
     private List<String> lore;
-    private ItemStack finalItemStack;
+    // Built lazily and read from multiple region threads on Folia (e.g. the
+    // /oraxen give fan-out); volatile plus synchronized regen keeps readers
+    // from observing a partially published stack.
+    private volatile ItemStack finalItemStack;
 
     // 1.20.5+ properties
     @Nullable
@@ -136,6 +139,10 @@ public class ItemBuilder {
     private UseCooldownComponent useCooldownComponent;
     @Nullable
     private ItemStack useRemainder;
+    @Nullable
+    private String deferredUseRemainderId;
+    private int deferredUseRemainderAmount;
+    private boolean resolvingUseRemainder;
     @Nullable
     private Tag<DamageType> damageResistant;
     @Nullable
@@ -191,7 +198,7 @@ public class ItemBuilder {
             color = effectMeta.hasEffect() ? Utils.getOrDefault(effectMeta.getEffect().getColors(), 0, Color.WHITE)
                     : Color.WHITE;
 
-        if (VersionUtil.atOrAbove("1.20") && itemMeta instanceof ArmorMeta armorMeta && armorMeta.hasTrim())
+        if (itemMeta instanceof ArmorMeta armorMeta && armorMeta.hasTrim())
             trimPattern = armorMeta.getTrim().getMaterial().key();
 
         if (itemMeta instanceof SkullMeta skullMeta)
@@ -203,12 +210,8 @@ public class ItemBuilder {
             patternColor = tropicalFishBucketMeta.getPatternColor();
         }
 
-        if (itemMeta.hasDisplayName()) {
-            if (VersionUtil.isPaperServer())
-                displayName = AdventureUtils.MINI_MESSAGE.serialize(itemMeta.displayName());
-            else
-                displayName = itemMeta.getDisplayName();
-        }
+        if (itemMeta.hasDisplayName())
+            displayName = AdventureUtils.MINI_MESSAGE.serialize(itemMeta.displayName());
 
         unbreakable = itemMeta.isUnbreakable();
         unstackable = itemMeta.getPersistentDataContainer().has(UNSTACKABLE_KEY, DataType.UUID);
@@ -253,24 +256,17 @@ public class ItemBuilder {
             }
         }
 
-        if (itemMeta.hasLore()) {
-            if (VersionUtil.isPaperServer())
-                lore = itemMeta.lore().stream().map(AdventureUtils.MINI_MESSAGE::serialize).toList();
-            else
-                lore = itemMeta.getLore();
-        }
+        if (itemMeta.hasLore())
+            lore = itemMeta.lore().stream().map(AdventureUtils.MINI_MESSAGE::serialize).toList();
 
         persistentDataContainer = itemMeta.getPersistentDataContainer();
 
         enchantments = new HashMap<>();
 
         if (VersionUtil.atOrAbove("1.20.5")) {
-            if (itemMeta.hasItemName()) {
-                if (VersionUtil.isPaperServer())
-                    itemName = AdventureUtils.MINI_MESSAGE.serialize(itemMeta.itemName());
-                else
-                    itemName = itemMeta.getItemName();
-            } else
+            if (itemMeta.hasItemName())
+                itemName = AdventureUtils.MINI_MESSAGE.serialize(itemMeta.itemName());
+            else
                 itemName = null;
 
             durability = (itemMeta instanceof Damageable damageable) && damageable.hasMaxDamage()
@@ -428,13 +424,11 @@ public class ItemBuilder {
     }
 
     public boolean hasTrimPattern() {
-        return VersionUtil.atOrAbove("1.20") && trimPattern != null && getTrimPattern() != null;
+        return trimPattern != null && getTrimPattern() != null;
     }
 
     @Nullable
     public Key getTrimPatternKey() {
-        if (!VersionUtil.atOrAbove("1.20"))
-            return null;
         if (!Tag.ITEMS_TRIMMABLE_ARMOR.isTagged(type))
             return null;
         return trimPattern;
@@ -442,8 +436,6 @@ public class ItemBuilder {
 
     @Nullable
     public TrimPattern getTrimPattern() {
-        if (!VersionUtil.atOrAbove("1.20"))
-            return null;
         if (!Tag.ITEMS_TRIMMABLE_ARMOR.isTagged(type))
             return null;
         if (trimPattern == null)
@@ -452,22 +444,15 @@ public class ItemBuilder {
         if (key == null)
             return null;
 
-        // Only try to get trim pattern if running on Paper
-        if (VersionUtil.isPaperServer()) {
-            try {
-                return Registry.TRIM_PATTERN.get(key);
-            } catch (NoSuchMethodError e) {
-                // Registry.TRIM_PATTERN.get not available - this is expected on non-Paper
-                // servers
-                return null;
-            }
+        try {
+            return Registry.TRIM_PATTERN.get(key);
+        } catch (NoSuchMethodError e) {
+            // Registry.TRIM_PATTERN.get is not available on this server version.
+            return null;
         }
-        return null;
     }
 
     public ItemBuilder setTrimPattern(final Key trimKey) {
-        if (!VersionUtil.atOrAbove("1.20"))
-            return this;
         if (!Tag.ITEMS_TRIMMABLE_ARMOR.isTagged(type))
             return this;
         this.trimPattern = trimKey;
@@ -544,7 +529,44 @@ public class ItemBuilder {
 
     public ItemBuilder setUseRemainder(@Nullable final ItemStack itemStack) {
         this.useRemainder = itemStack;
+        deferredUseRemainderId = null;
+        // Invalidate any stack cached before the remainder was attached. Another
+        // item's use_remainder chain may already have built this item, and build()
+        // would otherwise keep returning the stale clone without the component.
+        finalItemStack = null;
         return this;
+    }
+
+    public ItemBuilder deferUseRemainder(@Nullable final String itemId, final int amount) {
+        useRemainder = null;
+        deferredUseRemainderId = itemId;
+        deferredUseRemainderAmount = amount;
+        return this;
+    }
+
+    public void resolveUseRemainder() {
+        if (deferredUseRemainderId == null || resolvingUseRemainder)
+            return;
+
+        ItemBuilder remainderBuilder = OraxenItems.getItemById(deferredUseRemainderId);
+        if (remainderBuilder == null) {
+            Logs.logWarning("use_remainder references unknown oraxen_item: '" + deferredUseRemainderId + "'. Component will be skipped.");
+            deferredUseRemainderId = null;
+            return;
+        }
+
+        resolvingUseRemainder = true;
+        try {
+            // Resolve the referenced item's own remainder chain first so the stack
+            // built below already carries its use_remainder component. The guard
+            // above breaks cycles (a -> b -> a) instead of recursing forever.
+            remainderBuilder.resolveUseRemainder();
+            ItemStack remainder = ItemUpdater.updateItem(remainderBuilder.build());
+            remainder.setAmount(deferredUseRemainderAmount);
+            setUseRemainder(remainder);
+        } finally {
+            resolvingUseRemainder = false;
+        }
     }
 
     public boolean hasUseCooldownComponent() {
@@ -627,19 +649,7 @@ public class ItemBuilder {
     }
 
     public ItemBuilder setJukeboxPlayable(@Nullable JukeboxPlayableComponent jukeboxPlayable) {
-        if (!VersionUtil.isPaperServer()) {
-            Logs.logWarning("JukeboxPlayable features are only available on Paper servers.");
-            return this;
-        }
-
-        try {
-            this.jukeboxPlayable = jukeboxPlayable;
-        } catch (Exception e) {
-            Logs.logWarning("Error setting JukeboxPlayable; This component is not available in your server version");
-            if (Settings.DEBUG.toBool()) {
-                e.printStackTrace();
-            }
-        }
+        this.jukeboxPlayable = jukeboxPlayable;
         return this;
     }
 
@@ -868,7 +878,7 @@ public class ItemBuilder {
     }
 
     @SuppressWarnings("unchecked")
-    public ItemBuilder regen() {
+    public synchronized ItemBuilder regen() {
         final ItemStack itemStack = this.itemStack;
         if (type != null)
             itemStack.setType(type);
@@ -892,9 +902,12 @@ public class ItemBuilder {
 
         itemStack.setItemMeta(itemMeta);
         applyAttributeModifiersComponent(itemStack);
-        finalItemStack = applyConsumableComponent(itemStack);
-        finalItemStack = applyPaintingVariantComponent(finalItemStack);
-        finalItemStack = applyGenericComponents(finalItemStack);
+        // Build into a local and publish once so concurrent readers never see
+        // an intermediate stack.
+        ItemStack built = applyConsumableComponent(itemStack);
+        built = applyPaintingVariantComponent(built);
+        built = applyGenericComponents(built);
+        finalItemStack = built;
 
         return this;
     }
@@ -914,12 +927,8 @@ public class ItemBuilder {
     private void applyProperties_1_20_5(ItemMeta itemMeta) {
         if (itemMeta instanceof Damageable damageable)
             damageable.setMaxDamage(durability);
-        if (hasItemName()) {
-            if (VersionUtil.isPaperServer())
-                itemMeta.itemName(AdventureUtils.MINI_MESSAGE.deserialize(itemName));
-            else
-                itemMeta.setItemName(itemName);
-        }
+        if (hasItemName())
+            itemMeta.itemName(AdventureUtils.MINI_MESSAGE.deserialize(itemName));
         if (hasMaxStackSize())
             itemMeta.setMaxStackSize(maxStackSize);
         if (hasEnchantmentGlintOverride())
@@ -937,7 +946,7 @@ public class ItemBuilder {
     }
 
     private void applyProperties_1_21(ItemMeta itemMeta) {
-        if (hasJukeboxPlayable() && VersionUtil.isPaperServer()) {
+        if (hasJukeboxPlayable()) {
             try {
                 itemMeta.setJukeboxPlayable(jukeboxPlayable);
             } catch (NoSuchMethodError | UnsupportedOperationException e) {
@@ -978,15 +987,10 @@ public class ItemBuilder {
             pdc.set(ORIGINAL_NAME_KEY, DataType.STRING,
                     displayNameMessage != null ? displayNameMessage.toString() : displayName);
 
-        if (VersionUtil.isPaperServer()) {
-            Component nameComponent = buildDisplayNameComponent();
-            nameComponent = nameComponent.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)
-                    .colorIfAbsent(NamedTextColor.WHITE);
-            itemMeta.displayName(nameComponent);
-        } else {
-            itemMeta.setDisplayName(
-                    displayNameMessage != null ? displayNameMessage.toSerializedString() : displayName);
-        }
+        Component nameComponent = buildDisplayNameComponent();
+        nameComponent = nameComponent.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)
+                .colorIfAbsent(NamedTextColor.WHITE);
+        itemMeta.displayName(nameComponent);
     }
 
     private Component buildDisplayNameComponent() {
@@ -1045,7 +1049,7 @@ public class ItemBuilder {
         boolean hasModern = !attributeEntries.isEmpty();
         boolean hasLegacy = legacyAttributeModifiers != null && !legacyAttributeModifiers.isEmpty();
         if (!hasModern && !hasLegacy) return;
-        if (!VersionUtil.atOrAbove("1.21.2") || !VersionUtil.isPaperServer()) return;
+        if (!VersionUtil.atOrAbove("1.21.2")) return;
 
         try {
             ItemAttributeModifiers.Builder builder = ItemAttributeModifiers.itemAttributes();
@@ -1107,17 +1111,13 @@ public class ItemBuilder {
     }
 
     private void applyLore(ItemMeta itemMeta) {
-        if (VersionUtil.isPaperServer()) {
-            @Nullable
-            List<Component> loreLines = lore != null
-                    ? lore.stream().map(AdventureUtils.MINI_MESSAGE::deserialize).toList()
-                    : new ArrayList<>();
-            loreLines = loreLines.stream()
-                    .map(c -> c.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)).toList();
-            itemMeta.lore(lore != null ? loreLines : null);
-        } else {
-            itemMeta.setLore(lore);
-        }
+        @Nullable
+        List<Component> loreLines = lore != null
+                ? lore.stream().map(AdventureUtils.MINI_MESSAGE::deserialize).toList()
+                : new ArrayList<>();
+        loreLines = loreLines.stream()
+                .map(c -> c.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)).toList();
+        itemMeta.lore(lore != null ? loreLines : null);
     }
 
     private ItemStack applyConsumableComponent(ItemStack itemStack) {
@@ -1143,7 +1143,7 @@ public class ItemBuilder {
 
     private ItemStack applyPaintingVariantComponent(ItemStack itemStack) {
         if (paintingVariant == null) return itemStack;
-        if (!VersionUtil.atOrAbove("1.21.5") || !VersionUtil.isPaperServer()) return itemStack;
+        if (!VersionUtil.atOrAbove("1.21.5")) return itemStack;
 
         Key variantKey;
         try {
@@ -1229,7 +1229,7 @@ public class ItemBuilder {
                 effectMeta.setEffect(fireWorkBuilder.build());
             } catch (IllegalStateException ignored) {
             }
-        } else if (VersionUtil.atOrAbove("1.20") && itemMeta instanceof ArmorMeta armorMeta && hasTrimPattern()) {
+        } else if (itemMeta instanceof ArmorMeta armorMeta && hasTrimPattern()) {
             armorMeta.setTrim(new ArmorTrim(TrimMaterial.REDSTONE, getTrimPattern()));
         } else if (itemMeta instanceof SkullMeta skullMeta) {
             final OfflinePlayer defaultOwningPlayer = skullMeta.getOwningPlayer();
@@ -1248,7 +1248,7 @@ public class ItemBuilder {
         if (potionType != null && !potionType.equals(PotionUtils.getPotionType(potionMeta)))
             PotionUtils.setPotionType(potionMeta, potionType);
 
-        if (!potionEffects.equals(potionMeta.getCustomEffects()))
+        if (potionEffects != null && !potionEffects.equals(potionMeta.getCustomEffects()))
             for (final PotionEffect potionEffect : potionEffects)
                 potionMeta.addCustomEffect(potionEffect, true);
 
@@ -1297,9 +1297,17 @@ public class ItemBuilder {
     }
 
     public ItemStack build() {
-        if (finalItemStack == null)
-            regen();
-        ItemStack builtItem = finalItemStack.clone();
+        ItemStack current = finalItemStack;
+        if (current == null) {
+            synchronized (this) {
+                current = finalItemStack;
+                if (current == null) {
+                    regen();
+                    current = finalItemStack;
+                }
+            }
+        }
+        ItemStack builtItem = current.clone();
         if (unstackable)
             return handleUnstackable(builtItem);
         else

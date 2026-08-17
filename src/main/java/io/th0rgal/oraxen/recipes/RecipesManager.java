@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.recipes.listeners.RecipesEventsManager;
 import io.th0rgal.oraxen.recipes.loaders.*;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.OraxenYaml;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.Keyed;
@@ -26,6 +27,7 @@ import java.util.Objects;
 public class RecipesManager {
 
     private RecipesManager() {}
+    private static boolean builderEventsRegistered;
 
     public static void load(JavaPlugin plugin) {
         if (Settings.RESET_RECIPES.toBool()) {
@@ -38,30 +40,30 @@ public class RecipesManager {
             }
         }
 
-        Bukkit.getPluginManager().registerEvents(new RecipesBuilderEvents(), plugin);
+        if (!builderEventsRegistered) {
+            Bukkit.getPluginManager().registerEvents(new RecipesBuilderEvents(), plugin);
+            builderEventsRegistered = true;
+        }
         File recipesFolder = new File(OraxenPlugin.get().getDataFolder(), "recipes");
         if (!recipesFolder.exists()) {
             recipesFolder.mkdirs();
             if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
                 OraxenPlugin.get().getResourceManager().extractConfigsInFolder("recipes", "yml");
-            else try {
-                new File(recipesFolder, "furnace.yml").createNewFile();
-                new File(recipesFolder, "shaped.yml").createNewFile();
-                new File(recipesFolder, "shapeless.yml").createNewFile();
-                new File(recipesFolder, "blasting.yml").createNewFile();
-                new File(recipesFolder, "campfire.yml").createNewFile();
-                new File(recipesFolder, "smoking.yml").createNewFile();
-                new File(recipesFolder, "stonecutting.yml").createNewFile();
-                new File(recipesFolder, "disabled.yml").createNewFile();
-            } catch (IOException e) {
-                Logs.logError("Error while creating recipes files: " + e.getMessage());
-            }
         }
+        createRecipeFiles(recipesFolder);
         registerAllConfigRecipesFromFolder(recipesFolder);
         RecipesEventsManager.get().registerEvents();
     }
 
     public static void reload() {
+        // The server recipe registry is global state mutated in place; a reload
+        // issued from a player's region thread would race concurrent crafting
+        // resolution on other regions. Re-dispatch onto the global region
+        // thread, mirroring the jukebox/painting registry reloads.
+        if (!SchedulerUtil.isGlobalThread()) {
+            SchedulerUtil.runTask(RecipesManager::reload);
+            return;
+        }
         if (Settings.RESET_RECIPES.toBool()) {
             Iterator<Recipe> recipeIterator = Bukkit.recipeIterator();
             while (recipeIterator.hasNext()) {
@@ -79,13 +81,41 @@ public class RecipesManager {
             if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
                 OraxenPlugin.get().getResourceManager().extractConfigsInFolder("recipes", "yml");
         }
+        createRecipeFiles(recipesFolder);
         registerAllConfigRecipesFromFolder(recipesFolder);
         RecipesEventsManager.get().registerEvents();
     }
 
     private static void registerAllConfigRecipesFromFolder(File recipesFolder) {
-        for (File configFile : Objects.requireNonNull(recipesFolder.listFiles()))
-            registerConfigRecipes(configFile);
+        RecipeLoader.beginRegistrationPass();
+        CustomWorkstationRegistry.beginReload();
+        RecipesEventsManager.get().beginSmithingReload();
+        try {
+            for (File configFile : Objects.requireNonNull(recipesFolder.listFiles()))
+                registerConfigRecipes(configFile);
+        } finally {
+            CustomWorkstationRegistry.finishReload();
+            RecipesEventsManager.get().finishSmithingReload();
+        }
+    }
+
+    /**
+     * Creates any missing default recipe files as empty templates. Runs on every load so servers
+     * upgrading to a release that adds new recipe types (smithing/cauldron/anvil/grindstone)
+     * receive the files too; previously they were only written when the whole folder was missing,
+     * and the backfill was inverted to run only with default generation disabled. Bundled example
+     * recipes are deliberately only extracted into a freshly created folder, never resurrected
+     * into existing setups.
+     */
+    private static void createRecipeFiles(File recipesFolder) {
+        for (String name : List.of("furnace.yml", "shaped.yml", "shapeless.yml", "blasting.yml", "campfire.yml",
+                "smoking.yml", "stonecutting.yml", "smithing.yml", "cauldron.yml", "anvil.yml", "grindstone.yml", "disabled.yml")) {
+            try {
+                new File(recipesFolder, name).createNewFile();
+            } catch (IOException exception) {
+                Logs.logError("Error while creating recipe file " + name + ": " + exception.getMessage());
+            }
+        }
     }
 
     private static void registerConfigRecipes(File configFile) {
@@ -128,6 +158,10 @@ public class RecipesManager {
                 case "campfire.yml" -> new CampfireLoader(recipeSection).registerRecipe();
                 case "smoking.yml" -> new SmokingLoader(recipeSection).registerRecipe();
                 case "stonecutting.yml" -> new StonecuttingLoader(recipeSection).registerRecipe();
+                case "smithing.yml" -> new SmithingLoader(recipeSection).registerRecipe();
+                case "cauldron.yml" -> new WorkstationLoader(recipeSection, CustomWorkstationRecipe.Type.CAULDRON).registerRecipe();
+                case "anvil.yml" -> new WorkstationLoader(recipeSection, CustomWorkstationRecipe.Type.ANVIL).registerRecipe();
+                case "grindstone.yml" -> new WorkstationLoader(recipeSection, CustomWorkstationRecipe.Type.GRINDSTONE).registerRecipe();
                 default -> Logs.logError(configFile.getName());
             }
         } catch (Exception exception) {

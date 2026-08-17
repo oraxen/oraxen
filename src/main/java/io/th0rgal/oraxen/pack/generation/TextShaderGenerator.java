@@ -3,11 +3,9 @@ package io.th0rgal.oraxen.pack.generation;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.glyphs.AnimatedGlyph;
-import io.th0rgal.oraxen.glyphs.TextEffect;
 import io.th0rgal.oraxen.utils.HashUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import org.jetbrains.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -18,7 +16,7 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Generates text shaders (animation + text effects) and scoreboard shaders.
+ * Generates animated glyph and scoreboard shaders.
  * Extracted from ResourcePack to reduce class size.
  *
  * <p>All shader output is written via {@link ResourcePack#writeStringToVirtual},
@@ -28,19 +26,14 @@ class TextShaderGenerator {
 
     // --- Records ---
 
-    record TextShaderFeatures(boolean animatedGlyphs, boolean textEffects) {
+    record TextShaderFeatures(boolean animatedGlyphs) {
         boolean anyEnabled() {
-            return animatedGlyphs || textEffects;
+            return animatedGlyphs;
         }
-    }
-
-    private record TextEffectSnippets(String vertexPrelude, String fragmentPrelude,
-                                      String vertexEffects, String fragmentEffects) {
     }
 
     private record VertexShaderConfig(
             String fogDistanceInit,
-            String fogDistanceRecalc,
             String vertexColorInit,
             String vertexColorAnimated,
             String moduloExpr
@@ -52,8 +45,6 @@ class TextShaderGenerator {
     private boolean shaderOverlaysGenerated = false;
     private boolean baseShadersSkipped = false;
     private TextShaderFeatures textShaderFeatures = null;
-    private TextEffectSnippets textEffectSnippets = null;
-    private TextShaderTarget textEffectSnippetsTarget = null;
     private final List<ShaderOverlay> generatedOverlays = new ArrayList<>();
     private final Map<String, String> generatedCoreShaderHashes = new HashMap<>();
 
@@ -79,8 +70,6 @@ class TextShaderGenerator {
         shaderOverlaysGenerated = false;
         baseShadersSkipped = false;
         textShaderFeatures = null;
-        textEffectSnippets = null;
-        textEffectSnippetsTarget = null;
         generatedOverlays.clear();
         generatedCoreShaderHashes.clear();
     }
@@ -127,8 +116,8 @@ class TextShaderGenerator {
          * Multi-version on a legacy (1.20-1.21.3) server: emit base shaders for the
          * server's legacy format AND overlays >= 1.21.4 so newer clients matched to
          * the 1.21.4+ overlay still get the modern GLSL variant. Without this, legacy
-         * clients on a multi-version pack would silently lose animated glyph and text
-         * effect rendering because base shaders would be skipped entirely.
+         * clients on a multi-version pack would silently lose animated glyph rendering
+         * because base shaders would be skipped entirely.
          */
         BASE_PLUS_1214_OVERLAYS
     }
@@ -157,10 +146,10 @@ class TextShaderGenerator {
     }
 
     void hideScoreboardNumbers() {
-        if (OraxenPlugin.get().getPacketAdapter().isEnabled() && VersionUtil.isPaperServer()
+        if (OraxenPlugin.get().getPacketAdapter().isEnabled()
                 && VersionUtil.atOrAbove("1.20.3")) {
             OraxenPlugin.get().getPacketAdapter().registerScoreboardListener();
-        } else { // Pre 1.20.3 rely on shaders
+        } else { // No packet adapter available; rely on shaders
             TextShaderTarget target = TextShaderTarget.current();
             if (target.isAtLeast("26")) {
                 Logs.logWarning("Shader-based scoreboard number hiding is not supported on 26.x+.");
@@ -177,7 +166,7 @@ class TextShaderGenerator {
                 writeGeneratedCoreShader("assets/minecraft/shaders/core/", "rendertype_text.vsh", getScoreboardVsh());
                 // Overlay shader files written by generateTextShadersForTarget() at
                 // overlay_*/assets/minecraft/shaders/core/rendertype_text.* are
-                // animation/effect-only and would otherwise hide the base scoreboard
+                // animation-only and would otherwise hide the base scoreboard
                 // shader from clients matched to those overlays. Re-emit per-overlay
                 // combined (animation+scoreboard) shaders using each overlay's target,
                 // so 1.21.4+ clients keep both effects and scoreboard number hiding.
@@ -210,20 +199,20 @@ class TextShaderGenerator {
     }
 
     void hideScoreboardOrTablistBackgrounds() {
-        if (VersionUtil.atOrAbove("1.21.8")) return;
+        if (!VersionUtil.supportsScoreboardBackgroundHiding()) return;
 
-        String fileName = VersionUtil.atOrAbove("1.20.1") ? "rendertype_gui.vsh" : "position_color.fsh";
+        String fileName = "rendertype_gui.vsh";
         String scoreTabBackground = "";
         if (Settings.HIDE_SCOREBOARD_BACKGROUND.toBool() || Settings.HIDE_TABLIST_BACKGROUND.toBool())
             scoreTabBackground = getScoreboardBackground();
         if (Settings.HIDE_SCOREBOARD_BACKGROUND.toBool())
             scoreTabBackground = scoreTabBackground.replaceFirst("//SCOREBOARD.a", "vertexColor.a");
-        if (Settings.HIDE_TABLIST_BACKGROUND.toBool() && VersionUtil.atOrAbove("1.21"))
+        if (Settings.HIDE_TABLIST_BACKGROUND.toBool())
             scoreTabBackground = scoreTabBackground.replace("//TABLIST.a", "vertexColor.a");
 
         if (!scoreTabBackground.isEmpty()) {
-            // rendertype_gui.vsh / position_color.fsh are version-independent GLSL 150 shaders
-            // unrelated to rendertype_text.*, so they are safe to write to the base pack path
+            // rendertype_gui.vsh is a version-independent GLSL 150 shader
+            // unrelated to rendertype_text.*, so it is safe to write to the base pack path
             // even when base text shaders are skipped in multi-version mode.
             writeGeneratedCoreShader("assets/minecraft/shaders/core/", fileName, scoreTabBackground);
         }
@@ -232,39 +221,7 @@ class TextShaderGenerator {
     // --- Internal methods ---
 
     TextShaderFeatures resolveTextShaderFeatures(boolean hasAnimatedGlyphs) {
-        boolean textEffectsEnabled = TextEffect.isEnabled() && TextEffect.hasAnyEffectEnabled();
-        TextEffect.ShaderTemplate template = TextEffect.getShaderTemplate();
-
-        boolean includeAnimated;
-        boolean includeEffects;
-
-        switch (template) {
-            case ANIMATED_GLYPHS -> {
-                includeAnimated = hasAnimatedGlyphs;
-                includeEffects = false;
-            }
-            case TEXT_EFFECTS -> {
-                includeAnimated = false;
-                includeEffects = textEffectsEnabled;
-            }
-            case AUTO -> {
-                includeAnimated = hasAnimatedGlyphs;
-                includeEffects = textEffectsEnabled;
-            }
-            default -> {
-                includeAnimated = hasAnimatedGlyphs;
-                includeEffects = textEffectsEnabled;
-            }
-        }
-
-        if (hasAnimatedGlyphs && !includeAnimated) {
-            Logs.logWarning("Animated glyphs detected but TextEffects.shader.template disables them.");
-        }
-        if (textEffectsEnabled && !includeEffects) {
-            Logs.logWarning("Text effects are enabled but TextEffects.shader.template disables them.");
-        }
-
-        return new TextShaderFeatures(includeAnimated, includeEffects);
+        return new TextShaderFeatures(hasAnimatedGlyphs);
     }
 
     private void generateTextShaders(TextShaderTarget target, TextShaderFeatures features, boolean skipBaseShaders, int minOverlayPackFormat) {
@@ -310,7 +267,7 @@ class TextShaderGenerator {
     private void generateTextShadersForTarget(TextShaderTarget target, TextShaderFeatures features, String pathPrefix) {
         String shaderPath = pathPrefix + "assets/minecraft/shaders/core";
 
-        if (target.isAtLeast("26.2")) {
+        if (target.usesUnifiedTextShader()) {
             writeGeneratedCoreShader(shaderPath, "text.vsh", getAnimationVertexShader26_2(target, features));
             writeGeneratedCoreShader(shaderPath, "text.fsh", getAnimationFragmentShader26_2(target));
             deleteLegacyTextShaderVariants(shaderPath);
@@ -379,59 +336,12 @@ class TextShaderGenerator {
         return "1.20";
     }
 
-    private String getTextShaderConstants(TextShaderTarget target, TextShaderFeatures features) {
+    private String getTextShaderConstants(TextShaderFeatures features) {
         StringBuilder sb = new StringBuilder();
-        sb.append(String.format(Locale.ROOT, """
-                const bool ORAXEN_ANIMATED_GLYPHS = %s;
-                const bool ORAXEN_TEXT_EFFECTS = %s;
-                """,
-                features.animatedGlyphs() ? "true" : "false",
-                features.textEffects() ? "true" : "false"));
+        sb.append(String.format(Locale.ROOT, "const bool ORAXEN_ANIMATED_GLYPHS = %s;\n",
+                features.animatedGlyphs() ? "true" : "false"));
 
         appendAnimationConstants(sb, features.animatedGlyphs());
-
-        // Generate exact trigger colors only for effects that have valid snippets for this target
-        List<TextEffect.Definition> enabledEffects = TextEffect.getEnabledEffects().stream()
-                .filter(def -> def.resolveSnippet(target.packFormat(), target.minecraftVersion()) != null)
-                .toList();
-        int effectCount = enabledEffects.size();
-        sb.append(String.format(Locale.ROOT, "const int ORAXEN_EFFECT_COUNT = %d;\n", effectCount));
-
-        // Always define arrays (GLSL requires all identifiers to exist even in unreachable branches)
-        int arraySize = Math.max(1, effectCount);
-        sb.append("const ivec3 ORAXEN_EFFECT_TRIGGERS[").append(arraySize).append("] = ivec3[](\n");
-        if (enabledEffects.isEmpty()) {
-            sb.append("    ivec3(0, 0, 0)\n");
-        } else {
-            for (int i = 0; i < enabledEffects.size(); i++) {
-                TextEffect.Definition def = enabledEffects.get(i);
-                int rgb = def.getTriggerColor().value();
-                int r = (rgb >> 16) & 0xFF;
-                int g = (rgb >> 8) & 0xFF;
-                int b = rgb & 0xFF;
-                sb.append(String.format(Locale.ROOT, "    ivec3(%d, %d, %d)", r, g, b));
-                if (i < enabledEffects.size() - 1) {
-                    sb.append(",");
-                }
-                sb.append(" // ").append(def.getName()).append(" (id=").append(def.getId()).append(")\n");
-            }
-        }
-        sb.append(");\n");
-
-        sb.append("const int ORAXEN_EFFECT_IDS[").append(arraySize).append("] = int[](\n");
-        if (enabledEffects.isEmpty()) {
-            sb.append("    0\n");
-        } else {
-            for (int i = 0; i < enabledEffects.size(); i++) {
-                TextEffect.Definition def = enabledEffects.get(i);
-                sb.append(String.format(Locale.ROOT, "    %d", def.getId()));
-                if (i < enabledEffects.size() - 1) {
-                    sb.append(",");
-                }
-                sb.append("\n");
-            }
-        }
-        sb.append(");\n");
 
         return sb.toString();
     }
@@ -471,114 +381,7 @@ class TextShaderGenerator {
         sb.append(");\n");
     }
 
-    private TextEffectSnippets getTextEffectSnippets(TextShaderTarget target) {
-        if (textEffectSnippets != null && target.equals(textEffectSnippetsTarget)) {
-            return textEffectSnippets;
-        }
-        textEffectSnippetsTarget = target;
-        textEffectSnippets = buildTextEffectSnippets(target);
-        return textEffectSnippets;
-    }
-
-    private TextEffectSnippets buildTextEffectSnippets(TextShaderTarget target) {
-        if (!TextEffect.isEnabled() || !TextEffect.hasAnyEffectEnabled()) {
-            return new TextEffectSnippets("", "", "", "");
-        }
-
-        StringBuilder vertexPrelude = new StringBuilder();
-        StringBuilder fragmentPrelude = new StringBuilder();
-        StringBuilder vertexEffects = new StringBuilder();
-        StringBuilder fragmentEffects = new StringBuilder();
-
-        appendPrelude(vertexPrelude, TextEffect.getSharedVertexPrelude());
-        appendPrelude(fragmentPrelude, TextEffect.getSharedFragmentPrelude());
-
-        boolean firstVertex = true;
-        boolean firstFragment = true;
-
-        for (TextEffect.Definition definition : TextEffect.getEnabledEffects()) {
-            TextEffect.Snippet snippet = definition.resolveSnippet(target.packFormat(), target.minecraftVersion());
-            if (snippet == null) {
-                Logs.logWarning("No shader snippet for text effect '" + definition.getName()
-                        + "' on target " + target.displayName());
-                continue;
-            }
-
-            if (snippet.hasVertexPrelude()) {
-                appendPrelude(vertexPrelude, snippet.vertexPrelude());
-            }
-            if (snippet.hasFragmentPrelude()) {
-                appendPrelude(fragmentPrelude, snippet.fragmentPrelude());
-            }
-
-            if (snippet.hasVertex()) {
-                appendEffectBlock(vertexEffects, definition, snippet.vertex(), firstVertex);
-                firstVertex = false;
-            }
-            if (snippet.hasFragment()) {
-                appendEffectBlock(fragmentEffects, definition, snippet.fragment(), firstFragment);
-                firstFragment = false;
-            }
-        }
-
-        return new TextEffectSnippets(vertexPrelude.toString(), fragmentPrelude.toString(),
-                vertexEffects.toString(), fragmentEffects.toString());
-    }
-
-    private void appendPrelude(StringBuilder builder, @Nullable String snippet) {
-        if (snippet == null || snippet.isBlank()) {
-            return;
-        }
-        if (builder.length() > 0) {
-            builder.append("\n");
-        }
-        builder.append(snippet.stripTrailing());
-    }
-
-    private void appendEffectBlock(StringBuilder builder, TextEffect.Definition definition,
-                                   String snippet, boolean first) {
-        String effectIndent = "                            ";
-        String codeIndent = effectIndent + "    ";
-
-        int effectId = definition.getId();
-
-        builder.append(effectIndent)
-                .append("// ")
-                .append(definition.getName())
-                .append(" (id=")
-                .append(effectId)
-                .append(")\n");
-        builder.append(effectIndent)
-                .append(first ? "if" : "else if")
-                .append(" (effectType == ")
-                .append(effectId)
-                .append(") {\n");
-        builder.append(indentSnippet(snippet, codeIndent));
-        builder.append("\n")
-                .append(effectIndent)
-                .append("}\n");
-    }
-
-    private String indentSnippet(String snippet, String indent) {
-        String trimmed = snippet.stripTrailing();
-        if (trimmed.isEmpty()) {
-            return "";
-        }
-        String[] lines = trimmed.split("\\R", -1);
-        StringBuilder out = new StringBuilder();
-        for (int i = 0; i < lines.length; i++) {
-            String line = lines[i];
-            if (!line.isEmpty()) {
-                out.append(indent).append(line);
-            }
-            if (i < lines.length - 1) {
-                out.append("\n");
-            }
-        }
-        return out.toString();
-    }
-
-    private String getVertexShaderMainBody(VertexShaderConfig config, String vertexEffects, boolean includeScoreboardHiding) {
+    private String getVertexShaderMainBody(VertexShaderConfig config, boolean includeScoreboardHiding) {
         String scoreboardHiding = includeScoreboardHiding ? """
 
                         // Scoreboard number hiding
@@ -595,7 +398,6 @@ class TextShaderGenerator {
                         gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
 %s                        texCoord0 = UV0;
                         vertexColor = %s;
-                        effectData = vec4(-1.0, 0.0, 0.0, 0.0); // -1 means no effect
 
                         int rInt = int(Color.r * 255.0 + 0.5);
                         int gRaw = int(Color.g * 255.0 + 0.5);
@@ -643,34 +445,6 @@ class TextShaderGenerator {
                             float visible = (frameIndex == currentFrame && isPrimaryAnim) ? 1.0 : 0.0;
 
                             vertexColor = %s;
-                        }
-
-                        // Text effects: exact trigger color matching
-                        if (ORAXEN_TEXT_EFFECTS && ORAXEN_EFFECT_COUNT > 0 && (!ORAXEN_ANIMATED_GLYPHS || !isPrimaryAnim)) {
-                            // Check for exact trigger color match
-                            ivec3 colorInt = ivec3(rInt, gRaw, bRaw);
-                            int effectType = -1;
-                            for (int i = 0; i < ORAXEN_EFFECT_COUNT; i++) {
-                                if (colorInt == ORAXEN_EFFECT_TRIGGERS[i]) {
-                                    effectType = ORAXEN_EFFECT_IDS[i];
-                                    break;
-                                }
-                            }
-
-                            if (effectType >= 0) {
-                                float speed = 3.0; // Default speed (configured in shader snippets)
-                                float param = 3.0; // Default param (configured in shader snippets)
-                                float charIndex = float(gl_VertexID >> 2);
-
-                                float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
-
-%s
-
-                                gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
-%s
-                                // Pass effect data to fragment shader
-                                effectData = vec4(float(effectType), speed, charIndex, param);
-                            }
                         }%s
                     }
                 """.formatted(
@@ -678,20 +452,14 @@ class TextShaderGenerator {
                 config.vertexColorInit,
                 config.moduloExpr,
                 config.vertexColorAnimated,
-                vertexEffects,
-                config.fogDistanceRecalc.isEmpty() ? "" : "                            " + config.fogDistanceRecalc + "\n",
                 scoreboardHiding
         );
     }
 
     private String getAnimationVertexShader26_2(TextShaderTarget target, TextShaderFeatures features) {
-        String textShaderConstants = getTextShaderConstants(target, features);
-        TextEffectSnippets snippets = getTextEffectSnippets(target);
-        String vertexPrelude = snippets.vertexPrelude();
-        String vertexEffects = snippets.vertexEffects();
+        String textShaderConstants = getTextShaderConstants(features);
         VertexShaderConfig config = new VertexShaderConfig(
                 "#if !defined(IS_SEE_THROUGH) && !defined(IS_GUI)\n                        sphericalVertexDistance = fog_spherical_distance(pos);\n                        cylindricalVertexDistance = fog_cylindrical_distance(pos);\n                        #endif",
-                "#if !defined(IS_SEE_THROUGH) && !defined(IS_GUI)\n                            sphericalVertexDistance = fog_spherical_distance(pos);\n                            cylindricalVertexDistance = fog_cylindrical_distance(pos);\n                            #endif",
                 "oraxen_lit_text_color(Color)",
                 "oraxen_lit_text_color(vec4(1.0, 1.0, 1.0, visible))",
                 "(rawFrame % totalFrames)"
@@ -718,8 +486,6 @@ class TextShaderGenerator {
                 out float cylindricalVertexDistance;
                 out vec4 vertexColor;
                 out vec2 texCoord0;
-                out vec4 effectData;
-                %s
                 %s
 
                 vec4 oraxen_lit_text_color(vec4 color) {
@@ -730,15 +496,11 @@ class TextShaderGenerator {
                 #endif
                 }
 
-                """.formatted(textShaderConstants, vertexPrelude);
-        return header + getVertexShaderMainBody(config, vertexEffects, false);
+                """.formatted(textShaderConstants);
+        return header + getVertexShaderMainBody(config, false);
     }
 
     private String getAnimationFragmentShader26_2(TextShaderTarget target) {
-        TextEffectSnippets snippets = getTextEffectSnippets(target);
-        String fragmentPrelude = snippets.fragmentPrelude();
-        String fragmentEffects = snippets.fragmentEffects();
-
         return """
                 #version 330
 
@@ -752,11 +514,8 @@ class TextShaderGenerator {
                 in float cylindricalVertexDistance;
                 in vec4 vertexColor;
                 in vec2 texCoord0;
-                in vec4 effectData;
 
                 out vec4 fragColor;
-
-                %s
 
                 vec4 oraxen_sample_text() {
                     vec4 texel = texture(Sampler0, texCoord0);
@@ -769,20 +528,6 @@ class TextShaderGenerator {
 
                 void main() {
                     vec4 color = oraxen_sample_text() * vertexColor * ColorModulator;
-                    vec4 texColor = color;
-
-                    // Apply text effects if effectData.x >= 0 (effectType, 0 is rainbow)
-                    if (effectData.x >= 0.0 && effectData.y > 0.5) {
-                        int effectType = int(effectData.x + 0.5);
-                        float speed = effectData.y;
-                        float charIndex = effectData.z;
-                        float param = effectData.w;
-                        float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
-
-%s
-                    }
-
-                    color = texColor;
 
                     if (color.a < 0.1) {
                         discard;
@@ -793,19 +538,16 @@ class TextShaderGenerator {
                     fragColor = apply_fog(color, sphericalVertexDistance, cylindricalVertexDistance, FogEnvironmentalStart, FogEnvironmentalEnd, FogRenderDistanceStart, FogRenderDistanceEnd, FogColor);
                 #endif
                 }
-                """.formatted(fragmentPrelude, fragmentEffects);
+                """;
     }
 
     private String getAnimationVertexShader(TextShaderTarget target, TextShaderFeatures features, boolean seeThrough) {
         boolean is1_21_6Plus = target.isAtLeast("1.21.6");
         boolean is26Plus = target.isAtLeast("26");
-        String textShaderConstants = getTextShaderConstants(target, features);
-        TextEffectSnippets snippets = getTextEffectSnippets(target);
-        String vertexPrelude = snippets.vertexPrelude();
-        String vertexEffects = snippets.vertexEffects();
+        String textShaderConstants = getTextShaderConstants(features);
 
         VertexShaderConfig config = createVertexShaderConfig(target, is1_21_6Plus, is26Plus, seeThrough);
-        String mainBody = getVertexShaderMainBody(config, vertexEffects, false);
+        String mainBody = getVertexShaderMainBody(config, false);
 
         if (is1_21_6Plus) {
             String header = seeThrough ? """
@@ -821,8 +563,6 @@ class TextShaderGenerator {
 
                 out vec4 vertexColor;
                 out vec2 texCoord0;
-                out vec4 effectData;
-                %s
                 %s
 
 """ : (is26Plus ? """
@@ -845,8 +585,6 @@ class TextShaderGenerator {
                 out float cylindricalVertexDistance;
                 out vec4 vertexColor;
                 out vec2 texCoord0;
-                out vec4 effectData;
-                %s
                 %s
 
 """ : """
@@ -868,12 +606,10 @@ class TextShaderGenerator {
                 out float cylindricalVertexDistance;
                 out vec4 vertexColor;
                 out vec2 texCoord0;
-                out vec4 effectData;
-                %s
                 %s
 
 """);
-            return header.formatted(textShaderConstants, vertexPrelude) + mainBody;
+            return header.formatted(textShaderConstants) + mainBody;
         } else {
             // Pre-1.21.6: use traditional uniform declarations
             String imports = getLegacyFogImport(target);
@@ -890,8 +626,6 @@ class TextShaderGenerator {
 
                 out vec4 vertexColor;
                 out vec2 texCoord0;
-                out vec4 effectData;
-                %s
                 %s
 
 """ : """
@@ -913,14 +647,12 @@ class TextShaderGenerator {
                 out float vertexDistance;
                 out vec4 vertexColor;
                 out vec2 texCoord0;
-                out vec4 effectData;
-                %s
                 %s
 
 """;
             return seeThrough
-                    ? header.formatted(textShaderConstants, vertexPrelude) + mainBody
-                    : header.formatted(imports, textShaderConstants, vertexPrelude) + mainBody;
+                    ? header.formatted(textShaderConstants) + mainBody
+                    : header.formatted(imports, textShaderConstants) + mainBody;
         }
     }
 
@@ -939,7 +671,6 @@ class TextShaderGenerator {
             if (seeThrough) {
                 return new VertexShaderConfig(
                         "",
-                        "",
                         "Color",
                         "vec4(1.0, 1.0, 1.0, visible)",
                         "(rawFrame % totalFrames)"
@@ -947,7 +678,6 @@ class TextShaderGenerator {
             } else {
                 return new VertexShaderConfig(
                         "sphericalVertexDistance = fog_spherical_distance(pos);\n                        cylindricalVertexDistance = fog_cylindrical_distance(pos);",
-                        "sphericalVertexDistance = fog_spherical_distance(pos);\n                            cylindricalVertexDistance = fog_cylindrical_distance(pos);",
                         litColor,
                         animatedLitColor,
                         "(rawFrame % totalFrames)"
@@ -960,14 +690,12 @@ class TextShaderGenerator {
             if (seeThrough) {
                 return new VertexShaderConfig(
                         "",
-                        "",
                         "Color",
                         "vec4(1.0, 1.0, 1.0, visible)",
                         "int(mod(float(rawFrame), float(totalFrames)))"
                 );
             } else {
                 return new VertexShaderConfig(
-                        fogDistance,
                         fogDistance,
                         "Color * texelFetch(Sampler2, UV2 / 16, 0)",
                         "vec4(1.0, 1.0, 1.0, visible) * texelFetch(Sampler2, UV2 / 16, 0)",
@@ -984,9 +712,6 @@ class TextShaderGenerator {
     private String getAnimationFragmentShader(TextShaderTarget target, boolean seeThrough, boolean intensity) {
         boolean is1_21_6Plus = target.isAtLeast("1.21.6");
         String sampleExpr = intensity ? "texture(Sampler0, texCoord0).rrrr" : "texture(Sampler0, texCoord0)";
-        TextEffectSnippets snippets = getTextEffectSnippets(target);
-        String fragmentPrelude = snippets.fragmentPrelude();
-        String fragmentEffects = snippets.fragmentEffects();
 
         if (is1_21_6Plus) {
             if (seeThrough) {
@@ -1000,35 +725,18 @@ class TextShaderGenerator {
 
                     in vec4 vertexColor;
                     in vec2 texCoord0;
-                    in vec4 effectData;
 
                     out vec4 fragColor;
 
-                    %s
-
                     void main() {
                         vec4 color = %s * vertexColor * ColorModulator;
-                        vec4 texColor = color;
-
-                        // Apply text effects if effectData.x >= 0 (effectType, 0 is rainbow)
-                        if (effectData.x >= 0.0 && effectData.y > 0.5) {
-                            int effectType = int(effectData.x + 0.5);
-                            float speed = effectData.y;
-                            float charIndex = effectData.z;
-                            float param = effectData.w;
-                            float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
-
-%s
-                        }
-
-                        color = texColor;
 
                         if (color.a < 0.1) {
                             discard;
                         }
                         fragColor = color;
                     }
-                    """.formatted(fragmentPrelude, sampleExpr, fragmentEffects);
+                    """.formatted(sampleExpr);
             }
 
             return """
@@ -1044,35 +752,18 @@ class TextShaderGenerator {
                 in float cylindricalVertexDistance;
                 in vec4 vertexColor;
                 in vec2 texCoord0;
-                in vec4 effectData;
 
                 out vec4 fragColor;
 
-                %s
-
                 void main() {
                     vec4 color = %s * vertexColor * ColorModulator;
-                    vec4 texColor = color;
-
-                    // Apply text effects if effectData.x >= 0 (effectType, 0 is rainbow)
-                    if (effectData.x >= 0.0 && effectData.y > 0.5) {
-                        int effectType = int(effectData.x + 0.5);
-                        float speed = effectData.y;
-                        float charIndex = effectData.z;
-                        float param = effectData.w;
-                        float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
-
-%s
-                    }
-
-                    color = texColor;
 
                     if (color.a < 0.1) {
                         discard;
                     }
                     fragColor = apply_fog(color, sphericalVertexDistance, cylindricalVertexDistance, FogEnvironmentalStart, FogEnvironmentalEnd, FogRenderDistanceStart, FogRenderDistanceEnd, FogColor);
                 }
-                """.formatted(fragmentPrelude, sampleExpr, fragmentEffects);
+                """.formatted(sampleExpr);
         } else {
             // Pre-1.21.6: use traditional uniform declarations
             if (seeThrough) {
@@ -1081,39 +772,21 @@ class TextShaderGenerator {
 
                     uniform sampler2D Sampler0;
                     uniform vec4 ColorModulator;
-                    uniform float GameTime;
 
                     in vec4 vertexColor;
                     in vec2 texCoord0;
-                    in vec4 effectData;
 
                     out vec4 fragColor;
 
-                    %s
-
                     void main() {
                         vec4 color = %s * vertexColor * ColorModulator;
-                        vec4 texColor = color;
-
-                        // Apply text effects if effectData.x >= 0 (effectType, 0 is rainbow)
-                        if (effectData.x >= 0.0 && effectData.y > 0.5) {
-                            int effectType = int(effectData.x + 0.5);
-                            float speed = effectData.y;
-                            float charIndex = effectData.z;
-                            float param = effectData.w;
-                            float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
-
-%s
-                        }
-
-                        color = texColor;
 
                         if (color.a < 0.1) {
                             discard;
                         }
                         fragColor = color;
                     }
-                    """.formatted(fragmentPrelude, sampleExpr, fragmentEffects);
+                    """.formatted(sampleExpr);
             }
 
             String imports = getLegacyFogImport(target);
@@ -1128,40 +801,22 @@ class TextShaderGenerator {
                 uniform float FogStart;
                 uniform float FogEnd;
                 uniform vec4 FogColor;
-                uniform float GameTime;
 
                 in float vertexDistance;
                 in vec4 vertexColor;
                 in vec2 texCoord0;
-                in vec4 effectData;
 
                 out vec4 fragColor;
 
-                %s
-
                 void main() {
                     vec4 color = %s * vertexColor * ColorModulator;
-                    vec4 texColor = color;
-
-                    // Apply text effects if effectData.x >= 0 (effectType, 0 is rainbow)
-                    if (effectData.x >= 0.0 && effectData.y > 0.5) {
-                        int effectType = int(effectData.x + 0.5);
-                        float speed = effectData.y;
-                        float charIndex = effectData.z;
-                        float param = effectData.w;
-                        float timeSeconds = (GameTime <= 1.0) ? (GameTime * 1200.0) : (GameTime / 20.0);
-
-%s
-                    }
-
-                    color = texColor;
 
                     if (color.a < 0.1) {
                         discard;
                     }
                     fragColor = linear_fog(color, vertexDistance, FogStart, FogEnd, FogColor);
                 }
-                """.formatted(imports, fragmentPrelude, sampleExpr, fragmentEffects);
+                """.formatted(imports, sampleExpr);
         }
     }
 
@@ -1252,13 +907,10 @@ class TextShaderGenerator {
     private String getCombinedVertexShader(TextShaderTarget target, TextShaderFeatures features) {
         boolean is1_21_6Plus = target.isAtLeast("1.21.6");
         boolean is26Plus = target.isAtLeast("26");
-        String textShaderConstants = getTextShaderConstants(target, features);
-        TextEffectSnippets snippets = getTextEffectSnippets(target);
-        String vertexPrelude = snippets.vertexPrelude();
-        String vertexEffects = snippets.vertexEffects();
+        String textShaderConstants = getTextShaderConstants(features);
 
         VertexShaderConfig config = createVertexShaderConfig(target, is1_21_6Plus, is26Plus, false);
-        String mainBody = getVertexShaderMainBody(config, vertexEffects, true);
+        String mainBody = getVertexShaderMainBody(config, true);
 
         if (is1_21_6Plus) {
             String header = is26Plus ? """
@@ -1282,8 +934,6 @@ class TextShaderGenerator {
                 out float cylindricalVertexDistance;
                 out vec4 vertexColor;
                 out vec2 texCoord0;
-                out vec4 effectData;
-                %s
                 %s
 
 """ : """
@@ -1306,12 +956,10 @@ class TextShaderGenerator {
                 out float cylindricalVertexDistance;
                 out vec4 vertexColor;
                 out vec2 texCoord0;
-                out vec4 effectData;
-                %s
                 %s
 
 """;
-            return header.formatted(textShaderConstants, vertexPrelude) + mainBody;
+            return header.formatted(textShaderConstants) + mainBody;
         } else {
             String imports = getLegacyFogImport(target);
             String header = """
@@ -1334,12 +982,10 @@ class TextShaderGenerator {
                 out float vertexDistance;
                 out vec4 vertexColor;
                 out vec2 texCoord0;
-                out vec4 effectData;
-                %s
                 %s
 
 """;
-            return header.formatted(imports, textShaderConstants, vertexPrelude) + mainBody;
+            return header.formatted(imports, textShaderConstants) + mainBody;
         }
     }
 

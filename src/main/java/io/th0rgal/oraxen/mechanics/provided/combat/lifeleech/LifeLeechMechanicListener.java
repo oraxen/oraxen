@@ -5,7 +5,7 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.wrappers.AttributeWrapper;
 import io.th0rgal.oraxen.protection.AntiGriefLib;
 
-import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -37,9 +37,17 @@ public class LifeLeechMechanicListener implements Listener {
         if (mechanic == null)
             return;
 
-        double maxHealth = damager.getAttribute(Attribute.valueOf("GENERIC_MAX_HEALTH")).getValue();
+        AttributeInstance damagerMaxHealth = damager.getAttribute(AttributeWrapper.MAX_HEALTH);
+        AttributeInstance victimMaxHealth = livingEntity.getAttribute(AttributeWrapper.MAX_HEALTH);
+        if (damagerMaxHealth == null || victimMaxHealth == null)
+            return;
 
-        damager.setHealth(Math.min(damager.getHealth() + mechanic.getAmount(), maxHealth));
-        livingEntity.setHealth(Math.max(livingEntity.getHealth() - mechanic.getAmount(), 0));
+        int amount = mechanic.getAmount();
+        damager.setHealth(clamp(damager.getHealth() + amount, damagerMaxHealth.getValue()));
+        livingEntity.setHealth(clamp(livingEntity.getHealth() - amount, victimMaxHealth.getValue()));
+    }
+
+    private static double clamp(double health, double maxHealth) {
+        return Math.max(0, Math.min(health, maxHealth));
     }
 }

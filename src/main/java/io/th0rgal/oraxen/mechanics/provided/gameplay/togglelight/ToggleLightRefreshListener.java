@@ -16,20 +16,25 @@ public class ToggleLightRefreshListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onMechanicsRegistered(OraxenNativeMechanicsRegisteredEvent event) {
         // Refresh light for all existing furniture, noteblocks, and stringblocks when mechanics are registered (on load/reload)
+        // The delay ensures all mechanics are fully loaded. The scan itself stays on the global scheduler
+        // because it enumerates entities across every region of a world, which no single region thread owns;
+        // the actual light refresh then hops to the region thread owning each entity, as ItemUpdater does.
         SchedulerUtil.runTaskLater(20L, () -> {
-            ToggleLightMechanicFactory factory = ToggleLightMechanicFactory.getInstance();
-            if (factory == null) return;
+            for (World world : Bukkit.getServer().getWorlds()) refreshWorldLight(world);
+        });
+    }
 
-            for (World world : Bukkit.getServer().getWorlds()) {
-                // Refresh furniture entities - schedule on each entity's region thread for Folia compatibility
-                world.getEntities().stream()
-                        .filter(OraxenFurniture::isBaseEntity)
-                        .forEach(entity -> SchedulerUtil.runForEntity(entity, () -> refreshEntityLight(factory, entity)));
+    private void refreshWorldLight(World world) {
+        ToggleLightMechanicFactory factory = ToggleLightMechanicFactory.getInstance();
+        if (factory == null) return;
 
-                // Note: NoteBlocks and StringBlocks are not refreshed here to avoid expensive chunk iteration.
-                // Their light state persists in PDC and will be refreshed on interaction or when placed.
-            }
-        }); // Delay to ensure all mechanics are fully loaded
+        // Refresh furniture entities - schedule on each entity's region thread for Folia compatibility
+        world.getEntities().stream()
+                .filter(OraxenFurniture::isBaseEntity)
+                .forEach(entity -> SchedulerUtil.runForEntity(entity, () -> refreshEntityLight(factory, entity)));
+
+        // Note: NoteBlocks and StringBlocks are not refreshed here to avoid expensive chunk iteration.
+        // Their light state persists in PDC and will be refreshed on interaction or when placed.
     }
 
     private void refreshEntityLight(ToggleLightMechanicFactory factory, Entity entity) {

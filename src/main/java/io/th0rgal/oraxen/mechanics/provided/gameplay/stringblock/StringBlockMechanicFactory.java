@@ -10,7 +10,6 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.Sapling
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingTask;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.PaperConfigUpdater;
-import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.lang3.Range;
@@ -29,10 +28,13 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class StringBlockMechanicFactory extends MechanicFactory {
 
-    public static final Map<Integer, StringBlockMechanic> BLOCK_PER_VARIATION = new HashMap<>();
+    // Repopulated on reload (a region/command thread on Folia) while every block
+    // event handler reads it from other region threads.
+    public static final Map<Integer, StringBlockMechanic> BLOCK_PER_VARIATION = new ConcurrentHashMap<>();
     private static JsonObject variants;
     private static StringBlockMechanicFactory instance;
     public final List<String> toolTypes;
@@ -140,13 +142,12 @@ public class StringBlockMechanicFactory extends MechanicFactory {
         if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new StringBlockSoundListener());
 
         // Physics-related stuff
-        if (VersionUtil.isPaperServer())
-            MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new StringBlockMechanicListener.StringBlockMechanicPaperListener());
+        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new StringBlockMechanicListener.StringBlockMechanicPaperListener());
         boolean tripwireUpdatesDisabled = NMSHandlers.isTripwireUpdatesDisabled();
-        if (!VersionUtil.isPaperServer() || !tripwireUpdatesDisabled)
+        if (!tripwireUpdatesDisabled)
             MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new StringBlockMechanicListener.StringBlockMechanicPhysicsListener());
         // Warn if Paper config is not set (auto-update happens earlier in plugin enable)
-        if (VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.20.1") && !tripwireUpdatesDisabled
+        if (!tripwireUpdatesDisabled
                 && PaperConfigUpdater.wasBlockUpdateSettingUpdated("disable-tripwire-updates")) {
             Logs.logWarning("Paper block-updates.disable-tripwire-updates is not enabled, restart may be required");
         }
@@ -246,17 +247,6 @@ public class StringBlockMechanicFactory extends MechanicFactory {
     public void registerSaplingMechanic() {
         if (sapling) return;
         if (saplingTask != null) saplingTask.cancel();
-
-        // Disabled for abit as OraxenItems.getItems() here
-        // Dont register if there is no sapling in configs
-//        List<String> saplingList = new ArrayList<>();
-//        for (ItemBuilder itemBuilder : OraxenItems.getItems()) {
-//            String id = OraxenItems.getIdByItem(itemBuilder.build());
-//            StringBlockMechanic mechanic = (StringBlockMechanic) StringBlockMechanicFactory.getInstance().getMechanic(id);
-//            if (mechanic == null || !mechanic.isSapling()) continue;
-//            saplingList.add(id);
-//        }
-//        if (saplingList.isEmpty()) return;
 
         saplingTask = new SaplingTask(saplingGrowthCheckDelay);
         MechanicsManager.registerTask(getMechanicID(), saplingTask.start(0, saplingGrowthCheckDelay));

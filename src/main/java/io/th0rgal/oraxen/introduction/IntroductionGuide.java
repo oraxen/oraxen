@@ -13,6 +13,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Sends the first-run introduction guide:
@@ -31,8 +32,12 @@ public class IntroductionGuide implements Listener {
 
     private final OraxenPlugin plugin;
 
-    /** Set true when this startup just delivered the console message. */
-    private volatile boolean playerPending;
+    /**
+     * Set true when this startup just delivered the console message. An atomic
+     * compare-and-set (rather than a synchronized method) ensures exactly one
+     * player receives the guide when joins race across Folia region threads.
+     */
+    private final AtomicBoolean playerPending = new AtomicBoolean();
 
     public IntroductionGuide(OraxenPlugin plugin) {
         this.plugin = plugin;
@@ -61,12 +66,12 @@ public class IntroductionGuide implements Listener {
             HandlerList.unregisterAll(this);
             return;
         }
-        playerPending = true;
+        playerPending.set(true);
     }
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        if (!playerPending) return;
+        if (!playerPending.get()) return;
 
         Player player = event.getPlayer();
         if (!isEligible(player)) return;
@@ -77,11 +82,10 @@ public class IntroductionGuide implements Listener {
                 () -> {});
     }
 
-    private synchronized void sendToPlayer(Player player) {
-        if (!playerPending) return;
+    private void sendToPlayer(Player player) {
         if (!player.isOnline() || !isEligible(player)) return;
+        if (!playerPending.compareAndSet(true, false)) return;
 
-        playerPending = false;
         Message.INTRODUCTION_GUIDE.send(player);
         // HandlerList mutation must happen on the main thread to be safe on Folia.
         SchedulerUtil.runTask(plugin, () -> HandlerList.unregisterAll(this));
@@ -95,6 +99,7 @@ public class IntroductionGuide implements Listener {
     private boolean persistConsoleSent() {
         YamlConfiguration settings = plugin.getConfigsManager().getSettings();
         settings.set(Settings.INTRODUCTION_CONSOLE_SENT.getPath(), true);
+        Settings.invalidateCache();
         try {
             settings.save(plugin.getConfigsManager().getSettingsFile());
             return true;

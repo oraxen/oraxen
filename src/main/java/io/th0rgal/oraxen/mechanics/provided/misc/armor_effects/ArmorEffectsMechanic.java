@@ -1,9 +1,9 @@
 package io.th0rgal.oraxen.mechanics.provided.misc.armor_effects;
 
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.PotionUtils;
-import io.th0rgal.oraxen.utils.customarmor.ShaderArmorTextures;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.configuration.ConfigurationSection;
@@ -62,7 +62,7 @@ public class ArmorEffectsMechanic extends Mechanic {
                 if (armorEffect.requiresFullSet()) {
                     boolean hasFullSet = ArmorEffectsMechanic.ARMOR_SLOTS.stream().filter(s -> s != armorSlot).allMatch(slot -> {
                         ItemStack armor = player.getInventory().getItem(slot);
-                        return armor != null && ShaderArmorTextures.isSameArmorType(armorPiece, armor);
+                        return armor != null && isSameArmorType(armorPiece, armor);
                     });
 
                     if (hasFullSet) finalArmorEffects.add(armorEffect.getEffect());
@@ -71,5 +71,12 @@ public class ArmorEffectsMechanic extends Mechanic {
 
             player.addPotionEffects(finalArmorEffects);
         }
+    }
+
+    private static boolean isSameArmorType(ItemStack firstItem, ItemStack secondItem) {
+        String firstItemId = OraxenItems.getIdByItem(firstItem);
+        String secondItemId = OraxenItems.getIdByItem(secondItem);
+        return StringUtils.substringBeforeLast(firstItemId, "_")
+                .equals(StringUtils.substringBeforeLast(secondItemId, "_"));
     }
 }

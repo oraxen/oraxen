@@ -7,7 +7,7 @@ sounds:
     sound: welcome.ogg # extension is not mandatory
     stream: true
     subtitle: "Welcome Song"
-    # This section will automatically generate a datapack
+    # Registered during Paper bootstrap on 1.21.6+; older versions use a datapack.
     jukebox:
       description: "<gold>Welcome <yellow>Song</yellow></gold>"
       duration: 180s

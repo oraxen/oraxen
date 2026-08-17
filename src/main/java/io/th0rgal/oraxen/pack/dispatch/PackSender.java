@@ -3,7 +3,7 @@ package io.th0rgal.oraxen.pack.dispatch;
 import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
 import io.th0rgal.oraxen.utils.AdventureUtils;
-import io.th0rgal.oraxen.utils.SHA1Utils;
+import io.th0rgal.oraxen.utils.HashUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.audience.Audience;
@@ -53,14 +53,12 @@ public abstract class PackSender {
                                   String prompt, boolean mandatory) {
         net.kyori.adventure.text.Component componentPrompt = AdventureUtils.MINI_MESSAGE.deserialize(prompt);
         // The Adventure ResourcePackRequest API (and its MonkeyBars helper) is only available on the
-        // Adventure version bundled with 1.20.3+. On older servers (e.g. 1.20.1) it throws
-        // NoSuchMethodError, so fall back to the legacy Bukkit setResourcePack API.
+        // Adventure version bundled with 1.20.3+. On older servers (e.g. 1.20.1), use Paper's
+        // component-based setResourcePack API instead.
         if (VersionUtil.atOrAbove("1.20.3")) {
             player.sendResourcePacks(createResourcePackRequest(uuid, url, sha1, componentPrompt, mandatory));
-        } else if (VersionUtil.isPaperServer()) {
-            player.setResourcePack(url, sha1, componentPrompt, mandatory);
         } else {
-            player.setResourcePack(url, sha1, AdventureUtils.LEGACY_SERIALIZER.serialize(componentPrompt), mandatory);
+            player.setResourcePack(url, sha1, componentPrompt, mandatory);
         }
     }
 
@@ -73,7 +71,7 @@ public abstract class PackSender {
     private static ResourcePackRequest createResourcePackRequest(UUID uuid, String url, byte[] sha1,
                                                                  net.kyori.adventure.text.Component prompt,
                                                                  boolean mandatory) {
-        String hash = SHA1Utils.bytesToHex(sha1);
+        String hash = HashUtils.bytesToHex(sha1);
         ResourcePackInfo info = ResourcePackInfo.resourcePackInfo(uuid, URI.create(url), hash);
 
         return ResourcePackRequest.resourcePackRequest()
@@ -159,11 +157,11 @@ public abstract class PackSender {
     }
 
     private static boolean isPreJoinSupported() {
-        return isPreJoinSupported(VersionUtil.isPaperServer(), VersionUtil.atOrAbove("1.21.7"));
+        return isPreJoinSupported(VersionUtil.atOrAbove("1.21.7"));
     }
 
-    static boolean isPreJoinSupported(boolean isPaperServer, boolean isAtLeast1_21_7) {
-        return isPaperServer && isAtLeast1_21_7;
+    static boolean isPreJoinSupported(boolean isAtLeast1_21_7) {
+        return isAtLeast1_21_7;
     }
 
     private static void normalizeDispatchModeForServerSupport() {

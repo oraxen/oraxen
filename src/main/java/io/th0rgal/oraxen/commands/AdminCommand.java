@@ -5,12 +5,17 @@ import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import org.bukkit.Location;
-import org.bukkit.block.Block;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 public class AdminCommand {
+
+    // Caps the edit cube so a single command cannot scan/mutate an unbounded
+    // area; large areas would also stall whichever thread processes them.
+    private static final int MAX_RADIUS = 16;
 
     OraxenCommand getAdminCommand() {
         return new OraxenCommand("admin")
@@ -20,7 +25,8 @@ public class AdminCommand {
 
     private OraxenCommand getNoteblockPlaceRemoveCommand() {
         return new OraxenCommand("block")
-                .withArguments(new TextArgument("block").replaceSuggestions(ArgumentSuggestions.strings(OraxenBlocks.getBlockIDs())))
+                .withArguments(new TextArgument("block").replaceSuggestions(ArgumentSuggestions.strings(info ->
+                        OraxenBlocks.getBlockIDs().toArray(new String[0]))))
                 .withArguments(new TextArgument("type").replaceSuggestions(ArgumentSuggestions.strings("place", "remove")))
                 .withOptionalArguments(new LocationArgument("location"))
                 .withOptionalArguments(new IntegerArgument("radius"))
@@ -32,24 +38,28 @@ public class AdminCommand {
                     } else {
                         Location loc = (Location) args.getOptional("location").orElse(player.getLocation());
                         String type = (String) args.get("type");
-                        int radius = (int) args.getOptional("radius").orElse(1);
+                        int radius = clampRadius(player, (int) args.getOptional("radius").orElse(1));
                         boolean isRandom = (boolean) args.getOptional("random").orElse(false);
-                        for (Block block : getBlocks(loc, radius, isRandom)) {
+                        for (Location target : getTargetLocations(loc, radius, isRandom)) {
                             if (type == null) continue;
-                            if (type.equals("remove")) OraxenBlocks.remove(block.getLocation(), null);
-                            if (type.equals("place")) OraxenBlocks.place(id, block.getLocation());
+                            // The target may be anywhere in the world; blocks must be
+                            // touched on the region thread that owns them (Folia).
+                            SchedulerUtil.runAtLocation(target, () -> {
+                                if (type.equals("remove")) OraxenBlocks.remove(target, null);
+                                if (type.equals("place")) OraxenBlocks.place(id, target);
+                            });
                         }
                     }
                 });
     }
 
     private OraxenCommand getFurniturePlaceRemoveCommand() {
-        Set<String> furnitureIDs = OraxenFurniture.getFurnitureIDs();
-        furnitureIDs.add("all");
         return new OraxenCommand("furniture")
                 .withArguments(
                         new TextArgument("type").replaceSuggestions(ArgumentSuggestions.strings("place", "remove")),
-                        new TextArgument("furniture").replaceSuggestions(ArgumentSuggestions.strings(furnitureIDs))
+                        new TextArgument("furniture").replaceSuggestions(ArgumentSuggestions.strings(info ->
+                                Stream.concat(Stream.of("all"), OraxenFurniture.getFurnitureIDs().stream())
+                                        .toArray(String[]::new)))
                 )
                 .withOptionalArguments(
                         new LocationArgument("location"),
@@ -64,29 +74,49 @@ public class AdminCommand {
                         AdventureUtils.sendMessage(player, AdventureUtils.MINI_MESSAGE.deserialize("<prefix> <red>Unknown furniture <white>" + id + "<red>."));
                     else {
                         Location loc = (Location) args.getOptional("location").orElse(player.getLocation());
-                        int radius = (int) args.getOptional("radius").orElse(0);
+                        int radius = clampRadius(player, (int) args.getOptional("radius").orElse(0));
                         boolean isRandom = (boolean) args.getOptional("random").orElse(false);
-                        for (Block block : getBlocks(loc, radius, isRandom)) {
-                            if (type.equals("remove")) {
-                                FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
-                                if (mechanic != null && (id.isEmpty() || id.equals("all") || mechanic.getItemID().equals(id)))
-                                    OraxenFurniture.remove(block.getLocation(), null);
-                            }
-                            if (type.equals("place")) OraxenFurniture.place(id, block.getLocation(), 0f, null);
+                        for (Location target : getTargetLocations(loc, radius, isRandom)) {
+                            // The target may be anywhere in the world; blocks and the
+                            // furniture entities around them must be accessed on the
+                            // region thread that owns them (Folia).
+                            SchedulerUtil.runAtLocation(target, () -> {
+                                if (type.equals("remove")) {
+                                    FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(target.getBlock());
+                                    if (mechanic != null && (id.isEmpty() || id.equals("all") || mechanic.getItemID().equals(id)))
+                                        OraxenFurniture.remove(target, null);
+                                }
+                                if (type.equals("place")) OraxenFurniture.place(id, target, 0f, null);
+                            });
                         }
                     }
                 });
     }
 
-    private Collection<Block> getBlocks(Location loc, int radius, boolean isRandom) {
-        List<Block> blocks = new ArrayList<>();
-        if (radius <= 0) return Collections.singletonList(loc.getBlock());
-        for (int x = loc.getBlockX() - radius; x <= loc.getBlockX() + radius; x++)
-            for (int z = loc.getBlockZ() - radius; z <= loc.getBlockZ() + radius; z++)
-                for (int y = loc.getBlockY() - radius; y <= loc.getBlockY() + radius; y++) {
-                    blocks.add(loc.getWorld().getBlockAt(x, y, z));
+    private int clampRadius(org.bukkit.entity.Player player, int radius) {
+        if (radius > MAX_RADIUS) {
+            AdventureUtils.sendMessage(player, AdventureUtils.MINI_MESSAGE.deserialize(
+                    "<prefix> <red>Radius capped to <white>" + MAX_RADIUS + "<red>."));
+            return MAX_RADIUS;
+        }
+        return radius;
+    }
+
+    /**
+     * Computes block-aligned target locations without touching any chunk or
+     * block on the calling thread; callers hop to the owning region thread
+     * per location before accessing world state.
+     */
+    private Collection<Location> getTargetLocations(Location loc, int radius, boolean isRandom) {
+        Location origin = new Location(loc.getWorld(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
+        if (radius <= 0) return Collections.singletonList(origin);
+        List<Location> locations = new ArrayList<>();
+        for (int x = origin.getBlockX() - radius; x <= origin.getBlockX() + radius; x++)
+            for (int z = origin.getBlockZ() - radius; z <= origin.getBlockZ() + radius; z++)
+                for (int y = origin.getBlockY() - radius; y <= origin.getBlockY() + radius; y++) {
+                    locations.add(new Location(loc.getWorld(), x, y, z));
                 }
-        if (isRandom) return Collections.singletonList(blocks.get(new Random().nextInt(blocks.size())));
-        return blocks;
+        if (isRandom) return Collections.singletonList(locations.get(new Random().nextInt(locations.size())));
+        return locations;
     }
 }

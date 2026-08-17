@@ -5,7 +5,6 @@ import io.th0rgal.oraxen.api.events.OraxenItemsLoadedEvent;
 import io.th0rgal.oraxen.commands.CommandsManager;
 import io.th0rgal.oraxen.commands.OraxenCommand;
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
-import io.th0rgal.oraxen.commands.TotemAnimationCommand;
 import io.th0rgal.oraxen.configs.ConfigsManager;
 import io.th0rgal.oraxen.configs.Message;
 import io.th0rgal.oraxen.configs.ResourcesManager;
@@ -23,6 +22,7 @@ import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.pack.dispatch.PackLoadingManager;
+import io.th0rgal.oraxen.pack.generation.LegacyDatapackCleaner;
 import io.th0rgal.oraxen.pack.generation.PackVersionManager;
 import io.th0rgal.oraxen.paintings.CustomPainting;
 import io.th0rgal.oraxen.paintings.CustomPaintingListener;
@@ -37,14 +37,13 @@ import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.actions.ClickActionManager;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorEquipEvent;
+import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.CustomBlockMiningListener;
-import io.th0rgal.oraxen.utils.breaker.PacketEventsBreakerSystem;
-import io.th0rgal.oraxen.utils.breaker.ProtocolLibBreakerSystem;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmorListener;
 import io.th0rgal.oraxen.utils.inventories.InvManager;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.oraxen.protection.AntiGriefLib;
-import net.kyori.adventure.platform.bukkit.BukkitAudiences;
+import org.apache.commons.lang3.SystemUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -56,19 +55,20 @@ import java.util.jar.JarFile;
 public class OraxenPlugin extends JavaPlugin {
 
     private static OraxenPlugin oraxen;
-    private ConfigsManager configsManager;
-    private ResourcesManager resourceManager;
-    private BukkitAudiences audience;
+    // These managers are reassigned on /oraxen reload, which runs on a region thread on
+    // Folia; volatile ensures other region threads observe the new instances instead of
+    // repopulating caches (e.g. the sticky per-enum Settings cache) from stale managers.
+    private volatile ConfigsManager configsManager;
+    private volatile ResourcesManager resourceManager;
     private volatile UploadManager uploadManager;
     private volatile io.th0rgal.oraxen.pack.upload.MultiVersionUploadManager multiVersionUploadManager;
-    private FontManager fontManager;
-    private HudManager hudManager;
-    private SoundManager soundManager;
-    private InvManager invManager;
-    private ResourcePack resourcePack;
-    private ClickActionManager clickActionManager;
-    private PacketAdapter packetAdapter;
-    public static boolean supportsDisplayEntities;
+    private volatile FontManager fontManager;
+    private volatile HudManager hudManager;
+    private volatile SoundManager soundManager;
+    private volatile InvManager invManager;
+    private volatile ResourcePack resourcePack;
+    private volatile ClickActionManager clickActionManager;
+    private volatile PacketAdapter packetAdapter;
 
     public OraxenPlugin() {
         oraxen = this;
@@ -102,11 +102,7 @@ public class OraxenPlugin extends JavaPlugin {
             return;
         }
 
-        if (!VersionUtil.isPaperServer()) {
-            audience = BukkitAudiences.create(this);
-        }
         clickActionManager = new ClickActionManager(this);
-        supportsDisplayEntities = VersionUtil.atOrAbove("1.19.4");
         reloadConfigs();
         AntiGriefLib.setDebug(Settings.DEBUG.toBool());
         AntiGriefLib.init(this);
@@ -116,11 +112,9 @@ public class OraxenPlugin extends JavaPlugin {
         if (PacketAdapter.isProtocolLibEnabled()) {
             if (Settings.DEBUG.toBool()) Logs.logInfo("ProtocolLib is enabled, using ProtocolLibAdapter.");
             packetAdapter = new ProtocolLibAdapter();
-            new ProtocolLibBreakerSystem().registerListener();
         } else if (PacketAdapter.isPacketEventsEnabled()) {
             if (Settings.DEBUG.toBool()) Logs.logInfo("PacketEvents is enabled, using PacketEventsAdapter.");
             packetAdapter = new PacketEventsAdapter();
-            new PacketEventsBreakerSystem().registerListener();
         } else {
             Logs.logWarning("Neither ProtocolLib nor PacketEvents is enabled, using EmptyAdapter.");
             packetAdapter = new PacketAdapter.EmptyAdapter();
@@ -133,13 +127,17 @@ public class OraxenPlugin extends JavaPlugin {
         });
 
         Bukkit.getPluginManager().registerEvents(new CustomArmorListener(), this);
-        // Register this even when the packet breaker is active: BreakerSystem cancels START_DIGGING
-        // before Bukkit fires BlockDamageEvent, so CustomBlockMiningListener becomes a no-op there.
+        Bukkit.getPluginManager().registerEvents(new BlockDataListener(this), this);
+        // BreakerSystem cancels BlockDamageEvent for the blocks it manages (furniture barriers,
+        // bedrock-break, and custom blocks on pre-1.20.5 servers); CustomBlockMiningListener
+        // ignores cancelled events and handles custom blocks via BLOCK_BREAK_SPEED on 1.20.5+.
+        Bukkit.getPluginManager().registerEvents(new BreakerSystem(), this);
         if (CustomBlockMiningListener.isSupported()) {
             Bukkit.getPluginManager().registerEvents(new CustomBlockMiningListener(), this);
         }
         NMSHandlers.setup();
-        reloadCustomPaintings();
+        LegacyDatapackCleaner.clear("oraxen_paintings");
+        LegacyDatapackCleaner.clear("oraxen_jukebox");
 
         // Auto-update Paper config for block updates (noteblock, tripwire, chorus)
         var updatedSettings = PaperConfigUpdater.ensureAllBlockUpdatesDisabled();
@@ -149,10 +147,13 @@ public class OraxenPlugin extends JavaPlugin {
 
         resourcePack = new ResourcePack();
         MechanicsManager.registerNativeMechanics();
-        // CustomBlockData.registerListener(this); //Handle this manually
         hudManager = new HudManager(configsManager);
         fontManager = new FontManager(configsManager);
-        reloadCustomJukeboxSongs();
+        initializeSoundManager();
+        // On 1.21.6+ jukebox songs are registered during bootstrap via RegistryEvents.JUKEBOX_SONG.
+        // 1.21.5 lacks that event, so inject the songs into the live registry once at startup.
+        if (!VersionUtil.atOrAbove("1.21.6"))
+            CustomJukeboxSongRegistry.reload(soundManager.getJukeboxSounds());
         OraxenItems.loadItems();
         fontManager.registerEvents();
         fontManager.verifyRequired(); // Verify the required glyph is there
@@ -171,7 +172,7 @@ public class OraxenPlugin extends JavaPlugin {
         new CommandsManager().loadCommands();
         postLoading();
         try {
-            Message.PLUGIN_LOADED.log(AdventureUtils.tagResolver("os", OS.getOs().getPlatformName()));
+            Message.PLUGIN_LOADED.log(AdventureUtils.tagResolver("os", SystemUtils.OS_NAME + " " + SystemUtils.OS_VERSION));
         } catch (Exception ignore) {
         }
         CompatibilitiesManager.enableNativeCompatibilities();
@@ -185,7 +186,9 @@ public class OraxenPlugin extends JavaPlugin {
 
     private void postLoading() {
         OraxenMetrics.register(this);
-        new LU().l();
+        // Runs synchronous HTTP requests; keep it off the enable path so a stalled
+        // connection cannot block startup.
+        SchedulerUtil.runTaskAsync(this, () -> new LU().l());
         SchedulerUtil.runTask(this, () -> Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent()));
 
         // Auto-generate schema in debug mode (useful for CI/CD)
@@ -201,7 +204,6 @@ public class OraxenPlugin extends JavaPlugin {
         if (configsManager == null) {
             HandlerList.unregisterAll(this);
             OraxenCommand.unregisterAll();
-            closeAudience();
             return;
         }
 
@@ -210,7 +212,6 @@ public class OraxenPlugin extends JavaPlugin {
         FurnitureFactory.unregisterEvolution();
         MechanicsManager.unregisterTasks();
         RecipeBuilder.clearAll();
-        TotemAnimationCommand.clearReflectionCaches();
 
         // Clean up backpack cosmetic entities to prevent ghost armor stands
         io.th0rgal.oraxen.mechanics.provided.cosmetic.backpack.BackpackCosmeticManager.getInstance().cleanup();
@@ -218,7 +219,6 @@ public class OraxenPlugin extends JavaPlugin {
         CompatibilitiesManager.disableCompatibilities();
         OraxenCommand.unregisterAll();
         Message.PLUGIN_UNLOADED.log();
-        closeAudience();
     }
 
     private void cleanupRuntimeResources() {
@@ -230,19 +230,8 @@ public class OraxenPlugin extends JavaPlugin {
         }
     }
 
-    private void closeAudience() {
-        if (audience == null) return;
-        audience.close();
-        audience = null;
-    }
-
     public ResourcesManager getResourceManager() {
         return resourceManager;
-    }
-
-    @Nullable
-    public BukkitAudiences getAudience() {
-        return audience;
     }
 
     public void reloadConfigs() {
@@ -251,13 +240,17 @@ public class OraxenPlugin extends JavaPlugin {
         resourceManager = new ResourcesManager(this);
     }
 
+    private void initializeSoundManager() {
+        soundManager = new SoundManager(configsManager.getSound());
+    }
+
     public void reloadCustomPaintings() {
         CustomPaintingRegistry.reload(CustomPainting.fromConfigSection(
                 configsManager.getPaintings().getConfigurationSection("paintings")));
     }
 
     public void reloadCustomJukeboxSongs() {
-        soundManager = new SoundManager(configsManager.getSound());
+        initializeSoundManager();
         CustomJukeboxSongRegistry.reload(soundManager.getJukeboxSounds());
     }
 

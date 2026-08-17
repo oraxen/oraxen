@@ -26,7 +26,6 @@ import org.bukkit.event.world.WorldUnloadEvent;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static io.th0rgal.oraxen.utils.BlockHelpers.isLoaded;
 import static io.th0rgal.oraxen.utils.blocksounds.BlockSounds.*;
 
 public class NoteBlockSoundListener implements Listener {
@@ -77,12 +76,11 @@ public class NoteBlockSoundListener implements Listener {
         Location location = block.getLocation();
         SoundGroup soundGroup = block.getBlockData().getSoundGroup();
 
-        if (block.getType() == Material.NOTE_BLOCK || block.getType() == Material.MUSHROOM_STEM) {
-            if (event.getInstaBreak()) {
-                SchedulerUtil.runAtLocationLater(location, 1L, () ->
-                        block.setType(Material.AIR, false));
-                return;
-            }
+        if ((block.getType() == Material.NOTE_BLOCK || block.getType() == Material.MUSHROOM_STEM)
+                && event.getInstaBreak()) {
+            // Let the normal BlockBreakEvent pipeline handle the removal so protection and
+            // custom-block cleanup are applied before the block is changed.
+            return;
         }
         if (soundGroup.getHitSound() != Sound.BLOCK_WOOD_HIT) return;
         if (breakerPlaySound.containsKey(location)) return;
@@ -117,13 +115,16 @@ public class NoteBlockSoundListener implements Listener {
         if (!NoteBlockMechanicFactory.isEnabled() || !NoteBlockMechanicFactory.areCustomSoundsEnabled()) return;
         Entity entity = event.getEntity();
         if (!(entity instanceof LivingEntity)) return;
-        Location eventLoc = event.getLocation();
-        Location entityLoc = entity.getLocation();
-        if (eventLoc == null || entityLoc == null || eventLoc.getWorld() == null || entityLoc.getWorld() == null) return;
-        if (!eventLoc.getWorld().equals(entityLoc.getWorld()) || !isLoaded(eventLoc)) return;
-
         GameEvent gameEvent = event.getEvent();
         if (gameEvent == null) return;
+        Location eventLoc = event.getLocation();
+        if (eventLoc == null) return;
+
+        // The event is posted by the region ticking the entity, so it is already owned by this thread
+        Location entityLoc = entity.getLocation();
+        if (entityLoc == null || eventLoc.getWorld() == null || entityLoc.getWorld() == null) return;
+        if (!eventLoc.getWorld().equals(entityLoc.getWorld()) || !eventLoc.isChunkLoaded()) return;
+
         Block block = BlockHelpers.getBlockStandingOn(entity);
         EntityDamageEvent cause = entity.getLastDamageCause();
 

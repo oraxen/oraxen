@@ -12,14 +12,21 @@ import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.ItemUtils;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import org.bukkit.Color;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 public class CommandsManager {
 
@@ -27,7 +34,7 @@ public class CommandsManager {
     private static final int MAX_GIVE_SLOTS = 36;
 
     public void loadCommands() {
-        new OraxenCommand("oraxen")
+        OraxenCommand command = new OraxenCommand("oraxen")
                 .withAliases("o", "oxn")
                 .withPermission("oraxen.command")
                 .withSubcommands(getDyeCommand(), getInvCommand(), getSimpleGiveCommand(), getGiveCommand(),
@@ -48,14 +55,16 @@ public class CommandsManager {
                         (new AdminCommand()).getAdminCommand(),
                         (new SchemaCommand()).getSchemaCommand(),
                         (new RemoveBrandingCommand()).getRemoveBrandingCommand(),
-                        (new RemoveDefaultsCommand()).getRemoveDefaultsCommand(),
-                        (new TotemAnimationCommand()).getTotemAnimationCommand(),
-                        (new TextEffectCommand()).getTextEffectCommand(),
-                        (new TextEffectCommand()).getTextEffectsListCommand())
+                        (new RemoveDefaultsCommand()).getRemoveDefaultsCommand())
                 .executes((sender, args) -> {
                     openInventoryOrHelp(sender);
-                })
-                .register();
+                });
+
+        if (VersionUtil.atOrAbove("1.21.2")) {
+            command.withSubcommand(new TotemAnimationCommand().getTotemAnimationCommand());
+        }
+
+        command.register();
     }
 
     private Color hex2Rgb(final String colorStr) throws NumberFormatException {
@@ -140,13 +149,58 @@ public class CommandsManager {
         return slots > MAX_GIVE_SLOTS ? maxStackSize * MAX_GIVE_SLOTS : amount;
     }
 
+    /**
+     * Runs {@code action} on each target's entity scheduler (the thread owning the target on
+     * Folia) and, once every target has either run or retired, hands the players that were
+     * actually served to {@code whenDone}. Targets that retire (e.g. disconnect) before their
+     * task executes are not reported as served.
+     */
+    private static void forEachTargetThenReport(final Collection<Player> targets, final Consumer<Player> action,
+                                                final Consumer<List<Player>> whenDone) {
+        if (targets.isEmpty()) {
+            whenDone.accept(List.of());
+            return;
+        }
+        final List<Player> served = Collections.synchronizedList(new ArrayList<>());
+        final AtomicInteger pending = new AtomicInteger(targets.size());
+        for (final Player target : targets) {
+            final Runnable complete = () -> {
+                if (pending.decrementAndGet() == 0) whenDone.accept(List.copyOf(served));
+            };
+            final SchedulerUtil.ScheduledTask task = SchedulerUtil.runForEntity(target, () -> {
+                try {
+                    action.accept(target);
+                    served.add(target);
+                } finally {
+                    complete.run();
+                }
+            }, complete);
+            // Scheduling is refused (null) when the target already retired; neither callback runs.
+            if (task == null) complete.run();
+        }
+    }
+
+    private void sendGiveReport(final CommandSender sender, final List<Player> served, final int amount,
+                                final String itemID) {
+        if (served.size() == 1)
+            Message.GIVE_PLAYER.send(sender,
+                    AdventureUtils.tagResolver("player", served.getFirst().getName()),
+                    AdventureUtils.tagResolver("amount", String.valueOf(amount)),
+                    AdventureUtils.tagResolver("item", itemID));
+        else
+            Message.GIVE_PLAYERS.send(sender,
+                    AdventureUtils.tagResolver("count", String.valueOf(served.size())),
+                    AdventureUtils.tagResolver("amount", String.valueOf(amount)),
+                    AdventureUtils.tagResolver("item", itemID));
+    }
+
     @SuppressWarnings("unchecked")
     private OraxenCommand getGiveCommand() {
         return new OraxenCommand("give")
                 .withPermission("oraxen.command.give")
                 .withArguments(new EntitySelectorArgument.ManyPlayers("targets"),
                         new TextArgument("item")
-                                .replaceSuggestions(ArgumentSuggestions.strings(OraxenItems.getItemNames())),
+                                .replaceSuggestions(ArgumentSuggestions.strings(info -> OraxenItems.getItemNames())),
                         new IntegerArgument("amount"))
                 .executes((sender, args) -> {
                     final Collection<Player> targets = (Collection<Player>) args.get(0);
@@ -165,27 +219,18 @@ public class CommandsManager {
                     final int max = itemBuilder.hasMaxStackSize() ? itemBuilder.getMaxStackSize()
                             : itemBuilder.getType().getMaxStackSize();
                     amount = capGiveAmountToInventory(amount, max);
-                    final ItemStack[] items = itemBuilder.buildArray(amount);
+                    // Build a fresh array per target: Inventory#addItem mutates the stacks it is
+                    // handed, and these tasks may run in parallel on different region threads.
+                    final int giveAmount = amount;
 
-                    for (final Player target : targets) {
-                        final Map<Integer, ItemStack> output = target.getInventory().addItem(items);
+                    forEachTargetThenReport(targets, target -> {
+                        final Map<Integer, ItemStack> output = target.getInventory()
+                                .addItem(itemBuilder.buildArray(giveAmount));
                         if (!output.isEmpty()) {
                             for (final ItemStack stack : output.values())
                                 target.getWorld().dropItem(target.getLocation(), stack);
                         }
-                    }
-
-                    if (targets.size() == 1)
-                        Message.GIVE_PLAYER
-                                .send(sender,
-                                        AdventureUtils.tagResolver("player", (targets.iterator().next().getName())),
-                                        AdventureUtils.tagResolver("amount", (String.valueOf(amount))),
-                                        AdventureUtils.tagResolver("item", itemID));
-                    else
-                        Message.GIVE_PLAYERS
-                                .send(sender, AdventureUtils.tagResolver("count", String.valueOf(targets.size())),
-                                        AdventureUtils.tagResolver("amount", String.valueOf(amount)),
-                                        AdventureUtils.tagResolver("item", itemID));
+                    }, served -> sendGiveReport(sender, served, giveAmount, itemID));
                 });
     }
 
@@ -205,7 +250,7 @@ public class CommandsManager {
                         return;
                     }
 
-                    for (final Player target : targets) {
+                    forEachTargetThenReport(targets, target -> {
                         final Map<Integer, ItemStack> output = target.getInventory()
                                 .addItem(ItemUpdater.updateItem(itemBuilder.build()));
                         if (!output.isEmpty()) {
@@ -213,18 +258,7 @@ public class CommandsManager {
                                 target.getWorld().dropItem(target.getLocation(), stack);
                             }
                         }
-                    }
-
-                    if (targets.size() == 1)
-                        Message.GIVE_PLAYER
-                                .send(sender, AdventureUtils.tagResolver("player", targets.iterator().next().getName()),
-                                        AdventureUtils.tagResolver("amount", String.valueOf(1)),
-                                        AdventureUtils.tagResolver("item", itemID));
-                    else
-                        Message.GIVE_PLAYERS
-                                .send(sender, AdventureUtils.tagResolver("count", String.valueOf(targets.size())),
-                                        AdventureUtils.tagResolver("amount", String.valueOf(1)),
-                                        AdventureUtils.tagResolver("item", itemID));
+                    }, served -> sendGiveReport(sender, served, 1, itemID));
                 });
     }
 
@@ -234,7 +268,7 @@ public class CommandsManager {
                 .withArguments(
                         new EntitySelectorArgument.ManyPlayers("targets"),
                         new TextArgument("item")
-                                .replaceSuggestions(ArgumentSuggestions.strings(OraxenItems.getItemNames())),
+                                .replaceSuggestions(ArgumentSuggestions.strings(info -> OraxenItems.getItemNames())),
                         new IntegerArgument("amount").setOptional(true))
                 .executes((sender, args) -> {
                     final Collection<Player> targets = (Collection<Player>) args.get("targets");
@@ -244,36 +278,38 @@ public class CommandsManager {
                         Message.ITEM_NOT_FOUND.send(sender, AdventureUtils.tagResolver("item", itemID));
                     } else
                         for (final Player target : targets) {
-                            if (amount.isEmpty()) {
-                                for (final ItemStack itemStack : target.getInventory().getContents())
-                                    if (!ItemUtils.isEmpty(itemStack)
-                                            && itemID.equals(OraxenItems.getIdByItem(itemStack)))
-                                        target.getInventory().remove(itemStack);
-                            } else {
-                                int toRemove = amount.get();
-                                while (toRemove > 0) {
-                                    final ItemStack[] items = target.getInventory().getStorageContents();
-                                    for (int i = 0; i < items.length; i++) {
-                                        final ItemStack itemStack = items[i];
+                            SchedulerUtil.runForEntity(target, () -> {
+                                if (amount.isEmpty()) {
+                                    for (final ItemStack itemStack : target.getInventory().getContents())
                                         if (!ItemUtils.isEmpty(itemStack)
-                                                && itemID.equals(OraxenItems.getIdByItem(itemStack))) {
-                                            if (itemStack.getAmount() <= toRemove) {
-                                                toRemove -= itemStack.getAmount();
-                                                target.getInventory().clear(i);
-                                            } else {
-                                                itemStack.setAmount(itemStack.getAmount() - toRemove);
-                                                toRemove = 0;
+                                                && itemID.equals(OraxenItems.getIdByItem(itemStack)))
+                                            target.getInventory().remove(itemStack);
+                                } else {
+                                    int toRemove = amount.get();
+                                    while (toRemove > 0) {
+                                        final ItemStack[] items = target.getInventory().getStorageContents();
+                                        for (int i = 0; i < items.length; i++) {
+                                            final ItemStack itemStack = items[i];
+                                            if (!ItemUtils.isEmpty(itemStack)
+                                                    && itemID.equals(OraxenItems.getIdByItem(itemStack))) {
+                                                if (itemStack.getAmount() <= toRemove) {
+                                                    toRemove -= itemStack.getAmount();
+                                                    target.getInventory().clear(i);
+                                                } else {
+                                                    itemStack.setAmount(itemStack.getAmount() - toRemove);
+                                                    toRemove = 0;
+                                                }
+
+                                                if (toRemove == 0)
+                                                    break;
                                             }
-
-                                            if (toRemove == 0)
-                                                break;
                                         }
-                                    }
 
-                                    if (toRemove > 0)
-                                        break;
+                                        if (toRemove > 0)
+                                            break;
+                                    }
                                 }
-                            }
+                            });
                         }
                 });
     }

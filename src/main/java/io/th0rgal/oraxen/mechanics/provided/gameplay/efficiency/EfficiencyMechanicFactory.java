@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicConfigProperty;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -12,11 +13,17 @@ import java.util.List;
 
 public class EfficiencyMechanicFactory extends MechanicFactory {
 
+    private final EfficiencyMechanicListener listener;
+
     public EfficiencyMechanicFactory(ConfigurationSection section) {
         super(section);
-        OraxenPlugin.get().getPacketAdapter().whenEnabled(adapter -> {
-            adapter.reregisterEfficencyMechanicListener(this);
-        });
+        listener = new EfficiencyMechanicListener(this);
+        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), listener);
+    }
+
+    @Override
+    public void onUnregister() {
+        listener.clearAll();
     }
 
     @Override

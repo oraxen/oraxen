@@ -9,10 +9,10 @@ import io.th0rgal.oraxen.sounds.SoundManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.VirtualFile;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.file.Files;
 
 public class OraxenPack {
 
@@ -25,8 +25,10 @@ public class OraxenPack {
      */
     public static void addFilesToPack(File[] files) {
         for (File file : files) {
-            try (InputStream inputStream = new FileInputStream(file)) {
-                VirtualFile virtualFile = new VirtualFile(file.getParent(), file.getName(), inputStream);
+            try {
+                VirtualFile virtualFile = new VirtualFile(
+                        file.getParent(), file.getName(),
+                        new ByteArrayInputStream(Files.readAllBytes(file.toPath())));
                 ResourcePack.addOutputFiles(virtualFile);
             } catch (IOException e) {
                 Message.IO_ERROR_ADD_PACK_FILE.log(AdventureUtils.tagResolver("file", file.getName()));

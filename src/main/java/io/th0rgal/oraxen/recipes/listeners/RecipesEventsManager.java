@@ -10,7 +10,6 @@ import io.th0rgal.oraxen.mechanics.provided.misc.misc.MiscMechanic;
 import io.th0rgal.oraxen.mechanics.provided.misc.misc.MiscMechanicFactory;
 import io.th0rgal.oraxen.recipes.CustomRecipe;
 import io.th0rgal.oraxen.utils.InventoryUtils;
-import io.th0rgal.oraxen.utils.VersionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Keyed;
 import org.bukkit.NamespacedKey;
@@ -30,6 +29,8 @@ import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 import static io.th0rgal.oraxen.mechanics.provided.misc.backpack.BackpackMechanic.BACKPACK_KEY;
@@ -37,11 +38,17 @@ import static io.th0rgal.oraxen.mechanics.provided.misc.backpack.BackpackMechani
 public class RecipesEventsManager implements Listener {
 
     private static RecipesEventsManager instance;
-    private Map<CustomRecipe, String> permissionsPerRecipe = new HashMap<>();
-    private Set<CustomRecipe> whitelistedCraftRecipes = new HashSet<>();
-    private ArrayList<CustomRecipe> whitelistedCraftRecipesOrdered = new ArrayList<>();
-    private Map<String, ShapedOraxenRecipe> shapedOraxenIngredients = new HashMap<>();
-    private Map<String, List<String>> shapelessOraxenIngredients = new HashMap<>();
+    // Rebuilt during reload (a region/command thread on Folia) while crafting
+    // and join events read them concurrently from other region threads; use
+    // concurrent collections and volatile reference swaps.
+    private volatile Map<CustomRecipe, String> permissionsPerRecipe = new ConcurrentHashMap<>();
+    private volatile Set<CustomRecipe> whitelistedCraftRecipes = ConcurrentHashMap.newKeySet();
+    private volatile List<CustomRecipe> whitelistedCraftRecipesOrdered = new CopyOnWriteArrayList<>();
+    private volatile Map<String, ShapedOraxenRecipe> shapedOraxenIngredients = new ConcurrentHashMap<>();
+    private volatile Map<String, List<String>> shapelessOraxenIngredients = new ConcurrentHashMap<>();
+    private volatile Map<NamespacedKey, String> smithingRecipes = Map.of();
+    private Map<NamespacedKey, String> stagedSmithingRecipes;
+    private boolean eventsRegistered;
 
     public static RecipesEventsManager get() {
         if (instance == null) {
@@ -51,10 +58,11 @@ public class RecipesEventsManager implements Listener {
     }
 
     public void registerEvents() {
+        if (eventsRegistered) return;
         Bukkit.getPluginManager().registerEvents(instance, OraxenPlugin.get());
-        if (VersionUtil.atOrAbove("1.20")) {
-            Bukkit.getPluginManager().registerEvents(new SmithingRecipeEvents(), OraxenPlugin.get());
-        }
+        Bukkit.getPluginManager().registerEvents(new SmithingRecipeEvents(), OraxenPlugin.get());
+        Bukkit.getPluginManager().registerEvents(new CustomWorkstationEvents(), OraxenPlugin.get());
+        eventsRegistered = true;
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -194,15 +202,39 @@ public class RecipesEventsManager implements Listener {
     }
 
     public void resetRecipes() {
-        permissionsPerRecipe = new HashMap<>();
-        whitelistedCraftRecipes = new HashSet<>();
-        whitelistedCraftRecipesOrdered = new ArrayList<>();
-        shapedOraxenIngredients = new HashMap<>();
-        shapelessOraxenIngredients = new HashMap<>();
+        permissionsPerRecipe = new ConcurrentHashMap<>();
+        whitelistedCraftRecipes = ConcurrentHashMap.newKeySet();
+        whitelistedCraftRecipesOrdered = new CopyOnWriteArrayList<>();
+        shapedOraxenIngredients = new ConcurrentHashMap<>();
+        shapelessOraxenIngredients = new ConcurrentHashMap<>();
     }
 
     public void addPermissionRecipe(CustomRecipe recipe, String permission) {
         permissionsPerRecipe.put(recipe, permission);
+    }
+
+    public void beginSmithingReload() {
+        stagedSmithingRecipes = new HashMap<>();
+    }
+
+    public void registerSmithingRecipe(NamespacedKey key, String permission) {
+        if (stagedSmithingRecipes == null) throw new IllegalStateException("Smithing recipe reload has not begun");
+        stagedSmithingRecipes.put(key, permission);
+    }
+
+    public void finishSmithingReload() {
+        smithingRecipes = stagedSmithingRecipes == null ? Map.of()
+                : Collections.unmodifiableMap(new HashMap<>(stagedSmithingRecipes));
+        stagedSmithingRecipes = null;
+    }
+
+    public boolean isConfiguredSmithingRecipe(NamespacedKey key) {
+        return smithingRecipes.containsKey(key);
+    }
+
+    public boolean hasSmithingPermission(CommandSender sender, NamespacedKey key) {
+        String permission = smithingRecipes.get(key);
+        return permission == null || sender.hasPermission(permission);
     }
 
     public void whitelistRecipe(CustomRecipe recipe) {

@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics;
 
 import io.th0rgal.oraxen.mechanics.provided.combat.knockbackstrike.KnockbackStrikeMechanic;
+import io.th0rgal.oraxen.utils.wrappers.ParticleWrapper;
 import org.bukkit.Particle;
 import org.junit.jupiter.api.Test;
 
@@ -37,5 +38,26 @@ class KnockbackStrikeMechanicTest extends MechanicTestSupport {
         assertEquals(1, mechanic.getCurrentHitCount(player));
         assertTrue(mechanic.incrementHitAndCheck(player));
         assertEquals(0, mechanic.getCurrentHitCount(player));
+    }
+
+    @Test
+    void resolvesRenamedParticlesThroughWrapper() {
+        java.util.Map<String, Particle> expected = new java.util.LinkedHashMap<>();
+        expected.put("BLOCK", ParticleWrapper.BLOCK);
+        expected.put("BLOCK_CRACK", ParticleWrapper.BLOCK);
+        expected.put("ITEM", ParticleWrapper.ITEM);
+        expected.put("ITEM_CRACK", ParticleWrapper.ITEM);
+        expected.put("REDSTONE", ParticleWrapper.DUST);
+        expected.put("DUST", ParticleWrapper.DUST);
+        expected.put("DUST_COLOR_TRANSITION", ParticleWrapper.DUST_COLOR_TRANSITION);
+
+        expected.forEach((configuredName, particle) -> {
+            KnockbackStrikeMechanic mechanic = new KnockbackStrikeMechanic(mechanicFactory(),
+                    mechanicSection("knockbackstrike",
+                            "play_sound", false,
+                            "particle", java.util.Map.of("type", configuredName)));
+
+            assertEquals(particle, mechanic.getParticleType(), "particle type for " + configuredName);
+        });
     }
 }

@@ -20,6 +20,7 @@ public class StonecuttingLoader extends RecipeLoader {
 			return;
 		}
 		StonecuttingRecipe recipe = new StonecuttingRecipe(getNamespacedKey(), getValidResult(), recipeChoice);
+		recipe.setGroup(getGroup());
 		loadRecipe(recipe);
 	}
 }

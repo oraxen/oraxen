@@ -5,14 +5,16 @@ import dev.triumphteam.gui.guis.PaginatedGui;
 import io.th0rgal.oraxen.recipes.CustomRecipe;
 import org.bukkit.entity.Player;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class InvManager {
 
-    private final Map<UUID, PaginatedGui> itemsViews = new HashMap<>();
+    // computeIfAbsent is reached from each player's own region thread on Folia,
+    // and regen() clears the map during reloads.
+    private final Map<UUID, PaginatedGui> itemsViews = new ConcurrentHashMap<>();
 
     public InvManager() {
         regen();

@@ -8,12 +8,10 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
-import java.util.regex.Pattern;
+import java.util.List;
 
 /**
  * A reference glyph that aliases a subset of another glyph's characters.
@@ -34,20 +32,13 @@ import java.util.regex.Pattern;
  *     permission: "gui.header"
  * </pre>
  */
-public class ReferenceGlyph {
+public class ReferenceGlyph extends Glyph {
 
-    private final String name;
     private final String sourceGlyphId;
     private final IntRange indexRange;
-    private final String permission;
-    private final String[] placeholders;
-    private final boolean tabcomplete;
 
     private Glyph resolvedSourceGlyph;
     private String resolvedCharacters;
-
-    public final Pattern baseRegex;
-    public final Pattern escapedRegex;
 
     /**
      * Creates a reference glyph from configuration.
@@ -56,7 +47,7 @@ public class ReferenceGlyph {
      * @param glyphSection The configuration section containing reference settings
      */
     public ReferenceGlyph(String glyphName, ConfigurationSection glyphSection) {
-        this.name = glyphName;
+        super(glyphName, glyphSection, List.of(""), GlyphGrid.SINGLE);
 
         ConfigurationSection refSection = glyphSection.getConfigurationSection("reference");
         if (refSection == null) {
@@ -76,22 +67,6 @@ public class ReferenceGlyph {
             parsedRange = IntRange.all();
         }
         this.indexRange = parsedRange;
-
-        // Parse chat section (same as regular Glyph)
-        ConfigurationSection chatSection = glyphSection.getConfigurationSection("chat");
-        placeholders = chatSection != null
-                ? chatSection.getStringList("placeholders").toArray(new String[0])
-                : new String[0];
-        permission = chatSection != null ? chatSection.getString("permission", "") : "";
-        tabcomplete = chatSection != null && chatSection.getBoolean("tabcomplete", false);
-
-        // Build regex patterns for placeholder matching
-        String placeholderRegex = String.join("|",
-                Arrays.stream(placeholders).map(Pattern::quote).toArray(String[]::new));
-        String baseRegexPattern = "((<(glyph|g):" + name + ")(:[^:>]+)*>"
-                + (placeholders.length > 0 ? "|" + placeholderRegex : "") + ")";
-        this.baseRegex = Pattern.compile("(?<!\\\\)" + baseRegexPattern);
-        this.escapedRegex = Pattern.compile("\\\\" + baseRegexPattern);
     }
 
     /**
@@ -114,7 +89,7 @@ public class ReferenceGlyph {
     public boolean resolve(FontManager fontManager) {
         Glyph source = fontManager.getGlyphFromID(sourceGlyphId);
         if (source == null) {
-            Logs.logError("Reference glyph '" + name + "' references non-existent glyph: " + sourceGlyphId);
+            Logs.logError("Reference glyph '" + getName() + "' references non-existent glyph: " + sourceGlyphId);
             return false;
         }
 
@@ -122,7 +97,7 @@ public class ReferenceGlyph {
         this.resolvedCharacters = extractCharacters(source);
 
         if (resolvedCharacters.isEmpty()) {
-            Logs.logWarning("Reference glyph '" + name + "' resolved to empty characters from " + sourceGlyphId);
+            Logs.logWarning("Reference glyph '" + getName() + "' resolved to empty characters from " + sourceGlyphId);
         }
 
         return true;
@@ -159,10 +134,6 @@ public class ReferenceGlyph {
      */
     public boolean isResolved() {
         return resolvedSourceGlyph != null;
-    }
-
-    public String getName() {
-        return name;
     }
 
     public String getSourceGlyphId() {
@@ -203,6 +174,16 @@ public class ReferenceGlyph {
      */
     public String getCharacters() {
         return resolvedCharacters != null ? resolvedCharacters : "";
+    }
+
+    @Override
+    public List<String> getUnicodeRows() {
+        return List.of(getCharacters());
+    }
+
+    @Override
+    public String getFormattedUnicodes() {
+        return getCharacters();
     }
 
     /**
@@ -247,22 +228,6 @@ public class ReferenceGlyph {
         return resolvedSourceGlyph != null ? resolvedSourceGlyph.getHeight() : 8;
     }
 
-    public String getPermission() {
-        return permission;
-    }
-
-    public String[] getPlaceholders() {
-        return placeholders;
-    }
-
-    public boolean hasTabCompletion() {
-        return tabcomplete;
-    }
-
-    public boolean hasPermission(Player player) {
-        return player == null || permission.isEmpty() || player.hasPermission(permission);
-    }
-
     /**
      * Reference glyphs do NOT generate their own font provider.
      * They use the same characters from the source glyph.
@@ -272,14 +237,6 @@ public class ReferenceGlyph {
     @Nullable
     public JsonObject toJson() {
         return null; // Reference glyphs don't generate separate providers
-    }
-
-    public String getGlyphTag() {
-        return "<glyph:" + name + ">";
-    }
-
-    public String getShortGlyphTag() {
-        return "<g:" + name + ">";
     }
 
     public Component getGlyphComponent() {

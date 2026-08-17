@@ -49,8 +49,11 @@ public class AuraMechanic extends Mechanic {
         // Synchronize to make remove + isEmpty check atomic for Folia thread safety
         synchronized (auraLock) {
             players.remove(player);
-            if (players.isEmpty() && aura != null)
-                aura.stop();
+            if (aura != null) {
+                aura.removePlayer(player);
+                if (players.isEmpty())
+                    aura.stop();
+            }
         }
     }
 

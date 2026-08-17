@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Runtime registration entry for a placed furniture base that has one or more
@@ -15,8 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class FurnitureTextEntry {
 
-    private static final int FALLBACK_VIRTUAL_ID_START = Integer.MAX_VALUE / 2;
-    private static int fallbackVirtualId = FALLBACK_VIRTUAL_ID_START;
+    private static final AtomicInteger FALLBACK_VIRTUAL_ID = new AtomicInteger(Integer.MAX_VALUE / 2);
 
     private final UUID baseUuid;
     private final int baseEntityId;
@@ -94,9 +94,9 @@ public final class FurnitureTextEntry {
         return definition.getRefreshTicks() > 0 ? definition.getRefreshTicks() : (definition.usesPlaceholders() ? 20 : 0);
     }
 
-    private static synchronized int nextVirtualEntityId() {
+    private static int nextVirtualEntityId() {
         int entityId = NMSHandlers.getHandler().getNextEntityId();
         if (entityId != -1) return entityId;
-        return --fallbackVirtualId;
+        return FALLBACK_VIRTUAL_ID.decrementAndGet();
     }
 }

@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.shaped;
 
-import com.jeff_media.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenItems;
@@ -41,6 +40,7 @@ import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.Chunk;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 /**
@@ -60,8 +60,8 @@ public class ShapedBlockMechanicListener implements Listener {
 
     public ShapedBlockMechanicListener(ShapedBlockMechanicFactory factory) {
         this.factory = factory;
-        if (OraxenPlugin.get().getPacketAdapter().isEnabled())
-            registerHardnessModifier();
+        // BreakerSystem no longer requires a packet library, register unconditionally.
+        registerHardnessModifier();
     }
 
     private static void registerHardnessModifier() {
@@ -439,7 +439,7 @@ public class ShapedBlockMechanicListener implements Listener {
 
     private void revertPlacement(Block targetBlock, ShapedBlockMechanic mechanic, org.bukkit.block.BlockState replacedState) {
         // Clean up PDC data before removing blocks
-        CustomBlockData blockData = new CustomBlockData(targetBlock, OraxenPlugin.get());
+        PersistentDataContainer blockData = BlockHelpers.getPDC(targetBlock);
         ShapedBlockMechanic.removeItemId(blockData);
 
         // Restore original block state instead of just setting to AIR
@@ -447,7 +447,7 @@ public class ShapedBlockMechanicListener implements Listener {
 
         if (mechanic.getBlockType() == ShapedBlockType.DOOR) {
             Block upperBlock = targetBlock.getRelative(BlockFace.UP);
-            CustomBlockData upperBlockData = new CustomBlockData(upperBlock, OraxenPlugin.get());
+            PersistentDataContainer upperBlockData = BlockHelpers.getPDC(upperBlock);
             ShapedBlockMechanic.removeItemId(upperBlockData);
             // Upper block was always air/replaceable before door placement
             upperBlock.setType(Material.AIR);
@@ -665,7 +665,7 @@ public class ShapedBlockMechanicListener implements Listener {
     }
 
     private void markAsCustomBlock(Block block, ShapedBlockMechanic mechanic) {
-        CustomBlockData blockData = new CustomBlockData(block, OraxenPlugin.get());
+        PersistentDataContainer blockData = BlockHelpers.getPDC(block);
         ShapedBlockMechanic.setItemId(blockData, mechanic.getItemID());
     }
 
@@ -895,7 +895,7 @@ public class ShapedBlockMechanicListener implements Listener {
      * Check if a block is marked as vanilla waxed (non-waxed copper that should not oxidize).
      */
     public static boolean isVanillaWaxed(Block block) {
-        CustomBlockData blockData = new CustomBlockData(block, OraxenPlugin.get());
+        PersistentDataContainer blockData = BlockHelpers.getPDC(block);
         return blockData.getOrDefault(VANILLA_WAXED_KEY, PersistentDataType.BOOLEAN, false);
     }
 
@@ -903,7 +903,7 @@ public class ShapedBlockMechanicListener implements Listener {
      * Set the vanilla waxed marker on a block.
      */
     public static void setVanillaWaxed(Block block, boolean waxed) {
-        CustomBlockData blockData = new CustomBlockData(block, OraxenPlugin.get());
+        PersistentDataContainer blockData = BlockHelpers.getPDC(block);
         if (waxed) {
             blockData.set(VANILLA_WAXED_KEY, PersistentDataType.BOOLEAN, true);
         } else {

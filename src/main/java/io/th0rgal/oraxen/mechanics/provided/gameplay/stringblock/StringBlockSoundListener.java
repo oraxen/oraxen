@@ -19,8 +19,6 @@ import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.world.GenericGameEvent;
 
-import static io.th0rgal.oraxen.utils.BlockHelpers.isLoaded;
-
 public class StringBlockSoundListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -66,11 +64,13 @@ public class StringBlockSoundListener implements Listener {
         if (!StringBlockMechanicFactory.isEnabled() || !StringBlockMechanicFactory.areCustomSoundsEnabled()) return;
         Entity entity = event.getEntity();
         if (!(entity instanceof LivingEntity)) return;
-        Location entityLoc = entity.getLocation();
-        if (entityLoc == null || !isLoaded(entityLoc)) return;
-
         GameEvent gameEvent = event.getEvent();
         if (gameEvent == null) return;
+
+        // The event is posted by the region ticking the entity, so it is already owned by this thread
+        Location entityLoc = entity.getLocation();
+        if (entityLoc == null || !entityLoc.isWorldLoaded() || !entityLoc.isChunkLoaded()) return;
+
         Block block = entityLoc.getBlock();
         EntityDamageEvent cause = entity.getLastDamageCause();
 

@@ -8,7 +8,6 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.PaperConfigUpdater;
-import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.lang3.Range;
@@ -26,11 +25,14 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ChorusBlockMechanicFactory extends MechanicFactory {
 
     public static final int MAX_BLOCK_VARIATION = 63;
-    public static final Map<Integer, ChorusBlockMechanic> BLOCK_PER_VARIATION = new HashMap<>();
+    // Repopulated on reload (a region/command thread on Folia) while every block
+    // event handler reads it from other region threads.
+    public static final Map<Integer, ChorusBlockMechanic> BLOCK_PER_VARIATION = new ConcurrentHashMap<>();
     private static JsonObject variants;
     private static ChorusBlockMechanicFactory instance;
     public final List<String> toolTypes;
@@ -166,19 +168,16 @@ public class ChorusBlockMechanicFactory extends MechanicFactory {
         }
 
         // Physics-related listeners
-        if (VersionUtil.isPaperServer()) {
-            MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(),
-                    new ChorusBlockMechanicListener.ChorusBlockMechanicPaperListener());
-        }
+        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(),
+                new ChorusBlockMechanicListener.ChorusBlockMechanicPaperListener());
         boolean chorusPlantUpdatesDisabled = NMSHandlers.isChorusPlantUpdatesDisabled();
-        if (!VersionUtil.isPaperServer() || !chorusPlantUpdatesDisabled) {
+        if (!chorusPlantUpdatesDisabled) {
             MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(),
                     new ChorusBlockMechanicListener.ChorusBlockMechanicPhysicsListener());
         }
 
         // Warn if Paper config is not set (auto-update happens earlier in plugin enable)
-        if (VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.20.1")
-                && !chorusPlantUpdatesDisabled
+        if (!chorusPlantUpdatesDisabled
                 && PaperConfigUpdater.wasBlockUpdateSettingUpdated("disable-chorus-plant-updates")) {
             Logs.logWarning("Paper block-updates.disable-chorus-plant-updates is not enabled, restart may be required");
         }

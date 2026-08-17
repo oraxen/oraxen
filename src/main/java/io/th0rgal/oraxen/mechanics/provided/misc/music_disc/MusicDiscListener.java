@@ -53,11 +53,9 @@ public class MusicDiscListener implements Listener {
         Component discName = null;
         if (itemStack.hasItemMeta()) {
             if (VersionUtil.atOrAbove("1.20.5") && itemStack.getItemMeta().hasItemName()) {
-                if (VersionUtil.isPaperServer()) discName = itemStack.getItemMeta().itemName();
-                else discName = AdventureUtils.LEGACY_SERIALIZER.deserialize(itemStack.getItemMeta().getItemName());
+                discName = itemStack.getItemMeta().itemName();
             } else if (itemStack.getItemMeta().hasDisplayName()) {
-                if (VersionUtil.isPaperServer()) discName = itemStack.getItemMeta().displayName();
-                else discName = AdventureUtils.LEGACY_SERIALIZER.deserialize(itemStack.getItemMeta().getDisplayName());
+                discName = itemStack.getItemMeta().displayName();
             }
         }
         if (discName == null) discName = Component.empty();
@@ -121,7 +119,7 @@ public class MusicDiscListener implements Listener {
             disc.setAmount(disc.getAmount() - insertedDisc.getAmount());
 
         pdc.set(MusicDiscHelpers.MUSIC_DISC_KEY, DataType.ITEM_STACK, insertedDisc);
-        block.getWorld().playSound(BlockHelpers.toCenterLocation(block.getLocation()), mechanic.getSong(), SoundCategory.RECORDS, 1, 1);
+        AdventureUtils.playSound(block.getLocation().toCenterLocation(), mechanic.getSong(), Sound.Source.RECORD, 1, 1);
         return true;
     }
 
@@ -139,7 +137,7 @@ public class MusicDiscListener implements Listener {
         String itemID = OraxenItems.getIdByItem(ejectedDisc);
         MusicDiscMechanic mechanic = (MusicDiscMechanic) factory.getMechanic(itemID);
         FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(block);
-        Location loc = BlockHelpers.toCenterLocation(block.getLocation());
+        Location loc = block.getLocation().toCenterLocation();
 
         if (block.getType() != Material.JUKEBOX && (furnitureMechanic == null || !furnitureMechanic.isJukebox())) return false;
         if (!MusicDiscHelpers.hasMusicDisc(pdc)) return false;

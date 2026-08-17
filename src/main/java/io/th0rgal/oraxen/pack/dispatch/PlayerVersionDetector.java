@@ -6,19 +6,17 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.UUID;
 
 /**
- * Detects the Minecraft client version of players using ViaVersion, ProtocolSupport, or other APIs.
+ * Detects the Minecraft client version of players using ViaVersion.
  */
 public class PlayerVersionDetector {
 
     private static volatile VersionDetectionMethod detectionMethod = VersionDetectionMethod.NONE;
     private static Method viaVersionGetPlayerVersionMethod;
     private static ViaVersionArgType viaVersionArgType = ViaVersionArgType.NONE;
-    private static Method protocolSupportGetProtocolVersionMethod;
     private static Object viaApiInstance;
 
     private static volatile boolean initialized = false;
@@ -42,17 +40,9 @@ public class PlayerVersionDetector {
                 return;
             }
 
-            // Try ProtocolSupport as fallback
-            if (tryInitializeProtocolSupport()) {
-                detectionMethod = VersionDetectionMethod.PROTOCOL_SUPPORT;
-                Logs.logSuccess("Player version detection enabled via ProtocolSupport");
-                initialized = true;
-                return;
-            }
-
             // No version detection available
             detectionMethod = VersionDetectionMethod.NONE;
-            Logs.logWarning("No version detection plugin found (ViaVersion/ProtocolSupport)");
+            Logs.logWarning("ViaVersion not found; player version detection is disabled");
             Logs.logWarning("All players will receive the server's pack version");
             initialized = true;
         }
@@ -101,27 +91,6 @@ public class PlayerVersionDetector {
         return false;
     }
 
-    private static boolean tryInitializeProtocolSupport() {
-        if (!PluginUtils.isEnabled("ProtocolSupport")) {
-            return false;
-        }
-
-        try {
-            // ProtocolSupport API
-            Class<?> protocolSupportApiClass = Class.forName("protocolsupport.api.ProtocolSupportAPI");
-            Class<?> playerClass = ViaVersionArgType.PLAYER.resolveParameterType();
-            if (playerClass == null) {
-                return false;
-            }
-            protocolSupportGetProtocolVersionMethod = protocolSupportApiClass.getMethod("getProtocolVersion", playerClass);
-
-            return true;
-        } catch (Exception e) {
-            Logs.logWarning("ProtocolSupport detected but API initialization failed: " + e.getMessage());
-            return false;
-        }
-    }
-
     /**
      * Gets the protocol version of a player's client.
      *
@@ -143,8 +112,6 @@ public class PlayerVersionDetector {
             switch (detectionMethod) {
                 case VIA_VERSION:
                     return getViaVersionProtocol(player);
-                case PROTOCOL_SUPPORT:
-                    return getProtocolSupportProtocol(player);
                 default:
                     return null;
             }
@@ -201,38 +168,6 @@ public class PlayerVersionDetector {
         return null;
     }
 
-    @Nullable
-    private static Integer getProtocolSupportProtocol(Player player) throws Exception {
-        if (protocolSupportGetProtocolVersionMethod == null) {
-            return null;
-        }
-
-        try {
-            Object protocolVersion = protocolSupportGetProtocolVersionMethod.invoke(null, player);
-
-            if (protocolVersion != null) {
-                try {
-                    Method getIdMethod = protocolVersion.getClass().getMethod("getId");
-                    Object id = getIdMethod.invoke(protocolVersion);
-                    if (id instanceof Integer) {
-                        return (Integer) id;
-                    }
-                } catch (NoSuchMethodException e) {
-                    if (protocolVersion instanceof Integer) {
-                        return (Integer) protocolVersion;
-                    }
-                }
-            }
-
-            return null;
-        } catch (InvocationTargetException e) {
-            Throwable cause = e.getCause();
-            String errorMessage = cause != null ? cause.getMessage() : "Unknown error";
-            Logs.logWarning("ProtocolSupport API error for " + player.getName() + ": " + errorMessage);
-            return null;
-        }
-    }
-
     /**
      * Gets a human-readable version string for a player.
      * This is for logging/debugging purposes.
@@ -262,8 +197,7 @@ public class PlayerVersionDetector {
 
     enum VersionDetectionMethod {
         NONE,
-        VIA_VERSION,
-        PROTOCOL_SUPPORT
+        VIA_VERSION
     }
 
     private enum ViaVersionArgType {

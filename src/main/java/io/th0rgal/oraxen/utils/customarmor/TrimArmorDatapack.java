@@ -12,7 +12,6 @@ import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.pack.generation.OraxenDatapack;
 import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import io.th0rgal.oraxen.utils.VersionUtil;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
@@ -272,9 +271,7 @@ public class TrimArmorDatapack extends OraxenDatapack {
 
     private TrimPattern getTrimPattern(String armorPrefix, List<String> skippedArmorType) {
         try {
-            return VersionUtil.isPaperServer()
-                    ? Registry.TRIM_PATTERN.get(NamespacedKey.fromString("oraxen:" + armorPrefix))
-                    : null;
+            return Registry.TRIM_PATTERN.get(NamespacedKey.fromString("oraxen:" + armorPrefix));
         } catch (NoSuchMethodError e) {
             Logs.logWarning("Registry.TRIM_PATTERN.get is not available in your server version.");
             Logs.logWarning("Custom armor with trim patterns requires PaperMC or compatible fork.");

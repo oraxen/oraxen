@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.utils.actions.impl.command;
 
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import me.gabytm.util.actions.actions.Action;
 import me.gabytm.util.actions.actions.ActionMeta;
 import me.gabytm.util.actions.actions.Context;
@@ -17,7 +18,10 @@ public class ConsoleAction extends Action<Player> {
 
     @Override
     public void run(@NotNull Player player, @NotNull Context<Player> context) {
-        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), getMeta().getParsedData(player, context));
+        // Folia requires console commands to be dispatched from the global region
+        // thread; parse placeholders on the calling thread, then hop.
+        String command = getMeta().getParsedData(player, context);
+        SchedulerUtil.runTask(() -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command));
     }
 
 }

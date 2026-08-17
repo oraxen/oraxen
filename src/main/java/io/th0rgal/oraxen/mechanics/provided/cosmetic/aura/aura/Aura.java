@@ -17,6 +17,14 @@ public abstract class Aura {
 
     protected abstract long getDelay();
 
+    /** Hook for subclasses tracking per-player state; called when a player stops wearing the aura. */
+    protected void onPlayerRemoved(Player player) {
+    }
+
+    /** Hook for subclasses tracking per-player state; called when the aura task stops. */
+    protected void onStopped() {
+    }
+
     public void start() {
         // Use async timer to iterate players, then schedule particle spawning
         // on each player's region thread for Folia compatibility
@@ -32,5 +40,10 @@ public abstract class Aura {
             scheduledTask.cancel();
             scheduledTask = null;
         }
+        onStopped();
+    }
+
+    public void removePlayer(Player player) {
+        onPlayerRemoved(player);
     }
 }
