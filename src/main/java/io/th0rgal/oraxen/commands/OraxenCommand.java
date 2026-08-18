@@ -34,7 +34,7 @@ public class OraxenCommand {
     // servers where the API is missing (Paper 1.20.1-1.20.4).
     private static final boolean BRIGADIER_AVAILABLE = detectBrigadierApi();
 
-    private static final Set<Command> REGISTERED_COMMANDS = new LinkedHashSet<>();
+    private static final Set<Command> commands = new LinkedHashSet<>();
 
     private final String name;
     private final List<String> aliases = new ArrayList<>();
@@ -122,18 +122,18 @@ public class OraxenCommand {
         command.setPermission(permission);
         unregisterKnownCommands(commandMap, plugin.getName().toLowerCase(Locale.ROOT), command);
         commandMap.register(plugin.getName().toLowerCase(Locale.ROOT), command);
-        REGISTERED_COMMANDS.add(command);
+        commands.add(command);
         syncCommands();
     }
 
     public static void unregisterAll() {
         // Brigadier registrations are lifecycle-managed by Paper and need no manual cleanup.
-        if (REGISTERED_COMMANDS.isEmpty()) return;
+        if (commands.isEmpty()) return;
         CommandMap commandMap = getCommandMap();
-        for (Command command : REGISTERED_COMMANDS) {
+        for (Command command : commands) {
             command.unregister(commandMap);
         }
-        REGISTERED_COMMANDS.clear();
+        commands.clear();
         syncCommands();
     }
 
@@ -142,7 +142,7 @@ public class OraxenCommand {
             Class.forName("io.papermc.paper.command.brigadier.CommandSourceStack");
             Class.forName("io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents");
             return true;
-        } catch (ClassNotFoundException e) {
+        } catch (ClassNotFoundException error) {
             return false;
         }
     }
