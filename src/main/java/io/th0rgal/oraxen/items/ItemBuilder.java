@@ -1311,12 +1311,6 @@ public class ItemBuilder {
         return item;
     }
 
-    @Override
-    public String toString() {
-        // todo
-        return super.toString();
-    }
-
     private boolean isLegacyFormatted(@Nullable String input) {
         if (input == null || input.isEmpty())
             return false;
