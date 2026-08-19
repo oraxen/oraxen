@@ -3,7 +3,6 @@ package io.th0rgal.oraxen.items;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.provided.ecoitems.WrappedEcoItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
-import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.nms.NMSHandler;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
@@ -106,15 +105,8 @@ public final class ItemComponents {
             item.setEnchantmentGlintOverride(OraxenYaml.getBoolean(components, "enchantment_glint_override"));
 
         final NMSHandler nmsHandler = NMSHandlers.getHandler();
-        if (nmsHandler == null) {
-            Logs.logWarning("NMSHandler is null - some components won't work properly");
-            if (Settings.DEBUG.toBool()) {
-                Logs.logError("Item parsing: " + (section != null ? section.getName() : "unknown section"));
-            }
-        } else {
-            Optional.ofNullable(OraxenYaml.getConfigurationSection(components, "food"))
-                    .ifPresent(food -> nmsHandler.foodComponent(item, food));
-        }
+        Optional.ofNullable(OraxenYaml.getConfigurationSection(components, "food"))
+                .ifPresent(food -> nmsHandler.foodComponent(item, food));
 
         Optional.ofNullable(OraxenYaml.getConfigurationSection(components, "tool"))
                 .ifPresent(toolSection -> parseToolComponent(item, toolSection));
@@ -186,10 +178,8 @@ public final class ItemComponents {
         Optional.ofNullable(OraxenYaml.getString(components, "item_model")).map(NamespacedKey::fromString)
                 .ifPresent(item::setItemModel);
 
-        if (nmsHandler != null) {
-            Optional.ofNullable(OraxenYaml.getConfigurationSection(components, "consumable"))
-                    .ifPresent(consumableSection -> nmsHandler.consumableComponent(item, consumableSection));
-        }
+        Optional.ofNullable(OraxenYaml.getConfigurationSection(components, "consumable"))
+                .ifPresent(consumableSection -> nmsHandler.consumableComponent(item, consumableSection));
     }
 
     private boolean isLegacyComponent(final String key) {

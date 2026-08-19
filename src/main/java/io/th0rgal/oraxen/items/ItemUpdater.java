@@ -6,6 +6,7 @@ import com.jeff_media.persistentdataserializer.PersistentDataSerializer;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.configs.Settings;
+import io.th0rgal.oraxen.nms.NMSHandler;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.ItemUtils;
@@ -521,8 +522,9 @@ public class ItemUpdater implements Listener {
         Optional<ItemBuilder> optionalBuilder = OraxenItems.getOptionalItemById(id);
         if (optionalBuilder.isEmpty() || optionalBuilder.get().getOraxenMeta().isNoUpdate()) return oldItem;
         ItemBuilder newItemBuilder = optionalBuilder.get();
+        NMSHandler nmsHandler = NMSHandlers.getHandler();
 
-        ItemStack newItem = NMSHandlers.getHandler() != null ? NMSHandlers.getHandler().copyItemNBTTags(oldItem, newItemBuilder.build()) : newItemBuilder.build();
+        ItemStack newItem = nmsHandler.copyItemNBTTags(oldItem, newItemBuilder.build());
         newItem.setAmount(oldItem.getAmount());
 
         ItemUtils.editItemMeta(newItem, itemMeta -> {
@@ -673,9 +675,8 @@ public class ItemUpdater implements Listener {
             else itemPdc.set(UNSTACKABLE_KEY, DataType.UUID, UUID.randomUUID());
         });
 
-        Optional.ofNullable(NMSHandlers.getHandler()).ifPresent(nmsHandler ->
-            nmsHandler.consumableComponent(newItem, Optional.ofNullable(nmsHandler.consumableComponent(newItem)).orElse(nmsHandler.consumableComponent(oldItem)))
-        );
+        nmsHandler.consumableComponent(newItem, Optional.ofNullable(nmsHandler.consumableComponent(newItem))
+                .orElse(nmsHandler.consumableComponent(oldItem)));
 
         return newItem;
     }

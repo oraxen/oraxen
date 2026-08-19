@@ -14,7 +14,6 @@ import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
 import io.th0rgal.oraxen.configs.Message;
 import io.th0rgal.oraxen.configs.Settings;
-import io.th0rgal.oraxen.nms.NMSHandler;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -1121,24 +1120,12 @@ public class ItemBuilder {
     }
 
     private ItemStack applyConsumableComponent(ItemStack itemStack) {
-        NMSHandler handler = NMSHandlers.getHandler();
-        if (handler != null) {
-            return handler.consumableComponent(itemStack, consumableComponent);
-        }
-        if (Settings.DEBUG.toBool()) {
-            OraxenPlugin.get().getLogger()
-                    .warning("NMSHandler is null - consumableComponent features will not work");
-        }
-        return itemStack;
+        return NMSHandlers.getHandler().consumableComponent(itemStack, consumableComponent);
     }
 
     private ItemStack applyGenericComponents(ItemStack itemStack) {
         if (genericComponents.isEmpty()) return itemStack;
-        NMSHandler handler = NMSHandlers.getHandler();
-        if (handler != null) {
-            return handler.applyGenericComponents(itemStack, genericComponents);
-        }
-        return itemStack;
+        return NMSHandlers.getHandler().applyGenericComponents(itemStack, genericComponents);
     }
 
     private ItemStack applyPaintingVariantComponent(ItemStack itemStack) {

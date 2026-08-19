@@ -8,7 +8,6 @@ import io.th0rgal.oraxen.items.ItemLoader;
 import io.th0rgal.oraxen.items.ModelData;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
-import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.pack.generation.DuplicationHandler;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
@@ -66,13 +65,6 @@ public class OraxenItems {
                 } catch (NoSuchMethodError | NoClassDefFoundError e) {
                     Logs.logWarning("  JukeboxPlayableComponent is not available (Missing method or class).");
                     Logs.logWarning("  Some features will be disabled; " + e.getMessage());
-                }
-
-                // Check if NMS handler is available
-                if (NMSHandlers.getHandler() == null) {
-                    Logs.logWarning("  NMS handler is not available; Some features won't work.");
-                } else {
-                    Logs.logInfo("  NMS handler is available (" + NMSHandlers.getVersion() + ").");
                 }
             }
 
