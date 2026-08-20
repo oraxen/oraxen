@@ -249,14 +249,15 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     private Map<Object, IntList> createTagRegistryMap() {
         return BuiltInRegistries.BLOCK.getTags().map(named -> {
             IntArrayList list = new IntArrayList(named.size());
-            if (named.key().location().equals(BlockTags.MINEABLE_WITH_AXE.location())) {
+            Object location = ResourceLocationHelper.location(named.key());
+            if (location.equals(ResourceLocationHelper.location(BlockTags.MINEABLE_WITH_AXE))) {
                 named.stream()
                         .filter(block -> !block.value().getDescriptionId().endsWith("note_block"))
                         .forEach(block -> list.add(BuiltInRegistries.BLOCK.getId(block.value())));
             } else {
                 named.forEach(block -> list.add(BuiltInRegistries.BLOCK.getId(block.value())));
             }
-            return Map.of((Object) named.key().location(), (IntList) list);
+            return Map.of(location, (IntList) list);
         }).collect(HashMap::new, Map::putAll, Map::putAll);
     }
 
