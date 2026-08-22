@@ -9,7 +9,6 @@ import org.bukkit.potion.PotionEffectType;
 public class EfficiencyMechanic extends Mechanic {
 
     private static final double HASTE_SPEED_PER_LEVEL = 0.2D;
-    private static final double MINING_FATIGUE_SPEED_PER_LEVEL = 0.3D;
 
     private final int amount;
     private final boolean slowdown;
@@ -39,11 +38,15 @@ public class EfficiencyMechanic extends Mechanic {
     /**
      * Mining speed multiplier this mechanic grants, where {@code 1.0} is vanilla speed. It mirrors
      * the vanilla effects the mechanic is configured after: haste speeds mining up by 20% per
-     * level, mining fatigue slows it down to 30% of the previous speed per level.
+     * level, mining fatigue uses vanilla's discrete per-level multipliers.
      */
     public double getMiningSpeedMultiplier() {
-        return slowdown
-                ? Math.pow(MINING_FATIGUE_SPEED_PER_LEVEL, amount)
-                : 1.0D + HASTE_SPEED_PER_LEVEL * amount;
+        if (!slowdown) return 1.0D + HASTE_SPEED_PER_LEVEL * amount;
+        return switch (amount) {
+            case 1 -> 0.3D;
+            case 2 -> 0.09D;
+            case 3 -> 0.0027D;
+            default -> 0.00081D;
+        };
     }
 }

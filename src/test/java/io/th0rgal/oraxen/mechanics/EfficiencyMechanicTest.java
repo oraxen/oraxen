@@ -40,11 +40,18 @@ class EfficiencyMechanicTest extends MechanicTestSupport {
         try (MockedStatic<PotionUtils> potionUtils = mockStatic(PotionUtils.class)) {
             potionUtils.when(() -> PotionUtils.getEffectType("mining_fatigue")).thenReturn(null);
 
-            EfficiencyMechanic mechanic = new EfficiencyMechanic(mechanicFactory(), mechanicSection("efficiency", "amount", -2));
+            EfficiencyMechanic levelTwo = new EfficiencyMechanic(
+                    mechanicFactory(), mechanicSection("efficiency", "amount", -2));
+            EfficiencyMechanic levelThree = new EfficiencyMechanic(
+                    mechanicFactory(), mechanicSection("efficiency", "amount", -3));
+            EfficiencyMechanic levelFour = new EfficiencyMechanic(
+                    mechanicFactory(), mechanicSection("efficiency", "amount", -4));
 
-            assertEquals(2, mechanic.getAmount());
-            assertEquals(0.09D, mechanic.getMiningSpeedMultiplier(), 1.0E-9D);
-            potionUtils.verify(() -> PotionUtils.getEffectType("mining_fatigue"));
+            assertEquals(2, levelTwo.getAmount());
+            assertEquals(0.09D, levelTwo.getMiningSpeedMultiplier(), 1.0E-9D);
+            assertEquals(0.0027D, levelThree.getMiningSpeedMultiplier(), 1.0E-9D);
+            assertEquals(0.00081D, levelFour.getMiningSpeedMultiplier(), 1.0E-9D);
+            potionUtils.verify(() -> PotionUtils.getEffectType("mining_fatigue"), org.mockito.Mockito.times(3));
         }
     }
 }
