@@ -30,6 +30,7 @@ import io.th0rgal.oraxen.commands.arguments.GreedyStringArgument;
 import io.th0rgal.oraxen.commands.arguments.IntegerArgument;
 import io.th0rgal.oraxen.commands.arguments.LocationArgument;
 import io.th0rgal.oraxen.commands.arguments.OraxenArgument;
+import io.th0rgal.oraxen.commands.arguments.StringArgument;
 import io.th0rgal.oraxen.configs.Message;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import org.bukkit.command.CommandSender;
@@ -225,7 +226,9 @@ final class BrigadierCommandRegistrar {
         }
         if (argument instanceof IntegerArgument) return context.getArgument(name, Integer.class);
         if (argument instanceof BooleanArgument) return context.getArgument(name, Boolean.class);
-        return context.getArgument(name, String.class);
+        if (argument instanceof StringArgument || argument instanceof GreedyStringArgument)
+            return context.getArgument(name, String.class);
+        throw unsupportedArgument(argument);
     }
 
     private static ArgumentType<?> argumentType(OraxenArgument<?> argument) {
@@ -236,7 +239,13 @@ final class BrigadierCommandRegistrar {
         if (argument instanceof IntegerArgument) return IntegerArgumentType.integer();
         if (argument instanceof BooleanArgument) return BoolArgumentType.bool();
         if (argument instanceof GreedyStringArgument) return StringArgumentType.greedyString();
-        return TOKEN;
+        if (argument instanceof StringArgument) return TOKEN;
+        throw unsupportedArgument(argument);
+    }
+
+    private static IllegalArgumentException unsupportedArgument(OraxenArgument<?> argument) {
+        return new IllegalArgumentException("Unsupported Brigadier argument type "
+                + argument.getClass().getName() + " for argument '" + argument.getName() + "'");
     }
 
     private static SuggestionProvider<CommandSourceStack> suggestions(OraxenCommand command, OraxenArgument<?> argument,
