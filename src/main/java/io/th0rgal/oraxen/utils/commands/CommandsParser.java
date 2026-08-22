@@ -34,33 +34,41 @@ public class CommandsParser {
     }
 
     public void perform(Player player) {
-        if (empty)
+        if (empty) return;
+        Runnable start = () -> runConsoleCommands(player, player.getName(), 0);
+        if (Bukkit.isOwnedByCurrentRegion(player)) start.run();
+        else SchedulerUtil.runForEntity(player, start);
+    }
+
+    private void runConsoleCommands(Player player, String playerName, int index) {
+        if (consoleCommands == null || index >= consoleCommands.size()) {
+            runPlayerCommands(player, playerName);
             return;
-        String playerName = player.getName();
+        }
 
-        if (consoleCommands != null)
-            for (String command : consoleCommands) {
-                // Folia requires console commands to be dispatched from the global
-                // region thread; dispatching them from a region thread throws.
-                String parsed = command.replace("%p%", playerName);
-                SchedulerUtil.runTask(() -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parsed));
-            }
+        String parsed = consoleCommands.get(index).replace("%p%", playerName);
+        SchedulerUtil.runTask(() -> {
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parsed);
+            SchedulerUtil.runForEntity(player, () -> runConsoleCommands(player, playerName, index + 1));
+        });
+    }
 
+    private void runPlayerCommands(Player player, String playerName) {
         if (playerCommands != null)
             for (String command : playerCommands)
                 Bukkit.dispatchCommand(player, command.replace("%p%", playerName));
 
-        if (oppedPlayerCommands != null)
-            for (String command : oppedPlayerCommands) {
-                boolean wasOp = player.isOp();
-                player.setOp(true);
-                try {
-                    Bukkit.dispatchCommand(player, command.replace("%p%", playerName));
-                } finally {
-                    // Never leave the player permanently opped if the command throws.
-                    player.setOp(wasOp);
-                }
+        if (oppedPlayerCommands == null) return;
+        for (String command : oppedPlayerCommands) {
+            boolean wasOp = player.isOp();
+            player.setOp(true);
+            try {
+                Bukkit.dispatchCommand(player, command.replace("%p%", playerName));
+            } finally {
+                // Never leave the player permanently opped if the command throws.
+                player.setOp(wasOp);
             }
+        }
     }
 
 }
