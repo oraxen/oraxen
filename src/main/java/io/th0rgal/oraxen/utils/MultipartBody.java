@@ -60,28 +60,34 @@ public final class MultipartBody implements AutoCloseable {
                 + "Content-Disposition: form-data; name=\"" + name + "\"; filename=\"" + fileName + "\"" + CRLF
                 + "Content-Type: " + contentType + CRLF + CRLF).getBytes(StandardCharsets.UTF_8);
         byte[] trailer = CRLF.getBytes(StandardCharsets.UTF_8);
-        Path snapshot;
+        Path snapshot = null;
+        long snapshotSize;
         try {
             snapshot = Files.createTempFile("oraxen-upload-", ".snapshot");
             Files.copy(file.toPath(), snapshot, StandardCopyOption.REPLACE_EXISTING);
+            snapshotSize = Files.size(snapshot);
         } catch (java.io.IOException exception) {
+            if (snapshot != null) {
+                try {
+                    Files.deleteIfExists(snapshot);
+                } catch (java.io.IOException ignored) {
+                    snapshot.toFile().deleteOnExit();
+                }
+            }
             throw new UncheckedIOException(exception);
         }
-        snapshots.add(snapshot);
+        Path fileSnapshot = snapshot;
+        snapshots.add(fileSnapshot);
         parts.add(() -> new ByteArrayInputStream(header));
         parts.add(() -> {
             try {
-                return new FileInputStream(snapshot.toFile());
+                return new FileInputStream(fileSnapshot.toFile());
             } catch (FileNotFoundException e) {
                 throw new UncheckedIOException(e);
             }
         });
         parts.add(() -> new ByteArrayInputStream(trailer));
-        try {
-            contentLength += header.length + Files.size(snapshot) + trailer.length;
-        } catch (java.io.IOException exception) {
-            throw new UncheckedIOException(exception);
-        }
+        contentLength += header.length + snapshotSize + trailer.length;
         return this;
     }
 
