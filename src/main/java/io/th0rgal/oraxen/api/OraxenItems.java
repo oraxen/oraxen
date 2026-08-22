@@ -137,11 +137,12 @@ public class OraxenItems {
     }
 
     public static boolean exists(final String itemId) {
-        return registry.items().contains(itemId);
+        return itemId != null && registry.items().contains(itemId);
     }
 
     public static boolean exists(final ItemStack itemStack) {
-        return registry.items().contains(OraxenItems.getIdByItem(itemStack));
+        String itemId = OraxenItems.getIdByItem(itemStack);
+        return itemId != null && registry.items().contains(itemId);
     }
 
     public static Optional<ItemBuilder> getOptionalItemById(final String id) {
