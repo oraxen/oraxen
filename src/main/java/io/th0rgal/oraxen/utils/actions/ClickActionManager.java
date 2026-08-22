@@ -15,6 +15,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
@@ -54,14 +55,14 @@ public class ClickActionManager extends SpigotActionManager {
     public <T> void run(T target, List<Action<T>> actions, boolean async, Map<String, Object> data) {
         if (target instanceof Player player && !async) {
             List<Action<Player>> playerActions = (List<Action<Player>>) (List<?>) actions;
-            runOrdered(player, playerActions, new Context<>(playerActions, data), 0);
+            runOrdered(player, playerActions, new Context<>(playerActions, new HashMap<>(data)), 0);
             return;
         }
         super.run(target, actions, async, data);
     }
 
     public void runOrdered(Player player, List<Action<Player>> actions) {
-        runOrdered(player, actions, new Context<>(actions, Map.of()), 0);
+        runOrdered(player, actions, new Context<>(actions, new HashMap<>()), 0);
     }
 
     private void runOrdered(Player player, List<Action<Player>> actions, Context<Player> context, int index) {
