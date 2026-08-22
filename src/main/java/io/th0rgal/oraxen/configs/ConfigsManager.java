@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.glyphs.GlyphGrid;
 import io.th0rgal.oraxen.glyphs.ReferenceGlyph;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemLoader;
+import io.th0rgal.oraxen.items.ItemMigrator;
 import io.th0rgal.oraxen.items.ItemTemplate;
 import io.th0rgal.oraxen.items.ItemValidator;
 import io.th0rgal.oraxen.items.ModelData;
@@ -844,11 +845,20 @@ public class ConfigsManager {
             if (file == null || !file.exists())
                 continue;
             YamlConfiguration configuration = OraxenYaml.loadConfiguration(file);
+            boolean configUpdated = false;
+            boolean blockConfigMigrated = false;
             for (String key : configuration.getKeys(false)) {
                 ConfigurationSection itemSection = configuration.getConfigurationSection(key);
-                if (itemSection != null && itemSection.isBoolean("template"))
-                    ItemTemplate.register(itemSection);
+                if (itemSection == null || !itemSection.isBoolean("template")) continue;
+
+                ItemMigrator migrator = new ItemMigrator(itemSection);
+                ConfigurationSection mechanicsSection = OraxenYaml.getConfigurationSection(itemSection, "Mechanics");
+                if (mechanicsSection != null) migrator.migrateLegacyBlockMechanics(mechanicsSection);
+                configUpdated |= migrator.configUpdated();
+                blockConfigMigrated |= migrator.blockConfigMigrated();
+                ItemTemplate.register(itemSection);
             }
+            if (configUpdated) saveUpdatedItemConfig(file, configuration, blockConfigMigrated);
         }
     }
 
