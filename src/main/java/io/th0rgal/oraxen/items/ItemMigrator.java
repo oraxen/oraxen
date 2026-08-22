@@ -51,7 +51,7 @@ public final class ItemMigrator {
             if (!blockSection.contains("type"))
                 blockSection.set("type", legacyMechanic.getValue());
 
-            mechanicsSection.set(legacyMechanicID, null);
+            mechanicsSection.set(legacySection.getName(), null);
             OraxenYaml.invalidateKeyCache(mechanicsSection);
             OraxenYaml.invalidateKeyCache(blockSection);
             configUpdated = true;
