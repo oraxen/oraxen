@@ -22,7 +22,6 @@ import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.pack.dispatch.PackLoadingManager;
-import io.th0rgal.oraxen.pack.generation.LegacyDatapackCleaner;
 import io.th0rgal.oraxen.pack.generation.PackVersionManager;
 import io.th0rgal.oraxen.paintings.CustomPainting;
 import io.th0rgal.oraxen.paintings.CustomPaintingListener;
@@ -136,8 +135,6 @@ public class OraxenPlugin extends JavaPlugin {
             Bukkit.getPluginManager().registerEvents(new CustomBlockMiningListener(), this);
         }
         NMSHandlers.setup();
-        LegacyDatapackCleaner.clear("oraxen_paintings");
-        LegacyDatapackCleaner.clear("oraxen_jukebox");
 
         // Auto-update Paper config for block updates (noteblock, tripwire, chorus)
         var updatedSettings = PaperConfigUpdater.ensureAllBlockUpdatesDisabled();
@@ -151,7 +148,7 @@ public class OraxenPlugin extends JavaPlugin {
         fontManager = new FontManager(configsManager);
         initializeSoundManager();
         // On 1.21.6+ jukebox songs are registered during bootstrap via RegistryEvents.JUKEBOX_SONG.
-        // 1.21.5 lacks that event, so inject the songs into the live registry once at startup.
+        // Earlier supported versions inject the songs into the live NMS registry at startup.
         if (!VersionUtil.atOrAbove("1.21.6"))
             CustomJukeboxSongRegistry.reload(soundManager.getJukeboxSounds());
         OraxenItems.loadItems();

@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.paintings;
 
-import io.th0rgal.oraxen.pack.generation.LegacyDatapackCleaner;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.VersionUtil;
@@ -55,10 +54,9 @@ public final class CustomPaintingRegistry {
     }
 
     private static void reloadNow(Collection<CustomPainting> paintings) {
-        clearLegacyDatapack();
         if (!supportsCustomPaintings()) {
             if (!paintings.isEmpty()) {
-                Logs.logWarning("Custom paintings require Paper 1.21.3 or newer. Skipping " + paintings.size() + " custom painting(s).");
+                Logs.logWarning("Custom paintings require Paper 1.21.2 or newer. Skipping " + paintings.size() + " custom painting(s).");
             }
             return;
         }
@@ -130,11 +128,7 @@ public final class CustomPaintingRegistry {
     }
 
     public static boolean supportsCustomPaintings() {
-        return VersionUtil.atOrAbove("1.21.3");
-    }
-
-    private static void clearLegacyDatapack() {
-        LegacyDatapackCleaner.clear("oraxen_paintings");
+        return VersionUtil.atOrAbove("1.21.2");
     }
 
     private static int updatePlaceableRegistryTag(Collection<String> managedVariantIds, Collection<String> randomVariantIds) {
