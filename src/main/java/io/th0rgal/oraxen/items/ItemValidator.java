@@ -39,6 +39,7 @@ public final class ItemValidator {
             Logs.logError("Error building item \"" + itemId + "\"");
             Logs.logError(e.getMessage());
             Logs.debug(e);
+            throw new IllegalStateException("Failed to build item \"" + itemId + "\"", e);
         }
         return new Result(item, migrator.configUpdated(), migrator.blockConfigMigrated());
     }
