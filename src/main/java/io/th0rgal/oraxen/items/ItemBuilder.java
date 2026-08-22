@@ -48,6 +48,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Function;
 
 @SuppressWarnings("ALL")
 public class ItemBuilder {
@@ -544,10 +545,14 @@ public class ItemBuilder {
     }
 
     public void resolveUseRemainder() {
+        resolveUseRemainder(OraxenItems::getItemById);
+    }
+
+    public void resolveUseRemainder(Function<String, ItemBuilder> itemResolver) {
         if (deferredUseRemainderId == null || resolvingUseRemainder)
             return;
 
-        ItemBuilder remainderBuilder = OraxenItems.getItemById(deferredUseRemainderId);
+        ItemBuilder remainderBuilder = itemResolver.apply(deferredUseRemainderId);
         if (remainderBuilder == null) {
             Logs.logWarning("use_remainder references unknown oraxen_item: '" + deferredUseRemainderId + "'. Component will be skipped.");
             deferredUseRemainderId = null;
@@ -559,7 +564,7 @@ public class ItemBuilder {
             // Resolve the referenced item's own remainder chain first so the stack
             // built below already carries its use_remainder component. The guard
             // above breaks cycles (a -> b -> a) instead of recursing forever.
-            remainderBuilder.resolveUseRemainder();
+            remainderBuilder.resolveUseRemainder(itemResolver);
             ItemStack remainder = ItemUpdater.updateItem(remainderBuilder.build());
             remainder.setAmount(deferredUseRemainderAmount);
             setUseRemainder(remainder);

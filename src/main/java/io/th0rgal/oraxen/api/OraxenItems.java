@@ -32,11 +32,9 @@ import java.util.stream.Stream;
 public class OraxenItems {
 
     public static final NamespacedKey ITEM_ID = new NamespacedKey(OraxenPlugin.get(), "id");
-    // loadItems() builds fresh collections and swaps the references; volatile
-    // gives region-thread readers a happens-before edge on reload (Folia).
-    private static volatile Map<File, Map<String, ItemBuilder>> map = new LinkedHashMap<>();
-    private static volatile Map<String, ItemBuilder> itemById = new HashMap<>();
-    private static volatile Set<String> items = new HashSet<>();
+    // Publish every registry view together so Folia region threads cannot observe a
+    // mixture of generations while items reload.
+    private static volatile RegistrySnapshot registry = RegistrySnapshot.empty();
 
     public static void loadItems() {
         try {
@@ -68,20 +66,20 @@ public class OraxenItems {
                 }
             }
 
-            map = OraxenPlugin.get().getConfigsManager().parseItemConfig();
+            Map<File, Map<String, ItemBuilder>> loadedMap = OraxenPlugin.get().getConfigsManager().parseItemConfig();
             Map<String, ItemBuilder> loadedItemsById = new HashMap<>();
             Set<String> loadedItems = new HashSet<>();
-            for (final Map<String, ItemBuilder> subMap : map.values()) {
+            for (final Map<String, ItemBuilder> subMap : loadedMap.values()) {
                 for (Entry<String, ItemBuilder> entry : subMap.entrySet()) {
                     if (!loadedItemsById.containsKey(entry.getKey()))
                         loadedItemsById.put(entry.getKey(), entry.getValue());
                 }
                 loadedItems.addAll(subMap.keySet());
             }
-            itemById = loadedItemsById;
-            items = loadedItems;
-
-            ensureComponentDataHandled();
+            ensureComponentDataHandled(loadedMap, loadedItemsById);
+            registry = new RegistrySnapshot(immutableItemMap(loadedMap),
+                    Collections.unmodifiableMap(new HashMap<>(loadedItemsById)),
+                    Collections.unmodifiableSet(new HashSet<>(loadedItems)));
         } catch (Exception e) {
             Logs.logError("Failed to load Oraxen items.");
             Logs.logError("Error; " + e.getMessage());
@@ -94,15 +92,16 @@ public class OraxenItems {
     /**
      * Resolves item references that cannot be handled until all items have loaded.
      */
-    private static void ensureComponentDataHandled() {
+    private static void ensureComponentDataHandled(Map<File, Map<String, ItemBuilder>> loadedMap,
+                                                   Map<String, ItemBuilder> loadedItemsById) {
         if (!VersionUtil.atOrAbove("1.21"))
             return;
 
-        for (Map<String, ItemBuilder> subMap : map.values()) {
+        for (Map<String, ItemBuilder> subMap : loadedMap.values()) {
             for (Map.Entry<String, ItemBuilder> entry : subMap.entrySet()) {
                 if (entry.getValue() == null) continue;
                 try {
-                    entry.getValue().resolveUseRemainder();
+                    entry.getValue().resolveUseRemainder(loadedItemsById::get);
                 } catch (Exception e) {
                     // Isolate failures per item: one broken referenced item must not abort
                     // use_remainder resolution for every remaining item.
@@ -111,6 +110,14 @@ public class OraxenItems {
                 }
             }
         }
+    }
+
+    private static Map<File, Map<String, ItemBuilder>> immutableItemMap(
+            Map<File, Map<String, ItemBuilder>> loadedMap) {
+        Map<File, Map<String, ItemBuilder>> immutableMap = new LinkedHashMap<>();
+        loadedMap.forEach((file, fileItems) -> immutableMap.put(file,
+                Collections.unmodifiableMap(new LinkedHashMap<>(fileItems))));
+        return Collections.unmodifiableMap(immutableMap);
     }
 
     public static String getIdByItem(final ItemBuilder item) {
@@ -130,15 +137,15 @@ public class OraxenItems {
     }
 
     public static boolean exists(final String itemId) {
-        return items.contains(itemId);
+        return registry.items().contains(itemId);
     }
 
     public static boolean exists(final ItemStack itemStack) {
-        return items.contains(OraxenItems.getIdByItem(itemStack));
+        return registry.items().contains(OraxenItems.getIdByItem(itemStack));
     }
 
     public static Optional<ItemBuilder> getOptionalItemById(final String id) {
-        return id == null ? Optional.empty() : Optional.ofNullable(itemById.get(id));
+        return id == null ? Optional.empty() : Optional.ofNullable(registry.itemById().get(id));
     }
 
     public static ItemBuilder getItemById(final String id) {
@@ -155,7 +162,7 @@ public class OraxenItems {
     }
 
     public static List<ItemBuilder> getUnexcludedItems(final File file) {
-        Map<String, ItemBuilder> fileItems = map.get(file);
+        Map<String, ItemBuilder> fileItems = registry.map().get(file);
         if (fileItems == null) return List.of();
         return fileItems.values().stream().filter(OraxenItems::shouldShowInInventory).toList();
     }
@@ -188,7 +195,7 @@ public class OraxenItems {
     }
 
     public static Map<File, Map<String, ItemBuilder>> getMap() {
-        return map;
+        return registry.map();
     }
 
     public static Map<String, ItemBuilder> getEntriesAsMap() {
@@ -225,14 +232,23 @@ public class OraxenItems {
     }
 
     public static Stream<Entry<String, ItemBuilder>> entryStream() {
-        return map.values().stream().flatMap(map -> map.entrySet().stream());
+        return registry.map().values().stream().flatMap(map -> map.entrySet().stream());
     }
 
     public static String[] getItemNames() {
-        return items.stream().filter(item -> {
-            ItemBuilder builder = OraxenItems.getItemById(item);
+        RegistrySnapshot snapshot = registry;
+        return snapshot.items().stream().filter(item -> {
+            ItemBuilder builder = snapshot.itemById().get(item);
             return builder != null && builder.hasOraxenMeta() && !builder.getOraxenMeta().isExcludedFromCommands();
         }).toArray(String[]::new);
+    }
+
+    private record RegistrySnapshot(Map<File, Map<String, ItemBuilder>> map,
+                                    Map<String, ItemBuilder> itemById,
+                                    Set<String> items) {
+        private static RegistrySnapshot empty() {
+            return new RegistrySnapshot(Map.of(), Map.of(), Set.of());
+        }
     }
 
 }
