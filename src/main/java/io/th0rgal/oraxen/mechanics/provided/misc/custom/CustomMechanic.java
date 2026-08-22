@@ -24,22 +24,19 @@ public class CustomMechanic extends Mechanic {
             if (subsection == null) continue;
             String key = subsection.getCurrentPath();
 
-            CustomListener loadedListener = LOADED_VARIANTS.get(key);
-            if (loadedListener != null) {
-                loadedListener.unregister();
-            }
+            LOADED_VARIANTS.compute(key, (variantKey, loadedListener) -> {
+                if (loadedListener != null) loadedListener.unregister();
 
-            ClickAction clickAction = ClickAction.from(subsection);
+                ClickAction clickAction = ClickAction.from(subsection);
+                if (clickAction == null) return null;
 
-            if (clickAction == null) continue;
-
-            CustomListener listener = new CustomEvent(
-                    subsection.getString("event", ""),
-                    subsection.getBoolean("one_usage", false)
-            ).getListener(getItemID(), subsection.getLong("cooldown"), clickAction);
-
-            listener.register();
-            LOADED_VARIANTS.put(key, listener);
+                CustomListener listener = new CustomEvent(
+                        subsection.getString("event", ""),
+                        subsection.getBoolean("one_usage", false)
+                ).getListener(getItemID(), subsection.getLong("cooldown"), clickAction);
+                listener.register();
+                return listener;
+            });
         }
     }
 
