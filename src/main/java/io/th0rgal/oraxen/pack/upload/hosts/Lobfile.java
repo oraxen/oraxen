@@ -74,9 +74,9 @@ public class Lobfile implements HostingProvider {
             sha1 = packHashes.sha1();
             packUUID = UUID.nameUUIDFromBytes(HashUtils.hexToBytes(sha1));
 
-            MultipartBody body = MultipartBody.create()
+            try (MultipartBody body = MultipartBody.create()
                     .addPart("file", resourcePack, buildUploadFileName(uploadPackName), "application/octet-stream")
-                    .addPart("sha_256", packHashes.sha256());
+                    .addPart("sha_256", packHashes.sha256())) {
             HttpRequest request = HttpRequest.newBuilder(URI.create(UPLOAD_URL))
                     .timeout(UPLOAD_TIMEOUT)
                     .header("X-API-Key", apiKey)
@@ -103,6 +103,7 @@ public class Lobfile implements HostingProvider {
 
             logUploadError(jsonOutput);
             return false;
+            }
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
             Logs.logError("The resource pack has not been uploaded to Lobfile.");

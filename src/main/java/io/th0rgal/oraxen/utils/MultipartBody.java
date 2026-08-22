@@ -9,6 +9,9 @@ import java.io.SequenceInputStream;
 import java.io.UncheckedIOException;
 import java.net.http.HttpRequest;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -19,12 +22,13 @@ import java.util.function.Supplier;
  * Minimal {@code multipart/form-data} body builder for {@link java.net.http.HttpClient}.
  * File parts are streamed at send time instead of being buffered in memory.
  */
-public final class MultipartBody {
+public final class MultipartBody implements AutoCloseable {
 
     private static final String CRLF = "\r\n";
 
     private final String boundary = "OraxenBoundary" + UUID.randomUUID().toString().replace("-", "");
     private final List<Supplier<InputStream>> parts = new ArrayList<>();
+    private final List<Path> snapshots = new ArrayList<>();
     private long contentLength = 0;
 
     private MultipartBody() {
@@ -56,17 +60,41 @@ public final class MultipartBody {
                 + "Content-Disposition: form-data; name=\"" + name + "\"; filename=\"" + fileName + "\"" + CRLF
                 + "Content-Type: " + contentType + CRLF + CRLF).getBytes(StandardCharsets.UTF_8);
         byte[] trailer = CRLF.getBytes(StandardCharsets.UTF_8);
+        Path snapshot;
+        try {
+            snapshot = Files.createTempFile("oraxen-upload-", ".snapshot");
+            Files.copy(file.toPath(), snapshot, StandardCopyOption.REPLACE_EXISTING);
+        } catch (java.io.IOException exception) {
+            throw new UncheckedIOException(exception);
+        }
+        snapshots.add(snapshot);
         parts.add(() -> new ByteArrayInputStream(header));
         parts.add(() -> {
             try {
-                return new FileInputStream(file);
+                return new FileInputStream(snapshot.toFile());
             } catch (FileNotFoundException e) {
                 throw new UncheckedIOException(e);
             }
         });
         parts.add(() -> new ByteArrayInputStream(trailer));
-        contentLength += header.length + file.length() + trailer.length;
+        try {
+            contentLength += header.length + Files.size(snapshot) + trailer.length;
+        } catch (java.io.IOException exception) {
+            throw new UncheckedIOException(exception);
+        }
         return this;
+    }
+
+    @Override
+    public void close() {
+        for (Path snapshot : snapshots) {
+            try {
+                Files.deleteIfExists(snapshot);
+            } catch (java.io.IOException ignored) {
+                snapshot.toFile().deleteOnExit();
+            }
+        }
+        snapshots.clear();
     }
 
     public HttpRequest.BodyPublisher bodyPublisher() {

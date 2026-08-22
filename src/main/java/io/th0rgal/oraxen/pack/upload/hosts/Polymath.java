@@ -35,9 +35,9 @@ public class Polymath implements HostingProvider {
     @Override
     public boolean uploadPack(File resourcePack) {
         try (HttpClient httpClient = HttpClient.newBuilder().connectTimeout(CONNECT_TIMEOUT).build()) {
-            MultipartBody body = MultipartBody.create()
+            try (MultipartBody body = MultipartBody.create()
                     .addPart("id", Settings.POLYMATH_SECRET.toString())
-                    .addPart("pack", resourcePack);
+                    .addPart("pack", resourcePack)) {
             HttpRequest request = HttpRequest.newBuilder(URI.create(serverAddress + "upload"))
                     .timeout(UPLOAD_TIMEOUT)
                     .header("Content-Type", body.contentType())
@@ -65,6 +65,7 @@ public class Polymath implements HostingProvider {
             Logs.logError("Response: " + jsonOutput);
             Logs.logError("The resource pack has not been uploaded to the server. Usually this is due to an excessive size.");
             return false;
+            }
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
             Logs.logError("The resource pack has not been uploaded to the server. Usually this is due to an excessive size.");
