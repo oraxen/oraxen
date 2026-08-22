@@ -33,7 +33,11 @@ public class TimersFactory {
         this.delay = delay;
         // The long/TimeUnit overload is used instead of the Duration one so this stays compatible
         // with the older Guava versions shipped by the oldest supported server versions.
-        long expireAfterAccessMillis = Math.max(delay, 0L) + evictionGrace.toMillis();
+        long nonNegativeDelay = Math.max(delay, 0L);
+        long graceMillis = evictionGrace.toMillis();
+        long expireAfterAccessMillis = nonNegativeDelay > Long.MAX_VALUE - graceMillis
+                ? Long.MAX_VALUE
+                : nonNegativeDelay + graceMillis;
         Cache<UUID, Timer> cache = CacheBuilder.newBuilder()
                 .expireAfterAccess(expireAfterAccessMillis, TimeUnit.MILLISECONDS)
                 .build();
