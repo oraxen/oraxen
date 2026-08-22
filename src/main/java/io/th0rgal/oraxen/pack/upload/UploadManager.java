@@ -55,8 +55,7 @@ public class UploadManager {
         SchedulerUtil.runTaskAsync(() -> {
             if (cancelled) return;
 
-            new OraxenPackPreUploadEvent().callEvent();
-            if (cancelled) return;
+            if (!new OraxenPackPreUploadEvent().callEvent() || cancelled) return;
 
             if (!uploadPack(resourcePack, time)) return;
 
