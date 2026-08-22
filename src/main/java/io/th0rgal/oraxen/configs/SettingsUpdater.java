@@ -69,16 +69,13 @@ public class SettingsUpdater {
         ConfigurationSection legacyLayout = settings.getConfigurationSection("gui_inventory");
         if (legacyLayout == null) return false;
 
-        boolean updated = false;
         for (Map.Entry<String, Object> entry : legacyLayout.getValues(true).entrySet()) {
-            if (entry.getValue() instanceof ConfigurationSection || !entry.getKey().matches("(^|.*\\.)displayname$"))
-                continue;
-            String path = entry.getKey().replaceFirst("displayname$", "name");
-            legacyLayout.set(path, entry.getValue());
-            legacyLayout.set(entry.getKey(), null);
-            updated = true;
+            if (entry.getValue() instanceof ConfigurationSection) continue;
+            String path = entry.getKey().replaceAll("(^|\\.)displayname$", "$1name");
+            settings.set("inventory-menu.layout." + path, entry.getValue());
         }
-        return updated;
+        settings.set("gui_inventory", null);
+        return true;
     }
 
     private static void migrateInventoryMenuValue(YamlConfiguration settings, ConfigurationSection legacyMenu,

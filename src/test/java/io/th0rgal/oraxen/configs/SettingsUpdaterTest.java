@@ -38,16 +38,30 @@ class SettingsUpdaterTest {
     }
 
     @Test
-    void renamesDisplayNamesBeforeLegacyGuiInventoryIsRelocated() {
+    void relocatesLegacyGuiInventory() {
         YamlConfiguration settings = new YamlConfiguration();
         settings.set("gui_inventory.custom.displayname", "Custom name");
         settings.set("gui_inventory.custom.icon", "custom_icon");
 
         assertTrue(SettingsUpdater.migrateInventoryMenu(settings));
 
-        assertFalse(settings.contains("gui_inventory.custom.displayname"));
-        assertEquals("Custom name", settings.getString("gui_inventory.custom.name"));
-        assertEquals("custom_icon", settings.getString("gui_inventory.custom.icon"));
+        assertFalse(settings.contains("gui_inventory"));
+        assertEquals("Custom name", settings.getString("inventory-menu.layout.custom.name"));
+        assertEquals("custom_icon", settings.getString("inventory-menu.layout.custom.icon"));
+    }
+
+    @Test
+    void mergesBothLegacyInventoryLayouts() {
+        YamlConfiguration settings = new YamlConfiguration();
+        settings.set("gui_inventory.gui_category.icon", "gui_icon");
+        settings.set("oraxen_inventory.menu_layout.oraxen_category.icon", "oraxen_icon");
+
+        assertTrue(SettingsUpdater.migrateInventoryMenu(settings));
+
+        assertFalse(settings.contains("gui_inventory"));
+        assertFalse(settings.contains("oraxen_inventory"));
+        assertEquals("gui_icon", settings.getString("inventory-menu.layout.gui_category.icon"));
+        assertEquals("oraxen_icon", settings.getString("inventory-menu.layout.oraxen_category.icon"));
     }
 
     @Test
