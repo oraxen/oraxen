@@ -610,7 +610,7 @@ public class AnimatedGlyph {
     }
 
     public Component getGlyphComponent() {
-        return getAnimationComponent();
+        return processed ? getAnimationComponent() : Component.text(getGlyphTag());
     }
 
     /**

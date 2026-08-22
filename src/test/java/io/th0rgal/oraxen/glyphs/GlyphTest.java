@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.glyphs;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import net.kyori.adventure.text.Component;
 import org.bukkit.configuration.ConfigurationSection;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -47,10 +48,10 @@ class GlyphTest {
     }
 
     @Test
-    void animatedGlyphComponentIsAvailableBeforePackProcessing() {
+    void animatedGlyphComponentFallsBackUntilPackProcessing() {
         AnimatedGlyph glyph = createAnimatedGlyph("loading");
 
-        assertEquals(glyph.getAnimationComponent(), glyph.getGlyphComponent());
+        assertEquals(Component.text(glyph.getGlyphTag()), glyph.getGlyphComponent());
 
         glyph.setProcessed("minecraft:loading.png", 8, 8);
         assertEquals(glyph.getAnimationComponent(), glyph.getGlyphComponent());

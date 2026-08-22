@@ -344,13 +344,12 @@ public class Glyph {
         String texturePath = resolveTexturePath();
         File textureFile = resolveTextureFile(packFolder, texturePath);
 
-        boolean isMinecraftNamespace = !texture.contains(":") || texture.split(":")[0].equals("minecraft");
+        boolean hasExplicitMinecraftNamespace = texture.startsWith("minecraft:");
         String textureName = textureFile.getName().split("\\.")[0].toUpperCase();
-        // Exact match only: a substring check lets textures like
-        // "brewing_stand_recipe_builder" (contains BREWING_STAND) skip the
-        // missing-file validation and ship a broken provider in default.json,
-        // which makes the client's default font fail to load.
-        boolean isVanillaTexture = isMinecraftNamespace && MATERIAL_NAMES.contains(textureName);
+        // Explicit minecraft resource locations can reference vanilla assets whose names are
+        // not materials, while unnamespaced paths retain exact material-name validation so a
+        // custom texture such as brewing_stand_recipe_builder cannot hide a missing file.
+        boolean isVanillaTexture = hasExplicitMinecraftNamespace || MATERIAL_NAMES.contains(textureName);
         boolean hasUpperCase = texturePath.chars().anyMatch(Character::isUpperCase);
 
         BufferedImage image = loadImage(textureFile);
@@ -438,9 +437,8 @@ public class Glyph {
             return "The ascent is bigger than the height for " + name + ". This will break all your glyphs.";
         }
         if (!ctx.isVanillaTexture && (!ctx.textureFile.exists() || ctx.image == null)) {
-            // Only textures whose file name exactly matches a material are auto-detected
-            // as vanilla; anything else (e.g. bow_pulling_0) must ship in the pack folder
-            // so it can be verified, otherwise a typo would break the client's default font.
+            // Unnamespaced vanilla textures are auto-detected only when their file name exactly
+            // matches a material. Other vanilla asset paths should use the minecraft namespace.
             if (!texture.contains(":") || texture.split(":")[0].equals("minecraft"))
                 Logs.logWarning("If this references a vanilla texture, copy the texture file into the pack folder so Oraxen can verify it.");
             return "The texture specified for " + name + " does not exist. This will break all your glyphs.";
