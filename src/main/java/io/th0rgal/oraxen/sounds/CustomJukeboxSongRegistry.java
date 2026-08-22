@@ -65,15 +65,16 @@ public final class CustomJukeboxSongRegistry {
         Collection<CustomSound> jukeboxSounds = sounds.stream()
                 .filter(CustomSound::isJukeboxSound)
                 .toList();
-        clearLegacyDatapack();
         if (!supportsCustomJukeboxSongs()) {
+            new JukeboxDatapack(jukeboxSounds).generateAssets(List.of());
             if (!jukeboxSounds.isEmpty()) {
-                Logs.logWarning("Custom jukebox songs require Paper 1.21.5 or newer. Skipping "
-                        + jukeboxSounds.size() + " custom jukebox song(s).");
+                Logs.logInfo("Generated legacy jukebox datapack for " + jukeboxSounds.size()
+                        + " custom jukebox song(s).");
             }
             return;
         }
 
+        clearLegacyDatapack();
         Set<String> managedSongIds = new LinkedHashSet<>(jukeboxSounds.stream()
                 .map(CustomSound::getJukeboxSongId)
                 .toList());
