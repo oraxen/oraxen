@@ -151,17 +151,17 @@ public class CommandsManager {
 
     /**
      * Runs {@code action} on each target's entity scheduler (the thread owning the target on
-     * Folia) and, once every target has either run or retired, hands the players that were
-     * actually served to {@code whenDone}. Targets that retire (e.g. disconnect) before their
+     * Folia) and, once every target has either run or retired, hands the names of players that
+     * were actually served to {@code whenDone}. Targets that retire (e.g. disconnect) before their
      * task executes are not reported as served.
      */
     private static void forEachTargetThenReport(final Collection<Player> targets, final Consumer<Player> action,
-                                                final Consumer<List<Player>> whenDone) {
+                                                final Consumer<List<String>> whenDone) {
         if (targets.isEmpty()) {
             whenDone.accept(List.of());
             return;
         }
-        final List<Player> served = Collections.synchronizedList(new ArrayList<>());
+        final List<String> served = Collections.synchronizedList(new ArrayList<>());
         final AtomicInteger pending = new AtomicInteger(targets.size());
         for (final Player target : targets) {
             final Runnable complete = () -> {
@@ -170,7 +170,7 @@ public class CommandsManager {
             final SchedulerUtil.ScheduledTask task = SchedulerUtil.runForEntity(target, () -> {
                 try {
                     action.accept(target);
-                    served.add(target);
+                    served.add(target.getName());
                 } finally {
                     complete.run();
                 }
@@ -180,18 +180,23 @@ public class CommandsManager {
         }
     }
 
-    private void sendGiveReport(final CommandSender sender, final List<Player> served, final int amount,
+    private void sendGiveReport(final CommandSender sender, final List<String> served, final int amount,
                                 final String itemID) {
-        if (served.size() == 1)
-            Message.GIVE_PLAYER.send(sender,
-                    AdventureUtils.tagResolver("player", served.getFirst().getName()),
-                    AdventureUtils.tagResolver("amount", String.valueOf(amount)),
-                    AdventureUtils.tagResolver("item", itemID));
-        else
-            Message.GIVE_PLAYERS.send(sender,
-                    AdventureUtils.tagResolver("count", String.valueOf(served.size())),
-                    AdventureUtils.tagResolver("amount", String.valueOf(amount)),
-                    AdventureUtils.tagResolver("item", itemID));
+        Runnable report = () -> {
+            if (served.size() == 1)
+                Message.GIVE_PLAYER.send(sender,
+                        AdventureUtils.tagResolver("player", served.getFirst()),
+                        AdventureUtils.tagResolver("amount", String.valueOf(amount)),
+                        AdventureUtils.tagResolver("item", itemID));
+            else
+                Message.GIVE_PLAYERS.send(sender,
+                        AdventureUtils.tagResolver("count", String.valueOf(served.size())),
+                        AdventureUtils.tagResolver("amount", String.valueOf(amount)),
+                        AdventureUtils.tagResolver("item", itemID));
+        };
+        if (sender instanceof Player player) SchedulerUtil.runForEntity(player, report);
+        else if (SchedulerUtil.isGlobalThread()) report.run();
+        else SchedulerUtil.runTask(report);
     }
 
     @SuppressWarnings("unchecked")

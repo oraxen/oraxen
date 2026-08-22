@@ -105,9 +105,11 @@ public class MusicDiscHelpers {
         double radiusSquared = radius * radius;
         Location center = entity.getLocation();
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (!player.getWorld().equals(entity.getWorld())) continue;
-            if (player.getLocation().distanceSquared(center) > radiusSquared) continue;
-            SchedulerUtil.runForEntity(player, () -> action.accept(player));
+            SchedulerUtil.runForEntity(player, () -> {
+                if (!player.getWorld().equals(center.getWorld())) return;
+                if (player.getLocation().distanceSquared(center) > radiusSquared) return;
+                action.accept(player);
+            });
         }
     }
 
