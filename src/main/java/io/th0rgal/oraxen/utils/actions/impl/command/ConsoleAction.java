@@ -18,10 +18,17 @@ public class ConsoleAction extends Action<Player> {
 
     @Override
     public void run(@NotNull Player player, @NotNull Context<Player> context) {
-        // Folia requires console commands to be dispatched from the global region
-        // thread; parse placeholders on the calling thread, then hop.
-        String command = getMeta().getParsedData(player, context);
-        SchedulerUtil.runTask(() -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command));
+        String command = parseCommand(player, context);
+        if (SchedulerUtil.isGlobalThread()) dispatch(command);
+        else SchedulerUtil.runTask(() -> dispatch(command));
+    }
+
+    public String parseCommand(Player player, Context<Player> context) {
+        return getMeta().getParsedData(player, context);
+    }
+
+    public void dispatch(String command) {
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
     }
 
 }

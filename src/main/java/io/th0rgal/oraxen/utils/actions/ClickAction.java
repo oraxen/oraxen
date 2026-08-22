@@ -101,7 +101,7 @@ public class ClickAction {
     }
 
     public void performActions(final Player player) {
-        OraxenPlugin.get().getClickActionManager().run(player, actions, false);
+        OraxenPlugin.get().getClickActionManager().runOrdered(player, actions);
     }
 
 }
