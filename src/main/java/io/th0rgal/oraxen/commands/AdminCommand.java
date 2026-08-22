@@ -1,14 +1,18 @@
 package io.th0rgal.oraxen.commands;
 
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.commands.arguments.*;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
+import org.bukkit.Chunk;
 import org.bukkit.Location;
+import org.bukkit.World;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 public class AdminCommand {
@@ -16,6 +20,7 @@ public class AdminCommand {
     // Caps the edit cube so a single command cannot scan/mutate an unbounded
     // area; large areas would also stall whichever thread processes them.
     private static final int MAX_RADIUS = 16;
+    private static final int EDITS_PER_REGION_TICK = 256;
 
     OraxenCommand getAdminCommand() {
         return new OraxenCommand("admin")
@@ -40,15 +45,11 @@ public class AdminCommand {
                         String type = (String) args.get("type");
                         int radius = clampRadius(player, (int) args.getOptional("radius").orElse(1));
                         boolean isRandom = (boolean) args.getOptional("random").orElse(false);
-                        for (Location target : getTargetLocations(loc, radius, isRandom)) {
-                            if (type == null) continue;
-                            // The target may be anywhere in the world; blocks must be
-                            // touched on the region thread that owns them (Folia).
-                            SchedulerUtil.runAtLocation(target, () -> {
-                                if (type.equals("remove")) OraxenBlocks.remove(target, null);
-                                if (type.equals("place")) OraxenBlocks.place(id, target);
-                            });
-                        }
+                        if (type == null) return;
+                        performEdits(getTargetLocations(loc, radius, isRandom), target -> {
+                            if (type.equals("remove")) OraxenBlocks.remove(target, null);
+                            if (type.equals("place")) OraxenBlocks.place(id, target);
+                        });
                     }
                 });
     }
@@ -76,21 +77,50 @@ public class AdminCommand {
                         Location loc = (Location) args.getOptional("location").orElse(player.getLocation());
                         int radius = clampRadius(player, (int) args.getOptional("radius").orElse(0));
                         boolean isRandom = (boolean) args.getOptional("random").orElse(false);
-                        for (Location target : getTargetLocations(loc, radius, isRandom)) {
-                            // The target may be anywhere in the world; blocks and the
-                            // furniture entities around them must be accessed on the
-                            // region thread that owns them (Folia).
-                            SchedulerUtil.runAtLocation(target, () -> {
-                                if (type.equals("remove")) {
-                                    FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(target.getBlock());
-                                    if (mechanic != null && (id.isEmpty() || id.equals("all") || mechanic.getItemID().equals(id)))
-                                        OraxenFurniture.remove(target, null);
-                                }
-                                if (type.equals("place")) OraxenFurniture.place(id, target, 0f, null);
-                            });
-                        }
+                        performEdits(getTargetLocations(loc, radius, isRandom), target -> {
+                            if (type.equals("remove")) {
+                                FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(target.getBlock());
+                                if (mechanic != null && (id.isEmpty() || id.equals("all") || mechanic.getItemID().equals(id)))
+                                    OraxenFurniture.remove(target, null);
+                            }
+                            if (type.equals("place")) OraxenFurniture.place(id, target, 0f, null);
+                        });
                     }
                 });
+    }
+
+    private void performEdits(Collection<Location> targets, Consumer<Location> edit) {
+        Map<Long, List<Location>> targetsByChunk = new HashMap<>();
+        for (Location target : targets) {
+            long chunkKey = ((long) target.getBlockX() >> 4) << 32 | ((target.getBlockZ() >> 4) & 0xffffffffL);
+            targetsByChunk.computeIfAbsent(chunkKey, ignored -> new ArrayList<>()).add(target);
+        }
+
+        for (List<Location> chunkTargets : targetsByChunk.values()) {
+            Location anchor = chunkTargets.getFirst();
+            World world = Objects.requireNonNull(anchor.getWorld());
+            int chunkX = anchor.getBlockX() >> 4;
+            int chunkZ = anchor.getBlockZ() >> 4;
+            world.getChunkAtAsync(chunkX, chunkZ, true).thenAccept(chunk ->
+                    SchedulerUtil.runAtLocation(anchor, () -> {
+                        chunk.addPluginChunkTicket(OraxenPlugin.get());
+                        processChunkBatch(chunk, anchor, chunkTargets.iterator(), edit);
+                    }));
+        }
+    }
+
+    private void processChunkBatch(Chunk chunk, Location anchor, Iterator<Location> targets, Consumer<Location> edit) {
+        boolean nextBatchScheduled = false;
+        try {
+            for (int processed = 0; processed < EDITS_PER_REGION_TICK && targets.hasNext(); processed++)
+                edit.accept(targets.next());
+            if (targets.hasNext()) {
+                nextBatchScheduled = true;
+                SchedulerUtil.runAtLocationLater(anchor, 1L, () -> processChunkBatch(chunk, anchor, targets, edit));
+            }
+        } finally {
+            if (!nextBatchScheduled) chunk.removePluginChunkTicket(OraxenPlugin.get());
+        }
     }
 
     private int clampRadius(org.bukkit.entity.Player player, int radius) {
