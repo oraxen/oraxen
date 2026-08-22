@@ -55,6 +55,14 @@ class LootTest {
         assertTrue(loot.canDropWithSilkTouch(false));
     }
 
+    @Test
+    void replacingFurnitureItemPreservesSilkTouchMode() {
+        Loot replacement = lootWithSilkTouch("forbidden").withItem("test", null);
+
+        assertFalse(replacement.canDropWithSilkTouch(true));
+        assertTrue(replacement.canDropWithSilkTouch(false));
+    }
+
     private Loot lootWithSilkTouch(Object value) {
         LinkedHashMap<String, Object> config = new LinkedHashMap<>();
         if (value != null) config.put("silk-touch", value);

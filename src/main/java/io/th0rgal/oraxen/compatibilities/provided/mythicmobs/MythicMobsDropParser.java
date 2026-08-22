@@ -19,6 +19,13 @@ final class MythicMobsDropParser {
         };
     }
 
+    static String getAmountRange(String[] lines) {
+        for (String token : lines) {
+            if (isAmount(token)) return token;
+        }
+        return "1-1";
+    }
+
     private static boolean isAmount(String token) {
         return AMOUNT_PATTERN.matcher(token).matches();
     }

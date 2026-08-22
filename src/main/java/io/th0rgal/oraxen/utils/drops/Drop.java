@@ -206,7 +206,7 @@ public class Drop {
                         String lootItemId = OraxenItems.getIdByItem(lootItem);
                         return lootItem.isSimilar(baseItem) || sourceID.equals(lootItemId);
                     })
-                    .map(loot -> new Loot(sourceID, furnitureItem, loot.getProbability(), 1, loot.getMaxAmount()))
+                    .map(loot -> loot.withItem(sourceID, furnitureItem))
                     .toList(), location, getFortuneMultiplier(itemInHand), itemInHand);
         }
     }

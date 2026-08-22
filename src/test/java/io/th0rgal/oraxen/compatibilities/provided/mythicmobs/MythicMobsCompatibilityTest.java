@@ -32,6 +32,20 @@ class MythicMobsCompatibilityTest {
     }
 
     @Test
+    void hyphenatedItemIdIsNotTreatedAsAmount() {
+        String[] line = {"oraxen", "my-item"};
+
+        assertEquals("my-item", MythicMobsDropParser.getItemId(line));
+        assertEquals("1-1", MythicMobsDropParser.getAmountRange(line));
+    }
+
+    @Test
+    void readsNumericAmountRange() {
+        assertEquals("6-7", MythicMobsDropParser.getAmountRange(
+                new String[]{"oraxen", "my-item", "6-7", "0.75"}));
+    }
+
+    @Test
     void returnsEmptyIdForMalformedLine() {
         assertEquals("", MythicMobsDropParser.getItemId(new String[]{"oraxen"}));
     }

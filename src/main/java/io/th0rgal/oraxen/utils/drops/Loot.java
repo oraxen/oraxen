@@ -62,12 +62,21 @@ public class Loot {
     }
 
     public Loot(String sourceID, ItemStack itemStack, double probability, IntegerRange amount) {
+        this(sourceID, itemStack, probability, amount, SilkTouchMode.ANY, 0.0D);
+    }
+
+    private Loot(String sourceID, ItemStack itemStack, double probability, IntegerRange amount,
+                 SilkTouchMode silkTouchMode, double fortuneBonus) {
         this.sourceID = sourceID;
         this.itemStack = itemStack;
         this.probability = Math.min(1.0, probability);
         this.amount = amount;
-        this.silkTouchMode = SilkTouchMode.ANY;
-        this.fortuneBonus = 0.0D;
+        this.silkTouchMode = silkTouchMode;
+        this.fortuneBonus = fortuneBonus;
+    }
+
+    Loot withItem(String sourceID, ItemStack itemStack) {
+        return new Loot(sourceID, itemStack, probability, amount, silkTouchMode, fortuneBonus);
     }
 
     public ItemStack getItemStack() {
