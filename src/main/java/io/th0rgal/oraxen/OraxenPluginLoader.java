@@ -48,7 +48,11 @@ public class OraxenPluginLoader implements PluginLoader {
         try (InputStream in = getClass().getResourceAsStream("/paper-libraries.json")) {
             if (in == null)
                 throw new IllegalStateException("paper-libraries.json is missing from the Oraxen jar");
-            return new Gson().fromJson(new InputStreamReader(in, StandardCharsets.UTF_8), PluginLibraries.class);
+            PluginLibraries libraries = new Gson().fromJson(
+                    new InputStreamReader(in, StandardCharsets.UTF_8), PluginLibraries.class);
+            if (libraries == null)
+                throw new IllegalStateException("paper-libraries.json has an empty or null root");
+            return libraries;
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

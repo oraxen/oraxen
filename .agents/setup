@@ -13,10 +13,11 @@ EOF
 sudo apt-get update
 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y gpg
 
+sudo install -d -m 0755 /etc/apt/keyrings
 curl -fsSL https://packages.adoptium.net/artifactory/api/gpg/key/public \
   | gpg --dearmor \
-  | sudo tee /etc/apt/trusted.gpg.d/adoptium.gpg >/dev/null
-echo "deb https://packages.adoptium.net/artifactory/deb $(. /etc/os-release && echo "$VERSION_CODENAME") main" \
+  | sudo tee /etc/apt/keyrings/adoptium.gpg >/dev/null
+echo "deb [signed-by=/etc/apt/keyrings/adoptium.gpg] https://packages.adoptium.net/artifactory/deb $(. /etc/os-release && echo "$VERSION_CODENAME") main" \
   | sudo tee /etc/apt/sources.list.d/adoptium.list >/dev/null
 
 sudo apt-get update
