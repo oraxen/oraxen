@@ -31,7 +31,7 @@ general:
     <#55ffa4>Oraxen впервые успешно загружен. Давайте начнем.
     <dark_gray> » <#55ffa4>Чтобы убрать <#43c9fa>стандартный брендинг</#43c9fa>, выполните <#43c9fa>/oraxen remove-branding<#55ffa4>.
     <dark_gray> » <#55ffa4>Чтобы убрать <#43c9fa>стандартные ассеты</#43c9fa>, выполните <#43c9fa>/oraxen remove-defaults<#55ffa4>.
-    <dark_gray> » <#55ffa4>На большинство вопросов ответит документация на <#43c9fa>https://oraxen.mizius.com/</#43c9fa><#55ffa4> и <#43c9fa>https://docs.oraxen.com</#43c9fa><#55ffa4>.
+    <dark_gray> » <#55ffa4>На большинство вопросов ответит документация на <#43c9fa>https://docs.oraxen.com/</#43c9fa><#55ffa4> и <#43c9fa>https://docs.oraxen.com</#43c9fa><#55ffa4>.
     <dark_gray> » <#55ffa4>Все еще нужна помощь? Посетите наш Discord: <#43c9fa>https://discord.gg/N7AJFJTgBS</#43c9fa>.
     <dark_gray><st>                                                                                                         </st>
   datapack_generated: "<prefix><#55ffa4>Датапак успешно сгенерирован"

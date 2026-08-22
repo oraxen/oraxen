@@ -31,7 +31,7 @@ general:
     <#55ffa4>Oraxen s'est chargé avec succès pour la première fois. Commençons.
     <dark_gray> » <#55ffa4>Pour supprimer le <#43c9fa>branding par défaut</#43c9fa>, exécutez <#43c9fa>/oraxen remove-branding<#55ffa4>.
     <dark_gray> » <#55ffa4>Pour supprimer les <#43c9fa>assets par défaut</#43c9fa>, exécutez <#43c9fa>/oraxen remove-defaults<#55ffa4>.
-    <dark_gray> » <#55ffa4>La documentation répond à la plupart des questions sur <#43c9fa>https://oraxen.mizius.com/</#43c9fa><#55ffa4> et <#43c9fa>https://docs.oraxen.com</#43c9fa><#55ffa4>.
+    <dark_gray> » <#55ffa4>La documentation répond à la plupart des questions sur <#43c9fa>https://docs.oraxen.com/</#43c9fa><#55ffa4> et <#43c9fa>https://docs.oraxen.com</#43c9fa><#55ffa4>.
     <dark_gray> » <#55ffa4>Besoin d'aide ? Rejoignez notre Discord sur <#43c9fa>https://discord.gg/N7AJFJTgBS</#43c9fa>.
     <dark_gray><st>                                                                                                         </st>
   datapack_generated: "<prefix><#55ffa4>Le datapack a été généré avec succès"

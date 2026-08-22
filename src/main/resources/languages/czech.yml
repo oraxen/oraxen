@@ -31,7 +31,7 @@ general:
     <#55ffa4>Oraxen byl poprvé úspěšně načten. Pojďme začít.
     <dark_gray> » <#55ffa4>Pro odstranění <#43c9fa>výchozího brandingu</#43c9fa> spusťte <#43c9fa>/oraxen remove-branding<#55ffa4>.
     <dark_gray> » <#55ffa4>Pro odstranění <#43c9fa>výchozích assetů</#43c9fa> spusťte <#43c9fa>/oraxen remove-defaults<#55ffa4>.
-    <dark_gray> » <#55ffa4>Většinu otázek zodpoví dokumentace na <#43c9fa>https://oraxen.mizius.com/</#43c9fa><#55ffa4> a <#43c9fa>https://docs.oraxen.com</#43c9fa><#55ffa4>.
+    <dark_gray> » <#55ffa4>Většinu otázek zodpoví dokumentace na <#43c9fa>https://docs.oraxen.com/</#43c9fa><#55ffa4> a <#43c9fa>https://docs.oraxen.com</#43c9fa><#55ffa4>.
     <dark_gray> » <#55ffa4>Stále potřebujete pomoc? Navštivte náš Discord na <#43c9fa>https://discord.gg/N7AJFJTgBS</#43c9fa>.
     <dark_gray><st>                                                                                                         </st>
   datapack_generated: "<prefix><#55ffa4>Datapack byl úspěšně vygenerován"

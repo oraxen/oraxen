@@ -31,7 +31,7 @@ general:
     <#55ffa4>Oraxen이 처음으로 성공적으로 로드되었습니다. 이제 시작해봅시다.
     <dark_gray> » <#55ffa4><#43c9fa>기본 브랜딩</#43c9fa>을 제거하려면 <#43c9fa>/oraxen remove-branding<#55ffa4>을 실행하세요.
     <dark_gray> » <#55ffa4><#43c9fa>기본 에셋</#43c9fa>을 제거하려면 <#43c9fa>/oraxen remove-defaults<#55ffa4>을 실행하세요.
-    <dark_gray> » <#55ffa4>대부분의 질문은 <#43c9fa>https://oraxen.mizius.com/</#43c9fa><#55ffa4> 및 <#43c9fa>https://docs.oraxen.com</#43c9fa><#55ffa4> 문서에서 답을 찾을 수 있습니다.
+    <dark_gray> » <#55ffa4>대부분의 질문은 <#43c9fa>https://docs.oraxen.com/</#43c9fa><#55ffa4> 및 <#43c9fa>https://docs.oraxen.com</#43c9fa><#55ffa4> 문서에서 답을 찾을 수 있습니다.
     <dark_gray> » <#55ffa4>아직 도움이 필요하신가요? Discord <#43c9fa>https://discord.gg/N7AJFJTgBS</#43c9fa>에 방문해 주세요.
     <dark_gray><st>                                                                                                         </st>
   datapack_generated: "<prefix><#55ffa4>데이터팩이 성공적으로 생성되었습니다"

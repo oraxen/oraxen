@@ -31,7 +31,7 @@ general:
     <#55ffa4>Oraxen が初回起動で正常に読み込まれました。さっそく始めましょう。
     <dark_gray> » <#55ffa4><#43c9fa>デフォルトのブランディング</#43c9fa>を削除するには、<#43c9fa>/oraxen remove-branding<#55ffa4> を実行してください。
     <dark_gray> » <#55ffa4><#43c9fa>デフォルトのアセット</#43c9fa>を削除するには、<#43c9fa>/oraxen remove-defaults<#55ffa4> を実行してください。
-    <dark_gray> » <#55ffa4>ほとんどの質問は <#43c9fa>https://oraxen.mizius.com/</#43c9fa><#55ffa4> と <#43c9fa>https://docs.oraxen.com</#43c9fa><#55ffa4> のドキュメントで解決できます。
+    <dark_gray> » <#55ffa4>ほとんどの質問は <#43c9fa>https://docs.oraxen.com/</#43c9fa><#55ffa4> と <#43c9fa>https://docs.oraxen.com</#43c9fa><#55ffa4> のドキュメントで解決できます。
     <dark_gray> » <#55ffa4>まだサポートが必要ですか？ Discord <#43c9fa>https://discord.gg/N7AJFJTgBS</#43c9fa> に参加してください。
     <dark_gray><st>                                                                                                         </st>
   datapack_generated: "<prefix><#55ffa4>データパックが正常に生成されました"

@@ -21,7 +21,7 @@
     <img alt="Discord" src="https://img.shields.io/discord/1302959035838107728?style=flat-square&logo=discord&label=Discord&color=blue">
   </a>
 
-  <a href="https://oraxen.mizius.com">
+  <a href="https://docs.oraxen.com">
     <img alt="Documentation" src="https://img.shields.io/badge/Docs-Wiki-red?style=flat-square">
   </a>
 
@@ -49,7 +49,7 @@ Some of the features Oraxen provides to server owners and administrators are lis
 - Built-in ViaVersion support for versions 1.21.4–26.2, with optional advanced support for versions 1.20–26.2 through MultiVersionPacks.
 - Hot reloading for custom paintings and, in the future, custom music discs.
 - Fast support through tickets and a team that listens to the community and considers its ideas.
-- Well-organized documentation available [here](https://oraxen.mizius.com).
+- Well-organized documentation available [here](https://docs.oraxen.com).
 
 ### Items
 
@@ -127,7 +127,7 @@ example-block:
 <details>
   <summary><strong>Example</strong></summary>
 
-A tutorial is available [here](https://oraxen.mizius.com/usage/tutorials/491d3).
+A tutorial is available [here](https://docs.oraxen.com/usage/tutorials/491d3).
 
 ```yaml
 example-painting:
@@ -158,7 +158,7 @@ paintings:
 <details>
   <summary><strong>Example</strong></summary>
 
-Tutorials are available [here](https://oraxen.mizius.com/usage/tutorials/d31l5f) and [here](https://oraxen.mizius.com/usage/tutorials/23ho7).
+Tutorials are available [here](https://docs.oraxen.com/usage/tutorials/d31l5f) and [here](https://docs.oraxen.com/usage/tutorials/23ho7).
 
 ```yaml
 example-disc:
@@ -212,10 +212,10 @@ sounds:
 * Crafting, smelting, blasting, smoking, and stonecutting recipes, with an easy-to-use in-game GUI editor.
 
 ## Building
-See https://oraxen.mizius.com/developers/compiling.
+See https://docs.oraxen.com/developers/compiling.
 
 ## Contributing
-See https://oraxen.mizius.com/developers/contributing.
+See https://docs.oraxen.com/developers/contributing.
 
 ## License
 
