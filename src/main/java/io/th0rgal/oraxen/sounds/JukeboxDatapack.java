@@ -33,6 +33,7 @@ final class JukeboxDatapack extends OraxenDatapack {
 
     @Override
     public void generateAssets(List<VirtualFile> output) {
+        clearOldDataPack();
         if (jukeboxSounds.isEmpty()) return;
 
         writeMCMeta();
