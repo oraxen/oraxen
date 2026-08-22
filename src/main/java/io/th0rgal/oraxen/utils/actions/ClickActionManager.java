@@ -49,6 +49,17 @@ public class ClickActionManager extends SpigotActionManager {
         //-----
     }
 
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> void run(T target, List<Action<T>> actions, boolean async, Map<String, Object> data) {
+        if (target instanceof Player player && !async) {
+            List<Action<Player>> playerActions = (List<Action<Player>>) (List<?>) actions;
+            runOrdered(player, playerActions, new Context<>(playerActions, data), 0);
+            return;
+        }
+        super.run(target, actions, async, data);
+    }
+
     public void runOrdered(Player player, List<Action<Player>> actions) {
         runOrdered(player, actions, new Context<>(actions, Map.of()), 0);
     }
