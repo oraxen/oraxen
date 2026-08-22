@@ -12,20 +12,20 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class InvManager {
 
-    // computeIfAbsent is reached from each player's own region thread on Folia,
-    // and regen() clears the map during reloads.
-    private final Map<UUID, PaginatedGui> itemsViews = new ConcurrentHashMap<>();
+    // Replace the cache on reload so an in-flight compute cannot republish a stale view.
+    private volatile Map<UUID, PaginatedGui> itemsViews = new ConcurrentHashMap<>();
 
     public InvManager() {
         regen();
     }
 
     public void regen() {
-        itemsViews.clear();
+        itemsViews = new ConcurrentHashMap<>();
     }
 
     public PaginatedGui getItemsView(Player player) {
-        return itemsViews.computeIfAbsent(player.getUniqueId(), uuid -> new ItemsView().create());
+        Map<UUID, PaginatedGui> currentViews = itemsViews;
+        return currentViews.computeIfAbsent(player.getUniqueId(), uuid -> new ItemsView().create());
     }
 
 

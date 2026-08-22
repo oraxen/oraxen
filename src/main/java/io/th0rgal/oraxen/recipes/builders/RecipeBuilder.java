@@ -35,8 +35,9 @@ public abstract class RecipeBuilder {
         this.builderName = builderName;
         this.inventoryTitle = player.getName() + " " + builderName + " builder";
         UUID playerId = player.getUniqueId();
-        inventory = MAP.containsKey(playerId) && MAP.get(playerId).builderName.equals(builderName)
-                ? MAP.get(playerId).inventory
+        RecipeBuilder existingBuilder = MAP.get(playerId);
+        inventory = existingBuilder != null && existingBuilder.builderName.equals(builderName)
+                ? existingBuilder.inventory
                 : createInventory(player, Component.text(inventoryTitle));
         player.openInventory(inventory);
         MAP.put(playerId, this);
