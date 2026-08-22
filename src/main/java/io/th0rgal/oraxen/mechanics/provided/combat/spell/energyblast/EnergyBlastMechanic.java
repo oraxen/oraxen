@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.combat.spell.energyblast;
 
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.combat.spell.SpellMechanic;
+import io.th0rgal.oraxen.utils.wrappers.ParticleWrapper;
 import org.bukkit.Color;
 import org.bukkit.Particle;
 import org.bukkit.configuration.ConfigurationSection;
@@ -20,7 +21,7 @@ public class EnergyBlastMechanic extends SpellMechanic {
         ConfigurationSection particleSection = section.getConfigurationSection("particle");
         assert particleSection != null;
 
-        this.particle = Particle.valueOf(particleSection.getString("type"));
+        this.particle = ParticleWrapper.resolve(particleSection.getString("type"));
         if (particleSection.isConfigurationSection("color")) {
             ConfigurationSection colorSection = particleSection.getConfigurationSection("color");
             this.particleColor = new Particle.DustOptions(Color

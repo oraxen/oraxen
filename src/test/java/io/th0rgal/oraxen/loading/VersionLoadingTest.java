@@ -122,12 +122,20 @@ public class VersionLoadingTest {
     private static void prepareServerDir(Path serverDir) throws IOException {
         Files.createDirectories(serverDir);
         Path serverJar = serverDir.resolve("server.jar");
-        try (Stream<Path> paths = Files.walk(serverDir)) {
-            paths.sorted(Comparator.reverseOrder())
+        Path logsDir = serverDir.resolve("logs");
+        List<Path> paths;
+        try (Stream<Path> walk = Files.walk(serverDir)) {
+            // Close the directory stream before deleting anything. Windows can keep a
+            // directory handle open for the duration of Files.walk otherwise.
+            paths = walk.sorted(Comparator.reverseOrder())
                     .filter(path -> !path.equals(serverDir))
                     .filter(path -> !path.equals(serverJar))
-                    .forEach(VersionLoadingTest::delete);
+                    // Paper may keep the logs directory open briefly on Windows; it is
+                    // safe to reuse this directory between test runs.
+                    .filter(path -> !path.equals(logsDir))
+                    .toList();
         }
+        paths.forEach(VersionLoadingTest::delete);
         Files.createDirectories(serverDir.resolve("plugins"));
         Files.writeString(serverDir.resolve("eula.txt"), "eula=true\n", StandardCharsets.UTF_8);
     }
@@ -418,7 +426,10 @@ public class VersionLoadingTest {
         if (!process.isAlive()) return;
         process.getOutputStream().write("stop\n".getBytes(StandardCharsets.UTF_8));
         process.getOutputStream().flush();
-        if (!process.waitFor(30, TimeUnit.SECONDS)) process.destroyForcibly();
+        if (!process.waitFor(30, TimeUnit.SECONDS)) {
+            process.destroyForcibly();
+            process.waitFor(30, TimeUnit.SECONDS);
+        }
     }
 
     private static void failWithServerOutput(String name, String version, Path serverDir, String reason, StringBuilder output) {
@@ -428,10 +439,22 @@ public class VersionLoadingTest {
     }
 
     private static void delete(Path path) {
-        try {
-            Files.deleteIfExists(path);
-        } catch (IOException exception) {
-            throw new RuntimeException("Failed to delete " + path, exception);
+        IOException failure = null;
+        for (int attempt = 0; attempt < 20; attempt++) {
+            try {
+                Files.deleteIfExists(path);
+                return;
+            } catch (IOException exception) {
+                failure = exception;
+                if (attempt == 19) break;
+                try {
+                    Thread.sleep(250L);
+                } catch (InterruptedException interrupted) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
         }
+        throw new RuntimeException("Failed to delete " + path, failure);
     }
 }

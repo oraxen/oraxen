@@ -7,6 +7,7 @@ import org.bukkit.Registry;
 import org.bukkit.Particle;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Locale;
 import java.util.Objects;
 
 public class ParticleWrapper {
@@ -37,6 +38,27 @@ public class ParticleWrapper {
             if (ITEM_VALUE == null) ITEM_VALUE = particles[0];
             if (DUST_COLOR_TRANSITION_VALUE == null) DUST_COLOR_TRANSITION_VALUE = DUST_VALUE;
         }
+    }
+
+    /**
+     * Resolves a configured particle across the enum names used before and after 1.20.5.
+     *
+     * @param particleName configured Bukkit or legacy particle name
+     * @return the particle available on this server
+     */
+    public static Particle resolve(String particleName) {
+        if (particleName == null || particleName.isBlank())
+            throw new IllegalArgumentException("Particle name cannot be blank");
+
+        String name = particleName.trim().toUpperCase(Locale.ROOT);
+        return switch (name) {
+            case "DUST", "REDSTONE" -> DUST;
+            case "SPLASH", "WATER_SPLASH" -> SPLASH;
+            case "BLOCK", "BLOCK_CRACK" -> BLOCK;
+            case "ITEM", "ITEM_CRACK" -> ITEM;
+            case "DUST_COLOR_TRANSITION" -> DUST_COLOR_TRANSITION;
+            default -> resolveParticle(name.toLowerCase(Locale.ROOT), name);
+        };
     }
 
     /**

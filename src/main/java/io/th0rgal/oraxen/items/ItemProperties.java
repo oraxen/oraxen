@@ -109,12 +109,36 @@ public final class ItemProperties {
             oraxenMeta.setArmorStandHeadScale(properties.getScale());
     }
 
+    private ItemFlag resolveItemFlag(String configuredName) {
+        if (configuredName == null || configuredName.isBlank()) return null;
+
+        String name = configuredName.trim().toUpperCase(Locale.ROOT);
+        List<String> candidates = switch (name) {
+            case "HIDE_POTION_EFFECTS" -> List.of(name, "HIDE_ADDITIONAL_TOOLTIP");
+            case "HIDE_ADDITIONAL_TOOLTIP" -> List.of(name, "HIDE_POTION_EFFECTS");
+            default -> List.of(name);
+        };
+        for (String candidate : candidates) {
+            try {
+                return ItemFlag.valueOf(candidate);
+            } catch (IllegalArgumentException ignored) {
+                // Try the version-specific alias, if one exists.
+            }
+        }
+
+        Logs.logWarning("Invalid item flag " + configuredName + " in item " + section.getName() + ", skipping.");
+        return null;
+    }
+
     @SuppressWarnings({ "unchecked", "deprecation" })
     private void parseVanillaSections(final ItemBuilder item, final ConfigurationSection section) {
         if (section.contains("ItemFlags")) {
             final List<String> itemFlags = section.getStringList("ItemFlags");
-            for (final String itemFlag : itemFlags)
-                item.addItemFlags(ItemFlag.valueOf(itemFlag));
+            for (final String itemFlag : itemFlags) {
+                ItemFlag resolvedFlag = resolveItemFlag(itemFlag);
+                if (resolvedFlag != null)
+                    item.addItemFlags(resolvedFlag);
+            }
         }
         if (section.contains("PotionEffects")) {
             final List<LinkedHashMap<String, Object>> potionEffects = (List<LinkedHashMap<String, Object>>) section.getList("PotionEffects");

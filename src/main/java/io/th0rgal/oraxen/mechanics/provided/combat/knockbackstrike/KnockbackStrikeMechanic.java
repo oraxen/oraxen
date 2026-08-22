@@ -184,28 +184,12 @@ public class KnockbackStrikeMechanic extends Mechanic {
 
     private Particle parseParticle(String particleName) {
         try {
-            // Handle special particles that have version compatibility issues
-            if (particleName.equalsIgnoreCase("DUST") || particleName.equalsIgnoreCase("REDSTONE")) {
-                return ParticleWrapper.DUST;
-            }
-            if (particleName.equalsIgnoreCase("SPLASH") || particleName.equalsIgnoreCase("WATER_SPLASH")) {
-                return ParticleWrapper.SPLASH;
-            }
-            if (particleName.equalsIgnoreCase("BLOCK") || particleName.equalsIgnoreCase("BLOCK_CRACK")) {
-                return ParticleWrapper.BLOCK;
-            }
-            if (particleName.equalsIgnoreCase("ITEM") || particleName.equalsIgnoreCase("ITEM_CRACK")) {
-                return ParticleWrapper.ITEM;
-            }
-            if (particleName.equalsIgnoreCase("DUST_COLOR_TRANSITION")) {
-                return ParticleWrapper.DUST_COLOR_TRANSITION;
-            }
-            return Particle.valueOf(particleName.toUpperCase());
+            return ParticleWrapper.resolve(particleName);
         } catch (IllegalArgumentException e) {
             Logs.logWarning("Invalid particle type: " + particleName + ", using CRIT as fallback");
             return Particle.CRIT;
         } catch (IncompatibleClassChangeError e) {
-            // Handle version compatibility issues with Particle.valueOf()
+            // Handle version compatibility issues with particle resolution
             Logs.logWarning("Particle compatibility issue with " + particleName + ", using CRIT as fallback");
             return Particle.CRIT;
         } catch (Exception e) {

@@ -74,7 +74,6 @@ public class RecipesManager {
             }
         }
 
-        RecipesEventsManager.get().resetRecipes();
         File recipesFolder = new File(OraxenPlugin.get().getDataFolder(), "recipes");
         if (!recipesFolder.exists()) {
             recipesFolder.mkdirs();
@@ -90,6 +89,7 @@ public class RecipesManager {
         RecipeLoader.beginRegistrationPass();
         CustomWorkstationRegistry.beginReload();
         RecipesEventsManager eventsManager = RecipesEventsManager.get();
+        eventsManager.resetRecipes();
         eventsManager.beginSmithingReload();
         boolean registrationCompleted = false;
         try {

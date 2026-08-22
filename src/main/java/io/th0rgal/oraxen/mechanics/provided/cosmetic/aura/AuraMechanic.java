@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.mechanics.provided.cosmetic.aura.aura.Aura;
 import io.th0rgal.oraxen.mechanics.provided.cosmetic.aura.aura.HelixAura;
 import io.th0rgal.oraxen.mechanics.provided.cosmetic.aura.aura.RingAura;
 import io.th0rgal.oraxen.mechanics.provided.cosmetic.aura.aura.SimpleAura;
+import io.th0rgal.oraxen.utils.wrappers.ParticleWrapper;
 import org.bukkit.Particle;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -25,7 +26,7 @@ public class AuraMechanic extends Mechanic {
 
     public AuraMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section);
-        particle = Particle.valueOf(section.getString("particle"));
+        particle = ParticleWrapper.resolve(section.getString("particle"));
         switch (section.getString("type")) {
             case "simple" -> aura = new SimpleAura(this);
             case "ring" -> aura = new RingAura(this);

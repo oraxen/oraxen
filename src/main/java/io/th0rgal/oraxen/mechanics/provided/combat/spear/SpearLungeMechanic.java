@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.combat.spear;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.utils.wrappers.ParticleWrapper;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
 import org.bukkit.Registry;
@@ -142,12 +143,12 @@ public class SpearLungeMechanic extends Mechanic {
 
     private Particle parseParticle(String name) {
         try {
-            return Particle.valueOf(name.toUpperCase());
+            return ParticleWrapper.resolve(name);
         } catch (IllegalArgumentException e) {
             // Invalid particle name, use fallback silently
             return Particle.CRIT;
         } catch (IncompatibleClassChangeError e) {
-            // Handle version compatibility issues with Particle.valueOf()
+            // Handle version compatibility issues with particle resolution
             return Particle.CRIT;
         } catch (Exception e) {
             // Unexpected error - log with stack trace for diagnostics

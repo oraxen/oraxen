@@ -90,7 +90,12 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     private final Listener packDispatchListener;
 
     public NMSHandler() {
-        this.packDispatchListener = new PackDispatchListener();
+        // Paper exposed the configuration/reconfiguration events used by the pre-join
+        // dispatcher starting with 1.21.7. Do not load that listener earlier: its class
+        // references APIs that do not exist on 1.21.2 through 1.21.6.
+        this.packDispatchListener = VersionUtil.atOrAbove("1.21.7")
+                ? new PackDispatchListener()
+                : null;
 
         // mineableWith tag handling
         NamespacedKey tagKey = NamespacedKey.fromString("mineable_with_key", OraxenPlugin.get());

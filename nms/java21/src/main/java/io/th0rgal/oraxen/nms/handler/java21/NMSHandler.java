@@ -90,7 +90,12 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     private final Listener packDispatchListener;
 
     public NMSHandler() {
-        this.packDispatchListener = new PackDispatchListener();
+        // Paper exposed the configuration/reconfiguration events used by the pre-join
+        // dispatcher starting with 1.21.7. Do not load that listener earlier: its class
+        // references APIs that do not exist on 1.21.2 through 1.21.6.
+        this.packDispatchListener = VersionUtil.atOrAbove("1.21.7")
+                ? new PackDispatchListener()
+                : null;
 
         // mineableWith tag handling
         NamespacedKey tagKey = NamespacedKey.fromString("mineable_with_key", OraxenPlugin.get());
@@ -150,18 +155,40 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         CompoundTag oldTag = oldData.copyTag();
         CompoundTag newTag = newData != null ? newData.copyTag() : new CompoundTag();
 
-        for (String key : oldTag.keySet()) {
+        for (String key : tagKeys(oldTag)) {
             if (vanillaKeys.contains(key))
                 continue;
             Tag value = oldTag.get(key);
             if (value != null)
                 newTag.put(key, value);
             else
-                newTag.remove(key);
+                removeTag(newTag, key);
         }
 
         newNmsItem.set(type, CustomData.of(newTag));
         return asBukkitCopy(newNmsItem);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Set<String> tagKeys(CompoundTag tag) {
+        for (String methodName : List.of("keySet", "getAllKeys")) {
+            try {
+                return (Set<String>) CompoundTag.class.getMethod(methodName).invoke(tag);
+            } catch (NoSuchMethodException ignored) {
+                // CompoundTag renamed this method between 1.21.4 and 1.21.5.
+            } catch (ReflectiveOperationException exception) {
+                throw new IllegalStateException("Could not read custom item data keys", exception);
+            }
+        }
+        throw new IllegalStateException("Could not find a CompoundTag key iterator");
+    }
+
+    private static void removeTag(CompoundTag tag, String key) {
+        try {
+            CompoundTag.class.getMethod("remove", String.class).invoke(tag, key);
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Could not remove custom item data key " + key, exception);
+        }
     }
 
     @Override
