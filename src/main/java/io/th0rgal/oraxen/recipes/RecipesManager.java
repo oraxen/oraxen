@@ -89,13 +89,18 @@ public class RecipesManager {
     private static void registerAllConfigRecipesFromFolder(File recipesFolder) {
         RecipeLoader.beginRegistrationPass();
         CustomWorkstationRegistry.beginReload();
-        RecipesEventsManager.get().beginSmithingReload();
+        RecipesEventsManager eventsManager = RecipesEventsManager.get();
+        eventsManager.beginSmithingReload();
+        boolean registrationCompleted = false;
         try {
             for (File configFile : Objects.requireNonNull(recipesFolder.listFiles()))
                 registerConfigRecipes(configFile);
+            registrationCompleted = true;
         } finally {
             CustomWorkstationRegistry.finishReload();
-            RecipesEventsManager.get().finishSmithingReload();
+            eventsManager.finishSmithingReload();
+            if (registrationCompleted) eventsManager.finishRecipeReload();
+            else eventsManager.cancelRecipeReload();
         }
     }
 

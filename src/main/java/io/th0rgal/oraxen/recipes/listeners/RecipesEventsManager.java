@@ -29,8 +29,6 @@ import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 import static io.th0rgal.oraxen.mechanics.provided.misc.backpack.BackpackMechanic.BACKPACK_KEY;
@@ -38,14 +36,10 @@ import static io.th0rgal.oraxen.mechanics.provided.misc.backpack.BackpackMechani
 public class RecipesEventsManager implements Listener {
 
     private static RecipesEventsManager instance;
-    // Rebuilt during reload (a region/command thread on Folia) while crafting
-    // and join events read them concurrently from other region threads; use
-    // concurrent collections and volatile reference swaps.
-    private volatile Map<CustomRecipe, String> permissionsPerRecipe = new ConcurrentHashMap<>();
-    private volatile Set<CustomRecipe> whitelistedCraftRecipes = ConcurrentHashMap.newKeySet();
-    private volatile List<CustomRecipe> whitelistedCraftRecipesOrdered = new CopyOnWriteArrayList<>();
-    private volatile Map<String, ShapedOraxenRecipe> shapedOraxenIngredients = new ConcurrentHashMap<>();
-    private volatile Map<String, List<String>> shapelessOraxenIngredients = new ConcurrentHashMap<>();
+    // Recipe reloads are staged and published as one immutable generation so Folia region
+    // threads never observe partially registered permissions or ingredient matchers.
+    private volatile RecipeState recipes = RecipeState.empty();
+    private StagedRecipeState stagedRecipes;
     private volatile Map<NamespacedKey, String> smithingRecipes = Map.of();
     private Map<NamespacedKey, String> stagedSmithingRecipes;
     private boolean eventsRegistered;
@@ -80,14 +74,15 @@ public class RecipesEventsManager implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onCrafted(PrepareItemCraftEvent event) {
+        RecipeState recipeState = recipes;
         Recipe recipe = event.getRecipe();
         CustomRecipe customRecipe = CustomRecipe.fromRecipe(recipe);
-        if (!matchesRegisteredOraxenIngredients(recipe, event.getInventory().getMatrix())) {
+        if (!matchesRegisteredOraxenIngredients(recipeState, recipe, event.getInventory().getMatrix())) {
             event.getInventory().setResult(null);
             return;
         }
         Player player = InventoryUtils.playerFromView(event);
-        if (!hasPermission(player, customRecipe)) event.getInventory().setResult(null);
+        if (!hasPermission(player, customRecipe, recipeState)) event.getInventory().setResult(null);
 
         ItemStack result = event.getInventory().getResult();
         if (result == null) return;
@@ -104,7 +99,7 @@ public class RecipesEventsManager implements Listener {
             return;
         }
 
-        if (customRecipe == null || whitelistedCraftRecipes.stream().anyMatch(customRecipe::equals) || customRecipe.isValidDyeRecipe()) {
+        if (customRecipe == null || recipeState.whitelistedCraftRecipes().contains(customRecipe) || customRecipe.isValidDyeRecipe()) {
             persistBackpackContents(event);
             return;
         }
@@ -141,15 +136,15 @@ public class RecipesEventsManager implements Listener {
         return backpackFactory != null && backpackFactory.getMechanic(OraxenItems.getIdByItem(item)) != null;
     }
 
-    private boolean matchesRegisteredOraxenIngredients(Recipe recipe, ItemStack[] matrix) {
+    private boolean matchesRegisteredOraxenIngredients(RecipeState recipeState, Recipe recipe, ItemStack[] matrix) {
         if (!(recipe instanceof Keyed keyed) || !keyed.getKey().getNamespace().equals(OraxenPlugin.get().getName().toLowerCase(Locale.ROOT)))
             return true;
 
         String recipeName = keyed.getKey().getKey();
-        ShapedOraxenRecipe shapedRecipe = shapedOraxenIngredients.get(recipeName);
+        ShapedOraxenRecipe shapedRecipe = recipeState.shapedOraxenIngredients().get(recipeName);
         if (shapedRecipe != null) return shapedRecipe.matches(matrix);
 
-        List<String> shapelessIngredients = shapelessOraxenIngredients.get(recipeName);
+        List<String> shapelessIngredients = recipeState.shapelessOraxenIngredients().get(recipeName);
         if (shapelessIngredients != null) {
             List<String> remainingIngredients = new ArrayList<>(shapelessIngredients);
             for (ItemStack itemStack : matrix) {
@@ -202,15 +197,21 @@ public class RecipesEventsManager implements Listener {
     }
 
     public void resetRecipes() {
-        permissionsPerRecipe = new ConcurrentHashMap<>();
-        whitelistedCraftRecipes = ConcurrentHashMap.newKeySet();
-        whitelistedCraftRecipesOrdered = new CopyOnWriteArrayList<>();
-        shapedOraxenIngredients = new ConcurrentHashMap<>();
-        shapelessOraxenIngredients = new ConcurrentHashMap<>();
+        stagedRecipes = new StagedRecipeState();
+    }
+
+    public void finishRecipeReload() {
+        if (stagedRecipes == null) throw new IllegalStateException("Recipe reload has not begun");
+        recipes = stagedRecipes.freeze();
+        stagedRecipes = null;
+    }
+
+    public void cancelRecipeReload() {
+        stagedRecipes = null;
     }
 
     public void addPermissionRecipe(CustomRecipe recipe, String permission) {
-        permissionsPerRecipe.put(recipe, permission);
+        stagingRecipes().permissionsPerRecipe.put(recipe, permission);
     }
 
     public void beginSmithingReload() {
@@ -238,8 +239,9 @@ public class RecipesEventsManager implements Listener {
     }
 
     public void whitelistRecipe(CustomRecipe recipe) {
-        whitelistedCraftRecipes.add(recipe);
-        whitelistedCraftRecipesOrdered.add(recipe);
+        StagedRecipeState staging = stagingRecipes();
+        staging.whitelistedCraftRecipes.add(recipe);
+        staging.whitelistedCraftRecipesOrdered.add(recipe);
     }
 
     public void registerShapedOraxenRecipe(String recipeName, List<String> shape, ConfigurationSection ingredientsSection) {
@@ -277,7 +279,8 @@ public class RecipesEventsManager implements Listener {
                 if (itemId != null) expectedIngredients.put((row - minRow) * width + column - minColumn, itemId);
             }
         }
-        shapedOraxenIngredients.put(recipeName, new ShapedOraxenRecipe(width, height, expectedIngredients));
+        stagingRecipes().shapedOraxenIngredients.put(
+                recipeName, new ShapedOraxenRecipe(width, height, Map.copyOf(expectedIngredients)));
     }
 
     public void registerShapelessOraxenRecipe(String recipeName, ConfigurationSection ingredientsSection) {
@@ -289,13 +292,15 @@ public class RecipesEventsManager implements Listener {
                 for (int i = 0; i < amount; i++) expectedIngredients.add(ingredientSection.getString("oraxen_item"));
             }
         }
-        if (!expectedIngredients.isEmpty()) shapelessOraxenIngredients.put(recipeName, expectedIngredients);
+        if (!expectedIngredients.isEmpty())
+            stagingRecipes().shapelessOraxenIngredients.put(recipeName, List.copyOf(expectedIngredients));
     }
 
     public List<CustomRecipe> getPermittedRecipes(CommandSender sender) {
-        return whitelistedCraftRecipesOrdered
+        RecipeState recipeState = recipes;
+        return recipeState.whitelistedCraftRecipesOrdered()
                 .stream()
-                .filter(customRecipe -> !permissionsPerRecipe.containsKey(customRecipe) || hasPermission(sender, customRecipe))
+                .filter(customRecipe -> hasPermission(sender, customRecipe, recipeState))
                 .toList();
     }
 
@@ -308,7 +313,41 @@ public class RecipesEventsManager implements Listener {
 
 
     public boolean hasPermission(CommandSender sender, CustomRecipe recipe) {
-        return !permissionsPerRecipe.containsKey(recipe) || sender.hasPermission(permissionsPerRecipe.get(recipe));
+        return hasPermission(sender, recipe, recipes);
+    }
+
+    private boolean hasPermission(CommandSender sender, CustomRecipe recipe, RecipeState recipeState) {
+        String permission = recipeState.permissionsPerRecipe().get(recipe);
+        return permission == null || sender.hasPermission(permission);
+    }
+
+    private StagedRecipeState stagingRecipes() {
+        if (stagedRecipes == null) throw new IllegalStateException("Recipe reload has not begun");
+        return stagedRecipes;
+    }
+
+    private record RecipeState(Map<CustomRecipe, String> permissionsPerRecipe,
+                               Set<CustomRecipe> whitelistedCraftRecipes,
+                               List<CustomRecipe> whitelistedCraftRecipesOrdered,
+                               Map<String, ShapedOraxenRecipe> shapedOraxenIngredients,
+                               Map<String, List<String>> shapelessOraxenIngredients) {
+        private static RecipeState empty() {
+            return new RecipeState(Map.of(), Set.of(), List.of(), Map.of(), Map.of());
+        }
+    }
+
+    private static final class StagedRecipeState {
+        private final Map<CustomRecipe, String> permissionsPerRecipe = new HashMap<>();
+        private final Set<CustomRecipe> whitelistedCraftRecipes = new HashSet<>();
+        private final List<CustomRecipe> whitelistedCraftRecipesOrdered = new ArrayList<>();
+        private final Map<String, ShapedOraxenRecipe> shapedOraxenIngredients = new HashMap<>();
+        private final Map<String, List<String>> shapelessOraxenIngredients = new HashMap<>();
+
+        private RecipeState freeze() {
+            return new RecipeState(Map.copyOf(permissionsPerRecipe), Set.copyOf(whitelistedCraftRecipes),
+                    List.copyOf(whitelistedCraftRecipesOrdered), Map.copyOf(shapedOraxenIngredients),
+                    Map.copyOf(shapelessOraxenIngredients));
+        }
     }
 
 }
