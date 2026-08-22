@@ -116,7 +116,7 @@ public class BackpackListener implements Listener {
         });
 
         gui.setDragAction(event -> {
-            if (isBackpack(event.getCursor()) || mechanic.isBlocked(event.getCursor())) event.setCancelled(true);
+            if (isBackpack(event.getOldCursor()) || mechanic.isBlocked(event.getOldCursor())) event.setCancelled(true);
         });
 
         gui.setOutsideClickAction(event -> {

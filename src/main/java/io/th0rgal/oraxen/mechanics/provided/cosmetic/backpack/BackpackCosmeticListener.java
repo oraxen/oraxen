@@ -149,8 +149,8 @@ public class BackpackCosmeticListener implements Listener {
 
         Listener legacyListener = new Listener() {
         };
-        registerLegacyMountEvent(plugin, legacyListener, "org.spigotmc.event.entity.EntityMountEvent", "getMount");
-        registerLegacyMountEvent(plugin, legacyListener, "org.spigotmc.event.entity.EntityDismountEvent", "getDismounted");
+        registerLegacyMountEvent(plugin, legacyListener, "org.spigotmc.event.entity.EntityMountEvent");
+        registerLegacyMountEvent(plugin, legacyListener, "org.spigotmc.event.entity.EntityDismountEvent");
         return legacyListener;
     }
 
@@ -161,22 +161,22 @@ public class BackpackCosmeticListener implements Listener {
 
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         public void onEntityMount(org.bukkit.event.entity.EntityMountEvent event) {
-            handleMountChange(event.getMount());
+            handleMountChange(event.getEntity());
         }
 
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         public void onEntityDismount(org.bukkit.event.entity.EntityDismountEvent event) {
-            handleMountChange(event.getDismounted());
+            handleMountChange(event.getEntity());
         }
     }
 
     /**
      * Reflectively registers a handler for the legacy org.spigotmc mount events used before 1.20.5.
      */
-    private void registerLegacyMountEvent(JavaPlugin plugin, Listener listener, String eventClassName, String getterName) {
+    private void registerLegacyMountEvent(JavaPlugin plugin, Listener listener, String eventClassName) {
         try {
             Class<? extends Event> eventClass = Class.forName(eventClassName).asSubclass(Event.class);
-            Method getter = eventClass.getMethod(getterName);
+            Method getter = eventClass.getMethod("getEntity");
             Bukkit.getPluginManager().registerEvent(eventClass, listener, EventPriority.MONITOR, (l, event) -> {
                 if (!eventClass.isInstance(event)) return;
                 try {
