@@ -74,7 +74,7 @@ public class VirtualFile implements Comparable<VirtualFile> {
 
     @Nullable
     public JsonElement toJsonElement() {
-        InputStream fontInput = inputStream;
+        InputStream fontInput = getInputStream();
         String fontContent;
         try {
             fontContent = IOUtils.toString(fontInput, StandardCharsets.UTF_8);
