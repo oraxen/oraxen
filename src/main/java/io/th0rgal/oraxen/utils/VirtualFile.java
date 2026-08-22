@@ -12,13 +12,16 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.util.function.Supplier;
 
 public class VirtualFile implements Comparable<VirtualFile> {
 
     private String parentFolder;
     private String name;
     private InputStream inputStream;
+    private Supplier<InputStream> inputStreamSupplier;
 
     public VirtualFile(String parentFolder, String name, InputStream inputStream) {
         parentFolder = SystemUtils.IS_OS_WINDOWS
@@ -31,12 +34,23 @@ public class VirtualFile implements Comparable<VirtualFile> {
         this.inputStream = inputStream;
     }
 
+    public VirtualFile(String parentFolder, String name, Supplier<InputStream> inputStreamSupplier) {
+        this(parentFolder, name, (InputStream) null);
+        this.inputStreamSupplier = inputStreamSupplier;
+    }
+
     public InputStream getInputStream() {
-        return inputStream;
+        try {
+            return inputStreamSupplier != null ? inputStreamSupplier.get() : inputStream;
+        } catch (UncheckedIOException exception) {
+            Logs.logWarning("Failed to open " + getPath() + ": " + exception.getMessage());
+            return null;
+        }
     }
 
     public void setInputStream(InputStream inputStream) {
         this.inputStream = inputStream;
+        inputStreamSupplier = null;
     }
 
     public String getPath() {
