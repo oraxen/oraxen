@@ -6,8 +6,8 @@ import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerItemBreakEvent;
 import org.bukkit.event.player.PlayerItemDamageEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.jetbrains.annotations.Nullable;
@@ -28,7 +28,7 @@ public final class BlockDurability {
         if (action == null || player.getGameMode() == GameMode.CREATIVE || ItemUtils.isInvalidItem(item)) return;
 
         if (action.add() > 0) repairItem(player, item, action.add());
-        if (action.remove() > 0 && !ItemUtils.isInvalidItem(item)) damageItem(player, item, action.remove());
+        if (action.remove() > 0 && !ItemUtils.isInvalidItem(item)) damageItem(player, action.remove());
 
         registerPendingVanillaDamageCancellation(player);
     }
@@ -38,10 +38,21 @@ public final class BlockDurability {
         else SUPPRESS_VANILLA_DAMAGE_CANCELLATION.remove();
     }
 
+    public static void damageItemStack(Player player, EquipmentSlot slot, int amount) {
+        boolean wasSuppressingVanillaDamageCancellation = SUPPRESS_VANILLA_DAMAGE_CANCELLATION.get();
+        SUPPRESS_VANILLA_DAMAGE_CANCELLATION.set(true);
+        try {
+            player.damageItemStack(slot, amount);
+        } finally {
+            if (wasSuppressingVanillaDamageCancellation) SUPPRESS_VANILLA_DAMAGE_CANCELLATION.set(true);
+            else SUPPRESS_VANILLA_DAMAGE_CANCELLATION.remove();
+        }
+    }
+
     public static boolean cancelPendingVanillaDamage(PlayerItemDamageEvent event) {
         UUID playerId = event.getPlayer().getUniqueId();
         Integer pending = PENDING_VANILLA_DAMAGE_CANCELLATIONS.get(playerId);
-        if (pending == null || pending <= 0) return false;
+        if (pending == null || pending <= 0 || SUPPRESS_VANILLA_DAMAGE_CANCELLATION.get()) return false;
 
         event.setCancelled(true);
         decrementPending(playerId);
@@ -72,27 +83,8 @@ public final class BlockDurability {
         item.setItemMeta(damageable);
     }
 
-    private static void damageItem(Player player, ItemStack item, int amount) {
-        PlayerItemDamageEvent damageEvent = new PlayerItemDamageEvent(player, item, amount);
-        if (!damageEvent.callEvent()) return;
-
-        int damage = damageEvent.getDamage();
-        if (damage <= 0 || ItemUtils.isInvalidItem(item)) return;
-        if (getDurabilityMechanic(item) != null) return;
-
-        if (!(item.getItemMeta() instanceof Damageable damageable)) return;
-        int maxDamage = damageable.hasMaxDamage() ? damageable.getMaxDamage() : item.getType().getMaxDurability();
-        if (maxDamage <= 0) return;
-
-        int newDamage = damageable.getDamage() + damage;
-        if (newDamage >= maxDamage) {
-            new PlayerItemBreakEvent(player, item).callEvent();
-            item.setAmount(0);
-            return;
-        }
-
-        damageable.setDamage(newDamage);
-        item.setItemMeta(damageable);
+    private static void damageItem(Player player, int amount) {
+        damageItemStack(player, EquipmentSlot.HAND, amount);
     }
 
     @Nullable

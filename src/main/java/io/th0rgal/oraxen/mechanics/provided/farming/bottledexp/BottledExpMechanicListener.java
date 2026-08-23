@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.farming.bottledexp;
 
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.configs.Message;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockDurability;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -9,7 +10,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerItemDamageEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 public class BottledExpMechanicListener implements Listener {
@@ -40,6 +41,9 @@ public class BottledExpMechanicListener implements Listener {
         if (mechanic == null)
             return;
 
+        EquipmentSlot hand = event.getHand();
+        if (hand == null) return;
+
         int bottlesAmount = mechanic.getBottleEquivalent(player.getLevel(), player.getExp());
         if (bottlesAmount <= 0) {
             Message.NOT_ENOUGH_EXP.send(player);
@@ -60,6 +64,6 @@ public class BottledExpMechanicListener implements Listener {
         if (undroppedBottles > 0)
             player.giveExp((int) Math.floor(undroppedBottles * 10.0f / mechanic.ratio));
 
-        new PlayerItemDamageEvent(player, item, factory.getDurabilityCost()).callEvent();
+        BlockDurability.damageItemStack(player, hand, factory.getDurabilityCost());
     }
 }
