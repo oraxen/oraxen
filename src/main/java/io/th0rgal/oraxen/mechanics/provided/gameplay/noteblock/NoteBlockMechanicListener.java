@@ -441,7 +441,7 @@ public class NoteBlockMechanicListener implements Listener {
                     return;
                 }
             }
-            event.setCursor(item);
+            event.getView().setCursor(item);
         }
     }
 

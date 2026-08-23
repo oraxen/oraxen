@@ -551,7 +551,7 @@ public class FurnitureListener implements Listener {
                 return;
             }
         }
-        event.setCursor(item);
+        event.getView().setCursor(item);
     }
 
     @EventHandler

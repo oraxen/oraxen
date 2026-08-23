@@ -516,7 +516,7 @@ public class ChorusBlockMechanicListener implements Listener {
                 return;
             }
         }
-        event.setCursor(item);
+        event.getView().setCursor(item);
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
