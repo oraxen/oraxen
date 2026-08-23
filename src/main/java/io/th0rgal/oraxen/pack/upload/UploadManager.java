@@ -86,7 +86,7 @@ public class UploadManager {
         }
 
         OraxenPackUploadEvent uploadEvent = new OraxenPackUploadEvent(hostingProvider);
-        SchedulerUtil.runTask(() -> Bukkit.getPluginManager().callEvent(uploadEvent));
+        SchedulerUtil.runTask(uploadEvent::callEvent);
 
         Message.PACK_UPLOADED.log(
                 AdventureUtils.tagResolver("url", hostingProvider.getPackURL()),

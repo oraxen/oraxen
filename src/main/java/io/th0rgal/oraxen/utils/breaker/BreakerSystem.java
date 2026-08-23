@@ -159,7 +159,7 @@ public class BreakerSystem implements Listener {
                 // Fire PlayerInteractEvent for plugin support (cancellation state is ignored)
                 final PlayerInteractEvent playerInteractEvent =
                     new PlayerInteractEvent(player, Action.LEFT_CLICK_BLOCK, player.getInventory().getItemInMainHand(), block, blockFace, EquipmentSlot.HAND);
-                Bukkit.getPluginManager().callEvent(playerInteractEvent);
+                playerInteractEvent.callEvent();
 
                 // If the relevant damage event is cancelled, stop the breaker
                 if (blockDamageEventCancelled(block, player)) {
@@ -302,21 +302,21 @@ public class BreakerSystem implements Listener {
                 NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
                 if (mechanic == null) return true;
                 OraxenNoteBlockDamageEvent event = new OraxenNoteBlockDamageEvent(mechanic, block, player);
-                Bukkit.getPluginManager().callEvent(event);
+                event.callEvent();
                 return event.isCancelled();
             }
             case TRIPWIRE -> {
                 StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
                 if (mechanic == null) return true;
                 OraxenStringBlockDamageEvent event = new OraxenStringBlockDamageEvent(mechanic, block, player);
-                Bukkit.getPluginManager().callEvent(event);
+                event.callEvent();
                 return event.isCancelled();
             }
             case CHORUS_PLANT -> {
                 ChorusBlockMechanic mechanic = OraxenBlocks.getChorusMechanic(block);
                 if (mechanic == null) return true;
                 OraxenChorusBlockDamageEvent event = new OraxenChorusBlockDamageEvent(mechanic, block, player);
-                Bukkit.getPluginManager().callEvent(event);
+                event.callEvent();
                 return event.isCancelled();
             }
             case BARRIER -> {
@@ -325,7 +325,7 @@ public class BreakerSystem implements Listener {
                 Entity baseEntity = mechanic.getBaseEntity(block);
                 if (baseEntity == null) return true;
                 OraxenFurnitureDamageEvent event = new OraxenFurnitureDamageEvent(mechanic, baseEntity, player, block);
-                Bukkit.getPluginManager().callEvent(event);
+                event.callEvent();
                 return event.isCancelled();
             }
             case BEDROCK -> { // For BedrockBreakMechanic

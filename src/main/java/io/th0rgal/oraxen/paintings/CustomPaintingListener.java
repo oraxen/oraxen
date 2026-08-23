@@ -139,7 +139,7 @@ public class CustomPaintingListener implements Listener {
             if (!painting.setArt(art, true)) return false;
 
             HangingPlaceEvent placeEvent = new HangingPlaceEvent(painting, player, clickedBlock, face, hand, item);
-            OraxenPlugin.get().getServer().getPluginManager().callEvent(placeEvent);
+            placeEvent.callEvent();
             if (placeEvent.isCancelled()) return false;
 
             location.getWorld().addEntity(painting);

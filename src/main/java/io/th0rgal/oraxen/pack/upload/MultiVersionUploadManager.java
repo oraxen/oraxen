@@ -192,7 +192,7 @@ public class MultiVersionUploadManager {
         // not whatever the shared provider holds when the main thread processes it.
         HostingProvider snapshot = new HostingProviderSnapshot(url, sha1, provider.getOriginalSHA1(), uuid);
         OraxenPackUploadEvent uploadEvent = new OraxenPackUploadEvent(snapshot);
-        SchedulerUtil.runTask(() -> Bukkit.getPluginManager().callEvent(uploadEvent));
+        SchedulerUtil.runTask(uploadEvent::callEvent);
 
         Logs.logSuccess("  Uploaded: " + packVersion.getMinecraftVersion() + " -> " + url);
     }

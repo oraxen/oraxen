@@ -37,7 +37,7 @@ public class ReloadCommand {
         sendReloadMessage(sender, ITEMS_RELOAD);
         OraxenItems.loadItems();
         OraxenPlugin.get().getInvManager().regen();
-        Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent());
+        new OraxenItemsLoadedEvent().callEvent();
 
         if (Settings.UPDATE_ITEMS.toBool() && Settings.UPDATE_ITEMS_ON_RELOAD.toBool()) {
             Message.UPDATING_USER_ITEMS.log();

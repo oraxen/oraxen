@@ -14,7 +14,6 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.oraxen.protection.AntiGriefLib;
 import org.jetbrains.annotations.Nullable;
 import org.apache.commons.lang3.Range;
-import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -412,7 +411,7 @@ public class ShapedBlockMechanicListener implements Listener {
         BlockPlaceEvent placeEvent = new BlockPlaceEvent(
             targetBlock, replacedState, clickedBlock, item, player, true, EquipmentSlot.HAND
         );
-        Bukkit.getPluginManager().callEvent(placeEvent);
+        placeEvent.callEvent();
 
         if (placeEvent.isCancelled()) {
             revertPlacement(targetBlock, shapedMechanic, replacedState);

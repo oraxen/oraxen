@@ -210,7 +210,7 @@ public class FurnitureListener implements Listener {
             Message.NOT_ENOUGH_SPACE.send(player);
         }
 
-        Bukkit.getPluginManager().callEvent(blockPlaceEvent);
+        blockPlaceEvent.callEvent();
         if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
             block.setBlockData(currentBlockData);
             return;

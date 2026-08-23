@@ -186,7 +186,7 @@ public class OraxenPlugin extends JavaPlugin {
         // Runs synchronous HTTP requests; keep it off the enable path so a stalled
         // connection cannot block startup.
         SchedulerUtil.runTaskAsync(this, () -> new LU().l());
-        SchedulerUtil.runTask(this, () -> Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent()));
+        SchedulerUtil.runTask(this, () -> new OraxenItemsLoadedEvent().callEvent());
 
         // Auto-generate schema in debug mode (useful for CI/CD)
         if (Settings.DEBUG.toBool()) {
