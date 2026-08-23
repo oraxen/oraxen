@@ -1,14 +1,14 @@
 package io.th0rgal.oraxen.mechanics.provided.combat.spell.energyblast;
 
-import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.protection.AntiGriefLib;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.VectorUtils;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.timers.Timer;
 import io.th0rgal.oraxen.utils.wrappers.ParticleWrapper;
-import io.th0rgal.oraxen.protection.AntiGriefLib;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -22,8 +22,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
@@ -121,10 +119,7 @@ public class EnergyBlastMechanicManager implements Listener {
                             // Use entity scheduler for damage on Folia (entity may be in different region)
                             SchedulerUtil.runForEntity(livingEntity, () -> {
                                 if (livingEntity.isDead()) return;
-                                EntityDamageByEntityEvent event = new EntityDamageByEntityEvent(player, entity, EntityDamageEvent.DamageCause.MAGIC, DamageSource.builder(DamageType.MAGIC).build(), mechanic.getDamage() * 3.0);
-                                if (!event.callEvent()) return;
-                                entity.setLastDamageCause(event);
-                                livingEntity.damage(mechanic.getDamage() * 3.0, player);
+                                applyDamage(livingEntity, player, mechanic.getDamage() * 3.0);
                             });
                         }
                     }
@@ -137,10 +132,7 @@ public class EnergyBlastMechanicManager implements Listener {
                         // Use entity scheduler for damage on Folia (entity may be in different region)
                         SchedulerUtil.runForEntity(livingEntity, () -> {
                             if (livingEntity.isDead()) return;
-                            EntityDamageByEntityEvent event = new EntityDamageByEntityEvent(player, entity, EntityDamageEvent.DamageCause.MAGIC, DamageSource.builder(DamageType.MAGIC).build(), mechanic.getDamage());
-                            if (!event.callEvent()) return;
-                            livingEntity.setLastDamageCause(event);
-                            livingEntity.damage(mechanic.getDamage(), player);
+                            applyDamage(livingEntity, player, mechanic.getDamage());
                         });
                     }
                 }
@@ -149,6 +141,18 @@ public class EnergyBlastMechanicManager implements Listener {
             }
         };
         SchedulerUtil.runAtLocation(playerLoc.clone(), step);
+    }
+
+    private void applyDamage(LivingEntity livingEntity, Player player, double amount) {
+        if (VersionUtil.atOrAbove("1.20.4")) {
+            DamageSource source = DamageSource.builder(DamageType.MAGIC)
+                    .withCausingEntity(player)
+                    .withDirectEntity(player)
+                    .build();
+            livingEntity.damage(amount, source);
+        } else {
+            livingEntity.damage(amount, player);
+        }
     }
 
     private void spawnParticle(World world, Location location, EnergyBlastMechanic mechanic) {
