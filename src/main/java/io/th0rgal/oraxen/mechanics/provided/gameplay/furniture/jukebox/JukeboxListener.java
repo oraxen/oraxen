@@ -29,6 +29,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Locale;
 
 public class JukeboxListener implements Listener {
@@ -49,27 +50,21 @@ public class JukeboxListener implements Listener {
             return;
         player.swingMainHand();
 
-        String displayName = null;
-        Component displayNameComponent = null;
+        Component displayName = null;
         if (itemStack.hasItemMeta()) {
             assert itemStack.getItemMeta() != null;
-            if (itemStack.getItemMeta().hasLore()) {
-                assert itemStack.getItemMeta().getLore() != null;
-                displayName = itemStack.getItemMeta().getLore().get(0);
-            } else if (OraxenItems.exists(itemStack) && itemStack.getItemMeta().hasDisplayName()) {
-                displayNameComponent = itemStack.getItemMeta().displayName();
+            ItemMeta itemMeta = itemStack.getItemMeta();
+            List<Component> lore = itemMeta.lore();
+            if (lore != null && !lore.isEmpty()) {
+                displayName = lore.get(0);
+            } else if (OraxenItems.exists(itemStack) && itemMeta.hasDisplayName()) {
+                displayName = itemMeta.displayName();
             }
         }
 
-        Component message = null;
         if (displayName != null) {
-            message = AdventureUtils.MINI_MESSAGE.deserialize(
+            Component message = AdventureUtils.MINI_MESSAGE.deserialize(
                     Message.MECHANICS_JUKEBOX_NOW_PLAYING.toString(), AdventureUtils.tagResolver("disc", displayName));
-        } else if (displayNameComponent != null) {
-            message = AdventureUtils.MINI_MESSAGE.deserialize(
-                    Message.MECHANICS_JUKEBOX_NOW_PLAYING.toString(), AdventureUtils.tagResolver("disc", displayNameComponent));
-        }
-        if (message != null) {
             AdventureUtils.sendActionBar(player, message);
         }
 
