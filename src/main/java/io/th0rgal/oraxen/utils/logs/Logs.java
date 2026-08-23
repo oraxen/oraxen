@@ -55,26 +55,26 @@ public class Logs {
 
     public static void debug(Object object) {
         if (Settings.DEBUG.toBool()) {
-            Bukkit.broadcastMessage(String.valueOf(object));
+            Bukkit.broadcast(AdventureUtils.LEGACY_SERIALIZER.deserialize(String.valueOf(object)), "bukkit.broadcast.user");
         }
     }
 
     public static void debug(Object object, String prefix) {
         if (Settings.DEBUG.toBool()) {
-            Bukkit.broadcastMessage(prefix + object);
+            Bukkit.broadcast(AdventureUtils.LEGACY_SERIALIZER.deserialize(prefix + object), "bukkit.broadcast.user");
         }
     }
 
     public static <T> T debugVal(T object) {
         if (Settings.DEBUG.toBool()) {
-            Bukkit.broadcastMessage(String.valueOf(object));
+            Bukkit.broadcast(AdventureUtils.LEGACY_SERIALIZER.deserialize(String.valueOf(object)), "bukkit.broadcast.user");
         }
         return object;
     }
 
     public static <T> T debugVal(T object, String prefix) {
         if (Settings.DEBUG.toBool()) {
-            Bukkit.broadcastMessage(prefix + object);
+            Bukkit.broadcast(AdventureUtils.LEGACY_SERIALIZER.deserialize(prefix + object), "bukkit.broadcast.user");
         }
         return object;
     }
