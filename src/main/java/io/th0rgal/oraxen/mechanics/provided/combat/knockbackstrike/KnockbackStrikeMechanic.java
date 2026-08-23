@@ -201,26 +201,18 @@ public class KnockbackStrikeMechanic extends Mechanic {
 
     @Nullable
     private Sound parseSound(String soundName) {
-        try {
-            // Try direct valueOf first
-            return Sound.valueOf(soundName.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            Sound fallback = getSafeFallbackSound();
-            if (fallback != null) {
-                Logs.logWarning("Invalid sound type: " + soundName + ", using fallback sound");
-            } else {
-                Logs.logWarning("Invalid sound type: " + soundName + ", disabling KnockbackStrike sound");
-            }
-            return fallback;
-        } catch (IncompatibleClassChangeError e) {
-            // Handle version compatibility issues with Sound.valueOf() (includes NoSuchMethodError)
-            Logs.logWarning("Sound compatibility issue with " + soundName + ", using fallback sound");
-            return getSafeFallbackSound();
-        } catch (Exception e) {
-            Logs.logError("Unexpected error parsing sound " + soundName + ": " + e.getMessage());
-            e.printStackTrace();
-            return getSafeFallbackSound();
+        Sound sound = resolveSound(soundName);
+        if (sound != null) {
+            return sound;
         }
+
+        Sound fallback = getSafeFallbackSound();
+        if (fallback != null) {
+            Logs.logWarning("Invalid sound type: " + soundName + ", using fallback sound");
+        } else {
+            Logs.logWarning("Invalid sound type: " + soundName + ", disabling KnockbackStrike sound");
+        }
+        return fallback;
     }
 
     /**
@@ -236,38 +228,32 @@ public class KnockbackStrikeMechanic extends Mechanic {
         };
 
         for (String candidate : candidates) {
-            Sound parsed = tryParseSound(candidate);
+            Sound parsed = resolveSound(candidate);
             if (parsed != null) return parsed;
         }
 
         return null;
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
     @Nullable
-    private Sound tryParseSound(String soundName) {
-        try {
-            return Sound.valueOf(soundName);
-        } catch (IllegalArgumentException | IncompatibleClassChangeError ignored) {
-            // Try other compatibility paths below
-        }
-
-        try {
-            return Registry.SOUNDS.get(NamespacedKey.minecraft(soundName.toLowerCase(Locale.ROOT)));
-        } catch (Throwable ignored) {
-            // Registry API not available on this runtime
-        }
-
-        try {
-            if (Sound.class.isEnum()) {
-                Class enumClass = (Class) Sound.class;
-                return (Sound) Enum.valueOf(enumClass, soundName);
+    private Sound resolveSound(String soundName) {
+        String normalized = soundName.trim().toLowerCase(Locale.ROOT);
+        if (!normalized.contains(":") && !normalized.contains(".")) {
+            try {
+                Object constant = Sound.class.getField(normalized.toUpperCase(Locale.ROOT)).get(null);
+                if (constant instanceof Sound sound) return sound;
+            } catch (ReflectiveOperationException ignored) {
+                // Not a legacy enum-style sound name; try it as a registry key.
             }
-        } catch (Throwable ignored) {
-            // Sound is not enum on this runtime or constant is missing
         }
 
-        return null;
+        String key = normalized.contains(":") ? normalized : "minecraft:" + normalized;
+        try {
+            NamespacedKey namespacedKey = NamespacedKey.fromString(key);
+            return namespacedKey == null ? null : Registry.SOUNDS.get(namespacedKey);
+        } catch (IllegalArgumentException ignored) {
+            return null;
+        }
     }
 
     /**
