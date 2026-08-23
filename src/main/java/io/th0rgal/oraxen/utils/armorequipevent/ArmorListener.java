@@ -13,6 +13,7 @@ import org.bukkit.event.inventory.InventoryType.SlotType;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemBreakEvent;
 import org.bukkit.inventory.*;
+import org.bukkit.inventory.meta.Damageable;
 
 import java.util.List;
 import java.util.Objects;
@@ -161,7 +162,10 @@ public class ArmorListener implements Listener {
 
         ItemStack i = event.getBrokenItem().clone();
         i.setAmount(1);
-        i.setDurability((short) (i.getDurability() - 1));
+        if (i.getItemMeta() instanceof Damageable damageable) {
+            damageable.setDamage(damageable.getDamage() - 1);
+            i.setItemMeta(damageable);
+        }
         if (type.equals(ArmorType.HELMET)) {
             player.getInventory().setHelmet(i);
         } else if (type.equals(ArmorType.CHESTPLATE)) {
