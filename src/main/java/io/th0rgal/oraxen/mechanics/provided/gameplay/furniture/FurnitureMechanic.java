@@ -29,6 +29,7 @@ import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import net.kyori.adventure.text.Component;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -740,7 +741,7 @@ public class FurnitureMechanic extends Mechanic {
 
         ItemStack item = OraxenItems.getOptionalItemById(placedItemId).map(b -> b.build().clone()).orElse(originalItem.clone());
         if (evolvingFurniture == null) {
-            ItemUtils.editItemMeta(item, meta -> meta.setDisplayName(""));
+            ItemUtils.editItemMeta(item, meta -> meta.displayName(Component.empty()));
         }
         item.setAmount(1);
 
@@ -1119,7 +1120,7 @@ public class FurnitureMechanic extends Mechanic {
                         .map(b -> b.build().clone())
                         .orElse(null);
                 if (baseItem != null) {
-                    ItemUtils.editItemMeta(baseItem, meta -> meta.setDisplayName(""));
+                    ItemUtils.editItemMeta(baseItem, meta -> meta.displayName(Component.empty()));
                     setFurnitureItem(entity, baseItem);
                 }
                 return;
@@ -1138,7 +1139,7 @@ public class FurnitureMechanic extends Mechanic {
                         .map(b -> b.build().clone())
                         .orElse(null);
                 if (legacyItem != null) {
-                    ItemUtils.editItemMeta(legacyItem, meta -> meta.setDisplayName(""));
+                    ItemUtils.editItemMeta(legacyItem, meta -> meta.displayName(Component.empty()));
                     setFurnitureItem(entity, legacyItem);
                     return;
                 }

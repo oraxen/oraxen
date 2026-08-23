@@ -300,7 +300,7 @@ public class StorageMechanic {
                     ItemMeta shulkerMeta = shulker.getItemMeta();
                     if (shulkerMeta != null) {
                         shulkerMeta.getPersistentDataContainer().set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, items);
-                        shulkerMeta.setDisplayName(defaultItem.getItemMeta() != null ? defaultItem.getItemMeta().getDisplayName() : null);
+                        shulkerMeta.displayName(defaultItem.getItemMeta() != null ? defaultItem.getItemMeta().displayName() : null);
                         shulker.setItemMeta(shulkerMeta);
                     }
                     baseEntity.getWorld().dropItemNaturally(baseEntity.getLocation(), shulker);

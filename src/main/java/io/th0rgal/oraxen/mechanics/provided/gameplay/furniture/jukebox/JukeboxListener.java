@@ -50,19 +50,26 @@ public class JukeboxListener implements Listener {
         player.swingMainHand();
 
         String displayName = null;
+        Component displayNameComponent = null;
         if (itemStack.hasItemMeta()) {
             assert itemStack.getItemMeta() != null;
             if (itemStack.getItemMeta().hasLore()) {
                 assert itemStack.getItemMeta().getLore() != null;
                 displayName = itemStack.getItemMeta().getLore().get(0);
             } else if (OraxenItems.exists(itemStack) && itemStack.getItemMeta().hasDisplayName()) {
-                displayName = itemStack.getItemMeta().getDisplayName();
+                displayNameComponent = itemStack.getItemMeta().displayName();
             }
         }
 
+        Component message = null;
         if (displayName != null) {
-            Component message = AdventureUtils.MINI_MESSAGE.deserialize(
-                Message.MECHANICS_JUKEBOX_NOW_PLAYING.toString(), AdventureUtils.tagResolver("disc", displayName));
+            message = AdventureUtils.MINI_MESSAGE.deserialize(
+                    Message.MECHANICS_JUKEBOX_NOW_PLAYING.toString(), AdventureUtils.tagResolver("disc", displayName));
+        } else if (displayNameComponent != null) {
+            message = AdventureUtils.MINI_MESSAGE.deserialize(
+                    Message.MECHANICS_JUKEBOX_NOW_PLAYING.toString(), AdventureUtils.tagResolver("disc", displayNameComponent));
+        }
+        if (message != null) {
             AdventureUtils.sendActionBar(player, message);
         }
 

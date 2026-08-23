@@ -147,8 +147,9 @@ public class FontEvents implements Listener {
 
         // If displayName is unchanged from input or empty, restore original name
         ItemMeta inputMeta = inputItem.getItemMeta();
-        String inputDisplayName = inputMeta != null && inputMeta.hasDisplayName() ? inputMeta.getDisplayName() : "";
-        String strippedInput = MINI_MESSAGE.stripTags(AdventureUtils.parseLegacy(inputDisplayName));
+        String strippedInput = inputMeta != null && inputMeta.hasDisplayName()
+                ? AdventureUtils.PLAIN_TEXT.serialize(inputMeta.displayName())
+                : "";
         if (((displayName == null || displayName.isEmpty()) && OraxenItems.exists(inputItem))
                 || strippedInput.equals(displayName)) {
             return inputMeta != null ? inputMeta.getPersistentDataContainer().get(ORIGINAL_NAME_KEY, PersistentDataType.STRING) : null;

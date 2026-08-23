@@ -129,7 +129,8 @@ public class InfoCommand {
             }
             if (meta.hasDisplayName()) {
                 AdventureUtils.sendMessage(sender, AdventureUtils.MINI_MESSAGE
-                        .deserialize("<gray>DisplayName ⏵ <white>" + meta.getDisplayName()));
+                        .deserialize("<gray>DisplayName ⏵ <white>")
+                        .append(meta.displayName()));
             }
         }
 

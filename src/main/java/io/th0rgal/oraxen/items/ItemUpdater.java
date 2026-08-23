@@ -660,8 +660,8 @@ public class ItemUpdater implements Listener {
                         ? AdventureUtils.MINI_MESSAGE.serialize(newMeta.displayName())
                         : null;
                 if (originalName != null) itemPdc.set(ORIGINAL_NAME_KEY, DataType.STRING, originalName);
-            } else { // Set the displayName/customName if it exists on an item before
-                if (newMeta.hasDisplayName() && !newMeta.getDisplayName().isEmpty()) {
+            } else { // Set the displayName if it exists on an item before
+                if (newMeta.hasDisplayName() && !AdventureUtils.PLAIN_TEXT.serialize(newMeta.displayName()).isEmpty()) {
                     itemMeta.displayName(newMeta.displayName());
                 } else {
                     itemMeta.displayName(oldMeta.displayName());
