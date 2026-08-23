@@ -181,8 +181,8 @@ public class Drop {
         ItemStack furnitureItem = sourceID.equals(OraxenItems.getIdByItem(placedItem)) ? placedItem : baseItem;
         ItemUtils.editItemMeta(furnitureItem, (itemMeta) -> {
             ItemMeta baseMeta = baseItem.getItemMeta();
-            if (baseMeta != null && baseMeta.hasDisplayName())
-                itemMeta.displayName(baseMeta.displayName());
+            if (baseMeta != null && ItemUtils.hasDisplayName(baseMeta))
+                ItemUtils.setDisplayName(itemMeta, ItemUtils.getDisplayName(baseMeta));
         });
 
         if (!canDrop(itemInHand) || !location.isWorldLoaded()) return;

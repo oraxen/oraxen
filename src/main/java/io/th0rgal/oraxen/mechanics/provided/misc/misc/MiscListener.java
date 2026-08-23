@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.misc.misc;
 
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.protection.AntiGriefLib;
@@ -54,7 +55,7 @@ public class MiscListener implements Listener {
 
         // Only cancel when the user actually typed a rename. Repair/enchant operations leave
         // renameText empty (or matching the original plain-text display name) and must go through.
-        // Use ItemMeta.displayName() rather than ItemStack.displayName(): the latter wraps the
+        // Use the item-meta name rather than ItemStack.displayName(): the latter wraps the
         // name in square brackets ([Cool Sword]) but the anvil view returns the raw text,
         // so comparing against the bracketed form would never match.
         String renameText = VersionUtil.atOrAbove("1.21.1")
@@ -63,8 +64,8 @@ public class MiscListener implements Listener {
         if (renameText == null || renameText.isEmpty()) return;
 
         ItemMeta inputMeta = inputItem.getItemMeta();
-        if (inputMeta != null && inputMeta.hasDisplayName()) {
-            String inputPlain = AdventureUtils.PLAIN_TEXT.serialize(inputMeta.displayName());
+        if (inputMeta != null && ItemUtils.hasDisplayName(inputMeta)) {
+            String inputPlain = AdventureUtils.PLAIN_TEXT.serialize(ItemUtils.getDisplayName(inputMeta));
             if (renameText.equals(inputPlain)) return;
         }
 

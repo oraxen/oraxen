@@ -643,28 +643,28 @@ public class ItemUpdater implements Listener {
             // On 1.20.5+ we use ItemName which is different from userchanged displaynames
             if (!VersionUtil.atOrAbove("1.20.5")) {
 
-                String oldDisplayName = oldMeta.hasDisplayName()
-                        ? AdventureUtils.parseLegacy(AdventureUtils.MINI_MESSAGE.serialize(oldMeta.displayName()))
+                String oldDisplayName = ItemUtils.hasDisplayName(oldMeta)
+                        ? AdventureUtils.parseLegacy(AdventureUtils.MINI_MESSAGE.serialize(ItemUtils.getDisplayName(oldMeta)))
                         : null;
                 String originalName = AdventureUtils.parseLegacy(oldPdc.getOrDefault(ORIGINAL_NAME_KEY, DataType.STRING, ""));
 
                 if (Settings.OVERRIDE_RENAMED_ITEMS.toBool()) {
-                    itemMeta.displayName(newMeta.displayName());
+                    ItemUtils.setDisplayName(itemMeta, ItemUtils.getDisplayName(newMeta));
                 } else if (!originalName.equals(oldDisplayName)) {
-                    itemMeta.displayName(oldMeta.displayName());
+                    ItemUtils.setDisplayName(itemMeta, ItemUtils.getDisplayName(oldMeta));
                 } else {
-                    itemMeta.displayName(newMeta.displayName());
+                    ItemUtils.setDisplayName(itemMeta, ItemUtils.getDisplayName(newMeta));
                 }
 
-                originalName = newMeta.hasDisplayName()
-                        ? AdventureUtils.MINI_MESSAGE.serialize(newMeta.displayName())
+                originalName = ItemUtils.hasDisplayName(newMeta)
+                        ? AdventureUtils.MINI_MESSAGE.serialize(ItemUtils.getDisplayName(newMeta))
                         : null;
                 if (originalName != null) itemPdc.set(ORIGINAL_NAME_KEY, DataType.STRING, originalName);
             } else { // Set the displayName if it exists on an item before
-                if (newMeta.hasDisplayName() && !AdventureUtils.PLAIN_TEXT.serialize(newMeta.displayName()).isEmpty()) {
-                    itemMeta.displayName(newMeta.displayName());
+                if (ItemUtils.hasDisplayName(newMeta) && !AdventureUtils.PLAIN_TEXT.serialize(ItemUtils.getDisplayName(newMeta)).isEmpty()) {
+                    ItemUtils.setDisplayName(itemMeta, ItemUtils.getDisplayName(newMeta));
                 } else {
-                    itemMeta.displayName(oldMeta.displayName());
+                    ItemUtils.setDisplayName(itemMeta, ItemUtils.getDisplayName(oldMeta));
                 }
             }
 

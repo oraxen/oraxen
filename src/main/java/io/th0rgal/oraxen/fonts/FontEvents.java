@@ -133,7 +133,7 @@ public class FontEvents implements Listener {
 
         String finalDisplayName = displayName;
         ItemUtils.editItemMeta(resultItem, meta ->
-                meta.displayName(finalDisplayName == null ? null : MINI_MESSAGE.deserialize(finalDisplayName)));
+                ItemUtils.setDisplayName(meta, finalDisplayName == null ? null : MINI_MESSAGE.deserialize(finalDisplayName)));
     }
 
     private String processRenameDisplayName(Player player, String displayName, ItemStack inputItem) {
@@ -147,8 +147,8 @@ public class FontEvents implements Listener {
 
         // If displayName is unchanged from input or empty, restore original name
         ItemMeta inputMeta = inputItem.getItemMeta();
-        String strippedInput = inputMeta != null && inputMeta.hasDisplayName()
-                ? AdventureUtils.PLAIN_TEXT.serialize(inputMeta.displayName())
+        String strippedInput = inputMeta != null && ItemUtils.hasDisplayName(inputMeta)
+                ? AdventureUtils.PLAIN_TEXT.serialize(ItemUtils.getDisplayName(inputMeta))
                 : "";
         if (((displayName == null || displayName.isEmpty()) && OraxenItems.exists(inputItem))
                 || strippedInput.equals(displayName)) {

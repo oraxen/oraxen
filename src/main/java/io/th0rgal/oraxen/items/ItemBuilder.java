@@ -210,8 +210,8 @@ public class ItemBuilder {
             patternColor = tropicalFishBucketMeta.getPatternColor();
         }
 
-        if (itemMeta.hasDisplayName())
-            displayName = AdventureUtils.MINI_MESSAGE.serialize(itemMeta.displayName());
+        if (ItemUtils.hasDisplayName(itemMeta))
+            displayName = AdventureUtils.MINI_MESSAGE.serialize(ItemUtils.getDisplayName(itemMeta));
 
         unbreakable = itemMeta.isUnbreakable();
         unstackable = itemMeta.getPersistentDataContainer().has(UNSTACKABLE_KEY, DataType.UUID);
@@ -994,7 +994,7 @@ public class ItemBuilder {
         Component nameComponent = buildDisplayNameComponent();
         nameComponent = nameComponent.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)
                 .colorIfAbsent(NamedTextColor.WHITE);
-        itemMeta.displayName(nameComponent);
+        ItemUtils.setDisplayName(itemMeta, nameComponent);
     }
 
     private Component buildDisplayNameComponent() {

@@ -54,8 +54,8 @@ public class MusicDiscListener implements Listener {
         if (itemStack.hasItemMeta()) {
             if (VersionUtil.atOrAbove("1.20.5") && itemStack.getItemMeta().hasItemName()) {
                 discName = itemStack.getItemMeta().itemName();
-            } else if (itemStack.getItemMeta().hasDisplayName()) {
-                discName = itemStack.getItemMeta().displayName();
+            } else if (ItemUtils.hasDisplayName(itemStack.getItemMeta())) {
+                discName = ItemUtils.getDisplayName(itemStack.getItemMeta());
             }
         }
         if (discName == null) discName = Component.empty();

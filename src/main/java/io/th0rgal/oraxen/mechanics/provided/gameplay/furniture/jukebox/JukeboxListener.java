@@ -57,8 +57,8 @@ public class JukeboxListener implements Listener {
             List<Component> lore = itemMeta.lore();
             if (lore != null && !lore.isEmpty()) {
                 displayName = lore.get(0);
-            } else if (OraxenItems.exists(itemStack) && itemMeta.hasDisplayName()) {
-                displayName = itemMeta.displayName();
+            } else if (OraxenItems.exists(itemStack) && ItemUtils.hasDisplayName(itemMeta)) {
+                displayName = ItemUtils.getDisplayName(itemMeta);
             }
         }
 

@@ -13,6 +13,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import net.kyori.adventure.sound.Sound;
 import org.bukkit.Location;
@@ -300,7 +301,9 @@ public class StorageMechanic {
                     ItemMeta shulkerMeta = shulker.getItemMeta();
                     if (shulkerMeta != null) {
                         shulkerMeta.getPersistentDataContainer().set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, items);
-                        shulkerMeta.displayName(defaultItem.getItemMeta() != null ? defaultItem.getItemMeta().displayName() : null);
+                        ItemMeta defaultMeta = defaultItem.getItemMeta();
+                        ItemUtils.setDisplayName(shulkerMeta,
+                                defaultMeta != null ? ItemUtils.getDisplayName(defaultMeta) : null);
                         shulker.setItemMeta(shulkerMeta);
                     }
                     baseEntity.getWorld().dropItemNaturally(baseEntity.getLocation(), shulker);

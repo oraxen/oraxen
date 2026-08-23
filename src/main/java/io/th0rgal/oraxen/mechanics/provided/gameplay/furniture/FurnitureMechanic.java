@@ -741,7 +741,7 @@ public class FurnitureMechanic extends Mechanic {
 
         ItemStack item = OraxenItems.getOptionalItemById(placedItemId).map(b -> b.build().clone()).orElse(originalItem.clone());
         if (evolvingFurniture == null) {
-            ItemUtils.editItemMeta(item, meta -> meta.displayName(Component.empty()));
+            ItemUtils.editItemMeta(item, meta -> ItemUtils.setDisplayName(meta, Component.empty()));
         }
         item.setAmount(1);
 
@@ -1120,7 +1120,7 @@ public class FurnitureMechanic extends Mechanic {
                         .map(b -> b.build().clone())
                         .orElse(null);
                 if (baseItem != null) {
-                    ItemUtils.editItemMeta(baseItem, meta -> meta.displayName(Component.empty()));
+                    ItemUtils.editItemMeta(baseItem, meta -> ItemUtils.setDisplayName(meta, Component.empty()));
                     setFurnitureItem(entity, baseItem);
                 }
                 return;
@@ -1139,7 +1139,7 @@ public class FurnitureMechanic extends Mechanic {
                         .map(b -> b.build().clone())
                         .orElse(null);
                 if (legacyItem != null) {
-                    ItemUtils.editItemMeta(legacyItem, meta -> meta.displayName(Component.empty()));
+                    ItemUtils.editItemMeta(legacyItem, meta -> ItemUtils.setDisplayName(meta, Component.empty()));
                     setFurnitureItem(entity, legacyItem);
                     return;
                 }
