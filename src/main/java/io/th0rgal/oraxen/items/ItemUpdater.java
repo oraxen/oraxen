@@ -9,6 +9,7 @@ import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.nms.NMSHandler;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.CustomModelDataHelper;
 import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.VersionUtil;
@@ -551,8 +552,10 @@ public class ItemUpdater implements Listener {
                     itemMeta.addEnchant(entry.getKey(), entry.getValue(), true);
             }
 
-            Integer cmd = newMeta.hasCustomModelData() ? (Integer) newMeta.getCustomModelData() : oldMeta.hasCustomModelData() ? (Integer) oldMeta.getCustomModelData() : null;
-            itemMeta.setCustomModelData(cmd);
+            Integer cmd = CustomModelDataHelper.getCustomModelData(newMeta);
+            if (cmd == null)
+                cmd = CustomModelDataHelper.getCustomModelData(oldMeta);
+            CustomModelDataHelper.setCustomModelData(itemMeta, cmd);
 
             // If OraxenItem has no lore, we should assume that 3rd-party plugin has added lore
             if (Settings.OVERRIDE_ITEM_LORE.toBool()) {

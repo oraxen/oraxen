@@ -235,25 +235,15 @@ public class ItemBuilder {
             }
         }
 
-        customModelData = itemMeta.hasCustomModelData() ? itemMeta.getCustomModelData() : null;
+        customModelData = CustomModelDataHelper.getCustomModelData(itemMeta);
 
-        // 1.21.4+: capture custom_model_data component data if present (best-effort)
-        if (VersionUtil.atOrAbove("1.21.4")) {
-            try {
-                CustomModelDataComponent cmd = itemMeta.getCustomModelDataComponent();
-                if (cmd != null) {
-                    if (cmd.getStrings() != null && !cmd.getStrings().isEmpty()) {
-                        customModelDataStrings = new ArrayList<>(cmd.getStrings());
-                    }
-                    if (cmd.getFloats() != null && !cmd.getFloats().isEmpty()) {
-                        customModelDataFloats = new ArrayList<>(cmd.getFloats());
-                    }
-                }
-            } catch (NoSuchMethodError ignored) {
-                // Running on an API/server without the component accessors
-            } catch (Throwable ignored) {
-                // Be resilient across forks/versions
-            }
+        CustomModelDataHelper.ComponentData customModelDataComponent =
+                CustomModelDataHelper.getComponentData(itemMeta);
+        if (customModelDataComponent != null) {
+            if (!customModelDataComponent.strings().isEmpty())
+                customModelDataStrings = new ArrayList<>(customModelDataComponent.strings());
+            if (!customModelDataComponent.floats().isEmpty())
+                customModelDataFloats = new ArrayList<>(customModelDataComponent.floats());
         }
 
         if (itemMeta.hasLore())
@@ -1081,28 +1071,8 @@ public class ItemBuilder {
     }
 
     private void applyCustomModelData(ItemMeta itemMeta) {
-        itemMeta.setCustomModelData(customModelData);
-
-        // 1.21.4+: apply custom_model_data component data for modern item definitions
-        if (!VersionUtil.atOrAbove("1.21.4"))
-            return;
-        if (customModelDataStrings == null && customModelDataFloats == null)
-            return;
-
-        try {
-            CustomModelDataComponent cmd = itemMeta.getCustomModelDataComponent();
-            if (cmd != null) {
-                if (customModelDataStrings != null) {
-                    cmd.setStrings(new ArrayList<>(customModelDataStrings));
-                }
-                if (customModelDataFloats != null) {
-                    cmd.setFloats(new ArrayList<>(customModelDataFloats));
-                }
-                itemMeta.setCustomModelDataComponent(cmd);
-            }
-        } catch (Throwable ignored) {
-            // Server/API doesn't support this component accessor
-        }
+        CustomModelDataHelper.setCustomModelData(itemMeta, customModelData);
+        CustomModelDataHelper.setComponentData(itemMeta, customModelDataStrings, customModelDataFloats);
     }
 
     @SuppressWarnings("unchecked")

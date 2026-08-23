@@ -14,6 +14,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.shaped.ShapedBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicFactory;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.CustomModelDataHelper;
 import io.th0rgal.oraxen.utils.ItemUtils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -120,9 +121,10 @@ public class InfoCommand {
         if (meta != null) {
             AdventureUtils.sendMessage(sender, AdventureUtils.MINI_MESSAGE.deserialize(""));
             AdventureUtils.sendMessage(sender, AdventureUtils.MINI_MESSAGE.deserialize("<gray>Item Meta"));
-            if (meta.hasCustomModelData()) {
+            Integer customModelData = CustomModelDataHelper.getCustomModelData(meta);
+            if (customModelData != null) {
                 AdventureUtils.sendMessage(sender, AdventureUtils.MINI_MESSAGE
-                        .deserialize("<gray>CustomModelData ⏵ <white>" + meta.getCustomModelData()));
+                        .deserialize("<gray>CustomModelData ⏵ <white>" + customModelData));
             }
             if (meta.hasItemModel()) {
                 AdventureUtils.sendMessage(sender, AdventureUtils.MINI_MESSAGE
