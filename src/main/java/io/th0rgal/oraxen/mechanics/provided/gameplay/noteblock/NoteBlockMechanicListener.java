@@ -455,7 +455,7 @@ public class NoteBlockMechanicListener implements Listener {
         BlockData fallingData = OraxenBlocks.getOraxenBlockData(mechanic.getItemID());
         if (fallingData == null) return;
         OraxenBlocks.remove(blockAbove.getLocation(), null);
-        blockAbove.getWorld().spawnFallingBlock(fallingLocation, fallingData);
+        blockAbove.getWorld().spawn(fallingLocation, FallingBlock.class, entity -> entity.setBlockData(fallingData));
         handleFallingOraxenBlockAbove(blockAbove);
     }
 
@@ -514,7 +514,7 @@ public class NoteBlockMechanicListener implements Listener {
                 Location fallingLocation = BlockHelpers.toCenterBlockLocation(target.getLocation());
                 OraxenBlocks.remove(target.getLocation(), null);
                 if(fallingLocation.getNearbyEntitiesByType(FallingBlock.class, 0.25).isEmpty())
-                    target.getWorld().spawnFallingBlock(fallingLocation, newData);
+                    target.getWorld().spawn(fallingLocation, FallingBlock.class, entity -> entity.setBlockData(newData));
                 handleFallingOraxenBlockAbove(target);
             }
 

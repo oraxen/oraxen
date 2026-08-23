@@ -414,8 +414,10 @@ public class StringBlockMechanicListener implements Listener {
                     }
 
                     if (fallingLocation.getNearbyEntitiesByType(FallingBlock.class, 0.25).isEmpty()) {
-                        FallingBlock fallingBlock = blockAbove.getWorld().spawnFallingBlock(fallingLocation, aboveBlockData);
-                        fallingBlock.setDropItem(false);
+                        blockAbove.getWorld().spawn(fallingLocation, FallingBlock.class, entity -> {
+                            entity.setBlockData(aboveBlockData);
+                            entity.setDropItem(false);
+                        });
                     }
 
                     // Handle any blocks above that should also fall
@@ -609,7 +611,7 @@ public class StringBlockMechanicListener implements Listener {
         }
 
         if (fallingLocation.getNearbyEntitiesByType(FallingBlock.class, 0.25).isEmpty()) {
-            blockAbove.getWorld().spawnFallingBlock(fallingLocation, blockData);
+            blockAbove.getWorld().spawn(fallingLocation, FallingBlock.class, entity -> entity.setBlockData(blockData));
         }
 
         handleFallingOraxenBlockAbove(blockAbove);
@@ -685,8 +687,10 @@ public class StringBlockMechanicListener implements Listener {
                     OraxenBlocks.remove(target.getLocation(), null);
                     Location fallingLocation = BlockHelpers.toCenterBlockLocation(target.getLocation());
                     if (fallingLocation.getNearbyEntitiesByType(FallingBlock.class, 0.25).isEmpty()) {
-                        FallingBlock fallingBlock = target.getWorld().spawnFallingBlock(fallingLocation, newData);
-                        fallingBlock.setDropItem(false);
+                        target.getWorld().spawn(fallingLocation, FallingBlock.class, entity -> {
+                            entity.setBlockData(newData);
+                            entity.setDropItem(false);
+                        });
                     }
                     handleFallingOraxenBlockAbove(target);
                 }

@@ -397,8 +397,10 @@ public class ChorusBlockMechanicListener implements Listener {
                     OraxenBlocks.remove(blockAbove.getLocation(), null);
 
                     if (fallingLocation.getNearbyEntitiesByType(FallingBlock.class, 0.25).isEmpty()) {
-                        FallingBlock fallingBlock = blockAbove.getWorld().spawnFallingBlock(fallingLocation, aboveBlockData);
-                        fallingBlock.setDropItem(false);
+                        blockAbove.getWorld().spawn(fallingLocation, FallingBlock.class, entity -> {
+                            entity.setBlockData(aboveBlockData);
+                            entity.setDropItem(false);
+                        });
                     }
                     return;
                 }
@@ -595,9 +597,11 @@ public class ChorusBlockMechanicListener implements Listener {
             Block below = target.getRelative(BlockFace.DOWN);
             if (below.getType() == Material.AIR || BlockHelpers.isReplaceable(below.getType())) {
                 target.setType(Material.AIR, false);
-                FallingBlock fallingBlock = target.getWorld().spawnFallingBlock(
-                        target.getLocation().add(0.5, 0, 0.5), newData);
-                fallingBlock.setDropItem(false);
+                target.getWorld().spawn(
+                        target.getLocation().add(0.5, 0, 0.5), FallingBlock.class, entity -> {
+                            entity.setBlockData(newData);
+                            entity.setDropItem(false);
+                        });
             }
         }
 
