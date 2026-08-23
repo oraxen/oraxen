@@ -127,13 +127,13 @@ public class CommandsManager {
     }
 
     private void sendRootHelp(final CommandSender sender) {
-        sender.sendMessage("Oraxen commands");
-        sender.sendMessage("/oraxen inventory - Open the item browser");
-        sender.sendMessage("/oraxen give <player> <item> [amount] - Give an Oraxen item");
-        sender.sendMessage("/oraxen pack <send|msg|extract_default> - Manage the resource pack");
-        sender.sendMessage("/oraxen reload - Reload Oraxen");
-        sender.sendMessage("/oraxen info <item|glyph|block> <id|all> - Show Oraxen info");
-        sender.sendMessage("/oraxen version - Show version information");
+        sender.sendPlainMessage("Oraxen commands");
+        sender.sendPlainMessage("/oraxen inventory - Open the item browser");
+        sender.sendPlainMessage("/oraxen give <player> <item> [amount] - Give an Oraxen item");
+        sender.sendPlainMessage("/oraxen pack <send|msg|extract_default> - Manage the resource pack");
+        sender.sendPlainMessage("/oraxen reload - Reload Oraxen");
+        sender.sendPlainMessage("/oraxen info <item|glyph|block> <id|all> - Show Oraxen info");
+        sender.sendPlainMessage("/oraxen version - Show version information");
     }
 
     private void sendInvalidGiveAmount(final CommandSender sender) {

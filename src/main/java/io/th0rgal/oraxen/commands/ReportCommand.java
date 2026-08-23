@@ -54,7 +54,7 @@ public class ReportCommand {
                     osArch);
 
                 // Send report to sender
-                sender.sendMessage(report);
+                sender.sendPlainMessage(report);
             });
     }
 }
