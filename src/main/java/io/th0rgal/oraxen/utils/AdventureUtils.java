@@ -288,7 +288,7 @@ public class AdventureUtils {
         TagResolver resolver = TagResolver.resolver(GlyphTag.getResolverForPlayer(player), ShiftTag.RESOLVER);
         Component component = GSON_SERIALIZER.deserialize(message.replaceAll("\\\\(?!u)(?!n)(?!\")", ""));
         component = MINI_MESSAGE.deserialize(MINI_MESSAGE.serialize(component).replaceAll("\\\\(?!u)(?!n)(?!\")", ""), resolver);
-        if (player != null) component = GlobalTranslator.render(component, Locale.forLanguageTag(player.getLocale()));
+        if (player != null) component = GlobalTranslator.render(component, player.locale());
         return GSON_SERIALIZER.serialize(component).replaceAll("\\\\(?!u)(?!n)(?!\")", "");
     }
 
