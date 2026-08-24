@@ -4,3 +4,4 @@ Oraxen is a Paper/Folia plugin for versions 1.20.1 through 26.2 that allows admi
 ### Rules
 - All changes must be compatible with Folia.
 - Prefer the modern Paper API over older Bukkit APIs.
+- Variables should be lowercase or camelCase.
