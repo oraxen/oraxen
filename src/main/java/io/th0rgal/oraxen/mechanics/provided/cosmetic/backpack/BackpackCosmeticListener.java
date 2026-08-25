@@ -7,25 +7,29 @@ import io.th0rgal.oraxen.utils.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityDismountEvent;
 import org.bukkit.event.entity.EntityMountEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.EntityToggleGlideEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -38,8 +42,8 @@ public class BackpackCosmeticListener implements Listener {
     private final BackpackCosmeticManager manager;
     private final Set<UUID> hiddenForMovement = ConcurrentHashMap.newKeySet();
     private final Map<UUID, BackpackCosmeticMechanic> hiddenMovementMechanics = new ConcurrentHashMap<>();
-    // Armor stand displays: real armor stand UUID -> display entity ID
-    private final Map<UUID, Integer> armorStandDisplays = new ConcurrentHashMap<>();
+    // Armor stand displays: real armor stand UUID -> display data
+    private final Map<UUID, StandDisplayData> armorStandDisplays = new ConcurrentHashMap<>();
 
     // Movement thresholds to reduce unnecessary updates
     // Without mount packets, we need more frequent updates for smooth following
@@ -56,17 +60,23 @@ public class BackpackCosmeticListener implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
 
-        // Restore packet-based armor stand displays after the player's entities are loaded.
         SchedulerUtil.runTaskLater(5L, () -> {
             checkAndUpdateBackpack(player);
-            restoreArmorStandDisplays(player);
+            // Immediate pass; the periodic refresh below is the safety net that makes
+            // display restoration independent of entity-loading timing on relogin.
+            refreshArmorStandDisplays();
         });
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerQuit(PlayerQuitEvent event) {
-        clearMovementHidden(event.getPlayer().getUniqueId());
-        manager.hideBackpack(event.getPlayer());
+        Player player = event.getPlayer();
+        clearMovementHidden(player.getUniqueId());
+        manager.hideBackpack(player);
+        // Detach the quitting viewer from every armor stand display (client resets anyway)
+        for (StandDisplayData data : armorStandDisplays.values()) {
+            data.getViewers().remove(player.getUniqueId());
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -396,6 +406,11 @@ public class BackpackCosmeticListener implements Listener {
 
     // ──────────────────────────────────────────────
     //  Armor stand display support
+    //
+    //  Mirrors the player-path architecture: displays are tracked with their
+    //  viewer sets and maintained by a periodic refresh, so restoration is
+    //  independent of join/entity-load timing (fixes relogin desyncs where a
+    //  one-shot join restore races the client learning the vehicle entity).
     // ──────────────────────────────────────────────
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -408,9 +423,16 @@ public class BackpackCosmeticListener implements Listener {
         SchedulerUtil.runTaskLater(1L, () -> checkArmorStandDisplay(stand));
     }
 
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onArmorStandDeath(EntityDeathEvent event) {
+        if (event.getEntity() instanceof ArmorStand stand) {
+            removeArmorStandDisplay(stand.getUniqueId());
+        }
+    }
+
     /**
      * Check whether an armor stand's chest slot holds a backpack cosmetic and
-     * spawn or destroy the display entity accordingly.
+     * spawn or destroy the display accordingly.
      */
     private void checkArmorStandDisplay(ArmorStand stand) {
         if (!stand.isValid()) {
@@ -422,8 +444,12 @@ public class BackpackCosmeticListener implements Listener {
         BackpackCosmeticMechanic mechanic = getBackpackMechanic(chestItem);
 
         if (mechanic != null) {
-            // Item is a backpack cosmetic — spawn (or refresh) the display
-            spawnArmorStandDisplay(stand, mechanic, chestItem);
+            // Item is a backpack cosmetic — ensure a display exists (fresh entity id
+            // whenever the mechanic/item changed) and spawn for everyone in range.
+            StandDisplayData data = ensureStandDisplay(stand, mechanic, chestItem);
+            for (Player viewer : stand.getWorld().getPlayers()) {
+                spawnArmorStandDisplayForViewer(viewer, stand, data);
+            }
         } else {
             // No backpack item — remove any existing display
             removeArmorStandDisplay(stand.getUniqueId());
@@ -431,79 +457,187 @@ public class BackpackCosmeticListener implements Listener {
     }
 
     /**
-     * Spawn a packet-based invisible armor stand that renders the backpack
-     * model, mounted as a passenger on the real armor stand so it follows
-     * position and rotation automatically.
+     * Get the tracked display for this stand, recreating it when absent or when
+     * the mechanic/display item changed. Recreating issues a fresh entity id,
+     * which avoids stale ghost entities on clients that saw the old display.
      */
-    private void spawnArmorStandDisplay(ArmorStand stand, BackpackCosmeticMechanic mechanic, ItemStack displayItem) {
-        UUID standId = stand.getUniqueId();
-        // Remove existing display first
-        removeArmorStandDisplay(standId);
+    private StandDisplayData ensureStandDisplay(ArmorStand stand, BackpackCosmeticMechanic mechanic, ItemStack displayItem) {
+        StandDisplayData data = armorStandDisplays.get(stand.getUniqueId());
+        if (data != null && data.getMechanic() == mechanic && displayItem.isSimilar(data.getDisplayItem())) {
+            return data;
+        }
+        removeArmorStandDisplay(stand.getUniqueId());
 
-        int displayEntityId = NMSHandlers.getHandler().getNextEntityId();
-        armorStandDisplays.put(standId, displayEntityId);
+        data = new StandDisplayData(NMSHandlers.getHandler().getNextEntityId(), stand.getUniqueId(), mechanic, displayItem);
+        armorStandDisplays.put(stand.getUniqueId(), data);
+        return data;
+    }
 
-        // Spawn for all nearby players
-        for (Player viewer : stand.getWorld().getPlayers()) {
-            spawnArmorStandDisplayForViewer(viewer, stand, displayEntityId, mechanic, displayItem);
+    /**
+     * Periodic maintenance (every second):
+     *  - destroy displays whose stand died/vanished or whose item is no longer a cosmetic
+     *  - add in-range viewers (covers joins and walk-ins regardless of event timing)
+     *  - drop out-of-range/offline viewers
+     *  - discover stands that gained a cosmetic while untracked
+     */
+    public void refreshArmorStandDisplays() {
+        // Maintain tracked displays
+        Iterator<Map.Entry<UUID, StandDisplayData>> iterator = armorStandDisplays.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<UUID, StandDisplayData> entry = iterator.next();
+            StandDisplayData data = entry.getValue();
+
+            Entity entity = Bukkit.getEntity(data.getStandUuid());
+            if (!(entity instanceof ArmorStand stand) || !stand.isValid()) {
+                destroyDisplay(data);
+                iterator.remove();
+                continue;
+            }
+
+            ItemStack chestItem = stand.getEquipment() != null ? stand.getEquipment().getChestplate() : null;
+            if (getBackpackMechanic(chestItem) == null) {
+                destroyDisplay(data);
+                iterator.remove();
+                continue;
+            }
+
+            double maxRangeSq = (double) data.getMechanic().getViewDistance() * data.getMechanic().getViewDistance();
+
+            for (Player viewer : stand.getWorld().getPlayers()) {
+                boolean inRange = viewer.getLocation().distanceSquared(stand.getLocation()) <= maxRangeSq;
+                boolean isViewer = data.getViewers().contains(viewer.getUniqueId());
+
+                if (inRange && !isViewer) {
+                    spawnArmorStandDisplayForViewer(viewer, stand, data);
+                } else if (!inRange && isViewer) {
+                    data.getViewers().remove(viewer.getUniqueId());
+                    NMSHandlers.getHandler().sendEntityDestroy(viewer, data.getEntityId());
+                }
+            }
+
+            data.getViewers().removeIf(viewerId -> {
+                Player viewer = Bukkit.getPlayer(viewerId);
+                return viewer == null || !viewer.isOnline();
+            });
+        }
+
+        // Discover untracked stands (cosmetic added while nobody was around, etc.)
+        for (World world : Bukkit.getWorlds()) {
+            for (ArmorStand stand : world.getEntitiesByClass(ArmorStand.class)) {
+                if (armorStandDisplays.containsKey(stand.getUniqueId())) continue;
+
+                ItemStack chestItem = stand.getEquipment() != null ? stand.getEquipment().getChestplate() : null;
+                BackpackCosmeticMechanic mechanic = getBackpackMechanic(chestItem);
+                if (mechanic == null) continue;
+
+                StandDisplayData data = ensureStandDisplay(stand, mechanic, chestItem);
+                for (Player viewer : stand.getWorld().getPlayers()) {
+                    spawnArmorStandDisplayForViewer(viewer, stand, data);
+                }
+            }
         }
     }
 
     /**
-     * Restore displays that were already present before a player connected. Fake
-     * packet entities are not replayed by Minecraft when a viewer joins, so the
-     * joining player must receive the spawn and mount packets explicitly.
+     * Spawn the display for one viewer. Idempotent per viewer; follows with two
+     * delayed mount resyncs so the mount survives the client learning the
+     * vehicle entity late (the same race the player path guards against).
      */
-    private void restoreArmorStandDisplays(Player viewer) {
-        if (!viewer.isOnline()) return;
-
-        Location viewerLocation = viewer.getLocation();
-        for (ArmorStand stand : viewer.getWorld().getEntitiesByClass(ArmorStand.class)) {
-            Location standLocation = stand.getLocation();
-            if (viewerLocation.distanceSquared(standLocation) > 4096) continue;
-
-            ItemStack chestItem = stand.getEquipment() != null ? stand.getEquipment().getChestplate() : null;
-            BackpackCosmeticMechanic mechanic = getBackpackMechanic(chestItem);
-            if (mechanic == null) continue;
-
-            UUID standId = stand.getUniqueId();
-            Integer displayEntityId = armorStandDisplays.get(standId);
-            if (displayEntityId == null) {
-                displayEntityId = NMSHandlers.getHandler().getNextEntityId();
-                armorStandDisplays.put(standId, displayEntityId);
-            }
-
-            spawnArmorStandDisplayForViewer(viewer, stand, displayEntityId, mechanic, chestItem);
-        }
-    }
-
-    private void spawnArmorStandDisplayForViewer(Player viewer, ArmorStand stand, int displayEntityId,
-                                                   BackpackCosmeticMechanic mechanic, ItemStack displayItem) {
+    private void spawnArmorStandDisplayForViewer(Player viewer, ArmorStand stand, StandDisplayData data) {
         if (!viewer.isOnline() || !viewer.getWorld().equals(stand.getWorld())) return;
-        if (viewer.getLocation().distanceSquared(stand.getLocation()) > 4096) return;
+
+        double maxRangeSq = (double) data.getMechanic().getViewDistance() * data.getMechanic().getViewDistance();
+        if (viewer.getLocation().distanceSquared(stand.getLocation()) > maxRangeSq) return;
+        if (!data.getViewers().add(viewer.getUniqueId())) return; // already viewing
 
         Location spawnLoc = stand.getLocation().clone();
         NMSHandlers.getHandler().spawnBackpackArmorStand(
-            viewer, displayEntityId, spawnLoc, displayItem, mechanic.isSmallArmorStand()
+            viewer, data.getEntityId(), spawnLoc, data.getDisplayItem(), data.getMechanic().isSmallArmorStand()
         );
 
         // Mount the display as a passenger of the real armor stand so it follows
         // position and rotation automatically.
-        NMSHandlers.getHandler().sendMountPacket(viewer, stand.getEntityId(), displayEntityId);
+        NMSHandlers.getHandler().sendMountPacket(viewer, stand.getEntityId(), data.getEntityId());
 
         // Correct the initial body-vs-head rotation offset on the displayed model.
-        NMSHandlers.getHandler().sendEntityHeadRotation(viewer, displayEntityId, stand.getYaw());
+        NMSHandlers.getHandler().sendEntityHeadRotation(viewer, data.getEntityId(), stand.getYaw());
+
+        // Mount resyncs: if these packets raced the client's knowledge of the
+        // vehicle entity, re-sending the mount shortly after repairs it.
+        UUID viewerId = viewer.getUniqueId();
+        UUID standId = stand.getUniqueId();
+        SchedulerUtil.runTaskLater(1L, () -> resyncStandMount(viewerId, standId));
+        SchedulerUtil.runTaskLater(2L, () -> resyncStandMount(viewerId, standId));
+    }
+
+    private void resyncStandMount(UUID viewerId, UUID standId) {
+        StandDisplayData data = armorStandDisplays.get(standId);
+        if (data == null || !data.getViewers().contains(viewerId)) return;
+
+        Player viewer = Bukkit.getPlayer(viewerId);
+        Entity stand = Bukkit.getEntity(standId);
+        if (viewer == null || !viewer.isOnline() || !(stand instanceof ArmorStand)) return;
+
+        NMSHandlers.getHandler().sendMountPacket(viewer, stand.getEntityId(), data.getEntityId());
     }
 
     /**
      * Remove a backpack cosmetic display from an armor stand.
      */
     private void removeArmorStandDisplay(UUID standId) {
-        Integer displayEntityId = armorStandDisplays.remove(standId);
-        if (displayEntityId == null) return;
+        StandDisplayData data = armorStandDisplays.remove(standId);
+        if (data == null) return;
 
-        for (Player viewer : Bukkit.getOnlinePlayers()) {
-            NMSHandlers.getHandler().sendEntityDestroy(viewer, displayEntityId);
+        destroyDisplay(data);
+    }
+
+    private void destroyDisplay(StandDisplayData data) {
+        for (UUID viewerId : data.getViewers()) {
+            Player viewer = Bukkit.getPlayer(viewerId);
+            if (viewer != null && viewer.isOnline()) {
+                NMSHandlers.getHandler().sendEntityDestroy(viewer, data.getEntityId());
+            }
+        }
+        data.getViewers().clear();
+    }
+
+    /**
+     * Tracked display for one armor stand. Viewer-set based, like the player
+     * path's BackpackData, so restoration is driven by the refresh loop rather
+     * than fragile one-shot join hooks.
+     */
+    private static class StandDisplayData {
+        private final int entityId;
+        private final UUID standUuid;
+        private final BackpackCosmeticMechanic mechanic;
+        private final ItemStack displayItem;
+        private final Set<UUID> viewers = ConcurrentHashMap.newKeySet();
+
+        private StandDisplayData(int entityId, UUID standUuid, BackpackCosmeticMechanic mechanic, ItemStack displayItem) {
+            this.entityId = entityId;
+            this.standUuid = standUuid;
+            this.mechanic = mechanic;
+            this.displayItem = displayItem;
+        }
+
+        int getEntityId() {
+            return entityId;
+        }
+
+        UUID getStandUuid() {
+            return standUuid;
+        }
+
+        BackpackCosmeticMechanic getMechanic() {
+            return mechanic;
+        }
+
+        ItemStack getDisplayItem() {
+            return displayItem;
+        }
+
+        Set<UUID> getViewers() {
+            return viewers;
         }
     }
 }

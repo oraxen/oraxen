@@ -64,6 +64,11 @@ public class BackpackCosmeticFactory extends MechanicFactory {
         SchedulerUtil.ScheduledTask refreshTask = SchedulerUtil.runTaskTimer(20L, 20L, manager::refreshAllViewers);
         MechanicsManager.registerTask(getMechanicID(), refreshTask);
 
+        // Armor stand display refresh (every 20 ticks = 1 second) for join/view-range
+        // restoration of backpack cosmetics placed in armor stand chest slots.
+        SchedulerUtil.ScheduledTask armorStandRefreshTask = SchedulerUtil.runTaskTimer(20L, 20L, listener::refreshArmorStandDisplays);
+        MechanicsManager.registerTask(getMechanicID(), armorStandRefreshTask);
+
         if (Settings.DEBUG.toBool()) {
             io.th0rgal.oraxen.utils.logs.Logs.logSuccess("BackpackCosmeticFactory initialized");
         }
