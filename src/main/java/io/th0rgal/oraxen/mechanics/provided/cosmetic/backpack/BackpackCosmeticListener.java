@@ -2,8 +2,13 @@ package io.th0rgal.oraxen.mechanics.provided.cosmetic.backpack;
 
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.Mechanic;
+import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -14,14 +19,13 @@ import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.EntityToggleGlideEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -34,6 +38,8 @@ public class BackpackCosmeticListener implements Listener {
     private final BackpackCosmeticManager manager;
     private final Set<UUID> hiddenForMovement = ConcurrentHashMap.newKeySet();
     private final Map<UUID, BackpackCosmeticMechanic> hiddenMovementMechanics = new ConcurrentHashMap<>();
+    // Armor stand displays: real armor stand UUID -> display entity ID
+    private final Map<UUID, Integer> armorStandDisplays = new ConcurrentHashMap<>();
 
     // Movement thresholds to reduce unnecessary updates
     // Without mount packets, we need more frequent updates for smooth following
@@ -383,5 +389,81 @@ public class BackpackCosmeticListener implements Listener {
                typeName.endsWith("_LEGGINGS") ||
                typeName.endsWith("_BOOTS") ||
                typeName.equals("ELYTRA");
+    }
+
+    // ──────────────────────────────────────────────
+    //  Armor stand display support
+    // ──────────────────────────────────────────────
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onArmorStandManipulate(PlayerArmorStandManipulateEvent event) {
+        ArmorStand stand = event.getRightClicked();
+        // We only care about the chest slot (where back cosmetics go)
+        if (event.getSlot() != EquipmentSlot.CHEST) return;
+
+        // Schedule a delayed check after the item swap completes
+        SchedulerUtil.runTaskLater(1L, () -> checkArmorStandDisplay(stand));
+    }
+
+    /**
+     * Check whether an armor stand's chest slot holds a backpack cosmetic and
+     * spawn or destroy the display entity accordingly.
+     */
+    private void checkArmorStandDisplay(ArmorStand stand) {
+        if (!stand.isValid()) {
+            removeArmorStandDisplay(stand.getUniqueId());
+            return;
+        }
+
+        ItemStack chestItem = stand.getEquipment() != null ? stand.getEquipment().getChestplate() : null;
+        BackpackCosmeticMechanic mechanic = getBackpackMechanic(chestItem);
+
+        if (mechanic != null) {
+            // Item is a backpack cosmetic — spawn (or refresh) the display
+            spawnArmorStandDisplay(stand, mechanic, chestItem);
+        } else {
+            // No backpack item — remove any existing display
+            removeArmorStandDisplay(stand.getUniqueId());
+        }
+    }
+
+    /**
+     * Spawn a packet-based invisible armor stand that renders the backpack
+     * model, mounted as a passenger on the real armor stand so it follows
+     * position and rotation automatically.
+     */
+    private void spawnArmorStandDisplay(ArmorStand stand, BackpackCosmeticMechanic mechanic, ItemStack displayItem) {
+        UUID standId = stand.getUniqueId();
+        // Remove existing display first
+        removeArmorStandDisplay(standId);
+
+        int displayEntityId = NMSHandlers.getHandler().getNextEntityId();
+        armorStandDisplays.put(standId, displayEntityId);
+
+        // Spawn for all nearby players
+        Location spawnLoc = stand.getLocation().clone();
+        for (Player viewer : stand.getWorld().getPlayers()) {
+            if (!viewer.getWorld().equals(stand.getWorld())) continue;
+            if (viewer.getLocation().distanceSquared(spawnLoc) > 4096) continue; // 64 block radius
+
+            NMSHandlers.getHandler().spawnBackpackArmorStand(
+                viewer, displayEntityId, spawnLoc, displayItem, mechanic.isSmallArmorStand()
+            );
+
+            // Mount the display as a passenger of the real armor stand so it follows
+            NMSHandlers.getHandler().sendMountPacket(viewer, stand.getEntityId(), displayEntityId);
+        }
+    }
+
+    /**
+     * Remove a backpack cosmetic display from an armor stand.
+     */
+    private void removeArmorStandDisplay(UUID standId) {
+        Integer displayEntityId = armorStandDisplays.remove(standId);
+        if (displayEntityId == null) return;
+
+        for (Player viewer : Bukkit.getOnlinePlayers()) {
+            NMSHandlers.getHandler().sendEntityDestroy(viewer, displayEntityId);
+        }
     }
 }
