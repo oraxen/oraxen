@@ -56,8 +56,11 @@ public class BackpackCosmeticListener implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
 
-        // Check if player has backpack item equipped
-        SchedulerUtil.runTaskLater(5L, () -> checkAndUpdateBackpack(player));
+        // Restore packet-based armor stand displays after the player's entities are loaded.
+        SchedulerUtil.runTaskLater(5L, () -> {
+            checkAndUpdateBackpack(player);
+            restoreArmorStandDisplays(player);
+        });
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -441,23 +444,55 @@ public class BackpackCosmeticListener implements Listener {
         armorStandDisplays.put(standId, displayEntityId);
 
         // Spawn for all nearby players
-        Location spawnLoc = stand.getLocation().clone();
         for (Player viewer : stand.getWorld().getPlayers()) {
-            if (!viewer.getWorld().equals(stand.getWorld())) continue;
-            if (viewer.getLocation().distanceSquared(spawnLoc) > 4096) continue; // 64 block radius
-
-            NMSHandlers.getHandler().spawnBackpackArmorStand(
-                viewer, displayEntityId, spawnLoc, displayItem, mechanic.isSmallArmorStand()
-            );
-
-            // Mount the display as a passenger of the real armor stand so it follows
-            NMSHandlers.getHandler().sendMountPacket(viewer, stand.getEntityId(), displayEntityId);
-
-            // Send explicit head rotation matching the armor stand's yaw to counter
-            // the initial body-vs-head rotation offset that otherwise tilts the
-            // display ~15-30°.  (Same fix as the player path in BackpackCosmeticManager.)
-            NMSHandlers.getHandler().sendEntityHeadRotation(viewer, displayEntityId, stand.getYaw());
+            spawnArmorStandDisplayForViewer(viewer, stand, displayEntityId, mechanic, displayItem);
         }
+    }
+
+    /**
+     * Restore displays that were already present before a player connected. Fake
+     * packet entities are not replayed by Minecraft when a viewer joins, so the
+     * joining player must receive the spawn and mount packets explicitly.
+     */
+    private void restoreArmorStandDisplays(Player viewer) {
+        if (!viewer.isOnline()) return;
+
+        Location viewerLocation = viewer.getLocation();
+        for (ArmorStand stand : viewer.getWorld().getEntitiesByClass(ArmorStand.class)) {
+            Location standLocation = stand.getLocation();
+            if (viewerLocation.distanceSquared(standLocation) > 4096) continue;
+
+            ItemStack chestItem = stand.getEquipment() != null ? stand.getEquipment().getChestplate() : null;
+            BackpackCosmeticMechanic mechanic = getBackpackMechanic(chestItem);
+            if (mechanic == null) continue;
+
+            UUID standId = stand.getUniqueId();
+            Integer displayEntityId = armorStandDisplays.get(standId);
+            if (displayEntityId == null) {
+                displayEntityId = NMSHandlers.getHandler().getNextEntityId();
+                armorStandDisplays.put(standId, displayEntityId);
+            }
+
+            spawnArmorStandDisplayForViewer(viewer, stand, displayEntityId, mechanic, chestItem);
+        }
+    }
+
+    private void spawnArmorStandDisplayForViewer(Player viewer, ArmorStand stand, int displayEntityId,
+                                                   BackpackCosmeticMechanic mechanic, ItemStack displayItem) {
+        if (!viewer.isOnline() || !viewer.getWorld().equals(stand.getWorld())) return;
+        if (viewer.getLocation().distanceSquared(stand.getLocation()) > 4096) return;
+
+        Location spawnLoc = stand.getLocation().clone();
+        NMSHandlers.getHandler().spawnBackpackArmorStand(
+            viewer, displayEntityId, spawnLoc, displayItem, mechanic.isSmallArmorStand()
+        );
+
+        // Mount the display as a passenger of the real armor stand so it follows
+        // position and rotation automatically.
+        NMSHandlers.getHandler().sendMountPacket(viewer, stand.getEntityId(), displayEntityId);
+
+        // Correct the initial body-vs-head rotation offset on the displayed model.
+        NMSHandlers.getHandler().sendEntityHeadRotation(viewer, displayEntityId, stand.getYaw());
     }
 
     /**
