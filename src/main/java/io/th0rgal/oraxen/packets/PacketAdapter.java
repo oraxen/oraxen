@@ -32,8 +32,10 @@ public interface PacketAdapter {
     void registerInventoryListener();
     void registerScoreboardListener();
     void registerTitleListener();
+    void registerPickItemListener();
     void removeInventoryListener();
     void removeTitleListener();
+    void removePickItemListener();
     void reregisterEfficencyMechanicListener(EfficiencyMechanicFactory efficiencyMechanicFactory);
 
     String getLatestMCVersion();
@@ -65,6 +67,14 @@ public interface PacketAdapter {
         @Override
         public void removeTitleListener() {
 
+        }
+
+        @Override
+        public void registerPickItemListener() {
+        }
+
+        @Override
+        public void removePickItemListener() {
         }
 
         @Override

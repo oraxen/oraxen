@@ -130,6 +130,7 @@ public class OraxenPlugin extends JavaPlugin {
             if (Settings.FORMAT_INVENTORY_TITLES.toBool())
                 packetAdapter.registerInventoryListener();
             packetAdapter.registerTitleListener();
+            packetAdapter.registerPickItemListener();
         });
 
         Bukkit.getPluginManager().registerEvents(new CustomArmorListener(), this);

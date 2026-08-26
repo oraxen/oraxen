@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.packets;
 import com.comphenix.protocol.ProtocolLibrary;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.packets.protocollib.InventoryPacketListener;
+import io.th0rgal.oraxen.packets.protocollib.PickItemPacketListener;
 import io.th0rgal.oraxen.packets.protocollib.ScoreboardPacketListener;
 import io.th0rgal.oraxen.packets.protocollib.TitlePacketListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.efficiency.EfficiencyMechanicFactory;
@@ -22,6 +23,7 @@ public class ProtocolLibAdapter implements PacketAdapter {
 
     private InventoryPacketListener inventoryPacketListener;
     private TitlePacketListener titlePacketListener;
+    private PickItemPacketListener pickItemPacketListener;
 
     private EfficiencyMechanicListener efficiencyMechanicListener;
 
@@ -62,10 +64,27 @@ public class ProtocolLibAdapter implements PacketAdapter {
         Logs.logInfo("[ProtocolLibAdapter] Title Listener registered successfully");
     }
 
+    @Override
+    public void registerPickItemListener() {
+        if (pickItemPacketListener != null) {
+            OraxenPlugin.get().getLogger().severe("[ProtocolLibAdapter]: Pick Item Listener is already registered!");
+            return;
+        }
+        pickItemPacketListener = new PickItemPacketListener();
+        ProtocolLibrary.getProtocolManager().addPacketListener(pickItemPacketListener);
+    }
+
     @Override public void removeInventoryListener() {
         if (inventoryPacketListener != null)
             ProtocolLibrary.getProtocolManager().removePacketListener(inventoryPacketListener);
         inventoryPacketListener = null;
+    }
+
+    @Override
+    public void removePickItemListener() {
+        if (pickItemPacketListener != null)
+            ProtocolLibrary.getProtocolManager().removePacketListener(pickItemPacketListener);
+        pickItemPacketListener = null;
     }
 
     @Override public void removeTitleListener() {
