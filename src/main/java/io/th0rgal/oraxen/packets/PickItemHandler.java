@@ -60,9 +60,9 @@ public final class PickItemHandler {
     }
 
     /**
-     * Replicates what vanilla would give for a non-Oraxen block pick. Only needed on Folia, where
-     * the pick packet must be cancelled up-front (before the block can be inspected on the region
-     * thread) and the vanilla item therefore has to be handed out manually.
+     * Replicates what vanilla would give for a non-Oraxen block pick. The pick packet is always
+     * cancelled up-front (we must not touch the world on the Netty thread), so the vanilla item
+     * has to be handed out manually for blocks that are not Oraxen furniture.
      */
     public static void pickBlockFallback(Player player, Block block) {
         tryPickItem(player, new ItemStack(block.getType()));
