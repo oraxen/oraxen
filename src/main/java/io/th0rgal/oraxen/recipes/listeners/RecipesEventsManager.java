@@ -317,6 +317,8 @@ public class RecipesEventsManager implements Listener {
     }
 
     private boolean hasPermission(CommandSender sender, CustomRecipe recipe, RecipeState recipeState) {
+        if (recipe == null) return true;
+
         String permission = recipeState.permissionsPerRecipe().get(recipe);
         return permission == null || sender.hasPermission(permission);
     }
