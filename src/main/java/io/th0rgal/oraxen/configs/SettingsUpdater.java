@@ -20,6 +20,8 @@ public class SettingsUpdater {
 
         if (settings.saveToString().equals(oldSettings)) return;
 
+        Settings.invalidateCache();
+
         try {
             settings.save(OraxenPlugin.get().getDataFolder().getAbsoluteFile().toPath().resolve("settings.yml").toFile());
             Logs.logSuccess("Successfully updated settings.yml", true);
@@ -39,6 +41,47 @@ public class SettingsUpdater {
             }
         }
         return settings;
+    }
+
+    static boolean migrateInventoryMenu(YamlConfiguration settings) {
+        boolean updated = migrateLegacyGuiInventoryLayout(settings);
+        ConfigurationSection legacyMenu = settings.getConfigurationSection("oraxen_inventory");
+        if (legacyMenu == null) return updated;
+
+        migrateInventoryMenuValue(settings, legacyMenu, "main_menu_title", "title");
+        migrateInventoryMenuValue(settings, legacyMenu, "menu_rows", "rows");
+        migrateInventoryMenuValue(settings, legacyMenu, "menu_size", "slots");
+
+        ConfigurationSection legacyLayout = legacyMenu.getConfigurationSection("menu_layout");
+        if (legacyLayout != null) {
+            for (Map.Entry<String, Object> entry : legacyLayout.getValues(true).entrySet()) {
+                if (entry.getValue() instanceof ConfigurationSection) continue;
+                String path = entry.getKey().replaceAll("(^|\\.)displayname$", "$1name");
+                settings.set("inventory-menu.layout." + path, entry.getValue());
+            }
+        }
+
+        settings.set("oraxen_inventory", null);
+        return true;
+    }
+
+    private static boolean migrateLegacyGuiInventoryLayout(YamlConfiguration settings) {
+        ConfigurationSection legacyLayout = settings.getConfigurationSection("gui_inventory");
+        if (legacyLayout == null) return false;
+
+        for (Map.Entry<String, Object> entry : legacyLayout.getValues(true).entrySet()) {
+            if (entry.getValue() instanceof ConfigurationSection) continue;
+            String path = entry.getKey().replaceAll("(^|\\.)displayname$", "$1name");
+            settings.set("inventory-menu.layout." + path, entry.getValue());
+        }
+        settings.set("gui_inventory", null);
+        return true;
+    }
+
+    private static void migrateInventoryMenuValue(YamlConfiguration settings, ConfigurationSection legacyMenu,
+            String oldPath, String newPath) {
+        if (legacyMenu.contains(oldPath))
+            settings.set("inventory-menu." + newPath, legacyMenu.get(oldPath));
     }
 
     public YamlConfiguration migrateDispatchSettings(YamlConfiguration settings) {
@@ -70,10 +113,20 @@ public class SettingsUpdater {
         settings.set(newPath, settings.get(oldPath));
     }
 
+    /**
+     * Targeted migration notices for removed settings whose removal changes behavior in a way
+     * server owners should understand, instead of only the generic "outdated setting" log.
+     */
+    private static final Map<String, String> REMOVAL_NOTICES = Map.of(
+            "Chat.chat_handler", "The legacy chat handler has been removed; Oraxen now always uses the modern Paper chat handler. "
+                    + "Messages containing raw glyph characters the sender lacks permission for are blocked with a no-permission notice.");
+
     public YamlConfiguration removeKeys(YamlConfiguration settings, List<String> keys) {
         for (String key : keys) {
             if (settings.contains(key)) {
                 Logs.logWarning("Found outdated setting " + key + ". This will be removed.");
+                String notice = REMOVAL_NOTICES.get(key);
+                if (notice != null) Logs.logWarning(notice);
             }
             settings.set(key, null);
 

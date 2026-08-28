@@ -29,7 +29,12 @@ import java.util.function.Predicate;
 
 public class OraxenCommand {
 
-    private static final Set<Command> REGISTERED_COMMANDS = new LinkedHashSet<>();
+    // Paper's Brigadier command API (io.papermc.paper.command.brigadier) exists since 1.20.6.
+    // The probe stays in this class so BrigadierCommandRegistrar is never classloaded on
+    // servers where the API is missing (Paper 1.20.1-1.20.4).
+    private static final boolean BRIGADIER_AVAILABLE = detectBrigadierApi();
+
+    private static final Set<Command> commands = new LinkedHashSet<>();
 
     private final String name;
     private final List<String> aliases = new ArrayList<>();
@@ -49,6 +54,11 @@ public class OraxenCommand {
         return this;
     }
 
+    /**
+     * Sets the permission required to run this command. Multiple alternatives may be given
+     * separated by {@code ;} (any one of them grants access), matching Bukkit's
+     * {@link Command#setPermission(String)} semantics.
+     */
     public OraxenCommand withPermission(String permission) {
         this.permission = permission;
         return this;
@@ -92,6 +102,19 @@ public class OraxenCommand {
     }
 
     public void register() {
+        if (BRIGADIER_AVAILABLE) {
+            BrigadierCommandRegistrar.register(this);
+            return;
+        }
+        registerBukkitCommand();
+    }
+
+    /**
+     * Legacy command-map registration for Paper 1.20.1-1.20.4, which predate the Brigadier
+     * command API. Those server versions are frozen, so the reflection below can no longer
+     * break against changing internals.
+     */
+    private void registerBukkitCommand() {
         Plugin plugin = OraxenPlugin.get();
         CommandMap commandMap = getCommandMap();
         BukkitOraxenCommand command = new BukkitOraxenCommand(this);
@@ -99,17 +122,77 @@ public class OraxenCommand {
         command.setPermission(permission);
         unregisterKnownCommands(commandMap, plugin.getName().toLowerCase(Locale.ROOT), command);
         commandMap.register(plugin.getName().toLowerCase(Locale.ROOT), command);
-        REGISTERED_COMMANDS.add(command);
+        commands.add(command);
         syncCommands();
     }
 
     public static void unregisterAll() {
+        // Brigadier registrations are lifecycle-managed by Paper and need no manual cleanup.
+        if (commands.isEmpty()) return;
         CommandMap commandMap = getCommandMap();
-        for (Command command : REGISTERED_COMMANDS) {
+        for (Command command : commands) {
             command.unregister(commandMap);
         }
-        REGISTERED_COMMANDS.clear();
+        commands.clear();
         syncCommands();
+    }
+
+    private static boolean detectBrigadierApi() {
+        try {
+            Class.forName("io.papermc.paper.command.brigadier.CommandSourceStack");
+            Class.forName("io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents");
+            return true;
+        } catch (ClassNotFoundException error) {
+            return false;
+        }
+    }
+
+    String getName() {
+        return name;
+    }
+
+    List<String> getAliases() {
+        return aliases;
+    }
+
+    List<OraxenCommand> getSubcommands() {
+        return subcommands;
+    }
+
+    List<OraxenArgument<?>> getArguments() {
+        return arguments;
+    }
+
+    String getPermission() {
+        return permission;
+    }
+
+    boolean isRoot() {
+        return parent == null;
+    }
+
+    /**
+     * Walks the command chain from the root down to this command and returns the first
+     * permission the sender is missing, or {@code null} when the full chain is permitted.
+     */
+    String firstMissingPermission(CommandSender sender) {
+        List<OraxenCommand> chain = new ArrayList<>();
+        for (OraxenCommand command = this; command != null; command = command.parent) {
+            chain.addFirst(command);
+        }
+        for (OraxenCommand command : chain) {
+            PermissionResult result = command.checkPermission(sender);
+            if (!result.allowed()) return result.permission();
+        }
+        return null;
+    }
+
+    boolean hasAnyExecutor() {
+        return executor != null || playerExecutor != null;
+    }
+
+    void runBrigadierExecutor(CommandSender sender, CommandArguments arguments) {
+        runExecutor(sender, arguments);
     }
 
     private boolean matches(String input) {
@@ -184,10 +267,12 @@ public class OraxenCommand {
     }
 
     private PermissionResult checkPermission(CommandSender sender) {
-        if (permission != null && !permission.isBlank() && !sender.hasPermission(permission)) {
-            return new PermissionResult(false, permission);
+        if (permission == null || permission.isBlank()) return new PermissionResult(true, null);
+        String[] alternatives = permission.split(";");
+        for (String alternative : alternatives) {
+            if (!alternative.isBlank() && sender.hasPermission(alternative.trim())) return new PermissionResult(true, null);
         }
-        return new PermissionResult(true, null);
+        return new PermissionResult(false, alternatives[0].trim());
     }
 
     private List<String> tabComplete(CommandSender sender, List<String> input) {

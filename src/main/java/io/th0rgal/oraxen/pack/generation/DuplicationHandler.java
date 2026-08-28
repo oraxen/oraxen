@@ -7,11 +7,11 @@ import io.th0rgal.oraxen.configs.MigrationBackups;
 import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.sounds.SoundConfigMigration;
 import io.th0rgal.oraxen.utils.OraxenYaml;
-import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;
@@ -44,7 +44,7 @@ public class DuplicationHandler {
 
         for (VirtualFile virtual : output.stream().filter(v -> v.getPath().startsWith("assets/minecraft/models/item/"))
                 .toList()) {
-            if (Material.getMaterial(Utils.getFileNameOnly(virtual.getPath()).toUpperCase()) == null)
+            if (Material.getMaterial(FilenameUtils.getBaseName(virtual.getPath()).toUpperCase()) == null)
                 continue;
             if (baseItemsToMerge.containsKey(virtual.getPath())) {
                 List<VirtualFile> newList = new ArrayList<>(baseItemsToMerge.get(virtual.getPath()).stream().toList());
@@ -76,8 +76,8 @@ public class DuplicationHandler {
                 // Generate the template new item file
                 VirtualFile first = duplicates.stream().findFirst().get();
                 InputStream newInput = new ByteArrayInputStream(mainItem.toString().getBytes(StandardCharsets.UTF_8));
-                VirtualFile newItem = new VirtualFile(Utils.getParentDirs(first.getPath()),
-                        Utils.removeParentDirs(first.getPath()), newInput);
+                VirtualFile newItem = new VirtualFile(FilenameUtils.getFullPath(first.getPath()),
+                        FilenameUtils.getName(first.getPath()), newInput);
                 newItem.setPath(newItem.getPath().replace("//", "/"));
                 newItem.setInputStream(newInput);
 
@@ -150,8 +150,8 @@ public class DuplicationHandler {
             InputStream newInput = new ByteArrayInputStream(
                     mergedDefinition.toString().getBytes(StandardCharsets.UTF_8));
             VirtualFile merged = new VirtualFile(
-                    Utils.getParentDirs(first.getPath()),
-                    Utils.removeParentDirs(first.getPath()),
+                    FilenameUtils.getFullPath(first.getPath()),
+                    FilenameUtils.getName(first.getPath()),
                     newInput);
             merged.setPath(merged.getPath().replace("//", "/"));
 
@@ -173,7 +173,7 @@ public class DuplicationHandler {
         // Find all existing item definitions (to avoid duplicating)
         Set<String> existingItemDefs = output.stream()
                 .filter(v -> v.getPath().startsWith("assets/minecraft/items/") && v.getPath().endsWith(".json"))
-                .map(v -> Utils.getFileNameOnly(v.getPath()).toLowerCase(Locale.ROOT))
+                .map(v -> FilenameUtils.getBaseName(v.getPath()).toLowerCase(Locale.ROOT))
                 .collect(Collectors.toSet());
 
         // Find legacy model files that have custom_model_data predicates
@@ -184,7 +184,7 @@ public class DuplicationHandler {
         List<VirtualFile> newDefinitions = new ArrayList<>();
 
         for (VirtualFile legacyModel : legacyModels) {
-            String itemName = Utils.getFileNameOnly(legacyModel.getPath()).toLowerCase(Locale.ROOT);
+            String itemName = FilenameUtils.getBaseName(legacyModel.getPath()).toLowerCase(Locale.ROOT);
 
             // Skip if we already have a modern item definition for this material
             if (existingItemDefs.contains(itemName))
@@ -699,8 +699,8 @@ public class DuplicationHandler {
                 // Generate the template new font file
                 VirtualFile first = duplicates.stream().findFirst().get();
                 InputStream newInput = new ByteArrayInputStream(mainFont.toString().getBytes(StandardCharsets.UTF_8));
-                VirtualFile newFont = new VirtualFile(Utils.getParentDirs(first.getPath()),
-                        Utils.removeParentDirs(first.getPath()), newInput);
+                VirtualFile newFont = new VirtualFile(FilenameUtils.getFullPath(first.getPath()),
+                        FilenameUtils.getName(first.getPath()), newInput);
                 newFont.setPath(newFont.getPath().replace("//", "/"));
                 newFont.setInputStream(newInput);
 
@@ -798,7 +798,7 @@ public class DuplicationHandler {
                     lines.add(0, DUPLICATE_LINE_STRING);
                     FileUtils.writeLines(duplicateFile, lines);
                 } catch (Exception ignored) {
-                    Logs.logError("Failed to delete the imported <blue>" + Utils.removeParentDirs(name)
+                    Logs.logError("Failed to delete the imported <blue>" + FilenameUtils.getName(name)
                             + "</blue> after migrating it");
                 }
                 Logs.logSuccess("It is advised to restart your server to ensure that any new conflicts are detected.",
@@ -809,36 +809,22 @@ public class DuplicationHandler {
 
     private static boolean attemptToMigrateDuplicate(String name) {
         if (name.matches("assets/minecraft/models/item/.*.json")) {
-            Logs.logWarning("Found a duplicate <blue>" + Utils.removeParentDirs(name)
+            Logs.logWarning("Found a duplicate <blue>" + FilenameUtils.getName(name)
                     + "</blue>, attempting to migrate it into Oraxen item configs");
             return migrateItemJson(name);
         } else if (name.matches("assets/[^/]+/sounds\\.json")) {
             Logs.logWarning("Found a sounds.json duplicate, trying to migrate it into Oraxen's sounds.yml config");
             return migrateSoundJson(name);
         } else if (name.startsWith("assets/minecraft/shaders/core/rendertype_text")
-                && !VersionUtil.atOrAbove("1.21.8")
                 && Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) {
             Logs.logWarning("You are importing another copy of a shader file used to hide scoreboard numbers");
             Logs.logWarning("Either disable <#22b14c>" + Settings.HIDE_SCOREBOARD_NUMBERS.getPath()
                     + "</#22b14c> in settings.yml or delete this file");
             return false;
-        } else if (name.startsWith("assets/minecraft/shaders/core/rendertype_armor_cutout_no_cull")
-                && Settings.CUSTOM_ARMOR_SHADER_GENERATE_FILES.toBool()) {
-            Logs.logWarning("You are trying to import a shader file used for custom armor.");
-            Logs.logWarning("This shader file is already in your pack. Deleting...");
-            return true;
         } else if (name.startsWith("assets/minecraft/shaders/core/rendertype")) {
             Logs.logWarning("Failed to migrate duplicate file-entry, file is a shader file");
             Logs.logWarning("Merging this is too advanced and should be migrated manually or deleted.");
             return false;
-        } else if (name.startsWith("assets/minecraft/textures/models/armor/leather_layer")) {
-            Logs.logWarning("Failed to migrate duplicate file-entry, file is a combined custom armor texture");
-            Logs.logWarning("You should not import already combined armor layer files.");
-            Logs.logWarning("If you want to handle these files manually, disable <#22b14c>"
-                    + Settings.CUSTOM_ARMOR_SHADER_GENERATE_CUSTOM_TEXTURES.getPath() + "</#22b14c> in settings.yml");
-            Logs.logWarning(
-                    "Please refer to https://docs.oraxen.com/configuration/custom-armors for more information. Deleting...");
-            return true;
         } else if (name.startsWith("assets/minecraft/textures")) {
             Logs.logWarning("Failed to migrate duplicate file-entry, file is a texture file");
             Logs.logWarning("Cannot migrate texture files, rename this or the duplicate entry");
@@ -847,11 +833,6 @@ public class DuplicationHandler {
             Logs.logWarning("Failed to migrate duplicate file-entry, file is a language file");
             Logs.logWarning("Please combine this with the duplicate file found in Oraxen/pack/lang folder");
             return false;
-        } else if (name.matches("assets/minecraft/optifine/%s/armors/.*/.*.properties"
-                .formatted(VersionUtil.atOrAbove("1.21") ? "cit_single" : "cit"))) {
-            Logs.logWarning("You are trying to import an Optifine CustomArmor file.");
-            Logs.logWarning("Oraxen already generates all these needed files for you. Deleting...");
-            return true;
         } else {
             Logs.logWarning(
                     "Failed to migrate duplicate file-entry, file is not a file that Oraxen can migrate right now");
@@ -862,7 +843,7 @@ public class DuplicationHandler {
     }
 
     private static boolean migrateItemJson(String name) {
-        String materialName = Utils.removeExtensionOnly(Utils.removeParentDirs(name)).toUpperCase();
+        String materialName = FilenameUtils.getBaseName(name).toUpperCase();
         Material material = Material.getMaterial(materialName);
         if (material == null) {
             Logs.logWarning(

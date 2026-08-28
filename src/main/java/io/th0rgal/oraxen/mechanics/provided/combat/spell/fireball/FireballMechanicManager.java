@@ -51,7 +51,7 @@ public class FireballMechanicManager implements Listener {
 
         Fireball fireball = player.launchProjectile(Fireball.class);
         fireball.setYield((float) mechanic.getYield());
-        fireball.setDirection(fireball.getDirection().multiply(mechanic.getSpeed()));
+        fireball.setDirection(fireball.getAcceleration().multiply(mechanic.getSpeed()));
 
         mechanic.removeCharge(item);
     }

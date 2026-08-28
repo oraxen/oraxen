@@ -60,7 +60,8 @@ public class InventoryUtils {
     }
 
     public static String getTitleFromView(InventoryEvent event) {
-        if (VersionUtil.atOrAbove("1.21")) return event.getView().getTitle();
+        if (VersionUtil.atOrAbove("1.21"))
+            return AdventureUtils.LEGACY_SERIALIZER.serialize(event.getView().title());
         try {
             return (String) getTitleMethod.invoke(event.getView());
         } catch (Exception e) {

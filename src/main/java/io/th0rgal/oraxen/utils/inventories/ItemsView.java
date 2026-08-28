@@ -10,7 +10,7 @@ import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.ItemUtils;
-import io.th0rgal.oraxen.utils.Utils;
+import org.apache.commons.io.FilenameUtils;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemFlag;
@@ -60,28 +60,22 @@ public class ItemsView {
         mainGui = Gui.paginated().rows(rows).pageSize((int) Settings.ORAXEN_INV_SIZE.getValue()).title(Settings.ORAXEN_INV_TITLE.toComponent()).create();
         mainGui.addItem(guiItems.toArray(new GuiItem[]{}));
 
-        ItemStack previousPage = (Settings.ORAXEN_INV_PREVIOUS_ICON.getValue() == null
-                ? new ItemBuilder(Material.ARROW).setDisplayName("Previous Page")
-                : OraxenItems.getItemById(Settings.ORAXEN_INV_PREVIOUS_ICON.toString())
-        ).build();
+        ItemStack previousPage = iconOrDefault("arrow_previous_icon", Material.ARROW)
+                .setDisplayName("Previous Page").build();
         mainGui.setItem(6, 2, new GuiItem(previousPage, event -> {
             mainGui.previous();
             event.setCancelled(true);
         }));
 
-        ItemStack nextPage = (Settings.ORAXEN_INV_NEXT_ICON.getValue() == null
-                ? new ItemBuilder(Material.ARROW).setDisplayName("Next Page")
-                : OraxenItems.getItemById(Settings.ORAXEN_INV_NEXT_ICON.toString())
-        ).build();
+        ItemStack nextPage = iconOrDefault("arrow_next_icon", Material.ARROW)
+                .setDisplayName("Next Page").build();
         mainGui.setItem(6, 8, new GuiItem(nextPage, event -> {
             mainGui.next();
             event.setCancelled(true);
         }));
 
-        ItemStack exitIcon = (Settings.ORAXEN_INV_EXIT.getValue() == null
-                ? new ItemBuilder(Material.BARRIER).setDisplayName("Exit") :
-                OraxenItems.getItemById(Settings.ORAXEN_INV_EXIT.toString())
-        ).build();
+        ItemStack exitIcon = iconOrDefault("exit_icon", Material.BARRIER)
+                .setDisplayName("Exit").build();
         mainGui.setItem(6, 5, new GuiItem(exitIcon, event -> event.getWhoClicked().closeInventory()));
 
         return mainGui;
@@ -89,7 +83,7 @@ public class ItemsView {
 
     private PaginatedGui createSubGUI(final String fileName, final List<ItemBuilder> items) {
         final PaginatedGui gui = Gui.paginated().rows(6).pageSize(45).title(AdventureUtils.MINI_MESSAGE.deserialize(settings.getString(
-                        String.format("oraxen_inventory.menu_layout.%s.title", Utils.removeExtension(fileName)), Settings.ORAXEN_INV_TITLE.toString())
+                        String.format("inventory-menu.layout.%s.title", FilenameUtils.getBaseName(fileName)), Settings.ORAXEN_INV_TITLE.toString())
                 .replace("<main_menu_title>", Settings.ORAXEN_INV_TITLE.toString()))).create();
         gui.disableAllInteractions();
 
@@ -101,14 +95,11 @@ public class ItemsView {
             gui.addItem(new GuiItem(itemStack, e -> e.getWhoClicked().getInventory().addItem(ItemUpdater.updateItem(e.getCurrentItem().clone()))));
         }
 
-        ItemStack nextPage = (Settings.ORAXEN_INV_NEXT_ICON.getValue() == null
-                ? new ItemBuilder(Material.ARROW) : OraxenItems.getItemById(Settings.ORAXEN_INV_NEXT_ICON.toString()))
+        ItemStack nextPage = iconOrDefault("arrow_next_icon", Material.ARROW)
                 .setDisplayName("Next Page").build();
-        ItemStack previousPage = (Settings.ORAXEN_INV_PREVIOUS_ICON.getValue() == null
-                ? new ItemBuilder(Material.ARROW) : OraxenItems.getItemById(Settings.ORAXEN_INV_PREVIOUS_ICON.toString()))
+        ItemStack previousPage = iconOrDefault("arrow_previous_icon", Material.ARROW)
                 .setDisplayName("Previous Page").build();
-        ItemStack exitIcon = (Settings.ORAXEN_INV_EXIT.getValue() == null
-                ? new ItemBuilder(Material.BARRIER) : OraxenItems.getItemById(Settings.ORAXEN_INV_EXIT.toString()))
+        ItemStack exitIcon = iconOrDefault("exit_icon", Material.BARRIER)
                 .setDisplayName("Exit").build();
 
         if (gui.getPagesNum() > 1) {
@@ -121,16 +112,21 @@ public class ItemsView {
         return gui;
     }
 
+    private ItemBuilder iconOrDefault(String itemId, Material fallback) {
+        ItemBuilder icon = OraxenItems.getItemById(itemId);
+        return icon != null ? icon.clone() : new ItemBuilder(fallback);
+    }
+
     private record GuiItemSlot(ItemStack itemStack, Integer slot) {
 
     }
 
     private GuiItemSlot getGuiItemSlot(final File file) {
         ItemStack itemStack;
-        String fileName = Utils.removeExtension(file.getName());
+        String fileName = FilenameUtils.getBaseName(file.getName());
         //Material of category itemstack. if no material is set, set it to the first item of the category
-        Optional<String> icon = Optional.ofNullable(settings.getString(String.format("oraxen_inventory.menu_layout.%s.icon", fileName)));
-        String displayName = settings.getString(String.format("oraxen_inventory.menu_layout.%s.displayname", fileName), "<green>" + file.getName());
+        Optional<String> icon = Optional.ofNullable(settings.getString(String.format("inventory-menu.layout.%s.icon", fileName)));
+        String displayName = settings.getString(String.format("inventory-menu.layout.%s.name", fileName), "<green>" + file.getName());
 
         itemStack = icon.map(OraxenItems::getItemById).map(ItemBuilder::clone)
                 .orElse(OraxenItems.getMap().get(file).values().stream().findFirst().orElse(new ItemBuilder(Material.PAPER)))
@@ -138,7 +134,7 @@ public class ItemsView {
 
         // avoid possible bug if isOraxenItems is available but can't be an itemstack
         if (itemStack == null) itemStack = new ItemBuilder(Material.PAPER).setDisplayName(displayName).build();
-        int slot = settings.getInt(String.format("oraxen_inventory.menu_layout.%s.slot", Utils.removeExtension(file.getName())), 0) - 1;
+        int slot = settings.getInt(String.format("inventory-menu.layout.%s.slot", FilenameUtils.getBaseName(file.getName())), 0) - 1;
         return new GuiItemSlot(itemStack, slot);
     }
 }

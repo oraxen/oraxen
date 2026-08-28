@@ -4,7 +4,7 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import net.kyori.adventure.text.Component;
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;
 
 import java.util.HashMap;
@@ -30,8 +30,8 @@ public class ModelDataCommand {
                     }
                     Component report = Component.empty();
                     for (Map.Entry<Material, Integer> entry : itemMap.entrySet()) {
-                        String message = (ChatColor.DARK_AQUA + entry.getKey().name() + ": " + ChatColor.DARK_GREEN + entry.getValue().toString() + "\n");
-                        report = report.append(Component.text(message));
+                        report = report.append(Component.text(entry.getKey().name() + ": ", NamedTextColor.DARK_AQUA)
+                                .append(Component.text(entry.getValue() + "\n", NamedTextColor.DARK_GREEN)));
                     }
                     AdventureUtils.sendMessage(sender, report);
                 });

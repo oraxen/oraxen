@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
+import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
@@ -83,7 +84,7 @@ public class CustomRecipe {
     public static CustomRecipe fromRecipe(Recipe bukkitRecipe) {
         if (bukkitRecipe instanceof ShapedRecipe recipe) {
             List<ItemStack> ingredients = new ArrayList<>(9);
-            Map<Character, ItemStack> map = recipe.getIngredientMap();
+            Map<Character, RecipeChoice> map = recipe.getChoiceMap();
             for (String row : recipe.getShape()) {
                 char[] chars = row.toCharArray();
                 for (int charIndex = 0; charIndex < 3; charIndex++) {
@@ -91,15 +92,21 @@ public class CustomRecipe {
                         ingredients.add(null);
                         continue;
                     }
-                    ingredients.add(map.get(chars[charIndex]));
+                    ingredients.add(getRepresentativeItem(map.get(chars[charIndex])));
                 }
             }
             return new CustomRecipe(recipe.getKey().getKey(), recipe.getResult(), ingredients, true);
         } else if (bukkitRecipe instanceof ShapelessRecipe recipe) {
             List<ItemStack> ingredients = new ArrayList<>(9);
-            ingredients.addAll(recipe.getIngredientList());
+            for (RecipeChoice choice : recipe.getChoiceList()) {
+                ingredients.add(getRepresentativeItem(choice));
+            }
             return new CustomRecipe(recipe.getKey().getKey(), recipe.getResult(), ingredients, false);
         } else return null;
+    }
+
+    private static ItemStack getRepresentativeItem(RecipeChoice choice) {
+        return choice == null ? null : choice.getItemStack().clone();
     }
 
     /**

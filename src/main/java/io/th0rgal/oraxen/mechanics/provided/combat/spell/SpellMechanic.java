@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.timers.Timer;
 import io.th0rgal.oraxen.utils.timers.TimersFactory;
+import net.kyori.adventure.text.Component;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -76,10 +77,11 @@ public abstract class SpellMechanic extends Mechanic {
 
             pdc.set(NAMESPACED_KEY, PersistentDataType.INTEGER, chargesLeft - 1);
 
-            List<String> lore = itemMeta.getLore();
+            List<Component> lore = itemMeta.lore();
             if(lore == null) return;
-            lore.set(0, "Charges " + (chargesLeft - 1) + "/" + this.getMaxCharges());
-            itemMeta.setLore(lore);
+            lore = new ArrayList<>(lore);
+            lore.set(0, Component.text("Charges " + (chargesLeft - 1) + "/" + this.getMaxCharges()));
+            itemMeta.lore(lore);
         }));
     }
 }

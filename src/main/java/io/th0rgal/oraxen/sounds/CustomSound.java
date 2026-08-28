@@ -4,6 +4,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.SoundStop;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
 import org.bukkit.SoundCategory;
@@ -17,6 +19,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 public class CustomSound {
@@ -63,19 +66,24 @@ public class CustomSound {
     }
 
     public CustomSound(@NotNull String name, @NotNull ConfigurationSection config) {
-        this(config, name);
+        this(config, name, Logs::logWarning);
     }
 
     public CustomSound(@NotNull ConfigurationSection config) {
-        this(config, null);
+        this(config, null, Logs::logWarning);
     }
 
-    private CustomSound(@NotNull ConfigurationSection config, @Nullable String fallbackName) {
+    CustomSound(@NotNull ConfigurationSection config, Consumer<String> warningLogger) {
+        this(config, null, warningLogger);
+    }
+
+    private CustomSound(@NotNull ConfigurationSection config, @Nullable String fallbackName,
+            Consumer<String> warningLogger) {
         String configuredId = config.getString("id", fallbackName);
         if (configuredId == null || configuredId.isBlank())
             throw new IllegalArgumentException("Custom sound is missing an id");
 
-        ParsedKey soundKey = parseKey(configuredId);
+        ParsedKey soundKey = parseKey(configuredId, warningLogger);
         this.namespace = soundKey.namespace();
         this.key = soundKey.key();
         this.explicitNamespace = soundKey.explicitNamespace();
@@ -93,11 +101,11 @@ public class CustomSound {
         boolean preload = getBoolean(config, "preload", false);
 
         for (String sound : getConfiguredSounds(config))
-            sounds.add(new SoundEntry(parseSoundReference(sound, namespace), stream, volume, pitch, weight,
+            sounds.add(new SoundEntry(parseSoundReference(sound, namespace, warningLogger), stream, volume, pitch, weight,
                     attenuationDistance, preload));
 
         String categoryStr = config.getString("category");
-        this.category = parseCategory(categoryStr);
+        this.category = parseCategory(categoryStr, warningLogger);
         this.writeCategory = categoryStr != null && !categoryStr.isBlank();
 
         this.subtitle = config.getString("subtitle");
@@ -106,7 +114,7 @@ public class CustomSound {
         if (jukeboxSection != null) {
             String descriptionText = jukeboxSection.getString("description",
                     subtitle != null ? subtitle : "<white>Music Disc</white>");
-            ParsedKey songKey = getJukeboxSongKey(jukeboxSection);
+            ParsedKey songKey = getJukeboxSongKey(jukeboxSection, warningLogger);
             this.jukeboxData = Optional.of(new JukeboxData(
                     descriptionText,
                     getDurationInSeconds(jukeboxSection),
@@ -128,7 +136,7 @@ public class CustomSound {
 
     public void play(@NotNull Player player, @NotNull Location location, @NotNull SoundCategory category, float volume,
             float pitch) {
-        player.playSound(location, getSoundId(), category, volume, pitch);
+        AdventureUtils.playSound(player, location, getSoundId(), AdventureUtils.toSource(category), volume, pitch);
     }
 
     public void stop(@NotNull Player player) {
@@ -136,7 +144,10 @@ public class CustomSound {
     }
 
     public void stop(@NotNull Player player, @Nullable SoundCategory category) {
-        player.stopSound(getSoundId(), category);
+        Key soundKey = Key.key(getSoundId());
+        AdventureUtils.stopSound(player, category != null
+                ? SoundStop.namedOnSource(soundKey, AdventureUtils.toSource(category))
+                : SoundStop.named(soundKey));
     }
 
     /**
@@ -200,9 +211,11 @@ public class CustomSound {
     }
 
     public Component getDescription() {
-        return AdventureUtils.MINI_MESSAGE.deserialize(jukeboxData
-                .map(data -> data.description)
-                .orElse("<white>Music Disc</white>"));
+        return AdventureUtils.MINI_MESSAGE.deserialize(getDescriptionText());
+    }
+
+    public String getDescriptionText() {
+        return jukeboxData.map(data -> data.description).orElse("<white>Music Disc</white>");
     }
 
     public JsonObject toJson() {
@@ -307,8 +320,9 @@ public class CustomSound {
     }
 
     @NotNull
-    private static String parseSoundReference(@NotNull String sound, @NotNull String eventNamespace) {
-        ParsedKey key = parseKey(stripOgg(sound.trim().replace('\\', '/')));
+    private static String parseSoundReference(@NotNull String sound, @NotNull String eventNamespace,
+            Consumer<String> warningLogger) {
+        ParsedKey key = parseKey(stripOgg(sound.trim().replace('\\', '/')), warningLogger);
         if (key.namespace().equals("minecraft") && !eventNamespace.equals("minecraft"))
             return key.asString();
         return key.asSoundJsonString();
@@ -316,6 +330,11 @@ public class CustomSound {
 
     @NotNull
     private static ParsedKey parseKey(@NotNull String rawKey) {
+        return parseKey(rawKey, Logs::logWarning);
+    }
+
+    @NotNull
+    private static ParsedKey parseKey(@NotNull String rawKey, Consumer<String> warningLogger) {
         String normalized = rawKey.trim().replace('\\', '/').toLowerCase(Locale.ROOT);
         boolean explicitNamespace = normalized.contains(":");
         String namespace = explicitNamespace ? normalized.substring(0, normalized.indexOf(':')) : "minecraft";
@@ -324,23 +343,25 @@ public class CustomSound {
         String sanitizedNamespace = sanitizeNamespace(namespace);
         String sanitizedKey = sanitizeKey(key);
         if (!sanitizedNamespace.equals(namespace) || !sanitizedKey.equals(key))
-            Logs.logWarning("Invalid sound key '" + rawKey + "', using '" + sanitizedNamespace + ":" + sanitizedKey + "'");
+            warningLogger.accept("Invalid sound key '" + rawKey + "', using '" + sanitizedNamespace + ":"
+                    + sanitizedKey + "'");
 
         return new ParsedKey(sanitizedNamespace, sanitizedKey, explicitNamespace);
     }
 
     @NotNull
-    private ParsedKey getJukeboxSongKey(@NotNull ConfigurationSection jukeboxSection) {
+    private ParsedKey getJukeboxSongKey(@NotNull ConfigurationSection jukeboxSection,
+            Consumer<String> warningLogger) {
         String configuredSongKey = jukeboxSection.getString("song_key");
         if (configuredSongKey != null && !configuredSongKey.isBlank())
-            return parseKey(configuredSongKey);
+            return parseKey(configuredSongKey, warningLogger);
 
         // Legacy Oraxen jukebox songs used oraxen:<sound_name> while the sound event itself
         // lived in minecraft:<sound_name>. Keep that mapping for migrated non-namespaced ids.
         if (!explicitNamespace)
-            return parseKey("oraxen:" + key);
+            return parseKey("oraxen:" + key, warningLogger);
 
-        return parseKey(getSoundId());
+        return parseKey(getSoundId(), warningLogger);
     }
 
     @NotNull
@@ -368,7 +389,7 @@ public class CustomSound {
     }
 
     @NotNull
-    private static SoundCategory parseCategory(@Nullable String categoryStr) {
+    private static SoundCategory parseCategory(@Nullable String categoryStr, Consumer<String> warningLogger) {
         if (categoryStr == null || categoryStr.isBlank())
             return SoundCategory.MASTER;
 
@@ -379,7 +400,7 @@ public class CustomSound {
         try {
             return SoundCategory.valueOf(normalized);
         } catch (IllegalArgumentException exception) {
-            Logs.logWarning("Invalid sound category '" + categoryStr + "', using MASTER");
+            warningLogger.accept("Invalid sound category '" + categoryStr + "', using MASTER");
             return SoundCategory.MASTER;
         }
     }

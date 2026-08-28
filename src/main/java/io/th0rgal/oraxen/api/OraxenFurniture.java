@@ -1,9 +1,7 @@
 package io.th0rgal.oraxen.api;
 
-import com.jeff_media.customblockdata.CustomBlockData;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import com.jeff_media.persistentdataserializer.PersistentDataSerializer;
-import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.BlockLocation;
@@ -11,7 +9,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
-import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -46,12 +44,16 @@ public class OraxenFurniture {
 
     /**
      * Check if a block is an instance of a Furniture
+     * <p>
+     * Thread contract: searches the entities around the block, which Folia
+     * thread-checks against the owning region; call it on the thread owning
+     * the block's region.
      *
      * @param block The block to check
      * @return true if the block is an instance of a Furniture, otherwise false
      */
     public static boolean isFurniture(Block block) {
-        BoundingBox blockBox = BoundingBox.of(BlockHelpers.toCenterLocation(block.getLocation()), 0.5, 0.5, 0.5);
+        BoundingBox blockBox = BoundingBox.of(block.getLocation().toCenterLocation(), 0.5, 0.5, 0.5);
         return (block.getType() == Material.BARRIER && getFurnitureMechanic(block) != null) ||
                 !block.getWorld().getNearbyEntities(blockBox).stream().filter(OraxenFurniture::isFurniture).toList().isEmpty();
     }
@@ -89,12 +91,12 @@ public class OraxenFurniture {
         FurnitureMechanic mechanic = getFurnitureMechanic(entity);
         // Commented out as this breaks FurnitureUpdating when type is different
         //return mechanic != null && mechanic.getFurnitureEntityType() == entity.getType();
-        return mechanic != null && (!OraxenPlugin.supportsDisplayEntities || entity.getType() != EntityType.INTERACTION);
+        return mechanic != null && entity.getType() != EntityType.INTERACTION;
     }
 
     public static boolean isInteractionEntity(@NotNull Entity entity) {
         FurnitureMechanic mechanic = getFurnitureMechanic(entity);
-        return mechanic != null && OraxenPlugin.supportsDisplayEntities && entity.getType() == EntityType.INTERACTION;
+        return mechanic != null && entity.getType() == EntityType.INTERACTION;
     }
 
     /**
@@ -112,6 +114,11 @@ public class OraxenFurniture {
 
     /**
      * Places Furniture at a given location
+     * <p>
+     * Thread contract: spawns entities and may set barrier blocks; must be
+     * called on the thread owning the location's region (on Folia, use the
+     * RegionScheduler), since the placed entity is returned synchronously.
+     *
      * @param location The location to place the Furniture
      * @param itemID The itemID of the Furniture to place
      * @param yaw The yaw of the Furniture
@@ -143,6 +150,10 @@ public class OraxenFurniture {
 
     /**
      * Removes Furniture at a given location, optionally by a player
+     * <p>
+     * Thread contract: mutates blocks and removes entities; must be called on
+     * the thread owning the location's region (on Folia, use the
+     * RegionScheduler), since the result is returned synchronously.
      *
      * @param location The location to remove the Furniture
      * @param player   The player who removed the Furniture, can be null
@@ -219,8 +230,7 @@ public class OraxenFurniture {
             StorageMechanic storage = mechanic.getStorage();
             if (storage != null && (storage.isStorage() || storage.isShulker()))
                 storage.dropStorageContent(mechanic, baseEntity);
-            if (VersionUtil.isPaperServer())
-                baseEntity.getWorld().sendGameEvent(player, GameEvent.BLOCK_DESTROY, baseEntity.getLocation().toVector());
+            baseEntity.getWorld().sendGameEvent(player, GameEvent.BLOCK_DESTROY, baseEntity.getLocation().toVector());
         }
 
         if (hasBarriers)
@@ -333,7 +343,7 @@ public class OraxenFurniture {
 
         removeOrphanSeat(pdc);
         block.setType(Material.AIR);
-        new CustomBlockData(block, OraxenPlugin.get()).clear();
+        BlockHelpers.removePDC(block);
     }
 
     private static void removeOrphanSeat(@NotNull PersistentDataContainer pdc) {
@@ -398,7 +408,14 @@ public class OraxenFurniture {
      */
     public static void updateFurniture(@NotNull Entity entity) {
         if (!FurnitureFactory.isEnabled()) return;
-        if (!BlockHelpers.isLoaded(entity.getLocation())) return;
+        // Mutates region-owned entity state; when called off the owning thread
+        // (public API), re-dispatch onto the entity's scheduler (Folia).
+        if (!Bukkit.isOwnedByCurrentRegion(entity)) {
+            Entity scheduledEntity = entity;
+            SchedulerUtil.runForEntity(scheduledEntity, () -> updateFurniture(scheduledEntity));
+            return;
+        }
+        if (!entity.getLocation().isChunkLoaded()) return;
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
         if (mechanic == null) return;
         entity = mechanic.getBaseEntity(entity);
@@ -419,16 +436,14 @@ public class OraxenFurniture {
             if (entity.getType() == mechanic.getFurnitureEntityType()) {
                 // Check if barriers changed, if so remove and place new
                 if (mechanic.getBarriers().equals(oldPdc.getOrDefault(BARRIER_KEY, DataType.asList(BlockLocation.dataType), new ArrayList<>()))) {
-                    if (OraxenPlugin.supportsDisplayEntities) {
-                        List<Interaction> interactions = mechanic.getInteractionEntities(entity);
-                        // Check if interaction-hitbox changed, if so remove and place new
-                        if (!interactions.isEmpty() && mechanic.hasHitbox() && hasSameHitboxes(interactions, mechanic.getHitboxes()))
-                            // Check if seat changed, if so remove and place new
-                            if (oldPdc.has(SEAT_KEY, DataType.UUID) && mechanic.hasSeat())
-                                // Check if any displayEntity properties changed, if so remove and place new
-                                if (mechanic.hasDisplayEntityProperties() && mechanic.getDisplayEntityProperties().ensureSameDisplayProperties(entity))
-                                    return;
-                    } else return;
+                    List<Interaction> interactions = mechanic.getInteractionEntities(entity);
+                    // Check if interaction-hitbox changed, if so remove and place new
+                    if (!interactions.isEmpty() && mechanic.hasHitbox() && hasSameHitboxes(interactions, mechanic.getHitboxes()))
+                        // Check if seat changed, if so remove and place new
+                        if (oldPdc.has(SEAT_KEY, DataType.UUID) && mechanic.hasSeat())
+                            // Check if any displayEntity properties changed, if so remove and place new
+                            if (mechanic.hasDisplayEntityProperties() && mechanic.getDisplayEntityProperties().ensureSameDisplayProperties(entity))
+                                return;
                 }
             }
 

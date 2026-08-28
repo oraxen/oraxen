@@ -7,12 +7,14 @@ import io.th0rgal.oraxen.mechanics.provided.misc.custom.listeners.CustomListener
 import io.th0rgal.oraxen.utils.actions.ClickAction;
 import org.bukkit.configuration.ConfigurationSection;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class CustomMechanic extends Mechanic {
 
-    private static final Map<String, CustomListener> LOADED_VARIANTS = new HashMap<>();
+    // Mutated during item parsing, which on Folia runs on the reloading
+    // command's region thread across reloads.
+    private static final Map<String, CustomListener> LOADED_VARIANTS = new ConcurrentHashMap<>();
 
     public CustomMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section);
@@ -22,22 +24,19 @@ public class CustomMechanic extends Mechanic {
             if (subsection == null) continue;
             String key = subsection.getCurrentPath();
 
-            CustomListener loadedListener = LOADED_VARIANTS.get(key);
-            if (loadedListener != null) {
-                loadedListener.unregister();
-            }
+            LOADED_VARIANTS.compute(key, (variantKey, loadedListener) -> {
+                if (loadedListener != null) loadedListener.unregister();
 
-            ClickAction clickAction = ClickAction.from(subsection);
+                ClickAction clickAction = ClickAction.from(subsection);
+                if (clickAction == null) return null;
 
-            if (clickAction == null) continue;
-
-            CustomListener listener = new CustomEvent(
-                    subsection.getString("event", ""),
-                    subsection.getBoolean("one_usage", false)
-            ).getListener(getItemID(), subsection.getLong("cooldown"), clickAction);
-
-            listener.register();
-            LOADED_VARIANTS.put(key, listener);
+                CustomListener listener = new CustomEvent(
+                        subsection.getString("event", ""),
+                        subsection.getBoolean("one_usage", false)
+                ).getListener(getItemID(), subsection.getLong("cooldown"), clickAction);
+                listener.register();
+                return listener;
+            });
         }
     }
 

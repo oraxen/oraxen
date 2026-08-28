@@ -8,20 +8,16 @@ import io.th0rgal.oraxen.configs.AppearanceMode;
 import io.th0rgal.oraxen.configs.ResourcesManager;
 import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.glyphs.AnimatedGlyph;
-import io.th0rgal.oraxen.fonts.EffectFontProvider;
 import io.th0rgal.oraxen.fonts.Font;
 import io.th0rgal.oraxen.fonts.FontManager;
 import io.th0rgal.oraxen.glyphs.Glyph;
 import io.th0rgal.oraxen.glyphs.ShiftProvider;
-import io.th0rgal.oraxen.glyphs.TextEffect;
-import net.kyori.adventure.key.Key;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenMeta;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
 import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.customarmor.ComponentArmorModels;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmorType;
-import io.th0rgal.oraxen.utils.customarmor.ShaderArmorTextures;
 import io.th0rgal.oraxen.utils.customarmor.TrimArmorDatapack;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.io.FileUtils;
@@ -47,7 +43,6 @@ public class ResourcePack {
 
     private final Map<String, Collection<Consumer<File>>> packModifiers;
     private static Map<String, VirtualFile> outputFiles;
-    private ShaderArmorTextures shaderArmorTextures;
     private TrimArmorDatapack trimArmorDatapack;
     private ComponentArmorModels componentArmorModels;
     private static final File packFolder = new File(OraxenPlugin.get().getDataFolder(), "pack");
@@ -232,7 +227,7 @@ public class ResourcePack {
             soundGenerator.generateSound(output);
 
             OraxenPackGeneratedEvent event = new OraxenPackGeneratedEvent(output);
-            EventUtils.callEvent(event);
+            event.callEvent();
             output = event.getOutput();
             PackObfuscator.obfuscate(output);
             writeSinglePackAsync(packWorker, output);
@@ -319,24 +314,26 @@ public class ResourcePack {
         outputFiles.clear();
         textShaderGenerator.reset();
 
+        // Snapshot which default folders are missing before any directories get created,
+        // so extraction only ever targets folders the user has not provided themselves.
+        Set<String> missingDefaultFolders = missingDefaultFolders();
+
         makeDirsIfNotExists(packFolder, new File(packFolder, "assets"));
         cleanLegacyShaderOverlayDirectories();
 
         componentArmorModels = CustomArmorType.getSetting() == CustomArmorType.COMPONENT ? new ComponentArmorModels()
                 : null;
         trimArmorDatapack = CustomArmorType.getSetting() == CustomArmorType.TRIMS ? new TrimArmorDatapack() : null;
-        shaderArmorTextures = CustomArmorType.getSetting() == CustomArmorType.SHADER ? new ShaderArmorTextures() : null;
-        fileCollector = new PackFileCollector(packFolder, shaderArmorTextures);
+        fileCollector = new PackFileCollector(packFolder);
 
         if (Settings.GENERATE_DEFAULT_ASSETS.toBool())
-            extractDefaultFolders();
+            extractDefaultFolders(missingDefaultFolders);
         extractRequired();
 
         if (!Settings.GENERATE.toBool())
             return false;
 
-        if (!VersionUtil.atOrAbove("1.21.8") && Settings.HIDE_SCOREBOARD_NUMBERS.toBool()
-                && PluginUtils.isEnabled("HappyHUD")) {
+        if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool() && PluginUtils.isEnabled("HappyHUD")) {
             Logs.logError("HappyHUD detected with hide_scoreboard_numbers enabled!");
             Logs.logWarning(
                     "Recommend following this guide for compatibility: https://docs.oraxen.com/compatibility/happyhud");
@@ -493,7 +490,7 @@ public class ResourcePack {
             if (multiVersionResolved || AppearanceMode.shouldGenerateVanillaItemDefinitions()) {
                 boolean useSelect = AppearanceMode.shouldUseSelectForVanillaItemDefs();
                 boolean includeBothModes = AppearanceMode.shouldUseBothDispatchModes();
-                generateVanillaItemDefinitions(filterForPredicates(texturedItems), useSelect, includeBothModes);
+                generateVanillaItemDefinitions(filterForModelData(texturedItems), useSelect, includeBothModes);
             }
         }
 
@@ -502,28 +499,23 @@ public class ResourcePack {
             // cannot use item definitions and rely solely on legacy predicate model overrides.
             // Uses the resolved flag (not the raw setting) to respect single-pack fallback.
             if (AppearanceMode.shouldGenerateLegacyPredicates() || multiVersionResolved) {
-                generatePredicates(filterForPredicates(texturedItems));
+                generatePredicates(filterForModelData(texturedItems));
             }
         } else {
             // On 1.21.3- servers, predicates are the primary (or only) item appearance system.
-            generatePredicates(filterForPredicates(texturedItems));
+            generatePredicates(filterForModelData(texturedItems));
         }
     }
 
-    /**
-     * Generates non-item assets: fonts, shaders, scoreboard tweaks, armor, texture slicing.
-     */
+    /** Generates non-item assets: fonts, shaders, scoreboard tweaks, and armor. */
     private void generateMiscAssets() {
         generateFont();
         updatePackMcmetaOverlays();
-        if (!VersionUtil.atOrAbove("1.21.8") && Settings.HIDE_SCOREBOARD_NUMBERS.toBool())
+        // No version guard here: hideScoreboardNumbers() dispatches per version
+        // (packet listener on Paper 1.20.3+, shaders below, warning on 26.x+).
+        if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool())
             textShaderGenerator.hideScoreboardNumbers();
         textShaderGenerator.hideScoreboardOrTablistBackgrounds();
-        if (Settings.TEXTURE_SLICER.toBool())
-            PackSlicer.slicePackFiles();
-        if (CustomArmorType.getSetting() == CustomArmorType.SHADER
-                && Settings.CUSTOM_ARMOR_SHADER_GENERATE_FILES.toBool())
-            ShaderArmorTextures.generateArmorShaderFiles();
     }
 
     /** Runs registered pack modifier callbacks. */
@@ -657,7 +649,7 @@ public class ResourcePack {
      *
      * <p>
      * Also adds overlay entries for cross-version shader compatibility when the server
-     * is running 1.21.4+ and text effects or animated glyphs may be used.
+     * is running 1.21.4+ and animated glyphs may be used.
      * </p>
      */
     private void updatePackMcmeta() {
@@ -848,35 +840,34 @@ public class ResourcePack {
     }
 
 
-    private final boolean extractAssets = !new File(packFolder, "assets").exists();
-    private final boolean extractModels = !new File(packFolder, "models").exists();
-    private final boolean extractFonts = !new File(packFolder, "font").exists();
-    private final boolean extractOptifine = !new File(packFolder, "optifine").exists();
-    private final boolean extractLang = !new File(packFolder, "lang").exists();
-    private final boolean extractTextures = !new File(packFolder, "textures").exists();
-    private final boolean extractSounds = !new File(packFolder, "sounds").exists();
+    private static final List<String> DEFAULT_PACK_FOLDERS = List.of(
+            "assets", "models", "font", "lang", "textures", "sounds");
 
-    private void extractDefaultFolders() {
+    /**
+     * Determines which default pack folders are missing at generation time instead of
+     * once at startup, so pack regeneration on reload never overwrites user-provided
+     * files (e.g. pack/lang) in folders that were created after the plugin was enabled.
+     */
+    private Set<String> missingDefaultFolders() {
+        Set<String> missingFolders = new HashSet<>();
+        for (String folder : DEFAULT_PACK_FOLDERS)
+            if (!new File(packFolder, folder).exists())
+                missingFolders.add(folder);
+        return missingFolders;
+    }
+
+    private void extractDefaultFolders(Set<String> foldersToExtract) {
+        if (foldersToExtract.isEmpty())
+            return;
+
         ResourcesManager.browseJar(entry ->
-            extract(entry, OraxenPlugin.get().getResourceManager(), isSuitable(entry.getName()))
+            extract(entry, OraxenPlugin.get().getResourceManager(), isSuitable(entry.getName(), foldersToExtract))
         );
     }
 
-    private boolean isSuitable(String entryName) {
+    private boolean isSuitable(String entryName, Set<String> foldersToExtract) {
         String name = StringUtils.substringAfter(entryName, "pack/").split("/")[0];
-        if (name.equals("textures") && extractTextures)
-            return true;
-        if (name.equals("models") && extractModels)
-            return true;
-        if (name.equals("font") && extractFonts)
-            return true;
-        if (name.equals("optifine") && extractOptifine)
-            return true;
-        if (name.equals("lang") && extractLang)
-            return true;
-        if (name.equals("sounds") && extractSounds)
-            return true;
-        return name.equals("assets") && extractAssets;
+        return foldersToExtract.contains(name);
     }
 
     private void extractRequired() {
@@ -1080,7 +1071,7 @@ public class ResourcePack {
         return filtered;
     }
 
-    private Map<Material, Map<String, ItemBuilder>> filterForPredicates(
+    private Map<Material, Map<String, ItemBuilder>> filterForModelData(
             Map<Material, Map<String, ItemBuilder>> texturedItems) {
         Map<Material, Map<String, ItemBuilder>> filtered = new HashMap<>();
         for (Map.Entry<Material, Map<String, ItemBuilder>> materialEntry : texturedItems.entrySet()) {
@@ -1132,24 +1123,16 @@ public class ResourcePack {
         // Generate the dedicated shift font (still useful for explicit font references)
         generateShiftFont(fontManager);
 
-        // Always generate effect fonts and animated glyphs. The earlier "skip on
-        // legacy single-pack servers" guard was a workaround for the pre-#1812
-        // shader generator emitting wrong GLSL versions; now that the generator
-        // emits per-target shaders correctly, BASE_ONLY mode produces valid
-        // 1.20-1.21.3 shaders for legacy single-pack servers, so the skip would
-        // silently disable text effects/animated glyphs there (regression vs master).
-        generateEffectFonts();
-
         // Process animated glyph fonts
         boolean hasAnimatedGlyphs = processAnimatedGlyphs(fontManager);
 
-        // Generate text shaders when needed (animated glyphs and/or text effects).
+        // Generate text shaders when animated glyphs are present.
         // In multi-version mode the choice depends on the *server* version:
         //   - 1.21.4+ server: skip base shaders and only emit 1.21.4+ overlays so
         //     1.21.3- clients never receive #version 330+ GLSL.
         //   - 1.20-1.21.3 server: emit base shaders for the server's legacy format
         //     AND 1.21.4+ overlays. Without the base emission, legacy clients on a
-        //     multi-version pack would silently lose animated glyph / text effect
+        //     multi-version pack would silently lose animated glyph
         //     rendering (the base format is the legacy one in that case).
         boolean serverIs1214Plus = VersionUtil.atOrAbove("1.21.4");
         TextShaderGenerator.ShaderEmissionMode emissionMode;
@@ -1161,31 +1144,6 @@ public class ResourcePack {
             emissionMode = TextShaderGenerator.ShaderEmissionMode.BASE_ONLY;
         }
         textShaderGenerator.maybeGenerateTextShaders(hasAnimatedGlyphs, emissionMode);
-    }
-
-    /**
-     * Generates effect font files for text effects.
-     * Each enabled effect gets a dedicated font that references vanilla glyphs.
-     * <p>
-     * This method now supports unlimited effects (up to 256) by iterating over
-     * all enabled effects rather than a fixed array.
-     */
-    private void generateEffectFonts() {
-        if (!TextEffect.isEnabled() || !TextEffect.hasAnyEffectEnabled()) {
-            return;
-        }
-
-        EffectFontProvider provider = new EffectFontProvider();
-
-        // Generate fonts for all enabled effects (supports unlimited effects)
-        for (TextEffect.Definition def : TextEffect.getEnabledEffects()) {
-            Key fontKey = EffectFontProvider.getFontKey(def.getId());
-            JsonObject fontJson = provider.generateFontJson(def.getId());
-
-            String path = "assets/" + fontKey.namespace() + "/font";
-            String filename = fontKey.value() + ".json";
-            writeStringToVirtual(path, filename, fontJson.toString());
-        }
     }
 
     /**
@@ -1429,23 +1387,6 @@ public class ResourcePack {
                     trimArmorDatapack = new TrimArmorDatapack();
                 trimArmorDatapack.clearOldDataPack();
                 trimArmorDatapack.generateAssets(output);
-            }
-            case SHADER -> {
-                if (Settings.CUSTOM_ARMOR_SHADER_GENERATE_CUSTOM_TEXTURES.toBool()
-                        && shaderArmorTextures.hasCustomArmors()) {
-                    try {
-                        String armorPath = "assets/minecraft/textures/models/armor";
-                        output.add(
-                                new VirtualFile(armorPath, "leather_layer_1.png", shaderArmorTextures.getLayerOne()));
-                        output.add(
-                                new VirtualFile(armorPath, "leather_layer_2.png", shaderArmorTextures.getLayerTwo()));
-                        if (Settings.CUSTOM_ARMOR_SHADER_GENERATE_SHADER_COMPATIBLE_ARMOR.toBool()) {
-                            output.addAll(shaderArmorTextures.getOptifineFiles());
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
             }
             default -> {
             } // Handle NONE

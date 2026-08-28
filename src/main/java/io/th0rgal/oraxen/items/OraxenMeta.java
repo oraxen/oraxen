@@ -1,8 +1,8 @@
 package io.th0rgal.oraxen.items;
 
 import io.th0rgal.oraxen.configs.Settings;
-import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import org.apache.commons.io.FilenameUtils;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
@@ -169,8 +169,8 @@ public class OraxenMeta {
         List<String> textures = configSection.getStringList("textures");
         ConfigurationSection parent = configSection.getParent();
         modelName = modelName != null ? modelName
-                : Settings.GENERATE_MODEL_BASED_ON_TEXTURE_PATH.toBool() && !textures.isEmpty() && parent != null
-                ? Utils.getParentDirs(textures.stream().findFirst().get()) + parent.getName()
+                : !textures.isEmpty() && parent != null && Settings.GENERATE_MODEL_BASED_ON_TEXTURE_PATH.toBool()
+                ? FilenameUtils.getFullPath(textures.stream().findFirst().get()) + parent.getName()
                 : null;
 
         if (modelName == null && configString.equals("model") && parent != null)

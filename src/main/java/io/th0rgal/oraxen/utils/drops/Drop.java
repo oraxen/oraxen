@@ -162,7 +162,7 @@ public class Drop {
     }
 
     public void spawns(Location location, ItemStack itemInHand) {
-        if (!canDrop(itemInHand) || !BlockHelpers.isLoaded(location)) return;
+        if (!canDrop(itemInHand) || !location.isWorldLoaded() || !location.isChunkLoaded()) return;
 
         if (sourceID != null && silktouch
                 && itemInHand.hasItemMeta()
@@ -176,12 +176,13 @@ public class Drop {
         if (sourceID == null || sourceID.isEmpty()) return;
 
         ItemStack baseItem = OraxenItems.getItemById(sourceID).build();
-        Location location = BlockHelpers.toBlockLocation(baseEntity.getLocation());
-        ItemStack furnitureItem = FurnitureMechanic.getFurnitureItem(baseEntity);
+        Location location = baseEntity.getLocation().toBlockLocation();
+        ItemStack placedItem = FurnitureMechanic.getFurnitureItem(baseEntity);
+        ItemStack furnitureItem = sourceID.equals(OraxenItems.getIdByItem(placedItem)) ? placedItem : baseItem;
         ItemUtils.editItemMeta(furnitureItem, (itemMeta) -> {
             ItemMeta baseMeta = baseItem.getItemMeta();
-            if (baseMeta != null && baseMeta.hasDisplayName())
-                itemMeta.setDisplayName(baseMeta.getDisplayName());
+            if (baseMeta != null && ItemUtils.hasDisplayName(baseMeta))
+                ItemUtils.setDisplayName(itemMeta, ItemUtils.getDisplayName(baseMeta));
         });
 
         if (!canDrop(itemInHand) || !location.isWorldLoaded()) return;
@@ -205,7 +206,7 @@ public class Drop {
                         String lootItemId = OraxenItems.getIdByItem(lootItem);
                         return lootItem.isSimilar(baseItem) || sourceID.equals(lootItemId);
                     })
-                    .map(loot -> new Loot(sourceID, furnitureItem, loot.getProbability(), 1, loot.getMaxAmount()))
+                    .map(loot -> loot.withItem(sourceID, furnitureItem))
                     .toList(), location, getFortuneMultiplier(itemInHand), itemInHand);
         }
     }

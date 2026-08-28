@@ -11,7 +11,6 @@ import io.th0rgal.oraxen.items.OraxenMeta;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.utils.AdventureUtils;
-import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.MusicDiscHelpers;
 import io.th0rgal.oraxen.utils.VersionUtil;
@@ -30,6 +29,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Locale;
 
 public class JukeboxListener implements Listener {
@@ -50,20 +50,21 @@ public class JukeboxListener implements Listener {
             return;
         player.swingMainHand();
 
-        String displayName = null;
+        Component displayName = null;
         if (itemStack.hasItemMeta()) {
             assert itemStack.getItemMeta() != null;
-            if (itemStack.getItemMeta().hasLore()) {
-                assert itemStack.getItemMeta().getLore() != null;
-                displayName = itemStack.getItemMeta().getLore().get(0);
-            } else if (OraxenItems.exists(itemStack) && itemStack.getItemMeta().hasDisplayName()) {
-                displayName = itemStack.getItemMeta().getDisplayName();
+            ItemMeta itemMeta = itemStack.getItemMeta();
+            List<Component> lore = itemMeta.lore();
+            if (lore != null && !lore.isEmpty()) {
+                displayName = lore.get(0);
+            } else if (OraxenItems.exists(itemStack) && ItemUtils.hasDisplayName(itemMeta)) {
+                displayName = ItemUtils.getDisplayName(itemMeta);
             }
         }
 
         if (displayName != null) {
             Component message = AdventureUtils.MINI_MESSAGE.deserialize(
-                Message.MECHANICS_JUKEBOX_NOW_PLAYING.toString(), AdventureUtils.tagResolver("disc", displayName));
+                    Message.MECHANICS_JUKEBOX_NOW_PLAYING.toString(), AdventureUtils.tagResolver("disc", displayName));
             AdventureUtils.sendActionBar(player, message);
         }
 
@@ -88,7 +89,7 @@ public class JukeboxListener implements Listener {
     private boolean insertAndPlayDisc(Entity baseEntity, ItemStack disc, @Nullable Player player) {
         PersistentDataContainer pdc = baseEntity.getPersistentDataContainer();
         FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
-        Location loc = BlockHelpers.toCenterLocation(baseEntity.getLocation());
+        Location loc = baseEntity.getLocation().toCenterLocation();
 
         if (furnitureMechanic == null || !furnitureMechanic.isJukebox())
             return false;

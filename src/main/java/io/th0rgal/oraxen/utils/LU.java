@@ -5,15 +5,14 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Base64;
 
 @SuppressWarnings("ConstantConditions")
@@ -44,16 +43,20 @@ public class LU {
         String i = new String(Base64.getDecoder().decode("aWRlbnRpdGllcw=="), StandardCharsets.UTF_8);
         String d = new String(Base64.getDecoder().decode("ZGlzY29yZA=="), StandardCharsets.UTF_8);
 
-        try(CloseableHttpClient httpClient = HttpClients.createDefault()) {
-            HttpGet request = new HttpGet(ur);
-            CloseableHttpResponse response;
+        // Bounded timeouts: without them a black-holed connection stalls the caller forever.
+        try (HttpClient httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build()) {
+            HttpRequest request = HttpRequest.newBuilder(URI.create(ur))
+                    .timeout(Duration.ofSeconds(15))
+                    .GET().build();
+            String responseString;
             try {
-                response = httpClient.execute(request);
+                responseString = httpClient.send(request, HttpResponse.BodyHandlers.ofString()).body();
             } catch (IOException e) {
                 return "";
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return "";
             }
-            HttpEntity responseEntity = response.getEntity();
-            String responseString = EntityUtils.toString(responseEntity);
             JsonObject jsonOutput;
             try {
                 jsonOutput = JsonParser.parseString(responseString).getAsJsonObject();
@@ -72,7 +75,7 @@ public class LU {
             String ju = String.valueOf(jsonOutput.getAsJsonObject().get(u).toString());
             String did = ij != null && ij.isJsonObject() ? String.valueOf(ij.getAsJsonObject().get(d).toString()) : "null";
             return p + ": " + this.i + " | " + ju + " | " + did;
-        } catch(NullPointerException | IllegalStateException | IOException | IllegalArgumentException ex) {
+        } catch (NullPointerException | IllegalStateException | IllegalArgumentException ex) {
             return "";
         }
     }

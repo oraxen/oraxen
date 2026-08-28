@@ -11,12 +11,12 @@ public class ReportCommand {
             .withPermission("oraxen.command.report")
             .executes((sender, args) -> {
                 // Get Oraxen version
-                String oraxenVersion = OraxenPlugin.get().getDescription().getVersion();
+                String oraxenVersion = OraxenPlugin.get().getPluginMeta().getVersion();
 
                 // Get Protocol Library version
                 Plugin protocolPlugin = OraxenPlugin.get().getPacketAdapter().getPlugin();
                 Bukkit.getPluginManager().getPlugin("ProtocolLib");
-                String protocolLibVersion = protocolPlugin != null ? protocolPlugin.getName() + "-" + protocolPlugin.getDescription().getVersion()
+                String protocolLibVersion = protocolPlugin != null ? protocolPlugin.getName() + "-" + protocolPlugin.getPluginMeta().getVersion()
                     : "Not installed";
 
                 // Get server info
@@ -54,7 +54,7 @@ public class ReportCommand {
                     osArch);
 
                 // Send report to sender
-                sender.sendMessage(report);
+                sender.sendPlainMessage(report);
             });
     }
 }

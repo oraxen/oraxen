@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.recipes.builders;
 
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -18,7 +19,7 @@ public class CookingBuilder extends RecipeBuilder {
     }
 
     @Override
-    Inventory createInventory(Player player, String inventoryTitle) {
+    Inventory createInventory(Player player, Component inventoryTitle) {
         return Bukkit.createInventory(player, InventoryType.FURNACE, inventoryTitle);
     }
 

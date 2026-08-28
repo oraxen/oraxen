@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.mechanics.provided.cosmetic.aura.aura.Aura;
 import io.th0rgal.oraxen.mechanics.provided.cosmetic.aura.aura.HelixAura;
 import io.th0rgal.oraxen.mechanics.provided.cosmetic.aura.aura.RingAura;
 import io.th0rgal.oraxen.mechanics.provided.cosmetic.aura.aura.SimpleAura;
+import io.th0rgal.oraxen.utils.wrappers.ParticleWrapper;
 import org.bukkit.Particle;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -25,7 +26,7 @@ public class AuraMechanic extends Mechanic {
 
     public AuraMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section);
-        particle = Particle.valueOf(section.getString("particle"));
+        particle = ParticleWrapper.resolve(section.getString("particle"));
         switch (section.getString("type")) {
             case "simple" -> aura = new SimpleAura(this);
             case "ring" -> aura = new RingAura(this);
@@ -49,8 +50,11 @@ public class AuraMechanic extends Mechanic {
         // Synchronize to make remove + isEmpty check atomic for Folia thread safety
         synchronized (auraLock) {
             players.remove(player);
-            if (players.isEmpty() && aura != null)
-                aura.stop();
+            if (aura != null) {
+                aura.removePlayer(player);
+                if (players.isEmpty())
+                    aura.stop();
+            }
         }
     }
 

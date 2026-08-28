@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.commands.arguments.StringArgument;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.configs.ConfigsManager;
 import io.th0rgal.oraxen.configs.Message;
+import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.protection.AntiGriefLib;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -21,6 +22,7 @@ public class DebugCommand {
                     YamlConfiguration settings = configsManager.getSettings();
                     boolean debugState = args.getOptional("toggle").isPresent() ? Boolean.parseBoolean(args.getOptional("toggle").get().toString()) : !settings.getBoolean("debug", true);
                     settings.set("debug", debugState);
+                    Settings.invalidateCache();
                     try {
                         settings.save(configsManager.getSettingsFile());
                         String state = (debugState ? "enabled" : "disabled");

@@ -12,7 +12,6 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.farmblock.FarmBlo
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.logstrip.LogStripListener;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.PaperConfigUpdater;
-import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.lang3.Range;
@@ -31,10 +30,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class NoteBlockMechanicFactory extends MechanicFactory {
 
-    public static final Map<Integer, NoteBlockMechanic> BLOCK_PER_VARIATION = new HashMap<>();
+    // Repopulated on reload (a region/command thread on Folia) while every block
+    // event handler reads it from other region threads.
+    public static final Map<Integer, NoteBlockMechanic> BLOCK_PER_VARIATION = new ConcurrentHashMap<>();
     private static JsonObject variants;
     private static NoteBlockMechanicFactory instance;
     public final List<String> toolTypes;
@@ -198,13 +200,12 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockSoundListener());
 
         // Physics-related stuff
-        if (VersionUtil.isPaperServer())
-            MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockMechanicListener.NoteBlockMechanicPaperListener());
+        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockMechanicListener.NoteBlockMechanicPaperListener());
         boolean noteblockUpdatesDisabled = NMSHandlers.isNoteblockUpdatesDisabled();
-        if (!VersionUtil.isPaperServer() || !noteblockUpdatesDisabled)
+        if (!noteblockUpdatesDisabled)
             MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockMechanicListener.NoteBlockMechanicPhysicsListener());
         // Warn if Paper config is not set (auto-update happens earlier in plugin enable)
-        if (VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.20.1") && !noteblockUpdatesDisabled
+        if (!noteblockUpdatesDisabled
                 && PaperConfigUpdater.wasBlockUpdateSettingUpdated("disable-noteblock-updates")) {
             Logs.logWarning("Paper block-updates.disable-noteblock-updates is not enabled, restart may be required");
         }
@@ -282,16 +283,6 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     public void registerFarmBlock() {
         if (farmBlock) return;
         if (farmBlockTask != null) farmBlockTask.cancel();
-
-//        // Dont register if there is no farmblocks in configs
-//        List<String> farmblockList = new ArrayList<>();
-//        for (ItemBuilder itemBuilder : OraxenItems.getItems()) {
-//            String id = OraxenItems.getIdByItem(itemBuilder.build());
-//            NoteBlockMechanic mechanic = (NoteBlockMechanic) NoteBlockMechanicFactory.getInstance().getMechanic(id);
-//            if (mechanic == null || !mechanic.hasDryout()) continue;
-//            farmblockList.add(id);
-//        }
-//        if (farmblockList.isEmpty()) return;
 
         farmBlockTask = new FarmBlockTask(farmBlockCheckDelay);
         MechanicsManager.registerTask(getMechanicID(), farmBlockTask.start(0, farmBlockCheckDelay));

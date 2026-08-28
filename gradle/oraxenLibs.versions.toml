@@ -1,7 +1,5 @@
 [versions]
 # often changed version numbers
-adventure = "5.2.0"
-adventure-platform = "4.4.1"
 hopper = "1.4.2"
 
 actions = "1.0.0-SNAPSHOT"
@@ -16,7 +14,7 @@ actions = "1.0.0-SNAPSHOT"
 protocol-lib = { module = "net.dmulloy2:ProtocolLib", version = "5.4.0" }
 # PacketEvents https://docs.packetevents.com/getting-started
 # Repo: https://repo.codemc.io/repository/maven-releases/
-packet-events = { module = "com.github.retrooper:packetevents-spigot", version = "2.10.0" }
+packet-events = { module = "com.github.retrooper:packetevents-spigot", version = "2.13.0" }
 
 
 # PlaceholderAPI https://github.com/PlaceholderAPI/PlaceholderAPI/wiki/Hook-into-PlaceholderAPI
@@ -43,7 +41,6 @@ worldguard-bukkit = { module = "com.sk89q.worldguard:worldguard-bukkit", version
 # ModelEngine https://git.lumine.io/mythiccraft/model-engine-4/-/wikis/API
 # Repo: https://mvn.lumine.io/repository/maven-public/
 modelengine = { module = "com.ticxo.modelengine:ModelEngine", version = "R4.0.9" }
-modelengine-api = { module = "com.ticxo.modelengine:api", version = "R3.1.8" }     # not needed just an older version of ModelEngine
 
 # EcoItems https://plugins.auxilor.io/ecoitems/api
 # Repo: https://repo.auxilor.io/repository/maven-public/
@@ -64,8 +61,10 @@ blocklocker = { module = "nl.rutgerkok:blocklocker", version = "1.13-SNAPSHOT" }
 skript = { module = "com.github.SkriptLang:Skript", version = "2.13.2" }
 
 # Iris https://github.com/VolmitSoftware/Iris
-# Repo: JitPack
-iris = { module = "com.github.VolmitSoftware:Iris", version = "6a89b8bd" }
+# Repo: JitPack, via fork https://github.com/miziusArchives/Iris (adds jitpack.yml for Java 21;
+# upstream has no jitpack.yml, so its artifacts can never be rebuilt once JitPack evicts them)
+# Version = master commit (3.9.2) + jitpack.yml + Sentry/publishing fixes for tokenless builds
+iris = { module = "com.github.miziusArchives:Iris", version = "927681394c040d8ffab12d83e517f8560475e6ce" }
 
 #
 # Libraries that are included in MC
@@ -77,30 +76,18 @@ commons-io = { module = "commons-io:commons-io", version = "2.11.0" }
 # Libraries that are in Maven Central
 # And therefore can be in the plugins.yml > libraries section
 #
-gson = { module = "com.google.code.gson:gson", version = "2.10.1" }
-commons-lang3 = { module = "org.apache.commons:commons-lang3", version = "3.14.0" }
-joml = { module = "org.joml:joml", version = "1.10.5" }                             # Because pre 1.19.4 api does not have this in the server-jar
+commons-lang3 = { module = "org.apache.commons:commons-lang3", version = "3.20.0" }
 annotations = { module = "org.jetbrains:annotations", version = "26.0.2" }
-
-# Adventure
-adventure-minimessage = { module = "net.kyori:adventure-text-minimessage", version.ref = "adventure" }
-adventure-plain = { module = "net.kyori:adventure-text-serializer-plain", version.ref = "adventure" }
-adventure-ansi = { module = "net.kyori:adventure-text-serializer-ansi", version.ref = "adventure" }
-adventure-platform = { module = "net.kyori:adventure-platform-bukkit", version.ref = "adventure-platform" }
 
 # Actions https://github.com/iGabyTM/actions
 actions-core = { module = "me.gabytm.util:actions-core", version.ref = "actions" }
 actions-spigot = { module = "me.gabytm.util:actions-spigot", version.ref = "actions" }
 
-# Spring Expressions
-spring-expression = { module = "org.springframework:spring-expression", version = "6.0.6" }
+# Spring Expressions (SpEL) - used by ClickAction to parse action conditions
+spring-expression = { module = "org.springframework:spring-expression", version = "6.2.19" }
 
 # MCLogs https://github.com/aternosorg/mclogs
 mc-logs = { module = "gs.mclo:java", version = "2.2.1" }
-
-# http https://hc.apache.org/httpcomponents-client-5.5.x/
-# No clue where its used in the code tho??
-http = { module = "org.apache.httpcomponents:httpmime", version = "4.5.13" }
 
 #
 # Libraries that are shaded and relocated
@@ -114,16 +101,11 @@ bstats = { module = "org.bstats:bstats-bukkit", version = "3.1.0" }
 # Repo: Maven Central
 creative = { module = "team.unnamed:creative-api", version = "1.7.3" }
 
-# JSON
-javax-json = { module = "org.glassfish:javax.json", version = "1.1.4" }
-
 # AntiGriefLib
 # Repo: https://repo.momirealms.net/releases/
 antigrieflib = { module = "net.momirealms:antigrieflib", version = "1.0.11" }
 
 # Repo: Maven Central
-# https://github.com/mfnalex/CustomBlockData
-custom-block-data = { module = "com.jeff-media:custom-block-data", version = "2.2.5" }
 # https://github.com/mfnalex/MorePersistentDataTypes
 more-persistent-data-types = { module = "com.jeff-media:MorePersistentDataTypes", version = "2.4.0" }
 # https://github.com/mfnalex/PersistentDataSerializer
@@ -145,24 +127,14 @@ libraries-included = [
 ]
 libraries-bukkit = [
     "spring-expression",
-    "http",
-    "joml",
-    "adventure-ansi",
-    "adventure-minimessage",
-    "adventure-plain",
-    "adventure-platform",
-    "gson",
     "commons-lang3",
     "mc-logs",
     "creative",
 ]
 libraries-shade = [
     "bstats",
-    "annotations",
     "triumph-gui",
-    "javax-json",
     "antigrieflib",
-    "custom-block-data",
     "more-persistent-data-types",
     "persistent-data-serializer",
     "actions-spigot",

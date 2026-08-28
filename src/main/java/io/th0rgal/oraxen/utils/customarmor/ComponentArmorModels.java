@@ -14,9 +14,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.components.EquippableComponent;
 import org.jetbrains.annotations.Nullable;
 
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonObject;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -34,14 +33,15 @@ public class ComponentArmorModels {
 
     private void writeArmorModels(List<VirtualFile> output, Set<String> armorPrefixes, Set<String> elytraPrefixes) {
         for (String armorprefix : armorPrefixes) {
-            JsonObject armorModel = Json.createObjectBuilder().add("texture", "oraxen:" + armorprefix).build();
-            JsonArray armorModelArray = Json.createArrayBuilder().add(armorModel).build();
-            JsonObject equipmentModel = Json.createObjectBuilder()
-                    .add("layers", Json.createObjectBuilder()
-                            .add("humanoid", armorModelArray)
-                            .add("humanoid_leggings", armorModelArray)
-                            .build())
-                    .build();
+            JsonObject armorModel = new JsonObject();
+            armorModel.addProperty("texture", "oraxen:" + armorprefix);
+            JsonArray armorModelArray = new JsonArray();
+            armorModelArray.add(armorModel);
+            JsonObject equipmentLayers = new JsonObject();
+            equipmentLayers.add("humanoid", armorModelArray);
+            equipmentLayers.add("humanoid_leggings", armorModelArray);
+            JsonObject equipmentModel = new JsonObject();
+            equipmentModel.add("layers", equipmentLayers);
 
             InputStream equipmentStream = new ByteArrayInputStream(
                     equipmentModel.toString().getBytes(StandardCharsets.UTF_8));
@@ -52,11 +52,10 @@ public class ComponentArmorModels {
             if (!elytraPrefixes.contains(armorprefix))
                 continue;
 
-            JsonObject elytraModel = Json.createObjectBuilder()
-                    .add("layers", Json.createObjectBuilder()
-                            .add("wings", armorModelArray)
-                            .build())
-                    .build();
+            JsonObject elytraLayers = new JsonObject();
+            elytraLayers.add("wings", armorModelArray);
+            JsonObject elytraModel = new JsonObject();
+            elytraModel.add("layers", elytraLayers);
             InputStream elytraStream = new ByteArrayInputStream(
                     elytraModel.toString().getBytes(StandardCharsets.UTF_8));
             output.add(new VirtualFile(

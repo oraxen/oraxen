@@ -11,7 +11,6 @@ public final class FurnitureTextPacketBridge {
     }
 
     public static void register() {
-        if (!OraxenPlugin.supportsDisplayEntities) return;
         if (!PacketAdapter.isPacketEventsEnabled()) return;
         FurnitureTextPacketRegistration.register();
     }
@@ -39,7 +38,6 @@ public final class FurnitureTextPacketBridge {
     }
 
     public static void spawnForTrackedViewers(FurnitureTextEntry entry) {
-        if (!OraxenPlugin.supportsDisplayEntities) return;
         if (!PacketAdapter.isPacketEventsEnabled()) return;
         try {
             FurnitureTextPacketRegistration.register();
@@ -49,7 +47,6 @@ public final class FurnitureTextPacketBridge {
     }
 
     public static void updateTrackedViewers(FurnitureTextEntry entry) {
-        if (!OraxenPlugin.supportsDisplayEntities) return;
         if (!PacketAdapter.isPacketEventsEnabled()) return;
         try {
             FurnitureTextPacketRegistration.register();
@@ -59,7 +56,6 @@ public final class FurnitureTextPacketBridge {
     }
 
     public static void respawnTrackedViewers(FurnitureTextEntry entry) {
-        if (!OraxenPlugin.supportsDisplayEntities) return;
         if (!PacketAdapter.isPacketEventsEnabled()) return;
         try {
             FurnitureTextPacketRegistration.register();

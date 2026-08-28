@@ -11,7 +11,6 @@ import io.th0rgal.oraxen.pack.generation.PackVersion;
 import io.th0rgal.oraxen.pack.generation.PackVersionManager;
 import io.th0rgal.oraxen.pack.receive.PackReceiver;
 import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
-import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
@@ -170,7 +169,7 @@ public class MultiVersionUploadManager {
 
         // Fire pre-upload event
         OraxenPackPreUploadEvent event = new OraxenPackPreUploadEvent();
-        EventUtils.callEvent(event);
+        event.callEvent();
         if (cancelled) return;
 
         // Upload pack (provider calculates SHA-1 internally)
@@ -193,7 +192,7 @@ public class MultiVersionUploadManager {
         // not whatever the shared provider holds when the main thread processes it.
         HostingProvider snapshot = new HostingProviderSnapshot(url, sha1, provider.getOriginalSHA1(), uuid);
         OraxenPackUploadEvent uploadEvent = new OraxenPackUploadEvent(snapshot);
-        SchedulerUtil.runTask(() -> Bukkit.getPluginManager().callEvent(uploadEvent));
+        SchedulerUtil.runTask(uploadEvent::callEvent);
 
         Logs.logSuccess("  Uploaded: " + packVersion.getMinecraftVersion() + " -> " + url);
     }

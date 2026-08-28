@@ -10,7 +10,7 @@ public class VersionCommand {
         return new OraxenCommand("version")
                 .withPermission("oraxen.command.version")
                 .executes((sender, args) -> {
-                    Message.VERSION.send(sender, AdventureUtils.tagResolver("version", OraxenPlugin.get().getDescription().getVersion()));
+                    Message.VERSION.send(sender, AdventureUtils.tagResolver("version", OraxenPlugin.get().getPluginMeta().getVersion()));
                 });
     }
 }

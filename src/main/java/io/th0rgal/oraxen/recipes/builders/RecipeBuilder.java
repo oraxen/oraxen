@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.recipes.builders;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.utils.OraxenYaml;
+import net.kyori.adventure.text.Component;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -12,13 +13,15 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class RecipeBuilder {
 
-    private static final Map<UUID, RecipeBuilder> MAP = new HashMap<>();
+    // Mutated from commands and inventory events of different players, which on
+    // Folia run concurrently on different region threads.
+    private static final Map<UUID, RecipeBuilder> MAP = new ConcurrentHashMap<>();
 
     private Inventory inventory;
     private File configFile;
@@ -32,14 +35,15 @@ public abstract class RecipeBuilder {
         this.builderName = builderName;
         this.inventoryTitle = player.getName() + " " + builderName + " builder";
         UUID playerId = player.getUniqueId();
-        inventory = MAP.containsKey(playerId) && MAP.get(playerId).builderName.equals(builderName)
-                ? MAP.get(playerId).inventory
-                : createInventory(player, inventoryTitle);
+        RecipeBuilder existingBuilder = MAP.get(playerId);
+        inventory = existingBuilder != null && existingBuilder.builderName.equals(builderName)
+                ? existingBuilder.inventory
+                : createInventory(player, Component.text(inventoryTitle));
         player.openInventory(inventory);
         MAP.put(playerId, this);
     }
 
-    abstract Inventory createInventory(Player player, String inventoryTitle);
+    abstract Inventory createInventory(Player player, Component inventoryTitle);
 
     void close() {
         MAP.remove(player.getUniqueId());

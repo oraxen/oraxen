@@ -3,13 +3,14 @@ package io.th0rgal.oraxen.mechanics.provided.cosmetic.backpack;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
+import io.th0rgal.oraxen.utils.VersionUtil;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDismountEvent;
-import org.bukkit.event.entity.EntityMountEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.EntityToggleGlideEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -18,7 +19,9 @@ import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.plugin.java.JavaPlugin;
 
+import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -51,7 +54,7 @@ public class BackpackCosmeticListener implements Listener {
         Player player = event.getPlayer();
 
         // Check if player has backpack item equipped
-        SchedulerUtil.runTaskLater(5L, () -> checkAndUpdateBackpack(player));
+        SchedulerUtil.runForEntityLater(player, 5L, () -> checkAndUpdateBackpack(player));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -71,7 +74,7 @@ public class BackpackCosmeticListener implements Listener {
         Player player = event.getPlayer();
 
         // Re-check equipment after respawn
-        SchedulerUtil.runTaskLater(5L, () -> checkAndUpdateBackpack(player));
+        SchedulerUtil.runForEntityLater(player, 5L, () -> checkAndUpdateBackpack(player));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -80,7 +83,7 @@ public class BackpackCosmeticListener implements Listener {
 
         // Hide backpack first, then re-show after world change
         manager.hideBackpack(player);
-        SchedulerUtil.runTaskLater(5L, () -> checkAndUpdateBackpack(player));
+        SchedulerUtil.runForEntityLater(player, 5L, () -> checkAndUpdateBackpack(player));
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -90,7 +93,7 @@ public class BackpackCosmeticListener implements Listener {
         // Check if clicking in player's inventory
         if (event.getClickedInventory() instanceof PlayerInventory) {
             // Delay check to after the inventory update
-            SchedulerUtil.runTaskLater(1L, () -> checkAndUpdateBackpack(player));
+            SchedulerUtil.runForEntityLater(player, 1L, () -> checkAndUpdateBackpack(player));
         }
     }
 
@@ -100,7 +103,8 @@ public class BackpackCosmeticListener implements Listener {
         if (event.getAction().toString().contains("RIGHT_CLICK")) {
             ItemStack item = event.getItem();
             if (item != null && isArmorItem(item)) {
-                SchedulerUtil.runTaskLater(1L, () -> checkAndUpdateBackpack(event.getPlayer()));
+                Player player = event.getPlayer();
+                SchedulerUtil.runForEntityLater(player, 1L, () -> checkAndUpdateBackpack(player));
             }
         }
     }
@@ -130,20 +134,63 @@ public class BackpackCosmeticListener implements Listener {
     public void onEntityToggleGlide(EntityToggleGlideEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
 
-        SchedulerUtil.runTaskLater(1L, () -> checkAndUpdateBackpack(player));
+        SchedulerUtil.runForEntityLater(player, 1L, () -> checkAndUpdateBackpack(player));
     }
 
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onEntityMount(EntityMountEvent event) {
-        if (!(event.getMount() instanceof Player player)) return;
-        if (!manager.hasBackpack(player)) return;
+    /**
+     * Creates the mount/dismount listener for backpack resyncs.
+     * The mount events moved from org.spigotmc to org.bukkit.event.entity in 1.20.5;
+     * referencing the modern classes in this listener would make Bukkit reject
+     * registration of every handler of this class on older servers, so they live
+     * in a dedicated listener that is only used where the classes exist.
+     */
+    public Listener createMountListener(JavaPlugin plugin) {
+        if (VersionUtil.atOrAbove("1.20.5")) return new MountListener();
 
-        scheduleBackpackMountResync(player);
+        Listener legacyListener = new Listener() {
+        };
+        registerLegacyMountEvent(plugin, legacyListener, "org.spigotmc.event.entity.EntityMountEvent");
+        registerLegacyMountEvent(plugin, legacyListener, "org.spigotmc.event.entity.EntityDismountEvent");
+        return legacyListener;
     }
 
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onEntityDismount(EntityDismountEvent event) {
-        if (!(event.getDismounted() instanceof Player player)) return;
+    /**
+     * Mount/dismount handlers for 1.20.5+ servers, where the events live in org.bukkit.event.entity.
+     */
+    public class MountListener implements Listener {
+
+        @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+        public void onEntityMount(org.bukkit.event.entity.EntityMountEvent event) {
+            handleMountChange(event.getEntity());
+        }
+
+        @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+        public void onEntityDismount(org.bukkit.event.entity.EntityDismountEvent event) {
+            handleMountChange(event.getEntity());
+        }
+    }
+
+    /**
+     * Reflectively registers a handler for the legacy org.spigotmc mount events used before 1.20.5.
+     */
+    private void registerLegacyMountEvent(JavaPlugin plugin, Listener listener, String eventClassName) {
+        try {
+            Class<? extends Event> eventClass = Class.forName(eventClassName).asSubclass(Event.class);
+            Method getter = eventClass.getMethod("getEntity");
+            Bukkit.getPluginManager().registerEvent(eventClass, listener, EventPriority.MONITOR, (l, event) -> {
+                if (!eventClass.isInstance(event)) return;
+                try {
+                    if (getter.invoke(event) instanceof org.bukkit.entity.Entity entity) handleMountChange(entity);
+                } catch (ReflectiveOperationException ignored) {
+                }
+            }, plugin, true);
+        } catch (ReflectiveOperationException | RuntimeException ignored) {
+            // Event class not present or not accessible on this server; mount resyncs are skipped.
+        }
+    }
+
+    private void handleMountChange(org.bukkit.entity.Entity mounted) {
+        if (!(mounted instanceof Player player)) return;
         if (!manager.hasBackpack(player)) return;
 
         scheduleBackpackMountResync(player);
@@ -153,8 +200,8 @@ public class BackpackCosmeticListener implements Listener {
     // passenger-list updates the client uses; the second pass is a safety net for that race.
     private void scheduleBackpackMountResync(Player player) {
         manager.requestResync(player);
-        SchedulerUtil.runTaskLater(1L, () -> manager.resyncBackpackMount(player));
-        SchedulerUtil.runTaskLater(2L, () -> manager.resyncBackpackMount(player));
+        SchedulerUtil.runForEntityLater(player, 1L, () -> manager.resyncBackpackMount(player));
+        SchedulerUtil.runForEntityLater(player, 2L, () -> manager.resyncBackpackMount(player));
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -170,7 +217,7 @@ public class BackpackCosmeticListener implements Listener {
                 manager.hideBackpack(player);
             } else if (player.getGameMode() == GameMode.SPECTATOR) {
                 // Re-show when leaving spectator
-                SchedulerUtil.runTaskLater(1L, () -> checkAndUpdateBackpack(player));
+                SchedulerUtil.runForEntityLater(player, 1L, () -> checkAndUpdateBackpack(player));
             }
         }
     }
@@ -179,25 +226,28 @@ public class BackpackCosmeticListener implements Listener {
     public void onItemPickup(EntityPickupItemEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
         // Check after pickup completes
-        SchedulerUtil.runTaskLater(1L, () -> checkAndUpdateBackpack(player));
+        SchedulerUtil.runForEntityLater(player, 1L, () -> checkAndUpdateBackpack(player));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerItemHeld(PlayerItemHeldEvent event) {
         // When player switches held item, check if backpack visibility should change
-        SchedulerUtil.runTaskLater(1L, () -> checkAndUpdateBackpack(event.getPlayer()));
+        Player player = event.getPlayer();
+        SchedulerUtil.runForEntityLater(player, 1L, () -> checkAndUpdateBackpack(player));
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerDropItem(PlayerDropItemEvent event) {
         // When player drops item, check if backpack visibility should change
-        SchedulerUtil.runTaskLater(1L, () -> checkAndUpdateBackpack(event.getPlayer()));
+        Player player = event.getPlayer();
+        SchedulerUtil.runForEntityLater(player, 1L, () -> checkAndUpdateBackpack(player));
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerSwapHandItems(PlayerSwapHandItemsEvent event) {
         // When player swaps hand items, check if backpack visibility should change
-        SchedulerUtil.runTaskLater(1L, () -> checkAndUpdateBackpack(event.getPlayer()));
+        Player player = event.getPlayer();
+        SchedulerUtil.runForEntityLater(player, 1L, () -> checkAndUpdateBackpack(player));
     }
 
     /**
@@ -251,7 +301,7 @@ public class BackpackCosmeticListener implements Listener {
 
         if (hiddenForMovement.remove(playerId)) {
             hiddenMovementMechanics.remove(playerId);
-            SchedulerUtil.runTaskLater(1L, () -> checkAndUpdateBackpack(player));
+            SchedulerUtil.runForEntityLater(player, 1L, () -> checkAndUpdateBackpack(player));
         }
         return false;
     }

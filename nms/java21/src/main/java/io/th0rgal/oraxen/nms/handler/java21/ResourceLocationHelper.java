@@ -6,13 +6,14 @@ import java.lang.reflect.Method;
  * Reflection-based helper to handle the ResourceLocation → Identifier rename
  * that occurred in Paper 26.x's Mojang-mapped API.
  *
- * Used by the single guarded NMS module for versions around the ResourceLocation rename.
+ * Used by the guarded NMS handler for versions around the ResourceLocation rename.
  * The ResourceLocation fallback is retained for defensive resilience only.
  */
 public final class ResourceLocationHelper {
 
     private static final Class<?> RESOURCE_LOCATION_CLASS;
     private static final Method PARSE_METHOD;
+    private static final Method locationMethod;
 
     static {
         Class<?> clazz = null;
@@ -27,9 +28,15 @@ public final class ResourceLocationHelper {
             try {
                 clazz = Class.forName("net.minecraft.resources.ResourceLocation");
                 parseMethod = clazz.getMethod("parse", String.class);
-            } catch (ClassNotFoundException | NoSuchMethodException e) {
-                throw new RuntimeException("Could not find ResourceLocation or Identifier class", e);
+            } catch (ClassNotFoundException | NoSuchMethodException error) {
+                throw new RuntimeException("Could not find ResourceLocation or Identifier class", error);
             }
+        }
+
+        try {
+            locationMethod = Class.forName("net.minecraft.tags.TagKey").getMethod("location");
+        } catch (ClassNotFoundException | NoSuchMethodException error) {
+            throw new RuntimeException("Could not find TagKey#location", error);
         }
 
         RESOURCE_LOCATION_CLASS = clazz;
@@ -51,8 +58,19 @@ public final class ResourceLocationHelper {
     public static <T> T parse(String value) {
         try {
             return (T) PARSE_METHOD.invoke(null, value);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to parse resource location: " + value, e);
+        } catch (Exception error) {
+            throw new RuntimeException("Failed to parse resource location: " + value, error);
+        }
+    }
+
+    /**
+     * Gets a tag key's runtime identifier without linking against its version-specific return type.
+     */
+    public static Object location(Object tagKey) {
+        try {
+            return locationMethod.invoke(tagKey);
+        } catch (Exception error) {
+            throw new RuntimeException("Failed to get tag key location", error);
         }
     }
 

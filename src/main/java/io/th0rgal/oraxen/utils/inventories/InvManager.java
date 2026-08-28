@@ -5,25 +5,27 @@ import dev.triumphteam.gui.guis.PaginatedGui;
 import io.th0rgal.oraxen.recipes.CustomRecipe;
 import org.bukkit.entity.Player;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class InvManager {
 
-    private final Map<UUID, PaginatedGui> itemsViews = new HashMap<>();
+    // Replace the cache on reload so an in-flight compute cannot republish a stale view.
+    private volatile Map<UUID, PaginatedGui> itemsViews = new ConcurrentHashMap<>();
 
     public InvManager() {
         regen();
     }
 
     public void regen() {
-        itemsViews.clear();
+        itemsViews = new ConcurrentHashMap<>();
     }
 
     public PaginatedGui getItemsView(Player player) {
-        return itemsViews.computeIfAbsent(player.getUniqueId(), uuid -> new ItemsView().create());
+        Map<UUID, PaginatedGui> currentViews = itemsViews;
+        return currentViews.computeIfAbsent(player.getUniqueId(), uuid -> new ItemsView().create());
     }
 
 

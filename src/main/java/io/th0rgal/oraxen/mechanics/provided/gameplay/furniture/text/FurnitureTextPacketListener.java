@@ -68,11 +68,13 @@ public class FurnitureTextPacketListener implements PacketListener {
         User user = event.getUser();
         if (user == null) return;
         Player viewer = viewerFromEvent(event);
-        if (viewer != null) entry.addViewer(viewer.getUniqueId());
+        if (viewer == null) return;
+        entry.addViewer(viewer.getUniqueId());
 
         Vector3d basePos = spawn.getPosition();
-        SchedulerUtil.runTaskLater(1L, () -> {
-            if (viewer == null || !viewer.isOnline()) return;
+        // Scheduled on the viewer's own scheduler so the follow-up runs on the thread owning that player
+        SchedulerUtil.runForEntityLater(viewer, 1L, () -> {
+            if (!viewer.isOnline()) return;
             FurnitureTextEntry current = FurnitureTextRegistry.byUuid(baseUuid);
             if (current == null || current.getBaseEntityId() != baseEntityId) return;
             sendTextEntry(current, viewer, null, basePos);
@@ -144,7 +146,12 @@ public class FurnitureTextPacketListener implements PacketListener {
                     buildMetadata(def, viewer, text)
             );
             sendPacket(user, viewer, textSpawn);
-            SchedulerUtil.runTaskLater(1L, () -> sendPacket(user, viewer, textMeta));
+            // Follow-up metadata is per-viewer, so it belongs on that player's scheduler
+            if (viewer != null) {
+                SchedulerUtil.runForEntityLater(viewer, 1L, () -> sendPacket(user, viewer, textMeta));
+            } else {
+                SchedulerUtil.runTaskLater(1L, () -> sendPacket(user, viewer, textMeta));
+            }
         }
     }
 

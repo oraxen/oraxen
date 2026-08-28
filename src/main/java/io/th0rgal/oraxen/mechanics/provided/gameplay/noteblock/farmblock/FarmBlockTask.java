@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.farmblock;
 
-import com.jeff_media.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
@@ -9,6 +8,7 @@ import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -74,11 +74,14 @@ public class FarmBlockTask implements Runnable {
     public void run() {
         for (World world : Bukkit.getWorlds()) {
             for (Chunk chunk : world.getLoadedChunks()) {
-                for (Block block : CustomBlockData.getBlocksWithCustomData(OraxenPlugin.get(), chunk)) {
-                    // Run block operations on the block's region thread for Folia compatibility
-                    SchedulerUtil.runAtLocation(block.getLocation(), () ->
-                            updateBlock(block, BlockHelpers.getPDC(block)));
-                }
+                // Hop to the chunk's region thread before scanning its PDC for Folia compatibility;
+                // all blocks in the chunk belong to the same region, so they can be processed inline
+                Location chunkLoc = new Location(world, chunk.getX() << 4, 0, chunk.getZ() << 4);
+                SchedulerUtil.runAtLocation(chunkLoc, () -> {
+                    if (!chunk.isLoaded()) return;
+                    for (Block block : BlockHelpers.getBlocksWithCustomData(OraxenPlugin.get(), chunk))
+                        updateBlock(block, BlockHelpers.getPDC(block));
+                });
             }
         }
     }
