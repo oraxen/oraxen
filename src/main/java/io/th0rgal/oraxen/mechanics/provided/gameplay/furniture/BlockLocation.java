@@ -5,6 +5,7 @@ import org.bukkit.Location;
 import org.bukkit.Utility;
 import org.bukkit.World;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
+import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 
@@ -12,7 +13,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class BlockLocation implements ConfigurationSerializable {
-    public static PersistentDataType<byte[],BlockLocation> dataType = new ConfigurationSerializableDataType<>(BlockLocation.class);
+
+    static {
+        ConfigurationSerialization.registerClass(BlockLocation.class);
+    }
+
+    public static final PersistentDataType<byte[], BlockLocation> dataType = new ConfigurationSerializableDataType<>(BlockLocation.class);
 
     private int x;
     private int y;
