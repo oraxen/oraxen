@@ -3,7 +3,6 @@ package io.th0rgal.oraxen.items;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.provided.ecoitems.WrappedEcoItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
-import io.th0rgal.oraxen.nms.NMSHandler;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.OraxenYaml;
@@ -20,6 +19,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.components.EquippableComponent;
+import org.bukkit.inventory.meta.components.FoodComponent;
 import org.bukkit.inventory.meta.components.JukeboxPlayableComponent;
 import org.bukkit.inventory.meta.components.ToolComponent;
 import org.bukkit.inventory.meta.components.UseCooldownComponent;
@@ -104,9 +104,8 @@ public final class ItemComponents {
         if (OraxenYaml.contains(components, "enchantment_glint_override"))
             item.setEnchantmentGlintOverride(OraxenYaml.getBoolean(components, "enchantment_glint_override"));
 
-        final NMSHandler nmsHandler = NMSHandlers.getHandler();
         Optional.ofNullable(OraxenYaml.getConfigurationSection(components, "food"))
-                .ifPresent(food -> nmsHandler.foodComponent(item, food));
+                .ifPresent(food -> parseFoodComponent(item, food));
 
         Optional.ofNullable(OraxenYaml.getConfigurationSection(components, "tool"))
                 .ifPresent(toolSection -> parseToolComponent(item, toolSection));
@@ -179,7 +178,16 @@ public final class ItemComponents {
                 .ifPresent(item::setItemModel);
 
         Optional.ofNullable(OraxenYaml.getConfigurationSection(components, "consumable"))
-                .ifPresent(consumableSection -> nmsHandler.consumableComponent(item, consumableSection));
+                .ifPresent(consumableSection -> NMSHandlers.getHandler().consumableComponent(item, consumableSection));
+    }
+
+    @SuppressWarnings("UnstableApiUsage")
+    private void parseFoodComponent(final ItemBuilder item, final ConfigurationSection foodSection) {
+        final FoodComponent foodComponent = new ItemStack(item.getType()).getItemMeta().getFood();
+        foodComponent.setNutrition(Math.max(foodSection.getInt("nutrition"), 0));
+        foodComponent.setSaturation(Math.max((float) foodSection.getDouble("saturation", 0.0), 0f));
+        foodComponent.setCanAlwaysEat(foodSection.getBoolean("can_always_eat", false));
+        item.setFoodComponent(foodComponent);
     }
 
     private boolean isLegacyComponent(final String key) {

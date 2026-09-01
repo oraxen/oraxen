@@ -13,7 +13,6 @@ import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerDestroyEntities;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityMetadata;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSpawnEntity;
-import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import net.kyori.adventure.text.Component;
@@ -97,11 +96,6 @@ public class FurnitureTextPacketListener implements PacketListener {
         for (int i = 0; i < entry.size(); i++) {
             FurnitureTextDefinition def = entry.getDefinitions().get(i);
             Component text = def.renderComponent(viewer);
-            if (NMSHandlers.getHandler().sendTextDisplayMetadata(viewer, entry.virtualEntityId(i), text,
-                    def.getScale(), billboardByte(def), def.getViewRange(), def.getLineWidth(),
-                    def.getBackgroundArgb(), def.getTextOpacity(), textFlags(def))) {
-                continue;
-            }
             PacketEvents.getAPI().getPlayerManager().sendPacket(viewer,
                     new WrapperPlayServerEntityMetadata(entry.virtualEntityId(i), buildMetadata(def, viewer, text)));
         }
@@ -134,13 +128,6 @@ public class FurnitureTextPacketListener implements PacketListener {
             );
 
             Component text = def.renderComponent(viewer);
-            org.bukkit.Location textLocation = new org.bukkit.Location(baseLocation.getWorld(), textPos.x, textPos.y, textPos.z, yaw, pitch);
-            if (viewer != null && NMSHandlers.getHandler().spawnTextDisplay(viewer, virtualId, virtualUuid, textLocation,
-                    text, def.getScale(), billboardByte(def), def.getViewRange(), def.getLineWidth(),
-                    def.getBackgroundArgb(), def.getTextOpacity(), textFlags(def))) {
-                continue;
-            }
-
             WrapperPlayServerEntityMetadata textMeta = new WrapperPlayServerEntityMetadata(
                     virtualId,
                     buildMetadata(def, viewer, text)
@@ -213,11 +200,6 @@ public class FurnitureTextPacketListener implements PacketListener {
                     FurnitureTextDefinition def = entry.getDefinitions().get(i);
                     if (!entry.shouldRefresh(def, tick)) continue;
                     Component text = def.renderComponent(viewer);
-                    if (NMSHandlers.getHandler().sendTextDisplayMetadata(viewer, entry.virtualEntityId(i), text,
-                            def.getScale(), billboardByte(def), def.getViewRange(), def.getLineWidth(),
-                            def.getBackgroundArgb(), def.getTextOpacity(), textFlags(def))) {
-                        continue;
-                    }
                     PacketEvents.getAPI().getPlayerManager().sendPacket(viewer,
                             new WrapperPlayServerEntityMetadata(entry.virtualEntityId(i), buildMetadata(def, viewer, text)));
                 }

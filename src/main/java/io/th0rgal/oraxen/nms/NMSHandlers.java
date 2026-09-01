@@ -56,7 +56,6 @@ public class NMSHandlers {
                 Logs.logSuccess("Version " + version + " has been detected.");
                 Logs.logInfo("Oraxen will use " + handlerClass + ".");
             }
-            Bukkit.getPluginManager().registerEvents(new NMSListeners(), OraxenPlugin.get());
             Listener packDispatchListener = handler.packDispatchListener();
             if (packDispatchListener != null) {
                 Bukkit.getPluginManager().registerEvents(packDispatchListener, OraxenPlugin.get());

@@ -33,7 +33,6 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.PositionMoveRotation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -71,10 +70,9 @@ import org.bukkit.craftbukkit.CraftWorld;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Listener;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.components.FoodComponent;
-import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -83,7 +81,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
@@ -249,11 +246,6 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         return world.clip(new ClipContext(vec3, vec32, ClipContext.Block.OUTLINE, fluidHandling, player));
     }
 
-    @Override
-    public void customBlockDefaultTools(Player player) {
-
-    }
-
     private TagNetworkSerialization.NetworkPayload createPayload() {
         Constructor<?> constructor = Arrays
                 .stream(TagNetworkSerialization.NetworkPayload.class.getDeclaredConstructors()).findFirst()
@@ -286,11 +278,6 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             }
             return Map.of(location, (IntList) list);
         }).collect(HashMap::new, Map::putAll, Map::putAll);
-    }
-
-    @Override
-    public boolean getSupported() {
-        return true;
     }
 
     /**
@@ -447,24 +434,6 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                 nbt.putIntArray(key, numbers.stream().mapToInt(Number::intValue).toArray());
             }
         }
-    }
-
-    @SuppressWarnings("UnstableApiUsage")
-    @Override
-    public void foodComponent(ItemBuilder item, ConfigurationSection foodSection) {
-        FoodComponent foodComponent = new ItemStack(item.getType()).getItemMeta().getFood();
-
-        // Ensure nutrition is non-negative
-        int nutrition = Math.max(foodSection.getInt("nutrition"), 0);
-        foodComponent.setNutrition(nutrition);
-
-        // Ensure saturation is non-negative
-        float saturation = Math.max((float) foodSection.getDouble("saturation", 0.0), 0f);
-        foodComponent.setSaturation(saturation);
-
-        foodComponent.setCanAlwaysEat(foodSection.getBoolean("can_always_eat", false));
-
-        item.setFoodComponent(foodComponent);
     }
 
     @SuppressWarnings("UnstableApiUsage")
@@ -743,22 +712,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                 new BlockPos(location.getBlockX(), location.getBlockY(), location.getBlockZ()), id);
     }
 
-    @Override
-    public void stopJukeBox(Location location) {
-        if (location == null || location.getWorld() == null) return;
-        ServerLevel level = ((CraftWorld) location.getWorld()).getHandle().getLevel();
-        level.levelEvent(null, LevelEvent.SOUND_STOP_JUKEBOX_SONG,
-                new BlockPos(location.getBlockX(), location.getBlockY(), location.getBlockZ()), 0);
-    }
-
     // ============ Backpack Cosmetic Packet Methods ============
-
-    private static final AtomicInteger ENTITY_ID_COUNTER = new AtomicInteger(Integer.MAX_VALUE / 2);
-
-    @Override
-    public int getNextEntityId() {
-        return ENTITY_ID_COUNTER.decrementAndGet();
-    }
 
     private static EntityType<?> getEntityType(String entityId) {
         try {
@@ -835,27 +789,6 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             connection.send(equipmentPacket);
             // Debug: Logs.logSuccess("[Backpack] Sent equipment packet with item in HEAD slot: " + displayItem.getType());
         }
-    }
-
-    @Override
-    public void sendEntityTeleport(Player viewer, int entityId, Location location) {
-        ServerPlayer serverPlayer = ((CraftPlayer) viewer).getHandle();
-        Connection connection = serverPlayer.connection.connection;
-
-        // Create position/rotation data
-        PositionMoveRotation positionData = new PositionMoveRotation(
-                new Vec3(location.getX(), location.getY(), location.getZ()),
-                Vec3.ZERO, // delta movement
-                location.getYaw(),
-                location.getPitch()
-        );
-
-        ClientboundEntityPositionSyncPacket teleportPacket = new ClientboundEntityPositionSyncPacket(
-                entityId,
-                positionData,
-                false // on ground
-        );
-        connection.send(teleportPacket);
     }
 
     @Override

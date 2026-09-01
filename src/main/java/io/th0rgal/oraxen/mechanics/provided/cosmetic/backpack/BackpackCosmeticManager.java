@@ -43,7 +43,7 @@ public class BackpackCosmeticManager {
         hideBackpack(player);
 
         // Generate a unique entity ID for the armor stand
-        int entityId = NMSHandlers.getHandler().getNextEntityId();
+        int entityId = Bukkit.getUnsafe().nextEntityId();
 
         BackpackData data = new BackpackData(entityId, mechanic, displayItem);
         activeBackpacks.put(playerId, data);
