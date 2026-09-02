@@ -579,9 +579,12 @@ public class SchemaGenerator {
         deathProtection.addProperty("description", "Prevents death and applies configured death effects");
         JsonObject deathProtectionProps = new JsonObject();
         JsonObject deathEffects = new JsonObject();
-        deathEffects.addProperty("type", "object");
+        deathEffects.addProperty("type", "array");
         deathEffects.addProperty("description",
                 "Death effects: apply_effects, remove_effects, clear_all_effects, teleport_randomly, and play_sound");
+        JsonObject deathEffect = new JsonObject();
+        deathEffect.addProperty("type", "object");
+        deathEffects.add("items", deathEffect);
         deathProtectionProps.add("death_effects", deathEffects);
         deathProtection.add("properties", deathProtectionProps);
         components.add("death_protection", deathProtection);

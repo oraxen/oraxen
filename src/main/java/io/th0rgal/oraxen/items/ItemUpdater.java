@@ -527,6 +527,10 @@ public class ItemUpdater implements Listener {
 
         ItemStack newItem = nmsHandler.copyItemNBTTags(oldItem, newItemBuilder.build());
         newItem.setAmount(oldItem.getAmount());
+        Object deathProtectionComponent = VersionUtil.atOrAbove("1.21.2")
+                ? Optional.ofNullable(nmsHandler.deathProtectionComponent(newItem))
+                        .orElseGet(() -> nmsHandler.deathProtectionComponent(oldItem))
+                : null;
 
         ItemUtils.editItemMeta(newItem, itemMeta -> {
             ItemMeta oldMeta = oldItem.getItemMeta();
@@ -681,7 +685,9 @@ public class ItemUpdater implements Listener {
         nmsHandler.consumableComponent(newItem, Optional.ofNullable(nmsHandler.consumableComponent(newItem))
                 .orElse(nmsHandler.consumableComponent(oldItem)));
 
-        return newItem;
+        return deathProtectionComponent != null
+                ? nmsHandler.deathProtectionComponent(newItem, deathProtectionComponent)
+                : newItem;
     }
 
 }

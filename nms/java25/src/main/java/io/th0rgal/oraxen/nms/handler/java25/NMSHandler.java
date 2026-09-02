@@ -471,68 +471,76 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
     @Override
     public void deathProtectionComponent(ItemBuilder item, ConfigurationSection section) {
-        ConfigurationSection effectsSection = section.getConfigurationSection("death_effects");
-        List<ConsumeEffect> effects = parseDeathProtectionEffects(effectsSection != null ? effectsSection : section);
+        List<ConsumeEffect> effects = parseDeathProtectionEffects(section.getMapList("death_effects"));
         item.setDeathProtectionComponent(new DeathProtection(effects));
     }
 
-    private List<ConsumeEffect> parseDeathProtectionEffects(ConfigurationSection section) {
+    private List<ConsumeEffect> parseDeathProtectionEffects(List<Map<?, ?>> effectSections) {
         List<ConsumeEffect> effects = new ArrayList<>();
 
-        for (String key : section.getKeys(false)) {
-            Object value = section.get(key);
-            switch (key.toLowerCase(Locale.ROOT)) {
-                case "apply_effects" -> {
-                    if (value instanceof ConfigurationSection applyEffects)
-                        addDeathProtectionStatusEffects(effects, applyEffects);
-                }
-                case "remove_effects" -> {
-                    if (value instanceof List<?> removeEffects)
-                        addDeathProtectionRemoveEffects(effects, removeEffects);
-                }
+        for (Map<?, ?> effectSection : effectSections) {
+            String type = Optional.ofNullable(effectSection.get("type"))
+                    .map(Object::toString)
+                    .orElse("");
+
+            switch (type.toLowerCase(Locale.ROOT)) {
+                case "apply_effects" -> addDeathProtectionStatusEffects(effects, effectSection);
+                case "remove_effects" -> addDeathProtectionRemoveEffects(effects, effectSection);
                 case "clear_all_effects" -> effects.add(new ClearAllStatusEffectsConsumeEffect());
                 case "teleport_randomly" -> {
-                    if (value instanceof ConfigurationSection teleportSection) {
-                        float diameter = (float) teleportSection.getDouble("diameter", 16.0);
-                        effects.add(new TeleportRandomlyConsumeEffect(diameter));
-                    }
+                    float diameter = parseFloatValue(effectSection.get("diameter"), 16f,
+                            "death_protection.teleport_randomly.diameter");
+                    effects.add(new TeleportRandomlyConsumeEffect(diameter));
                 }
                 case "play_sound" -> {
-                    if (value instanceof ConfigurationSection soundSection) {
-                        String soundId = soundSection.getString("sound");
-                        if (soundId != null)
-                            getSoundEventOptional(soundId)
-                                    .map(BuiltInRegistries.SOUND_EVENT::wrapAsHolder)
-                                    .map(PlaySoundConsumeEffect::new)
-                                    .ifPresent(effects::add);
-                    }
+                    String soundId = Optional.ofNullable(effectSection.get("sound"))
+                            .map(Object::toString)
+                            .orElse(null);
+                    if (soundId != null)
+                        getSoundEventOptional(soundId)
+                                .map(BuiltInRegistries.SOUND_EVENT::wrapAsHolder)
+                                .map(PlaySoundConsumeEffect::new)
+                                .ifPresent(effects::add);
                 }
-                default -> {
-                }
+                default -> Logs.logWarning("Invalid death_protection ConsumeEffect-Type " + type);
             }
         }
 
         return effects;
     }
 
-    private void addDeathProtectionStatusEffects(List<ConsumeEffect> effects, ConfigurationSection section) {
-        for (String effectId : section.getKeys(false)) {
-            ConfigurationSection effectSection = section.getConfigurationSection(effectId);
-            if (effectSection == null) {
-                Logs.logWarning("Invalid death_protection effect data for " + effectId + ": expected section");
+    private void addDeathProtectionStatusEffects(List<ConsumeEffect> effects, Map<?, ?> effectSection) {
+        if (!(effectSection.get("effects") instanceof Map<?, ?> configuredEffects))
+            return;
+
+        float probability = Math.max(0f, Math.min(1f,
+                parseFloatValue(effectSection.get("probability"), 1f, "death_protection.probability")));
+
+        for (Map.Entry<?, ?> entry : configuredEffects.entrySet()) {
+            String effectId = entry.getKey().toString();
+            if (!(entry.getValue() instanceof Map<?, ?> rawMap)) {
+                Logs.logWarning("Invalid death_protection effect data for " + effectId + ": expected map");
                 continue;
             }
+
+            Map<String, Object> effectData = new HashMap<>();
+            for (Map.Entry<?, ?> effectEntry : rawMap.entrySet())
+                effectData.put(String.valueOf(effectEntry.getKey()), effectEntry.getValue());
 
             getMobEffectOptional(effectId)
                     .map(BuiltInRegistries.MOB_EFFECT::wrapAsHolder)
                     .ifPresentOrElse(effect -> {
-                        int duration = Math.max(effectSection.getInt("duration", 1), 0) * 20;
-                        int amplifier = Math.max(effectSection.getInt("amplifier", 0), 0);
-                        boolean ambient = effectSection.getBoolean("ambient", true);
-                        boolean particles = effectSection.getBoolean("show_particles", true);
-                        boolean icon = effectSection.getBoolean("show_icon", true);
-                        float probability = (float) Math.max(0.0,
-                                Math.min(1.0, effectSection.getDouble("probability", 1.0)));
+                        int duration = Math.max(parseIntegerValue(effectData.get("duration"), 1, "duration", effectId), 0) * 20;
+                        int amplifier = Math.max(parseIntegerValue(effectData.get("amplifier"), 0, "amplifier", effectId), 0);
+                        boolean ambient = Optional.ofNullable(effectData.get("ambient"))
+                                .map(value -> Boolean.parseBoolean(value.toString()))
+                                .orElse(true);
+                        boolean particles = Optional.ofNullable(effectData.get("show_particles"))
+                                .map(value -> Boolean.parseBoolean(value.toString()))
+                                .orElse(true);
+                        boolean icon = Optional.ofNullable(effectData.get("show_icon"))
+                                .map(value -> Boolean.parseBoolean(value.toString()))
+                                .orElse(true);
 
                         MobEffectInstance instance = new MobEffectInstance(
                                 effect, duration, amplifier, ambient, particles, icon);
@@ -541,10 +549,12 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         }
     }
 
-    private void addDeathProtectionRemoveEffects(List<ConsumeEffect> effects, List<?> effectIds) {
+    private void addDeathProtectionRemoveEffects(List<ConsumeEffect> effects, Map<?, ?> effectSection) {
+        if (!(effectSection.get("effects") instanceof List<?> effectIds))
+            return;
+
         List<Holder<MobEffect>> mobEffects = effectIds.stream()
-                .filter(String.class::isInstance)
-                .map(String.class::cast)
+                .map(Object::toString)
                 .map(this::getMobEffectOptional)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
