@@ -572,6 +572,20 @@ public class SchemaGenerator {
         consumable.add("properties", consumeProps);
         components.add("consumable", consumable);
 
+        // death_protection (1.21.2+)
+        JsonObject deathProtection = new JsonObject();
+        deathProtection.addProperty("type", "object");
+        deathProtection.addProperty("minecraftVersion", "1.21.2+");
+        deathProtection.addProperty("description", "Prevents death and applies configured death effects");
+        JsonObject deathProtectionProps = new JsonObject();
+        JsonObject deathEffects = new JsonObject();
+        deathEffects.addProperty("type", "object");
+        deathEffects.addProperty("description",
+                "Death effects: apply_effects, remove_effects, clear_all_effects, teleport_randomly, and play_sound");
+        deathProtectionProps.add("death_effects", deathEffects);
+        deathProtection.add("properties", deathProtectionProps);
+        components.add("death_protection", deathProtection);
+
         // equippable (1.21.2+)
         JsonObject equippable = new JsonObject();
         equippable.addProperty("type", "object");

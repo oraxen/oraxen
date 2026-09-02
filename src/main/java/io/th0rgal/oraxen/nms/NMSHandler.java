@@ -62,6 +62,18 @@ public interface NMSHandler {
 
     }
 
+    default Object deathProtectionComponent(ItemStack itemStack) {
+        return null;
+    }
+
+    default ItemStack deathProtectionComponent(ItemStack itemStack, Object deathProtectionComponent) {
+        return itemStack;
+    }
+
+    default void deathProtectionComponent(ItemBuilder itemBuilder, ConfigurationSection deathProtectionSection) {
+
+    }
+
     default boolean supportsJukeboxPlaying() {
         return false;
     }
@@ -170,6 +182,20 @@ public interface NMSHandler {
         @Override
         public ItemStack consumableComponent(ItemStack itemStack, Object consumable) {
             return itemStack;
+        }
+
+        @Override
+        public Object deathProtectionComponent(ItemStack itemStack) {
+            return null;
+        }
+
+        @Override
+        public ItemStack deathProtectionComponent(ItemStack itemStack, Object deathProtection) {
+            return itemStack;
+        }
+
+        @Override
+        public void deathProtectionComponent(ItemBuilder item, ConfigurationSection section) {
         }
 
         @Override

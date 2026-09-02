@@ -132,6 +132,8 @@ public class ItemBuilder {
 
     // 1.21.2+ properties
     @Nullable
+    private Object deathProtectionComponent;
+    @Nullable
     private EquippableComponent equippableComponent;
     @Nullable
     private Boolean isGlider;
@@ -619,6 +621,20 @@ public class ItemBuilder {
         return this;
     }
 
+    public boolean hasDeathProtectionComponent() {
+        return VersionUtil.atOrAbove("1.21.2") && deathProtectionComponent != null;
+    }
+
+    @Nullable
+    public Object getDeathProtectionComponent() {
+        return deathProtectionComponent;
+    }
+
+    public <V> ItemBuilder setDeathProtectionComponent(@Nullable V deathProtectionComponent) {
+        this.deathProtectionComponent = deathProtectionComponent;
+        return this;
+    }
+
     public boolean hasToolComponent() {
         return VersionUtil.atOrAbove("1.20.5") && toolComponent != null;
     }
@@ -888,6 +904,7 @@ public class ItemBuilder {
         clonedBuilder.persistentDataMap.putAll(persistentDataMap);
         clonedBuilder.genericComponents.putAll(genericComponents);
         clonedBuilder.paintingVariant = paintingVariant;
+        clonedBuilder.deathProtectionComponent = deathProtectionComponent;
         clonedBuilder.attributeEntries.clear();
         clonedBuilder.attributeEntries.addAll(attributeEntries);
         if (legacyAttributeModifiers != null) {
@@ -952,6 +969,7 @@ public class ItemBuilder {
         // Build into a local and publish once so concurrent readers never see
         // an intermediate stack.
         ItemStack built = applyConsumableComponent(itemStack);
+        built = applyDeathProtectionComponent(built);
         built = applyPaintingVariantComponent(built);
         built = applyGenericComponents(built);
         finalItemStack = built;
@@ -1149,6 +1167,10 @@ public class ItemBuilder {
 
     private ItemStack applyConsumableComponent(ItemStack itemStack) {
         return NMSHandlers.getHandler().consumableComponent(itemStack, consumableComponent);
+    }
+
+    private ItemStack applyDeathProtectionComponent(ItemStack itemStack) {
+        return NMSHandlers.getHandler().deathProtectionComponent(itemStack, deathProtectionComponent);
     }
 
     private ItemStack applyGenericComponents(ItemStack itemStack) {

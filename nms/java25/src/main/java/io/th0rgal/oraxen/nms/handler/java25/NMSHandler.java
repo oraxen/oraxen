@@ -48,6 +48,7 @@ import net.minecraft.world.item.ItemUseAnimation;
 import net.minecraft.world.item.JukeboxSong;
 import net.minecraft.world.item.component.Consumable;
 import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.DeathProtection;
 import net.minecraft.world.item.consume_effects.*;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.DirectionalPlaceContext;
@@ -468,6 +469,92 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         item.setConsumableComponent(consumable.build());
     }
 
+    @Override
+    public void deathProtectionComponent(ItemBuilder item, ConfigurationSection section) {
+        ConfigurationSection effectsSection = section.getConfigurationSection("death_effects");
+        List<ConsumeEffect> effects = parseDeathProtectionEffects(effectsSection != null ? effectsSection : section);
+        item.setDeathProtectionComponent(new DeathProtection(effects));
+    }
+
+    private List<ConsumeEffect> parseDeathProtectionEffects(ConfigurationSection section) {
+        List<ConsumeEffect> effects = new ArrayList<>();
+
+        for (String key : section.getKeys(false)) {
+            Object value = section.get(key);
+            switch (key.toLowerCase(Locale.ROOT)) {
+                case "apply_effects" -> {
+                    if (value instanceof ConfigurationSection applyEffects)
+                        addDeathProtectionStatusEffects(effects, applyEffects);
+                }
+                case "remove_effects" -> {
+                    if (value instanceof List<?> removeEffects)
+                        addDeathProtectionRemoveEffects(effects, removeEffects);
+                }
+                case "clear_all_effects" -> effects.add(new ClearAllStatusEffectsConsumeEffect());
+                case "teleport_randomly" -> {
+                    if (value instanceof ConfigurationSection teleportSection) {
+                        float diameter = (float) teleportSection.getDouble("diameter", 16.0);
+                        effects.add(new TeleportRandomlyConsumeEffect(diameter));
+                    }
+                }
+                case "play_sound" -> {
+                    if (value instanceof ConfigurationSection soundSection) {
+                        String soundId = soundSection.getString("sound");
+                        if (soundId != null)
+                            getSoundEventOptional(soundId)
+                                    .map(BuiltInRegistries.SOUND_EVENT::wrapAsHolder)
+                                    .map(PlaySoundConsumeEffect::new)
+                                    .ifPresent(effects::add);
+                    }
+                }
+                default -> {
+                }
+            }
+        }
+
+        return effects;
+    }
+
+    private void addDeathProtectionStatusEffects(List<ConsumeEffect> effects, ConfigurationSection section) {
+        for (String effectId : section.getKeys(false)) {
+            ConfigurationSection effectSection = section.getConfigurationSection(effectId);
+            if (effectSection == null) {
+                Logs.logWarning("Invalid death_protection effect data for " + effectId + ": expected section");
+                continue;
+            }
+
+            getMobEffectOptional(effectId)
+                    .map(BuiltInRegistries.MOB_EFFECT::wrapAsHolder)
+                    .ifPresentOrElse(effect -> {
+                        int duration = Math.max(effectSection.getInt("duration", 1), 0) * 20;
+                        int amplifier = Math.max(effectSection.getInt("amplifier", 0), 0);
+                        boolean ambient = effectSection.getBoolean("ambient", true);
+                        boolean particles = effectSection.getBoolean("show_particles", true);
+                        boolean icon = effectSection.getBoolean("show_icon", true);
+                        float probability = (float) Math.max(0.0,
+                                Math.min(1.0, effectSection.getDouble("probability", 1.0)));
+
+                        MobEffectInstance instance = new MobEffectInstance(
+                                effect, duration, amplifier, ambient, particles, icon);
+                        effects.add(new ApplyStatusEffectsConsumeEffect(instance, probability));
+                    }, () -> Logs.logWarning("Invalid potion effect in death_protection: " + effectId));
+        }
+    }
+
+    private void addDeathProtectionRemoveEffects(List<ConsumeEffect> effects, List<?> effectIds) {
+        List<Holder<MobEffect>> mobEffects = effectIds.stream()
+                .filter(String.class::isInstance)
+                .map(String.class::cast)
+                .map(this::getMobEffectOptional)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(BuiltInRegistries.MOB_EFFECT::wrapAsHolder)
+                .toList();
+
+        if (!mobEffects.isEmpty())
+            effects.add(new RemoveStatusEffectsConsumeEffect(HolderSet.direct(mobEffects)));
+    }
+
     private void handleApplyEffects(Consumable.Builder consumable, Map<?, ?> effectSection) {
         if (!(effectSection.get("effects") instanceof Map<?, ?> effects))
             return;
@@ -658,12 +745,40 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     }
 
     @Override
+    @Nullable
+    public Object deathProtectionComponent(final ItemStack itemStack) {
+        if (itemStack == null)
+            return null;
+        try {
+            net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(itemStack);
+            return nmsItem.get(DataComponents.DEATH_PROTECTION);
+        } catch (Exception e) {
+            Logs.debug(e);
+        }
+        return null;
+    }
+
+    @Override
     public ItemStack consumableComponent(final ItemStack itemStack, @Nullable Object consumable) {
         if (consumable == null)
             return itemStack;
         try {
             net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(itemStack);
             nmsItem.set(DataComponents.CONSUMABLE, (Consumable) consumable);
+            return asBukkitCopy(nmsItem);
+        } catch (Exception e) {
+            Logs.debug(e);
+        }
+        return itemStack;
+    }
+
+    @Override
+    public ItemStack deathProtectionComponent(final ItemStack itemStack, @Nullable Object deathProtection) {
+        if (!(deathProtection instanceof DeathProtection component))
+            return itemStack;
+        try {
+            net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(itemStack);
+            nmsItem.set(DataComponents.DEATH_PROTECTION, component);
             return asBukkitCopy(nmsItem);
         } catch (Exception e) {
             Logs.debug(e);

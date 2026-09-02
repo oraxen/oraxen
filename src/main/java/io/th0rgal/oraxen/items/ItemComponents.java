@@ -148,6 +148,10 @@ public final class ItemComponents {
 
         if (!VersionUtil.atOrAbove("1.21.2"))
             return;
+
+        Optional.ofNullable(OraxenYaml.getConfigurationSection(components, "death_protection"))
+                .ifPresent(deathProtection -> NMSHandlers.getHandler().deathProtectionComponent(item, deathProtection));
+
         Optional.ofNullable(OraxenYaml.getConfigurationSection(components, "equippable"))
                 .ifPresent(equippable -> parseEquippableComponent(item, equippable));
 
@@ -201,6 +205,7 @@ public final class ItemComponents {
                 normalizedKey.equals("tool") ||
                 normalizedKey.equals("painting_variant") ||
                 normalizedKey.equals("jukebox_playable") ||
+                normalizedKey.equals("death_protection") ||
                 normalizedKey.equals("equippable") ||
                 normalizedKey.equals("use_cooldown") ||
                 normalizedKey.equals("use_remainder") ||
