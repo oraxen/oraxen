@@ -519,11 +519,11 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                     String soundId = Optional.ofNullable(effectSection.get("sound"))
                             .map(Object::toString)
                             .orElse(null);
-                    if (soundId != null)
-                        getSoundEventOptional(soundId)
-                                .map(BuiltInRegistries.SOUND_EVENT::wrapAsHolder)
-                                .map(PlaySoundConsumeEffect::new)
-                                .ifPresent(effects::add);
+                    if (soundId != null) {
+                        SoundEvent soundEvent = getSoundEventFromId(soundId);
+                        if (soundEvent != null)
+                            effects.add(new PlaySoundConsumeEffect(Holder.direct(soundEvent)));
+                    }
                 }
                 default -> Logs.logWarning("Invalid death_protection ConsumeEffect-Type " + type);
             }
@@ -538,6 +538,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
         float probability = Math.max(0f, Math.min(1f,
                 parseFloatValue(effectSection.get("probability"), 1f, "death_protection.probability")));
+        List<MobEffectInstance> statusEffects = new ArrayList<>();
 
         for (Map.Entry<?, ?> entry : configuredEffects.entrySet()) {
             String effectId = entry.getKey().toString();
@@ -557,7 +558,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                         int amplifier = Math.max(parseIntegerValue(effectData.get("amplifier"), 0, "amplifier", effectId), 0);
                         boolean ambient = Optional.ofNullable(effectData.get("ambient"))
                                 .map(value -> Boolean.parseBoolean(value.toString()))
-                                .orElse(true);
+                                .orElse(false);
                         boolean particles = Optional.ofNullable(effectData.get("show_particles"))
                                 .map(value -> Boolean.parseBoolean(value.toString()))
                                 .orElse(true);
@@ -565,11 +566,13 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                                 .map(value -> Boolean.parseBoolean(value.toString()))
                                 .orElse(true);
 
-                        MobEffectInstance instance = new MobEffectInstance(
-                                effect, duration, amplifier, ambient, particles, icon);
-                        effects.add(new ApplyStatusEffectsConsumeEffect(instance, probability));
+                        statusEffects.add(new MobEffectInstance(
+                                effect, duration, amplifier, ambient, particles, icon));
                     }, () -> Logs.logWarning("Invalid potion effect in death_protection: " + effectId));
         }
+
+        if (!statusEffects.isEmpty())
+            effects.add(new ApplyStatusEffectsConsumeEffect(statusEffects, probability));
     }
 
     private void addDeathProtectionRemoveEffects(List<ConsumeEffect> effects, Map<?, ?> effectSection) {
