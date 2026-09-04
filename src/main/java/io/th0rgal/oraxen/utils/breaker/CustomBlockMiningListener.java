@@ -104,7 +104,7 @@ public class CustomBlockMiningListener implements Listener {
     }
 
     @Nullable
-    private MiningProfile getMiningProfile(final Block block, final ItemStack tool) {
+    private static MiningProfile getMiningProfile(final Block block, final ItemStack tool) {
         if (block.getType() == Material.NOTE_BLOCK) {
             NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
             if (mechanic == null) return null;
@@ -137,7 +137,7 @@ public class CustomBlockMiningListener implements Listener {
         return null;
     }
 
-    private double breakSpeedMultiplier(final Player player, final MiningProfile miningProfile) {
+    private static double breakSpeedMultiplier(final Player player, final MiningProfile miningProfile) {
         double speedFactor = VANILLA_BREAK_SPEED_BASE / miningProfile.hardness() * miningProfile.speedMultiplier();
         if (miningProfile.normalizeNativeMiningCost()) {
             speedFactor *= nativeMiningCostMultiplier(player.getInventory().getItemInMainHand(), miningProfile.block());
@@ -146,7 +146,7 @@ public class CustomBlockMiningListener implements Listener {
         return Math.max(0.01D, speedFactor);
     }
 
-    private double nativeMiningCostMultiplier(final ItemStack tool, final Block block) {
+    private static double nativeMiningCostMultiplier(final ItemStack tool, final Block block) {
         final double fullBlockMiningCost = FULL_BLOCK_MINING_COST > 0.0D
                 ? FULL_BLOCK_MINING_COST
                 : HARVESTABLE_BLOCK_DIVISOR;
@@ -156,12 +156,12 @@ public class CustomBlockMiningListener implements Listener {
         return nativeHardness * nativeMiningDivisor(tool, block) / fullBlockMiningCost;
     }
 
-    private double nativeMiningDivisor(final ItemStack tool, final Block block) {
+    private static double nativeMiningDivisor(final ItemStack tool, final Block block) {
         final Material blockType = block.getType();
         return canHarvest(blockType, tool) ? HARVESTABLE_BLOCK_DIVISOR : UNHARVESTABLE_BLOCK_DIVISOR;
     }
 
-    private boolean canHarvest(final Material blockType, final ItemStack tool) {
+    private static boolean canHarvest(final Material blockType, final ItemStack tool) {
         if (!requiresCorrectTool(blockType)) return true;
         if (tool == null) return false;
 
@@ -171,13 +171,13 @@ public class CustomBlockMiningListener implements Listener {
         return mineableTag != null && isTagged(blockType, mineableTag) && hasRequiredTier(blockType, toolName);
     }
 
-    private boolean requiresCorrectTool(final Material blockType) {
+    private static boolean requiresCorrectTool(final Material blockType) {
         return isTagged(blockType, "needs_stone_tool")
                 || isTagged(blockType, "needs_iron_tool")
                 || isTagged(blockType, "needs_diamond_tool");
     }
 
-    private boolean hasRequiredTier(final Material blockType, final String toolName) {
+    private static boolean hasRequiredTier(final Material blockType, final String toolName) {
         if (isTagged(blockType, "needs_diamond_tool")) {
             return toolName.startsWith("DIAMOND_") || toolName.startsWith("NETHERITE_");
         }
@@ -192,7 +192,7 @@ public class CustomBlockMiningListener implements Listener {
     }
 
     @Nullable
-    private String mineableTagName(final String toolName) {
+    private static String mineableTagName(final String toolName) {
         if (toolName.endsWith("_PICKAXE")) return "mineable/pickaxe";
         if (toolName.endsWith("_AXE")) return "mineable/axe";
         if (toolName.endsWith("_SHOVEL")) return "mineable/shovel";
@@ -200,10 +200,23 @@ public class CustomBlockMiningListener implements Listener {
         return null;
     }
 
-    private boolean isTagged(final Material blockType, final String tagName) {
+    private static boolean isTagged(final Material blockType, final String tagName) {
         final Tag<Material> tag = org.bukkit.Bukkit.getTag(Tag.REGISTRY_BLOCKS, NamespacedKey.minecraft(tagName), Material.class);
         return tag != null && tag.isTagged(blockType);
     }
 
     private record MiningProfile(Block block, double hardness, double speedMultiplier, boolean normalizeNativeMiningCost) {}
+
+    /**
+     * Calculates the progress the attribute-driven client would make in one tick without actually
+     * applying the Oraxen modifier. Used when the server must own a note-block break to avoid the
+     * client's predicted neighbour-state updates.
+     */
+    static float serverDrivenBreakProgress(final Player player, final Block block, final ItemStack tool) {
+        final MiningProfile miningProfile = getMiningProfile(block, tool);
+        if (miningProfile == null) return 0.0F;
+        if (miningProfile.hardness() <= 0.0D) return 1.0F;
+
+        return (float) (block.getBreakSpeed(player) * breakSpeedMultiplier(player, miningProfile));
+    }
 }

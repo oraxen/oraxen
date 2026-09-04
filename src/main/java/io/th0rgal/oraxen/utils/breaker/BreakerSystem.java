@@ -66,6 +66,7 @@ public class BreakerSystem implements Listener {
     private final Set<Location> breakerLocations = ConcurrentHashMap.newKeySet();
     private final Map<Location, SchedulerUtil.ScheduledTask> breakerTasks = new ConcurrentHashMap<>();
     private final Map<Location, SchedulerUtil.ScheduledTask> breakerPlaySound = new ConcurrentHashMap<>();
+    private final Map<Location, Player> clientSideBreakSuppressions = new ConcurrentHashMap<>();
 
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void onBlockDamage(final BlockDamageEvent event) {
@@ -86,10 +87,17 @@ public class BreakerSystem implements Listener {
     }
 
     private void handleEvent(Player player, Block block, BlockFace blockFace, Runnable cancel, boolean startedDigging) {
-        if (player.getGameMode() == GameMode.CREATIVE) return;
-
         final Location location = block.getLocation();
         final World world = block.getWorld();
+
+        // Always release client-side suppression on abort, even if the block was replaced or the
+        // player changed game mode since START_DESTROY_BLOCK and no modifier matches any more.
+        if (!startedDigging) {
+            stopBlockBreaker(location);
+            stopBlockHitSound(location);
+        }
+
+        if (player.getGameMode() == GameMode.CREATIVE) return;
 
         final ItemStack item = player.getInventory().getItemInMainHand();
 
@@ -113,9 +121,16 @@ public class BreakerSystem implements Listener {
         if (block.getType() == Material.TRIPWIRE && stringMechanic == null) return;
         if (block.getType() == Material.BARRIER && furnitureMechanic == null) return;
 
+        // A vanilla client predicts the removal of a mined note block and immediately runs
+        // NoteBlock#updateShape on the blocks above and below it. Their instrument states then
+        // briefly select vanilla resource-pack models until Paper acknowledges the dig sequence.
+        // Keep these vulnerable stack breaks server-authoritative so that prediction never starts.
+        final boolean protectNoteBlockStack = noteMechanic != null
+                && ClientSideBlockBreakSuppressor.isSupported()
+                && hasCustomVerticalNoteBlockNeighbor(block);
         if (CustomBlockMiningListener.isSupported()
                 && (noteMechanic != null || stringMechanic != null || shapedMechanic != null
-                || chorusMechanic != null)) {
+                || chorusMechanic != null) && !protectNoteBlockStack) {
             return;
         }
 
@@ -145,16 +160,18 @@ public class BreakerSystem implements Listener {
                 durabilityAction = null;
             }
 
-            if (breakerLocations.contains(location)) {
-                SchedulerUtil.ScheduledTask existingTask = breakerTasks.remove(location);
-                if (existingTask != null) existingTask.cancel();
-            }
+            if (breakerLocations.contains(location)) stopBlockBreaker(location);
 
             breakerLocations.add(location);
+            if (protectNoteBlockStack) suppressClientSideBreaking(player, location);
 
             // Defer the rest to the next tick so the PlayerInteractEvent and Oraxen damage
             // events fire after BlockDamageEvent processing has fully completed.
             final HardnessModifier modifier = triggeredModifier;
+            final boolean useAttributeTiming = protectNoteBlockStack && CustomBlockMiningListener.isSupported();
+            final float serverBreakProgress = useAttributeTiming
+                    ? CustomBlockMiningListener.serverDrivenBreakProgress(player, block, item)
+                    : 0.0F;
             SchedulerUtil.runAtLocation(location, () -> {
                 // Fire PlayerInteractEvent for plugin support (cancellation state is ignored)
                 final PlayerInteractEvent playerInteractEvent =
@@ -178,14 +195,16 @@ public class BreakerSystem implements Listener {
 
                 final int[] valueHolder = {0};
                 final float[] clientProgress = {0f};
-                SchedulerUtil.ScheduledTask breakerTask = SchedulerUtil.runAtLocationTimer(location, period, period, () -> {
+                final float[] serverProgress = {0f};
+                final long timerPeriod = useAttributeTiming ? 1L : period;
+                SchedulerUtil.ScheduledTask breakerTask = SchedulerUtil.runAtLocationTimer(location, timerPeriod, timerPeriod, () -> {
                     if (!breakerLocations.contains(location)) {
                         stopBlockBreaker(location);
                         stopBlockHitSound(location);
                         return;
                     }
 
-                    if (item.getEnchantmentLevel(EnchantmentWrapper.EFFICIENCY) >= 5)
+                    if (!useAttributeTiming && item.getEnchantmentLevel(EnchantmentWrapper.EFFICIENCY) >= 5)
                         valueHolder[0] = 10;
 
                     // Replaces the old STOP_DESTROY_BLOCK packet handling: once the client's own
@@ -194,19 +213,28 @@ public class BreakerSystem implements Listener {
                     // and break the block by itself after the player let go. Stop once the client
                     // must have finished (or quit); if the player is still holding the button, the
                     // client re-starts digging and the new BlockDamageEvent restarts this breaker.
-                    clientProgress[0] += clientBreakSpeed * period;
-                    if (valueHolder[0] < 10 && (!player.isOnline() || clientProgress[0] >= 1f)) {
+                    clientProgress[0] += clientBreakSpeed * timerPeriod;
+                    if (!player.isOnline() || (!protectNoteBlockStack && valueHolder[0] < 10 && clientProgress[0] >= 1f)) {
                         stopBlockBreaker(location);
                         stopBlockHitSound(location);
                         resetBlockBreakAnimations(world, Collections.singletonList(location));
                         return;
                     }
 
-                    sendBlockBreakToViewers(world, location,
-                            furnitureMechanic != null ? furnitureBarrierLocations : Collections.singletonList(location),
-                            valueHolder[0]);
+                    if (useAttributeTiming) {
+                        serverProgress[0] += serverBreakProgress;
+                        valueHolder[0] = Math.min(10, (int) (serverProgress[0] * 10.0F));
+                        if (valueHolder[0] < 10) {
+                            sendBlockBreakToViewers(world, location, Collections.singletonList(location), valueHolder[0]);
+                            return;
+                        }
+                    } else {
+                        sendBlockBreakToViewers(world, location,
+                                furnitureMechanic != null ? furnitureBarrierLocations : Collections.singletonList(location),
+                                valueHolder[0]);
+                        if (valueHolder[0]++ < 10) return;
+                    }
 
-                    if (valueHolder[0]++ < 10) return;
                     BlockDurability.setSuppressVanillaDamageCancellation(true);
                     boolean canBreak;
                     try {
@@ -229,11 +257,6 @@ public class BreakerSystem implements Listener {
                 breakerTasks.put(location, breakerTask);
             });
         } else {
-            // Cancel the breaker immediately to prevent race conditions.
-            // This must happen synchronously before any scheduled tasks.
-            stopBlockBreaker(location);
-            stopBlockHitSound(location);
-
             // Use entity scheduler for player operations on Folia (player may move to different region)
             SchedulerUtil.runForEntity(player, () -> {
                 if (!AntiGriefLib.canBreak(player, location))
@@ -341,6 +364,35 @@ public class BreakerSystem implements Listener {
         breakerLocations.remove(location);
         SchedulerUtil.ScheduledTask task = breakerTasks.remove(location);
         if (task != null) task.cancel();
+        restoreClientSideBreaking(location);
+    }
+
+    static boolean hasCustomVerticalNoteBlockNeighbor(final Block block) {
+        return OraxenBlocks.isOraxenNoteBlock(block.getRelative(BlockFace.UP))
+                || OraxenBlocks.isOraxenNoteBlock(block.getRelative(BlockFace.DOWN));
+    }
+
+    private void suppressClientSideBreaking(final Player player, final Location location) {
+        clientSideBreakSuppressions.put(location, player);
+        ClientSideBlockBreakSuppressor.suppress(player);
+    }
+
+    private void restoreClientSideBreaking(final Location location) {
+        final Player player = clientSideBreakSuppressions.remove(location);
+        if (player == null) return;
+
+        // A new break can begin before this entity task runs. In that case the newer break still
+        // owns the suppression and will restore the real effects when it stops.
+        final Runnable restore = () -> {
+            if (clientSideBreakSuppressions.containsValue(player)) return;
+            ClientSideBlockBreakSuppressor.restore(player);
+        };
+        try {
+            SchedulerUtil.runForEntity(player, restore, null);
+        } catch (final RuntimeException ignored) {
+            // The scheduler can already be unavailable while the plugin/server is disabling.
+            restore.run();
+        }
     }
 
     private void startBlockHitSound(Location location) {
