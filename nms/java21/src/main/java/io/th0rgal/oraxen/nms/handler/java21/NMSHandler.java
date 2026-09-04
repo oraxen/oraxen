@@ -82,10 +82,16 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
     private final Listener packDispatchListener;
+    private final Map<io.netty.channel.Channel, Deque<PendingBlockChange>> pendingBlockChanges = new ConcurrentHashMap<>();
+
+    private record PendingBlockChange(int sequence, int x, int y, int z, boolean placement) {
+    }
 
     public NMSHandler() {
         // Paper exposed the configuration/reconfiguration events used by the pre-join
@@ -113,9 +119,61 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                                 tags.put(Registries.BLOCK, payload);
                             msg = new ClientboundUpdateTagsPacket(tags);
                         }
+                        if (msg instanceof ClientboundBlockChangedAckPacket packet) {
+                            final Deque<PendingBlockChange> pending = pendingBlockChanges.get(ctx.channel());
+                            if (pending != null)
+                                pending.removeIf(change -> change.sequence() <= packet.sequence());
+                        }
                         ctx.write(msg, promise);
                     }
+
+                    @Override
+                    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+                        // Bukkit block events do not expose the packet sequence. Retain the
+                        // position and operation so the matching prediction can be settled as
+                        // soon as its authoritative block states have been sent.
+                        final Deque<PendingBlockChange> pending =
+                                pendingBlockChanges.computeIfAbsent(ctx.channel(), ignored -> new ConcurrentLinkedDeque<>());
+                        if (msg instanceof ServerboundUseItemOnPacket packet) {
+                            final BlockPos pos = packet.getHitResult().getBlockPos();
+                            pending.addLast(new PendingBlockChange(packet.getSequence(), pos.getX(), pos.getY(), pos.getZ(), true));
+                        } else if (msg instanceof ServerboundPlayerActionPacket packet
+                                && packet.getAction() == ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK) {
+                            final BlockPos pos = packet.getPos();
+                            pending.addLast(new PendingBlockChange(packet.getSequence(), pos.getX(), pos.getY(), pos.getZ(), false));
+                        }
+                        while (pending.size() > 16) pending.pollFirst();
+                        super.channelRead(ctx, msg);
+                    }
+
+                    @Override
+                    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+                        pendingBlockChanges.remove(ctx.channel());
+                        super.channelInactive(ctx);
+                    }
                 })));
+    }
+
+    @Override
+    public void acknowledgeBlockChanges(Player player, Location packetBlock, boolean placement) {
+        final ServerPlayer serverPlayer = ((CraftPlayer) player).getHandle();
+        final Connection connection = serverPlayer.connection.connection;
+        final Deque<PendingBlockChange> pending = pendingBlockChanges.get(connection.channel);
+        if (pending == null) return;
+
+        PendingBlockChange matched = null;
+        for (final PendingBlockChange change : pending) {
+            if (change.placement() == placement && change.x() == packetBlock.getBlockX()
+                    && change.y() == packetBlock.getBlockY() && change.z() == packetBlock.getBlockZ()) {
+                matched = change;
+                break;
+            }
+        }
+        if (matched == null) return;
+
+        final int sequence = matched.sequence();
+        pending.removeIf(change -> change.sequence() <= sequence);
+        serverPlayer.connection.send(new ClientboundBlockChangedAckPacket(sequence));
     }
 
     @Override
@@ -214,8 +272,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         InteractionResult result = blockItem.place(placeContext);
         if (result == InteractionResult.FAIL)
             return null;
-        if (placeContext instanceof DirectionalPlaceContext && player.getGameMode() != org.bukkit.GameMode.CREATIVE)
-            itemStack.setAmount(itemStack.getAmount() - 1);
+        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE)
+            itemStack.setAmount(nmsStack.getCount());
         World world = player.getWorld();
         BlockPos placedPos = placeContext.getClickedPos();
 

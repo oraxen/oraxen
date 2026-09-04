@@ -2,8 +2,10 @@ package io.th0rgal.oraxen.utils.breaker;
 
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.utils.PotionUtils;
+import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -12,8 +14,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 
 import java.util.List;
+import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
@@ -49,6 +54,30 @@ class NoteBlockClientPredictionTest {
 
         try (MockedStatic<OraxenBlocks> blocks = mockStatic(OraxenBlocks.class)) {
             assertFalse(BreakerSystem.hasCustomVerticalNoteBlockNeighbor(block));
+        }
+    }
+
+    @Test
+    void vanillaBlockChangeReplaysTheUnchangedCustomNeighborState() {
+        final Block changedBlock = mock(Block.class);
+        final Block blockAbove = mock(Block.class);
+        final Block blockBelow = mock(Block.class);
+        final Location aboveLocation = mock(Location.class);
+        final BlockData aboveData = mock(BlockData.class);
+        when(changedBlock.getRelative(BlockFace.UP)).thenReturn(blockAbove);
+        when(changedBlock.getRelative(BlockFace.DOWN)).thenReturn(blockBelow);
+        when(blockAbove.getLocation()).thenReturn(aboveLocation);
+        when(blockAbove.getBlockData()).thenReturn(aboveData);
+
+        try (MockedStatic<OraxenBlocks> blocks = mockStatic(OraxenBlocks.class)) {
+            blocks.when(() -> OraxenBlocks.isOraxenNoteBlock(blockAbove)).thenReturn(true);
+            blocks.when(() -> OraxenBlocks.isOraxenNoteBlock(blockBelow)).thenReturn(false);
+
+            final Map<Location, BlockData> updates =
+                    AdjacentNoteBlockUpdateHelper.customVerticalNeighborStates(changedBlock);
+
+            assertEquals(1, updates.size());
+            assertSame(aboveData, updates.get(aboveLocation));
         }
     }
 

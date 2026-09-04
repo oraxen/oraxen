@@ -50,6 +50,9 @@ public interface NMSHandler {
     @Nullable
     BlockData correctBlockStates(Player player, EquipmentSlot slot, ItemStack itemStack);
 
+    default void acknowledgeBlockChanges(Player player, Location packetBlock, boolean placement) {
+    }
+
     default Object consumableComponent(ItemStack itemStack) {
         return itemStack;
     }

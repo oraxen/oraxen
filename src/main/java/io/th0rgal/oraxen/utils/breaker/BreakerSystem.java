@@ -14,6 +14,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.shaped.ShapedBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
+import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
@@ -29,6 +30,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -73,6 +75,13 @@ public class BreakerSystem implements Listener {
         handleEvent(event.getPlayer(), event.getBlock(), event.getBlockFace(), () -> event.setCancelled(true), true);
     }
 
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onAdjacentVanillaBlockDamage(final BlockDamageEvent event) {
+        if (!shouldProtectAdjacentVanillaBlock(event.getPlayer(), event.getBlock())) return;
+        handleAdjacentVanillaBlock(event.getPlayer(), event.getBlock(), () -> event.setCancelled(true),
+                event.getInstaBreak());
+    }
+
     @EventHandler(priority = EventPriority.LOW)
     public void onBlockDamageAbort(final BlockDamageAbortEvent event) {
         handleEvent(event.getPlayer(), event.getBlock(), BlockFace.UP, () -> {
@@ -100,7 +109,6 @@ public class BreakerSystem implements Listener {
         if (player.getGameMode() == GameMode.CREATIVE) return;
 
         final ItemStack item = player.getInventory().getItemInMainHand();
-
         HardnessModifier triggeredModifier = null;
         for (final HardnessModifier modifier : MODIFIERS) {
             if (modifier.isTriggered(player, block, item)) {
@@ -108,6 +116,7 @@ public class BreakerSystem implements Listener {
                 break;
             }
         }
+
         if (triggeredModifier == null) return;
         final long period = triggeredModifier.getPeriod(player, block, item);
         if (period == 0) return;
@@ -368,8 +377,63 @@ public class BreakerSystem implements Listener {
     }
 
     static boolean hasCustomVerticalNoteBlockNeighbor(final Block block) {
-        return OraxenBlocks.isOraxenNoteBlock(block.getRelative(BlockFace.UP))
-                || OraxenBlocks.isOraxenNoteBlock(block.getRelative(BlockFace.DOWN));
+        return AdjacentNoteBlockUpdateHelper.hasCustomVerticalNeighbor(block);
+    }
+
+    static boolean shouldProtectAdjacentVanillaBlock(final Player player, final Block block) {
+        if (!ClientSideBlockBreakSuppressor.isSupported() || OraxenBlocks.isOraxenBlock(block)
+                || OraxenFurniture.getFurnitureMechanic(block) != null
+                || !hasCustomVerticalNoteBlockNeighbor(block)) return false;
+
+        final ItemStack item = player.getInventory().getItemInMainHand();
+        return MODIFIERS.stream().noneMatch(modifier -> modifier.isTriggered(player, block, item));
+    }
+
+    private void handleAdjacentVanillaBlock(final Player player, final Block block, final Runnable cancel,
+                                            final boolean instantBreak) {
+        // The target update changes a vertical note block's rendered state on the client even
+        // though its authoritative server state is unchanged. Own the break until completion,
+        // then send that unchanged state directly after the target's removal packet.
+        cancel.run();
+
+        final Location location = block.getLocation();
+        final World world = block.getWorld();
+        final BlockData originalData = block.getBlockData();
+        final float progressPerTick = instantBreak || player.getGameMode() == GameMode.CREATIVE
+                ? 1.0F
+                : Math.max(0.0F, block.getBreakSpeed(player));
+
+        if (breakerLocations.contains(location)) stopBlockBreaker(location);
+        breakerLocations.add(location);
+        suppressClientSideBreaking(player, location);
+
+        player.sendBlockChange(location, originalData);
+        AdjacentNoteBlockUpdateHelper.resendCustomVerticalNeighbors(block, player);
+        NMSHandlers.getHandler().acknowledgeBlockChanges(player, location, false);
+
+        final float[] progress = {0.0F};
+        final SchedulerUtil.ScheduledTask task = SchedulerUtil.runAtLocationTimer(location, 1L, 1L, () -> {
+            if (!breakerLocations.contains(location) || !player.isOnline()
+                    || !block.getBlockData().equals(originalData)) {
+                stopBlockBreaker(location);
+                resetBlockBreakAnimations(world, Collections.singletonList(location));
+                return;
+            }
+
+            progress[0] += progressPerTick;
+            if (progress[0] < 1.0F) {
+                final int stage = Math.min(9, (int) (progress[0] * 10.0F));
+                sendBlockBreakToViewers(world, location, Collections.singletonList(location), stage);
+                return;
+            }
+
+            if (AntiGriefLib.canBreak(player, location) && player.breakBlock(block))
+                AdjacentNoteBlockUpdateHelper.resendCustomVerticalNeighbors(block, player);
+
+            stopBlockBreaker(location);
+            resetBlockBreakAnimations(world, Collections.singletonList(location));
+        });
+        breakerTasks.put(location, task);
     }
 
     private void suppressClientSideBreaking(final Player player, final Location location) {
