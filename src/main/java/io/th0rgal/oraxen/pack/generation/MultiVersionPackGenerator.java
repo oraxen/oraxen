@@ -105,6 +105,7 @@ public class MultiVersionPackGenerator {
         OraxenPackGeneratedEvent event = new OraxenPackGeneratedEvent(output);
         event.callEvent();
         output = event.getOutput();
+        UnprotectedPackWriter.writeConfigured(output, packFolder);
         PackObfuscator.obfuscate(output);
 
         // Define which pack versions to generate
