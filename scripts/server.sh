@@ -253,4 +253,4 @@ Oraxen jar: ${oraxen_jar}
 EOF
 
 cd "$SERVER_DIR"
-exec "$java_command" -Xmx1G -jar server.jar --nogui --port 0
+exec "$java_command" -Xmx1G -jar server.jar --nogui --port 25568
