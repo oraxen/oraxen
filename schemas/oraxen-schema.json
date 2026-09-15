@@ -1,8 +1,8 @@
 {
-  "oraxenVersion": "1.218.0",
+  "oraxenVersion": "1.219.0",
   "minecraftVersion": "26.2",
   "serverVersion": "26.2.build.38-alpha",
-  "generatedAt": "2026-07-21T10:49:02.052717212Z",
+  "generatedAt": "2026-09-15T11:40:13.673936867Z",
   "enums": {
     "Material": {
       "values": [
@@ -7522,6 +7522,11 @@
       "minecraftVersion": "1.20.5+",
       "description": "Maximum stack size for this item"
     },
+    "enchantment_glint_override": {
+      "type": "boolean",
+      "description": "Override whether the item has an enchantment glint",
+      "minecraftVersion": "1.20.5+"
+    },
     "food": {
       "type": "object",
       "minecraftVersion": "1.20.5+",
@@ -8050,16 +8055,16 @@
           "type": "object",
           "description": "Custom hitbox dimensions",
           "properties": {
-            "height": {
+            "width": {
               "type": "number",
-              "description": "Hitbox height",
+              "description": "Hitbox width",
               "default": 1.0,
               "min": 0.0,
               "max": 10.0
             },
-            "width": {
+            "height": {
               "type": "number",
-              "description": "Hitbox width",
+              "description": "Hitbox height",
               "default": 1.0,
               "min": 0.0,
               "max": 10.0
@@ -8070,14 +8075,14 @@
           "type": "object",
           "description": "Seat configuration for sittable furniture",
           "properties": {
-            "yaw": {
-              "type": "number",
-              "description": "Seat rotation",
-              "default": 0.0
-            },
             "height": {
               "type": "number",
               "description": "Seat height offset",
+              "default": 0.0
+            },
+            "yaw": {
+              "type": "number",
+              "description": "Seat rotation",
               "default": 0.0
             }
           }
@@ -8094,6 +8099,27 @@
           "type": "object",
           "description": "Display entity configuration",
           "properties": {
+            "scale": {
+              "type": "object",
+              "description": "Scale of the display entity",
+              "properties": {
+                "z": {
+                  "type": "number",
+                  "description": "Z-axis scale",
+                  "default": 1.0
+                },
+                "x": {
+                  "type": "number",
+                  "description": "X-axis scale",
+                  "default": 1.0
+                },
+                "y": {
+                  "type": "number",
+                  "description": "Y-axis scale",
+                  "default": 1.0
+                }
+              }
+            },
             "brightness": {
               "type": "object",
               "description": "Light levels",
@@ -8114,48 +8140,6 @@
                 }
               }
             },
-            "scale": {
-              "type": "object",
-              "description": "Scale of the display entity",
-              "properties": {
-                "z": {
-                  "type": "number",
-                  "description": "Z-axis scale",
-                  "default": 1.0
-                },
-                "y": {
-                  "type": "number",
-                  "description": "Y-axis scale",
-                  "default": 1.0
-                },
-                "x": {
-                  "type": "number",
-                  "description": "X-axis scale",
-                  "default": 1.0
-                }
-              }
-            },
-            "translation": {
-              "type": "object",
-              "description": "Position offset in blocks",
-              "properties": {
-                "z": {
-                  "type": "number",
-                  "description": "Z-axis offset",
-                  "default": 0.0
-                },
-                "y": {
-                  "type": "number",
-                  "description": "Y-axis offset",
-                  "default": 0.0
-                },
-                "x": {
-                  "type": "number",
-                  "description": "X-axis offset",
-                  "default": 0.0
-                }
-              }
-            },
             "display_transform": {
               "type": "string",
               "description": "Display transform mode",
@@ -8170,6 +8154,27 @@
                 "GROUND",
                 "FIXED"
               ]
+            },
+            "translation": {
+              "type": "object",
+              "description": "Position offset in blocks",
+              "properties": {
+                "z": {
+                  "type": "number",
+                  "description": "Z-axis offset",
+                  "default": 0.0
+                },
+                "x": {
+                  "type": "number",
+                  "description": "X-axis offset",
+                  "default": 0.0
+                },
+                "y": {
+                  "type": "number",
+                  "description": "Y-axis offset",
+                  "default": 0.0
+                }
+              }
             }
           }
         },
@@ -8186,14 +8191,14 @@
                   "description": "Z-axis offset",
                   "default": 0.0
                 },
-                "y": {
-                  "type": "number",
-                  "description": "Y-axis offset",
-                  "default": 0.0
-                },
                 "x": {
                   "type": "number",
                   "description": "X-axis offset",
+                  "default": 0.0
+                },
+                "y": {
+                  "type": "number",
+                  "description": "Y-axis offset",
                   "default": 0.0
                 }
               }
@@ -8207,14 +8212,14 @@
                   "description": "Z-axis scale",
                   "default": 1.0
                 },
-                "y": {
-                  "type": "number",
-                  "description": "Y-axis scale",
-                  "default": 1.0
-                },
                 "x": {
                   "type": "number",
                   "description": "X-axis scale",
+                  "default": 1.0
+                },
+                "y": {
+                  "type": "number",
+                  "description": "Y-axis scale",
                   "default": 1.0
                 }
               }
@@ -8225,14 +8230,14 @@
           "type": "object",
           "description": "Drop configuration when broken",
           "properties": {
-            "loots": {
-              "type": "array",
-              "description": "List of loot entries"
-            },
             "silktouch": {
               "type": "boolean",
               "description": "Require silk touch to drop",
               "default": false
+            },
+            "loots": {
+              "type": "array",
+              "description": "List of loot entries"
             }
           }
         },
@@ -8247,10 +8252,6 @@
               "min": 1,
               "max": 6
             },
-            "title": {
-              "type": "string",
-              "description": "Inventory title"
-            },
             "type": {
               "type": "string",
               "description": "Storage type",
@@ -8260,6 +8261,10 @@
                 "ENDERCHEST",
                 "DISPOSAL"
               ]
+            },
+            "title": {
+              "type": "string",
+              "description": "Inventory title"
             }
           }
         }
@@ -8323,17 +8328,17 @@
           "type": "object",
           "description": "Placement face and block restrictions",
           "properties": {
-            "disallow": {
-              "type": "array",
-              "description": "Vanilla block IDs this block may not be placed against"
-            },
             "allow": {
               "type": "array",
               "description": "Vanilla block IDs this block may be placed against"
             },
-            "wall": {
+            "disallow": {
+              "type": "array",
+              "description": "Vanilla block IDs this block may not be placed against"
+            },
+            "floor": {
               "type": "boolean",
-              "description": "Allow placement on walls",
+              "description": "Allow placement on floors",
               "default": true
             },
             "roof": {
@@ -8341,9 +8346,9 @@
               "description": "Allow placement on ceilings",
               "default": true
             },
-            "floor": {
+            "wall": {
               "type": "boolean",
-              "description": "Allow placement on floors",
+              "description": "Allow placement on walls",
               "default": true
             }
           }
@@ -8352,25 +8357,25 @@
           "type": "object",
           "description": "Custom block sounds",
           "properties": {
-            "step-sound": {
+            "break-sound": {
               "type": "string",
-              "description": "Sound when stepped on"
-            },
-            "place-sound": {
-              "type": "string",
-              "description": "Sound when placed"
-            },
-            "fall-sound": {
-              "type": "string",
-              "description": "Sound when fallen on"
+              "description": "Sound when broken"
             },
             "hit-sound": {
               "type": "string",
               "description": "Sound when hit"
             },
-            "break-sound": {
+            "fall-sound": {
               "type": "string",
-              "description": "Sound when broken"
+              "description": "Sound when fallen on"
+            },
+            "place-sound": {
+              "type": "string",
+              "description": "Sound when placed"
+            },
+            "step-sound": {
+              "type": "string",
+              "description": "Sound when stepped on"
             }
           }
         }
@@ -8677,6 +8682,10 @@
           "default": 1.0,
           "min": 0.0,
           "max": 2.0
+        },
+        "blocked-items": {
+          "type": "array",
+          "description": "Items that cannot be stored; Oraxen item IDs require the oraxen: prefix"
         }
       }
     },
