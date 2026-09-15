@@ -21,6 +21,10 @@ public final class CustomWorkstationRegistry {
         staging = null;
     }
 
+    public static void cancelReload() {
+        staging = null;
+    }
+
     public static CustomWorkstationRecipe match(CustomWorkstationRecipe.Type type, ItemStack first, ItemStack second) {
         for (CustomWorkstationRecipe recipe : recipes) {
             if (recipe.type() == type && recipe.matches(first, second)) return recipe;

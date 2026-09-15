@@ -12,6 +12,7 @@ import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import org.bukkit.EntityEffect;
 import org.bukkit.Material;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -46,11 +47,18 @@ public class TotemAnimationCommand {
                     // the target (Folia) and only report success once it actually played.
                     SchedulerUtil.runForEntity(target, () -> {
                         playAnimation(target, itemStack);
-                        Message.TOTEM_ANIMATION_SUCCESS.send(sender,
-                                AdventureUtils.tagResolver("player", target.getName()),
-                                AdventureUtils.tagResolver("item", itemId));
+                        sendSuccess(sender, target.getName(), itemId);
                     });
                 });
+    }
+
+    private void sendSuccess(CommandSender sender, String playerName, String itemId) {
+        Runnable report = () -> Message.TOTEM_ANIMATION_SUCCESS.send(sender,
+                AdventureUtils.tagResolver("player", playerName),
+                AdventureUtils.tagResolver("item", itemId));
+        if (sender instanceof Player player) SchedulerUtil.runForEntity(player, report);
+        else if (SchedulerUtil.isGlobalThread()) report.run();
+        else SchedulerUtil.runTask(report);
     }
 
     private String[] getItemSuggestions() {

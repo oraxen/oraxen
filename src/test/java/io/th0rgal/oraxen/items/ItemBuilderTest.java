@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
@@ -94,6 +95,34 @@ class ItemBuilderTest {
             ItemBuilder builder = new ItemBuilder(itemStack).setType(Material.POTION);
 
             assertDoesNotThrow(builder::regen);
+        }
+    }
+
+    @Test
+    void cloneKeepsItemModelSetOnTheBuilder() throws Exception {
+        ItemStack itemStack = mock(ItemStack.class);
+        ItemStack clonedStack = mock(ItemStack.class);
+        ItemMeta itemMeta = mock(ItemMeta.class);
+        PersistentDataContainer persistentDataContainer = mock(PersistentDataContainer.class);
+
+        when(itemStack.clone()).thenReturn(clonedStack);
+        when(itemStack.getType()).thenReturn(Material.PAPER);
+        when(itemStack.getAmount()).thenReturn(1);
+        when(itemStack.getItemMeta()).thenReturn(itemMeta);
+        when(clonedStack.getType()).thenReturn(Material.PAPER);
+        when(clonedStack.getAmount()).thenReturn(1);
+        when(clonedStack.getItemMeta()).thenReturn(itemMeta);
+        when(itemMeta.getPersistentDataContainer()).thenReturn(persistentDataContainer);
+        when(itemMeta.getItemFlags()).thenReturn(Set.of());
+        when(persistentDataContainer.has(any(NamespacedKey.class), any(PersistentDataType.class))).thenReturn(false);
+
+        try (var mockedVersions = mockStatic(VersionUtil.class)) {
+            mockedVersions.when(() -> VersionUtil.atOrAbove(anyString())).thenReturn(false);
+
+            NamespacedKey model = new NamespacedKey("oraxen", "arrow_next_icon");
+            ItemBuilder original = new ItemBuilder(itemStack).setItemModel(model);
+
+            assertEquals(model, original.clone().getItemModel());
         }
     }
 }

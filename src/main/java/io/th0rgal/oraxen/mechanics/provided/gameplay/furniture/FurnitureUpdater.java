@@ -31,12 +31,14 @@ public class FurnitureUpdater implements Listener {
         Bukkit.getPluginManager().registerEvent(EntitiesLoadEvent.class, this, EventPriority.NORMAL, (listener, event) ->
                 {
                     if (!FurnitureFactory.isEnabled()) return;
-                    ((EntitiesLoadEvent) event).getEntities().stream().filter(OraxenFurniture::isBaseEntity).forEach(entity -> {
-                        if (Settings.UPDATE_FURNITURE.toBool() && Settings.UPDATE_FURNITURE_ON_LOAD.toBool()) {
-                            OraxenFurniture.updateFurniture(entity);
-                        }
-                        if (entity.isValid()) FurnitureFactory.registerTextEntity(entity);
-                    });
+                    ((EntitiesLoadEvent) event).getEntities().stream().filter(OraxenFurniture::isBaseEntity).forEach(entity ->
+                            SchedulerUtil.runForEntity(entity, () -> {
+                                if (!entity.isValid()) return;
+                                if (Settings.UPDATE_FURNITURE.toBool() && Settings.UPDATE_FURNITURE_ON_LOAD.toBool()) {
+                                    OraxenFurniture.updateFurniture(entity);
+                                }
+                                if (entity.isValid()) FurnitureFactory.registerTextEntity(entity);
+                            }));
                 }
                 , OraxenPlugin.get());
 

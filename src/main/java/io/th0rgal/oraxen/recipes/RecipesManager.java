@@ -22,7 +22,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
 
 public class RecipesManager {
 
@@ -93,14 +92,23 @@ public class RecipesManager {
         eventsManager.beginSmithingReload();
         boolean registrationCompleted = false;
         try {
-            for (File configFile : Objects.requireNonNull(recipesFolder.listFiles()))
+            File[] files = recipesFolder.listFiles();
+            if (files == null) {
+                throw new IllegalStateException("Could not list recipe files in " + recipesFolder);
+            }
+            for (File configFile : files)
                 registerConfigRecipes(configFile);
             registrationCompleted = true;
         } finally {
-            CustomWorkstationRegistry.finishReload();
-            eventsManager.finishSmithingReload();
-            if (registrationCompleted) eventsManager.finishRecipeReload();
-            else eventsManager.cancelRecipeReload();
+            if (registrationCompleted) {
+                CustomWorkstationRegistry.finishReload();
+                eventsManager.finishSmithingReload();
+                eventsManager.finishRecipeReload();
+            } else {
+                CustomWorkstationRegistry.cancelReload();
+                eventsManager.cancelSmithingReload();
+                eventsManager.cancelRecipeReload();
+            }
         }
     }
 

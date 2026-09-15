@@ -861,6 +861,31 @@ public class ItemBuilder {
 
     public ItemBuilder clone() {
         ItemBuilder clonedBuilder = new ItemBuilder(itemStack.clone());
+        // Appearance and other builder-only state is applied on regen(), not stored
+        // on the raw template stack. GUI code clones before the first build(), so
+        // these fields must be copied or item_model / CMD are lost and paper shows.
+        clonedBuilder.oraxenMeta = oraxenMeta;
+        clonedBuilder.type = type;
+        clonedBuilder.amount = amount;
+        clonedBuilder.displayName = displayName;
+        clonedBuilder.displayNameMessage = displayNameMessage;
+        clonedBuilder.itemName = itemName;
+        clonedBuilder.itemModel = itemModel;
+        clonedBuilder.tooltipStyle = tooltipStyle;
+        clonedBuilder.customModelData = customModelData;
+        clonedBuilder.customModelDataStrings = customModelDataStrings != null
+                ? new ArrayList<>(customModelDataStrings) : null;
+        clonedBuilder.customModelDataFloats = customModelDataFloats != null
+                ? new ArrayList<>(customModelDataFloats) : null;
+        clonedBuilder.lore = lore != null ? new ArrayList<>(lore) : null;
+        clonedBuilder.unbreakable = unbreakable;
+        clonedBuilder.unstackable = unstackable;
+        if (itemFlags != null) {
+            clonedBuilder.itemFlags = EnumSet.noneOf(ItemFlag.class);
+            clonedBuilder.itemFlags.addAll(itemFlags);
+        }
+        clonedBuilder.enchantments.putAll(enchantments);
+        clonedBuilder.persistentDataMap.putAll(persistentDataMap);
         clonedBuilder.genericComponents.putAll(genericComponents);
         clonedBuilder.paintingVariant = paintingVariant;
         clonedBuilder.attributeEntries.clear();
@@ -868,6 +893,34 @@ public class ItemBuilder {
         if (legacyAttributeModifiers != null) {
             clonedBuilder.legacyAttributeModifiers = HashMultimap.create(legacyAttributeModifiers);
         }
+        clonedBuilder.color = color;
+        clonedBuilder.trimPattern = trimPattern;
+        clonedBuilder.potionType = potionType;
+        clonedBuilder.potionEffects = potionEffects != null ? new ArrayList<>(potionEffects) : null;
+        clonedBuilder.owningPlayer = owningPlayer;
+        clonedBuilder.bodyColor = bodyColor;
+        clonedBuilder.pattern = pattern;
+        clonedBuilder.patternColor = patternColor;
+        clonedBuilder.foodComponent = foodComponent;
+        clonedBuilder.consumableComponent = consumableComponent;
+        clonedBuilder.toolComponent = toolComponent;
+        clonedBuilder.enchantmentGlintOverride = enchantmentGlintOverride;
+        clonedBuilder.maxStackSize = maxStackSize;
+        clonedBuilder.fireResistant = fireResistant;
+        clonedBuilder.hideToolTip = hideToolTip;
+        clonedBuilder.rarity = rarity;
+        clonedBuilder.durability = durability;
+        clonedBuilder.damagedOnBlockBreak = damagedOnBlockBreak;
+        clonedBuilder.damagedOnEntityHit = damagedOnEntityHit;
+        clonedBuilder.jukeboxPlayable = jukeboxPlayable;
+        clonedBuilder.equippableComponent = equippableComponent;
+        clonedBuilder.isGlider = isGlider;
+        clonedBuilder.useCooldownComponent = useCooldownComponent;
+        clonedBuilder.useRemainder = useRemainder != null ? useRemainder.clone() : null;
+        clonedBuilder.deferredUseRemainderId = deferredUseRemainderId;
+        clonedBuilder.deferredUseRemainderAmount = deferredUseRemainderAmount;
+        clonedBuilder.damageResistant = damageResistant;
+        clonedBuilder.enchantable = enchantable;
         return clonedBuilder;
     }
 

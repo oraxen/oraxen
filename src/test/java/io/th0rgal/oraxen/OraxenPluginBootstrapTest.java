@@ -18,6 +18,7 @@ class OraxenPluginBootstrapTest {
 
     @Test
     void gatesRegistryFeaturesByMinecraftVersion() {
+        // Paintings bootstrap starts at 1.21.3; 1.21.2 must inject at plugin enable.
         assertFalse(OraxenPluginBootstrap.atOrAbove("1.21.2", 1, 21, 3));
         assertTrue(OraxenPluginBootstrap.atOrAbove("1.21.3", 1, 21, 3));
         assertTrue(OraxenPluginBootstrap.atOrAbove("1.21.6-pre1", 1, 21, 6));

@@ -2,10 +2,8 @@ package io.th0rgal.oraxen.utils.inventories;
 
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
-import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.configs.Message;
-import io.th0rgal.oraxen.items.ItemBuilder;
+import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.recipes.CustomRecipe;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -44,13 +42,13 @@ public class RecipesView {
         }
 
         // Close RecipeShowcase inventory button
-        gui.setItem(6, 5, new GuiItem(iconOrDefault("exit_icon", Material.BARRIER)
+        gui.setItem(6, 5, new GuiItem(InventoryIcons.resolve(Settings.ORAXEN_INV_EXIT, "exit_icon", Material.BARRIER)
                 .setDisplayName(Message.EXIT_MENU).build(),
                 (event -> event.getWhoClicked().closeInventory())));
 
         // Previous Page button
         if (currentPage > 0)
-            gui.setItem(4, 2, new GuiItem(iconOrDefault("arrow_previous_icon", Material.ARROW)
+            gui.setItem(4, 2, new GuiItem(InventoryIcons.resolve(Settings.ORAXEN_INV_PREVIOUS_ICON, "arrow_previous_icon", Material.ARROW)
                     .setDisplayName(pageName(currentPage))
                     .build(),
                     event -> create(currentPage - 1,
@@ -58,18 +56,13 @@ public class RecipesView {
 
         // Next page button
         if (!lastPage)
-            gui.setItem(4, 8, new GuiItem(iconOrDefault("arrow_next_icon", Material.ARROW)
+            gui.setItem(4, 8, new GuiItem(InventoryIcons.resolve(Settings.ORAXEN_INV_NEXT_ICON, "arrow_next_icon", Material.ARROW)
                     .setDisplayName(pageName(currentPage + 2))
                     .build(),
                     event -> create(currentPage + 1, filteredRecipes)
                             .open(event.getWhoClicked())));
 
         return gui;
-    }
-
-    private ItemBuilder iconOrDefault(String itemId, Material fallback) {
-        ItemBuilder icon = OraxenItems.getItemById(itemId);
-        return icon != null ? new ItemBuilder(icon.build()) : new ItemBuilder(fallback);
     }
 
     private String pageName(int page) {

@@ -51,6 +51,20 @@ class CustomWorkstationRecipeTest {
                 item(Material.DIAMOND, 1), null));
     }
 
+    @Test
+    void cancelReloadKeepsPreviousRecipes() {
+        CustomWorkstationRecipe recipe = recipe(null);
+        CustomWorkstationRegistry.beginReload();
+        CustomWorkstationRegistry.register(recipe);
+        CustomWorkstationRegistry.finishReload();
+
+        CustomWorkstationRegistry.beginReload();
+        CustomWorkstationRegistry.cancelReload();
+
+        assertSame(recipe, CustomWorkstationRegistry.match(CustomWorkstationRecipe.Type.GRINDSTONE,
+                item(Material.DIAMOND, 1), null));
+    }
+
     private CustomWorkstationRecipe recipe(String permission) {
         return new CustomWorkstationRecipe("test", CustomWorkstationRecipe.Type.GRINDSTONE,
                 new CustomWorkstationRecipe.Ingredient(choice(Material.DIAMOND), 1),

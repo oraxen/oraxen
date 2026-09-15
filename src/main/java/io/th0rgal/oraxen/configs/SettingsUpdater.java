@@ -51,6 +51,9 @@ public class SettingsUpdater {
         migrateInventoryMenuValue(settings, legacyMenu, "main_menu_title", "title");
         migrateInventoryMenuValue(settings, legacyMenu, "menu_rows", "rows");
         migrateInventoryMenuValue(settings, legacyMenu, "menu_size", "slots");
+        migrateInventoryMenuValue(settings, legacyMenu, "next_page_icon", "next_page_icon");
+        migrateInventoryMenuValue(settings, legacyMenu, "previous_page_icon", "previous_page_icon");
+        migrateInventoryMenuValue(settings, legacyMenu, "exit_icon", "exit_icon");
 
         ConfigurationSection legacyLayout = legacyMenu.getConfigurationSection("menu_layout");
         if (legacyLayout != null) {

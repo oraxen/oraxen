@@ -15,6 +15,9 @@ class SettingsUpdaterTest {
         settings.set("oraxen_inventory.main_menu_title", "Custom title");
         settings.set("oraxen_inventory.menu_rows", 4);
         settings.set("oraxen_inventory.menu_size", 27);
+        settings.set("oraxen_inventory.next_page_icon", "custom_next");
+        settings.set("oraxen_inventory.previous_page_icon", "custom_previous");
+        settings.set("oraxen_inventory.exit_icon", "custom_exit");
         settings.set("oraxen_inventory.menu_layout.custom.slot", 12);
         settings.set("oraxen_inventory.menu_layout.custom.icon", "custom_icon");
         settings.set("oraxen_inventory.menu_layout.custom.displayname", "Custom name");
@@ -26,6 +29,9 @@ class SettingsUpdaterTest {
         assertEquals("Custom title", settings.getString("inventory-menu.title"));
         assertEquals(4, settings.getInt("inventory-menu.rows"));
         assertEquals(27, settings.getInt("inventory-menu.slots"));
+        assertEquals("custom_next", settings.getString("inventory-menu.next_page_icon"));
+        assertEquals("custom_previous", settings.getString("inventory-menu.previous_page_icon"));
+        assertEquals("custom_exit", settings.getString("inventory-menu.exit_icon"));
         assertEquals(12, settings.getInt("inventory-menu.layout.custom.slot"));
         assertEquals("custom_icon", settings.getString("inventory-menu.layout.custom.icon"));
         assertEquals("Custom name", settings.getString("inventory-menu.layout.custom.name"));

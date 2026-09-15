@@ -140,7 +140,10 @@ public enum Settings {
     ORAXEN_INV_LAYOUT("inventory-menu.layout"),
     ORAXEN_INV_ROWS("inventory-menu.rows"),
     ORAXEN_INV_SIZE("inventory-menu.slots"),
-    ORAXEN_INV_TITLE("inventory-menu.title");
+    ORAXEN_INV_TITLE("inventory-menu.title"),
+    ORAXEN_INV_NEXT_ICON("inventory-menu.next_page_icon"),
+    ORAXEN_INV_PREVIOUS_ICON("inventory-menu.previous_page_icon"),
+    ORAXEN_INV_EXIT("inventory-menu.exit_icon");
 
     private final String path;
 

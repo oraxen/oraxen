@@ -229,6 +229,10 @@ public class RecipesEventsManager implements Listener {
         stagedSmithingRecipes = null;
     }
 
+    public void cancelSmithingReload() {
+        stagedSmithingRecipes = null;
+    }
+
     public boolean isConfiguredSmithingRecipe(NamespacedKey key) {
         return smithingRecipes.containsKey(key);
     }

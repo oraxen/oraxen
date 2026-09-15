@@ -60,21 +60,21 @@ public class ItemsView {
         mainGui = Gui.paginated().rows(rows).pageSize((int) Settings.ORAXEN_INV_SIZE.getValue()).title(Settings.ORAXEN_INV_TITLE.toComponent()).create();
         mainGui.addItem(guiItems.toArray(new GuiItem[]{}));
 
-        ItemStack previousPage = iconOrDefault("arrow_previous_icon", Material.ARROW)
+        ItemStack previousPage = InventoryIcons.resolve(Settings.ORAXEN_INV_PREVIOUS_ICON, "arrow_previous_icon", Material.ARROW)
                 .setDisplayName("Previous Page").build();
         mainGui.setItem(6, 2, new GuiItem(previousPage, event -> {
             mainGui.previous();
             event.setCancelled(true);
         }));
 
-        ItemStack nextPage = iconOrDefault("arrow_next_icon", Material.ARROW)
+        ItemStack nextPage = InventoryIcons.resolve(Settings.ORAXEN_INV_NEXT_ICON, "arrow_next_icon", Material.ARROW)
                 .setDisplayName("Next Page").build();
         mainGui.setItem(6, 8, new GuiItem(nextPage, event -> {
             mainGui.next();
             event.setCancelled(true);
         }));
 
-        ItemStack exitIcon = iconOrDefault("exit_icon", Material.BARRIER)
+        ItemStack exitIcon = InventoryIcons.resolve(Settings.ORAXEN_INV_EXIT, "exit_icon", Material.BARRIER)
                 .setDisplayName("Exit").build();
         mainGui.setItem(6, 5, new GuiItem(exitIcon, event -> event.getWhoClicked().closeInventory()));
 
@@ -95,11 +95,11 @@ public class ItemsView {
             gui.addItem(new GuiItem(itemStack, e -> e.getWhoClicked().getInventory().addItem(ItemUpdater.updateItem(e.getCurrentItem().clone()))));
         }
 
-        ItemStack nextPage = iconOrDefault("arrow_next_icon", Material.ARROW)
+        ItemStack nextPage = InventoryIcons.resolve(Settings.ORAXEN_INV_NEXT_ICON, "arrow_next_icon", Material.ARROW)
                 .setDisplayName("Next Page").build();
-        ItemStack previousPage = iconOrDefault("arrow_previous_icon", Material.ARROW)
+        ItemStack previousPage = InventoryIcons.resolve(Settings.ORAXEN_INV_PREVIOUS_ICON, "arrow_previous_icon", Material.ARROW)
                 .setDisplayName("Previous Page").build();
-        ItemStack exitIcon = iconOrDefault("exit_icon", Material.BARRIER)
+        ItemStack exitIcon = InventoryIcons.resolve(Settings.ORAXEN_INV_EXIT, "exit_icon", Material.BARRIER)
                 .setDisplayName("Exit").build();
 
         if (gui.getPagesNum() > 1) {
@@ -110,11 +110,6 @@ public class ItemsView {
         gui.setItem(6, 5, new GuiItem(exitIcon, event -> mainGui.open(event.getWhoClicked())));
 
         return gui;
-    }
-
-    private ItemBuilder iconOrDefault(String itemId, Material fallback) {
-        ItemBuilder icon = OraxenItems.getItemById(itemId);
-        return icon != null ? icon.clone() : new ItemBuilder(fallback);
     }
 
     private record GuiItemSlot(ItemStack itemStack, Integer slot) {
