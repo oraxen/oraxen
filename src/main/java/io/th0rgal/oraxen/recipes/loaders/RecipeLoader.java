@@ -11,10 +11,13 @@ import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.recipes.CustomRecipe;
 import io.th0rgal.oraxen.recipes.listeners.RecipesEventsManager;
 import io.th0rgal.oraxen.utils.OraxenYaml;
+import io.th0rgal.oraxen.utils.PluginUtils;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import net.Indyuce.mmoitems.MMOItems;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Keyed;
 import org.bukkit.Tag;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
@@ -23,10 +26,18 @@ import org.bukkit.inventory.RecipeChoice;
 
 public abstract class RecipeLoader {
 
+    private static final java.util.Set<NamespacedKey> KEYS_REGISTERED_THIS_PASS =
+            java.util.concurrent.ConcurrentHashMap.newKeySet();
+
     private final ConfigurationSection section;
 
     protected RecipeLoader(ConfigurationSection section) {
         this.section = section;
+    }
+
+    /** Called before each full recipe registration pass so duplicate keys within the pass can be detected. */
+    public static void beginRegistrationPass() {
+        KEYS_REGISTERED_THIS_PASS.clear();
     }
 
     protected ConfigurationSection getSection() {
@@ -47,7 +58,8 @@ public abstract class RecipeLoader {
             result = ItemUpdater.updateItem(builder.build());
         } else if (resultSection.isString("crucible_item"))
             result = new WrappedCrucibleItem(resultSection.getString("crucible_item")).build();
-        else if (resultSection.isString("mmoitems_id") && resultSection.isString("mmoitems_type"))
+        else if (resultSection.isString("mmoitems_id") && resultSection.isString("mmoitems_type")
+                && PluginUtils.isEnabled("MMOItems"))
             result = MMOItems.plugin.getItem(resultSection.getString("mmoitems_type"), resultSection.getString("mmoitems_id"));
         else if (resultSection.isString("ecoitem_id"))
             result = new WrappedEcoItem(resultSection.getString("ecoitem_id")).build();
@@ -81,7 +93,8 @@ public abstract class RecipeLoader {
             return new WrappedCrucibleItem(ingredientSection.getString("crucible_item")).build();
         }
 
-        if (ingredientSection.isString("mmoitems_id") && ingredientSection.isString("mmoitems_type")) {
+        if (ingredientSection.isString("mmoitems_id") && ingredientSection.isString("mmoitems_type")
+                && PluginUtils.isEnabled("MMOItems")) {
             return MMOItems.plugin.getItem(ingredientSection.getString("mmoitems_type"), ingredientSection.getString("mmoitems_id"));
         }
 
@@ -123,7 +136,8 @@ public abstract class RecipeLoader {
             return new RecipeChoice.ExactChoice(ingredient);
         }
 
-        if (ingredientSection.isString("mmoitems_id") && ingredientSection.isString("mmoitems_type")) {
+        if (ingredientSection.isString("mmoitems_id") && ingredientSection.isString("mmoitems_type")
+                && PluginUtils.isEnabled("MMOItems")) {
             ItemStack ingredient = MMOItems.plugin.getItem(ingredientSection.getString("mmoitems_type"), ingredientSection.getString("mmoitems_id"));
             if (ingredient == null || ingredient.getType().isAir()) return null;
             return new RecipeChoice.ExactChoice(ingredient);
@@ -170,18 +184,46 @@ public abstract class RecipeLoader {
         return section.getName();
     }
 
+    protected String getGroup() {
+        return getSection().getString("group", "");
+    }
+
     public abstract void registerRecipe();
 
     protected void loadRecipe(Recipe recipe) {
-        Bukkit.addRecipe(recipe);
+        if (recipe instanceof Keyed keyed
+                && keyed.getKey().getNamespace().equals(OraxenPlugin.get().getName().toLowerCase(java.util.Locale.ROOT))) {
+            if (!KEYS_REGISTERED_THIS_PASS.add(keyed.getKey()))
+                Logs.logWarning("Duplicate recipe name '" + getRecipeName() + "': another recipe with key '"
+                        + keyed.getKey() + "' was already loaded and will be replaced. Rename one of the recipes to keep both.");
+            Bukkit.removeRecipe(keyed.getKey());
+        }
+        if (!Bukkit.addRecipe(recipe))
+            throw new IllegalStateException("Bukkit rejected recipe '" + getRecipeName() + "'");
         managesPermission(CustomRecipe.fromRecipe(recipe));
     }
 
     private void managesPermission(CustomRecipe recipe) {
-        if (getSection().isString("permission")) {
+        if (recipe != null && getSection().isString("permission")) {
             String permission = getSection().getString("permission");
             RecipesEventsManager.get().addPermissionRecipe(recipe, permission);
         }
+    }
+
+    protected String getPermission() {
+        return getSection().getString("permission");
+    }
+
+    protected RecipeChoice getRequiredChoice(String key) {
+        ConfigurationSection ingredient = getSection().getConfigurationSection(key);
+        RecipeChoice choice = ingredient == null ? null : getRecipeChoice(ingredient);
+        if (choice == null) throw new IllegalArgumentException("Recipe '" + getRecipeName() + "' has an invalid " + key + " ingredient");
+        return choice;
+    }
+
+    protected int getIngredientAmount(String key) {
+        ConfigurationSection ingredient = getSection().getConfigurationSection(key);
+        return ingredient == null ? 1 : Math.max(1, ingredient.getInt("amount", 1));
     }
 
     protected void addToWhitelistedRecipes(Recipe recipe) {

@@ -51,7 +51,8 @@ public class BackpackCosmeticFactory extends MechanicFactory {
         instance = this;
 
         BackpackCosmeticListener listener = new BackpackCosmeticListener(this);
-        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), listener);
+        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), listener,
+                listener.createMountListener(OraxenPlugin.get()));
 
         // Register tasks with MechanicsManager for proper cleanup on reload
         BackpackCosmeticManager manager = BackpackCosmeticManager.getInstance();

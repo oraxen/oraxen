@@ -5,7 +5,6 @@ import com.google.gson.JsonParser;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.events.OraxenPackGeneratedEvent;
 import io.th0rgal.oraxen.configs.Settings;
-import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.MinecraftVersion;
 import io.th0rgal.oraxen.utils.HashUtils;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
@@ -25,7 +24,7 @@ import java.util.Map;
 
 /**
  * Generates multiple versions of resource packs for different Minecraft client versions.
- * This allows servers to serve version-appropriate packs to players using ViaVersion/ProtocolSupport.
+ * This allows servers to serve version-appropriate packs to players using ViaVersion.
  *
  * <h2>Architecture Overview</h2>
  *
@@ -39,7 +38,7 @@ import java.util.Map;
  *   <li><b>PackVersion</b> - Represents a single pack version with its format number and
  *       supported format range.</li>
  *   <li><b>ProtocolVersion</b> - Maps network protocol versions to pack formats and version strings.</li>
- *   <li><b>PlayerVersionDetector</b> - Detects player client versions using ViaVersion or ProtocolSupport APIs.</li>
+ *   <li><b>PlayerVersionDetector</b> - Detects player client versions using the ViaVersion API.</li>
  *   <li><b>MultiVersionPackSender</b> - Sends the appropriate pack version to each player based on their client.</li>
  *   <li><b>MultiVersionUploadManager</b> - Handles uploading all pack versions to the hosting provider.</li>
  * </ul>
@@ -104,7 +103,7 @@ public class MultiVersionPackGenerator {
 
         // Fire event to allow modifications before generation
         OraxenPackGeneratedEvent event = new OraxenPackGeneratedEvent(output);
-        EventUtils.callEvent(event);
+        event.callEvent();
         output = event.getOutput();
         PackObfuscator.obfuscate(output);
 

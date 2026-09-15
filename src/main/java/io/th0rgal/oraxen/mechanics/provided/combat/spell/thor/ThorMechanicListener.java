@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.timers.Timer;
 import io.th0rgal.oraxen.protection.AntiGriefLib;
+import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -31,12 +32,9 @@ public class ThorMechanicListener implements Listener {
         String itemID = OraxenItems.getIdByItem(item);
         ThorMechanic mechanic = (ThorMechanic) factory.getMechanic(item);
         Block block = event.getClickedBlock();
-        Location targetBlock;
-        try {
-            targetBlock = player.getTargetBlock(null, 50).getLocation();
-        } catch (Exception e) {
-            return;
-        }
+        Block target = player.getTargetBlockExact(50, FluidCollisionMode.NEVER);
+        if (target == null) return;
+        Location targetBlock = target.getLocation();
 
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (event.useItemInHand() == Event.Result.DENY) return;

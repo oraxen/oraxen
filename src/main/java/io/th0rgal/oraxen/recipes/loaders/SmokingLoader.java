@@ -21,6 +21,7 @@ public class SmokingLoader extends RecipeLoader {
 		}
 		SmokingRecipe recipe = new SmokingRecipe(getNamespacedKey(), getValidResult(),
 				recipeChoice, getSection().getInt("experience"), getSection().getInt("cookingTime"));
+		recipe.setGroup(getGroup());
 		loadRecipe(recipe);
 	}
 }

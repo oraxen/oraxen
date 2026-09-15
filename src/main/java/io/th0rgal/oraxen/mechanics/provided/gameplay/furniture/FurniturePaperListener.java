@@ -1,9 +1,8 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
-import com.jeff_media.customblockdata.CustomBlockData;
-import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
+import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -31,7 +30,7 @@ public class FurniturePaperListener implements Listener {
                 barriers.forEach(b -> {
                     if (b.getType() == Material.BARRIER) {
                         b.setType(Material.AIR);
-                        new CustomBlockData(b, OraxenPlugin.get()).clear();
+                        BlockHelpers.removePDC(b);
                     }
                 });
             }

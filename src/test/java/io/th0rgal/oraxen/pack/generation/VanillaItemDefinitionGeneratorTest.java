@@ -69,6 +69,25 @@ class VanillaItemDefinitionGeneratorTest {
     }
 
     @Test
+    void selectDefinitionIncludesItemsWithAutomaticallyAssignedCustomModelData() {
+        VanillaItemDefinitionGenerator generator = generator(
+                Material.PAPER,
+                List.of(customItem("configured", 123, "oraxen:item/configured"),
+                        customItem("automatic", null, "oraxen:item/automatic")),
+                true,
+                false);
+
+        // The select dispatcher keys off the Oraxen id, not the number, so an item whose
+        // custom model data was assigned automatically still gets a case.
+        JsonObject model = generator.toJSON().getAsJsonObject("model");
+        assertEquals(2, model.getAsJsonArray("cases").size());
+        assertEquals("oraxen:automatic", model.getAsJsonArray("cases")
+                .get(0).getAsJsonObject().get("when").getAsString());
+        assertEquals("oraxen:configured", model.getAsJsonArray("cases")
+                .get(1).getAsJsonObject().get("when").getAsString());
+    }
+
+    @Test
     void playerHeadRangeDispatchDefinitionKeepsCustomEntriesAndUsesSpecialHeadFallback() {
         VanillaItemDefinitionGenerator generator = generator(
                 Material.PLAYER_HEAD,
@@ -134,7 +153,7 @@ class VanillaItemDefinitionGeneratorTest {
                 includeBothModes);
     }
 
-    private static ItemBuilder customItem(String itemId, int customModelData, String modelName) {
+    private static ItemBuilder customItem(String itemId, Integer customModelData, String modelName) {
         OraxenMeta meta = new OraxenMeta();
         meta.setModelName(modelName);
         meta.setCustomModelData(customModelData);

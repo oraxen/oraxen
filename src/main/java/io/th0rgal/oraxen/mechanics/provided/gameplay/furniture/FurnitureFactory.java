@@ -13,6 +13,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox.JukeboxLi
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text.FurnitureTextEntry;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text.FurnitureTextPacketBridge;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text.FurnitureTextRegistry;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -38,9 +39,7 @@ public class FurnitureFactory extends MechanicFactory {
 
     public FurnitureFactory(ConfigurationSection section) {
         super(section);
-        if (OraxenPlugin.supportsDisplayEntities)
-            defaultFurnitureType = FurnitureMechanic.FurnitureType.getType(section.getString("default_furniture_type", "DISPLAY_ENTITY"));
-        else defaultFurnitureType = FurnitureMechanic.FurnitureType.ITEM_FRAME;
+        defaultFurnitureType = FurnitureMechanic.FurnitureType.getType(section.getString("default_furniture_type", "DISPLAY_ENTITY"));
         toolTypes = section.getStringList("tool_types");
         evolutionCheckDelay = section.getInt("evolution_check_delay");
         MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(),
@@ -59,8 +58,6 @@ public class FurnitureFactory extends MechanicFactory {
 
         if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new FurnitureSoundListener());
         detectViabackwards = OraxenPlugin.get().getConfigsManager().getMechanics().getConfigurationSection("furniture").getBoolean("detect_viabackwards", true);
-        //TODO Fix this to not permanently and randomly break furniture
-        //if (VersionUtil.isPaperServer()) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new FurniturePaperListener());
     }
 
     public static boolean setDefaultType(ConfigurationSection mechanicSection) {
@@ -91,10 +88,18 @@ public class FurnitureFactory extends MechanicFactory {
     }
 
     private static void registerLoadedFurnitureText() {
+        // OraxenItemsLoadedEvent fires on the global thread (startup) or a
+        // command thread (reload). Enumerating the world entity list is a safe
+        // snapshot read, but registering reads entity PDC and, for missing
+        // viewers, Entity#getTrackedBy, which Folia thread-checks against the
+        // owning region; hop to each entity's scheduler before touching it.
         for (org.bukkit.World world : Bukkit.getWorlds()) {
-            world.getEntities().stream()
-                    .filter(OraxenFurniture::isBaseEntity)
-                    .forEach(entity -> registerTextEntity(entity, true));
+            for (Entity entity : world.getEntities()) {
+                SchedulerUtil.runForEntity(entity, () -> {
+                    if (!OraxenFurniture.isBaseEntity(entity)) return;
+                    registerTextEntity(entity, true);
+                });
+            }
         }
     }
 
@@ -103,7 +108,6 @@ public class FurnitureFactory extends MechanicFactory {
     }
 
     static void registerTextEntity(Entity entity, boolean spawnForMissingViewers) {
-        if (!OraxenPlugin.supportsDisplayEntities) return;
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
         if (mechanic != null && mechanic.hasTextDefinitions()) {
             FurnitureTextEntry previous = FurnitureTextRegistry.byUuid(entity.getUniqueId());

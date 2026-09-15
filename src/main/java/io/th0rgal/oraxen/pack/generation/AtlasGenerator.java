@@ -55,9 +55,7 @@ public class AtlasGenerator {
                 && v.getPath().split("/")[2].equals("textures")
                 && v.getPath().endsWith(".png")
                 && !v.getPath().endsWith("_layer_1.png")
-                && !v.getPath().endsWith("_layer_2.png")
-                && PackSlicer.INPUTS.stream().noneMatch(input -> v.getPath().endsWith(input.path))
-                && PackSlicer.OUTPUT_PATHS.stream().noneMatch(outPath -> v.getPath().endsWith(outPath))).sorted()
+                && !v.getPath().endsWith("_layer_2.png")).sorted()
                 .collect(Collectors.toCollection(LinkedHashSet::new))) {
             textureSubFolders.put(v, new TexturePath(StringUtils.substringBetween(v.getPath(), "assets/", "/textures"),
                     StringUtils.substringAfter(v.getPath(), "textures/")));

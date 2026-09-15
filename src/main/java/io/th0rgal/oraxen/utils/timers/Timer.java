@@ -9,7 +9,9 @@ import java.text.DecimalFormat;
 public class Timer {
 
     public static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("##.##");
-    private long lastUsage = 0;
+    // Mutated and read from different region threads on Folia; volatile also prevents
+    // torn reads of the 64-bit value on 32-bit JVMs.
+    private volatile long lastUsage = 0;
     private final long delay;
 
     Timer(long delay) {

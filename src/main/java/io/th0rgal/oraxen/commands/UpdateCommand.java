@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.commands;
 
-import com.jeff_media.customblockdata.CustomBlockData;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.commands.arguments.EntitySelectorArgument;
 import io.th0rgal.oraxen.commands.arguments.IntegerArgument;
@@ -13,6 +12,8 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.BlockLocation;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -32,6 +33,10 @@ import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureM
 
 public class UpdateCommand {
 
+    // Keeps the scanned area within the chunks Folia guarantees to be owned by
+    // the region around the invoking player, and bounds the per-command work.
+    private static final int MAX_RADIUS = 32;
+
     OraxenCommand getUpdateCommand() {
         return new OraxenCommand("update")
                 .withPermission("oraxen.command.update")
@@ -44,30 +49,37 @@ public class UpdateCommand {
                 .withArguments(new EntitySelectorArgument.ManyEntities("targets"))
                 .executesPlayer((player, args) -> {
                     final Collection<Player> targets = ((Collection<Entity>) args.get("targets")).stream().filter(entity -> entity instanceof Player).map(e -> (Player) e).toList();
+                    // Inventory mutation must happen on the thread owning each target (Folia).
                     for (Player p : targets) {
-                        int updated = 0;
-                        for (int i = 0; i < p.getInventory().getSize(); i++) {
-                            final ItemStack oldItem = p.getInventory().getItem(i);
-                            final ItemStack newItem = ItemUpdater.updateItem(oldItem);
-                            if (oldItem == null || oldItem.equals(newItem)) continue;
-                            p.getInventory().setItem(i, newItem);
-                            updated++;
-                        }
-                        p.updateInventory();
-                        Message.UPDATED_ITEMS.send(player, AdventureUtils.tagResolver("amount", String.valueOf(updated)),
-                                AdventureUtils.tagResolver("player", p.getDisplayName()));
+                        SchedulerUtil.runForEntity(p, () -> {
+                            int updated = 0;
+                            for (int i = 0; i < p.getInventory().getSize(); i++) {
+                                final ItemStack oldItem = p.getInventory().getItem(i);
+                                final ItemStack newItem = ItemUpdater.updateItem(oldItem);
+                                if (oldItem == null || oldItem.equals(newItem)) continue;
+                                p.getInventory().setItem(i, newItem);
+                                updated++;
+                            }
+                            final int updatedCount = updated;
+                            final Component targetName = p.displayName();
+                            // The invoker may be owned by a different region than the
+                            // target; feedback must run on the invoker's owning thread.
+                            SchedulerUtil.runForEntity(player, () -> Message.UPDATED_ITEMS.send(player,
+                                    AdventureUtils.tagResolver("amount", String.valueOf(updatedCount)),
+                                    AdventureUtils.tagResolver("player", targetName)));
+                        });
                     }
                 });
     }
 
-    @SuppressWarnings("unchecked")
     private OraxenCommand getFurnitureUpdateCommand() {
         return new OraxenCommand("furniture")
                 .withOptionalArguments(new IntegerArgument("radius"))
                 .executesPlayer((player, args) -> {
-                    int radius = (int) args.getOptional("radius").orElse(10);
-                    final Collection<Entity> targets = ((Collection<Entity>) args.getOptional("targets").orElse(player.getNearbyEntities(radius, radius, radius))).stream().filter(OraxenFurniture::isBaseEntity).toList();
-                    for (Entity entity : targets) OraxenFurniture.updateFurniture(entity);
+                    int radius = Math.min((int) args.getOptional("radius").orElse(10), MAX_RADIUS);
+                    final Collection<Entity> targets = player.getNearbyEntities(radius, radius, radius).stream().filter(OraxenFurniture::isBaseEntity).toList();
+                    // Entity mutation belongs on each entity's owning thread (Folia).
+                    for (Entity entity : targets) SchedulerUtil.runForEntity(entity, () -> OraxenFurniture.updateFurniture(entity));
                     cleanupOrphanFurniture(player, radius);
                     updateBrokenFurnitureBlocks(player, radius);
                 });
@@ -75,19 +87,21 @@ public class UpdateCommand {
 
     private void cleanupOrphanFurniture(Player player, int radius) {
         for (Entity entity : player.getNearbyEntities(radius, radius, radius)) {
-            if (!OraxenFurniture.isOrphanFurnitureEntity(entity)) continue;
-            OraxenFurniture.remove(entity, null);
+            SchedulerUtil.runForEntity(entity, () -> {
+                if (!OraxenFurniture.isOrphanFurnitureEntity(entity)) return;
+                OraxenFurniture.remove(entity, null);
+            });
         }
 
-        Set<Chunk> chunks = getChunksAroundPlayer(player, radius);
-        Set<Block> blocks = new HashSet<>();
-        for (Chunk chunk : chunks) blocks.addAll(CustomBlockData.getBlocksWithCustomData(OraxenPlugin.get(), chunk));
-
-        for (Block block : blocks.stream().filter(b -> b.getLocation().distance(player.getLocation()) <= radius).toList()) {
-            if (!OraxenFurniture.hasFurnitureBlockMarker(block)) continue;
-            if (OraxenFurniture.getFurnitureMechanic(block) != null) continue;
-            OraxenFurniture.remove(block.getLocation(), null);
-        }
+        Location playerLoc = player.getLocation();
+        forEachLoadedChunkAround(player, radius, chunk -> {
+            Set<Block> blocks = new HashSet<>(BlockHelpers.getBlocksWithCustomData(OraxenPlugin.get(), chunk));
+            for (Block block : blocks.stream().filter(b -> b.getLocation().distance(playerLoc) <= radius).toList()) {
+                if (!OraxenFurniture.hasFurnitureBlockMarker(block)) continue;
+                if (OraxenFurniture.getFurnitureMechanic(block) != null) continue;
+                OraxenFurniture.remove(block.getLocation(), null);
+            }
+        });
     }
 
     /**
@@ -95,36 +109,53 @@ public class UpdateCommand {
      */
     private void updateBrokenFurnitureBlocks(Player player, int radius) {
         if (!Settings.EXPERIMENTAL_FIX_BROKEN_FURNITURE.toBool()) return;
-        Set<Chunk> chunks = getChunksAroundPlayer(player, radius);
-        Set<Block> blocks = new HashSet<>();
-        for (Chunk chunk : chunks) blocks.addAll(CustomBlockData.getBlocksWithCustomData(OraxenPlugin.get(), chunk));
-        for (Block block : blocks.stream().filter(b -> b.getLocation().distance(player.getLocation()) <= radius).toList()) {
-            FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
-            if (mechanic == null) continue;
-            Entity baseEntity = mechanic.getBaseEntity(block);
-            // Return if there is a baseEntity
-            if (baseEntity != null) continue;
+        Location playerLoc = player.getLocation();
+        forEachLoadedChunkAround(player, radius, chunk -> {
+            Set<Block> blocks = new HashSet<>(BlockHelpers.getBlocksWithCustomData(OraxenPlugin.get(), chunk));
+            for (Block block : blocks.stream().filter(b -> b.getLocation().distance(playerLoc) <= radius).toList()) {
+                FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
+                if (mechanic == null) continue;
+                Entity baseEntity = mechanic.getBaseEntity(block);
+                // Return if there is a baseEntity
+                if (baseEntity != null) continue;
 
-            Location rootLoc = new BlockLocation(BlockHelpers.getPDC(block).getOrDefault(ROOT_KEY, DataType.STRING, "")).toLocation(block.getWorld());
-            float yaw = BlockHelpers.getPDC(block).getOrDefault(ORIENTATION_KEY, PersistentDataType.FLOAT, 0f);
-            if (rootLoc == null) continue;
+                Location rootLoc = new BlockLocation(BlockHelpers.getPDC(block).getOrDefault(ROOT_KEY, DataType.STRING, "")).toLocation(block.getWorld());
+                float yaw = BlockHelpers.getPDC(block).getOrDefault(ORIENTATION_KEY, PersistentDataType.FLOAT, 0f);
+                if (rootLoc == null) continue;
 
-            //OraxenFurniture.remove(block.getLocation(), null);
-            mechanic.getLocations(yaw, rootLoc, mechanic.getBarriers()).forEach(loc -> {
-                loc.getBlock().setType(Material.AIR);
-                new CustomBlockData(loc.getBlock(), OraxenPlugin.get()).clear();
-            });
-            mechanic.place(rootLoc, yaw, BlockFace.UP);
-        }
+                // Stored root data may point anywhere (it exists precisely to repair
+                // broken data); repair on the region thread that owns the root.
+                SchedulerUtil.runAtLocation(rootLoc, () -> {
+                    mechanic.getLocations(yaw, rootLoc, mechanic.getBarriers()).forEach(loc -> {
+                        loc.getBlock().setType(Material.AIR);
+                        BlockHelpers.removePDC(loc.getBlock());
+                    });
+                    mechanic.place(rootLoc, yaw, BlockFace.UP);
+                });
+            }
+        });
     }
 
-    private static Set<Chunk> getChunksAroundPlayer(Player player, int radius) {
+    /**
+     * Visits every loaded chunk intersecting the radius around the player,
+     * running the action on the region thread owning each chunk. Chunk handles
+     * are resolved inside the region task so the calling thread never performs
+     * a cross-region (or chunk-loading) lookup, which Folia rejects.
+     */
+    private static void forEachLoadedChunkAround(Player player, int radius, java.util.function.Consumer<Chunk> action) {
         Location loc = player.getLocation();
-        Set<Chunk> chunks = new HashSet<>();
-        for (int x = loc.getBlockX() - radius; x <= loc.getBlockX() + radius; x++)
-            for (int z = loc.getBlockZ() - radius; z <= loc.getBlockZ() + radius; z++)
-                chunks.add(new Location(player.getWorld(), x, loc.getBlockY(), z).getChunk());
-
-        return chunks;
+        org.bukkit.World world = player.getWorld();
+        int minCx = (loc.getBlockX() - radius) >> 4, maxCx = (loc.getBlockX() + radius) >> 4;
+        int minCz = (loc.getBlockZ() - radius) >> 4, maxCz = (loc.getBlockZ() + radius) >> 4;
+        for (int cx = minCx; cx <= maxCx; cx++)
+            for (int cz = minCz; cz <= maxCz; cz++) {
+                if (!world.isChunkLoaded(cx, cz)) continue;
+                final int fcx = cx, fcz = cz;
+                Location chunkLoc = new Location(world, cx << 4, 0, cz << 4);
+                SchedulerUtil.runAtLocation(chunkLoc, () -> {
+                    if (!world.isChunkLoaded(fcx, fcz)) return;
+                    action.accept(world.getChunkAt(fcx, fcz));
+                });
+            }
     }
 }

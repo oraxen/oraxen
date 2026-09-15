@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.utils.commands;
 
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -33,25 +34,41 @@ public class CommandsParser {
     }
 
     public void perform(Player player) {
-        if (empty)
+        if (empty) return;
+        Runnable start = () -> runConsoleCommands(player, player.getName(), 0);
+        if (Bukkit.isOwnedByCurrentRegion(player)) start.run();
+        else SchedulerUtil.runForEntity(player, start);
+    }
+
+    private void runConsoleCommands(Player player, String playerName, int index) {
+        if (consoleCommands == null || index >= consoleCommands.size()) {
+            runPlayerCommands(player, playerName);
             return;
-        String playerName = player.getName();
+        }
 
-        if (consoleCommands != null)
-            for (String command : consoleCommands)
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.replace("%p%", playerName));
+        String parsed = consoleCommands.get(index).replace("%p%", playerName);
+        SchedulerUtil.runTask(() -> {
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parsed);
+            SchedulerUtil.runForEntity(player, () -> runConsoleCommands(player, playerName, index + 1));
+        });
+    }
 
+    private void runPlayerCommands(Player player, String playerName) {
         if (playerCommands != null)
             for (String command : playerCommands)
                 Bukkit.dispatchCommand(player, command.replace("%p%", playerName));
 
-        if (oppedPlayerCommands != null)
-            for (String command : oppedPlayerCommands) {
-                boolean wasOp = player.isOp();
-                player.setOp(true);
+        if (oppedPlayerCommands == null) return;
+        for (String command : oppedPlayerCommands) {
+            boolean wasOp = player.isOp();
+            player.setOp(true);
+            try {
                 Bukkit.dispatchCommand(player, command.replace("%p%", playerName));
+            } finally {
+                // Never leave the player permanently opped if the command throws.
                 player.setOp(wasOp);
             }
+        }
     }
 
 }

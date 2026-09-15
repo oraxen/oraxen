@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.shaped;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.jeff_media.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.mechanics.ConfigProperty;
@@ -11,11 +10,13 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicInfo;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.PropertyType;
+import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.persistence.PersistentDataContainer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -941,7 +942,7 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
     @Nullable
     public ShapedBlockMechanic getMechanicFromBlock(@NotNull Block block) {
         if (!isCustomShapedBlock(block.getType())) return null;
-        CustomBlockData blockData = new CustomBlockData(block, OraxenPlugin.get());
+        PersistentDataContainer blockData = BlockHelpers.getPDC(block);
         String itemId = ShapedBlockMechanic.getItemId(blockData);
         Mechanic mechanic = itemId != null ? getMechanic(itemId) : null;
         return mechanic instanceof ShapedBlockMechanic shapedMechanic ? shapedMechanic : null;

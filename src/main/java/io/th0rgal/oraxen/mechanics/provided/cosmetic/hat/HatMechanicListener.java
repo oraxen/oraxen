@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.mechanics.provided.cosmetic.hat;
 
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
-import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorEquipEvent;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -35,7 +34,7 @@ public class HatMechanicListener implements Listener {
         if (!(event.getRightClicked() instanceof ArmorStand armorStand)) return;
         EntityEquipment equipment = armorStand.getEquipment();
         if (equipment.getHelmet() == null) return;
-        if (!EventUtils.callEvent(new PlayerArmorStandManipulateEvent(player, armorStand, item, equipment.getHelmet(), EquipmentSlot.HEAD, EquipmentSlot.HAND))) return;
+        if (!new PlayerArmorStandManipulateEvent(player, armorStand, item, equipment.getHelmet(), EquipmentSlot.HEAD, EquipmentSlot.HAND).callEvent()) return;
 
         if (item.getType() == Material.AIR) {
             if (event.getClickedPosition().getY() < 1.55) return; // Did not click head
@@ -71,7 +70,7 @@ public class HatMechanicListener implements Listener {
         if (inventory.getHelmet() != null) return;
 
         event.setCancelled(true);
-        if (!EventUtils.callEvent(ArmorEquipEvent.OraxenHatEquipEvent(player, null, item))) return;
+        if (!ArmorEquipEvent.OraxenHatEquipEvent(player, null, item).callEvent()) return;
 
         final ItemStack helmet = item.clone();
         helmet.setAmount(1);
@@ -107,7 +106,7 @@ public class HatMechanicListener implements Listener {
                 itemID = OraxenItems.getIdByItem(currentItem);
                 if (factory.isNotImplementedIn(itemID)) return;
 
-                if (!EventUtils.callEvent(ArmorEquipEvent.OraxenHatEquipEvent(player, currentItem, cursor)))
+                if (!ArmorEquipEvent.OraxenHatEquipEvent(player, currentItem, cursor).callEvent())
                     e.setCancelled(true);
             }
         } else {
@@ -119,7 +118,7 @@ public class HatMechanicListener implements Listener {
 
             if (currentItem == null || currentItem.getType() == Material.AIR) {
                 final ArmorEquipEvent armorEquipEvent = ArmorEquipEvent.OraxenHatEquipEvent(player, currentItem, clone);
-                if (!EventUtils.callEvent(armorEquipEvent)) return;
+                if (!armorEquipEvent.callEvent()) return;
 
                 e.setCancelled(true);
                 player.getInventory().setHelmet(armorEquipEvent.getNewArmorPiece());

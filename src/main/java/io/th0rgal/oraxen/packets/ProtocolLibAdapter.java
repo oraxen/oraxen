@@ -5,8 +5,6 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.packets.protocollib.InventoryPacketListener;
 import io.th0rgal.oraxen.packets.protocollib.ScoreboardPacketListener;
 import io.th0rgal.oraxen.packets.protocollib.TitlePacketListener;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.efficiency.EfficiencyMechanicFactory;
-import io.th0rgal.oraxen.packets.protocollib.mechanics.provided.gameplay.efficiency.EfficiencyMechanicListener;
 import io.th0rgal.oraxen.utils.SnapshotVersion;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
@@ -22,8 +20,6 @@ public class ProtocolLibAdapter implements PacketAdapter {
 
     private InventoryPacketListener inventoryPacketListener;
     private TitlePacketListener titlePacketListener;
-
-    private EfficiencyMechanicListener efficiencyMechanicListener;
 
     @Override
     public boolean isEnabled() {
@@ -72,14 +68,6 @@ public class ProtocolLibAdapter implements PacketAdapter {
         if (titlePacketListener != null)
             ProtocolLibrary.getProtocolManager().removePacketListener(titlePacketListener);
         titlePacketListener = null;
-    }
-
-    @Override
-    public void reregisterEfficencyMechanicListener(EfficiencyMechanicFactory efficiencyMechanicFactory) {
-        if (efficiencyMechanicListener != null)
-            ProtocolLibrary.getProtocolManager().removePacketListener(efficiencyMechanicListener);
-        efficiencyMechanicListener = new EfficiencyMechanicListener(efficiencyMechanicFactory);
-        ProtocolLibrary.getProtocolManager().addPacketListener(efficiencyMechanicListener);
     }
 
     @Override public String getLatestMCVersion() {

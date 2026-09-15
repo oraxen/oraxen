@@ -3,7 +3,6 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.durability;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
-import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.ItemUtils;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
@@ -70,7 +69,7 @@ public class DurabilityMechanic extends Mechanic {
                             pdc.set(DURABILITY_KEY, PersistentDataType.INTEGER, realDurabRemain);
                             (damageable).setDamage((int) ((double) baseMaxDurab - (((double) realDurabRemain / realMaxDurab) * (double) baseMaxDurab)));
                         } else {
-                            EventUtils.callEvent(new PlayerItemBreakEvent(player, item));
+                            new PlayerItemBreakEvent(player, item).callEvent();
                             item.setAmount(0);
                         }
                     }

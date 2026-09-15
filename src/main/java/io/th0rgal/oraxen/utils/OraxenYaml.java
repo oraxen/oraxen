@@ -202,7 +202,6 @@ public class OraxenYaml extends YamlConfiguration {
             Logs.logError("Error loading YAML configuration file: " + file.getName());
             Logs.logError("Ensure that your config is formatted correctly:");
             Logs.logWarning(e.getMessage());
-            //Logs.logWarning(Arrays.toString(e.getStackTrace()));
             // You can choose to do nothing and keep the existing data in the file
             // or provide default values and continue.
         } catch (IOException e) {

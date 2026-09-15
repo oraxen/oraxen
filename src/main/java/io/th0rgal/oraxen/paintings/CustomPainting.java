@@ -12,6 +12,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Consumer;
 
 public record CustomPainting(
         @NotNull Key variantKey,
@@ -27,6 +28,11 @@ public record CustomPainting(
     private static final int MAX_SIZE = 16;
 
     public static List<CustomPainting> fromConfigSection(@Nullable ConfigurationSection paintingsSection) {
+        return fromConfigSection(paintingsSection, Logs::logWarning);
+    }
+
+    public static List<CustomPainting> fromConfigSection(@Nullable ConfigurationSection paintingsSection,
+            Consumer<String> warningLogger) {
         List<CustomPainting> paintings = new ArrayList<>();
         if (paintingsSection == null) return paintings;
 
@@ -36,18 +42,22 @@ public record CustomPainting(
             if (!paintingSection.getBoolean("enabled", true)) continue;
 
             try {
-                paintings.add(fromConfig(key, paintingSection));
+                paintings.add(fromConfig(key, paintingSection, warningLogger));
             } catch (IllegalArgumentException exception) {
-                Logs.logWarning("Failed to parse custom painting '" + key + "' in paintings.yml");
-                Logs.debug(exception);
+                warningLogger.accept("Failed to parse custom painting '" + key + "' in paintings.yml: "
+                        + exception.getMessage());
             }
         }
         return paintings;
     }
 
     public static CustomPainting fromConfig(String key, ConfigurationSection section) {
-        Key variantKey = parseKey(key);
-        Key assetId = parseKey(section.getString("asset_id", variantKey.asString()));
+        return fromConfig(key, section, Logs::logWarning);
+    }
+
+    private static CustomPainting fromConfig(String key, ConfigurationSection section, Consumer<String> warningLogger) {
+        Key variantKey = parseKey(key, warningLogger);
+        Key assetId = parseKey(section.getString("asset_id", variantKey.asString()), warningLogger);
         String title = emptyToNull(section.getString("title", variantKey.value()));
         String author = emptyToNull(section.getString("author", "Oraxen"));
         int width = clamp(section.getInt("width", MIN_SIZE), MIN_SIZE, MAX_SIZE);
@@ -78,13 +88,14 @@ public record CustomPainting(
         return Math.max(min, Math.min(max, value));
     }
 
-    private static Key parseKey(String value) {
+    private static Key parseKey(String value, Consumer<String> warningLogger) {
         String normalized = value.toLowerCase(Locale.ROOT);
         try {
             return normalized.contains(":") ? Key.key(normalized) : Key.key("oraxen", normalized);
         } catch (InvalidKeyException e) {
             String sanitized = sanitizeKey(normalized);
-            Logs.logWarning("Invalid custom painting key '" + value + "', using sanitized key '" + sanitized + "' instead.");
+            warningLogger.accept("Invalid custom painting key '" + value + "', using sanitized key '" + sanitized
+                    + "' instead.");
             return sanitized.contains(":") ? Key.key(sanitized) : Key.key("oraxen", sanitized);
         }
     }

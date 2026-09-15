@@ -3,7 +3,6 @@ package io.th0rgal.oraxen.configs;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.VersionUtil;
-import io.th0rgal.oraxen.utils.customarmor.CustomArmorType;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.io.FileUtils;
 import org.bukkit.configuration.ConfigurationSection;
@@ -68,12 +67,6 @@ public class ResourcesManager {
 
     public void extractFileIfTrue(ZipEntry entry, boolean isSuitable) {
         if (entry.isDirectory() || !isSuitable) return;
-        if (entry.getName().startsWith("pack/textures/models/armor/")) {
-            CustomArmorType customArmorType = CustomArmorType.getSetting();
-            if (OraxenPlugin.get().getDataFolder().toPath().resolve("pack/" + entry.getName()).toFile().exists()) return;
-            if (customArmorType != CustomArmorType.SHADER) return;
-            if (!Settings.CUSTOM_ARMOR_SHADER_GENERATE_CUSTOM_TEXTURES.toBool() && entry.getName().startsWith("pack/textures/models/armor/leather_layer")) return;
-        }
         if (entry.getName().startsWith("items/")) extractVersionSpecificItemConfig(entry);
         else plugin.saveResource(entry.getName(), true);
     }

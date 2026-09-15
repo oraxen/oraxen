@@ -11,9 +11,9 @@ public class SchemaCommand {
                 .executes((sender, args) -> {
                     Logs.logInfo("Generating Oraxen schema...");
                     if (SchemaGenerator.generateAndSave()) {
-                        sender.sendMessage("Schema generated; Check plugins/Oraxen/oraxen-schema.json.");
+                        sender.sendPlainMessage("Schema generated; Check plugins/Oraxen/oraxen-schema.json.");
                     } else {
-                        sender.sendMessage("Failed to generate schema; Check console for details.");
+                        sender.sendPlainMessage("Failed to generate schema; Check console for details.");
                     }
                 });
     }

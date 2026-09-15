@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.pack.receive;
 
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.commands.CommandsParser;
+import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Location;
@@ -54,7 +55,7 @@ public class PackAction {
     }
 
     public void playSound(Player player, Location location) {
-        player.playSound(location, soundType, soundVolume, soundPitch);
+        AdventureUtils.playSound(player, location, soundType, Sound.Source.MASTER, soundVolume, soundPitch);
     }
 
     public boolean hasMessage() {

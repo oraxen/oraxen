@@ -1,8 +1,6 @@
 package io.th0rgal.oraxen.api;
 
 import com.jeff_media.morepersistentdatatypes.DataType;
-import com.jeff_media.customblockdata.CustomBlockData;
-import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.events.chorusblock.OraxenChorusBlockBreakEvent;
 import io.th0rgal.oraxen.api.events.noteblock.OraxenNoteBlockBreakEvent;
 import io.th0rgal.oraxen.api.events.shapedblock.OraxenShapedBlockBreakEvent;
@@ -29,10 +27,9 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.Sapling
 import io.th0rgal.oraxen.mechanics.provided.gameplay.togglelight.ToggleLightMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.togglelight.ToggleLightMechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
-import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
-import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.drops.Drop;
+import org.bukkit.Bukkit;
 import org.bukkit.Effect;
 import org.bukkit.GameEvent;
 import org.bukkit.GameMode;
@@ -44,6 +41,8 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.MultipleFacing;
 import org.bukkit.block.data.type.NoteBlock;
 import org.bukkit.block.data.type.Tripwire;
+import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -56,6 +55,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -63,6 +63,7 @@ import java.util.stream.Collectors;
 import io.th0rgal.oraxen.utils.drops.Loot;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic.FARMBLOCK_KEY;
+import static io.th0rgal.oraxen.mechanics.provided.gameplay.chorusblock.ChorusBlockMechanicListener.SEAT_KEY;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic.SAPLING_KEY;
 
 public class OraxenBlocks {
@@ -196,7 +197,22 @@ public class OraxenBlocks {
         return ChorusBlockMechanicFactory.isEnabled() && !ChorusBlockMechanicFactory.getInstance().isNotImplementedIn(itemID);
     }
 
+    /**
+     * Places an OraxenBlock at the given location.
+     * <p>
+     * Thread contract: on Folia this mutates region-owned block state. When
+     * called from a thread that does not own the location's region, the
+     * placement is automatically re-dispatched onto the owning region's
+     * scheduler and completes asynchronously.
+     *
+     * @param itemID   The ItemID of the OraxenBlock
+     * @param location The location to place the block at
+     */
     public static void place(String itemID, Location location) {
+        if (!Bukkit.isOwnedByCurrentRegion(location)) {
+            SchedulerUtil.runAtLocation(location, () -> place(itemID, location));
+            return;
+        }
 
         if (isOraxenNoteBlock(itemID)) {
             placeNoteBlock(location, itemID);
@@ -265,7 +281,7 @@ public class OraxenBlocks {
         StringBlockMechanic mechanic = getStringMechanic(location.getBlock());
         if (mechanic == null) return;
         if (mechanic.isTall()) {
-            if (!BlockHelpers.REPLACEABLE_BLOCKS.contains(blockAbove.getType())) return;
+            if (!BlockHelpers.isReplaceable(blockAbove.getType())) return;
             else blockAbove.setType(Material.TRIPWIRE);
         }
 
@@ -293,14 +309,14 @@ public class OraxenBlocks {
         Block block = location.getBlock();
         Block upperBlock = block.getRelative(BlockFace.UP);
         if (mechanic.getBlockType() == ShapedBlockType.DOOR
-                && !BlockHelpers.REPLACEABLE_BLOCKS.contains(upperBlock.getType())) return;
+                && !BlockHelpers.isReplaceable(upperBlock.getType())) return;
 
         block.setType(mechanic.getPlacedMaterial(), false);
         if (block.getBlockData() instanceof org.bukkit.block.data.type.Door door) {
             door.setHalf(org.bukkit.block.data.Bisected.Half.BOTTOM);
             block.setBlockData(door, false);
         }
-        ShapedBlockMechanic.setItemId(new CustomBlockData(block, OraxenPlugin.get()), mechanic.getItemID());
+        ShapedBlockMechanic.setItemId(BlockHelpers.getPDC(block), mechanic.getItemID());
         createInitialLight(block, mechanic.getItemID());
 
         if (mechanic.getBlockType() != ShapedBlockType.DOOR) return;
@@ -310,12 +326,17 @@ public class OraxenBlocks {
             door.setHalf(org.bukkit.block.data.Bisected.Half.TOP);
             upperBlock.setBlockData(door, false);
         }
-        ShapedBlockMechanic.setItemId(new CustomBlockData(upperBlock, OraxenPlugin.get()), mechanic.getItemID());
+        ShapedBlockMechanic.setItemId(BlockHelpers.getPDC(upperBlock), mechanic.getItemID());
         createInitialLight(upperBlock, mechanic.getItemID());
     }
 
     /**
      * Breaks an OraxenBlock at the given location
+     * <p>
+     * Thread contract: must be called on the thread owning the location's
+     * region (on Folia, use the RegionScheduler); the removal mutates blocks,
+     * drops items and may remove entities, and its return value cannot survive
+     * an asynchronous re-dispatch.
      *
      * @param location The location of the OraxenBlock
      * @param player   The player that broke the block, can be null
@@ -384,7 +405,7 @@ public class OraxenBlocks {
         if (player != null) {
             E event = breakEvent.apply(mechanic, player);
             setEventDrop.accept(event, drop);
-            if (!EventUtils.callEvent(event)) return false;
+            if (!event.callEvent()) return false;
             drop = resolveDropAfterEvent(player, getEventDrop.apply(event), overrideDrop != null);
             sendBreakEffects(block, player);
             BlockDurability.applyConfigured(player, itemInHand, getDurabilityAction(mechanic, itemInHand));
@@ -395,6 +416,7 @@ public class OraxenBlocks {
         dropStorageIfPresent(mechanic, block);
         if (preRemove != null) preRemove.run();
         block.setType(Material.AIR);
+        BlockHelpers.removePDC(block);
         if (postRemove != null) postRemove.run();
         return true;
     }
@@ -415,9 +437,8 @@ public class OraxenBlocks {
     }
 
     private static void sendBreakEffects(Block block, Player player) {
-        if (VersionUtil.isPaperServer())
-            block.getWorld().sendGameEvent(player, GameEvent.BLOCK_DESTROY, block.getLocation().toVector());
-        if (block.getType() == Material.NOTE_BLOCK && VersionUtil.atOrAbove("1.20"))
+        block.getWorld().sendGameEvent(player, GameEvent.BLOCK_DESTROY, block.getLocation().toVector());
+        if (block.getType() == Material.NOTE_BLOCK)
             block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, block.getBlockData());
     }
 
@@ -502,9 +523,27 @@ public class OraxenBlocks {
                 (m, p) -> new OraxenChorusBlockBreakEvent(m, block, p),
                 OraxenChorusBlockBreakEvent::getDrop,
                 OraxenChorusBlockBreakEvent::setDrop,
-                null,
+                mechanic.hasSeat() ? () -> removeChorusSeat(block) : null,
                 () -> SchedulerUtil.runAtLocationLater(block.getLocation(), 1L,
                         () -> ChorusBlockMechanicListener.fixClientsideUpdate(block.getLocation())));
+    }
+
+    private static void removeChorusSeat(Block block) {
+        UUID seatId = BlockHelpers.getPDC(block).get(SEAT_KEY, DataType.UUID);
+        Entity entity = seatId != null ? block.getWorld().getEntity(seatId) : null;
+        if (entity instanceof ArmorStand seat) removeSeatEntity(seat);
+        else block.getWorld().getNearbyEntities(BlockHelpers.toCenterBlockLocation(block.getLocation()), 0.5, 2, 0.5)
+                .stream()
+                .filter(ArmorStand.class::isInstance)
+                .map(ArmorStand.class::cast)
+                .filter(seat -> seat.getPersistentDataContainer().has(SEAT_KEY, PersistentDataType.STRING))
+                .findFirst()
+                .ifPresent(OraxenBlocks::removeSeatEntity);
+    }
+
+    private static void removeSeatEntity(ArmorStand seat) {
+        seat.eject();
+        seat.remove();
     }
 
     private static boolean removeShapedBlock(Block block, @Nullable Player player, @Nullable Drop overrideDrop) {
@@ -517,7 +556,7 @@ public class OraxenBlocks {
         if (player != null) {
             OraxenShapedBlockBreakEvent event = new OraxenShapedBlockBreakEvent(mechanic, block, player);
             event.setDrop(drop);
-            if (!EventUtils.callEvent(event)) return false;
+            if (!event.callEvent()) return false;
             drop = resolveDropAfterEvent(player, event.getDrop(), overrideDrop != null);
             sendBreakEffects(block, player);
             BlockDurability.applyConfigured(player, itemInHand, mechanic.getDurabilityAction(itemInHand));
@@ -563,7 +602,7 @@ public class OraxenBlocks {
     }
 
     private static void clearShapedBlockData(Block block) {
-        ShapedBlockMechanic.removeItemId(new CustomBlockData(block, OraxenPlugin.get()));
+        ShapedBlockMechanic.removeItemId(BlockHelpers.getPDC(block));
     }
 
     /**

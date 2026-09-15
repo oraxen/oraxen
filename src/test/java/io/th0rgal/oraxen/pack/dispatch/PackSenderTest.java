@@ -8,10 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class PackSenderTest {
 
     @Test
-    void preJoinRequiresPaperAndSupportedVersion() {
-        assertTrue(PackSender.isPreJoinSupported(true, true));
-        assertFalse(PackSender.isPreJoinSupported(false, true));
-        assertFalse(PackSender.isPreJoinSupported(true, false));
-        assertFalse(PackSender.isPreJoinSupported(false, false));
+    void preJoinRequiresSupportedVersion() {
+        assertTrue(PackSender.isPreJoinSupported(true));
+        assertFalse(PackSender.isPreJoinSupported(false));
     }
 }

@@ -7,7 +7,7 @@ sounds:
     sound: welcome.ogg # extension is not mandatory
     stream: true
     subtitle: "Welcome Song"
-    # This section will automatically generate a datapack
+    # Registered through Paper's registry API or the live NMS registry on Paper 1.21.2+.
     jukebox:
       description: "<gold>Welcome <yellow>Song</yellow></gold>"
       duration: 180s

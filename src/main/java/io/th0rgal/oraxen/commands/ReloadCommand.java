@@ -15,7 +15,6 @@ import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
@@ -38,7 +37,7 @@ public class ReloadCommand {
         sendReloadMessage(sender, ITEMS_RELOAD);
         OraxenItems.loadItems();
         OraxenPlugin.get().getInvManager().regen();
-        Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent());
+        new OraxenItemsLoadedEvent().callEvent();
 
         if (Settings.UPDATE_ITEMS.toBool() && Settings.UPDATE_ITEMS_ON_RELOAD.toBool()) {
             Message.UPDATING_USER_ITEMS.log();

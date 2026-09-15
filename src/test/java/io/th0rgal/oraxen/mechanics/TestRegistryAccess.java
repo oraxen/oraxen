@@ -38,6 +38,9 @@ public class TestRegistryAccess implements RegistryAccess {
         if (key == RegistryKey.MOB_EFFECT) {
             return new TestRegistry<>((Class<T>) PotionEffectType.class);
         }
+        if (key == RegistryKey.ATTRIBUTE) {
+            return new TestRegistry<>((Class<T>) Attribute.class);
+        }
         return new TestRegistry<>(null);
     }
 

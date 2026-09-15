@@ -9,7 +9,6 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.configs.ConfigsManager;
 import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.utils.OraxenYaml;
-import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.Configuration;
@@ -24,14 +23,16 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 public class FontManager {
 
     public final boolean autoGenerate;
     public final String permsChatcolor;
-    public static Map<String, GlyphBitMap> glyphBitMaps = new HashMap<>();
+    public static volatile Map<String, GlyphBitMap> glyphBitMaps = Map.of();
     private final Map<String, Glyph> glyphMap;
+    private final List<Glyph> glyphsByCharacterLength;
     private final Map<String, Glyph> glyphByPlaceholder;
     private final Map<String, String> reverse;
     private final FontEvents fontEvents;
@@ -40,7 +41,6 @@ public class FontManager {
     // New glyph types
     private final ShiftProvider shiftProvider;
     private final Map<String, ReferenceGlyph> referenceGlyphMap;
-    private final Map<String, ReferenceGlyph> referenceByPlaceholder;
     private final Map<String, AnimatedGlyph> animatedGlyphMap;
     private final Map<String, AnimatedGlyph> animatedByPlaceholder;
 
@@ -49,16 +49,18 @@ public class FontManager {
         final ConfigurationSection bitmapSection = fontConfiguration.getConfigurationSection("bitmaps");
         autoGenerate = fontConfiguration.getBoolean("settings.automatically_generate");
         permsChatcolor = fontConfiguration.getString("settings.perms_chatcolor");
+        final Map<String, GlyphBitMap> loadedGlyphBitMaps = new HashMap<>();
         if (bitmapSection != null) {
-            glyphBitMaps = bitmapSection.getKeys(false).stream().collect(HashMap::new, (map, key) -> {
+            bitmapSection.getKeys(false).forEach(key -> {
                 final ConfigurationSection section = bitmapSection.getConfigurationSection(key);
                 if (section != null) {
-                    map.put(key, new GlyphBitMap(
+                    loadedGlyphBitMaps.put(key, new GlyphBitMap(
                             section.getString("texture"), section.getInt("rows"), section.getInt("columns"),
                             section.getInt("ascent", 8), section.getInt("height", 8)));
                 }
-            }, HashMap::putAll);
+            });
         }
+        glyphBitMaps = Map.copyOf(loadedGlyphBitMaps);
         glyphMap = new LinkedHashMap<>();
         glyphByPlaceholder = new LinkedHashMap<>();
         reverse = new LinkedHashMap<>();
@@ -68,7 +70,6 @@ public class FontManager {
         // Initialize new glyph type maps
         shiftProvider = new ShiftProvider();
         referenceGlyphMap = new LinkedHashMap<>();
-        referenceByPlaceholder = new LinkedHashMap<>();
         animatedGlyphMap = new LinkedHashMap<>();
         animatedByPlaceholder = new LinkedHashMap<>();
 
@@ -77,14 +78,20 @@ public class FontManager {
         loadGlyphs(glyphOutput.glyphs());
         loadReferenceGlyphs(glyphOutput.referenceGlyphs());
         loadAnimatedGlyphs(glyphOutput.animatedGlyphs());
-
-        // Load text effects configuration from settings
-        loadTextEffectsConfig();
+        // Reference glyphs alias a subset of their source glyph's characters, so raw character
+        // matching must only ever attribute those characters to the source glyph. Including
+        // references here made the chat component path re-replace inside the source glyph's
+        // replacement with the reference's own permission result (permission bypass or wrongful
+        // obfuscation). Reference permissions still apply to their placeholders.
+        glyphsByCharacterLength = glyphMap.values().stream()
+                .filter(glyph -> !(glyph instanceof ReferenceGlyph))
+                .sorted(Comparator.comparingInt((Glyph glyph) -> glyph.getCharacters().length()).reversed())
+                .toList();
 
         if (fontConfiguration.isConfigurationSection("fonts"))
             loadFonts(fontConfiguration.getConfigurationSection("fonts"));
 
-        Logs.logSuccess("Loaded " + glyphMap.size() + " glyphs, " +
+        Logs.logSuccess("Loaded " + (glyphMap.size() - referenceGlyphMap.size()) + " glyphs, " +
                 referenceGlyphMap.size() + " reference glyphs, " +
                 animatedGlyphMap.size() + " animated glyphs");
     }
@@ -113,10 +120,15 @@ public class FontManager {
 
     private void loadGlyphs(Collection<Glyph> glyphs) {
         verifyRequiredGlyphs();
-        for (Glyph glyph : glyphs) {
-            if (glyph.getCharacter().isBlank())
-                continue;
-            glyphMap.put(glyph.getName(), glyph);
+        for (Glyph glyph : glyphs)
+            registerGlyph(glyph, true);
+    }
+
+    private void registerGlyph(Glyph glyph, boolean registerUnicode) {
+        if (glyph.getCharacter().isBlank())
+            return;
+        glyphMap.put(glyph.getName(), glyph);
+        if (registerUnicode) {
             glyph.getCharacters().codePoints()
                     .mapToObj(Character::toString)
                     .forEach(character -> {
@@ -124,9 +136,9 @@ public class FontManager {
                         if (existing != null && !existing.equals(glyph.getName()))
                             Logs.logWarning("Character '" + character + "' claimed by both '" + existing + "' and '" + glyph.getName() + "'");
                     });
-            for (final String placeholder : glyph.getPlaceholders())
-                glyphByPlaceholder.put(placeholder, glyph);
         }
+        for (final String placeholder : glyph.getPlaceholders())
+            glyphByPlaceholder.put(placeholder, glyph);
     }
 
     /**
@@ -136,9 +148,7 @@ public class FontManager {
         for (ReferenceGlyph refGlyph : referenceGlyphs) {
             if (refGlyph.resolve(this)) {
                 referenceGlyphMap.put(refGlyph.getName(), refGlyph);
-                for (String placeholder : refGlyph.getPlaceholders()) {
-                    referenceByPlaceholder.put(placeholder, refGlyph);
-                }
+                registerGlyph(refGlyph, false);
             }
         }
     }
@@ -200,8 +210,33 @@ public class FontManager {
         tempFile.delete();
     }
 
+    /**
+     * Gets all registered glyphs, including resolved {@link ReferenceGlyph}
+     * instances.
+     * <p>
+     * Note: {@link ReferenceGlyph#toJson()} returns {@code null} since reference
+     * glyphs reuse their source glyph's font provider; callers generating
+     * resource-pack output must null-check {@code toJson()} or use
+     * {@link #getBaseGlyphs()} instead.
+     */
     public final Collection<Glyph> getGlyphs() {
         return glyphMap.values();
+    }
+
+    /**
+     * Gets all registered glyphs sorted from longest to shortest character sequence, excluding
+     * {@link ReferenceGlyph} instances: references share their source glyph's characters, so raw
+     * character matching must always resolve to the source glyph.
+     */
+    public final List<Glyph> getGlyphsByCharacterLength() {
+        return glyphsByCharacterLength;
+    }
+
+    /**
+     * Gets all registered glyphs excluding {@link ReferenceGlyph} instances.
+     */
+    public final Collection<Glyph> getBaseGlyphs() {
+        return glyphMap.values().stream().filter(glyph -> !(glyph instanceof ReferenceGlyph)).toList();
     }
 
     public final Collection<Glyph> getEmojis() {
@@ -238,7 +273,8 @@ public class FontManager {
      */
     @Nullable
     public ReferenceGlyph getReferenceGlyphFromPlaceholder(String placeholder) {
-        return referenceByPlaceholder.get(placeholder);
+        Glyph glyph = glyphByPlaceholder.get(placeholder);
+        return glyph instanceof ReferenceGlyph referenceGlyph ? referenceGlyph : null;
     }
 
     // Animated glyph accessors
@@ -320,18 +356,16 @@ public class FontManager {
         return shiftProvider.getShiftString(length);
     }
 
-    private final Map<UUID, List<String>> currentGlyphCompletions = new HashMap<>();
+    private final Map<UUID, List<String>> currentGlyphCompletions = new ConcurrentHashMap<>();
 
     public void sendGlyphTabCompletion(Player player) {
         List<String> completions = getGlyphTabCompletions(getGlyphByPlaceholderMap().values(),
                 Settings.UNICODE_COMPLETIONS.toBool());
 
-        if (VersionUtil.atOrAbove("1.19.4")) {
-            player.removeCustomChatCompletions(
-                    currentGlyphCompletions.getOrDefault(player.getUniqueId(), new ArrayList<>()));
-            player.addCustomChatCompletions(completions);
-            currentGlyphCompletions.put(player.getUniqueId(), completions);
-        }
+        player.removeCustomChatCompletions(
+                currentGlyphCompletions.getOrDefault(player.getUniqueId(), new ArrayList<>()));
+        player.addCustomChatCompletions(completions);
+        currentGlyphCompletions.put(player.getUniqueId(), completions);
     }
 
     public void clearGlyphTabCompletions(Player player) {
@@ -347,21 +381,6 @@ public class FontManager {
                 .filter(completion -> !completion.isEmpty())
                 .distinct()
                 .toList();
-    }
-
-    /**
-     * Loads text effects configuration from settings.yml.
-     */
-    private void loadTextEffectsConfig() {
-        Configuration settings = OraxenPlugin.get().getConfigsManager().getSettings();
-        ConfigurationSection textEffectsSection = settings.getConfigurationSection("TextEffects");
-        ConfigurationSection textEffectsConfig = OraxenPlugin.get().getConfigsManager().getTextEffects();
-        TextEffect.loadConfig(textEffectsSection, textEffectsConfig);
-
-        if (TextEffect.isEnabled()) {
-            int enabledCount = TextEffect.getEnabledEffects().size();
-            Logs.logSuccess("Loaded " + enabledCount + " text effects");
-        }
     }
 
     public record GlyphBitMap(String texture, int rows, int columns, int ascent, int height) {

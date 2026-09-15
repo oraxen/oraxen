@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.cosmetic.skin;
 
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.provided.cosmetic.skinnable.SkinnableMechanicFactory;
+import io.th0rgal.oraxen.utils.CustomModelDataHelper;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -38,13 +39,12 @@ public class SkinMechanicListener implements Listener {
             if (skinnableMeta.hasItemModel() && skinMeta.getItemModel().equals(skinnableMeta.getItemModel())) return;
             skinnableMeta.setItemModel(skinMeta.getItemModel());
         } else {
-            if (!skinMeta.hasCustomModelData()) return;
+            Integer changeSkin = CustomModelDataHelper.getCustomModelData(skinMeta);
+            if (changeSkin == null) return;
 
-            int changeSkin = skinMeta.getCustomModelData();
+            if (changeSkin.equals(CustomModelDataHelper.getCustomModelData(skinnableMeta))) return;
 
-            if (skinnableMeta.hasCustomModelData() && changeSkin == skinnableMeta.getCustomModelData()) return;
-
-            skinnableMeta.setCustomModelData(changeSkin);
+            CustomModelDataHelper.setCustomModelData(skinnableMeta, changeSkin);
         }
         skinnable.setItemMeta(skinnableMeta);
 

@@ -45,7 +45,7 @@ public class SchemaGenerator {
      */
     public static boolean generateAndSave() {
         try {
-            String version = OraxenPlugin.get().getDescription().getVersion();
+            String version = OraxenPlugin.get().getPluginMeta().getVersion();
             JsonObject schema = generateSchema(version);
 
             File outputFile = new File(OraxenPlugin.get().getDataFolder(), "oraxen-schema.json");
@@ -534,6 +534,10 @@ public class SchemaGenerator {
         maxStack.addProperty("description", "Maximum stack size for this item");
         components.add("max_stack_size", maxStack);
 
+        // enchantment_glint_override
+        addSimpleComponent(components, "enchantment_glint_override", "boolean",
+                "Override whether the item has an enchantment glint", "1.20.5+");
+
         // food
         JsonObject food = new JsonObject();
         food.addProperty("type", "object");
@@ -825,7 +829,9 @@ public class SchemaGenerator {
         addMechanicIfAbsent(mechanics, "backpack", "misc", "Portable storage",
                 Map.of(
                         "rows", prop("integer", "Number of rows (1-6)", 1, 3),
-                        "title", prop("string", "Inventory title", null, null)));
+                        "title", prop("string", "Inventory title", null, null),
+                        "blocked-items", prop("array",
+                                "Items that cannot be stored; Oraxen item IDs require the oraxen: prefix", null, null)));
 
         addMechanicIfAbsent(mechanics, "itemtype", "misc", "Define item type behavior",
                 Map.of("type", prop("string", "Item type identifier", null, null)));

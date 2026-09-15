@@ -6,8 +6,10 @@ import io.th0rgal.oraxen.glyphs.Glyph;
 import io.th0rgal.oraxen.glyphs.GlyphGrid;
 import io.th0rgal.oraxen.glyphs.ReferenceGlyph;
 import io.th0rgal.oraxen.items.ItemBuilder;
-import io.th0rgal.oraxen.items.ItemParser;
+import io.th0rgal.oraxen.items.ItemLoader;
+import io.th0rgal.oraxen.items.ItemMigrator;
 import io.th0rgal.oraxen.items.ItemTemplate;
+import io.th0rgal.oraxen.items.ItemValidator;
 import io.th0rgal.oraxen.items.ModelData;
 import io.th0rgal.oraxen.pack.generation.DuplicationHandler;
 import io.th0rgal.oraxen.sounds.SoundConfigMigration;
@@ -58,7 +60,6 @@ public class ConfigsManager {
     private final YamlConfiguration defaultPaintings;
     private final YamlConfiguration defaultLanguage;
     private final YamlConfiguration defaultHud;
-    private final YamlConfiguration defaultTextEffects;
     private YamlConfiguration mechanics;
     private YamlConfiguration settings;
     private YamlConfiguration font;
@@ -66,7 +67,6 @@ public class ConfigsManager {
     private YamlConfiguration paintings;
     private YamlConfiguration language;
     private YamlConfiguration hud;
-    private YamlConfiguration textEffects;
     private File itemsFolder;
     private File glyphsFolder;
     private File schematicsFolder;
@@ -81,7 +81,6 @@ public class ConfigsManager {
         defaultPaintings = extractDefault("paintings.yml");
         defaultLanguage = extractDefault("languages/english.yml");
         defaultHud = extractDefault("hud.yml");
-        defaultTextEffects = extractDefault("text_effects.yml");
     }
 
     public YamlConfiguration getMechanics() {
@@ -116,14 +115,6 @@ public class ConfigsManager {
         return paintings != null ? paintings : defaultPaintings;
     }
 
-    public YamlConfiguration getTextEffects() {
-        return textEffects != null ? textEffects : defaultTextEffects;
-    }
-
-    public File getTextEffectsFile() {
-        return new File(plugin.getDataFolder(), "text_effects.yml");
-    }
-
     public File getSchematicsFolder() {
         return schematicsFolder;
     }
@@ -148,18 +139,20 @@ public class ConfigsManager {
 
     public void validatesConfig() {
         ResourcesManager tempManager = new ResourcesManager(OraxenPlugin.get());
+        migrateRemovedTextEffectsConfig();
         mechanics = validate(tempManager, "mechanics.yml", defaultMechanics);
         migrateLegacyBlockMechanics();
         settings = validate(tempManager, "settings.yml", defaultSettings);
+        Settings.invalidateCache();
         font = validate(tempManager, "font.yml", defaultFont);
         hud = validate(tempManager, "hud.yml", defaultHud);
         migrateLegacySoundFile();
         sound = validate(tempManager, "sounds.yml", defaultSound);
         migrateSoundConfigIfNeeded();
         paintings = validate(tempManager, "paintings.yml", defaultPaintings);
-        textEffects = validate(tempManager, "text_effects.yml", defaultTextEffects);
         File languagesFolder = new File(plugin.getDataFolder(), "languages");
         languagesFolder.mkdir();
+        migrateLegacyDiscordInvite(languagesFolder);
         String languageFile = "languages/" + settings.getString(Settings.PLUGIN_LANGUAGE.getPath()) + ".yml";
         language = validate(tempManager, languageFile, defaultLanguage);
 
@@ -189,6 +182,34 @@ public class ConfigsManager {
                 tempManager.extractConfigsInFolder("schematics", "schem");
         }
 
+    }
+
+    /**
+     * Replaces the outdated Discord invite in existing language files. Config validation only
+     * fills in missing keys, so servers that generated their language files before the invite
+     * changed kept pointing users at the dead link. Runs on every start but only rewrites files
+     * that still contain the old invite, making it a one-time migration per file.
+     */
+    private void migrateLegacyDiscordInvite(File languagesFolder) {
+        File[] languageFiles = languagesFolder.listFiles((dir, name) -> name.endsWith(".yml"));
+        if (languageFiles == null) return;
+        for (File languageFile : languageFiles) {
+            try {
+                String content = java.nio.file.Files.readString(languageFile.toPath());
+                if (!content.contains(LEGACY_DISCORD_INVITE)) continue;
+                java.nio.file.Files.writeString(languageFile.toPath(),
+                        content.replace(LEGACY_DISCORD_INVITE, CURRENT_DISCORD_INVITE));
+                Logs.logSuccess("Updated outdated Discord invite in languages/" + languageFile.getName());
+            } catch (IOException e) {
+                Logs.logError("Failed to update Discord invite in languages/" + languageFile.getName());
+                Logs.debug(e);
+            }
+        }
+    }
+
+    private void migrateRemovedTextEffectsConfig() {
+        File textEffectsFile = new File(plugin.getDataFolder(), "text_effects.yml");
+        MigrationBackups.moveToMigrated(plugin.getDataFolder(), textEffectsFile);
     }
 
     private void migrateLegacyBlockMechanics() {
@@ -253,7 +274,7 @@ public class ConfigsManager {
             YamlConfiguration defaultConfiguration) {
         File configurationFile = resourcesManager.extractConfiguration(configName);
         YamlConfiguration configuration = OraxenYaml.loadConfiguration(configurationFile);
-        boolean updated = false;
+        boolean updated = configName.equals("settings.yml") && SettingsUpdater.migrateInventoryMenu(configuration);
         for (String key : defaultConfiguration.getKeys(true)) {
             if (!skippedYamlKeys.stream().filter(key::startsWith).toList().isEmpty())
                 continue;
@@ -302,7 +323,7 @@ public class ConfigsManager {
 
     // Skip optional keys and subkeys
     private final List<String> skippedYamlKeys = List.of(
-            "oraxen_inventory.menu_layout",
+            "inventory-menu.layout",
             "Misc.armor_equip_event_bypass");
 
     private final List<String> removedYamlKeys = List.of(
@@ -314,6 +335,11 @@ public class ConfigsManager {
     private static final Map<String, List<String>> REQUIRED_LANG_PLACEHOLDERS = Map.of(
             "general.reload", List.of("<reloaded>")
     );
+
+    // The expired Discord invite that shipped in the introduction guide of older language files
+    // and its current replacement. Used by migrateLegacyDiscordInvite.
+    private static final String LEGACY_DISCORD_INVITE = "discord.gg/9EehAG54aU";
+    private static final String CURRENT_DISCORD_INVITE = "discord.gg/N7AJFJTgBS";
 
     /**
      * Holds parsing state for glyph configuration processing.
@@ -750,7 +776,7 @@ public class ConfigsManager {
 
     public Map<File, Map<String, ItemBuilder>> parseItemConfig() {
         Map<File, Map<String, ItemBuilder>> parseMap = new LinkedHashMap<>();
-        ItemBuilder errorItem = new ItemParser(Settings.ERROR_ITEM.toConfigSection()).buildItem();
+        ItemBuilder errorItem = new ItemLoader(Settings.ERROR_ITEM.toConfigSection()).load().item();
         for (File file : getItemFiles())
             parseMap.put(file, parseItemConfig(file, errorItem));
         return parseMap;
@@ -819,11 +845,20 @@ public class ConfigsManager {
             if (file == null || !file.exists())
                 continue;
             YamlConfiguration configuration = OraxenYaml.loadConfiguration(file);
+            boolean configUpdated = false;
+            boolean blockConfigMigrated = false;
             for (String key : configuration.getKeys(false)) {
                 ConfigurationSection itemSection = configuration.getConfigurationSection(key);
-                if (itemSection != null && itemSection.isBoolean("template"))
-                    ItemTemplate.register(itemSection);
+                if (itemSection == null || !itemSection.isBoolean("template")) continue;
+
+                ItemMigrator migrator = new ItemMigrator(itemSection);
+                ConfigurationSection mechanicsSection = OraxenYaml.getConfigurationSection(itemSection, "Mechanics");
+                if (mechanicsSection != null) migrator.migrateLegacyBlockMechanics(mechanicsSection);
+                configUpdated |= migrator.configUpdated();
+                blockConfigMigrated |= migrator.blockConfigMigrated();
+                ItemTemplate.register(itemSection);
             }
+            if (configUpdated) saveUpdatedItemConfig(file, configuration, blockConfigMigrated);
         }
     }
 
@@ -837,7 +872,7 @@ public class ConfigsManager {
 
     public Map<String, ItemBuilder> parseItemConfig(File itemFile, ItemBuilder errorItem) {
         YamlConfiguration config = OraxenYaml.loadConfiguration(itemFile);
-        Map<String, ItemParser> parseMap = parseItemParsers(config);
+        Map<String, ItemLoader> parseMap = parseItemLoaders(config);
         ParsedItemConfig parsedItemConfig = buildParsedItems(parseMap, errorItem);
 
         if (parsedItemConfig.configUpdated())
@@ -846,37 +881,37 @@ public class ConfigsManager {
         return parsedItemConfig.items();
     }
 
-    private Map<String, ItemParser> parseItemParsers(YamlConfiguration config) {
-        Map<String, ItemParser> parseMap = new LinkedHashMap<>();
+    private Map<String, ItemLoader> parseItemLoaders(YamlConfiguration config) {
+        Map<String, ItemLoader> parseMap = new LinkedHashMap<>();
         for (String itemKey : config.getKeys(false)) {
             ConfigurationSection itemSection = config.getConfigurationSection(itemKey);
             if (itemSection == null || ItemTemplate.isTemplate(itemKey))
                 continue;
-            parseMap.put(itemKey, new ItemParser(itemSection));
+            parseMap.put(itemKey, new ItemLoader(itemSection));
         }
         return parseMap;
     }
 
-    private ParsedItemConfig buildParsedItems(Map<String, ItemParser> parseMap, ItemBuilder errorItem) {
+    private ParsedItemConfig buildParsedItems(Map<String, ItemLoader> parseMap, ItemBuilder errorItem) {
         // because we must have parse all the items before building them to be able to
         // use available models
         Map<String, ItemBuilder> map = new LinkedHashMap<>();
         boolean configUpdated = false;
         boolean blockConfigMigrated = false;
 
-        for (Map.Entry<String, ItemParser> entry : parseMap.entrySet()) {
-            ItemParser itemParser = entry.getValue();
-            map.put(entry.getKey(), buildItem(entry.getKey(), itemParser, errorItem));
-            configUpdated |= itemParser.isConfigUpdated();
-            blockConfigMigrated |= itemParser.isBlockConfigMigrated();
+        for (Map.Entry<String, ItemLoader> entry : parseMap.entrySet()) {
+            ItemValidator.Result result = loadItem(entry.getKey(), entry.getValue(), errorItem);
+            map.put(entry.getKey(), result.item());
+            configUpdated |= result.configUpdated();
+            blockConfigMigrated |= result.blockConfigMigrated();
         }
 
         return new ParsedItemConfig(map, configUpdated, blockConfigMigrated);
     }
 
-    private ItemBuilder buildItem(String itemKey, ItemParser itemParser, ItemBuilder errorItem) {
+    private ItemValidator.Result loadItem(String itemKey, ItemLoader itemLoader, ItemBuilder errorItem) {
         try {
-            return itemParser.buildItem();
+            return itemLoader.load();
         } catch (Exception e) {
             Logs.logError("ERROR BUILDING ITEM \"" + itemKey + "\"");
             if (Settings.DEBUG.toBool()) {
@@ -884,7 +919,7 @@ public class ConfigsManager {
             } else {
                 Logs.logWarning(e.getMessage());
             }
-            return errorItem;
+            return new ItemValidator.Result(errorItem, false, false);
         }
     }
 

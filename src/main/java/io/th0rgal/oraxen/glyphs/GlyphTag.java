@@ -249,11 +249,6 @@ public class GlyphTag {
             return Tag.selfClosingInserting(Component.text(animGlyph.getGlyphTag()));
         }
 
-        // If not yet processed, show placeholder
-        if (!animGlyph.isProcessed()) {
-            return Tag.selfClosingInserting(Component.text(animGlyph.getGlyphTag()));
-        }
-
         // Build the animated component with all frame characters interleaved with
         // reset spacers so the shader can show only the current frame.
         Component animComponent = animGlyph.getGlyphComponent();

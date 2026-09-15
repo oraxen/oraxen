@@ -4,34 +4,31 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
-import io.th0rgal.oraxen.utils.SHA1Utils;
+import io.th0rgal.oraxen.utils.MultipartBody;
+import io.th0rgal.oraxen.utils.HashUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Duration;
 import java.util.UUID;
 
 public class Lobfile implements HostingProvider {
 
     private static final String UPLOAD_URL = "https://lobfile.com/api/v3/upload";
     private static final String DEFAULT_PACK_NAME = "Oraxen";
-    private static final int CONNECT_TIMEOUT_MS = 5_000;
-    private static final int CONNECTION_REQUEST_TIMEOUT_MS = 5_000;
-    private static final int SOCKET_TIMEOUT_MS = 30_000;
+    private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(5);
+    private static final Duration UPLOAD_TIMEOUT = Duration.ofMinutes(5);
 
     private final String apiKey;
     private final String packName;
@@ -72,63 +69,53 @@ public class Lobfile implements HostingProvider {
             return false;
         }
 
-        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+        try (HttpClient httpClient = HttpClient.newBuilder().connectTimeout(CONNECT_TIMEOUT).build()) {
             PackHashes packHashes = calculateHashes(resourcePack);
             sha1 = packHashes.sha1();
-            packUUID = UUID.nameUUIDFromBytes(SHA1Utils.hexToBytes(sha1));
+            packUUID = UUID.nameUUIDFromBytes(HashUtils.hexToBytes(sha1));
 
-            HttpPost request = new HttpPost(UPLOAD_URL);
-            request.setConfig(requestConfig());
-            request.setHeader("X-API-Key", apiKey);
-            request.setEntity(createUploadEntity(resourcePack, uploadPackName, packHashes.sha256()));
+            try (MultipartBody body = MultipartBody.create()
+                    .addPart("file", resourcePack, buildUploadFileName(uploadPackName), "application/octet-stream")
+                    .addPart("sha_256", packHashes.sha256())) {
+            HttpRequest request = HttpRequest.newBuilder(URI.create(UPLOAD_URL))
+                    .timeout(UPLOAD_TIMEOUT)
+                    .header("X-API-Key", apiKey)
+                    .header("Content-Type", body.contentType())
+                    .POST(body.bodyPublisher())
+                    .build();
 
-            try (CloseableHttpResponse response = httpClient.execute(request)) {
-                HttpEntity responseEntity = response.getEntity();
-                if (responseEntity == null) {
-                    Logs.logError("The resource pack could not be uploaded to Lobfile because the response body was empty.");
-                    return false;
-                }
-
-                int statusCode = response.getStatusLine().getStatusCode();
-                String responseString = EntityUtils.toString(responseEntity);
-                if (statusCode < 200 || statusCode >= 300) {
-                    Logs.logError("Lobfile returned HTTP " + statusCode + " for the resource pack upload.");
-                    JsonObject errorOutput = parseResponse(responseString);
-                    if (errorOutput != null) logUploadError(errorOutput);
-                    return false;
-                }
-                JsonObject jsonOutput = parseResponse(responseString);
-                if (jsonOutput == null) return false;
-
-                if (jsonOutput.has("success") && jsonOutput.get("success").getAsBoolean() && jsonOutput.has("url")) {
-                    packUrl = jsonOutput.get("url").getAsString();
-                    return true;
-                }
-
-                logUploadError(jsonOutput);
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            int statusCode = response.statusCode();
+            String responseString = response.body();
+            if (statusCode < 200 || statusCode >= 300) {
+                Logs.logError("Lobfile returned HTTP " + statusCode + " for the resource pack upload.");
+                JsonObject errorOutput = parseResponse(responseString);
+                if (errorOutput != null) logUploadError(errorOutput);
                 return false;
             }
-        } catch (IllegalStateException | IOException | NoSuchAlgorithmException ex) {
+            JsonObject jsonOutput = parseResponse(responseString);
+            if (jsonOutput == null) return false;
+
+            if (jsonOutput.has("success") && jsonOutput.get("success").getAsBoolean() && jsonOutput.has("url")) {
+                packUrl = jsonOutput.get("url").getAsString();
+                return true;
+            }
+
+            logUploadError(jsonOutput);
+            return false;
+            }
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            Logs.logError("The resource pack has not been uploaded to Lobfile.");
+            if (ex.getMessage() != null) Logs.logWarning(ex.getMessage());
+            Logs.debug(ex);
+            return false;
+        } catch (IllegalStateException | UncheckedIOException | IOException | NoSuchAlgorithmException ex) {
             Logs.logError("The resource pack has not been uploaded to Lobfile.");
             if (ex.getMessage() != null) Logs.logWarning(ex.getMessage());
             Logs.debug(ex);
             return false;
         }
-    }
-
-    private HttpEntity createUploadEntity(File resourcePack, String uploadPackName, String sha256) {
-        return MultipartEntityBuilder.create()
-                .addBinaryBody("file", resourcePack, ContentType.APPLICATION_OCTET_STREAM, buildUploadFileName(uploadPackName))
-                .addTextBody("sha_256", sha256)
-                .build();
-    }
-
-    private static RequestConfig requestConfig() {
-        return RequestConfig.custom()
-                .setConnectTimeout(CONNECT_TIMEOUT_MS)
-                .setConnectionRequestTimeout(CONNECTION_REQUEST_TIMEOUT_MS)
-                .setSocketTimeout(SOCKET_TIMEOUT_MS)
-                .build();
     }
 
     private static PackHashes calculateHashes(File file) throws IOException, NoSuchAlgorithmException {
@@ -142,7 +129,7 @@ public class Lobfile implements HostingProvider {
                 sha256.update(buffer, 0, read);
             }
         }
-        return new PackHashes(SHA1Utils.bytesToHex(sha1.digest()), SHA1Utils.bytesToHex(sha256.digest()));
+        return new PackHashes(HashUtils.bytesToHex(sha1.digest()), HashUtils.bytesToHex(sha256.digest()));
     }
 
     private record PackHashes(String sha1, String sha256) {
@@ -201,7 +188,7 @@ public class Lobfile implements HostingProvider {
 
     @Override
     public byte[] getSHA1() {
-        return sha1 != null ? SHA1Utils.hexToBytes(sha1) : null;
+        return sha1 != null ? HashUtils.hexToBytes(sha1) : null;
     }
 
     @Override

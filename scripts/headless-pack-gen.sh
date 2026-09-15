@@ -256,18 +256,11 @@ Glyphs:
   emoji_list_permission_only: false
   unicode_completions: false
 
-TextEffects:
-  enabled: false
-
-Chat:
-  chat_handler: MODERN
-
 CustomArmor:
   type: COMPONENT
   disable_leather_repair: true
 
 CustomBlocks:
-  block_correction: NMS
   use_legacy_noteblocks: true
 
 ItemUpdater:
@@ -290,7 +283,6 @@ Pack:
       generate_predicates: false
     verify_pack_files: true
     fix_force_unicode_glyphs: true
-    texture_slicer: true
     atlas:
       exclude_malformed_from_atlas: true
       generate: true

@@ -10,20 +10,20 @@ import java.util.Map;
 
 public class ItemTemplate {
 
-    private static final Map<String, ItemParser> itemTemplates = new HashMap<>();
+    private static final Map<String, ItemLoader> itemTemplates = new HashMap<>();
 
     public static void register(@NotNull ConfigurationSection section) {
         section.set("injectId", false);
         OraxenYaml.invalidateKeyCache(section);
-        itemTemplates.put(section.getName(), new ItemParser(section));
+        itemTemplates.put(section.getName(), new ItemLoader(section));
     }
 
-    public static Map<String, ItemParser> getItemTemplates() {
+    public static Map<String, ItemLoader> getItemTemplates() {
         return itemTemplates;
     }
 
     @Nullable
-    public static ItemParser getParserTemplate(String id) {
+    public static ItemLoader getLoaderTemplate(String id) {
         return itemTemplates.get(id);
     }
 

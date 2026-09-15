@@ -9,16 +9,10 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 
-import java.util.List;
-
 public class HudTask implements Runnable {
 
     private final HudManager manager = OraxenPlugin.get().getHudManager();
     private SchedulerUtil.ScheduledTask scheduledTask;
-
-    private List<? extends Player> hudEnabledPlayers() {
-        return Bukkit.getOnlinePlayers().stream().filter(manager::getHudState).toList();
-    }
 
     public void start(long delay, long period) {
         scheduledTask = SchedulerUtil.runTaskTimer(delay, period, this);
@@ -33,10 +27,11 @@ public class HudTask implements Runnable {
 
     @Override
     public void run() {
-        List<? extends Player> enabled = hudEnabledPlayers();
-        for (Player player : enabled) {
+        for (Player player : Bukkit.getOnlinePlayers()) {
             // Run player operations on the player's region thread for Folia compatibility
-            SchedulerUtil.runForEntity(player, () -> updatePlayerHud(player));
+            SchedulerUtil.runForEntity(player, () -> {
+                if (manager.getHudState(player)) updatePlayerHud(player);
+            });
         }
     }
 

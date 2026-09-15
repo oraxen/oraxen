@@ -11,7 +11,6 @@ public class NMSListeners implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        if (NMSHandlers.getHandler() == null) return;
 
         if (NoteBlockMechanicFactory.isEnabled() && NoteBlockMechanicFactory.getInstance().removeMineableTag())
             NMSHandlers.getHandler().customBlockDefaultTools(player);

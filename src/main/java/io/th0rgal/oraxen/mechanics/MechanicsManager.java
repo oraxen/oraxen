@@ -55,13 +55,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class MechanicsManager {
 
-    private static final Map<String, MechanicFactory> FACTORIES_BY_MECHANIC_ID = new HashMap<>();
-    private static final Map<String, MechanicFactory> FACTORIES_BY_LOWERCASE_MECHANIC_ID = new HashMap<>();
-    private static final Map<String, List<SchedulerUtil.ScheduledTask>> MECHANIC_TASKS = new HashMap<>();
-    private static final Map<String, List<Listener>> MECHANICS_LISTENERS = new HashMap<>();
+    private static final Map<String, MechanicFactory> FACTORIES_BY_MECHANIC_ID = new ConcurrentHashMap<>();
+    private static final Map<String, MechanicFactory> FACTORIES_BY_LOWERCASE_MECHANIC_ID = new ConcurrentHashMap<>();
+    private static final Map<String, List<SchedulerUtil.ScheduledTask>> MECHANIC_TASKS = new ConcurrentHashMap<>();
+    private static final Map<String, List<Listener>> MECHANICS_LISTENERS = new ConcurrentHashMap<>();
     private static final Set<String> NATIVE_MECHANIC_IDS = Set.of(
             // misc
             "armor_effects", "consumable_potion_effects", "soulbound", "itemtype", "consumable", "custom",
@@ -129,7 +130,7 @@ public class MechanicsManager {
         if (CompatibilitiesManager.hasPlugin("ProtocolLib"))
             registerFactory("bedrockbreak", BedrockBreakMechanicFactory::new);
 
-        SchedulerUtil.runTask(() -> Bukkit.getPluginManager().callEvent(new OraxenNativeMechanicsRegisteredEvent()));
+        SchedulerUtil.runTask(() -> new OraxenNativeMechanicsRegisteredEvent().callEvent());
     }
 
     /**
@@ -190,7 +191,7 @@ public class MechanicsManager {
     /**
      * Registers a scheduled task for a mechanic so it can be cancelled during reload/unload.
      */
-    public static void registerTask(String mechanicId, SchedulerUtil.ScheduledTask task) {
+    public static synchronized void registerTask(String mechanicId, SchedulerUtil.ScheduledTask task) {
         if (task == null) return;
         MECHANIC_TASKS.compute(mechanicId, (key, value) -> {
             if (value == null) value = new ArrayList<>();
@@ -199,7 +200,7 @@ public class MechanicsManager {
         });
     }
 
-    public static void unregisterTasks() {
+    public static synchronized void unregisterTasks() {
         MECHANIC_TASKS.values().forEach(tasks -> tasks.forEach(task -> {
             if (task != null) task.cancel();
         }));
@@ -210,7 +211,7 @@ public class MechanicsManager {
         StorageMechanic.clearRuntimeCaches();
     }
 
-    public static void unregisterTasks(String mechanicId) {
+    public static synchronized void unregisterTasks(String mechanicId) {
         MECHANIC_TASKS.computeIfPresent(mechanicId, (key, value) -> {
             value.forEach(task -> {
                 if (task != null) task.cancel();
@@ -219,7 +220,7 @@ public class MechanicsManager {
         });
     }
 
-    public static void registerListeners(final JavaPlugin plugin, String mechanicId, final Listener... listeners) {
+    public static synchronized void registerListeners(final JavaPlugin plugin, String mechanicId, final Listener... listeners) {
         for (final Listener listener : listeners)
             Bukkit.getPluginManager().registerEvents(listener, plugin);
         MECHANICS_LISTENERS.compute(mechanicId, (key, value) -> {
@@ -229,13 +230,13 @@ public class MechanicsManager {
         });
     }
 
-    public static void unloadListeners() {
+    public static synchronized void unloadListeners() {
         for (final Listener listener : MECHANICS_LISTENERS.values().stream().flatMap(Collection::stream).toList())
             HandlerList.unregisterAll(listener);
         MECHANICS_LISTENERS.clear();
     }
 
-    public static void unloadListeners(String mechanicId) {
+    public static synchronized void unloadListeners(String mechanicId) {
         List<Listener> listeners = MECHANICS_LISTENERS.remove(mechanicId);
         if (listeners == null) return;
         for (final Listener listener : listeners)

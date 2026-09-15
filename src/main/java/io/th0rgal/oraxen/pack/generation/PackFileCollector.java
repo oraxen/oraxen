@@ -10,11 +10,9 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSyntaxException;
 import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
-import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VirtualFile;
-import io.th0rgal.oraxen.utils.customarmor.CustomArmorType;
-import io.th0rgal.oraxen.utils.customarmor.ShaderArmorTextures;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import org.apache.commons.io.FilenameUtils;
 import org.bukkit.Material;
 
 import javax.imageio.ImageIO;
@@ -33,11 +31,9 @@ import java.util.stream.Collectors;
 class PackFileCollector {
 
     private final File packFolder;
-    private final ShaderArmorTextures shaderArmorTextures;
 
-    PackFileCollector(File packFolder, ShaderArmorTextures shaderArmorTextures) {
+    PackFileCollector(File packFolder) {
         this.packFolder = packFolder;
-        this.shaderArmorTextures = shaderArmorTextures;
     }
 
     void getAllFiles(File dir, Collection<VirtualFile> fileList, String newFolder, String... excluded) {
@@ -156,7 +152,7 @@ class PackFileCollector {
                         if (!texturePaths.contains(modelPathToPackPath(jsonTexture))) {
                             if (!jsonTexture.startsWith("#") && !jsonTexture.startsWith("item/")
                                     && !jsonTexture.startsWith("block/") && !jsonTexture.startsWith("entity/")) {
-                                if (Material.matchMaterial(Utils.getFileNameOnly(jsonTexture).toUpperCase()) == null) {
+                                if (Material.matchMaterial(FilenameUtils.getBaseName(jsonTexture).toUpperCase()) == null) {
                                     Logs.logWarning("Found invalid texture-path inside model-file <blue>"
                                             + model.getPath() + "</blue>: " + jsonTexture);
                                     Logs.logWarning("Verify that you have a texture in said path.", true);
@@ -242,8 +238,6 @@ class PackFileCollector {
             final InputStream fis;
             if (file.getName().endsWith(".json"))
                 fis = processJsonFile(file);
-            else if (CustomArmorType.getSetting() == CustomArmorType.SHADER && shaderArmorTextures.registerImage(file))
-                return;
             else
                 fis = new FileInputStream(file);
 

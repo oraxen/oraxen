@@ -4,6 +4,8 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.protection.AntiGriefLib;
+import io.th0rgal.oraxen.utils.logs.Logs;
+import io.th0rgal.oraxen.utils.wrappers.ParticleWrapper;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -131,21 +133,21 @@ public class KnockbackStrikeMechanicListener implements Listener {
             double spread = mechanic.getParticleSpread();
             
             // Special particles requiring extra parameters
-            if (particleType == Particle.DUST) {
+            if (particleType == ParticleWrapper.DUST) {
                 // DUST particle - requires Color
                 Particle.DustOptions dustOptions = new Particle.DustOptions(
                     Color.fromRGB(255, 0, 0), // Red
                     1.0f
                 );
                 world.spawnParticle(
-                    Particle.DUST,
+                    ParticleWrapper.DUST,
                     particleLoc,
                     count,
                     spread, spread, spread,
                     0.0,
                     dustOptions
                 );
-            } else if (particleType == Particle.DUST_COLOR_TRANSITION) {
+            } else if (particleType == ParticleWrapper.DUST_COLOR_TRANSITION) {
                 // Color transition dust - requires two colors
                 Particle.DustTransition transition = new Particle.DustTransition(
                     Color.fromRGB(255, 0, 0),   // Start: Red
@@ -153,14 +155,14 @@ public class KnockbackStrikeMechanicListener implements Listener {
                     1.0f
                 );
                 world.spawnParticle(
-                    Particle.DUST_COLOR_TRANSITION,
+                    ParticleWrapper.DUST_COLOR_TRANSITION,
                     particleLoc,
                     count,
                     spread, spread, spread,
                     0.0,
                     transition
                 );
-            } else if (particleType == Particle.BLOCK || particleType == Particle.FALLING_DUST) {
+            } else if (particleType == ParticleWrapper.BLOCK || particleType == Particle.FALLING_DUST) {
                 // Block particles - require BlockData (using Stone)
                 Material blockMat = Material.STONE;
                 BlockData blockData = blockMat.createBlockData();
@@ -172,11 +174,11 @@ public class KnockbackStrikeMechanicListener implements Listener {
                     0.0,
                     blockData
                 );
-            } else if (particleType == Particle.ITEM) {
+            } else if (particleType == ParticleWrapper.ITEM) {
                 // Item particle - requires ItemStack
                 ItemStack itemStack = new ItemStack(Material.DIAMOND);
                 world.spawnParticle(
-                    Particle.ITEM,
+                    ParticleWrapper.ITEM,
                     particleLoc,
                     count,
                     spread, spread, spread,
@@ -221,10 +223,9 @@ public class KnockbackStrikeMechanicListener implements Listener {
                     spread, spread, spread
                 );
             }
-        } catch (Exception e) {
-            // Print error if particle fails to spawn
-            System.err.println("[Oraxen] Failed to spawn particle " + mechanic.getParticleType() + ": " + e.getMessage());
-            e.printStackTrace();
+        } catch (Exception | LinkageError e) {
+            // LinkageError covers NoSuchFieldError/NoSuchMethodError from particles missing on this server version
+            Logs.logWarning("Failed to spawn particle " + mechanic.getParticleType() + ": " + e.getMessage());
         }
     }
 }

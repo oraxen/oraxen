@@ -33,6 +33,10 @@ public class BackpackMechanicFactory extends MechanicFactory {
     @ConfigProperty(type = PropertyType.DOUBLE, description = "Sound pitch", defaultValue = "1.0", min = 0.0, max = 2.0)
     public static final String PROP_PITCH = "pitch";
 
+    @ConfigProperty(type = PropertyType.LIST,
+            description = "Items that cannot be stored; Oraxen item IDs require the oraxen: prefix")
+    public static final String PROP_BLOCKED_ITEMS = "blocked-items";
+
     public BackpackMechanicFactory(ConfigurationSection section) {
         super(section);
         MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new BackpackListener(this));

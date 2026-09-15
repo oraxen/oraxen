@@ -6,7 +6,7 @@ import java.lang.reflect.Method;
  * Reflection-based helper to handle the ResourceLocation → Identifier rename
  * that occurred in Paper 26.x's Mojang-mapped API.
  *
- * Used by the single guarded NMS module for versions around the ResourceLocation rename.
+ * Used by the guarded NMS handler for versions around the ResourceLocation rename.
  * The ResourceLocation fallback is retained for defensive resilience only.
  */
 public final class ResourceLocationHelper {

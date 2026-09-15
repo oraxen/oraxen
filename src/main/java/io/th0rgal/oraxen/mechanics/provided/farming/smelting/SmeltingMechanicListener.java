@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.mechanics.provided.farming.smelting;
 
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
-import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.wrappers.EnchantmentWrapper;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -32,7 +31,7 @@ public class SmeltingMechanicListener implements Listener {
         Player player = event.getPlayer();
         ItemStack item = player.getInventory().getItemInMainHand();
         Block block = event.getBlock();
-        Location location = BlockHelpers.toCenterLocation(block.getLocation());
+        Location location = block.getLocation().toCenterLocation();
         Collection<ItemStack> itemStacks = event.getBlock().getDrops();
         String itemID = OraxenItems.getIdByItem(item);
 

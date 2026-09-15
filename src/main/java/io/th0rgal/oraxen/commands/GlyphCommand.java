@@ -9,8 +9,7 @@ import net.kyori.adventure.inventory.Book;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
-import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
+import net.kyori.adventure.text.format.NamedTextColor;
 
 import java.util.Arrays;
 import java.util.List;
@@ -18,11 +17,13 @@ import java.util.List;
 public class GlyphCommand {
 
     public OraxenCommand getGlyphCommand() {
+        // Accept both the plural and singular permission: 1.218's chained withPermission calls
+        // overwrote each other, making oraxen.command.emoji the effective permission, so users
+        // granted only the singular form keep access.
         return new OraxenCommand("emojis")
-                .withPermission("oraxen.command.emojis").withPermission("oraxen.command.emoji")
-                .executes((sender, args) -> {
+                .withPermission("oraxen.command.emojis;oraxen.command.emoji")
+                .executesPlayer((player, args) -> {
                     List<Glyph> emojiList = OraxenPlugin.get().getFontManager().getEmojis().stream().toList();
-                    Player player = ((Player) sender);
                     boolean onlyShowPermissable = Settings.SHOW_PERMISSION_EMOJIS.toBool();
 
                     List<Glyph> emojis = !onlyShowPermissable ? emojiList
@@ -43,7 +44,7 @@ public class GlyphCommand {
                             Glyph emoji = (emojis.get(p * 256 + i));
                             String[] placeholders = emoji.getPlaceholders();
                             String finalString = "";
-                            String permissionMessage = "";
+                            Component permissionMessage = Component.empty();
                             for (String placeholder : placeholders) {
                                 if (Arrays.toString(placeholders).replace("]", "").endsWith(placeholder)) {
                                     finalString += placeholder;
@@ -52,14 +53,16 @@ public class GlyphCommand {
                                 }
 
                                 if (!onlyShowPermissable) {
-                                    permissionMessage += emoji.hasPermission(player) ?
-                                            ("\n" + ChatColor.GREEN + "Permitted.") : ("\n" + ChatColor.RED + "No Permission.");
+                                    permissionMessage = permissionMessage.append(emoji.hasPermission(player)
+                                            ? Component.text("\nPermitted.", NamedTextColor.GREEN)
+                                            : Component.text("\nNo Permission.", NamedTextColor.RED));
                                 }
                             }
 
                             pages = pages.append(AdventureUtils.MINI_MESSAGE.deserialize("<glyph:" + emoji.getName() + ">")
                                     .clickEvent(ClickEvent.copyToClipboard(emoji.getCharacters()))
-                                    .hoverEvent(HoverEvent.hoverEvent(HoverEvent.Action.SHOW_TEXT, Component.text(finalString + permissionMessage))));
+                                    .hoverEvent(HoverEvent.hoverEvent(HoverEvent.Action.SHOW_TEXT,
+                                            Component.text(finalString).append(permissionMessage))));
                         }
                     }
 

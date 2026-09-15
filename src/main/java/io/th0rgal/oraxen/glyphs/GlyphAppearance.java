@@ -1,15 +1,14 @@
 package io.th0rgal.oraxen.glyphs;
 
 import io.th0rgal.oraxen.fonts.*;
-
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.ShadowColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -21,6 +20,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public record GlyphAppearance(@NotNull Key font, @Nullable Integer shadowColor) {
 
+    // Text shadow colors require Adventure 4.18+ (Minecraft 1.21.4+).
+    private static final boolean SHADOW_COLOR_AVAILABLE = hasShadowColorApi();
     private static final AtomicBoolean warnedShadowColorUnavailable = new AtomicBoolean();
 
     /**
@@ -123,19 +124,20 @@ public record GlyphAppearance(@NotNull Key font, @Nullable Integer shadowColor) 
         if (shadowColor == null)
             return component;
 
-        try {
-            ClassLoader cl = GlyphAppearance.class.getClassLoader();
-            Class<?> shadowColorClass = Class.forName("net.kyori.adventure.text.format.ShadowColor", false, cl);
-            Class<?> argbLikeClass = Class.forName("net.kyori.adventure.util.ARGBLike", false, cl);
-            Method factory = shadowColorClass.getMethod("shadowColor", int.class);
-            Object shadowColorObj = factory.invoke(null, shadowColor);
-
-            Method shadowMethod = Component.class.getMethod("shadowColor", argbLikeClass);
-            return (Component) shadowMethod.invoke(component, shadowColorObj);
-        } catch (Throwable ignored) {
+        if (!SHADOW_COLOR_AVAILABLE) {
             warnShadowColorUnavailable();
-            // Graceful degradation for older/incompatible Adventure versions
             return component;
+        }
+
+        return ShadowColorApplier.apply(component, shadowColor);
+    }
+
+    private static boolean hasShadowColorApi() {
+        try {
+            Class.forName("net.kyori.adventure.text.format.ShadowColor", false, GlyphAppearance.class.getClassLoader());
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
         }
     }
 
@@ -146,6 +148,20 @@ public record GlyphAppearance(@NotNull Key font, @Nullable Integer shadowColor) 
             Logs.logWarning("A glyph is using appearance.shadow_color, but text shadow colors are not available on this server. This requires Minecraft/Adventure support for text shadow colors, so the configured shadow color will be ignored.");
         } catch (Throwable ignored) {
             // Logging can be unavailable in tests or early startup; ignore silently.
+        }
+    }
+
+    /**
+     * Isolates the direct {@link ShadowColor} usage in a class that is only loaded when the
+     * runtime Adventure API provides it, so older servers never link the missing types.
+     */
+    private static final class ShadowColorApplier {
+        private ShadowColorApplier() {
+        }
+
+        @NotNull
+        static Component apply(@NotNull Component component, int shadowColor) {
+            return component.shadowColor(ShadowColor.shadowColor(shadowColor));
         }
     }
 }

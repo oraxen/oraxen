@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class SoundManager {
 
@@ -19,8 +20,14 @@ public class SoundManager {
     private final Collection<CustomSound> customSounds;
     private final Map<Key, String> songKeys;
     private final Map<Key, Float> songRanges;
+    private final Consumer<String> warningLogger;
 
     public SoundManager(YamlConfiguration soundConfig) {
+        this(soundConfig, Logs::logWarning);
+    }
+
+    public SoundManager(YamlConfiguration soundConfig, Consumer<String> warningLogger) {
+        this.warningLogger = warningLogger;
         this.autoGenerate = soundConfig.contains("settings.generate_sounds")
                 ? soundConfig.getBoolean("settings.generate_sounds", true)
                 : soundConfig.getBoolean("settings.automatically_generate", true);
@@ -31,7 +38,7 @@ public class SoundManager {
         if (autoGenerate) {
             for (ConfigurationSection soundSection : getSoundSections(soundConfig)) {
                 try {
-                    CustomSound sound = new CustomSound(soundSection);
+                    CustomSound sound = new CustomSound(soundSection, warningLogger);
                     if (sound.isJukeboxSound()) {
                         Key songKey = Key.key(sound.getJukeboxSongId());
                         Key soundId = Key.key(sound.getSoundId());
@@ -44,8 +51,7 @@ public class SoundManager {
                     }
                     customSounds.add(sound);
                 } catch (IllegalArgumentException exception) {
-                    Logs.logWarning("Skipping invalid sound entry: " + exception.getMessage());
-                    Logs.debug(exception);
+                    warningLogger.accept("Skipping invalid sound entry: " + exception.getMessage());
                 }
             }
         }
@@ -77,7 +83,7 @@ public class SoundManager {
     private List<ConfigurationSection> getSoundSections(YamlConfiguration soundConfig) {
         Object soundsValue = soundConfig.get("sounds");
         if (soundsValue instanceof List<?> soundsList)
-            return getListSoundSections(soundsList);
+            return getListSoundSections(soundsList, warningLogger);
 
         ConfigurationSection soundsSection = soundConfig.getConfigurationSection("sounds");
         if (soundsSection == null)
@@ -92,11 +98,11 @@ public class SoundManager {
         return sections;
     }
 
-    private List<ConfigurationSection> getListSoundSections(List<?> soundsList) {
+    private List<ConfigurationSection> getListSoundSections(List<?> soundsList, Consumer<String> warningLogger) {
         List<ConfigurationSection> sections = new ArrayList<>();
         for (Object entry : soundsList) {
             if (!(entry instanceof Map<?, ?> entryMap)) {
-                Logs.logWarning("Skipping sound entry that is not a map");
+                warningLogger.accept("Skipping sound entry that is not a map");
                 continue;
             }
 

@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
-import com.jeff_media.customblockdata.CustomBlockData;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
@@ -32,12 +31,14 @@ public class FurnitureUpdater implements Listener {
         Bukkit.getPluginManager().registerEvent(EntitiesLoadEvent.class, this, EventPriority.NORMAL, (listener, event) ->
                 {
                     if (!FurnitureFactory.isEnabled()) return;
-                    ((EntitiesLoadEvent) event).getEntities().stream().filter(OraxenFurniture::isBaseEntity).forEach(entity -> {
-                        if (Settings.UPDATE_FURNITURE.toBool() && Settings.UPDATE_FURNITURE_ON_LOAD.toBool()) {
-                            OraxenFurniture.updateFurniture(entity);
-                        }
-                        if (entity.isValid()) FurnitureFactory.registerTextEntity(entity);
-                    });
+                    ((EntitiesLoadEvent) event).getEntities().stream().filter(OraxenFurniture::isBaseEntity).forEach(entity ->
+                            SchedulerUtil.runForEntity(entity, () -> {
+                                if (!entity.isValid()) return;
+                                if (Settings.UPDATE_FURNITURE.toBool() && Settings.UPDATE_FURNITURE_ON_LOAD.toBool()) {
+                                    OraxenFurniture.updateFurniture(entity);
+                                }
+                                if (entity.isValid()) FurnitureFactory.registerTextEntity(entity);
+                            }));
                 }
                 , OraxenPlugin.get());
 
@@ -57,7 +58,7 @@ public class FurnitureUpdater implements Listener {
         if (Settings.UPDATE_FURNITURE.toBool() && Settings.EXPERIMENTAL_FIX_BROKEN_FURNITURE.toBool()) {
             Bukkit.getPluginManager().registerEvent(ChunkLoadEvent.class, this, EventPriority.NORMAL, ((listener, event) -> {
                 if (!FurnitureFactory.isEnabled()) return;
-                for (Block block : CustomBlockData.getBlocksWithCustomData(OraxenPlugin.get(), ((ChunkLoadEvent) event).getChunk())) {
+                for (Block block : BlockHelpers.getBlocksWithCustomData(OraxenPlugin.get(), ((ChunkLoadEvent) event).getChunk())) {
                     FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
                     if (mechanic == null) {
                         if (OraxenFurniture.hasFurnitureBlockMarker(block)) OraxenFurniture.remove(block.getLocation(), null);
@@ -74,7 +75,7 @@ public class FurnitureUpdater implements Listener {
                     //OraxenFurniture.remove(block.getLocation(), null);
                     mechanic.getLocations(yaw, rootLoc, mechanic.getBarriers()).forEach(loc -> {
                         loc.getBlock().setType(Material.AIR);
-                        new CustomBlockData(loc.getBlock(), OraxenPlugin.get()).clear();
+                        BlockHelpers.removePDC(loc.getBlock());
                     });
                     mechanic.place(rootLoc, yaw, BlockFace.UP);
                 }

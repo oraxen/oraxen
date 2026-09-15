@@ -105,14 +105,12 @@ class PlayerVersionDetectorTest {
     @Test
     void testVersionDetectionMethodEnum() {
         PlayerVersionDetector.VersionDetectionMethod[] methods = PlayerVersionDetector.VersionDetectionMethod.values();
-        assertEquals(3, methods.length);
+        assertEquals(2, methods.length);
 
         assertEquals(PlayerVersionDetector.VersionDetectionMethod.NONE,
                      PlayerVersionDetector.VersionDetectionMethod.valueOf("NONE"));
         assertEquals(PlayerVersionDetector.VersionDetectionMethod.VIA_VERSION,
                      PlayerVersionDetector.VersionDetectionMethod.valueOf("VIA_VERSION"));
-        assertEquals(PlayerVersionDetector.VersionDetectionMethod.PROTOCOL_SUPPORT,
-                     PlayerVersionDetector.VersionDetectionMethod.valueOf("PROTOCOL_SUPPORT"));
     }
 
     @Test

@@ -42,11 +42,10 @@ public final class MultiVersionPackValidator {
         }
 
         boolean hasViaVersion = PluginUtils.isEnabled("ViaVersion") || PluginUtils.isEnabled("ViaBackwards");
-        boolean hasProtocolSupport = PluginUtils.isEnabled("ProtocolSupport");
 
-        if (!hasViaVersion && !hasProtocolSupport) {
+        if (!hasViaVersion) {
             Logs.logWarning("Multi-version packs enabled but no version detection plugin found!");
-            Logs.logWarning("Install ViaVersion or ProtocolSupport to detect player client versions");
+            Logs.logWarning("Install ViaVersion to detect player client versions");
             Logs.logWarning("Without version detection, all players will receive the server's pack version");
         }
 

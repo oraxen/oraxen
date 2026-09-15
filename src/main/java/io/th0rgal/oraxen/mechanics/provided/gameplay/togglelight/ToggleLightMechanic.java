@@ -267,7 +267,7 @@ public class ToggleLightMechanic extends Mechanic {
             // Check if this adjacent block is at the location of another furniture's base entity
             // Base entities are typically at block center, so check if there's a furniture entity at this block
             if (adjacent.getWorld() != null) {
-                Location blockCenter = BlockHelpers.toCenterLocation(adjacent.getLocation());
+                Location blockCenter = adjacent.getLocation().toCenterLocation();
                 for (Entity entity : adjacent.getWorld().getNearbyEntities(blockCenter, 0.1, 0.1, 0.1)) {
                     if (OraxenFurniture.isBaseEntity(entity)) {
                         // Check if the entity's block location matches the adjacent block

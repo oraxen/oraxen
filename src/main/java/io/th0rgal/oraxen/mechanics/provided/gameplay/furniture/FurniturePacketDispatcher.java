@@ -5,7 +5,9 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -112,16 +114,46 @@ public final class FurniturePacketDispatcher {
      * @param location The target location
      */
     public static void teleportAsync(@NotNull Entity entity, @NotNull org.bukkit.Location location) {
+        teleportAsync(entity, location, null);
+    }
+
+    /**
+     * Teleports an entity asynchronously using Paper's teleportAsync API when available,
+     * falling back to synchronous teleport on non-Paper servers. When the teleport
+     * completes, the given callback runs on the entity's main/region thread.
+     *
+     * <p>The callback fires unconditionally, even if the teleport fails or is refused
+     * (e.g. Paper's future resolves to {@code false}), so callers can rely on it to
+     * restore state such as re-adding ejected passengers.</p>
+     *
+     * @param entity     The entity to teleport
+     * @param location   The target location
+     * @param onComplete Callback executed on the entity's thread once the teleport finished
+     *                   (regardless of success), may be null
+     */
+    @SuppressWarnings("unchecked")
+    public static void teleportAsync(@NotNull Entity entity, @NotNull org.bukkit.Location location, @Nullable Runnable onComplete) {
         try {
             // Paper API: teleportAsync returns a CompletableFuture
-            entity.getClass().getMethod("teleportAsync", org.bukkit.Location.class)
+            CompletableFuture<Boolean> future = (CompletableFuture<Boolean>) entity.getClass()
+                    .getMethod("teleportAsync", org.bukkit.Location.class)
                     .invoke(entity, location);
+            // whenComplete (not thenAccept) so the callback also fires when the future
+            // completes exceptionally; callers rely on it to restore state such as
+            // re-adding ejected seat passengers.
+            if (onComplete != null)
+                future.whenComplete((success, error) -> SchedulerUtil.runForEntity(entity, onComplete, null));
         } catch (NoSuchMethodException e) {
             // Non-Paper: fall back to sync teleport on the entity's thread
-            SchedulerUtil.runForEntity(entity, () -> entity.teleport(location), null);
+            SchedulerUtil.runForEntity(entity, () -> {
+                entity.teleport(location);
+                if (onComplete != null) onComplete.run();
+            }, null);
         } catch (Exception e) {
             Logs.logError("Failed to teleport entity asynchronously");
             e.printStackTrace();
+            // Still run the callback so callers can restore state (e.g. re-add ejected passengers)
+            if (onComplete != null) SchedulerUtil.runForEntity(entity, onComplete, null);
         }
     }
 
