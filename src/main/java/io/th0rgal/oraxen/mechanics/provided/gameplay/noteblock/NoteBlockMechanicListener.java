@@ -305,7 +305,11 @@ public class NoteBlockMechanicListener implements Listener {
         }
 
         BlockData data = NoteBlockMechanicFactory.createNoteBlockData(customVariation);
+        Block target = BlockHelpers.isReplaceable(placedAgainst.getType())
+                ? placedAgainst
+                : placedAgainst.getRelative(face);
         makePlayerPlaceBlock(player, event.getHand(), event.getItem(), placedAgainst, face, data);
+        finishAdjacentBlockChange(player, target, placedAgainst.getLocation());
     }
 
     // If block is not a custom block, play the correct sound according to the below block or default
@@ -553,9 +557,11 @@ public class NoteBlockMechanicListener implements Listener {
 
     private void finishAdjacentBlockChange(final Player player, final Block changedBlock, final Location packetBlock) {
         if (!AdjacentNoteBlockUpdateHelper.hasCustomVerticalNeighbor(changedBlock)) return;
-        player.sendBlockChange(changedBlock.getLocation(), changedBlock.getBlockData());
-        AdjacentNoteBlockUpdateHelper.resendCustomVerticalNeighbors(changedBlock, player);
-        NMSHandlers.getHandler().acknowledgeBlockChanges(player, packetBlock, true);
+        SchedulerUtil.runOnOwningThread(player, () -> {
+            player.sendBlockChange(changedBlock.getLocation(), changedBlock.getBlockData());
+            AdjacentNoteBlockUpdateHelper.resendCustomVerticalNeighbors(changedBlock, player);
+            NMSHandlers.getHandler().acknowledgeBlockChanges(player, packetBlock, true);
+        });
     }
 
     private boolean isUnsupportedBlockAboveNoteBlock(Material material) {

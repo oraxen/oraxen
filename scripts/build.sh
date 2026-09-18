@@ -1,10 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-./gradlew build
-
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 project_dir="$(cd -- "$script_dir/.." && pwd)"
+
+if [[ -x "$project_dir/gradlew" ]]; then
+  "$project_dir/gradlew" -p "$project_dir" build
+else
+  gradle -p "$project_dir" build
+fi
+
 built_jar="$(find "$project_dir/build/libs" -maxdepth 1 -type f -name '*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar' -print0 | xargs -0 ls -t | head -n 1)"
 
 if [[ -z "$built_jar" ]]; then

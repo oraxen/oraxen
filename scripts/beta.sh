@@ -17,10 +17,12 @@ if [[ -z "$saved_version" ]]; then
   exit 1
 fi
 
-sed -i '' -E \
+tmp_properties="$(mktemp)"
+sed -E \
   -e "s|^([[:space:]]*pluginVersion[[:space:]]*=[[:space:]]*).*$|\\1${saved_version}-${commit}|" \
   -e 's|^([[:space:]]*oraxen_compiled[[:space:]]*=[[:space:]]*).*$|\1false|' \
-  "$properties_file"
+  "$properties_file" > "$tmp_properties"
+mv "$tmp_properties" "$properties_file"
 
 if [[ -x "$project_dir/gradlew" ]]; then
   "$project_dir/gradlew" -p "$project_dir" build

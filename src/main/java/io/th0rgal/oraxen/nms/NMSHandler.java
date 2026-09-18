@@ -73,6 +73,10 @@ public interface NMSHandler {
         return itemStack;
     }
 
+    default ItemStack removeDeathProtectionComponent(ItemStack itemStack) {
+        return itemStack;
+    }
+
     default void deathProtectionComponent(ItemBuilder itemBuilder, ConfigurationSection deathProtectionSection) {
 
     }

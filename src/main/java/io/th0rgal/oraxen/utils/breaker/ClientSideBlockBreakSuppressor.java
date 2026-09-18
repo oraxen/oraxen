@@ -14,7 +14,7 @@ import java.lang.reflect.Method;
  * The effects are sent only to the client; the server-side player and its mining calculations are
  * left unchanged.
  */
-final class ClientSideBlockBreakSuppressor {
+public final class ClientSideBlockBreakSuppressor {
 
     // Resolve through the compatibility helper because older Bukkit versions exposed these under
     // the FAST_DIGGING/SLOW_DIGGING names.
@@ -29,7 +29,7 @@ final class ClientSideBlockBreakSuppressor {
     private ClientSideBlockBreakSuppressor() {
     }
 
-    static boolean isSupported() {
+    public static boolean isSupported() {
         return SEND_EFFECT_CHANGE != null && SEND_EFFECT_REMOVE != null;
     }
 

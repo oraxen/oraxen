@@ -381,12 +381,10 @@ public class BreakerSystem implements Listener {
     }
 
     static boolean shouldProtectAdjacentVanillaBlock(final Player player, final Block block) {
-        if (!ClientSideBlockBreakSuppressor.isSupported() || OraxenBlocks.isOraxenBlock(block)
-                || OraxenFurniture.getFurnitureMechanic(block) != null
-                || !hasCustomVerticalNoteBlockNeighbor(block)) return false;
-
-        final ItemStack item = player.getInventory().getItemInMainHand();
-        return MODIFIERS.stream().noneMatch(modifier -> modifier.isTriggered(player, block, item));
+        return ClientSideBlockBreakSuppressor.isSupported()
+                && !OraxenBlocks.isOraxenBlock(block)
+                && OraxenFurniture.getFurnitureMechanic(block) == null
+                && hasCustomVerticalNoteBlockNeighbor(block);
     }
 
     private void handleAdjacentVanillaBlock(final Player player, final Block block, final Runnable cancel,
@@ -407,9 +405,11 @@ public class BreakerSystem implements Listener {
         breakerLocations.add(location);
         suppressClientSideBreaking(player, location);
 
-        player.sendBlockChange(location, originalData);
-        AdjacentNoteBlockUpdateHelper.resendCustomVerticalNeighbors(block, player);
-        NMSHandlers.getHandler().acknowledgeBlockChanges(player, location, false);
+        SchedulerUtil.runOnOwningThread(player, () -> {
+            player.sendBlockChange(location, originalData);
+            AdjacentNoteBlockUpdateHelper.resendCustomVerticalNeighbors(block, player);
+            NMSHandlers.getHandler().acknowledgeBlockChanges(player, location, false);
+        });
 
         final float[] progress = {0.0F};
         final SchedulerUtil.ScheduledTask task = SchedulerUtil.runAtLocationTimer(location, 1L, 1L, () -> {

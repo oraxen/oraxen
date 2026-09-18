@@ -29,7 +29,7 @@ public final class AdjacentNoteBlockUpdateHelper {
         final Map<Location, BlockData> updates = customVerticalNeighborStates(changedBlock);
         if (updates.isEmpty()) return;
 
-        updates.forEach(actor::sendBlockChange);
+        SchedulerUtil.runOnOwningThread(actor, () -> updates.forEach(actor::sendBlockChange));
 
         final World world = changedBlock.getWorld();
         final Location origin = changedBlock.getLocation();

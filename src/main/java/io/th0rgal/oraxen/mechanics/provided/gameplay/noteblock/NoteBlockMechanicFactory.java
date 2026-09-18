@@ -12,7 +12,9 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.farmblock.FarmBlo
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.logstrip.LogStripListener;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.PaperConfigUpdater;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
+import io.th0rgal.oraxen.utils.breaker.ClientSideBlockBreakSuppressor;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.lang3.Range;
 import org.bukkit.Bukkit;
@@ -208,6 +210,10 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         if (!noteblockUpdatesDisabled
                 && PaperConfigUpdater.wasBlockUpdateSettingUpdated("disable-noteblock-updates")) {
             Logs.logWarning("Paper block-updates.disable-noteblock-updates is not enabled, restart may be required");
+        }
+        if (!VersionUtil.supportsNmsHandler() || !ClientSideBlockBreakSuppressor.isSupported()) {
+            Logs.logWarning("Note-block stack flicker prevention requires Paper 1.21.2+.");
+            Logs.logWarning("This server will keep the legacy note-block break path.");
         }
     }
 

@@ -175,6 +175,20 @@ public final class SchedulerUtil {
     // ==================== ENTITY-BASED TASKS (Entity Scheduler) ====================
 
     /**
+     * Runs immediately when the caller already owns the entity region. On Folia,
+     * hops to the entity thread so player packets are not sent from a foreign block
+     * region. {@link #runForEntity} always schedules for the next tick even on Paper,
+     * which is too late for client-prediction acknowledgements.
+     */
+    public static void runOnOwningThread(Entity entity, Runnable runnable) {
+        if (Bukkit.isOwnedByCurrentRegion(entity)) {
+            runnable.run();
+        } else {
+            runForEntity(entity, runnable, null);
+        }
+    }
+
+    /**
      * Runs a task for a specific entity (uses the EntityScheduler).
      * This ensures the task runs on the thread that owns the entity.
      * If the entity is retired before execution, the task is silently skipped.

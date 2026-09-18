@@ -9,6 +9,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -88,7 +89,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
     private final Listener packDispatchListener;
-    private final Map<io.netty.channel.Channel, Deque<PendingBlockChange>> pendingBlockChanges = new ConcurrentHashMap<>();
+    private static final Map<io.netty.channel.Channel, Deque<PendingBlockChange>> pendingBlockChanges = new ConcurrentHashMap<>();
 
     private record PendingBlockChange(int sequence, int x, int y, int z, boolean placement) {
     }
@@ -101,24 +102,36 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                 ? new PackDispatchListener()
                 : null;
 
-        // mineableWith tag handling
         NamespacedKey tagKey = NamespacedKey.fromString("mineable_with_key", OraxenPlugin.get());
-        if (ChannelInitializeListenerHolder.hasListener(tagKey))
-            return;
-        ChannelInitializeListenerHolder.addListener(tagKey, (channel -> channel.pipeline().addBefore("packet_handler",
-                tagKey.asString(), new ChannelDuplexHandler() {
-                    TagNetworkSerialization.NetworkPayload payload = createPayload();
+        if (!ChannelInitializeListenerHolder.hasListener(tagKey)) {
+            ChannelInitializeListenerHolder.addListener(tagKey, channel -> channel.pipeline().addBefore("packet_handler",
+                    tagKey.asString(), new ChannelDuplexHandler() {
+                        TagNetworkSerialization.NetworkPayload payload = createPayload();
 
+                        @Override
+                        public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
+                            if (msg instanceof ClientboundUpdateTagsPacket updateTagsPacket) {
+                                Map<ResourceKey<? extends Registry<?>>, TagNetworkSerialization.NetworkPayload> tags = new HashMap<>(updateTagsPacket.getTags());
+                                if (payload != null
+                                        && NoteBlockMechanicFactory.isEnabled()
+                                        && NoteBlockMechanicFactory.getInstance().removeMineableTag())
+                                    tags.put(Registries.BLOCK, payload);
+                                msg = new ClientboundUpdateTagsPacket(tags);
+                            }
+                            ctx.write(msg, promise);
+                        }
+                    }));
+        }
+
+        // Track dig/place sequences separately so a pre-existing mineable-tag listener
+        // cannot skip prediction settlement after reload.
+        NamespacedKey predictionKey = NamespacedKey.fromString("block_prediction_key", OraxenPlugin.get());
+        if (ChannelInitializeListenerHolder.hasListener(predictionKey))
+            return;
+        ChannelInitializeListenerHolder.addListener(predictionKey, channel -> channel.pipeline().addBefore("packet_handler",
+                predictionKey.asString(), new ChannelDuplexHandler() {
                     @Override
                     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
-                        if (msg instanceof ClientboundUpdateTagsPacket updateTagsPacket) {
-                            Map<ResourceKey<? extends Registry<?>>, TagNetworkSerialization.NetworkPayload> tags = new HashMap<>(updateTagsPacket.getTags());
-                            if (payload != null
-                                    && NoteBlockMechanicFactory.isEnabled()
-                                    && NoteBlockMechanicFactory.getInstance().removeMineableTag())
-                                tags.put(Registries.BLOCK, payload);
-                            msg = new ClientboundUpdateTagsPacket(tags);
-                        }
                         if (msg instanceof ClientboundBlockChangedAckPacket packet) {
                             final Deque<PendingBlockChange> pending = pendingBlockChanges.get(ctx.channel());
                             if (pending != null)
@@ -151,7 +164,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                         pendingBlockChanges.remove(ctx.channel());
                         super.channelInactive(ctx);
                     }
-                })));
+                }));
     }
 
     @Override
@@ -173,7 +186,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
         final int sequence = matched.sequence();
         pending.removeIf(change -> change.sequence() <= sequence);
-        serverPlayer.connection.send(new ClientboundBlockChangedAckPacket(sequence));
+        SchedulerUtil.runOnOwningThread(player, () ->
+                ((CraftPlayer) player).getHandle().connection.send(new ClientboundBlockChangedAckPacket(sequence)));
     }
 
     @Override
@@ -873,6 +887,19 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         try {
             net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(itemStack);
             nmsItem.set(DataComponents.DEATH_PROTECTION, component);
+            return asBukkitCopy(nmsItem);
+        } catch (Exception e) {
+            Logs.debug(e);
+        }
+        return itemStack;
+    }
+
+    @Override
+    public ItemStack removeDeathProtectionComponent(final ItemStack itemStack) {
+        if (itemStack == null) return null;
+        try {
+            net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(itemStack);
+            nmsItem.remove(DataComponents.DEATH_PROTECTION);
             return asBukkitCopy(nmsItem);
         } catch (Exception e) {
             Logs.debug(e);

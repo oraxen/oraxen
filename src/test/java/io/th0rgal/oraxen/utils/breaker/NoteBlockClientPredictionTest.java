@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.utils.breaker;
 
 import io.th0rgal.oraxen.api.OraxenBlocks;
+import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.utils.PotionUtils;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -41,6 +42,32 @@ class NoteBlockClientPredictionTest {
             blocks.when(() -> OraxenBlocks.isOraxenNoteBlock(blockBelow)).thenReturn(true);
 
             assertTrue(BreakerSystem.hasCustomVerticalNoteBlockNeighbor(block));
+        }
+    }
+
+    @Test
+    void protectsVanillaBlocksBetweenNoteBlocksEvenWhenAHardnessModifierMatches() {
+        final Block block = mock(Block.class);
+        final Block blockAbove = mock(Block.class);
+        final Block blockBelow = mock(Block.class);
+        final Player player = mock(Player.class);
+        when(block.getRelative(BlockFace.UP)).thenReturn(blockAbove);
+        when(block.getRelative(BlockFace.DOWN)).thenReturn(blockBelow);
+
+        final HardnessModifier modifier = mock(HardnessModifier.class);
+        when(modifier.isTriggered(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any())).thenReturn(true);
+        BreakerSystem.MODIFIERS.add(modifier);
+        try (MockedStatic<OraxenBlocks> blocks = mockStatic(OraxenBlocks.class);
+             MockedStatic<OraxenFurniture> furniture = mockStatic(OraxenFurniture.class)) {
+            blocks.when(() -> OraxenBlocks.isOraxenNoteBlock(blockAbove)).thenReturn(true);
+            blocks.when(() -> OraxenBlocks.isOraxenNoteBlock(blockBelow)).thenReturn(true);
+            blocks.when(() -> OraxenBlocks.isOraxenBlock(block)).thenReturn(false);
+            furniture.when(() -> OraxenFurniture.getFurnitureMechanic(block)).thenReturn(null);
+
+            assertTrue(BreakerSystem.shouldProtectAdjacentVanillaBlock(player, block));
+        } finally {
+            BreakerSystem.MODIFIERS.remove(modifier);
         }
     }
 
