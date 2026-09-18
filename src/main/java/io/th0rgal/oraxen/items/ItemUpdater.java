@@ -534,7 +534,10 @@ public class ItemUpdater implements Listener {
                 deathProtectionComponent = Optional.ofNullable(nmsHandler.deathProtectionComponent(newItem))
                         .orElseGet(newItemBuilder::getDeathProtectionComponent);
             } else {
-                clearDeathProtection = true;
+                // Keep the material default (totems) and never copy a removed YAML component
+                // from the old stack.
+                deathProtectionComponent = nmsHandler.deathProtectionComponent(new ItemStack(newItem.getType()));
+                clearDeathProtection = deathProtectionComponent == null;
             }
         }
 
