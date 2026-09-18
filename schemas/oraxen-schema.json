@@ -1,8 +1,8 @@
 {
-  "oraxenVersion": "1.219.0",
+  "oraxenVersion": "1.219.1",
   "minecraftVersion": "26.2",
   "serverVersion": "26.2.build.38-alpha",
-  "generatedAt": "2026-09-15T11:40:13.673936867Z",
+  "generatedAt": "2026-09-18T15:01:21.361780073Z",
   "enums": {
     "Material": {
       "values": [
@@ -7576,6 +7576,20 @@
         }
       }
     },
+    "death_protection": {
+      "type": "object",
+      "minecraftVersion": "1.21.2+",
+      "description": "Prevents death and applies configured death effects",
+      "properties": {
+        "death_effects": {
+          "type": "array",
+          "description": "Death effects: apply_effects, remove_effects, clear_all_effects, teleport_randomly, and play_sound",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
     "equippable": {
       "type": "object",
       "minecraftVersion": "1.21.2+",
@@ -8055,16 +8069,16 @@
           "type": "object",
           "description": "Custom hitbox dimensions",
           "properties": {
-            "width": {
+            "height": {
               "type": "number",
-              "description": "Hitbox width",
+              "description": "Hitbox height",
               "default": 1.0,
               "min": 0.0,
               "max": 10.0
             },
-            "height": {
+            "width": {
               "type": "number",
-              "description": "Hitbox height",
+              "description": "Hitbox width",
               "default": 1.0,
               "min": 0.0,
               "max": 10.0
@@ -8075,14 +8089,14 @@
           "type": "object",
           "description": "Seat configuration for sittable furniture",
           "properties": {
-            "height": {
-              "type": "number",
-              "description": "Seat height offset",
-              "default": 0.0
-            },
             "yaw": {
               "type": "number",
               "description": "Seat rotation",
+              "default": 0.0
+            },
+            "height": {
+              "type": "number",
+              "description": "Seat height offset",
               "default": 0.0
             }
           }
@@ -8099,27 +8113,6 @@
           "type": "object",
           "description": "Display entity configuration",
           "properties": {
-            "scale": {
-              "type": "object",
-              "description": "Scale of the display entity",
-              "properties": {
-                "z": {
-                  "type": "number",
-                  "description": "Z-axis scale",
-                  "default": 1.0
-                },
-                "x": {
-                  "type": "number",
-                  "description": "X-axis scale",
-                  "default": 1.0
-                },
-                "y": {
-                  "type": "number",
-                  "description": "Y-axis scale",
-                  "default": 1.0
-                }
-              }
-            },
             "brightness": {
               "type": "object",
               "description": "Light levels",
@@ -8140,6 +8133,48 @@
                 }
               }
             },
+            "scale": {
+              "type": "object",
+              "description": "Scale of the display entity",
+              "properties": {
+                "z": {
+                  "type": "number",
+                  "description": "Z-axis scale",
+                  "default": 1.0
+                },
+                "y": {
+                  "type": "number",
+                  "description": "Y-axis scale",
+                  "default": 1.0
+                },
+                "x": {
+                  "type": "number",
+                  "description": "X-axis scale",
+                  "default": 1.0
+                }
+              }
+            },
+            "translation": {
+              "type": "object",
+              "description": "Position offset in blocks",
+              "properties": {
+                "z": {
+                  "type": "number",
+                  "description": "Z-axis offset",
+                  "default": 0.0
+                },
+                "y": {
+                  "type": "number",
+                  "description": "Y-axis offset",
+                  "default": 0.0
+                },
+                "x": {
+                  "type": "number",
+                  "description": "X-axis offset",
+                  "default": 0.0
+                }
+              }
+            },
             "display_transform": {
               "type": "string",
               "description": "Display transform mode",
@@ -8154,27 +8189,6 @@
                 "GROUND",
                 "FIXED"
               ]
-            },
-            "translation": {
-              "type": "object",
-              "description": "Position offset in blocks",
-              "properties": {
-                "z": {
-                  "type": "number",
-                  "description": "Z-axis offset",
-                  "default": 0.0
-                },
-                "x": {
-                  "type": "number",
-                  "description": "X-axis offset",
-                  "default": 0.0
-                },
-                "y": {
-                  "type": "number",
-                  "description": "Y-axis offset",
-                  "default": 0.0
-                }
-              }
             }
           }
         },
@@ -8191,14 +8205,14 @@
                   "description": "Z-axis offset",
                   "default": 0.0
                 },
-                "x": {
-                  "type": "number",
-                  "description": "X-axis offset",
-                  "default": 0.0
-                },
                 "y": {
                   "type": "number",
                   "description": "Y-axis offset",
+                  "default": 0.0
+                },
+                "x": {
+                  "type": "number",
+                  "description": "X-axis offset",
                   "default": 0.0
                 }
               }
@@ -8212,14 +8226,14 @@
                   "description": "Z-axis scale",
                   "default": 1.0
                 },
-                "x": {
-                  "type": "number",
-                  "description": "X-axis scale",
-                  "default": 1.0
-                },
                 "y": {
                   "type": "number",
                   "description": "Y-axis scale",
+                  "default": 1.0
+                },
+                "x": {
+                  "type": "number",
+                  "description": "X-axis scale",
                   "default": 1.0
                 }
               }
@@ -8230,14 +8244,14 @@
           "type": "object",
           "description": "Drop configuration when broken",
           "properties": {
+            "loots": {
+              "type": "array",
+              "description": "List of loot entries"
+            },
             "silktouch": {
               "type": "boolean",
               "description": "Require silk touch to drop",
               "default": false
-            },
-            "loots": {
-              "type": "array",
-              "description": "List of loot entries"
             }
           }
         },
@@ -8245,12 +8259,9 @@
           "type": "object",
           "description": "Storage container configuration",
           "properties": {
-            "rows": {
-              "type": "integer",
-              "description": "Number of inventory rows",
-              "default": 1,
-              "min": 1,
-              "max": 6
+            "title": {
+              "type": "string",
+              "description": "Inventory title"
             },
             "type": {
               "type": "string",
@@ -8262,9 +8273,12 @@
                 "DISPOSAL"
               ]
             },
-            "title": {
-              "type": "string",
-              "description": "Inventory title"
+            "rows": {
+              "type": "integer",
+              "description": "Number of inventory rows",
+              "default": 1,
+              "min": 1,
+              "max": 6
             }
           }
         }
@@ -8332,13 +8346,9 @@
               "type": "array",
               "description": "Vanilla block IDs this block may be placed against"
             },
-            "disallow": {
-              "type": "array",
-              "description": "Vanilla block IDs this block may not be placed against"
-            },
-            "floor": {
+            "wall": {
               "type": "boolean",
-              "description": "Allow placement on floors",
+              "description": "Allow placement on walls",
               "default": true
             },
             "roof": {
@@ -8346,10 +8356,14 @@
               "description": "Allow placement on ceilings",
               "default": true
             },
-            "wall": {
+            "floor": {
               "type": "boolean",
-              "description": "Allow placement on walls",
+              "description": "Allow placement on floors",
               "default": true
+            },
+            "disallow": {
+              "type": "array",
+              "description": "Vanilla block IDs this block may not be placed against"
             }
           }
         },
@@ -8357,25 +8371,25 @@
           "type": "object",
           "description": "Custom block sounds",
           "properties": {
-            "break-sound": {
+            "step-sound": {
               "type": "string",
-              "description": "Sound when broken"
-            },
-            "hit-sound": {
-              "type": "string",
-              "description": "Sound when hit"
-            },
-            "fall-sound": {
-              "type": "string",
-              "description": "Sound when fallen on"
+              "description": "Sound when stepped on"
             },
             "place-sound": {
               "type": "string",
               "description": "Sound when placed"
             },
-            "step-sound": {
+            "fall-sound": {
               "type": "string",
-              "description": "Sound when stepped on"
+              "description": "Sound when fallen on"
+            },
+            "hit-sound": {
+              "type": "string",
+              "description": "Sound when hit"
+            },
+            "break-sound": {
+              "type": "string",
+              "description": "Sound when broken"
             }
           }
         }
