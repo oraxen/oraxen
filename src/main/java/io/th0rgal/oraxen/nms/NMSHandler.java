@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.nms;
 
 import io.th0rgal.oraxen.items.ItemBuilder;
-import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.ConfigurationSection;
@@ -11,11 +10,9 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Vector3f;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 public interface NMSHandler {
 
@@ -53,13 +50,7 @@ public interface NMSHandler {
     @Nullable
     BlockData correctBlockStates(Player player, EquipmentSlot slot, ItemStack itemStack);
 
-    /**
-     * Removes mineable/axe tag from noteblocks for custom blocks
-     */
-    void customBlockDefaultTools(Player player);
-
-    default void foodComponent(ItemBuilder itemBuilder, ConfigurationSection foodSection) {
-
+    default void acknowledgeBlockChanges(Player player, Location packetBlock, boolean placement) {
     }
 
     default Object consumableComponent(ItemStack itemStack) {
@@ -74,34 +65,34 @@ public interface NMSHandler {
 
     }
 
+    default Object deathProtectionComponent(ItemStack itemStack) {
+        return null;
+    }
+
+    default ItemStack deathProtectionComponent(ItemStack itemStack, Object deathProtectionComponent) {
+        return itemStack;
+    }
+
+    default ItemStack removeDeathProtectionComponent(ItemStack itemStack) {
+        return itemStack;
+    }
+
+    default void deathProtectionComponent(ItemBuilder itemBuilder, ConfigurationSection deathProtectionSection) {
+
+    }
+
     default boolean supportsJukeboxPlaying() {
         return false;
     }
     default void playJukeBoxSong(Location location, ItemStack itemStack) {
     }
 
-    default void stopJukeBox(Location location) {
-    }
-
     // Backpack cosmetic packet methods
-
-    /**
-     * Get the next available entity ID for packet-based entities
-     */
-    default int getNextEntityId() {
-        return -1;
-    }
 
     /**
      * Spawn an invisible armor stand for backpack display
      */
     default void spawnBackpackArmorStand(Player viewer, int entityId, Location location, ItemStack displayItem, boolean small) {
-    }
-
-    /**
-     * Send entity teleport packet
-     */
-    default void sendEntityTeleport(Player viewer, int entityId, Location location) {
     }
 
     /**
@@ -114,18 +105,6 @@ public interface NMSHandler {
      * Send entity destroy packet
      */
     default void sendEntityDestroy(Player viewer, int... entityIds) {
-    }
-
-    default boolean spawnTextDisplay(Player viewer, int entityId, UUID uuid, Location location, Component text,
-                                     Vector3f scale, byte billboard, float viewRange, int lineWidth,
-                                     int backgroundArgb, byte textOpacity, byte flags) {
-        return false;
-    }
-
-    default boolean sendTextDisplayMetadata(Player viewer, int entityId, Component text,
-                                            Vector3f scale, byte billboard, float viewRange, int lineWidth,
-                                            int backgroundArgb, byte textOpacity, byte flags) {
-        return false;
     }
 
     /**
@@ -148,10 +127,6 @@ public interface NMSHandler {
         "map", "map_scale_direction", "map_to_lock", "Decorations", "SkullOwner", "Effects", "BlockEntityTag",
         "BlockStateTag");
 
-    default boolean getSupported() {
-        return false;
-    }
-
     /**
      * Sets a component on an item using the DataComponents registry.
      * The parsed component is stored in ItemBuilder's generic components map
@@ -173,10 +148,6 @@ public interface NMSHandler {
      * @return The modified ItemStack
      */
     ItemStack applyGenericComponents(ItemStack itemStack, Map<String, Object> components);
-
-    default @NotNull ItemStack paintingVariantComponent(@NotNull ItemStack itemStack, @NotNull String paintingVariant) {
-        return itemStack;
-    }
 
     class EmptyNMSHandler implements NMSHandler {
 
@@ -207,15 +178,6 @@ public interface NMSHandler {
         }
 
         @Override
-        public void customBlockDefaultTools(Player player) {
-
-        }
-
-        @Override
-        public void foodComponent(ItemBuilder item, ConfigurationSection foodSection) {
-        }
-
-        @Override
         public void consumableComponent(ItemBuilder item, ConfigurationSection section) {
         }
 
@@ -227,6 +189,20 @@ public interface NMSHandler {
         @Override
         public ItemStack consumableComponent(ItemStack itemStack, Object consumable) {
             return itemStack;
+        }
+
+        @Override
+        public Object deathProtectionComponent(ItemStack itemStack) {
+            return null;
+        }
+
+        @Override
+        public ItemStack deathProtectionComponent(ItemStack itemStack, Object deathProtection) {
+            return itemStack;
+        }
+
+        @Override
+        public void deathProtectionComponent(ItemBuilder item, ConfigurationSection section) {
         }
 
         @Override

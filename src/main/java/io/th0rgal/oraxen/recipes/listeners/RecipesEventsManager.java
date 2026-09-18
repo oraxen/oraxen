@@ -56,6 +56,13 @@ public class RecipesEventsManager implements Listener {
         Bukkit.getPluginManager().registerEvents(instance, OraxenPlugin.get());
         Bukkit.getPluginManager().registerEvents(new SmithingRecipeEvents(), OraxenPlugin.get());
         Bukkit.getPluginManager().registerEvents(new CustomWorkstationEvents(), OraxenPlugin.get());
+        // Keep newer event types out of this listener so it still loads on 1.20.1.
+        try {
+            Class.forName("org.bukkit.event.block.CrafterCraftEvent");
+            Bukkit.getPluginManager().registerEvents(new CrafterRecipeEvents(), OraxenPlugin.get());
+        } catch (ClassNotFoundException ignored) {
+            // Crafters are unavailable on this server version.
+        }
         eventsRegistered = true;
     }
 
@@ -90,11 +97,7 @@ public class RecipesEventsManager implements Listener {
         boolean containsOraxenItem = Arrays.stream(event.getInventory().getMatrix()).anyMatch(OraxenItems::exists);
         if (!containsOraxenItem || recipe == null) return;
 
-        if (Arrays.stream(event.getInventory().getMatrix()).anyMatch(item -> {
-            if (MiscMechanicFactory.get() == null) return false;
-            MiscMechanic mechanic = MiscMechanicFactory.get().getMechanic(item);
-            return mechanic != null && !mechanic.isAllowedInVanillaRecipes();
-        })) {
+        if (containsRestrictedCraftingIngredient(event.getInventory().getMatrix())) {
             event.getInventory().setResult(null);
             return;
         }
@@ -106,6 +109,17 @@ public class RecipesEventsManager implements Listener {
 
         event.getInventory().setResult(customRecipe.getResult());
         persistBackpackContents(event);
+    }
+
+    static boolean containsRestrictedCraftingIngredient(ItemStack[] ingredients) {
+        MiscMechanicFactory factory = MiscMechanicFactory.get();
+        if (factory == null) return false;
+        for (ItemStack item : ingredients) {
+            if (item == null || item.isEmpty()) continue;
+            MiscMechanic mechanic = factory.getMechanic(item);
+            if (mechanic != null && !mechanic.isAllowedInVanillaRecipes()) return true;
+        }
+        return false;
     }
 
     private void persistBackpackContents(PrepareItemCraftEvent event) {

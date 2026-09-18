@@ -11,6 +11,7 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.sound.SoundStop;
 import org.bukkit.Bukkit;
+import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -79,7 +80,7 @@ public class MusicDiscHelpers {
         if(record == null) return null;
         pdc.remove(MUSIC_DISC_KEY);
         if(ItemUtils.isMusicDisc(record) && volume == 1F && pitch == 1F && NMSHandlers.getHandler().supportsJukeboxPlaying()) {
-            NMSHandlers.getHandler().stopJukeBox(entity.getLocation());
+            entity.getWorld().playEffect(entity.getLocation(), Effect.SOUND_STOP_JUKEBOX_SONG, 0);
         } else {
             var song = MusicDiscHelpers.getSong(record);
             if (song == null) return record;

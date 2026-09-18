@@ -80,11 +80,11 @@ public class FontEvents implements Listener {
         if (event.getItem().getType() != Material.WRITTEN_BOOK) return;
         if (event.useInteractedBlock() == Event.Result.ALLOW) return;
 
-        Book book = Book.builder()
-                .title(meta.title() != null ? meta.title() : Component.empty())
-                .author(meta.author() != null ? meta.author() : Component.empty())
-                .pages(meta.pages().stream().map(page -> formatBookPage(page, player)).toList())
-                .build();
+        Book book = Book.book(
+                meta.title() != null ? meta.title() : Component.empty(),
+                meta.author() != null ? meta.author() : Component.empty(),
+                meta.pages().stream().map(page -> formatBookPage(page, player)).toList()
+        );
 
         // Open fake book and deny opening of original book to avoid needing to format the original book
         event.setUseItemInHand(Event.Result.DENY);

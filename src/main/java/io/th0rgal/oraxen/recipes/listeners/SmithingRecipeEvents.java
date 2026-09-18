@@ -46,6 +46,11 @@ public class SmithingRecipeEvents implements Listener {
         MiscMechanic mechanic = MiscMechanicFactory.get().getMechanic(input);
         if (mechanic != null && mechanic.isAllowedInVanillaRecipes()) return;
 
+        preventMismatchedVanillaSmithingRecipes(event, template, material, oraxenItemId);
+    }
+
+    private void preventMismatchedVanillaSmithingRecipes(PrepareSmithingEvent event, ItemStack template,
+                                                         ItemStack material, String oraxenItemId) {
         Bukkit.recipeIterator().forEachRemaining(recipe -> {
             if (!(recipe instanceof SmithingTransformRecipe smithing)) return;
             if (!smithing.getTemplate().test(template) || !smithing.getAddition().test(material)) return;

@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text;
 
-import io.th0rgal.oraxen.nms.NMSHandlers;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
 import java.util.Arrays;
@@ -8,15 +8,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Runtime registration entry for a placed furniture base that has one or more
  * text displays attached to it.
  */
 public final class FurnitureTextEntry {
-
-    private static final AtomicInteger FALLBACK_VIRTUAL_ID = new AtomicInteger(Integer.MAX_VALUE / 2);
 
     private final UUID baseUuid;
     private final int baseEntityId;
@@ -95,8 +92,6 @@ public final class FurnitureTextEntry {
     }
 
     private static int nextVirtualEntityId() {
-        int entityId = NMSHandlers.getHandler().getNextEntityId();
-        if (entityId != -1) return entityId;
-        return FALLBACK_VIRTUAL_ID.decrementAndGet();
+        return Bukkit.getUnsafe().nextEntityId();
     }
 }

@@ -181,7 +181,8 @@ public class Drop {
         ItemStack furnitureItem = sourceID.equals(OraxenItems.getIdByItem(placedItem)) ? placedItem : baseItem;
         ItemUtils.editItemMeta(furnitureItem, (itemMeta) -> {
             ItemMeta baseMeta = baseItem.getItemMeta();
-            if (baseMeta != null && ItemUtils.hasDisplayName(baseMeta))
+            // Clear the placement's empty custom name too, so it cannot hide the item name.
+            if (baseMeta != null)
                 ItemUtils.setDisplayName(itemMeta, ItemUtils.getDisplayName(baseMeta));
         });
 

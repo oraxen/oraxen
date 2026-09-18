@@ -108,22 +108,7 @@ public class OraxenPlugin extends JavaPlugin {
 
         if (Settings.KEEP_UP_TO_DATE.toBool())
             new SettingsUpdater().handleSettingsUpdate();
-        if (PacketAdapter.isProtocolLibEnabled()) {
-            if (Settings.DEBUG.toBool()) Logs.logInfo("ProtocolLib is enabled, using ProtocolLibAdapter.");
-            packetAdapter = new ProtocolLibAdapter();
-        } else if (PacketAdapter.isPacketEventsEnabled()) {
-            if (Settings.DEBUG.toBool()) Logs.logInfo("PacketEvents is enabled, using PacketEventsAdapter.");
-            packetAdapter = new PacketEventsAdapter();
-        } else {
-            Logs.logWarning("Neither ProtocolLib nor PacketEvents is enabled, using EmptyAdapter.");
-            packetAdapter = new PacketAdapter.EmptyAdapter();
-            Message.MISSING_PROTOCOLLIB.log();
-        }
-        packetAdapter.whenEnabled(adapter -> {
-            if (Settings.FORMAT_INVENTORY_TITLES.toBool())
-                packetAdapter.registerInventoryListener();
-            packetAdapter.registerTitleListener();
-        });
+        initializePacketAdapter();
 
         Bukkit.getPluginManager().registerEvents(new CustomArmorListener(), this);
         Bukkit.getPluginManager().registerEvents(new BlockDataListener(this), this);
@@ -184,6 +169,25 @@ public class OraxenPlugin extends JavaPlugin {
         IntroductionGuide introductionGuide = new IntroductionGuide(this);
         Bukkit.getPluginManager().registerEvents(introductionGuide, this);
         introductionGuide.start();
+    }
+
+    private void initializePacketAdapter() {
+        if (PacketAdapter.isProtocolLibEnabled()) {
+            if (Settings.DEBUG.toBool()) Logs.logInfo("ProtocolLib is enabled, using ProtocolLibAdapter.");
+            packetAdapter = new ProtocolLibAdapter();
+        } else if (PacketAdapter.isPacketEventsEnabled()) {
+            if (Settings.DEBUG.toBool()) Logs.logInfo("PacketEvents is enabled, using PacketEventsAdapter.");
+            packetAdapter = new PacketEventsAdapter();
+        } else {
+            Logs.logWarning("Neither ProtocolLib nor PacketEvents is enabled, using EmptyAdapter.");
+            packetAdapter = new PacketAdapter.EmptyAdapter();
+            Message.MISSING_PROTOCOLLIB.log();
+        }
+        packetAdapter.whenEnabled(adapter -> {
+            if (Settings.FORMAT_INVENTORY_TITLES.toBool())
+                packetAdapter.registerInventoryListener();
+            packetAdapter.registerTitleListener();
+        });
     }
 
     private void postLoading() {

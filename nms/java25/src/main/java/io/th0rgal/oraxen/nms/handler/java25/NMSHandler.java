@@ -9,6 +9,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -33,7 +34,6 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.PositionMoveRotation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -49,6 +49,7 @@ import net.minecraft.world.item.ItemUseAnimation;
 import net.minecraft.world.item.JukeboxSong;
 import net.minecraft.world.item.component.Consumable;
 import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.DeathProtection;
 import net.minecraft.world.item.consume_effects.*;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.DirectionalPlaceContext;
@@ -71,10 +72,9 @@ import org.bukkit.craftbukkit.CraftWorld;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Listener;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.components.FoodComponent;
-import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -83,11 +83,16 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
     private final Listener packDispatchListener;
+    private static final Map<io.netty.channel.Channel, Deque<PendingBlockChange>> pendingBlockChanges = new ConcurrentHashMap<>();
+
+    private record PendingBlockChange(int sequence, int x, int y, int z, boolean placement) {
+    }
 
     public NMSHandler() {
         // Paper exposed the configuration/reconfiguration events used by the pre-join
@@ -97,27 +102,92 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                 ? new PackDispatchListener()
                 : null;
 
-        // mineableWith tag handling
         NamespacedKey tagKey = NamespacedKey.fromString("mineable_with_key", OraxenPlugin.get());
-        if (ChannelInitializeListenerHolder.hasListener(tagKey))
-            return;
-        ChannelInitializeListenerHolder.addListener(tagKey, (channel -> channel.pipeline().addBefore("packet_handler",
-                tagKey.asString(), new ChannelDuplexHandler() {
-                    TagNetworkSerialization.NetworkPayload payload = createPayload();
+        if (!ChannelInitializeListenerHolder.hasListener(tagKey)) {
+            ChannelInitializeListenerHolder.addListener(tagKey, channel -> channel.pipeline().addBefore("packet_handler",
+                    tagKey.asString(), new ChannelDuplexHandler() {
+                        TagNetworkSerialization.NetworkPayload payload = createPayload();
 
+                        @Override
+                        public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
+                            if (msg instanceof ClientboundUpdateTagsPacket updateTagsPacket) {
+                                Map<ResourceKey<? extends Registry<?>>, TagNetworkSerialization.NetworkPayload> tags = new HashMap<>(updateTagsPacket.getTags());
+                                if (payload != null
+                                        && NoteBlockMechanicFactory.isEnabled()
+                                        && NoteBlockMechanicFactory.getInstance().removeMineableTag())
+                                    tags.put(Registries.BLOCK, payload);
+                                msg = new ClientboundUpdateTagsPacket(tags);
+                            }
+                            ctx.write(msg, promise);
+                        }
+                    }));
+        }
+
+        // Track dig/place sequences separately so a pre-existing mineable-tag listener
+        // cannot skip prediction settlement after reload.
+        NamespacedKey predictionKey = NamespacedKey.fromString("block_prediction_key", OraxenPlugin.get());
+        if (ChannelInitializeListenerHolder.hasListener(predictionKey))
+            return;
+        ChannelInitializeListenerHolder.addListener(predictionKey, channel -> channel.pipeline().addBefore("packet_handler",
+                predictionKey.asString(), new ChannelDuplexHandler() {
                     @Override
                     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
-                        if (msg instanceof ClientboundUpdateTagsPacket updateTagsPacket) {
-                            Map<ResourceKey<? extends Registry<?>>, TagNetworkSerialization.NetworkPayload> tags = new HashMap<>(updateTagsPacket.getTags());
-                            if (payload != null
-                                    && NoteBlockMechanicFactory.isEnabled()
-                                    && NoteBlockMechanicFactory.getInstance().removeMineableTag())
-                                tags.put(Registries.BLOCK, payload);
-                            msg = new ClientboundUpdateTagsPacket(tags);
+                        if (msg instanceof ClientboundBlockChangedAckPacket packet) {
+                            final Deque<PendingBlockChange> pending = pendingBlockChanges.get(ctx.channel());
+                            if (pending != null)
+                                pending.removeIf(change -> change.sequence() <= packet.sequence());
                         }
                         ctx.write(msg, promise);
                     }
-                })));
+
+                    @Override
+                    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+                        // Bukkit block events do not expose the packet sequence. Retain the
+                        // position and operation so the matching prediction can be settled as
+                        // soon as its authoritative block states have been sent.
+                        final Deque<PendingBlockChange> pending =
+                                pendingBlockChanges.computeIfAbsent(ctx.channel(), ignored -> new ConcurrentLinkedDeque<>());
+                        if (msg instanceof ServerboundUseItemOnPacket packet) {
+                            final BlockPos pos = packet.getHitResult().getBlockPos();
+                            pending.addLast(new PendingBlockChange(packet.getSequence(), pos.getX(), pos.getY(), pos.getZ(), true));
+                        } else if (msg instanceof ServerboundPlayerActionPacket packet
+                                && packet.getAction() == ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK) {
+                            final BlockPos pos = packet.getPos();
+                            pending.addLast(new PendingBlockChange(packet.getSequence(), pos.getX(), pos.getY(), pos.getZ(), false));
+                        }
+                        while (pending.size() > 16) pending.pollFirst();
+                        super.channelRead(ctx, msg);
+                    }
+
+                    @Override
+                    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+                        pendingBlockChanges.remove(ctx.channel());
+                        super.channelInactive(ctx);
+                    }
+                }));
+    }
+
+    @Override
+    public void acknowledgeBlockChanges(Player player, Location packetBlock, boolean placement) {
+        final ServerPlayer serverPlayer = ((CraftPlayer) player).getHandle();
+        final Connection connection = serverPlayer.connection.connection;
+        final Deque<PendingBlockChange> pending = pendingBlockChanges.get(connection.channel);
+        if (pending == null) return;
+
+        PendingBlockChange matched = null;
+        for (final PendingBlockChange change : pending) {
+            if (change.placement() == placement && change.x() == packetBlock.getBlockX()
+                    && change.y() == packetBlock.getBlockY() && change.z() == packetBlock.getBlockZ()) {
+                matched = change;
+                break;
+            }
+        }
+        if (matched == null) return;
+
+        final int sequence = matched.sequence();
+        pending.removeIf(change -> change.sequence() <= sequence);
+        SchedulerUtil.runOnOwningThread(player, () ->
+                ((CraftPlayer) player).getHandle().connection.send(new ClientboundBlockChangedAckPacket(sequence)));
     }
 
     @Override
@@ -194,8 +264,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         InteractionResult result = blockItem.place(placeContext);
         if (result == InteractionResult.FAIL)
             return null;
-        if (placeContext instanceof DirectionalPlaceContext && player.getGameMode() != org.bukkit.GameMode.CREATIVE)
-            itemStack.setAmount(itemStack.getAmount() - 1);
+        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE)
+            itemStack.setAmount(nmsStack.getCount());
         World world = player.getWorld();
         BlockPos placedPos = placeContext.getClickedPos();
 
@@ -225,11 +295,6 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         double d = 5.0D;
         Vec3 vec32 = vec3.add((double) l * d, (double) k * d, (double) n * d);
         return world.clip(new ClipContext(vec3, vec32, ClipContext.Block.OUTLINE, fluidHandling, player));
-    }
-
-    @Override
-    public void customBlockDefaultTools(Player player) {
-
     }
 
     private TagNetworkSerialization.NetworkPayload createPayload() {
@@ -263,11 +328,6 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             }
             return Map.of((Object) named.key().location(), (IntList) list);
         }).collect(HashMap::new, Map::putAll, Map::putAll);
-    }
-
-    @Override
-    public boolean getSupported() {
-        return true;
     }
 
     /**
@@ -428,24 +488,6 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
     @SuppressWarnings("UnstableApiUsage")
     @Override
-    public void foodComponent(ItemBuilder item, ConfigurationSection foodSection) {
-        FoodComponent foodComponent = new ItemStack(item.getType()).getItemMeta().getFood();
-
-        // Ensure nutrition is non-negative
-        int nutrition = Math.max(foodSection.getInt("nutrition"), 0);
-        foodComponent.setNutrition(nutrition);
-
-        // Ensure saturation is non-negative
-        float saturation = Math.max((float) foodSection.getDouble("saturation", 0.0), 0f);
-        foodComponent.setSaturation(saturation);
-
-        foodComponent.setCanAlwaysEat(foodSection.getBoolean("can_always_eat", false));
-
-        item.setFoodComponent(foodComponent);
-    }
-
-    @SuppressWarnings("UnstableApiUsage")
-    @Override
     public void consumableComponent(ItemBuilder item, ConfigurationSection section) {
         Consumable.Builder consumable = Consumable.builder();
         Consumable template = Optional.ofNullable(CraftItemStack.asNMSCopy(new ItemStack(item.getType()))
@@ -497,6 +539,105 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         }
 
         item.setConsumableComponent(consumable.build());
+    }
+
+    @Override
+    public void deathProtectionComponent(ItemBuilder item, ConfigurationSection section) {
+        List<ConsumeEffect> effects = parseDeathProtectionEffects(section.getMapList("death_effects"));
+        item.setDeathProtectionComponent(new DeathProtection(effects));
+    }
+
+    private List<ConsumeEffect> parseDeathProtectionEffects(List<Map<?, ?>> effectSections) {
+        List<ConsumeEffect> effects = new ArrayList<>();
+
+        for (Map<?, ?> effectSection : effectSections) {
+            String type = Optional.ofNullable(effectSection.get("type"))
+                    .map(Object::toString)
+                    .orElse("");
+
+            switch (type.toLowerCase(Locale.ROOT)) {
+                case "apply_effects" -> addDeathProtectionStatusEffects(effects, effectSection);
+                case "remove_effects" -> addDeathProtectionRemoveEffects(effects, effectSection);
+                case "clear_all_effects" -> effects.add(new ClearAllStatusEffectsConsumeEffect());
+                case "teleport_randomly" -> {
+                    float diameter = parseFloatValue(effectSection.get("diameter"), 16f,
+                            "death_protection.teleport_randomly.diameter");
+                    effects.add(new TeleportRandomlyConsumeEffect(diameter));
+                }
+                case "play_sound" -> {
+                    String soundId = Optional.ofNullable(effectSection.get("sound"))
+                            .map(Object::toString)
+                            .orElse(null);
+                    if (soundId != null) {
+                        SoundEvent soundEvent = getSoundEventFromId(soundId);
+                        if (soundEvent != null)
+                            effects.add(new PlaySoundConsumeEffect(Holder.direct(soundEvent)));
+                    }
+                }
+                default -> Logs.logWarning("Invalid death_protection ConsumeEffect-Type " + type);
+            }
+        }
+
+        return effects;
+    }
+
+    private void addDeathProtectionStatusEffects(List<ConsumeEffect> effects, Map<?, ?> effectSection) {
+        if (!(effectSection.get("effects") instanceof Map<?, ?> configuredEffects))
+            return;
+
+        float probability = Math.max(0f, Math.min(1f,
+                parseFloatValue(effectSection.get("probability"), 1f, "death_protection.probability")));
+        List<MobEffectInstance> statusEffects = new ArrayList<>();
+
+        for (Map.Entry<?, ?> entry : configuredEffects.entrySet()) {
+            String effectId = entry.getKey().toString();
+            if (!(entry.getValue() instanceof Map<?, ?> rawMap)) {
+                Logs.logWarning("Invalid death_protection effect data for " + effectId + ": expected map");
+                continue;
+            }
+
+            Map<String, Object> effectData = new HashMap<>();
+            for (Map.Entry<?, ?> effectEntry : rawMap.entrySet())
+                effectData.put(String.valueOf(effectEntry.getKey()), effectEntry.getValue());
+
+            getMobEffectOptional(effectId)
+                    .map(BuiltInRegistries.MOB_EFFECT::wrapAsHolder)
+                    .ifPresentOrElse(effect -> {
+                        int duration = Math.max(parseIntegerValue(effectData.get("duration"), 1, "duration", effectId), 0) * 20;
+                        int amplifier = Math.max(parseIntegerValue(effectData.get("amplifier"), 0, "amplifier", effectId), 0);
+                        boolean ambient = Optional.ofNullable(effectData.get("ambient"))
+                                .map(value -> Boolean.parseBoolean(value.toString()))
+                                .orElse(false);
+                        boolean particles = Optional.ofNullable(effectData.get("show_particles"))
+                                .map(value -> Boolean.parseBoolean(value.toString()))
+                                .orElse(true);
+                        boolean icon = Optional.ofNullable(effectData.get("show_icon"))
+                                .map(value -> Boolean.parseBoolean(value.toString()))
+                                .orElse(true);
+
+                        statusEffects.add(new MobEffectInstance(
+                                effect, duration, amplifier, ambient, particles, icon));
+                    }, () -> Logs.logWarning("Invalid potion effect in death_protection: " + effectId));
+        }
+
+        if (!statusEffects.isEmpty())
+            effects.add(new ApplyStatusEffectsConsumeEffect(statusEffects, probability));
+    }
+
+    private void addDeathProtectionRemoveEffects(List<ConsumeEffect> effects, Map<?, ?> effectSection) {
+        if (!(effectSection.get("effects") instanceof List<?> effectIds))
+            return;
+
+        List<Holder<MobEffect>> mobEffects = effectIds.stream()
+                .map(Object::toString)
+                .map(this::getMobEffectOptional)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(BuiltInRegistries.MOB_EFFECT::wrapAsHolder)
+                .toList();
+
+        if (!mobEffects.isEmpty())
+            effects.add(new RemoveStatusEffectsConsumeEffect(HolderSet.direct(mobEffects)));
     }
 
     private void handleApplyEffects(Consumable.Builder consumable, Map<?, ?> effectSection) {
@@ -689,12 +830,53 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     }
 
     @Override
+    @Nullable
+    public Object deathProtectionComponent(final ItemStack itemStack) {
+        if (itemStack == null)
+            return null;
+        try {
+            net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(itemStack);
+            return nmsItem.get(DataComponents.DEATH_PROTECTION);
+        } catch (Exception e) {
+            Logs.debug(e);
+        }
+        return null;
+    }
+
+    @Override
     public ItemStack consumableComponent(final ItemStack itemStack, @Nullable Object consumable) {
         if (consumable == null)
             return itemStack;
         try {
             net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(itemStack);
             nmsItem.set(DataComponents.CONSUMABLE, (Consumable) consumable);
+            return asBukkitCopy(nmsItem);
+        } catch (Exception e) {
+            Logs.debug(e);
+        }
+        return itemStack;
+    }
+
+    @Override
+    public ItemStack deathProtectionComponent(final ItemStack itemStack, @Nullable Object deathProtection) {
+        if (!(deathProtection instanceof DeathProtection component))
+            return itemStack;
+        try {
+            net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(itemStack);
+            nmsItem.set(DataComponents.DEATH_PROTECTION, component);
+            return asBukkitCopy(nmsItem);
+        } catch (Exception e) {
+            Logs.debug(e);
+        }
+        return itemStack;
+    }
+
+    @Override
+    public ItemStack removeDeathProtectionComponent(final ItemStack itemStack) {
+        if (itemStack == null) return null;
+        try {
+            net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(itemStack);
+            nmsItem.remove(DataComponents.DEATH_PROTECTION);
             return asBukkitCopy(nmsItem);
         } catch (Exception e) {
             Logs.debug(e);
@@ -720,22 +902,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                 new BlockPos(location.getBlockX(), location.getBlockY(), location.getBlockZ()), id);
     }
 
-    @Override
-    public void stopJukeBox(Location location) {
-        if (location == null || location.getWorld() == null) return;
-        ServerLevel level = ((CraftWorld) location.getWorld()).getHandle().getLevel();
-        level.levelEvent(null, LevelEvent.SOUND_STOP_JUKEBOX_SONG,
-                new BlockPos(location.getBlockX(), location.getBlockY(), location.getBlockZ()), 0);
-    }
-
     // ============ Backpack Cosmetic Packet Methods ============
-
-    private static final AtomicInteger ENTITY_ID_COUNTER = new AtomicInteger(Integer.MAX_VALUE / 2);
-
-    @Override
-    public int getNextEntityId() {
-        return ENTITY_ID_COUNTER.decrementAndGet();
-    }
 
     private static EntityType<?> getEntityType(String entityId) {
         try {
@@ -812,27 +979,6 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             connection.send(equipmentPacket);
             // Debug: Logs.logSuccess("[Backpack] Sent equipment packet with item in HEAD slot: " + displayItem.getType());
         }
-    }
-
-    @Override
-    public void sendEntityTeleport(Player viewer, int entityId, Location location) {
-        ServerPlayer serverPlayer = ((CraftPlayer) viewer).getHandle();
-        Connection connection = serverPlayer.connection.connection;
-
-        // Create position/rotation data
-        PositionMoveRotation positionData = new PositionMoveRotation(
-                new Vec3(location.getX(), location.getY(), location.getZ()),
-                Vec3.ZERO, // delta movement
-                location.getYaw(),
-                location.getPitch()
-        );
-
-        ClientboundEntityPositionSyncPacket teleportPacket = new ClientboundEntityPositionSyncPacket(
-                entityId,
-                positionData,
-                false // on ground
-        );
-        connection.send(teleportPacket);
     }
 
     @Override

@@ -229,7 +229,6 @@ public class ResourcePack {
             OraxenPackGeneratedEvent event = new OraxenPackGeneratedEvent(output);
             event.callEvent();
             output = event.getOutput();
-            PackObfuscator.obfuscate(output);
             writeSinglePackAsync(packWorker, output);
         } catch (Exception exception) {
             handleGenerationFailure(packWorker, "sync pack finalization", exception);
@@ -242,6 +241,8 @@ public class ResourcePack {
                 try {
                     if (shutdownRequested) return;
                     filterGeneratedCoreShadersBelow1214(output, MinecraftVersion.getCurrentVersion());
+                    UnprotectedPackWriter.writeConfigured(output, packFolder);
+                    PackObfuscator.obfuscate(output);
                     if (shutdownRequested) return;
                     ZipUtils.writeZipFile(pack, output);
                     if (shutdownRequested) return;

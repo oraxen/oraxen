@@ -1,57 +1,56 @@
 # Contributors
-## Special thanks for all the people who had helped this project so far.
 
-### Code improvement
+## Special thanks to everyone who has helped this project so far.
+
+### Code
 
 > Developers who have contributed to the source code.
 
-* [Boy0000](https://github.com/Boy0000): Maintained the plugin until end of 2024, responsible for adding several mechanics, fixing bugs, and improving the code quality.
-* [pxlarified](https://github.com/pxlarified): Active contributor since 2024, working on bug fixes and improvements.
-* [Lauriichan](https://github.com/Lauriichan): did a great job with the recipes, commands and multiple refactors
-* [yzl210](https://github.com/yzl210): active contributor, introduced mythicmobs support, shapeless+furnace recipes and
-  much more
-* [Euphyllia](https://github.com/Euphillya): multiple improvements (worked on recipes and fixed bugs) and work on Folia Support
-* [AntoineJT](https://github.com/AntoineJT): made great refactors.
-* [Hugo5000](https://github.com/Hugo5000): contributed various improvements and bug fixes.
-* [Mowstyl](https://github.com/Mowstyl): contributed code improvements.
-* [Brett Saunders](https://github.com/brettsaunders21): introduced an awesome display inventory for recipes
-* [lucian929](https://github.com/lucian929): contributed multiple improvements.
-* [pustinek](https://github.com/pustinek): contributed code improvements.
-* [iGabyTM](https://github.com/iGabyTM): contributed bug fixes and improvements.
-* [SrBedrock](https://github.com/SrBedrock): contributed translations and fixes.
-* [clementinise](https://github.com/clementinise): contributed improvements.
-* [TheDeadSnake](https://github.com/TheDeadSnake): contributed code improvements.
-* [MrYoup](https://github.com/MrYoup): contributed improvements.
-* [ArubikU](https://github.com/ArubikU): contributed code improvements.
-* [WillFP / Auxilor](https://github.com/WillFP): fixed jitpack configuration and eco plugins integration.
-* [fishiatee](https://github.com/fishiatee): contributed improvements.
-* [Kiryu144](https://github.com/Kiryu144): contributed code improvements.
-* [Nelonn](https://github.com/Nelonn): contributed improvements.
-* [Xiao-MoMi](https://github.com/Xiao-MoMi): contributed improvements.
-* [rafael5gr2](https://github.com/rafael5gr2): contributed translations and fixes.
-* [Sty13](https://github.com/Sty13): contributed code improvements.
-* [VergilPrime](https://github.com/VergilPrime): contributed improvements.
-* [playajames419](https://github.com/playajames419): contributed code fixes.
-* [KamillPlayZ](https://github.com/KamillPlayZ): contributed improvements.
-* [YouHaveTrouble](https://github.com/YouHaveTrouble): contributed fixes.
-* [nklyshko](https://github.com/nklyshko): contributed improvements.
-* [Karlatemp](https://github.com/Karlatemp): added support for external hosting providers
-* [JohnsonRan](https://github.com/JohnsonRan): contributed translations.
-* [Emibergo02](https://github.com/Emibergo02): contributed improvements.
-* [CDFN](https://github.com/CDFN): contributed fixes.
-* [MrMicky](https://github.com/MrMicky-FR): developer of [FastInv](https://github.com/MrMicky-FR/FastInv) (used in this
-  plugin)
-* [MiniDigger](https://github.com/MiniDigger): developer of [MiniMessage](https://github.com/MiniDigger/MiniMessage) (
-  used in this plugin)
+- [Boy0000](https://github.com/Boy0000); Maintained the plugin until the end of 2024, adding several mechanics, fixing bugs, and improving overall code quality.
+- [pxlarified](https://github.com/pxlarified); Maintaining the plugin since the end of 2024, implementing bug fixes, improvements, and new features.
+- [Lauriichan](https://github.com/Lauriichan); Contributed significantly to recipes, commands, and multiple refactors.
+- [yzl210](https://github.com/yzl210); Introduced MythicMobs support, shapeless and furnace recipes, and additional improvements.
+- [Euphyllia](https://github.com/Euphillya); Helped implement Folia support, worked on recipes, and fixed numerous bugs.
+- [AntoineJT](https://github.com/AntoineJT); Implemented multiple refactors.
+- [Hugo5000](https://github.com/Hugo5000); Implemented various improvements and bug fixes.
+- [OlivierChiasson](https://github.com/OlivierChiasson); Suggested and helped implement several features and fixes.
+- [Mowstyl](https://github.com/Mowstyl); Contributed code improvements.
+- [Brett Saunders](https://github.com/brettsaunders21); Introduced a recipe display inventory.
+- [lucian929](https://github.com/lucian929); Implemented several improvements.
+- [pustinek](https://github.com/pustinek); Contributed code improvements.
+- [iGabyTM](https://github.com/iGabyTM); Implemented bug fixes and improvements.
+- [SrBedrock](https://github.com/SrBedrock); Implemented bug fixes and contributed translations.
+- [clementinise](https://github.com/clementinise); Implemented improvements.
+- [TheDeadSnake](https://github.com/TheDeadSnake); Contributed code improvements.
+- [MrYoup](https://github.com/MrYoup); Implemented improvements.
+- [ArubikU](https://github.com/ArubikU); Contributed code improvements.
+- [WillFP / Auxilor](https://github.com/WillFP); Fixed the JitPack configuration and eco plugin integration.
+- [fishiatee](https://github.com/fishiatee); Implemented improvements.
+- [Kiryu144](https://github.com/Kiryu144); Contributed code improvements.
+- [Nelonn](https://github.com/Nelonn); Implemented improvements.
+- [Xiao-MoMi](https://github.com/Xiao-MoMi); Implemented improvements.
+- [rafael5gr2](https://github.com/rafael5gr2); Contributed translations and fixes.
+- [Sty13](https://github.com/Sty13); Contributed code improvements.
+- [VergilPrime](https://github.com/VergilPrime); Implemented improvements.
+- [playajames419](https://github.com/playajames419); Implemented bug fixes.
+- [KamillPlayZ](https://github.com/KamillPlayZ); Implemented improvements.
+- [YouHaveTrouble](https://github.com/YouHaveTrouble); Implemented bug fixes.
+- [nklyshko](https://github.com/nklyshko); Implemented improvements.
+- [Karlatemp](https://github.com/Karlatemp); Implemented support for external hosting providers.
+- [JohnsonRan](https://github.com/JohnsonRan); Contributed translations.
+- [Emibergo02](https://github.com/Emibergo02); Implemented improvements.
+- [CDFN](https://github.com/CDFN); Implemented bug fixes.
+- [MrMicky](https://github.com/MrMicky-FR); Developer of [FastInv](https://github.com/MrMicky-FR/FastInv), which was previously used by this plugin.
+- [MiniDigger](https://github.com/MiniDigger); Developer of [MiniMessage](https://github.com/MiniDigger/MiniMessage), which is used by this plugin.
 
 ### Early supporters
 
-> Users who bought the plugin during its beta (version 0.x) and decided to trust me and support the project while it was not yet finished.
+> Users who purchased the plugin during its beta period (version 0.x), trusted the project at an early stage, and supported its continued development.
 
 1. [arturek1666](https://www.spigotmc.org/members/arturek1666.172791/)
 2. [zebulun](https://www.spigotmc.org/members/zebulun.298908/)
 3. [TemperTantrum](https://www.spigotmc.org/members/tempertantrum.66354/)
-4. [xX_Nelson_Xx](https://www.spigotmc.org/members/xx_nelson_xx.153894/)
+4. [xX\_Nelson\_Xx](https://www.spigotmc.org/members/xx_nelson_xx.153894/)
 5. [REjoin](https://www.spigotmc.org/members/rejoin.666599/)
 6. [Roy0510](https://www.spigotmc.org/members/roy0510.139065/)
 7. [espen96](https://www.spigotmc.org/members/espen96.56603/)
@@ -72,7 +71,7 @@
 22. [superzyr](https://www.spigotmc.org/members/superzyr.20152/)
 23. [dampfwaffel](https://www.spigotmc.org/members/dampfwaffel.32710/)
 24. [bouncingwalrus](https://www.spigotmc.org/members/bouncingwalrus.586902/)
-25. [kubson_19](https://www.spigotmc.org/members/kubson_19.229423/)
+25. [kubson\_19](https://www.spigotmc.org/members/kubson_19.229423/)
 26. [DarthGpR](https://www.spigotmc.org/members/darthgpr.225436/)
 27. [VelepculaTheFox](https://www.spigotmc.org/members/velepculathefox.482352/)
 28. [zoma](https://www.spigotmc.org/members/zoma.542262/)
@@ -95,7 +94,7 @@
 45. [Banit](https://www.spigotmc.org/members/banit.686595/)
 46. [Spartan9802](https://www.spigotmc.org/members/spartan9802.31988/)
 47. [LadyHaley](https://www.spigotmc.org/members/ladyhaley.159098/)
-48. [Friedrich_](https://www.spigotmc.org/members/friedrich_.651068/)
+48. [Friedrich\_](https://www.spigotmc.org/members/friedrich_.651068/)
 49. [Ignisflame](https://www.spigotmc.org/members/ignisflame.53405/)
 50. [Blankball](https://www.spigotmc.org/members/blankball.702851/)
 51. [milo2015](https://www.spigotmc.org/members/milo2015.572506/)
@@ -106,15 +105,15 @@
 
 ### Suggesters
 
-> People who have given ideas to improve Oraxen.
+> People who have contributed ideas and suggestions to improve Oraxen.
 
-* [MiniDigger](https://github.com/MiniDigger): suggested to generate custom models id automatically
-* [Ancientkingg](https://github.com/Ancientkingg): helped to introduce custom textured armors without optifine
-* [DeltaEvo](https://github.com/DeltaEvo): suggested to send the resourcepack at the beginning of the login sequence
+- [MiniDigger](https://github.com/MiniDigger); Suggested automatically generating custom model data IDs.
+- [Ancientkingg](https://github.com/Ancientkingg); Helped introduce custom-textured armor without requiring OptiFine.
+- [DeltaEvo](https://github.com/DeltaEvo); Suggested sending the resource pack at the beginning of the login sequence.
 
 ### Correctors
 
-> Persons who have identified spelling errors (including in the documentation).
+> People who have identified and reported spelling or documentation errors.
 
-* Jeroen
-* [craterhater](https://www.spigotmc.org/members/craterhater.49025/)
+- Jeroen
+- [craterhater](https://www.spigotmc.org/members/craterhater.49025/)
