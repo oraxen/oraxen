@@ -209,11 +209,6 @@ public class ChorusBlockMechanicListener implements Listener {
         // in either hand; sneaking with empty hands still opens custom storage.
         if (event.getPlayer().isSneaking() && ItemUtils.hasItemInAnyHand(event.getPlayer())) return;
 
-        // Handle click actions
-        if (mechanic.hasClickActions()) {
-            mechanic.runClickActions(event.getPlayer());
-        }
-
         // Handle storage interaction
         if (mechanic.isStorage()) {
             handleStorageInteraction(mechanic, block, event.getPlayer());

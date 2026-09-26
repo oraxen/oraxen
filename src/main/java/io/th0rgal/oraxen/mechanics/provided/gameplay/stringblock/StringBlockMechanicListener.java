@@ -204,11 +204,6 @@ public class StringBlockMechanicListener implements Listener {
             }
         }
 
-        // Handle click actions
-        if (mechanic.hasClickActions()) {
-            mechanic.runClickActions(event.getPlayer());
-        }
-
         // Handle storage interaction
         if (mechanic.isStorage()) {
             handleStorageInteraction(mechanic, block, event.getPlayer());

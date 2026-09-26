@@ -215,11 +215,6 @@ public class NoteBlockMechanicListener implements Listener {
         if (!AntiGriefLib.canInteract(player, block.getLocation())) return;
 
         if (!player.isSneaking()) {
-            if (mechanic.hasClickActions()) {
-                mechanic.runClickActions(player);
-                event.setCancelled(true);
-            }
-
             if (mechanic.isStorage()) {
                 StorageMechanic storageMechanic = mechanic.getStorage();
                 switch (storageMechanic.getStorageType()) {
@@ -512,7 +507,7 @@ public class NoteBlockMechanicListener implements Listener {
             final Material material = newData.getMaterial();
 
             if (!player.isSneaking() && againstMechanic != null
-                    && (againstMechanic.isStorage() || againstMechanic.hasClickActions() || againstMechanic.hasBlockEvents()))
+                    && (againstMechanic.isStorage() || againstMechanic.hasBlockEvents()))
                 blockPlaceEvent.setCancelled(true);
             if (BlockHelpers.isStandingInside(player, target) || !AntiGriefLib.canBuild(player, target.getLocation()))
                 blockPlaceEvent.setCancelled(true);

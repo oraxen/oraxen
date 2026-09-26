@@ -13,7 +13,6 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional.Direc
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.farmblock.FarmBlockDryout;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.logstrip.LogStripping;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
-import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.drops.Drop;
@@ -45,7 +44,6 @@ public class NoteBlockMechanic extends Mechanic {
     private final FarmBlockDryout farmBlockDryout;
     private final LogStripping logStripping;
     private final DirectionalBlock directionalBlock;
-    private final List<ClickAction> clickActions;
     private final BlockEvents blockEvents;
     private final BlockLockerMechanic blockLocker;
 
@@ -63,7 +61,6 @@ public class NoteBlockMechanic extends Mechanic {
         placeable = section.contains("placeable") ? new Placeable(section) : null;
 
         light = new LightMechanic(section);
-        clickActions = ClickAction.parseList(section);
         blockEvents = new BlockEvents(section, getItemID());
         canIgnite = section.getBoolean("can_ignite", false);
         isFalling = section.getBoolean("is_falling", false);
@@ -205,22 +202,12 @@ public class NoteBlockMechanic extends Mechanic {
         } else return canIgnite;
     }
 
-    public boolean hasClickActions() { return !clickActions.isEmpty(); }
-
     public boolean hasBlockEvents() { return !blockEvents.isEmpty(); }
 
     public boolean runBlockEvents(final Player player, final Action action) { return blockEvents.run(player, action); }
 
-    public void runClickActions(final Player player) {
-        for (final ClickAction action : clickActions) {
-            if (action.canRun(player)) {
-                action.performActions(player);
-            }
-        }
-    }
-
     public boolean isInteractable() {
-        return hasClickActions() || hasBlockEvents() || isStorage();
+        return hasBlockEvents() || isStorage();
     }
 
     public boolean isBlastResistant() {

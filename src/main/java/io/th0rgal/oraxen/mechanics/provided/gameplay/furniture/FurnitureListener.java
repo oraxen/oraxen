@@ -559,7 +559,6 @@ public class FurnitureListener implements Listener {
         PersistentDataContainer pdc = block != null ? BlockHelpers.getPDC(block)
                 : interactionEntity != null ? interactionEntity.getPersistentDataContainer() : baseEntity.getPersistentDataContainer();
 
-        mechanic.runClickActions(player);
         if (event.getHand() == EquipmentSlot.HAND)
             mechanic.runEvents(player, Action.RIGHT_CLICK_BLOCK);
 

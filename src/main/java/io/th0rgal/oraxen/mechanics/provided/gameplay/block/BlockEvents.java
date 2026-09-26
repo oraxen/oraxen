@@ -2,7 +2,10 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.block;
 
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.compatibilities.provided.placeholderapi.PapiAliases;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
+import io.th0rgal.oraxen.utils.actions.ActionConditions;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -57,7 +60,7 @@ public class BlockEvents {
             }
 
             ClickFilter click = ClickFilter.from(eventMap.get("click"), sourceID, eventPath);
-            List<BlockEventAction> actions = parseActions(eventMap.get("actions"), sourceID);
+            List<ConditionalAction> actions = parseActions(eventMap.get("actions"), sourceID);
             if (actions.isEmpty()) {
                 Logs.logWarning(eventPath + " entry in " + sourceID + " has no valid actions.");
                 continue;
@@ -69,10 +72,10 @@ public class BlockEvents {
         return List.copyOf(parsedEvents);
     }
 
-    private List<BlockEventAction> parseActions(Object value, String sourceID) {
+    private List<ConditionalAction> parseActions(Object value, String sourceID) {
         if (!(value instanceof List<?> actionConfigs) || actionConfigs.isEmpty()) return List.of();
 
-        List<BlockEventAction> parsedActions = new ArrayList<>();
+        List<ConditionalAction> parsedActions = new ArrayList<>();
         for (Object actionConfig : actionConfigs) {
             if (!(actionConfig instanceof Map<?, ?> actionMap)) {
                 Logs.logWarning("Invalid " + eventPath + " action in " + sourceID + "; actions must be maps.");
@@ -81,25 +84,44 @@ public class BlockEvents {
 
             Object command = actionMap.get("command");
             Object message = actionMap.get("message");
+            Object legacy = actionMap.get("legacy");
+            List<String> conditions = parseConditions(actionMap, sourceID);
             if (command != null) {
                 String commandText = command.toString().trim();
                 if (commandText.isEmpty()) {
                     Logs.logWarning("Empty command action in " + eventPath + " of " + sourceID + ".");
                     continue;
                 }
-                parsedActions.add(new CommandAction(commandText, CommandExecutor.from(actionMap.get("executor"), sourceID, eventPath)));
+                parsedActions.add(new ConditionalAction(new CommandAction(commandText, CommandExecutor.from(actionMap.get("executor"), sourceID, eventPath)), conditions));
                 continue;
             }
 
             if (message != null) {
-                parsedActions.add(new MessageAction(message.toString()));
+                parsedActions.add(new ConditionalAction(new MessageAction(message.toString()), conditions));
                 continue;
             }
 
-            Logs.logWarning("Unknown " + eventPath + " action in " + sourceID + "; expected 'command' or 'message'.");
+            if (legacy != null) {
+                var actions = OraxenPlugin.get().getClickActionManager().parse(Player.class, List.of(legacy.toString()));
+                if (!actions.isEmpty())
+                    parsedActions.add(new ConditionalAction(player -> OraxenPlugin.get().getClickActionManager().runOrdered(player, actions), conditions));
+                continue;
+            }
+
+            Logs.logWarning("Unknown " + eventPath + " action in " + sourceID + "; expected 'command', 'message', or migrated 'legacy'.");
         }
 
         return List.copyOf(parsedActions);
+    }
+
+    private List<String> parseConditions(Map<?, ?> actionMap, String sourceID) {
+        Object value = actionMap.containsKey("conditions") ? actionMap.get("conditions") : actionMap.get("condition");
+        if (value == null) return List.of();
+        if (value instanceof String condition) return List.of(condition);
+        if (value instanceof List<?> values && values.stream().allMatch(String.class::isInstance))
+            return values.stream().map(String.class::cast).toList();
+        Logs.logWarning("Invalid " + eventPath + " condition in " + sourceID + "; blocking action.");
+        return List.of("false");
     }
 
     private static String applyPlaceholders(String text, Player player) {
@@ -121,11 +143,17 @@ public class BlockEvents {
         return parsed;
     }
 
-    private record BlockEvent(ClickFilter click, List<BlockEventAction> actions) {
+    private record BlockEvent(ClickFilter click, List<ConditionalAction> actions) {
         private void run(Player player) {
-            for (BlockEventAction action : actions) {
+            for (ConditionalAction action : actions) {
                 action.run(player);
             }
+        }
+    }
+
+    private record ConditionalAction(BlockEventAction action, List<String> conditions) {
+        private void run(Player player) {
+            if (ActionConditions.matches(player, conditions)) action.run(player);
         }
     }
 
@@ -162,7 +190,8 @@ public class BlockEvents {
         CONSOLE {
             @Override
             void run(Player player, String command) {
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
+                if (SchedulerUtil.isGlobalThread()) Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
+                else SchedulerUtil.runTask(() -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command));
             }
         },
         OP_PLAYER {

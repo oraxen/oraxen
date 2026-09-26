@@ -26,7 +26,6 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.togglelight.ToggleLightMech
 import io.th0rgal.oraxen.mechanics.provided.gameplay.togglelight.ToggleLightMechanicFactory;
 import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.VersionUtil;
-import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -88,7 +87,6 @@ public class FurnitureMechanic extends Mechanic {
     private final String modelEngineID;
     private final String placedItemId;
     private float seatHeight;
-    private final List<ClickAction> clickActions;
     private final BlockEvents events;
     private FurnitureType furnitureType;
     private final DisplayEntityProperties displayEntityProperties;
@@ -291,7 +289,6 @@ public class FurnitureMechanic extends Mechanic {
         ConfigurationSection jukeboxSection = section.getConfigurationSection("jukebox");
         jukebox = jukeboxSection != null ? new JukeboxBlock(mechanicFactory, jukeboxSection) : null;
 
-        clickActions = ClickAction.parseList(section);
         events = new BlockEvents(section, getItemID(), "furniture.events");
         breakable = section.getBoolean("breakable", !events.hasLeftClickEvent());
 
@@ -1334,18 +1331,6 @@ public class FurnitureMechanic extends Mechanic {
 
     public static Rotation yawToRotation(float yaw) {
         return Rotation.values()[Math.round(yaw / 45f) & 0x7];
-    }
-
-    public boolean hasClickActions() {
-        return !clickActions.isEmpty();
-    }
-
-    public void runClickActions(final Player player) {
-        for (final ClickAction action : clickActions) {
-            if (action.canRun(player)) {
-                action.performActions(player);
-            }
-        }
     }
 
     public boolean runEvents(Player player, Action action) {

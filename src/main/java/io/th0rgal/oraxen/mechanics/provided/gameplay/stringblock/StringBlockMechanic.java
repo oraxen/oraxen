@@ -10,7 +10,6 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.light.LightMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic;
-import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.drops.Drop;
@@ -43,7 +42,6 @@ public class StringBlockMechanic extends Mechanic {
     private final List<String> randomPlaceBlock;
     private final SaplingMechanic saplingMechanic;
     private final boolean isTall;
-    private final List<ClickAction> clickActions;
     private final BlockEvents blockEvents;
     private final BlockLockerMechanic blockLocker;
 
@@ -93,7 +91,6 @@ public class StringBlockMechanic extends Mechanic {
         ConfigurationSection blockLockerSection = section.getConfigurationSection("blocklocker");
         blockLocker = blockLockerSection != null ? new BlockLockerMechanic(blockLockerSection) : null;
 
-        clickActions = ClickAction.parseList(section);
         blockEvents = new BlockEvents(section, getItemID());
 
         // Parse stackable block variations
@@ -219,10 +216,6 @@ public class StringBlockMechanic extends Mechanic {
         return storage;
     }
 
-    public boolean hasClickActions() {
-        return !clickActions.isEmpty();
-    }
-
     public boolean hasBlockEvents() {
         return !blockEvents.isEmpty();
     }
@@ -231,20 +224,8 @@ public class StringBlockMechanic extends Mechanic {
         return blockEvents.run(player, action);
     }
 
-    public List<ClickAction> getClickActions() {
-        return clickActions;
-    }
-
-    public void runClickActions(final Player player) {
-        for (final ClickAction action : clickActions) {
-            if (action.canRun(player)) {
-                action.performActions(player);
-            }
-        }
-    }
-
     public boolean isInteractable() {
-        return hasClickActions() || hasBlockEvents() || isStorage() || isStackable();
+        return hasBlockEvents() || isStorage() || isStackable();
     }
 
     // --- Stackable block API ---
