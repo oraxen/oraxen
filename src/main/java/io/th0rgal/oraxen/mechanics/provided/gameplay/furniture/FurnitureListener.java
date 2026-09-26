@@ -27,8 +27,10 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
@@ -65,7 +67,7 @@ public class FurnitureListener implements Listener {
             public boolean isTriggered(final Player player, final Block block, final ItemStack tool) {
                 FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
 
-                return mechanic != null && mechanic.hasHardness();
+                return mechanic != null && mechanic.isBreakable() && mechanic.hasHardness();
             }
 
             @Override
@@ -297,6 +299,7 @@ public class FurnitureListener implements Listener {
             return;
 
         event.setCancelled(true);
+        if (!mechanic.isBreakable()) return;
         if (event.getCause() != HangingBreakEvent.RemoveCause.EXPLOSION
                 && event.getCause() != HangingBreakEvent.RemoveCause.ENTITY
                 && (mechanic.hasBarriers(entity) || mechanic.hasHitbox()))
@@ -328,6 +331,7 @@ public class FurnitureListener implements Listener {
         entity = mechanic.getBaseEntity(entity);
         if (entity == null)
             return;
+        if (!mechanic.isBreakable()) return;
         if (!AntiGriefLib.canBreak(player, entity.getLocation()))
             return;
         OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic, entity, player,
@@ -363,6 +367,7 @@ public class FurnitureListener implements Listener {
             return;
 
         event.setCancelled(true);
+        if (!mechanic.isBreakable()) return;
         OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic, baseEntity, player,
                 block);
         if (!furnitureBreakEvent.callEvent())
@@ -371,6 +376,25 @@ public class FurnitureListener implements Listener {
         if (OraxenFurniture.remove(block.getLocation(), player, furnitureBreakEvent.getDrop()))
             event.setCancelled(false);
         event.setDropItems(false);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onBlockExplosion(BlockExplodeEvent event) {
+        if (!FurnitureFactory.isEnabled()) return;
+        protectUnbreakableFurniture(event.blockList());
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onEntityExplosion(EntityExplodeEvent event) {
+        if (!FurnitureFactory.isEnabled()) return;
+        protectUnbreakableFurniture(event.blockList());
+    }
+
+    private void protectUnbreakableFurniture(List<Block> blocks) {
+        blocks.removeIf(block -> {
+            FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
+            return mechanic != null && !mechanic.isBreakable();
+        });
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -388,6 +412,12 @@ public class FurnitureListener implements Listener {
 
         // Do not break furniture with a hitbox unless it is a block-breaking explosive
         if (location != null && isFurniture) {
+            FurnitureMechanic mechanic = block != null ? OraxenFurniture.getFurnitureMechanic(block)
+                    : OraxenFurniture.getFurnitureMechanic(hitEntity);
+            if (mechanic != null && !mechanic.isBreakable()) {
+                event.setCancelled(true);
+                return;
+            }
             if (player != null && !AntiGriefLib.canBreak(player, location))
                 event.setCancelled(true);
             else if (projectile instanceof Explosive && !projectile.getType().name().contains("WIND_CHARGE")) {
@@ -409,6 +439,7 @@ public class FurnitureListener implements Listener {
         Player player = projectile.getShooter() instanceof Player ? (Player) projectile.getShooter() : null;
 
         event.setCancelled(true);
+        if (mechanic != null && !mechanic.isBreakable()) return;
         if ((mechanic != null && mechanic.hasBarriers()) || !isDamagingProjectile(projectile))
             return;
         if (player != null && !AntiGriefLib.canBreak(player, furniture.getLocation()))

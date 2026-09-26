@@ -32,6 +32,10 @@ public class BlockEvents {
         return events.isEmpty();
     }
 
+    public boolean hasLeftClickEvent() {
+        return events.stream().anyMatch(event -> event.click().matches(Action.LEFT_CLICK_BLOCK));
+    }
+
     public boolean run(Player player, Action clickAction) {
         boolean ran = false;
         for (BlockEvent event : events) {

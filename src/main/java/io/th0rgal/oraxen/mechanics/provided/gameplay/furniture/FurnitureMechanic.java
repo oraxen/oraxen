@@ -69,6 +69,7 @@ public class FurnitureMechanic extends Mechanic {
     public static final NamespacedKey BARRIER_KEY = new NamespacedKey(OraxenPlugin.get(), "barriers");
 
     private final int hardness;
+    private final boolean breakable;
     private final LimitedPlacing limitedPlacing;
     private final StorageMechanic storage;
     private final BlockSounds blockSounds;
@@ -292,6 +293,7 @@ public class FurnitureMechanic extends Mechanic {
 
         clickActions = ClickAction.parseList(section);
         events = new BlockEvents(section, getItemID(), "furniture.events");
+        breakable = section.getBoolean("breakable", !events.hasLeftClickEvent());
 
         if (section.getBoolean("rotatable", false)) {
             if (barriers.stream().anyMatch(b -> b.getX() != 0 || b.getZ() != 0)) {
@@ -556,6 +558,10 @@ public class FurnitureMechanic extends Mechanic {
 
     public boolean hasHardness() {
         return hardness != -1;
+    }
+
+    public boolean isBreakable() {
+        return breakable;
     }
 
     public int getHardness() {

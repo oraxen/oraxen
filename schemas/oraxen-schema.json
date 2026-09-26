@@ -8517,6 +8517,10 @@
           "default": 1,
           "min": 0
         },
+        "breakable": {
+          "type": "boolean",
+          "description": "Whether furniture can be broken. Defaults to false when a left or both click event is configured, otherwise true"
+        },
         "item": {
           "type": "string",
           "description": "Alternative Oraxen item ID to display"

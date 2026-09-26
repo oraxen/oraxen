@@ -69,6 +69,42 @@ class FurnitureMechanicTest extends MechanicTestSupport {
         assertTrue(mechanic.hasHitbox());
         assertFalse(mechanic.hasLimitedPlacing());
         assertFalse(mechanic.hasBlockSounds());
+        assertTrue(mechanic.isBreakable());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"left", "both"})
+    void leftClickEventsMakeFurnitureUnbreakableByDefault(String click) {
+        List<Map<String, Object>> events = List.of(Map.of("click", click,
+                "actions", List.of(Map.of("message", "clicked"))));
+        FurnitureMechanic mechanic = new FurnitureMechanic(mechanicFactory(),
+                mechanicSection("furniture", "events", events));
+        FurnitureMechanic explicitlyBreakable = new FurnitureMechanic(mechanicFactory(),
+                mechanicSection("furniture", "events", events, "breakable", true));
+
+        assertFalse(mechanic.isBreakable());
+        assertTrue(explicitlyBreakable.isBreakable());
+    }
+
+    @Test
+    void rightClickEventsKeepFurnitureBreakableUnlessDisabled() {
+        List<Map<String, Object>> events = List.of(Map.of("click", "right",
+                "actions", List.of(Map.of("message", "clicked"))));
+        FurnitureMechanic mechanic = new FurnitureMechanic(mechanicFactory(),
+                mechanicSection("furniture", "events", events));
+        FurnitureMechanic explicitlyUnbreakable = new FurnitureMechanic(mechanicFactory(),
+                mechanicSection("furniture", "events", events, "breakable", false));
+
+        assertTrue(mechanic.isBreakable());
+        assertFalse(explicitlyUnbreakable.isBreakable());
+    }
+
+    @Test
+    void eventWithoutClickFilterAlsoMakesFurnitureUnbreakable() {
+        FurnitureMechanic mechanic = new FurnitureMechanic(mechanicFactory(), mechanicSection("furniture",
+                "events", List.of(Map.of("actions", List.of(Map.of("message", "clicked"))))));
+
+        assertFalse(mechanic.isBreakable());
     }
 
     @ParameterizedTest
