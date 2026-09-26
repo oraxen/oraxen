@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.items;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.configs.MiningConfigMigration;
 import io.th0rgal.oraxen.configs.ClickActionsMigration;
+import io.th0rgal.oraxen.configs.FurnitureConfigMigration;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.ConfigurationSection;
@@ -36,6 +37,10 @@ public final class ItemMigrator {
         this.section = section;
         migrateUppercaseSections();
         migrateEnchantable();
+        if (FurnitureConfigMigration.migrate(section)) {
+            configUpdated = true;
+            blockConfigMigrated = true;
+        }
         if (section != null && ClickActionsMigration.migrate(OraxenYaml.getConfigurationSection(section, "mechanics"))) {
             configUpdated = true;
             blockConfigMigrated = true;

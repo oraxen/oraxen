@@ -317,14 +317,6 @@ public class FurnitureMechanic extends Mechanic {
             return List.copyOf(parsedHitboxes);
         }
 
-        ConfigurationSection hitboxSection = section.getConfigurationSection("hitbox");
-        if (hitboxSection != null) {
-            float width = (float) hitboxSection.getDouble("width", 1.0);
-            float height = (float) hitboxSection.getDouble("height", 1.0);
-            if (width > 0 && height > 0) return List.of(new FurnitureHitbox(width, height));
-            return List.of();
-        }
-
         return !hasBarriers() ? List.of(new FurnitureHitbox(1.0f, 1.0f)) : List.of();
     }
 
@@ -349,13 +341,7 @@ public class FurnitureMechanic extends Mechanic {
             return List.copyOf(parsedSeats);
         }
 
-        ConfigurationSection seatSection = section.getConfigurationSection("seat");
-        if (seatSection == null) return List.of();
-
-        seatHeight = (float) seatSection.getDouble("height");
-        boolean hasSeatYaw = seatSection.contains("yaw");
-        Float yaw = hasSeatYaw ? (float) seatSection.getDouble("yaw") : null;
-        return List.of(new FurnitureSeat(0, seatHeight - 1, 0, yaw));
+        return List.of();
     }
 
     @Nullable

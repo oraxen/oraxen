@@ -8539,13 +8539,6 @@
           "description": "Whether farmblock is required for placement",
           "default": false
         },
-        "light": {
-          "type": "integer",
-          "description": "Light level emitted (0-15)",
-          "default": 0,
-          "min": 0,
-          "max": 15
-        },
         "lights": {
           "type": "array",
           "description": "List of light entries formatted \u0027\u003cx\u003e,\u003cy\u003e,\u003cz\u003e \u003clevel\u003e\u0027"
@@ -8569,41 +8562,9 @@
           "description": "Whether an armor stand furniture uses the small variant",
           "default": true
         },
-        "hitbox": {
-          "type": "object",
-          "description": "Custom hitbox dimensions",
-          "properties": {
-            "width": {
-              "type": "number",
-              "description": "Hitbox width",
-              "default": 1.0,
-              "min": 0.0,
-              "max": 10.0
-            },
-            "height": {
-              "type": "number",
-              "description": "Hitbox height",
-              "default": 1.0,
-              "min": 0.0,
-              "max": 10.0
-            }
-          }
-        },
-        "seat": {
-          "type": "object",
-          "description": "Seat configuration for sittable furniture",
-          "properties": {
-            "height": {
-              "type": "number",
-              "description": "Seat height offset",
-              "default": 0.0
-            },
-            "yaw": {
-              "type": "number",
-              "description": "Seat rotation",
-              "default": 0.0
-            }
-          }
+        "hitboxes": {
+          "type": "array",
+          "description": "List of hitbox offsets and dimensions formatted \u0027\u003cx\u003e,\u003cy\u003e,\u003cz\u003e \u003cwidth\u003e,\u003cheight\u003e\u0027"
         },
         "seats": {
           "type": "array",

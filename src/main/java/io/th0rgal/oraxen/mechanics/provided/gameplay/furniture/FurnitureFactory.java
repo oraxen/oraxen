@@ -187,20 +187,12 @@ public class FurnitureFactory extends MechanicFactory {
                 MechanicConfigProperty.string("modelengine_id", "ModelEngine model ID to use"),
                 MechanicConfigProperty.bool("farmland_required", "Whether farmland is required for placement", false),
                 MechanicConfigProperty.bool("farmblock_required", "Whether farmblock is required for placement", false),
-                MechanicConfigProperty.integer("light", "Light level emitted (0-15)", 0, 0, 15),
                 MechanicConfigProperty.list("lights", "List of light entries formatted '<x>,<y>,<z> <level>'"),
                 MechanicConfigProperty.enumType("restricted_rotation", "Rotation restriction mode",
                         List.of("NONE", "STRICT", "VERY_STRICT")),
                 MechanicConfigProperty.bool("rotatable", "Whether furniture can be rotated after placement", true),
                 MechanicConfigProperty.bool("small", "Whether an armor stand furniture uses the small variant", true),
-                MechanicConfigProperty.object("hitbox", "Custom hitbox dimensions", Map.of(
-                        "width", MechanicConfigProperty.decimal("width", "Hitbox width", 1.0, 0.0, 10.0),
-                        "height", MechanicConfigProperty.decimal("height", "Hitbox height", 1.0, 0.0, 10.0)
-                )),
-                MechanicConfigProperty.object("seat", "Seat configuration for sittable furniture", Map.of(
-                        "height", MechanicConfigProperty.decimal("height", "Seat height offset", 0.0),
-                        "yaw", MechanicConfigProperty.decimal("yaw", "Seat rotation", 0.0)
-                )),
+                MechanicConfigProperty.list("hitboxes", "List of hitbox offsets and dimensions formatted '<x>,<y>,<z> <width>,<height>'"),
                 MechanicConfigProperty.list("seats", "List of seat offsets relative to the furniture center formatted '<x>,<y>,<z>' or '<x>,<y>,<z> <yaw>'"),
                 MechanicConfigProperty.list("barriers", "List of barrier block positions relative to furniture"),
                 MechanicConfigProperty.list("events", "Click events with actions to run when furniture barriers or hitboxes are clicked"),
