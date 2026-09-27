@@ -58,14 +58,15 @@ class FurnitureMechanicTest extends MechanicTestSupport {
                 "hardness", 4,
                 "item", "placed_item",
                 "type", "ITEM_FRAME",
-                "seat", java.util.Map.of("height", 0.75, "yaw", 90.0),
+                "seats", List.of("0,-0.25,0 90"),
                 "rotatable", true));
 
         assertEquals(4, mechanic.getHardness());
         assertTrue(mechanic.hasHardness());
         assertEquals(FurnitureMechanic.FurnitureType.ITEM_FRAME, mechanic.getFurnitureType());
         assertTrue(mechanic.hasSeat());
-        assertEquals(0.75f, mechanic.getSeatHeight());
+        assertEquals(-0.25, mechanic.getSeats().getFirst().offsetY());
+        assertEquals(90.0f, mechanic.getSeats().getFirst().yaw());
         assertTrue(mechanic.hasHitbox());
         assertFalse(mechanic.hasLimitedPlacing());
         assertFalse(mechanic.hasBlockSounds());

@@ -406,25 +406,31 @@ public class FurnitureListener implements Listener {
         Player player = projectile.getShooter() instanceof Player ? (Player) projectile.getShooter() : null;
         Location location = block != null && block.getType() == Material.BARRIER ? block.getLocation()
                 : hitEntity != null ? hitEntity.getLocation() : null;
-        boolean isFurniture = block != null
-                ? OraxenFurniture.isFurniture(block) || OraxenFurniture.hasFurnitureBlockMarker(block)
-                : hitEntity != null && (OraxenFurniture.isFurniture(hitEntity) || OraxenFurniture.isOrphanFurnitureEntity(hitEntity));
+        if (location == null || !isProjectileHitFurniture(block, hitEntity)) return;
+
+        FurnitureMechanic mechanic = block != null ? OraxenFurniture.getFurnitureMechanic(block)
+                : OraxenFurniture.getFurnitureMechanic(hitEntity);
+        if (mechanic != null && !mechanic.isBreakable()) {
+            event.setCancelled(true);
+            return;
+        }
+        if (player != null && !AntiGriefLib.canBreak(player, location)) {
+            event.setCancelled(true);
+            return;
+        }
 
         // Do not break furniture with a hitbox unless it is a block-breaking explosive
-        if (location != null && isFurniture) {
-            FurnitureMechanic mechanic = block != null ? OraxenFurniture.getFurnitureMechanic(block)
-                    : OraxenFurniture.getFurnitureMechanic(hitEntity);
-            if (mechanic != null && !mechanic.isBreakable()) {
-                event.setCancelled(true);
-                return;
-            }
-            if (player != null && !AntiGriefLib.canBreak(player, location))
-                event.setCancelled(true);
-            else if (projectile instanceof Explosive && !projectile.getType().name().contains("WIND_CHARGE")) {
-                event.setCancelled(true);
-                OraxenFurniture.remove(location, player);
-            }
+        if (projectile instanceof Explosive && !projectile.getType().name().contains("WIND_CHARGE")) {
+            event.setCancelled(true);
+            OraxenFurniture.remove(location, player);
         }
+    }
+
+    private boolean isProjectileHitFurniture(Block block, Entity hitEntity) {
+        if (block != null)
+            return OraxenFurniture.isFurniture(block) || OraxenFurniture.hasFurnitureBlockMarker(block);
+        return hitEntity != null && (OraxenFurniture.isFurniture(hitEntity)
+                || OraxenFurniture.isOrphanFurnitureEntity(hitEntity));
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
