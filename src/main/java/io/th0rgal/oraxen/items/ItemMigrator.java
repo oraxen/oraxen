@@ -8,12 +8,8 @@ import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.ConfigurationSection;
 
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 
 public final class ItemMigrator {
 
@@ -23,12 +19,6 @@ public final class ItemMigrator {
             "chorusblock", "CHORUS",
             "shaped_block", "STAIR"
     );
-    private static final Map<String, List<String>> LEGACY_INVULNERABLE_CAUSES = Map.of(
-            "burns_in_fire", List.of("fire", "fire_tick"),
-            "burns_in_lava", List.of("lava"),
-            "breaks_from_cactus", List.of("contact")
-    );
-
     private final ConfigurationSection section;
     private boolean configUpdated;
     private boolean blockConfigMigrated;
@@ -45,8 +35,6 @@ public final class ItemMigrator {
             configUpdated = true;
             blockConfigMigrated = true;
         }
-        if (section != null)
-            migrateLegacyMiscMechanic(OraxenYaml.getConfigurationSection(section, "mechanics"));
         if (section != null && MiningConfigMigration.migrateItem(section)) {
             configUpdated = true;
             blockConfigMigrated = true; // Reuse the migration backup path before rewriting the item file.
@@ -146,45 +134,6 @@ public final class ItemMigrator {
                         + "; it has been migrated to mechanics.block.");
             return;
         }
-    }
-
-    public void migrateLegacyMiscMechanic(final ConfigurationSection mechanicsSection) {
-        final ConfigurationSection miscSection = OraxenYaml.getConfigurationSection(mechanicsSection, "misc");
-        if (miscSection == null)
-            return;
-
-        final Set<String> causes = new LinkedHashSet<>();
-        final Object existing = OraxenYaml.getIgnoreCase(mechanicsSection, "invulnerable");
-        if (existing instanceof List<?> entries)
-            for (Object entry : entries)
-                if (entry != null)
-                    causes.add(String.valueOf(entry));
-
-        boolean migrated = false;
-        for (final String key : miscSection.getKeys(false).toArray(String[]::new)) {
-            final List<String> legacyCauses = LEGACY_INVULNERABLE_CAUSES.get(key.toLowerCase(Locale.ROOT));
-            if (legacyCauses == null)
-                continue;
-            if (!OraxenYaml.getBoolean(miscSection, key, true))
-                causes.addAll(legacyCauses);
-            miscSection.set(key, null);
-            migrated = true;
-        }
-        if (!migrated)
-            return;
-
-        if (!causes.isEmpty()) {
-            for (String key : mechanicsSection.getKeys(false))
-                if (key.equalsIgnoreCase("invulnerable") && !key.equals("invulnerable"))
-                    mechanicsSection.set(key, null);
-            mechanicsSection.set("invulnerable", new ArrayList<>(causes));
-        }
-        if (miscSection.getKeys(false).isEmpty())
-            mechanicsSection.set(miscSection.getName(), null);
-        OraxenYaml.invalidateKeyCache(miscSection);
-        OraxenYaml.invalidateKeyCache(mechanicsSection);
-        configUpdated = true;
-        blockConfigMigrated = true; // Use the existing migration backup path for item config rewrites.
     }
 
     public boolean configUpdated() {

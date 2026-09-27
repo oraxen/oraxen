@@ -422,6 +422,18 @@ public class SchemaGenerator {
         properties.getAsJsonObject("unbreakable").addProperty("default", false);
         addProperty(properties, "unstackable", "boolean", "Whether the item cannot be stacked", false, null, null);
         properties.getAsJsonObject("unstackable").addProperty("default", false);
+        JsonObject invulnerable = new JsonObject();
+        invulnerable.addProperty("type", "array");
+        invulnerable.addProperty("description", "Protects dropped items from selected damage causes");
+        JsonObject damageCause = new JsonObject();
+        damageCause.addProperty("type", "string");
+        JsonArray damageCauses = new JsonArray();
+        for (String value : List.of("lava", "fire", "fire_tick", "contact", "block_explosion",
+                "entity_explosion", "lightning"))
+            damageCauses.add(value);
+        damageCause.add("enum", damageCauses);
+        invulnerable.add("items", damageCause);
+        properties.add("invulnerable", invulnerable);
         addProperty(properties, "injectId", "boolean", "Whether to inject Oraxen item ID into NBT", false, null, null);
         properties.getAsJsonObject("injectId").addProperty("default", true);
 
@@ -805,23 +817,6 @@ public class SchemaGenerator {
                 offset.addProperty("pattern", "^\\s*-?\\d+\\s*,\\s*-?\\d+\\s*,\\s*-?\\d+\\s*$");
                 mining.add("items", offset);
                 mechanics.add("mining", mining);
-                continue;
-            }
-
-            if ("invulnerable".equals(mechanicId)) {
-                JsonObject invulnerable = new JsonObject();
-                invulnerable.addProperty("category", "misc");
-                invulnerable.addProperty("description", factory.getMechanicDescription());
-                invulnerable.addProperty("type", "array");
-                JsonObject cause = new JsonObject();
-                cause.addProperty("type", "string");
-                JsonArray values = new JsonArray();
-                for (String value : List.of("lava", "fire", "fire_tick", "block_explosion",
-                        "entity_explosion", "lightning", "contact"))
-                    values.add(value);
-                cause.add("enum", values);
-                invulnerable.add("items", cause);
-                mechanics.add("invulnerable", invulnerable);
                 continue;
             }
 

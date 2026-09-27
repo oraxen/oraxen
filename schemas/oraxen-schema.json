@@ -7780,6 +7780,22 @@
       "description": "Whether the item cannot be stacked",
       "default": false
     },
+    "invulnerable": {
+      "description": "Protects dropped items from selected damage causes",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "lava",
+          "fire",
+          "fire_tick",
+          "block_explosion",
+          "entity_explosion",
+          "lightning",
+          "contact"
+        ]
+      }
+    },
     "injectId": {
       "type": "boolean",
       "description": "Whether to inject Oraxen item ID into NBT",
@@ -8979,23 +8995,6 @@
           "description": "Whether item renaming in anvils is prevented",
           "default": false
         }
-      }
-    },
-    "invulnerable": {
-      "category": "misc",
-      "description": "Protects dropped items from selected damage causes",
-      "type": "array",
-      "items": {
-        "type": "string",
-        "enum": [
-          "lava",
-          "fire",
-          "fire_tick",
-          "block_explosion",
-          "entity_explosion",
-          "lightning",
-          "contact"
-        ]
       }
     },
     "smelting": {

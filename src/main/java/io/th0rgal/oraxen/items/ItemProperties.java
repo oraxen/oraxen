@@ -18,6 +18,7 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
@@ -82,6 +83,19 @@ public final class ItemProperties {
     }
 
     private void parseMiscOptions(final ItemBuilder item, final ConfigurationSection mergedSection) {
+        Set<DamageCause> invulnerable = EnumSet.noneOf(DamageCause.class);
+        for (Object entry : mergedSection.getList("invulnerable", List.of())) {
+            if (!(entry instanceof String name)) {
+                Logs.logWarning("Invalid invulnerable damage cause for " + section.getName() + ": " + entry);
+                continue;
+            }
+            try {
+                invulnerable.add(DamageCause.valueOf(name.trim().toUpperCase(Locale.ROOT)));
+            } catch (IllegalArgumentException exception) {
+                Logs.logWarning("Invalid invulnerable damage cause for " + section.getName() + ": " + name);
+            }
+        }
+        item.setInvulnerable(invulnerable);
         if (section.getBoolean("injectId", true))
             item.setCustomTag(OraxenItems.ITEM_ID, PersistentDataType.STRING, section.getName());
         oraxenMeta.setNoUpdate(mergedSection.getBoolean("no_auto_update", false));

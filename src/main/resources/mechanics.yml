@@ -31,9 +31,6 @@ music_disc:
 misc:
   enabled: true
 
-invulnerable:
-  enabled: true
-
 
 # GAMEPLAY
 

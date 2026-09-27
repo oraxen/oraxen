@@ -885,7 +885,6 @@ public class ConfigsManager {
                 ConfigurationSection mechanicsSection = itemSection.getConfigurationSection("mechanics");
                 if (mechanicsSection != null) {
                     migrator.migrateLegacyBlockMechanics(mechanicsSection);
-                    migrator.migrateLegacyMiscMechanic(mechanicsSection);
                 }
                 configUpdated |= migrator.configUpdated();
                 blockConfigMigrated |= migrator.blockConfigMigrated();

@@ -18,6 +18,7 @@ import io.th0rgal.oraxen.packets.PacketAdapter;
 import io.th0rgal.oraxen.packets.PacketEventsAdapter;
 import io.th0rgal.oraxen.hud.HudManager;
 import io.th0rgal.oraxen.items.GlowingItemListener;
+import io.th0rgal.oraxen.items.InvulnerableItemListener;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.CustomBlockPickItemListener;
@@ -159,6 +160,7 @@ public class OraxenPlugin extends JavaPlugin {
         hudManager.parsedHudDisplays = hudManager.generateHudDisplays();
         Bukkit.getPluginManager().registerEvents(new ItemUpdater(), this);
         Bukkit.getPluginManager().registerEvents(new GlowingItemListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new InvulnerableItemListener(), this);
         Bukkit.getPluginManager().registerEvents(new CustomPaintingListener(), this);
         Bukkit.getPluginManager().registerEvents(new PackLoadingManager(), this);
         io.th0rgal.oraxen.pack.generation.MultiVersionPackValidator.validateAndLogWarnings();
