@@ -8985,14 +8985,34 @@
       "description": "Miscellaneous item properties",
       "_source": "factory",
       "properties": {
-        "break_music_discs": {
+        "disable_vanilla_interactions": {
           "type": "boolean",
-          "description": "Whether item can break music discs",
+          "description": "Deny vanilla right-click, consume, and bow-shoot behavior",
+          "default": false
+        },
+        "can_strip_logs": {
+          "type": "boolean",
+          "description": "Let this item strip logs",
+          "default": false
+        },
+        "piglins_ignore_when_equipped": {
+          "type": "boolean",
+          "description": "Piglins ignore a player who has this item equipped",
+          "default": false
+        },
+        "compostable": {
+          "type": "boolean",
+          "description": "This item can be composted",
           "default": false
         },
         "prevent_renaming": {
           "type": "boolean",
           "description": "Whether item renaming in anvils is prevented",
+          "default": false
+        },
+        "allow_in_vanilla_recipes": {
+          "type": "boolean",
+          "description": "Allow this item in vanilla recipes",
           "default": false
         }
       }
@@ -9169,11 +9189,13 @@
         },
         "open_sound": {
           "type": "string",
-          "description": "Sound played when opening"
+          "description": "Sound played when opening",
+          "default": "minecraft:entity.shulker.open"
         },
         "close_sound": {
           "type": "string",
-          "description": "Sound played when closing"
+          "description": "Sound played when closing",
+          "default": "minecraft:entity.shulker.close"
         },
         "volume": {
           "type": "number",

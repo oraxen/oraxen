@@ -21,10 +21,10 @@ public class BackpackMechanicFactory extends MechanicFactory {
     @ConfigProperty(type = PropertyType.STRING, description = "Inventory title", defaultValue = "Backpack")
     public static final String PROP_TITLE = "title";
 
-    @ConfigProperty(type = PropertyType.STRING, description = "Sound played when opening")
+    @ConfigProperty(type = PropertyType.STRING, description = "Sound played when opening", defaultValue = "minecraft:entity.shulker.open")
     public static final String PROP_OPEN_SOUND = "open_sound";
 
-    @ConfigProperty(type = PropertyType.STRING, description = "Sound played when closing")
+    @ConfigProperty(type = PropertyType.STRING, description = "Sound played when closing", defaultValue = "minecraft:entity.shulker.close")
     public static final String PROP_CLOSE_SOUND = "close_sound";
 
     @ConfigProperty(type = PropertyType.DOUBLE, description = "Sound volume", defaultValue = "1.0", min = 0.0, max = 2.0)
