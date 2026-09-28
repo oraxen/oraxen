@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.commands;
 
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -17,6 +18,37 @@ class RemoveDefaultsCommandTest {
 
     @TempDir
     Path tempDir;
+
+    @Test
+    void removesDefaultInventoryCategoriesAndSavesCustomSettings() throws IOException {
+        YamlConfiguration settings = new YamlConfiguration();
+        settings.set("inventory-menu.layout.armors.icon", "customized_default_icon");
+        settings.set("inventory-menu.layout.weapons.slot", 11);
+        settings.set("inventory-menu.layout.custom.icon", "custom_icon");
+        settings.set("inventory-menu.title", "Custom title");
+        settings.set("inventory-menu.rows", 4);
+        Path settingsFile = tempDir.resolve("settings.yml");
+        settings.save(settingsFile.toFile());
+        AtomicInteger failedFiles = new AtomicInteger();
+        Set<Path> defaultItemFiles = Set.of(tempDir.resolve("items/armors.yml"),
+                tempDir.resolve("items/weapons.yml"), tempDir.resolve("items/blocks.yml"));
+
+        RemoveDefaultsCommand command = new RemoveDefaultsCommand();
+        command.removeDefaultInventoryEntries(settings, settingsFile, defaultItemFiles, failedFiles);
+
+        assertFalse(settings.contains("inventory-menu.layout.armors"));
+        assertFalse(settings.contains("inventory-menu.layout.weapons"));
+        YamlConfiguration saved = YamlConfiguration.loadConfiguration(settingsFile.toFile());
+        assertEquals(Set.of("custom"), saved.getConfigurationSection("inventory-menu.layout").getKeys(false));
+        assertEquals("custom_icon", saved.getString("inventory-menu.layout.custom.icon"));
+        assertEquals("Custom title", saved.getString("inventory-menu.title"));
+        assertEquals(4, saved.getInt("inventory-menu.rows"));
+        assertEquals(0, failedFiles.get());
+
+        command.removeDefaultInventoryEntries(settings, settingsFile, defaultItemFiles, failedFiles);
+        assertEquals(saved.saveToString(), Files.readString(settingsFile));
+        assertEquals(0, failedFiles.get());
+    }
 
     @Test
     void keepsGlobalLanguageOverridesWhenRemovingLanguageDefaults() throws IOException {
