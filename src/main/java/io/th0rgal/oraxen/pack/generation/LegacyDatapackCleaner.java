@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.pack.generation;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.oraxen.utils.platform.BukkitWrapper;
 import org.bukkit.Bukkit;
+import org.bukkit.World;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,7 +29,7 @@ public final class LegacyDatapackCleaner {
     }
 
     public static void clearReplacedDatapacks() {
-        Path worldFolder = Bukkit.getWorlds().get(0).getWorldFolder().toPath();
+        Path worldFolder = overworldFolder();
         List<Path> datapackRoots = resolveDatapackRoots(worldFolder);
 
         for (String name : REPLACED_DATAPACKS) {
@@ -91,6 +92,14 @@ public final class LegacyDatapackCleaner {
                 return FileVisitResult.CONTINUE;
             }
         });
+    }
+
+    private static Path overworldFolder() {
+        for (World world : Bukkit.getWorlds()) {
+            if (world.getEnvironment() == World.Environment.NORMAL)
+                return world.getWorldFolder().toPath();
+        }
+        return Bukkit.getWorlds().get(0).getWorldFolder().toPath();
     }
 
     private static String levelName(Path serverRoot, Consumer<String> warningLogger) {

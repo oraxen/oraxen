@@ -94,18 +94,18 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     private final Listener packDispatchListener;
     private final boolean is263OrAbove;
     private final PacketHandler packetHandler;
+    private final NamespacedKey mineableTagKey;
+    private final NamespacedKey blockPredictionKey;
     private static final Map<io.netty.channel.Channel, Deque<PendingBlockChange>> pendingBlockChanges = new ConcurrentHashMap<>();
 
     private record PendingBlockChange(int sequence, int x, int y, int z, boolean placement) {
     }
 
     public NMSHandler() {
-        MinecraftVersion version = MinecraftVersion.getCurrentVersion();
-        if (version.getMajor() == 1 && version.getMinor() >= 26) {
-            version = new MinecraftVersion(version.getMinor(), version.getBuild(), 0);
-        }
-        this.is263OrAbove = version.isAtLeast(new MinecraftVersion("26.3"));
+        this.is263OrAbove = VersionUtil.uses263PacketAccessors(MinecraftVersion.getCurrentVersion());
         this.packetHandler = new PacketHandler();
+        this.mineableTagKey = NamespacedKey.fromString("mineable_with_key", OraxenPlugin.get());
+        this.blockPredictionKey = NamespacedKey.fromString("block_prediction_key", OraxenPlugin.get());
         // Paper exposed the configuration/reconfiguration events used by the pre-join
         // dispatcher starting with 1.21.7. Do not load that listener earlier: its class
         // references APIs that do not exist on 1.21.2 through 1.21.6.
@@ -113,10 +113,9 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                 ? new PackDispatchListener()
                 : null;
 
-        NamespacedKey tagKey = NamespacedKey.fromString("mineable_with_key", OraxenPlugin.get());
-        if (!ChannelInitializeListenerHolder.hasListener(tagKey)) {
-            ChannelInitializeListenerHolder.addListener(tagKey, channel -> channel.pipeline().addBefore("packet_handler",
-                    tagKey.asString(), new ChannelDuplexHandler() {
+        if (mineableTagKey != null && !ChannelInitializeListenerHolder.hasListener(mineableTagKey)) {
+            ChannelInitializeListenerHolder.addListener(mineableTagKey, channel -> channel.pipeline().addBefore("packet_handler",
+                    mineableTagKey.asString(), new ChannelDuplexHandler() {
                         TagNetworkSerialization.NetworkPayload payload = createPayload();
 
                         @Override
@@ -136,11 +135,10 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
         // Track dig/place sequences separately so a pre-existing mineable-tag listener
         // cannot skip prediction settlement after reload.
-        NamespacedKey predictionKey = NamespacedKey.fromString("block_prediction_key", OraxenPlugin.get());
-        if (ChannelInitializeListenerHolder.hasListener(predictionKey))
+        if (blockPredictionKey == null || ChannelInitializeListenerHolder.hasListener(blockPredictionKey))
             return;
-        ChannelInitializeListenerHolder.addListener(predictionKey, channel -> channel.pipeline().addBefore("packet_handler",
-                predictionKey.asString(), new ChannelDuplexHandler() {
+        ChannelInitializeListenerHolder.addListener(blockPredictionKey, channel -> channel.pipeline().addBefore("packet_handler",
+                blockPredictionKey.asString(), new ChannelDuplexHandler() {
                     @Override
                     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
                         if (msg instanceof ClientboundBlockChangedAckPacket packet) {
@@ -229,6 +227,20 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     @Override
     public void shutdown() {
         packetHandler.shutdown();
+        removeChannelListener(mineableTagKey);
+        removeChannelListener(blockPredictionKey);
+        pendingBlockChanges.clear();
+    }
+
+    private static void removeChannelListener(NamespacedKey key) {
+        if (key == null) return;
+        ChannelInitializeListenerHolder.removeListener(key);
+        String handlerName = key.asString();
+        for (Player player : org.bukkit.Bukkit.getOnlinePlayers()) {
+            io.netty.channel.Channel channel = ((CraftPlayer) player).getHandle().connection.connection.channel;
+            if (channel.pipeline().get(handlerName) != null)
+                channel.pipeline().remove(handlerName);
+        }
     }
 
     @Override

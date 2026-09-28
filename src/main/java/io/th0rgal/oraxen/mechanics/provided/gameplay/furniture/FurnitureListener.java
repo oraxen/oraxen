@@ -15,6 +15,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
+import io.th0rgal.oraxen.utils.breaker.SyntheticBlockInteract;
 import io.th0rgal.oraxen.protection.AntiGriefLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -491,7 +492,7 @@ public class FurnitureListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlayerClickOnFurniture(final PlayerInteractEvent event) {
-        if (!FurnitureFactory.isEnabled()) return;
+        if (!FurnitureFactory.isEnabled() || SyntheticBlockInteract.isActive()) return;
         final Block block = event.getClickedBlock();
         final Player player = event.getPlayer();
         EquipmentSlot hand = event.getHand();

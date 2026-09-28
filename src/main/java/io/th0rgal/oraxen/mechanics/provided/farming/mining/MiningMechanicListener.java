@@ -40,15 +40,17 @@ public class MiningMechanicListener implements Listener {
                 Location target = origin.getLocation().clone().add(offset.x(), offset.y(), offset.z());
                 if (Bukkit.isOwnedByCurrentRegion(target))
                     breakBlock(player, target.getBlock(), item);
-                else
+                else {
+                    ItemStack tool = item.clone();
                     SchedulerUtil.runAtLocation(target, () -> {
                         activeMining.set(true);
                         try {
-                            breakBlock(player, target.getBlock(), item);
+                            breakBlock(player, target.getBlock(), tool);
                         } finally {
                             activeMining.remove();
                         }
                     });
+                }
             }
         } finally {
             activeMining.remove();

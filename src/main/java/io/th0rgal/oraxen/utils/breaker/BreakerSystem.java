@@ -190,10 +190,11 @@ public class BreakerSystem implements Listener {
                     ? CustomBlockMiningListener.serverDrivenBreakProgress(player, block, item)
                     : 0.0F;
             SchedulerUtil.runAtLocation(location, () -> {
-                // Fire PlayerInteractEvent for plugin support (cancellation state is ignored)
+                // Fire PlayerInteractEvent for plugin support (cancellation state is ignored).
+                // Oraxen click actions already ran on the real interact and skip this copy.
                 final PlayerInteractEvent playerInteractEvent =
                     new PlayerInteractEvent(player, Action.LEFT_CLICK_BLOCK, player.getInventory().getItemInMainHand(), block, blockFace, EquipmentSlot.HAND);
-                playerInteractEvent.callEvent();
+                SyntheticBlockInteract.call(playerInteractEvent);
 
                 // If the relevant damage event is cancelled, stop the breaker
                 if (blockDamageEventCancelled(block, player)) {

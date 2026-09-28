@@ -28,6 +28,18 @@ class VersionUtilTest {
     }
 
     @Test
+    void packetAccessorCheckIncludes263PreReleases() {
+        assertFalse(VersionUtil.uses263PacketAccessors(new MinecraftVersion("26.2")));
+        assertFalse(VersionUtil.uses263PacketAccessors(new MinecraftVersion("1.26.2")));
+        assertTrue(VersionUtil.uses263PacketAccessors(new MinecraftVersion("26.3")));
+        assertTrue(VersionUtil.uses263PacketAccessors(new MinecraftVersion("26.3-pre1")));
+        assertTrue(VersionUtil.uses263PacketAccessors(new MinecraftVersion("26.3-rc1")));
+        assertTrue(VersionUtil.uses263PacketAccessors(new MinecraftVersion("1.26.3")));
+        assertTrue(VersionUtil.uses263PacketAccessors(new MinecraftVersion(26, 3, 0, "pre1")));
+        assertFalse(new MinecraftVersion(26, 3, 0, "pre1").isAtLeast(new MinecraftVersion("26.3")));
+    }
+
+    @Test
     void nmsHandlerRequires1212OrLater() {
         assertFalse(VersionUtil.supportsNmsHandler(new MinecraftVersion("1.20.1")));
         assertFalse(VersionUtil.supportsNmsHandler(new MinecraftVersion("1.21.1")));

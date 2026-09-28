@@ -67,7 +67,9 @@ public final class GlowingItemListener implements Listener {
     private static void removeFromTeam(String entry, NamedTextColor color) {
         Scoreboard scoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
         Team team = scoreboard.getTeam(teamName(color));
-        if (team != null) team.removeEntry(entry);
+        if (team == null) return;
+        team.removeEntry(entry);
+        if (team.getEntries().isEmpty()) team.unregister();
     }
 
     private static String teamName(NamedTextColor color) {

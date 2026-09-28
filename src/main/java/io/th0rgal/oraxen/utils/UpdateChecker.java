@@ -66,8 +66,11 @@ public final class UpdateChecker implements Listener {
 
             JsonObject release = JsonParser.parseString(response.body()).getAsJsonObject();
             String version = release.get("tag_name").getAsString();
+            String previous = availableVersion;
             availableVersion = compareVersions(version, plugin.getPluginMeta().getVersion()) > 0
                     ? version : null;
+            if (availableVersion != null && !availableVersion.equals(previous))
+                notifyOnlinePlayers(availableVersion);
         } catch (Exception exception) {
             if (Settings.DEBUG.toBool()) {
                 Logs.logWarning("Failed to fetch the latest Oraxen release: " + exception.getMessage());
@@ -82,6 +85,18 @@ public final class UpdateChecker implements Listener {
         Player player = event.getPlayer();
         if (version == null || !Settings.UPDATE_CHECKER_ENABLED.toBool()
                 || !player.hasPermission("oraxen.update.notify")) return;
+        sendUpdateMessage(player, version);
+    }
+
+    private void notifyOnlinePlayers(String version) {
+        for (Player player : Bukkit.getOnlinePlayers())
+            SchedulerUtil.runForEntity(player, () -> {
+                if (player.isOnline() && player.hasPermission("oraxen.update.notify"))
+                    sendUpdateMessage(player, version);
+            }, null);
+    }
+
+    private static void sendUpdateMessage(Player player, String version) {
         player.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<prefix>").append(
                 Component.text("Version " + version
                         + " is available, you are running an outdated version.")));

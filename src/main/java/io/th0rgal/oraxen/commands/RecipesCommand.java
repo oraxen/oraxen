@@ -200,13 +200,13 @@ public class RecipesCommand {
     private OraxenCommand getAnvilBuilderCommand() {
         return new OraxenCommand("anvil")
                 .withPermission("oraxen.command.recipes.builder")
-                .withArguments(new IntegerArgument("experience_cost"))
+                .withOptionalArguments(new IntegerArgument("experience_cost"))
                 .executes((sender, args) -> {
                     if (sender instanceof Player player) {
                         RecipeBuilder recipe = RecipeBuilder.get(player.getUniqueId());
                         recipe = recipe != null ? recipe : new AnvilBuilder(player);
-                        if (recipe instanceof AnvilBuilder anvil)
-                            anvil.setExperienceCost((Integer) args.get("experience_cost"));
+                        if (recipe instanceof AnvilBuilder anvil && args.get("experience_cost") instanceof Integer experienceCost)
+                            anvil.setExperienceCost(experienceCost);
                         recipe.open();
                     } else
                         Message.NOT_PLAYER.send(sender);
@@ -216,13 +216,13 @@ public class RecipesCommand {
     private OraxenCommand getGrindstoneBuilderCommand() {
         return new OraxenCommand("grindstone")
                 .withPermission("oraxen.command.recipes.builder")
-                .withArguments(new IntegerArgument("experience"))
+                .withOptionalArguments(new IntegerArgument("experience"))
                 .executes((sender, args) -> {
                     if (sender instanceof Player player) {
                         RecipeBuilder recipe = RecipeBuilder.get(player.getUniqueId());
                         recipe = recipe != null ? recipe : new GrindstoneBuilder(player);
-                        if (recipe instanceof GrindstoneBuilder grindstone)
-                            grindstone.setExperience((Integer) args.get("experience"));
+                        if (recipe instanceof GrindstoneBuilder grindstone && args.get("experience") instanceof Integer experience)
+                            grindstone.setExperience(experience);
                         recipe.open();
                     } else
                         Message.NOT_PLAYER.send(sender);

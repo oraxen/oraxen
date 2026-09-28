@@ -99,7 +99,12 @@ public final class ItemProperties {
         if (section.getBoolean("injectId", true))
             item.setCustomTag(OraxenItems.ITEM_ID, PersistentDataType.STRING, section.getName());
         oraxenMeta.setNoUpdate(mergedSection.getBoolean("no_auto_update", false));
-        oraxenMeta.setEnchantable(mergedSection.getBoolean("enchantable", true));
+        boolean enchantable = mergedSection.getBoolean("enchantable", true);
+        oraxenMeta.setEnchantable(enchantable);
+        // The enchantable component is what the enchanting table reads on 1.21.2+.
+        // An explicit components value already applied above takes precedence.
+        if (!enchantable && !item.hasEnchantable() && VersionUtil.atOrAbove("1.21.2"))
+            item.setEnchantable(0);
         if (mergedSection.isSet("glowing")) {
             String colorName = mergedSection.getString("glowing", "").toLowerCase(Locale.ROOT);
             NamedTextColor glowing = NamedTextColor.NAMES.value(colorName);
