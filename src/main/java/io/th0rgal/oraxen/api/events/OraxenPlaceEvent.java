@@ -9,10 +9,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A player placed a custom block or furniture. Adds the held item and hand
- * to the damage-event fields.
+ * A player placed a custom block or furniture.
+ * The held item is null when the caller had none, which string and chorus placement allow.
  */
-public abstract class OraxenPlaceEvent<M extends Mechanic> extends OraxenBlockDamageEvent<M> {
+public abstract class OraxenPlaceEvent<M extends Mechanic> extends OraxenMechanicEvent<M> {
 
     private final ItemStack itemInHand;
     private final EquipmentSlot hand;
@@ -22,33 +22,6 @@ public abstract class OraxenPlaceEvent<M extends Mechanic> extends OraxenBlockDa
         super(mechanic, block, player);
         this.itemInHand = itemInHand;
         this.hand = hand;
-    }
-
-    /**
-     * @return the mechanic that was placed
-     */
-    @NotNull
-    @Override
-    public M getMechanic() {
-        return super.getMechanic();
-    }
-
-    /**
-     * @return the player who placed it
-     */
-    @NotNull
-    @Override
-    public Player getPlayer() {
-        return super.getPlayer();
-    }
-
-    /**
-     * @return the block that was placed
-     */
-    @NotNull
-    @Override
-    public Block getBlock() {
-        return super.getBlock();
     }
 
     /**

@@ -1,13 +1,13 @@
 package io.th0rgal.oraxen.api.events.chorusblock;
 
-import io.th0rgal.oraxen.api.events.OraxenBlockBreakEvent;
+import io.th0rgal.oraxen.api.events.OraxenBreakEvent;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.chorusblock.ChorusBlockMechanic;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
-public class OraxenChorusBlockBreakEvent extends OraxenBlockBreakEvent<ChorusBlockMechanic> {
+public class OraxenChorusBlockBreakEvent extends OraxenBreakEvent<ChorusBlockMechanic> {
 
     private static final HandlerList HANDLERS = new HandlerList();
 

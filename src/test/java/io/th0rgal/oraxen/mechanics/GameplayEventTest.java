@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.mechanics;
 import io.th0rgal.oraxen.api.events.OraxenBreakEvent;
 import io.th0rgal.oraxen.api.events.OraxenDamageEvent;
 import io.th0rgal.oraxen.api.events.OraxenInteractEvent;
+import io.th0rgal.oraxen.api.events.OraxenMechanicEvent;
 import io.th0rgal.oraxen.api.events.OraxenPlaceEvent;
 import io.th0rgal.oraxen.api.events.chorusblock.OraxenChorusBlockBreakEvent;
 import io.th0rgal.oraxen.api.events.chorusblock.OraxenChorusBlockDamageEvent;
@@ -24,6 +25,7 @@ import io.th0rgal.oraxen.api.events.stringblock.OraxenStringBlockPlaceEvent;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.chorusblock.ChorusBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.GrowthStage;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.shaped.ShapedBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
@@ -40,6 +42,8 @@ import org.bukkit.event.block.Action;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -72,7 +76,9 @@ class GameplayEventTest extends MechanicTestSupport {
         checkDamage(new OraxenStringBlockDamageEvent(string, block, player), string);
         checkDamage(new OraxenChorusBlockDamageEvent(chorus, block, player), chorus);
 
-        checkPlace(new OraxenNoteBlockPlaceEvent(note, block, player, item, EquipmentSlot.HAND), note);
+        OraxenNoteBlockPlaceEvent notePlace = new OraxenNoteBlockPlaceEvent(note, block, player, item, EquipmentSlot.HAND);
+        assertNotDamage(notePlace);
+        checkPlace(notePlace, note);
         checkPlace(new OraxenStringBlockPlaceEvent(string, block, player, null, EquipmentSlot.OFF_HAND), string);
         assertNull(new OraxenStringBlockPlaceEvent(string, block, player, null, EquipmentSlot.OFF_HAND).getItemInHand());
         checkPlace(new OraxenChorusBlockPlaceEvent(chorus, block, player, item, EquipmentSlot.HAND), chorus);
@@ -117,6 +123,7 @@ class GameplayEventTest extends MechanicTestSupport {
         assertSame(block, new OraxenFurnitureDamageEvent(mechanic, baseEntity, player, block).getBlock());
 
         OraxenFurniturePlaceEvent place = new OraxenFurniturePlaceEvent(mechanic, block, baseEntity, player, item, EquipmentSlot.HAND);
+        assertNotDamage(place);
         checkPlace(place, mechanic);
         assertSame(baseEntity, place.getBaseEntity());
 
@@ -142,6 +149,35 @@ class GameplayEventTest extends MechanicTestSupport {
         assertSame(item, clicked.getItemInHand());
         assertSame(baseEntity, clicked.getBaseEntity());
         checkCancellation(clicked);
+        assertNotDamage(clicked);
+    }
+
+    @Test
+    void furnitureBreakUsesTheCurrentGrowthStageDrop() {
+        FurnitureMechanic mechanic = mock(FurnitureMechanic.class);
+        Drop mechanicDrop = Drop.emptyDrop();
+        Drop stageDrop = Drop.emptyDrop();
+        when(mechanic.hasGrowthStages()).thenReturn(true);
+        when(mechanic.getDrop()).thenReturn(mechanicDrop);
+
+        PersistentDataContainer data = mock(PersistentDataContainer.class);
+        when(baseEntity.getPersistentDataContainer()).thenReturn(data);
+        when(data.get(FurnitureMechanic.STAGE_INDEX_KEY, PersistentDataType.INTEGER)).thenReturn(null);
+        assertSame(mechanicDrop, new OraxenFurnitureBreakEvent(mechanic, baseEntity, player, block).getDrop());
+
+        when(data.get(FurnitureMechanic.STAGE_INDEX_KEY, PersistentDataType.INTEGER)).thenReturn(1);
+        when(mechanic.getGrowthStage(1)).thenReturn(null);
+        assertSame(mechanicDrop, new OraxenFurnitureBreakEvent(mechanic, baseEntity, player, block).getDrop());
+
+        GrowthStage stage = mock(GrowthStage.class);
+        when(stage.getDrop()).thenReturn(null);
+        when(mechanic.getGrowthStage(1)).thenReturn(stage);
+        assertSame(mechanicDrop, new OraxenFurnitureBreakEvent(mechanic, baseEntity, player, block).getDrop());
+
+        when(stage.getDrop()).thenReturn(stageDrop);
+        OraxenFurnitureBreakEvent staged = new OraxenFurnitureBreakEvent(mechanic, baseEntity, player, block);
+        assertSame(stageDrop, staged.getDrop());
+        assertNotDamage(staged);
     }
 
     @Test
@@ -154,37 +190,45 @@ class GameplayEventTest extends MechanicTestSupport {
     }
 
     private <M extends Mechanic> void checkDamage(OraxenDamageEvent<M> event, M mechanic) {
-        assertSame(mechanic, event.getMechanic());
-        assertSame(player, event.getPlayer());
-        if (!(event instanceof OraxenFurnitureDamageEvent damage) || damage.getBlock() != null)
-            assertSame(block, event.getBlock());
-        assertOwnHandlerList(event);
-        checkCancellation(event);
+        checkFields(event, mechanic, !(event instanceof OraxenFurnitureDamageEvent damage) || damage.getBlock() != null);
     }
 
     private <M extends Mechanic> void checkPlace(OraxenPlaceEvent<M> event, M mechanic) {
-        checkDamage(event, mechanic);
-        assertSame(block, event.getBlock());
+        checkFields(event, mechanic, true);
+        assertNotDamage(event);
         if (event instanceof OraxenStringBlockPlaceEvent) assertNull(event.getItemInHand());
         else assertSame(item, event.getItemInHand());
         assertEquals(event instanceof OraxenStringBlockPlaceEvent ? EquipmentSlot.OFF_HAND : EquipmentSlot.HAND, event.getHand());
     }
 
     private <M extends Mechanic> void checkBreak(OraxenBreakEvent<M> event, M mechanic) {
-        checkDamage(event, mechanic);
-        assertSame(block, event.getBlock());
+        checkFields(event, mechanic, true);
+        assertNotDamage(event);
         assertSame(defaultDrop, event.getDrop());
         event.setDrop(replacementDrop);
         assertSame(replacementDrop, event.getDrop());
     }
 
     private <M extends Mechanic> void checkInteract(OraxenInteractEvent<M> event, M mechanic) {
-        checkDamage(event, mechanic);
-        assertSame(block, event.getBlock());
+        checkFields(event, mechanic, true);
+        assertNotDamage(event);
         assertSame(item, event.getItemInHand());
         assertEquals(EquipmentSlot.HAND, event.getHand());
         assertEquals(event instanceof OraxenStringBlockInteractEvent ? BlockFace.EAST
                 : event instanceof OraxenChorusBlockInteractEvent ? BlockFace.SOUTH : BlockFace.NORTH, event.getBlockFace());
+    }
+
+    private <M extends Mechanic> void checkFields(OraxenMechanicEvent<M> event, M mechanic, boolean expectBlock) {
+        assertSame(mechanic, event.getMechanic());
+        assertSame(player, event.getPlayer());
+        if (expectBlock) assertSame(block, event.getBlock());
+        else assertNull(event.getBlock());
+        assertOwnHandlerList(event);
+        checkCancellation(event);
+    }
+
+    private static void assertNotDamage(Event event) {
+        assertFalse(event instanceof OraxenDamageEvent);
     }
 
     private static void checkCancellation(Cancellable event) {

@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.api.events.stringblock;
 
-import io.th0rgal.oraxen.api.events.OraxenBlockInteractEvent;
+import io.th0rgal.oraxen.api.events.OraxenInteractEvent;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -11,7 +11,7 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class OraxenStringBlockInteractEvent extends OraxenBlockInteractEvent<StringBlockMechanic> {
+public class OraxenStringBlockInteractEvent extends OraxenInteractEvent<StringBlockMechanic> {
 
     private static final HandlerList HANDLERS = new HandlerList();
 

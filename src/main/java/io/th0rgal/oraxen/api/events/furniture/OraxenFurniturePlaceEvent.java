@@ -10,19 +10,23 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
+
 public class OraxenFurniturePlaceEvent extends OraxenBaseEntityPlaceEvent<FurnitureMechanic> {
 
     private static final HandlerList HANDLERS = new HandlerList();
+    private final ItemStack heldItem;
 
     public OraxenFurniturePlaceEvent(@NotNull FurnitureMechanic mechanic, @NotNull Block block, @NotNull Entity baseEntity,
                                      @NotNull Player player, @NotNull ItemStack itemInHand, @NotNull EquipmentSlot hand) {
-        super(mechanic, block, baseEntity, player, itemInHand, hand);
+        super(mechanic, block, baseEntity, player, Objects.requireNonNull(itemInHand), hand);
+        this.heldItem = itemInHand;
     }
 
     @NotNull
     @Override
     public ItemStack getItemInHand() {
-        return super.getItemInHand();
+        return heldItem;
     }
 
     @NotNull

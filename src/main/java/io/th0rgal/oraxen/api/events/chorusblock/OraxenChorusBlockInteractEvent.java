@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.api.events.chorusblock;
 
-import io.th0rgal.oraxen.api.events.OraxenBlockInteractEvent;
+import io.th0rgal.oraxen.api.events.OraxenInteractEvent;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.chorusblock.ChorusBlockMechanic;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -11,7 +11,7 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class OraxenChorusBlockInteractEvent extends OraxenBlockInteractEvent<ChorusBlockMechanic> {
+public class OraxenChorusBlockInteractEvent extends OraxenInteractEvent<ChorusBlockMechanic> {
 
     private static final HandlerList HANDLERS = new HandlerList();
 

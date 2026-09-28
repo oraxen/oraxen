@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.api.events.noteblock;
 
-import io.th0rgal.oraxen.api.events.OraxenBlockDamageEvent;
+import io.th0rgal.oraxen.api.events.OraxenDamageEvent;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
  * Fired right before a player damages a note block.
  * Cancelling the event stops the damage.
  */
-public class OraxenNoteBlockDamageEvent extends OraxenBlockDamageEvent<NoteBlockMechanic> {
+public class OraxenNoteBlockDamageEvent extends OraxenDamageEvent<NoteBlockMechanic> {
 
     private static final HandlerList HANDLERS = new HandlerList();
 

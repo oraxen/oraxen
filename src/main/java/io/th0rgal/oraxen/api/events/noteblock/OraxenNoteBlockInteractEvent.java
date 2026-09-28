@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.api.events.noteblock;
 
-import io.th0rgal.oraxen.api.events.OraxenBlockInteractEvent;
+import io.th0rgal.oraxen.api.events.OraxenInteractEvent;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -12,7 +12,7 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class OraxenNoteBlockInteractEvent extends OraxenBlockInteractEvent<NoteBlockMechanic> {
+public class OraxenNoteBlockInteractEvent extends OraxenInteractEvent<NoteBlockMechanic> {
 
     private static final HandlerList HANDLERS = new HandlerList();
     private final Action action;

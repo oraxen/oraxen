@@ -10,10 +10,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A player interacted with a custom block or furniture. Adds the clicked face,
- * the held item, and the hand to the damage-event fields.
+ * A player interacted with a custom block or furniture.
  */
-public abstract class OraxenInteractEvent<M extends Mechanic> extends OraxenDamageEvent<M> {
+public abstract class OraxenInteractEvent<M extends Mechanic> extends OraxenMechanicEvent<M> {
 
     private final ItemStack itemInHand;
     private final EquipmentSlot hand;
@@ -25,33 +24,6 @@ public abstract class OraxenInteractEvent<M extends Mechanic> extends OraxenDama
         this.itemInHand = itemInHand;
         this.hand = hand;
         this.blockFace = blockFace;
-    }
-
-    /**
-     * @return the mechanic that was interacted with
-     */
-    @NotNull
-    @Override
-    public M getMechanic() {
-        return super.getMechanic();
-    }
-
-    /**
-     * @return the player who interacted with it
-     */
-    @NotNull
-    @Override
-    public Player getPlayer() {
-        return super.getPlayer();
-    }
-
-    /**
-     * @return the clicked block, or null when the furniture has no hitbox
-     */
-    @Nullable
-    @Override
-    public Block getBlock() {
-        return super.getBlock();
     }
 
     /**
