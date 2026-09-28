@@ -51,7 +51,7 @@ public final class ItemMigrator {
             blockConfigMigrated = true; // Reuse the migration backup path before rewriting the item file.
             if (OraxenPlugin.get() != null)
                 Logs.logWarning("Item " + section.getName()
-                        + " uses deprecated mechanics.bigmining; migrated to mechanics.mining with world-relative offsets.");
+                        + " uses deprecated mechanics.bigmining; migrated to face-relative mechanics.mining radius and depth.");
         }
     }
 

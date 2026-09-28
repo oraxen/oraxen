@@ -120,7 +120,10 @@ public class FurnitureFactory extends MechanicFactory {
             }
             FurnitureTextEntry entry = FurnitureTextRegistry.register(entity, mechanic.getTextDefinitions());
             if (previous != null && reused) {
-                FurnitureTextPacketBridge.updateTrackedViewers(entry);
+                if (FurnitureTextPacketBridge.placementChanged(previous.getBaseLocation(), entry.getBaseLocation()))
+                    FurnitureTextPacketBridge.respawnTrackedViewers(entry);
+                else
+                    FurnitureTextPacketBridge.updateTrackedViewers(entry);
             } else if (spawnForMissingViewers) {
                 FurnitureTextPacketBridge.spawnForTrackedViewers(entry);
             }

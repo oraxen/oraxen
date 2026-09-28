@@ -14,6 +14,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MiningMechanicListener implements Listener {
 
     private final MiningMechanicFactory factory;
@@ -34,34 +37,57 @@ public class MiningMechanicListener implements Listener {
             if (mechanic == null) return;
 
             Block origin = event.getBlock();
-            for (MiningMechanic.Offset offset : mechanic.getOffsets()) {
-                if (offset.x() == 0 && offset.y() == 0 && offset.z() == 0)
-                    continue;
-                Location target = origin.getLocation().clone().add(offset.x(), offset.y(), offset.z());
+            for (Location target : targets(player, origin, mechanic)) {
                 if (Bukkit.isOwnedByCurrentRegion(target))
                     breakBlock(player, target.getBlock(), item);
-                else {
-                    ItemStack tool = item.clone();
-                    SchedulerUtil.runAtLocation(target, () -> {
-                        activeMining.set(true);
-                        try {
-                            breakBlock(player, target.getBlock(), tool);
-                        } finally {
-                            activeMining.remove();
-                        }
-                    });
-                }
+                else
+                    breakOnBlockRegion(player, target, item.clone());
             }
         } finally {
             activeMining.remove();
         }
     }
 
+    private static List<Location> targets(Player player, Block origin, MiningMechanic mechanic) {
+        if (!mechanic.isFaceRelative()) return worldTargets(origin.getLocation(), mechanic.getOffsets());
+        return mechanic.faceTargets(origin.getLocation(),
+                MiningMechanic.lookingDirection(player.getEyeLocation().getDirection()));
+    }
+
+    private static List<Location> worldTargets(Location origin, List<MiningMechanic.Offset> offsets) {
+        List<Location> targets = new ArrayList<>();
+        for (MiningMechanic.Offset offset : offsets) {
+            if (offset.x() == 0 && offset.y() == 0 && offset.z() == 0) continue;
+            targets.add(origin.clone().add(offset.x(), offset.y(), offset.z()));
+        }
+        return targets;
+    }
+
+    private void breakOnBlockRegion(Player player, Location target, ItemStack tool) {
+        SchedulerUtil.runAtLocation(target, () -> {
+            Block block = target.getBlock();
+            if (!canDamage(block)) return;
+            // Protection plugins read the player, so that check stays on the player's region.
+            SchedulerUtil.runForEntity(player, () -> {
+                if (!player.isOnline() || !AntiGriefLib.canBreak(player, target)) return;
+                SchedulerUtil.runAtLocation(target, () -> {
+                    activeMining.set(true);
+                    try {
+                        damageBlock(player, block, tool);
+                    } finally {
+                        activeMining.remove();
+                    }
+                });
+            }, null);
+        });
+    }
+
     private void breakBlock(Player player, Block block, ItemStack itemStack) {
-        if (block.isLiquid()
-                || BlockHelpers.UNBREAKABLE_BLOCKS.contains(block.getType())
-                || !AntiGriefLib.canBreak(player, block.getLocation()))
-            return;
+        if (!canDamage(block) || !AntiGriefLib.canBreak(player, block.getLocation())) return;
+        damageBlock(player, block, itemStack);
+    }
+
+    private void damageBlock(Player player, Block block, ItemStack itemStack) {
         if (factory.callEvents()) {
             BlockBreakEvent event = new BlockBreakEvent(block, player);
             if (!event.callEvent()) return;
@@ -71,5 +97,9 @@ public class MiningMechanicListener implements Listener {
             }
         }
         block.breakNaturally(itemStack, true);
+    }
+
+    private static boolean canDamage(Block block) {
+        return !block.isLiquid() && !BlockHelpers.UNBREAKABLE_BLOCKS.contains(block.getType());
     }
 }

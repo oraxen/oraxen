@@ -2,8 +2,11 @@ package io.th0rgal.oraxen.mechanics;
 
 import io.th0rgal.oraxen.configs.MiningConfigMigration;
 import io.th0rgal.oraxen.mechanics.provided.farming.mining.MiningMechanic;
+import org.bukkit.Location;
+import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.util.Vector;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -34,16 +37,36 @@ class MiningMechanicTest extends MechanicTestSupport {
 
         assertTrue(MiningConfigMigration.migrateItem(item));
         assertFalse(item.getConfigurationSection("mechanics").contains("bigmining"));
-        List<String> offsets = item.getStringList("mechanics.mining");
-        assertEquals(18, offsets.size());
-        assertTrue(offsets.contains("-1,-1,0"));
-        assertTrue(offsets.contains("1,1,1"));
+        assertEquals(1, item.getInt("mechanics.mining.radius"));
+        assertEquals(2, item.getInt("mechanics.mining.depth"));
         assertFalse(MiningConfigMigration.migrateItem(item));
 
-        configuration.set("hammer.mechanics.bigmining.radius", 2);
-        configuration.set("hammer.mechanics.bigmining.depth", 3);
+        configuration.set("hammer.mechanics.bigmining.radius", 9);
+        configuration.set("hammer.mechanics.bigmining.depth", 9);
         assertTrue(MiningConfigMigration.migrateItem(item));
-        assertEquals(offsets, item.getStringList("mechanics.mining"));
+        assertEquals(1, item.getInt("mechanics.mining.radius"));
+        assertEquals(2, item.getInt("mechanics.mining.depth"));
+    }
+
+    @Test
+    void faceRelativeDepthFollowsTheLookDirection() throws Exception {
+        YamlConfiguration configuration = new YamlConfiguration();
+        configuration.loadFromString("hammer:\n  mechanics:\n    mining:\n      radius: 1\n      depth: 2\n");
+        MiningMechanic mechanic = new MiningMechanic(mechanicFactory(),
+                configuration.getConfigurationSection("hammer.mechanics.mining"));
+
+        assertTrue(mechanic.isFaceRelative());
+        assertEquals(BlockFace.NORTH, MiningMechanic.lookingDirection(new Vector(0, 0, -1)));
+        assertEquals(BlockFace.EAST, MiningMechanic.lookingDirection(new Vector(1, 0.2, 0)));
+
+        List<Location> north = mechanic.faceTargets(new Location(null, 10, 64, 20), BlockFace.NORTH);
+        assertEquals(17, north.size());
+        assertTrue(north.contains(new Location(null, 9, 64, 20)));
+        assertTrue(north.contains(new Location(null, 10, 65, 19)));
+        assertFalse(north.contains(new Location(null, 10, 64, 20)));
+
+        Location east = MiningMechanic.faceRelative(new Location(null, 0, 0, 0), BlockFace.EAST, 1, -1, 2);
+        assertEquals(new Location(null, 2, 1, -1), east);
     }
 
     @Test

@@ -139,6 +139,7 @@ spear_lunge:
 mining:
   enabled: true
   # Items list x,y,z offsets relative to the mined block; 0,0,0 is mined normally.
+  # radius and depth instead follow the direction the player is looking.
   # Whether to call BlockBreakEvent for each additional block
   # Known to cause issues with some enchantment-plugins if enabled
   call_events: true

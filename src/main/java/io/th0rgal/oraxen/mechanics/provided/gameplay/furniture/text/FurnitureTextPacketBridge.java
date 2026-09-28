@@ -6,14 +6,17 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.packets.PacketAdapter;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityTeleportEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.joml.Vector3f;
 
@@ -101,6 +104,16 @@ public final class FurnitureTextPacketBridge {
         if (entry == null) return;
         destroyTextEntry(entry);
         spawnForTrackedViewers(entry);
+    }
+
+    public static boolean placementChanged(Location before, Location after) {
+        if (before == null || after == null) return true;
+        if (before.getWorld() == null ? after.getWorld() != null : !before.getWorld().equals(after.getWorld()))
+            return true;
+        return Math.abs(before.getX() - after.getX()) > 1.0E-4
+                || Math.abs(before.getY() - after.getY()) > 1.0E-4
+                || Math.abs(before.getZ() - after.getZ()) > 1.0E-4
+                || Math.abs(before.getYaw() - after.getYaw()) > 0.01F;
     }
 
     private static void destroyRegisteredTextEntities() {
@@ -298,6 +311,20 @@ public final class FurnitureTextPacketBridge {
         @EventHandler(priority = EventPriority.MONITOR)
         public void onQuit(PlayerQuitEvent event) {
             FurnitureTextRegistry.removeViewer(event.getPlayer().getUniqueId());
+        }
+
+        @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+        public void onBaseTeleport(EntityTeleportEvent event) {
+            Entity entity = event.getEntity();
+            FurnitureTextEntry entry = FurnitureTextRegistry.byUuid(entity.getUniqueId());
+            if (entry == null || entry.getBaseEntityId() != entity.getEntityId() || event.getTo() == null) return;
+
+            Location destination = event.getTo().clone();
+            if (entity instanceof ItemFrame)
+                destination.setYaw(FurnitureMechanic.getFurnitureYaw(entity));
+            if (!placementChanged(entry.getBaseLocation(), destination)) return;
+            entry.updateBaseLocation(destination);
+            respawnTrackedViewers(entry);
         }
     }
 

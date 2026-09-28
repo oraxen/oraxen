@@ -9350,12 +9350,30 @@
     },
     "mining": {
       "category": "farming",
-      "description": "Mines blocks at offsets relative to the targeted block",
-      "type": "array",
-      "items": {
-        "type": "string",
-        "pattern": "^\\s*-?\\d+\\s*,\\s*-?\\d+\\s*,\\s*-?\\d+\\s*$"
-      }
+      "description": "Mines blocks at world offsets, or in a face-relative area when radius and depth are set",
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^\\s*-?\\d+\\s*,\\s*-?\\d+\\s*,\\s*-?\\d+\\s*$"
+          }
+        },
+        {
+          "type": "object",
+          "description": "Face-relative area. Depth follows the direction the player is looking.",
+          "properties": {
+            "radius": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "depth": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      ]
     }
   },
   "pack": {
