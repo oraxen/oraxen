@@ -5,6 +5,9 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public abstract class WorkstationBuilder extends RecipeBuilder {
 
     private final String valueKey;
@@ -21,7 +24,20 @@ public abstract class WorkstationBuilder extends RecipeBuilder {
     }
 
     @Override
+    public List<String> getMissingIngredients() {
+        ItemStack[] content = getInventory().getContents();
+        // The addition slot is optional for anvil and grindstone recipes
+        List<String> missing = new ArrayList<>();
+        if (ItemUtils.isEmpty(content[0])) missing.add("base");
+        if (ItemUtils.isEmpty(content[2])) missing.add("result");
+        return missing;
+    }
+
+    @Override
     public void saveRecipe(String name, String permission) {
+        List<String> missing = getMissingIngredients();
+        if (!missing.isEmpty())
+            throw new IllegalStateException("Cannot save recipe '" + name + "', missing: " + String.join(", ", missing));
         ItemStack[] content = getInventory().getContents();
         ConfigurationSection newCraftSection = getConfig().createSection(name);
 

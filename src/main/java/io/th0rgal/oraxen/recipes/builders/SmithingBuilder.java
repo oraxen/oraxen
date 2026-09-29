@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.recipes.builders;
 
+import io.th0rgal.oraxen.utils.ItemUtils;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -8,7 +9,12 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class SmithingBuilder extends RecipeBuilder {
+
+    private static final String[] SLOT_NAMES = {"template", "base", "addition", "result"};
 
     public SmithingBuilder(Player player) {
         super(player, "smithing");
@@ -25,7 +31,19 @@ public class SmithingBuilder extends RecipeBuilder {
     }
 
     @Override
+    public List<String> getMissingIngredients() {
+        ItemStack[] content = getInventory().getContents();
+        List<String> missing = new ArrayList<>();
+        for (int i = 0; i < SLOT_NAMES.length; i++)
+            if (ItemUtils.isEmpty(content[i])) missing.add(SLOT_NAMES[i]);
+        return missing;
+    }
+
+    @Override
     public void saveRecipe(String name, String permission) {
+        List<String> missing = getMissingIngredients();
+        if (!missing.isEmpty())
+            throw new IllegalStateException("Cannot save smithing recipe '" + name + "', missing: " + String.join(", ", missing));
         ItemStack[] content = getInventory().getContents();
         ConfigurationSection newCraftSection = getConfig().createSection(name);
 

@@ -10,6 +10,8 @@ import io.th0rgal.oraxen.recipes.CustomRecipe;
 import io.th0rgal.oraxen.recipes.builders.*;
 import io.th0rgal.oraxen.recipes.listeners.RecipesEventsManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.apache.commons.lang3.ArrayUtils;
 import org.bukkit.entity.Player;
 
@@ -243,6 +245,13 @@ public class RecipesCommand {
                         }
                         final String name = (String) args.args()[0];
                         final String permission = (String) args.getOptional("permission").orElse("");
+                        final List<String> missing = recipe.getMissingIngredients();
+                        if (!missing.isEmpty()) {
+                            AdventureUtils.sendMessage(sender, Component.text(
+                                    "Cannot save recipe \"" + name + "\", missing: " + String.join(", ", missing),
+                                    NamedTextColor.RED));
+                            return;
+                        }
                         recipe.saveRecipe(name, permission);
                         Message.RECIPE_SAVE.send(sender, AdventureUtils.tagResolver("name", name));
                     } else
