@@ -60,8 +60,10 @@ public class RemoveDefaultsCommand {
         removeBundledGlobalLanguageEntries(languageFolder.resolve("global.json"), failedFiles);
         deletePath(dataFolder.resolve("pack/font"), true, deletedFiles, failedFiles);
         deletePath(dataFolder.resolve("pack/sounds"), true, deletedFiles, failedFiles);
-        deleteKnownDefaultFiles(dataFolder, "recipes", deletedFiles, failedFiles);
-        Set<Path> defaultItemFiles = deleteKnownDefaultFiles(dataFolder, "items", deletedFiles, failedFiles);
+        deleteKnownDefaultFiles(dataFolder, "recipes", Set.of(), deletedFiles, failedFiles);
+        // Navigation icons are required by the item and recipe menus, not sample content.
+        Set<Path> defaultItemFiles = deleteKnownDefaultFiles(dataFolder, "items",
+                Set.of(dataFolder.resolve("items/guis.yml")), deletedFiles, failedFiles);
         removeDefaultInventoryEntries(OraxenPlugin.get().getConfigsManager().getSettings(),
                 dataFolder.resolve("settings.yml"), defaultItemFiles, failedFiles);
 
@@ -134,12 +136,13 @@ public class RemoveDefaultsCommand {
         }
     }
 
-    private Set<Path> deleteKnownDefaultFiles(Path dataFolder, String folder, AtomicInteger deletedFiles,
-            AtomicInteger failedFiles) {
+    Set<Path> deleteKnownDefaultFiles(Path dataFolder, String folder, Set<Path> excludedPaths,
+            AtomicInteger deletedFiles, AtomicInteger failedFiles) {
         Set<Path> defaultFiles = new HashSet<>();
         ResourcesManager.browseJar(entry -> {
             String entryName = entry.getName();
-            if (!entry.isDirectory() && entryName.startsWith(folder + "/"))
+            if (!entry.isDirectory() && entryName.startsWith(folder + "/")
+                    && !excludedPaths.contains(dataFolder.resolve(entryName)))
                 defaultFiles.add(dataFolder.resolve(entryName));
         });
 

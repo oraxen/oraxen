@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.commands;
 
+import io.th0rgal.oraxen.configs.ResourcesManager;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -9,15 +10,50 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+import java.util.zip.ZipEntry;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
 
 class RemoveDefaultsCommandTest {
 
     @TempDir
     Path tempDir;
+
+    @Test
+    void keepsGuiItemsWhileRemovingBundledSampleItems() throws IOException {
+        Path itemsFolder = Files.createDirectories(tempDir.resolve("items"));
+        Path guiItems = Files.writeString(itemsFolder.resolve("guis.yml"), "customized GUI items");
+        Path sampleItems = Files.writeString(itemsFolder.resolve("armors.yml"), "sample items");
+        Path customItems = Files.writeString(itemsFolder.resolve("custom.yml"), "custom items");
+        AtomicInteger deletedFiles = new AtomicInteger();
+        AtomicInteger failedFiles = new AtomicInteger();
+        Set<Path> defaultItemFiles;
+
+        try (var resources = mockStatic(ResourcesManager.class)) {
+            resources.when(() -> ResourcesManager.browseJar(any())).thenAnswer(invocation -> {
+                Consumer<ZipEntry> consumer = invocation.getArgument(0);
+                consumer.accept(new ZipEntry("items/"));
+                consumer.accept(new ZipEntry("items/guis.yml"));
+                consumer.accept(new ZipEntry("items/armors.yml"));
+                consumer.accept(new ZipEntry("recipes/armors.yml"));
+                return null;
+            });
+            defaultItemFiles = new RemoveDefaultsCommand().deleteKnownDefaultFiles(tempDir, "items",
+                    Set.of(guiItems), deletedFiles, failedFiles);
+        }
+
+        assertEquals("customized GUI items", Files.readString(guiItems));
+        assertEquals("custom items", Files.readString(customItems));
+        assertFalse(Files.exists(sampleItems));
+        assertEquals(Set.of(sampleItems), defaultItemFiles);
+        assertEquals(1, deletedFiles.get());
+        assertEquals(0, failedFiles.get());
+    }
 
     @Test
     void removesDefaultInventoryCategoriesAndSavesCustomSettings() throws IOException {
