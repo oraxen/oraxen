@@ -81,6 +81,9 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
 import javax.annotation.Nullable;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -88,6 +91,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.function.Supplier;
 
 public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
@@ -113,67 +117,91 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                 ? new PackDispatchListener()
                 : null;
 
-        if (mineableTagKey != null && !ChannelInitializeListenerHolder.hasListener(mineableTagKey)) {
-            ChannelInitializeListenerHolder.addListener(mineableTagKey, channel -> channel.pipeline().addBefore("packet_handler",
-                    mineableTagKey.asString(), new ChannelDuplexHandler() {
-                        TagNetworkSerialization.NetworkPayload payload = createPayload();
-
-                        @Override
-                        public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
-                            if (msg instanceof ClientboundUpdateTagsPacket updateTagsPacket) {
-                                Map<ResourceKey<? extends Registry<?>>, TagNetworkSerialization.NetworkPayload> tags = new HashMap<>(getPacketTags(updateTagsPacket));
-                                if (payload != null
-                                        && NoteBlockMechanicFactory.isEnabled()
-                                        && NoteBlockMechanicFactory.getInstance().removeMineableTag())
-                                    tags.put(Registries.BLOCK, payload);
-                                msg = new ClientboundUpdateTagsPacket(tags);
-                            }
-                            ctx.write(msg, promise);
-                        }
-                    }));
-        }
+        if (mineableTagKey != null && !ChannelInitializeListenerHolder.hasListener(mineableTagKey))
+            ChannelInitializeListenerHolder.addListener(mineableTagKey,
+                    channel -> installHandler(channel, mineableTagKey, this::createMineableTagHandler));
 
         // Track dig/place sequences separately so a pre-existing mineable-tag listener
         // cannot skip prediction settlement after reload.
-        if (blockPredictionKey == null || ChannelInitializeListenerHolder.hasListener(blockPredictionKey))
-            return;
-        ChannelInitializeListenerHolder.addListener(blockPredictionKey, channel -> channel.pipeline().addBefore("packet_handler",
-                blockPredictionKey.asString(), new ChannelDuplexHandler() {
-                    @Override
-                    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
-                        if (msg instanceof ClientboundBlockChangedAckPacket packet) {
-                            final Deque<PendingBlockChange> pending = pendingBlockChanges.get(ctx.channel());
-                            if (pending != null)
-                                pending.removeIf(change -> change.sequence() <= packet.sequence());
-                        }
-                        ctx.write(msg, promise);
-                    }
+        if (blockPredictionKey != null && !ChannelInitializeListenerHolder.hasListener(blockPredictionKey))
+            ChannelInitializeListenerHolder.addListener(blockPredictionKey,
+                    channel -> installHandler(channel, blockPredictionKey, this::createBlockPredictionHandler));
 
-                    @Override
-                    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-                        // Bukkit block events do not expose the packet sequence. Retain the
-                        // position and operation so the matching prediction can be settled as
-                        // soon as its authoritative block states have been sent.
-                        final Deque<PendingBlockChange> pending =
-                                pendingBlockChanges.computeIfAbsent(ctx.channel(), ignored -> new ConcurrentLinkedDeque<>());
-                        if (msg instanceof ServerboundUseItemOnPacket packet) {
-                            final BlockPos pos = getUseItemOnHitResult(packet).getBlockPos();
-                            pending.addLast(new PendingBlockChange(getUseItemOnSequence(packet), pos.getX(), pos.getY(), pos.getZ(), true));
-                        } else if (msg instanceof ServerboundPlayerActionPacket packet
-                                && packet.getAction() == ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK) {
-                            final BlockPos pos = packet.getPos();
-                            pending.addLast(new PendingBlockChange(packet.getSequence(), pos.getX(), pos.getY(), pos.getZ(), false));
-                        }
-                        while (pending.size() > 16) pending.pollFirst();
-                        super.channelRead(ctx, msg);
-                    }
+        // Players still online after a hot re-enable never pass through the channel initializer again
+        for (Player player : org.bukkit.Bukkit.getOnlinePlayers()) {
+            io.netty.channel.Channel channel = ((CraftPlayer) player).getHandle().connection.connection.channel;
+            installHandler(channel, mineableTagKey, this::createMineableTagHandler);
+            installHandler(channel, blockPredictionKey, this::createBlockPredictionHandler);
+        }
+    }
 
-                    @Override
-                    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-                        pendingBlockChanges.remove(ctx.channel());
-                        super.channelInactive(ctx);
-                    }
-                }));
+    private ChannelDuplexHandler createMineableTagHandler() {
+        return new ChannelDuplexHandler() {
+            TagNetworkSerialization.NetworkPayload payload = createPayload();
+
+            @Override
+            public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
+                if (msg instanceof ClientboundUpdateTagsPacket updateTagsPacket) {
+                    Map<ResourceKey<? extends Registry<?>>, TagNetworkSerialization.NetworkPayload> tags = new HashMap<>(getPacketTags(updateTagsPacket));
+                    if (payload != null
+                            && NoteBlockMechanicFactory.isEnabled()
+                            && NoteBlockMechanicFactory.getInstance().removeMineableTag())
+                        tags.put(Registries.BLOCK, payload);
+                    msg = new ClientboundUpdateTagsPacket(tags);
+                }
+                ctx.write(msg, promise);
+            }
+        };
+    }
+
+    private ChannelDuplexHandler createBlockPredictionHandler() {
+        return new ChannelDuplexHandler() {
+            @Override
+            public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
+                if (msg instanceof ClientboundBlockChangedAckPacket packet) {
+                    final Deque<PendingBlockChange> pending = pendingBlockChanges.get(ctx.channel());
+                    if (pending != null)
+                        pending.removeIf(change -> change.sequence() <= packet.sequence());
+                }
+                ctx.write(msg, promise);
+            }
+
+            @Override
+            public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+                // Bukkit block events do not expose the packet sequence. Retain the
+                // position and operation so the matching prediction can be settled as
+                // soon as its authoritative block states have been sent.
+                final Deque<PendingBlockChange> pending =
+                        pendingBlockChanges.computeIfAbsent(ctx.channel(), ignored -> new ConcurrentLinkedDeque<>());
+                if (msg instanceof ServerboundUseItemOnPacket packet) {
+                    final BlockPos pos = getUseItemOnHitResult(packet).getBlockPos();
+                    pending.addLast(new PendingBlockChange(getUseItemOnSequence(packet), pos.getX(), pos.getY(), pos.getZ(), true));
+                } else if (msg instanceof ServerboundPlayerActionPacket packet
+                        && packet.getAction() == ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK) {
+                    final BlockPos pos = packet.getPos();
+                    pending.addLast(new PendingBlockChange(packet.getSequence(), pos.getX(), pos.getY(), pos.getZ(), false));
+                }
+                while (pending.size() > 16) pending.pollFirst();
+                super.channelRead(ctx, msg);
+            }
+
+            @Override
+            public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+                pendingBlockChanges.remove(ctx.channel());
+                super.channelInactive(ctx);
+            }
+        };
+    }
+
+    private static void installHandler(io.netty.channel.Channel channel, NamespacedKey key,
+                                       Supplier<ChannelDuplexHandler> handler) {
+        if (key == null) return;
+        try {
+            if (channel.pipeline().get(key.asString()) == null)
+                channel.pipeline().addBefore("packet_handler", key.asString(), handler.get());
+        } catch (RuntimeException ignored) {
+            // The connection closed or installed the handler concurrently
+        }
     }
 
     @Override
@@ -226,20 +254,29 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
     @Override
     public void shutdown() {
-        packetHandler.shutdown();
-        removeChannelListener(mineableTagKey);
-        removeChannelListener(blockPredictionKey);
-        pendingBlockChanges.clear();
+        // Unregister the listeners before touching any channel: they keep this plugin's
+        // classloader alive, so a failing channel must not skip their removal.
+        if (mineableTagKey != null) ChannelInitializeListenerHolder.removeListener(mineableTagKey);
+        if (blockPredictionKey != null) ChannelInitializeListenerHolder.removeListener(blockPredictionKey);
+        try {
+            packetHandler.shutdown();
+        } finally {
+            for (Player player : org.bukkit.Bukkit.getOnlinePlayers()) {
+                removeHandler(player, mineableTagKey);
+                removeHandler(player, blockPredictionKey);
+            }
+            pendingBlockChanges.clear();
+        }
     }
 
-    private static void removeChannelListener(NamespacedKey key) {
+    private static void removeHandler(Player player, NamespacedKey key) {
         if (key == null) return;
-        ChannelInitializeListenerHolder.removeListener(key);
-        String handlerName = key.asString();
-        for (Player player : org.bukkit.Bukkit.getOnlinePlayers()) {
+        try {
             io.netty.channel.Channel channel = ((CraftPlayer) player).getHandle().connection.connection.channel;
-            if (channel.pipeline().get(handlerName) != null)
-                channel.pipeline().remove(handlerName);
+            if (channel.pipeline().get(key.asString()) != null)
+                channel.pipeline().remove(key.asString());
+        } catch (RuntimeException ignored) {
+            // A closing channel may drop the handler between get and remove; keep cleaning the others
         }
     }
 
@@ -348,38 +385,55 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     @SuppressWarnings("unchecked") // The renamed accessor retains the same Map key/value types.
     private Map<ResourceKey<? extends Registry<?>>, TagNetworkSerialization.NetworkPayload> getPacketTags(
             ClientboundUpdateTagsPacket packet) {
-        if (is263OrAbove) {
-            // 26.3 renamed getTags() to the record accessor tags().
-            try {
-                return (Map<ResourceKey<? extends Registry<?>>, TagNetworkSerialization.NetworkPayload>)
-                        ClientboundUpdateTagsPacket.class.getMethod("tags").invoke(packet);
-            } catch (ReflectiveOperationException e) {
-                throw new IllegalStateException("Failed to read 26.3 packet tags", e);
-            }
-        }
+        // 26.3 renamed getTags() to the record accessor tags().
+        if (is263OrAbove)
+            return (Map<ResourceKey<? extends Registry<?>>, TagNetworkSerialization.NetworkPayload>)
+                    PacketAccessors263.invoke(PacketAccessors263.UPDATE_TAGS_TAGS, packet, "packet tags");
         return packet.getTags();
     }
 
     private BlockHitResult getUseItemOnHitResult(ServerboundUseItemOnPacket packet) {
-        if (is263OrAbove) {
-            try {
-                return (BlockHitResult) ServerboundUseItemOnPacket.class.getMethod("hitResult").invoke(packet);
-            } catch (ReflectiveOperationException e) {
-                throw new IllegalStateException("Failed to read 26.3 use-item-on hit result", e);
-            }
-        }
+        if (is263OrAbove)
+            return (BlockHitResult) PacketAccessors263.invoke(PacketAccessors263.USE_ITEM_ON_HIT_RESULT, packet,
+                    "use-item-on hit result");
         return packet.getHitResult();
     }
 
     private int getUseItemOnSequence(ServerboundUseItemOnPacket packet) {
-        if (is263OrAbove) {
+        if (is263OrAbove)
+            return (int) PacketAccessors263.invoke(PacketAccessors263.USE_ITEM_ON_SEQUENCE, packet,
+                    "use-item-on sequence");
+        return packet.getSequence();
+    }
+
+    /**
+     * 26.3 record accessors, resolved once on first use (class initialization is thread-safe)
+     * since they are read on Netty threads for every matching packet.
+     */
+    private static final class PacketAccessors263 {
+        private static final MethodHandle UPDATE_TAGS_TAGS = find(ClientboundUpdateTagsPacket.class, "tags");
+        private static final MethodHandle USE_ITEM_ON_HIT_RESULT = find(ServerboundUseItemOnPacket.class, "hitResult");
+        private static final MethodHandle USE_ITEM_ON_SEQUENCE = find(ServerboundUseItemOnPacket.class, "sequence");
+
+        private static MethodHandle find(Class<?> owner, String name) {
             try {
-                return (int) ServerboundUseItemOnPacket.class.getMethod("sequence").invoke(packet);
+                return MethodHandles.publicLookup().unreflect(owner.getMethod(name))
+                        .asType(MethodType.methodType(Object.class, Object.class));
             } catch (ReflectiveOperationException e) {
-                throw new IllegalStateException("Failed to read 26.3 use-item-on sequence", e);
+                return null;
             }
         }
-        return packet.getSequence();
+
+        private static Object invoke(MethodHandle accessor, Object packet, String description) {
+            if (accessor == null) throw new IllegalStateException("Missing 26.3 " + description + " accessor");
+            try {
+                return (Object) accessor.invokeExact(packet);
+            } catch (RuntimeException | Error e) {
+                throw e;
+            } catch (Throwable e) {
+                throw new IllegalStateException("Failed to read 26.3 " + description, e);
+            }
+        }
     }
 
     private TeleportRandomlyConsumeEffect createTeleportRandomlyEffect(float diameter, boolean directionalParticles) {
