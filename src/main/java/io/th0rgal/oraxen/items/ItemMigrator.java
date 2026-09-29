@@ -75,27 +75,45 @@ public final class ItemMigrator {
 
             final Object value = section.get(key);
             final Object existingValue = section.get(lowercaseKey);
+            final List<String> comments = section.getComments(key);
             if (value instanceof ConfigurationSection sourceSection) {
                 final ConfigurationSection targetSection;
                 if (existingValue instanceof ConfigurationSection existingSection) {
                     targetSection = existingSection;
-                } else if (existingValue != null) {
-                    if (OraxenPlugin.get() != null)
-                        Logs.logWarning("Item " + section.getName() + " keeps " + key
-                                + " because " + lowercaseKey + " is not a configuration section.");
-                    continue;
                 } else {
+                    // Only the lowercase key is read now, so a scalar there would hide the whole section.
+                    if (existingValue != null && OraxenPlugin.get() != null)
+                        Logs.logWarning("Item " + section.getName() + " replaces the non-section " + lowercaseKey
+                                + " value with its " + key + " section.");
                     targetSection = section.createSection(lowercaseKey);
                 }
                 OraxenYaml.copyConfigurationSection(sourceSection, targetSection);
+                copyComments(sourceSection, targetSection);
                 OraxenYaml.invalidateKeyCache(targetSection);
             } else if (existingValue == null) {
                 section.set(lowercaseKey, value);
             }
+            if (!comments.isEmpty() && section.getComments(lowercaseKey).isEmpty())
+                section.setComments(lowercaseKey, comments);
 
             section.set(key, null);
             OraxenYaml.invalidateKeyCache(section);
             configUpdated = true;
+            // Renaming rewrites the user's item file, so keep a backup like the other migrations.
+            blockConfigMigrated = true;
+        }
+    }
+
+    private static void copyComments(final ConfigurationSection source, final ConfigurationSection target) {
+        for (final String path : source.getKeys(true)) {
+            if (!target.contains(path))
+                continue;
+            final List<String> comments = source.getComments(path);
+            if (!comments.isEmpty() && target.getComments(path).isEmpty())
+                target.setComments(path, comments);
+            final List<String> inlineComments = source.getInlineComments(path);
+            if (!inlineComments.isEmpty() && target.getInlineComments(path).isEmpty())
+                target.setInlineComments(path, inlineComments);
         }
     }
 
