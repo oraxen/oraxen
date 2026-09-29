@@ -22,6 +22,7 @@ public final class LegacyDatapackCleaner {
             "oraxen_paintings",
             "oraxen_jukebox"
     );
+    private static final String FILE_PACK_PREFIX = "file/";
     private static final Path OVERWORLD_PATH = Path.of("dimensions", "minecraft", "overworld");
 
     private LegacyDatapackCleaner() {
@@ -34,7 +35,9 @@ public final class LegacyDatapackCleaner {
 
         for (String name : REPLACED_DATAPACKS) {
             try {
+                // Paper reports world datapacks as "file/<folder>", match either form
                 BukkitWrapper.get().setDatapackEnabled(name, false);
+                BukkitWrapper.get().setDatapackEnabled(FILE_PACK_PREFIX + name, false);
             } catch (RuntimeException exception) {
                 Logs.logWarning("Failed to disable legacy Oraxen datapack '" + name + "': " + exception.getMessage());
                 Logs.debug(exception);
