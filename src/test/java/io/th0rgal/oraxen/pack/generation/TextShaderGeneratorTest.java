@@ -42,4 +42,24 @@ class TextShaderGeneratorTest {
         assertTrue(shader.contains("texture(Sampler0, texCoord0).rrrr"));
         assertTrue(shader.contains("if (color.a < 0.1)"));
     }
+
+    @Test
+    void unifiedTextShaderServersKeepTheirShadersInAnOverlay() {
+        for (String version : new String[]{"26.2", "26.3"}) {
+            TextShaderTarget target = TextShaderTarget.forVersion(version);
+            ShaderOverlay overlay = ShaderOverlay.forPackFormat(target.packFormat());
+            assertNotNull(overlay, version);
+            assertTrue(TextShaderGenerator.keepsServerShadersInOverlay(target, overlay, false), version);
+        }
+    }
+
+    @Test
+    void olderServersKeepTheirShadersInTheBase() {
+        for (String version : new String[]{"1.21.4", "1.21.11", "26.1.2"}) {
+            TextShaderTarget target = TextShaderTarget.forVersion(version);
+            ShaderOverlay overlay = ShaderOverlay.forPackFormat(target.packFormat());
+            assertFalse(TextShaderGenerator.keepsServerShadersInOverlay(target, overlay, false), version);
+            assertTrue(TextShaderGenerator.keepsServerShadersInOverlay(target, overlay, true), version);
+        }
+    }
 }
