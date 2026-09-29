@@ -10,6 +10,8 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 public class OraxenStringBlockPlaceEvent extends OraxenPlaceEvent<StringBlockMechanic> {
 
     private static final HandlerList HANDLERS = new HandlerList();
@@ -17,6 +19,18 @@ public class OraxenStringBlockPlaceEvent extends OraxenPlaceEvent<StringBlockMec
     public OraxenStringBlockPlaceEvent(@NotNull StringBlockMechanic mechanic, @NotNull Block block, @NotNull Player player,
                                        @Nullable ItemStack itemInHand, @NotNull EquipmentSlot hand) {
         super(mechanic, block, player, itemInHand, hand);
+    }
+
+    @NotNull
+    @Override
+    public StringBlockMechanic getMechanic() {
+        return super.getMechanic();
+    }
+
+    @NotNull
+    @Override
+    public Block getBlock() {
+        return Objects.requireNonNull(super.getBlock());
     }
 
     @NotNull

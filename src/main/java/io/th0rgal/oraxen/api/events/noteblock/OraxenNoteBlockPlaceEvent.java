@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
+
 public class OraxenNoteBlockPlaceEvent extends OraxenPlaceEvent<NoteBlockMechanic> {
 
     private static final HandlerList HANDLERS = new HandlerList();
@@ -26,6 +27,18 @@ public class OraxenNoteBlockPlaceEvent extends OraxenPlaceEvent<NoteBlockMechani
     @Override
     public ItemStack getItemInHand() {
         return heldItem;
+    }
+
+    @NotNull
+    @Override
+    public NoteBlockMechanic getMechanic() {
+        return super.getMechanic();
+    }
+
+    @NotNull
+    @Override
+    public Block getBlock() {
+        return Objects.requireNonNull(super.getBlock());
     }
 
     @NotNull

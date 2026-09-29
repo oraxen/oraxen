@@ -12,6 +12,8 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 public class OraxenNoteBlockInteractEvent extends OraxenInteractEvent<NoteBlockMechanic> {
 
     private static final HandlerList HANDLERS = new HandlerList();
@@ -37,6 +39,24 @@ public class OraxenNoteBlockInteractEvent extends OraxenInteractEvent<NoteBlockM
     @NotNull
     public Action getAction() {
         return action;
+    }
+
+    @NotNull
+    @Override
+    public NoteBlockMechanic getMechanic() {
+        return super.getMechanic();
+    }
+
+    @NotNull
+    @Override
+    public Block getBlock() {
+        return Objects.requireNonNull(super.getBlock());
+    }
+
+    @NotNull
+    @Override
+    public BlockFace getBlockFace() {
+        return Objects.requireNonNull(super.getBlockFace());
     }
 
     @NotNull

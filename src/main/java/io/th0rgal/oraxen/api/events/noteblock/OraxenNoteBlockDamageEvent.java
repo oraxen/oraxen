@@ -7,6 +7,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
+
 /**
  * Fired right before a player damages a note block.
  * Cancelling the event stops the damage.
@@ -17,6 +19,18 @@ public class OraxenNoteBlockDamageEvent extends OraxenDamageEvent<NoteBlockMecha
 
     public OraxenNoteBlockDamageEvent(@NotNull NoteBlockMechanic mechanic, @NotNull Block block, @NotNull Player player) {
         super(mechanic, block, player);
+    }
+
+    @NotNull
+    @Override
+    public NoteBlockMechanic getMechanic() {
+        return super.getMechanic();
+    }
+
+    @NotNull
+    @Override
+    public Block getBlock() {
+        return Objects.requireNonNull(super.getBlock());
     }
 
     @NotNull

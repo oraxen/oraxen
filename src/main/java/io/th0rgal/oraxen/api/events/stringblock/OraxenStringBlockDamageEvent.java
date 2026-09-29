@@ -7,6 +7,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
+
 /**
  * Fired right before a player damages a string block.
  * Cancelling the event stops the damage.
@@ -17,6 +19,18 @@ public class OraxenStringBlockDamageEvent extends OraxenDamageEvent<StringBlockM
 
     public OraxenStringBlockDamageEvent(@NotNull StringBlockMechanic mechanic, @NotNull Block block, @NotNull Player player) {
         super(mechanic, block, player);
+    }
+
+    @NotNull
+    @Override
+    public StringBlockMechanic getMechanic() {
+        return super.getMechanic();
+    }
+
+    @NotNull
+    @Override
+    public Block getBlock() {
+        return Objects.requireNonNull(super.getBlock());
     }
 
     @NotNull

@@ -7,12 +7,26 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
+
 public class OraxenStringBlockBreakEvent extends OraxenBreakEvent<StringBlockMechanic> {
 
     private static final HandlerList HANDLERS = new HandlerList();
 
     public OraxenStringBlockBreakEvent(@NotNull StringBlockMechanic mechanic, @NotNull Block block, @NotNull Player player) {
         super(mechanic, block, player, mechanic.getDrop(player.getInventory().getItemInMainHand()));
+    }
+
+    @NotNull
+    @Override
+    public StringBlockMechanic getMechanic() {
+        return super.getMechanic();
+    }
+
+    @NotNull
+    @Override
+    public Block getBlock() {
+        return Objects.requireNonNull(super.getBlock());
     }
 
     @NotNull

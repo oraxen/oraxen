@@ -11,6 +11,8 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 public class OraxenChorusBlockInteractEvent extends OraxenInteractEvent<ChorusBlockMechanic> {
 
     private static final HandlerList HANDLERS = new HandlerList();
@@ -19,6 +21,24 @@ public class OraxenChorusBlockInteractEvent extends OraxenInteractEvent<ChorusBl
                                           @Nullable ItemStack itemInHand, @NotNull EquipmentSlot hand,
                                           @NotNull Block block, @NotNull BlockFace blockFace) {
         super(mechanic, player, itemInHand, hand, block, blockFace);
+    }
+
+    @NotNull
+    @Override
+    public ChorusBlockMechanic getMechanic() {
+        return super.getMechanic();
+    }
+
+    @NotNull
+    @Override
+    public Block getBlock() {
+        return Objects.requireNonNull(super.getBlock());
+    }
+
+    @NotNull
+    @Override
+    public BlockFace getBlockFace() {
+        return Objects.requireNonNull(super.getBlockFace());
     }
 
     @NotNull

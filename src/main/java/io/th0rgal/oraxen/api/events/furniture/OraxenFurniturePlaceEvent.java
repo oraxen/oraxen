@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
+
 public class OraxenFurniturePlaceEvent extends OraxenBaseEntityPlaceEvent<FurnitureMechanic> {
 
     private static final HandlerList HANDLERS = new HandlerList();
@@ -27,6 +28,18 @@ public class OraxenFurniturePlaceEvent extends OraxenBaseEntityPlaceEvent<Furnit
     @Override
     public ItemStack getItemInHand() {
         return heldItem;
+    }
+
+    @NotNull
+    @Override
+    public FurnitureMechanic getMechanic() {
+        return super.getMechanic();
+    }
+
+    @NotNull
+    @Override
+    public Block getBlock() {
+        return Objects.requireNonNull(super.getBlock());
     }
 
     @NotNull

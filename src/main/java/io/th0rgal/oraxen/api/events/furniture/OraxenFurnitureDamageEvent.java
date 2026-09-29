@@ -28,6 +28,12 @@ public class OraxenFurnitureDamageEvent extends OraxenBaseEntityDamageEvent<Furn
 
     @NotNull
     @Override
+    public FurnitureMechanic getMechanic() {
+        return super.getMechanic();
+    }
+
+    @NotNull
+    @Override
     public HandlerList getHandlers() {
         return getHandlerList();
     }
