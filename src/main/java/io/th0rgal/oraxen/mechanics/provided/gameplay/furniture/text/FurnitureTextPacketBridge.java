@@ -24,7 +24,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class FurnitureTextPacketBridge {
 
@@ -284,6 +286,10 @@ public final class FurnitureTextPacketBridge {
 
     private static final class ViewerTrackingListener implements Listener {
 
+        // Tracks whose delayed spawn is still pending; an untrack in between invalidates the token
+        // so the spawn cannot reach the client after the destroy packet.
+        private final Map<PendingTrack, Object> pendingTracks = new ConcurrentHashMap<>();
+
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         public void onTrack(PlayerTrackEntityEvent event) {
             FurnitureTextEntry entry = FurnitureTextRegistry.byUuid(event.getEntity().getUniqueId());
@@ -292,7 +298,11 @@ public final class FurnitureTextPacketBridge {
             Player viewer = event.getPlayer();
             UUID baseUuid = entry.getBaseUuid();
             int baseEntityId = entry.getBaseEntityId();
+            PendingTrack key = new PendingTrack(viewer.getUniqueId(), baseUuid);
+            Object token = new Object();
+            pendingTracks.put(key, token);
             SchedulerUtil.runForEntityLater(viewer, 1L, () -> {
+                if (!pendingTracks.remove(key, token)) return;
                 FurnitureTextEntry current = FurnitureTextRegistry.byUuid(baseUuid);
                 if (current == null || current.getBaseEntityId() != baseEntityId) return;
                 sendTextEntry(current, viewer, true);
@@ -304,13 +314,16 @@ public final class FurnitureTextPacketBridge {
             FurnitureTextEntry entry = FurnitureTextRegistry.byUuid(event.getEntity().getUniqueId());
             if (entry == null) return;
             Player viewer = event.getPlayer();
+            pendingTracks.remove(new PendingTrack(viewer.getUniqueId(), entry.getBaseUuid()));
             SchedulerUtil.runOnOwningThread(viewer, () -> destroyTextEntry(entry, viewer));
             entry.removeViewer(viewer.getUniqueId());
         }
 
         @EventHandler(priority = EventPriority.MONITOR)
         public void onQuit(PlayerQuitEvent event) {
-            FurnitureTextRegistry.removeViewer(event.getPlayer().getUniqueId());
+            UUID viewerId = event.getPlayer().getUniqueId();
+            pendingTracks.keySet().removeIf(key -> key.viewer().equals(viewerId));
+            FurnitureTextRegistry.removeViewer(viewerId);
         }
 
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -329,5 +342,8 @@ public final class FurnitureTextPacketBridge {
     }
 
     private record TrackedViewers(List<Player> viewers, boolean exact) {
+    }
+
+    private record PendingTrack(UUID viewer, UUID base) {
     }
 }
