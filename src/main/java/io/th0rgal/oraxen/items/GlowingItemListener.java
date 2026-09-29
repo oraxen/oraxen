@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.items;
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
@@ -13,12 +14,17 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-/** Applies the 1.21.4+ dropped-item outline on the item's owning region. */
+/**
+ * Applies the 1.21.4+ dropped-item outline on the item's owning region.
+ * The outline color comes from a main-scoreboard team, which Folia does not support,
+ * so Folia servers show the default white outline.
+ */
 public final class GlowingItemListener implements Listener {
 
     private static final String TEAM_PREFIX = "orx_glow_";
@@ -33,26 +39,35 @@ public final class GlowingItemListener implements Listener {
     public void onEntityAdd(EntityAddToWorldEvent event) {
         if (!VersionUtil.atOrAbove("1.21.4") || !(event.getEntity() instanceof Item item)) return;
 
-        ItemBuilder builder = OraxenItems.getItemById(OraxenItems.getIdByItem(item.getItemStack()));
-        NamedTextColor color = builder == null || !builder.hasOraxenMeta()
-                ? null : builder.getOraxenMeta().getGlowing();
+        NamedTextColor color = glowingColor(item);
         if (color == null) return;
 
         item.setGlowing(true);
+        if (VersionUtil.isFoliaServer()) return;
         glowingItems.put(item.getUniqueId(), color);
         String entry = item.getUniqueId().toString();
-        Bukkit.getGlobalRegionScheduler().execute(plugin, () -> addToTeam(entry, color));
+        SchedulerUtil.runTask(plugin, () -> addToTeam(entry, color));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onEntityRemove(EntityRemoveFromWorldEvent event) {
-        if (!VersionUtil.atOrAbove("1.21.4") || !(event.getEntity() instanceof Item item)) return;
+        if (!VersionUtil.atOrAbove("1.21.4") || VersionUtil.isFoliaServer() || !(event.getEntity() instanceof Item item))
+            return;
 
+        // Items loaded before this session were never tracked, so fall back to the configured color.
         NamedTextColor color = glowingItems.remove(item.getUniqueId());
+        if (color == null) color = glowingColor(item);
         if (color == null) return;
 
         String entry = item.getUniqueId().toString();
-        Bukkit.getGlobalRegionScheduler().execute(plugin, () -> removeFromTeam(entry, color));
+        NamedTextColor teamColor = color;
+        SchedulerUtil.runTask(plugin, () -> removeFromTeam(entry, teamColor));
+    }
+
+    @Nullable
+    private static NamedTextColor glowingColor(Item item) {
+        ItemBuilder builder = OraxenItems.getItemById(OraxenItems.getIdByItem(item.getItemStack()));
+        return builder == null || !builder.hasOraxenMeta() ? null : builder.getOraxenMeta().getGlowing();
     }
 
     private static void addToTeam(String entry, NamedTextColor color) {
