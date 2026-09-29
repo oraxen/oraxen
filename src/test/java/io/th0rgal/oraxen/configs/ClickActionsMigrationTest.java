@@ -35,8 +35,8 @@ class ClickActionsMigrationTest {
             Map<?, ?> migrated = (Map<?, ?>) events.get(1);
             assertEquals("RIGHT", migrated.get("click"));
             List<?> actions = (List<?>) migrated.get("actions");
-            assertEquals(2, actions.size());
-            assertEquals("[console] say one", ((Map<?, ?>) actions.get(0)).get("legacy"));
+            assertEquals(1, actions.size());
+            assertEquals(List.of("[console] say one", "[message] two"), ((Map<?, ?>) actions.get(0)).get("legacy"));
             assertEquals(List.of("#player.hasPermission('test')"), ((Map<?, ?>) actions.get(0)).get("conditions"));
         }
     }

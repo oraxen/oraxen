@@ -102,7 +102,8 @@ public class BlockEvents {
             }
 
             if (legacy != null) {
-                var actions = OraxenPlugin.get().getClickActionManager().parse(Player.class, List.of(legacy.toString()));
+                // Migrated clickActions run as one ordered sequence so [DELAY] and command order behave as before.
+                var actions = OraxenPlugin.get().getClickActionManager().parse(Player.class, legacyActions(legacy));
                 if (!actions.isEmpty())
                     parsedActions.add(new ConditionalAction(player -> OraxenPlugin.get().getClickActionManager().runOrdered(player, actions), conditions));
                 continue;
@@ -112,6 +113,12 @@ public class BlockEvents {
         }
 
         return List.copyOf(parsedActions);
+    }
+
+    private static List<String> legacyActions(Object legacy) {
+        if (legacy instanceof List<?> values)
+            return values.stream().filter(String.class::isInstance).map(String.class::cast).toList();
+        return List.of(legacy.toString());
     }
 
     private List<String> parseConditions(Map<?, ?> actionMap, String sourceID) {
