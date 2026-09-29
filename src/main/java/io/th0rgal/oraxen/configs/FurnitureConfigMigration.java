@@ -2,7 +2,11 @@ package io.th0rgal.oraxen.configs;
 
 import org.bukkit.configuration.ConfigurationSection;
 
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public final class FurnitureConfigMigration {
 
@@ -18,8 +22,10 @@ public final class FurnitureConfigMigration {
         boolean updated = false;
         ConfigurationSection hitbox = furniture.getConfigurationSection("hitbox");
         if (hitbox != null) {
+            double width = hitbox.getDouble("width", 1.0), height = hitbox.getDouble("height", 1.0);
+            // A non-positive legacy hitbox meant "no hitbox".
             if (!furniture.contains("hitboxes"))
-                furniture.set("hitboxes", List.of("0,0,0 " + hitbox.getDouble("width", 1.0) + "," + hitbox.getDouble("height", 1.0)));
+                furniture.set("hitboxes", width > 0 && height > 0 ? List.of("0,0,0 " + width + "," + height) : List.of());
             furniture.set("hitbox", null);
             updated = true;
         }
@@ -37,10 +43,28 @@ public final class FurnitureConfigMigration {
 
         if (furniture.contains("light")) {
             if (!furniture.contains("lights"))
-                furniture.set("lights", List.of("0,0,0 " + furniture.getInt("light")));
+                furniture.set("lights", legacyLights(furniture, furniture.getInt("light")));
             furniture.set("light", null);
             updated = true;
         }
         return updated;
+    }
+
+    /** The legacy light lit the base block and every barrier. */
+    private static List<String> legacyLights(ConfigurationSection furniture, int level) {
+        Set<String> offsets = new LinkedHashSet<>();
+        offsets.add("0,0,0");
+        for (Object barrier : furniture.getList("barriers", List.of()))
+            if (barrier instanceof Map<?, ?> location)
+                offsets.add(coordinate(location, "x") + "," + coordinate(location, "y") + "," + coordinate(location, "z"));
+
+        List<String> lights = new ArrayList<>();
+        for (String offset : offsets)
+            lights.add(offset + " " + level);
+        return lights;
+    }
+
+    private static int coordinate(Map<?, ?> location, String axis) {
+        return location.get(axis) instanceof Number number ? number.intValue() : 0;
     }
 }
