@@ -27,22 +27,32 @@ public final class UpdateChecker implements Listener {
     private static final URI LATEST_RELEASE = URI.create("https://api.github.com/repos/oraxen/oraxen/releases/latest");
     private static final Pattern INTERVAL = Pattern.compile("(?i)^([1-9]\\d*)([smhd])$");
     private static final Pattern VERSION = Pattern.compile("(?i)^v?(\\d+(?:\\.\\d+)*)(?:[-+].*)?$");
+    // GitHub allows 60 unauthenticated requests per hour and IP, shared by every server on that IP
+    static final long MIN_INTERVAL = TimeUnit.MINUTES.toMillis(10);
+    static final long DEFAULT_INTERVAL = TimeUnit.HOURS.toMillis(24);
     private static final HttpClient HTTP = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
 
     private final OraxenPlugin plugin;
     private volatile String availableVersion;
     private ScheduledTask task;
+    private long scheduledInterval;
 
     public UpdateChecker(OraxenPlugin plugin) {
         this.plugin = plugin;
     }
 
     public void start() {
-        stop();
-        availableVersion = null;
-        if (!Settings.UPDATE_CHECKER_ENABLED.toBool()) return;
+        if (!Settings.UPDATE_CHECKER_ENABLED.toBool()) {
+            stop();
+            availableVersion = null;
+            return;
+        }
 
-        long interval = intervalMillis(Settings.UPDATE_CHECKER_INTERVAL.toString());
+        long interval = intervalMillis(Settings.UPDATE_CHECKER_INTERVAL.getValue());
+        // Keep the running task and the known version on reloads so online players are not notified again
+        if (task != null && interval == scheduledInterval) return;
+        stop();
+        scheduledInterval = interval;
         task = Bukkit.getAsyncScheduler().runAtFixedRate(plugin, ignored -> check(),
                 1, interval, TimeUnit.MILLISECONDS);
     }
@@ -102,12 +112,26 @@ public final class UpdateChecker implements Listener {
                         + " is available, you are running an outdated version.")));
     }
 
-    static long intervalMillis(String value) {
-        Matcher matcher = INTERVAL.matcher(value.trim());
-        if (!matcher.matches()) {
-            Logs.logWarning("Invalid update-checker.interval; using 24h.");
-            return TimeUnit.HOURS.toMillis(24);
+    static long intervalMillis(Object value) {
+        // Read the raw value: a numeric YAML value (e.g. "interval: 24") is not a String
+        long interval = parseIntervalMillis(String.valueOf(value));
+        if (interval < 0) {
+            Logs.logWarning("Invalid update-checker.interval '" + value + "'; using 24h.");
+            return DEFAULT_INTERVAL;
         }
+        if (interval < MIN_INTERVAL) {
+            Logs.logWarning("update-checker.interval '" + value + "' is too short; using the 10m minimum.");
+            return MIN_INTERVAL;
+        }
+        return interval;
+    }
+
+    /**
+     * @return the interval in milliseconds, or -1 if the value is not a valid interval
+     */
+    static long parseIntervalMillis(String value) {
+        Matcher matcher = INTERVAL.matcher(value.trim());
+        if (!matcher.matches()) return -1;
         try {
             long amount = Long.parseLong(matcher.group(1));
             long milliseconds = switch (matcher.group(2).toLowerCase()) {
@@ -116,12 +140,9 @@ public final class UpdateChecker implements Listener {
                 case "h" -> TimeUnit.HOURS.toMillis(amount);
                 default -> TimeUnit.DAYS.toMillis(amount);
             };
-            if (milliseconds > TimeUnit.DAYS.toMillis(365))
-                throw new NumberFormatException("Interval is too long");
-            return milliseconds;
+            return milliseconds > TimeUnit.DAYS.toMillis(365) ? -1 : milliseconds;
         } catch (NumberFormatException exception) {
-            Logs.logWarning("Invalid update-checker.interval; using 24h.");
-            return TimeUnit.HOURS.toMillis(24);
+            return -1;
         }
     }
 
