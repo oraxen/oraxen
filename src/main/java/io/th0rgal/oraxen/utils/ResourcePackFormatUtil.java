@@ -102,8 +102,11 @@ public final class ResourcePackFormatUtil {
     }
 
     private static int getFormatForVersion(MinecraftVersion version, PackFormatThreshold[] thresholds) {
+        // Compare on major/minor/build only: a "26.3-pre1" server already uses the 26.3 formats,
+        // while MinecraftVersion#compareTo would sort it below the "26.3" release threshold.
+        MinecraftVersion release = new MinecraftVersion(version.getMajor(), version.getMinor(), version.getBuild());
         for (PackFormatThreshold threshold : thresholds) {
-            if (version.isAtLeast(threshold.minimumVersion)) {
+            if (release.isAtLeast(threshold.minimumVersion)) {
                 return threshold.packFormat;
             }
         }

@@ -33,4 +33,14 @@ class TextShaderTargetTest {
         assertEquals(88, TextShaderTarget.forVersion("26.2").packFormat());
         assertEquals(97, TextShaderTarget.forVersion("26.3").packFormat());
     }
+
+    @Test
+    void preReleasesUseTheirReleaseShaderTarget() {
+        assertEquals(97, TextShaderTarget.forVersion("26.3-pre1").packFormat());
+        assertTrue(TextShaderTarget.forVersion("26.3-pre1").usesShaderC());
+        assertTrue(TextShaderTarget.forVersion("26.3-rc1").usesShaderC());
+        assertTrue(TextShaderTarget.forVersion("26.3-pre1").isAtLeast("26.3"));
+        assertTrue(TextShaderTarget.forVersion("1.26.3-rc1").isAtLeast("26.3"));
+        assertFalse(TextShaderTarget.forVersion("26.2-rc1").isAtLeast("26.3"));
+    }
 }
