@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.mechanics.provided.cosmetic.backpack;
 
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.Mechanic;
-import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import org.bukkit.Bukkit;
@@ -45,6 +44,7 @@ public class BackpackCosmeticListener implements Listener {
     private final Map<UUID, BackpackCosmeticMechanic> hiddenMovementMechanics = new ConcurrentHashMap<>();
     private final Map<UUID, BackpackCosmeticManager.BackpackData> armorStandDisplays = new ConcurrentHashMap<>();
     private final Map<UUID, SchedulerUtil.ScheduledTask> armorStandViewerTasks = new ConcurrentHashMap<>();
+    private volatile boolean armorStandTasksClosed;
 
     // Movement thresholds to reduce unnecessary updates
     // Without mount packets, we need more frequent updates for smooth following
@@ -79,8 +79,8 @@ public class BackpackCosmeticListener implements Listener {
         if (task != null) task.cancel();
         for (Map.Entry<UUID, BackpackCosmeticManager.BackpackData> entry : armorStandDisplays.entrySet()) {
             BackpackCosmeticManager.BackpackData data = entry.getValue();
-            data.getViewers().remove(playerId);
-            if (data.getViewers().isEmpty()) {
+            // Only prune when this player was a viewer; an empty set may just be awaiting its first viewer.
+            if (data.getViewers().remove(playerId) && data.getViewers().isEmpty()) {
                 armorStandDisplays.remove(entry.getKey(), data);
             }
         }
@@ -521,7 +521,7 @@ public class BackpackCosmeticListener implements Listener {
     }
 
     private void startArmorStandViewerTask(Player viewer) {
-        if (!factory.isArmorStandEnabled()) return;
+        if (!factory.isArmorStandEnabled() || armorStandTasksClosed || !viewer.isOnline()) return;
 
         UUID viewerId = viewer.getUniqueId();
         if (armorStandViewerTasks.containsKey(viewerId)) return;
@@ -531,10 +531,11 @@ public class BackpackCosmeticListener implements Listener {
                 () -> armorStandViewerTasks.remove(viewerId));
         if (task == null) return;
 
+        // Per-player tasks are not registered with MechanicsManager: they are cancelled on quit
+        // and by cleanupArmorStandDisplays() on unregister, so they never outlive their player.
         SchedulerUtil.ScheduledTask previous = armorStandViewerTasks.putIfAbsent(viewerId, task);
-        if (previous == null) {
-            MechanicsManager.registerTask(factory.getMechanicID(), task);
-        } else {
+        if (previous != null || armorStandTasksClosed) {
+            if (previous == null) armorStandViewerTasks.remove(viewerId, task);
             task.cancel();
         }
     }
@@ -581,8 +582,13 @@ public class BackpackCosmeticListener implements Listener {
 
             SchedulerUtil.runForEntity(viewer, () -> {
                 if (armorStandDisplays.get(stand.getUniqueId()) != data) return;
+                UUID viewerId = viewer.getUniqueId();
+                boolean wasViewer = data.getViewers().contains(viewerId);
                 manager.updateBackpackViewer(viewer, data, location, vehicleId, yaw, passengerIds);
-                if (data.getViewers().isEmpty()) armorStandDisplays.remove(stand.getUniqueId(), data);
+                // A fresh display has no viewers until the nearby player's update lands, so only
+                // prune when this viewer was actually removed from it.
+                if (wasViewer && !data.getViewers().contains(viewerId) && data.getViewers().isEmpty())
+                    armorStandDisplays.remove(stand.getUniqueId(), data);
             });
         }, () -> removeArmorStandDisplay(stand.getUniqueId()));
     }
@@ -603,6 +609,7 @@ public class BackpackCosmeticListener implements Listener {
     }
 
     private void removeArmorStandViewer(Player viewer, UUID standId, BackpackCosmeticManager.BackpackData data) {
+        if (!data.getViewers().contains(viewer.getUniqueId())) return;
         manager.removeBackpackViewer(viewer, data);
         if (data.getViewers().isEmpty()) armorStandDisplays.remove(standId, data);
     }
@@ -630,6 +637,7 @@ public class BackpackCosmeticListener implements Listener {
     }
 
     void cleanupArmorStandDisplays() {
+        armorStandTasksClosed = true;
         for (SchedulerUtil.ScheduledTask task : armorStandViewerTasks.values()) {
             task.cancel();
         }
