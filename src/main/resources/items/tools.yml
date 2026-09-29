@@ -46,15 +46,8 @@ emerald_hammer:
       - default/emerald_hammer.png
   mechanics:
     mining:
-      - 0,1,0
-      - 1,1,0
-      - -1,1,0
-      - 0,0,0
-      - 1,0,0
-      - -1,0,0
-      - 0,-1,0
-      - 1,-1,0
-      - -1,-1,0
+      radius: 1
+      depth: 1
 
 amethyst_hammer:
   displayname: "<gradient:#4B36B1:#6699FF>Amethyst Hammer"
@@ -68,24 +61,8 @@ amethyst_hammer:
       - default/amethyst_hammer.png
   mechanics:
     mining:
-      - 0,1,0
-      - 1,1,0
-      - -1,1,0
-      - 0,0,0
-      - 1,0,0
-      - -1,0,0
-      - 0,-1,0
-      - 1,-1,0
-      - -1,-1,0
-      - 0,1,1
-      - 1,1,1
-      - -1,1,1
-      - 0,0,1
-      - 1,0,1
-      - -1,0,1
-      - 0,-1,1
-      - 1,-1,1
-      - -1,-1,1
+      radius: 1
+      depth: 2
 
 onyx_hammer:
   displayname: "<#6f737d>Onyx Hammer"
@@ -101,24 +78,8 @@ onyx_hammer:
     durability:
       value: 3122
     mining:
-      - 0,1,0
-      - 1,1,0
-      - -1,1,0
-      - 0,0,0
-      - 1,0,0
-      - -1,0,0
-      - 0,-1,0
-      - 1,-1,0
-      - -1,-1,0
-      - 0,1,1
-      - 1,1,1
-      - -1,1,1
-      - 0,0,1
-      - 1,0,1
-      - -1,0,1
-      - 0,-1,1
-      - 1,-1,1
-      - -1,-1,1
+      radius: 1
+      depth: 2
 
 orax_hammer:
   displayname: "<gradient:#3685EC:#72C1E4>Orax Hammer"
@@ -134,56 +95,8 @@ orax_hammer:
     durability:
       value: 4683
     mining:
-      - -2,-2,0
-      - -1,-2,0
-      - 0,-2,0
-      - 1,-2,0
-      - 2,-2,0
-      - -2,-1,0
-      - -1,-1,0
-      - 0,-1,0
-      - 1,-1,0
-      - 2,-1,0
-      - -2,0,0
-      - -1,0,0
-      - 0,0,0
-      - 1,0,0
-      - 2,0,0
-      - -2,1,0
-      - -1,1,0
-      - 0,1,0
-      - 1,1,0
-      - 2,1,0
-      - -2,2,0
-      - -1,2,0
-      - 0,2,0
-      - 1,2,0
-      - 2,2,0
-      - -2,-2,1
-      - -1,-2,1
-      - 0,-2,1
-      - 1,-2,1
-      - 2,-2,1
-      - -2,-1,1
-      - -1,-1,1
-      - 0,-1,1
-      - 1,-1,1
-      - 2,-1,1
-      - -2,0,1
-      - -1,0,1
-      - 0,0,1
-      - 1,0,1
-      - 2,0,1
-      - -2,1,1
-      - -1,1,1
-      - 0,1,1
-      - 1,1,1
-      - 2,1,1
-      - -2,2,1
-      - -1,2,1
-      - 0,2,1
-      - 1,2,1
-      - 2,2,1
+      radius: 2
+      depth: 2
 
 fire_hammer:
   displayname: "<gradient:#F06966:#FAD6A6>Fire Hammer"
@@ -203,15 +116,8 @@ fire_hammer:
     durability:
       value: 4683
     mining:
-      - 0,1,0
-      - 1,1,0
-      - -1,1,0
-      - 0,0,0
-      - 1,0,0
-      - -1,0,0
-      - 0,-1,0
-      - 1,-1,0
-      - -1,-1,0
+      radius: 1
+      depth: 1
 
 iron_cog:
   displayname: "<#D5D6D8>Iron Cog"

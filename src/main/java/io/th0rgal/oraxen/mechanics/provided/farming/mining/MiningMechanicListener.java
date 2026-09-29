@@ -7,17 +7,21 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.RayTraceResult;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class MiningMechanicListener implements Listener {
+
+    private static final double TARGET_REACH = 6.0;
 
     private final MiningMechanicFactory factory;
     private final ThreadLocal<Boolean> activeMining = new ThreadLocal<>();
@@ -50,8 +54,18 @@ public class MiningMechanicListener implements Listener {
 
     private static List<Location> targets(Player player, Block origin, MiningMechanic mechanic) {
         if (!mechanic.isFaceRelative()) return worldTargets(origin.getLocation(), mechanic.getOffsets());
-        return mechanic.faceTargets(origin.getLocation(),
-                MiningMechanic.lookingDirection(player.getEyeLocation().getDirection()));
+        return mechanic.faceTargets(origin.getLocation(), miningDirection(player, origin));
+    }
+
+    /**
+     * Direction the face-relative area extends into: opposite of the face the player hit on the
+     * broken block, falling back to the dominant look axis when the ray trace does not hit it.
+     */
+    static BlockFace miningDirection(Player player, Block origin) {
+        RayTraceResult hit = player.rayTraceBlocks(TARGET_REACH);
+        if (hit != null && hit.getHitBlockFace() != null && origin.equals(hit.getHitBlock()))
+            return hit.getHitBlockFace().getOppositeFace();
+        return MiningMechanic.lookingDirection(player.getEyeLocation().getDirection());
     }
 
     private static List<Location> worldTargets(Location origin, List<MiningMechanic.Offset> offsets) {

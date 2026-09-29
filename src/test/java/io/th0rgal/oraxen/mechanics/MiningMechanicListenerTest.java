@@ -11,17 +11,21 @@ import org.bukkit.Server;
 import org.bukkit.Tag;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.PluginManager;
+import org.bukkit.util.RayTraceResult;
+import org.bukkit.util.Vector;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.eq;
@@ -74,5 +78,43 @@ class MiningMechanicListenerTest extends MechanicTestSupport {
             when(server.isOwnedByCurrentRegion(any(Location.class))).thenReturn(false);
             when(server.getPluginManager()).thenReturn(previousPluginManager);
         }
+    }
+
+    @Test
+    void faceRelativeMiningFollowsTheHitFace() {
+        // Looking north at a shallow downward angle while hitting the top face must dig downwards.
+        assertFaceRelativeDirection(BlockFace.UP, true, BlockFace.DOWN);
+        assertFaceRelativeDirection(BlockFace.EAST, true, BlockFace.WEST);
+    }
+
+    @Test
+    void faceRelativeMiningFallsBackToLookDirectionWhenTraceMissesTheBlock() {
+        assertFaceRelativeDirection(BlockFace.UP, false, BlockFace.NORTH);
+        assertFaceRelativeDirection(null, false, BlockFace.NORTH);
+    }
+
+    private static void assertFaceRelativeDirection(BlockFace hitFace, boolean hitsOrigin, BlockFace expected) {
+        MiningMechanicFactory factory = mock(MiningMechanicFactory.class);
+        MiningMechanic mechanic = mock(MiningMechanic.class);
+        when(mechanic.isFaceRelative()).thenReturn(true);
+        when(mechanic.faceTargets(any(Location.class), any(BlockFace.class))).thenReturn(List.of());
+
+        Block origin = mock(Block.class);
+        Location originLocation = new Location(null, 0, 64, 0);
+        when(origin.getLocation()).thenReturn(originLocation);
+
+        ItemStack item = mock(ItemStack.class);
+        PlayerInventory inventory = mock(PlayerInventory.class);
+        when(inventory.getItemInMainHand()).thenReturn(item);
+        Player player = mock(Player.class);
+        when(player.getInventory()).thenReturn(inventory);
+        when(player.getEyeLocation()).thenReturn(new Location(null, 0.5, 66, 3, 180F, 30F));
+        RayTraceResult hit = hitFace == null ? null
+                : new RayTraceResult(new Vector(0.5, 65, 0.5), hitsOrigin ? origin : mock(Block.class), hitFace);
+        when(player.rayTraceBlocks(anyDouble())).thenReturn(hit);
+        when(factory.getMechanic(item)).thenReturn(mechanic);
+
+        new MiningMechanicListener(factory).onBlockBreak(new BlockBreakEvent(origin, player));
+        verify(mechanic).faceTargets(originLocation, expected);
     }
 }
