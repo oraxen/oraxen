@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.configs;
 
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.List;
@@ -16,6 +17,22 @@ public final class FurnitureConfigMigration {
         if (furniture == null) return false;
 
         boolean updated = false;
+        ConfigurationSection displayProperties = furniture.getConfigurationSection("display_entity_properties");
+        ConfigurationSection armorStandProperties = furniture.getConfigurationSection("armor_stand_properties");
+        if (displayProperties != null || armorStandProperties != null) {
+            ConfigurationSection properties = furniture.getConfigurationSection("properties");
+            if (properties == null) properties = furniture.createSection("properties");
+            String defaultType = FurnitureFactory.defaultFurnitureType != null
+                    ? FurnitureFactory.defaultFurnitureType.name() : "DISPLAY_ENTITY";
+            boolean armorStand = furniture.getString("type", defaultType).equals("ARMOR_STAND");
+            // Preserve explicit unified properties, then prefer the legacy section for the selected type.
+            mergeMissingProperties(properties, armorStand ? armorStandProperties : displayProperties);
+            mergeMissingProperties(properties, armorStand ? displayProperties : armorStandProperties);
+            furniture.set("display_entity_properties", null);
+            furniture.set("armor_stand_properties", null);
+            updated = true;
+        }
+
         ConfigurationSection hitbox = furniture.getConfigurationSection("hitbox");
         if (hitbox != null) {
             if (!furniture.contains("hitboxes"))
@@ -42,5 +59,19 @@ public final class FurnitureConfigMigration {
             updated = true;
         }
         return updated;
+    }
+
+    private static void mergeMissingProperties(ConfigurationSection target, ConfigurationSection source) {
+        if (source == null) return;
+        for (String key : source.getKeys(false)) {
+            ConfigurationSection child = source.getConfigurationSection(key);
+            if (child != null) {
+                if (!target.contains(key)) target.createSection(key);
+                ConfigurationSection targetChild = target.getConfigurationSection(key);
+                if (targetChild != null) mergeMissingProperties(targetChild, child);
+            } else if (!target.contains(key)) {
+                target.set(key, source.get(key));
+            }
+        }
     }
 }

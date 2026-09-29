@@ -196,11 +196,11 @@ public class FurnitureFactory extends MechanicFactory {
                 MechanicConfigProperty.list("seats", "List of seat offsets relative to the furniture center formatted '<x>,<y>,<z>' or '<x>,<y>,<z> <yaw>'"),
                 MechanicConfigProperty.list("barriers", "List of barrier block positions relative to furniture"),
                 MechanicConfigProperty.list("events", "Click events with actions to run when furniture barriers or hitboxes are clicked"),
-                MechanicConfigProperty.object("display_entity_properties", "Display entity configuration", Map.of(
+                MechanicConfigProperty.object("properties", "Furniture entity properties; unsupported properties are ignored", Map.of(
                         "display_transform", MechanicConfigProperty.enumType("display_transform", "Display transform mode",
                                 List.of("NONE", "THIRDPERSON_LEFTHAND", "THIRDPERSON_RIGHTHAND", "FIRSTPERSON_LEFTHAND",
                                         "FIRSTPERSON_RIGHTHAND", "HEAD", "GUI", "GROUND", "FIXED")),
-                        "scale", MechanicConfigProperty.object("scale", "Scale of the display entity", Map.of(
+                        "scale", MechanicConfigProperty.object("scale", "Entity scale; armor stands use a size hint and generated model head scale", Map.of(
                                 "x", MechanicConfigProperty.decimal("x", "X-axis scale", 1.0),
                                 "y", MechanicConfigProperty.decimal("y", "Y-axis scale", 1.0),
                                 "z", MechanicConfigProperty.decimal("z", "Z-axis scale", 1.0)
@@ -213,18 +213,6 @@ public class FurnitureFactory extends MechanicFactory {
                         "brightness", MechanicConfigProperty.object("brightness", "Light levels", Map.of(
                                 "block", MechanicConfigProperty.integer("block", "Block light level", 0, 0, 15),
                                 "sky", MechanicConfigProperty.integer("sky", "Sky light level", 0, 0, 15)
-                        ))
-                )),
-                MechanicConfigProperty.object("armor_stand_properties", "Armor stand-specific display configuration", Map.of(
-                        "scale", MechanicConfigProperty.object("scale", "Scale to inject into generated model display.head", Map.of(
-                                "x", MechanicConfigProperty.decimal("x", "X-axis scale", 1.0),
-                                "y", MechanicConfigProperty.decimal("y", "Y-axis scale", 1.0),
-                                "z", MechanicConfigProperty.decimal("z", "Z-axis scale", 1.0)
-                        )),
-                        "translation", MechanicConfigProperty.object("translation", "Position offset for armor stand furniture", Map.of(
-                                "x", MechanicConfigProperty.decimal("x", "X-axis offset", 0.0),
-                                "y", MechanicConfigProperty.decimal("y", "Y-axis offset", 0.0),
-                                "z", MechanicConfigProperty.decimal("z", "Z-axis offset", 0.0)
                         ))
                 )),
                 MechanicConfigProperty.object("drop", "Drop configuration when broken", Map.of(

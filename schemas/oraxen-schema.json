@@ -8590,13 +8590,13 @@
           "type": "array",
           "description": "List of barrier block positions relative to furniture"
         },
-        "display_entity_properties": {
+        "properties": {
           "type": "object",
-          "description": "Display entity configuration",
+          "description": "Furniture entity properties; unsupported properties are ignored",
           "properties": {
             "scale": {
               "type": "object",
-              "description": "Scale of the display entity",
+              "description": "Entity scale; armor stands use a size hint and generated model head scale",
               "properties": {
                 "y": {
                   "type": "number",
@@ -8668,54 +8668,6 @@
                   "type": "number",
                   "description": "X-axis offset",
                   "default": 0.0
-                }
-              }
-            }
-          }
-        },
-        "armor_stand_properties": {
-          "type": "object",
-          "description": "Armor stand-specific display configuration",
-          "properties": {
-            "translation": {
-              "type": "object",
-              "description": "Position offset for armor stand furniture",
-              "properties": {
-                "y": {
-                  "type": "number",
-                  "description": "Y-axis offset",
-                  "default": 0.0
-                },
-                "z": {
-                  "type": "number",
-                  "description": "Z-axis offset",
-                  "default": 0.0
-                },
-                "x": {
-                  "type": "number",
-                  "description": "X-axis offset",
-                  "default": 0.0
-                }
-              }
-            },
-            "scale": {
-              "type": "object",
-              "description": "Scale to inject into generated model display.head",
-              "properties": {
-                "y": {
-                  "type": "number",
-                  "description": "Y-axis scale",
-                  "default": 1.0
-                },
-                "z": {
-                  "type": "number",
-                  "description": "Z-axis scale",
-                  "default": 1.0
-                },
-                "x": {
-                  "type": "number",
-                  "description": "X-axis scale",
-                  "default": 1.0
                 }
               }
             }

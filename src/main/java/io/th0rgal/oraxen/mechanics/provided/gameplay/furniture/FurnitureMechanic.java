@@ -203,12 +203,9 @@ public class FurnitureMechanic extends Mechanic {
         }
 
         boolean smallFromConfig = section.contains("small");
-        // ARMOR_STAND: allow translation (offset) and best-effort scaling.
-        // Prefer explicit armor_stand_properties, but allow reusing display_entity_properties.scale/translation for convenience.
-        ConfigurationSection armorStandProps = section.getConfigurationSection("armor_stand_properties");
-        if (armorStandProps == null && furnitureType == FurnitureType.ARMOR_STAND)
-            armorStandProps = section.getConfigurationSection("display_entity_properties");
-        armorStandProperties = armorStandProps != null ? new ArmorStandProperties(armorStandProps) : new ArmorStandProperties();
+        ConfigurationSection properties = section.getConfigurationSection("properties");
+        armorStandProperties = furnitureType == FurnitureType.ARMOR_STAND && properties != null
+                ? new ArmorStandProperties(properties) : new ArmorStandProperties();
         boolean resolvedSmall = section.getBoolean("small", furnitureType == FurnitureType.ARMOR_STAND);
         if (furnitureType == FurnitureType.ARMOR_STAND && !smallFromConfig && armorStandProperties.hasScale())
             resolvedSmall = armorStandProperties.hintSmallFromScale();
@@ -216,9 +213,8 @@ public class FurnitureMechanic extends Mechanic {
 
         section.set("type", furnitureType.name());
 
-        ConfigurationSection displayProperties = section.getConfigurationSection("display_entity_properties");
-        displayEntityProperties = displayProperties != null
-                ? new DisplayEntityProperties(displayProperties) : new DisplayEntityProperties();
+        displayEntityProperties = furnitureType == FurnitureType.DISPLAY_ENTITY && properties != null
+                ? new DisplayEntityProperties(properties) : new DisplayEntityProperties();
 
         barriers = new ArrayList<>();
         if (section.getBoolean("barrier", false))

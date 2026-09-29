@@ -125,9 +125,7 @@ public final class ItemProperties {
                 ? FurnitureMechanic.FurnitureType.getType(furnitureSection.getString("type", FurnitureMechanic.FurnitureType.DISPLAY_ENTITY.name()))
                 : FurnitureFactory.defaultFurnitureType;
         if (furnitureType != FurnitureMechanic.FurnitureType.ARMOR_STAND) return;
-        ConfigurationSection armorStandSection = OraxenYaml.getConfigurationSection(furnitureSection, "armor_stand_properties");
-        if (armorStandSection == null)
-            armorStandSection = OraxenYaml.getConfigurationSection(furnitureSection, "display_entity_properties");
+        ConfigurationSection armorStandSection = OraxenYaml.getConfigurationSection(furnitureSection, "properties");
         if (armorStandSection == null) return;
         ArmorStandProperties properties = new ArmorStandProperties(armorStandSection);
         if (properties.hasScale())
