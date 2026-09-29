@@ -226,3 +226,6 @@ secrets.json
 .codex
 
 .mizius
+
+# Machine-specific mise overrides (e.g. Windows JAVA_TOOL_OPTIONS)
+mise.local.toml
