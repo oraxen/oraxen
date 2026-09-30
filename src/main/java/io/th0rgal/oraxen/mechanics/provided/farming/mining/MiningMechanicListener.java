@@ -30,9 +30,9 @@ public class MiningMechanicListener implements Listener {
         this.factory = factory;
     }
 
-    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
-        if (Boolean.TRUE.equals(activeMining.get())) return;
+        if (event.isCancelled() || Boolean.TRUE.equals(activeMining.get())) return;
         activeMining.set(true);
         try {
             Player player = event.getPlayer();

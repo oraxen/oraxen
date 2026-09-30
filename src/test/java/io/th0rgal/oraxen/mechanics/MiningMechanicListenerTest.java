@@ -14,6 +14,8 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.PluginManager;
@@ -28,6 +30,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -35,6 +39,19 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class MiningMechanicListenerTest extends MechanicTestSupport {
+
+    @Test
+    void waitsForProtectionHandlersAndIgnoresCancelledOrigin() throws NoSuchMethodException {
+        EventHandler handler = MiningMechanicListener.class
+                .getMethod("onBlockBreak", BlockBreakEvent.class).getAnnotation(EventHandler.class);
+        assertEquals(EventPriority.MONITOR, handler.priority());
+        MiningMechanicFactory factory = mock(MiningMechanicFactory.class);
+        Player player = mock(Player.class);
+        BlockBreakEvent event = new BlockBreakEvent(mock(Block.class), player);
+        event.setCancelled(true);
+        new MiningMechanicListener(factory).onBlockBreak(event);
+        verifyNoInteractions(factory, player);
+    }
 
     @Test
     void breaksConfiguredOffsetAndSkipsOrigin() {
