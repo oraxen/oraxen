@@ -11,6 +11,7 @@ import io.th0rgal.oraxen.mechanics.MechanicInfo;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.PropertyType;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Material;
@@ -191,7 +192,8 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
             List<String> blockTextures = getBlockTextures(section, type);
             if (blockTextures.isEmpty()) {
                 // Fall back to Pack textures
-                ConfigurationSection packSection = section.getParent().getParent().getConfigurationSection("Pack");
+                ConfigurationSection packSection = OraxenYaml.getConfigurationSection(
+                        section.getParent().getParent(), "pack");
                 if (packSection != null) {
                     blockTextures = new ArrayList<>(packSection.getStringList("textures"));
                 }
@@ -203,7 +205,7 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
                 texturesByMaterial.put(mechanic.getPlacedMaterial(), blockTextures);
             }
 
-            String parentModel = section.getParent().getParent().getString("Pack.parent_model");
+            String parentModel = OraxenYaml.getString(section.getParent().getParent(), "pack.parent_model");
             if (parentModel != null && !parentModel.isBlank()) {
                 parentModelByMaterial.put(mechanic.getPlacedMaterial(), parentModel);
             }

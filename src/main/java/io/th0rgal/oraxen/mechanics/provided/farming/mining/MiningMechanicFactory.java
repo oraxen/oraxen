@@ -1,37 +1,42 @@
-package io.th0rgal.oraxen.mechanics.provided.farming.bigmining;
+package io.th0rgal.oraxen.mechanics.provided.farming.mining;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
-import io.th0rgal.oraxen.mechanics.MechanicConfigProperty;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.PluginUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.ConfigurationSection;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class BigMiningMechanicFactory extends MechanicFactory {
+public class MiningMechanicFactory extends MechanicFactory {
 
     private final boolean callEvents;
 
-    public BigMiningMechanicFactory(ConfigurationSection section) {
+    public MiningMechanicFactory(ConfigurationSection section) {
         super(section);
         if (PluginUtils.isEnabled("AdvancedEnchantments") && section.getBoolean("call_events", true)) {
-            Logs.logError("AdvancedEnchantment is enabled, disabling BigMining-Mechanic");
+            Logs.logError("AdvancedEnchantments is enabled, disabling mining BlockBreakEvent calls");
             section.set("call_events", false);
             OraxenYaml.saveConfig(OraxenPlugin.get().getDataFolder().toPath().resolve("mechanics.yml").toFile(), section);
-            this.callEvents = false;
-        } else this.callEvents = section.getBoolean("call_events", true);
-        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new BigMiningMechanicListener(this));
+            callEvents = false;
+        } else callEvents = section.getBoolean("call_events", true);
+        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new MiningMechanicListener(this));
     }
 
     @Override
     public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
-        Mechanic mechanic = new BigMiningMechanic(this, itemMechanicConfiguration);
+        MiningMechanic mechanic = new MiningMechanic(this, itemMechanicConfiguration);
+        addToImplemented(mechanic);
+        return mechanic;
+    }
+
+    @Override
+    public Mechanic parse(String itemID, List<?> entries) {
+        MiningMechanic mechanic = new MiningMechanic(this, itemID, entries);
         addToImplemented(mechanic);
         return mechanic;
     }
@@ -47,14 +52,6 @@ public class BigMiningMechanicFactory extends MechanicFactory {
 
     @Override
     public @Nullable String getMechanicDescription() {
-        return "Mines blocks in an area around the targeted block";
-    }
-
-    @Override
-    public @NotNull List<MechanicConfigProperty> getConfigSchema() {
-        return List.of(
-                MechanicConfigProperty.integer("radius", "Horizontal radius of mining area", 1, 1),
-                MechanicConfigProperty.integer("depth", "Depth of mining area", 1, 1)
-        );
+        return "Mines blocks at world offsets, or in a face-relative area when radius and depth are set";
     }
 }

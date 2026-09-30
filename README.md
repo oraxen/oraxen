@@ -38,7 +38,7 @@
 
 Oraxen is a Minecraft plugin that allows server owners, administrators, and developers to easily create custom content through configuration files and a simple resource pack setup.
 
-It supports Paper (including forks) and Folia from versions 1.20.1 through 26.2.
+It supports Paper (including forks) and Folia from versions 1.20.1 through 26.3.
 
 ## Features
 
@@ -46,7 +46,7 @@ Some of the features Oraxen provides to server owners and administrators are lis
 
 ### Specialties
 
-- Built-in ViaVersion support for versions 1.21.4–26.2, with optional advanced support for versions 1.20–26.2 through MultiVersionPacks.
+- Built-in ViaVersion support for versions 1.21.4–26.3, with optional advanced support for versions 1.20–26.3 through MultiVersionPacks.
 - Hot reloading for custom paintings and, in the future, custom music discs.
 - Fast support through tickets and a team that listens to the community and considers its ideas.
 - Well-organized documentation available [here](https://docs.oraxen.com).

@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockEvents;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.Placeable;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.light.LightMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
+import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
@@ -103,7 +104,7 @@ public class ShapedBlockMechanic extends Mechanic {
     public String getModel(ConfigurationSection section) {
         if (model != null) return model;
         // Try to get explicit model from Pack config
-        String packModel = section.getString("Pack.model");
+        String packModel = OraxenYaml.getString(section, "pack.model");
         if (packModel != null) return packModel;
         // Fall back to item ID as model name (used when generate_model: true)
         return getItemID();

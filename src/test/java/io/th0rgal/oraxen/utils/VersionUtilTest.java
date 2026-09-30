@@ -7,6 +7,11 @@ import static org.junit.jupiter.api.Assertions.*;
 class VersionUtilTest {
 
     @Test
+    void snapshotParsingDoesNotRequireAnInitializedPacketAdapter() {
+        assertDoesNotThrow(() -> new MinecraftVersion("25w03a"));
+    }
+
+    @Test
     void mojangVersionNamespaceOrdersAfterLegacy121Versions() {
         assertFalse(new MinecraftVersion("1.21.11").isAtLeast(new MinecraftVersion("26.1.2")));
         assertTrue(new MinecraftVersion("26.1.2").isAtLeast(new MinecraftVersion("1.21.11")));
@@ -20,6 +25,18 @@ class VersionUtilTest {
         assertTrue(VersionUtil.isModernVersionNamespace(new MinecraftVersion("26.2")));
         assertTrue(VersionUtil.isModernVersionNamespace(new MinecraftVersion("1.26.2")));
         assertTrue(VersionUtil.isModernVersionNamespace(new MinecraftVersion("26.3")));
+    }
+
+    @Test
+    void packetAccessorCheckIncludes263PreReleases() {
+        assertFalse(VersionUtil.uses263PacketAccessors(new MinecraftVersion("26.2")));
+        assertFalse(VersionUtil.uses263PacketAccessors(new MinecraftVersion("1.26.2")));
+        assertTrue(VersionUtil.uses263PacketAccessors(new MinecraftVersion("26.3")));
+        assertTrue(VersionUtil.uses263PacketAccessors(new MinecraftVersion("26.3-pre1")));
+        assertTrue(VersionUtil.uses263PacketAccessors(new MinecraftVersion("26.3-rc1")));
+        assertTrue(VersionUtil.uses263PacketAccessors(new MinecraftVersion("1.26.3")));
+        assertTrue(VersionUtil.uses263PacketAccessors(new MinecraftVersion(26, 3, 0, "pre1")));
+        assertFalse(new MinecraftVersion(26, 3, 0, "pre1").isAtLeast(new MinecraftVersion("26.3")));
     }
 
     @Test

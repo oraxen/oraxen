@@ -10,6 +10,7 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.provided.blocklocker.BlockLockerMechanic;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockEvents;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolvingFurniture;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.GrowthStage;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox.JukeboxBlock;
@@ -25,7 +26,6 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.togglelight.ToggleLightMech
 import io.th0rgal.oraxen.mechanics.provided.gameplay.togglelight.ToggleLightMechanicFactory;
 import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.VersionUtil;
-import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -36,6 +36,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.MemoryConfiguration;
 import org.bukkit.entity.*;
+import org.bukkit.event.block.Action;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -67,6 +68,7 @@ public class FurnitureMechanic extends Mechanic {
     public static final NamespacedKey BARRIER_KEY = new NamespacedKey(OraxenPlugin.get(), "barriers");
 
     private final int hardness;
+    private final boolean breakable;
     private final LimitedPlacing limitedPlacing;
     private final StorageMechanic storage;
     private final BlockSounds blockSounds;
@@ -85,7 +87,7 @@ public class FurnitureMechanic extends Mechanic {
     private final String modelEngineID;
     private final String placedItemId;
     private float seatHeight;
-    private final List<ClickAction> clickActions;
+    private final BlockEvents events;
     private FurnitureType furnitureType;
     private final DisplayEntityProperties displayEntityProperties;
     private final FurnitureHitbox hitbox;
@@ -287,7 +289,8 @@ public class FurnitureMechanic extends Mechanic {
         ConfigurationSection jukeboxSection = section.getConfigurationSection("jukebox");
         jukebox = jukeboxSection != null ? new JukeboxBlock(mechanicFactory, jukeboxSection) : null;
 
-        clickActions = ClickAction.parseList(section);
+        events = new BlockEvents(section, getItemID(), "furniture.events");
+        breakable = section.getBoolean("breakable", !events.hasLeftClickEvent());
 
         if (section.getBoolean("rotatable", false)) {
             if (barriers.stream().anyMatch(b -> b.getX() != 0 || b.getZ() != 0)) {
@@ -314,14 +317,6 @@ public class FurnitureMechanic extends Mechanic {
             return List.copyOf(parsedHitboxes);
         }
 
-        ConfigurationSection hitboxSection = section.getConfigurationSection("hitbox");
-        if (hitboxSection != null) {
-            float width = (float) hitboxSection.getDouble("width", 1.0);
-            float height = (float) hitboxSection.getDouble("height", 1.0);
-            if (width > 0 && height > 0) return List.of(new FurnitureHitbox(width, height));
-            return List.of();
-        }
-
         return !hasBarriers() ? List.of(new FurnitureHitbox(1.0f, 1.0f)) : List.of();
     }
 
@@ -346,13 +341,7 @@ public class FurnitureMechanic extends Mechanic {
             return List.copyOf(parsedSeats);
         }
 
-        ConfigurationSection seatSection = section.getConfigurationSection("seat");
-        if (seatSection == null) return List.of();
-
-        seatHeight = (float) seatSection.getDouble("height");
-        boolean hasSeatYaw = seatSection.contains("yaw");
-        Float yaw = hasSeatYaw ? (float) seatSection.getDouble("yaw") : null;
-        return List.of(new FurnitureSeat(0, seatHeight - 1, 0, yaw));
+        return List.of();
     }
 
     @Nullable
@@ -552,6 +541,10 @@ public class FurnitureMechanic extends Mechanic {
 
     public boolean hasHardness() {
         return hardness != -1;
+    }
+
+    public boolean isBreakable() {
+        return breakable;
     }
 
     public int getHardness() {
@@ -1326,16 +1319,8 @@ public class FurnitureMechanic extends Mechanic {
         return Rotation.values()[Math.round(yaw / 45f) & 0x7];
     }
 
-    public boolean hasClickActions() {
-        return !clickActions.isEmpty();
-    }
-
-    public void runClickActions(final Player player) {
-        for (final ClickAction action : clickActions) {
-            if (action.canRun(player)) {
-                action.performActions(player);
-            }
-        }
+    public boolean runEvents(Player player, Action action) {
+        return events.run(player, action);
     }
 
     private List<UUID> spawnSeats(Location rootLocation, float yaw) {

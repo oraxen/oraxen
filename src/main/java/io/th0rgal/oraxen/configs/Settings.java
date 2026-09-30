@@ -13,6 +13,8 @@ import java.util.concurrent.atomic.AtomicLong;
 public enum Settings {
     // Generic Plugin stuff
     DEBUG("debug"),
+    UPDATE_CHECKER_ENABLED("update-checker.enabled"),
+    UPDATE_CHECKER_INTERVAL("update-checker.interval"),
     PLUGIN_LANGUAGE("Plugin.language"),
     KEEP_UP_TO_DATE("Plugin.keep_this_up_to_date"),
     INTRODUCTION_ENABLED("Plugin.introduction.enabled"),

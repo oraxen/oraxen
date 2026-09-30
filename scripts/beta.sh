@@ -22,6 +22,11 @@ sed -E \
   -e "s|^([[:space:]]*pluginVersion[[:space:]]*=[[:space:]]*).*$|\\1${saved_version}-${commit}|" \
   -e 's|^([[:space:]]*oraxen_compiled[[:space:]]*=[[:space:]]*).*$|\1false|' \
   "$properties_file" > "$tmp_properties"
+
+if ! grep -Eq '^[[:space:]]*oraxen_compiled[[:space:]]*=' "$tmp_properties"; then
+  printf '%s\n' 'oraxen_compiled=false' >> "$tmp_properties"
+fi
+
 mv "$tmp_properties" "$properties_file"
 
 if [[ -x "$project_dir/gradlew" ]]; then

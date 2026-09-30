@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.recipes.listeners;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.provided.misc.misc.MiscMechanic;
 import io.th0rgal.oraxen.mechanics.provided.misc.misc.MiscMechanicFactory;
+import io.th0rgal.oraxen.recipes.builders.SmithingBuilder;
 import io.th0rgal.oraxen.utils.InventoryUtils;
 import io.th0rgal.oraxen.utils.ItemUtils;
 import org.bukkit.Bukkit;
@@ -22,6 +23,11 @@ public class SmithingRecipeEvents implements Listener {
 
     @EventHandler
     public void onSmithingRecipe(PrepareSmithingEvent event) {
+        if (RecipesBuilderEvents.isBuilderInventory(event, SmithingBuilder.class)) {
+            event.setResult(null);
+            return;
+        }
+
         SmithingInventory inventory = event.getInventory();
         ItemStack template = inventory.getInputTemplate();
         ItemStack material = inventory.getInputMineral();

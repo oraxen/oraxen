@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.nms;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.configs.Settings;
+import io.th0rgal.oraxen.utils.MinecraftVersion;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
@@ -47,9 +48,7 @@ public class NMSHandlers {
         }
 
         try {
-            String handlerClass = VersionUtil.isModernVersionNamespace()
-                    ? "io.th0rgal.oraxen.nms.handler.java25.NMSHandler"
-                    : "io.th0rgal.oraxen.nms.handler.java21.NMSHandler";
+            String handlerClass = handlerClassForVersion(new MinecraftVersion(version));
             handler = (NMSHandler) Class.forName(handlerClass)
                     .getConstructor().newInstance();
             if (Settings.DEBUG.toBool()) {
@@ -66,6 +65,25 @@ public class NMSHandlers {
             if (Settings.DEBUG.toBool()) e.printStackTrace();
             handler = new NMSHandler.EmptyNMSHandler();
         }
+    }
+
+    static String handlerClassForVersion(MinecraftVersion minecraftVersion) {
+        // Normalize the legacy spelling used by some 26.x runtimes.
+        if (minecraftVersion.getMajor() == 1 && minecraftVersion.getMinor() >= 26) {
+            minecraftVersion = new MinecraftVersion(minecraftVersion.getMinor(), minecraftVersion.getBuild(), 0);
+        }
+        return minecraftVersion.getMajor() >= 26
+                ? "io.th0rgal.oraxen.nms.handler.java25.NMSHandler"
+                : "io.th0rgal.oraxen.nms.handler.java21.NMSHandler";
+    }
+
+    public static void shutdown() {
+        if (handler != null) {
+            handler.shutdown();
+        }
+        handler = null;
+        version = null;
+        packDispatchListenerRegistered = false;
     }
 
     public static boolean hasPackDispatchListener() {

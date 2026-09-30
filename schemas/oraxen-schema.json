@@ -1,11 +1,12 @@
 {
-  "oraxenVersion": "1.219.1",
-  "minecraftVersion": "26.2",
-  "serverVersion": "26.2.build.38-alpha",
-  "generatedAt": "2026-09-18T15:01:21.361780073Z",
+  "oraxenVersion": "1.220.0",
+  "minecraftVersion": "26.3",
+  "serverVersion": "26.3.build.31-alpha",
+  "generatedAt": "2026-09-21T17:11:50.495380Z",
   "enums": {
     "Material": {
       "values": [
+        "ABANDONED_CAMP_MAP",
         "ACACIA_BOAT",
         "ACACIA_CHEST_BOAT",
         "AIR",
@@ -33,6 +34,7 @@
         "BIRCH_BOAT",
         "BIRCH_CHEST_BOAT",
         "BLACK_BUNDLE",
+        "BLACK_CUSHION",
         "BLACK_DYE",
         "BLACK_HARNESS",
         "BLADE_POTTERY_SHERD",
@@ -40,6 +42,7 @@
         "BLAZE_ROD",
         "BLAZE_SPAWN_EGG",
         "BLUE_BUNDLE",
+        "BLUE_CUSHION",
         "BLUE_DYE",
         "BLUE_EGG",
         "BLUE_HARNESS",
@@ -57,12 +60,17 @@
         "BREWER_POTTERY_SHERD",
         "BRICK",
         "BROWN_BUNDLE",
+        "BROWN_CUSHION",
         "BROWN_DYE",
         "BROWN_EGG",
         "BROWN_HARNESS",
         "BRUSH",
         "BUCKET",
         "BUNDLE",
+        "BURIED_ANCIENT_CITY_MAP",
+        "BURIED_MINESHAFT_MAP",
+        "BURIED_TREASURE_MAP",
+        "BURIED_TRIAL_CHAMBERS_MAP",
         "BURN_POTTERY_SHERD",
         "CAMEL_HUSK_SPAWN_EGG",
         "CAMEL_SPAWN_EGG",
@@ -120,12 +128,15 @@
         "CREEPER_SPAWN_EGG",
         "CROSSBOW",
         "CYAN_BUNDLE",
+        "CYAN_CUSHION",
         "CYAN_DYE",
         "CYAN_HARNESS",
         "DANGER_POTTERY_SHERD",
         "DARK_OAK_BOAT",
         "DARK_OAK_CHEST_BOAT",
         "DEBUG_STICK",
+        "DESERT_PYRAMID_MAP",
+        "DESERT_VILLAGE_MAP",
         "DIAMOND",
         "DIAMOND_AXE",
         "DIAMOND_BOOTS",
@@ -210,9 +221,11 @@
         "GOLDEN_SPEAR",
         "GOLDEN_SWORD",
         "GRAY_BUNDLE",
+        "GRAY_CUSHION",
         "GRAY_DYE",
         "GRAY_HARNESS",
         "GREEN_BUNDLE",
+        "GREEN_CUSHION",
         "GREEN_DYE",
         "GREEN_HARNESS",
         "GUARDIAN_SPAWN_EGG",
@@ -250,6 +263,7 @@
         "ITEM_FRAME",
         "JUNGLE_BOAT",
         "JUNGLE_CHEST_BOAT",
+        "JUNGLE_PYRAMID_MAP",
         "KNOWLEDGE_BOOK",
         "LAPIS_LAZULI",
         "LAVA_BUCKET",
@@ -261,18 +275,22 @@
         "LEATHER_HORSE_ARMOR",
         "LEATHER_LEGGINGS",
         "LIGHT_BLUE_BUNDLE",
+        "LIGHT_BLUE_CUSHION",
         "LIGHT_BLUE_DYE",
         "LIGHT_BLUE_HARNESS",
         "LIGHT_GRAY_BUNDLE",
+        "LIGHT_GRAY_CUSHION",
         "LIGHT_GRAY_DYE",
         "LIGHT_GRAY_HARNESS",
         "LIME_BUNDLE",
+        "LIME_CUSHION",
         "LIME_DYE",
         "LIME_HARNESS",
         "LINGERING_POTION",
         "LLAMA_SPAWN_EGG",
         "MACE",
         "MAGENTA_BUNDLE",
+        "MAGENTA_CUSHION",
         "MAGENTA_DYE",
         "MAGENTA_HARNESS",
         "MAGMA_CREAM",
@@ -335,10 +353,12 @@
         "NETHERITE_UPGRADE_SMITHING_TEMPLATE",
         "OAK_BOAT",
         "OAK_CHEST_BOAT",
+        "OCEAN_MONUMENT_MAP",
         "OCELOT_SPAWN_EGG",
         "OMINOUS_BOTTLE",
         "OMINOUS_TRIAL_KEY",
         "ORANGE_BUNDLE",
+        "ORANGE_CUSHION",
         "ORANGE_DYE",
         "ORANGE_HARNESS",
         "PAINTING",
@@ -356,12 +376,16 @@
         "PIGLIN_SPAWN_EGG",
         "PILLAGER_SPAWN_EGG",
         "PINK_BUNDLE",
+        "PINK_CUSHION",
         "PINK_DYE",
         "PINK_HARNESS",
         "PITCHER_POD",
+        "PLAINS_VILLAGE_MAP",
         "PLENTY_POTTERY_SHERD",
         "POISONOUS_POTATO",
         "POLAR_BEAR_SPAWN_EGG",
+        "POPLAR_BOAT",
+        "POPLAR_CHEST_BOAT",
         "POPPED_CHORUS_FRUIT",
         "PORKCHOP",
         "POTATO",
@@ -376,6 +400,7 @@
         "PUMPKIN_PIE",
         "PUMPKIN_SEEDS",
         "PURPLE_BUNDLE",
+        "PURPLE_CUSHION",
         "PURPLE_DYE",
         "PURPLE_HARNESS",
         "QUARTZ",
@@ -391,6 +416,7 @@
         "RAW_IRON",
         "RECOVERY_COMPASS",
         "RED_BUNDLE",
+        "RED_CUSHION",
         "RED_DYE",
         "RED_HARNESS",
         "REDSTONE",
@@ -401,6 +427,7 @@
         "SALMON",
         "SALMON_BUCKET",
         "SALMON_SPAWN_EGG",
+        "SAVANNA_VILLAGE_MAP",
         "SCRAPE_POTTERY_SHERD",
         "SENTRY_ARMOR_TRIM_SMITHING_TEMPLATE",
         "SHAPER_ARMOR_TRIM_SMITHING_TEMPLATE",
@@ -424,6 +451,7 @@
         "SNOUT_ARMOR_TRIM_SMITHING_TEMPLATE",
         "SNOW_GOLEM_SPAWN_EGG",
         "SNOWBALL",
+        "SNOWY_VILLAGE_MAP",
         "SPECTRAL_ARROW",
         "SPIDER_EYE",
         "SPIDER_SPAWN_EGG",
@@ -447,9 +475,11 @@
         "SULFUR_CUBE_BUCKET",
         "SULFUR_CUBE_SPAWN_EGG",
         "SUSPICIOUS_STEW",
+        "SWAMP_HUT_MAP",
         "SWEET_BERRIES",
         "TADPOLE_BUCKET",
         "TADPOLE_SPAWN_EGG",
+        "TAIGA_VILLAGE_MAP",
         "TIDE_ARMOR_TRIM_SMITHING_TEMPLATE",
         "TIPPED_ARROW",
         "TNT_MINECART",
@@ -471,11 +501,13 @@
         "WANDERING_TRADER_SPAWN_EGG",
         "WARD_ARMOR_TRIM_SMITHING_TEMPLATE",
         "WARDEN_SPAWN_EGG",
+        "WARM_OCEAN_RUINS_MAP",
         "WARPED_FUNGUS_ON_A_STICK",
         "WATER_BUCKET",
         "WAYFINDER_ARMOR_TRIM_SMITHING_TEMPLATE",
         "WHEAT_SEEDS",
         "WHITE_BUNDLE",
+        "WHITE_CUSHION",
         "WHITE_DYE",
         "WHITE_HARNESS",
         "WILD_ARMOR_TRIM_SMITHING_TEMPLATE",
@@ -491,9 +523,11 @@
         "WOODEN_SHOVEL",
         "WOODEN_SPEAR",
         "WOODEN_SWORD",
+        "WOODLAND_MANSION_MAP",
         "WRITABLE_BOOK",
         "WRITTEN_BOOK",
         "YELLOW_BUNDLE",
+        "YELLOW_CUSHION",
         "YELLOW_DYE",
         "YELLOW_HARNESS",
         "ZOGLIN_SPAWN_EGG",
@@ -591,6 +625,8 @@
         "BLACK_CARPET",
         "BLACK_CONCRETE",
         "BLACK_CONCRETE_POWDER",
+        "BLACK_CONCRETE_SLAB",
+        "BLACK_CONCRETE_STAIRS",
         "BLACK_GLAZED_TERRACOTTA",
         "BLACK_SHULKER_BOX",
         "BLACK_STAINED_GLASS",
@@ -598,6 +634,8 @@
         "BLACK_TERRACOTTA",
         "BLACK_WALL_BANNER",
         "BLACK_WOOL",
+        "BLACK_WOOL_SLAB",
+        "BLACK_WOOL_STAIRS",
         "BLACKSTONE",
         "BLACKSTONE_SLAB",
         "BLACKSTONE_STAIRS",
@@ -610,6 +648,8 @@
         "BLUE_CARPET",
         "BLUE_CONCRETE",
         "BLUE_CONCRETE_POWDER",
+        "BLUE_CONCRETE_SLAB",
+        "BLUE_CONCRETE_STAIRS",
         "BLUE_GLAZED_TERRACOTTA",
         "BLUE_ICE",
         "BLUE_ORCHID",
@@ -619,6 +659,8 @@
         "BLUE_TERRACOTTA",
         "BLUE_WALL_BANNER",
         "BLUE_WOOL",
+        "BLUE_WOOL_SLAB",
+        "BLUE_WOOL_STAIRS",
         "BONE_BLOCK",
         "BOOKSHELF",
         "BRAIN_CORAL",
@@ -637,6 +679,8 @@
         "BROWN_CARPET",
         "BROWN_CONCRETE",
         "BROWN_CONCRETE_POWDER",
+        "BROWN_CONCRETE_SLAB",
+        "BROWN_CONCRETE_STAIRS",
         "BROWN_GLAZED_TERRACOTTA",
         "BROWN_MUSHROOM",
         "BROWN_MUSHROOM_BLOCK",
@@ -646,6 +690,8 @@
         "BROWN_TERRACOTTA",
         "BROWN_WALL_BANNER",
         "BROWN_WOOL",
+        "BROWN_WOOL_SLAB",
+        "BROWN_WOOL_STAIRS",
         "BUBBLE_COLUMN",
         "BUBBLE_CORAL",
         "BUBBLE_CORAL_BLOCK",
@@ -790,6 +836,8 @@
         "CYAN_CARPET",
         "CYAN_CONCRETE",
         "CYAN_CONCRETE_POWDER",
+        "CYAN_CONCRETE_SLAB",
+        "CYAN_CONCRETE_STAIRS",
         "CYAN_GLAZED_TERRACOTTA",
         "CYAN_SHULKER_BOX",
         "CYAN_STAINED_GLASS",
@@ -797,6 +845,8 @@
         "CYAN_TERRACOTTA",
         "CYAN_WALL_BANNER",
         "CYAN_WOOL",
+        "CYAN_WOOL_SLAB",
+        "CYAN_WOOL_STAIRS",
         "DAMAGED_ANVIL",
         "DANDELION",
         "DARK_OAK_BUTTON",
@@ -941,6 +991,8 @@
         "GRAY_CARPET",
         "GRAY_CONCRETE",
         "GRAY_CONCRETE_POWDER",
+        "GRAY_CONCRETE_SLAB",
+        "GRAY_CONCRETE_STAIRS",
         "GRAY_GLAZED_TERRACOTTA",
         "GRAY_SHULKER_BOX",
         "GRAY_STAINED_GLASS",
@@ -948,6 +1000,8 @@
         "GRAY_TERRACOTTA",
         "GRAY_WALL_BANNER",
         "GRAY_WOOL",
+        "GRAY_WOOL_SLAB",
+        "GRAY_WOOL_STAIRS",
         "GREEN_BANNER",
         "GREEN_BED",
         "GREEN_CANDLE",
@@ -955,6 +1009,8 @@
         "GREEN_CARPET",
         "GREEN_CONCRETE",
         "GREEN_CONCRETE_POWDER",
+        "GREEN_CONCRETE_SLAB",
+        "GREEN_CONCRETE_STAIRS",
         "GREEN_GLAZED_TERRACOTTA",
         "GREEN_SHULKER_BOX",
         "GREEN_STAINED_GLASS",
@@ -962,6 +1018,8 @@
         "GREEN_TERRACOTTA",
         "GREEN_WALL_BANNER",
         "GREEN_WOOL",
+        "GREEN_WOOL_SLAB",
+        "GREEN_WOOL_STAIRS",
         "GRINDSTONE",
         "HANGING_ROOTS",
         "HAY_BLOCK",
@@ -1030,6 +1088,8 @@
         "LIGHT_BLUE_CARPET",
         "LIGHT_BLUE_CONCRETE",
         "LIGHT_BLUE_CONCRETE_POWDER",
+        "LIGHT_BLUE_CONCRETE_SLAB",
+        "LIGHT_BLUE_CONCRETE_STAIRS",
         "LIGHT_BLUE_GLAZED_TERRACOTTA",
         "LIGHT_BLUE_SHULKER_BOX",
         "LIGHT_BLUE_STAINED_GLASS",
@@ -1037,6 +1097,8 @@
         "LIGHT_BLUE_TERRACOTTA",
         "LIGHT_BLUE_WALL_BANNER",
         "LIGHT_BLUE_WOOL",
+        "LIGHT_BLUE_WOOL_SLAB",
+        "LIGHT_BLUE_WOOL_STAIRS",
         "LIGHT_GRAY_BANNER",
         "LIGHT_GRAY_BED",
         "LIGHT_GRAY_CANDLE",
@@ -1044,6 +1106,8 @@
         "LIGHT_GRAY_CARPET",
         "LIGHT_GRAY_CONCRETE",
         "LIGHT_GRAY_CONCRETE_POWDER",
+        "LIGHT_GRAY_CONCRETE_SLAB",
+        "LIGHT_GRAY_CONCRETE_STAIRS",
         "LIGHT_GRAY_GLAZED_TERRACOTTA",
         "LIGHT_GRAY_SHULKER_BOX",
         "LIGHT_GRAY_STAINED_GLASS",
@@ -1051,6 +1115,8 @@
         "LIGHT_GRAY_TERRACOTTA",
         "LIGHT_GRAY_WALL_BANNER",
         "LIGHT_GRAY_WOOL",
+        "LIGHT_GRAY_WOOL_SLAB",
+        "LIGHT_GRAY_WOOL_STAIRS",
         "LIGHT_WEIGHTED_PRESSURE_PLATE",
         "LIGHTNING_ROD",
         "LILAC",
@@ -1063,6 +1129,8 @@
         "LIME_CARPET",
         "LIME_CONCRETE",
         "LIME_CONCRETE_POWDER",
+        "LIME_CONCRETE_SLAB",
+        "LIME_CONCRETE_STAIRS",
         "LIME_GLAZED_TERRACOTTA",
         "LIME_SHULKER_BOX",
         "LIME_STAINED_GLASS",
@@ -1070,6 +1138,8 @@
         "LIME_TERRACOTTA",
         "LIME_WALL_BANNER",
         "LIME_WOOL",
+        "LIME_WOOL_SLAB",
+        "LIME_WOOL_STAIRS",
         "LODESTONE",
         "LOOM",
         "MAGENTA_BANNER",
@@ -1079,6 +1149,8 @@
         "MAGENTA_CARPET",
         "MAGENTA_CONCRETE",
         "MAGENTA_CONCRETE_POWDER",
+        "MAGENTA_CONCRETE_SLAB",
+        "MAGENTA_CONCRETE_STAIRS",
         "MAGENTA_GLAZED_TERRACOTTA",
         "MAGENTA_SHULKER_BOX",
         "MAGENTA_STAINED_GLASS",
@@ -1086,6 +1158,8 @@
         "MAGENTA_TERRACOTTA",
         "MAGENTA_WALL_BANNER",
         "MAGENTA_WOOL",
+        "MAGENTA_WOOL_SLAB",
+        "MAGENTA_WOOL_STAIRS",
         "MAGMA_BLOCK",
         "MANGROVE_BUTTON",
         "MANGROVE_DOOR",
@@ -1171,7 +1245,10 @@
         "ORANGE_CARPET",
         "ORANGE_CONCRETE",
         "ORANGE_CONCRETE_POWDER",
+        "ORANGE_CONCRETE_SLAB",
+        "ORANGE_CONCRETE_STAIRS",
         "ORANGE_GLAZED_TERRACOTTA",
+        "ORANGE_POPLAR_LEAVES",
         "ORANGE_SHULKER_BOX",
         "ORANGE_STAINED_GLASS",
         "ORANGE_STAINED_GLASS_PANE",
@@ -1179,6 +1256,8 @@
         "ORANGE_TULIP",
         "ORANGE_WALL_BANNER",
         "ORANGE_WOOL",
+        "ORANGE_WOOL_SLAB",
+        "ORANGE_WOOL_STAIRS",
         "OXEYE_DAISY",
         "OXIDIZED_CHISELED_COPPER",
         "OXIDIZED_COPPER",
@@ -1230,6 +1309,8 @@
         "PINK_CARPET",
         "PINK_CONCRETE",
         "PINK_CONCRETE_POWDER",
+        "PINK_CONCRETE_SLAB",
+        "PINK_CONCRETE_STAIRS",
         "PINK_GLAZED_TERRACOTTA",
         "PINK_PETALS",
         "PINK_SHULKER_BOX",
@@ -1239,6 +1320,8 @@
         "PINK_TULIP",
         "PINK_WALL_BANNER",
         "PINK_WOOL",
+        "PINK_WOOL_SLAB",
+        "PINK_WOOL_STAIRS",
         "PISTON",
         "PISTON_HEAD",
         "PITCHER_CROP",
@@ -1283,6 +1366,23 @@
         "POLISHED_TUFF_SLAB",
         "POLISHED_TUFF_STAIRS",
         "POLISHED_TUFF_WALL",
+        "POPLAR_BUTTON",
+        "POPLAR_DOOR",
+        "POPLAR_FENCE",
+        "POPLAR_FENCE_GATE",
+        "POPLAR_HANGING_SIGN",
+        "POPLAR_LOG",
+        "POPLAR_PLANKS",
+        "POPLAR_PRESSURE_PLATE",
+        "POPLAR_SAPLING",
+        "POPLAR_SHELF",
+        "POPLAR_SIGN",
+        "POPLAR_SLAB",
+        "POPLAR_STAIRS",
+        "POPLAR_TRAPDOOR",
+        "POPLAR_WALL_HANGING_SIGN",
+        "POPLAR_WALL_SIGN",
+        "POPLAR_WOOD",
         "POPPY",
         "POTATOES",
         "POTENT_SULFUR",
@@ -1315,6 +1415,7 @@
         "POTTED_OXEYE_DAISY",
         "POTTED_PALE_OAK_SAPLING",
         "POTTED_PINK_TULIP",
+        "POTTED_POPLAR_SAPLING",
         "POTTED_POPPY",
         "POTTED_RED_MUSHROOM",
         "POTTED_RED_TULIP",
@@ -1343,6 +1444,8 @@
         "PURPLE_CARPET",
         "PURPLE_CONCRETE",
         "PURPLE_CONCRETE_POWDER",
+        "PURPLE_CONCRETE_SLAB",
+        "PURPLE_CONCRETE_STAIRS",
         "PURPLE_GLAZED_TERRACOTTA",
         "PURPLE_SHULKER_BOX",
         "PURPLE_STAINED_GLASS",
@@ -1350,6 +1453,8 @@
         "PURPLE_TERRACOTTA",
         "PURPLE_WALL_BANNER",
         "PURPLE_WOOL",
+        "PURPLE_WOOL_SLAB",
+        "PURPLE_WOOL_STAIRS",
         "PURPUR_BLOCK",
         "PURPUR_PILLAR",
         "PURPUR_SLAB",
@@ -1370,6 +1475,8 @@
         "RED_CARPET",
         "RED_CONCRETE",
         "RED_CONCRETE_POWDER",
+        "RED_CONCRETE_SLAB",
+        "RED_CONCRETE_STAIRS",
         "RED_GLAZED_TERRACOTTA",
         "RED_MUSHROOM",
         "RED_MUSHROOM_BLOCK",
@@ -1377,11 +1484,13 @@
         "RED_NETHER_BRICK_STAIRS",
         "RED_NETHER_BRICK_WALL",
         "RED_NETHER_BRICKS",
+        "RED_POPLAR_LEAVES",
         "RED_SAND",
         "RED_SANDSTONE",
         "RED_SANDSTONE_SLAB",
         "RED_SANDSTONE_STAIRS",
         "RED_SANDSTONE_WALL",
+        "RED_SHRUB",
         "RED_SHULKER_BOX",
         "RED_STAINED_GLASS",
         "RED_STAINED_GLASS_PANE",
@@ -1389,6 +1498,8 @@
         "RED_TULIP",
         "RED_WALL_BANNER",
         "RED_WOOL",
+        "RED_WOOL_SLAB",
+        "RED_WOOL_STAIRS",
         "REDSTONE_BLOCK",
         "REDSTONE_LAMP",
         "REDSTONE_ORE",
@@ -1421,6 +1532,7 @@
         "SEA_LANTERN",
         "SEA_PICKLE",
         "SEAGRASS",
+        "SHELF_MUSHROOM",
         "SHORT_DRY_GRASS",
         "SHORT_GRASS",
         "SHROOMLIGHT",
@@ -1486,6 +1598,7 @@
         "STONE_SLAB",
         "STONE_STAIRS",
         "STONECUTTER",
+        "STRAW_BED",
         "STRIPPED_ACACIA_LOG",
         "STRIPPED_ACACIA_WOOD",
         "STRIPPED_BAMBOO_BLOCK",
@@ -1505,6 +1618,8 @@
         "STRIPPED_OAK_WOOD",
         "STRIPPED_PALE_OAK_LOG",
         "STRIPPED_PALE_OAK_WOOD",
+        "STRIPPED_POPLAR_LOG",
+        "STRIPPED_POPLAR_WOOD",
         "STRIPPED_SPRUCE_LOG",
         "STRIPPED_SPRUCE_WOOD",
         "STRIPPED_WARPED_HYPHAE",
@@ -1669,6 +1784,8 @@
         "WHITE_CARPET",
         "WHITE_CONCRETE",
         "WHITE_CONCRETE_POWDER",
+        "WHITE_CONCRETE_SLAB",
+        "WHITE_CONCRETE_STAIRS",
         "WHITE_GLAZED_TERRACOTTA",
         "WHITE_SHULKER_BOX",
         "WHITE_STAINED_GLASS",
@@ -1677,6 +1794,8 @@
         "WHITE_TULIP",
         "WHITE_WALL_BANNER",
         "WHITE_WOOL",
+        "WHITE_WOOL_SLAB",
+        "WHITE_WOOL_STAIRS",
         "WILDFLOWERS",
         "WITHER_ROSE",
         "WITHER_SKELETON_SKULL",
@@ -1688,18 +1807,24 @@
         "YELLOW_CARPET",
         "YELLOW_CONCRETE",
         "YELLOW_CONCRETE_POWDER",
+        "YELLOW_CONCRETE_SLAB",
+        "YELLOW_CONCRETE_STAIRS",
         "YELLOW_GLAZED_TERRACOTTA",
+        "YELLOW_POPLAR_LEAVES",
         "YELLOW_SHULKER_BOX",
         "YELLOW_STAINED_GLASS",
         "YELLOW_STAINED_GLASS_PANE",
         "YELLOW_TERRACOTTA",
         "YELLOW_WALL_BANNER",
         "YELLOW_WOOL",
+        "YELLOW_WOOL_SLAB",
+        "YELLOW_WOOL_STAIRS",
         "ZOMBIE_HEAD",
         "ZOMBIE_WALL_HEAD"
       ],
       "categories": {
         "items": [
+          "ABANDONED_CAMP_MAP",
           "ACACIA_BOAT",
           "ACACIA_CHEST_BOAT",
           "AIR",
@@ -1727,6 +1852,7 @@
           "BIRCH_BOAT",
           "BIRCH_CHEST_BOAT",
           "BLACK_BUNDLE",
+          "BLACK_CUSHION",
           "BLACK_DYE",
           "BLACK_HARNESS",
           "BLADE_POTTERY_SHERD",
@@ -1734,6 +1860,7 @@
           "BLAZE_ROD",
           "BLAZE_SPAWN_EGG",
           "BLUE_BUNDLE",
+          "BLUE_CUSHION",
           "BLUE_DYE",
           "BLUE_EGG",
           "BLUE_HARNESS",
@@ -1751,12 +1878,17 @@
           "BREWER_POTTERY_SHERD",
           "BRICK",
           "BROWN_BUNDLE",
+          "BROWN_CUSHION",
           "BROWN_DYE",
           "BROWN_EGG",
           "BROWN_HARNESS",
           "BRUSH",
           "BUCKET",
           "BUNDLE",
+          "BURIED_ANCIENT_CITY_MAP",
+          "BURIED_MINESHAFT_MAP",
+          "BURIED_TREASURE_MAP",
+          "BURIED_TRIAL_CHAMBERS_MAP",
           "BURN_POTTERY_SHERD",
           "CAMEL_HUSK_SPAWN_EGG",
           "CAMEL_SPAWN_EGG",
@@ -1814,12 +1946,15 @@
           "CREEPER_SPAWN_EGG",
           "CROSSBOW",
           "CYAN_BUNDLE",
+          "CYAN_CUSHION",
           "CYAN_DYE",
           "CYAN_HARNESS",
           "DANGER_POTTERY_SHERD",
           "DARK_OAK_BOAT",
           "DARK_OAK_CHEST_BOAT",
           "DEBUG_STICK",
+          "DESERT_PYRAMID_MAP",
+          "DESERT_VILLAGE_MAP",
           "DIAMOND",
           "DIAMOND_AXE",
           "DIAMOND_BOOTS",
@@ -1904,9 +2039,11 @@
           "GOLDEN_SPEAR",
           "GOLDEN_SWORD",
           "GRAY_BUNDLE",
+          "GRAY_CUSHION",
           "GRAY_DYE",
           "GRAY_HARNESS",
           "GREEN_BUNDLE",
+          "GREEN_CUSHION",
           "GREEN_DYE",
           "GREEN_HARNESS",
           "GUARDIAN_SPAWN_EGG",
@@ -1944,6 +2081,7 @@
           "ITEM_FRAME",
           "JUNGLE_BOAT",
           "JUNGLE_CHEST_BOAT",
+          "JUNGLE_PYRAMID_MAP",
           "KNOWLEDGE_BOOK",
           "LAPIS_LAZULI",
           "LAVA_BUCKET",
@@ -1955,18 +2093,22 @@
           "LEATHER_HORSE_ARMOR",
           "LEATHER_LEGGINGS",
           "LIGHT_BLUE_BUNDLE",
+          "LIGHT_BLUE_CUSHION",
           "LIGHT_BLUE_DYE",
           "LIGHT_BLUE_HARNESS",
           "LIGHT_GRAY_BUNDLE",
+          "LIGHT_GRAY_CUSHION",
           "LIGHT_GRAY_DYE",
           "LIGHT_GRAY_HARNESS",
           "LIME_BUNDLE",
+          "LIME_CUSHION",
           "LIME_DYE",
           "LIME_HARNESS",
           "LINGERING_POTION",
           "LLAMA_SPAWN_EGG",
           "MACE",
           "MAGENTA_BUNDLE",
+          "MAGENTA_CUSHION",
           "MAGENTA_DYE",
           "MAGENTA_HARNESS",
           "MAGMA_CREAM",
@@ -2029,10 +2171,12 @@
           "NETHERITE_UPGRADE_SMITHING_TEMPLATE",
           "OAK_BOAT",
           "OAK_CHEST_BOAT",
+          "OCEAN_MONUMENT_MAP",
           "OCELOT_SPAWN_EGG",
           "OMINOUS_BOTTLE",
           "OMINOUS_TRIAL_KEY",
           "ORANGE_BUNDLE",
+          "ORANGE_CUSHION",
           "ORANGE_DYE",
           "ORANGE_HARNESS",
           "PAINTING",
@@ -2050,12 +2194,16 @@
           "PIGLIN_SPAWN_EGG",
           "PILLAGER_SPAWN_EGG",
           "PINK_BUNDLE",
+          "PINK_CUSHION",
           "PINK_DYE",
           "PINK_HARNESS",
           "PITCHER_POD",
+          "PLAINS_VILLAGE_MAP",
           "PLENTY_POTTERY_SHERD",
           "POISONOUS_POTATO",
           "POLAR_BEAR_SPAWN_EGG",
+          "POPLAR_BOAT",
+          "POPLAR_CHEST_BOAT",
           "POPPED_CHORUS_FRUIT",
           "PORKCHOP",
           "POTATO",
@@ -2070,6 +2218,7 @@
           "PUMPKIN_PIE",
           "PUMPKIN_SEEDS",
           "PURPLE_BUNDLE",
+          "PURPLE_CUSHION",
           "PURPLE_DYE",
           "PURPLE_HARNESS",
           "QUARTZ",
@@ -2085,6 +2234,7 @@
           "RAW_IRON",
           "RECOVERY_COMPASS",
           "RED_BUNDLE",
+          "RED_CUSHION",
           "RED_DYE",
           "RED_HARNESS",
           "REDSTONE",
@@ -2095,6 +2245,7 @@
           "SALMON",
           "SALMON_BUCKET",
           "SALMON_SPAWN_EGG",
+          "SAVANNA_VILLAGE_MAP",
           "SCRAPE_POTTERY_SHERD",
           "SENTRY_ARMOR_TRIM_SMITHING_TEMPLATE",
           "SHAPER_ARMOR_TRIM_SMITHING_TEMPLATE",
@@ -2118,6 +2269,7 @@
           "SNOUT_ARMOR_TRIM_SMITHING_TEMPLATE",
           "SNOW_GOLEM_SPAWN_EGG",
           "SNOWBALL",
+          "SNOWY_VILLAGE_MAP",
           "SPECTRAL_ARROW",
           "SPIDER_EYE",
           "SPIDER_SPAWN_EGG",
@@ -2141,9 +2293,11 @@
           "SULFUR_CUBE_BUCKET",
           "SULFUR_CUBE_SPAWN_EGG",
           "SUSPICIOUS_STEW",
+          "SWAMP_HUT_MAP",
           "SWEET_BERRIES",
           "TADPOLE_BUCKET",
           "TADPOLE_SPAWN_EGG",
+          "TAIGA_VILLAGE_MAP",
           "TIDE_ARMOR_TRIM_SMITHING_TEMPLATE",
           "TIPPED_ARROW",
           "TNT_MINECART",
@@ -2165,11 +2319,13 @@
           "WANDERING_TRADER_SPAWN_EGG",
           "WARD_ARMOR_TRIM_SMITHING_TEMPLATE",
           "WARDEN_SPAWN_EGG",
+          "WARM_OCEAN_RUINS_MAP",
           "WARPED_FUNGUS_ON_A_STICK",
           "WATER_BUCKET",
           "WAYFINDER_ARMOR_TRIM_SMITHING_TEMPLATE",
           "WHEAT_SEEDS",
           "WHITE_BUNDLE",
+          "WHITE_CUSHION",
           "WHITE_DYE",
           "WHITE_HARNESS",
           "WILD_ARMOR_TRIM_SMITHING_TEMPLATE",
@@ -2185,9 +2341,11 @@
           "WOODEN_SHOVEL",
           "WOODEN_SPEAR",
           "WOODEN_SWORD",
+          "WOODLAND_MANSION_MAP",
           "WRITABLE_BOOK",
           "WRITTEN_BOOK",
           "YELLOW_BUNDLE",
+          "YELLOW_CUSHION",
           "YELLOW_DYE",
           "YELLOW_HARNESS",
           "ZOGLIN_SPAWN_EGG",
@@ -2273,12 +2431,16 @@
           "BLACK_CARPET",
           "BLACK_CONCRETE",
           "BLACK_CONCRETE_POWDER",
+          "BLACK_CONCRETE_SLAB",
+          "BLACK_CONCRETE_STAIRS",
           "BLACK_GLAZED_TERRACOTTA",
           "BLACK_SHULKER_BOX",
           "BLACK_STAINED_GLASS",
           "BLACK_STAINED_GLASS_PANE",
           "BLACK_TERRACOTTA",
           "BLACK_WOOL",
+          "BLACK_WOOL_SLAB",
+          "BLACK_WOOL_STAIRS",
           "BLACKSTONE",
           "BLACKSTONE_SLAB",
           "BLACKSTONE_STAIRS",
@@ -2290,6 +2452,8 @@
           "BLUE_CARPET",
           "BLUE_CONCRETE",
           "BLUE_CONCRETE_POWDER",
+          "BLUE_CONCRETE_SLAB",
+          "BLUE_CONCRETE_STAIRS",
           "BLUE_GLAZED_TERRACOTTA",
           "BLUE_ICE",
           "BLUE_ORCHID",
@@ -2298,6 +2462,8 @@
           "BLUE_STAINED_GLASS_PANE",
           "BLUE_TERRACOTTA",
           "BLUE_WOOL",
+          "BLUE_WOOL_SLAB",
+          "BLUE_WOOL_STAIRS",
           "BONE_BLOCK",
           "BOOKSHELF",
           "BRAIN_CORAL",
@@ -2314,6 +2480,8 @@
           "BROWN_CARPET",
           "BROWN_CONCRETE",
           "BROWN_CONCRETE_POWDER",
+          "BROWN_CONCRETE_SLAB",
+          "BROWN_CONCRETE_STAIRS",
           "BROWN_GLAZED_TERRACOTTA",
           "BROWN_MUSHROOM",
           "BROWN_MUSHROOM_BLOCK",
@@ -2322,6 +2490,8 @@
           "BROWN_STAINED_GLASS_PANE",
           "BROWN_TERRACOTTA",
           "BROWN_WOOL",
+          "BROWN_WOOL_SLAB",
+          "BROWN_WOOL_STAIRS",
           "BUBBLE_CORAL",
           "BUBBLE_CORAL_BLOCK",
           "BUBBLE_CORAL_FAN",
@@ -2451,12 +2621,16 @@
           "CYAN_CARPET",
           "CYAN_CONCRETE",
           "CYAN_CONCRETE_POWDER",
+          "CYAN_CONCRETE_SLAB",
+          "CYAN_CONCRETE_STAIRS",
           "CYAN_GLAZED_TERRACOTTA",
           "CYAN_SHULKER_BOX",
           "CYAN_STAINED_GLASS",
           "CYAN_STAINED_GLASS_PANE",
           "CYAN_TERRACOTTA",
           "CYAN_WOOL",
+          "CYAN_WOOL_SLAB",
+          "CYAN_WOOL_STAIRS",
           "DAMAGED_ANVIL",
           "DANDELION",
           "DARK_OAK_BUTTON",
@@ -2587,24 +2761,32 @@
           "GRAY_CARPET",
           "GRAY_CONCRETE",
           "GRAY_CONCRETE_POWDER",
+          "GRAY_CONCRETE_SLAB",
+          "GRAY_CONCRETE_STAIRS",
           "GRAY_GLAZED_TERRACOTTA",
           "GRAY_SHULKER_BOX",
           "GRAY_STAINED_GLASS",
           "GRAY_STAINED_GLASS_PANE",
           "GRAY_TERRACOTTA",
           "GRAY_WOOL",
+          "GRAY_WOOL_SLAB",
+          "GRAY_WOOL_STAIRS",
           "GREEN_BANNER",
           "GREEN_BED",
           "GREEN_CANDLE",
           "GREEN_CARPET",
           "GREEN_CONCRETE",
           "GREEN_CONCRETE_POWDER",
+          "GREEN_CONCRETE_SLAB",
+          "GREEN_CONCRETE_STAIRS",
           "GREEN_GLAZED_TERRACOTTA",
           "GREEN_SHULKER_BOX",
           "GREEN_STAINED_GLASS",
           "GREEN_STAINED_GLASS_PANE",
           "GREEN_TERRACOTTA",
           "GREEN_WOOL",
+          "GREEN_WOOL_SLAB",
+          "GREEN_WOOL_STAIRS",
           "GRINDSTONE",
           "HANGING_ROOTS",
           "HAY_BLOCK",
@@ -2666,24 +2848,32 @@
           "LIGHT_BLUE_CARPET",
           "LIGHT_BLUE_CONCRETE",
           "LIGHT_BLUE_CONCRETE_POWDER",
+          "LIGHT_BLUE_CONCRETE_SLAB",
+          "LIGHT_BLUE_CONCRETE_STAIRS",
           "LIGHT_BLUE_GLAZED_TERRACOTTA",
           "LIGHT_BLUE_SHULKER_BOX",
           "LIGHT_BLUE_STAINED_GLASS",
           "LIGHT_BLUE_STAINED_GLASS_PANE",
           "LIGHT_BLUE_TERRACOTTA",
           "LIGHT_BLUE_WOOL",
+          "LIGHT_BLUE_WOOL_SLAB",
+          "LIGHT_BLUE_WOOL_STAIRS",
           "LIGHT_GRAY_BANNER",
           "LIGHT_GRAY_BED",
           "LIGHT_GRAY_CANDLE",
           "LIGHT_GRAY_CARPET",
           "LIGHT_GRAY_CONCRETE",
           "LIGHT_GRAY_CONCRETE_POWDER",
+          "LIGHT_GRAY_CONCRETE_SLAB",
+          "LIGHT_GRAY_CONCRETE_STAIRS",
           "LIGHT_GRAY_GLAZED_TERRACOTTA",
           "LIGHT_GRAY_SHULKER_BOX",
           "LIGHT_GRAY_STAINED_GLASS",
           "LIGHT_GRAY_STAINED_GLASS_PANE",
           "LIGHT_GRAY_TERRACOTTA",
           "LIGHT_GRAY_WOOL",
+          "LIGHT_GRAY_WOOL_SLAB",
+          "LIGHT_GRAY_WOOL_STAIRS",
           "LIGHT_WEIGHTED_PRESSURE_PLATE",
           "LIGHTNING_ROD",
           "LILAC",
@@ -2695,12 +2885,16 @@
           "LIME_CARPET",
           "LIME_CONCRETE",
           "LIME_CONCRETE_POWDER",
+          "LIME_CONCRETE_SLAB",
+          "LIME_CONCRETE_STAIRS",
           "LIME_GLAZED_TERRACOTTA",
           "LIME_SHULKER_BOX",
           "LIME_STAINED_GLASS",
           "LIME_STAINED_GLASS_PANE",
           "LIME_TERRACOTTA",
           "LIME_WOOL",
+          "LIME_WOOL_SLAB",
+          "LIME_WOOL_STAIRS",
           "LODESTONE",
           "LOOM",
           "MAGENTA_BANNER",
@@ -2709,12 +2903,16 @@
           "MAGENTA_CARPET",
           "MAGENTA_CONCRETE",
           "MAGENTA_CONCRETE_POWDER",
+          "MAGENTA_CONCRETE_SLAB",
+          "MAGENTA_CONCRETE_STAIRS",
           "MAGENTA_GLAZED_TERRACOTTA",
           "MAGENTA_SHULKER_BOX",
           "MAGENTA_STAINED_GLASS",
           "MAGENTA_STAINED_GLASS_PANE",
           "MAGENTA_TERRACOTTA",
           "MAGENTA_WOOL",
+          "MAGENTA_WOOL_SLAB",
+          "MAGENTA_WOOL_STAIRS",
           "MAGMA_BLOCK",
           "MANGROVE_BUTTON",
           "MANGROVE_DOOR",
@@ -2792,13 +2990,18 @@
           "ORANGE_CARPET",
           "ORANGE_CONCRETE",
           "ORANGE_CONCRETE_POWDER",
+          "ORANGE_CONCRETE_SLAB",
+          "ORANGE_CONCRETE_STAIRS",
           "ORANGE_GLAZED_TERRACOTTA",
+          "ORANGE_POPLAR_LEAVES",
           "ORANGE_SHULKER_BOX",
           "ORANGE_STAINED_GLASS",
           "ORANGE_STAINED_GLASS_PANE",
           "ORANGE_TERRACOTTA",
           "ORANGE_TULIP",
           "ORANGE_WOOL",
+          "ORANGE_WOOL_SLAB",
+          "ORANGE_WOOL_STAIRS",
           "OXEYE_DAISY",
           "OXIDIZED_CHISELED_COPPER",
           "OXIDIZED_COPPER",
@@ -2846,6 +3049,8 @@
           "PINK_CARPET",
           "PINK_CONCRETE",
           "PINK_CONCRETE_POWDER",
+          "PINK_CONCRETE_SLAB",
+          "PINK_CONCRETE_STAIRS",
           "PINK_GLAZED_TERRACOTTA",
           "PINK_PETALS",
           "PINK_SHULKER_BOX",
@@ -2854,6 +3059,8 @@
           "PINK_TERRACOTTA",
           "PINK_TULIP",
           "PINK_WOOL",
+          "PINK_WOOL_SLAB",
+          "PINK_WOOL_STAIRS",
           "PISTON",
           "PITCHER_PLANT",
           "PLAYER_HEAD",
@@ -2895,6 +3102,21 @@
           "POLISHED_TUFF_SLAB",
           "POLISHED_TUFF_STAIRS",
           "POLISHED_TUFF_WALL",
+          "POPLAR_BUTTON",
+          "POPLAR_DOOR",
+          "POPLAR_FENCE",
+          "POPLAR_FENCE_GATE",
+          "POPLAR_HANGING_SIGN",
+          "POPLAR_LOG",
+          "POPLAR_PLANKS",
+          "POPLAR_PRESSURE_PLATE",
+          "POPLAR_SAPLING",
+          "POPLAR_SHELF",
+          "POPLAR_SIGN",
+          "POPLAR_SLAB",
+          "POPLAR_STAIRS",
+          "POPLAR_TRAPDOOR",
+          "POPLAR_WOOD",
           "POPPY",
           "POTENT_SULFUR",
           "POWERED_RAIL",
@@ -2912,12 +3134,16 @@
           "PURPLE_CARPET",
           "PURPLE_CONCRETE",
           "PURPLE_CONCRETE_POWDER",
+          "PURPLE_CONCRETE_SLAB",
+          "PURPLE_CONCRETE_STAIRS",
           "PURPLE_GLAZED_TERRACOTTA",
           "PURPLE_SHULKER_BOX",
           "PURPLE_STAINED_GLASS",
           "PURPLE_STAINED_GLASS_PANE",
           "PURPLE_TERRACOTTA",
           "PURPLE_WOOL",
+          "PURPLE_WOOL_SLAB",
+          "PURPLE_WOOL_STAIRS",
           "PURPUR_BLOCK",
           "PURPUR_PILLAR",
           "PURPUR_SLAB",
@@ -2937,6 +3163,8 @@
           "RED_CARPET",
           "RED_CONCRETE",
           "RED_CONCRETE_POWDER",
+          "RED_CONCRETE_SLAB",
+          "RED_CONCRETE_STAIRS",
           "RED_GLAZED_TERRACOTTA",
           "RED_MUSHROOM",
           "RED_MUSHROOM_BLOCK",
@@ -2944,17 +3172,21 @@
           "RED_NETHER_BRICK_STAIRS",
           "RED_NETHER_BRICK_WALL",
           "RED_NETHER_BRICKS",
+          "RED_POPLAR_LEAVES",
           "RED_SAND",
           "RED_SANDSTONE",
           "RED_SANDSTONE_SLAB",
           "RED_SANDSTONE_STAIRS",
           "RED_SANDSTONE_WALL",
+          "RED_SHRUB",
           "RED_SHULKER_BOX",
           "RED_STAINED_GLASS",
           "RED_STAINED_GLASS_PANE",
           "RED_TERRACOTTA",
           "RED_TULIP",
           "RED_WOOL",
+          "RED_WOOL_SLAB",
+          "RED_WOOL_STAIRS",
           "REDSTONE_BLOCK",
           "REDSTONE_LAMP",
           "REDSTONE_ORE",
@@ -2985,6 +3217,7 @@
           "SEA_LANTERN",
           "SEA_PICKLE",
           "SEAGRASS",
+          "SHELF_MUSHROOM",
           "SHORT_DRY_GRASS",
           "SHORT_GRASS",
           "SHROOMLIGHT",
@@ -3045,6 +3278,7 @@
           "STONE_SLAB",
           "STONE_STAIRS",
           "STONECUTTER",
+          "STRAW_BED",
           "STRIPPED_ACACIA_LOG",
           "STRIPPED_ACACIA_WOOD",
           "STRIPPED_BAMBOO_BLOCK",
@@ -3064,6 +3298,8 @@
           "STRIPPED_OAK_WOOD",
           "STRIPPED_PALE_OAK_LOG",
           "STRIPPED_PALE_OAK_WOOD",
+          "STRIPPED_POPLAR_LOG",
+          "STRIPPED_POPLAR_WOOD",
           "STRIPPED_SPRUCE_LOG",
           "STRIPPED_SPRUCE_WOOD",
           "STRIPPED_WARPED_HYPHAE",
@@ -3214,6 +3450,8 @@
           "WHITE_CARPET",
           "WHITE_CONCRETE",
           "WHITE_CONCRETE_POWDER",
+          "WHITE_CONCRETE_SLAB",
+          "WHITE_CONCRETE_STAIRS",
           "WHITE_GLAZED_TERRACOTTA",
           "WHITE_SHULKER_BOX",
           "WHITE_STAINED_GLASS",
@@ -3221,6 +3459,8 @@
           "WHITE_TERRACOTTA",
           "WHITE_TULIP",
           "WHITE_WOOL",
+          "WHITE_WOOL_SLAB",
+          "WHITE_WOOL_STAIRS",
           "WILDFLOWERS",
           "WITHER_ROSE",
           "WITHER_SKELETON_SKULL",
@@ -3230,12 +3470,17 @@
           "YELLOW_CARPET",
           "YELLOW_CONCRETE",
           "YELLOW_CONCRETE_POWDER",
+          "YELLOW_CONCRETE_SLAB",
+          "YELLOW_CONCRETE_STAIRS",
           "YELLOW_GLAZED_TERRACOTTA",
+          "YELLOW_POPLAR_LEAVES",
           "YELLOW_SHULKER_BOX",
           "YELLOW_STAINED_GLASS",
           "YELLOW_STAINED_GLASS_PANE",
           "YELLOW_TERRACOTTA",
           "YELLOW_WOOL",
+          "YELLOW_WOOL_SLAB",
+          "YELLOW_WOOL_STAIRS",
           "ZOMBIE_HEAD"
         ],
         "blocks": [
@@ -3329,6 +3574,8 @@
           "BLACK_CARPET",
           "BLACK_CONCRETE",
           "BLACK_CONCRETE_POWDER",
+          "BLACK_CONCRETE_SLAB",
+          "BLACK_CONCRETE_STAIRS",
           "BLACK_GLAZED_TERRACOTTA",
           "BLACK_SHULKER_BOX",
           "BLACK_STAINED_GLASS",
@@ -3336,6 +3583,8 @@
           "BLACK_TERRACOTTA",
           "BLACK_WALL_BANNER",
           "BLACK_WOOL",
+          "BLACK_WOOL_SLAB",
+          "BLACK_WOOL_STAIRS",
           "BLACKSTONE",
           "BLACKSTONE_SLAB",
           "BLACKSTONE_STAIRS",
@@ -3348,6 +3597,8 @@
           "BLUE_CARPET",
           "BLUE_CONCRETE",
           "BLUE_CONCRETE_POWDER",
+          "BLUE_CONCRETE_SLAB",
+          "BLUE_CONCRETE_STAIRS",
           "BLUE_GLAZED_TERRACOTTA",
           "BLUE_ICE",
           "BLUE_ORCHID",
@@ -3357,6 +3608,8 @@
           "BLUE_TERRACOTTA",
           "BLUE_WALL_BANNER",
           "BLUE_WOOL",
+          "BLUE_WOOL_SLAB",
+          "BLUE_WOOL_STAIRS",
           "BONE_BLOCK",
           "BOOKSHELF",
           "BRAIN_CORAL",
@@ -3375,6 +3628,8 @@
           "BROWN_CARPET",
           "BROWN_CONCRETE",
           "BROWN_CONCRETE_POWDER",
+          "BROWN_CONCRETE_SLAB",
+          "BROWN_CONCRETE_STAIRS",
           "BROWN_GLAZED_TERRACOTTA",
           "BROWN_MUSHROOM",
           "BROWN_MUSHROOM_BLOCK",
@@ -3384,6 +3639,8 @@
           "BROWN_TERRACOTTA",
           "BROWN_WALL_BANNER",
           "BROWN_WOOL",
+          "BROWN_WOOL_SLAB",
+          "BROWN_WOOL_STAIRS",
           "BUBBLE_COLUMN",
           "BUBBLE_CORAL",
           "BUBBLE_CORAL_BLOCK",
@@ -3528,6 +3785,8 @@
           "CYAN_CARPET",
           "CYAN_CONCRETE",
           "CYAN_CONCRETE_POWDER",
+          "CYAN_CONCRETE_SLAB",
+          "CYAN_CONCRETE_STAIRS",
           "CYAN_GLAZED_TERRACOTTA",
           "CYAN_SHULKER_BOX",
           "CYAN_STAINED_GLASS",
@@ -3535,6 +3794,8 @@
           "CYAN_TERRACOTTA",
           "CYAN_WALL_BANNER",
           "CYAN_WOOL",
+          "CYAN_WOOL_SLAB",
+          "CYAN_WOOL_STAIRS",
           "DAMAGED_ANVIL",
           "DANDELION",
           "DARK_OAK_BUTTON",
@@ -3679,6 +3940,8 @@
           "GRAY_CARPET",
           "GRAY_CONCRETE",
           "GRAY_CONCRETE_POWDER",
+          "GRAY_CONCRETE_SLAB",
+          "GRAY_CONCRETE_STAIRS",
           "GRAY_GLAZED_TERRACOTTA",
           "GRAY_SHULKER_BOX",
           "GRAY_STAINED_GLASS",
@@ -3686,6 +3949,8 @@
           "GRAY_TERRACOTTA",
           "GRAY_WALL_BANNER",
           "GRAY_WOOL",
+          "GRAY_WOOL_SLAB",
+          "GRAY_WOOL_STAIRS",
           "GREEN_BANNER",
           "GREEN_BED",
           "GREEN_CANDLE",
@@ -3693,6 +3958,8 @@
           "GREEN_CARPET",
           "GREEN_CONCRETE",
           "GREEN_CONCRETE_POWDER",
+          "GREEN_CONCRETE_SLAB",
+          "GREEN_CONCRETE_STAIRS",
           "GREEN_GLAZED_TERRACOTTA",
           "GREEN_SHULKER_BOX",
           "GREEN_STAINED_GLASS",
@@ -3700,6 +3967,8 @@
           "GREEN_TERRACOTTA",
           "GREEN_WALL_BANNER",
           "GREEN_WOOL",
+          "GREEN_WOOL_SLAB",
+          "GREEN_WOOL_STAIRS",
           "GRINDSTONE",
           "HANGING_ROOTS",
           "HAY_BLOCK",
@@ -3768,6 +4037,8 @@
           "LIGHT_BLUE_CARPET",
           "LIGHT_BLUE_CONCRETE",
           "LIGHT_BLUE_CONCRETE_POWDER",
+          "LIGHT_BLUE_CONCRETE_SLAB",
+          "LIGHT_BLUE_CONCRETE_STAIRS",
           "LIGHT_BLUE_GLAZED_TERRACOTTA",
           "LIGHT_BLUE_SHULKER_BOX",
           "LIGHT_BLUE_STAINED_GLASS",
@@ -3775,6 +4046,8 @@
           "LIGHT_BLUE_TERRACOTTA",
           "LIGHT_BLUE_WALL_BANNER",
           "LIGHT_BLUE_WOOL",
+          "LIGHT_BLUE_WOOL_SLAB",
+          "LIGHT_BLUE_WOOL_STAIRS",
           "LIGHT_GRAY_BANNER",
           "LIGHT_GRAY_BED",
           "LIGHT_GRAY_CANDLE",
@@ -3782,6 +4055,8 @@
           "LIGHT_GRAY_CARPET",
           "LIGHT_GRAY_CONCRETE",
           "LIGHT_GRAY_CONCRETE_POWDER",
+          "LIGHT_GRAY_CONCRETE_SLAB",
+          "LIGHT_GRAY_CONCRETE_STAIRS",
           "LIGHT_GRAY_GLAZED_TERRACOTTA",
           "LIGHT_GRAY_SHULKER_BOX",
           "LIGHT_GRAY_STAINED_GLASS",
@@ -3789,6 +4064,8 @@
           "LIGHT_GRAY_TERRACOTTA",
           "LIGHT_GRAY_WALL_BANNER",
           "LIGHT_GRAY_WOOL",
+          "LIGHT_GRAY_WOOL_SLAB",
+          "LIGHT_GRAY_WOOL_STAIRS",
           "LIGHT_WEIGHTED_PRESSURE_PLATE",
           "LIGHTNING_ROD",
           "LILAC",
@@ -3801,6 +4078,8 @@
           "LIME_CARPET",
           "LIME_CONCRETE",
           "LIME_CONCRETE_POWDER",
+          "LIME_CONCRETE_SLAB",
+          "LIME_CONCRETE_STAIRS",
           "LIME_GLAZED_TERRACOTTA",
           "LIME_SHULKER_BOX",
           "LIME_STAINED_GLASS",
@@ -3808,6 +4087,8 @@
           "LIME_TERRACOTTA",
           "LIME_WALL_BANNER",
           "LIME_WOOL",
+          "LIME_WOOL_SLAB",
+          "LIME_WOOL_STAIRS",
           "LODESTONE",
           "LOOM",
           "MAGENTA_BANNER",
@@ -3817,6 +4098,8 @@
           "MAGENTA_CARPET",
           "MAGENTA_CONCRETE",
           "MAGENTA_CONCRETE_POWDER",
+          "MAGENTA_CONCRETE_SLAB",
+          "MAGENTA_CONCRETE_STAIRS",
           "MAGENTA_GLAZED_TERRACOTTA",
           "MAGENTA_SHULKER_BOX",
           "MAGENTA_STAINED_GLASS",
@@ -3824,6 +4107,8 @@
           "MAGENTA_TERRACOTTA",
           "MAGENTA_WALL_BANNER",
           "MAGENTA_WOOL",
+          "MAGENTA_WOOL_SLAB",
+          "MAGENTA_WOOL_STAIRS",
           "MAGMA_BLOCK",
           "MANGROVE_BUTTON",
           "MANGROVE_DOOR",
@@ -3909,7 +4194,10 @@
           "ORANGE_CARPET",
           "ORANGE_CONCRETE",
           "ORANGE_CONCRETE_POWDER",
+          "ORANGE_CONCRETE_SLAB",
+          "ORANGE_CONCRETE_STAIRS",
           "ORANGE_GLAZED_TERRACOTTA",
+          "ORANGE_POPLAR_LEAVES",
           "ORANGE_SHULKER_BOX",
           "ORANGE_STAINED_GLASS",
           "ORANGE_STAINED_GLASS_PANE",
@@ -3917,6 +4205,8 @@
           "ORANGE_TULIP",
           "ORANGE_WALL_BANNER",
           "ORANGE_WOOL",
+          "ORANGE_WOOL_SLAB",
+          "ORANGE_WOOL_STAIRS",
           "OXEYE_DAISY",
           "OXIDIZED_CHISELED_COPPER",
           "OXIDIZED_COPPER",
@@ -3968,6 +4258,8 @@
           "PINK_CARPET",
           "PINK_CONCRETE",
           "PINK_CONCRETE_POWDER",
+          "PINK_CONCRETE_SLAB",
+          "PINK_CONCRETE_STAIRS",
           "PINK_GLAZED_TERRACOTTA",
           "PINK_PETALS",
           "PINK_SHULKER_BOX",
@@ -3977,6 +4269,8 @@
           "PINK_TULIP",
           "PINK_WALL_BANNER",
           "PINK_WOOL",
+          "PINK_WOOL_SLAB",
+          "PINK_WOOL_STAIRS",
           "PISTON",
           "PISTON_HEAD",
           "PITCHER_CROP",
@@ -4021,6 +4315,23 @@
           "POLISHED_TUFF_SLAB",
           "POLISHED_TUFF_STAIRS",
           "POLISHED_TUFF_WALL",
+          "POPLAR_BUTTON",
+          "POPLAR_DOOR",
+          "POPLAR_FENCE",
+          "POPLAR_FENCE_GATE",
+          "POPLAR_HANGING_SIGN",
+          "POPLAR_LOG",
+          "POPLAR_PLANKS",
+          "POPLAR_PRESSURE_PLATE",
+          "POPLAR_SAPLING",
+          "POPLAR_SHELF",
+          "POPLAR_SIGN",
+          "POPLAR_SLAB",
+          "POPLAR_STAIRS",
+          "POPLAR_TRAPDOOR",
+          "POPLAR_WALL_HANGING_SIGN",
+          "POPLAR_WALL_SIGN",
+          "POPLAR_WOOD",
           "POPPY",
           "POTATOES",
           "POTENT_SULFUR",
@@ -4053,6 +4364,7 @@
           "POTTED_OXEYE_DAISY",
           "POTTED_PALE_OAK_SAPLING",
           "POTTED_PINK_TULIP",
+          "POTTED_POPLAR_SAPLING",
           "POTTED_POPPY",
           "POTTED_RED_MUSHROOM",
           "POTTED_RED_TULIP",
@@ -4081,6 +4393,8 @@
           "PURPLE_CARPET",
           "PURPLE_CONCRETE",
           "PURPLE_CONCRETE_POWDER",
+          "PURPLE_CONCRETE_SLAB",
+          "PURPLE_CONCRETE_STAIRS",
           "PURPLE_GLAZED_TERRACOTTA",
           "PURPLE_SHULKER_BOX",
           "PURPLE_STAINED_GLASS",
@@ -4088,6 +4402,8 @@
           "PURPLE_TERRACOTTA",
           "PURPLE_WALL_BANNER",
           "PURPLE_WOOL",
+          "PURPLE_WOOL_SLAB",
+          "PURPLE_WOOL_STAIRS",
           "PURPUR_BLOCK",
           "PURPUR_PILLAR",
           "PURPUR_SLAB",
@@ -4108,6 +4424,8 @@
           "RED_CARPET",
           "RED_CONCRETE",
           "RED_CONCRETE_POWDER",
+          "RED_CONCRETE_SLAB",
+          "RED_CONCRETE_STAIRS",
           "RED_GLAZED_TERRACOTTA",
           "RED_MUSHROOM",
           "RED_MUSHROOM_BLOCK",
@@ -4115,11 +4433,13 @@
           "RED_NETHER_BRICK_STAIRS",
           "RED_NETHER_BRICK_WALL",
           "RED_NETHER_BRICKS",
+          "RED_POPLAR_LEAVES",
           "RED_SAND",
           "RED_SANDSTONE",
           "RED_SANDSTONE_SLAB",
           "RED_SANDSTONE_STAIRS",
           "RED_SANDSTONE_WALL",
+          "RED_SHRUB",
           "RED_SHULKER_BOX",
           "RED_STAINED_GLASS",
           "RED_STAINED_GLASS_PANE",
@@ -4127,6 +4447,8 @@
           "RED_TULIP",
           "RED_WALL_BANNER",
           "RED_WOOL",
+          "RED_WOOL_SLAB",
+          "RED_WOOL_STAIRS",
           "REDSTONE_BLOCK",
           "REDSTONE_LAMP",
           "REDSTONE_ORE",
@@ -4159,6 +4481,7 @@
           "SEA_LANTERN",
           "SEA_PICKLE",
           "SEAGRASS",
+          "SHELF_MUSHROOM",
           "SHORT_DRY_GRASS",
           "SHORT_GRASS",
           "SHROOMLIGHT",
@@ -4224,6 +4547,7 @@
           "STONE_SLAB",
           "STONE_STAIRS",
           "STONECUTTER",
+          "STRAW_BED",
           "STRIPPED_ACACIA_LOG",
           "STRIPPED_ACACIA_WOOD",
           "STRIPPED_BAMBOO_BLOCK",
@@ -4243,6 +4567,8 @@
           "STRIPPED_OAK_WOOD",
           "STRIPPED_PALE_OAK_LOG",
           "STRIPPED_PALE_OAK_WOOD",
+          "STRIPPED_POPLAR_LOG",
+          "STRIPPED_POPLAR_WOOD",
           "STRIPPED_SPRUCE_LOG",
           "STRIPPED_SPRUCE_WOOD",
           "STRIPPED_WARPED_HYPHAE",
@@ -4407,6 +4733,8 @@
           "WHITE_CARPET",
           "WHITE_CONCRETE",
           "WHITE_CONCRETE_POWDER",
+          "WHITE_CONCRETE_SLAB",
+          "WHITE_CONCRETE_STAIRS",
           "WHITE_GLAZED_TERRACOTTA",
           "WHITE_SHULKER_BOX",
           "WHITE_STAINED_GLASS",
@@ -4415,6 +4743,8 @@
           "WHITE_TULIP",
           "WHITE_WALL_BANNER",
           "WHITE_WOOL",
+          "WHITE_WOOL_SLAB",
+          "WHITE_WOOL_STAIRS",
           "WILDFLOWERS",
           "WITHER_ROSE",
           "WITHER_SKELETON_SKULL",
@@ -4426,13 +4756,18 @@
           "YELLOW_CARPET",
           "YELLOW_CONCRETE",
           "YELLOW_CONCRETE_POWDER",
+          "YELLOW_CONCRETE_SLAB",
+          "YELLOW_CONCRETE_STAIRS",
           "YELLOW_GLAZED_TERRACOTTA",
+          "YELLOW_POPLAR_LEAVES",
           "YELLOW_SHULKER_BOX",
           "YELLOW_STAINED_GLASS",
           "YELLOW_STAINED_GLASS_PANE",
           "YELLOW_TERRACOTTA",
           "YELLOW_WALL_BANNER",
           "YELLOW_WOOL",
+          "YELLOW_WOOL_SLAB",
+          "YELLOW_WOOL_STAIRS",
           "ZOMBIE_HEAD",
           "ZOMBIE_WALL_HEAD"
         ],
@@ -4821,6 +5156,7 @@
         "COW",
         "CREAKING",
         "CREEPER",
+        "CUSHION",
         "DARK_OAK_BOAT",
         "DARK_OAK_CHEST_BOAT",
         "DOLPHIN",
@@ -4896,6 +5232,8 @@
         "PILLAGER",
         "PLAYER",
         "POLAR_BEAR",
+        "POPLAR_BOAT",
+        "POPLAR_CHEST_BOAT",
         "PUFFERFISH",
         "RABBIT",
         "RAVAGER",
@@ -5141,6 +5479,9 @@
         "SHRIEK",
         "CHERRY_LEAVES",
         "PALE_OAK_LEAVES",
+        "RED_POPLAR_LEAVES",
+        "ORANGE_POPLAR_LEAVES",
+        "YELLOW_POPLAR_LEAVES",
         "TINTED_LEAVES",
         "EGG_CRACK",
         "DUST_PLUME",
@@ -5280,12 +5621,14 @@
         "block.packed_mud.fall",
         "block.ancient_debris.step",
         "entity.goat.screaming.ram_impact",
+        "entity.cushion.sit",
         "block.note_block.flute",
         "entity.armor_stand.place",
         "entity.camel.ambient",
         "music.overworld.grove",
         "block.suspicious_sand.step",
         "block.tuff.break",
+        "entity.cushion.get_up",
         "block.nylium.break",
         "block.cave_vines.pick_berries",
         "entity.endermite.ambient",
@@ -5295,6 +5638,7 @@
         "entity.baby_chicken.ambient",
         "entity.goat.screaming.ambient",
         "block.flowering_azalea.break",
+        "block.poplar_leaves.step",
         "block.resin_bricks.step",
         "block.bamboo.break",
         "block.candle.place",
@@ -5533,6 +5877,7 @@
         "block.cherry_leaves.hit",
         "item.spear.attack",
         "entity.zombie_nautilus.death",
+        "block.straw_bed.hit",
         "block.moss.step",
         "entity.allay.item_taken",
         "block.nether_wood.break",
@@ -5580,6 +5925,7 @@
         "block.candle.break",
         "music_disc.chirp",
         "entity.bat.death",
+        "block.poplar_leaves.fall",
         "entity.panda.ambient",
         "entity.parrot.imitate.skeleton",
         "entity.sulfur_cube.regular.push",
@@ -5591,6 +5937,7 @@
         "item.book.put",
         "item.lead.untied",
         "entity.firework_rocket.large_blast",
+        "block.shelf_mushroom.bounce",
         "block.creaking_heart.hurt",
         "entity.copper_golem.spin",
         "entity.painting.place",
@@ -5799,6 +6146,7 @@
         "block.wart_block.step",
         "entity.allay.hurt",
         "block.hanging_sign.fall",
+        "block.red_shrub.break",
         "entity.horse.armor",
         "entity.cat.hiss",
         "entity.warden.agitated",
@@ -5914,6 +6262,7 @@
         "block.sniffer_egg.crack",
         "block.beehive.drip",
         "entity.polar_bear.ambient_baby",
+        "block.shelf_mushroom.place",
         "entity.elder_guardian.ambient_land",
         "entity.pillager.celebrate",
         "ambient.basalt_deltas.mood",
@@ -6202,6 +6551,7 @@
         "entity.puffer_fish.flop",
         "entity.villager.work_shepherd",
         "block.sand.place",
+        "block.shelf_mushroom.step",
         "entity.spider.death",
         "block.cherry_wood_pressure_plate.click_on",
         "block.honey_block.place",
@@ -6217,6 +6567,7 @@
         "block.soul_soil.break",
         "entity.witch.death",
         "block.chain.place",
+        "block.straw_bed.break_leave",
         "block.pointed_dripstone.hit",
         "block.metal.fall",
         "block.pink_petals.step",
@@ -6242,6 +6593,7 @@
         "entity.firework_rocket.twinkle_far",
         "entity.wolf.pant",
         "block.chain.break",
+        "block.poplar_leaves.ambient",
         "block.small_dripleaf.step",
         "entity.parrot.death",
         "entity.squid.ambient",
@@ -6289,6 +6641,7 @@
         "entity.ender_dragon.hurt",
         "block.wood.break",
         "block.pointed_dripstone.drip_water_into_cauldron",
+        "block.straw_bed.place",
         "entity.piglin.jealous",
         "block.wood.fall",
         "block.soul_sand.step",
@@ -6374,6 +6727,7 @@
         "block.tuff_bricks.step",
         "block.vault.deactivate",
         "entity.wolf_grumpy.ambient",
+        "block.straw_bed.break",
         "entity.polar_bear.hurt",
         "block.iron.step",
         "entity.ravager.roar",
@@ -6507,6 +6861,7 @@
         "entity.skeleton_horse.ambient_water",
         "entity.wolf_sad.pant",
         "block.note_block.bell",
+        "block.shelf_mushroom.break",
         "block.glass.fall",
         "item.trident.riptide_2",
         "item.trident.riptide_3",
@@ -6537,6 +6892,7 @@
         "block.hanging_sign.break",
         "block.packed_mud.hit",
         "music_disc.precipice",
+        "block.shelf_mushroom.fall",
         "block.azalea_leaves.place",
         "block.dripstone_block.place",
         "music_disc.cat",
@@ -6656,6 +7012,7 @@
         "entity.drowned.shoot",
         "block.calcite.hit",
         "block.big_dripleaf.step",
+        "block.red_shrub.place",
         "block.soul_sand.place",
         "entity.turtle.death",
         "block.glass.place",
@@ -6723,6 +7080,7 @@
         "block.azalea.step",
         "entity.sulfur_cube.slow_sliding.hit",
         "ui.stonecutter.take_result",
+        "block.poplar_leaves.place",
         "item.crossbow.shoot",
         "entity.pig.hurt",
         "block.basalt.fall",
@@ -6731,6 +7089,7 @@
         "block.conduit.ambient",
         "block.cherry_wood_hanging_sign.fall",
         "entity.wandering_trader.disappeared",
+        "block.poplar_leaves.hit",
         "entity.rabbit.death",
         "entity.wandering_trader.drink_milk",
         "entity.sulfur_cube.bounce",
@@ -6770,6 +7129,7 @@
         "entity.copper_golem.death",
         "entity.baby_pig.death",
         "entity.skeleton_horse.swim",
+        "entity.cushion.place",
         "block.azalea.fall",
         "entity.panda.cant_breed",
         "block.copper_golem_statue.fall",
@@ -6803,6 +7163,7 @@
         "block.cherry_sapling.break",
         "block.potent_sulfur.geyser_eruption",
         "entity.parrot.imitate.piglin_brute",
+        "block.poplar_leaves.break",
         "music_disc.13",
         "block.wooden_trapdoor.close",
         "entity.sniffer.scenting",
@@ -6964,6 +7325,7 @@
         "block.azalea_leaves.step",
         "entity.cat_royal.hurt",
         "music_disc.mellohi",
+        "block.straw_bed.step",
         "entity.drowned.ambient_water",
         "entity.rabbit.jump",
         "block.tripwire.attach",
@@ -7067,6 +7429,7 @@
         "block.smoker.smoke",
         "entity.sulfur_cube.death",
         "block.barrel.close",
+        "block.straw_bed.fall",
         "block.leaf_litter.step",
         "block.dry_grass.ambient",
         "item.spear.use",
@@ -7094,6 +7457,7 @@
         "block.nether_sprouts.break",
         "entity.hostile.swim",
         "entity.guardian.hurt",
+        "entity.cushion.break",
         "entity.fishing_bobber.retrieve",
         "entity.zombie_horse.eat",
         "entity.ender_pearl.throw",
@@ -7416,6 +7780,22 @@
       "description": "Whether the item cannot be stacked",
       "default": false
     },
+    "invulnerable": {
+      "description": "Protects dropped items from selected damage causes",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "lava",
+          "fire",
+          "fire_tick",
+          "block_explosion",
+          "entity_explosion",
+          "lightning",
+          "contact"
+        ]
+      }
+    },
     "injectId": {
       "type": "boolean",
       "description": "Whether to inject Oraxen item ID into NBT",
@@ -7426,6 +7806,29 @@
       "format": "color",
       "pattern": "^(#[0-9A-Fa-f]{6}|\\d{1,3},\\s*\\d{1,3},\\s*\\d{1,3})$",
       "description": "RGB color for leather armor, potions, maps (e.g., \u0027255, 128, 0\u0027 or \u0027#FF8000\u0027)"
+    },
+    "glowing": {
+      "type": "string",
+      "enum": [
+        "black",
+        "dark_blue",
+        "dark_green",
+        "dark_aqua",
+        "dark_red",
+        "dark_purple",
+        "gold",
+        "gray",
+        "dark_gray",
+        "blue",
+        "green",
+        "aqua",
+        "red",
+        "light_purple",
+        "yellow",
+        "white"
+      ],
+      "description": "Outline color while the item is dropped (1.21.4+)",
+      "minecraftVersion": "1.21.4+"
     },
     "trim_pattern": {
       "type": "string",
@@ -7449,9 +7852,9 @@
       "type": "boolean",
       "description": "Disable automatic item updates"
     },
-    "disable_enchanting": {
+    "enchantable": {
       "type": "boolean",
-      "description": "Prevent enchanting this item"
+      "description": "Allow enchanting this item"
     },
     "ItemFlags": {
       "type": "array",
@@ -7731,6 +8134,119 @@
       "type": "string",
       "description": "Custom item model resource location",
       "minecraftVersion": "1.21.2+"
+    },
+    "compostable": {
+      "type": "object",
+      "minecraftVersion": "26.3+",
+      "description": "Controls how many layers the item adds to a composter",
+      "properties": {
+        "layers": {
+          "description": "Layers to add, either an inline integer or a context integer provider ID",
+          "oneOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "string",
+              "description": "Namespaced ID from the minecraft:context_int_provider registry"
+            }
+          ]
+        }
+      }
+    },
+    "cooking_fuel": {
+      "type": "object",
+      "minecraftVersion": "26.3+",
+      "description": "Makes the item usable as Furnace, Smoker, or Blast Furnace fuel",
+      "properties": {
+        "burn_time": {
+          "description": "Burn time in ticks, either an inline integer or a context integer provider ID",
+          "oneOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "string",
+              "description": "Namespaced ID from the minecraft:context_int_provider registry"
+            }
+          ]
+        },
+        "speed_multiplier": {
+          "description": "Cooking speed multiplier, either an inline number or a context float provider ID",
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "description": "Namespaced ID from the minecraft:context_float_provider registry"
+            }
+          ]
+        }
+      }
+    },
+    "brewing_fuel": {
+      "type": "object",
+      "minecraftVersion": "26.3+",
+      "description": "Makes the item usable as Brewing Stand fuel",
+      "properties": {
+        "uses": {
+          "description": "Number of brews, either an inline integer or a context integer provider ID",
+          "oneOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "string",
+              "description": "Namespaced ID from the minecraft:context_int_provider registry"
+            }
+          ]
+        },
+        "speed_multiplier": {
+          "description": "Brewing speed multiplier, either an inline number or a context float provider ID",
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "description": "Namespaced ID from the minecraft:context_float_provider registry"
+            }
+          ]
+        }
+      }
+    },
+    "attack_animation": {
+      "type": "object",
+      "minecraftVersion": "26.3+",
+      "description": "Animation used when attacking with the item",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Swing animation type: none, whack, or stab"
+        },
+        "duration": {
+          "type": "integer",
+          "description": "Animation duration in ticks",
+          "min": 0
+        }
+      }
+    },
+    "interact_animation": {
+      "type": "object",
+      "minecraftVersion": "26.3+",
+      "description": "Animation used when interacting with the item",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Swing animation type: none, whack, or stab"
+        },
+        "duration": {
+          "type": "integer",
+          "description": "Animation duration in ticks",
+          "min": 0
+        }
+      }
     }
   },
   "mechanics": {
@@ -8017,6 +8533,10 @@
           "default": 1,
           "min": 0
         },
+        "breakable": {
+          "type": "boolean",
+          "description": "Whether furniture can be broken. Defaults to false when a left or both click event is configured, otherwise true"
+        },
         "item": {
           "type": "string",
           "description": "Alternative Oraxen item ID to display"
@@ -8034,13 +8554,6 @@
           "type": "boolean",
           "description": "Whether farmblock is required for placement",
           "default": false
-        },
-        "light": {
-          "type": "integer",
-          "description": "Light level emitted (0-15)",
-          "default": 0,
-          "min": 0,
-          "max": 15
         },
         "lights": {
           "type": "array",
@@ -8065,41 +8578,9 @@
           "description": "Whether an armor stand furniture uses the small variant",
           "default": true
         },
-        "hitbox": {
-          "type": "object",
-          "description": "Custom hitbox dimensions",
-          "properties": {
-            "height": {
-              "type": "number",
-              "description": "Hitbox height",
-              "default": 1.0,
-              "min": 0.0,
-              "max": 10.0
-            },
-            "width": {
-              "type": "number",
-              "description": "Hitbox width",
-              "default": 1.0,
-              "min": 0.0,
-              "max": 10.0
-            }
-          }
-        },
-        "seat": {
-          "type": "object",
-          "description": "Seat configuration for sittable furniture",
-          "properties": {
-            "yaw": {
-              "type": "number",
-              "description": "Seat rotation",
-              "default": 0.0
-            },
-            "height": {
-              "type": "number",
-              "description": "Seat height offset",
-              "default": 0.0
-            }
-          }
+        "hitboxes": {
+          "type": "array",
+          "description": "List of hitbox offsets and dimensions formatted \u0027\u003cx\u003e,\u003cy\u003e,\u003cz\u003e \u003cwidth\u003e,\u003cheight\u003e\u0027"
         },
         "seats": {
           "type": "array",
@@ -8113,6 +8594,27 @@
           "type": "object",
           "description": "Display entity configuration",
           "properties": {
+            "scale": {
+              "type": "object",
+              "description": "Scale of the display entity",
+              "properties": {
+                "y": {
+                  "type": "number",
+                  "description": "Y-axis scale",
+                  "default": 1.0
+                },
+                "z": {
+                  "type": "number",
+                  "description": "Z-axis scale",
+                  "default": 1.0
+                },
+                "x": {
+                  "type": "number",
+                  "description": "X-axis scale",
+                  "default": 1.0
+                }
+              }
+            },
             "brightness": {
               "type": "object",
               "description": "Light levels",
@@ -8133,48 +8635,6 @@
                 }
               }
             },
-            "scale": {
-              "type": "object",
-              "description": "Scale of the display entity",
-              "properties": {
-                "z": {
-                  "type": "number",
-                  "description": "Z-axis scale",
-                  "default": 1.0
-                },
-                "y": {
-                  "type": "number",
-                  "description": "Y-axis scale",
-                  "default": 1.0
-                },
-                "x": {
-                  "type": "number",
-                  "description": "X-axis scale",
-                  "default": 1.0
-                }
-              }
-            },
-            "translation": {
-              "type": "object",
-              "description": "Position offset in blocks",
-              "properties": {
-                "z": {
-                  "type": "number",
-                  "description": "Z-axis offset",
-                  "default": 0.0
-                },
-                "y": {
-                  "type": "number",
-                  "description": "Y-axis offset",
-                  "default": 0.0
-                },
-                "x": {
-                  "type": "number",
-                  "description": "X-axis offset",
-                  "default": 0.0
-                }
-              }
-            },
             "display_transform": {
               "type": "string",
               "description": "Display transform mode",
@@ -8189,6 +8649,27 @@
                 "GROUND",
                 "FIXED"
               ]
+            },
+            "translation": {
+              "type": "object",
+              "description": "Position offset in blocks",
+              "properties": {
+                "y": {
+                  "type": "number",
+                  "description": "Y-axis offset",
+                  "default": 0.0
+                },
+                "z": {
+                  "type": "number",
+                  "description": "Z-axis offset",
+                  "default": 0.0
+                },
+                "x": {
+                  "type": "number",
+                  "description": "X-axis offset",
+                  "default": 0.0
+                }
+              }
             }
           }
         },
@@ -8200,14 +8681,14 @@
               "type": "object",
               "description": "Position offset for armor stand furniture",
               "properties": {
-                "z": {
-                  "type": "number",
-                  "description": "Z-axis offset",
-                  "default": 0.0
-                },
                 "y": {
                   "type": "number",
                   "description": "Y-axis offset",
+                  "default": 0.0
+                },
+                "z": {
+                  "type": "number",
+                  "description": "Z-axis offset",
                   "default": 0.0
                 },
                 "x": {
@@ -8221,14 +8702,14 @@
               "type": "object",
               "description": "Scale to inject into generated model display.head",
               "properties": {
-                "z": {
-                  "type": "number",
-                  "description": "Z-axis scale",
-                  "default": 1.0
-                },
                 "y": {
                   "type": "number",
                   "description": "Y-axis scale",
+                  "default": 1.0
+                },
+                "z": {
+                  "type": "number",
+                  "description": "Z-axis scale",
                   "default": 1.0
                 },
                 "x": {
@@ -8244,14 +8725,14 @@
           "type": "object",
           "description": "Drop configuration when broken",
           "properties": {
-            "loots": {
-              "type": "array",
-              "description": "List of loot entries"
-            },
             "silktouch": {
               "type": "boolean",
               "description": "Require silk touch to drop",
               "default": false
+            },
+            "loots": {
+              "type": "array",
+              "description": "List of loot entries"
             }
           }
         },
@@ -8263,6 +8744,13 @@
               "type": "string",
               "description": "Inventory title"
             },
+            "rows": {
+              "type": "integer",
+              "description": "Number of inventory rows",
+              "default": 1,
+              "min": 1,
+              "max": 6
+            },
             "type": {
               "type": "string",
               "description": "Storage type",
@@ -8272,15 +8760,34 @@
                 "ENDERCHEST",
                 "DISPOSAL"
               ]
-            },
-            "rows": {
-              "type": "integer",
-              "description": "Number of inventory rows",
-              "default": 1,
-              "min": 1,
-              "max": 6
             }
           }
+        }
+      }
+    },
+    "bedrockbreak": {
+      "category": "farming",
+      "description": "Allows breaking bedrock blocks",
+      "_source": "factory",
+      "properties": {
+        "delay": {
+          "type": "integer",
+          "description": "Initial delay in ticks before breaking starts",
+          "default": 0,
+          "min": 0
+        },
+        "hardness": {
+          "type": "integer",
+          "description": "Break hardness/period in ticks",
+          "default": 1,
+          "min": 1
+        },
+        "probability": {
+          "type": "number",
+          "description": "Chance to break bedrock (0-1)",
+          "default": 1.0,
+          "min": 0.0,
+          "max": 1.0
         }
       }
     },
@@ -8342,28 +8849,28 @@
           "type": "object",
           "description": "Placement face and block restrictions",
           "properties": {
-            "allow": {
-              "type": "array",
-              "description": "Vanilla block IDs this block may be placed against"
-            },
             "wall": {
               "type": "boolean",
               "description": "Allow placement on walls",
               "default": true
             },
-            "roof": {
-              "type": "boolean",
-              "description": "Allow placement on ceilings",
-              "default": true
+            "allow": {
+              "type": "array",
+              "description": "Vanilla block IDs this block may be placed against"
+            },
+            "disallow": {
+              "type": "array",
+              "description": "Vanilla block IDs this block may not be placed against"
             },
             "floor": {
               "type": "boolean",
               "description": "Allow placement on floors",
               "default": true
             },
-            "disallow": {
-              "type": "array",
-              "description": "Vanilla block IDs this block may not be placed against"
+            "roof": {
+              "type": "boolean",
+              "description": "Allow placement on ceilings",
+              "default": true
             }
           }
         },
@@ -8375,21 +8882,21 @@
               "type": "string",
               "description": "Sound when stepped on"
             },
-            "place-sound": {
+            "break-sound": {
               "type": "string",
-              "description": "Sound when placed"
-            },
-            "fall-sound": {
-              "type": "string",
-              "description": "Sound when fallen on"
+              "description": "Sound when broken"
             },
             "hit-sound": {
               "type": "string",
               "description": "Sound when hit"
             },
-            "break-sound": {
+            "fall-sound": {
               "type": "string",
-              "description": "Sound when broken"
+              "description": "Sound when fallen on"
+            },
+            "place-sound": {
+              "type": "string",
+              "description": "Sound when placed"
             }
           }
         }
@@ -8475,32 +8982,37 @@
     },
     "misc": {
       "category": "misc",
-      "description": "Miscellaneous item properties like fire/lava damage resistance",
+      "description": "Miscellaneous item properties",
       "_source": "factory",
       "properties": {
-        "burns_in_fire": {
+        "disable_vanilla_interactions": {
           "type": "boolean",
-          "description": "Whether item burns in fire (deprecated, use damage_resistant)",
-          "default": true
+          "description": "Deny vanilla right-click, consume, and bow-shoot behavior",
+          "default": false
         },
-        "burns_in_lava": {
+        "can_strip_logs": {
           "type": "boolean",
-          "description": "Whether item burns in lava (deprecated, use damage_resistant)",
-          "default": true
+          "description": "Let this item strip logs",
+          "default": false
         },
-        "breaks_from_cactus": {
+        "piglins_ignore_when_equipped": {
           "type": "boolean",
-          "description": "Whether item breaks from cactus (deprecated, use damage_resistant)",
-          "default": true
+          "description": "Piglins ignore a player who has this item equipped",
+          "default": false
         },
-        "break_music_discs": {
+        "compostable": {
           "type": "boolean",
-          "description": "Whether item can break music discs",
+          "description": "This item can be composted",
           "default": false
         },
         "prevent_renaming": {
           "type": "boolean",
           "description": "Whether item renaming in anvils is prevented",
+          "default": false
+        },
+        "allow_in_vanilla_recipes": {
+          "type": "boolean",
+          "description": "Allow this item in vanilla recipes",
           "default": false
         }
       }
@@ -8677,11 +9189,13 @@
         },
         "open_sound": {
           "type": "string",
-          "description": "Sound played when opening"
+          "description": "Sound played when opening",
+          "default": "minecraft:entity.shulker.open"
         },
         "close_sound": {
           "type": "string",
-          "description": "Sound played when closing"
+          "description": "Sound played when closing",
+          "default": "minecraft:entity.shulker.close"
         },
         "volume": {
           "type": "number",
@@ -8856,41 +9370,32 @@
         }
       }
     },
-    "bigmining": {
+    "mining": {
       "category": "farming",
-      "description": "Mines blocks in an area around the targeted block",
-      "_source": "factory",
-      "properties": {
-        "radius": {
-          "type": "integer",
-          "description": "Horizontal radius of mining area",
-          "default": 1,
-          "min": 1
+      "description": "Mines blocks at world offsets, or in a face-relative area when radius and depth are set",
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^\\s*-?\\d+\\s*,\\s*-?\\d+\\s*,\\s*-?\\d+\\s*$"
+          }
         },
-        "depth": {
-          "type": "integer",
-          "description": "Depth of mining area",
-          "default": 1,
-          "min": 1
+        {
+          "type": "object",
+          "description": "Face-relative area. Depth follows the direction the player is looking.",
+          "properties": {
+            "radius": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "depth": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
         }
-      }
-    },
-    "bedrockbreak": {
-      "category": "farming",
-      "description": "Allows breaking bedrock (requires ProtocolLib)",
-      "properties": {
-        "probability": {
-          "type": "number",
-          "description": "Chance to break (0-1)",
-          "min": 0,
-          "default": 1.0
-        },
-        "delay": {
-          "type": "integer",
-          "description": "Break delay in ticks",
-          "min": 0
-        }
-      }
+      ]
     }
   },
   "pack": {

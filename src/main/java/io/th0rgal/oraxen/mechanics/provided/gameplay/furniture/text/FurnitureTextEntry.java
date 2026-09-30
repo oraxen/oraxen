@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text;
 
-import org.bukkit.Bukkit;
+import io.th0rgal.oraxen.utils.EntityUtils;
 import org.bukkit.Location;
 
 import java.util.Arrays;
@@ -34,7 +34,7 @@ public final class FurnitureTextEntry {
         this.virtualEntityIds = new int[definitions.size()];
         this.virtualUuids = new UUID[definitions.size()];
         for (int i = 0; i < definitions.size(); i++) {
-            virtualEntityIds[i] = nextVirtualEntityId();
+            virtualEntityIds[i] = EntityUtils.nextEntityId(baseLocation.getWorld());
             virtualUuids[i] = UUID.randomUUID();
         }
     }
@@ -89,9 +89,5 @@ public final class FurnitureTextEntry {
 
     private static int refreshInterval(FurnitureTextDefinition definition) {
         return definition.getRefreshTicks() > 0 ? definition.getRefreshTicks() : (definition.usesPlaceholders() ? 20 : 0);
-    }
-
-    private static int nextVirtualEntityId() {
-        return Bukkit.getUnsafe().nextEntityId();
     }
 }

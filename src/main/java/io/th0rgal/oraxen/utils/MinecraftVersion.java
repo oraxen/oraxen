@@ -81,9 +81,13 @@ public final class MinecraftVersion implements Comparable<MinecraftVersion>, Ser
             try {
                 // Determine if the snapshot is newer than the current release version
                 snapshot = new SnapshotVersion(section[0]);
-                var adapter = OraxenPlugin.get().getPacketAdapter();
-                MinecraftVersion latest = new MinecraftVersion(adapter.getLatestMCVersion(), false);
-                boolean newer = adapter.isNewer(snapshot);
+                var plugin = OraxenPlugin.get();
+                var adapter = plugin != null ? plugin.getPacketAdapter() : null;
+                String latestVersion = adapter != null
+                        ? adapter.getLatestMCVersion()
+                        : ResourcePackFormatUtil.getLatestKnownVersion().getVersion();
+                MinecraftVersion latest = new MinecraftVersion(latestVersion, false);
+                boolean newer = adapter == null || adapter.isNewer(snapshot);
 
                 numbers[0] = latest.getMajor();
                 numbers[1] = latest.getMinor() + (newer ? 1 : -1);

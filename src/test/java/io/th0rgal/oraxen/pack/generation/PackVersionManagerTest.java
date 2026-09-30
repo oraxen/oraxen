@@ -88,7 +88,7 @@ class PackVersionManagerTest {
         version = manager.findBestVersionForProtocol(769);
         assertNotNull(version);
         assertEquals("1.21.4", version.getMinecraftVersion());
-        for (int protocol : new int[] {771, 772, 773, 774, 775, 776}) {
+        for (int protocol : new int[] {771, 772, 773, 774, 775, 776, 777}) {
             assertEquals("1.21.4", manager.findBestVersionForProtocol(protocol).getMinecraftVersion());
         }
     }

@@ -12,11 +12,13 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.oraxen.utils.wrappers.AttributeWrapper;
 import io.th0rgal.oraxen.utils.wrappers.EnchantmentWrapper;
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
@@ -81,10 +83,36 @@ public final class ItemProperties {
     }
 
     private void parseMiscOptions(final ItemBuilder item, final ConfigurationSection mergedSection) {
+        Set<DamageCause> invulnerable = EnumSet.noneOf(DamageCause.class);
+        for (Object entry : mergedSection.getList("invulnerable", List.of())) {
+            if (!(entry instanceof String name)) {
+                Logs.logWarning("Invalid invulnerable damage cause for " + section.getName() + ": " + entry);
+                continue;
+            }
+            try {
+                invulnerable.add(DamageCause.valueOf(name.trim().toUpperCase(Locale.ROOT)));
+            } catch (IllegalArgumentException exception) {
+                Logs.logWarning("Invalid invulnerable damage cause for " + section.getName() + ": " + name);
+            }
+        }
+        item.setInvulnerable(invulnerable);
         if (section.getBoolean("injectId", true))
             item.setCustomTag(OraxenItems.ITEM_ID, PersistentDataType.STRING, section.getName());
         oraxenMeta.setNoUpdate(mergedSection.getBoolean("no_auto_update", false));
-        oraxenMeta.setDisableEnchanting(mergedSection.getBoolean("disable_enchanting", false));
+        boolean enchantable = mergedSection.getBoolean("enchantable", true);
+        // ItemUpdater cancels enchanting-table and anvil enchants for these items.
+        // Paper rejects an enchantable component of 0, so the component itself is left untouched.
+        oraxenMeta.setEnchantable(enchantable);
+        if (mergedSection.isSet("glowing")) {
+            String colorName = mergedSection.getString("glowing", "").toLowerCase(Locale.ROOT);
+            NamedTextColor glowing = NamedTextColor.NAMES.value(colorName);
+            if (glowing == null)
+                Logs.logWarning("Glowing color " + colorName + " for " + section.getName() + " is invalid.");
+            else if (!VersionUtil.atOrAbove("1.21.4"))
+                Logs.logWarning("The glowing option for item \"" + section.getName() + "\" requires Minecraft 1.21.4+");
+            else
+                oraxenMeta.setGlowing(glowing);
+        }
         oraxenMeta.setExcludedFromInventory(mergedSection.getBoolean("excludeFromInventory", false));
         oraxenMeta.setExcludedFromCommands(mergedSection.getBoolean("excludeFromCommands", false));
         applyArmorStandModelProperties(mergedSection);
@@ -92,7 +120,7 @@ public final class ItemProperties {
 
     private void applyArmorStandModelProperties(ConfigurationSection section) {
         oraxenMeta.setArmorStandHeadScale(null);
-        ConfigurationSection mechanicsSection = OraxenYaml.getConfigurationSection(section, "Mechanics");
+        ConfigurationSection mechanicsSection = section.getConfigurationSection("mechanics");
         if (mechanicsSection == null) return;
         ConfigurationSection furnitureSection = OraxenYaml.getConfigurationSection(mechanicsSection, "furniture");
         if (furnitureSection == null) return;
@@ -285,7 +313,7 @@ public final class ItemProperties {
             migrator.markConfigUpdated();
 
         if (!Settings.DISABLE_AUTOMATIC_MODEL_DATA.toBool()) {
-            Optional.ofNullable(OraxenYaml.getConfigurationSection(section, "Pack"))
+            Optional.ofNullable(section.getConfigurationSection("pack"))
                     .ifPresent(packSection -> {
                         packSection.set("custom_model_data", customModelData);
                         OraxenYaml.invalidateKeyCache(packSection);

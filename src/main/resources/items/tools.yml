@@ -10,12 +10,12 @@ obsidian_pickaxe:
   material: IRON_PICKAXE
   lore:
     - "<#6f737d>» <#D5D6D8>Ludicrous durability"
-  Pack:
+  pack:
     generate_model: true
     parent_model: "item/handheld"
     textures:
       - default/obsidian_pickaxe.png
-  Mechanics:
+  mechanics:
     durability:
       value: 15000 #diamond sword is 1561
 
@@ -24,10 +24,10 @@ bedrock_pickaxe:
   material: STONE_PICKAXE
   lore:
     - "<#6f737d>» <#D5D6D8>Mine bedrock blocks"
-  Pack:
+  pack:
     generate_model: false
     model: default/bedrock_pickaxe
-  Mechanics:
+  mechanics:
     durability:
       value: 5000 #diamond sword is 1561
     bedrockbreak:
@@ -39,13 +39,13 @@ emerald_hammer:
   material: DIAMOND_PICKAXE
   lore:
     - "<#6f737d>» <#D5D6D8>Break 3x3 blocks"
-  Pack:
+  pack:
     generate_model: true
     parent_model: "item/handheld"
     textures:
       - default/emerald_hammer.png
-  Mechanics:
-    bigmining:
+  mechanics:
+    mining:
       radius: 1
       depth: 1
 
@@ -54,13 +54,13 @@ amethyst_hammer:
   material: DIAMOND_PICKAXE
   lore:
     - "<#6f737d>» <#D5D6D8>Break 3x3x2 blocks"
-  Pack:
+  pack:
     generate_model: true
     parent_model: "item/handheld"
     textures:
       - default/amethyst_hammer.png
-  Mechanics:
-    bigmining:
+  mechanics:
+    mining:
       radius: 1
       depth: 2
 
@@ -69,15 +69,15 @@ onyx_hammer:
   material: DIAMOND_PICKAXE
   lore:
     - "<#6f737d>» <#D5D6D8>Break 3x3x2 blocks"
-  Pack:
+  pack:
     generate_model: true
     parent_model: "item/handheld"
     textures:
       - default/onyx_hammer.png
-  Mechanics:
+  mechanics:
     durability:
       value: 3122
-    bigmining:
+    mining:
       radius: 1
       depth: 2
 
@@ -86,15 +86,15 @@ orax_hammer:
   material: DIAMOND_PICKAXE
   lore:
     - "<#6f737d>» <#D5D6D8>Break 5x5x2 blocks"
-  Pack:
+  pack:
     generate_model: true
     parent_model: "item/handheld"
     textures:
       - default/orax_hammer.png
-  Mechanics:
+  mechanics:
     durability:
       value: 4683
-    bigmining:
+    mining:
       radius: 2
       depth: 2
 
@@ -104,18 +104,18 @@ fire_hammer:
   lore:
     - "<#6f737d>» <#D5D6D8>Break 3x3 blocks"
     - "<#6f737d>» <#D5D6D8>Instantly smelt ores"
-  Pack:
+  pack:
     generate_model: true
     parent_model: "item/handheld"
     textures:
       - default/fire_hammer.png
-  Mechanics:
+  mechanics:
     smelting:
       enabled: true
       play_sound: true
     durability:
       value: 4683
-    bigmining:
+    mining:
       radius: 1
       depth: 1
 
@@ -125,12 +125,12 @@ iron_cog:
   lore:
     - "<#6f737d>» <#D5D6D8>Click on a damaged item to repair"
     - "   <#D5D6D8>10% of its maximum durability"
-  Pack:
+  pack:
     generate_model: true
     parent_model: "item/handheld"
     textures:
       - default/iron_cog.png
-  Mechanics:
+  mechanics:
     repair:
       ratio: 0.10
 
@@ -140,12 +140,12 @@ gold_cog:
   lore:
     - "<#6f737d>» <#D5D6D8>Click on a damaged item to repair"
     - "   <#D5D6D8>50% of its maximum durability"
-  Pack:
+  pack:
     generate_model: true
     parent_model: "item/handheld"
     textures:
       - default/gold_cog.png
-  Mechanics:
+  mechanics:
     repair:
       ratio: 0.50
 
@@ -155,24 +155,24 @@ diamond_cog:
   lore:
     - "<#6f737d>» <#D5D6D8>Click on a damaged item to repair"
     - "   <#D5D6D8>100% of its maximum durability"
-  Pack:
+  pack:
     generate_model: true
     parent_model: "item/handheld"
     textures:
       - default/diamond_cog.png
-  Mechanics:
+  mechanics:
     repair:
       ratio: 1.0
 
 iron_serpe:
   displayname: "<#D5D6D8>Iron Serpe"
   material: WOODEN_HOE
-  Pack:
+  pack:
     generate_model: true
     parent_model: "item/handheld"
     textures:
       - default/iron_serpe.png
-  Mechanics:
+  mechanics:
     harvesting:
       cooldown: 10000 # 10 seconds between usages
       radius: 5 # Blocks surrounding the clicked block

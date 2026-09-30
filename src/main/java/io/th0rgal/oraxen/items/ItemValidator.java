@@ -16,13 +16,14 @@ public final class ItemValidator {
     private final ItemMigrator migrator;
 
     public ItemValidator(final ConfigurationSection section, final ConfigurationSection mergedSection,
-            final Material type, final OraxenMeta oraxenMeta, final Map<String, ModelData> modelDatasById) {
+            final Material type, final OraxenMeta oraxenMeta, final Map<String, ModelData> modelDatasById,
+            final ItemMigrator migrator) {
         this.section = section;
         this.mergedSection = mergedSection;
         this.type = type;
         this.oraxenMeta = oraxenMeta;
         this.modelDatasById = modelDatasById;
-        migrator = new ItemMigrator(section);
+        this.migrator = migrator;
     }
 
     public Result validate(final ItemBuilder item) {

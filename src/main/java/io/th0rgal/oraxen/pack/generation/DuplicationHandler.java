@@ -939,21 +939,21 @@ public class DuplicationHandler {
         yaml.set(id + ".material", materialName);
         yaml.set(id + ".excludeFromInventory", true);
         yaml.set(id + ".excludeFromCommands", true);
-        yaml.set(id + ".Pack.generate_model", false);
-        yaml.set(id + ".Pack.model", modelPath);
+        yaml.set(id + ".pack.generate_model", false);
+        yaml.set(id + ".pack.model", modelPath);
 
         if (pullingModels.containsKey(cmd))
-            yaml.set(id + ".Pack.pulling_models", pullingModels.get(cmd));
+            yaml.set(id + ".pack.pulling_models", pullingModels.get(cmd));
         if (damagedModels.containsKey(cmd))
-            yaml.set(id + ".Pack.damaged_models", damagedModels.get(cmd));
+            yaml.set(id + ".pack.damaged_models", damagedModels.get(cmd));
         if (chargedModels.containsKey(cmd))
-            yaml.set(id + ".Pack.charged_model", chargedModels.get(cmd));
+            yaml.set(id + ".pack.charged_model", chargedModels.get(cmd));
         if (blockingModels.containsKey(cmd))
-            yaml.set(id + ".Pack.blocking_model", blockingModels.get(cmd));
+            yaml.set(id + ".pack.blocking_model", blockingModels.get(cmd));
         if (castModels.containsKey(cmd))
-            yaml.set(id + ".Pack.cast_model", castModels.get(cmd));
+            yaml.set(id + ".pack.cast_model", castModels.get(cmd));
         if (Settings.RETAIN_CUSTOM_MODEL_DATA.toBool())
-            yaml.set(id + ".Pack.custom_model_data", cmd);
+            yaml.set(id + ".pack.custom_model_data", cmd);
     }
 
     private static boolean saveMigratedYaml(YamlConfiguration migratedYaml, Material material) {

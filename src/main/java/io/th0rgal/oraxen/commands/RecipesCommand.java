@@ -10,6 +10,8 @@ import io.th0rgal.oraxen.recipes.CustomRecipe;
 import io.th0rgal.oraxen.recipes.builders.*;
 import io.th0rgal.oraxen.recipes.listeners.RecipesEventsManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.apache.commons.lang3.ArrayUtils;
 import org.bukkit.entity.Player;
 
@@ -58,6 +60,9 @@ public class RecipesCommand {
                 .withSubcommand(getCampfireBuilderCommand())
                 .withSubcommand(getSmokingBuilderCommand())
                 .withSubcommand(getStonecuttingBuilderCommand())
+                .withSubcommand(getSmithingBuilderCommand())
+                .withSubcommand(getAnvilBuilderCommand())
+                .withSubcommand(getGrindstoneBuilderCommand())
                 .executes((sender, args) -> {
                     if (sender instanceof Player player) {
                         final RecipeBuilder recipe = RecipeBuilder.get(player.getUniqueId());
@@ -182,6 +187,50 @@ public class RecipesCommand {
                 });
     }
 
+    private OraxenCommand getSmithingBuilderCommand() {
+        return new OraxenCommand("smithing")
+                .withPermission("oraxen.command.recipes.builder")
+                .executes((sender, args) -> {
+                    if (sender instanceof Player player) {
+                        final RecipeBuilder recipe = RecipeBuilder.get(player.getUniqueId());
+                        (recipe != null ? recipe : new SmithingBuilder(player)).open();
+                    } else
+                        Message.NOT_PLAYER.send(sender);
+                });
+    }
+
+    private OraxenCommand getAnvilBuilderCommand() {
+        return new OraxenCommand("anvil")
+                .withPermission("oraxen.command.recipes.builder")
+                .withOptionalArguments(new IntegerArgument("experience_cost"))
+                .executes((sender, args) -> {
+                    if (sender instanceof Player player) {
+                        RecipeBuilder recipe = RecipeBuilder.get(player.getUniqueId());
+                        recipe = recipe != null ? recipe : new AnvilBuilder(player);
+                        if (recipe instanceof AnvilBuilder anvil && args.get("experience_cost") instanceof Integer experienceCost)
+                            anvil.setExperienceCost(experienceCost);
+                        recipe.open();
+                    } else
+                        Message.NOT_PLAYER.send(sender);
+                });
+    }
+
+    private OraxenCommand getGrindstoneBuilderCommand() {
+        return new OraxenCommand("grindstone")
+                .withPermission("oraxen.command.recipes.builder")
+                .withOptionalArguments(new IntegerArgument("experience"))
+                .executes((sender, args) -> {
+                    if (sender instanceof Player player) {
+                        RecipeBuilder recipe = RecipeBuilder.get(player.getUniqueId());
+                        recipe = recipe != null ? recipe : new GrindstoneBuilder(player);
+                        if (recipe instanceof GrindstoneBuilder grindstone && args.get("experience") instanceof Integer experience)
+                            grindstone.setExperience(experience);
+                        recipe.open();
+                    } else
+                        Message.NOT_PLAYER.send(sender);
+                });
+    }
+
     private OraxenCommand getSaveCommand() {
         return new OraxenCommand("save")
                 .withPermission("oraxen.command.recipes.builder")
@@ -196,6 +245,13 @@ public class RecipesCommand {
                         }
                         final String name = (String) args.args()[0];
                         final String permission = (String) args.getOptional("permission").orElse("");
+                        final List<String> missing = recipe.getMissingIngredients();
+                        if (!missing.isEmpty()) {
+                            AdventureUtils.sendMessage(sender, Component.text(
+                                    "Cannot save recipe \"" + name + "\", missing: " + String.join(", ", missing),
+                                    NamedTextColor.RED));
+                            return;
+                        }
                         recipe.saveRecipe(name, permission);
                         Message.RECIPE_SAVE.send(sender, AdventureUtils.tagResolver("name", name));
                     } else

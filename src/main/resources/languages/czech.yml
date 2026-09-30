@@ -47,7 +47,6 @@ logs:
   no_armor_item: "<prefix><#fa4943>Žádný item s názvem <name> nenalezen. Nelze použít <armor_layer_file>"
   duplicate_armor_color: "<prefix><#fa4943><first_armor_prefix> set armoru používá stejnou barvu jako <second_armor_prefix> s jinou texturou"
   datapack_generated: "<prefix><#facc43>Datapack byl úspěšně vygenerován. Pro fungování této funkce je nutný restart serveru."
-  missing_protocollib: "<prefix><#f9f178>ProtocolLib není na vašem serveru, některé funkce nebudou fungovat</#f9f178>"
   invalid_material: "<prefix><#e73f34>Neplatný materiál: <minecraft_type></#e73f34>"
   io_error_add_pack_file: "<prefix><#e73f34>Nepodařilo se přidat soubor <file> do resource packu</#e73f34>"
   missing_logs: "<prefix><#e73f34>Nepodařilo se přečíst latest.log, chybí?</#e73f34>"

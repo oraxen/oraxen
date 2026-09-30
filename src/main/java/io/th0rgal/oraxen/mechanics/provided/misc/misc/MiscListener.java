@@ -16,8 +16,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.entity.EntityDamageByBlockEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.event.inventory.InventoryAction;
@@ -34,9 +32,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.view.AnvilView;
 
 import java.util.Arrays;
-
-import static org.bukkit.event.entity.EntityDamageEvent.DamageCause.FIRE;
-import static org.bukkit.event.entity.EntityDamageEvent.DamageCause.FIRE_TICK;
 
 public class MiscListener implements Listener {
 
@@ -164,28 +159,6 @@ public class MiscListener implements Listener {
             event.setCancelled(true);
     }
 
-    // Since EntityDamageByBlockEvent apparently does not trigger for fire, use this aswell
-    @EventHandler
-    public void onItemBurnFire(EntityDamageEvent event) {
-        if (event.getCause() != FIRE && event.getCause() != FIRE_TICK) return;
-        MiscMechanic mechanic = getMiscMechanic(event.getEntity());
-        if (mechanic == null || mechanic.burnsInFire()) return;
-        event.setCancelled(true);
-    }
-
-    @EventHandler(ignoreCancelled = true)
-    public void onItemBurn(EntityDamageByBlockEvent event) {
-        MiscMechanic mechanic = getMiscMechanic(event.getEntity());
-        if (mechanic == null) return;
-
-        EntityDamageEvent.DamageCause cause = event.getCause();
-        if (cause == EntityDamageEvent.DamageCause.CONTACT && !mechanic.breaksFromCactus()) {
-            event.setCancelled(true);
-        } else if (cause == EntityDamageEvent.DamageCause.LAVA && !mechanic.burnsInLava()) {
-            event.setCancelled(true);
-        }
-    }
-
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onDisableVanillaInteraction(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
@@ -238,15 +211,6 @@ public class MiscListener implements Listener {
         if (item.getType().name().endsWith("_HORSE_ARMOR")) {
             event.setCancelled(true);
         }
-    }
-
-    private MiscMechanic getMiscMechanic(Entity entity) {
-        if (!(entity instanceof Item item)) return null;
-        ItemStack itemStack = item.getItemStack();
-        String itemID = OraxenItems.getIdByItem(itemStack);
-        if (itemID == null) return null;
-
-        return MiscMechanicFactory.get().getMechanic(itemID);
     }
 
     private Material getStrippedLog(Material log) {

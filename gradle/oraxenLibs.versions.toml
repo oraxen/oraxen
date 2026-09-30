@@ -9,9 +9,6 @@ actions = "1.0.0-SNAPSHOT"
 #
 # Plugin Dependencies
 #
-# ProtocolLib https://github.com/dmulloy2/ProtocolLib
-# Repo: Maven Central
-protocol-lib = { module = "net.dmulloy2:ProtocolLib", version = "5.4.0" }
 # PacketEvents https://docs.packetevents.com/getting-started
 # Repo: https://repo.codemc.io/repository/maven-releases/
 packet-events = { module = "com.github.retrooper:packetevents-spigot", version = "2.13.0" }
@@ -147,7 +144,6 @@ plugins = [
     "mythicmobs",       # MythicMobs
     "modelengine",      # Model Engine
     "packet-events",    # PacketEvents
-    "protocol-lib",     # ProtocolLib
     "placeholderapi",   # PlaceholderAPI
     "worldedit-bukkit", # WorldEdit
     "worldguard-bukkit", # WorldGuard

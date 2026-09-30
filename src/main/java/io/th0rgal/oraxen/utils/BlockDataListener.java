@@ -1,5 +1,7 @@
 package io.th0rgal.oraxen.utils;
 
+import io.th0rgal.oraxen.api.OraxenBlocks;
+import io.th0rgal.oraxen.api.OraxenFurniture;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -41,7 +43,8 @@ public final class BlockDataListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlace(BlockPlaceEvent event) {
-        if (!BlockHelpers.isPDCDirty(event.getBlock())) remove(event.getBlock());
+        if (!BlockHelpers.isPDCDirty(event.getBlock()) && hasData(event.getBlock()))
+            BlockHelpers.removePDC(event.getBlock(), plugin);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -98,6 +101,12 @@ public final class BlockDataListener implements Listener {
 
         for (Block source : sources) {
             if (!hasData(source)) continue;
+            // Furniture barriers belong to an entity, so moving only their block data
+            // would leave the entity and its other barriers behind.
+            if (OraxenFurniture.hasFurnitureBlockMarker(source)) {
+                remove(source);
+                continue;
+            }
             if (source.getPistonMoveReaction() == PistonMoveReaction.BREAK) {
                 remove(source);
                 continue;
@@ -119,6 +128,12 @@ public final class BlockDataListener implements Listener {
     }
 
     private void remove(Block block) {
+        // Run furniture cleanup while the barrier marker can still resolve its base
+        // entity. Removing the PDC first would strand the entity and its other blocks.
+        if (OraxenFurniture.hasFurnitureBlockMarker(block))
+            OraxenFurniture.remove(block.getLocation(), null);
+        else if (OraxenBlocks.getOraxenBlock(block.getLocation()) != null)
+            OraxenBlocks.remove(block.getLocation(), null);
         if (hasData(block)) BlockHelpers.removePDC(block, plugin);
     }
 

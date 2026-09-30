@@ -422,6 +422,18 @@ public class SchemaGenerator {
         properties.getAsJsonObject("unbreakable").addProperty("default", false);
         addProperty(properties, "unstackable", "boolean", "Whether the item cannot be stacked", false, null, null);
         properties.getAsJsonObject("unstackable").addProperty("default", false);
+        JsonObject invulnerable = new JsonObject();
+        invulnerable.addProperty("type", "array");
+        invulnerable.addProperty("description", "Protects dropped items from selected damage causes");
+        JsonObject damageCause = new JsonObject();
+        damageCause.addProperty("type", "string");
+        JsonArray damageCauses = new JsonArray();
+        for (String value : List.of("lava", "fire", "fire_tick", "contact", "block_explosion",
+                "entity_explosion", "lightning"))
+            damageCauses.add(value);
+        damageCause.add("enum", damageCauses);
+        invulnerable.add("items", damageCause);
+        properties.add("invulnerable", invulnerable);
         addProperty(properties, "injectId", "boolean", "Whether to inject Oraxen item ID into NBT", false, null, null);
         properties.getAsJsonObject("injectId").addProperty("default", true);
 
@@ -434,6 +446,17 @@ public class SchemaGenerator {
                 "RGB color for leather armor, potions, maps (e.g., '255, 128, 0' or '#FF8000')");
         properties.add("color", color);
 
+        JsonObject glowing = new JsonObject();
+        glowing.addProperty("type", "string");
+        JsonArray glowingColors = new JsonArray();
+        for (String name : List.of("black", "dark_blue", "dark_green", "dark_aqua", "dark_red",
+                "dark_purple", "gold", "gray", "dark_gray", "blue", "green", "aqua", "red",
+                "light_purple", "yellow", "white")) glowingColors.add(name);
+        glowing.add("enum", glowingColors);
+        glowing.addProperty("description", "Outline color while the item is dropped (1.21.4+)");
+        glowing.addProperty("minecraftVersion", "1.21.4+");
+        properties.add("glowing", glowing);
+
         // trim_pattern
         addProperty(properties, "trim_pattern", "string", "Armor trim pattern key", false, "namespacedKey", "1.20+");
 
@@ -445,7 +468,7 @@ public class SchemaGenerator {
         addProperty(properties, "excludeFromCommands", "boolean", "Exclude from /oraxen give autocomplete", false, null,
                 null);
         addProperty(properties, "no_auto_update", "boolean", "Disable automatic item updates", false, null, null);
-        addProperty(properties, "disable_enchanting", "boolean", "Prevent enchanting this item", false, null, null);
+        addProperty(properties, "enchantable", "boolean", "Allow enchanting this item", false, null, null);
 
         // ItemFlags
         JsonObject itemFlags = new JsonObject();
@@ -670,7 +693,80 @@ public class SchemaGenerator {
         // item_model (1.21.2+)
         addSimpleComponent(components, "item_model", "string", "Custom item model resource location", "1.21.2+");
 
+        // compostable (26.3+)
+        JsonObject compostable = new JsonObject();
+        compostable.addProperty("type", "object");
+        compostable.addProperty("minecraftVersion", "26.3+");
+        compostable.addProperty("description", "Controls how many layers the item adds to a composter");
+        JsonObject compostableProps = new JsonObject();
+        compostableProps.add("layers", numberProviderProperty("integer", "minecraft:context_int_provider",
+                "Layers to add, either an inline integer or a context integer provider ID", null));
+        compostable.add("properties", compostableProps);
+        components.add("compostable", compostable);
+
+        // cooking_fuel (26.3+)
+        JsonObject cookingFuel = new JsonObject();
+        cookingFuel.addProperty("type", "object");
+        cookingFuel.addProperty("minecraftVersion", "26.3+");
+        cookingFuel.addProperty("description", "Makes the item usable as Furnace, Smoker, or Blast Furnace fuel");
+        JsonObject cookingFuelProps = new JsonObject();
+        cookingFuelProps.add("burn_time", numberProviderProperty("integer", "minecraft:context_int_provider",
+                "Burn time in ticks, either an inline integer or a context integer provider ID", null));
+        cookingFuelProps.add("speed_multiplier", numberProviderProperty("number", "minecraft:context_float_provider",
+                "Cooking speed multiplier, either an inline number or a context float provider ID", null));
+        cookingFuel.add("properties", cookingFuelProps);
+        components.add("cooking_fuel", cookingFuel);
+
+        // brewing_fuel (26.3+)
+        JsonObject brewingFuel = new JsonObject();
+        brewingFuel.addProperty("type", "object");
+        brewingFuel.addProperty("minecraftVersion", "26.3+");
+        brewingFuel.addProperty("description", "Makes the item usable as Brewing Stand fuel");
+        JsonObject brewingFuelProps = new JsonObject();
+        brewingFuelProps.add("uses", numberProviderProperty("integer", "minecraft:context_int_provider",
+                "Number of brews, either an inline integer or a context integer provider ID", null));
+        brewingFuelProps.add("speed_multiplier", numberProviderProperty("number", "minecraft:context_float_provider",
+                "Brewing speed multiplier, either an inline number or a context float provider ID", null));
+        brewingFuel.add("properties", brewingFuelProps);
+        components.add("brewing_fuel", brewingFuel);
+
+        addSwingAnimationComponent(components, "attack_animation", "Animation used when attacking with the item");
+        addSwingAnimationComponent(components, "interact_animation", "Animation used when interacting with the item");
+
         return components;
+    }
+
+    private static void addSwingAnimationComponent(JsonObject components, String name, String description) {
+        JsonObject animation = new JsonObject();
+        animation.addProperty("type", "object");
+        animation.addProperty("minecraftVersion", "26.3+");
+        animation.addProperty("description", description);
+        JsonObject props = new JsonObject();
+        addComponentProp(props, "type", "string", "Swing animation type: none, whack, or stab", null, null);
+        addComponentProp(props, "duration", "integer", "Animation duration in ticks", 0, null);
+        animation.add("properties", props);
+        components.add(name, animation);
+    }
+
+    private static JsonObject numberProviderProperty(String numberType, String providerType, String description,
+            Number min) {
+        JsonObject property = new JsonObject();
+        property.addProperty("description", description);
+        JsonArray oneOf = new JsonArray();
+
+        JsonObject inline = new JsonObject();
+        inline.addProperty("type", numberType);
+        if (min != null)
+            inline.addProperty("min", min);
+        oneOf.add(inline);
+
+        JsonObject provider = new JsonObject();
+        provider.addProperty("type", "string");
+        provider.addProperty("description", "Namespaced ID from the " + providerType + " registry");
+        oneOf.add(provider);
+
+        property.add("oneOf", oneOf);
+        return property;
     }
 
     private static void addSimpleComponent(JsonObject components, String name, String type, String desc,
@@ -710,6 +806,37 @@ public class SchemaGenerator {
         for (Map.Entry<String, MechanicFactory> entry : factories.entrySet()) {
             String mechanicId = entry.getKey();
             MechanicFactory factory = entry.getValue();
+
+            if ("mining".equals(mechanicId)) {
+                JsonObject mining = new JsonObject();
+                mining.addProperty("category", "farming");
+                mining.addProperty("description", factory.getMechanicDescription());
+                JsonArray forms = new JsonArray();
+                JsonObject offsets = new JsonObject();
+                offsets.addProperty("type", "array");
+                JsonObject offset = new JsonObject();
+                offset.addProperty("type", "string");
+                offset.addProperty("pattern", "^\\s*-?\\d+\\s*,\\s*-?\\d+\\s*,\\s*-?\\d+\\s*$");
+                offsets.add("items", offset);
+                forms.add(offsets);
+                JsonObject area = new JsonObject();
+                area.addProperty("type", "object");
+                area.addProperty("description", "Face-relative area. Depth follows the direction the player is looking.");
+                JsonObject areaProperties = new JsonObject();
+                JsonObject radius = new JsonObject();
+                radius.addProperty("type", "integer");
+                radius.addProperty("minimum", 0);
+                JsonObject depth = new JsonObject();
+                depth.addProperty("type", "integer");
+                depth.addProperty("minimum", 0);
+                areaProperties.add("radius", radius);
+                areaProperties.add("depth", depth);
+                area.add("properties", areaProperties);
+                forms.add(area);
+                mining.add("oneOf", forms);
+                mechanics.add("mining", mining);
+                continue;
+            }
 
             List<MechanicConfigProperty> schema = factory.getConfigSchema();
             String category = factory.getMechanicCategory();
@@ -760,11 +887,6 @@ public class SchemaGenerator {
                 Map.of("delay", prop("integer", "Cooldown in milliseconds", 0, null)));
 
         // Farming mechanics
-        addMechanicIfAbsent(mechanics, "bigmining", "farming", "Mines blocks in an area",
-                Map.of(
-                        "radius", prop("integer", "Horizontal radius", 1, null),
-                        "depth", prop("integer", "Depth of mining area", 1, null)));
-
         addMechanicIfAbsent(mechanics, "smelting", "farming", "Auto-smelts mined blocks",
                 Map.of("play_sound", prop("boolean", "Play smelting sound", null, true)));
 
@@ -772,7 +894,7 @@ public class SchemaGenerator {
         addMechanicIfAbsent(mechanics, "watering", "farming", "Waters farmland", Map.of());
         addMechanicIfAbsent(mechanics, "bottledexp", "farming", "Stores experience in bottles", Map.of());
 
-        addMechanicIfAbsent(mechanics, "bedrockbreak", "farming", "Allows breaking bedrock (requires ProtocolLib)",
+        addMechanicIfAbsent(mechanics, "bedrockbreak", "farming", "Allows breaking bedrock",
                 Map.of(
                         "delay", prop("integer", "Break delay in ticks", 0, null),
                         "probability", prop("number", "Chance to break (0-1)", 0, 1.0)));
@@ -792,7 +914,6 @@ public class SchemaGenerator {
         addMechanicIfAbsent(mechanics, "furniture", "gameplay", "Place item as furniture entity",
                 Map.of(
                         "barrier", prop("boolean", "Use barrier block for collision", null, false),
-                        "light", prop("integer", "Light level (0-15)", 0, null),
                         "lights", prop("array", "Light entries formatted '<x>,<y>,<z> <level>'", null, null),
                         "hardness", prop("number", "Break hardness", 0, null),
                         "farmland_required", prop("boolean", "Requires farmland below", null, false),
@@ -845,8 +966,10 @@ public class SchemaGenerator {
 
         addMechanicIfAbsent(mechanics, "backpack", "misc", "Portable storage",
                 Map.of(
-                        "rows", prop("integer", "Number of rows (1-6)", 1, 3),
-                        "title", prop("string", "Inventory title", null, null),
+                        "rows", prop("integer", "Number of rows (1-6)", 1, 6),
+                        "title", prop("string", "Inventory title", null, "Backpack"),
+                        "open_sound", prop("string", "Sound played when opening", null, "minecraft:entity.shulker.open"),
+                        "close_sound", prop("string", "Sound played when closing", null, "minecraft:entity.shulker.close"),
                         "blocked-items", prop("array",
                                 "Items that cannot be stored; Oraxen item IDs require the oraxen: prefix", null, null)));
 
@@ -854,7 +977,13 @@ public class SchemaGenerator {
                 Map.of("type", prop("string", "Item type identifier", null, null)));
 
         addMechanicIfAbsent(mechanics, "misc", "misc", "Miscellaneous properties",
-                Map.of("break_music_discs", prop("boolean", "Can break music discs", null, false)));
+                Map.of(
+                        "disable_vanilla_interactions", prop("boolean", "Deny vanilla right-click, consume, and bow-shoot behavior", null, false),
+                        "can_strip_logs", prop("boolean", "Let this item strip logs", null, false),
+                        "piglins_ignore_when_equipped", prop("boolean", "Piglins ignore a player who has this item equipped", null, false),
+                        "compostable", prop("boolean", "This item can be composted", null, false),
+                        "prevent_renaming", prop("boolean", "Whether item renaming in anvils is prevented", null, false),
+                        "allow_in_vanilla_recipes", prop("boolean", "Allow this item in vanilla recipes", null, false)));
 
         return mechanics;
     }

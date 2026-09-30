@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics;
 
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
@@ -12,6 +13,8 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ItemDisplay;
+import org.bukkit.entity.Player;
+import org.bukkit.event.block.Action;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
@@ -20,6 +23,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -34,22 +38,74 @@ import static org.mockito.Mockito.when;
 class FurnitureMechanicTest extends MechanicTestSupport {
 
     @Test
+    void runsConfiguredFurnitureEventsForMatchingClick() {
+        FurnitureMechanic mechanic = new FurnitureMechanic(mechanicFactory(), mechanicSection("furniture",
+                "events", List.of(Map.of("click", "right", "actions", List.of(
+                        Map.of("command", "say <Player>", "executor", "PLAYER"))))));
+        Player player = mock(Player.class);
+        when(player.getName()).thenReturn("Alex");
+
+        try (var compatibilities = mockStatic(CompatibilitiesManager.class)) {
+            assertFalse(mechanic.runEvents(player, Action.LEFT_CLICK_BLOCK));
+            assertTrue(mechanic.runEvents(player, Action.RIGHT_CLICK_BLOCK));
+        }
+        verify(player).performCommand("say Alex");
+    }
+
+    @Test
     void readsBasicFurnitureSettings() {
         FurnitureMechanic mechanic = new FurnitureMechanic(mechanicFactory(), mechanicSection("furniture",
                 "hardness", 4,
                 "item", "placed_item",
                 "type", "ITEM_FRAME",
-                "seat", java.util.Map.of("height", 0.75, "yaw", 90.0),
+                "seats", List.of("0,-0.25,0 90"),
                 "rotatable", true));
 
         assertEquals(4, mechanic.getHardness());
         assertTrue(mechanic.hasHardness());
         assertEquals(FurnitureMechanic.FurnitureType.ITEM_FRAME, mechanic.getFurnitureType());
         assertTrue(mechanic.hasSeat());
-        assertEquals(0.75f, mechanic.getSeatHeight());
+        assertEquals(-0.25, mechanic.getSeats().getFirst().offsetY());
+        assertEquals(90.0f, mechanic.getSeats().getFirst().yaw());
         assertTrue(mechanic.hasHitbox());
         assertFalse(mechanic.hasLimitedPlacing());
         assertFalse(mechanic.hasBlockSounds());
+        assertTrue(mechanic.isBreakable());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"left", "both"})
+    void leftClickEventsMakeFurnitureUnbreakableByDefault(String click) {
+        List<Map<String, Object>> events = List.of(Map.of("click", click,
+                "actions", List.of(Map.of("message", "clicked"))));
+        FurnitureMechanic mechanic = new FurnitureMechanic(mechanicFactory(),
+                mechanicSection("furniture", "events", events));
+        FurnitureMechanic explicitlyBreakable = new FurnitureMechanic(mechanicFactory(),
+                mechanicSection("furniture", "events", events, "breakable", true));
+
+        assertFalse(mechanic.isBreakable());
+        assertTrue(explicitlyBreakable.isBreakable());
+    }
+
+    @Test
+    void rightClickEventsKeepFurnitureBreakableUnlessDisabled() {
+        List<Map<String, Object>> events = List.of(Map.of("click", "right",
+                "actions", List.of(Map.of("message", "clicked"))));
+        FurnitureMechanic mechanic = new FurnitureMechanic(mechanicFactory(),
+                mechanicSection("furniture", "events", events));
+        FurnitureMechanic explicitlyUnbreakable = new FurnitureMechanic(mechanicFactory(),
+                mechanicSection("furniture", "events", events, "breakable", false));
+
+        assertTrue(mechanic.isBreakable());
+        assertFalse(explicitlyUnbreakable.isBreakable());
+    }
+
+    @Test
+    void eventWithoutClickFilterAlsoMakesFurnitureUnbreakable() {
+        FurnitureMechanic mechanic = new FurnitureMechanic(mechanicFactory(), mechanicSection("furniture",
+                "events", List.of(Map.of("actions", List.of(Map.of("message", "clicked"))))));
+
+        assertFalse(mechanic.isBreakable());
     }
 
     @ParameterizedTest

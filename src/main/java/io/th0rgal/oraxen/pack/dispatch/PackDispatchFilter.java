@@ -282,6 +282,7 @@ public final class PackDispatchFilter {
     private static Map<String, Integer> createProtocolMap() {
         Map<String, Integer> protocols = new HashMap<>();
 
+        put(protocols, 777, "26.3", "26.3.0", "1.26.3", "1.26.3.0");
         put(protocols, 776, "26.2", "26.2.0", "1.26.2", "1.26.2.0");
         put(protocols, 775, "26.1", "26.1.1", "26.1.2", "1.26.1", "1.26.1.1", "1.26.1.2");
         put(protocols, 774, "1.21.11");

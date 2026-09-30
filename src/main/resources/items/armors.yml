@@ -8,14 +8,14 @@
 magic_elytra:
   itemname: "<gradient:#9B59B6:#5B6BBF:#1A237E>Magic Elytra</gradient>"
   material: ELYTRA
-  Components:
+  components:
     max_stack_size: 1
     equippable:
       slot: CHEST
       model: oraxen:magic_elytra
     durability:
       value: 320
-  Pack:
+  pack:
     generate_model: true
     parent_model: item/generated
     textures:
@@ -26,7 +26,7 @@ emerald_helmet:
   material: PAPER
   lore:
     - "<#6f737d>» <#D5D6D8>Gives 1 extra <glyph:heart>"
-  Components:
+  components:
     max_stack_size: 1
     durability:
       value: 437
@@ -47,7 +47,7 @@ emerald_helmet:
         operation: 0,
         slot: HEAD,
       }
-  Pack:
+  pack:
     generate_model: true
     parent_model: "item/generated"
     textures:
@@ -58,7 +58,7 @@ emerald_chestplate:
   material: PAPER
   lore:
     - "<#6f737d>» <#D5D6D8>Gives 1.5 extra <glyph:heart>"
-  Components:
+  components:
     max_stack_size: 1
     durability:
       value: 635
@@ -75,7 +75,7 @@ emerald_chestplate:
         operation: 0,
         slot: CHEST,
       }
-  Pack:
+  pack:
     generate_model: true
     parent_model: "item/generated"
     textures:
@@ -86,7 +86,7 @@ emerald_leggings:
   material: PAPER
   lore:
     - "<#6f737d>» <#D5D6D8>Gives 1.5 extra <glyph:heart>"
-  Components:
+  components:
     max_stack_size: 1
     durability:
       value: 595
@@ -103,7 +103,7 @@ emerald_leggings:
         operation: 0,
         slot: LEGS,
       }
-  Pack:
+  pack:
     generate_model: true
     parent_model: "item/generated"
     textures:
@@ -114,7 +114,7 @@ emerald_boots:
   material: PAPER
   lore:
     - "<#6f737d>» <#D5D6D8>Gives 1 extra <glyph:heart>"
-  Components:
+  components:
     max_stack_size: 1
     durability:
       value: 516
@@ -131,7 +131,7 @@ emerald_boots:
         operation: 0,
         slot: FEET,
       }
-  Pack:
+  pack:
     generate_model: true
     parent_model: "item/generated"
     textures:
@@ -142,7 +142,7 @@ obsidian_helmet:
   material: PAPER
   lore:
     - "<#6f737d>» <#D5D6D8>Ludicrous durability"
-  Components:
+  components:
     max_stack_size: 1
     durability:
       value: 4370
@@ -152,7 +152,7 @@ obsidian_helmet:
       model: oraxen:obsidian
   AttributeModifiers:
     - { attribute: ARMOR, amount: 2, operation: 0, slot: HEAD }
-  Pack:
+  pack:
     generate_model: true
     parent_model: "item/generated"
     textures:
@@ -164,7 +164,7 @@ obsidian_chestplate:
   material: PAPER
   lore:
     - "<#6f737d>» <#D5D6D8>Ludicrous durability"
-  Components:
+  components:
     max_stack_size: 1
     durability:
       value: 6350
@@ -174,7 +174,7 @@ obsidian_chestplate:
       model: oraxen:obsidian
   AttributeModifiers:
     - { attribute: ARMOR, amount: 6, operation: 0, slot: CHEST }
-  Pack:
+  pack:
     generate_model: true
     parent_model: "item/generated"
     textures:
@@ -185,7 +185,7 @@ obsidian_leggings:
   material: PAPER
   lore:
     - "<#6f737d>» <#D5D6D8>Ludicrous durability"
-  Components:
+  components:
     max_stack_size: 1
     durability:
       value: 5950
@@ -195,7 +195,7 @@ obsidian_leggings:
       model: oraxen:obsidian
   AttributeModifiers:
     - { attribute: ARMOR, amount: 5, operation: 0, slot: LEGS }
-  Pack:
+  pack:
     generate_model: true
     parent_model: "item/generated"
     textures:
@@ -206,7 +206,7 @@ obsidian_boots:
   material: PAPER
   lore:
     - "<#6f737d>» <#D5D6D8>Ludicrous durability"
-  Components:
+  components:
     max_stack_size: 1
     durability:
       value: 5160
@@ -216,7 +216,7 @@ obsidian_boots:
       model: oraxen:obsidian
   AttributeModifiers:
     - { attribute: ARMOR, amount: 2, operation: 0, slot: FEET }
-  Pack:
+  pack:
     generate_model: true
     parent_model: "item/generated"
     textures:
@@ -225,7 +225,7 @@ obsidian_boots:
 ruby_helmet:
   displayname: "<gradient:#FA7CBB:#F14658>Ruby Helmet"
   material: PAPER
-  Components:
+  components:
     max_stack_size: 1
     durability:
       value: 547
@@ -241,7 +241,7 @@ ruby_helmet:
         operation: 0,
         slot: HEAD,
       }
-  Pack:
+  pack:
     generate_model: true
     parent_model: "item/generated"
     textures:
@@ -250,7 +250,7 @@ ruby_helmet:
 ruby_chestplate:
   displayname: "<gradient:#FA7CBB:#F14658>Ruby Chestplate"
   material: PAPER
-  Components:
+  components:
     max_stack_size: 1
     durability:
       value: 792
@@ -266,7 +266,7 @@ ruby_chestplate:
         operation: 0,
         slot: CHEST,
       }
-  Pack:
+  pack:
     generate_model: true
     parent_model: "item/generated"
     textures:
@@ -275,7 +275,7 @@ ruby_chestplate:
 ruby_leggings:
   displayname: "<gradient:#FA7CBB:#F14658>Ruby Leggings"
   material: PAPER
-  Components:
+  components:
     max_stack_size: 1
     durability:
       value: 742
@@ -291,7 +291,7 @@ ruby_leggings:
         operation: 0,
         slot: LEGS,
       }
-  Pack:
+  pack:
     generate_model: true
     parent_model: "item/generated"
     textures:
@@ -300,7 +300,7 @@ ruby_leggings:
 ruby_boots:
   displayname: "<gradient:#FA7CBB:#F14658>Ruby Boots"
   material: PAPER
-  Components:
+  components:
     max_stack_size: 1
     durability:
       value: 643
@@ -316,7 +316,7 @@ ruby_boots:
         operation: 0,
         slot: FEET,
       }
-  Pack:
+  pack:
     generate_model: true
     parent_model: "item/generated"
     textures:

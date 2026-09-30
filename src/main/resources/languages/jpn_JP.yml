@@ -47,7 +47,6 @@ logs:
   no_armor_item: "<prefix><#fa4943><name>に一致するアイテムが見つかりません。 <armor_layer_file>を使用できません"
   duplicate_armor_color: "<prefix><#fa4943><first_armor_prefix>のアーマーセットが<second_armor_prefix>とは異なるテクスチャを使用して同じ色を使用しています"
   datapack_generated: "<prefix><#facc43>データパックが生成されました。この機能を使用するにはサーバーの再起動が必要です。"
-  missing_protocollib: "<prefix><#f9f178>ProtocolLibがサーバーにインストールされていません。一部の機能が動作しません</#f9f178>"
   invalid_material: "<prefix><#e73f34>無効な材質：<minecraft_type></#e73f34>"
   io_error_add_pack_file: "<prefix><#e73f34>ファイル<file>をリソースパックに追加できませんでした</#e73f34>"
   missing_logs: "<prefix><#e73f34>latest.logを読み取れません。ファイルが存在しませんか？</#e73f34>"

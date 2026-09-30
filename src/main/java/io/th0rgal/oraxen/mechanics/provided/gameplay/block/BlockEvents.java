@@ -2,16 +2,16 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.block;
 
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.compatibilities.provided.placeholderapi.PapiAliases;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
+import io.th0rgal.oraxen.utils.actions.ActionConditions;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -20,13 +20,23 @@ import java.util.Map;
 public class BlockEvents {
 
     private final List<BlockEvent> events;
+    private final String eventPath;
 
     public BlockEvents(ConfigurationSection section, String sourceID) {
+        this(section, sourceID, "block.events");
+    }
+
+    public BlockEvents(ConfigurationSection section, String sourceID, String eventPath) {
+        this.eventPath = eventPath;
         events = parseEvents(section.getList("events"), sourceID);
     }
 
     public boolean isEmpty() {
         return events.isEmpty();
+    }
+
+    public boolean hasLeftClickEvent() {
+        return events.stream().anyMatch(event -> event.click().matches(Action.LEFT_CLICK_BLOCK));
     }
 
     public boolean run(Player player, Action clickAction) {
@@ -45,14 +55,14 @@ public class BlockEvents {
         List<BlockEvent> parsedEvents = new ArrayList<>();
         for (Object eventConfig : eventConfigs) {
             if (!(eventConfig instanceof Map<?, ?> eventMap)) {
-                Logs.logWarning("Invalid block.events entry in " + sourceID + "; entries must be maps.");
+                Logs.logWarning("Invalid " + eventPath + " entry in " + sourceID + "; entries must be maps.");
                 continue;
             }
 
-            ClickFilter click = ClickFilter.from(eventMap.get("click"), sourceID);
-            List<BlockEventAction> actions = parseActions(eventMap.get("actions"), sourceID);
+            ClickFilter click = ClickFilter.from(eventMap.get("click"), sourceID, eventPath);
+            List<ConditionalAction> actions = parseActions(eventMap.get("actions"), sourceID);
             if (actions.isEmpty()) {
-                Logs.logWarning("Block event in " + sourceID + " has no valid actions.");
+                Logs.logWarning(eventPath + " entry in " + sourceID + " has no valid actions.");
                 continue;
             }
 
@@ -62,37 +72,63 @@ public class BlockEvents {
         return List.copyOf(parsedEvents);
     }
 
-    private List<BlockEventAction> parseActions(Object value, String sourceID) {
+    private List<ConditionalAction> parseActions(Object value, String sourceID) {
         if (!(value instanceof List<?> actionConfigs) || actionConfigs.isEmpty()) return List.of();
 
-        List<BlockEventAction> parsedActions = new ArrayList<>();
+        List<ConditionalAction> parsedActions = new ArrayList<>();
         for (Object actionConfig : actionConfigs) {
             if (!(actionConfig instanceof Map<?, ?> actionMap)) {
-                Logs.logWarning("Invalid block.events action in " + sourceID + "; actions must be maps.");
+                Logs.logWarning("Invalid " + eventPath + " action in " + sourceID + "; actions must be maps.");
                 continue;
             }
 
             Object command = actionMap.get("command");
             Object message = actionMap.get("message");
+            Object legacy = actionMap.get("legacy");
+            List<String> conditions = parseConditions(actionMap, sourceID);
             if (command != null) {
                 String commandText = command.toString().trim();
                 if (commandText.isEmpty()) {
-                    Logs.logWarning("Empty command action in block event of " + sourceID + ".");
+                    Logs.logWarning("Empty command action in " + eventPath + " of " + sourceID + ".");
                     continue;
                 }
-                parsedActions.add(new CommandAction(commandText, CommandExecutor.from(actionMap.get("executor"), sourceID)));
+                parsedActions.add(new ConditionalAction(new CommandAction(commandText, CommandExecutor.from(actionMap.get("executor"), sourceID, eventPath)), conditions));
                 continue;
             }
 
             if (message != null) {
-                parsedActions.add(new MessageAction(message.toString()));
+                parsedActions.add(new ConditionalAction(new MessageAction(message.toString()), conditions));
                 continue;
             }
 
-            Logs.logWarning("Unknown block.events action in " + sourceID + "; expected 'command' or 'message'.");
+            if (legacy != null) {
+                // Migrated clickActions run as one ordered sequence so [DELAY] and command order behave as before.
+                var actions = OraxenPlugin.get().getClickActionManager().parse(Player.class, legacyActions(legacy));
+                if (!actions.isEmpty())
+                    parsedActions.add(new ConditionalAction(player -> OraxenPlugin.get().getClickActionManager().runOrdered(player, actions), conditions));
+                continue;
+            }
+
+            Logs.logWarning("Unknown " + eventPath + " action in " + sourceID + "; expected 'command', 'message', or migrated 'legacy'.");
         }
 
         return List.copyOf(parsedActions);
+    }
+
+    private static List<String> legacyActions(Object legacy) {
+        if (legacy instanceof List<?> values)
+            return values.stream().filter(String.class::isInstance).map(String.class::cast).toList();
+        return List.of(legacy.toString());
+    }
+
+    private List<String> parseConditions(Map<?, ?> actionMap, String sourceID) {
+        Object value = actionMap.containsKey("conditions") ? actionMap.get("conditions") : actionMap.get("condition");
+        if (value == null) return List.of();
+        if (value instanceof String condition) return List.of(condition);
+        if (value instanceof List<?> values && values.stream().allMatch(String.class::isInstance))
+            return values.stream().map(String.class::cast).toList();
+        Logs.logWarning("Invalid " + eventPath + " condition in " + sourceID + "; blocking action.");
+        return List.of("false");
     }
 
     private static String applyPlaceholders(String text, Player player) {
@@ -114,11 +150,17 @@ public class BlockEvents {
         return parsed;
     }
 
-    private record BlockEvent(ClickFilter click, List<BlockEventAction> actions) {
+    private record BlockEvent(ClickFilter click, List<ConditionalAction> actions) {
         private void run(Player player) {
-            for (BlockEventAction action : actions) {
+            for (ConditionalAction action : actions) {
                 action.run(player);
             }
+        }
+    }
+
+    private record ConditionalAction(BlockEventAction action, List<String> conditions) {
+        private void run(Player player) {
+            if (ActionConditions.matches(player, conditions)) action.run(player);
         }
     }
 
@@ -155,52 +197,26 @@ public class BlockEvents {
         CONSOLE {
             @Override
             void run(Player player, String command) {
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
+                if (SchedulerUtil.isGlobalThread()) Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
+                else SchedulerUtil.runTask(() -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command));
             }
         },
         OP_PLAYER {
             @Override
             void run(Player player, String command) {
-                Bukkit.dispatchCommand(opCommandSender(player), command);
+                boolean wasOp = player.isOp();
+                if (!wasOp) player.setOp(true);
+                try {
+                    Bukkit.dispatchCommand(player, command);
+                } finally {
+                    if (!wasOp) player.setOp(false);
+                }
             }
         };
 
         abstract void run(Player player, String command);
 
-        private static Player opCommandSender(Player player) {
-            return (Player) Proxy.newProxyInstance(
-                    Player.class.getClassLoader(),
-                    new Class[]{Player.class},
-                    (proxy, method, args) -> invokeAsOpPlayer(player, proxy, method, args)
-            );
-        }
-
-        private static boolean grantsOpPermission(Method method) {
-            return method.getName().equals("hasPermission") || method.getName().equals("isPermissionSet");
-        }
-
-        private static Object invokeAsOpPlayer(Player player, Object proxy, Method method, Object[] args) throws Throwable {
-            if (method.getDeclaringClass() == Object.class) {
-                return switch (method.getName()) {
-                    case "equals" -> proxy == args[0];
-                    case "hashCode" -> System.identityHashCode(proxy);
-                    case "toString" -> "OpPlayerCommandSender{" + player.getName() + "}";
-                    default -> method.invoke(player, args);
-                };
-            }
-
-            if (method.getParameterCount() == 0 && method.getName().equals("isOp")) return true;
-            if (method.getParameterCount() == 1 && grantsOpPermission(method)) return true;
-            if (method.getParameterCount() == 1 && method.getName().equals("setOp")) return null;
-
-            try {
-                return method.invoke(player, args);
-            } catch (InvocationTargetException exception) {
-                throw exception.getCause();
-            }
-        }
-
-        private static CommandExecutor from(Object value, String sourceID) {
+        private static CommandExecutor from(Object value, String sourceID, String eventPath) {
             if (value == null) return PLAYER;
 
             String normalized = value.toString().trim().toUpperCase(Locale.ROOT).replace('-', '_');
@@ -209,7 +225,7 @@ public class BlockEvents {
             try {
                 return valueOf(normalized);
             } catch (IllegalArgumentException exception) {
-                Logs.logWarning("Invalid block.events executor '" + value + "' in " + sourceID + "; using PLAYER.");
+                Logs.logWarning("Invalid " + eventPath + " executor '" + value + "' in " + sourceID + "; using PLAYER.");
                 return PLAYER;
             }
         }
@@ -228,7 +244,7 @@ public class BlockEvents {
             };
         }
 
-        private static ClickFilter from(Object value, String sourceID) {
+        private static ClickFilter from(Object value, String sourceID, String eventPath) {
             if (value == null) return BOTH;
 
             String normalized = value.toString().trim().toUpperCase(Locale.ROOT).replace('-', '_');
@@ -237,7 +253,7 @@ public class BlockEvents {
             try {
                 return valueOf(normalized);
             } catch (IllegalArgumentException exception) {
-                Logs.logWarning("Invalid block.events click filter '" + value + "' in " + sourceID + "; using BOTH.");
+                Logs.logWarning("Invalid " + eventPath + " click filter '" + value + "' in " + sourceID + "; using BOTH.");
                 return BOTH;
             }
         }

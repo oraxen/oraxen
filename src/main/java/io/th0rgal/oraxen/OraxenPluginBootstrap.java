@@ -3,6 +3,7 @@ package io.th0rgal.oraxen;
 import io.papermc.paper.ServerBuildInfo;
 import io.papermc.paper.plugin.bootstrap.BootstrapContext;
 import io.papermc.paper.plugin.bootstrap.PluginBootstrap;
+import io.th0rgal.oraxen.pack.generation.LegacyDatapackCleaner;
 import io.th0rgal.oraxen.sounds.SoundConfigMigration;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import org.bukkit.configuration.ConfigurationSection;
@@ -27,6 +28,11 @@ public final class OraxenPluginBootstrap implements PluginBootstrap {
         } catch (LinkageError | RuntimeException exception) {
             context.getLogger().warn("Could not determine the Minecraft version; skipping Oraxen bootstrap registry changes.");
             return;
+        }
+
+        if (atOrAbove(minecraftVersion, 1, 21, 2)) {
+            LegacyDatapackCleaner.clearReplacedDatapacks(context.getDataDirectory(),
+                    warning -> context.getLogger().warn(warning));
         }
 
         if (atOrAbove(minecraftVersion, 1, 21, 3)) {

@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.shaped.ShapedBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
 import io.th0rgal.oraxen.protection.AntiGriefLib;
 import io.th0rgal.oraxen.utils.ItemUtils;
+import io.th0rgal.oraxen.utils.breaker.SyntheticBlockInteract;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -27,6 +28,7 @@ public class BlockMechanicListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onBlockEventClick(PlayerInteractEvent event) {
+        if (SyntheticBlockInteract.isActive()) return;
         Action action = event.getAction();
         if (action != Action.LEFT_CLICK_BLOCK && action != Action.RIGHT_CLICK_BLOCK) return;
         if (event.getHand() != null && event.getHand() != EquipmentSlot.HAND) return;
@@ -41,7 +43,9 @@ public class BlockMechanicListener implements Listener {
         if (!AntiGriefLib.canInteract(player, block.getLocation())) return;
         // Vanilla only bypasses block interactions when sneaking with an item in either
         // hand; sneaking with empty hands still triggers click actions and storage.
-        if (action == Action.RIGHT_CLICK_BLOCK && player.isSneaking() && ItemUtils.hasItemInAnyHand(player)) return;
+        // Note block click actions previously ran only while the player was not sneaking.
+        if (action == Action.RIGHT_CLICK_BLOCK && player.isSneaking()
+                && (ItemUtils.hasItemInAnyHand(player) || mechanic instanceof NoteBlockMechanic)) return;
 
         runBlockEvents(mechanic, player, action);
     }

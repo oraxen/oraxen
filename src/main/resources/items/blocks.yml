@@ -9,10 +9,10 @@
 caveblock:
   displayname: "<#D5D6D8>Cave Block"
   material: PAPER
-  Pack:
+  pack:
     generate_model: false # because this is a block, a 2nd model pointing to specified one will be generated anyway
     model: default/caveblock
-  Mechanics:
+  mechanics:
     block:
       type: FULL
       block-sounds:
@@ -34,12 +34,12 @@ caveblock:
 amethyst_ore:
   displayname: '<gradient:#4B36B1:#6699FF>Amethyst Ore'
   material: PAPER
-  Pack:
+  pack:
     generate_model: true
     parent_model: block/cube_all
     textures:
       - default/amethyst_ore
-  Mechanics:
+  mechanics:
     block:
       type: FULL
       block-sounds:
@@ -72,12 +72,12 @@ amethyst_ore:
 ruby_ore:
   displayname: '<gradient:#FA7CBB:#F14658>Ruby Ore'
   material: PAPER
-  Pack:
+  pack:
     generate_model: true
     parent_model: block/cube_all
     textures:
       - default/ruby_ore
-  Mechanics:
+  mechanics:
     block:
       type: FULL
       block-sounds:
@@ -110,12 +110,12 @@ ruby_ore:
 onyx_ore:
   displayname: '<#6f737d>Onyx Ore'
   material: PAPER
-  Pack:
+  pack:
     generate_model: true
     parent_model: block/cube_all
     textures:
       - default/onyx_ore
-  Mechanics:
+  mechanics:
     block:
       type: FULL
       block-sounds:
@@ -147,12 +147,12 @@ onyx_ore:
 orax_ore:
   displayname: '<gradient:#3685EC:#72C1E4>Orax Ore'
   material: PAPER
-  Pack:
+  pack:
     generate_model: true
     parent_model: block/cube_all
     textures:
       - default/orax_ore
-  Mechanics:
+  mechanics:
     block:
       type: FULL
       block-sounds:

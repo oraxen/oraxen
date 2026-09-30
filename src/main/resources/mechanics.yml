@@ -94,6 +94,8 @@ aura:
 # Cosmetic backpacks displayed on player's back using packet-based armor stands
 backpack_cosmetic:
   enabled: true
+  armor_stand_enabled: true
+  armor_stand_range: 128
 
 hat:
   enabled: true
@@ -134,9 +136,11 @@ spear_lunge:
 
 # FARMING
 
-bigmining:
+mining:
   enabled: true
-  # Toggles if Oraxen should call the BlockBreakEvent or just listen to it
+  # Items list x,y,z offsets relative to the mined block; 0,0,0 is mined normally.
+  # radius and depth instead follow the direction the player is looking.
+  # Whether to call BlockBreakEvent for each additional block
   # Known to cause issues with some enchantment-plugins if enabled
   call_events: true
 

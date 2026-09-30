@@ -13,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,7 +34,10 @@ public abstract class RecipeBuilder {
     protected RecipeBuilder(Player player, String builderName) {
         this.player = player;
         this.builderName = builderName;
-        this.inventoryTitle = player.getName() + " " + builderName + " builder";
+        this.inventoryTitle = switch (builderName) {
+            case "shaped", "shapeless" -> "Recipe builder";
+            default -> Character.toUpperCase(builderName.charAt(0)) + builderName.substring(1) + " builder";
+        };
         UUID playerId = player.getUniqueId();
         RecipeBuilder existingBuilder = MAP.get(playerId);
         inventory = existingBuilder != null && existingBuilder.builderName.equals(builderName)
@@ -52,6 +56,13 @@ public abstract class RecipeBuilder {
     public abstract void saveRecipe(String name);
 
     public abstract void saveRecipe(String name, String permission);
+
+    /**
+     * @return the names of required slots that are still empty; the recipe can only be saved when this is empty
+     */
+    public List<String> getMissingIngredients() {
+        return List.of();
+    }
 
     protected Inventory getInventory() {
         return this.inventory;
@@ -94,6 +105,10 @@ public abstract class RecipeBuilder {
 
     public String getInventoryTitle() {
         return inventoryTitle;
+    }
+
+    public boolean matchesInventory(Inventory inventory) {
+        return this.inventory == inventory;
     }
 
     public Player getPlayer() {

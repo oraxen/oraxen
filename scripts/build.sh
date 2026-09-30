@@ -3,6 +3,20 @@ set -euo pipefail
 
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 project_dir="$(cd -- "$script_dir/.." && pwd)"
+properties_file="$project_dir/gradle.properties"
+backup_file="$(mktemp)"
+
+cp "$properties_file" "$backup_file"
+trap 'cp "$backup_file" "$properties_file"; rm -f "$backup_file"' EXIT
+
+tmp_properties="$(mktemp)"
+if grep -Eq '^[[:space:]]*oraxen_compiled[[:space:]]*=' "$properties_file"; then
+  sed -E 's|^([[:space:]]*oraxen_compiled[[:space:]]*=[[:space:]]*).*$|\1true|' "$properties_file" > "$tmp_properties"
+else
+  cat "$properties_file" > "$tmp_properties"
+  printf '%s\n' 'oraxen_compiled=true' >> "$tmp_properties"
+fi
+mv "$tmp_properties" "$properties_file"
 
 if [[ -x "$project_dir/gradlew" ]]; then
   "$project_dir/gradlew" -p "$project_dir" build

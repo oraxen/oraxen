@@ -5,6 +5,7 @@ import md.thomas.hopper.FailurePolicy;
 import md.thomas.hopper.LogLevel;
 import md.thomas.hopper.bukkit.BukkitHopper;
 import md.thomas.hopper.version.UpdatePolicy;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
@@ -15,7 +16,7 @@ import java.util.regex.Pattern;
 /**
  * Handles automatic downloading of dependencies using Hopper.
  * <p>
- * This class registers and downloads PacketEvents when neither ProtocolLib nor PacketEvents is installed.
+ * PacketEvents is only needed on the legacy 1.20.1-1.21.1 packet backend.
  * Downloaded plugins are automatically loaded at runtime without requiring a server restart.
  */
 public final class OraxenHopper {
@@ -24,11 +25,6 @@ public final class OraxenHopper {
     private static boolean requiresRestart = false;
     private static boolean enabled = true;
 
-    // Patterns to match plugin jar files
-    // Matches: ProtocolLib.jar, ProtocolLib-5.4.0.jar
-    private static final Pattern PROTOCOLLIB_PATTERN = Pattern.compile(
-        "(?i)^protocollib([-_][\\d][\\w.-]*)?\\.jar$"
-    );
     // Matches: packetevents.jar, packetevents-spigot-2.11.1.jar
     private static final Pattern PACKETEVENTS_PATTERN = Pattern.compile(
         "(?i)^packetevents([-_][\\w.-]*)?\\.jar$"
@@ -54,13 +50,13 @@ public final class OraxenHopper {
         }
 
         BukkitHopper.register(plugin, deps -> {
+            if (VersionUtil.atOrAbove("1.21.2")) return;
+
             // We check for files in the plugins folder as a reliable baseline; the classpath check catches
             // cases where the library is already loaded (e.g. installed server plugin with an atypical jar name)
-            boolean hasProtocolLib = pluginJarExists(PROTOCOLLIB_PATTERN) || classExists("com.comphenix.protocol.ProtocolLib");
             boolean hasPacketEvents = pluginJarExists(PACKETEVENTS_PATTERN) || classExists("com.github.retrooper.packetevents.PacketEvents");
 
-            // PacketEvents is optional but recommended (if neither ProtocolLib nor PacketEvents is available)
-            if (!hasProtocolLib && !hasPacketEvents) {
+            if (!hasPacketEvents) {
                 // Primary source: Modrinth (auto-detects platform for correct spigot/paper variant)
                 deps.require(Dependency.modrinth("packetevents")
                     .name("PacketEvents")

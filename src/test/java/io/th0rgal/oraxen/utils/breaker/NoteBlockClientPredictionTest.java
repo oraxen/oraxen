@@ -8,6 +8,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
+import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -25,9 +27,21 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 class NoteBlockClientPredictionTest {
+
+    @Test
+    void ignoresSyntheticBlockDamageWithoutABlockFace() {
+        final BlockDamageEvent event = mock(BlockDamageEvent.class);
+        when(event.getBlockFace()).thenThrow(new IllegalStateException("BlockFace is not available for this event"));
+
+        assertDoesNotThrow(() -> new BreakerSystem().onBlockDamage(event));
+
+        verify(event).getBlockFace();
+        verifyNoMoreInteractions(event);
+    }
 
     @Test
     void fullBlockBetweenCustomNoteBlocksRequiresServerAuthoritativeBreaking() {

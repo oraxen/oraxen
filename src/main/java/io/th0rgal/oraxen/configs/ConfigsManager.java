@@ -275,6 +275,27 @@ public class ConfigsManager {
         File configurationFile = resourcesManager.extractConfiguration(configName);
         YamlConfiguration configuration = OraxenYaml.loadConfiguration(configurationFile);
         boolean updated = configName.equals("settings.yml") && SettingsUpdater.migrateInventoryMenu(configuration);
+        boolean miningConfigMigrated = configName.equals("mechanics.yml")
+                && MiningConfigMigration.migrateFactory(configuration);
+        updated |= miningConfigMigrated;
+        updated |= updateDefaultKeys(configName, configuration, defaultConfiguration);
+        updated |= removeObsoleteKeys(configuration);
+
+        if (updated)
+            try {
+                if (miningConfigMigrated)
+                    MigrationBackups.moveToMigrated(plugin.getDataFolder(), configurationFile);
+                configuration.save(configurationFile);
+            } catch (IOException e) {
+                Logs.logError("Failed to save updated configuration file: " + configurationFile.getName());
+                Logs.debug(e);
+            }
+        return configuration;
+    }
+
+    private boolean updateDefaultKeys(String configName, YamlConfiguration configuration,
+            YamlConfiguration defaultConfiguration) {
+        boolean updated = false;
         for (String key : defaultConfiguration.getKeys(true)) {
             if (!skippedYamlKeys.stream().filter(key::startsWith).toList().isEmpty())
                 continue;
@@ -288,37 +309,37 @@ public class ConfigsManager {
                     configuration.set(key, defaultConfiguration.get(key));
                 continue;
             }
-            // Migrate language values that lost a required placeholder (e.g. older
-            // installs of general.reload missing the new <reloaded> tag introduced in 1.214.0).
-            if (configName.startsWith("languages/")
-                    && currentValue instanceof String currentString
-                    && defaultConfiguration.get(key) instanceof String defaultString) {
-                for (String placeholder : REQUIRED_LANG_PLACEHOLDERS.getOrDefault(key, List.of())) {
-                    if (defaultString.contains(placeholder) && !currentString.contains(placeholder)) {
-                        updated = true;
-                        Message.UPDATING_CONFIG.log(AdventureUtils.tagResolver("option", key));
-                        configuration.set(key, defaultString);
-                        break;
-                    }
-                }
+            updated |= migrateLanguagePlaceholders(configName, configuration, defaultConfiguration, key, currentValue);
+        }
+        return updated;
+    }
+
+    // Migrate language values that lost a required placeholder in older installs.
+    private boolean migrateLanguagePlaceholders(String configName, YamlConfiguration configuration,
+            YamlConfiguration defaultConfiguration, String key, Object currentValue) {
+        if (!configName.startsWith("languages/")
+                || !(currentValue instanceof String currentString)
+                || !(defaultConfiguration.get(key) instanceof String defaultString))
+            return false;
+        for (String placeholder : REQUIRED_LANG_PLACEHOLDERS.getOrDefault(key, List.of())) {
+            if (defaultString.contains(placeholder) && !currentString.contains(placeholder)) {
+                Message.UPDATING_CONFIG.log(AdventureUtils.tagResolver("option", key));
+                configuration.set(key, defaultString);
+                return true;
             }
         }
+        return false;
+    }
 
+    private boolean removeObsoleteKeys(YamlConfiguration configuration) {
+        boolean updated = false;
         for (String key : configuration.getKeys(false))
             if (removedYamlKeys.contains(key)) {
                 updated = true;
                 Message.REMOVING_CONFIG.log(AdventureUtils.tagResolver("option", key));
                 configuration.set(key, null);
             }
-
-        if (updated)
-            try {
-                configuration.save(configurationFile);
-            } catch (IOException e) {
-                Logs.logError("Failed to save updated configuration file: " + configurationFile.getName());
-                Logs.debug(e);
-            }
-        return configuration;
+        return updated;
     }
 
     // Skip optional keys and subkeys
@@ -784,60 +805,69 @@ public class ConfigsManager {
 
     public void assignAllUsedModelDatas() {
         Map<Material, Map<Integer, String>> assignedModelDatas = new HashMap<>();
-        for (File file : getItemFiles()) {
-            if (!file.exists())
-                continue;
-            YamlConfiguration configuration = OraxenYaml.loadConfiguration(file);
-            boolean fileChanged = false;
+        for (File file : getItemFiles())
+            assignUsedModelData(file, assignedModelDatas);
+    }
 
-            for (String key : configuration.getKeys(false)) {
-                ConfigurationSection itemSection = configuration.getConfigurationSection(key);
-                if (itemSection == null)
-                    continue;
-                ConfigurationSection packSection = OraxenYaml.getConfigurationSection(itemSection, "Pack");
-                Material material = OraxenYaml.getMaterial(itemSection.getString("material", ""));
-                if (packSection == null || material == null)
-                    continue;
-                int modelData = packSection.getInt("custom_model_data", -1);
-                String model = getItemModelFromConfigurationSection(packSection);
-                if (modelData == -1)
-                    continue;
-                if (assignedModelDatas.containsKey(material)
-                        && assignedModelDatas.get(material).containsKey(modelData)) {
-                    if (assignedModelDatas.get(material).get(modelData).equals(model))
-                        continue;
-                    Logs.logError("CustomModelData " + modelData
-                            + " is already assigned to another item with this material but different model");
-                    if (file.getAbsolutePath()
-                            .equals(DuplicationHandler.getDuplicateItemFile(material).getAbsolutePath())
-                            && Settings.RETAIN_CUSTOM_MODEL_DATA.toBool()) {
-                        Logs.logWarning("Due to " + Settings.RETAIN_CUSTOM_MODEL_DATA.getPath() + " being enabled,");
-                        Logs.logWarning("the model data will not removed from " + file.getName() + ": " + key + ".");
-                        Logs.logWarning("There will still be a conflict which you need to solve yourself.");
-                        Logs.logWarning(
-                                "Either reset the CustomModelData of this item, or change the CustomModelData of the conflicting item.",
-                                true);
-                    } else {
-                        Logs.logWarning("Removing custom model data from " + file.getName() + ": " + key, true);
-                        packSection.set("custom_model_data", null);
-                        fileChanged = true;
-                    }
-                    continue;
-                }
-
-                assignedModelDatas.computeIfAbsent(material, k -> new HashMap<>()).put(modelData, model);
-                ModelData.DATAS.computeIfAbsent(material, k -> new HashMap<>()).put(key, modelData);
-            }
-
-            if (fileChanged) {
-                try {
-                    configuration.save(file);
-                } catch (IOException e) {
-                    Logs.logWarning("Failed to save updated item file: " + file.getName());
-                    Logs.debug(e);
-                }
-            }
+    private void assignUsedModelData(File file, Map<Material, Map<Integer, String>> assignedModelDatas) {
+        if (!file.exists()) return;
+        YamlConfiguration configuration = OraxenYaml.loadConfiguration(file);
+        boolean fileChanged = false;
+        boolean migrationBackupRequired = false;
+        for (String key : configuration.getKeys(false)) {
+            ConfigurationSection itemSection = configuration.getConfigurationSection(key);
+            if (itemSection == null) continue;
+            ItemMigrator migrator = new ItemMigrator(itemSection);
+            fileChanged |= migrator.configUpdated();
+            migrationBackupRequired |= migrator.blockConfigMigrated();
+            fileChanged |= assignItemModelData(file, key, itemSection, assignedModelDatas);
         }
+        if (!fileChanged) return;
+        try {
+            if (migrationBackupRequired)
+                MigrationBackups.moveToMigrated(plugin.getDataFolder(), file);
+            configuration.save(file);
+        } catch (IOException e) {
+            Logs.logWarning("Failed to save updated item file: " + file.getName());
+            Logs.debug(e);
+        }
+    }
+
+    private boolean assignItemModelData(File file, String key, ConfigurationSection itemSection,
+            Map<Material, Map<Integer, String>> assignedModelDatas) {
+        ConfigurationSection packSection = itemSection.getConfigurationSection("pack");
+        Material material = OraxenYaml.getMaterial(itemSection.getString("material", ""));
+        if (packSection == null || material == null) return false;
+        int modelData = packSection.getInt("custom_model_data", -1);
+        String model = getItemModelFromConfigurationSection(packSection);
+        if (modelData == -1) return false;
+        Map<Integer, String> materialModels = assignedModelDatas.get(material);
+        if (materialModels != null && materialModels.containsKey(modelData)) {
+            if (materialModels.get(modelData).equals(model)) return false;
+            return handleConflictingModelData(file, key, packSection, material, modelData);
+        }
+        assignedModelDatas.computeIfAbsent(material, k -> new HashMap<>()).put(modelData, model);
+        ModelData.DATAS.computeIfAbsent(material, k -> new HashMap<>()).put(key, modelData);
+        return false;
+    }
+
+    private boolean handleConflictingModelData(File file, String key, ConfigurationSection packSection,
+            Material material, int modelData) {
+        Logs.logError("CustomModelData " + modelData
+                + " is already assigned to another item with this material but different model");
+        if (file.getAbsolutePath().equals(DuplicationHandler.getDuplicateItemFile(material).getAbsolutePath())
+                && Settings.RETAIN_CUSTOM_MODEL_DATA.toBool()) {
+            Logs.logWarning("Due to " + Settings.RETAIN_CUSTOM_MODEL_DATA.getPath() + " being enabled,");
+            Logs.logWarning("the model data will not removed from " + file.getName() + ": " + key + ".");
+            Logs.logWarning("There will still be a conflict which you need to solve yourself.");
+            Logs.logWarning(
+                    "Either reset the CustomModelData of this item, or change the CustomModelData of the conflicting item.",
+                    true);
+            return false;
+        }
+        Logs.logWarning("Removing custom model data from " + file.getName() + ": " + key, true);
+        packSection.set("custom_model_data", null);
+        return true;
     }
 
     public void parseAllItemTemplates() {
@@ -852,8 +882,10 @@ public class ConfigsManager {
                 if (itemSection == null || !itemSection.isBoolean("template")) continue;
 
                 ItemMigrator migrator = new ItemMigrator(itemSection);
-                ConfigurationSection mechanicsSection = OraxenYaml.getConfigurationSection(itemSection, "Mechanics");
-                if (mechanicsSection != null) migrator.migrateLegacyBlockMechanics(mechanicsSection);
+                ConfigurationSection mechanicsSection = itemSection.getConfigurationSection("mechanics");
+                if (mechanicsSection != null) {
+                    migrator.migrateLegacyBlockMechanics(mechanicsSection);
+                }
                 configUpdated |= migrator.configUpdated();
                 blockConfigMigrated |= migrator.blockConfigMigrated();
                 ItemTemplate.register(itemSection);

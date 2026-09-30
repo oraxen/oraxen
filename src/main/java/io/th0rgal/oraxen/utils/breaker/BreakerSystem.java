@@ -72,7 +72,15 @@ public class BreakerSystem implements Listener {
 
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void onBlockDamage(final BlockDamageEvent event) {
-        handleEvent(event.getPlayer(), event.getBlock(), event.getBlockFace(), () -> event.setCancelled(true), true);
+        final BlockFace blockFace;
+        try {
+            blockFace = event.getBlockFace();
+        } catch (final IllegalStateException ignored) {
+            // Synthetic damage events created with the legacy constructor have no clicked face.
+            // They do not represent a new client mining action for the breaker to own.
+            return;
+        }
+        handleEvent(event.getPlayer(), event.getBlock(), blockFace, () -> event.setCancelled(true), true);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -182,10 +190,11 @@ public class BreakerSystem implements Listener {
                     ? CustomBlockMiningListener.serverDrivenBreakProgress(player, block, item)
                     : 0.0F;
             SchedulerUtil.runAtLocation(location, () -> {
-                // Fire PlayerInteractEvent for plugin support (cancellation state is ignored)
+                // Fire PlayerInteractEvent for plugin support (cancellation state is ignored).
+                // Oraxen click actions already ran on the real interact and skip this copy.
                 final PlayerInteractEvent playerInteractEvent =
                     new PlayerInteractEvent(player, Action.LEFT_CLICK_BLOCK, player.getInventory().getItemInMainHand(), block, blockFace, EquipmentSlot.HAND);
-                playerInteractEvent.callEvent();
+                SyntheticBlockInteract.call(playerInteractEvent);
 
                 // If the relevant damage event is cancelled, stop the breaker
                 if (blockDamageEventCancelled(block, player)) {

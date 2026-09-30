@@ -13,15 +13,19 @@ import io.th0rgal.oraxen.configs.SettingsUpdater;
 import io.th0rgal.oraxen.fonts.FontManager;
 import io.th0rgal.oraxen.hopper.OraxenHopper;
 import io.th0rgal.oraxen.introduction.IntroductionGuide;
+import io.th0rgal.oraxen.packets.NativePacketAdapter;
 import io.th0rgal.oraxen.packets.PacketAdapter;
 import io.th0rgal.oraxen.packets.PacketEventsAdapter;
-import io.th0rgal.oraxen.packets.ProtocolLibAdapter;
 import io.th0rgal.oraxen.hud.HudManager;
+import io.th0rgal.oraxen.items.GlowingItemListener;
+import io.th0rgal.oraxen.items.InvulnerableItemListener;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.CustomBlockPickItemListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.pack.dispatch.PackLoadingManager;
+import io.th0rgal.oraxen.pack.generation.LegacyDatapackCleaner;
 import io.th0rgal.oraxen.pack.generation.PackVersionManager;
 import io.th0rgal.oraxen.paintings.CustomPainting;
 import io.th0rgal.oraxen.paintings.CustomPaintingListener;
@@ -34,6 +38,7 @@ import io.th0rgal.oraxen.sounds.CustomJukeboxSongRegistry;
 import io.th0rgal.oraxen.sounds.SoundManager;
 import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
+import io.th0rgal.oraxen.utils.UpdateChecker;
 import io.th0rgal.oraxen.utils.actions.ClickActionManager;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorEquipEvent;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
@@ -68,6 +73,7 @@ public class OraxenPlugin extends JavaPlugin {
     private volatile ResourcePack resourcePack;
     private volatile ClickActionManager clickActionManager;
     private volatile PacketAdapter packetAdapter;
+    private UpdateChecker updateChecker;
 
     public OraxenPlugin() {
         oraxen = this;
@@ -119,7 +125,12 @@ public class OraxenPlugin extends JavaPlugin {
         if (CustomBlockMiningListener.isSupported()) {
             Bukkit.getPluginManager().registerEvents(new CustomBlockMiningListener(), this);
         }
+        if (VersionUtil.atOrAbove("1.21.5")) {
+            Bukkit.getPluginManager().registerEvents(new CustomBlockPickItemListener(), this);
+        }
         NMSHandlers.setup();
+        if (VersionUtil.atOrAbove("1.21.2"))
+            LegacyDatapackCleaner.clearReplacedDatapacks();
         // Bootstrap only registers paintings on 1.21.3+. 1.21.2 (and any
         // bootstrap miss) injects them into the live registry here, matching
         // the jukebox fallback below.
@@ -148,6 +159,8 @@ public class OraxenPlugin extends JavaPlugin {
         hudManager.registerTask();
         hudManager.parsedHudDisplays = hudManager.generateHudDisplays();
         Bukkit.getPluginManager().registerEvents(new ItemUpdater(), this);
+        Bukkit.getPluginManager().registerEvents(new GlowingItemListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new InvulnerableItemListener(), this);
         Bukkit.getPluginManager().registerEvents(new CustomPaintingListener(), this);
         Bukkit.getPluginManager().registerEvents(new PackLoadingManager(), this);
         io.th0rgal.oraxen.pack.generation.MultiVersionPackValidator.validateAndLogWarnings();
@@ -169,19 +182,30 @@ public class OraxenPlugin extends JavaPlugin {
         IntroductionGuide introductionGuide = new IntroductionGuide(this);
         Bukkit.getPluginManager().registerEvents(introductionGuide, this);
         introductionGuide.start();
+        updateChecker = new UpdateChecker(this);
+        Bukkit.getPluginManager().registerEvents(updateChecker, this);
+        updateChecker.start();
     }
 
     private void initializePacketAdapter() {
-        if (PacketAdapter.isProtocolLibEnabled()) {
-            if (Settings.DEBUG.toBool()) Logs.logInfo("ProtocolLib is enabled, using ProtocolLibAdapter.");
-            packetAdapter = new ProtocolLibAdapter();
+        NativePacketAdapter nativeAdapter = new NativePacketAdapter();
+        if (nativeAdapter.isEnabled()) {
+            if (Settings.DEBUG.toBool()) Logs.logInfo("Using native packet handling.");
+            packetAdapter = nativeAdapter;
         } else if (PacketAdapter.isPacketEventsEnabled()) {
-            if (Settings.DEBUG.toBool()) Logs.logInfo("PacketEvents is enabled, using PacketEventsAdapter.");
+            if (Settings.DEBUG.toBool()) {
+                if (VersionUtil.atOrAbove("1.21.2"))
+                    Logs.logInfo("Native packet handling is unavailable, falling back to PacketEvents.");
+                else
+                    Logs.logInfo("Using PacketEvents for legacy packet handling.");
+            }
             packetAdapter = new PacketEventsAdapter();
         } else {
-            Logs.logWarning("Neither ProtocolLib nor PacketEvents is enabled, using EmptyAdapter.");
+            if (VersionUtil.atOrAbove("1.21.2"))
+                Logs.logWarning("Native packet handling is unavailable, packet features will be disabled.");
+            else
+                Logs.logWarning("PacketEvents is unavailable, legacy packet features will be disabled.");
             packetAdapter = new PacketAdapter.EmptyAdapter();
-            Message.MISSING_PROTOCOLLIB.log();
         }
         packetAdapter.whenEnabled(adapter -> {
             if (Settings.FORMAT_INVENTORY_TITLES.toBool())
@@ -207,9 +231,11 @@ public class OraxenPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (updateChecker != null) updateChecker.stop();
         if (configsManager == null) {
             HandlerList.unregisterAll(this);
             OraxenCommand.unregisterAll();
+            NMSHandlers.shutdown();
             return;
         }
 
@@ -225,6 +251,7 @@ public class OraxenPlugin extends JavaPlugin {
         CompatibilitiesManager.disableCompatibilities();
         OraxenCommand.unregisterAll();
         Message.PLUGIN_UNLOADED.log();
+        NMSHandlers.shutdown();
     }
 
     private void cleanupRuntimeResources() {
@@ -245,6 +272,7 @@ public class OraxenPlugin extends JavaPlugin {
         configsManager.validatesConfig();
         resourceManager = new ResourcesManager(this);
         Settings.invalidateCache();
+        if (updateChecker != null) updateChecker.start();
     }
 
     private void initializeSoundManager() {

@@ -8,12 +8,12 @@
 weed_leaf:
   displayname: "<gradient:#46EEAA:#2CBFC7>Weed Leaf"
   material: COOKED_BEEF
-  Pack:
+  pack:
     generate_model: true
     parent_model: "item/generated"
     textures:
       - default/weed/leaf
-  Mechanics:
+  mechanics:
     consumable_potion_effects:
       confusion:
         amplifier: 0
@@ -44,7 +44,7 @@ weed_leaf:
 weed_seed:
   displayname: "<gradient:#46EEAA:#2CBFC7>Weed Seed"
   material: PAPER
-  Pack:
+  pack:
     generate_model: true
     parent_model: "item/generated"
     textures:
@@ -55,14 +55,14 @@ weed_seed:
       stage1: default/weed/stage1
       stage2: default/weed/stage2
       stage3: default/weed/stage3
-  Mechanics:
+  mechanics:
     furniture:
       barrier: false
       farmland_required: true
       initial_stage: 0  # Start at stage0 when placed
       # All growth stages defined inline - no separate items needed!
       stages:
-        - model: stage0  # References Pack.models key
+        - model: stage0  # References pack.models key
           evolution:
             delay: 10000
             probability: 0.5
@@ -108,7 +108,7 @@ weed_seed:
 grape:
   displayname: "<gradient:#ED7B84:#9055FF>Grape"
   material: COOKED_BEEF
-  Pack:
+  pack:
     generate_model: true
     parent_model: "item/generated"
     textures:
@@ -118,7 +118,7 @@ grape:
 grape_seeds:
   displayname: "<gradient:#46EEAA:#2CBFC7>Grape Seeds"
   material: PAPER
-  Pack:
+  pack:
     generate_model: true
     parent_model: "item/generated"
     textures:
@@ -130,14 +130,14 @@ grape_seeds:
       stage2: default/grape/stage2
       stage3: default/grape/stage3
       stage4: default/grape/stage4
-  Mechanics:
+  mechanics:
     furniture:
       barrier: false
       farmland_required: true
       initial_stage: 0  # Start at stage0 when placed
       # All growth stages defined inline - no separate items needed!
       stages:
-        - model: stage0  # References Pack.models key
+        - model: stage0  # References pack.models key
           evolution:
             delay: 10000
             probability: 0.5

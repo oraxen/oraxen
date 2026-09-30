@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.misc.music_disc;
 
+import io.th0rgal.oraxen.mechanics.ConfigPropertyValues;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import org.bukkit.configuration.ConfigurationSection;
@@ -10,7 +11,7 @@ public class MusicDiscMechanic extends Mechanic {
 
     public MusicDiscMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section);
-        song = section.getString("song");
+        song = ConfigPropertyValues.text(MusicDiscMechanicFactory.class, section, MusicDiscMechanicFactory.PROP_SONG);
     }
 
     public boolean hasNoSong() { return song == null || song.isBlank(); }

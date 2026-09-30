@@ -1,12 +1,16 @@
 package io.th0rgal.oraxen.packets;
 
-import io.th0rgal.oraxen.utils.PluginUtils;
-import io.th0rgal.oraxen.utils.ResourcePackFormatUtil;
 import io.th0rgal.oraxen.utils.SnapshotVersion;
+import io.th0rgal.oraxen.utils.ResourcePackFormatUtil;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3f;
 
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -22,10 +26,12 @@ public interface PacketAdapter {
         plugin = Bukkit.getPluginManager().getPlugin("packetevents");
         return plugin != null && plugin.isEnabled() ? plugin : null;
     }
-    static boolean isProtocolLibEnabled() {
-        return PluginUtils.isEnabled("ProtocolLib");
-    }
     boolean isEnabled();
+
+    default String backendName() {
+        return "Disabled";
+    }
+
     default boolean whenEnabled(Consumer<PacketAdapter> whenEnabled) {
         boolean enabled = isEnabled();
         if (enabled && whenEnabled != null) whenEnabled.accept(this);
@@ -39,6 +45,18 @@ public interface PacketAdapter {
 
     String getLatestMCVersion();
     boolean isNewer(SnapshotVersion snapshot);
+
+    default void spawnTextDisplay(Player viewer, int entityId, UUID uuid, Location location) {
+    }
+
+    default void sendTextDisplayMetadata(Player viewer, int entityId, Component text, Vector3f scale,
+                                         byte billboard, float viewRange, int lineWidth,
+                                         int backgroundArgb, byte textOpacity, byte flags) {
+    }
+
+    default void destroyEntities(Player viewer, int... entityIds) {
+    }
+
     @Nullable Plugin getPlugin();
     public static class EmptyAdapter implements PacketAdapter {
         /**

@@ -19,6 +19,8 @@ public record TextShaderTarget(int packFormat, MinecraftVersion minecraftVersion
     public static final int PACK_FORMAT_26 = 84;
     /** Pack format for 26.2+ (text shaders renamed to core/text and variants use defines) */
     public static final int PACK_FORMAT_26_2 = 88;
+    /** Pack format for 26.3+ (ShaderC, explicit locations and order-independent transparency) */
+    public static final int PACK_FORMAT_26_3 = 97;
 
     public static TextShaderTarget current() {
         return new TextShaderTarget(ResourcePackFormatUtil.getCurrentResourcePackFormat(),
@@ -37,12 +39,14 @@ public record TextShaderTarget(int packFormat, MinecraftVersion minecraftVersion
 
     public boolean isAtLeast(String version) {
         MinecraftVersion threshold = new MinecraftVersion(version);
-        if (minecraftVersion.isAtLeast(threshold)) return true;
+        // Ignore the development stage so pre-releases/release candidates match their release threshold
+        MinecraftVersion release = new MinecraftVersion(
+                minecraftVersion.getMajor(), minecraftVersion.getMinor(), minecraftVersion.getBuild());
+        if (release.isAtLeast(threshold)) return true;
         // Handle runtimes reporting "1.26.x" instead of "26.x":
         // normalize by comparing without the legacy "1." prefix.
-        if (threshold.getMajor() >= 26 && minecraftVersion.getMajor() == 1 && minecraftVersion.getMinor() >= 26) {
-            MinecraftVersion normalized = new MinecraftVersion(
-                    minecraftVersion.getMinor(), minecraftVersion.getBuild(), 0);
+        if (threshold.getMajor() >= 26 && release.getMajor() == 1 && release.getMinor() >= 26) {
+            MinecraftVersion normalized = new MinecraftVersion(release.getMinor(), release.getBuild(), 0);
             return normalized.isAtLeast(threshold);
         }
         return false;
@@ -50,6 +54,10 @@ public record TextShaderTarget(int packFormat, MinecraftVersion minecraftVersion
 
     boolean usesUnifiedTextShader() {
         return packFormat >= PACK_FORMAT_26_2;
+    }
+
+    boolean usesShaderC() {
+        return packFormat >= PACK_FORMAT_26_3;
     }
 
     public String displayName() {

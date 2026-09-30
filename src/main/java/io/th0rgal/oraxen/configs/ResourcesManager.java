@@ -85,18 +85,18 @@ public class ResourcesManager {
                 ConfigurationSection itemSection = itemYaml.getConfigurationSection(itemId);
                 if (itemSection == null) continue;
 
-                ConfigurationSection mechanicSection = itemSection.getConfigurationSection("Mechanics");
+                ConfigurationSection mechanicSection = itemSection.getConfigurationSection("mechanics");
                 if (mechanicSection == null) continue;
 
-                ConfigurationSection componentSection = itemSection.getConfigurationSection("Components");
-                if (componentSection == null) componentSection = itemSection.createSection("Components");
+                ConfigurationSection componentSection = itemSection.getConfigurationSection("components");
+                if (componentSection == null) componentSection = itemSection.createSection("components");
 
                 Object durability = mechanicSection.get("durability.value");
                 mechanicSection.set("durability", null);
                 componentSection.set("durability", durability);
 
-                if (mechanicSection.getKeys(false).isEmpty()) itemSection.set("Mechanics", null);
-                if (componentSection.getKeys(false).isEmpty()) itemSection.set("Components", null);
+                if (mechanicSection.getKeys(false).isEmpty()) itemSection.set("mechanics", null);
+                if (componentSection.getKeys(false).isEmpty()) itemSection.set("components", null);
             }
             File itemFile = plugin.getDataFolder().toPath().resolve(entry.getName()).toFile();
 

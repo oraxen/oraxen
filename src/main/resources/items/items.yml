@@ -8,7 +8,7 @@
 example_sword:
   displayname: "<gradient:#FA7CBB:#F14658><bold>My Custom Sword"
   material: WOODEN_SWORD
-  injectID: false # allow Oraxen to recognise the item if true or not set
+  injectId: false # allow Oraxen to recognise the item if true or not set
 
   ItemFlags:
     - HIDE_ENCHANTS
@@ -38,7 +38,7 @@ example_sword:
     flame: 34
     sharpness: 18
 
-  Mechanics:
+  mechanics:
     durability:
       value: 10
     misc:
@@ -47,7 +47,7 @@ example_sword:
 example_custom_mechanic:
   displayname: "<gradient:#FA7CBB:#F14658><bold>My Item With A Custom Mechanic"
   material: DIAMOND_SWORD
-  Mechanics:
+  mechanics:
     custom:
       test:
         one_usage: true
@@ -61,21 +61,21 @@ example_custom_mechanic:
 example_efficient_pickaxe:
   displayname: "<gradient:#59A7EA:#F1D2FF><bold>Turbo Pickaxe"
   material: DIAMOND_PICKAXE
-  Mechanics:
+  mechanics:
     efficiency:
       amount: 3
 
 example_slow_pickaxe:
   displayname: "<gradient:#59A7EA:#F1D2FF><bold>Slow Pickaxe"
   material: DIAMOND_PICKAXE
-  Mechanics:
+  mechanics:
     efficiency:
       amount: -3
 
 example_potion:
   displayname: "<#6f737d>Wither Potion"
   material: SPLASH_POTION
-  injectID: false # allow Oraxen to recognise the item if true or not set
+  injectId: false # allow Oraxen to recognise the item if true or not set
   color: 34, 0, 10
   PotionEffects:
     # - type: Get the list here: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/potion/PotionEffectType.html
@@ -96,12 +96,12 @@ example_potion:
 miner_sandwitch:
   itemname: <gradient:#F69D84:#FAD98D>Miner's sandwitch
   material: PAPER
-  Pack:
+  pack:
     generate_model: true
     parent_model: item/generated
     textures:
     - default/sandwitch.png
-  Components:
+  components:
     food:
       nutrition: 8 # Same as cooked beef
       saturation: 12.8 # Same as cooked beef
@@ -125,7 +125,7 @@ miner_sandwitch:
 amethyst:
   displayname: "<gradient:#4B36B1:#6699FF>Amethyst"
   material: PAPER
-  Pack:
+  pack:
     generate_model: true
     parent_model: "item/generated"
     textures:
@@ -134,7 +134,7 @@ amethyst:
 ruby:
   displayname: "<gradient:#FA7CBB:#F14658>Ruby"
   material: PAPER
-  Pack:
+  pack:
     generate_model: true
     parent_model: "item/generated"
     textures:
@@ -143,7 +143,7 @@ ruby:
 onyx:
   displayname: "<#6f737d>Onyx"
   material: PAPER
-  Pack:
+  pack:
     generate_model: true
     parent_model: "item/generated"
     textures:
@@ -152,7 +152,7 @@ onyx:
 orax:
   displayname: "<gradient:#3685EC:#72C1E4>Orax"
   material: PAPER
-  Pack:
+  pack:
     generate_model: true
     parent_model: "item/generated"
     textures:
@@ -161,19 +161,19 @@ orax:
 fire:
   displayname: "<gradient:#F06966:#FAD6A6>Fire"
   material: PAPER
-  Pack:
+  pack:
     generate_model: false
     model: block/fire_floor0 # so we use the already existing fire model
 
 welcome_disk:
   displayname: "<gradient:#9055FF:#13E2DA>Welcome Disk"
   material: PAPER
-  Components:
+  components:
     max_stack_size: 1
     jukebox_playable:
       show_in_tooltip: true
       song_key: "oraxen:welcome"
-  Pack:
+  pack:
     generate_model: true
     parent_model: "item/handheld"
     textures:
@@ -186,10 +186,10 @@ welcome_disk:
 leather_backpack:
   displayname: "<#8B4513>Leather Backpack"
   material: PAPER
-  Pack:
+  pack:
     generate_model: false
     model: default/bag
-  Mechanics:
+  mechanics:
     # Storage functionality - right-click to open
     backpack:
       rows: 4
@@ -214,5 +214,5 @@ leather_backpack:
 # edna:
 #  itemname: "<red>Custom Painting"
 #  material: PAINTING
-#  Components:
+#  components:
 #    painting_variant: oraxen:edna

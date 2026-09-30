@@ -18,6 +18,7 @@ public final class ItemLoader {
     private final OraxenMeta oraxenMeta;
     private final ConfigurationSection section;
     private final Material type;
+    private final ItemMigrator migrator;
     private WrappedMMOItem mmoItem;
     private WrappedCrucibleItem crucibleItem;
     private WrappedEcoItem ecoItem;
@@ -25,6 +26,7 @@ public final class ItemLoader {
 
     public ItemLoader(final ConfigurationSection section) {
         this.section = section;
+        migrator = new ItemMigrator(section);
 
         if (section.isString("template"))
             templateItem = ItemTemplate.getLoaderTemplate(section.getString("template"));
@@ -51,15 +53,17 @@ public final class ItemLoader {
         // Each item gets its own OraxenMeta: templates are merged in by value, never shared
         // by reference, so sibling items cannot overwrite each other's pack info.
         oraxenMeta = new OraxenMeta();
-        final ConfigurationSection mergedPackSection =
-                OraxenYaml.getConfigurationSection(mergeWithTemplateSection(), "Pack");
+        final ConfigurationSection mergedSection = mergeWithTemplateSection();
+        final ConfigurationSection mergedPackSection = mergedSection != null
+                ? mergedSection.getConfigurationSection("pack")
+                : null;
         if (mergedPackSection != null)
             oraxenMeta.setPackInfos(mergedPackSection);
 
         // Only an explicitly configured custom_model_data on the item itself is registered.
         // Template children deliberately do not inherit the template's number, otherwise every
         // sibling would resolve to the same one; they get an automatically assigned id instead.
-        final ConfigurationSection packSection = OraxenYaml.getConfigurationSection(section, "Pack");
+        final ConfigurationSection packSection = section.getConfigurationSection("pack");
         if (packSection != null && packSection.isInt("custom_model_data"))
             MODEL_DATAS_BY_ID.put(section.getName(),
                     new ModelData(type, oraxenMeta.getModelName(), packSection.getInt("custom_model_data")));
@@ -99,7 +103,7 @@ public final class ItemLoader {
     }
 
     private ItemValidator validator() {
-        return new ItemValidator(section, mergeWithTemplateSection(), type, oraxenMeta, MODEL_DATAS_BY_ID);
+        return new ItemValidator(section, mergeWithTemplateSection(), type, oraxenMeta, MODEL_DATAS_BY_ID, migrator);
     }
 
     private ConfigurationSection mergeWithTemplateSection() {

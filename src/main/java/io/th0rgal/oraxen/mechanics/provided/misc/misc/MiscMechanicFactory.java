@@ -7,31 +7,32 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicInfo;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.PropertyType;
-import io.th0rgal.oraxen.utils.VersionUtil;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 
 @MechanicInfo(
         category = "misc",
-        description = "Miscellaneous item properties like fire/lava damage resistance"
+        description = "Miscellaneous item properties"
 )
 public class MiscMechanicFactory extends MechanicFactory {
 
-    @ConfigProperty(type = PropertyType.BOOLEAN, description = "Whether item burns in fire (deprecated, use damage_resistant)", defaultValue = "true")
-    public static final String PROP_BURNS_IN_FIRE = "burns_in_fire";
+    @ConfigProperty(type = PropertyType.BOOLEAN, description = "Deny vanilla right-click, consume, and bow-shoot behavior", defaultValue = "false")
+    public static final String PROP_DISABLE_VANILLA_INTERACTIONS = "disable_vanilla_interactions";
 
-    @ConfigProperty(type = PropertyType.BOOLEAN, description = "Whether item burns in lava (deprecated, use damage_resistant)", defaultValue = "true")
-    public static final String PROP_BURNS_IN_LAVA = "burns_in_lava";
+    @ConfigProperty(type = PropertyType.BOOLEAN, description = "Let this item strip logs", defaultValue = "false")
+    public static final String PROP_CAN_STRIP_LOGS = "can_strip_logs";
 
-    @ConfigProperty(type = PropertyType.BOOLEAN, description = "Whether item breaks from cactus (deprecated, use damage_resistant)", defaultValue = "true")
-    public static final String PROP_BREAKS_FROM_CACTUS = "breaks_from_cactus";
+    @ConfigProperty(type = PropertyType.BOOLEAN, description = "Piglins ignore a player who has this item equipped", defaultValue = "false")
+    public static final String PROP_PIGLINS_IGNORE_WHEN_EQUIPPED = "piglins_ignore_when_equipped";
 
-    @ConfigProperty(type = PropertyType.BOOLEAN, description = "Whether item can break music discs", defaultValue = "false")
-    public static final String PROP_BREAK_MUSIC_DISCS = "break_music_discs";
+    @ConfigProperty(type = PropertyType.BOOLEAN, description = "This item can be composted", defaultValue = "false")
+    public static final String PROP_COMPOSTABLE = "compostable";
 
     @ConfigProperty(type = PropertyType.BOOLEAN, description = "Whether item renaming in anvils is prevented", defaultValue = "false")
     public static final String PROP_PREVENT_RENAMING = "prevent_renaming";
+
+    @ConfigProperty(type = PropertyType.BOOLEAN, description = "Allow this item in vanilla recipes", defaultValue = "false")
+    public static final String PROP_ALLOW_IN_VANILLA_RECIPES = "allow_in_vanilla_recipes";
 
     private static MiscMechanicFactory instance;
 
@@ -44,17 +45,6 @@ public class MiscMechanicFactory extends MechanicFactory {
     @Override
     public Mechanic parse(ConfigurationSection section) {
         MiscMechanic mechanic = new MiscMechanic(this, section);
-
-        if (VersionUtil.atOrAbove("1.21.2")) {
-            if ((!mechanic.burnsInFire() || !mechanic.burnsInLava()) &&
-                    (section.contains(PROP_BURNS_IN_FIRE) || section.contains(PROP_BURNS_IN_LAVA))) {
-                Logs.logWarning(mechanic.getItemID() + " is using deprecated Misc-Mechanic burns_in_fire/lava...");
-                Logs.logWarning("It is heavily advised to swap to the new `damage_resistant`-component on 1.21.2+ servers...");
-            } else if (!mechanic.breaksFromCactus() && section.contains(PROP_BREAKS_FROM_CACTUS)) {
-                Logs.logWarning(mechanic.getItemID() + " is using deprecated Misc-Mechanic breaks_from_cactus...");
-                Logs.logWarning("It is heavily advised to swap to the new `damage_resistant`-component on 1.21.2+ servers...");
-            }
-        }
 
         addToImplemented(mechanic);
         return mechanic;

@@ -1,10 +1,12 @@
 package io.th0rgal.oraxen.pack.generation;
 
 import io.th0rgal.oraxen.utils.VirtualFile;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.ByteArrayInputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -17,6 +19,16 @@ import static org.junit.jupiter.api.Assertions.*;
 class UnprotectedPackWriterTest {
     @TempDir
     Path directory;
+
+    @Test
+    void disablesExportByDefault() throws Exception {
+        try (var input = UnprotectedPackWriterTest.class.getResourceAsStream("/settings.yml")) {
+            assertNotNull(input);
+            var settings = YamlConfiguration.loadConfiguration(new InputStreamReader(input, StandardCharsets.UTF_8));
+            assertEquals("",
+                    settings.getString("Pack.generation.unprotected-location"));
+        }
+    }
 
     @Test
     void exportsReadableFilesAndPreservesClientPackStreamsForObfuscation() throws Exception {

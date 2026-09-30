@@ -11,10 +11,10 @@ legendary_hammer:
   lore:
     - "<#ff455b>» <#D5D6D8>Strike your enemies with a devastating blow"
     - "<#ff455b>» <#D5D6D8>On the 15th hit, the player is launched forward"
-  Pack:
+  pack:
     generate_model: false
     model: default/legendary_hammer
-  Mechanics:
+  mechanics:
     durability:
       value: 10000 #diamond sword is 1561
     knockback_strike:
@@ -35,17 +35,17 @@ legendary_hammer:
 earth_hammer:
   displayname: "<gradient:#89E59D:#37C6BA>Earth Hammer"
   material: DIAMOND_PICKAXE
-  Pack:
+  pack:
     generate_model: false
     model: default/earth_hammer
 
 magical_wand:
   displayname: "<gradient:#3685EC:#72C1E4>Magical Wand"
   material: WOODEN_HOE
-  Pack:
+  pack:
     generate_model: false
     model: default/magical_wand
-  Mechanics:
+  mechanics:
     aura:
       type: helix
       particle: SOUL_FIRE_FLAME
@@ -66,17 +66,17 @@ magical_axe:
   material: DIAMOND_AXE
   lore:
     - "<#6f737d>» <#D5D6D8>Convert experience to bottles"
-  Pack:
+  pack:
     generate_model: false
     model: default/magical_axe
-  Mechanics:
+  mechanics:
     bottledexp: # Because exp converting is cheated
       ratio: 0.95 # So you'll lose 1/20 of your exp by converting it
 
 ice_staff:
   displayname: "<gradient:#3685EC:#72C1E4>Ice Staff"
   material: WOODEN_HOE
-  Pack:
+  pack:
     generate_model: false
     model: default/ice_staff
 
@@ -88,7 +88,7 @@ battle_axe:
       amount: 7
       operation: 0
       slot: HAND
-  Pack:
+  pack:
     generate_model: false
     model: default/battle_axe
 
@@ -96,10 +96,10 @@ withooker:
   displayname: "<gradient:#3685EC:#72C1E4>Withooker"
   material: WOODEN_HOE
   unbreakable: true
-  Pack:
+  pack:
     generate_model: false
     model: default/withooker
-  Mechanics:
+  mechanics:
     witherskull:
       charged: false
       delay: 3000 # in milliseconds (3000ms = 3s)
@@ -107,7 +107,7 @@ withooker:
 divine_shield:
   displayname: '<gradient:#F69D84:#FAD98D>Divine Shield'
   material: SHIELD
-  Pack:
+  pack:
     generate_model: false
     model: default/divine_shield
     blocking_model: default/divine_shield_blocking
@@ -115,10 +115,10 @@ divine_shield:
 magic_book:
   displayname: '<gradient:#3685EC:#72C1E4>Magic Book'
   material: DIAMOND_SWORD
-  Pack:
+  pack:
     generate_model: false
     model: default/magic_book
-  Mechanics:
+  mechanics:
     aura:
       type: simple
       particle: PORTAL
@@ -143,23 +143,23 @@ lotr_pike:
     # Low base melee damage - the spear is meant for lunge attacks, not regular swings
     - { attribute: ATTACK_DAMAGE, amount: 2, operation: 0, slot: HAND }
     - { attribute: ATTACK_SPEED, amount: 1.2, operation: 0, slot: HAND }
-  Pack:
+  pack:
     generate_model: false
     model: default/lotrpikeinactive
-    # Optional: You can also define models here using Pack.models
+    # Optional: You can also define models here using pack.models
     # These are auto-registered as oraxen:lotr_pike/active, oraxen:lotr_pike/frame0, etc.
     # models:
     #   active: default/lotrpikeactive
     #   frame0: default/lotrpike_frame0
     #   frame1: default/lotrpike_frame1
-  Components:
+  components:
     # Cooldown between lunge attacks (1.5 seconds)
     use_cooldown:
       group: "oraxen:pike_lunge"
       seconds: 1.5
     # Rarity indicator
     rarity: RARE
-  Mechanics:
+  mechanics:
     spear_lunge:
       # The active model path - mechanic handles registration automatically
       active_model: default/lotrpikeactive

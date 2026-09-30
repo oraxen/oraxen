@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.nms;
 
 import io.th0rgal.oraxen.items.ItemBuilder;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.ConfigurationSection;
@@ -10,14 +11,32 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3f;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 public interface NMSHandler {
 
     default Listener packDispatchListener() {
         return null;
+    }
+
+    default boolean supportsNativePacketHandling() {
+        return false;
+    }
+
+    default void formatInventoryTitles(boolean enabled) {
+    }
+
+    default void formatTitles(boolean enabled) {
+    }
+
+    default void hideScoreboardNumbers(boolean enabled) {
+    }
+
+    default void shutdown() {
     }
 
     boolean noteblockUpdatesDisabled();
@@ -105,6 +124,14 @@ public interface NMSHandler {
      * Send entity destroy packet
      */
     default void sendEntityDestroy(Player viewer, int... entityIds) {
+    }
+
+    default void spawnTextDisplay(Player viewer, int entityId, UUID uuid, Location location) {
+    }
+
+    default void sendTextDisplayMetadata(Player viewer, int entityId, Component text, Vector3f scale,
+                                         byte billboard, float viewRange, int lineWidth,
+                                         int backgroundArgb, byte textOpacity, byte flags) {
     }
 
     /**

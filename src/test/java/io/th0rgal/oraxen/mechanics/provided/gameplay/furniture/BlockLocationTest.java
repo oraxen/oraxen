@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
+import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.persistence.PersistentDataAdapterContext;
 import org.junit.jupiter.api.Test;
 
@@ -14,8 +15,13 @@ class BlockLocationTest {
         PersistentDataAdapterContext context = mock(PersistentDataAdapterContext.class);
 
         byte[] primitive = BlockLocation.dataType.toPrimitive(location, context);
-        BlockLocation deserialized = BlockLocation.dataType.fromPrimitive(primitive, context);
+        ConfigurationSerialization.unregisterClass(BlockLocation.class);
 
-        assertEquals(location, deserialized);
+        try {
+            BlockLocation deserialized = BlockLocation.dataType.fromPrimitive(primitive, context);
+            assertEquals(location, deserialized);
+        } finally {
+            ConfigurationSerialization.registerClass(BlockLocation.class);
+        }
     }
 }

@@ -29,6 +29,7 @@ import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.damage.DamageType;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.entity.TropicalFish;
 import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemFlag;
@@ -76,6 +77,7 @@ public class ItemBuilder {
     private Message displayNameMessage;
     private boolean unbreakable;
     private boolean unstackable;
+    private Set<DamageCause> invulnerable = Set.of();
     private Set<ItemFlag> itemFlags;
     private final List<AttributeModifierEntry> attributeEntries = new ArrayList<>();
     @Nullable
@@ -296,6 +298,14 @@ public class ItemBuilder {
 
     public Material getType() {
         return type;
+    }
+
+    public void setInvulnerable(Set<DamageCause> causes) {
+        invulnerable = Set.copyOf(causes);
+    }
+
+    public boolean isInvulnerableTo(DamageCause cause) {
+        return invulnerable.contains(cause);
     }
 
     public ItemBuilder setType(final Material type) {
@@ -881,6 +891,7 @@ public class ItemBuilder {
         // on the raw template stack. GUI code clones before the first build(), so
         // these fields must be copied or item_model / CMD are lost and paper shows.
         clonedBuilder.oraxenMeta = oraxenMeta;
+        clonedBuilder.invulnerable = invulnerable;
         clonedBuilder.type = type;
         clonedBuilder.amount = amount;
         clonedBuilder.displayName = displayName;
@@ -1231,9 +1242,9 @@ public class ItemBuilder {
                         yamlConfiguration.set(itemId + ".ItemFlags",
                                 this.itemFlags.stream().map(ItemFlag::name).toList());
                     if (hasEquippableComponent()) {
-                        yamlConfiguration.set(itemId + ".Components.equippable.slot",
+                        yamlConfiguration.set(itemId + ".components.equippable.slot",
                                 this.equippableComponent.getSlot().name());
-                        yamlConfiguration.set(itemId + ".Components.equippable.model",
+                        yamlConfiguration.set(itemId + ".components.equippable.model",
                                 this.equippableComponent.getModel().toString());
                     }
                     try {

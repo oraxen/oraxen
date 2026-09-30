@@ -13,14 +13,14 @@ anubis_head:
   AttributeModifiers:
     - { attribute: ARMOR, amount: 3, operation: 0, slot: HEAD }
     - { attribute: ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: HEAD }
-  Pack:
+  pack:
     generate_model: false
     model: default/anubis_head # .json extension is not mandatory
   # before 1.21.2, simply enable hat mechanic
-  Components:
+  components:
     equippable:
       slot: HEAD
-  Mechanics:
+  mechanics:
     armor_effects:
       night_vision:
         amplifier: 0
@@ -34,10 +34,10 @@ crown:
   AttributeModifiers:
     - { attribute: ARMOR, amount: 3, operation: 0, slot: HEAD }
     - { attribute: ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: HEAD }
-  Pack:
+  pack:
     generate_model: false
     model: default/crown
-  Components:
+  components:
     equippable:
       slot: HEAD
 
@@ -47,10 +47,10 @@ pharaoh_head:
   AttributeModifiers:
     - { attribute: ARMOR, amount: 3, operation: 0, slot: HEAD }
     - { attribute: ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: HEAD }
-  Pack:
+  pack:
     generate_model: false
     model: default/pharaoh_head
-  Components:
+  components:
     equippable:
       slot: HEAD
 
@@ -60,20 +60,20 @@ witch_hat:
   AttributeModifiers:
     - { attribute: ARMOR, amount: 3, operation: 0, slot: HEAD }
     - { attribute: ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: HEAD }
-  Pack:
+  pack:
     generate_model: false
     model: default/witch_hat
-  Components:
+  components:
     equippable:
       slot: HEAD
 
 space_helmet:
   displayname: "<#D5D6D8>Space Helmet"
   material: PAPER
-  Pack:
+  pack:
     generate_model: false
     model: default/space_helmet
-  Components:
+  components:
     equippable:
       slot: HEAD
 

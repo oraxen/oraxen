@@ -1,10 +1,10 @@
 table:
   itemname: <gray>Table
   material: PAPER
-  Pack:
+  pack:
     generate_model: false
     model: default/table
-  Mechanics:
+  mechanics:
     furniture:
       type: ARMOR_STAND # Valid types are ITEM_FRAME, GLOW_ITEM_FRAME, ARMOR_STAND, and DISPLAY_ENTITY if server is 1.19.4+
       small: false # Used by ARMOR_STAND furniture; defaults to true for ARMOR_STAND
@@ -34,7 +34,7 @@ table:
 cart:
   displayname: "<gray>Cart"
   material: PAPER
-  Mechanics:
+  mechanics:
     furniture:
       type: DISPLAY_ENTITY
       hitboxes:
@@ -50,14 +50,14 @@ cart:
         silktouch: false
         loots:
           - { oraxen_item: cart, probability: 1.0 }
-  Pack:
+  pack:
     generate_model: false
     model: default/cart
 
 chair:
   displayname: "<gray>Chair"
   material: PAPER
-  Mechanics:
+  mechanics:
     furniture:
       type: DISPLAY_ENTITY
       hitboxes:
@@ -75,14 +75,14 @@ chair:
         silktouch: false
         loots:
           - { oraxen_item: chair, probability: 1.0 }
-  Pack:
+  pack:
     generate_model: false
     model: default/chair
 
 coach:
   displayname: "<gray>Coach"
   material: PAPER
-  Mechanics:
+  mechanics:
     furniture:
       type: DISPLAY_ENTITY
       display_entity_properties:
@@ -104,14 +104,14 @@ coach:
         silktouch: false
         loots:
           - { oraxen_item: coach, probability: 1.0 }
-  Pack:
+  pack:
     generate_model: false
     model: default/coach
 
 shelf:
   displayname: "<gray>Shelf"
   material: PAPER
-  Mechanics:
+  mechanics:
     furniture:
       type: ITEM_FRAME
       limited_placing:
@@ -127,14 +127,14 @@ shelf:
         silktouch: false
         loots:
           - { oraxen_item: shelf, probability: 1.0 }
-  Pack:
+  pack:
     generate_model: false
     model: default/shelf
 
 turntable:
   displayname: "<gray>Turntable"
   material: PAPER
-  Mechanics:
+  mechanics:
     furniture:
       type: DISPLAY_ENTITY
       limited_placing:
@@ -161,11 +161,11 @@ turntable:
           y: 0.1  # Raise the turntable slightly off the ground
           z: 0.0
       jukebox:
-        # NEW: Use active_model instead of active_stage (references Pack.models key)
+        # NEW: Use active_model instead of active_stage (references pack.models key)
         active_model: opened
         volume: 1.0
         pitch: 1.0
-  Pack:
+  pack:
     generate_model: false
     model: default/turntable_closed
     # NEW: Define additional models inline - no more fake items needed!
@@ -174,4 +174,4 @@ turntable:
       opened: default/turntable_opened
 
 # REMOVED: turtable_active_stage is no longer needed!
-# The "opened" model is now defined inline in turntable's Pack.models
+# The "opened" model is now defined inline in turntable's pack.models

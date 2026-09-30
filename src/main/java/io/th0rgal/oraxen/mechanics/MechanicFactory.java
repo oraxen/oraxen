@@ -42,6 +42,10 @@ public abstract class MechanicFactory {
 
     public abstract Mechanic parse(ConfigurationSection itemMechanicConfiguration);
 
+    public Mechanic parse(String itemID, List<?> entries) {
+        return null;
+    }
+
     public void onUnregister() {
     }
 

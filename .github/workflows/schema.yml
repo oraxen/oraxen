@@ -64,10 +64,10 @@ jobs:
           cp build/libs/oraxen-*.jar test-server/plugins/
 
           # Download an immutable Paper build and verify it before execution
-          PAPER_SHA256="49c86f1276e5dded67b6121bf7c2e91401f6eb99769cbb093aa19be07fa612f2"
+          PAPER_SHA256="ddfea9cddc8f40e33080d4d9a3e9818fd1f9ea33f6100b42ac228ef80eb7ceed"
           curl -fL --retry 3 --retry-all-errors -A 'Oraxen-Schema-Workflow/1.0' \
             -o test-server/paper.jar \
-            "https://fill-data.papermc.io/v1/objects/${PAPER_SHA256}/paper-26.2-38.jar"
+            "https://fill-data.papermc.io/v1/objects/${PAPER_SHA256}/paper-26.3-31.jar"
           printf '%s  %s\n' "$PAPER_SHA256" test-server/paper.jar | sha256sum -c -
 
           # Accept EULA

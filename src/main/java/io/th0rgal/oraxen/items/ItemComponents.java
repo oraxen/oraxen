@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.compatibilities.provided.ecoitems.WrappedEcoItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.MinecraftVersion;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -47,7 +48,7 @@ public final class ItemComponents {
         else if (section.contains("displayname"))
             applyItemName(item, section, "displayname");
 
-        final ConfigurationSection components = OraxenYaml.getConfigurationSection(section, "Components");
+        final ConfigurationSection components = section.getConfigurationSection("components");
         applyRemainingComponents(item, components);
     }
 
@@ -81,10 +82,22 @@ public final class ItemComponents {
 
                 final Object value = components.get(key);
                 if (value instanceof ConfigurationSection || value instanceof Map) {
-                    NMSHandlers.getHandler().setComponent(item, key, value);
+                    for (final String componentKey : resolveGenericComponentKeys(key, MinecraftVersion.getCurrentVersion()))
+                        NMSHandlers.getHandler().setComponent(item, componentKey, value);
                 }
             }
         }
+    }
+
+    static List<String> resolveGenericComponentKeys(final String key, MinecraftVersion version) {
+        final String normalizedKey = key.toLowerCase(Locale.ROOT);
+        if (version.getMajor() == 1 && version.getMinor() >= 26)
+            version = new MinecraftVersion(version.getMinor(), version.getBuild(), 0);
+
+        if (normalizedKey.equals("swing_animation") && version.isAtLeast(new MinecraftVersion("26.3")))
+            return List.of("attack_animation", "interact_animation");
+
+        return List.of(normalizedKey);
     }
 
     private void handleLegacyComponents(final ItemBuilder item, final ConfigurationSection components) {

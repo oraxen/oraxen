@@ -14,9 +14,11 @@ public final class ResourcePackFormatUtil {
     // Ordering matters: every "26.x" namespace entry must precede all "1.x" entries,
     // because a major-26 version compares greater than any "1.x" threshold.
     private static final PackFormatThreshold[] PACK_FORMAT_THRESHOLDS = {
+            new PackFormatThreshold("26.3", 97),
             new PackFormatThreshold("26.2", 88),
             new PackFormatThreshold("26.1", 84),
             new PackFormatThreshold("26", 84),
+            new PackFormatThreshold("1.26.3", 97),
             new PackFormatThreshold("1.26.2", 88),
             new PackFormatThreshold("1.26.1", 84),
             new PackFormatThreshold("1.21.11", 75),
@@ -33,9 +35,11 @@ public final class ResourcePackFormatUtil {
             new PackFormatThreshold("1.20", 15)
     };
     private static final PackFormatThreshold[] DATA_PACK_FORMAT_THRESHOLDS = {
+            new PackFormatThreshold("26.3", 121),
             new PackFormatThreshold("26.2", 107),
             new PackFormatThreshold("26.1", 101),
             new PackFormatThreshold("26", 101),
+            new PackFormatThreshold("1.26.3", 121),
             new PackFormatThreshold("1.26.2", 107),
             new PackFormatThreshold("1.26.1", 101),
             new PackFormatThreshold("1.21.11", 94),
@@ -98,8 +102,11 @@ public final class ResourcePackFormatUtil {
     }
 
     private static int getFormatForVersion(MinecraftVersion version, PackFormatThreshold[] thresholds) {
+        // Compare on major/minor/build only: a "26.3-pre1" server already uses the 26.3 formats,
+        // while MinecraftVersion#compareTo would sort it below the "26.3" release threshold.
+        MinecraftVersion release = new MinecraftVersion(version.getMajor(), version.getMinor(), version.getBuild());
         for (PackFormatThreshold threshold : thresholds) {
-            if (version.isAtLeast(threshold.minimumVersion)) {
+            if (release.isAtLeast(threshold.minimumVersion)) {
                 return threshold.packFormat;
             }
         }

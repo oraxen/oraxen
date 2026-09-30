@@ -47,7 +47,6 @@ logs:
   no_armor_item: "<prefix><#fa4943><name>과(와) 일치하는 항목을 찾을 수 없습니다. <armor_layer_file>을(를) 사용할 수 없습니다"
   duplicate_armor_color: "<prefix><#fa4943><first_armor_prefix> 갑옷 세트는 다른 텍스처를 사용하지만 <second_armor_prefix>와(과) 동일한 색상을 사용합니다"
   datapack_generated: "<prefix><#facc43>데이터팩이 생성되었습니다. 이 기능을 사용하려면 서버를 재시작해야 합니다."
-  missing_protocollib: "<prefix><#f9f178>서버에 ProtocolLib가 설치되어 있지 않아 일부 기능이 작동하지 않습니다</#f9f178>"
   invalid_material: "<prefix><#e73f34>잘못된 재질: <minecraft_type></#e73f34>"
   io_error_add_pack_file: "<prefix><#e73f34>리소스팩에 파일 <file>을(를) 추가하지 못했습니다</#e73f34>"
   missing_logs: "<prefix><#e73f34>latest.log를 읽을 수 없습니다. 파일이 누락되었나요?</#e73f34>"

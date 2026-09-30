@@ -153,7 +153,7 @@ class TextShaderGenerator {
             TextShaderTarget target = TextShaderTarget.current();
             if (target.isAtLeast("26")) {
                 Logs.logWarning("Shader-based scoreboard number hiding is not supported on 26.x+.");
-                Logs.logWarning("Use a packet adapter (ProtocolLib or PacketEvents) on Paper 1.20.3+ instead.");
+                Logs.logWarning("Packet-based scoreboard number hiding is unavailable on this server.");
                 if (!textShadersGenerated) {
                     ResourcePack.deleteFileFromVirtualAndDisk("assets/minecraft/shaders/core/", "rendertype_text.json");
                     ResourcePack.deleteFileFromVirtualAndDisk("assets/minecraft/shaders/core/", "rendertype_text.vsh");
@@ -226,8 +226,9 @@ class TextShaderGenerator {
 
     private void generateTextShaders(TextShaderTarget target, TextShaderFeatures features, boolean skipBaseShaders, int minOverlayPackFormat) {
         ShaderOverlay serverOverlay = ShaderOverlay.forPackFormat(target.packFormat());
+        boolean serverShadersInOverlay = keepsServerShadersInOverlay(target, serverOverlay, skipBaseShaders);
 
-        if (!skipBaseShaders) {
+        if (!serverShadersInOverlay) {
             generateTextShadersForTarget(target, features, "");
         }
 
@@ -244,7 +245,7 @@ class TextShaderGenerator {
 
         for (ShaderOverlay overlay : ShaderOverlay.values()) {
             if (overlay.minFormat() < minOverlayPackFormat) continue;
-            if (overlay == serverOverlay && !skipBaseShaders) continue;
+            if (overlay == serverOverlay && !serverShadersInOverlay) continue;
             TextShaderTarget overlayTarget = TextShaderTarget.forVersion(overlay.representativeVersion());
             generateTextShadersForTarget(overlayTarget, features, overlay.directory() + "/");
             generatedOverlays.add(overlay);
@@ -254,9 +255,9 @@ class TextShaderGenerator {
             shaderOverlaysGenerated = true;
             if (Settings.DEBUG.toBool()) {
                 String message = "Generated shader overlays for " + generatedOverlays.size() + " format groups";
-                if (serverOverlay != null && !skipBaseShaders) {
+                if (serverOverlay != null && !serverShadersInOverlay) {
                     message += " (" + serverOverlay.directory() + " is the base)";
-                } else if (serverOverlay != null && skipBaseShaders) {
+                } else if (serverOverlay != null) {
                     message += " (" + serverOverlay.directory() + " included as overlay)";
                 }
                 Logs.logSuccess(message);
@@ -264,12 +265,23 @@ class TextShaderGenerator {
         }
     }
 
+    /**
+     * 26.2 renamed the text shaders to core/text. Older clients' overlays only replace rendertype_text.*,
+     * so base core/text files would still reach them, and their shader manager rejects the whole pack
+     * over 26.x-only imports such as sample_lightmap.glsl. Those servers keep their shaders in their own overlay.
+     */
+    static boolean keepsServerShadersInOverlay(TextShaderTarget target, ShaderOverlay serverOverlay, boolean skipBaseShaders) {
+        return skipBaseShaders || (serverOverlay != null && target.usesUnifiedTextShader());
+    }
+
     private void generateTextShadersForTarget(TextShaderTarget target, TextShaderFeatures features, String pathPrefix) {
         String shaderPath = pathPrefix + "assets/minecraft/shaders/core";
 
         if (target.usesUnifiedTextShader()) {
-            writeGeneratedCoreShader(shaderPath, "text.vsh", getAnimationVertexShader26_2(target, features));
-            writeGeneratedCoreShader(shaderPath, "text.fsh", getAnimationFragmentShader26_2(target));
+            writeGeneratedCoreShader(shaderPath, "text.vsh", target.usesShaderC()
+                    ? getAnimationVertexShader26_3(features) : getAnimationVertexShader26_2(target, features));
+            writeGeneratedCoreShader(shaderPath, "text.fsh", target.usesShaderC()
+                    ? getAnimationFragmentShader26_3() : getAnimationFragmentShader26_2(target));
             deleteLegacyTextShaderVariants(shaderPath);
 
             if (Settings.DEBUG.toBool()) {
@@ -454,6 +466,108 @@ class TextShaderGenerator {
                 config.vertexColorAnimated,
                 scoreboardHiding
         );
+    }
+
+    // Match vanilla 26.3's ShaderC locations and OIT passes. Keep the older shader
+    // separate: 26.2 clients still require #moj_import and the pre-OIT interface.
+    String getAnimationVertexShader26_3(TextShaderFeatures features) {
+        VertexShaderConfig config = new VertexShaderConfig(
+                "#if !defined(IS_SEE_THROUGH) && !defined(IS_GUI)\n                        sphericalVertexDistance = fog_spherical_distance(pos);\n                        cylindricalVertexDistance = fog_cylindrical_distance(pos);\n                        #endif",
+                "oraxen_lit_text_color(Color)",
+                "oraxen_lit_text_color(vec4(1.0, 1.0, 1.0, visible))",
+                "(rawFrame % totalFrames)"
+        );
+        String header = """
+                #version 330
+                #extension GL_ARB_separate_shader_objects : require
+
+                #if !defined(IS_GUI) && !defined(IS_SEE_THROUGH)
+                #include <minecraft:fog.glsl>
+                #include <minecraft:sample_lightmap.glsl>
+                #endif
+                #include <minecraft:dynamictransforms.glsl>
+                #include <minecraft:projection.glsl>
+                #include <minecraft:globals.glsl>
+
+                layout(location = 0) in vec3 Position;
+                layout(location = 1) in vec4 Color;
+                layout(location = 2) in vec2 UV0;
+                #if !defined(IS_GUI) && !defined(IS_SEE_THROUGH)
+                layout(location = 3) in ivec2 UV2;
+                uniform sampler2D Sampler2;
+                layout(location = 0) out float sphericalVertexDistance;
+                layout(location = 1) out float cylindricalVertexDistance;
+                #endif
+                layout(location = 2) out vec4 vertexColor;
+                layout(location = 3) out vec2 texCoord0;
+                %s
+
+                vec4 oraxen_lit_text_color(vec4 color) {
+                #if defined(IS_SEE_THROUGH) || defined(IS_GUI)
+                    return color;
+                #else
+                    return color * sample_lightmap(Sampler2, UV2);
+                #endif
+                }
+
+                """.formatted(getTextShaderConstants(features));
+        return header + getVertexShaderMainBody(config, false);
+    }
+
+    String getAnimationFragmentShader26_3() {
+        return """
+                #version 330
+                #extension GL_ARB_separate_shader_objects : require
+
+                #if !defined(IS_GUI) && !defined(IS_SEE_THROUGH)
+                #include <minecraft:fog.glsl>
+                #endif
+                #include <minecraft:dynamictransforms.glsl>
+                #include <minecraft:oit.glsl>
+
+                uniform sampler2D Sampler0;
+                #if !defined(IS_GUI) && !defined(IS_SEE_THROUGH)
+                layout(location = 0) in float sphericalVertexDistance;
+                layout(location = 1) in float cylindricalVertexDistance;
+                #endif
+                layout(location = 2) in vec4 vertexColor;
+                layout(location = 3) in vec2 texCoord0;
+                #ifndef OIT_ALPHA_ONLY
+                layout(location = 0) out vec4 fragColor;
+                #endif
+
+                vec4 calculateFinalColor(vec4 color) {
+                #ifdef OIT_ACCUMULATE
+                    color = sampleColorForAccumulation(color);
+                #endif
+                #if !defined(IS_SEE_THROUGH) && !defined(IS_GUI)
+                #ifdef OIT_ACCUMULATE
+                    vec4 fogColor = vec4(FogColor.rgb * color.a, FogColor.a);
+                #else
+                    vec4 fogColor = FogColor;
+                #endif
+                    color = apply_fog(color, sphericalVertexDistance, cylindricalVertexDistance, FogEnvironmentalStart, FogEnvironmentalEnd, FogRenderDistanceStart, FogRenderDistanceEnd, fogColor);
+                #endif
+                    return color;
+                }
+
+                void main() {
+                #ifdef IS_GRAYSCALE
+                    vec4 texColor = texture(Sampler0, texCoord0).rrrr;
+                #else
+                    vec4 texColor = texture(Sampler0, texCoord0);
+                #endif
+                    vec4 color = texColor * vertexColor * ColorModulator;
+                    if (color.a < 0.1) {
+                        discard;
+                    }
+                #ifdef OIT_ALPHA_ONLY
+                    executeAlphaOnlyPhase(gl_FragCoord.z, color.a);
+                #else
+                    fragColor = calculateFinalColor(color);
+                #endif
+                }
+                """;
     }
 
     private String getAnimationVertexShader26_2(TextShaderTarget target, TextShaderFeatures features) {

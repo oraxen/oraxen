@@ -18,6 +18,11 @@ import org.bukkit.configuration.ConfigurationSection;
 public class BackpackCosmeticFactory extends MechanicFactory {
 
     private static BackpackCosmeticFactory instance;
+    private static final String armorStandEnabledKey = "armor_stand_enabled";
+    private static final String armorStandRangeKey = "armor_stand_range";
+    private final BackpackCosmeticListener listener;
+    private final boolean armorStandEnabled;
+    private final int armorStandRange;
 
     @ConfigProperty(type = PropertyType.STRING, description = "Equipment slot that triggers backpack display", defaultValue = "CHEST")
     public static final String PROP_SLOT = "slot";
@@ -49,21 +54,23 @@ public class BackpackCosmeticFactory extends MechanicFactory {
     public BackpackCosmeticFactory(ConfigurationSection section) {
         super(section);
         instance = this;
+        armorStandEnabled = section.getBoolean(armorStandEnabledKey, true);
+        armorStandRange = Math.max(1, section.getInt(armorStandRangeKey, 128));
 
-        BackpackCosmeticListener listener = new BackpackCosmeticListener(this);
+        listener = new BackpackCosmeticListener(this);
         MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), listener,
                 listener.createMountListener(OraxenPlugin.get()));
 
-        // Register tasks with MechanicsManager for proper cleanup on reload
         BackpackCosmeticManager manager = BackpackCosmeticManager.getInstance();
 
-        // Fast position update task (every tick = 50ms) for smooth backpack following
         SchedulerUtil.ScheduledTask positionTask = SchedulerUtil.runTaskTimer(1L, 1L, manager::updateAllBackpackPositions);
         MechanicsManager.registerTask(getMechanicID(), positionTask);
 
-        // Viewer refresh task (every 20 ticks = 1 second) for adding/removing viewers
         SchedulerUtil.ScheduledTask refreshTask = SchedulerUtil.runTaskTimer(20L, 20L, manager::refreshAllViewers);
         MechanicsManager.registerTask(getMechanicID(), refreshTask);
+
+        SchedulerUtil.ScheduledTask armorStandTask = SchedulerUtil.runTaskLater(1L, listener::startExistingArmorStandViewerTasks);
+        MechanicsManager.registerTask(getMechanicID(), armorStandTask);
 
         if (Settings.DEBUG.toBool()) {
             io.th0rgal.oraxen.utils.logs.Logs.logSuccess("BackpackCosmeticFactory initialized");
@@ -72,6 +79,19 @@ public class BackpackCosmeticFactory extends MechanicFactory {
 
     public static BackpackCosmeticFactory getInstance() {
         return instance;
+    }
+
+    public boolean isArmorStandEnabled() {
+        return armorStandEnabled;
+    }
+
+    public int getArmorStandRange() {
+        return armorStandRange;
+    }
+
+    @Override
+    public void onUnregister() {
+        listener.cleanupArmorStandDisplays();
     }
 
     @Override

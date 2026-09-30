@@ -38,6 +38,15 @@ class PackDispatchFilterTest {
     }
 
     @Test
+    void distinguishes26_3From26_2() {
+        assertFalse(PackDispatchFilter.canSendPack(777, null, List.of("= 26.3")));
+        assertFalse(PackDispatchFilter.canSendPack(777, null, List.of("= 1.26.3.0")));
+        assertFalse(PackDispatchFilter.canSendPack(777, null, List.of("> 26.2")));
+        assertTrue(PackDispatchFilter.canSendPack(776, null, List.of("= 26.3")));
+        assertTrue(PackDispatchFilter.canSendPack(777, null, List.of("< 26.3")));
+    }
+
+    @Test
     void anyMatchingRuleStopsDispatch() {
         List<String> rules = List.of("= 1.21.11", "< 1.12", "< 1.21.4");
 

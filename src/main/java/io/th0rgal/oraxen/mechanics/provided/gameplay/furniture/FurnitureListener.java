@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
+import io.papermc.paper.event.player.PrePlayerAttackEntityEvent;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
@@ -14,6 +15,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
+import io.th0rgal.oraxen.utils.breaker.SyntheticBlockInteract;
 import io.th0rgal.oraxen.protection.AntiGriefLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -26,10 +28,13 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
+import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryCreativeEvent;
 import org.bukkit.event.inventory.InventoryType;
@@ -63,7 +68,7 @@ public class FurnitureListener implements Listener {
             public boolean isTriggered(final Player player, final Block block, final ItemStack tool) {
                 FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
 
-                return mechanic != null && mechanic.hasHardness();
+                return mechanic != null && mechanic.isBreakable() && mechanic.hasHardness();
             }
 
             @Override
@@ -279,7 +284,7 @@ public class FurnitureListener implements Listener {
     public void onHangingBreak(final HangingBreakEvent event) {
         if (!FurnitureFactory.isEnabled()) return;
         Entity entity = event.getEntity();
-        if (event.getCause() == HangingBreakEvent.RemoveCause.ENTITY)
+        if (event instanceof HangingBreakByEntityEvent entityBreak && entityBreak.getRemover() instanceof Player)
             return;
 
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
@@ -295,7 +300,10 @@ public class FurnitureListener implements Listener {
             return;
 
         event.setCancelled(true);
-        if (mechanic.hasBarriers(entity) || mechanic.hasHitbox())
+        if (!mechanic.isBreakable()) return;
+        if (event.getCause() != HangingBreakEvent.RemoveCause.EXPLOSION
+                && event.getCause() != HangingBreakEvent.RemoveCause.ENTITY
+                && (mechanic.hasBarriers(entity) || mechanic.hasHitbox()))
             return;
         OraxenFurniture.remove(entity, null);
     }
@@ -324,6 +332,7 @@ public class FurnitureListener implements Listener {
         entity = mechanic.getBaseEntity(entity);
         if (entity == null)
             return;
+        if (!mechanic.isBreakable()) return;
         if (!AntiGriefLib.canBreak(player, entity.getLocation()))
             return;
         OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic, entity, player,
@@ -359,6 +368,7 @@ public class FurnitureListener implements Listener {
             return;
 
         event.setCancelled(true);
+        if (!mechanic.isBreakable()) return;
         OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic, baseEntity, player,
                 block);
         if (!furnitureBreakEvent.callEvent())
@@ -370,6 +380,25 @@ public class FurnitureListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onBlockExplosion(BlockExplodeEvent event) {
+        if (!FurnitureFactory.isEnabled()) return;
+        protectUnbreakableFurniture(event.blockList());
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onEntityExplosion(EntityExplodeEvent event) {
+        if (!FurnitureFactory.isEnabled()) return;
+        protectUnbreakableFurniture(event.blockList());
+    }
+
+    private void protectUnbreakableFurniture(List<Block> blocks) {
+        blocks.removeIf(block -> {
+            FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
+            return mechanic != null && !mechanic.isBreakable();
+        });
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onProjectileHitFurniture(final ProjectileHitEvent event) {
         if (!FurnitureFactory.isEnabled()) return;
         Block block = event.getHitBlock();
@@ -378,19 +407,31 @@ public class FurnitureListener implements Listener {
         Player player = projectile.getShooter() instanceof Player ? (Player) projectile.getShooter() : null;
         Location location = block != null && block.getType() == Material.BARRIER ? block.getLocation()
                 : hitEntity != null ? hitEntity.getLocation() : null;
-        boolean isFurniture = block != null
-                ? OraxenFurniture.isFurniture(block) || OraxenFurniture.hasFurnitureBlockMarker(block)
-                : hitEntity != null && (OraxenFurniture.isFurniture(hitEntity) || OraxenFurniture.isOrphanFurnitureEntity(hitEntity));
+        if (location == null || !isProjectileHitFurniture(block, hitEntity)) return;
+
+        FurnitureMechanic mechanic = block != null ? OraxenFurniture.getFurnitureMechanic(block)
+                : OraxenFurniture.getFurnitureMechanic(hitEntity);
+        if (mechanic != null && !mechanic.isBreakable()) {
+            event.setCancelled(true);
+            return;
+        }
+        if (player != null && !AntiGriefLib.canBreak(player, location)) {
+            event.setCancelled(true);
+            return;
+        }
 
         // Do not break furniture with a hitbox unless it is a block-breaking explosive
-        if (location != null && isFurniture) {
-            if (player != null && !AntiGriefLib.canBreak(player, location))
-                event.setCancelled(true);
-            else if (projectile instanceof Explosive && !projectile.getType().name().contains("WIND_CHARGE")) {
-                event.setCancelled(true);
-                OraxenFurniture.remove(location, player);
-            }
+        if (projectile instanceof Explosive && !projectile.getType().name().contains("WIND_CHARGE")) {
+            event.setCancelled(true);
+            OraxenFurniture.remove(location, player);
         }
+    }
+
+    private boolean isProjectileHitFurniture(Block block, Entity hitEntity) {
+        if (block != null)
+            return OraxenFurniture.isFurniture(block) || OraxenFurniture.hasFurnitureBlockMarker(block);
+        return hitEntity != null && (OraxenFurniture.isFurniture(hitEntity)
+                || OraxenFurniture.isOrphanFurnitureEntity(hitEntity));
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -405,6 +446,7 @@ public class FurnitureListener implements Listener {
         Player player = projectile.getShooter() instanceof Player ? (Player) projectile.getShooter() : null;
 
         event.setCancelled(true);
+        if (mechanic != null && !mechanic.isBreakable()) return;
         if ((mechanic != null && mechanic.hasBarriers()) || !isDamagingProjectile(projectile))
             return;
         if (player != null && !AntiGriefLib.canBreak(player, furniture.getLocation()))
@@ -450,23 +492,17 @@ public class FurnitureListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlayerClickOnFurniture(final PlayerInteractEvent event) {
-        if (!FurnitureFactory.isEnabled()) return;
+        if (!FurnitureFactory.isEnabled() || SyntheticBlockInteract.isActive()) return;
+        final Action action = event.getAction();
+        final EquipmentSlot hand = event.getHand();
+        if (!isMainHandBlockClick(action, hand) || event.useInteractedBlock() == Event.Result.DENY)
+            return;
         final Block block = event.getClickedBlock();
-        final Player player = event.getPlayer();
-        EquipmentSlot hand = event.getHand();
-
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || hand != EquipmentSlot.HAND)
-            return;
-        if (event.useInteractedBlock() == Event.Result.DENY)
-            return;
         if (block == null || block.getType() != Material.BARRIER)
             return;
-        if (!AntiGriefLib.canInteract(player, block.getLocation()))
+        final Player player = event.getPlayer();
+        if (!canInteractWithBarrier(event, player, block))
             return;
-        if (!BlockLockerCompatibility.canInteract(player, block)) {
-            event.setCancelled(true);
-            return;
-        }
 
         final FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
         if (mechanic == null)
@@ -475,8 +511,45 @@ public class FurnitureListener implements Listener {
         if (baseEntity == null)
             return;
 
-        new OraxenFurnitureInteractEvent(mechanic, baseEntity, player, event.getItem(), hand,
-                block, event.getBlockFace()).callEvent();
+        if (action == Action.LEFT_CLICK_BLOCK)
+            mechanic.runEvents(player, action);
+        else
+            new OraxenFurnitureInteractEvent(mechanic, baseEntity, player, event.getItem(), hand,
+                    block, event.getBlockFace()).callEvent();
+    }
+
+    /** Right clicks must come from the main hand; left clicks report the main hand or no hand at all. */
+    private static boolean isMainHandBlockClick(Action action, EquipmentSlot hand) {
+        return switch (action) {
+            case RIGHT_CLICK_BLOCK -> hand == EquipmentSlot.HAND;
+            case LEFT_CLICK_BLOCK -> hand == null || hand == EquipmentSlot.HAND;
+            default -> false;
+        };
+    }
+
+    /** Runs the protection checks for a furniture barrier and cancels the click when BlockLocker denies it. */
+    private static boolean canInteractWithBarrier(PlayerInteractEvent event, Player player, Block block) {
+        if (!AntiGriefLib.canInteract(player, block.getLocation()))
+            return false;
+        if (BlockLockerCompatibility.canInteract(player, block))
+            return true;
+        event.setCancelled(true);
+        return false;
+    }
+
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onPlayerAttackFurniture(PrePlayerAttackEntityEvent event) {
+        if (!FurnitureFactory.isEnabled()) return;
+        Entity entity = event.getAttacked();
+        if (event.isCancelled() && !(entity instanceof Interaction)) return;
+        Player player = event.getPlayer();
+        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
+        if (mechanic == null || !AntiGriefLib.canInteract(player, entity.getLocation())) return;
+
+        Entity baseEntity = mechanic.getBaseEntity(entity);
+        if (!BlockLockerCompatibility.canInteract(player,
+                blockLockerBlock(mechanic, baseEntity, entity.getLocation().getBlock()), mechanic)) return;
+        mechanic.runEvents(player, Action.LEFT_CLICK_BLOCK);
     }
 
     private Block blockLockerBlock(FurnitureMechanic mechanic, Entity baseEntity, Block fallback) {
@@ -500,7 +573,8 @@ public class FurnitureListener implements Listener {
         PersistentDataContainer pdc = block != null ? BlockHelpers.getPDC(block)
                 : interactionEntity != null ? interactionEntity.getPersistentDataContainer() : baseEntity.getPersistentDataContainer();
 
-        mechanic.runClickActions(player);
+        if (event.getHand() == EquipmentSlot.HAND)
+            mechanic.runEvents(player, Action.RIGHT_CLICK_BLOCK);
 
         if (mechanic.isStorage()) {
             StorageMechanic storage = mechanic.getStorage();

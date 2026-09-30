@@ -1,4 +1,9 @@
 debug: false
+
+update-checker:
+  enabled: true # Check for updates.
+  interval: 24h # Interval to check for new updates, at least 10m. Supports s (seconds), m (minutes), h (hours), or d (days).
+
 Plugin:
   keep_this_up_to_date: true # Oraxen will delete old settings
   language: "english" # Valid options are "czech", "english", "french", "german",  "jpn_JP", "korean", "ru-RU", "zh-CN", "zh-TW"
@@ -294,7 +299,7 @@ Misc:
   add_recipes_to_book: true
 
   # This will hide the red numbers on the side of scoreboards
-  # (requires a packet adapter such as ProtocolLib or PacketEvents on 26.x and above)
+  # Uses Oraxen's native packet handling on supported Paper versions
   hide_scoreboard_numbers: false
   # This will hide the background of scoreboards (1.21.6 through 1.21.7 only)
   hide_scoreboard_background: false

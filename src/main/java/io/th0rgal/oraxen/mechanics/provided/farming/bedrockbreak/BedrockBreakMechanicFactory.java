@@ -43,7 +43,7 @@ public class BedrockBreakMechanicFactory extends MechanicFactory {
 
     @Override
     public @Nullable String getMechanicDescription() {
-        return "Allows breaking bedrock blocks (requires ProtocolLib)";
+        return "Allows breaking bedrock blocks";
     }
 
     @Override

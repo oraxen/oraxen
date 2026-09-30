@@ -8,9 +8,10 @@ class PlayerVersionDetectorTest {
 
     @Test
     void testProtocolToVersionString_1_21_4_andLater() {
+        assertEquals("26.3", PlayerVersionDetector.protocolToVersionString(777));
         assertEquals("26.2", PlayerVersionDetector.protocolToVersionString(776));
         assertEquals("26.1.2", PlayerVersionDetector.protocolToVersionString(775));
-        assertEquals("26.2+", PlayerVersionDetector.protocolToVersionString(800));
+        assertEquals("26.3+", PlayerVersionDetector.protocolToVersionString(800));
         assertEquals("1.21.4", PlayerVersionDetector.protocolToVersionString(769));
         assertEquals("1.21.5", PlayerVersionDetector.protocolToVersionString(770));
         assertEquals("1.21.11", PlayerVersionDetector.protocolToVersionString(774));

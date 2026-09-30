@@ -9,7 +9,7 @@ arrow_next_icon:
   displayname: "<#D5D6D8>Next page"
   material: PAPER
   excludeFromInventory: true
-  Pack:
+  pack:
     generate_model: true
     parent_model: "item/generated"
     textures:
@@ -19,7 +19,7 @@ arrow_previous_icon:
   displayname: "<#D5D6D8>Previous page"
   material: PAPER
   excludeFromInventory: true
-  Pack:
+  pack:
     generate_model: true
     parent_model: "item/generated"
     textures:
@@ -29,7 +29,7 @@ exit_icon:
   displayname: "<gradient:#FA7CBB:#F14658>Back to main menu"
   material: PAPER
   excludeFromInventory: true
-  Pack:
+  pack:
     generate_model: true
     parent_model: "item/generated"
     textures:

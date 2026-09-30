@@ -8,7 +8,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.block.Placeable;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.light.LightMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
-import io.th0rgal.oraxen.utils.actions.ClickAction;
+import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import org.bukkit.Material;
@@ -34,7 +34,6 @@ public class ChorusBlockMechanic extends Mechanic {
     private final boolean isFalling;
     private final boolean blastResistant;
     private final boolean immovable;
-    private final List<ClickAction> clickActions;
     private final BlockEvents blockEvents;
     private final float seatHeight;
     private final boolean hasSeat;
@@ -67,7 +66,6 @@ public class ChorusBlockMechanic extends Mechanic {
         ConfigurationSection storageSection = section.getConfigurationSection("storage");
         storage = storageSection != null ? new StorageMechanic(storageSection) : null;
 
-        clickActions = ClickAction.parseList(section);
         blockEvents = new BlockEvents(section, getItemID());
 
         // Parse seat configuration
@@ -89,7 +87,7 @@ public class ChorusBlockMechanic extends Mechanic {
     }
 
     public String getModel(ConfigurationSection section) {
-        return model != null ? model : section.getString("Pack.model");
+        return model != null ? model : OraxenYaml.getString(section, "pack.model");
     }
 
     public int getCustomVariation() {
@@ -179,28 +177,12 @@ public class ChorusBlockMechanic extends Mechanic {
         return immovable;
     }
 
-    public List<ClickAction> getClickActions() {
-        return clickActions;
-    }
-
-    public boolean hasClickActions() {
-        return !clickActions.isEmpty();
-    }
-
     public boolean hasBlockEvents() {
         return !blockEvents.isEmpty();
     }
 
     public boolean runBlockEvents(final Player player, final Action action) {
         return blockEvents.run(player, action);
-    }
-
-    public void runClickActions(final Player player) {
-        for (final ClickAction action : clickActions) {
-            if (action.canRun(player)) {
-                action.performActions(player);
-            }
-        }
     }
 
     public boolean isStorage() {
@@ -228,6 +210,6 @@ public class ChorusBlockMechanic extends Mechanic {
     }
 
     public boolean isInteractable() {
-        return hasClickActions() || hasBlockEvents() || isStorage() || hasSeat();
+        return hasBlockEvents() || isStorage() || hasSeat();
     }
 }

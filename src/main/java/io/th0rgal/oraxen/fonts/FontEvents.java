@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.glyphs.*;
 
 import io.papermc.paper.event.player.AsyncChatDecorateEvent;
 import io.papermc.paper.event.player.AsyncChatEvent;
+import io.papermc.paper.event.player.PlayerOpenSignEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.provided.placeholderapi.PapiAliases;
@@ -11,13 +12,18 @@ import io.th0rgal.oraxen.configs.Message;
 import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.ItemUtils;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import net.kyori.adventure.inventory.Book;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.Location;
+import org.bukkit.block.Sign;
+import org.bukkit.block.sign.Side;
 import org.bukkit.entity.Player;
 import org.bukkit.event.*;
 import org.bukkit.event.block.Action;
@@ -32,11 +38,14 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static io.th0rgal.oraxen.items.ItemBuilder.ORIGINAL_NAME_KEY;
 import static io.th0rgal.oraxen.utils.AdventureUtils.*;
@@ -45,6 +54,7 @@ public class FontEvents implements Listener {
 
     private final FontManager manager;
     private final PaperChatHandler paperChatHandler;
+    private final Map<UUID, SignEditSession> signEditSessions = new ConcurrentHashMap<>();
 
     public FontEvents(FontManager manager) {
         this.manager = manager;
@@ -57,6 +67,61 @@ public class FontEvents implements Listener {
 
     public void unregisterChatHandlers() {
         HandlerList.unregisterAll(paperChatHandler);
+        signEditSessions.clear();
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onSignOpen(final PlayerOpenSignEvent event) {
+        if (!Settings.FORMAT_SIGNS.toBool()) return;
+
+        Player player = event.getPlayer();
+        SignEditSession previous = signEditSessions.remove(player.getUniqueId());
+        if (previous != null)
+            player.sendBlockUpdate(previous.location(), previous.original());
+
+        Location location = event.getSign().getLocation();
+        Sign sign = (Sign) event.getSign().copy();
+        Side side = event.getSide();
+        List<Component> originalLines = List.copyOf(sign.getSide(side).lines());
+        List<String> editorLines = new ArrayList<>(originalLines.size());
+        boolean hasAnimatedGlyph = false;
+        for (Component line : originalLines) {
+            String originalText = PLAIN_TEXT.serialize(line);
+            String editorText = animatedGlyphPlaceholders(originalText, manager.getAnimatedGlyphs());
+            editorLines.add(editorText);
+            hasAnimatedGlyph |= !editorText.equals(originalText);
+        }
+        if (!hasAnimatedGlyph) return;
+
+        Sign preview = (Sign) sign.copy();
+        for (int i = 0; i < editorLines.size(); i++)
+            preview.getSide(side).line(i, Component.text(editorLines.get(i)));
+
+        signEditSessions.put(player.getUniqueId(),
+                new SignEditSession(location, side, sign, originalLines, editorLines));
+        player.sendBlockUpdate(location, preview);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onSignOpenComplete(final PlayerOpenSignEvent event) {
+        if (!event.isCancelled()) return;
+        SignEditSession session = signEditSessions.remove(event.getPlayer().getUniqueId());
+        if (session != null)
+            event.getPlayer().sendBlockUpdate(session.location(), session.original());
+    }
+
+    static String animatedGlyphPlaceholders(String text, Collection<AnimatedGlyph> animatedGlyphs) {
+        List<AnimatedGlyph> glyphs = animatedGlyphs.stream()
+                .filter(glyph -> glyph.getPlaceholders().length > 0)
+                .sorted(Comparator.comparingInt((AnimatedGlyph glyph) ->
+                        PlainTextComponentSerializer.plainText().serialize(glyph.getGlyphComponent()).length()).reversed())
+                .toList();
+        for (AnimatedGlyph glyph : glyphs) {
+            String characters = PlainTextComponentSerializer.plainText().serialize(glyph.getGlyphComponent());
+            if (!characters.isEmpty())
+                text = text.replace(characters, glyph.getPlaceholders()[0]);
+        }
+        return text;
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -107,14 +172,43 @@ public class FontEvents implements Listener {
         if (!Settings.FORMAT_SIGNS.toBool()) return;
 
         Player player = event.getPlayer();
+        SignEditSession session = matchingSignEditSession(event);
         List<Component> lines = event.lines();
         for (int i = 0; i < lines.size(); i++) {
             Component line = lines.get(i);
+            if (session != null && PLAIN_TEXT.serialize(line).equals(session.editorLines().get(i))) {
+                event.line(i, session.originalLines().get(i));
+                continue;
+            }
             if (containsUnpermittedGlyph(player, PLAIN_TEXT.serialize(line)))
                 event.setCancelled(true);
             event.line(i, format(line, player));
         }
     }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onSignGlyphComplete(final SignChangeEvent event) {
+        SignEditSession session = matchingSignEditSession(event);
+        if (session == null) return;
+        Player player = event.getPlayer();
+        signEditSessions.remove(player.getUniqueId());
+
+        Sign restored = (Sign) session.original().copy();
+        if (!event.isCancelled())
+            for (int i = 0; i < event.lines().size(); i++)
+                restored.getSide(session.side()).line(i, event.line(i));
+        SchedulerUtil.runForEntityLater(player, 1L,
+                () -> player.sendBlockUpdate(session.location(), restored));
+    }
+
+    private SignEditSession matchingSignEditSession(SignChangeEvent event) {
+        SignEditSession session = signEditSessions.get(event.getPlayer().getUniqueId());
+        return session != null && session.side() == event.getSide()
+                && session.location().equals(event.getBlock().getLocation()) ? session : null;
+    }
+
+    private record SignEditSession(Location location, Side side, Sign original,
+                                   List<Component> originalLines, List<String> editorLines) {}
 
     @EventHandler
     public void onPlayerRename(final InventoryClickEvent event) {
@@ -235,6 +329,7 @@ public class FontEvents implements Listener {
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
+        signEditSessions.remove(event.getPlayer().getUniqueId());
         manager.clearGlyphTabCompletions(event.getPlayer());
     }
 

@@ -21,6 +21,15 @@ public abstract class Mechanic {
         this.itemID = section.getParent().getParent().getName();
     }
 
+    @SafeVarargs
+    protected Mechanic(MechanicFactory mechanicFactory, String itemID,
+        Function<ItemBuilder, ItemBuilder>... modifiers) {
+        this.mechanicFactory = mechanicFactory;
+        this.section = null;
+        this.itemModifiers = modifiers;
+        this.itemID = itemID;
+    }
+
     public String getItemID() {
         return itemID;
     }

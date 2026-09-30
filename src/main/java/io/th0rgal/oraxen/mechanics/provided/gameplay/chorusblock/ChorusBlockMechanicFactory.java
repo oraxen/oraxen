@@ -255,7 +255,7 @@ public class ChorusBlockMechanicFactory extends MechanicFactory {
                         "type", MechanicConfigProperty.string("type", "ALLOW or DENY list type"),
                         "block_types", MechanicConfigProperty.list("block_types", "Block types to allow/deny")
                 )),
-                MechanicConfigProperty.list("clickActions", "Actions to perform on click")
+                MechanicConfigProperty.list("events", "Click events with actions to run when the placed block is clicked")
         );
     }
 }

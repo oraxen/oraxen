@@ -134,7 +134,7 @@ public class OraxenMetrics {
                 "soulbound", "consumable", "commands",
                 "hat", "aura", "skin",
                 "thor", "lifeleech", "bleeding",
-                "bigmining", "smelting", "harvesting");
+                "mining", "smelting", "harvesting");
 
         for (String mechanicId : trackedMechanics) {
             if (MechanicsManager.getMechanicFactory(mechanicId) != null) {
@@ -154,10 +154,8 @@ public class OraxenMetrics {
 
         // Packet handling
         Map<String, Integer> packets = new HashMap<>();
-        if (CompatibilitiesManager.hasPlugin("ProtocolLib"))
-            packets.put("ProtocolLib", 1);
-        if (CompatibilitiesManager.hasPlugin("packetevents"))
-            packets.put("PacketEvents", 1);
+        String packetBackend = OraxenPlugin.get().getPacketAdapter().backendName();
+        if (!packetBackend.equals("Disabled")) packets.put(packetBackend, 1);
         if (!packets.isEmpty())
             categories.put("Packet Handling", packets);
 

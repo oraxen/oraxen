@@ -6,6 +6,7 @@ import org.bukkit.Utility;
 import org.bukkit.World;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
+import org.bukkit.persistence.PersistentDataAdapterContext;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 
@@ -15,10 +16,36 @@ import java.util.Map;
 public class BlockLocation implements ConfigurationSerializable {
 
     static {
-        ConfigurationSerialization.registerClass(BlockLocation.class);
+        ensureSerializationRegistered();
     }
 
-    public static final PersistentDataType<byte[], BlockLocation> dataType = new ConfigurationSerializableDataType<>(BlockLocation.class);
+    public static final PersistentDataType<byte[], BlockLocation> dataType = new BlockLocationDataType();
+
+    private static void ensureSerializationRegistered() {
+        if (ConfigurationSerialization.getClassByAlias(BlockLocation.class.getName()) != BlockLocation.class)
+            ConfigurationSerialization.registerClass(BlockLocation.class);
+    }
+
+    private static class BlockLocationDataType extends ConfigurationSerializableDataType<BlockLocation> {
+
+        private BlockLocationDataType() {
+            super(BlockLocation.class);
+        }
+
+        @Override
+        public @NotNull byte[] toPrimitive(@NotNull BlockLocation complex,
+                                            @NotNull PersistentDataAdapterContext context) {
+            ensureSerializationRegistered();
+            return super.toPrimitive(complex, context);
+        }
+
+        @Override
+        public @NotNull BlockLocation fromPrimitive(@NotNull byte[] primitive,
+                                                     @NotNull PersistentDataAdapterContext context) {
+            ensureSerializationRegistered();
+            return super.fromPrimitive(primitive, context);
+        }
+    }
 
     private int x;
     private int y;

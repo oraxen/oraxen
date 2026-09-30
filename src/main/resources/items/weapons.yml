@@ -15,10 +15,10 @@ storm_sword:
     - { attribute: ATTACK_SPEED, amount: 3.2, operation: 0, slot: HAND }
   lore:
     - "<#6f737d>» <#D5D6D8>Right click to strike lightning"
-  Pack:
+  pack:
     generate_model: false
     model: default/storm_sword
-  Mechanics:
+  mechanics:
     thor:
       lightning_bolts_amount: 5
       random_location_variation: 1.5
@@ -32,7 +32,7 @@ energy_crystal_sword:
     - { attribute: ATTACK_DAMAGE, amount: 10, operation: 0, slot: HAND }
     # it has as much full-strength attacks per second than diamond sword
     - { attribute: ATTACK_SPEED, amount: 1.6, operation: 0, slot: HAND }
-  Pack:
+  pack:
     generate_model: false
     model: default/energy_crystal_sword
 
@@ -46,12 +46,12 @@ glass_sword:
     - { attribute: ATTACK_DAMAGE, amount: 10, operation: 0, slot: HAND }
     # it has as 5 full-strength attacks per second
     - { attribute: ATTACK_SPEED, amount: 1.6, operation: 0, slot: HAND }
-  Pack:
+  pack:
     generate_model: true
     parent_model: "item/handheld"
     textures:
       - default/glass_sword.png
-  Mechanics:
+  mechanics:
     durability:
       value: 8
 
@@ -65,12 +65,12 @@ obsidian_sword:
     - { attribute: ATTACK_DAMAGE, amount: 6, operation: 0, slot: HAND }
     # it has as 5 full-strength attacks per second
     - { attribute: ATTACK_SPEED, amount: 1.6, operation: 0, slot: HAND }
-  Pack:
+  pack:
     generate_model: true
     parent_model: "item/handheld"
     textures:
       - default/obsidian_sword.png
-  Mechanics:
+  mechanics:
     durability:
       value: 10000
 
@@ -85,10 +85,10 @@ blood_sword:
     - { attribute: ATTACK_DAMAGE, amount: 8, operation: 0, slot: HAND }
     # it has as much full-strength attacks per second than diamond sword
     - { attribute: ATTACK_SPEED, amount: 1.6, operation: 0, slot: HAND }
-  Pack:
+  pack:
     generate_model: false
     model: default/blood_sword
-  Mechanics:
+  mechanics:
     lifeleech:
       amount: 2 # the amount of 1/2 hearts that you'll steal to your opponents
     durability:
@@ -102,20 +102,20 @@ blood_sword:
 octavia_sword:
   displayname: "<#D5D6D8>Octavia Sword"
   material: DIAMOND_SWORD
-  Pack:
+  pack:
     generate_model: false
     model: default/octavia_sword
-  Mechanics:
+  mechanics:
     durability:
       value: 600 #diamond sword is 1561
 
 dagger:
   displayname: "<gradient:#FA7CBB:#F14658>Dagger"
   material: DIAMOND_SWORD
-  Pack:
+  pack:
     generate_model: false
     model: default/dagger
-  Mechanics:
+  mechanics:
     durability:
       value: 10 #diamond sword is 1561
 
@@ -127,10 +127,10 @@ katana:
     - { attribute: ATTACK_DAMAGE, amount: 5, operation: 0, slot: HAND }
     # it has as 5 full-strength attacks per second
     - { attribute: ATTACK_SPEED, amount: 5, operation: 0, slot: HAND }
-  Pack:
+  pack:
     generate_model: false
     model: default/katana
-  Mechanics:
+  mechanics:
     durability:
       value: 1000 #diamond sword is 1561
 
@@ -142,7 +142,7 @@ combat_bow:
       amount: 7
       operation: 0
       slot: HAND
-  Pack:
+  pack:
     generate_model: false
     model: default/combat_bow
     pulling_models:

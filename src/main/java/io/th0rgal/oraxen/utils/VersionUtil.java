@@ -41,6 +41,21 @@ public class VersionUtil {
         return version.isAtLeast(new MinecraftVersion("1.21.2"));
     }
 
+    /**
+     * 26.3 renamed packet accessors such as {@code tags()}, {@code hitResult()} and
+     * {@code sequence()}. Pre-releases sort below the final version, but they already
+     * expose those accessors, so the check uses the numeric version only.
+     */
+    public static boolean uses263PacketAccessors(MinecraftVersion version) {
+        int major = version.getMajor();
+        int minor = version.getMinor();
+        if (major == 1 && minor >= 26) {
+            major = minor;
+            minor = version.getBuild();
+        }
+        return major > 26 || (major == 26 && minor >= 3);
+    }
+
     public static String supportedVersions() {
         return "Paper and Paper forks 1.21.2+ / 26.x through the guarded NMS handler";
     }

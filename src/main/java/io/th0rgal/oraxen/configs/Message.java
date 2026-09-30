@@ -45,7 +45,6 @@ public enum Message {
     NO_ARMOR_ITEM("logs.no_armor_item"),
     DUPLICATE_ARMOR_COLOR("logs.duplicate_armor_color"),
     DATAPACK_GENERATED("logs.datapack_generated"),
-    MISSING_PROTOCOLLIB("logs.missing_protocollib"),
     INVALID_MATERIAL("logs.invalid_material"),
     IO_ERROR_ADD_PACK_FILE("logs.io_error_add_pack_file"),
     MISSING_LOGS("logs.missing_logs"),
