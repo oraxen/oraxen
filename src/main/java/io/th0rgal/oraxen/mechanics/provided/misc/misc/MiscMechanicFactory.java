@@ -16,11 +16,23 @@ import org.bukkit.inventory.ItemStack;
 )
 public class MiscMechanicFactory extends MechanicFactory {
 
-    @ConfigProperty(type = PropertyType.BOOLEAN, description = "Whether item can break music discs", defaultValue = "false")
-    public static final String PROP_BREAK_MUSIC_DISCS = "break_music_discs";
+    @ConfigProperty(type = PropertyType.BOOLEAN, description = "Deny vanilla right-click, consume, and bow-shoot behavior", defaultValue = "false")
+    public static final String PROP_DISABLE_VANILLA_INTERACTIONS = "disable_vanilla_interactions";
+
+    @ConfigProperty(type = PropertyType.BOOLEAN, description = "Let this item strip logs", defaultValue = "false")
+    public static final String PROP_CAN_STRIP_LOGS = "can_strip_logs";
+
+    @ConfigProperty(type = PropertyType.BOOLEAN, description = "Piglins ignore a player who has this item equipped", defaultValue = "false")
+    public static final String PROP_PIGLINS_IGNORE_WHEN_EQUIPPED = "piglins_ignore_when_equipped";
+
+    @ConfigProperty(type = PropertyType.BOOLEAN, description = "This item can be composted", defaultValue = "false")
+    public static final String PROP_COMPOSTABLE = "compostable";
 
     @ConfigProperty(type = PropertyType.BOOLEAN, description = "Whether item renaming in anvils is prevented", defaultValue = "false")
     public static final String PROP_PREVENT_RENAMING = "prevent_renaming";
+
+    @ConfigProperty(type = PropertyType.BOOLEAN, description = "Allow this item in vanilla recipes", defaultValue = "false")
+    public static final String PROP_ALLOW_IN_VANILLA_RECIPES = "allow_in_vanilla_recipes";
 
     private static MiscMechanicFactory instance;
 

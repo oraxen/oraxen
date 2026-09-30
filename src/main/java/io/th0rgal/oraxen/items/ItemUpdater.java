@@ -138,7 +138,7 @@ public class ItemUpdater implements Listener {
         event.getItem().setItemStack(newItem);
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onItemEnchant(PrepareItemEnchantEvent event) {
         String id = OraxenItems.getIdByItem(event.getItem());
         ItemBuilder builder = OraxenItems.getItemById(id);
@@ -149,7 +149,7 @@ public class ItemUpdater implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onItemEnchant(PrepareAnvilEvent event) {
         ItemStack item = event.getInventory().getItem(0);
         ItemStack result = event.getResult();

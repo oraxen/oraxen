@@ -15,6 +15,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
+import io.th0rgal.oraxen.utils.breaker.SyntheticBlockInteract;
 import io.th0rgal.oraxen.protection.AntiGriefLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -491,27 +492,17 @@ public class FurnitureListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlayerClickOnFurniture(final PlayerInteractEvent event) {
-        if (!FurnitureFactory.isEnabled()) return;
+        if (!FurnitureFactory.isEnabled() || SyntheticBlockInteract.isActive()) return;
+        final Action action = event.getAction();
+        final EquipmentSlot hand = event.getHand();
+        if (!isMainHandBlockClick(action, hand) || event.useInteractedBlock() == Event.Result.DENY)
+            return;
         final Block block = event.getClickedBlock();
-        final Player player = event.getPlayer();
-        EquipmentSlot hand = event.getHand();
-        Action action = event.getAction();
-
-        if (action != Action.RIGHT_CLICK_BLOCK && action != Action.LEFT_CLICK_BLOCK)
-            return;
-        if ((action == Action.RIGHT_CLICK_BLOCK && hand != EquipmentSlot.HAND)
-                || (action == Action.LEFT_CLICK_BLOCK && hand != null && hand != EquipmentSlot.HAND))
-            return;
-        if (event.useInteractedBlock() == Event.Result.DENY)
-            return;
         if (block == null || block.getType() != Material.BARRIER)
             return;
-        if (!AntiGriefLib.canInteract(player, block.getLocation()))
+        final Player player = event.getPlayer();
+        if (!canInteractWithBarrier(event, player, block))
             return;
-        if (!BlockLockerCompatibility.canInteract(player, block)) {
-            event.setCancelled(true);
-            return;
-        }
 
         final FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
         if (mechanic == null)
@@ -520,13 +511,30 @@ public class FurnitureListener implements Listener {
         if (baseEntity == null)
             return;
 
-        if (action == Action.LEFT_CLICK_BLOCK) {
+        if (action == Action.LEFT_CLICK_BLOCK)
             mechanic.runEvents(player, action);
-            return;
-        }
+        else
+            new OraxenFurnitureInteractEvent(mechanic, baseEntity, player, event.getItem(), hand,
+                    block, event.getBlockFace()).callEvent();
+    }
 
-        new OraxenFurnitureInteractEvent(mechanic, baseEntity, player, event.getItem(), hand,
-                block, event.getBlockFace()).callEvent();
+    /** Right clicks must come from the main hand; left clicks report the main hand or no hand at all. */
+    private static boolean isMainHandBlockClick(Action action, EquipmentSlot hand) {
+        return switch (action) {
+            case RIGHT_CLICK_BLOCK -> hand == EquipmentSlot.HAND;
+            case LEFT_CLICK_BLOCK -> hand == null || hand == EquipmentSlot.HAND;
+            default -> false;
+        };
+    }
+
+    /** Runs the protection checks for a furniture barrier and cancels the click when BlockLocker denies it. */
+    private static boolean canInteractWithBarrier(PlayerInteractEvent event, Player player, Block block) {
+        if (!AntiGriefLib.canInteract(player, block.getLocation()))
+            return false;
+        if (BlockLockerCompatibility.canInteract(player, block))
+            return true;
+        event.setCancelled(true);
+        return false;
     }
 
     @EventHandler(priority = EventPriority.HIGH)

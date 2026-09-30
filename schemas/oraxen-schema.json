@@ -2,7 +2,7 @@
   "oraxenVersion": "1.220.0",
   "minecraftVersion": "26.3",
   "serverVersion": "26.3.build.31-alpha",
-  "generatedAt": "2026-09-21T17:11:50.495380Z",
+  "generatedAt": "2026-09-30T21:26:09.762641059Z",
   "enums": {
     "Material": {
       "values": [
@@ -7781,18 +7781,18 @@
       "default": false
     },
     "invulnerable": {
-      "description": "Protects dropped items from selected damage causes",
       "type": "array",
+      "description": "Protects dropped items from selected damage causes",
       "items": {
         "type": "string",
         "enum": [
           "lava",
           "fire",
           "fire_tick",
+          "contact",
           "block_explosion",
           "entity_explosion",
-          "lightning",
-          "contact"
+          "lightning"
         ]
       }
     },
@@ -8533,10 +8533,6 @@
           "default": 1,
           "min": 0
         },
-        "breakable": {
-          "type": "boolean",
-          "description": "Whether furniture can be broken. Defaults to false when a left or both click event is configured, otherwise true"
-        },
         "item": {
           "type": "string",
           "description": "Alternative Oraxen item ID to display"
@@ -8590,6 +8586,10 @@
           "type": "array",
           "description": "List of barrier block positions relative to furniture"
         },
+        "events": {
+          "type": "array",
+          "description": "Click events with actions to run when furniture barriers or hitboxes are clicked"
+        },
         "properties": {
           "type": "object",
           "description": "Furniture entity properties; unsupported properties are ignored",
@@ -8635,6 +8635,48 @@
                 }
               }
             },
+            "scale": {
+              "type": "object",
+              "description": "Scale of the display entity",
+              "properties": {
+                "z": {
+                  "type": "number",
+                  "description": "Z-axis scale",
+                  "default": 1.0
+                },
+                "y": {
+                  "type": "number",
+                  "description": "Y-axis scale",
+                  "default": 1.0
+                },
+                "x": {
+                  "type": "number",
+                  "description": "X-axis scale",
+                  "default": 1.0
+                }
+              }
+            },
+            "translation": {
+              "type": "object",
+              "description": "Position offset in blocks",
+              "properties": {
+                "z": {
+                  "type": "number",
+                  "description": "Z-axis offset",
+                  "default": 0.0
+                },
+                "y": {
+                  "type": "number",
+                  "description": "Y-axis offset",
+                  "default": 0.0
+                },
+                "x": {
+                  "type": "number",
+                  "description": "X-axis offset",
+                  "default": 0.0
+                }
+              }
+            },
             "display_transform": {
               "type": "string",
               "description": "Display transform mode",
@@ -8649,27 +8691,6 @@
                 "GROUND",
                 "FIXED"
               ]
-            },
-            "translation": {
-              "type": "object",
-              "description": "Position offset in blocks",
-              "properties": {
-                "y": {
-                  "type": "number",
-                  "description": "Y-axis offset",
-                  "default": 0.0
-                },
-                "z": {
-                  "type": "number",
-                  "description": "Z-axis offset",
-                  "default": 0.0
-                },
-                "x": {
-                  "type": "number",
-                  "description": "X-axis offset",
-                  "default": 0.0
-                }
-              }
             }
           }
         },
@@ -8677,14 +8698,14 @@
           "type": "object",
           "description": "Drop configuration when broken",
           "properties": {
+            "loots": {
+              "type": "array",
+              "description": "List of loot entries"
+            },
             "silktouch": {
               "type": "boolean",
               "description": "Require silk touch to drop",
               "default": false
-            },
-            "loots": {
-              "type": "array",
-              "description": "List of loot entries"
             }
           }
         },
@@ -8696,13 +8717,6 @@
               "type": "string",
               "description": "Inventory title"
             },
-            "rows": {
-              "type": "integer",
-              "description": "Number of inventory rows",
-              "default": 1,
-              "min": 1,
-              "max": 6
-            },
             "type": {
               "type": "string",
               "description": "Storage type",
@@ -8712,6 +8726,13 @@
                 "ENDERCHEST",
                 "DISPOSAL"
               ]
+            },
+            "rows": {
+              "type": "integer",
+              "description": "Number of inventory rows",
+              "default": 1,
+              "min": 1,
+              "max": 6
             }
           }
         }
@@ -8801,27 +8822,27 @@
           "type": "object",
           "description": "Placement face and block restrictions",
           "properties": {
-            "wall": {
-              "type": "boolean",
-              "description": "Allow placement on walls",
-              "default": true
+            "disallow": {
+              "type": "array",
+              "description": "Vanilla block IDs this block may not be placed against"
             },
             "allow": {
               "type": "array",
               "description": "Vanilla block IDs this block may be placed against"
             },
-            "disallow": {
-              "type": "array",
-              "description": "Vanilla block IDs this block may not be placed against"
-            },
-            "floor": {
+            "wall": {
               "type": "boolean",
-              "description": "Allow placement on floors",
+              "description": "Allow placement on walls",
               "default": true
             },
             "roof": {
               "type": "boolean",
               "description": "Allow placement on ceilings",
+              "default": true
+            },
+            "floor": {
+              "type": "boolean",
+              "description": "Allow placement on floors",
               "default": true
             }
           }
@@ -8834,21 +8855,21 @@
               "type": "string",
               "description": "Sound when stepped on"
             },
-            "break-sound": {
+            "place-sound": {
               "type": "string",
-              "description": "Sound when broken"
-            },
-            "hit-sound": {
-              "type": "string",
-              "description": "Sound when hit"
+              "description": "Sound when placed"
             },
             "fall-sound": {
               "type": "string",
               "description": "Sound when fallen on"
             },
-            "place-sound": {
+            "hit-sound": {
               "type": "string",
-              "description": "Sound when placed"
+              "description": "Sound when hit"
+            },
+            "break-sound": {
+              "type": "string",
+              "description": "Sound when broken"
             }
           }
         }
@@ -8937,14 +8958,34 @@
       "description": "Miscellaneous item properties",
       "_source": "factory",
       "properties": {
-        "break_music_discs": {
+        "disable_vanilla_interactions": {
           "type": "boolean",
-          "description": "Whether item can break music discs",
+          "description": "Deny vanilla right-click, consume, and bow-shoot behavior",
+          "default": false
+        },
+        "can_strip_logs": {
+          "type": "boolean",
+          "description": "Let this item strip logs",
+          "default": false
+        },
+        "piglins_ignore_when_equipped": {
+          "type": "boolean",
+          "description": "Piglins ignore a player who has this item equipped",
+          "default": false
+        },
+        "compostable": {
+          "type": "boolean",
+          "description": "This item can be composted",
           "default": false
         },
         "prevent_renaming": {
           "type": "boolean",
           "description": "Whether item renaming in anvils is prevented",
+          "default": false
+        },
+        "allow_in_vanilla_recipes": {
+          "type": "boolean",
+          "description": "Allow this item in vanilla recipes",
           "default": false
         }
       }
@@ -9021,6 +9062,33 @@
           "min": 1
         }
       }
+    },
+    "mining": {
+      "category": "farming",
+      "description": "Mines blocks at world offsets, or in a face-relative area when radius and depth are set",
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^\\s*-?\\d+\\s*,\\s*-?\\d+\\s*,\\s*-?\\d+\\s*$"
+          }
+        },
+        {
+          "type": "object",
+          "description": "Face-relative area. Depth follows the direction the player is looking.",
+          "properties": {
+            "radius": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "depth": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      ]
     },
     "food": {
       "category": "misc",
@@ -9121,11 +9189,13 @@
         },
         "open_sound": {
           "type": "string",
-          "description": "Sound played when opening"
+          "description": "Sound played when opening",
+          "default": "minecraft:entity.shulker.open"
         },
         "close_sound": {
           "type": "string",
-          "description": "Sound played when closing"
+          "description": "Sound played when closing",
+          "default": "minecraft:entity.shulker.close"
         },
         "volume": {
           "type": "number",
@@ -9298,15 +9368,6 @@
           "description": "Show hit counter (method exists but actionbar is removed)",
           "default": true
         }
-      }
-    },
-    "mining": {
-      "category": "farming",
-      "description": "Mines blocks at offsets relative to the targeted block",
-      "type": "array",
-      "items": {
-        "type": "string",
-        "pattern": "^\\s*-?\\d+\\s*,\\s*-?\\d+\\s*,\\s*-?\\d+\\s*$"
       }
     }
   },

@@ -811,11 +811,29 @@ public class SchemaGenerator {
                 JsonObject mining = new JsonObject();
                 mining.addProperty("category", "farming");
                 mining.addProperty("description", factory.getMechanicDescription());
-                mining.addProperty("type", "array");
+                JsonArray forms = new JsonArray();
+                JsonObject offsets = new JsonObject();
+                offsets.addProperty("type", "array");
                 JsonObject offset = new JsonObject();
                 offset.addProperty("type", "string");
                 offset.addProperty("pattern", "^\\s*-?\\d+\\s*,\\s*-?\\d+\\s*,\\s*-?\\d+\\s*$");
-                mining.add("items", offset);
+                offsets.add("items", offset);
+                forms.add(offsets);
+                JsonObject area = new JsonObject();
+                area.addProperty("type", "object");
+                area.addProperty("description", "Face-relative area. Depth follows the direction the player is looking.");
+                JsonObject areaProperties = new JsonObject();
+                JsonObject radius = new JsonObject();
+                radius.addProperty("type", "integer");
+                radius.addProperty("minimum", 0);
+                JsonObject depth = new JsonObject();
+                depth.addProperty("type", "integer");
+                depth.addProperty("minimum", 0);
+                areaProperties.add("radius", radius);
+                areaProperties.add("depth", depth);
+                area.add("properties", areaProperties);
+                forms.add(area);
+                mining.add("oneOf", forms);
                 mechanics.add("mining", mining);
                 continue;
             }
@@ -948,8 +966,10 @@ public class SchemaGenerator {
 
         addMechanicIfAbsent(mechanics, "backpack", "misc", "Portable storage",
                 Map.of(
-                        "rows", prop("integer", "Number of rows (1-6)", 1, 3),
-                        "title", prop("string", "Inventory title", null, null),
+                        "rows", prop("integer", "Number of rows (1-6)", 1, 6),
+                        "title", prop("string", "Inventory title", null, "Backpack"),
+                        "open_sound", prop("string", "Sound played when opening", null, "minecraft:entity.shulker.open"),
+                        "close_sound", prop("string", "Sound played when closing", null, "minecraft:entity.shulker.close"),
                         "blocked-items", prop("array",
                                 "Items that cannot be stored; Oraxen item IDs require the oraxen: prefix", null, null)));
 
@@ -957,7 +977,13 @@ public class SchemaGenerator {
                 Map.of("type", prop("string", "Item type identifier", null, null)));
 
         addMechanicIfAbsent(mechanics, "misc", "misc", "Miscellaneous properties",
-                Map.of("break_music_discs", prop("boolean", "Can break music discs", null, false)));
+                Map.of(
+                        "disable_vanilla_interactions", prop("boolean", "Deny vanilla right-click, consume, and bow-shoot behavior", null, false),
+                        "can_strip_logs", prop("boolean", "Let this item strip logs", null, false),
+                        "piglins_ignore_when_equipped", prop("boolean", "Piglins ignore a player who has this item equipped", null, false),
+                        "compostable", prop("boolean", "This item can be composted", null, false),
+                        "prevent_renaming", prop("boolean", "Whether item renaming in anvils is prevented", null, false),
+                        "allow_in_vanilla_recipes", prop("boolean", "Allow this item in vanilla recipes", null, false)));
 
         return mechanics;
     }

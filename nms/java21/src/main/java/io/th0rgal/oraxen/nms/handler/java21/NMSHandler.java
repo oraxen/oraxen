@@ -87,11 +87,14 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.function.Supplier;
 
 public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
     private final Listener packDispatchListener;
     private final PacketHandler packetHandler;
+    private final NamespacedKey mineableTagKey;
+    private final NamespacedKey blockPredictionKey;
     private static final Map<io.netty.channel.Channel, Deque<PendingBlockChange>> pendingBlockChanges = new ConcurrentHashMap<>();
 
     private record PendingBlockChange(int sequence, int x, int y, int z, boolean placement) {
@@ -99,6 +102,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
     public NMSHandler() {
         this.packetHandler = new PacketHandler();
+        this.mineableTagKey = NamespacedKey.fromString("mineable_with_key", OraxenPlugin.get());
+        this.blockPredictionKey = NamespacedKey.fromString("block_prediction_key", OraxenPlugin.get());
         // Paper exposed the configuration/reconfiguration events used by the pre-join
         // dispatcher starting with 1.21.7. Do not load that listener earlier: its class
         // references APIs that do not exist on 1.21.2 through 1.21.6.
@@ -106,69 +111,91 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                 ? new PackDispatchListener()
                 : null;
 
-        NamespacedKey tagKey = NamespacedKey.fromString("mineable_with_key", OraxenPlugin.get());
-        if (!ChannelInitializeListenerHolder.hasListener(tagKey)) {
-            ChannelInitializeListenerHolder.addListener(tagKey, channel -> channel.pipeline().addBefore("packet_handler",
-                    tagKey.asString(), new ChannelDuplexHandler() {
-                        TagNetworkSerialization.NetworkPayload payload = createPayload();
-
-                        @Override
-                        public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
-                            if (msg instanceof ClientboundUpdateTagsPacket updateTagsPacket) {
-                                Map<ResourceKey<? extends Registry<?>>, TagNetworkSerialization.NetworkPayload> tags = new HashMap<>(updateTagsPacket.getTags());
-                                if (payload != null
-                                        && NoteBlockMechanicFactory.isEnabled()
-                                        && NoteBlockMechanicFactory.getInstance().removeMineableTag())
-                                    tags.put(Registries.BLOCK, payload);
-                                msg = new ClientboundUpdateTagsPacket(tags);
-                            }
-                            ctx.write(msg, promise);
-                        }
-                    }));
-        }
+        if (mineableTagKey != null && !ChannelInitializeListenerHolder.hasListener(mineableTagKey))
+            ChannelInitializeListenerHolder.addListener(mineableTagKey,
+                    channel -> installHandler(channel, mineableTagKey, this::createMineableTagHandler));
 
         // Track dig/place sequences separately so a pre-existing mineable-tag listener
         // cannot skip prediction settlement after reload.
-        NamespacedKey predictionKey = NamespacedKey.fromString("block_prediction_key", OraxenPlugin.get());
-        if (ChannelInitializeListenerHolder.hasListener(predictionKey))
-            return;
-        ChannelInitializeListenerHolder.addListener(predictionKey, channel -> channel.pipeline().addBefore("packet_handler",
-                predictionKey.asString(), new ChannelDuplexHandler() {
-                    @Override
-                    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
-                        if (msg instanceof ClientboundBlockChangedAckPacket packet) {
-                            final Deque<PendingBlockChange> pending = pendingBlockChanges.get(ctx.channel());
-                            if (pending != null)
-                                pending.removeIf(change -> change.sequence() <= packet.sequence());
-                        }
-                        ctx.write(msg, promise);
-                    }
+        if (blockPredictionKey != null && !ChannelInitializeListenerHolder.hasListener(blockPredictionKey))
+            ChannelInitializeListenerHolder.addListener(blockPredictionKey,
+                    channel -> installHandler(channel, blockPredictionKey, this::createBlockPredictionHandler));
 
-                    @Override
-                    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-                        // Bukkit block events do not expose the packet sequence. Retain the
-                        // position and operation so the matching prediction can be settled as
-                        // soon as its authoritative block states have been sent.
-                        final Deque<PendingBlockChange> pending =
-                                pendingBlockChanges.computeIfAbsent(ctx.channel(), ignored -> new ConcurrentLinkedDeque<>());
-                        if (msg instanceof ServerboundUseItemOnPacket packet) {
-                            final BlockPos pos = packet.getHitResult().getBlockPos();
-                            pending.addLast(new PendingBlockChange(packet.getSequence(), pos.getX(), pos.getY(), pos.getZ(), true));
-                        } else if (msg instanceof ServerboundPlayerActionPacket packet
-                                && packet.getAction() == ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK) {
-                            final BlockPos pos = packet.getPos();
-                            pending.addLast(new PendingBlockChange(packet.getSequence(), pos.getX(), pos.getY(), pos.getZ(), false));
-                        }
-                        while (pending.size() > 16) pending.pollFirst();
-                        super.channelRead(ctx, msg);
-                    }
+        // Players still online after a hot re-enable never pass through the channel initializer again
+        for (Player player : org.bukkit.Bukkit.getOnlinePlayers()) {
+            io.netty.channel.Channel channel = ((CraftPlayer) player).getHandle().connection.connection.channel;
+            installHandler(channel, mineableTagKey, this::createMineableTagHandler);
+            installHandler(channel, blockPredictionKey, this::createBlockPredictionHandler);
+        }
+    }
 
-                    @Override
-                    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-                        pendingBlockChanges.remove(ctx.channel());
-                        super.channelInactive(ctx);
-                    }
-                }));
+    private ChannelDuplexHandler createMineableTagHandler() {
+        return new ChannelDuplexHandler() {
+            TagNetworkSerialization.NetworkPayload payload = createPayload();
+
+            @Override
+            public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
+                if (msg instanceof ClientboundUpdateTagsPacket updateTagsPacket) {
+                    Map<ResourceKey<? extends Registry<?>>, TagNetworkSerialization.NetworkPayload> tags = new HashMap<>(updateTagsPacket.getTags());
+                    if (payload != null
+                            && NoteBlockMechanicFactory.isEnabled()
+                            && NoteBlockMechanicFactory.getInstance().removeMineableTag())
+                        tags.put(Registries.BLOCK, payload);
+                    msg = new ClientboundUpdateTagsPacket(tags);
+                }
+                ctx.write(msg, promise);
+            }
+        };
+    }
+
+    private ChannelDuplexHandler createBlockPredictionHandler() {
+        return new ChannelDuplexHandler() {
+            @Override
+            public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
+                if (msg instanceof ClientboundBlockChangedAckPacket packet) {
+                    final Deque<PendingBlockChange> pending = pendingBlockChanges.get(ctx.channel());
+                    if (pending != null)
+                        pending.removeIf(change -> change.sequence() <= packet.sequence());
+                }
+                ctx.write(msg, promise);
+            }
+
+            @Override
+            public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+                // Bukkit block events do not expose the packet sequence. Retain the
+                // position and operation so the matching prediction can be settled as
+                // soon as its authoritative block states have been sent.
+                final Deque<PendingBlockChange> pending =
+                        pendingBlockChanges.computeIfAbsent(ctx.channel(), ignored -> new ConcurrentLinkedDeque<>());
+                if (msg instanceof ServerboundUseItemOnPacket packet) {
+                    final BlockPos pos = packet.getHitResult().getBlockPos();
+                    pending.addLast(new PendingBlockChange(packet.getSequence(), pos.getX(), pos.getY(), pos.getZ(), true));
+                } else if (msg instanceof ServerboundPlayerActionPacket packet
+                        && packet.getAction() == ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK) {
+                    final BlockPos pos = packet.getPos();
+                    pending.addLast(new PendingBlockChange(packet.getSequence(), pos.getX(), pos.getY(), pos.getZ(), false));
+                }
+                while (pending.size() > 16) pending.pollFirst();
+                super.channelRead(ctx, msg);
+            }
+
+            @Override
+            public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+                pendingBlockChanges.remove(ctx.channel());
+                super.channelInactive(ctx);
+            }
+        };
+    }
+
+    private static void installHandler(io.netty.channel.Channel channel, NamespacedKey key,
+                                       Supplier<ChannelDuplexHandler> handler) {
+        if (key == null) return;
+        try {
+            if (channel.pipeline().get(key.asString()) == null)
+                channel.pipeline().addBefore("packet_handler", key.asString(), handler.get());
+        } catch (RuntimeException ignored) {
+            // The connection closed or installed the handler concurrently
+        }
     }
 
     @Override
@@ -221,7 +248,30 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
     @Override
     public void shutdown() {
-        packetHandler.shutdown();
+        // Unregister the listeners before touching any channel: they keep this plugin's
+        // classloader alive, so a failing channel must not skip their removal.
+        if (mineableTagKey != null) ChannelInitializeListenerHolder.removeListener(mineableTagKey);
+        if (blockPredictionKey != null) ChannelInitializeListenerHolder.removeListener(blockPredictionKey);
+        try {
+            packetHandler.shutdown();
+        } finally {
+            for (Player player : org.bukkit.Bukkit.getOnlinePlayers()) {
+                removeHandler(player, mineableTagKey);
+                removeHandler(player, blockPredictionKey);
+            }
+            pendingBlockChanges.clear();
+        }
+    }
+
+    private static void removeHandler(Player player, NamespacedKey key) {
+        if (key == null) return;
+        try {
+            io.netty.channel.Channel channel = ((CraftPlayer) player).getHandle().connection.connection.channel;
+            if (channel.pipeline().get(key.asString()) != null)
+                channel.pipeline().remove(key.asString());
+        } catch (RuntimeException ignored) {
+            // A closing channel may drop the handler between get and remove; keep cleaning the others
+        }
     }
 
     @Override

@@ -35,9 +35,37 @@ class ClickActionsMigrationTest {
             Map<?, ?> migrated = (Map<?, ?>) events.get(1);
             assertEquals("RIGHT", migrated.get("click"));
             List<?> actions = (List<?>) migrated.get("actions");
-            assertEquals(2, actions.size());
-            assertEquals("[console] say one", ((Map<?, ?>) actions.get(0)).get("legacy"));
+            assertEquals(1, actions.size());
+            assertEquals(List.of("[console] say one", "[message] two"), ((Map<?, ?>) actions.get(0)).get("legacy"));
             assertEquals(List.of("#player.hasPermission('test')"), ((Map<?, ?>) actions.get(0)).get("conditions"));
         }
+    }
+
+    @Test
+    void keepsScalarConditions() {
+        YamlConfiguration config = new YamlConfiguration();
+        ConfigurationSection mechanic = config.createSection("mechanics.noteblock");
+        mechanic.set("clickActions", List.of(Map.of(
+                "conditions", "#player.hasPermission('test')",
+                "actions", List.of("[message] hi"))));
+
+        assertTrue(ClickActionsMigration.migrate(config.getConfigurationSection("mechanics")));
+
+        List<?> events = mechanic.getList("events");
+        assertNotNull(events);
+        Map<?, ?> action = (Map<?, ?>) ((List<?>) ((Map<?, ?>) events.get(0)).get("actions")).get(0);
+        assertEquals(List.of("#player.hasPermission('test')"), action.get("conditions"));
+        assertFalse(mechanic.contains("clickActions"));
+    }
+
+    @Test
+    void keepsUnreadableClickActions() {
+        YamlConfiguration config = new YamlConfiguration();
+        ConfigurationSection mechanic = config.createSection("mechanics.furniture");
+        mechanic.set("clickActions", List.of(Map.of("actions", List.of(1, true))));
+
+        assertFalse(ClickActionsMigration.migrate(config.getConfigurationSection("mechanics")));
+        assertTrue(mechanic.contains("clickActions"));
+        assertNull(mechanic.get("events"));
     }
 }

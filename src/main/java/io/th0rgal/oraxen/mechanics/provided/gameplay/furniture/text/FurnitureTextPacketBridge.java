@@ -6,14 +6,17 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.packets.PacketAdapter;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityTeleportEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.joml.Vector3f;
 
@@ -21,7 +24,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class FurnitureTextPacketBridge {
 
@@ -101,6 +106,16 @@ public final class FurnitureTextPacketBridge {
         if (entry == null) return;
         destroyTextEntry(entry);
         spawnForTrackedViewers(entry);
+    }
+
+    public static boolean placementChanged(Location before, Location after) {
+        if (before == null || after == null) return true;
+        if (before.getWorld() == null ? after.getWorld() != null : !before.getWorld().equals(after.getWorld()))
+            return true;
+        return Math.abs(before.getX() - after.getX()) > 1.0E-4
+                || Math.abs(before.getY() - after.getY()) > 1.0E-4
+                || Math.abs(before.getZ() - after.getZ()) > 1.0E-4
+                || Math.abs(before.getYaw() - after.getYaw()) > 0.01F;
     }
 
     private static void destroyRegisteredTextEntities() {
@@ -271,6 +286,10 @@ public final class FurnitureTextPacketBridge {
 
     private static final class ViewerTrackingListener implements Listener {
 
+        // Tracks whose delayed spawn is still pending; an untrack in between invalidates the token
+        // so the spawn cannot reach the client after the destroy packet.
+        private final Map<PendingTrack, Object> pendingTracks = new ConcurrentHashMap<>();
+
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         public void onTrack(PlayerTrackEntityEvent event) {
             FurnitureTextEntry entry = FurnitureTextRegistry.byUuid(event.getEntity().getUniqueId());
@@ -279,7 +298,11 @@ public final class FurnitureTextPacketBridge {
             Player viewer = event.getPlayer();
             UUID baseUuid = entry.getBaseUuid();
             int baseEntityId = entry.getBaseEntityId();
+            PendingTrack key = new PendingTrack(viewer.getUniqueId(), baseUuid);
+            Object token = new Object();
+            pendingTracks.put(key, token);
             SchedulerUtil.runForEntityLater(viewer, 1L, () -> {
+                if (!pendingTracks.remove(key, token)) return;
                 FurnitureTextEntry current = FurnitureTextRegistry.byUuid(baseUuid);
                 if (current == null || current.getBaseEntityId() != baseEntityId) return;
                 sendTextEntry(current, viewer, true);
@@ -291,16 +314,36 @@ public final class FurnitureTextPacketBridge {
             FurnitureTextEntry entry = FurnitureTextRegistry.byUuid(event.getEntity().getUniqueId());
             if (entry == null) return;
             Player viewer = event.getPlayer();
+            pendingTracks.remove(new PendingTrack(viewer.getUniqueId(), entry.getBaseUuid()));
             SchedulerUtil.runOnOwningThread(viewer, () -> destroyTextEntry(entry, viewer));
             entry.removeViewer(viewer.getUniqueId());
         }
 
         @EventHandler(priority = EventPriority.MONITOR)
         public void onQuit(PlayerQuitEvent event) {
-            FurnitureTextRegistry.removeViewer(event.getPlayer().getUniqueId());
+            UUID viewerId = event.getPlayer().getUniqueId();
+            pendingTracks.keySet().removeIf(key -> key.viewer().equals(viewerId));
+            FurnitureTextRegistry.removeViewer(viewerId);
+        }
+
+        @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+        public void onBaseTeleport(EntityTeleportEvent event) {
+            Entity entity = event.getEntity();
+            FurnitureTextEntry entry = FurnitureTextRegistry.byUuid(entity.getUniqueId());
+            if (entry == null || entry.getBaseEntityId() != entity.getEntityId() || event.getTo() == null) return;
+
+            Location destination = event.getTo().clone();
+            if (entity instanceof ItemFrame)
+                destination.setYaw(FurnitureMechanic.getFurnitureYaw(entity));
+            if (!placementChanged(entry.getBaseLocation(), destination)) return;
+            entry.updateBaseLocation(destination);
+            respawnTrackedViewers(entry);
         }
     }
 
     private record TrackedViewers(List<Player> viewers, boolean exact) {
+    }
+
+    private record PendingTrack(UUID viewer, UUID base) {
     }
 }

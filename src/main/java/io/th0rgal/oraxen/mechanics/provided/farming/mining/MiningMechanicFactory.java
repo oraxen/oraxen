@@ -29,7 +29,9 @@ public class MiningMechanicFactory extends MechanicFactory {
 
     @Override
     public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
-        throw new IllegalArgumentException("mechanics.mining must be a list of x,y,z offsets");
+        MiningMechanic mechanic = new MiningMechanic(this, itemMechanicConfiguration);
+        addToImplemented(mechanic);
+        return mechanic;
     }
 
     @Override
@@ -50,6 +52,6 @@ public class MiningMechanicFactory extends MechanicFactory {
 
     @Override
     public @Nullable String getMechanicDescription() {
-        return "Mines blocks at offsets relative to the targeted block";
+        return "Mines blocks at world offsets, or in a face-relative area when radius and depth are set";
     }
 }

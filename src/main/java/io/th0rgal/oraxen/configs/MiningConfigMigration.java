@@ -3,9 +3,6 @@ package io.th0rgal.oraxen.configs;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import org.bukkit.configuration.ConfigurationSection;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public final class MiningConfigMigration {
 
     private MiningConfigMigration() {
@@ -32,15 +29,11 @@ public final class MiningConfigMigration {
         if (legacy == null) return false;
 
         if (!OraxenYaml.contains(mechanics, "mining")) {
-            int radius = Math.max(0, legacy.getInt("radius"));
-            int depth = Math.max(0, legacy.getInt("depth"));
-            List<String> offsets = new ArrayList<>();
-            // The new mechanic uses fixed world axes; legacy depth followed the targeted face.
-            for (int z = 0; z < depth; z++)
-                for (int y = -radius; y <= radius; y++)
-                    for (int x = -radius; x <= radius; x++)
-                        offsets.add(x + "," + y + "," + z);
-            mechanics.set("mining", offsets);
+            ConfigurationSection mining = mechanics.createSection("mining");
+            // Legacy depth followed the targeted face, so keep radius and depth instead of
+            // baking them into world-axis offsets.
+            mining.set("radius", Math.max(0, legacy.getInt("radius")));
+            mining.set("depth", Math.max(0, legacy.getInt("depth")));
         }
 
         mechanics.set(legacy.getName(), null);

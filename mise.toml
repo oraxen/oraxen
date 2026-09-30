@@ -1,5 +1,2 @@
 [tools]
 java = "25.0.0"
-
-[env]
-JAVA_TOOL_OPTIONS = "-Djdk.net.unixdomain.tmpdir=C:\\Windows\\Temp"

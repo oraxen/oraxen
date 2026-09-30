@@ -2,7 +2,7 @@ debug: false
 
 update-checker:
   enabled: true # Check for updates.
-  interval: 24h # Interval to check for new upates. Support s (seconds), m (minutes), h (hours), or d (days).
+  interval: 24h # Interval to check for new updates, at least 10m. Supports s (seconds), m (minutes), h (hours), or d (days).
 
 Plugin:
   keep_this_up_to_date: true # Oraxen will delete old settings

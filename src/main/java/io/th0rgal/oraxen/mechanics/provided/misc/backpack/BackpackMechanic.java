@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.misc.backpack;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.mechanics.ConfigPropertyValues;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import org.bukkit.NamespacedKey;
@@ -26,12 +27,12 @@ public class BackpackMechanic extends Mechanic {
 
     public BackpackMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section);
-        rows = section.getInt("rows", 6);
-        title = section.getString("title", "Backpack");
-        openSound = section.getString("open_sound", "minecraft:entity.shulker.open");
-        closeSound = section.getString("close_sound", "minecraft:entity.shulker.close");
-        volume = (float) section.getDouble("volume", 1.0);
-        pitch = (float) section.getDouble("pitch", 1.0);
+        rows = ConfigPropertyValues.integer(BackpackMechanicFactory.class, section, BackpackMechanicFactory.PROP_ROWS);
+        title = ConfigPropertyValues.text(BackpackMechanicFactory.class, section, BackpackMechanicFactory.PROP_TITLE);
+        openSound = ConfigPropertyValues.text(BackpackMechanicFactory.class, section, BackpackMechanicFactory.PROP_OPEN_SOUND);
+        closeSound = ConfigPropertyValues.text(BackpackMechanicFactory.class, section, BackpackMechanicFactory.PROP_CLOSE_SOUND);
+        volume = (float) ConfigPropertyValues.decimal(BackpackMechanicFactory.class, section, BackpackMechanicFactory.PROP_VOLUME);
+        pitch = (float) ConfigPropertyValues.decimal(BackpackMechanicFactory.class, section, BackpackMechanicFactory.PROP_PITCH);
         for (String item : section.getStringList("blocked-items")) {
             String normalized = item.toLowerCase(Locale.ROOT);
             if (normalized.startsWith("oraxen:"))

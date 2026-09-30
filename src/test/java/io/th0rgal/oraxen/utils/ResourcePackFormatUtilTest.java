@@ -43,4 +43,13 @@ class ResourcePackFormatUtilTest {
         assertEquals(88, ResourcePackFormatUtil.getDataPackFormatForVersion(new MinecraftVersion("1.21.10")));
         assertEquals(88, ResourcePackFormatUtil.getDataPackFormatForVersion(new MinecraftVersion("1.21.9")));
     }
+
+    @Test
+    void preReleasesAndReleaseCandidatesUseTheirReleaseFormat() {
+        assertEquals(97, ResourcePackFormatUtil.getPackFormatForVersion(new MinecraftVersion("26.3-pre1")));
+        assertEquals(97, ResourcePackFormatUtil.getPackFormatForVersion(new MinecraftVersion("26.3-rc1")));
+        assertEquals(88, ResourcePackFormatUtil.getPackFormatForVersion(new MinecraftVersion("26.2-rc1")));
+        assertEquals(121, ResourcePackFormatUtil.getDataPackFormatForVersion(new MinecraftVersion("26.3-pre1")));
+        assertEquals(121, ResourcePackFormatUtil.getDataPackFormatForVersion(new MinecraftVersion("26.3-rc1")));
+    }
 }

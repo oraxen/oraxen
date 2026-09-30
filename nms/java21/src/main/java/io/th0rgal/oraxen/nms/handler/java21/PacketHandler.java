@@ -12,6 +12,9 @@ import io.th0rgal.oraxen.utils.PacketHelpers;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.numbers.BlankFormat;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBundlePacket;
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetObjectivePacket;
@@ -24,6 +27,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 
+import java.util.ArrayList;
+import java.util.List;
+
 final class PacketHandler {
 
     private final NamespacedKey key;
@@ -35,8 +41,13 @@ final class PacketHandler {
         key = new NamespacedKey(OraxenPlugin.get(), "packet_formatting");
         ChannelInitializeListenerHolder.removeListener(key);
         ChannelInitializeListenerHolder.addListener(key, this::install);
-        for (var player : Bukkit.getOnlinePlayers())
-            install(((CraftPlayer) player).getHandle().connection.connection.channel);
+        for (var player : Bukkit.getOnlinePlayers()) {
+            try {
+                install(((CraftPlayer) player).getHandle().connection.connection.channel);
+            } catch (RuntimeException ignored) {
+                // The connection closed concurrently, it no longer needs the handler
+            }
+        }
     }
 
     private void install(Channel channel) {
@@ -53,8 +64,12 @@ final class PacketHandler {
     void shutdown() {
         ChannelInitializeListenerHolder.removeListener(key);
         for (var player : Bukkit.getOnlinePlayers()) {
-            Channel channel = ((CraftPlayer) player).getHandle().connection.connection.channel;
-            if (channel.pipeline().get(key.asString()) != null) channel.pipeline().remove(key.asString());
+            try {
+                Channel channel = ((CraftPlayer) player).getHandle().connection.connection.channel;
+                if (channel.pipeline().get(key.asString()) != null) channel.pipeline().remove(key.asString());
+            } catch (RuntimeException ignored) {
+                // A closing channel may drop the handler between get and remove; keep cleaning the others
+            }
         }
     }
 
@@ -72,6 +87,7 @@ final class PacketHandler {
 
     private Object transform(Object packet) {
         try {
+            if (packet instanceof ClientboundBundlePacket bundle) return transformBundle(bundle);
             if (packet instanceof ClientboundOpenScreenPacket openScreen) return transformOpenScreen(openScreen);
             if (packet instanceof ClientboundSetTitleTextPacket title) return transformTitle(title);
             if (packet instanceof ClientboundSetSubtitleTextPacket subtitle) return transformSubtitle(subtitle);
@@ -82,6 +98,20 @@ final class PacketHandler {
                 Logs.logWarning("Failed to transform outgoing packet " + packet.getClass().getSimpleName() + ": " + exception.getMessage());
         }
         return packet;
+    }
+
+    @SuppressWarnings("unchecked")
+    private ClientboundBundlePacket transformBundle(ClientboundBundlePacket bundle) {
+        List<Packet<? super ClientGamePacketListener>> packets = new ArrayList<>();
+        boolean changed = false;
+        for (Packet<? super ClientGamePacketListener> subPacket : bundle.subPackets()) {
+            Object transformed = transform(subPacket);
+            if (transformed != subPacket) changed = true;
+            packets.add(transformed instanceof Packet<?> packet
+                    ? (Packet<? super ClientGamePacketListener>) packet
+                    : subPacket);
+        }
+        return changed ? new ClientboundBundlePacket(packets) : bundle;
     }
 
     private ClientboundOpenScreenPacket transformOpenScreen(ClientboundOpenScreenPacket packet) {

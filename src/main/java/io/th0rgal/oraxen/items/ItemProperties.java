@@ -99,7 +99,10 @@ public final class ItemProperties {
         if (section.getBoolean("injectId", true))
             item.setCustomTag(OraxenItems.ITEM_ID, PersistentDataType.STRING, section.getName());
         oraxenMeta.setNoUpdate(mergedSection.getBoolean("no_auto_update", false));
-        oraxenMeta.setEnchantable(mergedSection.getBoolean("enchantable", true));
+        boolean enchantable = mergedSection.getBoolean("enchantable", true);
+        // ItemUpdater cancels enchanting-table and anvil enchants for these items.
+        // Paper rejects an enchantable component of 0, so the component itself is left untouched.
+        oraxenMeta.setEnchantable(enchantable);
         if (mergedSection.isSet("glowing")) {
             String colorName = mergedSection.getString("glowing", "").toLowerCase(Locale.ROOT);
             NamedTextColor glowing = NamedTextColor.NAMES.value(colorName);

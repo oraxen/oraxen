@@ -226,8 +226,9 @@ class TextShaderGenerator {
 
     private void generateTextShaders(TextShaderTarget target, TextShaderFeatures features, boolean skipBaseShaders, int minOverlayPackFormat) {
         ShaderOverlay serverOverlay = ShaderOverlay.forPackFormat(target.packFormat());
+        boolean serverShadersInOverlay = keepsServerShadersInOverlay(target, serverOverlay, skipBaseShaders);
 
-        if (!skipBaseShaders) {
+        if (!serverShadersInOverlay) {
             generateTextShadersForTarget(target, features, "");
         }
 
@@ -244,7 +245,7 @@ class TextShaderGenerator {
 
         for (ShaderOverlay overlay : ShaderOverlay.values()) {
             if (overlay.minFormat() < minOverlayPackFormat) continue;
-            if (overlay == serverOverlay && !skipBaseShaders) continue;
+            if (overlay == serverOverlay && !serverShadersInOverlay) continue;
             TextShaderTarget overlayTarget = TextShaderTarget.forVersion(overlay.representativeVersion());
             generateTextShadersForTarget(overlayTarget, features, overlay.directory() + "/");
             generatedOverlays.add(overlay);
@@ -254,14 +255,23 @@ class TextShaderGenerator {
             shaderOverlaysGenerated = true;
             if (Settings.DEBUG.toBool()) {
                 String message = "Generated shader overlays for " + generatedOverlays.size() + " format groups";
-                if (serverOverlay != null && !skipBaseShaders) {
+                if (serverOverlay != null && !serverShadersInOverlay) {
                     message += " (" + serverOverlay.directory() + " is the base)";
-                } else if (serverOverlay != null && skipBaseShaders) {
+                } else if (serverOverlay != null) {
                     message += " (" + serverOverlay.directory() + " included as overlay)";
                 }
                 Logs.logSuccess(message);
             }
         }
+    }
+
+    /**
+     * 26.2 renamed the text shaders to core/text. Older clients' overlays only replace rendertype_text.*,
+     * so base core/text files would still reach them, and their shader manager rejects the whole pack
+     * over 26.x-only imports such as sample_lightmap.glsl. Those servers keep their shaders in their own overlay.
+     */
+    static boolean keepsServerShadersInOverlay(TextShaderTarget target, ShaderOverlay serverOverlay, boolean skipBaseShaders) {
+        return skipBaseShaders || (serverOverlay != null && target.usesUnifiedTextShader());
     }
 
     private void generateTextShadersForTarget(TextShaderTarget target, TextShaderFeatures features, String pathPrefix) {

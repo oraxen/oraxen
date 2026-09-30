@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.misc.misc;
 
+import io.th0rgal.oraxen.mechanics.ConfigPropertyValues;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import org.bukkit.configuration.ConfigurationSection;
@@ -15,12 +16,12 @@ public class MiscMechanic extends Mechanic {
 
     public MiscMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section);
-        disableVanillaInteractions = section.getBoolean("disable_vanilla_interactions", false);
-        canStripLogs = section.getBoolean("can_strip_logs", false);
-        piglinsIgnoreWhenEquipped = section.getBoolean("piglins_ignore_when_equipped", false);
-        compostable = section.getBoolean("compostable", false);
-        preventRenaming = section.getBoolean("prevent_renaming", false);
-        allowInVanillaRecipes = section.getBoolean("allow_in_vanilla_recipes", false);
+        disableVanillaInteractions = ConfigPropertyValues.bool(MiscMechanicFactory.class, section, MiscMechanicFactory.PROP_DISABLE_VANILLA_INTERACTIONS);
+        canStripLogs = ConfigPropertyValues.bool(MiscMechanicFactory.class, section, MiscMechanicFactory.PROP_CAN_STRIP_LOGS);
+        piglinsIgnoreWhenEquipped = ConfigPropertyValues.bool(MiscMechanicFactory.class, section, MiscMechanicFactory.PROP_PIGLINS_IGNORE_WHEN_EQUIPPED);
+        compostable = ConfigPropertyValues.bool(MiscMechanicFactory.class, section, MiscMechanicFactory.PROP_COMPOSTABLE);
+        preventRenaming = ConfigPropertyValues.bool(MiscMechanicFactory.class, section, MiscMechanicFactory.PROP_PREVENT_RENAMING);
+        allowInVanillaRecipes = ConfigPropertyValues.bool(MiscMechanicFactory.class, section, MiscMechanicFactory.PROP_ALLOW_IN_VANILLA_RECIPES);
     }
 
     public boolean isVanillaInteractionDisabled() { return disableVanillaInteractions; }
