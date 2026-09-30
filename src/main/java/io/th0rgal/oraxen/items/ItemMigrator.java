@@ -36,6 +36,7 @@ public final class ItemMigrator {
         this.section = section;
         migrateUppercaseSections();
         migrateEnchantable();
+        migrateInjectId();
         if (FurnitureConfigMigration.migrate(section)) {
             configUpdated = true;
             blockConfigMigrated = true;
@@ -127,6 +128,21 @@ public final class ItemMigrator {
      */
     public void markConfigUpdated() {
         configUpdated = true;
+    }
+
+    private void migrateInjectId() {
+        if (section == null || !section.isSet("injectID"))
+            return;
+
+        if (!section.isSet("injectId")) {
+            section.set("injectId", section.get("injectID"));
+            section.setComments("injectId", section.getComments("injectID"));
+            section.setInlineComments("injectId", section.getInlineComments("injectID"));
+        }
+        section.set("injectID", null);
+        OraxenYaml.invalidateKeyCache(section);
+        configUpdated = true;
+        blockConfigMigrated = true;
     }
 
     private void migrateEnchantable() {
