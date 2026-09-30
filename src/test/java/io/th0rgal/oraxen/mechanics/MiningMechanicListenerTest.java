@@ -98,6 +98,30 @@ class MiningMechanicListenerTest extends MechanicTestSupport {
     }
 
     @Test
+    void foreignRegionTargetsAreSkippedBeforeReadingBlocksOrSchedulingPlayerEvents() {
+        MiningMechanicFactory factory = mock(MiningMechanicFactory.class);
+        MiningMechanic mechanic = mock(MiningMechanic.class);
+        when(mechanic.getOffsets()).thenReturn(List.of(new MiningMechanic.Offset(32, 0, 0)));
+        when(factory.callEvents()).thenReturn(true);
+        World world = mock(World.class);
+        Block origin = mock(Block.class);
+        when(origin.getLocation()).thenReturn(new Location(world, 0, 64, 0));
+        ItemStack item = mock(ItemStack.class);
+        Player player = mock(Player.class);
+        PlayerInventory inventory = mock(PlayerInventory.class);
+        when(player.getInventory()).thenReturn(inventory);
+        when(inventory.getItemInMainHand()).thenReturn(item);
+        when(factory.getMechanic(item)).thenReturn(mechanic);
+        when(Bukkit.getServer().isOwnedByCurrentRegion(any(Location.class))).thenReturn(false);
+
+        new MiningMechanicListener(factory).onBlockBreak(new BlockBreakEvent(origin, player));
+
+        verifyNoInteractions(world);
+        verify(player, never()).getScheduler();
+        verify(factory, never()).callEvents();
+    }
+
+    @Test
     void faceRelativeMiningFollowsTheHitFace() {
         // Looking north at a shallow downward angle while hitting the top face must dig downwards.
         assertFaceRelativeDirection(BlockFace.UP, true, BlockFace.DOWN);

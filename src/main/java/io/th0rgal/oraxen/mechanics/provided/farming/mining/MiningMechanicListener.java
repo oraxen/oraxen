@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.mechanics.provided.farming.mining;
 
 import io.th0rgal.oraxen.protection.AntiGriefLib;
 import io.th0rgal.oraxen.utils.BlockHelpers;
-import io.th0rgal.oraxen.utils.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -44,8 +43,8 @@ public class MiningMechanicListener implements Listener {
             for (Location target : targets(player, origin, mechanic)) {
                 if (Bukkit.isOwnedByCurrentRegion(target))
                     breakBlock(player, target.getBlock(), item);
-                else
-                    breakOnBlockRegion(player, target, item.clone());
+                // A synthetic player event must run on both the block and player's region.
+                // Skip foreign targets rather than moving the player event onto another region.
             }
         } finally {
             activeMining.remove();
@@ -75,25 +74,6 @@ public class MiningMechanicListener implements Listener {
             targets.add(origin.clone().add(offset.x(), offset.y(), offset.z()));
         }
         return targets;
-    }
-
-    private void breakOnBlockRegion(Player player, Location target, ItemStack tool) {
-        SchedulerUtil.runAtLocation(target, () -> {
-            Block block = target.getBlock();
-            if (!canDamage(block)) return;
-            // Protection plugins read the player, so that check stays on the player's region.
-            SchedulerUtil.runForEntity(player, () -> {
-                if (!player.isOnline() || !AntiGriefLib.canBreak(player, target)) return;
-                SchedulerUtil.runAtLocation(target, () -> {
-                    activeMining.set(true);
-                    try {
-                        damageBlock(player, block, tool);
-                    } finally {
-                        activeMining.remove();
-                    }
-                });
-            }, null);
-        });
     }
 
     private void breakBlock(Player player, Block block, ItemStack itemStack) {
