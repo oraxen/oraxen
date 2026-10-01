@@ -92,6 +92,15 @@ jobs:
           path.write_text(settings.replace(debug, "debug: true\n").replace(upload, "  upload:\n    enabled: false\n"))
           PY
 
+          # Seed the currently published schema so the generator preserves its entry order.
+          # Without this the first CI run has no ordering base and would reorder every entry.
+          if [ -f schemas/oraxen-schema.json ]; then
+            cp schemas/oraxen-schema.json test-server/plugins/Oraxen/oraxen-schema.json
+            echo "Seeded existing schema as the ordering base"
+          else
+            echo "No existing schema found, generating from scratch"
+          fi
+
       - name: Generate schema
         working-directory: test-server
         timeout-minutes: 5

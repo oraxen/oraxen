@@ -1,9 +1,8 @@
 package io.th0rgal.oraxen.utils.schema;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.MechanicConfigProperty;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
@@ -25,8 +24,12 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Generates JSON schema for Oraxen Studio by extracting enum values
@@ -35,26 +38,54 @@ import java.util.Map;
  */
 public class SchemaGenerator {
 
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private static final String SCHEMA_FILE_NAME = "oraxen-schema.json";
 
     /**
      * Generate schema and save to plugin data folder.
      * Called during plugin enable or via command.
+     * <p>
+     * The generated schema is reconciled against the previously published one so that surviving
+     * entries keep their position. When nothing but {@code generatedAt} changed, the file is left
+     * untouched so repeated runs do not produce commits.
      *
      * @return true if schema was generated successfully, false on I/O error
      */
     public static boolean generateAndSave() {
         try {
             String version = OraxenPlugin.get().getPluginMeta().getVersion();
-            JsonObject schema = generateSchema(version);
+            JsonObject generated = generateSchema(version);
 
-            File outputFile = new File(OraxenPlugin.get().getDataFolder(), "oraxen-schema.json");
-            Files.writeString(outputFile.toPath(), GSON.toJson(schema));
+            File outputFile = new File(OraxenPlugin.get().getDataFolder(), SCHEMA_FILE_NAME);
+            JsonObject previous = readPreviousSchema(outputFile);
+            JsonObject schema = SchemaReconciler.reconcile(previous, generated).getAsJsonObject();
+
+            if (previous != null && SchemaReconciler.semanticallyEquals(previous, schema)) {
+                Logs.logInfo("Schema is already up to date: " + outputFile.getAbsolutePath());
+                return true;
+            }
+
+            Files.writeString(outputFile.toPath(), SchemaReconciler.serialize(schema));
             Logs.logSuccess("Schema generated: " + outputFile.getAbsolutePath());
             return true;
         } catch (IOException e) {
             Logs.logError("Failed to write schema: " + e.getMessage());
             return false;
+        }
+    }
+
+    /**
+     * Reads the schema that is currently published on disk, so its entry order can be preserved.
+     *
+     * @return the previous schema, or {@code null} when it is missing or unreadable
+     */
+    private static JsonObject readPreviousSchema(File outputFile) {
+        try {
+            if (!outputFile.isFile())
+                return null;
+            return JsonParser.parseString(Files.readString(outputFile.toPath())).getAsJsonObject();
+        } catch (IOException | RuntimeException e) {
+            Logs.logWarning("Could not read the previous schema, regenerating from scratch: " + e.getMessage());
+            return null;
         }
     }
 
@@ -315,14 +346,38 @@ public class SchemaGenerator {
         return result;
     }
 
+    /**
+     * Iterates a Bukkit registry in a stable, key-sorted order.
+     * <p>
+     * Registry iteration order is not guaranteed across server runs, so walking it directly would
+     * shuffle {@code enums.Sound.values} and its categories on every generation. Sorting by the
+     * entry's namespaced key makes the output reproducible.
+     */
     private static void forEachRegistryEntry(Object registry, java.util.function.Consumer<Object> consumer) {
         if (!(registry instanceof Iterable<?> iterable))
             return;
+
+        List<Object> entries = new ArrayList<>();
         for (Object entry : iterable) {
             if (entry != null) {
-                consumer.accept(entry);
+                entries.add(entry);
             }
         }
+
+        entries.sort(Comparator.comparing(SchemaGenerator::registrySortKey));
+
+        for (Object entry : entries) {
+            consumer.accept(entry);
+        }
+    }
+
+    /**
+     * Best-effort stable sort key for a registry entry: its namespaced key when available,
+     * otherwise its string form.
+     */
+    private static String registrySortKey(Object registryEntry) {
+        NamespacedKey namespacedKey = reflectNamespacedKey(registryEntry);
+        return namespacedKey != null ? namespacedKey.toString() : String.valueOf(registryEntry);
     }
 
     private static NamespacedKey reflectNamespacedKey(Object registryEntry) {
@@ -800,8 +855,10 @@ public class SchemaGenerator {
     private static JsonObject generateMechanics() {
         JsonObject mechanics = new JsonObject();
 
-        // First, try to get schemas from registered mechanic factories
-        Map<String, MechanicFactory> factories = MechanicsManager.getAllFactories();
+        // First, try to get schemas from registered mechanic factories.
+        // The factory registry is a ConcurrentHashMap, so it must be sorted by mechanic id:
+        // otherwise the `mechanics` section is shuffled on every generation.
+        Map<String, MechanicFactory> factories = new TreeMap<>(MechanicsManager.getAllFactories());
 
         for (Map.Entry<String, MechanicFactory> entry : factories.entrySet()) {
             String mechanicId = entry.getKey();
@@ -855,64 +912,64 @@ public class SchemaGenerator {
 
         // Combat mechanics
         addMechanicIfAbsent(mechanics, "lifeleech", "combat", "Heals player when dealing damage",
-                Map.of("amount", prop("integer", "Health restored per hit (in half-hearts)", 1, null)));
+                orderedProps("amount", prop("integer", "Health restored per hit (in half-hearts)", 1, null)));
 
         addMechanicIfAbsent(mechanics, "bleeding", "combat", "Causes targets to bleed over time",
-                Map.of(
+                orderedProps(
                         "chance", prop("number", "Chance to apply bleeding (0-1)", 0, 0.3),
                         "duration", prop("integer", "Duration in ticks", 1, 100),
                         "damage_per_interval", prop("number", "Damage per tick", 0, 0.5),
                         "interval", prop("integer", "Ticks between damage", 1, 20)));
 
         addMechanicIfAbsent(mechanics, "thor", "combat", "Summons lightning on hit",
-                Map.of(
+                orderedProps(
                         "lightning_bolts_amount", prop("integer", "Number of lightning bolts", 1, 1),
                         "random_location_variation", prop("number", "Random offset for bolt position", 0, 1.5),
                         "delay", prop("integer", "Cooldown in milliseconds", 0, null)));
 
         addMechanicIfAbsent(mechanics, "spear_lunge", "combat", "Charge and lunge attack for spears",
-                Map.of(
+                orderedProps(
                         "charge_ticks", prop("integer", "Ticks to charge before lunge", 1, 12),
                         "lunge_velocity", prop("number", "Velocity multiplier for lunge", 0, 0.8),
                         "active_model", prop("string", "Model to show while charging", null, null),
                         "cooldown_ticks", prop("integer", "Cooldown after lunge in ticks", 0, null)));
 
         addMechanicIfAbsent(mechanics, "energyblast", "combat", "Fires an energy blast projectile",
-                Map.of("delay", prop("integer", "Cooldown in milliseconds", 0, null)));
+                orderedProps("delay", prop("integer", "Cooldown in milliseconds", 0, null)));
 
         addMechanicIfAbsent(mechanics, "fireball", "combat", "Shoots a fireball",
-                Map.of("delay", prop("integer", "Cooldown in milliseconds", 0, null)));
+                orderedProps("delay", prop("integer", "Cooldown in milliseconds", 0, null)));
 
         addMechanicIfAbsent(mechanics, "witherskull", "combat", "Launches a wither skull",
-                Map.of("delay", prop("integer", "Cooldown in milliseconds", 0, null)));
+                orderedProps("delay", prop("integer", "Cooldown in milliseconds", 0, null)));
 
         // Farming mechanics
         addMechanicIfAbsent(mechanics, "smelting", "farming", "Auto-smelts mined blocks",
-                Map.of("play_sound", prop("boolean", "Play smelting sound", null, true)));
+                orderedProps("play_sound", prop("boolean", "Play smelting sound", null, true)));
 
-        addMechanicIfAbsent(mechanics, "harvesting", "farming", "Harvests and replants crops", Map.of());
-        addMechanicIfAbsent(mechanics, "watering", "farming", "Waters farmland", Map.of());
-        addMechanicIfAbsent(mechanics, "bottledexp", "farming", "Stores experience in bottles", Map.of());
+        addMechanicIfAbsent(mechanics, "harvesting", "farming", "Harvests and replants crops", orderedProps());
+        addMechanicIfAbsent(mechanics, "watering", "farming", "Waters farmland", orderedProps());
+        addMechanicIfAbsent(mechanics, "bottledexp", "farming", "Stores experience in bottles", orderedProps());
 
         addMechanicIfAbsent(mechanics, "bedrockbreak", "farming", "Allows breaking bedrock",
-                Map.of(
+                orderedProps(
                         "delay", prop("integer", "Break delay in ticks", 0, null),
                         "probability", prop("number", "Chance to break (0-1)", 0, 1.0)));
 
         // Gameplay mechanics
         addMechanicIfAbsent(mechanics, "durability", "gameplay", "Custom durability behavior",
-                Map.of("value", prop("integer", "Durability value", 1, null)));
+                orderedProps("value", prop("integer", "Durability value", 1, null)));
 
         addMechanicIfAbsent(mechanics, "efficiency", "gameplay", "Modifies mining speed",
-                Map.of("amount", prop("number", "Efficiency modifier", null, null)));
+                orderedProps("amount", prop("number", "Efficiency modifier", null, null)));
 
         addMechanicIfAbsent(mechanics, "repair", "gameplay", "Allows repairing with custom materials",
-                Map.of(
+                orderedProps(
                         "ratio", prop("number", "Repair ratio per material", 0, null),
                         "oraxen_item", prop("string", "Oraxen item ID for repair material", null, null)));
 
         addMechanicIfAbsent(mechanics, "furniture", "gameplay", "Place item as furniture entity",
-                Map.of(
+                orderedProps(
                         "barrier", prop("boolean", "Use barrier block for collision", null, false),
                         "lights", prop("array", "Light entries formatted '<x>,<y>,<z> <level>'", null, null),
                         "hardness", prop("number", "Break hardness", 0, null),
@@ -922,7 +979,7 @@ public class SchemaGenerator {
                         "stages", prop("array", "Inline growth stages - array of objects with: model (string), light (int), evolution (object), drop (object)", null, null)));
 
         addMechanicIfAbsent(mechanics, "block", "gameplay", "Custom block mechanic",
-                Map.of(
+                orderedProps(
                         "type", propEnum("string", "Block type",
                                 new String[]{"FULL", "STAIR", "SLAB", "DOOR", "TRAPDOOR", "GRATE", "BULB", "STRING", "CHORUS"}),
                         "hardness", prop("number", "Block hardness", 0, null),
@@ -930,42 +987,42 @@ public class SchemaGenerator {
 
         // Cosmetic mechanics
         addMechanicIfAbsent(mechanics, "aura", "cosmetic", "Particle aura around player",
-                Map.of(
+                orderedProps(
                         "type", propEnum("string", "Aura type", new String[] { "simple", "ring", "helix" }),
                         "particle", propEnum("enum", "Particle type", "Particle")));
 
-        addMechanicIfAbsent(mechanics, "hat", "cosmetic", "Item can be worn as a hat", Map.of());
+        addMechanicIfAbsent(mechanics, "hat", "cosmetic", "Item can be worn as a hat", orderedProps());
 
         addMechanicIfAbsent(mechanics, "skin", "cosmetic", "Skin item for skinnable items",
-                Map.of("consume", prop("boolean", "Consume skin on apply", null, true)));
+                orderedProps("consume", prop("boolean", "Consume skin on apply", null, true)));
 
-        addMechanicIfAbsent(mechanics, "skinnable", "cosmetic", "Item that can accept skins", Map.of());
+        addMechanicIfAbsent(mechanics, "skinnable", "cosmetic", "Item that can accept skins", orderedProps());
 
         // Misc mechanics
         addMechanicIfAbsent(mechanics, "soulbound", "misc", "Item stays in inventory on death",
-                Map.of("lose_chance", prop("number", "Chance to lose item anyway (0-100)", 0, 0)));
+                orderedProps("lose_chance", prop("number", "Chance to lose item anyway (0-100)", 0, 0)));
 
-        addMechanicIfAbsent(mechanics, "armor_effects", "misc", "Apply potion effects while wearing armor", Map.of());
+        addMechanicIfAbsent(mechanics, "armor_effects", "misc", "Apply potion effects while wearing armor", orderedProps());
 
         addMechanicIfAbsent(mechanics, "commands", "misc", "Execute commands on events",
-                Map.of(
+                orderedProps(
                         "permission", prop("string", "Required permission", null, null),
                         "cooldown", prop("integer", "Cooldown in ticks", 0, null)));
 
-        addMechanicIfAbsent(mechanics, "custom", "misc", "Custom mechanic with actions and conditions", Map.of());
-        addMechanicIfAbsent(mechanics, "consumable", "misc", "Legacy consumable behavior (pre-1.21.2)", Map.of());
-        addMechanicIfAbsent(mechanics, "consumable_potion_effects", "misc", "Apply effects on consume", Map.of());
+        addMechanicIfAbsent(mechanics, "custom", "misc", "Custom mechanic with actions and conditions", orderedProps());
+        addMechanicIfAbsent(mechanics, "consumable", "misc", "Legacy consumable behavior (pre-1.21.2)", orderedProps());
+        addMechanicIfAbsent(mechanics, "consumable_potion_effects", "misc", "Apply effects on consume", orderedProps());
 
         addMechanicIfAbsent(mechanics, "food", "misc", "Legacy food behavior (pre-1.21.2)",
-                Map.of(
+                orderedProps(
                         "hunger", prop("integer", "Hunger points restored", 0, null),
                         "saturation", prop("number", "Saturation restored", 0, null)));
 
         addMechanicIfAbsent(mechanics, "music_disc", "misc", "Custom music disc",
-                Map.of("song", prop("string", "Song resource location", null, null)));
+                orderedProps("song", prop("string", "Song resource location", null, null)));
 
         addMechanicIfAbsent(mechanics, "backpack", "misc", "Portable storage",
-                Map.of(
+                orderedProps(
                         "rows", prop("integer", "Number of rows (1-6)", 1, 6),
                         "title", prop("string", "Inventory title", null, "Backpack"),
                         "open_sound", prop("string", "Sound played when opening", null, "minecraft:entity.shulker.open"),
@@ -974,10 +1031,10 @@ public class SchemaGenerator {
                                 "Items that cannot be stored; Oraxen item IDs require the oraxen: prefix", null, null)));
 
         addMechanicIfAbsent(mechanics, "itemtype", "misc", "Define item type behavior",
-                Map.of("type", prop("string", "Item type identifier", null, null)));
+                orderedProps("type", prop("string", "Item type identifier", null, null)));
 
         addMechanicIfAbsent(mechanics, "misc", "misc", "Miscellaneous properties",
-                Map.of(
+                orderedProps(
                         "disable_vanilla_interactions", prop("boolean", "Deny vanilla right-click, consume, and bow-shoot behavior", null, false),
                         "can_strip_logs", prop("boolean", "Let this item strip logs", null, false),
                         "piglins_ignore_when_equipped", prop("boolean", "Piglins ignore a player who has this item equipped", null, false),
@@ -986,6 +1043,27 @@ public class SchemaGenerator {
                         "allow_in_vanilla_recipes", prop("boolean", "Allow this item in vanilla recipes", null, false)));
 
         return mechanics;
+    }
+
+    /**
+     * Builds a property map that keeps the declared reading order.
+     * <p>
+     * {@code Map.of} makes no iteration-order guarantee, so feeding one into the schema made the
+     * {@code properties} object of a mechanic shuffle on every generation. A {@link LinkedHashMap}
+     * pins the order in which the properties are written down here.
+     *
+     * @param keyValuePairs alternating property names and their JSON definitions
+     * @return an insertion-ordered view of the given properties
+     */
+    private static Map<String, JsonObject> orderedProps(Object... keyValuePairs) {
+        if (keyValuePairs.length % 2 != 0)
+            throw new IllegalArgumentException("orderedProps expects alternating names and values");
+
+        Map<String, JsonObject> properties = new LinkedHashMap<>();
+        for (int i = 0; i < keyValuePairs.length; i += 2) {
+            properties.put((String) keyValuePairs[i], (JsonObject) keyValuePairs[i + 1]);
+        }
+        return properties;
     }
 
     private static void addMechanic(JsonObject mechanics, String id, String category, String description,
