@@ -109,29 +109,53 @@ jobs:
           java -Xms512M -Xmx1G -jar paper.jar --nogui &
           SERVER_PID=$!
 
-          # Wait for schema to be generated
-          echo "Waiting for server to start and generate schema..."
+          # The schema file may already exist because Setup test server seeds the
+          # currently published schema as the ordering base. File existence is therefore
+          # not a valid signal that this server run has completed schema generation.
+          echo "Waiting for server to start and complete schema generation..."
+          SCHEMA_GENERATION_COMPLETE=false
           for i in {1..90}; do
-            if [ -f "plugins/Oraxen/oraxen-schema.json" ]; then
-              echo "Schema generated after ~$((i*2)) seconds!"
-              break
+            if [ -f logs/latest.log ]; then
+              if grep -qF "Failed to write schema:" logs/latest.log; then
+                echo "ERROR: Schema generation failed"
+                cat logs/latest.log
+                kill $SERVER_PID 2>/dev/null || true
+                exit 1
+              fi
+
+              # SchemaGenerator has two successful outcomes: it either writes a changed
+              # schema or determines that the seeded schema is already semantically current.
+              if grep -qE "Schema generated:|Schema is already up to date:" logs/latest.log; then
+                SCHEMA_GENERATION_COMPLETE=true
+                echo "Schema generation completed after ~$((i*2)) seconds!"
+                break
+              fi
             fi
+
             if ! kill -0 $SERVER_PID 2>/dev/null; then
-              echo "Server process died unexpectedly"
+              echo "Server process died unexpectedly before schema generation completed"
               cat logs/latest.log 2>/dev/null || true
               exit 1
             fi
             sleep 2
           done
 
-          # Graceful shutdown
+          if [ "$SCHEMA_GENERATION_COMPLETE" != true ]; then
+            echo "ERROR: Timed out waiting for schema generation to complete"
+            cat logs/latest.log 2>/dev/null || true
+            kill $SERVER_PID 2>/dev/null || true
+            exit 1
+          fi
+
+          # Stop Paper only after the current run has explicitly completed schema generation.
           sleep 2
           kill $SERVER_PID 2>/dev/null || true
-          sleep 3
+          wait $SERVER_PID 2>/dev/null || true
 
-          # Verify schema was generated
+          # The output must still exist after generation. This is an artifact validation,
+          # not the generation-complete signal.
           if [ ! -f "plugins/Oraxen/oraxen-schema.json" ]; then
-            echo "ERROR: Schema not generated"
+            echo "ERROR: Schema output is missing after generation completed"
             cat logs/latest.log 2>/dev/null || true
             exit 1
           fi
