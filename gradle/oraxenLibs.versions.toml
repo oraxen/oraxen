@@ -1,10 +1,14 @@
 [versions]
 # often changed version numbers
 hopper = "1.4.2"
+aws = "2.31.54"
 
 actions = "1.0.0-SNAPSHOT"
 
 [libraries]
+
+aws-s3 = { module = "software.amazon.awssdk:s3", version.ref = "aws" }
+aws-url-connection = { module = "software.amazon.awssdk:url-connection-client", version.ref = "aws" }
 
 #
 # Plugin Dependencies
@@ -129,6 +133,8 @@ libraries-bukkit = [
     "creative",
 ]
 libraries-shade = [
+    "aws-s3",
+    "aws-url-connection",
     "bstats",
     "triumph-gui",
     "antigrieflib",

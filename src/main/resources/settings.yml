@@ -87,7 +87,7 @@ Pack:
     #
     # Requirements:
     # - ViaVersion plugin for version detection (without it, all players get server version pack)
-    # - Upload type must be "lobfile", "polymath", or "external" (NOT "self-host" - can only serve one file)
+    # - Upload type must be "lobfile", "polymath", "s3", or "external" (NOT "self-host" - can only serve one file)
     #
     # How it works:
     # - On player join, detects their client version via the ViaVersion API
@@ -173,13 +173,23 @@ Pack:
 
   upload:
     enabled: true
-    type: polymath #lobfile, polymath, self-host, or external
+    type: polymath #lobfile, polymath, s3, self-host, or external
     polymath:
       server: atlas.oraxen.com # you can also host your own polymath instance
       secret: "oraxen" # change this if you host your own polymath to limit access to resource pack uploading
     lobfile:
       api-key: ""
       pack-name: Oraxen # Will use <pack-name>_<version> when using multi version packs
+    s3:
+      endpoint: "https://s3.us-east-1.amazonaws.com" # S3 API endpoint, including https://
+      access-key: ""
+      secret-key: ""
+      bucket: ""
+      region: "us-east-1"
+      prefix: "oraxen" # Optional folder within the bucket; empty stores at the bucket root
+      path-style: true # Compatible with MinIO, R2 and other S3 APIs; false uses bucket subdomains
+      public-url: "" # Optional public/CDN bucket-root URL, e.g. https://packs.example.com
+      presigned-url-expiry: 86400 # Seconds (1–604800), used when public-url is empty; reload before expiry
     self-host:
       host: "0.0.0.0" # The IP address to bind the HTTP server to (0.0.0.0 = listen on all interfaces)
       port: 8080 # The port the HTTP server will listen on
