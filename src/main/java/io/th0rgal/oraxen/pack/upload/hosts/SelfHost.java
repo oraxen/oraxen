@@ -22,10 +22,8 @@ public class SelfHost implements HostingProvider {
     private final String domain;
     private HttpServer httpServer;
     private ExecutorService executor;
-    private String packUrl;
-    private String sha1;
-    private UUID packUUID;
-    private File packFile;
+    private final String packUrl;
+    private volatile HostedPack hostedPack;
 
     public SelfHost(ConfigurationSection config) {
         if (config == null) {
@@ -37,16 +35,21 @@ public class SelfHost implements HostingProvider {
             this.port = config.getInt("port", 8080);
             this.domain = config.getString("domain", "localhost:" + this.port);
         }
+        this.packUrl = "http://" + domain + "/pack.zip";
     }
 
     @Override
-    public boolean uploadPack(File resourcePack) {
+    public synchronized boolean uploadPack(File resourcePack) {
         try {
-            this.packFile = resourcePack;
-            stopServer();
-            calculateSHA1(resourcePack);
-            this.packUrl = "http://" + domain + "/pack.zip";
-            startServer(resourcePack);
+            // Generation overwrites the source ZIP. Hash and serve the same snapshot
+            // so downloads cannot observe a later rewrite or a partially written pack.
+            byte[] bytes = Files.readAllBytes(resourcePack.toPath());
+            byte[] hash = MessageDigest.getInstance("SHA-1").digest(bytes);
+            HostedPack nextPack = new HostedPack(bytes, HashUtils.bytesToHex(hash), UUID.nameUUIDFromBytes(hash));
+            if (httpServer == null) {
+                startServer();
+            }
+            hostedPack = nextPack;
             return true;
         } catch (Exception e) {
             Logs.logError("Failed to self-host the resource pack");
@@ -55,21 +58,7 @@ public class SelfHost implements HostingProvider {
         }
     }
 
-    private void calculateSHA1(File file) throws Exception {
-        MessageDigest digest = MessageDigest.getInstance("SHA-1");
-        try (FileInputStream fis = new FileInputStream(file)) {
-            byte[] buffer = new byte[8192];
-            int bytesRead;
-            while ((bytesRead = fis.read(buffer)) != -1) {
-                digest.update(buffer, 0, bytesRead);
-            }
-        }
-        byte[] hashBytes = digest.digest();
-        this.sha1 = HashUtils.bytesToHex(hashBytes);
-        this.packUUID = UUID.nameUUIDFromBytes(hashBytes);
-    }
-
-    private void startServer(File packFile) throws IOException {
+    private void startServer() throws IOException {
         httpServer = HttpServer.create(new InetSocketAddress(host, port), 0);
         executor = Executors.newFixedThreadPool(4);
         boolean started = false;
@@ -78,14 +67,18 @@ public class SelfHost implements HostingProvider {
 
             HttpHandler packHandler = exchange -> {
                 try {
-                    byte[] fileBytes = Files.readAllBytes(packFile.toPath());
+                    // Keep this request's snapshot even if another upload completes.
+                    HostedPack pack = hostedPack;
+                    if (pack == null) {
+                        exchange.sendResponseHeaders(503, -1);
+                        return;
+                    }
+                    byte[] fileBytes = pack.bytes();
                     exchange.getResponseHeaders().set("Content-Type", "application/zip");
                     exchange.getResponseHeaders().set("Content-Length", String.valueOf(fileBytes.length));
                     exchange.sendResponseHeaders(200, fileBytes.length);
                     exchange.getResponseBody().write(fileBytes);
-                    exchange.getResponseBody().close();
-                } catch (IOException e) {
-                    exchange.sendResponseHeaders(500, -1);
+                } finally {
                     exchange.close();
                 }
             };
@@ -105,9 +98,8 @@ public class SelfHost implements HostingProvider {
             started = true;
             Logs.logSuccess("Self-hosted resource pack server started on " + host + ":" + port);
         } finally {
-            if (!started && executor != null) {
-                executor.shutdownNow();
-                executor = null;
+            if (!started) {
+                stopServer();
             }
         }
     }
@@ -133,21 +125,26 @@ public class SelfHost implements HostingProvider {
 
     @Override
     public String getPackURL() {
-        return packUrl;
+        return hostedPack == null ? null : packUrl;
     }
 
     @Override
     public byte[] getSHA1() {
-        return HashUtils.hexToBytes(sha1);
+        HostedPack pack = hostedPack;
+        return pack == null ? null : HashUtils.hexToBytes(pack.sha1());
     }
 
     @Override
     public String getOriginalSHA1() {
-        return sha1;
+        HostedPack pack = hostedPack;
+        return pack == null ? null : pack.sha1();
     }
 
     @Override
     public UUID getPackUUID() {
-        return packUUID;
+        HostedPack pack = hostedPack;
+        return pack == null ? null : pack.uuid();
     }
+
+    private record HostedPack(byte[] bytes, String sha1, UUID uuid) {}
 }
