@@ -37,11 +37,13 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemFrame;
+import org.bukkit.entity.ItemDisplay;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
 import java.util.Collections;
@@ -49,8 +51,11 @@ import java.util.IdentityHashMap;
 import java.util.Set;
 import java.util.UUID;
 import java.util.Objects;
+import java.util.Map;
+import java.util.HashSet;
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.*;
@@ -97,10 +102,27 @@ public final class WorldEditFurniture implements Listener {
                 savedData.remove(key);
                 data.remove(key);
             }
+            Location savedLocation = entity.getLocation();
+            ItemStack savedItem = FurnitureMechanic.getFurnitureItem(entity);
+            if (savedItem != null) savedItem = savedItem.clone();
+            float placementYaw = FurnitureMechanic.getFurnitureYaw(entity);
             BlockFace facing = entity instanceof ItemFrame frame ? frame.getFacing() : BlockFace.UP;
-            mechanic.setEntityData(entity, FurnitureMechanic.getFurnitureYaw(entity),
-                    FurnitureMechanic.getFurnitureItem(entity), facing);
+            if (entity instanceof ItemDisplay display
+                    && display.getItemDisplayTransform() == ItemDisplay.ItemDisplayTransform.FIXED
+                    && mechanic.hasLimitedPlacing() && mechanic.getLimitedPlacing().isRoof()
+                    && savedLocation.getPitch() == 90f) {
+                facing = BlockFace.DOWN;
+                // Placement subtracts 180 degrees from the display yaw, but keeps
+                // the original yaw for barriers, interactions, and seats.
+                placementYaw += 180f;
+            }
+            mechanic.setEntityData(entity, placementYaw, savedItem != null ? savedItem.clone() : null, facing);
             savedData.copyTo(data, true);
+            // Initialisation applies the initial growth model. Undo must retain
+            // the snapshot's item, including its current growth stage model.
+            FurnitureMechanic.setFurnitureItem(entity, savedItem);
+            if (entity instanceof ItemDisplay)
+                entity.setRotation(savedLocation.getYaw(), savedLocation.getPitch());
             if (mechanic.hasTextDefinitions()) {
                 var entry = FurnitureTextRegistry.register(entity, mechanic.getTextDefinitions());
                 FurnitureTextPacketBridge.spawnForTrackedViewers(entry);
@@ -126,6 +148,25 @@ public final class WorldEditFurniture implements Listener {
     private static final class FurnitureExtent implements Extent {
         private final Extent extent;
         private final World world;
+        private final Map<Long, Set<BlockVector3>> furnitureBlocks = new ConcurrentHashMap<>();
+
+        private boolean mayContainFurniture(BlockVector3 position, Location location) {
+            // Scan block PDC on the owning region once per chunk and keep only
+            // immutable coordinates on FAWE workers. Ordinary barriers then
+            // avoid a separate scheduler round-trip for every edited block.
+            int chunkX = position.x() >> 4;
+            int chunkZ = position.z() >> 4;
+            long chunkKey = ((long) chunkX << 32) | (chunkZ & 0xffffffffL);
+            return furnitureBlocks.computeIfAbsent(chunkKey, key -> atLocation(location, () -> {
+                Set<BlockVector3> positions = new HashSet<>();
+                for (Block candidate : BlockHelpers.getBlocksWithCustomData(OraxenPlugin.get(),
+                        world.getChunkAt(chunkX, chunkZ))) {
+                    if (OraxenFurniture.getFurnitureMechanic(candidate) != null)
+                        positions.add(BlockVector3.at(candidate.getX(), candidate.getY(), candidate.getZ()));
+                }
+                return Set.copyOf(positions);
+            })).contains(position);
+        }
 
         private static ChangeSet findHistory(Object object, Set<Object> visited) {
             if (object == null || !visited.add(object)) return null;
@@ -238,6 +279,8 @@ public final class WorldEditFurniture implements Listener {
                 return extent.setBlock(position, block);
 
             Location location = new Location(world, position.x(), position.y(), position.z());
+            if (!Bukkit.isOwnedByCurrentRegion(location) && !mayContainFurniture(position, location))
+                return extent.setBlock(position, block);
             Entity baseEntity = atLocation(location, () -> {
                 Block barrier = location.getBlock();
                 FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(barrier);
@@ -253,7 +296,9 @@ public final class WorldEditFurniture implements Listener {
                 Location root = BlockHelpers.toCenterBlockLocation(baseEntity.getLocation());
                 float yaw = FurnitureMechanic.getFurnitureYaw(baseEntity);
                 if (mechanic.hasLimitedPlacing() && mechanic.getLimitedPlacing().isRoof()
-                        && baseEntity instanceof org.bukkit.entity.ItemDisplay) yaw -= 180;
+                        && baseEntity instanceof ItemDisplay display
+                        && display.getItemDisplayTransform() == ItemDisplay.ItemDisplayTransform.FIXED
+                        && baseEntity.getLocation().getPitch() == 90f) yaw += 180;
                 List<Location> barriers = mechanic.getLocations(yaw, root, mechanic.getBarriers(baseEntity)).stream()
                         .filter(barrier -> baseEntity.getUniqueId().equals(BlockHelpers.getPDC(barrier.getBlock())
                                 .get(BASE_ENTITY_KEY, DataType.UUID))).toList();
