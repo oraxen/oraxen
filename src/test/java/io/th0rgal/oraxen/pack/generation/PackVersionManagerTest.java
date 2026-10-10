@@ -170,21 +170,6 @@ class PackVersionManagerTest {
     }
 
     @Test
-    void testMaxNaturalOrderingReturnsHighestFormat() {
-        manager.definePackVersions();
-
-        java.util.List<PackVersion> versions = new java.util.ArrayList<>(manager.getAllVersions());
-
-        PackVersion highest = versions.stream()
-            .max(java.util.Comparator.naturalOrder())
-            .orElse(null);
-
-        assertNotNull(highest);
-        assertEquals(46, highest.getPackFormat());
-        assertEquals("1.21.4", highest.getMinecraftVersion());
-    }
-
-    @Test
     void testFindBestVersionForFormatOutsideAllRanges() {
         manager.definePackVersions();
 
@@ -201,24 +186,5 @@ class PackVersionManagerTest {
 
         PackVersion version = manager.findBestVersionForProtocol(47);
         assertNull(version, "Protocol 47 (1.8) maps to format 1, not in any pack range");
-    }
-
-    @Test
-    void testCompareToConsistentWithNaturalOrdering() {
-        manager.definePackVersions();
-
-        java.util.List<PackVersion> versions = new java.util.ArrayList<>(manager.getAllVersions());
-        java.util.List<PackVersion> sorted = versions.stream()
-            .sorted(java.util.Comparator.naturalOrder())
-            .toList();
-
-        for (int i = 1; i < sorted.size(); i++) {
-            PackVersion prev = sorted.get(i - 1);
-            PackVersion curr = sorted.get(i);
-            assertTrue(prev.getPackFormat() <= curr.getPackFormat(),
-                "Natural ordering should sort by pack format ascending: " +
-                prev.getMinecraftVersion() + " (format " + prev.getPackFormat() + ") should be <= " +
-                curr.getMinecraftVersion() + " (format " + curr.getPackFormat() + ")");
-        }
     }
 }

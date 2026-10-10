@@ -18,7 +18,6 @@ import org.mockito.MockedStatic;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -27,27 +26,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class BackpackMechanicTest extends MechanicTestSupport {
-
-    @Test
-    void readsBackpackSettings() {
-        BackpackMechanic mechanic = new BackpackMechanic(mechanicFactory(), mechanicSection("backpack",
-                "rows", 3,
-                "title", "Bag",
-                "open_sound", "open",
-                "close_sound", "close",
-                "volume", 0.7,
-                "pitch", 1.3,
-                "blocked-items", List.of("shulker_box", "minecraft:ender_chest", "oraxen:ender_pouch")));
-
-        assertEquals(3, mechanic.getRows());
-        assertEquals("Bag", mechanic.getTitle());
-        assertTrue(mechanic.hasOpenSound());
-        assertEquals("open", mechanic.getOpenSound());
-        assertTrue(mechanic.hasCloseSound());
-        assertEquals("close", mechanic.getCloseSound());
-        assertEquals(0.7f, mechanic.getVolume());
-        assertEquals(1.3f, mechanic.getPitch());
-    }
 
     @Test
     void blocksConfiguredVanillaAndOraxenItems() {

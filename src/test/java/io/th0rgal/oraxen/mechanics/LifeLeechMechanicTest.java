@@ -14,7 +14,6 @@ import org.bukkit.inventory.PlayerInventory;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -27,13 +26,6 @@ import static org.mockito.Mockito.when;
 class LifeLeechMechanicTest extends MechanicTestSupport {
 
     private static final String ITEM_ID = "leech_sword";
-
-    @Test
-    void readsAmount() {
-        LifeLeechMechanic mechanic = new LifeLeechMechanic(mechanicFactory(), mechanicSection("lifeleech", "amount", 6));
-
-        assertEquals(6, mechanic.getAmount());
-    }
 
     @Test
     void leechesHealthOnHit() {

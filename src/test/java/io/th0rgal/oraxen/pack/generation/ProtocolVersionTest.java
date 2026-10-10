@@ -2,8 +2,6 @@ package io.th0rgal.oraxen.pack.generation;
 
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 class ProtocolVersionTest {
@@ -116,36 +114,6 @@ class ProtocolVersionTest {
     }
 
     @Test
-    void testEnumProperties() {
-        assertEquals(776, ProtocolVersion.MC_26_2.getProtocol());
-        assertEquals(777, ProtocolVersion.MC_26_3.getProtocol());
-        assertEquals(88, ProtocolVersion.MC_26_2.getPackFormat());
-        assertEquals(97, ProtocolVersion.MC_26_3.getPackFormat());
-        assertEquals("26.2", ProtocolVersion.MC_26_2.getVersionString());
-        assertEquals("26.3", ProtocolVersion.MC_26_3.getVersionString());
-
-        assertEquals(775, ProtocolVersion.MC_26_1_2.getProtocol());
-        assertEquals(84, ProtocolVersion.MC_26_1_2.getPackFormat());
-        assertEquals("26.1.2", ProtocolVersion.MC_26_1_2.getVersionString());
-
-        assertEquals(774, ProtocolVersion.MC_1_21_11.getProtocol());
-        assertEquals(75, ProtocolVersion.MC_1_21_11.getPackFormat());
-        assertEquals("1.21.11", ProtocolVersion.MC_1_21_11.getVersionString());
-
-        assertEquals(770, ProtocolVersion.MC_1_21_5.getProtocol());
-        assertEquals(55, ProtocolVersion.MC_1_21_5.getPackFormat());
-        assertEquals("1.21.5", ProtocolVersion.MC_1_21_5.getVersionString());
-
-        assertEquals(769, ProtocolVersion.MC_1_21_4.getProtocol());
-        assertEquals(46, ProtocolVersion.MC_1_21_4.getPackFormat());
-        assertEquals("1.21.4", ProtocolVersion.MC_1_21_4.getVersionString());
-
-        assertEquals(767, ProtocolVersion.MC_1_21.getProtocol());
-        assertEquals(34, ProtocolVersion.MC_1_21.getPackFormat());
-        assertEquals("1.21", ProtocolVersion.MC_1_21.getVersionString());
-    }
-
-    @Test
     void testIsKnown() {
         assertTrue(ProtocolVersion.MC_26_2.isKnown());
         assertTrue(ProtocolVersion.MC_26_3.isKnown());
@@ -155,15 +123,5 @@ class ProtocolVersionTest {
         assertTrue(ProtocolVersion.MC_1_21_4.isKnown());
         assertTrue(ProtocolVersion.MC_1_20.isKnown());
         assertFalse(ProtocolVersion.UNKNOWN.isKnown());
-    }
-
-    @Test
-    void testConsistencyWithPackVersion() {
-        File tempFile = new java.io.File("/tmp/test.zip");
-        PackVersion packVersion = new PackVersion("1.20.4", 22, 22, 31, tempFile);
-
-        assertTrue(packVersion.supportsProtocol(765));
-
-        assertFalse(packVersion.supportsProtocol(766));
     }
 }

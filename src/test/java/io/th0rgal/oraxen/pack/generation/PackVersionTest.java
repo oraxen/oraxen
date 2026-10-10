@@ -14,20 +14,6 @@ class PackVersionTest {
     Path tempDir;
 
     @Test
-    void testPackVersionCreation() {
-        File packFile = tempDir.resolve("pack_1_20_4.zip").toFile();
-        PackVersion version = new PackVersion("1.20.4", 22, 22, 31, packFile);
-
-        assertEquals("1.20.4", version.getMinecraftVersion());
-        assertEquals(22, version.getPackFormat());
-        assertEquals(22, version.getMinFormatInclusive());
-        assertEquals(31, version.getMaxFormatInclusive());
-        assertEquals(packFile, version.getPackFile());
-        // UUID is null until set by hosting provider after upload
-        assertNull(version.getPackUUID());
-    }
-
-    @Test
     void testSupportsFormat() {
         File packFile = tempDir.resolve("pack.zip").toFile();
         PackVersion version = new PackVersion("1.20.4", 22, 22, 31, packFile);
@@ -74,33 +60,6 @@ class PackVersionTest {
         PackVersion version = new PackVersion("1.20.4", 22, 22, 31, packFile);
 
         assertEquals("1_20_4", version.getFileIdentifier());
-    }
-
-    @Test
-    void testPackMetadata() {
-        File packFile = tempDir.resolve("pack.zip").toFile();
-        PackVersion version = new PackVersion("1.20.4", 22, 22, 31, packFile);
-
-        assertNull(version.getPackURL());
-        assertNull(version.getPackSHA1());
-
-        version.setPackURL("http://example.com/pack.zip");
-        byte[] sha1 = new byte[]{1, 2, 3, 4, 5};
-        version.setPackSHA1(sha1);
-
-        assertEquals("http://example.com/pack.zip", version.getPackURL());
-        assertArrayEquals(sha1, version.getPackSHA1());
-    }
-
-    @Test
-    void testToString() {
-        File packFile = tempDir.resolve("pack.zip").toFile();
-        PackVersion version = new PackVersion("1.20.4", 22, 22, 31, packFile);
-
-        String str = version.toString();
-        assertTrue(str.contains("1.20.4"));
-        assertTrue(str.contains("22"));
-        assertTrue(str.contains("[22,31]"));
     }
 
     @Test

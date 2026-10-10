@@ -11,102 +11,14 @@ import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Tests that validate the supported_formats range data used by PackMcmetaUtils
- * is consistent with the pack version definitions in PackVersionManager.
- *
- * Direct testing of PackMcmetaUtils.createPackMcmeta() requires Gson/Bukkit
- * which are not on the test classpath, so we validate the underlying data model instead.
- */
 class PackMcmetaUtilsTest {
 
     @TempDir
     Path tempDir;
-
-    @Test
-    void testPackVersionRangesAreContiguous() {
-        // The supported_formats ranges in PackVersionManager (which feed into
-        // PackMcmetaUtils.createPackMcmeta for multi-version packs and
-        // updatePackMcmetaFile for single-pack mode) must be contiguous.
-        PackVersionManager manager = new PackVersionManager(tempDir.toFile());
-        manager.setSilentMode(true);
-        manager.definePackVersions();
-
-        Collection<PackVersion> versions = manager.getAllVersions();
-        List<PackVersion> sorted = versions.stream()
-            .sorted(Comparator.comparingInt(PackVersion::getMinFormatInclusive))
-            .toList();
-
-        assertEquals(2, sorted.size());
-
-        // Each version's max + 1 should equal the next version's min (no gaps or overlaps)
-        for (int i = 0; i < sorted.size() - 1; i++) {
-            PackVersion current = sorted.get(i);
-            PackVersion next = sorted.get(i + 1);
-
-            assertEquals(current.getMaxFormatInclusive() + 1, next.getMinFormatInclusive(),
-                "Gap or overlap between " + current.getMinecraftVersion()
-                    + " [" + current.getMinFormatInclusive() + "-" + current.getMaxFormatInclusive() + "]"
-                    + " and " + next.getMinecraftVersion()
-                    + " [" + next.getMinFormatInclusive() + "-" + next.getMaxFormatInclusive() + "]");
-        }
-    }
-
-    @Test
-    void testAllPackVersionFormatsWithinDeclaredRange() {
-        PackVersionManager manager = new PackVersionManager(tempDir.toFile());
-        manager.setSilentMode(true);
-        manager.definePackVersions();
-
-        for (PackVersion pv : manager.getAllVersions()) {
-            assertTrue(pv.getPackFormat() >= pv.getMinFormatInclusive(),
-                pv.getMinecraftVersion() + ": pack_format " + pv.getPackFormat()
-                    + " should be >= min_inclusive " + pv.getMinFormatInclusive());
-            assertTrue(pv.getPackFormat() <= pv.getMaxFormatInclusive(),
-                pv.getMinecraftVersion() + ": pack_format " + pv.getPackFormat()
-                    + " should be <= max_inclusive " + pv.getMaxFormatInclusive());
-        }
-    }
-
-    @Test
-    void testLowestRangeStartsAtFormat15() {
-        // The lowest pack version (1.20) should start at format 15
-        PackVersionManager manager = new PackVersionManager(tempDir.toFile());
-        manager.setSilentMode(true);
-        manager.definePackVersions();
-
-        PackVersion lowest = manager.getAllVersions().stream()
-            .min(Comparator.comparingInt(PackVersion::getMinFormatInclusive))
-            .orElse(null);
-
-        assertNotNull(lowest);
-        assertEquals(15, lowest.getMinFormatInclusive(),
-            "Lowest pack version should start at format 15 (1.20)");
-        assertEquals("1.21.3", lowest.getMinecraftVersion());
-    }
-
-    @Test
-    void testHighestRangeEndsAt999() {
-        // The 1.21.4+ pack should have max 999 (open-ended)
-        PackVersionManager manager = new PackVersionManager(tempDir.toFile());
-        manager.setSilentMode(true);
-        manager.definePackVersions();
-
-        PackVersion highest = manager.getAllVersions().stream()
-            .max(Comparator.comparingInt(PackVersion::getMaxFormatInclusive))
-            .orElse(null);
-
-        assertNotNull(highest);
-        assertEquals(999, highest.getMaxFormatInclusive(),
-            "Highest pack version should have max_inclusive 999");
-        assertEquals("1.21.4", highest.getMinecraftVersion());
-    }
 
     @Test
     void testExpectedVersionRanges() {

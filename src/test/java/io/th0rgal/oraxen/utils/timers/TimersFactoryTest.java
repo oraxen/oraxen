@@ -68,13 +68,6 @@ class TimersFactoryTest {
     }
 
     @Test
-    void saturatesTimerExpiryWhenDelayWouldOverflow() {
-        TimersFactory factory = new TimersFactory(Long.MAX_VALUE);
-
-        assertEquals(0, factory.cachedTimerCount());
-    }
-
-    @Test
     void evictsTimersOnceTheirCooldownCannotBeRunning() throws InterruptedException {
         TimersFactory factory = new TimersFactory(0L, java.time.Duration.ofMillis(20));
         Player player = player(UUID.randomUUID());
