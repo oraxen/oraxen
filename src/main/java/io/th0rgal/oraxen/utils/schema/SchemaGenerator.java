@@ -1,9 +1,8 @@
 package io.th0rgal.oraxen.utils.schema;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.MechanicConfigProperty;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
@@ -25,8 +24,11 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Generates JSON schema for Oraxen Studio by extracting enum values
@@ -35,26 +37,54 @@ import java.util.Map;
  */
 public class SchemaGenerator {
 
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private static final String SCHEMA_FILE_NAME = "oraxen-schema.json";
 
     /**
      * Generate schema and save to plugin data folder.
      * Called during plugin enable or via command.
+     * <p>
+     * The generated schema is reconciled against the previously published one so that surviving
+     * entries keep their position. When nothing but {@code generatedAt} changed, the file is left
+     * untouched so repeated runs do not produce commits.
      *
      * @return true if schema was generated successfully, false on I/O error
      */
     public static boolean generateAndSave() {
         try {
             String version = OraxenPlugin.get().getPluginMeta().getVersion();
-            JsonObject schema = generateSchema(version);
+            JsonObject generated = generateSchema(version);
 
-            File outputFile = new File(OraxenPlugin.get().getDataFolder(), "oraxen-schema.json");
-            Files.writeString(outputFile.toPath(), GSON.toJson(schema));
+            File outputFile = new File(OraxenPlugin.get().getDataFolder(), SCHEMA_FILE_NAME);
+            JsonObject previous = readPreviousSchema(outputFile);
+            JsonObject schema = SchemaReconciler.reconcile(previous, generated).getAsJsonObject();
+
+            if (previous != null && SchemaReconciler.semanticallyEquals(previous, schema)) {
+                Logs.logInfo("Schema is already up to date: " + outputFile.getAbsolutePath());
+                return true;
+            }
+
+            Files.writeString(outputFile.toPath(), SchemaReconciler.serialize(schema));
             Logs.logSuccess("Schema generated: " + outputFile.getAbsolutePath());
             return true;
         } catch (IOException e) {
             Logs.logError("Failed to write schema: " + e.getMessage());
             return false;
+        }
+    }
+
+    /**
+     * Reads the schema that is currently published on disk, so its entry order can be preserved.
+     *
+     * @return the previous schema, or {@code null} when it is missing or unreadable
+     */
+    private static JsonObject readPreviousSchema(File outputFile) {
+        try {
+            if (!outputFile.isFile())
+                return null;
+            return JsonParser.parseString(Files.readString(outputFile.toPath())).getAsJsonObject();
+        } catch (IOException | RuntimeException e) {
+            Logs.logWarning("Could not read the previous schema, regenerating from scratch: " + e.getMessage());
+            return null;
         }
     }
 
@@ -315,14 +345,38 @@ public class SchemaGenerator {
         return result;
     }
 
+    /**
+     * Iterates a Bukkit registry in a stable, key-sorted order.
+     * <p>
+     * Registry iteration order is not guaranteed across server runs, so walking it directly would
+     * shuffle {@code enums.Sound.values} and its categories on every generation. Sorting by the
+     * entry's namespaced key makes the output reproducible.
+     */
     private static void forEachRegistryEntry(Object registry, java.util.function.Consumer<Object> consumer) {
         if (!(registry instanceof Iterable<?> iterable))
             return;
+
+        List<Object> entries = new ArrayList<>();
         for (Object entry : iterable) {
             if (entry != null) {
-                consumer.accept(entry);
+                entries.add(entry);
             }
         }
+
+        entries.sort(Comparator.comparing(SchemaGenerator::registrySortKey));
+
+        for (Object entry : entries) {
+            consumer.accept(entry);
+        }
+    }
+
+    /**
+     * Best-effort stable sort key for a registry entry: its namespaced key when available,
+     * otherwise its string form.
+     */
+    private static String registrySortKey(Object registryEntry) {
+        NamespacedKey namespacedKey = reflectNamespacedKey(registryEntry);
+        return namespacedKey != null ? namespacedKey.toString() : String.valueOf(registryEntry);
     }
 
     private static NamespacedKey reflectNamespacedKey(Object registryEntry) {
@@ -800,8 +854,10 @@ public class SchemaGenerator {
     private static JsonObject generateMechanics() {
         JsonObject mechanics = new JsonObject();
 
-        // First, try to get schemas from registered mechanic factories
-        Map<String, MechanicFactory> factories = MechanicsManager.getAllFactories();
+        // First, try to get schemas from registered mechanic factories.
+        // The factory registry is a ConcurrentHashMap, so it must be sorted by mechanic id:
+        // otherwise the `mechanics` section is shuffled on every generation.
+        Map<String, MechanicFactory> factories = new TreeMap<>(MechanicsManager.getAllFactories());
 
         for (Map.Entry<String, MechanicFactory> entry : factories.entrySet()) {
             String mechanicId = entry.getKey();
@@ -996,7 +1052,7 @@ public class SchemaGenerator {
 
         if (!properties.isEmpty()) {
             JsonObject props = new JsonObject();
-            properties.forEach(props::add);
+            new TreeMap<>(properties).forEach(props::add);
             mechanic.add("properties", props);
         }
 
@@ -1047,7 +1103,7 @@ public class SchemaGenerator {
     /**
      * Convert a MechanicConfigProperty to JSON representation.
      */
-    private static JsonObject convertPropertyToJson(MechanicConfigProperty prop) {
+    static JsonObject convertPropertyToJson(MechanicConfigProperty prop) {
         JsonObject json = new JsonObject();
 
         // Type mapping
@@ -1102,7 +1158,7 @@ public class SchemaGenerator {
 
         if (prop.nestedProperties() != null && !prop.nestedProperties().isEmpty()) {
             JsonObject nested = new JsonObject();
-            for (Map.Entry<String, MechanicConfigProperty> e : prop.nestedProperties().entrySet()) {
+            for (Map.Entry<String, MechanicConfigProperty> e : new TreeMap<>(prop.nestedProperties()).entrySet()) {
                 nested.add(e.getKey(), convertPropertyToJson(e.getValue()));
             }
             json.add("properties", nested);
