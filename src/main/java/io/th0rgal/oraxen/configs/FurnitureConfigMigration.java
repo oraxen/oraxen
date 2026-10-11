@@ -36,9 +36,9 @@ public final class FurnitureConfigMigration {
         ConfigurationSection properties = furniture.getConfigurationSection("properties");
         if (properties == null) properties = furniture.createSection("properties");
         boolean armorStand = isArmorStand(furniture);
-        // Preserve explicit unified properties, then prefer the legacy section for the selected type.
-        mergeMissingProperties(properties, armorStand ? armorStandProperties : displayProperties);
-        mergeMissingProperties(properties, armorStand ? displayProperties : armorStandProperties);
+        // Preserve the section selected by the legacy parser, including missing-axis defaults.
+        mergeMissingProperties(properties, armorStand && armorStandProperties != null
+                ? armorStandProperties : displayProperties);
         furniture.set("display_entity_properties", null);
         furniture.set("armor_stand_properties", null);
         return true;

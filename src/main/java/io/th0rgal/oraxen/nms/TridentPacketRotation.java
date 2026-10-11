@@ -67,8 +67,9 @@ public final class TridentPacketRotation {
             moves.put(packet.getClass(), access);
         }
         Constructor<?> constructor = access.constructor;
-        byte yRot = (byte) Math.floor(-yaw * 256.0F / 360.0F);
-        byte xRot = (byte) Math.floor(Math.clamp(-pitch, -90.0F, 90.0F) * 256.0F / 360.0F);
+        Class<?>[] types = constructor.getParameterTypes();
+        Object yRot = angle(-yaw, types[types.length - 3]);
+        Object xRot = angle(Math.clamp(-pitch, -90.0F, 90.0F), types[types.length - 2]);
         if (constructor.getParameterCount() == 4) return constructor.newInstance(id, yRot, xRot, onGround);
         if (constructor.getParameterCount() == 5) {
             Object delta = access.getters[0].invoke(packet);
@@ -77,6 +78,12 @@ public final class TridentPacketRotation {
         return constructor.newInstance(id,
                 access.getters[0].invoke(packet), access.getters[1].invoke(packet),
                 access.getters[2].invoke(packet), yRot, xRot, onGround);
+    }
+
+    private static Object angle(float degrees, Class<?> type) throws NoSuchMethodException {
+        if (type == float.class) return degrees;
+        if (type == byte.class) return (byte) Math.floor(degrees * 256.0F / 360.0F);
+        throw new NoSuchMethodException("Unsupported movement angle type: " + type.getName());
     }
 
     public static Object positionSync(Object packet) throws ReflectiveOperationException {

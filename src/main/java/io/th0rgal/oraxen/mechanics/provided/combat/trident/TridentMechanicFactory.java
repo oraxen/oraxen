@@ -93,15 +93,16 @@ public class TridentMechanicFactory extends MechanicFactory implements Listener 
     public void onPackGenerated(OraxenPackGeneratedEvent event) {
         for (String itemId : getItems()) {
             TridentMechanic mechanic = getMechanic(itemId);
-            addDefinition(event.getOutput(), itemId, mechanic.modelDefinition(false).toString());
-            addDefinition(event.getOutput(), itemId + "_thrown", mechanic.modelDefinition(true).toString());
+            addDefinition(event.getOutput(), "oraxen", itemId, mechanic.modelDefinition(false).toString());
+            addDefinition(event.getOutput(), mechanic.getThrownItemModel().getNamespace(),
+                    mechanic.getThrownItemModel().getKey(), mechanic.modelDefinition(true).toString());
         }
     }
 
-    private static void addDefinition(List<VirtualFile> output, String itemId, String json) {
-        String path = "assets/oraxen/items/" + itemId + ".json";
+    private static void addDefinition(List<VirtualFile> output, String namespace, String itemId, String json) {
+        String path = "assets/" + namespace + "/items/" + itemId + ".json";
         output.removeIf(file -> file.getPath().equals(path));
-        output.add(new VirtualFile("assets/oraxen/items", itemId + ".json",
+        output.add(new VirtualFile("assets/" + namespace + "/items", itemId + ".json",
                 new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8))));
     }
 }

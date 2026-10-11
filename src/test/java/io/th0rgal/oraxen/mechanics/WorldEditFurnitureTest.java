@@ -1,6 +1,8 @@
 package io.th0rgal.oraxen.mechanics;
 
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
+import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
+import com.jeff_media.morepersistentdatatypes.DataType;
 import com.sk89q.worldedit.extent.Extent;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.extension.platform.PlatformManager;
@@ -36,6 +38,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 import java.util.Set;
+import java.util.List;
+import java.util.UUID;
+import org.bukkit.entity.Entity;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text.FurnitureTextRegistry;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -163,6 +169,7 @@ class WorldEditFurnitureTest extends MechanicTestSupport {
         verify(savedData, never()).remove(FurnitureMechanic.STAGE_INDEX_KEY);
         verify(savedData).remove(FurnitureMechanic.SEATS_KEY);
         verify(data).remove(FurnitureMechanic.SEATS_KEY);
+        verify(data).set(new NamespacedKey(OraxenPlugin.get(), "worldedit_restored"), PersistentDataType.BYTE, (byte) 1);
         return new RestoredItem(savedItem, visibleItem.get());
     }
 
@@ -245,6 +252,95 @@ class WorldEditFurnitureTest extends MechanicTestSupport {
             scheduler.verify(() -> SchedulerUtil.runAtLocation(any(Location.class), any(Runnable.class)), times(2));
         }
         verify(delegate).setBlock(position, airState);
+    }
+
+    @Test
+    void rejectedSecondaryBarrierKeepsFurnitureAndUsesTheEntityScheduler() throws Exception {
+        World world = mock(World.class);
+        Location root = new Location(world, 0.5, 64.5, 0.5);
+        Location denied = new Location(world, 1, 64, 0);
+        Block originalBlock = mock(Block.class);
+        Block deniedBlock = mock(Block.class);
+        when(world.getBlockAt(root)).thenReturn(originalBlock);
+        when(world.getBlockAt(denied)).thenReturn(deniedBlock);
+        Entity base = mock(Entity.class);
+        UUID uuid = UUID.randomUUID();
+        when(base.getUniqueId()).thenReturn(uuid);
+        when(base.isValid()).thenReturn(true);
+        PersistentDataContainer entityData = mock(PersistentDataContainer.class);
+        when(base.getPersistentDataContainer()).thenReturn(entityData);
+        PersistentDataContainer barrierData = mock(PersistentDataContainer.class);
+        when(barrierData.get(FurnitureMechanic.BASE_ENTITY_KEY, DataType.UUID)).thenReturn(uuid);
+        FurnitureMechanic mechanic = mock(FurnitureMechanic.class);
+        when(mechanic.getBaseEntity(originalBlock)).thenReturn(base);
+        when(mechanic.getLocations(anyFloat(), any(Location.class), anyList())).thenReturn(List.of(denied));
+        BlockVector3 position = BlockVector3.at(0, 64, 0);
+        BlockVector3 deniedPosition = BlockVector3.at(1, 64, 0);
+        BlockState barrierState = BlockTypes.BARRIER.getDefaultState();
+        BlockState airState = BlockTypes.AIR.getDefaultState();
+        Extent delegate = mock(Extent.class);
+        when(delegate.getBlock(position)).thenReturn(barrierState);
+        when(delegate.setBlock(position, airState)).thenReturn(true);
+        when(delegate.setBlock(deniedPosition, airState)).thenReturn(false);
+        Extent extent = furnitureExtent(delegate, world);
+        AtomicReference<Boolean> entityRegion = new AtomicReference<>(false);
+        when(base.getLocation()).thenAnswer(invocation -> {
+            assertTrue(entityRegion.get(), "Entity location must only be read on its owning scheduler");
+            return root;
+        });
+        try (var bukkit = mockStatic(Bukkit.class);
+             var blocks = mockStatic(BlockHelpers.class);
+             var furniture = mockStatic(OraxenFurniture.class);
+             var scheduler = mockStatic(SchedulerUtil.class)) {
+            bukkit.when(() -> Bukkit.isOwnedByCurrentRegion(any(Location.class))).thenReturn(true);
+            blocks.when(() -> BlockHelpers.toCenterBlockLocation(root)).thenReturn(root);
+            blocks.when(() -> BlockHelpers.getPDC(deniedBlock)).thenReturn(barrierData);
+            furniture.when(() -> OraxenFurniture.getFurnitureMechanic(originalBlock)).thenReturn(mechanic);
+            furniture.when(() -> OraxenFurniture.getFurnitureMechanic(base)).thenReturn(mechanic);
+            // The edited block is owned here; the base entity still requires its own scheduler.
+            when(world.getBlockAt(any(Location.class))).thenAnswer(invocation ->
+                    invocation.<Location>getArgument(0).equals(denied) ? deniedBlock : originalBlock);
+            scheduler.when(() -> SchedulerUtil.runForEntity(eq(base), any(Runnable.class), any(Runnable.class)))
+                    .thenAnswer(invocation -> {
+                        entityRegion.set(true);
+                        try { invocation.<Runnable>getArgument(1).run(); }
+                        finally { entityRegion.set(false); }
+                        return mock(SchedulerUtil.ScheduledTask.class);
+                    });
+            assertTrue(extent.setBlock(position, BlockTypes.AIR.getDefaultState()));
+            verify(mechanic, never()).removeNonSolidFurniture(any(Entity.class));
+            furniture.verify(() -> OraxenFurniture.remove(base, null), never());
+            blocks.verify(() -> BlockHelpers.removePDC(deniedBlock), never());
+            verify(deniedBlock, never()).setType(any(Material.class));
+            verify(entityData, never()).set(any(NamespacedKey.class), eq(PersistentDataType.BYTE), anyByte());
+        }
+    }
+
+    @Test
+    void redoRemovesChildrenRecreatedByUndoOnTheirOwningThreads() {
+        Entity base = mock(Entity.class);
+        Entity seat = mock(Entity.class);
+        Entity interaction = mock(Entity.class);
+        PersistentDataContainer data = mock(PersistentDataContainer.class);
+        when(base.getPersistentDataContainer()).thenReturn(data);
+        when(base.isDead()).thenReturn(true);
+        when(base.getUniqueId()).thenReturn(UUID.randomUUID());
+        when(data.has(new NamespacedKey(OraxenPlugin.get(), "worldedit_restored"), PersistentDataType.BYTE)).thenReturn(true);
+        UUID seatId = UUID.randomUUID(), interactionId = UUID.randomUUID();
+        when(data.getOrDefault(eq(FurnitureMechanic.SEATS_KEY), any(), any())).thenReturn(List.of(seatId));
+        when(data.getOrDefault(eq(FurnitureMechanic.INTERACTIONS_KEY), any(), any())).thenReturn(List.of(interactionId));
+        try (var bukkit = mockStatic(Bukkit.class);
+             var scheduler = mockStatic(SchedulerUtil.class);
+             var texts = mockStatic(FurnitureTextRegistry.class)) {
+            bukkit.when(() -> Bukkit.getEntity(seatId)).thenReturn(seat);
+            bukkit.when(() -> Bukkit.getEntity(interactionId)).thenReturn(interaction);
+            scheduler.when(() -> SchedulerUtil.runOnOwningThread(any(Entity.class), any(Runnable.class)))
+                    .thenAnswer(invocation -> { invocation.<Runnable>getArgument(1).run(); return null; });
+            new WorldEditFurniture().onRestoredEntityRemoval(new EntityRemoveFromWorldEvent(base, mock(World.class)));
+            verify(seat).remove();
+            verify(interaction).remove();
+            verify(base, never()).remove();
+        }
     }
 
     private Extent furnitureExtent(Extent delegate, World world) throws Exception {

@@ -54,7 +54,7 @@ public class TridentMechanic extends Mechanic {
     public String getChargingModel() { return chargingModel; }
     public String getThrownModel() { return thrownModel; }
     public ItemDisplay.ItemDisplayTransform getTransform() { return transform; }
-    public NamespacedKey getThrownItemModel() { return new NamespacedKey("oraxen", getItemID() + "_thrown"); }
+    public NamespacedKey getThrownItemModel() { return new NamespacedKey("oraxen_tridents", getItemID()); }
     public String getThrowSound() { return throwSound; }
     public String getHitSound() { return hitSound; }
     public String getGroundSound() { return groundSound; }

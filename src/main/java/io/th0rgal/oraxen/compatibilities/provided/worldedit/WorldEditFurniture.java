@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.compatibilities.provided.worldedit;
 
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
+import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
@@ -63,6 +64,7 @@ import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureM
 /** Records furniture removals in the same history as their WorldEdit block changes. */
 public final class WorldEditFurniture implements Listener {
     private static final NamespacedKey restoreKey = new NamespacedKey(OraxenPlugin.get(), "worldedit_restore");
+    private static final NamespacedKey restoredKey = new NamespacedKey(OraxenPlugin.get(), "worldedit_restored");
     private static WorldEditFurniture listener;
 
     public static void register() {
@@ -97,7 +99,7 @@ public final class WorldEditFurniture implements Listener {
             data.copyTo(savedData, true);
             // Recreated hitboxes and seats have new UUIDs. Keep their new links while
             // restoring storage, evolution, and other data from WorldEdit's snapshot.
-            for (NamespacedKey key : List.of(restoreKey, BASE_ENTITY_KEY, INTERACTION_KEY,
+            for (NamespacedKey key : List.of(restoreKey, restoredKey, BASE_ENTITY_KEY, INTERACTION_KEY,
                     INTERACTIONS_KEY, SEAT_KEY, SEATS_KEY)) {
                 savedData.remove(key);
                 data.remove(key);
@@ -118,6 +120,7 @@ public final class WorldEditFurniture implements Listener {
             }
             mechanic.setEntityData(entity, placementYaw, savedItem != null ? savedItem.clone() : null, facing);
             savedData.copyTo(data, true);
+            data.set(restoredKey, PersistentDataType.BYTE, (byte) 1);
             // Initialisation applies the initial growth model. Undo must retain
             // the snapshot's item, including its current growth stage model.
             FurnitureMechanic.setFurnitureItem(entity, savedItem);
@@ -128,6 +131,45 @@ public final class WorldEditFurniture implements Listener {
                 FurnitureTextPacketBridge.spawnForTrackedViewers(entry);
             }
         });
+    }
+
+    @EventHandler
+    public void onRestoredEntityRemoval(EntityRemoveFromWorldEvent event) {
+        Entity entity = event.getEntity();
+        PersistentDataContainer data = entity.getPersistentDataContainer();
+        if (!entity.isDead() || !data.has(restoredKey, PersistentDataType.BYTE)) return;
+        // History only records the base. Children recreated by undo need their own cleanup.
+        Set<UUID> children = new HashSet<>();
+        children.addAll(data.getOrDefault(SEATS_KEY, DataType.asList(DataType.UUID), List.of()));
+        children.addAll(data.getOrDefault(INTERACTIONS_KEY, DataType.asList(DataType.UUID), List.of()));
+        for (NamespacedKey key : List.of(SEAT_KEY, INTERACTION_KEY)) {
+            UUID uuid = data.get(key, DataType.UUID);
+            if (uuid != null) children.add(uuid);
+        }
+        for (UUID uuid : children) {
+            Entity child = Bukkit.getEntity(uuid);
+            if (child != null) SchedulerUtil.runOnOwningThread(child, () -> {
+                child.getPassengers().forEach(child::removePassenger);
+                if (!child.isDead()) child.remove();
+            });
+        }
+        UUID uuid = entity.getUniqueId();
+        int id = entity.getEntityId();
+        SchedulerUtil.runTask(() -> FurnitureTextRegistry.unregister(uuid, id));
+    }
+
+    private static <T> T atEntity(Entity entity, Supplier<T> action) {
+        if (Bukkit.isOwnedByCurrentRegion(entity)) return action.get();
+        CompletableFuture<T> result = new CompletableFuture<>();
+        SchedulerUtil.ScheduledTask task = SchedulerUtil.runForEntity(entity, () -> {
+            try {
+                result.complete(action.get());
+            } catch (Throwable error) {
+                result.completeExceptionally(error);
+            }
+        }, () -> result.complete(null));
+        if (task == null) result.complete(null);
+        return result.join();
     }
 
     private static <T> T atLocation(Location location, Supplier<T> action) {
@@ -289,7 +331,7 @@ public final class WorldEditFurniture implements Listener {
             boolean changed = extent.setBlock(position, block);
             if (!changed || baseEntity == null) return changed;
 
-            atLocation(baseEntity.getLocation(), () -> {
+            atEntity(baseEntity, () -> {
                 if (!baseEntity.isValid()) return null;
                 FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
                 if (mechanic == null) return null;
@@ -303,6 +345,18 @@ public final class WorldEditFurniture implements Listener {
                         .filter(barrier -> baseEntity.getUniqueId().equals(BlockHelpers.getPDC(barrier.getBlock())
                                 .get(BASE_ENTITY_KEY, DataType.UUID))).toList();
 
+                try {
+                    // Apply every barrier change through WorldEdit before removing the model.
+                    for (Location barrier : barriers) {
+                        BlockVector3 barrierPosition = BlockVector3.at(barrier.getX(), barrier.getY(), barrier.getZ());
+                        if (barrierPosition.equals(position)) continue;
+                        if (!extent.setBlock(barrierPosition, BlockTypes.AIR.getDefaultState()))
+                            return null;
+                        BlockHelpers.removePDC(barrier.getBlock());
+                    }
+                } catch (WorldEditException error) {
+                    throw new IllegalStateException("Could not record furniture barriers", error);
+                }
                 // Store the model and PDC in the same history as its barriers.
                 baseEntity.getPersistentDataContainer().set(restoreKey, PersistentDataType.BYTE, (byte) 1);
                 var entityState = BukkitAdapter.adapt(baseEntity).getState();
@@ -320,16 +374,6 @@ public final class WorldEditFurniture implements Listener {
                                 && Objects.equals(snapshot.value().get("UUID"), entity.getState().getNbt().value().get("UUID")))
                         .findFirst().orElse(null);
 
-                try {
-                    // Record every barrier before the furniture removal clears it.
-                    for (Location barrier : barriers) {
-                        BlockVector3 barrierPosition = BlockVector3.at(barrier.getX(), barrier.getY(), barrier.getZ());
-                        if (!barrierPosition.equals(position))
-                            extent.setBlock(barrierPosition, BlockTypes.AIR.getDefaultState());
-                    }
-                } catch (WorldEditException error) {
-                    throw new IllegalStateException("Could not record furniture barriers", error);
-                }
                 if (history != null) {
                     try {
                         history.getClass().getMethod("addEntityRemove", com.sk89q.jnbt.CompoundTag.class)
@@ -340,10 +384,9 @@ public final class WorldEditFurniture implements Listener {
                 }
                 else if (tracked != null) tracked.remove();
                 baseEntity.getPersistentDataContainer().remove(restoreKey);
-                OraxenFurniture.remove(baseEntity, null);
-                // Synchronous WorldEdit may have replaced the blocks already,
-                // so normal furniture removal cannot identify their barrier PDC.
-                barriers.forEach(barrier -> BlockHelpers.removePDC(barrier.getBlock()));
+                // WorldEdit alone changes barriers, so denied positions and fallback
+                // recovery blocks are never cleared directly through Bukkit.
+                mechanic.removeNonSolidFurniture(baseEntity);
                 return null;
             });
             atLocation(location, () -> {

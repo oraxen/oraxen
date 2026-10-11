@@ -1,6 +1,14 @@
 package io.th0rgal.oraxen.mechanics;
 
 import io.th0rgal.oraxen.mechanics.provided.combat.trident.TridentMechanic;
+import io.th0rgal.oraxen.mechanics.provided.combat.trident.TridentMechanicFactory;
+import io.th0rgal.oraxen.api.events.OraxenPackGeneratedEvent;
+import io.th0rgal.oraxen.utils.VirtualFile;
+import java.io.ByteArrayInputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import static org.mockito.Mockito.*;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.ItemDisplay;
 import org.junit.jupiter.api.Test;
@@ -47,7 +55,25 @@ class TridentMechanicTest extends MechanicTestSupport {
         assertEquals("minecraft:model", mechanic.modelDefinition(false).getAsJsonObject("model").get("type").getAsString());
         assertEquals("minecraft:tridents/amethyst", mechanic.modelDefinition(false).getAsJsonObject("model").get("model").getAsString());
         assertEquals("custom:tridents/amethyst_thrown", mechanic.modelDefinition(true).getAsJsonObject("model").get("model").getAsString());
-        assertEquals("oraxen:test_item_thrown", mechanic.getThrownItemModel().toString());
+        assertEquals("oraxen_tridents:test_item", mechanic.getThrownItemModel().toString());
+    }
+
+    @Test
+    void generatedThrownModelPreservesAnItemWithTheOldSyntheticId() {
+        TridentMechanic mechanic = new TridentMechanic(mechanicFactory(), section());
+        TridentMechanicFactory factory = mock(TridentMechanicFactory.class);
+        when(factory.getItems()).thenReturn(Set.of("test_item"));
+        when(factory.getMechanic("test_item")).thenReturn(mechanic);
+        VirtualFile existing = new VirtualFile("assets/oraxen/items", "test_item_thrown.json",
+                new ByteArrayInputStream(new byte[0]));
+        List<VirtualFile> output = new ArrayList<>(List.of(existing));
+        OraxenPackGeneratedEvent event = new OraxenPackGeneratedEvent(output);
+        doCallRealMethod().when(factory).onPackGenerated(event);
+        factory.onPackGenerated(event);
+        assertTrue(output.contains(existing));
+        VirtualFile thrown = output.stream().filter(file -> file.getPath()
+                .equals("assets/oraxen_tridents/items/test_item.json")).findFirst().orElseThrow();
+        assertEquals(mechanic.getThrownModel(), thrown.toJsonObject().getAsJsonObject("model").get("model").getAsString());
     }
 
     @Test

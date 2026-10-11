@@ -18,6 +18,7 @@ class FurnitureConfigMigrationTest {
     void migratesLegacyProperties(String legacySection) {
         ConfigurationSection furniture = new YamlConfiguration().createSection("item")
                 .createSection("mechanics").createSection("furniture");
+        furniture.set("type", legacySection.equals("armor_stand_properties") ? "ARMOR_STAND" : "DISPLAY_ENTITY");
         furniture.set(legacySection + ".scale.y", 0.5);
         furniture.set(legacySection + ".translation.x", 1.25);
         furniture.set(legacySection + ".display_transform", "FIXED");
@@ -47,10 +48,33 @@ class FurnitureConfigMigrationTest {
         assertTrue(FurnitureConfigMigration.migrate(furniture.getParent().getParent()));
         assertEquals(3.0, furniture.getDouble("properties.scale.x"));
         assertEquals(type.equals("ARMOR_STAND") ? 0.5 : 1.0, furniture.getDouble("properties.scale.y"));
-        assertEquals("FIXED", furniture.getString("properties.display_transform"));
-        assertEquals(0.25, furniture.getDouble("properties.offset.z"));
+        assertEquals(type.equals("ARMOR_STAND") ? null : "FIXED", furniture.getString("properties.display_transform"));
+        assertEquals(type.equals("ARMOR_STAND") ? 0.25 : 0, furniture.getDouble("properties.offset.z"));
         assertFalse(furniture.contains("display_entity_properties"));
         assertFalse(furniture.contains("armor_stand_properties"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"DISPLAY_ENTITY", "ARMOR_STAND"})
+    void missingScaleAxesKeepLegacyDefaults(String type) {
+        ConfigurationSection furniture = new YamlConfiguration().createSection("item")
+                .createSection("mechanics").createSection("furniture");
+        furniture.set("type", type);
+        furniture.set("display_entity_properties.scale.x", 2.0);
+        furniture.set("armor_stand_properties.scale.y", 0.5);
+        FurnitureConfigMigration.migrate(furniture.getParent().getParent());
+        assertEquals(type.equals("ARMOR_STAND") ? 1.0 : 2.0, furniture.getDouble("properties.scale.x", 1.0));
+        assertEquals(type.equals("ARMOR_STAND") ? 0.5 : 1.0, furniture.getDouble("properties.scale.y", 1.0));
+    }
+
+    @Test
+    void armorStandFallsBackToDisplayOnlyWhenItsLegacySectionIsAbsent() {
+        ConfigurationSection furniture = new YamlConfiguration().createSection("item")
+                .createSection("mechanics").createSection("furniture");
+        furniture.set("type", "ARMOR_STAND");
+        furniture.set("display_entity_properties.scale.x", 2.0);
+        FurnitureConfigMigration.migrate(furniture.getParent().getParent());
+        assertEquals(2.0, furniture.getDouble("properties.scale.x"));
     }
 
     @Test

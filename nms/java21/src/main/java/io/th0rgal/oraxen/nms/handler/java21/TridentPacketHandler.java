@@ -78,6 +78,7 @@ final class TridentPacketHandler implements Listener {
         Display.ItemDisplay nativeDisplay = new Display.ItemDisplay(TridentNativeAccess.itemDisplay,
                 ((CraftWorld) trident.getWorld()).getHandle());
         nativeDisplay.setItemStack(CraftItemStack.asNMSCopy(item));
+        nativeDisplay.setId(trident.getEntityId());
         ItemDisplay display = (ItemDisplay) nativeDisplay.getBukkitEntity();
         display.setItemDisplayTransform(mechanic.getTransform());
         display.setTeleportDuration(1);
@@ -85,7 +86,7 @@ final class TridentPacketHandler implements Listener {
                 new Quaternionf().rotateX((float) (Math.PI / 2.0)), new Vector3f(1.0F), new Quaternionf()));
         Location location = trident.getLocation();
         RenderData data = new RenderData(trident.getUniqueId(),
-                List.copyOf(nativeDisplay.getEntityData().getNonDefaultValues()), mechanic,
+                List.copyOf(nativeDisplay.getEntityData().getNonDefaultValues()), mechanic, nativeDisplay,
                 new SoundPosition(location.getX(), location.getY(), location.getZ(), System.nanoTime(), "item.trident.throw"));
         tridents.put(trident.getEntityId(), data);
         // EntityAddToWorldEvent can precede tracker creation. Retry on the entity's region
@@ -148,24 +149,32 @@ final class TridentPacketHandler implements Listener {
             if (packet instanceof ClientboundBundlePacket bundle) {
                 List<Packet<? super ClientGamePacketListener>> packets = new ArrayList<>();
                 boolean changed = false;
-                for (var nested : bundle.subPackets()) {
-                    Object converted = transform(nested);
-                    changed |= converted != nested;
-                    if (converted instanceof ClientboundBundlePacket expanded) {
-                        expanded.subPackets().forEach(packets::add);
-                    } else packets.add((Packet<? super ClientGamePacketListener>) converted);
+                Set<Integer> previousTracked = new HashSet<>(tracked);
+                try {
+                    for (var nested : bundle.subPackets()) {
+                        Object converted = transform(nested);
+                        changed |= converted != nested;
+                        if (converted instanceof ClientboundBundlePacket expanded) {
+                            expanded.subPackets().forEach(packets::add);
+                        } else packets.add((Packet<? super ClientGamePacketListener>) converted);
+                    }
+                    return changed ? new ClientboundBundlePacket(packets) : packet;
+                } catch (ReflectiveOperationException | LinkageError exception) {
+                    tracked.clear();
+                    tracked.addAll(previousTracked);
+                    throw exception;
                 }
-                return changed ? new ClientboundBundlePacket(packets) : packet;
             }
             if (packet instanceof ClientboundAddEntityPacket spawn) {
                 RenderData data = tridents.get(spawn.getId());
                 if (data == null || !data.uuid.equals(spawn.getUUID())) return packet;
-                tracked.add(spawn.getId());
                 var converted = new ClientboundAddEntityPacket(spawn.getId(), spawn.getUUID(),
                         spawn.getX(), spawn.getY(), spawn.getZ(), Math.clamp(-spawn.getXRot(), -90.0F, 90.0F),
                         -spawn.getYRot(), TridentNativeAccess.itemDisplay, 0, TridentNativeAccess.movement(spawn), -spawn.getYHeadRot());
-                return new ClientboundBundlePacket(List.of(converted,
+                var result = new ClientboundBundlePacket(List.of(converted,
                         new ClientboundSetEntityDataPacket(spawn.getId(), data.metadata)));
+                tracked.add(spawn.getId());
+                return result;
             }
             if (packet instanceof ClientboundSetEntityDataPacket metadata && tracked.contains(metadata.id())) {
                 RenderData data = tridents.get(metadata.id());
@@ -183,8 +192,7 @@ final class TridentPacketHandler implements Listener {
                 if (data == null) return packet;
                 String replacement = data.mechanic.soundFor(TridentNativeAccess.soundPath(sound.getSound().value()));
                 if (replacement != null) {
-                    SoundPosition pos = data.soundPosition;
-                    return new ClientboundSoundPacket(sound(replacement), sound.getSource(), pos.x, pos.y, pos.z,
+                    return new ClientboundSoundEntityPacket(sound(replacement), sound.getSource(), data.soundEntity,
                             sound.getVolume(), sound.getPitch(), sound.getSeed());
                 }
             }
@@ -216,6 +224,7 @@ final class TridentPacketHandler implements Listener {
         private final UUID uuid;
         private final List<SynchedEntityData.DataValue<?>> metadata;
         private final TridentMechanic mechanic;
+        private final Display.ItemDisplay soundEntity;
         private volatile SoundPosition soundPosition;
         private volatile SchedulerUtil.ScheduledTask trackingTask;
 
@@ -225,10 +234,11 @@ final class TridentPacketHandler implements Listener {
         }
 
         private RenderData(UUID uuid, List<SynchedEntityData.DataValue<?>> metadata,
-                           TridentMechanic mechanic, SoundPosition soundPosition) {
+                           TridentMechanic mechanic, Display.ItemDisplay soundEntity, SoundPosition soundPosition) {
             this.uuid = uuid;
             this.metadata = metadata;
             this.mechanic = mechanic;
+            this.soundEntity = soundEntity;
             this.soundPosition = soundPosition;
         }
     }

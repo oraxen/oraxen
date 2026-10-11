@@ -35,6 +35,26 @@ class TridentPacketRotationTest {
         public short getZa() { return z; }
     }
 
+    public record FloatMove(int entityId, Object delta, float yaw, float pitch, boolean onGround) {
+        public Object getPositionDelta() { return delta; }
+    }
+    public record FloatRot(int entityId, float yaw, float pitch, boolean onGround) {}
+
+    @Test
+    void preservesDegreeAnglesInFloatBackedMovementPackets() throws ReflectiveOperationException {
+        Object delta = new Object();
+        FloatMove converted = (FloatMove) TridentPacketRotation.move(
+                new FloatMove(9, delta, 0, 0, false), 9, 135.5f, -120f, false);
+        assertSame(delta, converted.delta());
+        assertEquals(-135.5f, converted.yaw());
+        assertEquals(90f, converted.pitch());
+        FloatRot rotation = (FloatRot) TridentPacketRotation.move(
+                new FloatRot(9, 0, 0, true), 9, 45.25f, 22.5f, true);
+        assertEquals(-45.25f, rotation.yaw());
+        assertEquals(-22.5f, rotation.pitch());
+        assertTrue(rotation.onGround());
+    }
+
     @Test
     void supportsLegacyRelativeAndRotationOnlyPackets() throws ReflectiveOperationException {
         LegacyMove original = new LegacyMove(9, (short) 100, (short) -20, (short) 4, (byte) 0, (byte) 0, false);

@@ -18,9 +18,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mockStatic;
@@ -29,7 +29,7 @@ class S3Test {
     @TempDir Path tempDir;
     private HttpServer server;
     private MemoryConfiguration config;
-    private final List<Upload> uploads = new ArrayList<>();
+    private final List<Upload> uploads = new CopyOnWriteArrayList<>();
     private volatile int status = 200;
     private MockedStatic<Logs> logs;
 
@@ -39,11 +39,9 @@ class S3Test {
         server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         server.createContext("/", exchange -> {
             byte[] body = exchange.getRequestBody().readAllBytes();
-            synchronized (uploads) {
-                uploads.add(new Upload(exchange.getRequestMethod(), exchange.getRequestURI(), body,
-                        exchange.getRequestHeaders().getFirst("Authorization"),
-                        exchange.getRequestHeaders().getFirst("Content-Type")));
-            }
+            uploads.add(new Upload(exchange.getRequestMethod(), exchange.getRequestURI(), body,
+                    exchange.getRequestHeaders().getFirst("Authorization"),
+                    exchange.getRequestHeaders().getFirst("Content-Type")));
             exchange.getResponseHeaders().set("ETag", "\"not-a-sha1\"");
             exchange.sendResponseHeaders(status, -1);
             exchange.close();
