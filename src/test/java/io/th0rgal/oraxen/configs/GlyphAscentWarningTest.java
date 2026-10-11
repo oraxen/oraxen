@@ -2,6 +2,8 @@ package io.th0rgal.oraxen.configs;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.glyphs.AnimatedGlyph;
+import io.th0rgal.oraxen.fonts.FontManager;
+import io.th0rgal.oraxen.glyphs.Glyph;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -11,6 +13,8 @@ import org.mockito.MockedStatic;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collection;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
@@ -99,6 +103,61 @@ class GlyphAscentWarningTest {
             logs.verify(() -> Logs.logWarning(guidance));
             logs.verify(() -> Logs.logWarning("- <#529ced>invalid</#529ced> in <#529ced>glyphs/legacy.yml</#529ced>"));
             logs.verifyNoMoreInteractions();
+        }
+    }
+
+    @Test
+    void bitmapWarningsIdentifyFontEntryAndRespectInheritedDimensionsInBothParsers() throws Exception {
+        Path glyphs = Files.createDirectory(folder.resolve("glyphs"));
+        Files.writeString(glyphs.resolve("bitmap.yml"), """
+                inherited:
+                  char: A
+                  ascent: 8
+                  height: 8
+                  bitmap:
+                    id: icons
+                    row: 1
+                    column: 1
+                valid:
+                  char: B
+                  ascent: 10
+                  height: 8
+                  bitmap:
+                    id: valid_icons
+                    row: 1
+                    column: 1
+                missing:
+                  char: C
+                  ascent: 10
+                  height: 8
+                  bitmap:
+                    id: missing_icons
+                    row: 1
+                    column: 1
+                """);
+        ConfigsManager manager = manager(glyphs);
+        OraxenPlugin plugin = mock(OraxenPlugin.class);
+        when(plugin.getDataFolder()).thenReturn(folder.toFile());
+        Map<String, FontManager.GlyphBitMap> previousBitmaps = FontManager.glyphBitMaps;
+        try (MockedStatic<OraxenPlugin> plugins = mockStatic(OraxenPlugin.class);
+                MockedStatic<Logs> logs = mockStatic(Logs.class)) {
+            plugins.when(OraxenPlugin::get).thenReturn(plugin);
+            FontManager.glyphBitMaps = Map.of(
+                    "icons", new FontManager.GlyphBitMap("icons.png", 1, 1, 10, 8),
+                    "valid_icons", new FontManager.GlyphBitMap("valid.png", 1, 1, 8, 8));
+
+            for (boolean legacy : new boolean[] { false, true }) {
+                Collection<Glyph> output = legacy ? manager.parseGlyphConfigs() : manager.parseAllGlyphConfigs().glyphs();
+                assertEquals(3, output.size());
+                logs.verify(() -> Logs.logError(warning));
+                logs.verify(() -> Logs.logWarning(guidance));
+                logs.verify(() -> Logs.logWarning("- <#529ced>inherited</#529ced> in <#529ced>font.yml (bitmaps.icons)</#529ced>"));
+                logs.verify(() -> Logs.logWarning("- <#529ced>missing</#529ced> in <#529ced>glyphs/bitmap.yml</#529ced>"));
+                logs.verifyNoMoreInteractions();
+                logs.clearInvocations();
+            }
+        } finally {
+            FontManager.glyphBitMaps = previousBitmaps;
         }
     }
 

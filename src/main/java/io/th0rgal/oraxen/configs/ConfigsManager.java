@@ -475,7 +475,7 @@ public class ConfigsManager {
 
             // Regular glyph
             GlyphParseResult result = createGlyph(key, glyphSection, ctx);
-            collectInvalidGlyphAscent(result.glyph.getName(), result.glyph.getAscent(), result.glyph.getHeight(), file, ctx);
+            collectInvalidGlyphAscent(result.glyph, file, ctx);
             result.glyph.verifyGlyph(output.glyphs);
             output.glyphs.add(result.glyph);
 
@@ -500,11 +500,24 @@ public class ConfigsManager {
         return output;
     }
 
+    private void collectInvalidGlyphAscent(Glyph glyph, File file, GlyphParseContext ctx) {
+        if (glyph.isBitMap()) {
+            collectInvalidGlyphAscent(glyph.getName(), glyph.getAscent(), glyph.getHeight(),
+                    "font.yml (bitmaps." + glyph.getBitmapId() + ")", ctx);
+        } else {
+            collectInvalidGlyphAscent(glyph.getName(), glyph.getAscent(), glyph.getHeight(), file, ctx);
+        }
+    }
+
     private void collectInvalidGlyphAscent(String name, int ascent, int height, File file, GlyphParseContext ctx) {
+        String path = "glyphs/" + glyphsFolder.toPath().relativize(file.toPath()).toString().replace('\\', '/');
+        collectInvalidGlyphAscent(name, ascent, height, path, ctx);
+    }
+
+    private void collectInvalidGlyphAscent(String name, int ascent, int height, String path, GlyphParseContext ctx) {
         if (ascent <= height)
             return;
 
-        String path = "glyphs/" + glyphsFolder.toPath().relativize(file.toPath()).toString().replace('\\', '/');
         MiniMessage miniMessage = MiniMessage.miniMessage();
         ctx.invalidAscentGlyphs.add("- <#529ced>" + miniMessage.escapeTags(name)
                 + "</#529ced> in <#529ced>" + miniMessage.escapeTags(path) + "</#529ced>");
@@ -598,7 +611,7 @@ public class ConfigsManager {
                 continue;
 
             GlyphParseResult result = createGlyph(key, glyphSection, ctx);
-            collectInvalidGlyphAscent(result.glyph.getName(), result.glyph.getAscent(), result.glyph.getHeight(), file, ctx);
+            collectInvalidGlyphAscent(result.glyph, file, ctx);
             result.glyph.verifyGlyph(output);
             output.add(result.glyph);
 
