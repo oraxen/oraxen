@@ -18,6 +18,7 @@ import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -368,6 +369,7 @@ public class ConfigsManager {
     private static class GlyphParseContext {
         final Map<String, Character> charPerGlyph = new HashMap<>();
         final Set<Integer> usedCodepoints = new HashSet<>();
+        final List<String> invalidAscentGlyphs = new ArrayList<>();
     }
 
     /**
@@ -402,6 +404,7 @@ public class ConfigsManager {
 
         collectExistingCodepoints(glyphFiles, ctx);
         parseAllGlyphFiles(glyphFiles, output, ctx);
+        logInvalidGlyphAscents(ctx);
 
         return output;
     }
@@ -429,7 +432,7 @@ public class ConfigsManager {
             }
 
             YamlConfiguration configuration = OraxenYaml.loadConfiguration(file);
-            GlyphFileParseResult result = parseAllGlyphsFromFile(configuration, output, ctx);
+            GlyphFileParseResult result = parseAllGlyphsFromFile(file, configuration, output, ctx);
             saveConfigIfChanged(file, configuration, result.fileChanged, result.forceSave);
         }
     }
@@ -437,7 +440,7 @@ public class ConfigsManager {
     /**
      * Parses all glyph types from a single file.
      */
-    private GlyphFileParseResult parseAllGlyphsFromFile(YamlConfiguration configuration, GlyphParseOutput output,
+    private GlyphFileParseResult parseAllGlyphsFromFile(File file, YamlConfiguration configuration, GlyphParseOutput output,
             GlyphParseContext ctx) {
         boolean fileChanged = false;
         boolean forceSave = false;
@@ -462,6 +465,7 @@ public class ConfigsManager {
             if (AnimatedGlyph.isAnimatedGlyph(glyphSection)) {
                 try {
                     AnimatedGlyph animGlyph = new AnimatedGlyph(key, glyphSection);
+                    collectInvalidGlyphAscent(animGlyph.getName(), animGlyph.getAscent(), animGlyph.getHeight(), file, ctx);
                     output.animatedGlyphs.add(animGlyph);
                 } catch (IllegalArgumentException e) {
                     Logs.logError("Failed to parse animated glyph '" + key + "': " + e.getMessage());
@@ -471,6 +475,7 @@ public class ConfigsManager {
 
             // Regular glyph
             GlyphParseResult result = createGlyph(key, glyphSection, ctx);
+            collectInvalidGlyphAscent(result.glyph.getName(), result.glyph.getAscent(), result.glyph.getHeight(), file, ctx);
             result.glyph.verifyGlyph(output.glyphs);
             output.glyphs.add(result.glyph);
 
@@ -490,8 +495,28 @@ public class ConfigsManager {
 
         collectExistingCodepoints(glyphFiles, ctx);
         parseGlyphFiles(glyphFiles, output, ctx);
+        logInvalidGlyphAscents(ctx);
 
         return output;
+    }
+
+    private void collectInvalidGlyphAscent(String name, int ascent, int height, File file, GlyphParseContext ctx) {
+        if (ascent <= height)
+            return;
+
+        String path = "glyphs/" + glyphsFolder.toPath().relativize(file.toPath()).toString().replace('\\', '/');
+        ctx.invalidAscentGlyphs.add("* `" + name + "` in `" + path + "`");
+    }
+
+    private void logInvalidGlyphAscents(GlyphParseContext ctx) {
+        if (ctx.invalidAscentGlyphs.isEmpty())
+            return;
+
+        Logs.logError("One or more glyphs have an ascent greater than their height, which breaks rendering for all glyphs. "
+                + "To fix this, adjust the following glyphs so that their ascent is less than or equal to their height.");
+        for (String glyph : ctx.invalidAscentGlyphs) {
+            Logs.logError(MiniMessage.miniMessage().escapeTags(glyph));
+        }
     }
 
     /**
@@ -550,7 +575,7 @@ public class ConfigsManager {
     private void parseGlyphFiles(List<File> glyphFiles, List<Glyph> output, GlyphParseContext ctx) {
         for (File file : glyphFiles) {
             YamlConfiguration configuration = OraxenYaml.loadConfiguration(file);
-            GlyphFileParseResult result = parseGlyphsFromFile(configuration, output, ctx);
+            GlyphFileParseResult result = parseGlyphsFromFile(file, configuration, output, ctx);
             saveConfigIfChanged(file, configuration, result.fileChanged, result.forceSave);
         }
     }
@@ -560,7 +585,7 @@ public class ConfigsManager {
      *
      * @return file modification and save policy state
      */
-    private GlyphFileParseResult parseGlyphsFromFile(YamlConfiguration configuration, List<Glyph> output,
+    private GlyphFileParseResult parseGlyphsFromFile(File file, YamlConfiguration configuration, List<Glyph> output,
             GlyphParseContext ctx) {
         boolean fileChanged = false;
         boolean forceSave = false;
@@ -571,6 +596,7 @@ public class ConfigsManager {
                 continue;
 
             GlyphParseResult result = createGlyph(key, glyphSection, ctx);
+            collectInvalidGlyphAscent(result.glyph.getName(), result.glyph.getAscent(), result.glyph.getHeight(), file, ctx);
             result.glyph.verifyGlyph(output);
             output.add(result.glyph);
 

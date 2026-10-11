@@ -158,6 +158,8 @@ dependencies {
     testImplementation(oraxenLibs.worldedit.bukkit) {
         exclude("com.google.code.gson", "gson")
     }
+    testImplementation(oraxenLibs.commons.io)
+    testImplementation(oraxenLibs.commons.lang3)
     testImplementation(oraxenLibs.spring.expression)
     testImplementation("net.kyori:adventure-api:4.18.0")
     testImplementation("net.kyori:adventure-text-minimessage:4.18.0")
