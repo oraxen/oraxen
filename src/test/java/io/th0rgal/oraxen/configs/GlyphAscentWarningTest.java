@@ -17,8 +17,8 @@ import static org.mockito.Mockito.*;
 
 class GlyphAscentWarningTest {
 
-    private static final String warning = "One or more glyphs have an ascent greater than their height, which breaks rendering for all glyphs. "
-            + "To fix this, adjust the following glyphs so that their ascent is less than or equal to their height.";
+    private static final String warning = "One or more glyphs have an ascent greater than their height, which breaks rendering for all glyphs.";
+    private static final String guidance = "To fix this, adjust the following glyphs so that their ascent is less than or equal to their height.";
 
     @TempDir
     Path folder;
@@ -67,8 +67,9 @@ class GlyphAscentWarningTest {
                 assertEquals(3, output.glyphs().size());
                 assertEquals(1, output.animatedGlyphs().size());
                 logs.verify(() -> Logs.logError(warning));
-                logs.verify(() -> Logs.logWarning("<yellow>- <blue>invalid</blue> in <blue>glyphs/first.yml</blue></yellow>"));
-                logs.verify(() -> Logs.logWarning("<yellow>- <blue>animated</blue> in <blue>glyphs/nested/second.yml</blue></yellow>"));
+                logs.verify(() -> Logs.logWarning(guidance));
+                logs.verify(() -> Logs.logWarning("- <#529ced>invalid</#529ced> in <#529ced>glyphs/first.yml</#529ced>"));
+                logs.verify(() -> Logs.logWarning("- <#529ced>animated</#529ced> in <#529ced>glyphs/nested/second.yml</#529ced>"));
                 logs.verifyNoMoreInteractions();
                 logs.clearInvocations();
             }
@@ -95,7 +96,8 @@ class GlyphAscentWarningTest {
 
             assertEquals(1, manager.parseGlyphConfigs().size());
             logs.verify(() -> Logs.logError(warning));
-            logs.verify(() -> Logs.logWarning("<yellow>- <blue>invalid</blue> in <blue>glyphs/legacy.yml</blue></yellow>"));
+            logs.verify(() -> Logs.logWarning(guidance));
+            logs.verify(() -> Logs.logWarning("- <#529ced>invalid</#529ced> in <#529ced>glyphs/legacy.yml</#529ced>"));
             logs.verifyNoMoreInteractions();
         }
     }
