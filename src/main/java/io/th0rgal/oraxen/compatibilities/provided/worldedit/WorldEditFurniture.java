@@ -47,6 +47,8 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Set;
@@ -313,6 +315,17 @@ public final class WorldEditFurniture implements Listener {
             return setBlock(BlockVector3.at(x, y, z), block);
         }
 
+        private record FurnitureRemoval(UUID uuid, List<Location> barriers) {}
+
+        private void rollback(List<BlockVector3> changed, Map<BlockVector3, BaseBlock> originals)
+                throws WorldEditException {
+            for (int index = changed.size() - 1; index >= 0; index--) {
+                BlockVector3 position = changed.get(index);
+                if (!extent.setBlock(position, originals.get(position)))
+                    throw new IllegalStateException("WorldEdit rejected furniture rollback at " + position);
+            }
+        }
+
         @Override
         public <T extends BlockStateHolder<T>> boolean setBlock(BlockVector3 position, T block)
                 throws WorldEditException {
@@ -328,10 +341,9 @@ public final class WorldEditFurniture implements Listener {
                 FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(barrier);
                 return mechanic == null ? null : mechanic.getBaseEntity(barrier);
             });
-            boolean changed = extent.setBlock(position, block);
-            if (!changed || baseEntity == null) return changed;
+            if (baseEntity == null) return extent.setBlock(position, block);
 
-            atEntity(baseEntity, () -> {
+            FurnitureRemoval removal = atEntity(baseEntity, () -> {
                 if (!baseEntity.isValid()) return null;
                 FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
                 if (mechanic == null) return null;
@@ -341,22 +353,56 @@ public final class WorldEditFurniture implements Listener {
                         && baseEntity instanceof ItemDisplay display
                         && display.getItemDisplayTransform() == ItemDisplay.ItemDisplayTransform.FIXED
                         && baseEntity.getLocation().getPitch() == 90f) yaw += 180;
-                List<Location> barriers = mechanic.getLocations(yaw, root, mechanic.getBarriers(baseEntity)).stream()
-                        .filter(barrier -> baseEntity.getUniqueId().equals(BlockHelpers.getPDC(barrier.getBlock())
-                                .get(BASE_ENTITY_KEY, DataType.UUID))).toList();
-
-                try {
-                    // Apply every barrier change through WorldEdit before removing the model.
-                    for (Location barrier : barriers) {
-                        BlockVector3 barrierPosition = BlockVector3.at(barrier.getX(), barrier.getY(), barrier.getZ());
-                        if (barrierPosition.equals(position)) continue;
-                        if (!extent.setBlock(barrierPosition, BlockTypes.AIR.getDefaultState()))
-                            return null;
-                        BlockHelpers.removePDC(barrier.getBlock());
+                return new FurnitureRemoval(baseEntity.getUniqueId(),
+                        mechanic.getLocations(yaw, root, mechanic.getBarriers(baseEntity)));
+            });
+            if (removal == null) return false;
+            List<Location> barriers = new ArrayList<>();
+            for (Location barrier : removal.barriers()) {
+                boolean owned = atLocation(barrier, () -> removal.uuid().equals(
+                        BlockHelpers.getPDC(barrier.getBlock()).get(BASE_ENTITY_KEY, DataType.UUID)));
+                if (owned) barriers.add(barrier);
+            }
+            Map<BlockVector3, BaseBlock> originals = new LinkedHashMap<>();
+            originals.put(position, extent.getFullBlock(position));
+            for (Location barrier : barriers) {
+                BlockVector3 barrierPosition = BlockVector3.at(barrier.getX(), barrier.getY(), barrier.getZ());
+                originals.putIfAbsent(barrierPosition, extent.getFullBlock(barrierPosition));
+            }
+            List<BlockVector3> changed = new ArrayList<>();
+            boolean complete = true;
+            try {
+                for (BlockVector3 barrierPosition : originals.keySet()) {
+                    boolean accepted = barrierPosition.equals(position)
+                            ? extent.setBlock(barrierPosition, block)
+                            : extent.setBlock(barrierPosition, BlockTypes.AIR.getDefaultState());
+                    if (!accepted) {
+                        complete = false;
+                        break;
                     }
-                } catch (WorldEditException error) {
-                    throw new IllegalStateException("Could not record furniture barriers", error);
+                    changed.add(barrierPosition);
                 }
+            } catch (WorldEditException | RuntimeException error) {
+                rollback(changed, originals);
+                throw error;
+            }
+            if (!complete) {
+                rollback(changed, originals);
+                return false;
+            }
+            // Keep every barrier's ownership data until all writes have succeeded.
+            for (Location barrier : barriers) atLocation(barrier, () -> {
+                BlockHelpers.removePDC(barrier.getBlock());
+                return null;
+            });
+            atLocation(location, () -> {
+                BlockHelpers.removePDC(location.getBlock());
+                return null;
+            });
+            atEntity(baseEntity, () -> {
+                if (!baseEntity.isValid()) return null;
+                FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
+                if (mechanic == null) return null;
                 // Store the model and PDC in the same history as its barriers.
                 baseEntity.getPersistentDataContainer().set(restoreKey, PersistentDataType.BYTE, (byte) 1);
                 var entityState = BukkitAdapter.adapt(baseEntity).getState();
@@ -387,10 +433,6 @@ public final class WorldEditFurniture implements Listener {
                 // WorldEdit alone changes barriers, so denied positions and fallback
                 // recovery blocks are never cleared directly through Bukkit.
                 mechanic.removeNonSolidFurniture(baseEntity);
-                return null;
-            });
-            atLocation(location, () -> {
-                BlockHelpers.removePDC(location.getBlock());
                 return null;
             });
             return true;

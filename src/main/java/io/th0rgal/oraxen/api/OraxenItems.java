@@ -22,6 +22,7 @@ import org.bukkit.inventory.meta.components.JukeboxPlayableComponent;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
+import io.th0rgal.oraxen.mechanics.provided.combat.trident.TridentMechanicFactory;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.*;
@@ -38,6 +39,8 @@ public class OraxenItems {
 
     public static void loadItems() {
         try {
+            var tridentFactory = TridentMechanicFactory.get();
+            if (tridentFactory != null) tridentFactory.clearMechanics();
             ItemLoader.MODEL_DATAS_BY_ID.clear();
             ModelData.DATAS.clear();
             OraxenPlugin.get().getConfigsManager().assignAllUsedModelDatas();

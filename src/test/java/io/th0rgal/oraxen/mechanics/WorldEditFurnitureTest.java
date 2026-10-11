@@ -45,6 +45,8 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text.FurnitureTex
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -258,7 +260,8 @@ class WorldEditFurnitureTest extends MechanicTestSupport {
     void rejectedSecondaryBarrierKeepsFurnitureAndUsesTheEntityScheduler() throws Exception {
         World world = mock(World.class);
         Location root = new Location(world, 0.5, 64.5, 0.5);
-        Location denied = new Location(world, 1, 64, 0);
+        Location accepted = new Location(world, 1, 64, 0);
+        Location denied = new Location(world, 32, 64, 0);
         Block originalBlock = mock(Block.class);
         Block deniedBlock = mock(Block.class);
         when(world.getBlockAt(root)).thenReturn(originalBlock);
@@ -273,17 +276,23 @@ class WorldEditFurnitureTest extends MechanicTestSupport {
         when(barrierData.get(FurnitureMechanic.BASE_ENTITY_KEY, DataType.UUID)).thenReturn(uuid);
         FurnitureMechanic mechanic = mock(FurnitureMechanic.class);
         when(mechanic.getBaseEntity(originalBlock)).thenReturn(base);
-        when(mechanic.getLocations(anyFloat(), any(Location.class), anyList())).thenReturn(List.of(denied));
+        when(mechanic.getLocations(anyFloat(), any(Location.class), anyList())).thenReturn(List.of(accepted, denied));
         BlockVector3 position = BlockVector3.at(0, 64, 0);
-        BlockVector3 deniedPosition = BlockVector3.at(1, 64, 0);
+        BlockVector3 acceptedPosition = BlockVector3.at(1, 64, 0);
+        BlockVector3 deniedPosition = BlockVector3.at(32, 64, 0);
         BlockState barrierState = BlockTypes.BARRIER.getDefaultState();
         BlockState airState = BlockTypes.AIR.getDefaultState();
         Extent delegate = mock(Extent.class);
         when(delegate.getBlock(position)).thenReturn(barrierState);
         when(delegate.setBlock(position, airState)).thenReturn(true);
+        var original = mock(com.sk89q.worldedit.world.block.BaseBlock.class);
+        when(delegate.getFullBlock(any(BlockVector3.class))).thenReturn(original);
+        when(delegate.setBlock(acceptedPosition, airState)).thenReturn(true);
+        when(delegate.setBlock(any(BlockVector3.class), eq(original))).thenReturn(true);
         when(delegate.setBlock(deniedPosition, airState)).thenReturn(false);
         Extent extent = furnitureExtent(delegate, world);
         AtomicReference<Boolean> entityRegion = new AtomicReference<>(false);
+        AtomicReference<Boolean> blockRegion = new AtomicReference<>(false);
         when(base.getLocation()).thenAnswer(invocation -> {
             assertTrue(entityRegion.get(), "Entity location must only be read on its owning scheduler");
             return root;
@@ -292,14 +301,26 @@ class WorldEditFurnitureTest extends MechanicTestSupport {
              var blocks = mockStatic(BlockHelpers.class);
              var furniture = mockStatic(OraxenFurniture.class);
              var scheduler = mockStatic(SchedulerUtil.class)) {
-            bukkit.when(() -> Bukkit.isOwnedByCurrentRegion(any(Location.class))).thenReturn(true);
+            bukkit.when(() -> Bukkit.isOwnedByCurrentRegion(any(Location.class))).thenAnswer(invocation ->
+                    invocation.<Location>getArgument(0).getBlockX() == 0 || blockRegion.get());
+            scheduler.when(() -> SchedulerUtil.runAtLocation(any(Location.class), any(Runnable.class)))
+                    .thenAnswer(invocation -> {
+                        blockRegion.set(true);
+                        try { invocation.<Runnable>getArgument(1).run(); }
+                        finally { blockRegion.set(false); }
+                        return null;
+                    });
             blocks.when(() -> BlockHelpers.toCenterBlockLocation(root)).thenReturn(root);
-            blocks.when(() -> BlockHelpers.getPDC(deniedBlock)).thenReturn(barrierData);
+            blocks.when(() -> BlockHelpers.getPDC(deniedBlock)).thenAnswer(invocation -> {
+                assertFalse(entityRegion.get(), "Barrier PDC must be read outside the base entity region");
+                assertTrue(blockRegion.get(), "Each barrier PDC read needs its own region");
+                return barrierData;
+            });
             furniture.when(() -> OraxenFurniture.getFurnitureMechanic(originalBlock)).thenReturn(mechanic);
             furniture.when(() -> OraxenFurniture.getFurnitureMechanic(base)).thenReturn(mechanic);
             // The edited block is owned here; the base entity still requires its own scheduler.
             when(world.getBlockAt(any(Location.class))).thenAnswer(invocation ->
-                    invocation.<Location>getArgument(0).equals(denied) ? deniedBlock : originalBlock);
+                    !invocation.<Location>getArgument(0).equals(new Location(world, 0, 64, 0)) ? deniedBlock : originalBlock);
             scheduler.when(() -> SchedulerUtil.runForEntity(eq(base), any(Runnable.class), any(Runnable.class)))
                     .thenAnswer(invocation -> {
                         entityRegion.set(true);
@@ -307,12 +328,51 @@ class WorldEditFurnitureTest extends MechanicTestSupport {
                         finally { entityRegion.set(false); }
                         return mock(SchedulerUtil.ScheduledTask.class);
                     });
-            assertTrue(extent.setBlock(position, BlockTypes.AIR.getDefaultState()));
+            assertFalse(extent.setBlock(position, BlockTypes.AIR.getDefaultState()));
+            verify(delegate).setBlock(position, original);
+            verify(delegate).setBlock(acceptedPosition, original);
+            blocks.verify(() -> BlockHelpers.removePDC(originalBlock), never());
             verify(mechanic, never()).removeNonSolidFurniture(any(Entity.class));
             furniture.verify(() -> OraxenFurniture.remove(base, null), never());
             blocks.verify(() -> BlockHelpers.removePDC(deniedBlock), never());
             verify(deniedBlock, never()).setType(any(Material.class));
             verify(entityData, never()).set(any(NamespacedKey.class), eq(PersistentDataType.BYTE), anyByte());
+        }
+    }
+
+    @Test
+    void furnitureRemovalSchedulesOffsetChildrenBeforeReadingTheirState() throws Exception {
+        org.bukkit.configuration.ConfigurationSection section = mechanicSection("furniture", "type", "DISPLAY_ENTITY");
+        section.set("seats", List.of("32,0,0"));
+        FurnitureMechanic mechanic = new FurnitureMechanic(mechanicFactory(), section);
+        org.bukkit.entity.Entity base = mock(org.bukkit.entity.Entity.class);
+        org.bukkit.entity.ArmorStand seat = mock(org.bukkit.entity.ArmorStand.class);
+        org.bukkit.entity.Interaction interaction = mock(org.bukkit.entity.Interaction.class);
+        var data = mock(org.bukkit.persistence.PersistentDataContainer.class);
+        World world = mock(World.class);
+        when(base.getLocation()).thenReturn(new Location(world, 0.5, 64, 0.5));
+        when(base.getPersistentDataContainer()).thenReturn(data);
+        java.util.UUID seatUuid = java.util.UUID.randomUUID(), interactionUuid = java.util.UUID.randomUUID();
+        when(data.getOrDefault(org.mockito.ArgumentMatchers.eq(FurnitureMechanic.SEATS_KEY), any(), any()))
+                .thenReturn(List.of(seatUuid));
+        when(data.getOrDefault(org.mockito.ArgumentMatchers.eq(FurnitureMechanic.INTERACTIONS_KEY), any(), any()))
+                .thenReturn(List.of(interactionUuid));
+        java.util.List<Runnable> removals = new java.util.ArrayList<>();
+        try (var bukkit = mockStatic(org.bukkit.Bukkit.class);
+             var scheduler = mockStatic(io.th0rgal.oraxen.utils.SchedulerUtil.class)) {
+            bukkit.when(() -> org.bukkit.Bukkit.getEntity(seatUuid)).thenReturn(seat);
+            bukkit.when(() -> org.bukkit.Bukkit.getEntity(interactionUuid)).thenReturn(interaction);
+            scheduler.when(() -> io.th0rgal.oraxen.utils.SchedulerUtil.runOnOwningThread(
+                    any(org.bukkit.entity.Entity.class), any(Runnable.class)))
+                    .thenAnswer(invocation -> { removals.add(invocation.getArgument(1)); return null; });
+            mechanic.removeNonSolidFurniture(base);
+            verify(seat, never()).isDead();
+            verify(seat, never()).getPassengers();
+            verify(interaction, never()).isDead();
+            assertEquals(2, removals.size());
+            removals.forEach(Runnable::run);
+            verify(seat).remove();
+            verify(interaction).remove();
         }
     }
 

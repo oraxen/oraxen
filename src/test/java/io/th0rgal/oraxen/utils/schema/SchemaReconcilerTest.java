@@ -17,6 +17,16 @@ class SchemaReconcilerTest {
     }
 
     @Test
+    void scalarOrObjectScaleKeepsAxisConstraintsInGeneratedSchema() {
+        var scale = MechanicConfigProperty.builder("scale", MechanicConfigProperty.Type.OBJECT_OR_NUMBER)
+                .nested(Map.of("x", MechanicConfigProperty.decimal("x", "X-axis scale", 1.0))).build();
+        JsonObject json = SchemaGenerator.convertPropertyToJson(scale);
+        assertEquals(JsonParser.parseString("[\"object\",\"number\"]"), json.get("type"));
+        assertEquals("number", json.getAsJsonObject("properties").getAsJsonObject("x").get("type").getAsString());
+        assertEquals(1.0, json.getAsJsonObject("properties").getAsJsonObject("x").get("default").getAsDouble());
+    }
+
+    @Test
     void appliesChangesRecursivelyWithoutMovingSurvivors() {
         JsonObject previous = parse("""
                 {"properties":{"z":{"default":false},"removed":{},"a":{}},

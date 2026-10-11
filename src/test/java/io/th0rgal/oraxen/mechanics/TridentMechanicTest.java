@@ -77,6 +77,29 @@ class TridentMechanicTest extends MechanicTestSupport {
     }
 
     @Test
+    void itemReloadDropsOldTridentDefinitionsBeforeReparsing() {
+        try (var manager = mockStatic(MechanicsManager.class);
+             var version = mockStatic(io.th0rgal.oraxen.utils.VersionUtil.class)) {
+            version.when(() -> io.th0rgal.oraxen.utils.VersionUtil.atOrAbove("1.21.4")).thenReturn(true);
+            TridentMechanicFactory factory = new TridentMechanicFactory(
+                    new org.bukkit.configuration.file.YamlConfiguration().createSection("trident"));
+            try {
+                factory.parse(section());
+                assertNotNull(factory.getMechanic("test_item"));
+                factory.clearMechanics();
+                List<VirtualFile> output = new ArrayList<>();
+                factory.onPackGenerated(new OraxenPackGeneratedEvent(output));
+                assertTrue(output.isEmpty());
+                assertNull(factory.getMechanic("test_item"));
+                factory.parse(section());
+                assertNotNull(factory.getMechanic("test_item"));
+            } finally {
+                factory.onUnregister();
+            }
+        }
+    }
+
+    @Test
     void selectsChargingModelOnlyWhileUsingTheHeldItem() {
         ConfigurationSection section = section();
         section.set("appearance.charging-model", "custom:tridents/amethyst_charging.json");

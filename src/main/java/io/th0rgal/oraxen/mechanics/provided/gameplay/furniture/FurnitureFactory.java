@@ -203,11 +203,12 @@ public class FurnitureFactory extends MechanicFactory {
                         "display_transform", MechanicConfigProperty.enumType("display_transform", "Display transform mode",
                                 List.of("NONE", "THIRDPERSON_LEFTHAND", "THIRDPERSON_RIGHTHAND", "FIRSTPERSON_LEFTHAND",
                                         "FIRSTPERSON_RIGHTHAND", "HEAD", "GUI", "GROUND", "FIXED")),
-                        "scale", MechanicConfigProperty.object("scale", "Entity scale; armor stands use a size hint and generated model head scale", Map.of(
+                        "scale", MechanicConfigProperty.builder("scale", MechanicConfigProperty.Type.OBJECT_OR_NUMBER)
+                                .description("Entity scale; armor stands also accept a number for uniform scaling").nested(Map.of(
                                 "x", MechanicConfigProperty.decimal("x", "X-axis scale", 1.0),
                                 "y", MechanicConfigProperty.decimal("y", "Y-axis scale", 1.0),
                                 "z", MechanicConfigProperty.decimal("z", "Z-axis scale", 1.0)
-                        )),
+                        )).build(),
                         "translation", MechanicConfigProperty.object("translation", "Position offset in blocks", Map.of(
                                 "x", MechanicConfigProperty.decimal("x", "X-axis offset", 0.0),
                                 "y", MechanicConfigProperty.decimal("y", "Y-axis offset", 0.0),

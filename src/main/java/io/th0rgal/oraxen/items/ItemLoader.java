@@ -26,10 +26,10 @@ public final class ItemLoader {
 
     public ItemLoader(final ConfigurationSection section) {
         this.section = section;
-        migrator = new ItemMigrator(section);
-
         if (section.isString("template"))
             templateItem = ItemTemplate.getLoaderTemplate(section.getString("template"));
+        migrator = new ItemMigrator(section, templateItem != null
+                ? templateItem.mergeWithTemplateSection().getString("mechanics.furniture.type") : null);
 
         final ConfigurationSection crucibleSection = OraxenYaml.getConfigurationSection(section, "crucible");
         final ConfigurationSection mmoSection = OraxenYaml.getConfigurationSection(section, "mmoitem");

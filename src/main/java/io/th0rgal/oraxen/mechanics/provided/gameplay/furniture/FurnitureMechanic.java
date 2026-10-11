@@ -1262,14 +1262,15 @@ public class FurnitureMechanic extends Mechanic {
         }
 
         for (Interaction interaction : getInteractionEntities(baseEntity))
-            if (!interaction.isDead()) interaction.remove();
+            SchedulerUtil.runOnOwningThread(interaction, () -> {
+                if (!interaction.isDead()) interaction.remove();
+            });
     }
 
     private void removeFurnitureSeat(Location location) {
         ArmorStand seat = getSeat(location);
         if (seat != null) {
-            seat.getPassengers().forEach(seat::removePassenger);
-            if (!seat.isDead()) seat.remove();
+            removeSeatOnOwningThread(seat);
         }
     }
 
@@ -1277,10 +1278,16 @@ public class FurnitureMechanic extends Mechanic {
         for (UUID seatUuid : getSeatUuids(pdc)) {
             Entity seatEntity = Bukkit.getEntity(seatUuid);
             if (seatEntity instanceof ArmorStand seat) {
-                seat.getPassengers().forEach(seat::removePassenger);
-                if (!seat.isDead()) seat.remove();
+                removeSeatOnOwningThread(seat);
             }
         }
+    }
+
+    private static void removeSeatOnOwningThread(ArmorStand seat) {
+        SchedulerUtil.runOnOwningThread(seat, () -> {
+            seat.getPassengers().forEach(seat::removePassenger);
+            if (!seat.isDead()) seat.remove();
+        });
     }
 
     public List<Location> getLocations(float rotation, Location center, List<BlockLocation> relativeCoordinates) {

@@ -1113,10 +1113,15 @@ public class SchemaGenerator {
             case DOUBLE -> "number";
             case BOOLEAN -> "boolean";
             case LIST -> "array";
-            case OBJECT -> "object";
+            case OBJECT, OBJECT_OR_NUMBER -> "object";
             case ENUM -> "string";
         };
-        json.addProperty("type", type);
+        if (prop.type() == MechanicConfigProperty.Type.OBJECT_OR_NUMBER) {
+            JsonArray types = new JsonArray();
+            types.add("object");
+            types.add("number");
+            json.add("type", types);
+        } else json.addProperty("type", type);
 
         if (prop.description() != null) {
             json.addProperty("description", prop.description());

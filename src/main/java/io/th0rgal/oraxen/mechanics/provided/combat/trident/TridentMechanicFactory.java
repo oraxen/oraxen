@@ -69,6 +69,10 @@ public class TridentMechanicFactory extends MechanicFactory implements Listener 
         }
     }
 
+    public void clearMechanics() {
+        mechanics.clear();
+    }
+
     @Override
     public void onUnregister() {
         if (instance == this) instance = null;

@@ -8595,8 +8595,11 @@
           "description": "Furniture entity properties; unsupported properties are ignored",
           "properties": {
             "scale": {
-              "type": "object",
-              "description": "Entity scale; armor stands use a size hint and generated model head scale",
+              "type": [
+                "object",
+                "number"
+              ],
+              "description": "Entity scale; armor stands also accept a number for uniform scaling",
               "properties": {
                 "y": {
                   "type": "number",

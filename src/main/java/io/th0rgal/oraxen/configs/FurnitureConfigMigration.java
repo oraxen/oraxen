@@ -14,6 +14,10 @@ public final class FurnitureConfigMigration {
     private FurnitureConfigMigration() {}
 
     public static boolean migrate(ConfigurationSection item) {
+        return migrate(item, null);
+    }
+
+    public static boolean migrate(ConfigurationSection item, String inheritedType) {
         if (item == null) return false;
         ConfigurationSection mechanics = item.getConfigurationSection("mechanics");
         if (mechanics == null) return false;
@@ -21,21 +25,21 @@ public final class FurnitureConfigMigration {
         if (furniture == null) return false;
 
         boolean updated = false;
-        updated |= migrateLegacyProperties(furniture);
+        updated |= migrateLegacyProperties(furniture, inheritedType);
         updated |= migrateHitbox(furniture);
         updated |= migrateSeat(furniture);
         updated |= migrateLight(furniture);
         return updated;
     }
 
-    private static boolean migrateLegacyProperties(ConfigurationSection furniture) {
+    private static boolean migrateLegacyProperties(ConfigurationSection furniture, String inheritedType) {
         ConfigurationSection displayProperties = furniture.getConfigurationSection("display_entity_properties");
         ConfigurationSection armorStandProperties = furniture.getConfigurationSection("armor_stand_properties");
         if (displayProperties == null && armorStandProperties == null) return false;
 
         ConfigurationSection properties = furniture.getConfigurationSection("properties");
         if (properties == null) properties = furniture.createSection("properties");
-        boolean armorStand = isArmorStand(furniture);
+        boolean armorStand = isArmorStand(furniture, inheritedType);
         // Preserve the section selected by the legacy parser, including missing-axis defaults.
         mergeMissingProperties(properties, armorStand && armorStandProperties != null
                 ? armorStandProperties : displayProperties);
@@ -44,10 +48,10 @@ public final class FurnitureConfigMigration {
         return true;
     }
 
-    private static boolean isArmorStand(ConfigurationSection furniture) {
+    private static boolean isArmorStand(ConfigurationSection furniture, String inheritedType) {
         String defaultType = FurnitureFactory.defaultFurnitureType != null
                 ? FurnitureFactory.defaultFurnitureType.name() : "DISPLAY_ENTITY";
-        return furniture.getString("type", defaultType).equals("ARMOR_STAND");
+        return furniture.getString("type", inheritedType != null ? inheritedType : defaultType).equals("ARMOR_STAND");
     }
 
     private static boolean migrateHitbox(ConfigurationSection furniture) {

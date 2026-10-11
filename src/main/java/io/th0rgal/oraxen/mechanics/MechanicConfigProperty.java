@@ -23,7 +23,7 @@ public record MechanicConfigProperty(
         boolean required,
         @Nullable Map<String, MechanicConfigProperty> nestedProperties) {
     public enum Type {
-        STRING, INTEGER, DOUBLE, BOOLEAN, LIST, OBJECT, ENUM
+        STRING, INTEGER, DOUBLE, BOOLEAN, LIST, OBJECT, OBJECT_OR_NUMBER, ENUM
     }
 
     // Builder for convenient construction

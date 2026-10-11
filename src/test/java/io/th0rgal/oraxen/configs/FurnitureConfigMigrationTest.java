@@ -77,6 +77,24 @@ class FurnitureConfigMigrationTest {
         assertEquals(2.0, furniture.getDouble("properties.scale.x"));
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"ARMOR_STAND", "DISPLAY_ENTITY"})
+    void inheritedTypeSelectsLegacyPropertiesAndExplicitTypeOverridesIt(String inheritedType) {
+        ConfigurationSection item = new YamlConfiguration().createSection("item");
+        ConfigurationSection furniture = item.createSection("mechanics").createSection("furniture");
+        furniture.set("armor_stand_properties.scale", 0.5);
+        furniture.set("display_entity_properties.scale.x", 2.0);
+        FurnitureConfigMigration.migrate(item, inheritedType);
+        if (inheritedType.equals("ARMOR_STAND")) assertEquals(0.5, furniture.getDouble("properties.scale"));
+        else assertEquals(2.0, furniture.getDouble("properties.scale.x"));
+        furniture.set("properties", null);
+        furniture.set("type", "DISPLAY_ENTITY");
+        furniture.set("armor_stand_properties.scale", 0.5);
+        furniture.set("display_entity_properties.scale.x", 2.0);
+        FurnitureConfigMigration.migrate(item, inheritedType);
+        assertEquals(2.0, furniture.getDouble("properties.scale.x"));
+    }
+
     @Test
     void migratesLegacyFurnitureOptions() {
         ConfigurationSection furniture = new YamlConfiguration().createSection("item")
