@@ -505,7 +505,9 @@ public class ConfigsManager {
             return;
 
         String path = "glyphs/" + glyphsFolder.toPath().relativize(file.toPath()).toString().replace('\\', '/');
-        ctx.invalidAscentGlyphs.add("* `" + name + "` in `" + path + "`");
+        MiniMessage miniMessage = MiniMessage.miniMessage();
+        ctx.invalidAscentGlyphs.add("<yellow>- <blue>" + miniMessage.escapeTags(name)
+                + "</blue> in <blue>" + miniMessage.escapeTags(path) + "</blue></yellow>");
     }
 
     private void logInvalidGlyphAscents(GlyphParseContext ctx) {
@@ -515,7 +517,7 @@ public class ConfigsManager {
         Logs.logError("One or more glyphs have an ascent greater than their height, which breaks rendering for all glyphs. "
                 + "To fix this, adjust the following glyphs so that their ascent is less than or equal to their height.");
         for (String glyph : ctx.invalidAscentGlyphs) {
-            Logs.logError(MiniMessage.miniMessage().escapeTags(glyph));
+            Logs.logWarning(glyph);
         }
     }
 

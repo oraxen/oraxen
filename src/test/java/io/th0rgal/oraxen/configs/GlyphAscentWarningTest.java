@@ -67,8 +67,8 @@ class GlyphAscentWarningTest {
                 assertEquals(3, output.glyphs().size());
                 assertEquals(1, output.animatedGlyphs().size());
                 logs.verify(() -> Logs.logError(warning));
-                logs.verify(() -> Logs.logError("* `invalid` in `glyphs/first.yml`"));
-                logs.verify(() -> Logs.logError("* `animated` in `glyphs/nested/second.yml`"));
+                logs.verify(() -> Logs.logWarning("<yellow>- <blue>invalid</blue> in <blue>glyphs/first.yml</blue></yellow>"));
+                logs.verify(() -> Logs.logWarning("<yellow>- <blue>animated</blue> in <blue>glyphs/nested/second.yml</blue></yellow>"));
                 logs.verifyNoMoreInteractions();
                 logs.clearInvocations();
             }
@@ -95,7 +95,7 @@ class GlyphAscentWarningTest {
 
             assertEquals(1, manager.parseGlyphConfigs().size());
             logs.verify(() -> Logs.logError(warning));
-            logs.verify(() -> Logs.logError("* `invalid` in `glyphs/legacy.yml`"));
+            logs.verify(() -> Logs.logWarning("<yellow>- <blue>invalid</blue> in <blue>glyphs/legacy.yml</blue></yellow>"));
             logs.verifyNoMoreInteractions();
         }
     }
