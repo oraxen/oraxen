@@ -54,6 +54,7 @@ public class CommandsManager {
                         (new VersionCommand()).getVersionCommand(),
                         (new AdminCommand()).getAdminCommand(),
                         (new SchemaCommand()).getSchemaCommand(),
+                        (new StudioCommand()).getStudioCommand(),
                         (new RemoveBrandingCommand()).getRemoveBrandingCommand(),
                         (new RemoveDefaultsCommand()).getRemoveDefaultsCommand())
                 .executes((sender, args) -> {
@@ -131,6 +132,7 @@ public class CommandsManager {
         sender.sendPlainMessage("/oraxen inventory - Open the item browser");
         sender.sendPlainMessage("/oraxen give <player> <item> [amount] - Give an Oraxen item");
         sender.sendPlainMessage("/oraxen pack <send|msg|extract_default> - Manage the resource pack");
+        sender.sendPlainMessage("/oraxen studio <connect|status|pull|push|disconnect> - Sync with Oraxen Studio");
         sender.sendPlainMessage("/oraxen reload - Reload Oraxen");
         sender.sendPlainMessage("/oraxen info <item|glyph|block> <id|all> - Show Oraxen info");
         sender.sendPlainMessage("/oraxen version - Show version information");

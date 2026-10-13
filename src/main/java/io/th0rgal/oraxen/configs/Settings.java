@@ -146,7 +146,12 @@ public enum Settings {
     ORAXEN_INV_TITLE("inventory-menu.title"),
     ORAXEN_INV_NEXT_ICON("inventory-menu.next_page_icon"),
     ORAXEN_INV_PREVIOUS_ICON("inventory-menu.previous_page_icon"),
-    ORAXEN_INV_EXIT("inventory-menu.exit_icon");
+    ORAXEN_INV_EXIT("inventory-menu.exit_icon"),
+
+    // Studio
+    STUDIO_URL("Studio.url"),
+    STUDIO_SECRET("Studio.secret"),
+    STUDIO_AUTO_SYNC("Studio.auto_sync");
 
     private final String path;
 
