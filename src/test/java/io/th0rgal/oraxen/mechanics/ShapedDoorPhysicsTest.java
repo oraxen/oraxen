@@ -52,8 +52,8 @@ class ShapedDoorPhysicsTest extends MechanicTestSupport {
     }
 
     @ParameterizedTest
-    @ValueSource(booleans = {false, true})
-    void unsupportedDoorRemovesBothHalvesAndDropsOnce(boolean supportEvent) {
+    @ValueSource(ints = {0, 1, 2})
+    void unsupportedDoorRemovesBothHalvesAndDropsOnce(int eventSource) {
         Block lower = mock(Block.class);
         Block upper = mock(Block.class);
         Block support = mock(Block.class);
@@ -65,6 +65,7 @@ class ShapedDoorPhysicsTest extends MechanicTestSupport {
         when(lower.getRelative(BlockFace.UP)).thenReturn(upper);
         when(upper.getBlockData()).thenReturn(upperData);
         when(upperData.getHalf()).thenReturn(Bisected.Half.TOP);
+        when(upper.getRelative(BlockFace.DOWN)).thenReturn(lower);
         when(support.getBlockData()).thenReturn(mock(BlockData.class));
         when(support.getRelative(BlockFace.UP)).thenReturn(lower);
         when(lower.getLocation()).thenReturn(location);
@@ -79,7 +80,12 @@ class ShapedDoorPhysicsTest extends MechanicTestSupport {
         when(mechanic.getDrop(any())).thenReturn(drop);
         PersistentDataContainer lowerPdc = mock(PersistentDataContainer.class);
         PersistentDataContainer upperPdc = mock(PersistentDataContainer.class);
-        BlockPhysicsEvent event = new BlockPhysicsEvent(supportEvent ? support : lower, lowerData);
+        Block eventBlock = switch (eventSource) {
+            case 1 -> support;
+            case 2 -> upper;
+            default -> lower;
+        };
+        BlockPhysicsEvent event = new BlockPhysicsEvent(eventBlock, lowerData);
 
         try (MockedStatic<OraxenBlocks> blocks = mockStatic(OraxenBlocks.class, CALLS_REAL_METHODS);
              MockedStatic<BlockHelpers> helpers = mockStatic(BlockHelpers.class)) {
@@ -91,7 +97,7 @@ class ShapedDoorPhysicsTest extends MechanicTestSupport {
             new ShapedBlockMechanicListener(factory).onCustomDoorPhysics(event);
         }
 
-        assertEquals(!supportEvent, event.isCancelled());
+        assertEquals(eventSource != 1, event.isCancelled());
         verify(drop).spawns(eq(location), any());
         verify(upper).setType(Material.AIR, false);
         verify(upper, never()).setType(Material.AIR);

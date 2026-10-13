@@ -130,6 +130,9 @@ public class UploadManager {
 
     public void unregister() {
         cancelled = true;
+        if (hostingProvider instanceof io.th0rgal.oraxen.pack.upload.hosts.SelfHost selfHost) {
+            selfHost.stopServer();
+        }
         if (packSender != null) {
             packSender.unregister();
             packSender = null;

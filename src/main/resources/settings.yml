@@ -33,7 +33,7 @@ ConfigsTools:
   error_item:
     material: PODZOL
     excludeFromInventory: false # set to true if you don't want to display it inside inventory
-    injectID: false
+    injectId: false
 
 Glyphs:
   emoji_list_permission_only: true # will only show emojis player has permission to use if set to true

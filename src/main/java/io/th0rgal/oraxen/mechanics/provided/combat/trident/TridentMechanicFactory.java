@@ -99,6 +99,8 @@ public class TridentMechanicFactory extends MechanicFactory implements Listener 
             TridentMechanic mechanic = getMechanic(itemId);
             addDefinition(event.getOutput(), "oraxen", itemId, mechanic.modelDefinition(false).toString());
             addDefinition(event.getOutput(), mechanic.getThrownItemModel().getNamespace(),
+                    itemId + "_held", mechanic.modelDefinition(false).toString());
+            addDefinition(event.getOutput(), mechanic.getThrownItemModel().getNamespace(),
                     mechanic.getThrownItemModel().getKey(), mechanic.modelDefinition(true).toString());
         }
     }

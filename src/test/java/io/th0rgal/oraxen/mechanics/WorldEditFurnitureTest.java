@@ -41,6 +41,8 @@ import java.util.Set;
 import java.util.List;
 import java.util.UUID;
 import org.bukkit.entity.Entity;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text.FurnitureTextEntry;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text.FurnitureTextPacketBridge;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text.FurnitureTextRegistry;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -384,22 +386,31 @@ class WorldEditFurnitureTest extends MechanicTestSupport {
         PersistentDataContainer data = mock(PersistentDataContainer.class);
         when(base.getPersistentDataContainer()).thenReturn(data);
         when(base.isDead()).thenReturn(true);
-        when(base.getUniqueId()).thenReturn(UUID.randomUUID());
+        UUID baseId = UUID.randomUUID();
+        when(base.getUniqueId()).thenReturn(baseId);
+        when(base.getEntityId()).thenReturn(42);
         when(data.has(new NamespacedKey(OraxenPlugin.get(), "worldedit_restored"), PersistentDataType.BYTE)).thenReturn(true);
         UUID seatId = UUID.randomUUID(), interactionId = UUID.randomUUID();
         when(data.getOrDefault(eq(FurnitureMechanic.SEATS_KEY), any(), any())).thenReturn(List.of(seatId));
         when(data.getOrDefault(eq(FurnitureMechanic.INTERACTIONS_KEY), any(), any())).thenReturn(List.of(interactionId));
+        FurnitureTextEntry textEntry = mock(FurnitureTextEntry.class);
+        when(textEntry.getBaseEntityId()).thenReturn(42);
         try (var bukkit = mockStatic(Bukkit.class);
              var scheduler = mockStatic(SchedulerUtil.class);
-             var texts = mockStatic(FurnitureTextRegistry.class)) {
+             var texts = mockStatic(FurnitureTextRegistry.class);
+             var textBridge = mockStatic(FurnitureTextPacketBridge.class)) {
             bukkit.when(() -> Bukkit.getEntity(seatId)).thenReturn(seat);
             bukkit.when(() -> Bukkit.getEntity(interactionId)).thenReturn(interaction);
+            texts.when(() -> FurnitureTextRegistry.byUuid(baseId)).thenReturn(textEntry);
             scheduler.when(() -> SchedulerUtil.runOnOwningThread(any(Entity.class), any(Runnable.class)))
                     .thenAnswer(invocation -> { invocation.<Runnable>getArgument(1).run(); return null; });
+            scheduler.when(() -> SchedulerUtil.runTask(any(Runnable.class)))
+                    .thenAnswer(invocation -> { invocation.<Runnable>getArgument(0).run(); return null; });
             new WorldEditFurniture().onRestoredEntityRemoval(new EntityRemoveFromWorldEvent(base, mock(World.class)));
             verify(seat).remove();
             verify(interaction).remove();
             verify(base, never()).remove();
+            textBridge.verify(() -> FurnitureTextPacketBridge.destroyAndUnregister(baseId));
         }
     }
 

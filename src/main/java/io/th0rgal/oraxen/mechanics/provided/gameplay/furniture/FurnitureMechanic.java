@@ -1251,7 +1251,13 @@ public class FurnitureMechanic extends Mechanic {
         int baseEntityId = baseEntity.getEntityId();
         removeSubEntitiesOfFurniture(baseEntity);
         if (!baseEntity.isDead()) baseEntity.remove();
-        SchedulerUtil.runTask(() -> FurnitureTextRegistry.unregister(baseUuid, baseEntityId));
+        SchedulerUtil.runTask(() -> {
+            FurnitureTextEntry entry = FurnitureTextRegistry.byUuid(baseUuid);
+            if (entry != null && entry.getBaseEntityId() == baseEntityId)
+                FurnitureTextPacketBridge.destroyAndUnregister(baseUuid);
+            else
+                FurnitureTextRegistry.unregister(baseUuid, baseEntityId);
+        });
     }
 
     private void removeSubEntitiesOfFurniture(Entity baseEntity) {
@@ -1703,6 +1709,10 @@ public class FurnitureMechanic extends Mechanic {
             }
         }
         return factory != null ? factory.getMechanic(getItemID()) : null;
+    }
+
+    public void removeBarrierLight(Block block) {
+        removeLight(block);
     }
 
     private void removeLight(Block block) {

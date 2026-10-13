@@ -96,6 +96,11 @@ class SelfHostTest {
         assertArrayEquals(hash, provider.getSHA1());
         assertEquals(uuid, provider.getPackUUID());
         assertArrayEquals(replacement, download());
+
+        provider.stopServer();
+        assertNull(provider.getPackURL());
+        assertNull(provider.getSHA1());
+        assertNull(provider.getPackUUID());
     }
 
     @Test

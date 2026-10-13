@@ -24,6 +24,7 @@ import com.sk89q.worldedit.world.block.BlockTypes;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text.FurnitureTextEntry;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text.FurnitureTextRegistry;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text.FurnitureTextPacketBridge;
 import io.th0rgal.oraxen.utils.BlockHelpers;
@@ -155,9 +156,15 @@ public final class WorldEditFurniture implements Listener {
                 if (!child.isDead()) child.remove();
             });
         }
-        UUID uuid = entity.getUniqueId();
-        int id = entity.getEntityId();
-        SchedulerUtil.runTask(() -> FurnitureTextRegistry.unregister(uuid, id));
+            UUID uuid = entity.getUniqueId();
+            int id = entity.getEntityId();
+            SchedulerUtil.runTask(() -> {
+                FurnitureTextEntry entry = FurnitureTextRegistry.byUuid(uuid);
+                if (entry != null && entry.getBaseEntityId() == id)
+                    FurnitureTextPacketBridge.destroyAndUnregister(uuid);
+                else
+                    FurnitureTextRegistry.unregister(uuid, id);
+            });
     }
 
     private static <T> T atEntity(Entity entity, Supplier<T> action) {
@@ -315,7 +322,7 @@ public final class WorldEditFurniture implements Listener {
             return setBlock(BlockVector3.at(x, y, z), block);
         }
 
-        private record FurnitureRemoval(UUID uuid, List<Location> barriers) {}
+            private record FurnitureRemoval(UUID uuid, FurnitureMechanic mechanic, List<Location> barriers) {}
 
         private void rollback(List<BlockVector3> changed, Map<BlockVector3, BaseBlock> originals)
                 throws WorldEditException {
@@ -353,10 +360,17 @@ public final class WorldEditFurniture implements Listener {
                         && baseEntity instanceof ItemDisplay display
                         && display.getItemDisplayTransform() == ItemDisplay.ItemDisplayTransform.FIXED
                         && baseEntity.getLocation().getPitch() == 90f) yaw += 180;
-                return new FurnitureRemoval(baseEntity.getUniqueId(),
+                return new FurnitureRemoval(baseEntity.getUniqueId(), mechanic,
                         mechanic.getLocations(yaw, root, mechanic.getBarriers(baseEntity)));
             });
-            if (removal == null) return false;
+            if (removal == null) {
+                boolean cleared = extent.setBlock(position, block);
+                if (cleared) atLocation(location, () -> {
+                    BlockHelpers.removePDC(location.getBlock());
+                    return null;
+                });
+                return cleared;
+            }
             List<Location> barriers = new ArrayList<>();
             for (Location barrier : removal.barriers()) {
                 boolean owned = atLocation(barrier, () -> removal.uuid().equals(
@@ -392,11 +406,15 @@ public final class WorldEditFurniture implements Listener {
             }
             // Keep every barrier's ownership data until all writes have succeeded.
             for (Location barrier : barriers) atLocation(barrier, () -> {
-                BlockHelpers.removePDC(barrier.getBlock());
+                Block barrierBlock = barrier.getBlock();
+                BlockHelpers.removePDC(barrierBlock);
+                removal.mechanic().removeBarrierLight(barrierBlock);
                 return null;
             });
             atLocation(location, () -> {
-                BlockHelpers.removePDC(location.getBlock());
+                Block originBlock = location.getBlock();
+                BlockHelpers.removePDC(originBlock);
+                removal.mechanic().removeBarrierLight(originBlock);
                 return null;
             });
             atEntity(baseEntity, () -> {

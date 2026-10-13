@@ -129,9 +129,12 @@ class ItemLoaderTest {
     @Test
     void legacyFurnitureMigrationUsesTemplateTypeBeforeSavingTheChild() {
         YamlConfiguration config = new YamlConfiguration();
+        ConfigurationSection grandparent = config.createSection("grandparent");
+        grandparent.set("material", "PAPER");
+        grandparent.set("Mechanics.furniture.type", "ARMOR_STAND");
+        ItemTemplate.register(grandparent);
         ConfigurationSection template = config.createSection("base");
-        template.set("material", "PAPER");
-        template.set("mechanics.furniture.type", "ARMOR_STAND");
+        template.set("template", "grandparent");
         ItemTemplate.register(template);
         ConfigurationSection child = config.createSection("child");
         child.set("template", "base");

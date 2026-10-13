@@ -104,7 +104,8 @@ public class SelfHost implements HostingProvider {
         }
     }
 
-    private void stopServer() {
+    public synchronized void stopServer() {
+        hostedPack = null;
         if (httpServer != null) {
             httpServer.stop(0);
             httpServer = null;
