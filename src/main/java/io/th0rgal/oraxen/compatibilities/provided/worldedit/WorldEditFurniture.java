@@ -227,23 +227,26 @@ public final class WorldEditFurniture implements Listener {
                 if (history != null) return history;
             }
             for (String method : List.of("getChangeSet", "getProcessor", "getPostProcessor", "getBatchProcessors")) {
-                try {
-                    Object value = object.getClass().getMethod(method).invoke(object);
-                    if (value instanceof Iterable<?> values) {
-                        for (Object child : values) {
-                            ChangeSet history = findHistory(child, visited);
-                            if (history != null) return history;
-                        }
-                    } else {
-                        ChangeSet history = findHistory(value, visited);
-                        if (history != null) return history;
-                    }
-                } catch (NoSuchMethodException ignored) {
-                } catch (ReflectiveOperationException error) {
-                    throw new IllegalStateException("Could not access WorldEdit history", error);
-                }
+                ChangeSet history = findHistoryFromProperty(object, method, visited);
+                if (history != null) return history;
             }
             return null;
+        }
+
+        private static ChangeSet findHistoryFromProperty(Object object, String method, Set<Object> visited) {
+            try {
+                Object value = object.getClass().getMethod(method).invoke(object);
+                if (!(value instanceof Iterable<?> values)) return findHistory(value, visited);
+                for (Object child : values) {
+                    ChangeSet history = findHistory(child, visited);
+                    if (history != null) return history;
+                }
+                return null;
+            } catch (NoSuchMethodException ignored) {
+                return null;
+            } catch (ReflectiveOperationException error) {
+                throw new IllegalStateException("Could not access WorldEdit history", error);
+            }
         }
 
         private FurnitureExtent(Extent extent, World world) {
@@ -322,7 +325,7 @@ public final class WorldEditFurniture implements Listener {
             return setBlock(BlockVector3.at(x, y, z), block);
         }
 
-            private record FurnitureRemoval(UUID uuid, FurnitureMechanic mechanic, List<Location> barriers) {}
+        private record FurnitureRemoval(UUID uuid, FurnitureMechanic mechanic, List<Location> barriers) {}
 
         private void rollback(List<BlockVector3> changed, Map<BlockVector3, BaseBlock> originals)
                 throws WorldEditException {
@@ -343,40 +346,73 @@ public final class WorldEditFurniture implements Listener {
             Location location = new Location(world, position.x(), position.y(), position.z());
             if (!Bukkit.isOwnedByCurrentRegion(location) && !mayContainFurniture(position, location))
                 return extent.setBlock(position, block);
-            Entity baseEntity = atLocation(location, () -> {
+            Entity baseEntity = findBaseEntity(location);
+            if (baseEntity == null) return extent.setBlock(position, block);
+
+            FurnitureRemoval removal = describeRemoval(baseEntity);
+            if (removal == null) return clearOrphanBarrier(position, location, block);
+
+            List<Location> barriers = ownedBarriers(removal);
+            if (!replaceBarriers(position, block, barriers)) return false;
+
+            clearBarrierData(location, barriers, removal.mechanic());
+            recordAndRemoveBaseEntity(baseEntity);
+            return true;
+        }
+
+        private Entity findBaseEntity(Location location) {
+            return atLocation(location, () -> {
                 Block barrier = location.getBlock();
                 FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(barrier);
                 return mechanic == null ? null : mechanic.getBaseEntity(barrier);
             });
-            if (baseEntity == null) return extent.setBlock(position, block);
+        }
 
-            FurnitureRemoval removal = atEntity(baseEntity, () -> {
+        private FurnitureRemoval describeRemoval(Entity baseEntity) {
+            return atEntity(baseEntity, () -> {
                 if (!baseEntity.isValid()) return null;
                 FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
                 if (mechanic == null) return null;
                 Location root = BlockHelpers.toCenterBlockLocation(baseEntity.getLocation());
-                float yaw = FurnitureMechanic.getFurnitureYaw(baseEntity);
-                if (mechanic.hasLimitedPlacing() && mechanic.getLimitedPlacing().isRoof()
-                        && baseEntity instanceof ItemDisplay display
-                        && display.getItemDisplayTransform() == ItemDisplay.ItemDisplayTransform.FIXED
-                        && baseEntity.getLocation().getPitch() == 90f) yaw += 180;
+                float yaw = placementYawForBarriers(baseEntity, mechanic);
                 return new FurnitureRemoval(baseEntity.getUniqueId(), mechanic,
                         mechanic.getLocations(yaw, root, mechanic.getBarriers(baseEntity)));
             });
-            if (removal == null) {
-                boolean cleared = extent.setBlock(position, block);
-                if (cleared) atLocation(location, () -> {
-                    BlockHelpers.removePDC(location.getBlock());
-                    return null;
-                });
-                return cleared;
+        }
+
+        private static float placementYawForBarriers(Entity baseEntity, FurnitureMechanic mechanic) {
+            float yaw = FurnitureMechanic.getFurnitureYaw(baseEntity);
+            if (mechanic.hasLimitedPlacing() && mechanic.getLimitedPlacing().isRoof()
+                    && baseEntity instanceof ItemDisplay display
+                    && display.getItemDisplayTransform() == ItemDisplay.ItemDisplayTransform.FIXED
+                    && baseEntity.getLocation().getPitch() == 90f) {
+                return yaw + 180;
             }
+            return yaw;
+        }
+
+        private <T extends BlockStateHolder<T>> boolean clearOrphanBarrier(BlockVector3 position, Location location, T block)
+                throws WorldEditException {
+            boolean cleared = extent.setBlock(position, block);
+            if (cleared) atLocation(location, () -> {
+                BlockHelpers.removePDC(location.getBlock());
+                return null;
+            });
+            return cleared;
+        }
+
+        private List<Location> ownedBarriers(FurnitureRemoval removal) {
             List<Location> barriers = new ArrayList<>();
             for (Location barrier : removal.barriers()) {
                 boolean owned = atLocation(barrier, () -> removal.uuid().equals(
                         BlockHelpers.getPDC(barrier.getBlock()).get(BASE_ENTITY_KEY, DataType.UUID)));
                 if (owned) barriers.add(barrier);
             }
+            return barriers;
+        }
+
+        private <T extends BlockStateHolder<T>> boolean replaceBarriers(BlockVector3 position, T block, List<Location> barriers)
+                throws WorldEditException {
             Map<BlockVector3, BaseBlock> originals = new LinkedHashMap<>();
             originals.put(position, extent.getFullBlock(position));
             for (Location barrier : barriers) {
@@ -404,56 +440,71 @@ public final class WorldEditFurniture implements Listener {
                 rollback(changed, originals);
                 return false;
             }
+            return true;
+        }
+
+        private void clearBarrierData(Location location, List<Location> barriers, FurnitureMechanic mechanic) {
             // Keep every barrier's ownership data until all writes have succeeded.
-            for (Location barrier : barriers) atLocation(barrier, () -> {
-                Block barrierBlock = barrier.getBlock();
+            for (Location barrier : barriers) clearSingleBarrierData(barrier, mechanic);
+            clearSingleBarrierData(location, mechanic);
+        }
+
+        private void clearSingleBarrierData(Location barrierLocation, FurnitureMechanic mechanic) {
+            atLocation(barrierLocation, () -> {
+                Block barrierBlock = barrierLocation.getBlock();
                 BlockHelpers.removePDC(barrierBlock);
-                removal.mechanic().removeBarrierLight(barrierBlock);
+                mechanic.removeBarrierLight(barrierBlock);
                 return null;
             });
-            atLocation(location, () -> {
-                Block originBlock = location.getBlock();
-                BlockHelpers.removePDC(originBlock);
-                removal.mechanic().removeBarrierLight(originBlock);
-                return null;
-            });
+        }
+
+        private void recordAndRemoveBaseEntity(Entity baseEntity) {
             atEntity(baseEntity, () -> {
                 if (!baseEntity.isValid()) return null;
                 FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
                 if (mechanic == null) return null;
                 // Store the model and PDC in the same history as its barriers.
                 baseEntity.getPersistentDataContainer().set(restoreKey, PersistentDataType.BYTE, (byte) 1);
-                var entityState = BukkitAdapter.adapt(baseEntity).getState();
-                var snapshot = entityState.getNbt();
-                Location entityLocation = baseEntity.getLocation();
-                BlockVector3 entityPosition = BlockVector3.at(entityLocation.getX(), entityLocation.getY(), entityLocation.getZ());
-                // FAWE stores history in batch processors, whose entity lookups
-                // do not include the world's live furniture entities.
-                ChangeSet history = PluginUtils.isEnabled("FastAsyncWorldEdit")
-                        ? findHistory(extent, Collections.newSetFromMap(new IdentityHashMap<>())) : null;
-                var entities = history == null ? extent.getEntities(new CuboidRegion(entityPosition, entityPosition)) : List.<com.sk89q.worldedit.entity.Entity>of();
-                var tracked = entities.stream()
-                        .filter(entity -> entity.getState() != null && entity.getState().getNbt() != null
-                                && snapshot != null && snapshot.value().get("UUID") != null
-                                && Objects.equals(snapshot.value().get("UUID"), entity.getState().getNbt().value().get("UUID")))
-                        .findFirst().orElse(null);
-
-                if (history != null) {
-                    try {
-                        history.getClass().getMethod("addEntityRemove", com.sk89q.jnbt.CompoundTag.class)
-                                .invoke(history, entityState.getNbtData());
-                    } catch (ReflectiveOperationException error) {
-                        throw new IllegalStateException("Could not record FAWE furniture removal", error);
-                    }
-                }
-                else if (tracked != null) tracked.remove();
+                recordEntityRemovalInHistory(baseEntity);
                 baseEntity.getPersistentDataContainer().remove(restoreKey);
                 // WorldEdit alone changes barriers, so denied positions and fallback
                 // recovery blocks are never cleared directly through Bukkit.
                 mechanic.removeNonSolidFurniture(baseEntity);
                 return null;
             });
-            return true;
+        }
+
+        private void recordEntityRemovalInHistory(Entity baseEntity) {
+            var entityState = BukkitAdapter.adapt(baseEntity).getState();
+            var snapshot = entityState.getNbt();
+            Object uuid = snapshot != null ? snapshot.value().get("UUID") : null;
+            Location entityLocation = baseEntity.getLocation();
+            BlockVector3 entityPosition = BlockVector3.at(entityLocation.getX(), entityLocation.getY(), entityLocation.getZ());
+            // FAWE stores history in batch processors, whose entity lookups
+            // do not include the world's live furniture entities.
+            ChangeSet history = PluginUtils.isEnabled("FastAsyncWorldEdit")
+                    ? findHistory(extent, Collections.newSetFromMap(new IdentityHashMap<>())) : null;
+            if (history != null) {
+                try {
+                    history.getClass().getMethod("addEntityRemove", com.sk89q.jnbt.CompoundTag.class)
+                            .invoke(history, entityState.getNbtData());
+                } catch (ReflectiveOperationException error) {
+                    throw new IllegalStateException("Could not record FAWE furniture removal", error);
+                }
+                return;
+            }
+            for (var entity : extent.getEntities(new CuboidRegion(entityPosition, entityPosition))) {
+                if (matchesSnapshotUuid(entity, uuid)) {
+                    entity.remove();
+                    break;
+                }
+            }
+        }
+
+        private static boolean matchesSnapshotUuid(com.sk89q.worldedit.entity.Entity entity, Object uuid) {
+            return uuid != null
+                    && entity.getState() != null && entity.getState().getNbt() != null
+                    && Objects.equals(uuid, entity.getState().getNbt().value().get("UUID"));
         }
     }
 }

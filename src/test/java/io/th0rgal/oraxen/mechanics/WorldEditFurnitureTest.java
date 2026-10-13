@@ -366,7 +366,10 @@ class WorldEditFurnitureTest extends MechanicTestSupport {
             bukkit.when(() -> org.bukkit.Bukkit.getEntity(interactionUuid)).thenReturn(interaction);
             scheduler.when(() -> io.th0rgal.oraxen.utils.SchedulerUtil.runOnOwningThread(
                     any(org.bukkit.entity.Entity.class), any(Runnable.class)))
-                    .thenAnswer(invocation -> { removals.add(invocation.getArgument(1)); return null; });
+                    .thenAnswer(invocation -> {
+                        removals.add(invocation.getArgument(1));
+                        return null;
+                    });
             mechanic.removeNonSolidFurniture(base);
             verify(seat, never()).isDead();
             verify(seat, never()).getPassengers();
@@ -403,9 +406,15 @@ class WorldEditFurnitureTest extends MechanicTestSupport {
             bukkit.when(() -> Bukkit.getEntity(interactionId)).thenReturn(interaction);
             texts.when(() -> FurnitureTextRegistry.byUuid(baseId)).thenReturn(textEntry);
             scheduler.when(() -> SchedulerUtil.runOnOwningThread(any(Entity.class), any(Runnable.class)))
-                    .thenAnswer(invocation -> { invocation.<Runnable>getArgument(1).run(); return null; });
+                    .thenAnswer(invocation -> {
+                        invocation.<Runnable>getArgument(1).run();
+                        return null;
+                    });
             scheduler.when(() -> SchedulerUtil.runTask(any(Runnable.class)))
-                    .thenAnswer(invocation -> { invocation.<Runnable>getArgument(0).run(); return null; });
+                    .thenAnswer(invocation -> {
+                        invocation.<Runnable>getArgument(0).run();
+                        return null;
+                    });
             new WorldEditFurniture().onRestoredEntityRemoval(new EntityRemoveFromWorldEvent(base, mock(World.class)));
             verify(seat).remove();
             verify(interaction).remove();

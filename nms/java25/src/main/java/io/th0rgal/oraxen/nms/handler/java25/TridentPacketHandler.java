@@ -146,73 +146,98 @@ final class TridentPacketHandler implements Listener {
 
         Object transform(Object packet) throws ReflectiveOperationException {
             if (tridents.isEmpty() && tracked.isEmpty()) return packet;
-            if (packet instanceof ClientboundBundlePacket bundle) {
-                List<Packet<? super ClientGamePacketListener>> packets = new ArrayList<>();
-                boolean changed = false;
-                Set<Integer> previousTracked = new HashSet<>(tracked);
-                try {
-                    for (var nested : bundle.subPackets()) {
-                        Object converted = transform(nested);
-                        changed |= converted != nested;
-                        if (converted instanceof ClientboundBundlePacket expanded) {
-                            expanded.subPackets().forEach(packets::add);
-                        } else packets.add((Packet<? super ClientGamePacketListener>) converted);
-                    }
-                    return changed ? new ClientboundBundlePacket(packets) : packet;
-                } catch (ReflectiveOperationException | LinkageError exception) {
-                    tracked.clear();
-                    tracked.addAll(previousTracked);
-                    throw exception;
+            if (packet instanceof ClientboundBundlePacket bundle) return transformBundle(bundle);
+            if (packet instanceof ClientboundAddEntityPacket spawn) return transformSpawn(spawn);
+            if (packet instanceof ClientboundSetEntityDataPacket metadata) return transformMetadata(metadata);
+            if (packet instanceof ClientboundMoveEntityPacket move) return transformMove(move);
+            if (packet instanceof ClientboundEntityPositionSyncPacket position) return transformPositionSync(position);
+            if (packet instanceof ClientboundSoundEntityPacket sound) return transformEntitySound(sound);
+            if (packet instanceof ClientboundSoundPacket sound) return transformSound(sound);
+            if (packet instanceof ClientboundRemoveEntitiesPacket remove) return transformRemoval(remove);
+            return packet;
+        }
+
+        @SuppressWarnings("unchecked")
+        private Object transformBundle(ClientboundBundlePacket bundle) throws ReflectiveOperationException {
+            List<Packet<? super ClientGamePacketListener>> packets = new ArrayList<>();
+            boolean changed = false;
+            Set<Integer> previousTracked = new HashSet<>(tracked);
+            try {
+                for (var nested : bundle.subPackets()) {
+                    Object converted = transform(nested);
+                    changed |= converted != nested;
+                    if (converted instanceof ClientboundBundlePacket expanded) {
+                        expanded.subPackets().forEach(packets::add);
+                    } else packets.add((Packet<? super ClientGamePacketListener>) converted);
                 }
+                return changed ? new ClientboundBundlePacket(packets) : bundle;
+            } catch (ReflectiveOperationException | LinkageError exception) {
+                tracked.clear();
+                tracked.addAll(previousTracked);
+                throw exception;
             }
-            if (packet instanceof ClientboundAddEntityPacket spawn) {
-                RenderData data = tridents.get(spawn.getId());
-                if (data == null || !data.uuid.equals(spawn.getUUID())) return packet;
-                var converted = new ClientboundAddEntityPacket(spawn.getId(), spawn.getUUID(),
-                        spawn.getX(), spawn.getY(), spawn.getZ(), Math.clamp(-spawn.getXRot(), -90.0F, 90.0F),
-                        -spawn.getYRot(), TridentNativeAccess.itemDisplay, 0, TridentNativeAccess.movement(spawn), -spawn.getYHeadRot());
-                var result = new ClientboundBundlePacket(List.of(converted,
-                        new ClientboundSetEntityDataPacket(spawn.getId(), data.metadata)));
-                tracked.add(spawn.getId());
-                return result;
-            }
-            if (packet instanceof ClientboundSetEntityDataPacket metadata && tracked.contains(metadata.id())) {
-                RenderData data = tridents.get(metadata.id());
-                if (data != null) return new ClientboundSetEntityDataPacket(metadata.id(), data.metadata);
-            }
-            if (packet instanceof ClientboundMoveEntityPacket move && move.hasRotation() && !tracked.isEmpty()) {
-                int id = TridentPacketRotation.entityId(move);
-                if (tracked.contains(id)) return TridentPacketRotation.move(move, id, TridentNativeAccess.yaw(move), TridentNativeAccess.pitch(move), move.isOnGround());
-            }
-            if (packet instanceof ClientboundEntityPositionSyncPacket position && tracked.contains(position.id())) {
-                return TridentPacketRotation.positionSync(position);
-            }
-            if (packet instanceof ClientboundSoundEntityPacket sound) {
-                RenderData data = tridents.get(sound.getId());
-                if (data == null) return packet;
-                String replacement = data.mechanic.soundFor(TridentNativeAccess.soundPath(sound.getSound().value()));
+        }
+
+        private Object transformSpawn(ClientboundAddEntityPacket spawn) throws ReflectiveOperationException {
+            RenderData data = tridents.get(spawn.getId());
+            if (data == null || !data.uuid.equals(spawn.getUUID())) return spawn;
+            var converted = new ClientboundAddEntityPacket(spawn.getId(), spawn.getUUID(),
+                    spawn.getX(), spawn.getY(), spawn.getZ(), Math.clamp(-spawn.getXRot(), -90.0F, 90.0F),
+                    -spawn.getYRot(), TridentNativeAccess.itemDisplay, 0, TridentNativeAccess.movement(spawn), -spawn.getYHeadRot());
+            tracked.add(spawn.getId());
+            return new ClientboundBundlePacket(List.of(converted,
+                    new ClientboundSetEntityDataPacket(spawn.getId(), data.metadata)));
+        }
+
+        private Object transformMetadata(ClientboundSetEntityDataPacket metadata) {
+            if (!tracked.contains(metadata.id())) return metadata;
+            RenderData data = tridents.get(metadata.id());
+            return data != null ? new ClientboundSetEntityDataPacket(metadata.id(), data.metadata) : metadata;
+        }
+
+        private Object transformMove(ClientboundMoveEntityPacket move) throws ReflectiveOperationException {
+            if (!move.hasRotation() || tracked.isEmpty()) return move;
+            int id = TridentPacketRotation.entityId(move);
+            return tracked.contains(id)
+                    ? TridentPacketRotation.move(move, id, TridentNativeAccess.yaw(move), TridentNativeAccess.pitch(move), move.isOnGround())
+                    : move;
+        }
+
+        private Object transformPositionSync(ClientboundEntityPositionSyncPacket position) throws ReflectiveOperationException {
+            return tracked.contains(position.id()) ? TridentPacketRotation.positionSync(position) : position;
+        }
+
+        private Object transformEntitySound(ClientboundSoundEntityPacket sound) throws ReflectiveOperationException {
+            RenderData data = tridents.get(sound.getId());
+            if (data == null) return sound;
+            String replacement = data.mechanic.soundFor(TridentNativeAccess.soundPath(sound.getSound().value()));
+            return replacement != null
+                    ? new ClientboundSoundEntityPacket(sound(replacement), sound.getSource(), data.soundEntity,
+                    sound.getVolume(), sound.getPitch(), sound.getSeed())
+                    : sound;
+        }
+
+        private Object transformSound(ClientboundSoundPacket sound) throws ReflectiveOperationException {
+            if (tracked.isEmpty()) return sound;
+            String key = TridentNativeAccess.soundPath(sound.getSound().value());
+            if (!key.startsWith("item.trident.")) return sound;
+            for (int id : tracked) {
+                RenderData data = tridents.get(id);
+                if (data == null || !data.soundPosition.matches(key, sound.getX(), sound.getY(), sound.getZ())) continue;
+                String replacement = data.mechanic.soundFor(key);
                 if (replacement != null) {
-                    return new ClientboundSoundEntityPacket(sound(replacement), sound.getSource(), data.soundEntity,
-                            sound.getVolume(), sound.getPitch(), sound.getSeed());
-                }
-            }
-            if (packet instanceof ClientboundSoundPacket sound && !tracked.isEmpty()) {
-                String key = TridentNativeAccess.soundPath(sound.getSound().value());
-                if (!key.startsWith("item.trident.")) return packet;
-                for (int id : tracked) {
-                    RenderData data = tridents.get(id);
-                    if (data == null) continue;
-                    SoundPosition pos = data.soundPosition;
-                    if (!pos.matches(key, sound.getX(), sound.getY(), sound.getZ())) continue;
-                    String replacement = data.mechanic.soundFor(key);
-                    if (replacement != null) return new ClientboundSoundPacket(sound(replacement), sound.getSource(),
+                    return new ClientboundSoundPacket(sound(replacement), sound.getSource(),
                             sound.getX(), sound.getY(), sound.getZ(), sound.getVolume(), sound.getPitch(), sound.getSeed());
                 }
             }
-            if (packet instanceof ClientboundRemoveEntitiesPacket remove && !tracked.isEmpty()) {
+            return sound;
+        }
+
+        private Object transformRemoval(ClientboundRemoveEntitiesPacket remove) throws ReflectiveOperationException {
+            if (!tracked.isEmpty()) {
                 for (int id : TridentPacketRotation.removedEntities(remove)) tracked.remove(id);
             }
-            return packet;
+            return remove;
         }
     }
 
