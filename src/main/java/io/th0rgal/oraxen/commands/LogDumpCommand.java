@@ -38,7 +38,9 @@ public class LogDumpCommand {
                         try {
                             Path path = OraxenPlugin.get().getDataFolder().getAbsoluteFile().getParentFile().getParentFile()
                                     .toPath().resolve("logs/latest.log");
-                            logfile = redactSensitiveLogContent(Files.readString(path), Settings.STUDIO_SECRET.toString());
+                            Object secretVal = Settings.STUDIO_SECRET.getValue();
+                            String configuredSecret = secretVal == null ? "" : secretVal.toString().trim();
+                            logfile = redactSensitiveLogContent(Files.readString(path), configuredSecret);
                             logfile += "\n\n" + new LU().hr();
                         } catch (Exception e) {
                             report(sender, Message.MISSING_LOGS);

@@ -133,55 +133,67 @@ public final class StudioBundleUtils {
         try (ZipInputStream zis = new ZipInputStream(Files.newInputStream(zipFile))) {
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
-                if (entry.isDirectory()) {
-                    zis.closeEntry();
-                    continue;
+                if (!entry.isDirectory()) {
+                    extractZipEntryIfTrackable(zis, entry, normalizedRoot, backupRoot, updatedFiles);
                 }
-                String rel = entry.getName().replace('\\', '/');
-                while (rel.startsWith("/")) {
-                    rel = rel.substring(1);
-                }
-                if (!isTrackableRelativePath(rel)) {
-                    zis.closeEntry();
-                    continue;
-                }
-
-                Path targetPath = normalizedRoot.resolve(rel).normalize();
-                if (!targetPath.startsWith(normalizedRoot)) {
-                    zis.closeEntry();
-                    throw new IOException("Refusing to extract zip entry outside Oraxen data folder: " + rel);
-                }
-
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                byte[] buffer = new byte[8192];
-                int read;
-                while ((read = zis.read(buffer)) != -1) {
-                    baos.write(buffer, 0, read);
-                }
-                byte[] newBytes = baos.toByteArray();
-                String newHash = sha256Hex(newBytes);
-
-                if (Files.isRegularFile(targetPath)) {
-                    String existingHash = sha256Hex(targetPath);
-                    if (existingHash.equalsIgnoreCase(newHash)) {
-                        zis.closeEntry();
-                        continue;
-                    }
-                    Path backupTarget = backupRoot.resolve(rel).normalize();
-                    if (backupTarget.startsWith(backupRoot)) {
-                        Files.createDirectories(backupTarget.getParent());
-                        Files.copy(targetPath, backupTarget, StandardCopyOption.REPLACE_EXISTING);
-                    }
-                }
-
-                Files.createDirectories(targetPath.getParent());
-                Path tmpTarget = targetPath.resolveSibling(targetPath.getFileName().toString() + ".studio.tmp");
-                Files.write(tmpTarget, newBytes);
-                Files.move(tmpTarget, targetPath, StandardCopyOption.REPLACE_EXISTING);
-                updatedFiles.put(rel, newHash);
                 zis.closeEntry();
             }
         }
         return updatedFiles;
+    }
+
+    private static void extractZipEntryIfTrackable(
+            ZipInputStream zis,
+            ZipEntry entry,
+            Path normalizedRoot,
+            Path backupRoot,
+            Map<String, String> updatedFiles) throws IOException {
+        String rel = sanitizeRelativeEntryName(entry.getName());
+        if (!isTrackableRelativePath(rel)) return;
+
+        Path targetPath = normalizedRoot.resolve(rel).normalize();
+        if (!targetPath.startsWith(normalizedRoot)) {
+            throw new IOException("Refusing to extract zip entry outside Oraxen data folder: " + rel);
+        }
+
+        byte[] newBytes = readCurrentZipEntryBytes(zis);
+        String newHash = sha256Hex(newBytes);
+        if (!shouldOverwriteTarget(targetPath, newHash, rel, backupRoot)) return;
+
+        Files.createDirectories(targetPath.getParent());
+        Path tmpTarget = targetPath.resolveSibling(targetPath.getFileName().toString() + ".studio.tmp");
+        Files.write(tmpTarget, newBytes);
+        Files.move(tmpTarget, targetPath, StandardCopyOption.REPLACE_EXISTING);
+        updatedFiles.put(rel, newHash);
+    }
+
+    private static String sanitizeRelativeEntryName(String entryName) {
+        String rel = entryName.replace('\\', '/');
+        while (rel.startsWith("/")) {
+            rel = rel.substring(1);
+        }
+        return rel;
+    }
+
+    private static byte[] readCurrentZipEntryBytes(ZipInputStream zis) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        byte[] buffer = new byte[8192];
+        int read;
+        while ((read = zis.read(buffer)) != -1) {
+            baos.write(buffer, 0, read);
+        }
+        return baos.toByteArray();
+    }
+
+    private static boolean shouldOverwriteTarget(Path targetPath, String newHash, String rel, Path backupRoot) throws IOException {
+        if (!Files.isRegularFile(targetPath)) return true;
+        if (sha256Hex(targetPath).equalsIgnoreCase(newHash)) return false;
+
+        Path backupTarget = backupRoot.resolve(rel).normalize();
+        if (backupTarget.startsWith(backupRoot)) {
+            Files.createDirectories(backupTarget.getParent());
+            Files.copy(targetPath, backupTarget, StandardCopyOption.REPLACE_EXISTING);
+        }
+        return true;
     }
 }

@@ -77,7 +77,8 @@ public class StudioSyncService {
     }
 
     public String getStudioBaseUrl() {
-        return StudioBundleUtils.normalizeStudioUrl(Settings.STUDIO_URL.toString());
+        Object val = Settings.STUDIO_URL.getValue();
+        return StudioBundleUtils.normalizeStudioUrl(val == null ? "" : val.toString());
     }
 
     public String getSecret() {
@@ -214,20 +215,7 @@ public class StudioSyncService {
             StudioWebSocketClient pws = new StudioWebSocketClient(
                     realtimeUrl,
                     pairChannel,
-                    (event, payload) -> {
-                        if ("paired".equalsIgnoreCase(event) && payload.has("secret")) {
-                            if (completed.compareAndSet(false, true)) {
-                                String secret = payload.get("secret").getAsString();
-                                String wsName = payload.has("workspace_name")
-                                        ? payload.get("workspace_name").getAsString()
-                                        : "Workspace";
-                                String wsId = payload.has("workspace_id")
-                                        ? payload.get("workspace_id").getAsString()
-                                        : "";
-                                finishPairing(secret, wsId, wsName, sender);
-                            }
-                        }
-                    },
+                    (event, payload) -> handlePairingSocketEvent(event, payload, completed, sender),
                     null);
             pairingSocket = pws;
             pws.start();
@@ -235,36 +223,54 @@ public class StudioSyncService {
 
         // Fallback poll every 2 seconds (40 ticks) for up to 5 minutes
         final int[] attempts = {0};
-        pairingPollTask = SchedulerUtil.runTaskTimerAsync(plugin, 40L, 40L, () -> {
-            if (completed.get() || ++attempts[0] > 150) {
-                cancelPairingWatcher();
-                return;
+        pairingPollTask = SchedulerUtil.runTaskTimerAsync(plugin, 40L, 40L,
+                () -> pollPairingStatus(code, attempts, completed, sender));
+    }
+
+    private void handlePairingSocketEvent(
+            String event,
+            JsonObject payload,
+            AtomicBoolean completed,
+            @Nullable CommandSender sender) {
+        if ("paired".equalsIgnoreCase(event) && payload.has("secret")) {
+            completePairingFromJson(payload, completed, sender);
+        }
+    }
+
+    private void pollPairingStatus(
+            String code,
+            int[] attempts,
+            AtomicBoolean completed,
+            @Nullable CommandSender sender) {
+        if (completed.get() || ++attempts[0] > 150) {
+            cancelPairingWatcher();
+            return;
+        }
+        try (HttpClient client = createHttpClient()) {
+            HttpRequest req = HttpRequest.newBuilder(
+                            URI.create(getStudioBaseUrl() + "/api/studio/pair?code=" + code))
+                    .timeout(Duration.ofSeconds(10))
+                    .GET()
+                    .build();
+            HttpResponse<String> resp = client.send(req, HttpResponse.BodyHandlers.ofString());
+            if (resp.statusCode() != 200) return;
+            JsonObject json = JsonParser.parseString(resp.body()).getAsJsonObject();
+            if (json.has("status") && "authorized".equals(json.get("status").getAsString()) && json.has("secret")) {
+                completePairingFromJson(json, completed, sender);
             }
-            try (HttpClient client = createHttpClient()) {
-                HttpRequest req = HttpRequest.newBuilder(
-                                URI.create(getStudioBaseUrl() + "/api/studio/pair?code=" + code))
-                        .timeout(Duration.ofSeconds(10))
-                        .GET()
-                        .build();
-                HttpResponse<String> resp = client.send(req, HttpResponse.BodyHandlers.ofString());
-                if (resp.statusCode() == 200) {
-                    JsonObject json = JsonParser.parseString(resp.body()).getAsJsonObject();
-                    if (json.has("status") && "authorized".equals(json.get("status").getAsString()) && json.has("secret")) {
-                        if (completed.compareAndSet(false, true)) {
-                            String secret = json.get("secret").getAsString();
-                            String wsName = json.has("workspace_name")
-                                    ? json.get("workspace_name").getAsString()
-                                    : "Workspace";
-                            String wsId = json.has("workspace_id")
-                                    ? json.get("workspace_id").getAsString()
-                                    : "";
-                            finishPairing(secret, wsId, wsName, sender);
-                        }
-                    }
-                }
-            } catch (Exception ignored) {
-            }
-        });
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void completePairingFromJson(
+            JsonObject json,
+            AtomicBoolean completed,
+            @Nullable CommandSender sender) {
+        if (!completed.compareAndSet(false, true)) return;
+        String secret = json.get("secret").getAsString();
+        String wsName = json.has("workspace_name") ? json.get("workspace_name").getAsString() : "Workspace";
+        String wsId = json.has("workspace_id") ? json.get("workspace_id").getAsString() : "";
+        finishPairing(secret, wsId, wsName, sender);
     }
 
     private void finishPairing(String secret, String workspaceId, String workspaceName, @Nullable CommandSender sender) {
@@ -372,46 +378,53 @@ public class StudioSyncService {
                     return;
                 }
 
-                String revHeader = response.headers().firstValue("X-Oraxen-Studio-Rev").orElse("0");
-                int rev = 0;
-                try {
-                    rev = Integer.parseInt(revHeader);
-                } catch (NumberFormatException ignored) {
-                }
+                int rev = parseRevisionHeader(response.headers().firstValue("X-Oraxen-Studio-Rev").orElse("0"));
                 lastSyncedRevision = rev;
 
                 Map<String, String> changedFiles = StudioBundleUtils.extractBundleToDataFolder(
                         tempZip, plugin.getDataFolder().toPath());
-                final int finalRev = rev;
-                final int changedCount = changedFiles.size();
-
-                SchedulerUtil.runTask(plugin, () -> {
-                    try {
-                        plugin.reloadConfigs();
-                        ReloadCommand.reloadItems(Bukkit.getConsoleSender());
-                        ReloadCommand.reloadPack(Bukkit.getConsoleSender());
-                        for (Player player : Bukkit.getOnlinePlayers()) {
-                            plugin.getFontManager().sendGlyphTabCompletion(player);
-                        }
-                        sendMessage(sender,
-                                "<prefix><#55ffa4>Synced <#43fa8c>" + changedCount
-                                        + "<#55ffa4> changed file(s) from Oraxen Studio (revision #"
-                                        + finalRev + ") and refreshed resource pack.");
-                    } finally {
-                        syncInProgress.set(false);
-                    }
-                });
+                scheduleReloadAfterPull(sender, changedFiles.size(), rev);
             } catch (Exception e) {
                 syncInProgress.set(false);
                 sendMessage(sender, "<prefix><#fa4943>Failed to pull from Oraxen Studio: " + e.getMessage());
                 Logs.debug(e);
             } finally {
-                if (tempZip != null) {
-                    try {
-                        Files.deleteIfExists(tempZip);
-                    } catch (Exception ignored) {
-                    }
+                deleteTempFileQuietly(tempZip);
+            }
+        });
+    }
+
+    private static int parseRevisionHeader(String revHeader) {
+        try {
+            return Integer.parseInt(revHeader);
+        } catch (NumberFormatException ignored) {
+            return 0;
+        }
+    }
+
+    private static void deleteTempFileQuietly(@Nullable Path path) {
+        if (path == null) return;
+        try {
+            Files.deleteIfExists(path);
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void scheduleReloadAfterPull(@Nullable CommandSender sender, int changedCount, int rev) {
+        SchedulerUtil.runTask(plugin, () -> {
+            try {
+                plugin.reloadConfigs();
+                ReloadCommand.reloadItems(Bukkit.getConsoleSender());
+                ReloadCommand.reloadPack(Bukkit.getConsoleSender());
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    plugin.getFontManager().sendGlyphTabCompletion(player);
                 }
+                sendMessage(sender,
+                        "<prefix><#55ffa4>Synced <#43fa8c>" + changedCount
+                                + "<#55ffa4> changed file(s) from Oraxen Studio (revision #"
+                                + rev + ") and refreshed resource pack.");
+            } finally {
+                syncInProgress.set(false);
             }
         });
     }

@@ -154,37 +154,44 @@ public class StudioWebSocketClient {
             JsonElement parsed = JsonParser.parseString(rawJson);
             if (!parsed.isJsonObject()) return;
             JsonObject root = parsed.getAsJsonObject();
-            String event = root.has("event") && !root.get("event").isJsonNull()
-                    ? root.get("event").getAsString()
-                    : "";
-
+            String event = getStringOrDefault(root, "event", "");
             if ("phx_reply".equals(event)) {
-                JsonObject payload = root.has("payload") && root.get("payload").isJsonObject()
-                        ? root.getAsJsonObject("payload")
-                        : null;
-                if (payload != null && payload.has("status") && "ok".equals(payload.get("status").getAsString())) {
-                    if (onJoinAck != null) onJoinAck.run();
-                }
-                return;
-            }
-
-            if ("broadcast".equals(event)) {
-                JsonObject outerPayload = root.has("payload") && root.get("payload").isJsonObject()
-                        ? root.getAsJsonObject("payload")
-                        : new JsonObject();
-                String innerEvent = outerPayload.has("event") && !outerPayload.get("event").isJsonNull()
-                        ? outerPayload.get("event").getAsString()
-                        : "sync";
-                JsonObject innerPayload = outerPayload.has("payload") && outerPayload.get("payload").isJsonObject()
-                        ? outerPayload.getAsJsonObject("payload")
-                        : outerPayload;
-                if (onBroadcast != null) {
-                    onBroadcast.accept(innerEvent, innerPayload);
-                }
+                handleJoinReply(root, onJoinAck);
+            } else if ("broadcast".equals(event) && onBroadcast != null) {
+                handleBroadcastFrame(root, onBroadcast);
             }
         } catch (Exception e) {
             Logs.debug(e);
         }
+    }
+
+    private static void handleJoinReply(JsonObject root, Runnable onJoinAck) {
+        if (onJoinAck == null) return;
+        JsonObject payload = getObjectOrNull(root, "payload");
+        if (payload != null && "ok".equals(getStringOrDefault(payload, "status", ""))) {
+            onJoinAck.run();
+        }
+    }
+
+    private static void handleBroadcastFrame(JsonObject root, BiConsumer<String, JsonObject> onBroadcast) {
+        JsonObject outerPayload = getObjectOrNull(root, "payload");
+        if (outerPayload == null) {
+            onBroadcast.accept("sync", new JsonObject());
+            return;
+        }
+        String innerEvent = getStringOrDefault(outerPayload, "event", "sync");
+        JsonObject innerPayload = getObjectOrNull(outerPayload, "payload");
+        onBroadcast.accept(innerEvent, innerPayload != null ? innerPayload : outerPayload);
+    }
+
+    private static String getStringOrDefault(JsonObject obj, String key, String fallback) {
+        if (obj == null || !obj.has(key) || obj.get(key).isJsonNull()) return fallback;
+        return obj.get(key).getAsString();
+    }
+
+    private static JsonObject getObjectOrNull(JsonObject obj, String key) {
+        if (obj == null || !obj.has(key) || !obj.get(key).isJsonObject()) return null;
+        return obj.getAsJsonObject(key);
     }
 
     private final class Listener implements WebSocket.Listener {
