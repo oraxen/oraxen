@@ -126,6 +126,17 @@ public final class StudioBundleUtils {
     }
 
     public static Map<String, String> extractBundleToDataFolder(Path zipFile, Path dataFolder) throws IOException {
+        return extractBundleToDataFolder(zipFile, dataFolder, null);
+    }
+
+    /**
+     * Extracts the bundle and, when a manifest is provided, deletes tracked files that are no
+     * longer part of the remote workspace so deletions made in Studio are applied locally.
+     */
+    public static Map<String, String> extractBundleToDataFolder(
+            Path zipFile,
+            Path dataFolder,
+            @org.jetbrains.annotations.Nullable Set<String> manifestPaths) throws IOException {
         Map<String, String> updatedFiles = new LinkedHashMap<>();
         Path normalizedRoot = dataFolder.toAbsolutePath().normalize();
         Path backupRoot = normalizedRoot.resolve(".studio-backup");
@@ -139,7 +150,30 @@ public final class StudioBundleUtils {
                 zis.closeEntry();
             }
         }
+        if (manifestPaths != null) {
+            removeTrackedFilesMissingFromManifest(normalizedRoot, manifestPaths, updatedFiles);
+        }
         return updatedFiles;
+    }
+
+    private static void removeTrackedFilesMissingFromManifest(
+            Path normalizedRoot,
+            Set<String> manifestPaths,
+            Map<String, String> updatedFiles) throws IOException {
+        if (!Files.isDirectory(normalizedRoot)) return;
+        try (var stream = Files.walk(normalizedRoot)) {
+            List<Path> stale = stream.filter(Files::isRegularFile)
+                    .filter(file -> !file.startsWith(normalizedRoot.resolve(".studio-backup")))
+                    .filter(file -> isTrackableRelativePath(
+                            normalizedRoot.relativize(file).toString().replace('\\', '/')))
+                    .filter(file -> !manifestPaths.contains(
+                            normalizedRoot.relativize(file).toString().replace('\\', '/')))
+                    .toList();
+            for (Path file : stale) {
+                Files.deleteIfExists(file);
+                updatedFiles.put(normalizedRoot.relativize(file).toString().replace('\\', '/'), "deleted");
+            }
+        }
     }
 
     private static void extractZipEntryIfTrackable(

@@ -67,9 +67,15 @@ public class StudioWebSocketClient {
                     .connectTimeout(Duration.ofSeconds(10))
                     .buildAsync(URI.create(realtimeWsUrl), new Listener())
                     .whenComplete((ws, err) -> {
-                        if (err != null) {
+                        if (err != null || closed.get()) {
                             connected.set(false);
-                            scheduleReconnect();
+                            if (ws != null) {
+                                try {
+                                    ws.sendClose(WebSocket.NORMAL_CLOSURE, "closed");
+                                } catch (Exception ignored) {
+                                }
+                            }
+                            if (!closed.get()) scheduleReconnect();
                             return;
                         }
                         this.webSocket = ws;

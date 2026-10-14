@@ -23,7 +23,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.Base64;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -381,8 +384,10 @@ public class StudioSyncService {
                 int rev = parseRevisionHeader(response.headers().firstValue("X-Oraxen-Studio-Rev").orElse("0"));
                 lastSyncedRevision = rev;
 
+                Set<String> manifest = decodeManifestHeader(
+                        response.headers().firstValue("X-Oraxen-Studio-Manifest").orElse(""));
                 Map<String, String> changedFiles = StudioBundleUtils.extractBundleToDataFolder(
-                        tempZip, plugin.getDataFolder().toPath());
+                        tempZip, plugin.getDataFolder().toPath(), manifest);
                 scheduleReloadAfterPull(sender, changedFiles.size(), rev);
             } catch (Exception e) {
                 syncInProgress.set(false);
@@ -392,6 +397,18 @@ public class StudioSyncService {
                 deleteTempFileQuietly(tempZip);
             }
         });
+    }
+
+    private static Set<String> decodeManifestHeader(String base64Manifest) {
+        if (base64Manifest == null || base64Manifest.isBlank()) return null;
+        try {
+            String json = new String(Base64.getDecoder().decode(base64Manifest), StandardCharsets.UTF_8);
+            JsonObject manifest = JsonParser.parseString(json).getAsJsonObject();
+            return new HashSet<>(manifest.keySet());
+        } catch (Exception e) {
+            Logs.logWarning("Studio pull manifest could not be decoded, deletions will not be reconciled.");
+            return null;
+        }
     }
 
     private static int parseRevisionHeader(String revHeader) {
@@ -414,10 +431,15 @@ public class StudioSyncService {
         SchedulerUtil.runTask(plugin, () -> {
             try {
                 plugin.reloadConfigs();
+                ReloadCommand.reloadRecipes(Bukkit.getConsoleSender());
+                ReloadCommand.reloadHud(Bukkit.getConsoleSender());
+                ReloadCommand.reloadPaintings(Bukkit.getConsoleSender());
+                ReloadCommand.reloadDiscs(Bukkit.getConsoleSender());
                 ReloadCommand.reloadItems(Bukkit.getConsoleSender());
                 ReloadCommand.reloadPack(Bukkit.getConsoleSender());
                 for (Player player : Bukkit.getOnlinePlayers()) {
-                    plugin.getFontManager().sendGlyphTabCompletion(player);
+                    SchedulerUtil.runForEntity(player,
+                            () -> plugin.getFontManager().sendGlyphTabCompletion(player));
                 }
                 sendMessage(sender,
                         "<prefix><#55ffa4>Synced <#43fa8c>" + changedCount
