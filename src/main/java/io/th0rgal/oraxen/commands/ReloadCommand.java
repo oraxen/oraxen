@@ -85,6 +85,9 @@ public class ReloadCommand {
         OraxenPlugin.get().reloadConfigs();
         OraxenPlugin.get().reloadCustomPaintings();
         OraxenPlugin.get().reloadCustomJukeboxSongs();
+        if (OraxenPlugin.get().getStudioSyncService() != null) {
+            OraxenPlugin.get().getStudioSyncService().start();
+        }
     }
 
     public static void reloadMessages(@Nullable CommandSender sender) {

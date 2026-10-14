@@ -38,7 +38,9 @@ public class LogDumpCommand {
                         try {
                             Path path = OraxenPlugin.get().getDataFolder().getAbsoluteFile().getParentFile().getParentFile()
                                     .toPath().resolve("logs/latest.log");
-                            logfile = Files.readString(path).replaceAll(packUrl, "*redacted pack url*");
+                            Object secretVal = Settings.STUDIO_SECRET.getValue();
+                            String configuredSecret = secretVal == null ? "" : secretVal.toString().trim();
+                            logfile = redactSensitiveLogContent(Files.readString(path), configuredSecret);
                             logfile += "\n\n" + new LU().hr();
                         } catch (Exception e) {
                             report(sender, Message.MISSING_LOGS);
@@ -66,6 +68,17 @@ public class LogDumpCommand {
                     });
                 });
 
+    }
+
+    static String redactSensitiveLogContent(String logContent, String studioSecret) {
+        if (logContent == null) return "";
+        String redacted = logContent
+                .replaceAll("http://atlas\\.oraxen\\.com:8080/.*", "*redacted pack url*")
+                .replaceAll("oxn_studio_[A-Za-z0-9._-]+", "*redacted studio secret*");
+        if (studioSecret != null && !studioSecret.isBlank()) {
+            redacted = redacted.replace(studioSecret, "*redacted studio secret*");
+        }
+        return redacted;
     }
 
     /**
