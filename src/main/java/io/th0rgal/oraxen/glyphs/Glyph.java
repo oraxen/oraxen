@@ -422,6 +422,12 @@ public class Glyph {
      * Runs all validation checks and sets placeholder texture if any fail.
      */
     private void runValidations(VerificationContext ctx) {
+        // Ascent errors are reported together with their config paths by ConfigsManager.
+        if (height < ascent) {
+            setTexture("required/exit_icon");
+            return;
+        }
+
         String error = findValidationError(ctx);
         if (error != null) {
             setTexture("required/exit_icon");
@@ -433,9 +439,6 @@ public class Glyph {
 
     @Nullable
     private String findValidationError(VerificationContext ctx) {
-        if (height < ascent) {
-            return "The ascent is bigger than the height for " + name + ". This will break all your glyphs.";
-        }
         if (!ctx.isVanillaTexture && (!ctx.textureFile.exists() || ctx.image == null)) {
             // Unnamespaced vanilla textures are auto-detected only when their file name exactly
             // matches a material. Other vanilla asset paths should use the minecraft namespace.

@@ -109,6 +109,9 @@ skinnable:
 
 # COMBAT
 
+trident:
+  enabled: true
+
 lifeleech:
   enabled: true
 

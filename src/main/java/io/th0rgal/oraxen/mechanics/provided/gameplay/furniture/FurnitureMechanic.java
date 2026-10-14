@@ -203,12 +203,9 @@ public class FurnitureMechanic extends Mechanic {
         }
 
         boolean smallFromConfig = section.contains("small");
-        // ARMOR_STAND: allow translation (offset) and best-effort scaling.
-        // Prefer explicit armor_stand_properties, but allow reusing display_entity_properties.scale/translation for convenience.
-        ConfigurationSection armorStandProps = section.getConfigurationSection("armor_stand_properties");
-        if (armorStandProps == null && furnitureType == FurnitureType.ARMOR_STAND)
-            armorStandProps = section.getConfigurationSection("display_entity_properties");
-        armorStandProperties = armorStandProps != null ? new ArmorStandProperties(armorStandProps) : new ArmorStandProperties();
+        ConfigurationSection properties = section.getConfigurationSection("properties");
+        armorStandProperties = furnitureType == FurnitureType.ARMOR_STAND && properties != null
+                ? new ArmorStandProperties(properties) : new ArmorStandProperties();
         boolean resolvedSmall = section.getBoolean("small", furnitureType == FurnitureType.ARMOR_STAND);
         if (furnitureType == FurnitureType.ARMOR_STAND && !smallFromConfig && armorStandProperties.hasScale())
             resolvedSmall = armorStandProperties.hintSmallFromScale();
@@ -216,9 +213,8 @@ public class FurnitureMechanic extends Mechanic {
 
         section.set("type", furnitureType.name());
 
-        ConfigurationSection displayProperties = section.getConfigurationSection("display_entity_properties");
-        displayEntityProperties = displayProperties != null
-                ? new DisplayEntityProperties(displayProperties) : new DisplayEntityProperties();
+        displayEntityProperties = furnitureType == FurnitureType.DISPLAY_ENTITY && properties != null
+                ? new DisplayEntityProperties(properties) : new DisplayEntityProperties();
 
         barriers = new ArrayList<>();
         if (section.getBoolean("barrier", false))
@@ -1255,7 +1251,13 @@ public class FurnitureMechanic extends Mechanic {
         int baseEntityId = baseEntity.getEntityId();
         removeSubEntitiesOfFurniture(baseEntity);
         if (!baseEntity.isDead()) baseEntity.remove();
-        SchedulerUtil.runTask(() -> FurnitureTextRegistry.unregister(baseUuid, baseEntityId));
+        SchedulerUtil.runTask(() -> {
+            FurnitureTextEntry entry = FurnitureTextRegistry.byUuid(baseUuid);
+            if (entry != null && entry.getBaseEntityId() == baseEntityId)
+                FurnitureTextPacketBridge.destroyAndUnregister(baseUuid);
+            else
+                FurnitureTextRegistry.unregister(baseUuid, baseEntityId);
+        });
     }
 
     private void removeSubEntitiesOfFurniture(Entity baseEntity) {
@@ -1266,14 +1268,15 @@ public class FurnitureMechanic extends Mechanic {
         }
 
         for (Interaction interaction : getInteractionEntities(baseEntity))
-            if (!interaction.isDead()) interaction.remove();
+            SchedulerUtil.runOnOwningThread(interaction, () -> {
+                if (!interaction.isDead()) interaction.remove();
+            });
     }
 
     private void removeFurnitureSeat(Location location) {
         ArmorStand seat = getSeat(location);
         if (seat != null) {
-            seat.getPassengers().forEach(seat::removePassenger);
-            if (!seat.isDead()) seat.remove();
+            removeSeatOnOwningThread(seat);
         }
     }
 
@@ -1281,10 +1284,16 @@ public class FurnitureMechanic extends Mechanic {
         for (UUID seatUuid : getSeatUuids(pdc)) {
             Entity seatEntity = Bukkit.getEntity(seatUuid);
             if (seatEntity instanceof ArmorStand seat) {
-                seat.getPassengers().forEach(seat::removePassenger);
-                if (!seat.isDead()) seat.remove();
+                removeSeatOnOwningThread(seat);
             }
         }
+    }
+
+    private static void removeSeatOnOwningThread(ArmorStand seat) {
+        SchedulerUtil.runOnOwningThread(seat, () -> {
+            seat.getPassengers().forEach(seat::removePassenger);
+            if (!seat.isDead()) seat.remove();
+        });
     }
 
     public List<Location> getLocations(float rotation, Location center, List<BlockLocation> relativeCoordinates) {
@@ -1700,6 +1709,10 @@ public class FurnitureMechanic extends Mechanic {
             }
         }
         return factory != null ? factory.getMechanic(getItemID()) : null;
+    }
+
+    public void removeBarrierLight(Block block) {
+        removeLight(block);
     }
 
     private void removeLight(Block block) {

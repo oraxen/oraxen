@@ -23,7 +23,9 @@ import org.bukkit.Tag;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Bisected;
 import org.bukkit.block.data.Waterlogged;
+import org.bukkit.block.data.type.Door;
 import org.bukkit.block.data.type.Slab;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -34,6 +36,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockFormEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.Chunk;
@@ -471,6 +474,23 @@ public class ShapedBlockMechanicListener implements Listener {
     }
 
     // ==================== CUSTOM BLOCK BREAKING ====================
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onCustomDoorPhysics(BlockPhysicsEvent event) {
+        Block block = event.getBlock();
+        // Paper can fire physics only for the changed support block, before updating its neighbours.
+        if (!(block.getBlockData() instanceof Door)) block = block.getRelative(BlockFace.UP);
+        else if (((Door) block.getBlockData()).getHalf() == Bisected.Half.TOP) block = block.getRelative(BlockFace.DOWN);
+        if (!(block.getBlockData() instanceof Door door) || door.getHalf() != Bisected.Half.BOTTOM) return;
+        if (door.isSupported(block)) return;
+
+        ShapedBlockMechanic mechanic = getMechanicFromBlock(block);
+        if (mechanic == null || mechanic.getBlockType() != ShapedBlockType.DOOR) return;
+
+        // Leave the support block's other physics updates intact.
+        if (event.getBlock().getBlockData() instanceof Door) event.setCancelled(true);
+        if (OraxenBlocks.remove(block.getLocation(), null)) playBreakSound(block, mechanic);
+    }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onBreakCustomShapedBlock(BlockBreakEvent event) {

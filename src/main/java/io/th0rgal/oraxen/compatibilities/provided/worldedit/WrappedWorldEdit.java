@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.compatibilities.provided.worldedit;
 
 import io.th0rgal.oraxen.utils.PluginUtils;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 
@@ -17,6 +18,12 @@ public class WrappedWorldEdit {
 
     public static void init() {
         loaded = PluginUtils.isEnabled("WorldEdit") || PluginUtils.isEnabled("FastAsyncWorldEdit");
+        if (loaded && VersionUtil.atOrAbove("1.21.4")) WorldEditFurniture.register();
+    }
+
+    public static void disable() {
+        if (loaded && VersionUtil.atOrAbove("1.21.4")) WorldEditFurniture.unregister();
+        loaded = false;
     }
 
     public static void pasteSchematic(Location loc, File schematic, Boolean replaceBlocks, Boolean shouldCopyBiomes, Boolean shouldCopyEntities) {

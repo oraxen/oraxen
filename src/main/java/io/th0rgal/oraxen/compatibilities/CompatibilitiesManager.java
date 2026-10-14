@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.compatibilities;
 
 import io.th0rgal.oraxen.compatibilities.provided.blocklocker.BlockLockerCompatibility;
-import io.th0rgal.oraxen.compatibilities.provided.iris.IrisCompatibility;
 import io.th0rgal.oraxen.compatibilities.provided.mythicmobs.MythicMobsCompatibility;
 import io.th0rgal.oraxen.compatibilities.provided.placeholderapi.PlaceholderAPICompatibility;
 import io.th0rgal.oraxen.compatibilities.provided.skript.SkriptCompatibility;
@@ -28,10 +27,10 @@ public class CompatibilitiesManager {
         addCompatibility("MythicMobs", MythicMobsCompatibility.class, true);
         addCompatibility("BlockLocker", BlockLockerCompatibility.class, true);
         addCompatibility("Skript", SkriptCompatibility.class, true);
-        addCompatibility("Iris", IrisCompatibility.class, true);
     }
 
     public static void disableCompatibilities() {
+        WrappedWorldEdit.disable();
         ACTIVE_COMPATIBILITY_PROVIDERS.forEach((pluginName, compatibilityProvider) -> disableCompatibility(pluginName));
     }
 

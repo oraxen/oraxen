@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
 import io.th0rgal.oraxen.pack.upload.hosts.Lobfile;
 import io.th0rgal.oraxen.pack.upload.hosts.Polymath;
+import io.th0rgal.oraxen.pack.upload.hosts.S3;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;
@@ -35,6 +36,8 @@ public final class HostingProviderFactory {
     public static HostingProvider createHostingProvider(boolean allowSelfHost) {
         HostingProvider provider = switch (Settings.UPLOAD_TYPE.toString().toLowerCase(Locale.ROOT)) {
             case "polymath" -> new Polymath(Settings.POLYMATH_SERVER.toString());
+            case "s3" -> new S3(OraxenPlugin.get().getConfigsManager().getSettings()
+                    .getConfigurationSection("Pack.upload.s3"));
             case "lobfile" -> {
                 ConfigurationSection lobfileConfig = OraxenPlugin.get().getConfigsManager().getSettings()
                         .getConfigurationSection("Pack.upload.lobfile");

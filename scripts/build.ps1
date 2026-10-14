@@ -1,4 +1,4 @@
-# Builds a compiled Oraxen jar and copies its path to the Windows clipboard.
+# Builds a compiled Oraxen jar and copies the file to the Windows clipboard.
 $ErrorActionPreference = 'Stop'
 
 $projectDir = Split-Path -Parent $PSScriptRoot
@@ -31,8 +31,19 @@ try {
         Select-Object -First 1
     if ($null -eq $builtJar) { throw "Built jar was not found in $libsDir" }
 
-    Set-Clipboard -Value $builtJar.FullName
-    Write-Host "Copied jar path to the clipboard: $($builtJar.FullName)"
+    # Use an STA process and persist the file-drop entry after it exits.
+    $clipboardScript = @'
+$ErrorActionPreference = 'Stop'
+Add-Type -AssemblyName System.Windows.Forms
+$files = New-Object System.Collections.Specialized.StringCollection
+[void]$files.Add('__JAR_PATH__')
+[System.Windows.Forms.Clipboard]::SetFileDropList($files)
+'@
+    $clipboardScript = $clipboardScript.Replace('__JAR_PATH__', $builtJar.FullName.Replace("'", "''"))
+    $clipboardCommand = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($clipboardScript))
+    & powershell.exe -NoProfile -STA -EncodedCommand $clipboardCommand
+    if ($LASTEXITCODE -ne 0) { throw "Could not copy the built jar to the clipboard" }
+    Write-Host "Copied jar to the clipboard: $($builtJar.FullName)"
 } finally {
     [System.IO.File]::WriteAllBytes($propertiesFile, $originalProperties)
 }

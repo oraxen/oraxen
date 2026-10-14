@@ -598,7 +598,8 @@ public class OraxenBlocks {
 
         removeLight(otherHalf, mechanic.getItemID());
         clearShapedBlockData(otherHalf);
-        otherHalf.setType(Material.AIR);
+        // Remove the paired half without letting physics destroy the original half first.
+        otherHalf.setType(Material.AIR, false);
     }
 
     private static void clearShapedBlockData(Block block) {

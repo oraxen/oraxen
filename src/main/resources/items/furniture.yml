@@ -8,7 +8,7 @@ table:
     furniture:
       type: ARMOR_STAND # Valid types are ITEM_FRAME, GLOW_ITEM_FRAME, ARMOR_STAND, and DISPLAY_ENTITY if server is 1.19.4+
       small: false # Used by ARMOR_STAND furniture; defaults to true for ARMOR_STAND
-      armor_stand_properties:
+      properties:
         translation: # or "offset"
           x: 0.0
           y: -1.22
@@ -39,7 +39,7 @@ cart:
       type: DISPLAY_ENTITY
       hitboxes:
         - 0,0,0 1.0,1.0
-      display_entity_properties:
+      properties:
         display_transform: FIXED
       barrier: true
       limited_placing:
@@ -62,7 +62,7 @@ chair:
       type: DISPLAY_ENTITY
       hitboxes:
         - 0,0,0 1.0,2.0
-      display_entity_properties:
+      properties:
         display_transform: FIXED
       barrier: true
       limited_placing:
@@ -85,7 +85,7 @@ coach:
   mechanics:
     furniture:
       type: DISPLAY_ENTITY
-      display_entity_properties:
+      properties:
         display_transform: FIXED
       barrier: true
       limited_placing:
@@ -148,7 +148,7 @@ turntable:
         silktouch: false
         loots:
           - { oraxen_item: turntable, probability: 1.0 }
-      display_entity_properties:
+      properties:
         scale:
           x: 0.75
           y: 0.75

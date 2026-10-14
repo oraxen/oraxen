@@ -12,6 +12,7 @@ import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -59,8 +60,12 @@ public class RemoveDefaultsCommand {
         removeBundledGlobalLanguageEntries(languageFolder.resolve("global.json"), failedFiles);
         deletePath(dataFolder.resolve("pack/font"), true, deletedFiles, failedFiles);
         deletePath(dataFolder.resolve("pack/sounds"), true, deletedFiles, failedFiles);
-        deleteKnownDefaultFiles(dataFolder, "recipes", deletedFiles, failedFiles);
-        deleteKnownDefaultFiles(dataFolder, "items", deletedFiles, failedFiles);
+        deleteKnownDefaultFiles(dataFolder, "recipes", Set.of(), deletedFiles, failedFiles);
+        // Navigation icons are required by the item and recipe menus, not sample content.
+        Set<Path> defaultItemFiles = deleteKnownDefaultFiles(dataFolder, "items",
+                Set.of(dataFolder.resolve("items/guis.yml")), deletedFiles, failedFiles);
+        removeDefaultInventoryEntries(OraxenPlugin.get().getConfigsManager().getSettings(),
+                dataFolder.resolve("settings.yml"), defaultItemFiles, failedFiles);
 
         deletePath(dataFolder.resolve("glyphs/animations.yml"), false, deletedFiles, failedFiles);
         deletePath(dataFolder.resolve("glyphs/chat_tags.yml"), false, deletedFiles, failedFiles);
@@ -107,18 +112,44 @@ public class RemoveDefaultsCommand {
         return true;
     }
 
-    private void deleteKnownDefaultFiles(Path dataFolder, String folder, AtomicInteger deletedFiles,
+    void removeDefaultInventoryEntries(YamlConfiguration settings, Path settingsFile, Set<Path> defaultItemFiles,
             AtomicInteger failedFiles) {
+        boolean updated = false;
+        for (Path defaultItemFile : defaultItemFiles) {
+            String fileName = defaultItemFile.getFileName().toString();
+            if (!fileName.endsWith(".yml")) continue;
+
+            String path = "inventory-menu.layout." + fileName.substring(0, fileName.length() - 4);
+            if (!settings.contains(path)) continue;
+            settings.set(path, null);
+            updated = true;
+        }
+        if (!updated) return;
+
+        Settings.invalidateCache();
+        try {
+            settings.save(settingsFile.toFile());
+        } catch (IOException exception) {
+            failedFiles.incrementAndGet();
+            Logs.logWarning("Failed to remove default inventory entries from settings.yml");
+            if (Settings.DEBUG.toBool()) exception.printStackTrace();
+        }
+    }
+
+    Set<Path> deleteKnownDefaultFiles(Path dataFolder, String folder, Set<Path> excludedPaths,
+            AtomicInteger deletedFiles, AtomicInteger failedFiles) {
         Set<Path> defaultFiles = new HashSet<>();
         ResourcesManager.browseJar(entry -> {
             String entryName = entry.getName();
-            if (!entry.isDirectory() && entryName.startsWith(folder + "/"))
+            if (!entry.isDirectory() && entryName.startsWith(folder + "/")
+                    && !excludedPaths.contains(dataFolder.resolve(entryName)))
                 defaultFiles.add(dataFolder.resolve(entryName));
         });
 
         for (Path defaultFile : defaultFiles)
             if (Files.exists(defaultFile))
                 deleteFile(defaultFile, deletedFiles, failedFiles);
+        return defaultFiles;
     }
 
     private void deletePath(Path path, boolean keepRoot, AtomicInteger deletedFiles, AtomicInteger failedFiles) {

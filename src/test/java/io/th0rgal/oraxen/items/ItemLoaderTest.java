@@ -127,6 +127,26 @@ class ItemLoaderTest {
     }
 
     @Test
+    void legacyFurnitureMigrationUsesTemplateTypeBeforeSavingTheChild() {
+        YamlConfiguration config = new YamlConfiguration();
+        ConfigurationSection grandparent = config.createSection("grandparent");
+        grandparent.set("material", "PAPER");
+        grandparent.set("Mechanics.furniture.type", "ARMOR_STAND");
+        ItemTemplate.register(grandparent);
+        ConfigurationSection template = config.createSection("base");
+        template.set("template", "grandparent");
+        ItemTemplate.register(template);
+        ConfigurationSection child = config.createSection("child");
+        child.set("template", "base");
+        child.set("Mechanics.furniture.armor_stand_properties.scale", 0.5);
+        child.set("Mechanics.furniture.display_entity_properties.scale.x", 2.0);
+        new ItemLoader(child);
+        assertEquals(0.5, child.getDouble("mechanics.furniture.properties.scale"));
+        assertFalse(child.contains("mechanics.furniture.armor_stand_properties"));
+        assertFalse(child.contains("mechanics.furniture.display_entity_properties"));
+    }
+
+    @Test
     void templateChildrenDoNotInheritTheTemplateCustomModelData() throws Exception {
         YamlConfiguration config = new YamlConfiguration();
         config.loadFromString("""

@@ -33,11 +33,15 @@ public final class ItemMigrator {
     private boolean blockConfigMigrated;
 
     public ItemMigrator(final ConfigurationSection section) {
+        this(section, null);
+    }
+
+    public ItemMigrator(final ConfigurationSection section, String inheritedFurnitureType) {
         this.section = section;
         migrateUppercaseSections();
         migrateEnchantable();
         migrateInjectId();
-        if (FurnitureConfigMigration.migrate(section)) {
+        if (FurnitureConfigMigration.migrate(section, inheritedFurnitureType)) {
             configUpdated = true;
             blockConfigMigrated = true;
         }

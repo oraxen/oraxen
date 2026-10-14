@@ -1,10 +1,14 @@
 [versions]
 # often changed version numbers
 hopper = "1.4.2"
+aws = "2.31.54"
 
 actions = "1.0.0-SNAPSHOT"
 
 [libraries]
+
+aws-s3 = { module = "software.amazon.awssdk:s3", version.ref = "aws" }
+aws-url-connection = { module = "software.amazon.awssdk:url-connection-client", version.ref = "aws" }
 
 #
 # Plugin Dependencies
@@ -56,12 +60,6 @@ blocklocker = { module = "nl.rutgerkok:blocklocker", version = "1.13-SNAPSHOT" }
 # Skript https://github.com/SkriptLang/Skript
 # Repo: https://repo.skriptlang.org/releases (NOT JitPack)
 skript = { module = "com.github.SkriptLang:Skript", version = "2.13.2" }
-
-# Iris https://github.com/VolmitSoftware/Iris
-# Repo: JitPack, via fork https://github.com/miziusArchives/Iris (adds jitpack.yml for Java 21;
-# upstream has no jitpack.yml, so its artifacts can never be rebuilt once JitPack evicts them)
-# Version = master commit (3.9.2) + jitpack.yml + Sentry/publishing fixes for tokenless builds
-iris = { module = "com.github.miziusArchives:Iris", version = "927681394c040d8ffab12d83e517f8560475e6ce" }
 
 #
 # Libraries that are included in MC
@@ -123,6 +121,8 @@ libraries-included = [
     "actions-core", # included in actions-spigot
 ]
 libraries-bukkit = [
+    "aws-s3",
+    "aws-url-connection",
     "spring-expression",
     "commons-lang3",
     "mc-logs",
@@ -152,6 +152,5 @@ plugins = [
     "ecoitems",         # EcoÍtems
     "blocklocker",      # BlockLocker
     "skript",           # Skript
-    "iris",             # Iris World Generator
     "score",            # ExecutableItems (SCore)
 ]

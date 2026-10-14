@@ -9,6 +9,7 @@ import io.th0rgal.oraxen.mechanics.provided.combat.knockbackstrike.KnockbackStri
 import io.th0rgal.oraxen.mechanics.provided.combat.bleeding.BleedingMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.combat.lifeleech.LifeLeechMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.combat.spear.SpearLungeMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.combat.trident.TridentMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.combat.spell.energyblast.EnergyBlastMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.combat.spell.fireball.FireballMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.combat.spell.thor.ThorMechanicFactory;
@@ -74,7 +75,7 @@ public class MechanicsManager {
             "aura", "backpack_cosmetic", "hat", "skin", "skinnable",
             // combat
             "thor", "lifeleech", "energyblast", "witherskull", "fireball", "knockback_strike", "bleeding",
-            "spear_lunge",
+            "spear_lunge", "trident",
             // farming
             "mining", "smelting", "bottledexp", "harvesting", "watering", "bedrockbreak"
     );
@@ -120,6 +121,7 @@ public class MechanicsManager {
 		registerFactory("knockback_strike", KnockbackStrikeMechanicFactory::new);
         registerFactory("bleeding", BleedingMechanicFactory::new);
         registerFactory("spear_lunge", SpearLungeMechanicFactory::new);
+        registerFactory("trident", TridentMechanicFactory::new);
 
         // farming
         registerFactory("mining", MiningMechanicFactory::new);

@@ -42,6 +42,7 @@ allprojects {
         maven("https://repo.papermc.io/repository/maven-public/") {
             content {
                 includeGroup("io.papermc.paper") // Paper
+                includeModule("io.papermc", "paperlib") // WorldEdit runtime
                 // extra stuff required by paper
                 includeGroup("net.md-5")
                 includeGroup("com.mojang")
@@ -88,6 +89,8 @@ allprojects {
                 includeGroupAndSubgroups("com.sk89q.worldedit") // WorldEdit
                 includeGroupAndSubgroups("com.sk89q.worldguard") // WorldGuard
                 includeGroupAndSubgroups("org.enginehub") // WorldEdit transitive dependencies (lin-bus-bom, etc)
+                includeModule("com.sk89q", "jchronic")
+                includeModule("com.sk89q.lib", "jlibnoise")
             }
         }
         maven("https://nexus.phoenixdevt.fr/repository/maven-public/") {
@@ -142,11 +145,21 @@ dependencies {
     }
 
     // Test dependencies
+    testRuntimeOnly(oraxenLibs.aws.s3) {
+        exclude("software.amazon.awssdk", "apache-client")
+        exclude("software.amazon.awssdk", "netty-nio-client")
+    }
+    testRuntimeOnly(oraxenLibs.aws.url.connection)
     testImplementation("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.mockito:mockito-core:5.11.0")
     testImplementation("org.mockito:mockito-junit-jupiter:5.11.0")
+    testImplementation(oraxenLibs.worldedit.bukkit) {
+        exclude("com.google.code.gson", "gson")
+    }
+    testImplementation(oraxenLibs.commons.io)
+    testImplementation(oraxenLibs.commons.lang3)
     testImplementation(oraxenLibs.spring.expression)
     testImplementation("net.kyori:adventure-api:4.18.0")
     testImplementation("net.kyori:adventure-text-minimessage:4.18.0")
@@ -328,7 +341,7 @@ paper {
         "LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible",
         "CrateReloaded", "ItemBridge", "WorldEdit", "FastAsyncWorldEdit", "WorldGuard", "Towny",
         "Factions", "Lands", "PlotSquared", "NBTAPI", "ModelEngine", "ViaVersion", "ViaBackwards",
-        "HuskClaims", "HuskTowns", "BentoBox", "Skript", "Iris",
+        "HuskClaims", "HuskTowns", "BentoBox", "Skript",
         "ExecutableItems", "SCore", "EcoItems", "BlockLocker",
         // Remaining protection plugins detected reflectively by the shaded AntiGriefLib
         // (net.momirealms:antigrieflib). Without a declared dependency their classes are
