@@ -480,6 +480,7 @@ public class ShapedBlockMechanicListener implements Listener {
         Block block = event.getBlock();
         // Paper can fire physics only for the changed support block, before updating its neighbours.
         if (!(block.getBlockData() instanceof Door)) block = block.getRelative(BlockFace.UP);
+        else if (((Door) block.getBlockData()).getHalf() == Bisected.Half.TOP) block = block.getRelative(BlockFace.DOWN);
         if (!(block.getBlockData() instanceof Door door) || door.getHalf() != Bisected.Half.BOTTOM) return;
         if (door.isSupported(block)) return;
 
@@ -487,7 +488,7 @@ public class ShapedBlockMechanicListener implements Listener {
         if (mechanic == null || mechanic.getBlockType() != ShapedBlockType.DOOR) return;
 
         // Leave the support block's other physics updates intact.
-        if (block.equals(event.getBlock())) event.setCancelled(true);
+        if (event.getBlock().getBlockData() instanceof Door) event.setCancelled(true);
         if (OraxenBlocks.remove(block.getLocation(), null)) playBreakSound(block, mechanic);
     }
 

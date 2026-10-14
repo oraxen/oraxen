@@ -334,8 +334,8 @@ public class ConfigsManager {
 
     private boolean removeObsoleteKeys(YamlConfiguration configuration) {
         boolean updated = false;
-        for (String key : configuration.getKeys(false))
-            if (removedYamlKeys.contains(key)) {
+        for (String key : removedYamlKeys)
+            if (configuration.contains(key)) {
                 updated = true;
                 Message.REMOVING_CONFIG.log(AdventureUtils.tagResolver("option", key));
                 configuration.set(key, null);
@@ -349,7 +349,8 @@ public class ConfigsManager {
             "Misc.armor_equip_event_bypass");
 
     private final List<String> removedYamlKeys = List.of(
-            "armorpotioneffects");
+            "armorpotioneffects",
+            "ConfigsTools.error_item.injectID");
 
     // Keys in user language files that must be re-migrated if they're missing a
     // placeholder that the bundled default provides. Without this, servers
@@ -838,7 +839,16 @@ public class ConfigsManager {
 
     public Map<File, Map<String, ItemBuilder>> parseItemConfig() {
         Map<File, Map<String, ItemBuilder>> parseMap = new LinkedHashMap<>();
-        ItemBuilder errorItem = new ItemLoader(Settings.ERROR_ITEM.toConfigSection()).load().item();
+        ItemLoader errorLoader = new ItemLoader(Settings.ERROR_ITEM.toConfigSection());
+        ItemValidator.Result errorResult = errorLoader.load();
+        if (errorResult.configUpdated()) {
+            try {
+                getSettings().save(getSettingsFile());
+            } catch (IOException e) {
+                Logs.debug(e);
+            }
+        }
+        ItemBuilder errorItem = errorResult.item();
         for (File file : getItemFiles())
             parseMap.put(file, parseItemConfig(file, errorItem));
         return parseMap;

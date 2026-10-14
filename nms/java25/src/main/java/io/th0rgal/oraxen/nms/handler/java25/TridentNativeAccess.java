@@ -12,6 +12,7 @@ import java.lang.reflect.Method;
 final class TridentNativeAccess {
     static final EntityType<?> itemDisplay = resolveItemDisplay();
     private static final Method soundLocation;
+    private static final Method soundNamespace;
     private static final Method soundPath;
     private static final Method createSound;
     private static final Method movement;
@@ -22,6 +23,7 @@ final class TridentNativeAccess {
     static {
         try {
             soundLocation = SoundEvent.class.getMethod("location");
+            soundNamespace = ResourceLocationHelper.getResourceLocationClass().getMethod("getNamespace");
             soundPath = ResourceLocationHelper.getResourceLocationClass().getMethod("getPath");
             createSound = SoundEvent.class.getMethod("createVariableRangeEvent", ResourceLocationHelper.getResourceLocationClass());
             yaw = rotationAccessor("getYRot", "getyRot");
@@ -71,7 +73,9 @@ final class TridentNativeAccess {
     }
 
     static String soundPath(SoundEvent sound) throws ReflectiveOperationException {
-        return (String) soundPath.invoke(soundLocation.invoke(sound));
+        Object location = soundLocation.invoke(sound);
+        if (!"minecraft".equals(soundNamespace.invoke(location))) return "";
+        return (String) soundPath.invoke(location);
     }
 
     static Vec3 movement(ClientboundAddEntityPacket packet) throws ReflectiveOperationException {

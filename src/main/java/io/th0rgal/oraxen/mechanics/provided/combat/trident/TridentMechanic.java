@@ -22,7 +22,7 @@ public class TridentMechanic extends Mechanic {
 
     public TridentMechanic(MechanicFactory factory, ConfigurationSection section) {
         super(factory, section, item -> item.setType(Material.TRIDENT)
-                .setItemModel(new NamespacedKey("oraxen", section.getParent().getParent().getName())));
+                .setItemModel(new NamespacedKey("oraxen_tridents", section.getParent().getParent().getName() + "_held")));
         model = modelPath(section, "appearance.model");
         chargingModel = section.contains("appearance.charging-model")
                 ? modelPath(section, "appearance.charging-model") : model;

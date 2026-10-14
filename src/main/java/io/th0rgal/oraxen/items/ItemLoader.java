@@ -28,8 +28,7 @@ public final class ItemLoader {
         this.section = section;
         if (section.isString("template"))
             templateItem = ItemTemplate.getLoaderTemplate(section.getString("template"));
-        migrator = new ItemMigrator(section, templateItem != null
-                ? templateItem.mergeWithTemplateSection().getString("mechanics.furniture.type") : null);
+        migrator = new ItemMigrator(section, resolveInheritedFurnitureType(templateItem));
 
         final ConfigurationSection crucibleSection = OraxenYaml.getConfigurationSection(section, "crucible");
         final ConfigurationSection mmoSection = OraxenYaml.getConfigurationSection(section, "mmoitem");
@@ -106,12 +105,26 @@ public final class ItemLoader {
         return new ItemValidator(section, mergeWithTemplateSection(), type, oraxenMeta, MODEL_DATAS_BY_ID, migrator);
     }
 
+    private static String resolveInheritedFurnitureType(final ItemLoader template) {
+        if (template == null)
+            return null;
+        final ConfigurationSection merged = template.mergeWithTemplateSection();
+        if (merged == null)
+            return null;
+        final ConfigurationSection mechanics = OraxenYaml.getConfigurationSection(merged, "mechanics");
+        final ConfigurationSection furniture = mechanics != null
+                ? OraxenYaml.getConfigurationSection(mechanics, "furniture") : null;
+        return furniture != null ? OraxenYaml.getString(furniture, "type") : null;
+    }
+
     private ConfigurationSection mergeWithTemplateSection() {
         if (section == null || templateItem == null || templateItem.section == null)
             return section;
 
         final ConfigurationSection merged = new YamlConfiguration().createSection(section.getName());
-        OraxenYaml.copyConfigurationSection(templateItem.section, merged);
+        final ConfigurationSection templateMerged = templateItem.mergeWithTemplateSection();
+        if (templateMerged != null)
+            OraxenYaml.copyConfigurationSection(templateMerged, merged);
         OraxenYaml.copyConfigurationSection(section, merged);
         merged.set("injectId", true);
         OraxenYaml.invalidateKeyCache(merged);

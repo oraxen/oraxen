@@ -71,6 +71,9 @@ class TridentMechanicTest extends MechanicTestSupport {
         doCallRealMethod().when(factory).onPackGenerated(event);
         factory.onPackGenerated(event);
         assertTrue(output.contains(existing));
+        VirtualFile held = output.stream().filter(file -> file.getPath()
+                .equals("assets/oraxen_tridents/items/test_item_held.json")).findFirst().orElseThrow();
+        assertEquals(mechanic.getModel(), held.toJsonObject().getAsJsonObject("model").get("model").getAsString());
         VirtualFile thrown = output.stream().filter(file -> file.getPath()
                 .equals("assets/oraxen_tridents/items/test_item.json")).findFirst().orElseThrow();
         assertEquals(mechanic.getThrownModel(), thrown.toJsonObject().getAsJsonObject("model").get("model").getAsString());
