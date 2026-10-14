@@ -1,8 +1,8 @@
 {
-  "oraxenVersion": "1.220.0",
+  "oraxenVersion": "1.220.1",
   "minecraftVersion": "26.3",
   "serverVersion": "26.3.build.31-alpha",
-  "generatedAt": "2026-09-30T21:26:09.762641059Z",
+  "generatedAt": "2026-10-14T14:19:36.444901758Z",
   "enums": {
     "Material": {
       "values": [
@@ -9349,6 +9349,56 @@
           "type": "boolean",
           "description": "Show hit counter (method exists but actionbar is removed)",
           "default": true
+        }
+      }
+    },
+    "trident": {
+      "category": "combat",
+      "description": "Custom trident models and sounds with vanilla throwing and enchantments",
+      "_source": "factory",
+      "properties": {
+        "sounds": {
+          "type": "object",
+          "properties": {
+            "hit": {
+              "type": "string",
+              "description": "Sound when hitting an entity"
+            },
+            "hit-ground": {
+              "type": "string",
+              "description": "Defaults to hit"
+            },
+            "return": {
+              "type": "string",
+              "description": "Defaults to throw"
+            },
+            "throw": {
+              "type": "string",
+              "description": "Sound when thrown"
+            }
+          }
+        },
+        "appearance": {
+          "type": "object",
+          "properties": {
+            "charging-model": {
+              "type": "string",
+              "description": "Model while charging, defaults to model"
+            },
+            "model": {
+              "type": "string",
+              "description": "Handheld model"
+            },
+            "thrown-model": {
+              "type": "string",
+              "description": "Thrown model"
+            },
+            "transform": {
+              "type": "string",
+              "default": "NONE",
+              "enum": "ItemDisplayTransform"
+            }
+          }
         }
       }
     }
