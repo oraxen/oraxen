@@ -28,7 +28,7 @@ import java.util.Map;
  * {@link #beginPush}. Errors are reported as {@link StudioApiException} with Studio's
  * stable error code.
  */
-public final class StudioApiClient {
+public final class StudioApiClient implements AutoCloseable {
 
     public static final int API_VERSION = 1;
     private static final Duration API_TIMEOUT = Duration.ofSeconds(60);
@@ -49,6 +49,11 @@ public final class StudioApiClient {
 
     public String baseUrl() {
         return baseUrl;
+    }
+
+    @Override
+    public void close() {
+        http.close();
     }
 
     /** Thrown for any non-2xx answer; {@link #code} is Studio's machine-readable error code. */
@@ -177,6 +182,12 @@ public final class StudioApiClient {
         java.util.List<String> deletes = new java.util.ArrayList<>();
         for (JsonElement e : res.getAsJsonArray("deletes")) deletes.add(e.getAsString());
         return new PushPlan(string(res, "push_id"), uploads, deletes, res.get("unchanged").getAsInt());
+    }
+
+    /** Releases a push that will not be committed, so the workspace is not locked until it expires. */
+    public void abortPush(String token, String pushId) throws IOException, InterruptedException {
+        send(HttpRequest.newBuilder(uri("/api/v1/studio/pushes/" + pushId)).timeout(API_TIMEOUT)
+                .header("Authorization", "Bearer " + token).DELETE().build());
     }
 
     public PushResult commitPush(String token, String pushId) throws IOException, InterruptedException {

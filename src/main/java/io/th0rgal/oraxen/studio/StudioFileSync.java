@@ -51,15 +51,18 @@ public final class StudioFileSync {
         return out;
     }
 
+    /** Hashes of the trackable paths of a manifest, as recorded for the next sync. */
     public static Map<String, String> hashes(Map<String, FileEntry> manifest) {
         Map<String, String> out = new LinkedHashMap<>();
-        manifest.forEach((path, entry) -> out.put(path, entry.sha256()));
+        manifest.forEach((path, entry) -> {
+            if (StudioBundleUtils.isTrackableRelativePath(path)) out.put(path, entry.sha256());
+        });
         return out;
     }
 
     /**
      * @param download     remote files missing or different locally
-     * @param delete       local tracked files that no longer exist in Studio
+     * @param delete       local tracked files Studio deleted and this server left unchanged
      * @param localChanges files among the above that were also edited on this server since
      *                     the last sync; their local version is backed up before being replaced
      */
@@ -83,8 +86,10 @@ public final class StudioFileSync {
         }
         for (Map.Entry<String, FileEntry> e : local.entrySet()) {
             if (remote.containsKey(e.getKey())) continue;
-            delete.add(e.getKey());
-            if (changedSinceBase(e.getKey(), e.getValue(), base)) localChanges.add(e.getKey());
+            // Only files Studio deleted are removed, and only if this server did not change
+            // them since the last sync. Files added here since then are kept (a later push
+            // uploads them).
+            if (base != null && !changedSinceBase(e.getKey(), e.getValue(), base)) delete.add(e.getKey());
         }
         Collections.sort(download);
         Collections.sort(delete);

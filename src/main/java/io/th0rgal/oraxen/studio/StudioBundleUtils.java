@@ -43,7 +43,8 @@ public final class StudioBundleUtils {
         while (clean.startsWith("/")) {
             clean = clean.substring(1);
         }
-        if (clean.isEmpty() || clean.length() > 512 || clean.contains("..")) return false;
+        if (clean.isEmpty() || clean.length() > 512) return false;
+        // Rejects "." and ".." segments as well as dot-files (same rule as Studio's normalizeSyncPath).
         if (clean.startsWith(".") || clean.contains("/.") || clean.contains("//") || clean.endsWith("/")) return false;
         // Studio uses paths in storage keys and URLs; it rejects these characters (keep in sync with lib/studio/paths.ts).
         if (hasUnsupportedCharacters(clean)) return false;
@@ -53,12 +54,12 @@ public final class StudioBundleUtils {
             return false;
         }
 
+        // Exact case, like Studio: Oraxen only reads these exact folder and file names.
         int slashIndex = clean.indexOf('/');
         if (slashIndex < 0) {
-            return TRACKED_ROOT_FILES.contains(lower);
+            return TRACKED_ROOT_FILES.contains(clean);
         }
-        String topDir = clean.substring(0, slashIndex).toLowerCase(Locale.ROOT);
-        return TRACKED_DIRECTORIES.contains(topDir);
+        return TRACKED_DIRECTORIES.contains(clean.substring(0, slashIndex));
     }
 
     /** True for characters Studio cannot store in a path: {@code % ? #} and control characters. */

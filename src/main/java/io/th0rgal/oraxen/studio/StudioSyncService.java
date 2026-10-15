@@ -30,6 +30,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Oraxen Studio pairing and live sync over the Studio server API v1.
@@ -49,6 +50,13 @@ public class StudioSyncService {
     private final OraxenPlugin plugin;
     private final AtomicBoolean syncInProgress = new AtomicBoolean(false);
     private final AtomicBoolean checkScheduled = new AtomicBoolean(false);
+    // A realtime hint arrived while a sync was running; check again once it finishes.
+    private final AtomicBoolean recheckNeeded = new AtomicBoolean(false);
+    // Bumped by start()/stop(): work started for an older generation must not install a socket.
+    private final AtomicInteger generation = new AtomicInteger();
+    private final AtomicBoolean pairingPollInFlight = new AtomicBoolean(false);
+    private volatile boolean initialSyncHintShown = false;
+    private StudioApiClient client;
     private volatile StudioWebSocketClient activeSocket;
     private volatile SchedulerUtil.ScheduledTask pairingPollTask;
     private volatile String connectedWorkspaceId = "";
@@ -63,14 +71,25 @@ public class StudioSyncService {
     public void start() {
         stop();
         if (getSecret().isEmpty() || !isAutoSyncEnabled()) return;
-        SchedulerUtil.runTaskAsync(plugin, this::connectWorkspaceSocket);
+        int gen = generation.get();
+        SchedulerUtil.runTaskAsync(plugin, () -> connectWorkspaceSocket(gen, 0));
     }
 
     public void stop() {
+        generation.incrementAndGet();
         cancelPairingWatcher();
         StudioWebSocketClient ws = activeSocket;
         activeSocket = null;
         if (ws != null) ws.close();
+    }
+
+    /** Called when the plugin is disabled; unlike stop(), also releases the HTTP client. */
+    public void shutdown() {
+        stop();
+        synchronized (this) {
+            if (client != null) client.close();
+            client = null;
+        }
     }
 
     private void cancelPairingWatcher() {
@@ -112,8 +131,20 @@ public class StudioSyncService {
         return StudioSyncState.load(dataFolder(), connectedWorkspaceId).rev();
     }
 
-    private StudioApiClient api() {
-        return new StudioApiClient(getStudioBaseUrl());
+    /** One HTTP client per service, recreated if the Studio URL changes and closed in shutdown(). */
+    private synchronized StudioApiClient api() {
+        String url = getStudioBaseUrl();
+        if (client == null || !client.baseUrl().equals(url)) {
+            if (client != null) client.close();
+            client = new StudioApiClient(url);
+        }
+        return client;
+    }
+
+    /** Ends a pull or push; runs a check that was requested while it was running. */
+    private void finishSync() {
+        syncInProgress.set(false);
+        if (recheckNeeded.getAndSet(false)) scheduleCheck();
     }
 
     private Path dataFolder() {
@@ -126,24 +157,32 @@ public class StudioSyncService {
         try {
             versions = api.supportedVersions();
         } catch (StudioApiException e) {
-            throw new IOException("Oraxen Studio at " + api.baseUrl()
+            if (e.status() != 404) throw e; // outage or server error: not a version problem
+            throw new UnsupportedStudioException("Oraxen Studio at " + api.baseUrl()
                     + " does not support this version of Oraxen yet (no API v" + StudioApiClient.API_VERSION + ")");
         }
         if (!versions.contains(StudioApiClient.API_VERSION)) {
-            throw new IOException("Oraxen Studio no longer supports API v" + StudioApiClient.API_VERSION
+            throw new UnsupportedStudioException("Oraxen Studio no longer supports API v" + StudioApiClient.API_VERSION
                     + " (supported: " + versions + "). Please update Oraxen.");
+        }
+    }
+
+    private static final class UnsupportedStudioException extends IOException {
+        UnsupportedStudioException(String message) {
+            super(message);
         }
     }
 
     // ---------------------------------------------------------------- live sync
 
-    private void connectWorkspaceSocket() {
+    private void connectWorkspaceSocket(int gen, int attempt) {
         String secret = getSecret();
-        if (secret.isEmpty()) return;
+        if (secret.isEmpty() || gen != generation.get()) return;
         try {
             StudioApiClient api = api();
             ensureApiSupported(api);
             StudioApiClient.Connection connection = api.connection(secret);
+            if (gen != generation.get()) return; // stopped or restarted meanwhile
             connectedWorkspaceId = connection.workspaceId();
             connectedWorkspaceName = connection.workspaceName();
 
@@ -158,13 +197,32 @@ public class StudioSyncService {
                         // Catch up on anything that happened while we were offline.
                         scheduleCheck();
                     });
-            activeSocket = wsClient;
+            synchronized (this) {
+                if (gen != generation.get()) {
+                    wsClient.close();
+                    return;
+                }
+                activeSocket = wsClient;
+            }
             wsClient.start();
+        } catch (UnsupportedStudioException e) {
+            Logs.logWarning(e.getMessage());
         } catch (StudioApiException e) {
-            Logs.logWarning("Oraxen Studio live sync is off: " + e.getMessage());
+            if (e.status() == 401 || e.status() == 403) {
+                Logs.logWarning("Oraxen Studio live sync is off: " + e.getMessage());
+            } else {
+                retryConnect(gen, attempt, e.getMessage());
+            }
         } catch (Exception e) {
-            Logs.logWarning("Could not connect to Oraxen Studio live sync: " + e.getMessage());
+            retryConnect(gen, attempt, e.getMessage());
         }
+    }
+
+    /** Studio may be briefly unreachable (deploys, outages): retry with backoff up to 10 minutes apart. */
+    private void retryConnect(int gen, int attempt, String reason) {
+        long delaySeconds = Math.min(600, 15L << Math.min(attempt, 6));
+        Logs.logWarning("Could not reach Oraxen Studio (" + reason + "); retrying in " + delaySeconds + "s.");
+        SchedulerUtil.runTaskLaterAsync(plugin, delaySeconds * 20L, () -> connectWorkspaceSocket(gen, attempt + 1));
     }
 
     /** Coalesces bursts of realtime hints into one authenticated state check. */
@@ -179,12 +237,24 @@ public class StudioSyncService {
     private void checkForChanges() {
         String secret = getSecret();
         if (secret.isEmpty()) return;
+        if (syncInProgress.get()) {
+            recheckNeeded.set(true);
+            return;
+        }
         try {
             StudioApiClient.Connection connection = api().connection(secret);
             StudioSyncState state = StudioSyncState.load(dataFolder(), connection.workspaceId());
             if (connection.pushRequestedAt() != null) {
                 Logs.logInfo("Oraxen Studio requested this server's files, pushing...");
                 pushToStudio(Bukkit.getConsoleSender(), true);
+            } else if (state.base() == null) {
+                // Never synced with this workspace (just paired, or upgraded from an older
+                // Oraxen): replacing local files automatically could destroy the admin's work.
+                if (!initialSyncHintShown) {
+                    initialSyncHintShown = true;
+                    Logs.logWarning("Oraxen Studio is connected but not synced yet. Run /oraxen studio push to upload "
+                            + "this server's files, or /oraxen studio pull to download the workspace.");
+                }
             } else if (connection.rev() != state.rev()) {
                 Logs.logInfo("Oraxen Studio revision #" + connection.rev() + " is available, pulling changes...");
                 pullFromStudio(Bukkit.getConsoleSender());
@@ -227,32 +297,42 @@ public class StudioSyncService {
         long periodTicks = Math.max(1, pairing.pollIntervalSeconds()) * 20L;
         long deadline = System.currentTimeMillis() + 10 * 60 * 1000L;
         pairingPollTask = SchedulerUtil.runTaskTimerAsync(plugin, periodTicks, periodTicks, () -> {
-            if (completed.get()) return;
-            if (System.currentTimeMillis() > deadline) {
-                cancelPairingWatcher();
-                sendMessage(sender, "<prefix><#facc43>The Studio pairing code expired. Run <#43c9fa>/oraxen studio connect</#43c9fa> again.");
-                return;
-            }
+            if (completed.get() || !pairingPollInFlight.compareAndSet(false, true)) return;
             try {
-                StudioApiClient.PairingResult result = api.pollPairing(pairing);
-                if (result != null && completed.compareAndSet(false, true)) {
-                    finishPairing(result, sender);
-                }
-            } catch (StudioApiException e) {
-                if (e.status() == 404 && completed.compareAndSet(false, true)) {
-                    cancelPairingWatcher();
-                    sendMessage(sender, "<prefix><#fa4943>Studio pairing failed: " + e.getMessage());
-                }
-            } catch (Exception ignored) {
-                // Transient network error: keep polling until the code expires.
+                pollPairingOnce(api, pairing, sender, completed, deadline);
+            } finally {
+                pairingPollInFlight.set(false);
             }
         });
+    }
+
+    private void pollPairingOnce(StudioApiClient api, StudioApiClient.Pairing pairing, @Nullable CommandSender sender,
+                                 AtomicBoolean completed, long deadline) {
+        if (System.currentTimeMillis() > deadline) {
+            cancelPairingWatcher();
+            sendMessage(sender, "<prefix><#facc43>The Studio pairing code expired. Run <#43c9fa>/oraxen studio connect</#43c9fa> again.");
+            return;
+        }
+        try {
+            StudioApiClient.PairingResult result = api.pollPairing(pairing);
+            if (result != null && completed.compareAndSet(false, true)) {
+                finishPairing(result, sender);
+            }
+        } catch (StudioApiException e) {
+            if (e.status() == 404 && completed.compareAndSet(false, true)) {
+                cancelPairingWatcher();
+                sendMessage(sender, "<prefix><#fa4943>Studio pairing failed: " + e.getMessage());
+            }
+        } catch (Exception ignored) {
+            // Transient network error: keep polling until the code expires.
+        }
     }
 
     private void finishPairing(StudioApiClient.PairingResult result, @Nullable CommandSender sender) {
         cancelPairingWatcher();
         connectedWorkspaceId = result.workspaceId();
         connectedWorkspaceName = result.workspaceName();
+        initialSyncHintShown = true; // the success message below already asks for push or pull
         SchedulerUtil.runTask(plugin, () -> {
             Settings.STUDIO_SECRET.setValue(result.token(), true);
             try {
@@ -310,8 +390,10 @@ public class StudioSyncService {
         }
         sendMessage(sender, "<prefix><#529ced>Pushing Oraxen configurations and pack assets to Oraxen Studio...");
         SchedulerUtil.runTaskAsync(plugin, () -> {
+            String pushId = null;
+            boolean pullAfter = false;
+            StudioApiClient api = api();
             try {
-                StudioApiClient api = api();
                 StudioApiClient.Connection connection = api.connection(secret);
                 StudioSyncState state = StudioSyncState.load(dataFolder(), connection.workspaceId());
                 List<String> unsupported = new ArrayList<>();
@@ -322,12 +404,22 @@ public class StudioSyncService {
                 }
 
                 StudioApiClient.PushPlan plan = api.beginPush(secret, local, state.base(), force);
-                runParallel(plan.uploads(), upload ->
-                        api.upload(upload.url(), dataFolder().resolve(upload.path()), connection.storageApiKey()));
+                pushId = plan.pushId();
+                runParallel(plan.uploads(), upload -> {
+                    try {
+                        api.upload(upload.url(), dataFolder().resolve(upload.path()), connection.storageApiKey());
+                    } catch (IOException e) {
+                        api.upload(upload.url(), dataFolder().resolve(upload.path()), connection.storageApiKey());
+                    }
+                });
                 StudioApiClient.PushResult result = api.commitPush(secret, plan.pushId());
+                pushId = null;
 
                 state.recordSync(connection.workspaceId(), result.rev(), StudioFileSync.hashes(local));
                 state.save(dataFolder());
+                // A non-forced push keeps files added in Studio since the last sync; fetch them.
+                pullAfter = !force && api.manifest(secret).files().keySet().stream()
+                        .anyMatch(path -> StudioBundleUtils.isTrackableRelativePath(path) && !local.containsKey(path));
                 sendMessage(sender, "<prefix><#55ffa4>Pushed <#43fa8c>" + result.uploaded()
                         + "<#55ffa4> file(s) to Oraxen Studio (revision #" + result.rev() + ", "
                         + plan.unchanged() + " unchanged, " + result.deleted() + " deleted).");
@@ -341,8 +433,17 @@ public class StudioSyncService {
                 sendMessage(sender, "<prefix><#fa4943>Failed to push to Oraxen Studio: " + e.getMessage());
                 Logs.debug(e);
             } finally {
-                syncInProgress.set(false);
+                if (pushId != null) {
+                    // Release the workspace lock instead of leaving it held until it expires.
+                    try {
+                        api.abortPush(secret, pushId);
+                    } catch (Exception abortError) {
+                        Logs.debug(abortError);
+                    }
+                }
+                finishSync();
             }
+            if (pullAfter) pullFromStudio(sender);
         });
     }
 
@@ -377,6 +478,7 @@ public class StudioSyncService {
             boolean reloadScheduled = false;
             try {
                 StudioApiClient api = api();
+                if (connectedWorkspaceId.isEmpty()) initialSyncHintShown = true;
                 StudioApiClient.Connection connection = api.connection(secret);
                 StudioSyncState state = StudioSyncState.load(dataFolder(), connection.workspaceId());
                 StudioApiClient.Manifest remote = api.manifest(secret);
@@ -412,7 +514,7 @@ public class StudioSyncService {
                 sendMessage(sender, "<prefix><#fa4943>Failed to pull from Oraxen Studio: " + e.getMessage());
                 Logs.debug(e);
             } finally {
-                if (!reloadScheduled) syncInProgress.set(false);
+                if (!reloadScheduled) finishSync();
             }
         });
     }
@@ -437,7 +539,7 @@ public class StudioSyncService {
                                 + "<#55ffa4> changed file(s) from Oraxen Studio (revision #"
                                 + rev + ") and refreshed resource pack.");
             } finally {
-                syncInProgress.set(false);
+                finishSync();
             }
             scheduleWriteBack(pulled);
         });

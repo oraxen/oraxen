@@ -72,6 +72,30 @@ class StudioFileSyncTest {
     }
 
     @Test
+    void planPull_keepsFilesAddedOrEditedOnTheServerSinceTheLastSync() {
+        Map<String, FileEntry> local = Map.of(
+                "items/added_here.yml", entry("new"),
+                "items/deleted_in_studio_but_edited_here.yml", entry("edited"));
+        Map<String, String> base = Map.of("items/deleted_in_studio_but_edited_here.yml", entry("v1").sha256());
+        StudioFileSync.PullPlan plan = StudioFileSync.planPull(Map.of(), local, base);
+        assertTrue(plan.delete().isEmpty());
+    }
+
+    @Test
+    void planPull_withoutBaseNeverDeletes() {
+        StudioFileSync.PullPlan plan = StudioFileSync.planPull(Map.of(), Map.of("items/mine.yml", entry("x")), null);
+        assertTrue(plan.isEmpty());
+    }
+
+    @Test
+    void hashes_recordsOnlyTrackablePaths() {
+        Map<String, String> h = StudioFileSync.hashes(Map.of("items/a.yml", entry("a"), "settings.yml", entry("s")));
+        assertEquals(java.util.Set.of("items/a.yml"), h.keySet());
+        assertTrue(StudioBundleUtils.isTrackableRelativePath("items/sword..yml"));
+        assertFalse(StudioBundleUtils.isTrackableRelativePath("items/../settings.yml"));
+    }
+
+    @Test
     void planPull_withoutBaseTreatsEveryLocalDifferenceAsALocalEdit() {
         StudioFileSync.PullPlan plan = StudioFileSync.planPull(
                 Map.of("items/a.yml", entry("studio")), Map.of("items/a.yml", entry("server")), null);
