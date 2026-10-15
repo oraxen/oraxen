@@ -1,9 +1,12 @@
 package io.th0rgal.oraxen.configs;
 
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
+import io.th0rgal.oraxen.items.ItemMigrator;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.MemoryConfiguration;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +15,38 @@ import java.util.Set;
 public final class FurnitureConfigMigration {
 
     private FurnitureConfigMigration() {}
+
+    /** Migrate before templates are loaded, since the two legacy keys inherited independently. */
+    public static Set<ConfigurationSection> migrateBarriers(List<ConfigurationSection> items) {
+        Set<ConfigurationSection> updated = new LinkedHashSet<>();
+        Map<String, ConfigurationSection> templates = new HashMap<>();
+        for (ConfigurationSection item : items) {
+            if (ItemMigrator.migrateUppercaseSections(item)) updated.add(item);
+            ConfigurationSection furniture = item.getConfigurationSection("mechanics.furniture");
+            if (!item.isBoolean("template") || furniture == null) continue;
+            ConfigurationSection snapshot = new MemoryConfiguration();
+            snapshot.set("barrier", furniture.get("barrier"));
+            snapshot.set("barriers", furniture.get("barriers"));
+            templates.put(item.getName(), snapshot);
+        }
+
+        for (ConfigurationSection item : items) {
+            ConfigurationSection furniture = item.getConfigurationSection("mechanics.furniture");
+            if (furniture == null) continue;
+            ConfigurationSection template = templates.get(item.getString("template"));
+            if (template != null && (furniture.contains("barrier") || furniture.contains("barriers"))) {
+                ConfigurationSection effective = new MemoryConfiguration();
+                for (String key : List.of("barrier", "barriers"))
+                    effective.set(key, furniture.contains(key) ? furniture.get(key) : template.get(key));
+                if (migrateBarriers(effective)) {
+                    furniture.set("barriers", effective.get("barriers"));
+                    furniture.set("barrier", null);
+                    updated.add(item);
+                }
+            } else if (migrateBarriers(furniture)) updated.add(item);
+        }
+        return updated;
+    }
 
     public static boolean migrate(ConfigurationSection item) {
         return migrate(item, null);
@@ -28,6 +63,7 @@ public final class FurnitureConfigMigration {
         updated |= migrateLegacyProperties(furniture, inheritedType);
         updated |= migrateHitbox(furniture);
         updated |= migrateSeat(furniture);
+        updated |= migrateBarriers(furniture);
         updated |= migrateLight(furniture);
         return updated;
     }
@@ -79,6 +115,26 @@ public final class FurnitureConfigMigration {
         return true;
     }
 
+    private static boolean migrateBarriers(ConfigurationSection furniture) {
+        boolean updated = furniture.contains("barrier");
+        List<Object> barriers = new ArrayList<>();
+        if (furniture.getBoolean("barrier", false)) barriers.add("0,0,0");
+        for (Object barrier : furniture.getList("barriers", List.of())) {
+            if (barrier instanceof Map<?, ?> location) {
+                barriers.add(coordinate(location, "x") + "," + coordinate(location, "y") + "," + coordinate(location, "z"));
+                updated = true;
+            } else if ("origin".equals(barrier)) {
+                barriers.add("0,0,0");
+                updated = true;
+            } else barriers.add(barrier);
+        }
+        if (!updated) return false;
+
+        furniture.set("barriers", barriers);
+        furniture.set("barrier", null);
+        return true;
+    }
+
     private static boolean migrateLight(ConfigurationSection furniture) {
         if (!furniture.contains("light")) return false;
 
@@ -107,8 +163,8 @@ public final class FurnitureConfigMigration {
         Set<String> offsets = new LinkedHashSet<>();
         offsets.add("0,0,0");
         for (Object barrier : furniture.getList("barriers", List.of()))
-            if (barrier instanceof Map<?, ?> location)
-                offsets.add(coordinate(location, "x") + "," + coordinate(location, "y") + "," + coordinate(location, "z"));
+            if (barrier instanceof String offset)
+                offsets.add(offset.trim().replaceAll("\\s*,\\s*", ","));
 
         List<String> lights = new ArrayList<>();
         for (String offset : offsets)

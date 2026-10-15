@@ -8,6 +8,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -141,6 +142,164 @@ class FurnitureConfigMigrationTest {
 
         assertTrue(FurnitureConfigMigration.migrate(furniture.getParent().getParent()));
         assertEquals(List.of("0,0,0 10", "1,0,0 10", "0,1,0 10"), furniture.getStringList("lights"));
+        assertEquals(List.of("0,0,0", "1,0,0", "0,1,0"), furniture.getStringList("barriers"));
+        assertFalse(FurnitureConfigMigration.migrate(furniture.getParent().getParent()));
+    }
+
+    @Test
+    void singularBarrierAddsOriginAlongsideExistingBarriers() {
+        ConfigurationSection item = new YamlConfiguration().createSection("item");
+        ConfigurationSection furniture = item.createSection("mechanics").createSection("furniture");
+        furniture.set("barrier", true);
+        furniture.set("barriers", List.of(Map.of("x", 2)));
+        furniture.set("properties.scale.x", 1.5);
+
+        assertTrue(FurnitureConfigMigration.migrate(item));
+        assertFalse(furniture.contains("barrier"));
+        assertEquals(List.of("0,0,0", "2,0,0"), furniture.getStringList("barriers"));
+        assertEquals(1.5, furniture.getDouble("properties.scale.x"));
+        assertFalse(FurnitureConfigMigration.migrate(item));
+    }
+
+    @Test
+    void falseSingularBarrierDoesNotAddOrigin() {
+        ConfigurationSection item = new YamlConfiguration().createSection("item");
+        ConfigurationSection furniture = item.createSection("mechanics").createSection("furniture");
+        furniture.set("barrier", false);
+        furniture.set("barriers", List.of("1,2,3"));
+
+        assertTrue(FurnitureConfigMigration.migrate(item));
+        assertFalse(furniture.contains("barrier"));
+        assertEquals(List.of("1,2,3"), furniture.getStringList("barriers"));
+        assertFalse(FurnitureConfigMigration.migrate(item));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void migratesStandaloneSingularBarrier(boolean barrier) {
+        ConfigurationSection item = new YamlConfiguration().createSection("item");
+        ConfigurationSection furniture = item.createSection("mechanics").createSection("furniture");
+        furniture.set("barrier", barrier);
+
+        assertTrue(FurnitureConfigMigration.migrate(item));
+        assertFalse(furniture.contains("barrier"));
+        assertEquals(barrier ? List.of("0,0,0") : List.of(), furniture.getStringList("barriers"));
+        assertFalse(FurnitureConfigMigration.migrate(item));
+    }
+
+    @Test
+    void migratesMixedBarrierFormatsAndMissingCoordinates() {
+        ConfigurationSection item = new YamlConfiguration().createSection("item");
+        ConfigurationSection furniture = item.createSection("mechanics").createSection("furniture");
+        furniture.set("barriers", List.of("1,2,3", Map.of("y", -2), "origin", Map.of("z", 4), Map.of()));
+        furniture.set("light", 11);
+
+        assertTrue(FurnitureConfigMigration.migrate(item));
+        assertEquals(List.of("1,2,3", "0,-2,0", "0,0,0", "0,0,4", "0,0,0"),
+                furniture.getStringList("barriers"));
+        assertEquals(List.of("0,0,0 11", "1,2,3 11", "0,-2,0 11", "0,0,4 11"),
+                furniture.getStringList("lights"));
+        assertFalse(furniture.contains("light"));
+        assertFalse(FurnitureConfigMigration.migrate(item));
+    }
+
+    @Test
+    void currentBarrierStringsNeedNoMigration() {
+        ConfigurationSection item = new YamlConfiguration().createSection("item");
+        ConfigurationSection furniture = item.createSection("mechanics").createSection("furniture");
+        furniture.set("barriers", List.of("1,2,3", "0,0,0"));
+
+        assertFalse(FurnitureConfigMigration.migrate(item));
+        assertEquals(List.of("1,2,3", "0,0,0"), furniture.getStringList("barriers"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void batchMigrationCombinesTemplateSingularWithChildBarriersRegardlessOfOrder(boolean templateFirst) {
+        ConfigurationSection template = new YamlConfiguration().createSection("base");
+        template.set("template", true);
+        template.set("mechanics.furniture.barrier", true);
+        ConfigurationSection child = new YamlConfiguration().createSection("child");
+        child.set("template", "base");
+        child.set("mechanics.furniture.barriers", List.of(Map.of("x", 1)));
+        List<ConfigurationSection> items = templateFirst ? List.of(template, child) : List.of(child, template);
+
+        assertEquals(Set.of(template, child), FurnitureConfigMigration.migrateBarriers(items));
+        assertEquals(List.of("0,0,0", "1,0,0"), child.getStringList("mechanics.furniture.barriers"));
+        assertFalse(child.contains("mechanics.furniture.barrier"));
+        assertTrue(FurnitureConfigMigration.migrateBarriers(items).isEmpty());
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void batchMigrationPreservesTemplateListWhenChildOverridesSingularBarrier(boolean barrier) {
+        ConfigurationSection template = new YamlConfiguration().createSection("base");
+        template.set("template", true);
+        template.set("mechanics.furniture.barriers", List.of(Map.of("x", 1)));
+        ConfigurationSection child = new YamlConfiguration().createSection("child");
+        child.set("template", "base");
+        child.set("mechanics.furniture.barrier", barrier);
+        List<ConfigurationSection> items = List.of(child, template);
+
+        assertEquals(Set.of(template, child), FurnitureConfigMigration.migrateBarriers(items));
+        assertEquals(barrier ? List.of("0,0,0", "1,0,0") : List.of("1,0,0"),
+                child.getStringList("mechanics.furniture.barriers"));
+        assertFalse(child.contains("mechanics.furniture.barrier"));
+        assertTrue(FurnitureConfigMigration.migrateBarriers(items).isEmpty());
+    }
+
+    @Test
+    void batchMigrationChildFalseDisablesTemplateOriginWhilePreservingItsList() {
+        ConfigurationSection template = new YamlConfiguration().createSection("base");
+        template.set("template", true);
+        template.set("mechanics.furniture.barrier", true);
+        template.set("mechanics.furniture.barriers", List.of(Map.of("x", 1)));
+        ConfigurationSection child = new YamlConfiguration().createSection("child");
+        child.set("template", "base");
+        child.set("mechanics.furniture.barrier", false);
+        List<ConfigurationSection> items = List.of(template, child);
+
+        assertEquals(Set.of(template, child), FurnitureConfigMigration.migrateBarriers(items));
+        assertEquals(List.of("0,0,0", "1,0,0"), template.getStringList("mechanics.furniture.barriers"));
+        assertEquals(List.of("1,0,0"), child.getStringList("mechanics.furniture.barriers"));
+        assertTrue(FurnitureConfigMigration.migrateBarriers(items).isEmpty());
+    }
+
+    @Test
+    void batchMigrationLeavesFullyInheritedChildSparse() {
+        ConfigurationSection template = new YamlConfiguration().createSection("base");
+        template.set("template", true);
+        template.set("mechanics.furniture.barrier", true);
+        template.set("mechanics.furniture.barriers", List.of(Map.of("x", 1)));
+        ConfigurationSection child = new YamlConfiguration().createSection("child");
+        child.set("template", "base");
+        child.set("mechanics.furniture.properties.scale.x", 2);
+        List<ConfigurationSection> items = List.of(child, template);
+
+        assertEquals(Set.of(template), FurnitureConfigMigration.migrateBarriers(items));
+        assertEquals(List.of("0,0,0", "1,0,0"), template.getStringList("mechanics.furniture.barriers"));
+        assertFalse(child.contains("mechanics.furniture.barrier"));
+        assertFalse(child.contains("mechanics.furniture.barriers"));
+        assertEquals(2, child.getInt("mechanics.furniture.properties.scale.x"));
+        assertTrue(FurnitureConfigMigration.migrateBarriers(items).isEmpty());
+    }
+
+    @Test
+    void batchMigrationNormalizesLegacySectionsBeforeResolvingTemplateBarriers() {
+        ConfigurationSection template = new YamlConfiguration().createSection("base");
+        template.set("template", true);
+        template.set("mechanics.furniture.properties.scale.x", 2);
+        template.set("Mechanics.furniture.barrier", true);
+        ConfigurationSection child = new YamlConfiguration().createSection("child");
+        child.set("template", "base");
+        child.set("Mechanics.furniture.barriers", List.of(Map.of("x", 1)));
+
+        assertEquals(Set.of(template, child), FurnitureConfigMigration.migrateBarriers(List.of(child, template)));
+        assertEquals(List.of("0,0,0", "1,0,0"), child.getStringList("mechanics.furniture.barriers"));
+        assertEquals(2, template.getInt("mechanics.furniture.properties.scale.x"));
+        assertFalse(template.contains("Mechanics"));
+        assertFalse(child.contains("Mechanics"));
+        assertTrue(FurnitureConfigMigration.migrateBarriers(List.of(child, template)).isEmpty());
     }
 
     @Test

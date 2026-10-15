@@ -216,21 +216,7 @@ public class FurnitureMechanic extends Mechanic {
         displayEntityProperties = furnitureType == FurnitureType.DISPLAY_ENTITY && properties != null
                 ? new DisplayEntityProperties(properties) : new DisplayEntityProperties();
 
-        barriers = new ArrayList<>();
-        if (section.getBoolean("barrier", false))
-            barriers.add(new BlockLocation(0, 0, 0));
-        if (section.isList("barriers")) {
-            for (Object barrierObject : section.getList("barriers", new ArrayList<>()))
-                if (barrierObject instanceof String string && string.equals("origin"))
-                    barriers.add(new BlockLocation(0, 0, 0));
-                else if (barrierObject instanceof Map<?, ?> barrierMap) {
-                    try {
-                        barriers.add(new BlockLocation((Map<String, Integer>) barrierMap));
-                    } catch (ClassCastException e) {
-                        Logs.logError("Invalid barrier location: " + barrierMap + " for furniture: " + getItemID());
-                    }
-                }
-        }
+        barriers = parseBarriers(section);
 
         hitboxes = parseHitboxes(section);
         hitbox = hitboxes.isEmpty() ? null : hitboxes.get(0);
@@ -300,6 +286,26 @@ public class FurnitureMechanic extends Mechanic {
         blockLocker = blockLockerSection != null ? new BlockLockerMechanic(blockLockerSection) : null;
 
         textDefinitions = parseTextDefinitions(section);
+    }
+
+    private List<BlockLocation> parseBarriers(ConfigurationSection section) {
+        List<BlockLocation> parsedBarriers = new ArrayList<>();
+        for (Object barrierObject : section.getList("barriers", List.of())) {
+            if (barrierObject instanceof String string) {
+                String[] coordinates = string.trim().split("\\s*,\\s*", -1);
+                if (coordinates.length == 3) {
+                    try {
+                        parsedBarriers.add(new BlockLocation(Integer.parseInt(coordinates[0]),
+                                Integer.parseInt(coordinates[1]), Integer.parseInt(coordinates[2])));
+                        continue;
+                    } catch (NumberFormatException ignored) {
+                    }
+                }
+            }
+            Logs.logError("Invalid barrier entry '" + barrierObject + "' for furniture: " + getItemID()
+                    + ". Expected '<x>,<y>,<z>' with integer coordinates.");
+        }
+        return List.copyOf(parsedBarriers);
     }
 
     private List<FurnitureHitbox> parseHitboxes(ConfigurationSection section) {
