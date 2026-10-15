@@ -1,30 +1,18 @@
 package io.th0rgal.oraxen.studio;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-import java.util.zip.ZipOutputStream;
 
 import io.th0rgal.oraxen.utils.HashUtils;
 
 /**
- * Pure file/zip utilities for Oraxen Studio synchronization.
+ * Path and hashing utilities for Oraxen Studio synchronization.
  */
 public final class StudioBundleUtils {
 
@@ -55,20 +43,32 @@ public final class StudioBundleUtils {
         while (clean.startsWith("/")) {
             clean = clean.substring(1);
         }
-        if (clean.isEmpty() || clean.contains("..")) return false;
-        if (clean.startsWith(".") || clean.contains("/.")) return false;
+        if (clean.isEmpty() || clean.length() > 512) return false;
+        // Rejects "." and ".." segments as well as dot-files (same rule as Studio's normalizeSyncPath).
+        if (clean.startsWith(".") || clean.contains("/.") || clean.contains("//") || clean.endsWith("/")) return false;
+        // Studio uses paths in storage keys and URLs; it rejects these characters (keep in sync with lib/studio/paths.ts).
+        if (hasUnsupportedCharacters(clean)) return false;
 
         String lower = clean.toLowerCase(Locale.ROOT);
         if (lower.equals("settings.yml") || lower.equals("pack.zip") || lower.endsWith("/pack.zip")) {
             return false;
         }
 
+        // Exact case, like Studio: Oraxen only reads these exact folder and file names.
         int slashIndex = clean.indexOf('/');
         if (slashIndex < 0) {
-            return TRACKED_ROOT_FILES.contains(lower);
+            return TRACKED_ROOT_FILES.contains(clean);
         }
-        String topDir = clean.substring(0, slashIndex).toLowerCase(Locale.ROOT);
-        return TRACKED_DIRECTORIES.contains(topDir);
+        return TRACKED_DIRECTORIES.contains(clean.substring(0, slashIndex));
+    }
+
+    /** True for characters Studio cannot store in a path: {@code % ? #} and control characters. */
+    public static boolean hasUnsupportedCharacters(String path) {
+        for (int i = 0; i < path.length(); i++) {
+            char c = path.charAt(i);
+            if (c < 0x20 || c == 0x7f || c == '%' || c == '?' || c == '#') return true;
+        }
+        return false;
     }
 
     public static String sha256Hex(byte[] bytes) {
@@ -92,142 +92,5 @@ public final class StudioBundleUtils {
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException("SHA-256 unavailable", e);
         }
-    }
-
-    public static File createWorkspaceZipBundle(Path dataFolder) throws IOException {
-        File tempZip = Files.createTempFile("oraxen-studio-push-", ".zip").toFile();
-        List<Path> filesToPack = new ArrayList<>();
-
-        if (Files.isDirectory(dataFolder)) {
-            try (var stream = Files.walk(dataFolder)) {
-                stream.filter(Files::isRegularFile).forEach(filesToPack::add);
-            }
-        }
-        Collections.sort(filesToPack);
-
-        try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(tempZip.toPath()))) {
-            byte[] buffer = new byte[8192];
-            for (Path file : filesToPack) {
-                String rel = dataFolder.relativize(file).toString().replace('\\', '/');
-                if (!isTrackableRelativePath(rel)) continue;
-
-                ZipEntry entry = new ZipEntry(rel);
-                zos.putNextEntry(entry);
-                try (FileInputStream fis = new FileInputStream(file.toFile())) {
-                    int read;
-                    while ((read = fis.read(buffer)) != -1) {
-                        zos.write(buffer, 0, read);
-                    }
-                }
-                zos.closeEntry();
-            }
-        }
-        return tempZip;
-    }
-
-    public static Map<String, String> extractBundleToDataFolder(Path zipFile, Path dataFolder) throws IOException {
-        return extractBundleToDataFolder(zipFile, dataFolder, null);
-    }
-
-    /**
-     * Extracts the bundle and, when a manifest is provided, deletes tracked files that are no
-     * longer part of the remote workspace so deletions made in Studio are applied locally.
-     */
-    public static Map<String, String> extractBundleToDataFolder(
-            Path zipFile,
-            Path dataFolder,
-            @org.jetbrains.annotations.Nullable Set<String> manifestPaths) throws IOException {
-        Map<String, String> updatedFiles = new LinkedHashMap<>();
-        Path normalizedRoot = dataFolder.toAbsolutePath().normalize();
-        Path backupRoot = normalizedRoot.resolve(".studio-backup");
-
-        try (ZipInputStream zis = new ZipInputStream(Files.newInputStream(zipFile))) {
-            ZipEntry entry;
-            while ((entry = zis.getNextEntry()) != null) {
-                if (!entry.isDirectory()) {
-                    extractZipEntryIfTrackable(zis, entry, normalizedRoot, backupRoot, updatedFiles);
-                }
-                zis.closeEntry();
-            }
-        }
-        if (manifestPaths != null) {
-            removeTrackedFilesMissingFromManifest(normalizedRoot, manifestPaths, updatedFiles);
-        }
-        return updatedFiles;
-    }
-
-    private static void removeTrackedFilesMissingFromManifest(
-            Path normalizedRoot,
-            Set<String> manifestPaths,
-            Map<String, String> updatedFiles) throws IOException {
-        if (!Files.isDirectory(normalizedRoot)) return;
-        try (var stream = Files.walk(normalizedRoot)) {
-            List<Path> stale = stream.filter(Files::isRegularFile)
-                    .filter(file -> !file.startsWith(normalizedRoot.resolve(".studio-backup")))
-                    .filter(file -> isTrackableRelativePath(
-                            normalizedRoot.relativize(file).toString().replace('\\', '/')))
-                    .filter(file -> !manifestPaths.contains(
-                            normalizedRoot.relativize(file).toString().replace('\\', '/')))
-                    .toList();
-            for (Path file : stale) {
-                Files.deleteIfExists(file);
-                updatedFiles.put(normalizedRoot.relativize(file).toString().replace('\\', '/'), "deleted");
-            }
-        }
-    }
-
-    private static void extractZipEntryIfTrackable(
-            ZipInputStream zis,
-            ZipEntry entry,
-            Path normalizedRoot,
-            Path backupRoot,
-            Map<String, String> updatedFiles) throws IOException {
-        String rel = sanitizeRelativeEntryName(entry.getName());
-        if (!isTrackableRelativePath(rel)) return;
-
-        Path targetPath = normalizedRoot.resolve(rel).normalize();
-        if (!targetPath.startsWith(normalizedRoot)) {
-            throw new IOException("Refusing to extract zip entry outside Oraxen data folder: " + rel);
-        }
-
-        byte[] newBytes = readCurrentZipEntryBytes(zis);
-        String newHash = sha256Hex(newBytes);
-        if (!shouldOverwriteTarget(targetPath, newHash, rel, backupRoot)) return;
-
-        Files.createDirectories(targetPath.getParent());
-        Path tmpTarget = targetPath.resolveSibling(targetPath.getFileName().toString() + ".studio.tmp");
-        Files.write(tmpTarget, newBytes);
-        Files.move(tmpTarget, targetPath, StandardCopyOption.REPLACE_EXISTING);
-        updatedFiles.put(rel, newHash);
-    }
-
-    private static String sanitizeRelativeEntryName(String entryName) {
-        String rel = entryName.replace('\\', '/');
-        while (rel.startsWith("/")) {
-            rel = rel.substring(1);
-        }
-        return rel;
-    }
-
-    private static byte[] readCurrentZipEntryBytes(ZipInputStream zis) throws IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        byte[] buffer = new byte[8192];
-        int read;
-        while ((read = zis.read(buffer)) != -1) {
-            baos.write(buffer, 0, read);
-        }
-        return baos.toByteArray();
-    }
-
-    private static boolean shouldOverwriteTarget(Path targetPath, String newHash, String rel, Path backupRoot) throws IOException {
-        if (!Files.isRegularFile(targetPath)) return true;
-        if (sha256Hex(targetPath).equalsIgnoreCase(newHash)) return false;
-
-        Path backupTarget = backupRoot.resolve(rel).normalize();
-        if (backupTarget.startsWith(backupRoot)) {
-            Files.createDirectories(backupTarget.getParent());
-            Files.copy(targetPath, backupTarget, StandardCopyOption.REPLACE_EXISTING);
-        }
-        return true;
     }
 }
