@@ -302,6 +302,43 @@ class FurnitureConfigMigrationTest {
         assertTrue(FurnitureConfigMigration.migrateBarriers(List.of(child, template)).isEmpty());
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"mechanics.Furniture", "Mechanics.FURNITURE"})
+    void migratesLegacyBarriersInDifferentlyCapitalizedSections(String path) {
+        ConfigurationSection item = new YamlConfiguration().createSection("item");
+        ConfigurationSection furniture = item.createSection(path);
+        furniture.set("barrier", true);
+        furniture.set("barriers", List.of("origin", Map.of("x", 2)));
+        furniture.set("light", 11);
+
+        assertTrue(FurnitureConfigMigration.migrate(item));
+        assertEquals(List.of("0,0,0", "0,0,0", "2,0,0"), furniture.getStringList("barriers"));
+        assertFalse(furniture.contains("barrier"));
+        assertEquals(List.of("0,0,0 11", "2,0,0 11"), furniture.getStringList("lights"));
+        assertFalse(FurnitureConfigMigration.migrate(item));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"Furniture", "FURNITURE"})
+    void batchMigrationPreservesTemplateBarriersInDifferentlyCapitalizedSections(String section) {
+        ConfigurationSection template = new YamlConfiguration().createSection("base");
+        template.set("template", true);
+        template.set("Mechanics." + section + ".barrier", true);
+        template.set("Mechanics." + section + ".barriers", List.of("origin", Map.of("x", 2)));
+        ConfigurationSection child = new YamlConfiguration().createSection("child");
+        child.set("template", "base");
+        child.set("mechanics." + section + ".barrier", false);
+        List<ConfigurationSection> items = List.of(child, template);
+
+        assertEquals(Set.of(template, child), FurnitureConfigMigration.migrateBarriers(items));
+        assertEquals(List.of("0,0,0", "0,0,0", "2,0,0"),
+                template.getStringList("mechanics." + section + ".barriers"));
+        assertEquals(List.of("0,0,0", "2,0,0"), child.getStringList("mechanics." + section + ".barriers"));
+        assertFalse(template.contains("mechanics." + section + ".barrier"));
+        assertFalse(child.contains("mechanics." + section + ".barrier"));
+        assertTrue(FurnitureConfigMigration.migrateBarriers(items).isEmpty());
+    }
+
     @Test
     void dropsInvalidLegacyHitbox() {
         ConfigurationSection furniture = new YamlConfiguration().createSection("item")

@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.configs;
 
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.items.ItemMigrator;
+import io.th0rgal.oraxen.utils.OraxenYaml;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.MemoryConfiguration;
 
@@ -22,7 +23,7 @@ public final class FurnitureConfigMigration {
         Map<String, ConfigurationSection> templates = new HashMap<>();
         for (ConfigurationSection item : items) {
             if (ItemMigrator.migrateUppercaseSections(item)) updated.add(item);
-            ConfigurationSection furniture = item.getConfigurationSection("mechanics.furniture");
+            ConfigurationSection furniture = OraxenYaml.getConfigurationSection(item, "mechanics.furniture");
             if (!item.isBoolean("template") || furniture == null) continue;
             ConfigurationSection snapshot = new MemoryConfiguration();
             snapshot.set("barrier", furniture.get("barrier"));
@@ -31,7 +32,7 @@ public final class FurnitureConfigMigration {
         }
 
         for (ConfigurationSection item : items) {
-            ConfigurationSection furniture = item.getConfigurationSection("mechanics.furniture");
+            ConfigurationSection furniture = OraxenYaml.getConfigurationSection(item, "mechanics.furniture");
             if (furniture == null) continue;
             ConfigurationSection template = templates.get(item.getString("template"));
             if (template != null && (furniture.contains("barrier") || furniture.contains("barriers"))) {
@@ -54,9 +55,7 @@ public final class FurnitureConfigMigration {
 
     public static boolean migrate(ConfigurationSection item, String inheritedType) {
         if (item == null) return false;
-        ConfigurationSection mechanics = item.getConfigurationSection("mechanics");
-        if (mechanics == null) return false;
-        ConfigurationSection furniture = mechanics.getConfigurationSection("furniture");
+        ConfigurationSection furniture = OraxenYaml.getConfigurationSection(item, "mechanics.furniture");
         if (furniture == null) return false;
 
         boolean updated = false;
