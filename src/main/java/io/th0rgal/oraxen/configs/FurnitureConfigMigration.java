@@ -35,15 +35,17 @@ public final class FurnitureConfigMigration {
             ConfigurationSection furniture = OraxenYaml.getConfigurationSection(item, "mechanics.furniture");
             if (furniture == null) continue;
             ConfigurationSection template = templates.get(item.getString("template"));
-            if (template != null && (furniture.contains("barrier") || furniture.contains("barriers"))) {
+            if (template != null) {
                 ConfigurationSection effective = new MemoryConfiguration();
                 for (String key : List.of("barrier", "barriers"))
                     effective.set(key, furniture.contains(key) ? furniture.get(key) : template.get(key));
-                if (migrateBarriers(effective)) {
+                boolean barriersUpdated = migrateBarriers(effective);
+                if (barriersUpdated && (furniture.contains("barrier") || furniture.contains("barriers"))) {
                     furniture.set("barriers", effective.get("barriers"));
                     furniture.set("barrier", null);
                     updated.add(item);
                 }
+                if (migrateLight(furniture, effective)) updated.add(item);
             } else if (migrateBarriers(furniture)) updated.add(item);
         }
         return updated;
@@ -135,10 +137,14 @@ public final class FurnitureConfigMigration {
     }
 
     private static boolean migrateLight(ConfigurationSection furniture) {
+        return migrateLight(furniture, furniture);
+    }
+
+    private static boolean migrateLight(ConfigurationSection furniture, ConfigurationSection effectiveBarriers) {
         if (!furniture.contains("light")) return false;
 
         if (!furniture.contains("lights"))
-            furniture.set("lights", legacyLights(furniture, furniture.getInt("light")));
+            furniture.set("lights", legacyLights(effectiveBarriers, furniture.getInt("light")));
         furniture.set("light", null);
         return true;
     }

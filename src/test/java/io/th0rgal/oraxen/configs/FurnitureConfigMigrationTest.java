@@ -284,6 +284,69 @@ class FurnitureConfigMigrationTest {
         assertTrue(FurnitureConfigMigration.migrateBarriers(items).isEmpty());
     }
 
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void batchMigrationLightsInheritedBarriersRegardlessOfOrder(boolean templateFirst) {
+        ConfigurationSection template = new YamlConfiguration().createSection("base");
+        template.set("template", true);
+        template.set("Mechanics.Furniture.barrier", true);
+        template.set("Mechanics.Furniture.barriers", List.of("origin", Map.of("x", 2), "0,1,0"));
+        template.set("Mechanics.Furniture.light", 5);
+        ConfigurationSection child = new YamlConfiguration().createSection("child");
+        child.set("template", "base");
+        child.set("mechanics.Furniture.light", 11);
+        List<ConfigurationSection> items = templateFirst ? List.of(template, child) : List.of(child, template);
+
+        assertEquals(Set.of(template, child), FurnitureConfigMigration.migrateBarriers(items));
+        assertEquals(List.of("0,0,0 11", "2,0,0 11", "0,1,0 11"),
+                child.getStringList("mechanics.Furniture.lights"));
+        assertFalse(child.contains("mechanics.Furniture.light"));
+        assertFalse(child.contains("mechanics.Furniture.barriers"));
+        assertTrue(FurnitureConfigMigration.migrate(template));
+        assertEquals(List.of("0,0,0 5", "2,0,0 5", "0,1,0 5"),
+                template.getStringList("mechanics.Furniture.lights"));
+        assertFalse(FurnitureConfigMigration.migrate(child));
+        assertTrue(FurnitureConfigMigration.migrateBarriers(items).isEmpty());
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void batchMigrationLightsEffectiveBarriersWithChildOverrides(boolean overrideList) {
+        ConfigurationSection template = new YamlConfiguration().createSection("base");
+        template.set("template", true);
+        template.set("mechanics.furniture.barrier", true);
+        template.set("mechanics.furniture.barriers", List.of("2,0,0"));
+        ConfigurationSection child = new YamlConfiguration().createSection("child");
+        child.set("template", "base");
+        child.set("mechanics.furniture.light", 9);
+        if (overrideList) child.set("mechanics.furniture.barriers", List.of(Map.of("z", 3)));
+        else child.set("mechanics.furniture.barrier", false);
+
+        FurnitureConfigMigration.migrateBarriers(List.of(child, template));
+        assertEquals(overrideList ? List.of("0,0,0 9", "0,0,3 9") : List.of("0,0,0 9", "2,0,0 9"),
+                child.getStringList("mechanics.furniture.lights"));
+        assertFalse(child.contains("mechanics.furniture.light"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void batchMigrationPreservesExplicitLightsWithInheritedBarriers(boolean emptyLights) {
+        ConfigurationSection template = new YamlConfiguration().createSection("base");
+        template.set("template", true);
+        template.set("mechanics.furniture.barriers", List.of("2,0,0"));
+        ConfigurationSection child = new YamlConfiguration().createSection("child");
+        child.set("template", "base");
+        child.set("mechanics.furniture.light", 11);
+        List<String> lights = emptyLights ? List.of() : List.of("0,3,0 7");
+        child.set("mechanics.furniture.lights", lights);
+
+        assertEquals(Set.of(child), FurnitureConfigMigration.migrateBarriers(List.of(template, child)));
+        assertEquals(lights, child.getStringList("mechanics.furniture.lights"));
+        assertFalse(child.contains("mechanics.furniture.light"));
+        assertFalse(child.contains("mechanics.furniture.barriers"));
+        assertTrue(FurnitureConfigMigration.migrateBarriers(List.of(template, child)).isEmpty());
+    }
+
     @Test
     void batchMigrationNormalizesLegacySectionsBeforeResolvingTemplateBarriers() {
         ConfigurationSection template = new YamlConfiguration().createSection("base");
