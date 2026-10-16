@@ -855,9 +855,28 @@ public class ConfigsManager {
     }
 
     public void assignAllUsedModelDatas() {
+        migrateFurnitureBarriers();
         Map<Material, Map<Integer, String>> assignedModelDatas = new HashMap<>();
         for (File file : getItemFiles())
             assignUsedModelData(file, assignedModelDatas);
+    }
+
+    private void migrateFurnitureBarriers() {
+        Map<File, YamlConfiguration> configurations = new LinkedHashMap<>();
+        List<ConfigurationSection> items = new ArrayList<>();
+        for (File file : getItemFiles()) {
+            if (file == null || !file.exists()) continue;
+            YamlConfiguration configuration = OraxenYaml.loadConfiguration(file);
+            configurations.put(file, configuration);
+            for (String key : configuration.getKeys(false)) {
+                ConfigurationSection item = configuration.getConfigurationSection(key);
+                if (item != null) items.add(item);
+            }
+        }
+        Set<ConfigurationSection> updated = FurnitureConfigMigration.migrateBarriers(items);
+        for (Map.Entry<File, YamlConfiguration> entry : configurations.entrySet())
+            if (updated.stream().anyMatch(item -> item.getRoot() == entry.getValue()))
+                saveUpdatedItemConfig(entry.getKey(), entry.getValue(), true);
     }
 
     private void assignUsedModelData(File file, Map<Material, Map<Integer, String>> assignedModelDatas) {

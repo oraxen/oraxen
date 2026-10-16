@@ -1,9 +1,13 @@
 package io.th0rgal.oraxen.configs;
 
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
+import io.th0rgal.oraxen.items.ItemMigrator;
+import io.th0rgal.oraxen.utils.OraxenYaml;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.MemoryConfiguration;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -13,21 +17,54 @@ public final class FurnitureConfigMigration {
 
     private FurnitureConfigMigration() {}
 
+    /** Migrate before templates are loaded, since the two legacy keys inherited independently. */
+    public static Set<ConfigurationSection> migrateBarriers(List<ConfigurationSection> items) {
+        Set<ConfigurationSection> updated = new LinkedHashSet<>();
+        Map<String, ConfigurationSection> templates = new HashMap<>();
+        for (ConfigurationSection item : items) {
+            if (ItemMigrator.migrateUppercaseSections(item)) updated.add(item);
+            ConfigurationSection furniture = OraxenYaml.getConfigurationSection(item, "mechanics.furniture");
+            if (!item.isBoolean("template") || furniture == null) continue;
+            ConfigurationSection snapshot = new MemoryConfiguration();
+            snapshot.set("barrier", furniture.get("barrier"));
+            snapshot.set("barriers", furniture.get("barriers"));
+            templates.put(item.getName(), snapshot);
+        }
+
+        for (ConfigurationSection item : items) {
+            ConfigurationSection furniture = OraxenYaml.getConfigurationSection(item, "mechanics.furniture");
+            if (furniture == null) continue;
+            ConfigurationSection template = templates.get(item.getString("template"));
+            if (template != null) {
+                ConfigurationSection effective = new MemoryConfiguration();
+                for (String key : List.of("barrier", "barriers"))
+                    effective.set(key, furniture.contains(key) ? furniture.get(key) : template.get(key));
+                boolean barriersUpdated = migrateBarriers(effective);
+                if (barriersUpdated && (furniture.contains("barrier") || furniture.contains("barriers"))) {
+                    furniture.set("barriers", effective.get("barriers"));
+                    furniture.set("barrier", null);
+                    updated.add(item);
+                }
+                if (migrateLight(furniture, effective)) updated.add(item);
+            } else if (migrateBarriers(furniture)) updated.add(item);
+        }
+        return updated;
+    }
+
     public static boolean migrate(ConfigurationSection item) {
         return migrate(item, null);
     }
 
     public static boolean migrate(ConfigurationSection item, String inheritedType) {
         if (item == null) return false;
-        ConfigurationSection mechanics = item.getConfigurationSection("mechanics");
-        if (mechanics == null) return false;
-        ConfigurationSection furniture = mechanics.getConfigurationSection("furniture");
+        ConfigurationSection furniture = OraxenYaml.getConfigurationSection(item, "mechanics.furniture");
         if (furniture == null) return false;
 
         boolean updated = false;
         updated |= migrateLegacyProperties(furniture, inheritedType);
         updated |= migrateHitbox(furniture);
         updated |= migrateSeat(furniture);
+        updated |= migrateBarriers(furniture);
         updated |= migrateLight(furniture);
         return updated;
     }
@@ -79,11 +116,35 @@ public final class FurnitureConfigMigration {
         return true;
     }
 
+    private static boolean migrateBarriers(ConfigurationSection furniture) {
+        boolean updated = furniture.contains("barrier");
+        List<Object> barriers = new ArrayList<>();
+        if (furniture.getBoolean("barrier", false)) barriers.add("0,0,0");
+        for (Object barrier : furniture.getList("barriers", List.of())) {
+            if (barrier instanceof Map<?, ?> location) {
+                barriers.add(coordinate(location, "x") + "," + coordinate(location, "y") + "," + coordinate(location, "z"));
+                updated = true;
+            } else if ("origin".equals(barrier)) {
+                barriers.add("0,0,0");
+                updated = true;
+            } else barriers.add(barrier);
+        }
+        if (!updated) return false;
+
+        furniture.set("barriers", barriers);
+        furniture.set("barrier", null);
+        return true;
+    }
+
     private static boolean migrateLight(ConfigurationSection furniture) {
+        return migrateLight(furniture, furniture);
+    }
+
+    private static boolean migrateLight(ConfigurationSection furniture, ConfigurationSection effectiveBarriers) {
         if (!furniture.contains("light")) return false;
 
         if (!furniture.contains("lights"))
-            furniture.set("lights", legacyLights(furniture, furniture.getInt("light")));
+            furniture.set("lights", legacyLights(effectiveBarriers, furniture.getInt("light")));
         furniture.set("light", null);
         return true;
     }
@@ -107,8 +168,8 @@ public final class FurnitureConfigMigration {
         Set<String> offsets = new LinkedHashSet<>();
         offsets.add("0,0,0");
         for (Object barrier : furniture.getList("barriers", List.of()))
-            if (barrier instanceof Map<?, ?> location)
-                offsets.add(coordinate(location, "x") + "," + coordinate(location, "y") + "," + coordinate(location, "z"));
+            if (barrier instanceof String offset)
+                offsets.add(offset.trim().replaceAll("\\s*,\\s*", ","));
 
         List<String> lights = new ArrayList<>();
         for (String offset : offsets)

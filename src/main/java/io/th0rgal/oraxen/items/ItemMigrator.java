@@ -65,9 +65,16 @@ public final class ItemMigrator {
      * to their lowercase canonical names.
      */
     public void migrateUppercaseSections() {
-        if (section == null)
-            return;
+        boolean migrated = migrateUppercaseSections(section);
+        configUpdated |= migrated;
+        blockConfigMigrated |= migrated;
+    }
 
+    public static boolean migrateUppercaseSections(final ConfigurationSection section) {
+        if (section == null)
+            return false;
+
+        boolean updated = false;
         for (final String key : section.getKeys(false).toArray(String[]::new)) {
             final String lowercaseKey = key.toLowerCase(Locale.ROOT);
             if (key.equals(lowercaseKey))
@@ -103,10 +110,9 @@ public final class ItemMigrator {
 
             section.set(key, null);
             OraxenYaml.invalidateKeyCache(section);
-            configUpdated = true;
-            // Renaming rewrites the user's item file, so keep a backup like the other migrations.
-            blockConfigMigrated = true;
+            updated = true;
         }
+        return updated;
     }
 
     private static void copyComments(final ConfigurationSection source, final ConfigurationSection target) {

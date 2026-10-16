@@ -8584,7 +8584,7 @@
         },
         "barriers": {
           "type": "array",
-          "description": "List of barrier block positions relative to furniture"
+          "description": "List of barrier block offsets relative to furniture formatted '<x>,<y>,<z>' with integer coordinates"
         },
         "events": {
           "type": "array",
