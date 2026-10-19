@@ -18,9 +18,10 @@ class ModelDefinitionGeneratorTest {
             "LEATHER_HELMET", "LEATHER_CHESTPLATE", "LEATHER_LEGGINGS", "LEATHER_BOOTS", "LEATHER_HORSE_ARMOR"
     })
     void customLeatherModelsKeepTheirRgbWithOpaqueAlpha(Material material) {
-        JsonObject model = model(material, "oraxen:item/custom_leather");
+        String reference = "oraxen:item/" + material.name().toLowerCase(Locale.ROOT);
+        JsonObject model = model(material, reference);
 
-        assertEquals("oraxen:item/custom_leather", model.get("model").getAsString());
+        assertEquals(reference, model.get("model").getAsString());
         assertDyeTint(model, 0xFFFCF8F8);
     }
 
@@ -29,11 +30,13 @@ class ModelDefinitionGeneratorTest {
             "LEATHER_HELMET", "LEATHER_CHESTPLATE", "LEATHER_LEGGINGS", "LEATHER_BOOTS", "LEATHER_HORSE_ARMOR"
     })
     void vanillaLeatherModelReferencesUseTheOpaqueVanillaColor(Material material) {
-        String reference = "minecraft:item/" + material.name().toLowerCase(Locale.ROOT);
-        JsonObject model = model(material, reference);
+        for (String namespace : new String[]{"minecraft:", ""}) {
+            String reference = namespace + "item/" + material.name().toLowerCase(Locale.ROOT);
+            JsonObject model = model(material, reference);
 
-        assertEquals(reference, model.get("model").getAsString());
-        assertDyeTint(model, 0xFFA06540);
+            assertEquals(reference, model.get("model").getAsString());
+            assertDyeTint(model, 0xFFA06540);
+        }
     }
 
     @Test
@@ -55,8 +58,6 @@ class ModelDefinitionGeneratorTest {
         assertEquals(1, model.getAsJsonArray("tints").size());
         JsonObject tint = model.getAsJsonArray("tints").get(0).getAsJsonObject();
         assertEquals("minecraft:dye", tint.get("type").getAsString());
-        int color = tint.get("default").getAsInt();
-        assertEquals(expectedColor, color);
-        assertEquals(255, color >>> 24);
+        assertEquals(expectedColor, tint.get("default").getAsInt(), model.toString());
     }
 }

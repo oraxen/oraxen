@@ -13,6 +13,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -161,15 +162,27 @@ class VanillaItemDefinitionGeneratorTest {
         }
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"minecraft:item/leather_helmet", "item/leather_helmet"})
+    void customEntriesReferencingVanillaLeatherUseVanillaTint(String reference) {
+        JsonObject select = generator(Material.LEATHER_HELMET,
+                List.of(customItem("vanilla_leather", 123, reference)), true, true)
+                .toJSON().getAsJsonObject("model");
+
+        JsonObject selectEntry = select.getAsJsonArray("cases").get(0).getAsJsonObject();
+        assertLeatherModel(selectEntry.getAsJsonObject("model"), reference, 0xFFA06540);
+        JsonObject rangeDispatch = select.getAsJsonObject("fallback");
+        JsonObject rangeEntry = rangeDispatch.getAsJsonArray("entries").get(0).getAsJsonObject();
+        assertLeatherModel(rangeEntry.getAsJsonObject("model"), reference, 0xFFA06540);
+    }
+
     private static void assertLeatherModel(JsonObject model, String expectedModel, int expectedColor) {
         assertEquals("minecraft:model", model.get("type").getAsString());
         assertEquals(expectedModel, model.get("model").getAsString());
         assertEquals(1, model.getAsJsonArray("tints").size());
         JsonObject tint = model.getAsJsonArray("tints").get(0).getAsJsonObject();
         assertEquals("minecraft:dye", tint.get("type").getAsString());
-        int color = tint.get("default").getAsInt();
-        assertEquals(expectedColor, color);
-        assertEquals(255, color >>> 24);
+        assertEquals(expectedColor, tint.get("default").getAsInt(), model.toString());
     }
 
     private static void assertPlayerHeadSpecialFallback(JsonObject fallback) {

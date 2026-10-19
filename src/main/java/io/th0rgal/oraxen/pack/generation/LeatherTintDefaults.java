@@ -15,7 +15,12 @@ final class LeatherTintDefaults {
     static int defaultColor(JsonObject model) {
         JsonElement reference = model.get("model");
         if (reference != null && reference.isJsonPrimitive()) {
-            return switch (reference.getAsString()) {
+            String modelPath = reference.getAsString();
+            // Minecraft resolves unqualified model references in its own namespace.
+            if (!modelPath.contains(":")) {
+                modelPath = "minecraft:" + modelPath;
+            }
+            return switch (modelPath) {
                 case "minecraft:item/leather_helmet", "minecraft:item/leather_chestplate",
                      "minecraft:item/leather_leggings", "minecraft:item/leather_boots",
                      "minecraft:item/leather_horse_armor" -> VANILLA_LEATHER_COLOR;
