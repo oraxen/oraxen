@@ -11,6 +11,8 @@ import org.bukkit.persistence.PersistentDataType;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -128,6 +130,46 @@ class VanillaItemDefinitionGeneratorTest {
         assertHeadFallback(Material.CREEPER_HEAD, "creeper");
         assertHeadFallback(Material.DRAGON_HEAD, "dragon");
         assertHeadFallback(Material.PIGLIN_HEAD, "piglin");
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = Material.class, names = {
+            "LEATHER_HELMET", "LEATHER_CHESTPLATE", "LEATHER_LEGGINGS", "LEATHER_BOOTS", "LEATHER_HORSE_ARMOR"
+    })
+    void leatherDispatchersKeepCustomModelsAndUseOpaqueVanillaFallbacks(Material material) {
+        String customModel = "oraxen:item/custom_leather";
+        String vanillaModel = "minecraft:item/" + material.name().toLowerCase(Locale.ROOT);
+
+        for (boolean[] mode : new boolean[][]{{false, false}, {true, false}, {true, true}}) {
+            JsonObject model = generator(material,
+                    List.of(customItem("custom_leather", 123, customModel)), mode[0], mode[1])
+                    .toJSON().getAsJsonObject("model");
+
+            if (mode[0]) {
+                JsonObject entry = model.getAsJsonArray("cases").get(0).getAsJsonObject();
+                assertEquals("oraxen:custom_leather", entry.get("when").getAsString());
+                assertLeatherModel(entry.getAsJsonObject("model"), customModel, 0xFFFCF8F8);
+                model = model.getAsJsonObject("fallback");
+            }
+            if (!mode[0] || mode[1]) {
+                JsonObject entry = model.getAsJsonArray("entries").get(0).getAsJsonObject();
+                assertEquals(123, entry.get("threshold").getAsInt());
+                assertLeatherModel(entry.getAsJsonObject("model"), customModel, 0xFFFCF8F8);
+                model = model.getAsJsonObject("fallback");
+            }
+            assertLeatherModel(model, vanillaModel, 0xFFA06540);
+        }
+    }
+
+    private static void assertLeatherModel(JsonObject model, String expectedModel, int expectedColor) {
+        assertEquals("minecraft:model", model.get("type").getAsString());
+        assertEquals(expectedModel, model.get("model").getAsString());
+        assertEquals(1, model.getAsJsonArray("tints").size());
+        JsonObject tint = model.getAsJsonArray("tints").get(0).getAsJsonObject();
+        assertEquals("minecraft:dye", tint.get("type").getAsString());
+        int color = tint.get("default").getAsInt();
+        assertEquals(expectedColor, color);
+        assertEquals(255, color >>> 24);
     }
 
     private static void assertPlayerHeadSpecialFallback(JsonObject fallback) {
