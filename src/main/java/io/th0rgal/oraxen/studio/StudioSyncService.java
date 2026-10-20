@@ -143,8 +143,51 @@ public class StudioSyncService {
 
     /** Ends a pull or push; runs a check that was requested while it was running. */
     private void finishSync() {
+        finishSync(syncInProgress, recheckNeeded, this::scheduleCheck);
+    }
+
+    static void finishSync(AtomicBoolean syncInProgress, AtomicBoolean recheckNeeded, Runnable onRecheck) {
         syncInProgress.set(false);
-        if (recheckNeeded.getAndSet(false)) scheduleCheck();
+        if (recheckNeeded.getAndSet(false)) onRecheck.run();
+    }
+
+    /** If a sync is running, defers a recheck to run once it finishes. */
+    private boolean deferIfSyncInProgress() {
+        return deferIfSyncInProgress(syncInProgress::get, recheckNeeded, this::scheduleCheck);
+    }
+
+    static boolean deferIfSyncInProgress(java.util.function.BooleanSupplier isSyncInProgress,
+                                         AtomicBoolean recheckNeeded, Runnable onRecheck) {
+        if (!isSyncInProgress.getAsBoolean()) return false;
+        recheckNeeded.set(true);
+        if (!isSyncInProgress.getAsBoolean() && recheckNeeded.compareAndSet(true, false)) {
+            onRecheck.run();
+        }
+        return true;
+    }
+
+    @FunctionalInterface
+    interface ManifestLoader {
+        StudioApiClient.Manifest load() throws IOException, InterruptedException;
+    }
+
+    static boolean completePushSyncState(StudioSyncState state, Path dataFolder, String workspaceId, int committedRev,
+                                         Map<String, FileEntry> local, boolean force,
+                                         ManifestLoader manifestLoader) throws IOException, InterruptedException {
+        // Record the uploaded base immediately so a retry does not treat our own
+        // uploads as conflicts, but keep the previous revision until any Studio-only
+        // files preserved by a non-forced push have been reconciled via pullFromStudio.
+        Map<String, String> pushedHashes = StudioFileSync.hashes(local);
+        state.recordSync(workspaceId, state.rev(), pushedHashes);
+        state.save(dataFolder);
+
+        boolean pullAfter = !force && manifestLoader.load().files().keySet().stream()
+                .anyMatch(path -> StudioBundleUtils.isTrackableRelativePath(path) && !local.containsKey(path));
+        if (!pullAfter) {
+            state.recordSync(workspaceId, committedRev, pushedHashes);
+            state.save(dataFolder);
+        }
+        return pullAfter;
     }
 
     private Path dataFolder() {
@@ -236,11 +279,7 @@ public class StudioSyncService {
 
     private void checkForChanges() {
         String secret = getSecret();
-        if (secret.isEmpty()) return;
-        if (syncInProgress.get()) {
-            recheckNeeded.set(true);
-            return;
-        }
+        if (secret.isEmpty() || deferIfSyncInProgress()) return;
         try {
             StudioApiClient.Connection connection = api().connection(secret);
             StudioSyncState state = StudioSyncState.load(dataFolder(), connection.workspaceId());
@@ -415,11 +454,8 @@ public class StudioSyncService {
                 StudioApiClient.PushResult result = api.commitPush(secret, plan.pushId());
                 pushId = null;
 
-                state.recordSync(connection.workspaceId(), result.rev(), StudioFileSync.hashes(local));
-                state.save(dataFolder());
-                // A non-forced push keeps files added in Studio since the last sync; fetch them.
-                pullAfter = !force && api.manifest(secret).files().keySet().stream()
-                        .anyMatch(path -> StudioBundleUtils.isTrackableRelativePath(path) && !local.containsKey(path));
+                pullAfter = completePushSyncState(state, dataFolder(), connection.workspaceId(), result.rev(),
+                        local, force, () -> api.manifest(secret));
                 sendMessage(sender, "<prefix><#55ffa4>Pushed <#43fa8c>" + result.uploaded()
                         + "<#55ffa4> file(s) to Oraxen Studio (revision #" + result.rev() + ", "
                         + plan.unchanged() + " unchanged, " + result.deleted() + " deleted).");

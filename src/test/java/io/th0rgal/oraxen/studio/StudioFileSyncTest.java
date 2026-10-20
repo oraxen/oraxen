@@ -170,4 +170,61 @@ class StudioFileSyncTest {
         assertEquals(null, StudioSyncState.load(root, "ws-2").base());
         assertFalse(StudioBundleUtils.isTrackableRelativePath(".studio/state.json"));
     }
+
+    @Test
+    void completePushSyncState_defersRevisionWhenStudioHasPreservedFiles(@TempDir Path root) throws Exception {
+        StudioSyncState state = StudioSyncState.load(root, "ws-1");
+        state.recordSync("ws-1", 3, Map.of("items/a.yml", entry("old").sha256()));
+        state.save(root);
+
+        Map<String, FileEntry> local = Map.of("items/a.yml", entry("new"));
+        StudioApiClient.Manifest remoteWithExtra = new StudioApiClient.Manifest(4, Map.of(
+                "items/a.yml", entry("new"),
+                "items/studio_only.yml", entry("from studio")));
+
+        boolean pullAfter = StudioSyncService.completePushSyncState(
+                state, root, "ws-1", 4, local, false, () -> remoteWithExtra);
+
+        assertTrue(pullAfter);
+        StudioSyncState saved = StudioSyncState.load(root, "ws-1");
+        assertEquals(3, saved.rev(), "revision stays at the pre-push value until the follow-up pull succeeds");
+        assertEquals(entry("new").sha256(), saved.base().get("items/a.yml"));
+    }
+
+    @Test
+    void completePushSyncState_persistsRevisionWhenNoFollowUpPullNeeded(@TempDir Path root) throws Exception {
+        StudioSyncState state = StudioSyncState.load(root, "ws-1");
+        Map<String, FileEntry> local = Map.of("items/a.yml", entry("new"));
+        StudioApiClient.Manifest remoteMatching = new StudioApiClient.Manifest(4, local);
+
+        boolean pullAfter = StudioSyncService.completePushSyncState(
+                state, root, "ws-1", 4, local, false, () -> remoteMatching);
+
+        assertFalse(pullAfter);
+        StudioSyncState saved = StudioSyncState.load(root, "ws-1");
+        assertEquals(4, saved.rev());
+        assertEquals(entry("new").sha256(), saved.base().get("items/a.yml"));
+    }
+
+    @Test
+    void deferIfSyncInProgress_schedulesCheckWhenFinishRacesWithSettingRecheckFlag() {
+        java.util.concurrent.atomic.AtomicBoolean syncInProgress = new java.util.concurrent.atomic.AtomicBoolean(true);
+        java.util.concurrent.atomic.AtomicBoolean recheckNeeded = new java.util.concurrent.atomic.AtomicBoolean(false);
+        java.util.concurrent.atomic.AtomicInteger scheduled = new java.util.concurrent.atomic.AtomicInteger();
+
+        // Normal defer while sync is running, then finishSync consumes recheckNeeded.
+        assertTrue(StudioSyncService.deferIfSyncInProgress(syncInProgress::get, recheckNeeded, scheduled::incrementAndGet));
+        assertEquals(0, scheduled.get());
+        StudioSyncService.finishSync(syncInProgress, recheckNeeded, scheduled::incrementAndGet);
+        assertEquals(1, scheduled.get());
+        assertFalse(recheckNeeded.get());
+
+        // Simulate finishSync clearing syncInProgress between the first read and setting recheckNeeded:
+        // deferIfSyncInProgress sees false on the second read, consumes recheckNeeded, and schedules.
+        java.util.concurrent.atomic.AtomicInteger reads = new java.util.concurrent.atomic.AtomicInteger();
+        assertTrue(StudioSyncService.deferIfSyncInProgress(
+                () -> reads.getAndIncrement() == 0, recheckNeeded, scheduled::incrementAndGet));
+        assertEquals(2, scheduled.get());
+        assertFalse(recheckNeeded.get());
+    }
 }
