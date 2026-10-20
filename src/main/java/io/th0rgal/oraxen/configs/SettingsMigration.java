@@ -45,13 +45,16 @@ public final class SettingsMigration {
         String before = settings.saveToString();
         for (String oldPath : List.copyOf(settings.getKeys(true))) {
             Object value = settings.get(oldPath);
-            if (value instanceof ConfigurationSection) continue;
+            if (value instanceof ConfigurationSection section && !section.getKeys(false).isEmpty()) continue;
             String newPath = newPath(oldPath);
             if (newPath.equals(oldPath)) continue;
             if (!settings.contains(newPath, true)) {
                 boolean inverted = oldPath.equals("Pack.generation.disable_mcmeta_generation");
                 if (inverted) value = !settings.getBoolean(oldPath);
-                settings.set(newPath, value);
+                if (value instanceof ConfigurationSection)
+                    settings.createSection(newPath);
+                else
+                    settings.set(newPath, value);
                 settings.setComments(newPath, inverted
                         ? List.of("Generate pack.mcmeta and overlays. Disable to use your own file.")
                         : settings.getComments(oldPath));

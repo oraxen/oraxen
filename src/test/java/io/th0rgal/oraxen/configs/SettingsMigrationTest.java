@@ -1,5 +1,7 @@
 package io.th0rgal.oraxen.configs;
 
+import io.th0rgal.oraxen.OraxenPlugin;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.Test;
@@ -16,6 +18,8 @@ import java.util.Map;
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
 
 class SettingsMigrationTest {
     @TempDir
@@ -127,6 +131,55 @@ class SettingsMigrationTest {
         assertEquals(defaults.get("pack.upload.s3.presigned-url-expiry"),
                 settings.get("pack.upload.s3.presigned-url-expiry"));
         assertFalse(SettingsMigration.migrate(settings));
+    }
+
+    @Test
+    void emptyRenamedLayoutSurvivesDefaultMerge() throws Exception {
+        YamlConfiguration settings = new YamlConfiguration();
+        settings.loadFromString("inventory-menu: {layout: {}}");
+
+        assertTrue(SettingsUpdater.migrateBeforeDefaults(settings));
+
+        OraxenPlugin plugin = mock(OraxenPlugin.class);
+        when(plugin.getResource(anyString())).thenAnswer(invocation ->
+                SettingsMigrationTest.class.getResourceAsStream("/" + invocation.getArgument(0)));
+        ConfigsManager manager = new ConfigsManager(plugin);
+        when(plugin.getConfigsManager()).thenReturn(manager);
+        var updateDefaults = ConfigsManager.class.getDeclaredMethod("updateDefaultKeys",
+                String.class, YamlConfiguration.class, YamlConfiguration.class);
+        updateDefaults.setAccessible(true);
+        try (var bukkit = mockStatic(Bukkit.class);
+             var plugins = mockStatic(OraxenPlugin.class)) {
+            plugins.when(OraxenPlugin::get).thenReturn(plugin);
+            updateDefaults.invoke(manager, "settings.yml", settings, resource("/settings.yml"));
+        }
+
+        YamlConfiguration reloaded = new YamlConfiguration();
+        reloaded.loadFromString(settings.saveToString());
+        assertFalse(reloaded.contains("inventory-menu", true));
+        ConfigurationSection layout = reloaded.getConfigurationSection("inventory.layout");
+        assertNotNull(layout);
+        assertTrue(layout.getKeys(false).isEmpty());
+        assertEquals(resource("/settings.yml").get("inventory.rows"), reloaded.get("inventory.rows"));
+        assertFalse(SettingsUpdater.migrateBeforeDefaults(reloaded));
+    }
+
+    @Test
+    void emptyRenamedSectionsPreserveCommentsAndExplicitNewValues() throws Exception {
+        YamlConfiguration settings = new YamlConfiguration();
+        settings.loadFromString("inventory-menu: {layout: {}}");
+        settings.setComments("inventory-menu.layout", List.of("No categories"));
+
+        assertTrue(SettingsMigration.migrate(settings));
+        assertEquals(List.of("No categories"), settings.getComments("inventory.layout"));
+
+        settings.createSection("inventory-menu.layout");
+        settings.set("inventory.layout.custom.icon", "custom_icon");
+        settings.setComments("inventory.layout", List.of("Current layout"));
+        assertTrue(SettingsMigration.migrate(settings));
+        assertEquals("custom_icon", settings.getString("inventory.layout.custom.icon"));
+        assertEquals(List.of("Current layout"), settings.getComments("inventory.layout"));
+        assertFalse(settings.contains("inventory-menu", true));
     }
 
     @Test
