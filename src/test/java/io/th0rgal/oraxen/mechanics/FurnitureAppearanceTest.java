@@ -48,7 +48,7 @@ class FurnitureAppearanceTest extends MechanicTestSupport {
             plugins.when(OraxenPlugin::get).thenReturn(plugin);
             when(plugin.getConfigsManager()).thenReturn(configs);
             YamlConfiguration settings = new YamlConfiguration();
-            settings.set("Pack.generation.auto_generated_models_follow_texture_path", false);
+            settings.set(Settings.GENERATE_MODEL_BASED_ON_TEXTURE_PATH.getPath(), false);
             when(configs.getSettings()).thenReturn(settings);
             Settings.invalidateCache();
             Map<String, ItemBuilder> renders = appearance.getRenderItems(Material.PAPER);

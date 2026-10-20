@@ -39,18 +39,23 @@ public final class FurnitureConfigMigration {
             if (furniture == null) continue;
             ConfigurationSection template = templates.get(item.getString("template"));
             if (template != null) {
-                ConfigurationSection effective = new MemoryConfiguration();
-                for (String key : List.of("barrier", "barriers"))
-                    effective.set(key, furniture.contains(key) ? furniture.get(key) : template.get(key));
-                boolean barriersUpdated = migrateBarriers(effective);
-                if (barriersUpdated && (furniture.contains("barrier") || furniture.contains("barriers"))) {
-                    furniture.set("barriers", effective.get("barriers"));
-                    furniture.set("barrier", null);
-                    updated.add(item);
-                }
-                if (migrateLight(furniture, effective)) updated.add(item);
+                if (migrateInheritedBarriers(furniture, template)) updated.add(item);
             } else if (migrateBarriers(furniture)) updated.add(item);
         }
+        return updated;
+    }
+
+    private static boolean migrateInheritedBarriers(ConfigurationSection furniture, ConfigurationSection template) {
+        ConfigurationSection effective = new MemoryConfiguration();
+        for (String key : List.of("barrier", "barriers"))
+            effective.set(key, furniture.contains(key) ? furniture.get(key) : template.get(key));
+        boolean barriersUpdated = migrateBarriers(effective);
+        boolean updated = barriersUpdated && (furniture.contains("barrier") || furniture.contains("barriers"));
+        if (updated) {
+            furniture.set("barriers", effective.get("barriers"));
+            furniture.set("barrier", null);
+        }
+        updated |= migrateLight(furniture, effective);
         return updated;
     }
 
