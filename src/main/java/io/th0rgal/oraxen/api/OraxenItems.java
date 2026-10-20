@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.items.ItemLoader;
 import io.th0rgal.oraxen.items.ModelData;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.pack.generation.DuplicationHandler;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
@@ -82,8 +83,9 @@ public class OraxenItems {
             ensureComponentDataHandled(loadedMap, loadedItemsById);
             // Allocate render model data during item loading, before Folia regions or async
             // pack generation can request furniture variants concurrently.
+            FurnitureFactory furnitureFactory = FurnitureFactory.isEnabled() ? FurnitureFactory.getInstance() : null;
             for (String itemId : loadedItemsById.keySet()) {
-                var furniture = OraxenFurniture.getFurnitureMechanic(itemId);
+                var furniture = furnitureFactory == null ? null : furnitureFactory.getMechanic(itemId);
                 if (furniture != null) furniture.initializeAppearance(loadedItemsById);
             }
             registry = new RegistrySnapshot(immutableItemMap(loadedMap),

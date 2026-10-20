@@ -1140,8 +1140,8 @@ public class FurnitureMechanic extends Mechanic {
                 setFurnitureItem(entity, mechanic.applyAppearance(furnitureItem, modelKey));
                 return;
             }
-            // An explicit appearance section owns its stage models as well.
-            return;
+            // Older servers can still use separate stage items when the appearance has no stage model.
+            if (VersionUtil.atOrAbove("1.21.2")) return;
         }
 
         if (VersionUtil.atOrAbove("1.21.2")) {

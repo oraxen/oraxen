@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.configs;
 
+import io.th0rgal.oraxen.utils.OraxenYaml;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.Test;
@@ -94,11 +95,44 @@ class FurnitureConfigMigrationTest {
         child.set("pack.model", "furniture/child");
         List<ConfigurationSection> items = templateFirst ? List.of(template, child) : List.of(child, template);
 
-        assertEquals(Set.of(template, child), FurnitureConfigMigration.migrateAppearances(items));
-        assertEquals("furniture/base", template.getString("mechanics.furniture.appearance.model"));
+        assertEquals(Set.of(child), FurnitureConfigMigration.migrateAppearances(items));
+        assertFalse(template.contains("mechanics.furniture.appearance"));
         assertEquals("furniture/child", child.getString("mechanics.furniture.appearance.model"));
         assertEquals(List.of("furniture/base"), child.getStringList("mechanics.furniture.appearance.textures"));
         assertFalse(child.contains("mechanics.furniture.item"));
+        assertTrue(FurnitureConfigMigration.migrateAppearances(items).isEmpty());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"alternate", "empty", "partial"})
+    void skippedChildrenKeepTheirEffectiveAppearanceWhenSiblingsMigrate(String kind) {
+        ConfigurationSection template = new YamlConfiguration().createSection("base");
+        template.set("template", true);
+        template.set("pack.model", "furniture/base");
+        template.set("pack.textures", List.of("furniture/base"));
+        template.createSection("mechanics.furniture");
+        ConfigurationSection child = new YamlConfiguration().createSection("child");
+        child.set("template", "base");
+        if (kind.equals("alternate")) child.set("mechanics.furniture.item", "display_other");
+        else {
+            child.createSection("mechanics.furniture.appearance");
+            if (kind.equals("partial"))
+                child.set("mechanics.furniture.appearance.model", "furniture/child");
+        }
+        ConfigurationSection sibling = new YamlConfiguration().createSection("sibling");
+        sibling.set("template", "base");
+        List<ConfigurationSection> items = List.of(template, child, sibling);
+        YamlConfiguration before = new YamlConfiguration();
+        OraxenYaml.copyConfigurationSection(template, before);
+        OraxenYaml.copyConfigurationSection(child, before);
+
+        assertEquals(Set.of(sibling), FurnitureConfigMigration.migrateAppearances(items));
+
+        YamlConfiguration after = new YamlConfiguration();
+        OraxenYaml.copyConfigurationSection(template, after);
+        OraxenYaml.copyConfigurationSection(child, after);
+        assertEquals(before.saveToString(), after.saveToString());
+        assertEquals("furniture/base", sibling.getString("mechanics.furniture.appearance.model"));
         assertTrue(FurnitureConfigMigration.migrateAppearances(items).isEmpty());
     }
 

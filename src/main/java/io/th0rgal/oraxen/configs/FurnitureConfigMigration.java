@@ -72,7 +72,7 @@ public final class FurnitureConfigMigration {
         return updated;
     }
 
-    /** Snapshot legacy inheritance before any template receives its independent appearance. */
+    /** Copy effective pack settings onto concrete items without changing template inheritance. */
     public static Set<ConfigurationSection> migrateAppearances(List<ConfigurationSection> items) {
         Map<String, ConfigurationSection> templates = new HashMap<>();
         for (ConfigurationSection item : items)
@@ -84,6 +84,8 @@ public final class FurnitureConfigMigration {
 
         Set<ConfigurationSection> updated = new LinkedHashSet<>();
         snapshots.forEach((item, effective) -> {
+            // Adding an appearance to a template would also change children that must be skipped.
+            if (item.isBoolean("template")) return;
             ConfigurationSection furniture = OraxenYaml.getConfigurationSection(effective, "mechanics.furniture");
             ConfigurationSection pack = OraxenYaml.getConfigurationSection(effective, "pack");
             // Existing appearances, including inherited and empty ones, are authoritative.
