@@ -133,7 +133,7 @@ public abstract class PackSender {
             }
         }
 
-        Logs.logWarning("Invalid Pack.dispatch.timeout '" + value + "'. Falling back to 30s.");
+        Logs.logWarning("Invalid pack.dispatch.timeout '" + value + "'. Falling back to 30s.");
         return DEFAULT_PRE_JOIN_TIMEOUT_MILLIS;
     }
 
@@ -150,7 +150,7 @@ public abstract class PackSender {
             case "PRE-JOIN", "PREJOIN" -> DispatchMode.PRE_JOIN;
             case "JOIN" -> DispatchMode.JOIN;
             default -> {
-                Logs.logWarning("Invalid Pack.dispatch.mode '" + mode + "'. Falling back to JOIN.");
+                Logs.logWarning("Invalid pack.dispatch.mode '" + mode + "'. Falling back to JOIN.");
                 yield DispatchMode.JOIN;
             }
         };
@@ -171,7 +171,7 @@ public abstract class PackSender {
             if (dispatchModeNormalized) return;
 
             if (isDispatchSendEnabled() && getDispatchMode() == DispatchMode.PRE_JOIN && !isPreJoinSupported()) {
-                Logs.logInfo("Pack.dispatch.mode is set to PRE-JOIN, but pre-join dispatch is not available on this server. Falling back to JOIN.");
+                Logs.logInfo("pack.dispatch.mode is set to PRE-JOIN, but pre-join dispatch is not available on this server. Falling back to JOIN.");
             }
 
             dispatchModeNormalized = true;

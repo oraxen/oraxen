@@ -837,7 +837,7 @@ public class ResourcePack {
     }
 
     private boolean isMcmetaGenerationDisabled() {
-        return Boolean.TRUE.equals(Settings.DISABLE_MCMETA_GENERATION.getValue());
+        return !Boolean.TRUE.equals(Settings.GENERATE_MCMETA.getValue());
     }
 
 

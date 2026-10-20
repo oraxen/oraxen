@@ -58,11 +58,11 @@ class RemoveDefaultsCommandTest {
     @Test
     void removesDefaultInventoryCategoriesAndSavesCustomSettings() throws IOException {
         YamlConfiguration settings = new YamlConfiguration();
-        settings.set("inventory-menu.layout.armors.icon", "customized_default_icon");
-        settings.set("inventory-menu.layout.weapons.slot", 11);
-        settings.set("inventory-menu.layout.custom.icon", "custom_icon");
-        settings.set("inventory-menu.title", "Custom title");
-        settings.set("inventory-menu.rows", 4);
+        settings.set("inventory.layout.armors.icon", "customized_default_icon");
+        settings.set("inventory.layout.weapons.slot", 11);
+        settings.set("inventory.layout.custom.icon", "custom_icon");
+        settings.set("inventory.title", "Custom title");
+        settings.set("inventory.rows", 4);
         Path settingsFile = tempDir.resolve("settings.yml");
         settings.save(settingsFile.toFile());
         AtomicInteger failedFiles = new AtomicInteger();
@@ -72,13 +72,13 @@ class RemoveDefaultsCommandTest {
         RemoveDefaultsCommand command = new RemoveDefaultsCommand();
         command.removeDefaultInventoryEntries(settings, settingsFile, defaultItemFiles, failedFiles);
 
-        assertFalse(settings.contains("inventory-menu.layout.armors"));
-        assertFalse(settings.contains("inventory-menu.layout.weapons"));
+        assertFalse(settings.contains("inventory.layout.armors"));
+        assertFalse(settings.contains("inventory.layout.weapons"));
         YamlConfiguration saved = YamlConfiguration.loadConfiguration(settingsFile.toFile());
-        assertEquals(Set.of("custom"), saved.getConfigurationSection("inventory-menu.layout").getKeys(false));
-        assertEquals("custom_icon", saved.getString("inventory-menu.layout.custom.icon"));
-        assertEquals("Custom title", saved.getString("inventory-menu.title"));
-        assertEquals(4, saved.getInt("inventory-menu.rows"));
+        assertEquals(Set.of("custom"), saved.getConfigurationSection("inventory.layout").getKeys(false));
+        assertEquals("custom_icon", saved.getString("inventory.layout.custom.icon"));
+        assertEquals("Custom title", saved.getString("inventory.title"));
+        assertEquals(4, saved.getInt("inventory.rows"));
         assertEquals(0, failedFiles.get());
 
         command.removeDefaultInventoryEntries(settings, settingsFile, defaultItemFiles, failedFiles);

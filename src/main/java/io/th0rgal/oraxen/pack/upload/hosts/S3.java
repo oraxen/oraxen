@@ -73,7 +73,7 @@ public class S3 implements HostingProvider {
         try {
             validateConfiguration();
         } catch (IllegalArgumentException ex) {
-            Logs.logError("Invalid Pack.upload.s3 configuration: " + ex.getMessage());
+            Logs.logError("Invalid pack.upload.s3 configuration: " + ex.getMessage());
             return false;
         }
         try {

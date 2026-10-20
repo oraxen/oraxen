@@ -24,7 +24,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Applies {@code Pack.dispatch.exclude} client-version limits before sending the resource pack.
+ * Applies {@code pack.dispatch.exclude} client-version limits before sending the resource pack.
  */
 public final class PackDispatchFilter {
 
@@ -53,7 +53,7 @@ public final class PackDispatchFilter {
         boolean canSend = canSendPack(protocolVersion, fallbackVersion, limits);
         if (!canSend && Settings.DEBUG.toBool()) {
             Logs.logInfo("Skipping resource pack for " + player.getName()
-                    + " (client: " + describe(protocolVersion, fallbackVersion) + ") due to Pack.dispatch.exclude");
+                    + " (client: " + describe(protocolVersion, fallbackVersion) + ") due to pack.dispatch.exclude");
         }
         return canSend;
     }
@@ -144,7 +144,7 @@ public final class PackDispatchFilter {
 
     private static void logInvalidRule(String rule, boolean logWarnings) {
         if (!logWarnings) return;
-        Logs.logWarning("Ignoring invalid Pack.dispatch.exclude rule '" + rule + "'. Use '< 1.12', '= 1.21.11' or '> 1.21.11'.");
+        Logs.logWarning("Ignoring invalid pack.dispatch.exclude rule '" + rule + "'. Use '< 1.12', '= 1.21.11' or '> 1.21.11'.");
     }
 
     @Nullable
