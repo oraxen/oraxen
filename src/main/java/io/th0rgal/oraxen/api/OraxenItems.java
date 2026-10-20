@@ -80,6 +80,12 @@ public class OraxenItems {
                 loadedItems.addAll(subMap.keySet());
             }
             ensureComponentDataHandled(loadedMap, loadedItemsById);
+            // Allocate render model data during item loading, before Folia regions or async
+            // pack generation can request furniture variants concurrently.
+            for (String itemId : loadedItemsById.keySet()) {
+                var furniture = OraxenFurniture.getFurnitureMechanic(itemId);
+                if (furniture != null) furniture.initializeAppearance(loadedItemsById);
+            }
             registry = new RegistrySnapshot(immutableItemMap(loadedMap),
                     Collections.unmodifiableMap(new HashMap<>(loadedItemsById)),
                     Collections.unmodifiableSet(new HashSet<>(loadedItems)));

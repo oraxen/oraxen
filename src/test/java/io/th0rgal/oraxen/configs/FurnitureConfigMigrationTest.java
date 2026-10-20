@@ -7,12 +7,127 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.List;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class FurnitureConfigMigrationTest {
+
+    @Test
+    void copiesEntirePackAndKeepsAppearanceIndependent() {
+        ConfigurationSection item = new YamlConfiguration().createSection("item");
+        ConfigurationSection furniture = item.createSection("mechanics.furniture");
+        ConfigurationSection pack = item.createSection("pack");
+        pack.set("model", "furniture/chair");
+        pack.set("generate_model", false);
+        pack.set("custom_model_data", 1234);
+        pack.set("textures", new ArrayList<>(List.of("furniture/chair")));
+        pack.set("display.gui.translation", new ArrayList<>(List.of(1, 2, 3)));
+        pack.set("future_options", new ArrayList<>(List.of(new LinkedHashMap<>(Map.of("nested", "original")))));
+        pack.createSection("empty_option");
+
+        assertEquals(Set.of(item), FurnitureConfigMigration.migrateAppearances(List.of(item)));
+        ConfigurationSection appearance = furniture.getConfigurationSection("appearance");
+        assertNotNull(appearance);
+        YamlConfiguration expected = new YamlConfiguration();
+        expected.createSection("pack", pack.getValues(false));
+        YamlConfiguration actual = new YamlConfiguration();
+        actual.createSection("pack", appearance.getValues(false));
+        assertEquals(expected.saveToString(), actual.saveToString());
+        assertNotSame(pack, appearance);
+        assertNotSame(pack.getList("textures"), appearance.getList("textures"));
+        assertNotSame(pack.getList("future_options").getFirst(), appearance.getList("future_options").getFirst());
+
+        appearance.set("model", "furniture/new_chair");
+        appearance.set("display.gui.translation", List.of(4, 5, 6));
+        appearance.getList("textures").clear();
+        assertEquals("furniture/chair", pack.getString("model"));
+        assertEquals(List.of(1, 2, 3), pack.getList("display.gui.translation"));
+        assertEquals(List.of("furniture/chair"), pack.getList("textures"));
+        pack.set("model", "inventory/chair");
+        assertEquals("furniture/new_chair", appearance.getString("model"));
+        assertTrue(FurnitureConfigMigration.migrateAppearances(List.of(item)).isEmpty());
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void explicitAppearanceIsAuthoritativeIncludingEmptySections(boolean empty) {
+        ConfigurationSection item = new YamlConfiguration().createSection("item");
+        item.set("pack.model", "inventory/chair");
+        item.set("pack.generate_model", true);
+        item.set("pack.textures", List.of("inventory/chair"));
+        ConfigurationSection appearance = item.createSection("mechanics.furniture.appearance");
+        if (!empty) appearance.set("model", "furniture/chair");
+
+        assertTrue(FurnitureConfigMigration.migrateAppearances(List.of(item)).isEmpty());
+        assertEquals(empty ? Set.of() : Set.of("model"), appearance.getKeys(false));
+        if (!empty) assertEquals("furniture/chair", appearance.getString("model"));
+        assertTrue(FurnitureConfigMigration.migrateAppearances(List.of(item)).isEmpty());
+    }
+
+    @Test
+    void preservesAlternativeFurnitureItemAndNonFurniturePack() {
+        ConfigurationSection item = new YamlConfiguration().createSection("item");
+        item.set("pack.model", "inventory/chair");
+        assertTrue(FurnitureConfigMigration.migrateAppearances(List.of(item)).isEmpty());
+        assertFalse(item.contains("mechanics"));
+
+        item.set("mechanics.furniture.item", "display_chair");
+        assertTrue(FurnitureConfigMigration.migrateAppearances(List.of(item)).isEmpty());
+        assertFalse(item.contains("mechanics.furniture.appearance"));
+        assertEquals("inventory/chair", item.getString("pack.model"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void appearanceMigrationSnapshotsInheritanceBeforeMutatingTemplates(boolean templateFirst) {
+        ConfigurationSection template = new YamlConfiguration().createSection("base");
+        template.set("template", true);
+        template.createSection("mechanics.furniture");
+        template.set("pack.model", "furniture/base");
+        template.set("pack.textures", List.of("furniture/base"));
+        ConfigurationSection child = new YamlConfiguration().createSection("child");
+        child.set("template", "base");
+        child.set("pack.model", "furniture/child");
+        List<ConfigurationSection> items = templateFirst ? List.of(template, child) : List.of(child, template);
+
+        assertEquals(Set.of(template, child), FurnitureConfigMigration.migrateAppearances(items));
+        assertEquals("furniture/base", template.getString("mechanics.furniture.appearance.model"));
+        assertEquals("furniture/child", child.getString("mechanics.furniture.appearance.model"));
+        assertEquals(List.of("furniture/base"), child.getStringList("mechanics.furniture.appearance.textures"));
+        assertFalse(child.contains("mechanics.furniture.item"));
+        assertTrue(FurnitureConfigMigration.migrateAppearances(items).isEmpty());
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void inheritedAppearanceOrAlternativeItemPreventsMigration(boolean appearance) {
+        ConfigurationSection template = new YamlConfiguration().createSection("base");
+        template.set("template", true);
+        if (appearance) template.createSection("mechanics.furniture.appearance");
+        else template.set("mechanics.furniture.item", "display_chair");
+        ConfigurationSection child = new YamlConfiguration().createSection("child");
+        child.set("template", "base");
+        child.set("pack.model", "inventory/chair");
+
+        assertTrue(FurnitureConfigMigration.migrateAppearances(List.of(child, template)).isEmpty());
+        assertFalse(child.contains("mechanics"));
+        assertEquals("inventory/chair", child.getString("pack.model"));
+    }
+
+    @Test
+    void emptyAlternativeItemStillCopiesOwnPack() {
+        ConfigurationSection item = new YamlConfiguration().createSection("item");
+        item.set("pack.model", "inventory/chair");
+        item.set("mechanics.furniture.item", "");
+
+        assertEquals(Set.of(item), FurnitureConfigMigration.migrateAppearances(List.of(item)));
+        assertEquals("inventory/chair", item.getString("mechanics.furniture.appearance.model"));
+        assertTrue(FurnitureConfigMigration.migrateAppearances(List.of(item)).isEmpty());
+    }
 
     @ParameterizedTest
     @ValueSource(strings = {"display_entity_properties", "armor_stand_properties"})

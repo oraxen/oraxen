@@ -123,7 +123,7 @@ public final class ItemProperties {
         ConfigurationSection mechanicsSection = section.getConfigurationSection("mechanics");
         if (mechanicsSection == null) return;
         ConfigurationSection furnitureSection = OraxenYaml.getConfigurationSection(mechanicsSection, "furniture");
-        if (furnitureSection == null) return;
+        if (furnitureSection == null || furnitureSection.isConfigurationSection("appearance")) return;
         FurnitureMechanic.FurnitureType furnitureType = furnitureSection.isSet("type")
                 ? FurnitureMechanic.FurnitureType.getType(furnitureSection.getString("type", FurnitureMechanic.FurnitureType.DISPLAY_ENTITY.name()))
                 : FurnitureFactory.defaultFurnitureType;

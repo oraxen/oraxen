@@ -9,6 +9,7 @@ import org.bukkit.configuration.MemoryConfiguration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,6 +31,8 @@ public final class FurnitureConfigMigration {
             snapshot.set("barriers", furniture.get("barriers"));
             templates.put(item.getName(), snapshot);
         }
+
+        updated.addAll(migrateAppearances(items));
 
         for (ConfigurationSection item : items) {
             ConfigurationSection furniture = OraxenYaml.getConfigurationSection(item, "mechanics.furniture");
@@ -67,6 +70,74 @@ public final class FurnitureConfigMigration {
         updated |= migrateBarriers(furniture);
         updated |= migrateLight(furniture);
         return updated;
+    }
+
+    /** Snapshot legacy inheritance before any template receives its independent appearance. */
+    public static Set<ConfigurationSection> migrateAppearances(List<ConfigurationSection> items) {
+        Map<String, ConfigurationSection> templates = new HashMap<>();
+        for (ConfigurationSection item : items)
+            if (item.isBoolean("template")) templates.put(item.getName(), item);
+
+        Map<ConfigurationSection, ConfigurationSection> snapshots = new LinkedHashMap<>();
+        for (ConfigurationSection item : items)
+            snapshots.put(item, effectiveAppearanceConfig(item, templates, new LinkedHashSet<>()));
+
+        Set<ConfigurationSection> updated = new LinkedHashSet<>();
+        snapshots.forEach((item, effective) -> {
+            ConfigurationSection furniture = OraxenYaml.getConfigurationSection(effective, "mechanics.furniture");
+            ConfigurationSection pack = OraxenYaml.getConfigurationSection(effective, "pack");
+            // Existing appearances, including inherited and empty ones, are authoritative.
+            // Furniture using another item must keep that item's appearance.
+            if (furniture == null || pack == null || furniture.contains("appearance")
+                    || !furniture.getString("item", "").isEmpty()) return;
+            ConfigurationSection localFurniture = OraxenYaml.getConfigurationSection(item, "mechanics.furniture");
+            if (localFurniture == null) localFurniture = item.createSection("mechanics.furniture");
+            copyAppearanceSection(pack, localFurniture.createSection("appearance"));
+            updated.add(item);
+        });
+        return updated;
+    }
+
+    private static ConfigurationSection effectiveAppearanceConfig(ConfigurationSection item,
+            Map<String, ConfigurationSection> templates, Set<String> visiting) {
+        ConfigurationSection effective = new MemoryConfiguration();
+        if (visiting.add(item.getName())) {
+            ConfigurationSection template = templates.get(item.getString("template"));
+            if (template != null)
+                copyAppearanceSection(effectiveAppearanceConfig(template, templates, visiting), effective);
+            visiting.remove(item.getName());
+        }
+        copyAppearanceSection(item, effective);
+        return effective;
+    }
+
+    private static void copyAppearanceSection(ConfigurationSection source, ConfigurationSection target) {
+        for (String key : source.getKeys(false)) {
+            String targetKey = OraxenYaml.getActualKey(target, key);
+            if (targetKey == null) targetKey = key;
+            ConfigurationSection child = source.getConfigurationSection(key);
+            if (child != null) {
+                ConfigurationSection targetChild = target.getConfigurationSection(targetKey);
+                if (targetChild == null) targetChild = target.createSection(targetKey);
+                copyAppearanceSection(child, targetChild);
+            }
+            else target.set(targetKey, copyAppearanceValue(source.get(key)));
+            OraxenYaml.invalidateKeyCache(target);
+        }
+    }
+
+    private static Object copyAppearanceValue(Object value) {
+        if (value instanceof List<?> list) {
+            List<Object> copy = new ArrayList<>();
+            for (Object entry : list) copy.add(copyAppearanceValue(entry));
+            return copy;
+        }
+        if (value instanceof Map<?, ?> map) {
+            Map<Object, Object> copy = new LinkedHashMap<>();
+            map.forEach((key, entry) -> copy.put(key, copyAppearanceValue(entry)));
+            return copy;
+        }
+        return value;
     }
 
     private static boolean migrateLegacyProperties(ConfigurationSection furniture, String inheritedType) {

@@ -186,6 +186,13 @@ public class FurnitureFactory extends MechanicFactory {
                 MechanicConfigProperty.enumType("type", "Entity type for the furniture",
                         List.of("DISPLAY_ENTITY", "ITEM_FRAME", "GLOW_ITEM_FRAME", "ARMOR_STAND")),
                 MechanicConfigProperty.integer("hardness", "Break hardness (higher = slower to break)", 1, 0),
+                MechanicConfigProperty.object("appearance", "Placed furniture appearance; uses the same options as pack", Map.of(
+                        "model", MechanicConfigProperty.string("model", "Placed furniture model path"),
+                        "generate_model", MechanicConfigProperty.bool("generate_model", "Generate the furniture model from textures", false),
+                        "textures", MechanicConfigProperty.list("textures", "Furniture model textures"),
+                        "parent_model", MechanicConfigProperty.string("parent_model", "Parent for generated furniture models"),
+                        "models", MechanicConfigProperty.object("models", "Named furniture stage model paths", Map.of())
+                )),
                 MechanicConfigProperty.string("item", "Alternative Oraxen item ID to display"),
                 MechanicConfigProperty.string("modelengine_id", "ModelEngine model ID to use"),
                 MechanicConfigProperty.bool("farmland_required", "Whether farmland is required for placement", false),

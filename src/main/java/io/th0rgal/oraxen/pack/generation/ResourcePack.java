@@ -3,6 +3,8 @@ package io.th0rgal.oraxen.pack.generation;
 import com.google.gson.*;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.api.OraxenFurniture;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.api.events.OraxenPackGeneratedEvent;
 import io.th0rgal.oraxen.configs.AppearanceMode;
 import io.th0rgal.oraxen.configs.ResourcesManager;
@@ -407,7 +409,7 @@ public class ResourcePack {
     private void applyArmorStandModelOverrides(List<VirtualFile> output) {
         Map<String, org.bukkit.util.Vector> scaleByModelPath = new LinkedHashMap<>();
 
-        for (Map.Entry<String, ItemBuilder> entry : OraxenItems.getEntries()) {
+        for (Map.Entry<String, ItemBuilder> entry : getRenderItems().entrySet()) {
             ItemBuilder item = entry.getValue();
             if (!item.hasOraxenMeta()) continue;
 
@@ -887,9 +889,20 @@ public class ResourcePack {
         resourcesManager.extractFileIfTrue(entry, isSuitable);
     }
 
+    private Map<String, ItemBuilder> getRenderItems() {
+        Map<String, ItemBuilder> items = new LinkedHashMap<>();
+        for (Map.Entry<String, ItemBuilder> entry : OraxenItems.getEntries()) {
+            items.put(entry.getKey(), entry.getValue());
+            FurnitureMechanic furniture = OraxenFurniture.getFurnitureMechanic(entry.getKey());
+            if (furniture != null)
+                items.putAll(furniture.getAppearanceRenderItems(entry.getValue().getType()));
+        }
+        return items;
+    }
+
     private Map<Material, Map<String, ItemBuilder>> extractTexturedItems() {
         final Map<Material, Map<String, ItemBuilder>> texturedItems = new HashMap<>();
-        for (final Map.Entry<String, ItemBuilder> entry : OraxenItems.getEntries()) {
+        for (final Map.Entry<String, ItemBuilder> entry : getRenderItems().entrySet()) {
             final String itemId = entry.getKey();
             final ItemBuilder item = entry.getValue();
             OraxenMeta oraxenMeta = item.getOraxenMeta();
