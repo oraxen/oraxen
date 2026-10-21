@@ -20,6 +20,7 @@ import io.th0rgal.oraxen.pack.upload.UploadManager;
 import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.customarmor.ComponentArmorModels;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmorType;
+import io.th0rgal.oraxen.utils.customarmor.LegacyArmorTextures;
 import io.th0rgal.oraxen.utils.customarmor.TrimArmorDatapack;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.io.FileUtils;
@@ -332,6 +333,7 @@ public class ResourcePack {
         if (Settings.GENERATE_DEFAULT_ASSETS.toBool())
             extractDefaultFolders(missingDefaultFolders);
         extractRequired();
+        cleanLegacyArmorTextures();
 
         if (!Settings.GENERATE.toBool())
             return false;
@@ -355,6 +357,16 @@ public class ResourcePack {
         updatePackMcmeta();
 
         return true;
+    }
+
+    private void cleanLegacyArmorTextures() {
+        try {
+            int removed = LegacyArmorTextures.cleanExtractedDefaults(packFolder.toPath());
+            if (removed > 0)
+                Logs.logInfo("Removed " + removed + " unchanged legacy armor textures from the pack folder.");
+        } catch (IOException e) {
+            Logs.logWarning("Failed to clean legacy armor textures. " + e.getMessage());
+        }
     }
 
     private void cleanLegacyShaderOverlayDirectories() {
@@ -869,14 +881,14 @@ public class ResourcePack {
     }
 
     private boolean isSuitable(String entryName, Set<String> foldersToExtract) {
+        if (LegacyArmorTextures.isLegacyPackResource(entryName)) return false;
         String name = StringUtils.substringAfter(entryName, "pack/").split("/")[0];
         return foldersToExtract.contains(name);
     }
 
     private void extractRequired() {
         ResourcesManager.browseJar(entry -> {
-            if (entry.getName().startsWith("pack/textures/models/armor/leather_layer_")
-                    || entry.getName().startsWith("pack/textures/required")
+            if (entry.getName().startsWith("pack/textures/required")
                     || entry.getName().startsWith("pack/models/required")) {
                 OraxenPlugin.get().getResourceManager().extractFileIfTrue(entry,
                         !OraxenPlugin.get().getDataFolder().toPath().resolve(entry.getName()).toFile().exists());

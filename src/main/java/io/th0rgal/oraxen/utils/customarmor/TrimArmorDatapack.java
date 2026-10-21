@@ -186,7 +186,7 @@ public class TrimArmorDatapack extends OraxenDatapack {
             }
         }
 
-        String resourcePath = "pack/textures/models/armor/";
+        String resourcePath = LegacyArmorTextures.RESOURCE_DIRECTORY;
         if (output.stream().noneMatch(v -> v.getPath().equals(vanillaTrimPath + material + ".png")))
             output.add(new VirtualFile(vanillaTrimPath, material + ".png",
                     OraxenPlugin.get().getResource(resourcePath + material + "_layer_1.png")));
