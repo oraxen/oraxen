@@ -5,147 +5,209 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.configs.Settings;
+import io.th0rgal.oraxen.items.ItemBuilder;
+import io.th0rgal.oraxen.pack.generation.AtlasDependencyResolver.AtlasResolutionResult;
+import io.th0rgal.oraxen.pack.generation.AtlasDependencyResolver.TextureRef;
+import io.th0rgal.oraxen.utils.PlatformCapabilities;
 import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.stream.Collectors;
 
+/**
+ * Generates {@code assets/minecraft/atlases/blocks.json} (and {@code items.json} on 1.21.11+ / 26.x)
+ * using {@link AtlasDependencyResolver} to classify 2D item vs 3D block/model textures, exclude
+ * font-only sprite sheets, and bridge cross-atlas references on 3D models.
+ */
 public class AtlasGenerator {
+
+    private static final AtlasDependencyResolver RESOLVER = new AtlasDependencyResolver();
 
     public AtlasGenerator() {
     }
 
-    private static class TexturePath {
-        public final String namespace;
-        public final String path;
-
-        public TexturePath(String namespace, String path) {
-            this.namespace = namespace;
-            this.path = path.replace(".png", "");
-        }
-
-        public TexturePath(String path) {
-            this.namespace = path.contains(":") ? StringUtils.substringBefore(path, ":") : "minecraft";
-            this.path = (path.contains(":") ? path.split(":")[1] : path).replace(".png", "");
-        }
-
-        public String toPath() {
-            return namespace + ":" + path;
-        }
-
-        public boolean in(Collection<TexturePath> texturePaths) {
-            return texturePaths.stream()
-                    .anyMatch(texturePath -> namespace.equals(texturePath.namespace) && path.equals(texturePath.path));
-        }
-    }
-
     public static void generateAtlasFile(List<VirtualFile> output, Set<String> malformedTextures) {
-        if (Settings.DEBUG.toBool()) Logs.logInfo("Generating atlas-file for 1.19.3+ Resource Pack format");
-        if (Settings.EXCLUDE_MALFORMED_ATLAS.toBool() && !malformedTextures.isEmpty())
-            Logs.logWarning("Attempting to exclude malformed textures from atlas-file");
-
-        JsonObject atlas = new JsonObject();
-        JsonArray atlasContent = new JsonArray();
-        LinkedHashMap<VirtualFile, TexturePath> textureSubFolders = new LinkedHashMap<>();
-        for (VirtualFile v : output.stream().filter(v -> v.getPath().split("/").length > 3
-                && v.getPath().split("/")[2].equals("textures")
-                && v.getPath().endsWith(".png")
-                && !v.getPath().endsWith("_layer_1.png")
-                && !v.getPath().endsWith("_layer_2.png")).sorted()
-                .collect(Collectors.toCollection(LinkedHashSet::new))) {
-            textureSubFolders.put(v, new TexturePath(StringUtils.substringBetween(v.getPath(), "assets/", "/textures"),
-                    StringUtils.substringAfter(v.getPath(), "textures/")));
+        boolean splitItemAtlas = false;
+        try {
+            splitItemAtlas = PlatformCapabilities.supportsSplitItemAtlas(PlatformCapabilities.currentVersion());
+        } catch (Exception ignored) {
+            // Bukkit may not be initialized in standalone unit tests
         }
-
-        Set<TexturePath> itemTextures = new HashSet<>();
-        OraxenItems.getItems().stream()
-                .filter(builder -> builder.hasOraxenMeta() && builder.getOraxenMeta().hasLayers())
-                .forEach(builder -> itemTextures
-                        .addAll(builder.getOraxenMeta().getLayers().stream().map(TexturePath::new).toList()));
-
-        Set<TexturePath> fontTextures = new LinkedHashSet<>();
-        Set<JsonObject> fonts = output.stream()
-                .filter(v -> v.getPath().matches("assets/.*/font/.*.json") && v.isJsonObject())
-                .map(VirtualFile::toJsonObject).collect(Collectors.toSet());
-        for (JsonObject font : fonts) {
-            if (font == null || !font.has("providers"))
-                continue;
-            for (JsonElement providerElement : font.getAsJsonArray("providers")) {
-                if (!providerElement.isJsonObject())
-                    continue;
-                JsonObject provider = providerElement.getAsJsonObject();
-                if (provider.has("file")) {
-                    fontTextures.add(new TexturePath(provider.get("file").getAsString()));
-                }
-            }
-        }
-
-        for (Map.Entry<VirtualFile, TexturePath> entry : textureSubFolders.entrySet()) {
-            TexturePath texturePath = entry.getValue();
-
-            // Legacy placeholder texture from older Oraxen versions. It is 1x1 and
-            // can crash Forge/newer clients when added to the block atlas with mipmaps.
-            if (texturePath.namespace.equals("minecraft") && texturePath.path.equals("required/null"))
-                continue;
-
-            // If a texture is for a font, do not add it to atlas, unless an item uses it
-            // Default example is required/exit_icon.png
-            if (texturePath.in(fontTextures) && !texturePath.in(itemTextures))
-                continue;
-
-            JsonObject atlasEntry = new JsonObject();
-            String malformPathCheck = "assets/" + texturePath.namespace + "/textures/" + texturePath.path + ".png";
-            if (Settings.EXCLUDE_MALFORMED_ATLAS.toBool()
-                    && malformedTextures.stream().anyMatch(malformPathCheck::startsWith)) {
-                Logs.logWarning("Excluding malformed texture from atlas-file: <gold>" + malformPathCheck);
-                continue;
-            }
-
-            if (Settings.ATLAS_GENERATION_TYPE.toString().equals("DIRECTORY")) {
-                String path = StringUtils.substringBeforeLast(texturePath.path, "/");
-                atlasEntry.addProperty("type", "directory");
-                atlasEntry.addProperty("source", path);
-                atlasEntry.addProperty("prefix", path + "/");
-            } else {
-                atlasEntry.addProperty("type", "single");
-                atlasEntry.addProperty("resource", texturePath.toPath());
-                atlasEntry.addProperty("sprite", texturePath.toPath());
-            }
-
-            if (!atlasContent.contains(atlasEntry))
-                atlasContent.add(atlasEntry);
-        }
-
-        removeChildEntriesInDirectoryAtlas(atlasContent);
-
-        atlas.add("sources", atlasContent);
-        VirtualFile atlasFile = new VirtualFile("assets/minecraft/atlases", "blocks.json",
-                new ByteArrayInputStream(atlas.toString().getBytes(StandardCharsets.UTF_8)));
-        output.removeIf(v -> v.getPath().equals(atlasFile.getPath()));
-        output.add(atlasFile);
+        generateAtlasFiles(output, malformedTextures, splitItemAtlas);
     }
 
-    // If atlas contains entry for "parent"-source, remove following
-    // child-directory-entries like "parent/child"
-    private static void removeChildEntriesInDirectoryAtlas(JsonArray atlasContent) {
-        if (Settings.ATLAS_GENERATION_TYPE.toString().equals("DIRECTORY")) {
-            Set<JsonElement> remove = new HashSet<>();
-            atlasContent.forEach(element -> {
-                String source = element.getAsJsonObject().get("source").getAsString();
-                if (source.contains("/")) {
-                    JsonObject parentObject = new JsonObject();
-                    parentObject.addProperty("type", "directory");
-                    parentObject.addProperty("source", source);
-                    parentObject.addProperty("prefix", source + "/");
-                    if (atlasContent.contains(parentObject))
-                        remove.add(element);
+    public static void generateAtlasFiles(
+            @NotNull List<VirtualFile> output,
+            @NotNull Set<String> malformedTextures,
+            boolean includeSplitItemAtlas
+    ) {
+        boolean debug = isDebugEnabled();
+        boolean excludeMalformed = isExcludeMalformedEnabled();
+        String generationType = getAtlasGenerationType();
+
+        if (debug) {
+            Logs.logInfo("Generating atlas-file for Resource Pack");
+        }
+        if (excludeMalformed && !malformedTextures.isEmpty()) {
+            Logs.logWarning("Attempting to exclude malformed textures from atlas-file");
+        }
+
+        Set<TextureRef> explicitItemTextures = collectExplicitItemLayerTextures();
+        Set<String> effectiveMalformed = excludeMalformed ? malformedTextures : Collections.emptySet();
+
+        if (excludeMalformed && !malformedTextures.isEmpty()) {
+            for (VirtualFile vf : output) {
+                String p = vf.getPath();
+                if (p.endsWith(".png") && malformedTextures.stream().anyMatch(p::startsWith)) {
+                    Logs.logWarning("Excluding malformed texture from atlas-file: <gold>" + p);
                 }
-            });
-            remove.forEach(atlasContent::remove);
+            }
+        }
+
+        AtlasResolutionResult resolution = RESOLVER.resolve(
+                output,
+                explicitItemTextures,
+                effectiveMalformed,
+                includeSplitItemAtlas
+        );
+
+        JsonObject blocksAtlas = buildAtlasJson(
+                resolution.blockAtlasTextures(),
+                resolution.bridgedVanillaItemTextures(),
+                generationType
+        );
+        upsertVirtualFile(output, "assets/minecraft/atlases", "blocks.json", blocksAtlas.toString());
+
+        if (includeSplitItemAtlas && !resolution.itemAtlasTextures().isEmpty()) {
+            JsonObject itemsAtlas = buildAtlasJson(
+                    resolution.itemAtlasTextures(),
+                    Collections.emptySet(),
+                    generationType
+            );
+            upsertVirtualFile(output, "assets/minecraft/atlases", "items.json", itemsAtlas.toString());
+        }
+    }
+
+    private static @NotNull JsonObject buildAtlasJson(
+            @NotNull Set<TextureRef> textures,
+            @NotNull Set<TextureRef> forceSingleEntryTextures,
+            @NotNull String generationType
+    ) {
+        JsonObject atlas = new JsonObject();
+        JsonArray sources = new JsonArray();
+        boolean directoryMode = "DIRECTORY".equalsIgnoreCase(generationType);
+
+        List<TextureRef> sorted = new ArrayList<>(textures);
+        Collections.sort(sorted);
+
+        for (TextureRef ref : sorted) {
+            JsonObject entry = new JsonObject();
+            if (directoryMode && !forceSingleEntryTextures.contains(ref)) {
+                String dir = StringUtils.substringBeforeLast(ref.path(), "/");
+                entry.addProperty("type", "directory");
+                entry.addProperty("source", dir);
+                entry.addProperty("prefix", dir + "/");
+            } else {
+                entry.addProperty("type", "single");
+                entry.addProperty("resource", ref.toResourceLocation());
+                entry.addProperty("sprite", ref.toResourceLocation());
+            }
+            if (!sources.contains(entry)) {
+                sources.add(entry);
+            }
+        }
+
+        if (directoryMode) {
+            removeChildEntriesInDirectoryAtlas(sources);
+        }
+
+        atlas.add("sources", sources);
+        return atlas;
+    }
+
+    private static void removeChildEntriesInDirectoryAtlas(JsonArray atlasContent) {
+        Set<JsonElement> remove = new HashSet<>();
+        for (JsonElement element : atlasContent) {
+            if (!element.isJsonObject()) continue;
+            JsonObject obj = element.getAsJsonObject();
+            if (!obj.has("source")) continue;
+            String source = obj.get("source").getAsString();
+            if (source.contains("/")) {
+                String parentDir = StringUtils.substringBefore(source, "/");
+                JsonObject parentObject = new JsonObject();
+                parentObject.addProperty("type", "directory");
+                parentObject.addProperty("source", parentDir);
+                parentObject.addProperty("prefix", parentDir + "/");
+                if (atlasContent.contains(parentObject)) {
+                    remove.add(element);
+                }
+            }
+        }
+        remove.forEach(atlasContent::remove);
+    }
+
+    private static void upsertVirtualFile(List<VirtualFile> output, String folder, String name, String content) {
+        VirtualFile file = new VirtualFile(
+                folder,
+                name,
+                new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))
+        );
+        output.removeIf(v -> v.getPath().equals(file.getPath()));
+        output.add(file);
+    }
+
+    private static Set<TextureRef> collectExplicitItemLayerTextures() {
+        Set<TextureRef> itemTextures = new LinkedHashSet<>();
+        if (io.th0rgal.oraxen.OraxenPlugin.get() == null) {
+            return itemTextures;
+        }
+        try {
+            Collection<ItemBuilder> items = OraxenItems.getItems();
+            if (items != null) {
+                for (ItemBuilder builder : items) {
+                    if (builder != null && builder.hasOraxenMeta() && builder.getOraxenMeta().hasLayers()) {
+                        for (String layer : builder.getOraxenMeta().getLayers()) {
+                            if (layer != null && !layer.isBlank()) {
+                                itemTextures.add(TextureRef.parse(layer));
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Throwable ignored) {
+        }
+        return itemTextures;
+    }
+
+    private static boolean isDebugEnabled() {
+        if (io.th0rgal.oraxen.OraxenPlugin.get() == null) return false;
+        try {
+            return Settings.DEBUG.toBool();
+        } catch (Throwable e) {
+            return false;
+        }
+    }
+
+    private static boolean isExcludeMalformedEnabled() {
+        if (io.th0rgal.oraxen.OraxenPlugin.get() == null) return true;
+        try {
+            return Settings.EXCLUDE_MALFORMED_ATLAS.toBool();
+        } catch (Throwable e) {
+            return true;
+        }
+    }
+
+    private static String getAtlasGenerationType() {
+        if (io.th0rgal.oraxen.OraxenPlugin.get() == null) return "SINGLE";
+        try {
+            String val = Settings.ATLAS_GENERATION_TYPE.toString();
+            return val != null ? val : "SINGLE";
+        } catch (Throwable e) {
+            return "SINGLE";
         }
     }
 }

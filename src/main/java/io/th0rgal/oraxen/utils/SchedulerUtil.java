@@ -5,264 +5,244 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Utility class for scheduling tasks that works on both Paper and Folia servers.
- * Delegates to Paper's region-aware scheduler APIs (GlobalRegionScheduler, AsyncScheduler,
- * RegionScheduler and EntityScheduler), which behave like the regular main-thread
- * scheduler on non-Folia Paper servers.
+ * Utility class for scheduling tasks that works on both Paper and Folia servers,
+ * delegating to {@link ExecutionSchedulerPort}.
  */
 public final class SchedulerUtil {
 
+    private static final ExecutionSchedulerPort DEFAULT_BACKEND = new PaperFoliaSchedulerBackend();
+    private static volatile ExecutionSchedulerPort backend = DEFAULT_BACKEND;
+
     private SchedulerUtil() {
-        // Utility class
+    }
+
+    public static @NotNull ExecutionSchedulerPort getBackend() {
+        return backend;
+    }
+
+    public static void setBackend(@Nullable ExecutionSchedulerPort customBackend) {
+        backend = Objects.requireNonNullElse(customBackend, DEFAULT_BACKEND);
+    }
+
+    public static void resetBackend() {
+        backend = DEFAULT_BACKEND;
+    }
+
+    private static final class PaperFoliaSchedulerBackend implements ExecutionSchedulerPort {
+
+        @Override
+        public boolean isGlobalThread() {
+            if (VersionUtil.isFoliaServer()) return Bukkit.isGlobalTickThread();
+            return Bukkit.isPrimaryThread();
+        }
+
+        @Override
+        public ScheduledTask runTask(@Nullable Plugin plugin, @NotNull Runnable runnable) {
+            return new ScheduledTask(Bukkit.getGlobalRegionScheduler().run(plugin, task -> runnable.run()));
+        }
+
+        @Override
+        public ScheduledTask runTaskLater(@Nullable Plugin plugin, long delayTicks, @NotNull Runnable runnable) {
+            return new ScheduledTask(Bukkit.getGlobalRegionScheduler()
+                    .runDelayed(plugin, task -> runnable.run(), Math.max(1, delayTicks)));
+        }
+
+        @Override
+        public ScheduledTask runTaskTimer(@Nullable Plugin plugin, long delayTicks, long periodTicks, @NotNull Runnable runnable) {
+            return new ScheduledTask(Bukkit.getGlobalRegionScheduler()
+                    .runAtFixedRate(plugin, task -> runnable.run(), Math.max(1, delayTicks), Math.max(1, periodTicks)));
+        }
+
+        @Override
+        public ScheduledTask runTaskAsync(@Nullable Plugin plugin, @NotNull Runnable runnable) {
+            return new ScheduledTask(Bukkit.getAsyncScheduler().runNow(plugin, task -> runnable.run()));
+        }
+
+        @Override
+        public ScheduledTask runTaskLaterAsync(@Nullable Plugin plugin, long delayTicks, @NotNull Runnable runnable) {
+            return new ScheduledTask(Bukkit.getAsyncScheduler()
+                    .runDelayed(plugin, task -> runnable.run(), Math.max(1, delayTicks) * 50, TimeUnit.MILLISECONDS));
+        }
+
+        @Override
+        public ScheduledTask runTaskTimerAsync(@Nullable Plugin plugin, long delayTicks, long periodTicks, @NotNull Runnable runnable) {
+            return new ScheduledTask(Bukkit.getAsyncScheduler()
+                    .runAtFixedRate(plugin, task -> runnable.run(), Math.max(1, delayTicks) * 50, Math.max(1, periodTicks) * 50, TimeUnit.MILLISECONDS));
+        }
+
+        @Override
+        public ScheduledTask runAtLocation(@Nullable Plugin plugin, @NotNull Location location, @NotNull Runnable runnable) {
+            return new ScheduledTask(Bukkit.getRegionScheduler().run(plugin, location, task -> runnable.run()));
+        }
+
+        @Override
+        public ScheduledTask runAtLocationLater(@Nullable Plugin plugin, @NotNull Location location, long delayTicks, @NotNull Runnable runnable) {
+            return new ScheduledTask(Bukkit.getRegionScheduler()
+                    .runDelayed(plugin, location, task -> runnable.run(), Math.max(1, delayTicks)));
+        }
+
+        @Override
+        public ScheduledTask runAtLocationTimer(@Nullable Plugin plugin, @NotNull Location location, long delayTicks, long periodTicks, @NotNull Runnable runnable) {
+            return new ScheduledTask(Bukkit.getRegionScheduler()
+                    .runAtFixedRate(plugin, location, task -> runnable.run(), Math.max(1, delayTicks), Math.max(1, periodTicks)));
+        }
+
+        @Override
+        public void runOnOwningThread(@NotNull Entity entity, @NotNull Runnable runnable) {
+            if (Bukkit.isOwnedByCurrentRegion(entity)) {
+                runnable.run();
+            } else {
+                runForEntity(OraxenPlugin.get(), entity, runnable, null);
+            }
+        }
+
+        @Override
+        public @Nullable ScheduledTask runForEntity(@Nullable Plugin plugin, @NotNull Entity entity, @NotNull Runnable runnable, @Nullable Runnable retired) {
+            io.papermc.paper.threadedregions.scheduler.ScheduledTask task =
+                    entity.getScheduler().run(plugin, t -> runnable.run(), retired);
+            return task != null ? new ScheduledTask(task) : null;
+        }
+
+        @Override
+        public @Nullable ScheduledTask runForEntityLater(@Nullable Plugin plugin, @NotNull Entity entity, long delayTicks, @NotNull Runnable runnable, @Nullable Runnable retired) {
+            io.papermc.paper.threadedregions.scheduler.ScheduledTask task =
+                    entity.getScheduler().runDelayed(plugin, t -> runnable.run(), retired, Math.max(1, delayTicks));
+            return task != null ? new ScheduledTask(task) : null;
+        }
+
+        @Override
+        public @Nullable ScheduledTask runForEntityTimer(@Nullable Plugin plugin, @NotNull Entity entity, long delayTicks, long periodTicks, @NotNull Runnable runnable, @Nullable Runnable retired) {
+            io.papermc.paper.threadedregions.scheduler.ScheduledTask task = entity.getScheduler()
+                    .runAtFixedRate(plugin, t -> runnable.run(), retired, Math.max(1, delayTicks), Math.max(1, periodTicks));
+            return task != null ? new ScheduledTask(task) : null;
+        }
     }
 
     // ==================== GLOBAL/SYNC TASKS ====================
 
-    /**
-     * Returns whether the caller already owns the global execution context.
-     * On Folia, region tick threads are not sufficient for global registry mutation.
-     * On non-Folia servers the global context is the main thread; older Paper versions
-     * do not expose {@code Bukkit.isGlobalTickThread()}, so it must only be called on Folia.
-     */
     public static boolean isGlobalThread() {
-        if (VersionUtil.isFoliaServer()) return Bukkit.isGlobalTickThread();
-        return Bukkit.isPrimaryThread();
+        return backend.isGlobalThread();
     }
 
-    /**
-     * Runs a task on the next server tick (global region on Folia, main thread on Paper).
-     */
     public static ScheduledTask runTask(Runnable runnable) {
         return runTask(OraxenPlugin.get(), runnable);
     }
 
-    /**
-     * Runs a task on the next server tick (global region on Folia, main thread on Paper).
-     */
     public static ScheduledTask runTask(Plugin plugin, Runnable runnable) {
-        return new ScheduledTask(Bukkit.getGlobalRegionScheduler().run(plugin, task -> runnable.run()));
+        return backend.runTask(plugin, runnable);
     }
 
-    /**
-     * Runs a task after the specified delay in ticks.
-     */
     public static ScheduledTask runTaskLater(long delayTicks, Runnable runnable) {
         return runTaskLater(OraxenPlugin.get(), delayTicks, runnable);
     }
 
-    /**
-     * Runs a task after the specified delay in ticks.
-     */
     public static ScheduledTask runTaskLater(Plugin plugin, long delayTicks, Runnable runnable) {
-        return new ScheduledTask(Bukkit.getGlobalRegionScheduler()
-                .runDelayed(plugin, task -> runnable.run(), Math.max(1, delayTicks)));
+        return backend.runTaskLater(plugin, delayTicks, runnable);
     }
 
-    /**
-     * Runs a task repeatedly with the specified delay and period in ticks.
-     */
     public static ScheduledTask runTaskTimer(long delayTicks, long periodTicks, Runnable runnable) {
         return runTaskTimer(OraxenPlugin.get(), delayTicks, periodTicks, runnable);
     }
 
-    /**
-     * Runs a task repeatedly with the specified delay and period in ticks.
-     */
     public static ScheduledTask runTaskTimer(Plugin plugin, long delayTicks, long periodTicks, Runnable runnable) {
-        return new ScheduledTask(Bukkit.getGlobalRegionScheduler()
-                .runAtFixedRate(plugin, task -> runnable.run(), Math.max(1, delayTicks), Math.max(1, periodTicks)));
+        return backend.runTaskTimer(plugin, delayTicks, periodTicks, runnable);
     }
 
     // ==================== ASYNC TASKS ====================
 
-    /**
-     * Runs a task asynchronously.
-     */
     public static ScheduledTask runTaskAsync(Runnable runnable) {
         return runTaskAsync(OraxenPlugin.get(), runnable);
     }
 
-    /**
-     * Runs a task asynchronously.
-     */
     public static ScheduledTask runTaskAsync(Plugin plugin, Runnable runnable) {
-        return new ScheduledTask(Bukkit.getAsyncScheduler().runNow(plugin, task -> runnable.run()));
+        return backend.runTaskAsync(plugin, runnable);
     }
 
-    /**
-     * Runs a task asynchronously after the specified delay in ticks.
-     */
     public static ScheduledTask runTaskLaterAsync(long delayTicks, Runnable runnable) {
         return runTaskLaterAsync(OraxenPlugin.get(), delayTicks, runnable);
     }
 
-    /**
-     * Runs a task asynchronously after the specified delay in ticks.
-     */
     public static ScheduledTask runTaskLaterAsync(Plugin plugin, long delayTicks, Runnable runnable) {
-        // AsyncScheduler uses time units, convert ticks to milliseconds (1 tick = 50ms)
-        return new ScheduledTask(Bukkit.getAsyncScheduler()
-                .runDelayed(plugin, task -> runnable.run(), Math.max(1, delayTicks) * 50, TimeUnit.MILLISECONDS));
+        return backend.runTaskLaterAsync(plugin, delayTicks, runnable);
     }
 
-    /**
-     * Runs a task asynchronously with the specified delay and period in ticks.
-     */
     public static ScheduledTask runTaskTimerAsync(long delayTicks, long periodTicks, Runnable runnable) {
         return runTaskTimerAsync(OraxenPlugin.get(), delayTicks, periodTicks, runnable);
     }
 
-    /**
-     * Runs a task asynchronously with the specified delay and period in ticks.
-     */
     public static ScheduledTask runTaskTimerAsync(Plugin plugin, long delayTicks, long periodTicks, Runnable runnable) {
-        // AsyncScheduler uses time units, convert ticks to milliseconds (1 tick = 50ms)
-        return new ScheduledTask(Bukkit.getAsyncScheduler()
-                .runAtFixedRate(plugin, task -> runnable.run(), Math.max(1, delayTicks) * 50, Math.max(1, periodTicks) * 50, TimeUnit.MILLISECONDS));
+        return backend.runTaskTimerAsync(plugin, delayTicks, periodTicks, runnable);
     }
 
     // ==================== LOCATION-BASED TASKS (Region Scheduler) ====================
 
-    /**
-     * Runs a task at a specific location (uses the RegionScheduler).
-     * This is important for Folia as it ensures the task runs in the correct region thread.
-     */
     public static ScheduledTask runAtLocation(Location location, Runnable runnable) {
         return runAtLocation(OraxenPlugin.get(), location, runnable);
     }
 
-    /**
-     * Runs a task at a specific location (uses the RegionScheduler).
-     */
     public static ScheduledTask runAtLocation(Plugin plugin, Location location, Runnable runnable) {
-        return new ScheduledTask(Bukkit.getRegionScheduler().run(plugin, location, task -> runnable.run()));
+        return backend.runAtLocation(plugin, location, runnable);
     }
 
-    /**
-     * Runs a task at a specific location after the specified delay in ticks.
-     */
     public static ScheduledTask runAtLocationLater(Location location, long delayTicks, Runnable runnable) {
         return runAtLocationLater(OraxenPlugin.get(), location, delayTicks, runnable);
     }
 
-    /**
-     * Runs a task at a specific location after the specified delay in ticks.
-     */
     public static ScheduledTask runAtLocationLater(Plugin plugin, Location location, long delayTicks, Runnable runnable) {
-        return new ScheduledTask(Bukkit.getRegionScheduler()
-                .runDelayed(plugin, location, task -> runnable.run(), Math.max(1, delayTicks)));
+        return backend.runAtLocationLater(plugin, location, delayTicks, runnable);
     }
 
-    /**
-     * Runs a task at a specific location repeatedly with the specified delay and period in ticks.
-     */
     public static ScheduledTask runAtLocationTimer(Location location, long delayTicks, long periodTicks, Runnable runnable) {
         return runAtLocationTimer(OraxenPlugin.get(), location, delayTicks, periodTicks, runnable);
     }
 
-    /**
-     * Runs a task at a specific location repeatedly with the specified delay and period in ticks.
-     */
     public static ScheduledTask runAtLocationTimer(Plugin plugin, Location location, long delayTicks, long periodTicks, Runnable runnable) {
-        return new ScheduledTask(Bukkit.getRegionScheduler()
-                .runAtFixedRate(plugin, location, task -> runnable.run(), Math.max(1, delayTicks), Math.max(1, periodTicks)));
+        return backend.runAtLocationTimer(plugin, location, delayTicks, periodTicks, runnable);
     }
 
     // ==================== ENTITY-BASED TASKS (Entity Scheduler) ====================
 
-    /**
-     * Runs immediately when the caller already owns the entity region. On Folia,
-     * hops to the entity thread so player packets are not sent from a foreign block
-     * region. {@link #runForEntity} always schedules for the next tick even on Paper,
-     * which is too late for client-prediction acknowledgements.
-     */
     public static void runOnOwningThread(Entity entity, Runnable runnable) {
-        if (Bukkit.isOwnedByCurrentRegion(entity)) {
-            runnable.run();
-        } else {
-            runForEntity(entity, runnable, null);
-        }
+        backend.runOnOwningThread(entity, runnable);
     }
 
-    /**
-     * Runs a task for a specific entity (uses the EntityScheduler).
-     * This ensures the task runs on the thread that owns the entity.
-     * If the entity is retired before execution, the task is silently skipped.
-     *
-     * @param entity   The entity to schedule the task for
-     * @param runnable The task to run
-     */
     public static ScheduledTask runForEntity(Entity entity, Runnable runnable) {
         return runForEntity(OraxenPlugin.get(), entity, runnable, null);
     }
 
-    /**
-     * Runs a task for a specific entity (uses the EntityScheduler).
-     * This ensures the task runs on the thread that owns the entity.
-     *
-     * @param entity   The entity to schedule the task for
-     * @param runnable The task to run
-     * @param retired  The runnable to run if the entity is retired (removed) before the task runs
-     */
     public static ScheduledTask runForEntity(Entity entity, Runnable runnable, Runnable retired) {
         return runForEntity(OraxenPlugin.get(), entity, runnable, retired);
     }
 
-    /**
-     * Runs a task for a specific entity (uses the EntityScheduler).
-     */
     public static ScheduledTask runForEntity(Plugin plugin, Entity entity, Runnable runnable, Runnable retired) {
-        io.papermc.paper.threadedregions.scheduler.ScheduledTask task =
-                entity.getScheduler().run(plugin, t -> runnable.run(), retired);
-        return task != null ? new ScheduledTask(task) : null;
+        return backend.runForEntity(plugin, entity, runnable, retired);
     }
 
-    /**
-     * Runs a task for a specific entity after the specified delay in ticks.
-     * If the entity is retired before execution, the task is silently skipped.
-     *
-     * @param entity     The entity to schedule the task for
-     * @param delayTicks The delay in ticks
-     * @param runnable   The task to run
-     */
     public static ScheduledTask runForEntityLater(Entity entity, long delayTicks, Runnable runnable) {
         return runForEntityLater(OraxenPlugin.get(), entity, delayTicks, runnable, null);
     }
 
-    /**
-     * Runs a task for a specific entity after the specified delay in ticks.
-     */
     public static ScheduledTask runForEntityLater(Entity entity, long delayTicks, Runnable runnable, Runnable retired) {
         return runForEntityLater(OraxenPlugin.get(), entity, delayTicks, runnable, retired);
     }
 
-    /**
-     * Runs a task for a specific entity after the specified delay in ticks.
-     */
     public static ScheduledTask runForEntityLater(Plugin plugin, Entity entity, long delayTicks, Runnable runnable, Runnable retired) {
-        io.papermc.paper.threadedregions.scheduler.ScheduledTask task =
-                entity.getScheduler().runDelayed(plugin, t -> runnable.run(), retired, Math.max(1, delayTicks));
-        return task != null ? new ScheduledTask(task) : null;
+        return backend.runForEntityLater(plugin, entity, delayTicks, runnable, retired);
     }
 
-    /**
-     * Runs a task for a specific entity repeatedly with the specified delay and period in ticks.
-     */
     public static ScheduledTask runForEntityTimer(Entity entity, long delayTicks, long periodTicks, Runnable runnable, Runnable retired) {
         return runForEntityTimer(OraxenPlugin.get(), entity, delayTicks, periodTicks, runnable, retired);
     }
 
-    /**
-     * Runs a task for a specific entity repeatedly with the specified delay and period in ticks.
-     */
     public static ScheduledTask runForEntityTimer(Plugin plugin, Entity entity, long delayTicks, long periodTicks, Runnable runnable, Runnable retired) {
-        io.papermc.paper.threadedregions.scheduler.ScheduledTask task = entity.getScheduler()
-                .runAtFixedRate(plugin, t -> runnable.run(), retired, Math.max(1, delayTicks), Math.max(1, periodTicks));
-        return task != null ? new ScheduledTask(task) : null;
+        return backend.runForEntityTimer(plugin, entity, delayTicks, periodTicks, runnable, retired);
     }
 
     /**
@@ -275,23 +255,14 @@ public final class SchedulerUtil {
             this.task = task;
         }
 
-        /**
-         * Cancels this scheduled task.
-         */
         public void cancel() {
             if (task != null) task.cancel();
         }
 
-        /**
-         * Checks if the task is cancelled.
-         */
         public boolean isCancelled() {
             return task == null || task.isCancelled();
         }
 
-        /**
-         * Gets the underlying task object.
-         */
         public io.papermc.paper.threadedregions.scheduler.ScheduledTask getTask() {
             return task;
         }

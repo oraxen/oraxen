@@ -10,6 +10,7 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicInfo;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.PropertyType;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.block.CustomBlockService;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.VersionUtil;
@@ -75,6 +76,7 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
     public ShapedBlockMechanicFactory(ConfigurationSection section, boolean registerListeners) {
         super(section);
         instance = this;
+        CustomBlockService.clearShapedBlocks();
         toolTypes = section.getStringList("tool_types");
         convertVanillaWaxed = section.getBoolean("convert_vanilla_waxed", true);
         handleWorldGeneration = section.getBoolean("handle_world_generation", true);
@@ -174,6 +176,7 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
 
         // Register the mechanic by material
         mechanicByMaterial.put(mechanic.getPlacedMaterial(), mechanic);
+        CustomBlockService.registerShapedBlock(mechanic.getPlacedMaterial(), mechanic);
 
         // Store model name for blockstate generation
         String modelName = mechanic.getModel(section.getParent().getParent());

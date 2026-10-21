@@ -570,8 +570,11 @@ public class ResourcePack {
         if (Settings.VERIFY_PACK_FILES.toBool())
             malformedTextures = PackFileCollector.verifyPackFormatting(output);
 
-        if (Settings.GENERATE_ATLAS_FILE.toBool())
-            AtlasGenerator.generateAtlasFile(output, malformedTextures);
+        if (Settings.GENERATE_ATLAS_FILE.toBool()) {
+            boolean includeSplitItemAtlas = multiVersionResolved
+                    || PlatformCapabilities.supportsSplitItemAtlas(PlatformCapabilities.currentVersion());
+            AtlasGenerator.generateAtlasFiles(output, malformedTextures, includeSplitItemAtlas);
+        }
 
         if (Settings.MERGE_DUPLICATE_FONTS.toBool())
             DuplicationHandler.mergeFontFiles(output);

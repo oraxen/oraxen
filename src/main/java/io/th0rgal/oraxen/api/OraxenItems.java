@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.items.ItemLoader;
 import io.th0rgal.oraxen.items.ModelData;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.block.VariationRegistry;
 import io.th0rgal.oraxen.pack.generation.DuplicationHandler;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
@@ -41,6 +42,7 @@ public class OraxenItems {
         try {
             var tridentFactory = TridentMechanicFactory.get();
             if (tridentFactory != null) tridentFactory.clearMechanics();
+            VariationRegistry.resetSessionReservations();
             ItemLoader.MODEL_DATAS_BY_ID.clear();
             ModelData.DATAS.clear();
             OraxenPlugin.get().getConfigsManager().assignAllUsedModelDatas();

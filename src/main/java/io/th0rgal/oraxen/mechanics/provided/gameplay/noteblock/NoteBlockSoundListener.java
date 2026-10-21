@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.api.events.noteblock.OraxenNoteBlockBreakEvent;
 import io.th0rgal.oraxen.api.events.noteblock.OraxenNoteBlockPlaceEvent;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
+import io.th0rgal.oraxen.utils.blocksounds.BlockAudioEngine;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.protection.AntiGriefLib;
 import org.bukkit.*;
@@ -161,10 +162,9 @@ public class NoteBlockSoundListener implements Listener {
         NoteBlockMechanic mechanic = event.getMechanic();
         if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
             mechanic = mechanic.getDirectional().getParentMechanic();
-        if (mechanic == null || !mechanic.hasBlockSounds() || !mechanic.getBlockSounds().hasPlaceSound()) return;
+        if (mechanic == null || !mechanic.hasBlockSounds()) return;
 
-        BlockSounds blockSounds = mechanic.getBlockSounds();
-        BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), blockSounds.getPlaceSound(), blockSounds.getPlaceVolume(), blockSounds.getPlacePitch());
+        BlockAudioEngine.playPlaceSound(event.getBlock().getLocation(), mechanic.getBlockSounds());
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -173,10 +173,8 @@ public class NoteBlockSoundListener implements Listener {
         NoteBlockMechanic mechanic = event.getMechanic();
         if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
             mechanic = mechanic.getDirectional().getParentMechanic();
-        if (mechanic == null || !mechanic.hasBlockSounds() || !mechanic.getBlockSounds().hasBreakSound()) return;
+        if (mechanic == null || !mechanic.hasBlockSounds()) return;
 
-        BlockSounds blockSounds = mechanic.getBlockSounds();
-        BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), blockSounds.getBreakSound(), blockSounds.getBreakVolume(), blockSounds.getBreakPitch());
-
+        BlockAudioEngine.playBreakSound(event.getBlock().getLocation(), mechanic.getBlockSounds());
     }
 }
