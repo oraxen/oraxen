@@ -110,6 +110,7 @@ pack:
     \nconditions of Oraxen."
 
   import:
+    modelengine: true # Import ModelEngine's resource pack when the plugin is enabled.
     merge:
       fonts: true # Merge duplicate font files; exclude originals from the final pack without deleting them.
       duplicates: true

@@ -101,6 +101,7 @@ public enum Settings {
     @Deprecated APPEARANCE_ITEM_MODEL("pack.generation.appearance.item-model"),
     @Deprecated APPEARANCE_PREDICATES("pack.generation.appearance.predicates"),
     COMMENT("pack.comment"),
+    IMPORT_MODEL_ENGINE("pack.import.modelengine"),
     MERGE_DUPLICATE_FONTS("pack.import.merge.fonts"),
     MERGE_DUPLICATES("pack.import.merge.duplicates"),
     RETAIN_CUSTOM_MODEL_DATA("pack.import.retain-custom-model-data"),

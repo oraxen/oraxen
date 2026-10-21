@@ -9,6 +9,8 @@ import io.th0rgal.oraxen.api.events.OraxenPackGeneratedEvent;
 import io.th0rgal.oraxen.configs.AppearanceMode;
 import io.th0rgal.oraxen.configs.ResourcesManager;
 import io.th0rgal.oraxen.configs.Settings;
+import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
+import io.th0rgal.oraxen.compatibilities.provided.modelengine.ModelEngineCompatibility;
 import io.th0rgal.oraxen.glyphs.AnimatedGlyph;
 import io.th0rgal.oraxen.fonts.Font;
 import io.th0rgal.oraxen.fonts.FontManager;
@@ -26,6 +28,8 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Material;
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.Plugin;
 
 import javax.imageio.ImageIO;
 import java.awt.AlphaComposite;
@@ -39,6 +43,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
 
@@ -72,6 +77,27 @@ public class ResourcePack {
             Logs.logWarning("Resource-pack generation is already in progress, skipping duplicate request");
             return;
         }
+
+        if (Settings.IMPORT_MODEL_ENGINE.toBool()
+                && CompatibilitiesManager.getActiveCompatibility("ModelEngine") instanceof ModelEngineCompatibility compatibility) {
+            var packReady = compatibility.getPackReady();
+            if (!packReady.isDone()) {
+                Logs.logInfo("Awaiting ModelEngine resource pack...");
+                packReady.copy().orTimeout(300, TimeUnit.SECONDS).whenComplete((ignored, exception) -> {
+                    if (shutdownRequested || !OraxenPlugin.get().isEnabled()) return;
+                    if (exception != null) Logs.logWarning("ModelEngine resource pack was not ready within 300 seconds; continuing pack generation");
+                    SchedulerUtil.runTask(() -> {
+                        if (!shutdownRequested) generateWhenReady();
+                    });
+                });
+                return;
+            }
+        }
+
+        generateWhenReady();
+    }
+
+    private void generateWhenReady() {
 
         // Re-evaluate dispatch mode normalization on each generation (covers reload)
         io.th0rgal.oraxen.pack.dispatch.PackSender.resetDispatchNormalization();
@@ -1422,6 +1448,18 @@ public class ResourcePack {
     private void mergeUploadedPacks(List<VirtualFile> output) {
         PackMerger packMerger = new PackMerger(packFolder);
         List<VirtualFile> mergedFiles = packMerger.mergeUploadedPacks();
+        if (Settings.IMPORT_MODEL_ENGINE.toBool()) {
+            Plugin modelEngine = Bukkit.getPluginManager().getPlugin("ModelEngine");
+            if (modelEngine != null && modelEngine.isEnabled()) {
+                File modelEnginePack = new File(modelEngine.getDataFolder(), "resource pack.zip");
+                if (!modelEnginePack.isFile()) modelEnginePack = new File(modelEngine.getDataFolder(), "resource pack");
+                if (modelEnginePack.exists()) {
+                    mergedFiles.addAll(packMerger.mergeModelEnginePack(modelEnginePack));
+                } else {
+                    Logs.logWarning("Could not find ModelEngine resource pack.zip or resource pack folder");
+                }
+            }
+        }
         PackMcmetaUtils.mergeOverlayEntriesIntoOutput(output, packMerger.getMergedOverlayEntries());
 
         if (!mergedFiles.isEmpty()) {

@@ -74,6 +74,21 @@ public class PackMerger {
         return result;
     }
 
+    public List<VirtualFile> mergeModelEnginePack(File pack) {
+        Map<String, VirtualFile> files = new LinkedHashMap<>();
+        try {
+            if (pack.isDirectory()) {
+                mergePackDirectory(pack, files);
+            } else {
+                mergePackZip(pack, files);
+            }
+            files.remove("pack.png");
+        } catch (IOException exception) {
+            Logs.logError("Failed to import ModelEngine resource pack: " + exception.getMessage());
+        }
+        return new ArrayList<>(files.values());
+    }
+
     private void mergePackZip(File packZip, Map<String, VirtualFile> mergedFilesMap) throws IOException {
         String packName = packZip.getName();
         Logs.logInfo("Processing pack | <blue>" + packName + "</blue>");
