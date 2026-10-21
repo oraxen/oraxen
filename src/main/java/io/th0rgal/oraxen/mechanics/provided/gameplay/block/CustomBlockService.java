@@ -185,7 +185,8 @@ public final class CustomBlockService {
             case NOTE_BLOCK -> getNoteBlock(blockData);
             case TRIPWIRE -> getStringBlock(blockData);
             case CHORUS_PLANT -> getChorusBlock(blockData);
-            default -> SHAPED_BLOCKS.get(blockData.getMaterial());
+            // Shaped blocks require a placed Block's chunk PDC marker to distinguish from vanilla waxed copper
+            default -> null;
         };
     }
 }

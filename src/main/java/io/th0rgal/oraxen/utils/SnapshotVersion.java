@@ -5,8 +5,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.temporal.IsoFields;
 import java.time.temporal.TemporalAdjusters;
+import java.util.Date;
 import java.util.Objects;
 
 /**
@@ -53,7 +55,11 @@ public class SnapshotVersion implements Comparable<SnapshotVersion> {
         return snapshotString;
     }
 
-    public @NotNull LocalDate getSnapshotDate() {
+    public @NotNull Date getSnapshotDate() {
+        return Date.from(getSnapshotLocalDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
+    }
+
+    public @NotNull LocalDate getSnapshotLocalDate() {
         if (snapshotDate == null) {
             snapshotDate = LocalDate.now()
                     .withYear(2000 + getSnapshotYear())
