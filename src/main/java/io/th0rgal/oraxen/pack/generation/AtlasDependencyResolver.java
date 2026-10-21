@@ -132,7 +132,53 @@ public final class AtlasDependencyResolver {
         Map<String, ParsedModel> modelsByKey = new LinkedHashMap<>();
         Set<TextureRef> allPackTextures = new LinkedHashSet<>();
         Set<TextureRef> fontTextures = new LinkedHashSet<>();
+        indexPackAssets(files, malformedPaths, modelsByKey, allPackTextures, fontTextures);
 
+        Set<TextureRef> usedBy2DModels = new LinkedHashSet<>(explicitItemLayerTextures);
+        Set<TextureRef> usedBy3DModels = new LinkedHashSet<>();
+        Set<TextureRef> bridgedVanillaItemTextures = new LinkedHashSet<>();
+        Map<String, Set<TextureRef>> missingTexturesByModel = new LinkedHashMap<>();
+        classifyModelTextures(
+                modelsByKey,
+                allPackTextures,
+                malformedPaths,
+                usedBy2DModels,
+                usedBy3DModels,
+                bridgedVanillaItemTextures,
+                missingTexturesByModel
+        );
+
+        Set<TextureRef> fontOnlyTextures = computeFontOnlyTextures(fontTextures, usedBy2DModels, usedBy3DModels);
+        Set<TextureRef> blockAtlasTextures = new LinkedHashSet<>();
+        Set<TextureRef> itemAtlasTextures = new LinkedHashSet<>();
+        partitionAtlasTextures(
+                allPackTextures,
+                fontOnlyTextures,
+                usedBy2DModels,
+                usedBy3DModels,
+                splitItemAtlas,
+                blockAtlasTextures,
+                itemAtlasTextures
+        );
+
+        blockAtlasTextures.addAll(bridgedVanillaItemTextures);
+
+        return new AtlasResolutionResult(
+                Collections.unmodifiableSet(blockAtlasTextures),
+                Collections.unmodifiableSet(itemAtlasTextures),
+                Collections.unmodifiableSet(bridgedVanillaItemTextures),
+                Collections.unmodifiableSet(fontOnlyTextures),
+                Collections.unmodifiableMap(missingTexturesByModel)
+        );
+    }
+
+    private void indexPackAssets(
+            @NotNull Collection<VirtualFile> files,
+            @NotNull Set<String> malformedPaths,
+            @NotNull Map<String, ParsedModel> modelsByKey,
+            @NotNull Set<TextureRef> allPackTextures,
+            @NotNull Set<TextureRef> fontTextures
+    ) {
         for (VirtualFile file : files) {
             String path = file.getPath();
             if (isTextureFile(path)) {
@@ -153,82 +199,90 @@ public final class AtlasDependencyResolver {
                 }
             }
         }
+    }
 
-        Set<TextureRef> usedBy2DModels = new LinkedHashSet<>(explicitItemLayerTextures);
-        Set<TextureRef> usedBy3DModels = new LinkedHashSet<>();
-        Set<TextureRef> bridgedVanillaItemTextures = new LinkedHashSet<>();
-        Map<String, Set<TextureRef>> missingTexturesByModel = new LinkedHashMap<>();
-
+    private void classifyModelTextures(
+            @NotNull Map<String, ParsedModel> modelsByKey,
+            @NotNull Set<TextureRef> allPackTextures,
+            @NotNull Set<String> malformedPaths,
+            @NotNull Set<TextureRef> usedBy2DModels,
+            @NotNull Set<TextureRef> usedBy3DModels,
+            @NotNull Set<TextureRef> bridgedVanillaItemTextures,
+            @NotNull Map<String, Set<TextureRef>> missingTexturesByModel
+    ) {
         for (ParsedModel model : modelsByKey.values()) {
             ModelRenderKind kind = classifyModel(model.modelKey(), modelsByKey);
             Set<TextureRef> resolvedTextures = resolveModelTextures(model.modelKey(), modelsByKey);
-
             for (TextureRef tex : resolvedTextures) {
                 if (isIgnoredTexture(tex, malformedPaths)) {
                     continue;
                 }
-                if (kind == ModelRenderKind.ITEM_2D) {
-                    usedBy2DModels.add(tex);
-                } else if (kind == ModelRenderKind.BLOCK_OR_3D) {
-                    usedBy3DModels.add(tex);
-                    // If a 3D model references a vanilla item/* texture, it must be bridged
-                    // into blocks.json on 1.21.11+ / 26.x so the 3D model does not mix atlases.
-                    if ("minecraft".equals(tex.namespace()) && tex.path().startsWith("item/")) {
-                        bridgedVanillaItemTextures.add(tex);
-                    }
-                }
-
-                // Check for missing custom textures
+                recordModelTextureUsage(kind, tex, usedBy2DModels, usedBy3DModels, bridgedVanillaItemTextures);
                 if (!allPackTextures.contains(tex) && !isLikelyVanillaTexture(tex)) {
                     missingTexturesByModel.computeIfAbsent(model.modelKey(), k -> new LinkedHashSet<>()).add(tex);
                 }
             }
         }
+    }
 
+    private void recordModelTextureUsage(
+            @NotNull ModelRenderKind kind,
+            @NotNull TextureRef tex,
+            @NotNull Set<TextureRef> usedBy2DModels,
+            @NotNull Set<TextureRef> usedBy3DModels,
+            @NotNull Set<TextureRef> bridgedVanillaItemTextures
+    ) {
+        if (kind == ModelRenderKind.ITEM_2D) {
+            usedBy2DModels.add(tex);
+            return;
+        }
+        if (kind == ModelRenderKind.BLOCK_OR_3D) {
+            usedBy3DModels.add(tex);
+            if ("minecraft".equals(tex.namespace()) && tex.path().startsWith("item/")) {
+                bridgedVanillaItemTextures.add(tex);
+            }
+        }
+    }
+
+    private @NotNull Set<TextureRef> computeFontOnlyTextures(
+            @NotNull Set<TextureRef> fontTextures,
+            @NotNull Set<TextureRef> usedBy2DModels,
+            @NotNull Set<TextureRef> usedBy3DModels
+    ) {
         Set<TextureRef> fontOnlyTextures = new LinkedHashSet<>();
         for (TextureRef fontTex : fontTextures) {
             if (!usedBy2DModels.contains(fontTex) && !usedBy3DModels.contains(fontTex)) {
                 fontOnlyTextures.add(fontTex);
             }
         }
+        return fontOnlyTextures;
+    }
 
-        Set<TextureRef> blockAtlasTextures = new LinkedHashSet<>();
-        Set<TextureRef> itemAtlasTextures = new LinkedHashSet<>();
-
+    private void partitionAtlasTextures(
+            @NotNull Set<TextureRef> allPackTextures,
+            @NotNull Set<TextureRef> fontOnlyTextures,
+            @NotNull Set<TextureRef> usedBy2DModels,
+            @NotNull Set<TextureRef> usedBy3DModels,
+            boolean splitItemAtlas,
+            @NotNull Set<TextureRef> blockAtlasTextures,
+            @NotNull Set<TextureRef> itemAtlasTextures
+    ) {
         for (TextureRef tex : allPackTextures) {
             if (fontOnlyTextures.contains(tex)) {
                 continue;
             }
+            boolean is2D = usedBy2DModels.contains(tex) || tex.path().startsWith("item/");
             if (!splitItemAtlas) {
                 blockAtlasTextures.add(tex);
-                if (usedBy2DModels.contains(tex) || tex.path().startsWith("item/")) {
+                if (is2D) {
                     itemAtlasTextures.add(tex);
                 }
+            } else if (usedBy3DModels.contains(tex) || !is2D) {
+                blockAtlasTextures.add(tex);
             } else {
-                // On 1.21.11+ / 26.x, blocks.json and items.json must be strictly disjoint
-                // (Minecraft logs "Duplicate sprite ... from atlas ... already defined in atlas").
-                boolean is3D = usedBy3DModels.contains(tex);
-                boolean is2D = usedBy2DModels.contains(tex) || tex.path().startsWith("item/");
-                if (is3D) {
-                    blockAtlasTextures.add(tex);
-                } else if (is2D) {
-                    itemAtlasTextures.add(tex);
-                } else {
-                    blockAtlasTextures.add(tex);
-                }
+                itemAtlasTextures.add(tex);
             }
         }
-
-        // Add bridged vanilla item textures used by 3D models into blocks.json
-        blockAtlasTextures.addAll(bridgedVanillaItemTextures);
-
-        return new AtlasResolutionResult(
-                Collections.unmodifiableSet(blockAtlasTextures),
-                Collections.unmodifiableSet(itemAtlasTextures),
-                Collections.unmodifiableSet(bridgedVanillaItemTextures),
-                Collections.unmodifiableSet(fontOnlyTextures),
-                Collections.unmodifiableMap(missingTexturesByModel)
-        );
     }
 
     public @NotNull ModelRenderKind classifyModel(

@@ -7,6 +7,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -70,12 +72,25 @@ public final class StudioSyncState {
         return fresh;
     }
 
+    @FunctionalInterface
+    interface FileMover {
+        void move(Path source, Path target, CopyOption... options) throws IOException;
+    }
+
     public void save(Path dataFolder) throws IOException {
+        save(dataFolder, Files::move);
+    }
+
+    void save(Path dataFolder, FileMover mover) throws IOException {
         Path file = file(dataFolder);
         Files.createDirectories(file.getParent());
         Path tmp = file.resolveSibling("state.json.tmp");
         Files.writeString(tmp, GSON.toJson(this), StandardCharsets.UTF_8);
-        Files.move(tmp, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        try {
+            mover.move(tmp, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        } catch (AtomicMoveNotSupportedException ignored) {
+            mover.move(tmp, file, StandardCopyOption.REPLACE_EXISTING);
+        }
     }
 
     public static void clear(Path dataFolder) throws IOException {

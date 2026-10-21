@@ -200,6 +200,11 @@ public final class BlockStateCodec {
         }
 
         public void applyTo(@NotNull BlockData target) {
+            applyGeometry(target);
+            applyFlags(target);
+        }
+
+        private void applyGeometry(@NotNull BlockData target) {
             if (facing != null && target instanceof Directional dir && dir.getFaces().contains(facing)) {
                 dir.setFacing(facing);
             }
@@ -215,6 +220,9 @@ public final class BlockStateCodec {
             if (doorHinge != null && target instanceof Door door) {
                 door.setHinge(doorHinge);
             }
+        }
+
+        private void applyFlags(@NotNull BlockData target) {
             if (open != null && target instanceof Openable openable) {
                 openable.setOpen(open);
             }

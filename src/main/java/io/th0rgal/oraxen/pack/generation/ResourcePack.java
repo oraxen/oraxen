@@ -286,6 +286,10 @@ public class ResourcePack {
         }
     }
 
+    public boolean isGenerationInProgress() {
+        return generationInProgress.get();
+    }
+
     public void shutdown() {
         shutdownRequested = true;
         ExecutorService packWorker = activePackWorker;

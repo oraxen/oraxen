@@ -107,20 +107,80 @@ class SemanticServerVersionTest {
         SchedulerUtil.setBackend(new ExecutionSchedulerPort() {
             private final SchedulerUtil.ScheduledTask noOpTask = new SchedulerUtil.ScheduledTask(null);
 
-            @Override public boolean isGlobalThread() { return true; }
-            @Override public SchedulerUtil.ScheduledTask runTask(@Nullable Plugin plugin, @NotNull Runnable runnable) { runnable.run(); return noOpTask; }
-            @Override public SchedulerUtil.ScheduledTask runTaskLater(@Nullable Plugin plugin, long delayTicks, @NotNull Runnable runnable) { runnable.run(); return noOpTask; }
-            @Override public SchedulerUtil.ScheduledTask runTaskTimer(@Nullable Plugin plugin, long delayTicks, long periodTicks, @NotNull Runnable runnable) { runnable.run(); return noOpTask; }
-            @Override public SchedulerUtil.ScheduledTask runTaskAsync(@Nullable Plugin plugin, @NotNull Runnable runnable) { runnable.run(); return noOpTask; }
-            @Override public SchedulerUtil.ScheduledTask runTaskLaterAsync(@Nullable Plugin plugin, long delayTicks, @NotNull Runnable runnable) { runnable.run(); return noOpTask; }
-            @Override public SchedulerUtil.ScheduledTask runTaskTimerAsync(@Nullable Plugin plugin, long delayTicks, long periodTicks, @NotNull Runnable runnable) { runnable.run(); return noOpTask; }
-            @Override public SchedulerUtil.ScheduledTask runAtLocation(@Nullable Plugin plugin, @NotNull Location location, @NotNull Runnable runnable) { runnable.run(); return noOpTask; }
-            @Override public SchedulerUtil.ScheduledTask runAtLocationLater(@Nullable Plugin plugin, @NotNull Location location, long delayTicks, @NotNull Runnable runnable) { runnable.run(); return noOpTask; }
-            @Override public SchedulerUtil.ScheduledTask runAtLocationTimer(@Nullable Plugin plugin, @NotNull Location location, long delayTicks, long periodTicks, @NotNull Runnable runnable) { runnable.run(); return noOpTask; }
-            @Override public void runOnOwningThread(@NotNull Entity entity, @NotNull Runnable runnable) { runnable.run(); }
-            @Override public @Nullable SchedulerUtil.ScheduledTask runForEntity(@Nullable Plugin plugin, @NotNull Entity entity, @NotNull Runnable runnable, @Nullable Runnable retired) { runnable.run(); return noOpTask; }
-            @Override public @Nullable SchedulerUtil.ScheduledTask runForEntityLater(@Nullable Plugin plugin, @NotNull Entity entity, long delayTicks, @NotNull Runnable runnable, @Nullable Runnable retired) { runnable.run(); return noOpTask; }
-            @Override public @Nullable SchedulerUtil.ScheduledTask runForEntityTimer(@Nullable Plugin plugin, @NotNull Entity entity, long delayTicks, long periodTicks, @NotNull Runnable runnable, @Nullable Runnable retired) { runnable.run(); return noOpTask; }
+            private SchedulerUtil.ScheduledTask executeNow(@NotNull Runnable runnable) {
+                runnable.run();
+                return noOpTask;
+            }
+
+            @Override
+            public boolean isGlobalThread() {
+                return true;
+            }
+
+            @Override
+            public SchedulerUtil.ScheduledTask runTask(@Nullable Plugin plugin, @NotNull Runnable runnable) {
+                return executeNow(runnable);
+            }
+
+            @Override
+            public SchedulerUtil.ScheduledTask runTaskLater(@Nullable Plugin plugin, long delayTicks, @NotNull Runnable runnable) {
+                return executeNow(runnable);
+            }
+
+            @Override
+            public SchedulerUtil.ScheduledTask runTaskTimer(@Nullable Plugin plugin, long delayTicks, long periodTicks, @NotNull Runnable runnable) {
+                return executeNow(runnable);
+            }
+
+            @Override
+            public SchedulerUtil.ScheduledTask runTaskAsync(@Nullable Plugin plugin, @NotNull Runnable runnable) {
+                return executeNow(runnable);
+            }
+
+            @Override
+            public SchedulerUtil.ScheduledTask runTaskLaterAsync(@Nullable Plugin plugin, long delayTicks, @NotNull Runnable runnable) {
+                return executeNow(runnable);
+            }
+
+            @Override
+            public SchedulerUtil.ScheduledTask runTaskTimerAsync(@Nullable Plugin plugin, long delayTicks, long periodTicks, @NotNull Runnable runnable) {
+                return executeNow(runnable);
+            }
+
+            @Override
+            public SchedulerUtil.ScheduledTask runAtLocation(@Nullable Plugin plugin, @NotNull Location location, @NotNull Runnable runnable) {
+                return executeNow(runnable);
+            }
+
+            @Override
+            public SchedulerUtil.ScheduledTask runAtLocationLater(@Nullable Plugin plugin, @NotNull Location location, long delayTicks, @NotNull Runnable runnable) {
+                return executeNow(runnable);
+            }
+
+            @Override
+            public SchedulerUtil.ScheduledTask runAtLocationTimer(@Nullable Plugin plugin, @NotNull Location location, long delayTicks, long periodTicks, @NotNull Runnable runnable) {
+                return executeNow(runnable);
+            }
+
+            @Override
+            public void runOnOwningThread(@NotNull Entity entity, @NotNull Runnable runnable) {
+                runnable.run();
+            }
+
+            @Override
+            public @Nullable SchedulerUtil.ScheduledTask runForEntity(@Nullable Plugin plugin, @NotNull Entity entity, @NotNull Runnable runnable, @Nullable Runnable retired) {
+                return executeNow(runnable);
+            }
+
+            @Override
+            public @Nullable SchedulerUtil.ScheduledTask runForEntityLater(@Nullable Plugin plugin, @NotNull Entity entity, long delayTicks, @NotNull Runnable runnable, @Nullable Runnable retired) {
+                return executeNow(runnable);
+            }
+
+            @Override
+            public @Nullable SchedulerUtil.ScheduledTask runForEntityTimer(@Nullable Plugin plugin, @NotNull Entity entity, long delayTicks, long periodTicks, @NotNull Runnable runnable, @Nullable Runnable retired) {
+                return executeNow(runnable);
+            }
         });
 
         SchedulerUtil.runTask(() -> executed.set(true));

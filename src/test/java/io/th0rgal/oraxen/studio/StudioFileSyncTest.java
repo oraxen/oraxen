@@ -227,4 +227,58 @@ class StudioFileSyncTest {
         assertEquals(2, scheduled.get());
         assertFalse(recheckNeeded.get());
     }
+
+    @Test
+    void tryBeginSync_defersRecheckWhenManualSyncStartsDuringConnectionQuery() {
+        java.util.concurrent.atomic.AtomicBoolean syncInProgress = new java.util.concurrent.atomic.AtomicBoolean(true);
+        java.util.concurrent.atomic.AtomicBoolean recheckNeeded = new java.util.concurrent.atomic.AtomicBoolean(false);
+        java.util.concurrent.atomic.AtomicInteger scheduled = new java.util.concurrent.atomic.AtomicInteger();
+
+        assertFalse(StudioSyncService.tryBeginSync(syncInProgress, recheckNeeded, scheduled::incrementAndGet));
+        assertTrue(recheckNeeded.get());
+
+        StudioSyncService.finishSync(syncInProgress, recheckNeeded, scheduled::incrementAndGet);
+        assertEquals(1, scheduled.get());
+        assertFalse(recheckNeeded.get());
+        assertTrue(StudioSyncService.tryBeginSync(syncInProgress, recheckNeeded, scheduled::incrementAndGet));
+    }
+
+    @Test
+    void tryCompletePairing_rejectsStalePairingGeneration() {
+        java.util.concurrent.atomic.AtomicInteger pairingGeneration = new java.util.concurrent.atomic.AtomicInteger(1);
+        java.util.concurrent.atomic.AtomicBoolean completedGen1 = new java.util.concurrent.atomic.AtomicBoolean(false);
+        java.util.concurrent.atomic.AtomicBoolean completedGen2 = new java.util.concurrent.atomic.AtomicBoolean(false);
+
+        int gen1 = pairingGeneration.get();
+        int gen2 = pairingGeneration.incrementAndGet();
+
+        assertFalse(StudioSyncService.tryCompletePairing(gen1, pairingGeneration, completedGen1));
+        assertTrue(StudioSyncService.tryCompletePairing(gen2, pairingGeneration, completedGen2));
+        assertFalse(StudioSyncService.tryCompletePairing(gen2, pairingGeneration, completedGen2));
+    }
+
+    @Test
+    void shouldDeferWriteBack_waitsWhilePackGenerationIsInProgressBeforeDeadline() {
+        assertTrue(StudioSyncService.shouldDeferWriteBack(true, 1_000L, 60_000L));
+        assertFalse(StudioSyncService.shouldDeferWriteBack(false, 1_000L, 60_000L));
+        assertFalse(StudioSyncService.shouldDeferWriteBack(true, 60_000L, 60_000L));
+    }
+
+    @Test
+    void syncState_fallsBackWhenAtomicMoveNotSupported(@TempDir Path root) throws IOException {
+        StudioSyncState state = StudioSyncState.load(root, "ws-1");
+        state.recordSync("ws-1", 11, Map.of("items/a.yml", entry("a").sha256()));
+        java.util.concurrent.atomic.AtomicInteger calls = new java.util.concurrent.atomic.AtomicInteger();
+
+        state.save(root, (source, target, options) -> {
+            if (calls.getAndIncrement() == 0) {
+                throw new java.nio.file.AtomicMoveNotSupportedException(source.toString(), target.toString(), "unsupported");
+            }
+            Files.move(source, target, options);
+        });
+
+        assertEquals(2, calls.get());
+        StudioSyncState loaded = StudioSyncState.load(root, "ws-1");
+        assertEquals(11, loaded.rev());
+    }
 }

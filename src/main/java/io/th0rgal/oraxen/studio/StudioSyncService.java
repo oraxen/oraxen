@@ -54,7 +54,8 @@ public class StudioSyncService {
     private final AtomicBoolean recheckNeeded = new AtomicBoolean(false);
     // Bumped by start()/stop(): work started for an older generation must not install a socket.
     private final AtomicInteger generation = new AtomicInteger();
-    private final AtomicBoolean pairingPollInFlight = new AtomicBoolean(false);
+    // Bumped whenever pairing starts or stops so an in-flight poll from a previous code is ignored.
+    private final AtomicInteger pairingGeneration = new AtomicInteger();
     private volatile boolean initialSyncHintShown = false;
     private StudioApiClient client;
     private volatile StudioWebSocketClient activeSocket;
@@ -62,6 +63,7 @@ public class StudioSyncService {
     private volatile String connectedWorkspaceId = "";
     private volatile String connectedWorkspaceName = "";
     private volatile Map<String, FileEntry> pendingWriteBack;
+    private volatile long pendingWriteBackDeadlineMillis;
 
     public StudioSyncService(OraxenPlugin plugin) {
         this.plugin = plugin;
@@ -92,10 +94,14 @@ public class StudioSyncService {
         }
     }
 
-    private void cancelPairingWatcher() {
+    private int cancelPairingWatcher() {
+        int pairGen = pairingGeneration.incrementAndGet();
         SchedulerUtil.ScheduledTask task = pairingPollTask;
         pairingPollTask = null;
-        if (task != null) task.cancel();
+        if (task != null) {
+            task.cancel();
+        }
+        return pairGen;
     }
 
     public String getStudioBaseUrl() {
@@ -164,6 +170,31 @@ public class StudioSyncService {
             onRecheck.run();
         }
         return true;
+    }
+
+    private boolean tryBeginSync() {
+        return tryBeginSync(syncInProgress, recheckNeeded, this::scheduleCheck);
+    }
+
+    static boolean tryBeginSync(AtomicBoolean syncInProgress, AtomicBoolean recheckNeeded, Runnable onRecheck) {
+        while (true) {
+            if (syncInProgress.compareAndSet(false, true)) {
+                return true;
+            }
+            if (deferIfSyncInProgress(syncInProgress::get, recheckNeeded, onRecheck)) {
+                return false;
+            }
+        }
+    }
+
+    static boolean tryCompletePairing(int pairGen, AtomicInteger pairingGeneration, AtomicBoolean completed) {
+        return pairGen == pairingGeneration.get()
+                && completed.compareAndSet(false, true)
+                && pairGen == pairingGeneration.get();
+    }
+
+    static boolean shouldDeferWriteBack(boolean generationInProgress, long nowMillis, long deadlineMillis) {
+        return generationInProgress && nowMillis < deadlineMillis;
     }
 
     @FunctionalInterface
@@ -308,6 +339,7 @@ public class StudioSyncService {
     // ------------------------------------------------------------------ pairing
 
     public void initiatePairing(@Nullable CommandSender sender) {
+        int pairGen = cancelPairingWatcher();
         SchedulerUtil.runTaskAsync(plugin, () -> {
             try {
                 StudioApiClient api = api();
@@ -315,6 +347,9 @@ public class StudioSyncService {
                 String serverName = Bukkit.getServer().getName();
                 StudioApiClient.Pairing pairing = api.startPairing(
                         serverName != null ? serverName : "Oraxen Server", plugin.getPluginMeta().getVersion());
+                if (pairGen != pairingGeneration.get()) {
+                    return;
+                }
 
                 Logs.logInfo("Oraxen Studio pairing code: " + pairing.code() + " -> " + pairing.connectUrl());
                 sendMessage(sender,
@@ -322,43 +357,57 @@ public class StudioSyncService {
                                 + "<click:open_url:'" + pairing.connectUrl() + "'><hover:show_text:'<green>Open Oraxen Studio in your browser'>"
                                 + "<#43c9fa><underlined>" + pairing.connectUrl() + "</underlined></#43c9fa></hover></click> "
                                 + "<gray>(Code: <#facc43>" + pairing.code() + "</#facc43>)");
-                watchForPairingCompletion(api, pairing, sender);
+                watchForPairingCompletion(api, pairing, sender, pairGen);
             } catch (Exception e) {
-                sendMessage(sender, "<prefix><#fa4943>Failed to start Studio pairing: " + e.getMessage());
+                if (pairGen == pairingGeneration.get()) {
+                    sendMessage(sender, "<prefix><#fa4943>Failed to start Studio pairing: " + e.getMessage());
+                }
             }
         });
     }
 
     private void watchForPairingCompletion(StudioApiClient api, StudioApiClient.Pairing pairing,
-                                           @Nullable CommandSender sender) {
-        cancelPairingWatcher();
+                                           @Nullable CommandSender sender, int pairGen) {
         AtomicBoolean completed = new AtomicBoolean(false);
+        AtomicBoolean pollInFlight = new AtomicBoolean(false);
         long periodTicks = Math.max(1, pairing.pollIntervalSeconds()) * 20L;
         long deadline = System.currentTimeMillis() + 10 * 60 * 1000L;
-        pairingPollTask = SchedulerUtil.runTaskTimerAsync(plugin, periodTicks, periodTicks, () -> {
-            if (completed.get() || !pairingPollInFlight.compareAndSet(false, true)) return;
+        SchedulerUtil.ScheduledTask task = SchedulerUtil.runTaskTimerAsync(plugin, periodTicks, periodTicks, () -> {
+            if (completed.get() || pairGen != pairingGeneration.get() || !pollInFlight.compareAndSet(false, true)) {
+                return;
+            }
             try {
-                pollPairingOnce(api, pairing, sender, completed, deadline);
+                pollPairingOnce(api, pairing, sender, completed, pairGen, deadline);
             } finally {
-                pairingPollInFlight.set(false);
+                pollInFlight.set(false);
             }
         });
+        if (pairGen != pairingGeneration.get()) {
+            task.cancel();
+            return;
+        }
+        pairingPollTask = task;
     }
 
     private void pollPairingOnce(StudioApiClient api, StudioApiClient.Pairing pairing, @Nullable CommandSender sender,
-                                 AtomicBoolean completed, long deadline) {
+                                 AtomicBoolean completed, int pairGen, long deadline) {
+        if (pairGen != pairingGeneration.get()) {
+            return;
+        }
         if (System.currentTimeMillis() > deadline) {
-            cancelPairingWatcher();
-            sendMessage(sender, "<prefix><#facc43>The Studio pairing code expired. Run <#43c9fa>/oraxen studio connect</#43c9fa> again.");
+            if (tryCompletePairing(pairGen, pairingGeneration, completed)) {
+                cancelPairingWatcher();
+                sendMessage(sender, "<prefix><#facc43>The Studio pairing code expired. Run <#43c9fa>/oraxen studio connect</#43c9fa> again.");
+            }
             return;
         }
         try {
             StudioApiClient.PairingResult result = api.pollPairing(pairing);
-            if (result != null && completed.compareAndSet(false, true)) {
+            if (result != null && tryCompletePairing(pairGen, pairingGeneration, completed)) {
                 finishPairing(result, sender);
             }
         } catch (StudioApiException e) {
-            if (e.status() == 404 && completed.compareAndSet(false, true)) {
+            if (e.status() == 404 && tryCompletePairing(pairGen, pairingGeneration, completed)) {
                 cancelPairingWatcher();
                 sendMessage(sender, "<prefix><#fa4943>Studio pairing failed: " + e.getMessage());
             }
@@ -423,7 +472,7 @@ public class StudioSyncService {
             sendMessage(sender, "<prefix><#fa4943>Server is not connected to Oraxen Studio. Run <#43c9fa>/oraxen studio connect<#fa4943> first.");
             return;
         }
-        if (!syncInProgress.compareAndSet(false, true)) {
+        if (!tryBeginSync()) {
             sendMessage(sender, "<prefix><#facc43>A Studio sync operation is already in progress.");
             return;
         }
@@ -505,7 +554,7 @@ public class StudioSyncService {
             sendMessage(sender, "<prefix><#fa4943>Server is not connected to Oraxen Studio. Run <#43c9fa>/oraxen studio connect<#fa4943> first.");
             return;
         }
-        if (!syncInProgress.compareAndSet(false, true)) {
+        if (!tryBeginSync()) {
             sendMessage(sender, "<prefix><#facc43>A Studio sync operation is already in progress.");
             return;
         }
@@ -583,21 +632,37 @@ public class StudioSyncService {
 
     /**
      * Pack generation rewrites pack/pack.mcmeta in several steps on a worker thread, so
-     * the comparison waits for {@link OraxenPackGeneratedEvent} (or a timeout, in case
-     * generation fails) before looking at the files.
+     * the comparison waits for {@link OraxenPackGeneratedEvent} and for the pack worker
+     * to finish writing (or a timeout, in case generation fails) before looking at the files.
      */
     private void scheduleWriteBack(Map<String, FileEntry> pulled) {
         if (!Settings.GENERATE.toBool()) {
             SchedulerUtil.runTaskAsync(plugin, () -> writeBackLoaderChanges(pulled));
             return;
         }
-        pendingWriteBack = pulled;
-        SchedulerUtil.runTaskLaterAsync(plugin, 20L * 60, () -> runPendingWriteBack(pulled));
+        long deadlineMillis = System.currentTimeMillis() + 60_000L;
+        synchronized (this) {
+            pendingWriteBack = pulled;
+            pendingWriteBackDeadlineMillis = deadlineMillis;
+        }
+        SchedulerUtil.runTaskLaterAsync(plugin, 20L * 60, () -> runPendingWriteBack(pulled, false));
     }
 
-    private void runPendingWriteBack(Map<String, FileEntry> expected) {
+    private boolean isPackGenerationInProgress() {
+        var pack = plugin.getResourcePack();
+        return pack != null && pack.isGenerationInProgress();
+    }
+
+    private void runPendingWriteBack(Map<String, FileEntry> expected, boolean waitWhileGenerating) {
         synchronized (this) {
-            if (pendingWriteBack != expected) return;
+            if (pendingWriteBack != expected) {
+                return;
+            }
+            if (waitWhileGenerating && shouldDeferWriteBack(
+                    isPackGenerationInProgress(), System.currentTimeMillis(), pendingWriteBackDeadlineMillis)) {
+                SchedulerUtil.runTaskLaterAsync(plugin, 20L, () -> runPendingWriteBack(expected, true));
+                return;
+            }
             pendingWriteBack = null;
         }
         writeBackLoaderChanges(expected);
@@ -607,8 +672,10 @@ public class StudioSyncService {
         @EventHandler(priority = EventPriority.MONITOR)
         public void onPackGenerated(OraxenPackGeneratedEvent event) {
             Map<String, FileEntry> pulled = pendingWriteBack;
-            // The event fires before the zip is written; give the worker a moment to finish.
-            if (pulled != null) SchedulerUtil.runTaskLaterAsync(plugin, 20L, () -> runPendingWriteBack(pulled));
+            // The event fires before the zip is written; poll until async writing finishes.
+            if (pulled != null) {
+                SchedulerUtil.runTaskLaterAsync(plugin, 20L, () -> runPendingWriteBack(pulled, true));
+            }
         }
     }
 
