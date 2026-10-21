@@ -43,6 +43,101 @@ public final class VariationRegistry {
     }
 
     /**
+     * Pre-reserves an explicit variation ID in the current session so that automatic allocations
+     * parsed earlier in file/item iteration order never collide with explicit YAML configurations.
+     */
+    public static synchronized void preReserveExplicit(@NotNull String poolName, int explicitVariation) {
+        if (explicitVariation > 0) {
+            RESERVED_IN_SESSION.computeIfAbsent(poolName, k -> new HashSet<>()).add(explicitVariation);
+        }
+    }
+
+    /**
+     * Scans all top-level item sections in a configuration and pre-reserves any explicitly
+     * configured block {@code custom_variation} values before item mechanics are parsed.
+     */
+    public static synchronized void preReserveFromConfiguration(@Nullable ConfigurationSection itemsConfig) {
+        if (itemsConfig == null) {
+            return;
+        }
+        for (String key : itemsConfig.getKeys(false)) {
+            preReserveFromItemSection(itemsConfig.getConfigurationSection(key));
+        }
+    }
+
+    /**
+     * Pre-reserves any explicit block {@code custom_variation} configured on a single item section.
+     */
+    public static synchronized void preReserveFromItemSection(@Nullable ConfigurationSection itemSection) {
+        if (itemSection == null) {
+            return;
+        }
+        ConfigurationSection mechanics = OraxenYaml.getConfigurationSection(itemSection, "mechanics");
+        if (mechanics == null) {
+            return;
+        }
+        preReserveFromMechanicSection("noteblock", OraxenYaml.getConfigurationSection(mechanics, "noteblock"));
+        preReserveFromMechanicSection("stringblock", OraxenYaml.getConfigurationSection(mechanics, "stringblock"));
+        preReserveFromMechanicSection("chorusblock", OraxenYaml.getConfigurationSection(mechanics, "chorusblock"));
+
+        ConfigurationSection shaped = OraxenYaml.getConfigurationSection(mechanics, "shaped_block");
+        if (shaped != null) {
+            String shapedPool = resolveShapedPoolName(shaped.getString("type", "STAIR"));
+            if (shapedPool != null) {
+                preReserveFromMechanicSection(shapedPool, shaped);
+            }
+        }
+
+        ConfigurationSection unifiedBlock = OraxenYaml.getConfigurationSection(mechanics, "block");
+        if (unifiedBlock != null) {
+            String unifiedPool = resolveUnifiedBlockPoolName(unifiedBlock.getString("type"));
+            if (unifiedPool != null) {
+                preReserveFromMechanicSection(unifiedPool, unifiedBlock);
+            }
+        }
+    }
+
+    private static void preReserveFromMechanicSection(@NotNull String poolName, @Nullable ConfigurationSection section) {
+        if (section == null) {
+            return;
+        }
+        Object rawValue = section.get("custom_variation");
+        if (rawValue == null) {
+            rawValue = section.get("custom-variation");
+        }
+        boolean autoRequested = rawValue == null
+                || ("auto".equalsIgnoreCase(String.valueOf(rawValue).trim()))
+                || (rawValue instanceof Number num && num.intValue() == -1);
+        if (!autoRequested && rawValue instanceof Number explicitNumber) {
+            preReserveExplicit(poolName, explicitNumber.intValue());
+        }
+    }
+
+    private static @Nullable String resolveUnifiedBlockPoolName(@Nullable String rawType) {
+        if (rawType == null || rawType.isBlank()) {
+            return null;
+        }
+        String normalized = rawType.trim().toUpperCase(Locale.ROOT).replace('-', '_');
+        return switch (normalized) {
+            case "FULL" -> "noteblock";
+            case "STRING" -> "stringblock";
+            case "CHORUS" -> "chorusblock";
+            default -> resolveShapedPoolName(normalized);
+        };
+    }
+
+    private static @Nullable String resolveShapedPoolName(@Nullable String rawType) {
+        if (rawType == null || rawType.isBlank()) {
+            return null;
+        }
+        String normalized = rawType.trim().toUpperCase(Locale.ROOT).replace('-', '_');
+        return switch (normalized) {
+            case "STAIR", "SLAB", "DOOR", "TRAPDOOR", "GRATE", "BULB" -> "shaped_" + normalized.toLowerCase(Locale.ROOT);
+            default -> null;
+        };
+    }
+
+    /**
      * Resolves the {@code custom_variation} for an item's block mechanic section.
      * If an explicit valid integer is configured in YAML, it is reserved and returned;
      * if omitted or set to {@code -1} / {@code "auto"}, a persistent variation ID is allocated.

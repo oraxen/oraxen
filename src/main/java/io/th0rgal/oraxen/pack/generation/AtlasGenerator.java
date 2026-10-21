@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.pack.generation;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.items.ItemBuilder;
@@ -13,6 +14,7 @@ import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
@@ -89,6 +91,37 @@ public class AtlasGenerator {
                     generationType
             );
             upsertVirtualFile(output, "assets/minecraft/atlases", "items.json", itemsAtlas.toString());
+        }
+    }
+
+    /**
+     * Merges a split {@code items.json} atlas back into {@code blocks.json} for multi-version targets
+     * older than 1.21.11 that only read {@code assets/minecraft/atlases/blocks.json}.
+     */
+    public static @NotNull byte[] mergeSplitAtlasesForLegacyTarget(
+            @NotNull byte[] blocksAtlasBytes,
+            @Nullable byte[] itemsAtlasBytes
+    ) {
+        if (itemsAtlasBytes == null || itemsAtlasBytes.length == 0) {
+            return blocksAtlasBytes;
+        }
+        try {
+            JsonObject blocksJson = JsonParser.parseString(new String(blocksAtlasBytes, StandardCharsets.UTF_8)).getAsJsonObject();
+            JsonObject itemsJson = JsonParser.parseString(new String(itemsAtlasBytes, StandardCharsets.UTF_8)).getAsJsonObject();
+            JsonArray blocksSources = blocksJson.has("sources") ? blocksJson.getAsJsonArray("sources") : new JsonArray();
+            JsonArray itemsSources = itemsJson.has("sources") ? itemsJson.getAsJsonArray("sources") : new JsonArray();
+            for (JsonElement entry : itemsSources) {
+                if (!blocksSources.contains(entry)) {
+                    blocksSources.add(entry);
+                }
+            }
+            if ("DIRECTORY".equalsIgnoreCase(getAtlasGenerationType())) {
+                removeChildEntriesInDirectoryAtlas(blocksSources);
+            }
+            blocksJson.add("sources", blocksSources);
+            return blocksJson.toString().getBytes(StandardCharsets.UTF_8);
+        } catch (Exception ignored) {
+            return blocksAtlasBytes;
         }
     }
 

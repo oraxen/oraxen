@@ -171,6 +171,26 @@ class CustomBlockStateCodecAndRegistryTest {
     }
 
     @Test
+    void variationRegistryPreReservesExplicitIdsBeforeAutoAllocation() {
+        YamlConfiguration itemsYaml = new YamlConfiguration();
+        ConfigurationSection autoBlock = itemsYaml.createSection("first_auto_block").createSection("Mechanics").createSection("block");
+        autoBlock.set("type", "FULL");
+        autoBlock.set("custom_variation", "auto");
+
+        ConfigurationSection explicitBlock = itemsYaml.createSection("second_explicit_block").createSection("Mechanics").createSection("block");
+        explicitBlock.set("type", "FULL");
+        explicitBlock.set("custom-variation", 1);
+
+        VariationRegistry.preReserveFromConfiguration(itemsYaml);
+
+        int vAuto = VariationRegistry.resolveOrAllocate("noteblock", "first_auto_block", autoBlock, 1, 799);
+        int vExplicit = VariationRegistry.resolveOrAllocate("noteblock", "second_explicit_block", explicitBlock, 1, 799);
+
+        assertEquals(1, vExplicit);
+        assertEquals(2, vAuto);
+    }
+
+    @Test
     void customBlockServiceProvidesLockFreeO1Lookup() {
         NoteBlockMechanic noteMechanic = mock(NoteBlockMechanic.class);
         StringBlockMechanic stringMechanic = mock(StringBlockMechanic.class);

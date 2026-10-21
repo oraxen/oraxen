@@ -173,6 +173,25 @@ class AtlasDependencyResolverTest {
                         "2D item sprite must not be duplicated in blocks.json on 1.21.11+/26.x");
             }
         }
+
+        // Legacy multi-version targets (< 1.21.11) merge items.json back into blocks.json
+        byte[] mergedBlocksBytes = AtlasGenerator.mergeSplitAtlasesForLegacyTarget(
+                blocksJson.toString().getBytes(StandardCharsets.UTF_8),
+                itemsJson.toString().getBytes(StandardCharsets.UTF_8)
+        );
+        VirtualFile mergedBlocksFile = new VirtualFile("assets/minecraft/atlases", "blocks.json",
+                new ByteArrayInputStream(mergedBlocksBytes));
+        JsonObject mergedBlocksJson = AtlasDependencyResolver.readJsonObjectNonDestructive(mergedBlocksFile);
+        assertNotNull(mergedBlocksJson);
+        boolean foundStaffInMerged = false;
+        for (JsonElement el : mergedBlocksJson.getAsJsonArray("sources")) {
+            JsonObject obj = el.getAsJsonObject();
+            if ("single".equals(obj.get("type").getAsString())
+                    && "oraxen:item/emerald_staff".equals(obj.get("resource").getAsString())) {
+                foundStaffInMerged = true;
+            }
+        }
+        assertTrue(foundStaffInMerged, "Merged legacy blocks.json must include 2D item sprites for < 1.21.11 clients");
     }
 
     @Test

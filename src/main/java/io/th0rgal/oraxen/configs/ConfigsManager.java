@@ -11,6 +11,7 @@ import io.th0rgal.oraxen.items.ItemMigrator;
 import io.th0rgal.oraxen.items.ItemTemplate;
 import io.th0rgal.oraxen.items.ItemValidator;
 import io.th0rgal.oraxen.items.ModelData;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.block.VariationRegistry;
 import io.th0rgal.oraxen.pack.generation.DuplicationHandler;
 import io.th0rgal.oraxen.sounds.SoundConfigMigration;
 import io.th0rgal.oraxen.utils.AdventureUtils;
@@ -871,6 +872,7 @@ public class ConfigsManager {
             ItemMigrator migrator = new ItemMigrator(itemSection);
             fileChanged |= migrator.configUpdated();
             migrationBackupRequired |= migrator.blockConfigMigrated();
+            VariationRegistry.preReserveFromItemSection(itemSection);
             fileChanged |= assignItemModelData(file, key, itemSection, assignedModelDatas);
         }
         if (!fileChanged) return;
