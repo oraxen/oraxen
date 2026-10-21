@@ -4,7 +4,9 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockBreaking;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockEvents;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockStateCodec;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.Placeable;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.block.VariationRegistry;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.light.LightMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
@@ -48,7 +50,13 @@ public class ChorusBlockMechanic extends Mechanic {
         super(mechanicFactory, section);
 
         model = section.getString("model");
-        customVariation = section.getInt("custom_variation");
+        customVariation = VariationRegistry.resolveOrAllocate(
+                "chorusblock",
+                getItemID(),
+                section,
+                BlockStateCodec.MIN_CHORUS_VARIATION,
+                BlockStateCodec.MAX_CHORUS_VARIATION
+        );
         breaking = new BlockBreaking(section, getItemID());
         placeable = section.contains("placeable") ? new Placeable(section) : null;
         light = new LightMechanic(section);

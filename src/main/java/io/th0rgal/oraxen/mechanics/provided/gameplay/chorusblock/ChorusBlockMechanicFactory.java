@@ -6,6 +6,8 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicConfigProperty;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockStateCodec;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.block.CustomBlockService;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.PaperConfigUpdater;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
@@ -47,6 +49,8 @@ public class ChorusBlockMechanicFactory extends MechanicFactory {
     public ChorusBlockMechanicFactory(ConfigurationSection section, boolean registerListeners) {
         super(section);
         instance = this;
+        BLOCK_PER_VARIATION.clear();
+        CustomBlockService.clearChorusBlocks();
         variants = new JsonObject();
         // Reserve variation 0 (all faces false) for vanilla behavior
         variants.add("east=false,north=false,south=false,west=false,up=false,down=false",
@@ -68,17 +72,12 @@ public class ChorusBlockMechanicFactory extends MechanicFactory {
      * Uses bit encoding: NORTH(0) | SOUTH(1) | EAST(2) | WEST(3) | UP(4) | DOWN(5)
      */
     public static String getBlockstateVariantName(int id) {
-        return "east=" + ((id & 0x4) != 0)
-                + ",north=" + ((id & 0x1) != 0)
-                + ",south=" + ((id & 0x2) != 0)
-                + ",west=" + ((id & 0x8) != 0)
-                + ",up=" + ((id & 0x10) != 0)
-                + ",down=" + ((id & 0x20) != 0);
+        return BlockStateCodec.formatChorusVariantKey(id);
     }
 
     @Nullable
     public static ChorusBlockMechanic getBlockMechanic(int customVariation) {
-        return BLOCK_PER_VARIATION.get(customVariation);
+        return CustomBlockService.getChorusBlock(customVariation);
     }
 
     public static boolean isEnabled() {
@@ -104,28 +103,14 @@ public class ChorusBlockMechanicFactory extends MechanicFactory {
      * Bit encoding: NORTH(0x1) | SOUTH(0x2) | EAST(0x4) | WEST(0x8) | UP(0x10) | DOWN(0x20)
      */
     public static MultipleFacing createChorusData(int code) {
-        MultipleFacing data = (MultipleFacing) Bukkit.createBlockData(Material.CHORUS_PLANT);
-        data.setFace(BlockFace.NORTH, (code & 0x1) != 0);
-        data.setFace(BlockFace.SOUTH, (code & 0x2) != 0);
-        data.setFace(BlockFace.EAST, (code & 0x4) != 0);
-        data.setFace(BlockFace.WEST, (code & 0x8) != 0);
-        data.setFace(BlockFace.UP, (code & 0x10) != 0);
-        data.setFace(BlockFace.DOWN, (code & 0x20) != 0);
-        return data;
+        return BlockStateCodec.encodeChorusVariation(code);
     }
 
     /**
      * Get the variation code from a MultipleFacing blockdata.
      */
     public static int getCode(MultipleFacing data) {
-        int code = 0;
-        if (data.hasFace(BlockFace.NORTH)) code |= 0x1;
-        if (data.hasFace(BlockFace.SOUTH)) code |= 0x2;
-        if (data.hasFace(BlockFace.EAST)) code |= 0x4;
-        if (data.hasFace(BlockFace.WEST)) code |= 0x8;
-        if (data.hasFace(BlockFace.UP)) code |= 0x10;
-        if (data.hasFace(BlockFace.DOWN)) code |= 0x20;
-        return code;
+        return BlockStateCodec.decodeChorusVariation(data);
     }
 
     /**
@@ -195,7 +180,7 @@ public class ChorusBlockMechanicFactory extends MechanicFactory {
         }
         variants.add(getBlockstateVariantName(mechanic.getCustomVariation()),
                 getModelJson(mechanic.getModel(itemMechanicConfiguration.getParent().getParent())));
-        BLOCK_PER_VARIATION.put(mechanic.getCustomVariation(), mechanic);
+        CustomBlockService.registerChorusBlock(mechanic.getCustomVariation(), mechanic);
         addToImplemented(mechanic);
         return mechanic;
     }

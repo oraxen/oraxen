@@ -3,20 +3,12 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.events.stringblock.OraxenStringBlockBreakEvent;
 import io.th0rgal.oraxen.api.events.stringblock.OraxenStringBlockPlaceEvent;
-import io.th0rgal.oraxen.utils.BlockHelpers;
-import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
-import org.bukkit.GameEvent;
-import org.bukkit.Location;
+import io.th0rgal.oraxen.utils.blocksounds.BlockAudioEngine;
 import org.bukkit.Material;
-import org.bukkit.SoundCategory;
-import org.bukkit.block.Block;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPistonExtendEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.world.GenericGameEvent;
 
 public class StringBlockSoundListener implements Listener {
@@ -24,19 +16,13 @@ public class StringBlockSoundListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPistonPush(BlockPistonExtendEvent event) {
         if (!StringBlockMechanicFactory.isEnabled() || !StringBlockMechanicFactory.areCustomSoundsEnabled()) return;
-        // Run at HIGH priority (before HIGHEST physics listener) to capture mechanics
-        // before blocks are set to AIR. We only play sounds here, no block modification.
-        for (Block block : event.getBlocks()) {
-            if (block.getType() != Material.TRIPWIRE) continue;
-            final StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
-            if (mechanic == null || !mechanic.hasBlockSounds()) continue;
-            // Skip immovable blocks - they won't be destroyed
-            if (mechanic.isImmovable()) continue;
-
-            BlockSounds blockSounds = mechanic.getBlockSounds();
-            if (blockSounds.hasBreakSound())
-                BlockHelpers.playCustomBlockSound(block.getLocation(), blockSounds.getBreakSound(), blockSounds.getBreakVolume(), blockSounds.getBreakPitch());
-        }
+        BlockAudioEngine.playPistonBreakSounds(
+                event,
+                Material.TRIPWIRE,
+                OraxenBlocks::getStringMechanic,
+                StringBlockMechanic::isImmovable,
+                StringBlockMechanic::getBlockSounds
+        );
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -44,9 +30,7 @@ public class StringBlockSoundListener implements Listener {
         if (!StringBlockMechanicFactory.isEnabled() || !StringBlockMechanicFactory.areCustomSoundsEnabled()) return;
         final StringBlockMechanic mechanic = event.getMechanic();
         if (!mechanic.hasBlockSounds()) return;
-        BlockSounds blockSounds = mechanic.getBlockSounds();
-        if (blockSounds.hasPlaceSound())
-            BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), blockSounds.getPlaceSound(), blockSounds.getPlaceVolume(), blockSounds.getPlacePitch());
+        BlockAudioEngine.playPlaceSound(event.getBlock().getLocation(), mechanic.getBlockSounds());
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -54,45 +38,16 @@ public class StringBlockSoundListener implements Listener {
         if (!StringBlockMechanicFactory.isEnabled() || !StringBlockMechanicFactory.areCustomSoundsEnabled()) return;
         final StringBlockMechanic mechanic = event.getMechanic();
         if (!mechanic.hasBlockSounds()) return;
-        BlockSounds blockSounds = mechanic.getBlockSounds();
-        if (blockSounds.hasBreakSound())
-            BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), blockSounds.getBreakSound(), blockSounds.getBreakVolume(), blockSounds.getBreakPitch());
+        BlockAudioEngine.playBreakSound(event.getBlock().getLocation(), mechanic.getBlockSounds());
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onStepFall(final GenericGameEvent event) {
         if (!StringBlockMechanicFactory.isEnabled() || !StringBlockMechanicFactory.areCustomSoundsEnabled()) return;
-        Entity entity = event.getEntity();
-        if (!(entity instanceof LivingEntity)) return;
-        GameEvent gameEvent = event.getEvent();
-        if (gameEvent == null) return;
-
-        // The event is posted by the region ticking the entity, so it is already owned by this thread
-        Location entityLoc = entity.getLocation();
-        if (entityLoc == null || !entityLoc.isWorldLoaded() || !entityLoc.isChunkLoaded()) return;
-
-        Block block = entityLoc.getBlock();
-        EntityDamageEvent cause = entity.getLastDamageCause();
-
-        if (gameEvent == GameEvent.HIT_GROUND && cause != null && cause.getCause() != EntityDamageEvent.DamageCause.FALL) return;
-
-        StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
-        String sound;
-        float volume;
-        float pitch;
-
-        if (mechanic == null || !mechanic.hasBlockSounds()) return;
-        BlockSounds blockSounds = mechanic.getBlockSounds();
-        if (gameEvent == GameEvent.STEP && blockSounds.hasStepSound()) {
-            sound = blockSounds.getStepSound();
-            volume = blockSounds.getStepVolume();
-            pitch = blockSounds.getStepPitch();
-        } else if (gameEvent == GameEvent.HIT_GROUND && blockSounds.hasFallSound()) {
-            sound = blockSounds.getFallSound();
-            volume = blockSounds.getFallVolume();
-            pitch = blockSounds.getFallPitch();
-        } else return;
-        BlockHelpers.playCustomBlockSound(entity.getLocation(), sound, SoundCategory.PLAYERS, volume, pitch);
+        BlockAudioEngine.handleBlockStepOrFall(event, block -> {
+            StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
+            return (mechanic != null && mechanic.hasBlockSounds()) ? mechanic.getBlockSounds() : null;
+        });
     }
 
 }
