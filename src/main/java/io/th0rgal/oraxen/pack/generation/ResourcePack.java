@@ -1454,7 +1454,11 @@ public class ResourcePack {
                 File modelEnginePack = new File(modelEngine.getDataFolder(), "resource pack.zip");
                 if (!modelEnginePack.isFile()) modelEnginePack = new File(modelEngine.getDataFolder(), "resource pack");
                 if (modelEnginePack.exists()) {
-                    mergedFiles.addAll(packMerger.mergeModelEnginePack(modelEnginePack));
+                    List<VirtualFile> modelEngineFiles = packMerger.mergeModelEnginePack(modelEnginePack);
+                    Set<String> modelEnginePaths = new HashSet<>();
+                    for (VirtualFile file : modelEngineFiles) modelEnginePaths.add(file.getPath());
+                    mergedFiles.removeIf(file -> modelEnginePaths.contains(file.getPath()));
+                    mergedFiles.addAll(modelEngineFiles);
                 } else {
                     Logs.logWarning("Could not find ModelEngine resource pack.zip or resource pack folder");
                 }
