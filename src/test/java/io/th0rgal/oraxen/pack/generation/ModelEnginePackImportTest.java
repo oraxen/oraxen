@@ -85,12 +85,23 @@ class ModelEnginePackImportTest {
         Map<String, String> expected = new LinkedHashMap<>(source);
         expected.remove("pack.mcmeta");
         expected.remove("pack.png");
+        String overlayModel = expected.remove("overlay/assets/modelengine/models/mob.json");
+        String overlayShader = expected.remove("overlay/assets/minecraft/shaders/core/rendertype_entity_cutout.vsh");
         if (removeCoreShaders) {
             expected.remove("assets/minecraft/shaders/core/rendertype_entity_cutout.vsh");
-            expected.remove("overlay/assets/minecraft/shaders/core/rendertype_entity_cutout.vsh");
         }
+        Map<String, String> snapshot = new LinkedHashMap<>(expected);
+        snapshot.put("assets/modelengine/models/mob.json", overlayModel);
+        if (!removeCoreShaders) snapshot.put("assets/minecraft/shaders/core/rendertype_entity_cutout.vsh", overlayShader);
+        snapshot.forEach((path, content) -> expected.put("oraxen_import_0/" + path, content));
         assertEquals(expected, imported);
-        assertEquals(JsonParser.parseString("[" + overlayEntry + "]"), merger.getMergedOverlayEntries());
+        var compiled = merger.getMergedOverlayEntries();
+        assertEquals(1, compiled.size());
+        var declaration = compiled.get(0).getAsJsonObject();
+        assertEquals("oraxen_import_0", declaration.get("directory").getAsString());
+        assertEquals(46, declaration.get("min_format").getAsInt());
+        assertEquals(55, declaration.get("max_format").getAsInt());
+        assertEquals(JsonParser.parseString("{\"min_inclusive\":46,\"max_inclusive\":55}"), declaration.get("formats"));
     }
 
     private void writePack(Path target, Map<String, String> files, boolean zip) throws IOException {

@@ -235,8 +235,8 @@ class PackMcmetaUtilsTest {
 
         JsonArray entries = mcmeta.getAsJsonObject("overlays").getAsJsonArray("entries");
         assertEquals(2, entries.size());
-        assertEquals("overlay_1_20_2", entries.get(0).getAsJsonObject().get("directory").getAsString());
-        assertEquals("betterhud_1_21_2", entries.get(1).getAsJsonObject().get("directory").getAsString());
+        assertEquals("betterhud_1_21_2", entries.get(0).getAsJsonObject().get("directory").getAsString());
+        assertEquals("overlay_1_20_2", entries.get(1).getAsJsonObject().get("directory").getAsString());
     }
 
     @Test
@@ -287,8 +287,53 @@ class PackMcmetaUtilsTest {
         assertEquals("Oraxen", merged.getAsJsonObject("pack").get("description").getAsString());
         JsonArray entries = merged.getAsJsonObject("overlays").getAsJsonArray("entries");
         assertEquals(2, entries.size());
-        assertEquals("oraxen_overlay", entries.get(0).getAsJsonObject().get("directory").getAsString());
-        assertEquals("betterhud_overlay", entries.get(1).getAsJsonObject().get("directory").getAsString());
+        assertEquals("betterhud_overlay", entries.get(0).getAsJsonObject().get("directory").getAsString());
+        assertEquals("oraxen_overlay", entries.get(1).getAsJsonObject().get("directory").getAsString());
+    }
+
+    @Test
+    void mixedOverlayFormatsKeepLegacyRangesForEveryEntryAndPreserveMinorBounds() {
+        JsonArray original = JsonParser.parseString("""
+                [
+                  {"directory":"old","formats":[46,64]},
+                  {"directory":"new","min_format":[97,1],"max_format":[97,2]}
+                ]
+                """).getAsJsonArray();
+        JsonArray normalized = PackMcmetaUtils.normalizeOverlayEntries(original);
+        JsonObject oldEntry = normalized.get(0).getAsJsonObject();
+        JsonObject newEntry = normalized.get(1).getAsJsonObject();
+        assertEquals(46, oldEntry.get("min_format").getAsInt());
+        assertEquals(64, oldEntry.get("max_format").getAsInt());
+        assertEquals(JsonParser.parseString("{\"min_inclusive\":46,\"max_inclusive\":64}"), oldEntry.get("formats"));
+        assertEquals(JsonParser.parseString("{\"min_inclusive\":97,\"max_inclusive\":97}"), newEntry.get("formats"));
+        assertEquals(JsonParser.parseString("[97,1]"), newEntry.get("min_format"));
+        assertEquals(JsonParser.parseString("[97,2]"), newEntry.get("max_format"));
+        assertFalse(original.get(1).getAsJsonObject().has("formats"));
+
+        JsonObject metadata = new JsonObject();
+        JsonObject overlays = new JsonObject();
+        JsonArray existing = new JsonArray();
+        existing.add(original.get(1).deepCopy());
+        overlays.add("entries", existing);
+        metadata.add("overlays", overlays);
+        JsonArray imported = new JsonArray();
+        imported.add(original.get(0).deepCopy());
+        PackMcmetaUtils.mergeOverlayEntries(metadata, imported);
+        assertEquals(normalized, metadata.getAsJsonObject("overlays").getAsJsonArray("entries"));
+    }
+
+    @Test
+    void modernOnlyOverlayFormatsRemoveLegacyRangesFromEveryEntry() {
+        JsonArray entries = JsonParser.parseString("""
+                [
+                  {"directory":"a","formats":[97,97]},
+                  {"directory":"b","formats":{"min_inclusive":98,"max_inclusive":99},"min_format":[98,1],"max_format":[99,0]}
+                ]
+                """).getAsJsonArray();
+        JsonArray normalized = PackMcmetaUtils.normalizeOverlayEntries(entries);
+        for (var entry : normalized) assertFalse(entry.getAsJsonObject().has("formats"));
+        assertEquals(97, normalized.get(0).getAsJsonObject().get("max_format").getAsInt());
+        assertEquals(JsonParser.parseString("[99,0]"), normalized.get(1).getAsJsonObject().get("max_format"));
     }
 
     private static VirtualFile jsonFile(String parentFolder, String name, String content) {
