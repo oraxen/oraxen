@@ -174,6 +174,30 @@ class PackImportCompositionTest {
         assertEquals("minecraft:item/paper", itemAt(model, 0));
     }
 
+    @Test void malformedLocalItemDuplicatesKeepGeneratedFilesAndContinueMerging() throws Exception {
+        settings.set(Settings.MERGE_DUPLICATES.getPath(), true);
+        Settings.invalidateCache();
+        String modernPath = "assets/minecraft/items/paper.json";
+        String legacyPath = "assets/minecraft/models/item/paper.json";
+        String generatedModern = modernItem("test:generated");
+        String generatedLegacy = """
+                {"parent":"minecraft:item/generated","overrides":[
+                  {"predicate":{"custom_model_data":5},"model":"test:generated"}]}
+                """;
+        for (String malformed : List.of("{\"model\":\"broken\"}", """
+                {"model":{"type":"minecraft:range_dispatch","property":"minecraft:custom_model_data",
+                  "entries":[{"threshold":"broken","model":{"type":"minecraft:empty"}}]}}
+                """)) {
+            Map<String, String> files = contents(new PackMerger(tempDir.toFile()).mergeWithHigherPriorityFiles(List.of(
+                    vfile(modernPath, generatedModern), vfile(legacyPath, generatedLegacy),
+                    vfile(modernPath, malformed), vfile(legacyPath, "{\"overrides\":false}"),
+                    vfile("assets/test/lang/en_us.json", "{\"continued\":\"yes\"}"))));
+            assertEquals(JsonParser.parseString(generatedModern), json(files, modernPath));
+            assertEquals(JsonParser.parseString(generatedLegacy), json(files, legacyPath));
+            assertEquals("yes", json(files, "assets/test/lang/en_us.json").get("continued").getAsString());
+        }
+    }
+
     @Test void mergesGeneratedAndLocalItemRulesBeforeCollapsingPaths() throws Exception {
         settings.set(Settings.MERGE_DUPLICATES.getPath(), true);
         Settings.invalidateCache();

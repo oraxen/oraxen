@@ -198,10 +198,14 @@ public class PackMerger {
                     JsonObject high = object(first);
                     JsonObject low = object(bytes);
                     if (high != null && low != null) {
-                        if (file.getPath().matches("assets/[^/]+/items/.+\\.json"))
-                            entries.put(file.getPath(), ItemModelMerger.mergeDefinition(high, low).toString().getBytes(StandardCharsets.UTF_8));
-                        else if (file.getPath().matches("assets/[^/]+/models/item/.+\\.json"))
-                            entries.put(file.getPath(), ItemModelMerger.mergeLegacy(high, low).toString().getBytes(StandardCharsets.UTF_8));
+                        try {
+                            if (file.getPath().matches("assets/[^/]+/items/.+\\.json"))
+                                entries.put(file.getPath(), ItemModelMerger.mergeDefinition(high, low).toString().getBytes(StandardCharsets.UTF_8));
+                            else if (file.getPath().matches("assets/[^/]+/models/item/.+\\.json"))
+                                entries.put(file.getPath(), ItemModelMerger.mergeLegacy(high, low).toString().getBytes(StandardCharsets.UTF_8));
+                        } catch (RuntimeException exception) {
+                            Logs.logWarning("Failed to merge duplicate item resource " + file.getPath() + ". Keeping the higher priority file.");
+                        }
                     }
                 }
             } catch (IOException exception) {
