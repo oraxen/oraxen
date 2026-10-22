@@ -253,7 +253,7 @@ public class ResourcePack {
             return;
         }
         try {
-            soundGenerator.generateSound(output);
+            PackPipeline.processSnapshots(output, soundGenerator::generateSound);
 
             OraxenPackGeneratedEvent event = new OraxenPackGeneratedEvent(output);
             event.callEvent();
@@ -592,8 +592,6 @@ public class ResourcePack {
                         folder.getName().matches("models|textures|lang|font|sounds") ? "assets/minecraft" : "");
             }
 
-        mergeUploadedPacks(output);
-        convertGlobalLang(output);
     }
 
     /**
@@ -602,10 +600,16 @@ public class ResourcePack {
      */
     private void postProcessOutput(List<VirtualFile> output) {
         postProcessOutputAsyncSafe(output);
-        soundGenerator.generateSound(output);
+        PackPipeline.processSnapshots(output, soundGenerator::generateSound);
     }
 
     private void postProcessOutputAsyncSafe(List<VirtualFile> output) {
+        mergeUploadedPacks(output);
+        PackPipeline.processSnapshots(output, this::convertGlobalLang);
+        PackPipeline.processSnapshots(output, this::postProcessSnapshotAsyncSafe);
+    }
+
+    private void postProcessSnapshotAsyncSafe(List<VirtualFile> output) {
         Set<String> malformedTextures = new HashSet<>();
         if (Settings.VERIFY_PACK_FILES.toBool())
             malformedTextures = PackFileCollector.verifyPackFormatting(output);
@@ -617,7 +621,7 @@ public class ResourcePack {
             DuplicationHandler.mergeFontFiles(output);
         if (Settings.MERGE_ITEM_MODELS.toBool())
             DuplicationHandler.mergeBaseItemFiles(output);
-        DuplicationHandler.mergeVanillaItemDefinitions(output, multiVersionResolved);
+        DuplicationHandler.mergeVanillaItemDefinitions(output, multiVersionResolved, false);
 
         List<String> excludedExtensions = Settings.EXCLUDED_FILE_EXTENSIONS.toStringList();
         excludedExtensions.removeIf(f -> f.equals("png") || f.equals("json"));
@@ -1447,27 +1451,37 @@ public class ResourcePack {
 
     private void mergeUploadedPacks(List<VirtualFile> output) {
         PackMerger packMerger = new PackMerger(packFolder);
-        List<VirtualFile> mergedFiles = packMerger.mergeUploadedPacks();
+        packMerger.setConvertLegacyItemModels(multiVersionResolved
+                || (VersionUtil.atOrAbove("1.21.4") && AppearanceMode.shouldGenerateVanillaItemDefinitions()));
+        packMerger.mergeUploadedPacks();
         if (Settings.IMPORT_MODEL_ENGINE.toBool()) {
             Plugin modelEngine = Bukkit.getPluginManager().getPlugin("ModelEngine");
             if (modelEngine != null && modelEngine.isEnabled()) {
                 File modelEnginePack = new File(modelEngine.getDataFolder(), "resource pack.zip");
                 if (!modelEnginePack.isFile()) modelEnginePack = new File(modelEngine.getDataFolder(), "resource pack");
                 if (modelEnginePack.exists()) {
-                    List<VirtualFile> modelEngineFiles = packMerger.mergeModelEnginePack(modelEnginePack);
-                    Set<String> modelEnginePaths = new HashSet<>();
-                    for (VirtualFile file : modelEngineFiles) modelEnginePaths.add(file.getPath());
-                    mergedFiles.removeIf(file -> modelEnginePaths.contains(file.getPath()));
-                    mergedFiles.addAll(modelEngineFiles);
+                    packMerger.mergeModelEnginePack(modelEnginePack);
                 } else {
                     Logs.logWarning("Could not find ModelEngine resource pack.zip or resource pack folder");
                 }
             }
         }
-        PackMcmetaUtils.mergeOverlayEntriesIntoOutput(output, packMerger.getMergedOverlayEntries());
-
-        if (!mergedFiles.isEmpty()) {
-            output.addAll(mergedFiles);
+        PackPipeline.mergeNativeFiles(output, !Boolean.FALSE.equals(Settings.MERGE_DUPLICATE_FONTS.getValue()));
+        List<VirtualFile> resolvedFiles = packMerger.mergeWithHigherPriorityFiles(output);
+        output.removeIf(file -> file.getPath().startsWith("assets/") || file.getPath().contains("/assets/")
+                || file.getPath().equals("pack.png"));
+        output.addAll(resolvedFiles);
+        for (VirtualFile file : output) {
+            if (!file.getPath().equals("pack.mcmeta") || !file.isJsonObject()) continue;
+            JsonObject metadata = file.toJsonObject();
+            JsonObject languages = packMerger.getMergedLanguageMetadata();
+            if (!languages.isEmpty()) metadata.add("language", languages);
+            JsonObject filters = packMerger.getMergedFilterMetadata();
+            if (!filters.isEmpty()) metadata.add("filter", filters);
+            JsonObject overlays = new JsonObject();
+            overlays.add("entries", packMerger.getMergedOverlayEntries());
+            metadata.add("overlays", overlays);
+            file.setInputStream(new ByteArrayInputStream(metadata.toString().getBytes(StandardCharsets.UTF_8)));
         }
     }
 
@@ -1490,17 +1504,12 @@ public class ResourcePack {
             return;
 
         for (String lang : availableLanguageCodes) {
-            File langFile = new File(packFolder, "lang/" + lang + ".json");
             JsonObject langJson = new JsonObject();
 
-            // If the file is in the pack, we want to keep the existing entries over global
-            // ones
-            if (langFile.exists()) {
-                try {
-                    langJson = JsonParser.parseString(Files.readString(langFile.toPath(), StandardCharsets.UTF_8))
-                            .getAsJsonObject();
-                } catch (IOException | IllegalStateException ignored) {
-                }
+            String localePath = "assets/minecraft/lang/" + lang + ".json";
+            for (VirtualFile file : output) {
+                if (file.getPath().equals(localePath) && file.isJsonObject())
+                    langJson = PackPipeline.languageWithDefaults(langJson, file.toJsonObject());
             }
 
             for (Map.Entry<String, JsonElement> entry : globalLang.entrySet()) {

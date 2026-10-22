@@ -43,6 +43,11 @@ public final class PackObfuscator {
         Type type = Type.from(rawType);
         if (type == Type.NONE || output == null || output.isEmpty()) return;
 
+        if (output.stream().anyMatch(file -> file.getPath().contains("/assets/"))) {
+            PackPipeline.processSnapshots(output, snapshot -> obfuscate(snapshot, rawType, logSummary));
+            return;
+        }
+
         try {
             new Pass(type, logSummary).run(output);
         } catch (Exception exception) {
@@ -75,6 +80,7 @@ public final class PackObfuscator {
         private final Map<String, String> namespaceMap = new LinkedHashMap<>();
         private final Map<String, String> modelKeys = new LinkedHashMap<>();
         private final Map<String, String> textureKeys = new LinkedHashMap<>();
+        private final Set<String> blockTextureKeys = new HashSet<>();
         private final Map<String, String> soundKeys = new LinkedHashMap<>();
         private final Map<String, String> filePaths = new LinkedHashMap<>();
 
@@ -125,13 +131,15 @@ public final class PackObfuscator {
             Set<String> referencedModelKeys = collectReferencedModelKeys(files);
             Set<String> referencedTextureKeys = collectReferencedTextureKeys(files);
             Set<String> referencedSoundKeys = collectReferencedSoundKeys(files);
+            boolean preserveAtlasTextures = hasComplexAtlas(files);
 
             for (FileData file : files) {
                 String path = file.path;
 
                 if (isTexture(path)) {
                     String originalKey = keyFromPackPath(path, "/textures/", ".png");
-                    if (isUntrackedVanillaTexture(originalKey, referencedTextureKeys)) continue;
+                    if (preserveAtlasTextures || !referencedTextureKeys.contains(originalKey)
+                            || originalKey.contains(":entity/equipment/")) continue;
                     String obfuscatedKey = obfuscateKey(originalKey, "t");
                     textureKeys.put(originalKey, obfuscatedKey);
                     filePaths.put(path, texturePath(obfuscatedKey, ".png"));
@@ -141,7 +149,8 @@ public final class PackObfuscator {
                 if (isTextureMetadata(path)) {
                     String pngPath = path.substring(0, path.length() - ".mcmeta".length());
                     String originalKey = keyFromPackPath(pngPath, "/textures/", ".png");
-                    if (isUntrackedVanillaTexture(originalKey, referencedTextureKeys)) continue;
+                    if (preserveAtlasTextures || !referencedTextureKeys.contains(originalKey)
+                            || originalKey.contains(":entity/equipment/")) continue;
                     String obfuscatedKey = obfuscateKey(originalKey, "t");
                     textureKeys.put(originalKey, obfuscatedKey);
                     filePaths.put(path, texturePath(obfuscatedKey, ".png.mcmeta"));
@@ -167,6 +176,26 @@ public final class PackObfuscator {
             }
         }
 
+        private boolean hasComplexAtlas(List<FileData> files) {
+            for (FileData file : files) {
+                if (!isAtlas(file.path)) continue;
+                try {
+                    JsonObject atlas = JsonParser.parseString(new String(file.content, StandardCharsets.UTF_8)).getAsJsonObject();
+                    if (!atlas.has("sources") || !atlas.get("sources").isJsonArray()) continue;
+                    for (JsonElement element : atlas.getAsJsonArray("sources")) {
+                        if (!element.isJsonObject()) continue;
+                        JsonObject source = element.getAsJsonObject();
+                        String sourceType = atlasProperty(source, "type");
+                        if (sourceType == null || !(sourceType.equals("single") || sourceType.equals("minecraft:single")
+                                || sourceType.equals("directory") || sourceType.equals("minecraft:directory"))) return true;
+                    }
+                } catch (RuntimeException ignored) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         private Set<String> collectReferencedTextureKeys(List<FileData> files) {
             Set<String> keys = new HashSet<>();
             for (FileData file : files) {
@@ -178,6 +207,8 @@ public final class PackObfuscator {
                     continue;
                 }
                 collectReferencedTextureKeys(parsed, null, namespaceFromPath(file.path), keys);
+                if (isModel(file.path))
+                    collectReferencedTextureKeys(parsed, null, namespaceFromPath(file.path), blockTextureKeys);
                 if (isAtlas(file.path)) collectAtlasTextureKeys(parsed, namespaceFromPath(file.path), files, keys);
             }
             return keys;
@@ -415,26 +446,41 @@ public final class PackObfuscator {
 
         private void addAtlasSingles(JsonObject atlas, JsonElement originalAtlas, String namespace, boolean includeAll) {
             if (textureKeys.isEmpty()) return;
-            Map<String, String> atlasSprites = includeAll
-                    ? collectAllAtlasSprites()
-                    : collectAtlasSprites(originalAtlas, namespace);
-            if (atlasSprites.isEmpty()) return;
-
-            JsonArray sources = atlas.has("sources") && atlas.get("sources").isJsonArray()
-                    ? atlas.getAsJsonArray("sources")
-                    : new JsonArray();
-
-            for (Map.Entry<String, String> entry : atlasSprites.entrySet()) {
-                String originalKey = entry.getKey();
-                String obfuscatedKey = textureKeys.get(originalKey);
-                if (obfuscatedKey == null) continue;
-                JsonObject source = new JsonObject();
-                source.addProperty("type", "single");
-                source.addProperty("resource", obfuscatedKey);
-                source.addProperty("sprite", replaceOrOriginal(textureKeys, entry.getValue(), namespace));
-                sources.add(source);
+            if (!originalAtlas.isJsonObject() || !originalAtlas.getAsJsonObject().has("sources")) return;
+            JsonArray originalSources = originalAtlas.getAsJsonObject().getAsJsonArray("sources");
+            JsonArray rewrittenSources = atlas.getAsJsonArray("sources");
+            JsonArray sources = new JsonArray();
+            // Model textures need block sprites. Insert defaults before explicit atlas operations.
+            if (includeAll) {
+                for (String key : blockTextureKeys) {
+                    String obfuscated = textureKeys.get(key);
+                    if (obfuscated == null) continue;
+                    JsonObject source = new JsonObject();
+                    source.addProperty("type", "single");
+                    source.addProperty("resource", obfuscated);
+                    source.addProperty("sprite", obfuscated);
+                    sources.add(source);
+                }
             }
-
+            for (int i = 0; i < originalSources.size(); i++) {
+                JsonElement element = originalSources.get(i);
+                sources.add(rewrittenSources.get(i));
+                if (!element.isJsonObject()) continue;
+                JsonObject original = element.getAsJsonObject();
+                String sourceType = atlasProperty(original, "type");
+                if (sourceType == null || !sourceType.endsWith("directory")) continue;
+                Map<String, String> sprites = new LinkedHashMap<>();
+                addAtlasDirectorySprites(original, namespace, sprites);
+                for (Map.Entry<String, String> entry : sprites.entrySet()) {
+                    String obfuscated = textureKeys.get(entry.getKey());
+                    if (obfuscated == null) continue;
+                    JsonObject source = new JsonObject();
+                    source.addProperty("type", "single");
+                    source.addProperty("resource", obfuscated);
+                    source.addProperty("sprite", replaceOrOriginal(textureKeys, entry.getValue(), namespace));
+                    sources.add(source);
+                }
+            }
             atlas.add("sources", sources);
         }
 

@@ -56,6 +56,9 @@ class ModelEnginePackPriorityTest {
         when(pluginManager.getPlugin("ModelEngine")).thenReturn(modelEngine);
         bukkit = mockStatic(Bukkit.class);
         bukkit.when(Bukkit::getPluginManager).thenReturn(pluginManager);
+        bukkit.when(Bukkit::getMinecraftVersion).thenReturn("1.21.4");
+        settings.set(Settings.APPEARANCE_MODEL_DATA_IDS.getPath(), false);
+        settings.set(Settings.APPEARANCE_MODEL_DATA_FLOAT.getPath(), false);
         Settings.invalidateCache();
     }
 
@@ -96,6 +99,7 @@ class ModelEnginePackPriorityTest {
         try (var mergers = mockConstruction(PackMerger.class, (merger, context) -> {
             when(merger.mergeUploadedPacks()).thenReturn(uploaded);
             when(merger.mergeModelEnginePack(modelEnginePack.toFile())).thenReturn(live);
+            when(merger.mergeWithHigherPriorityFiles(any())).thenReturn(expected);
         })) {
             ResourcePack pack = new ResourcePack();
             var merge = ResourcePack.class.getDeclaredMethod("mergeUploadedPacks", List.class);
