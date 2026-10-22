@@ -51,14 +51,14 @@ public final class ItemModelMerger {
             }
             fallback = VanillaItemDefinitionGenerator.createVanillaFallback(material);
         }
-        boolean converted = false;
+        List<LegacyRule> rules = new ArrayList<>();
+        List<String> properties = new ArrayList<>();
         for (JsonElement element : legacy.getAsJsonArray("overrides")) {
             if (!element.isJsonObject()) continue;
             JsonObject override = element.getAsJsonObject();
             if (!override.has("predicate") || !override.has("model")) continue;
             JsonObject predicates = override.getAsJsonObject("predicate");
-            JsonObject model = new JsonObject();
-            model.addProperty("type", "minecraft:model"); model.add("model", override.get("model").deepCopy());
+            Map<String, java.math.BigDecimal> thresholds = new LinkedHashMap<>();
             boolean supported = true;
             for (Map.Entry<String, JsonElement> predicate : predicates.entrySet()) {
                 String property = switch (predicate.getKey()) {
@@ -70,31 +70,97 @@ public final class ItemModelMerger {
                     default -> null;
                 };
                 if (property == null) { supported = false; break; }
-                JsonObject node = new JsonObject();
-                node.addProperty("property", property);
-                if (Set.of("pulling", "blocking", "cast").contains(predicate.getKey())) {
-                    double threshold = predicate.getValue().getAsDouble();
-                    if (threshold <= 0) continue;
-                    if (threshold > 1) { supported = false; break; }
-                    node.addProperty("type", "minecraft:condition");
-                    node.add("on_true", model); node.add("on_false", fallback.deepCopy());
-                } else {
-                    node.addProperty("type", "minecraft:range_dispatch");
-                    if (predicate.getKey().equals("custom_model_data")) node.addProperty("index", 0);
-                    JsonObject entry = new JsonObject();
-                    if (predicate.getKey().equals("pull") && !itemName.equals("crossbow"))
-                        node.addProperty("scale", 0.05);
-                    entry.add("threshold", predicate.getValue().deepCopy());
-                    entry.add("model", model);
-                    JsonArray entries = new JsonArray(); entries.add(entry); node.add("entries", entries); node.add("fallback", fallback.deepCopy());
+                java.math.BigDecimal threshold = predicate.getValue().getAsBigDecimal();
+                if (legacyCondition(property)) {
+                    if (threshold.signum() <= 0) continue;
+                    if (threshold.compareTo(java.math.BigDecimal.ONE) > 0) { supported = false; break; }
+                    threshold = java.math.BigDecimal.ONE;
                 }
-                model = node;
+                thresholds.merge(property, threshold, java.math.BigDecimal::max);
             }
-            if (supported) { fallback = model; converted = true; }
-            else Logs.logWarning("Cannot convert legacy item rule for " + itemName + " with predicates " + predicates.keySet());
+            if (supported) {
+                JsonObject model = new JsonObject();
+                model.addProperty("type", "minecraft:model");
+                model.add("model", override.get("model").deepCopy());
+                rules.add(new LegacyRule(thresholds, model));
+                for (String property : thresholds.keySet()) if (!properties.contains(property)) properties.add(property);
+            } else Logs.logWarning("Cannot convert legacy item rule for " + itemName + " with predicates " + predicates.keySet());
         }
-        if (!converted) return null;
-        JsonObject result = baseline == null ? new JsonObject() : baseline.deepCopy(); result.add("model", fallback); return result;
+        if (rules.isEmpty()) return null;
+        Collections.reverse(properties);
+        if (rules.size() > 1 && properties.remove("minecraft:custom_model_data"))
+            properties.addFirst("minecraft:custom_model_data");
+        JsonObject result = baseline == null ? new JsonObject() : baseline.deepCopy();
+        result.add("model", legacySelectors(rules, properties, 0, fallback));
+        return result;
+    }
+
+    private record LegacyRule(Map<String, java.math.BigDecimal> thresholds, JsonObject model) {}
+
+    private static boolean legacyCondition(String property) {
+        return property.equals("minecraft:using_item") || property.equals("minecraft:fishing_rod/cast");
+    }
+
+    private static JsonObject legacySelectors(List<LegacyRule> rules, List<String> properties, int index, JsonObject fallback) {
+        // A matching rule replaces every earlier rule, including the original baseline.
+        for (int i = rules.size() - 1; i >= 0; i--) {
+            if (rules.get(i).thresholds().isEmpty()) {
+                fallback = rules.get(i).model();
+                rules = rules.subList(i + 1, rules.size());
+                break;
+            }
+        }
+        if (rules.isEmpty()) return fallback;
+        String property = properties.get(index);
+        SortedSet<java.math.BigDecimal> thresholds = new TreeSet<>();
+        for (LegacyRule rule : rules) {
+            java.math.BigDecimal threshold = rule.thresholds().get(property);
+            if (threshold != null) thresholds.add(threshold);
+        }
+        if (thresholds.isEmpty()) return legacySelectors(rules, properties, index + 1, fallback);
+        JsonObject unmatched = legacySelectors(legacyBranch(rules, property, null), properties, index + 1, fallback);
+        JsonObject node = new JsonObject();
+        node.addProperty("property", property);
+        if (legacyCondition(property)) {
+            JsonObject matched = legacySelectors(legacyBranch(rules, property, java.math.BigDecimal.ONE), properties, index + 1, fallback);
+            if (matched.equals(unmatched)) return unmatched;
+            node.addProperty("type", "minecraft:condition");
+            node.add("on_true", matched);
+            node.add("on_false", unmatched);
+        } else {
+            JsonArray entries = new JsonArray();
+            JsonObject previous = unmatched;
+            for (java.math.BigDecimal threshold : thresholds) {
+                JsonObject matched = legacySelectors(legacyBranch(rules, property, threshold), properties, index + 1, fallback);
+                if (matched.equals(previous)) continue;
+                JsonObject entry = new JsonObject();
+                entry.addProperty("threshold", threshold);
+                entry.add("model", matched);
+                entries.add(entry);
+                previous = matched;
+            }
+            if (entries.isEmpty()) return unmatched;
+            node.addProperty("type", "minecraft:range_dispatch");
+            if (property.equals("minecraft:custom_model_data")) node.addProperty("index", 0);
+            if (property.equals("minecraft:use_duration")) node.addProperty("scale", 0.05);
+            node.add("entries", entries);
+            node.add("fallback", unmatched);
+        }
+        return node;
+    }
+
+    private static List<LegacyRule> legacyBranch(List<LegacyRule> rules, String property, java.math.BigDecimal value) {
+        List<LegacyRule> branch = new ArrayList<>();
+        for (LegacyRule rule : rules) {
+            java.math.BigDecimal threshold = rule.thresholds().get(property);
+            if (threshold == null) branch.add(rule);
+            else if (value != null && value.compareTo(threshold) >= 0) {
+                Map<String, java.math.BigDecimal> remaining = new LinkedHashMap<>(rule.thresholds());
+                remaining.remove(property);
+                branch.add(new LegacyRule(remaining, rule.model()));
+            }
+        }
+        return branch;
     }
 
     private static boolean hasSafeGeneratedFallback(String name) {

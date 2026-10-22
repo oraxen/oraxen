@@ -174,6 +174,82 @@ class PackImportCompositionTest {
         assertEquals("minecraft:item/paper", itemAt(model, 0));
     }
 
+    @Test void mergesGeneratedAndLocalItemRulesBeforeCollapsingPaths() throws Exception {
+        settings.set(Settings.MERGE_DUPLICATES.getPath(), true);
+        Settings.invalidateCache();
+        String legacyPath = "assets/minecraft/models/item/paper.json";
+        String modernPath = "assets/minecraft/items/paper.json";
+        String generatedLegacy = """
+                {"parent":"minecraft:item/generated","overrides":[
+                  {"predicate":{"custom_model_data":5},"model":"test:generated"}]}
+                """;
+        String localLegacy = """
+                {"parent":"minecraft:item/handheld","overrides":[
+                  {"predicate":{"custom_model_data":5},"model":"test:local_conflict"},
+                  {"predicate":{"custom_model_data":10},"model":"test:local"}]}
+                """;
+        JsonObject localDefinition = JsonParser.parseString(modernItem("test:local_conflict")).getAsJsonObject();
+        JsonObject localEntry = localDefinition.getAsJsonObject("model").getAsJsonArray("entries").get(0).getAsJsonObject().deepCopy();
+        localEntry.addProperty("threshold", 10);
+        localEntry.getAsJsonObject("model").addProperty("model", "test:local");
+        localDefinition.getAsJsonObject("model").getAsJsonArray("entries").add(localEntry);
+        String localModern = localDefinition.toString();
+        PackMerger merger = new PackMerger(tempDir.toFile());
+        Map<String, String> files = contents(merger.mergeWithHigherPriorityFiles(List.of(
+                vfile(legacyPath, generatedLegacy), vfile(modernPath, modernItem("test:generated")),
+                vfile(legacyPath, localLegacy), vfile(modernPath, localModern))));
+        JsonObject legacy = json(files, legacyPath);
+        assertEquals("minecraft:item/generated", legacy.get("parent").getAsString());
+        assertEquals(2, legacy.getAsJsonArray("overrides").size());
+        assertEquals("test:generated", legacy.getAsJsonArray("overrides").get(0).getAsJsonObject().get("model").getAsString());
+        JsonObject model = json(files, modernPath).getAsJsonObject("model");
+        assertEquals("test:generated", itemAt(model, 5));
+        assertEquals("test:local", itemAt(model, 10));
+
+        settings.set(Settings.MERGE_DUPLICATES.getPath(), false);
+        Settings.invalidateCache();
+        files = contents(new PackMerger(tempDir.toFile()).mergeWithHigherPriorityFiles(List.of(
+                vfile(legacyPath, generatedLegacy), vfile(legacyPath, localLegacy),
+                vfile(modernPath, modernItem("test:generated")), vfile(modernPath, localModern))));
+        assertEquals(1, json(files, legacyPath).getAsJsonArray("overrides").size());
+        assertEquals("test:generated", itemAt(json(files, modernPath).getAsJsonObject("model"), 10));
+    }
+
+    @Test void masksBaseTextureMetadataWhenOverlayReplacesOnlyTheImage() throws Exception {
+        String texture = "assets/test/textures/a.png";
+        write("a", Map.of("pack.mcmeta", metadata("overlay", 46, 70),
+                texture, "base", texture + ".mcmeta", "{\"animation\":{}}",
+                "overlay/" + texture, "replacement"));
+        PackMerger merger = new PackMerger(tempDir.toFile());
+        Map<String, String> files = contents(merger.mergeUploadedPacks());
+        String directory = merger.getMergedOverlayEntries().get(0).getAsJsonObject().get("directory").getAsString();
+        assertEquals("replacement", files.get(directory + "/" + texture));
+        assertEquals(new JsonObject(), json(files, directory + "/" + texture + ".mcmeta"));
+        assertTrue(json(files, texture + ".mcmeta").has("animation"));
+    }
+
+    @Test void languageDeclarationsFollowTranslationPriority() throws Exception {
+        write("a", Map.of("pack.mcmeta", """
+                {"language":{"test":{"name":"Low","region":"Low","bidirectional":false},
+                             "other":{"name":"Other","region":"Other"}}}
+                """, "assets/test/lang/test.json", "{\"shared\":\"low\"}"));
+        write("b", Map.of("pack.mcmeta", """
+                {"language":{"test":{"name":"High","region":"High","bidirectional":true}}}
+                """, "assets/test/lang/test.json", "{\"shared\":\"high\"}"));
+        PackMerger merger = new PackMerger(tempDir.toFile());
+        Map<String, String> files = contents(merger.mergeUploadedPacks());
+        assertEquals("high", json(files, "assets/test/lang/test.json").get("shared").getAsString());
+        JsonObject declaration = merger.getMergedLanguageMetadata().getAsJsonObject("test");
+        assertEquals("High", declaration.get("name").getAsString());
+        assertEquals("High", declaration.get("region").getAsString());
+        assertTrue(declaration.get("bidirectional").getAsBoolean());
+        assertTrue(merger.getMergedLanguageMetadata().has("other"));
+        merger.mergeWithHigherPriorityFiles(List.of(vfile("pack.mcmeta", """
+                {"language":{"test":{"name":"Local","region":"Local"}}}
+                """)));
+        assertEquals("Local", merger.getMergedLanguageMetadata().getAsJsonObject("test").get("name").getAsString());
+    }
+
     private static String modernItem(String model) {
         return "{\"model\":{\"type\":\"minecraft:range_dispatch\",\"property\":\"minecraft:custom_model_data\",\"index\":0,"
                 + "\"entries\":[{\"threshold\":5,\"model\":{\"type\":\"minecraft:model\",\"model\":\"" + model + "\"}}],"

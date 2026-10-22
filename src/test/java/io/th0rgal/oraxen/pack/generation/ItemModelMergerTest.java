@@ -145,6 +145,132 @@ class ItemModelMergerTest {
     }
 
     @Test
+    void conversionGroupsTwentyCompoundRulesWithoutExponentialOutput() {
+        JsonObject baseline = json("""
+            {"hand_animation_on_swap":false,"model":{"type":"minecraft:model","model":"baseline"}}
+            """);
+        for (String item : new String[]{"paper", "bow"}) {
+            JsonArray overrides = new JsonArray();
+            for (int i = 1; i <= 20; i++) {
+                JsonObject predicates = new JsonObject();
+                predicates.addProperty("custom_model_data", i);
+                if (item.equals("bow")) {
+                    predicates.addProperty("pulling", 1);
+                    predicates.addProperty("pull", i / 20.0);
+                } else predicates.addProperty("damage", i / 20.0);
+                JsonObject override = new JsonObject();
+                override.add("predicate", predicates);
+                override.addProperty("model", "custom_" + i);
+                overrides.add(override);
+            }
+            JsonObject legacy = new JsonObject();
+            legacy.add("overrides", overrides);
+            JsonObject converted = ItemModelMerger.convertLegacy(legacy, item, baseline);
+            assertTrue(converted.toString().length() < 100_000, item + " conversion must keep shared selector branches compact");
+            assertEquals(baseline.get("hand_animation_on_swap"), converted.get("hand_animation_on_swap"));
+            for (int customModelData = 0; customModelData <= 21; customModelData++) {
+                for (int state = 0; state <= 21; state++) {
+                    for (int using = 0; using <= 1; using++) {
+                        double value = state / 20.0;
+                        assertEquals(legacyModel(legacy, customModelData, value, using == 1, value),
+                                convertedModel(converted.getAsJsonObject("model"), customModelData, value, using == 1, value),
+                                item + " custom_model_data=" + customModelData + " state=" + state + " using=" + using);
+                    }
+                }
+            }
+            assertEquals("baseline", baseline.getAsJsonObject("model").get("model").getAsString());
+        }
+    }
+
+    @Test
+    void conversionKeepsLastMatchingRuleAcrossOverlappingCompoundPredicates() {
+        JsonObject legacy = json("""
+            {"overrides":[
+             {"predicate":{"custom_model_data":5,"damage":0.2},"model":"first"},
+             {"predicate":{"pulling":1,"pull":0.5,"custom_model_data":2},"model":"drawn"},
+             {"predicate":{"custom_model_data":3,"damage":0.6},"model":"damaged"},
+             {"predicate":{"custom_model_data":1,"damage":0.8,"pulling":0},"model":"later_lower_threshold"},
+             {"predicate":{"damage":0.4,"pulling":1,"pull":0.7},"model":"last"}]}
+            """);
+        JsonObject baseline = json("""
+            {"model":{"type":"minecraft:model","model":"baseline"}}
+            """);
+        JsonObject converted = ItemModelMerger.convertLegacy(legacy, "bow", baseline);
+        for (int customModelData = 0; customModelData <= 6; customModelData++) {
+            for (double damage : new double[]{0, 0.2, 0.4, 0.6, 0.8}) {
+                for (boolean using : new boolean[]{false, true}) {
+                    for (double pull : new double[]{0, 0.5, 0.7, 1}) {
+                        assertEquals(legacyModel(legacy, customModelData, damage, using, pull),
+                                convertedModel(converted.getAsJsonObject("model"), customModelData, damage, using, pull));
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    void conversionDiscardsEarlierRulesAfterUnconditionalOverride() {
+        JsonObject legacy = json("""
+            {"overrides":[
+             {"predicate":{"custom_model_data":1,"damage":0.2},"model":"earlier"},
+             {"predicate":{},"model":"unconditional"},
+             {"predicate":{"custom_model_data":2,"damage":0.6},"model":"later"}]}
+            """);
+        JsonObject baseline = json("""
+            {"model":{"type":"minecraft:model","model":"baseline"}}
+            """);
+        JsonObject converted = ItemModelMerger.convertLegacy(legacy, "paper", baseline);
+        assertEquals("unconditional", convertedModel(converted.getAsJsonObject("model"), 1, 0.8, false, 0));
+        assertEquals("unconditional", convertedModel(converted.getAsJsonObject("model"), 3, 0.4, false, 0));
+        assertEquals("later", convertedModel(converted.getAsJsonObject("model"), 3, 0.8, false, 0));
+        legacy.getAsJsonArray("overrides").add(json("""
+            {"predicate":{},"model":"last"}
+            """));
+        assertEquals(json("""
+            {"type":"minecraft:model","model":"last"}
+            """), ItemModelMerger.convertLegacy(legacy, "paper", baseline).get("model"));
+    }
+
+    private static String legacyModel(JsonObject legacy, double customModelData, double damage, boolean using, double pull) {
+        String model = "baseline";
+        for (JsonElement element : legacy.getAsJsonArray("overrides")) {
+            JsonObject override = element.getAsJsonObject();
+            boolean matches = true;
+            for (var predicate : override.getAsJsonObject("predicate").entrySet()) {
+                double value = switch (predicate.getKey()) {
+                    case "custom_model_data" -> customModelData;
+                    case "damage" -> damage;
+                    case "pulling" -> using ? 1 : 0;
+                    case "pull" -> pull;
+                    default -> throw new AssertionError("Unexpected test predicate " + predicate.getKey());
+                };
+                if (value < predicate.getValue().getAsDouble()) matches = false;
+            }
+            if (matches) model = override.get("model").getAsString();
+        }
+        return model;
+    }
+
+    private static String convertedModel(JsonObject node, double customModelData, double damage, boolean using, double pull) {
+        if (node.get("type").getAsString().equals("minecraft:model")) return node.get("model").getAsString();
+        String property = node.get("property").getAsString();
+        if (property.equals("minecraft:using_item"))
+            return convertedModel(node.getAsJsonObject(using ? "on_true" : "on_false"), customModelData, damage, using, pull);
+        double value = switch (property) {
+            case "minecraft:custom_model_data" -> customModelData;
+            case "minecraft:damage" -> damage;
+            case "minecraft:use_duration" -> pull;
+            default -> throw new AssertionError("Unexpected test property " + property);
+        };
+        JsonObject selected = node.getAsJsonObject("fallback");
+        for (JsonElement element : node.getAsJsonArray("entries")) {
+            JsonObject entry = element.getAsJsonObject();
+            if (value >= entry.get("threshold").getAsDouble()) selected = entry.getAsJsonObject("model");
+        }
+        return convertedModel(selected, customModelData, damage, using, pull);
+    }
+
+    @Test
     void conversionKeepsNativeCrossbowStateFallback() {
         JsonObject legacy = json("""
             {"overrides":[{"predicate":{"custom_model_data":2},"model":"custom"}]}

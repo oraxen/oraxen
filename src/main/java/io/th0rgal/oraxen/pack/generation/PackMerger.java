@@ -93,10 +93,8 @@ public class PackMerger {
                 if (includeIcon && entries.containsKey(root + "pack.png")) base.put("pack.png", entries.get(root + "pack.png"));
                 layers.add(new Layer(base, overlays, metadata));
                 if (metadata.has("language") && metadata.get("language").isJsonObject())
-                    metadata.getAsJsonObject("language").entrySet().forEach(entry -> {
-                        if (!removeCoreShaders || !languageMetadata.has(entry.getKey()))
-                            languageMetadata.add(entry.getKey(), entry.getValue().deepCopy());
-                    });
+                    metadata.getAsJsonObject("language").entrySet().forEach(entry ->
+                            languageMetadata.add(entry.getKey(), entry.getValue().deepCopy()));
                 if (metadata.has("filter") && metadata.get("filter").isJsonObject()) {
                     JsonElement blocks = metadata.getAsJsonObject("filter").get("block");
                     if (blocks != null && blocks.isJsonArray()) {
@@ -196,6 +194,15 @@ public class PackMerger {
                     JsonObject low = object(bytes);
                     if (high == null && low != null) entries.put(file.getPath(), bytes);
                     else if (high != null && low != null) entries.put(file.getPath(), PackAssetMerger.mergeJson(file.getPath(), low, high).toString().getBytes(StandardCharsets.UTF_8));
+                } else if (Boolean.TRUE.equals(Settings.MERGE_DUPLICATES.toBool())) {
+                    JsonObject high = object(first);
+                    JsonObject low = object(bytes);
+                    if (high != null && low != null) {
+                        if (file.getPath().matches("assets/[^/]+/items/.+\\.json"))
+                            entries.put(file.getPath(), ItemModelMerger.mergeDefinition(high, low).toString().getBytes(StandardCharsets.UTF_8));
+                        else if (file.getPath().matches("assets/[^/]+/models/item/.+\\.json"))
+                            entries.put(file.getPath(), ItemModelMerger.mergeLegacy(high, low).toString().getBytes(StandardCharsets.UTF_8));
+                    }
                 }
             } catch (IOException exception) {
                 Logs.logError("Failed to read resource " + file.getPath());
@@ -222,10 +229,10 @@ public class PackMerger {
             long max = index + 1 < points.size() ? points.get(index + 1) - 1 : MAX_FORMAT;
             if (layers.stream().noneMatch(layer -> layer.overlays.stream().anyMatch(overlay -> overlay.min <= min && min <= overlay.max))) continue;
             Map<String, byte[]> snapshot = resolve(min);
-            // A snapshot must explicitly hide a base additive contribution that its
-            // active source overlay replaced with an unreadable resource.
+            // Missing files still inherit the base pack. Mask removed additive
+            // resources and metadata with an empty resource in the overlay.
             base.forEach((path, bytes) -> {
-                if (PackAssetMerger.isAdditivePath(path) && !snapshot.containsKey(path))
+                if ((PackAssetMerger.isAdditivePath(path) || path.endsWith(".png.mcmeta")) && !snapshot.containsKey(path))
                     snapshot.put(path, emptyResource(path).toString().getBytes(StandardCharsets.UTF_8));
             });
             String directory = "oraxen_import_" + overlaySnapshots.size();
