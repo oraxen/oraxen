@@ -33,14 +33,18 @@ public class ZipUtils {
             }
 
         } catch (final IOException | NoSuchFieldException | IllegalAccessException ex) {
-            ex.printStackTrace();
+            Logs.logError("Failed to write resource pack zip");
+            Logs.debug(ex);
         }
     }
 
     public static void addToZip(String zipFilePath, final InputStream fis, ZipOutputStream zos) throws IOException {
         final ZipEntry zipEntry = new ZipEntry(zipFilePath);
         zipEntry.setLastModifiedTime(FileTime.fromMillis(0L));
-        DuplicationHandler.checkForDuplicate(zos, zipEntry);
+        if (!DuplicationHandler.tryOpenEntry(zos, zipEntry)) {
+            if (fis != null) fis.close();
+            return;
+        }
 
         if (fis == null) {
             Logs.logWarning("Skipping zip entry with null input stream: " + zipFilePath);
@@ -54,7 +58,8 @@ public class ZipUtils {
         try (InputStream in = fis) {
             in.transferTo(zos);
         } catch (IOException exception) {
-            Logs.logWarning("Failed to write zip entry " + zipFilePath + ": " + exception.getMessage());
+            Logs.logWarning("Failed to write zip entry " + zipFilePath);
+            Logs.debug(exception);
         } finally {
             try {
                 zos.closeEntry();
