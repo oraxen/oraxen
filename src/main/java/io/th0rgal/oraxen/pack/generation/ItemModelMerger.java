@@ -69,11 +69,17 @@ public final class ItemModelMerger {
                     case "cast" -> "minecraft:fishing_rod/cast";
                     default -> null;
                 };
-                if (property == null) { supported = false; break; }
+                if (property == null) {
+                    supported = false;
+                    break;
+                }
                 java.math.BigDecimal threshold = predicate.getValue().getAsBigDecimal();
                 if (legacyCondition(property)) {
                     if (threshold.signum() <= 0) continue;
-                    if (threshold.compareTo(java.math.BigDecimal.ONE) > 0) { supported = false; break; }
+                    if (threshold.compareTo(java.math.BigDecimal.ONE) > 0) {
+                        supported = false;
+                        break;
+                    }
                     threshold = java.math.BigDecimal.ONE;
                 }
                 thresholds.merge(property, threshold, java.math.BigDecimal::max);
@@ -199,7 +205,9 @@ public final class ItemModelMerger {
 
     private static JsonObject settings(JsonObject model) {
         JsonObject result = model.deepCopy();
-        result.remove("entries"); result.remove("cases"); result.remove("fallback");
+        result.remove("entries");
+        result.remove("cases");
+        result.remove("fallback");
         if (!result.has("index")) result.addProperty("index", 0);
         return result;
     }
@@ -251,7 +259,8 @@ public final class ItemModelMerger {
                     } else {
                         JsonElement when = entry.get("when");
                         JsonArray values = new JsonArray();
-                        if (when.isJsonArray()) values = when.getAsJsonArray(); else values.add(when);
+                        if (when.isJsonArray()) values = when.getAsJsonArray();
+                        else values.add(when);
                         JsonArray remaining = new JsonArray();
                         for (JsonElement value : values) if (seen.add(value)) remaining.add(value.deepCopy());
                         if (!remaining.isEmpty()) {
@@ -262,7 +271,9 @@ public final class ItemModelMerger {
                 }
             }
             if (range) entries.sort(Comparator.comparing(e -> e.get("threshold").getAsBigDecimal()));
-            JsonArray merged = new JsonArray(); entries.forEach(merged::add); result.add(key, merged);
+            JsonArray merged = new JsonArray();
+            entries.forEach(merged::add);
+            result.add(key, merged);
             if (higher.has("fallback") && lower.has("fallback"))
                 result.add("fallback", mergeModel(higher.getAsJsonObject("fallback"), lower.getAsJsonObject("fallback")));
             else if (lower.has("fallback")) result.add("fallback", lower.get("fallback").deepCopy());
@@ -328,7 +339,11 @@ public final class ItemModelMerger {
             JsonObject predicate = e.getAsJsonObject("predicate");
             return predicate.has("custom_model_data") ? predicate.get("custom_model_data").getAsBigDecimal() : java.math.BigDecimal.ZERO;
         }));
-        if (!overrides.isEmpty()) { JsonArray array = new JsonArray(); overrides.forEach(array::add); result.add("overrides", array); }
+        if (!overrides.isEmpty()) {
+            JsonArray array = new JsonArray();
+            overrides.forEach(array::add);
+            result.add("overrides", array);
+        }
         return result;
     }
 }

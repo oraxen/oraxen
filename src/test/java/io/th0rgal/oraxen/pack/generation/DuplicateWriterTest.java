@@ -26,11 +26,17 @@ class DuplicateWriterTest {
         assertFalse(DuplicationHandler.migrateLocalDuplicate(source, () -> false));
         assertEquals(original, Files.readString(source));
         java.util.concurrent.atomic.AtomicInteger migrations = new java.util.concurrent.atomic.AtomicInteger();
-        assertTrue(DuplicationHandler.migrateLocalDuplicate(source, () -> { migrations.incrementAndGet(); return true; }));
+        assertTrue(DuplicationHandler.migrateLocalDuplicate(source, () -> {
+            migrations.incrementAndGet();
+            return true;
+        }));
         String marked = Files.readString(source);
         assertTrue(marked.startsWith("// This file was recognized as a duplicate"));
         assertTrue(marked.contains(original));
-        assertFalse(DuplicationHandler.migrateLocalDuplicate(source, () -> { migrations.incrementAndGet(); return true; }));
+        assertFalse(DuplicationHandler.migrateLocalDuplicate(source, () -> {
+            migrations.incrementAndGet();
+            return true;
+        }));
         assertEquals(1, migrations.get());
         assertEquals(marked, Files.readString(source));
     }
@@ -39,7 +45,10 @@ class DuplicateWriterTest {
     void emptyLocalDuplicateDoesNotMigrateOrRewriteSource() throws Exception {
         Path source = temporary.resolve("empty.json");
         Files.writeString(source, "");
-        assertFalse(DuplicationHandler.migrateLocalDuplicate(source, () -> { fail("Empty JSON cannot migrate"); return true; }));
+        assertFalse(DuplicationHandler.migrateLocalDuplicate(source, () -> {
+            fail("Empty JSON cannot migrate");
+            return true;
+        }));
         assertEquals("", Files.readString(source));
     }
 
@@ -53,9 +62,11 @@ class DuplicateWriterTest {
             ZipUtils.addToZip("next.json", new ByteArrayInputStream("correct".getBytes(StandardCharsets.UTF_8)), zip);
         }
         try (ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(bytes.toByteArray()))) {
-            assertEquals("same.json", zip.getNextEntry().getName()); assertEquals(0, zip.readAllBytes().length);
+            assertEquals("same.json", zip.getNextEntry().getName());
+            assertEquals(0, zip.readAllBytes().length);
             assertEquals("next.json", zip.getNextEntry().getName());
-            assertEquals("correct", new String(zip.readAllBytes(), StandardCharsets.UTF_8)); assertNull(zip.getNextEntry());
+            assertEquals("correct", new String(zip.readAllBytes(), StandardCharsets.UTF_8));
+            assertNull(zip.getNextEntry());
         }
     }
 
@@ -64,7 +75,9 @@ class DuplicateWriterTest {
         List<VirtualFile> files = new ArrayList<>();
         files.add(font("{\"providers\":[{\"type\":\"bitmap\",\"file\":\"a.png\",\"chars\":[\"x\"],\"filter\":{\"uniform\":true}}]}"));
         files.add(font("{\"providers\":[{\"type\":\"bitmap\",\"file\":\"b.png\",\"chars\":[\"x\"],\"filter\":{\"uniform\":false}}]}"));
-        try (MockedStatic<Logs> logs = mockStatic(Logs.class)) { DuplicationHandler.mergeFontFiles(files); }
+        try (MockedStatic<Logs> logs = mockStatic(Logs.class)) {
+            DuplicationHandler.mergeFontFiles(files);
+        }
         assertEquals(1, files.size());
         assertEquals(2, files.getFirst().toJsonObject().getAsJsonArray("providers").size());
         assertEquals("a.png", files.getFirst().toJsonObject().getAsJsonArray("providers").get(0).getAsJsonObject().get("file").getAsString());

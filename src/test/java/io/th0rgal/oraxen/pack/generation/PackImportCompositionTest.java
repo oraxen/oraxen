@@ -38,7 +38,12 @@ class PackImportCompositionTest {
         logs = mockStatic(Logs.class);
         Settings.invalidateCache();
     }
-    @AfterEach void cleanup() { Settings.invalidateCache(); logs.close(); plugins.close(); }
+    @AfterEach
+    void cleanup() {
+        Settings.invalidateCache();
+        logs.close();
+        plugins.close();
+    }
 
     @Test void composesNativeResourcesAndRetainsValidLowerFiles() throws Exception {
         write("a", Map.of(
@@ -386,7 +391,8 @@ class PackImportCompositionTest {
     private void write(String name, Map<String, String> entries) throws IOException {
         for (var entry : entries.entrySet()) {
             Path path = tempDir.resolve("uploads").resolve(name).resolve(entry.getKey());
-            Files.createDirectories(path.getParent()); Files.writeString(path, entry.getValue());
+            Files.createDirectories(path.getParent());
+            Files.writeString(path, entry.getValue());
         }
     }
     private static VirtualFile vfile(String path, String text) {

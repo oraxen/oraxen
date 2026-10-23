@@ -84,21 +84,7 @@ public final class PackAssetMerger {
                 if (selector == null || !entry.getValue().isJsonObject() && !entry.getValue().isJsonArray()) continue;
                 JsonArray conditions = new JsonArray();
                 if (!selector.isEmpty()) conditions.add(selector);
-                boolean unreachable = false;
-                for (JsonObject exclusion : exclusions) {
-                    if (exclusion.isEmpty()) { unreachable = true; break; }
-                    JsonArray alternatives = new JsonArray();
-                    exclusion.entrySet().forEach(property -> {
-                        JsonObject inverse = new JsonObject();
-                        String value = property.getValue().getAsString();
-                        inverse.addProperty(property.getKey(), value.startsWith("!") ? value.substring(1) : "!" + value);
-                        alternatives.add(inverse);
-                    });
-                    JsonObject inverse = new JsonObject();
-                    inverse.add("OR", alternatives);
-                    conditions.add(inverse);
-                }
-                if (!unreachable) {
+                if (addExclusions(conditions, exclusions)) {
                     JsonObject part = new JsonObject();
                     if (!conditions.isEmpty()) {
                         JsonObject when = new JsonObject();
@@ -117,21 +103,7 @@ public final class PackAssetMerger {
                 JsonObject part = value.getAsJsonObject().deepCopy();
                 JsonArray conditions = new JsonArray();
                 if (part.has("when")) conditions.add(part.get("when").deepCopy());
-                boolean unreachable = false;
-                for (JsonObject exclusion : exclusions) {
-                    if (exclusion.isEmpty()) { unreachable = true; break; }
-                    JsonArray alternatives = new JsonArray();
-                    exclusion.entrySet().forEach(property -> {
-                        JsonObject inverse = new JsonObject();
-                        String valueString = property.getValue().getAsString();
-                        inverse.addProperty(property.getKey(), valueString.startsWith("!") ? valueString.substring(1) : "!" + valueString);
-                        alternatives.add(inverse);
-                    });
-                    JsonObject inverse = new JsonObject();
-                    inverse.add("OR", alternatives);
-                    conditions.add(inverse);
-                }
-                if (!unreachable) {
+                if (addExclusions(conditions, exclusions)) {
                     JsonObject when = new JsonObject();
                     when.add("AND", conditions);
                     part.add("when", when);
@@ -142,6 +114,24 @@ public final class PackAssetMerger {
         JsonObject result = new JsonObject();
         result.add("multipart", parts);
         return result;
+    }
+
+    /** Adds conditions excluding earlier variants, or returns false if an earlier variant matches every state. */
+    private static boolean addExclusions(JsonArray conditions, List<JsonObject> exclusions) {
+        for (JsonObject exclusion : exclusions) {
+            if (exclusion.isEmpty()) return false;
+            JsonArray alternatives = new JsonArray();
+            exclusion.entrySet().forEach(property -> {
+                JsonObject inverse = new JsonObject();
+                String value = property.getValue().getAsString();
+                inverse.addProperty(property.getKey(), value.startsWith("!") ? value.substring(1) : "!" + value);
+                alternatives.add(inverse);
+            });
+            JsonObject inverse = new JsonObject();
+            inverse.add("OR", alternatives);
+            conditions.add(inverse);
+        }
+        return true;
     }
 
     private static JsonObject selector(String key) {
