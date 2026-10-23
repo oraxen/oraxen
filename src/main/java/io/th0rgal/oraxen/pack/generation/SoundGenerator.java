@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.sounds.CustomSound;
 import io.th0rgal.oraxen.sounds.SoundManager;
 import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.io.IOUtils;
 import org.bukkit.configuration.ConfigurationSection;
 
@@ -30,8 +31,6 @@ class SoundGenerator {
 
     void generateSound(List<VirtualFile> output) {
         SoundManager soundManager = OraxenPlugin.get().getSoundManager();
-        if (!soundManager.isAutoGenerate())
-            return;
 
         List<VirtualFile> soundFiles = output.stream()
                 .filter(file -> isSoundsJson(file.getPath())).toList();
@@ -45,25 +44,30 @@ class SoundGenerator {
                 JsonElement soundElement = JsonParser
                         .parseString(IOUtils.toString(soundFile.getInputStream(), StandardCharsets.UTF_8));
                 if (soundElement != null && soundElement.isJsonObject()) {
-                    for (Map.Entry<String, JsonElement> entry : soundElement.getAsJsonObject().entrySet())
-                        outputJson.add(entry.getKey(), entry.getValue());
+                    outputJsons.put(namespace, PackAssetMerger.mergeJson(soundFile.getPath(), outputJson,
+                            soundElement.getAsJsonObject()));
                 }
             } catch (IOException e) {
+                Logs.logError("Failed to read imported sounds file " + soundFile.getPath());
                 e.printStackTrace();
                 continue;
             }
             output.remove(soundFile);
         }
 
-        Collection<CustomSound> customSounds = handleCustomSoundEntries(soundManager.getCustomSounds());
+        Collection<CustomSound> customSounds = soundManager.isAutoGenerate()
+                ? handleCustomSoundEntries(new java.util.ArrayList<>(soundManager.getCustomSounds())) : List.of();
 
         // Add all configured sounds to the sounds.json of their namespace.
         for (CustomSound sound : customSounds) {
             JsonObject outputJson = outputJsons.computeIfAbsent(sound.getNamespace(), ignored -> new JsonObject());
-            outputJson.add(sound.getKey(), sound.toJson());
+            JsonObject configured = new JsonObject();
+            configured.add(sound.getKey(), sound.toJson());
+            outputJsons.put(sound.getNamespace(), PackAssetMerger.mergeJson(
+                    "assets/" + sound.getNamespace() + "/sounds.json", outputJson, configured));
         }
 
-        if (outputJsons.isEmpty())
+        if (outputJsons.isEmpty() && soundManager.isAutoGenerate())
             outputJsons.put("minecraft", new JsonObject());
 
         for (Map.Entry<String, JsonObject> entry : outputJsons.entrySet()) {
@@ -72,6 +76,7 @@ class SoundGenerator {
             try {
                 soundInput.close();
             } catch (IOException e) {
+                Logs.logError("Failed to close generated sounds file for " + entry.getKey());
                 e.printStackTrace();
             }
         }
@@ -182,7 +187,7 @@ class SoundGenerator {
     }
 
     private boolean isSoundsJson(String path) {
-        return path.startsWith("assets/") && path.endsWith("/sounds.json");
+        return path.matches("assets/[^/]+/sounds\\.json");
     }
 
     private String namespaceFromSoundsJsonPath(String path) {

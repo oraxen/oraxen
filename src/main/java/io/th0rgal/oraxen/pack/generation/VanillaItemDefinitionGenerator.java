@@ -56,6 +56,18 @@ public class VanillaItemDefinitionGenerator {
     private final boolean useSelect;
     private final boolean includeBothModes;
 
+    private VanillaItemDefinitionGenerator(Material material) {
+        this.material = material;
+        this.items = List.of();
+        this.predicatesHelper = null;
+        this.useSelect = false;
+        this.includeBothModes = false;
+    }
+
+    public static JsonObject createVanillaFallback(Material material) {
+        return new VanillaItemDefinitionGenerator(material).createVanillaModelReference();
+    }
+
     /**
      * @param material  the base material
      * @param items     the custom items using this material
@@ -146,7 +158,8 @@ public class VanillaItemDefinitionGenerator {
      * Handles special cases like bow pulling, crossbow states, etc.
      */
     private JsonObject createVanillaModelReference() {
-        String vanillaModelPath = "minecraft:" + predicatesHelper.getVanillaModelName(material);
+        String vanillaModelPath = "minecraft:" + (predicatesHelper == null
+                ? "item/" + material.name().toLowerCase(Locale.ROOT) : predicatesHelper.getVanillaModelName(material));
 
         // Use special model types for items that require custom rendering (heads, shield, conduit, etc.)
         JsonObject baseModel;
@@ -696,7 +709,7 @@ public class VanillaItemDefinitionGenerator {
         JsonArray tints = new JsonArray();
         JsonObject dye = new JsonObject();
         dye.addProperty("type", "minecraft:dye");
-        dye.addProperty("default", DEFAULT_TINT_COLOR);
+        dye.addProperty("default", LeatherTintDefaults.defaultColor(model));
         tints.add(dye);
         model.add("tints", tints);
     }

@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
  * Utility class to update Paper's paper-global.yml configuration file.
  * Uses line-by-line processing to preserve comments and formatting.
  * <p>
- * Disable auto-update via settings.yml: Plugin.auto_update_paper_config: false
+ * Disable auto-update via settings.yml: general.auto-update.paper-config: false
  * Or via system property: -Doraxen.autoUpdatePaperConfig=false
  */
 public final class PaperConfigUpdater {

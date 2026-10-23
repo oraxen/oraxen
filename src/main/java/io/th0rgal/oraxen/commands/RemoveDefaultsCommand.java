@@ -119,7 +119,7 @@ public class RemoveDefaultsCommand {
             String fileName = defaultItemFile.getFileName().toString();
             if (!fileName.endsWith(".yml")) continue;
 
-            String path = "inventory-menu.layout." + fileName.substring(0, fileName.length() - 4);
+            String path = "inventory.layout." + fileName.substring(0, fileName.length() - 4);
             if (!settings.contains(path)) continue;
             settings.set(path, null);
             updated = true;

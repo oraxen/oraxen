@@ -26,7 +26,7 @@ class UnprotectedPackWriterTest {
             assertNotNull(input);
             var settings = YamlConfiguration.loadConfiguration(new InputStreamReader(input, StandardCharsets.UTF_8));
             assertEquals("",
-                    settings.getString("Pack.generation.unprotected-location"));
+                    settings.getString("pack.generation.unprotected-location"));
         }
     }
 

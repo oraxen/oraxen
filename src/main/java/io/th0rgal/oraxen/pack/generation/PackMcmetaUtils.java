@@ -196,7 +196,6 @@ public class PackMcmetaUtils {
         java.util.Set<String> seenDirectories = new java.util.HashSet<>();
         JsonArray mergedEntries = new JsonArray();
         for (JsonElement entry : existingEntries) {
-            mergedEntries.add(entry.deepCopy());
             if (entry.isJsonObject() && entry.getAsJsonObject().has("directory")) {
                 seenDirectories.add(entry.getAsJsonObject().get("directory").getAsString());
             }
@@ -208,9 +207,78 @@ public class PackMcmetaUtils {
             if (directory != null && !seenDirectories.add(directory)) continue;
             mergedEntries.add(entry.deepCopy());
         }
+        // Native overlays later in the list have higher priority. Local overlays belong
+        // above imported snapshots, just like their base resources.
+        for (JsonElement entry : existingEntries) mergedEntries.add(entry.deepCopy());
+
+        mergedEntries = normalizeOverlayEntries(mergedEntries);
 
         overlays.add("entries", mergedEntries);
         mcmeta.add("overlays", overlays);
+    }
+
+    /** Normalize the declaration style for the complete overlay list. */
+    public static JsonArray normalizeOverlayEntries(JsonArray entries) {
+        JsonArray normalized = entries.deepCopy();
+        boolean needsLegacyFormats = false;
+        for (JsonElement value : normalized) {
+            if (!value.isJsonObject()) continue;
+            JsonObject entry = value.getAsJsonObject();
+            JsonElement formats = entry.get("formats");
+            if ((!entry.has("min_format") || !entry.has("max_format")) && formats != null) {
+                JsonElement min = null;
+                JsonElement max = null;
+                if (formats.isJsonObject()) {
+                    min = formats.getAsJsonObject().get("min_inclusive");
+                    max = formats.getAsJsonObject().get("max_inclusive");
+                } else if (formats.isJsonArray() && formats.getAsJsonArray().size() == 2) {
+                    min = formats.getAsJsonArray().get(0);
+                    max = formats.getAsJsonArray().get(1);
+                } else if (formats.isJsonPrimitive()) {
+                    min = formats;
+                    max = formats;
+                }
+                if (!entry.has("min_format") && formatMajor(min) != null) entry.add("min_format", min.deepCopy());
+                if (!entry.has("max_format") && formatMajor(max) != null) entry.add("max_format", max.deepCopy());
+            }
+            Integer min = formatMajor(entry.get("min_format"));
+            Integer max = formatMajor(entry.get("max_format"));
+            if (min != null && max != null && min <= max && min < 65) needsLegacyFormats = true;
+        }
+        for (JsonElement value : normalized) {
+            if (!value.isJsonObject()) continue;
+            JsonObject entry = value.getAsJsonObject();
+            Integer min = formatMajor(entry.get("min_format"));
+            Integer max = formatMajor(entry.get("max_format"));
+            if (min == null || max == null || min > max) continue;
+            if (needsLegacyFormats) {
+                JsonObject formats = new JsonObject();
+                formats.addProperty("min_inclusive", min);
+                formats.addProperty("max_inclusive", max);
+                entry.add("formats", formats);
+            } else {
+                entry.remove("formats");
+            }
+        }
+        return normalized;
+    }
+
+    @Nullable
+    private static Integer formatMajor(@Nullable JsonElement format) {
+        try {
+            if (format == null) return null;
+            JsonElement major = format;
+            if (format.isJsonArray()) {
+                JsonArray pair = format.getAsJsonArray();
+                if (pair.isEmpty() || pair.size() > 2) return null;
+                major = pair.get(0);
+            }
+            if (!major.isJsonPrimitive() || !major.getAsJsonPrimitive().isNumber()) return null;
+            long value = major.getAsLong();
+            return value >= 0 && value <= Integer.MAX_VALUE ? (int) value : null;
+        } catch (RuntimeException exception) {
+            return null;
+        }
     }
 
     /**

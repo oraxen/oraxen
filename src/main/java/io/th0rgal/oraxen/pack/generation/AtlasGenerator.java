@@ -123,6 +123,11 @@ public class AtlasGenerator {
         removeChildEntriesInDirectoryAtlas(atlasContent);
 
         atlas.add("sources", atlasContent);
+        // Run imported operations after generated defaults so their filters and aliases retain effect.
+        for (VirtualFile file : output) {
+            if (file.getPath().equals("assets/minecraft/atlases/blocks.json") && file.isJsonObject())
+                atlas = PackAssetMerger.mergeJson(file.getPath(), atlas, file.toJsonObject());
+        }
         VirtualFile atlasFile = new VirtualFile("assets/minecraft/atlases", "blocks.json",
                 new ByteArrayInputStream(atlas.toString().getBytes(StandardCharsets.UTF_8)));
         output.removeIf(v -> v.getPath().equals(atlasFile.getPath()));

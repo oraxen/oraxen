@@ -969,7 +969,7 @@ public class SchemaGenerator {
 
         addMechanicIfAbsent(mechanics, "furniture", "gameplay", "Place item as furniture entity",
                 Map.of(
-                        "barrier", prop("boolean", "Use barrier block for collision", null, false),
+                        "barriers", prop("array", "Barrier block offsets formatted '<x>,<y>,<z>' with integer coordinates", null, null),
                         "lights", prop("array", "Light entries formatted '<x>,<y>,<z> <level>'", null, null),
                         "hardness", prop("number", "Break hardness", 0, null),
                         "farmland_required", prop("boolean", "Requires farmland below", null, false),
