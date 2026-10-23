@@ -1,5 +1,5 @@
 table:
-  itemname: <gray>Table
+  name: <gray>Table
   material: PAPER
   pack:
     generate_model: false
@@ -32,7 +32,7 @@ table:
           probability: 1.0
 
 cart:
-  displayname: "<gray>Cart"
+  name: "<gray>Cart"
   material: PAPER
   mechanics:
     furniture:
@@ -56,7 +56,7 @@ cart:
     model: default/cart
 
 chair:
-  displayname: "<gray>Chair"
+  name: "<gray>Chair"
   material: PAPER
   mechanics:
     furniture:
@@ -82,7 +82,7 @@ chair:
     model: default/chair
 
 coach:
-  displayname: "<gray>Coach"
+  name: "<gray>Coach"
   material: PAPER
   mechanics:
     furniture:
@@ -109,7 +109,7 @@ coach:
     model: default/coach
 
 shelf:
-  displayname: "<gray>Shelf"
+  name: "<gray>Shelf"
   material: PAPER
   mechanics:
     furniture:
@@ -131,7 +131,7 @@ shelf:
     model: default/shelf
 
 turntable:
-  displayname: "<gray>Turntable"
+  name: "<gray>Turntable"
   material: PAPER
   mechanics:
     furniture:

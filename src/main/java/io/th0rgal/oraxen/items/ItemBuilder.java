@@ -1059,13 +1059,11 @@ public class ItemBuilder {
         if (displayName == null && displayNameMessage == null)
             return;
 
-        if (!VersionUtil.atOrAbove("1.20.5"))
-            pdc.set(ORIGINAL_NAME_KEY, DataType.STRING,
-                    displayNameMessage != null ? displayNameMessage.toString() : displayName);
-
         Component nameComponent = buildDisplayNameComponent();
         nameComponent = nameComponent.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)
                 .colorIfAbsent(NamedTextColor.WHITE);
+        if (!VersionUtil.atOrAbove("1.20.5"))
+            pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, AdventureUtils.MINI_MESSAGE.serialize(nameComponent));
         ItemUtils.setDisplayName(itemMeta, nameComponent);
     }
 

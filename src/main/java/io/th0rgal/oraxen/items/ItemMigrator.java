@@ -38,6 +38,10 @@ public final class ItemMigrator {
 
     public ItemMigrator(final ConfigurationSection section, String inheritedFurnitureType) {
         this.section = section;
+        if (migrateNames(section)) {
+            configUpdated = true;
+            blockConfigMigrated = true;
+        }
         migrateUppercaseSections();
         migrateEnchantable();
         migrateInjectId();
@@ -58,6 +62,30 @@ public final class ItemMigrator {
                 Logs.logWarning("Item " + section.getName()
                         + " uses deprecated mechanics.bigmining; migrated to face-relative mechanics.mining radius and depth.");
         }
+    }
+
+    public static boolean migrateNames(final ConfigurationSection section) {
+        if (section == null)
+            return false;
+
+        boolean updated = migrateName(section, "itemname", "name");
+        updated |= migrateName(section, "displayname", "name");
+        updated |= migrateName(section, "customname", "custom-name");
+        if (updated)
+            OraxenYaml.invalidateKeyCache(section);
+        return updated;
+    }
+
+    private static boolean migrateName(final ConfigurationSection section, final String legacy, final String canonical) {
+        if (!section.isSet(legacy))
+            return false;
+        if (!section.isSet(canonical)) {
+            section.set(canonical, section.get(legacy));
+            section.setComments(canonical, section.getComments(legacy));
+            section.setInlineComments(canonical, section.getInlineComments(legacy));
+        }
+        section.set(legacy, null);
+        return true;
     }
 
     /**
@@ -126,10 +154,6 @@ public final class ItemMigrator {
             if (!inlineComments.isEmpty() && target.getInlineComments(path).isEmpty())
                 target.setInlineComments(path, inlineComments);
         }
-    }
-
-    public void recordLegacyNameMigration(final boolean migrated) {
-        configUpdated |= migrated;
     }
 
     /**

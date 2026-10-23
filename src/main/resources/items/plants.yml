@@ -6,7 +6,7 @@
 # Color codes: https://docs.adventure.kyori.net/minimessage.html#format
 
 weed_leaf:
-  displayname: "<gradient:#46EEAA:#2CBFC7>Weed Leaf"
+  name: "<gradient:#46EEAA:#2CBFC7>Weed Leaf"
   material: COOKED_BEEF
   pack:
     generate_model: true
@@ -42,7 +42,7 @@ weed_leaf:
 
 # NEW: Single-item plant with inline growth stages (1 item instead of 5!)
 weed_seed:
-  displayname: "<gradient:#46EEAA:#2CBFC7>Weed Seed"
+  name: "<gradient:#46EEAA:#2CBFC7>Weed Seed"
   material: PAPER
   pack:
     generate_model: true
@@ -105,7 +105,7 @@ weed_seed:
               - { oraxen_item: weed_leaf, max_amount: 5, probability: 0.55 }
 
 grape:
-  displayname: "<gradient:#ED7B84:#9055FF>Grape"
+  name: "<gradient:#ED7B84:#9055FF>Grape"
   material: COOKED_BEEF
   pack:
     generate_model: true
@@ -115,7 +115,7 @@ grape:
 
 # NEW: Single-item plant with inline growth stages (1 item instead of 6!)
 grape_seeds:
-  displayname: "<gradient:#46EEAA:#2CBFC7>Grape Seeds"
+  name: "<gradient:#46EEAA:#2CBFC7>Grape Seeds"
   material: PAPER
   pack:
     generate_model: true

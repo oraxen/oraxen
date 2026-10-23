@@ -6,7 +6,7 @@
 # Color codes: https://docs.adventure.kyori.net/minimessage.html#format
 
 storm_sword:
-  displayname: "<gradient:#3685EC:#72C1E4>Storm Sword"
+  name: "<gradient:#3685EC:#72C1E4>Storm Sword"
   material: DIAMOND_SWORD
   AttributeModifiers:
     # diamond sword has an attack damage of 7
@@ -25,7 +25,7 @@ storm_sword:
       delay: 20000 # in milliseconds (20000ms = 20s)
 
 energy_crystal_sword:
-  displayname: "<gradient:#3685EC:#72C1E4>Energy Crystal Sword"
+  name: "<gradient:#3685EC:#72C1E4>Energy Crystal Sword"
   material: DIAMOND_SWORD
   AttributeModifiers:
     # diamond sword has an attack damage of 7
@@ -37,7 +37,7 @@ energy_crystal_sword:
     model: default/energy_crystal_sword
 
 glass_sword:
-  displayname: "<#D5D6D8>Glass Sword"
+  name: "<#D5D6D8>Glass Sword"
   material: DIAMOND_SWORD
   lore:
     - "<#6f737d>» <#D5D6D8>Fragile"
@@ -56,7 +56,7 @@ glass_sword:
       value: 8
 
 obsidian_sword:
-  displayname: "<gradient:#4B36B1:#6699FF>Obsidian Sword"
+  name: "<gradient:#4B36B1:#6699FF>Obsidian Sword"
   material: DIAMOND_SWORD
   lore:
     - "<#6f737d>» <#D5D6D8>Ludicrous durability"
@@ -75,7 +75,7 @@ obsidian_sword:
       value: 10000
 
 blood_sword:
-  displayname: "<gradient:#FA7CBB:#F14658>Blood Sword"
+  name: "<gradient:#FA7CBB:#F14658>Blood Sword"
   material: DIAMOND_SWORD
   lore:
     - "<#6f737d>» <#D5D6D8>Steal the life of your enemies"
@@ -100,7 +100,7 @@ blood_sword:
       interval: 20 # damage is applied every 20 ticks (1 second)
 
 octavia_sword:
-  displayname: "<#D5D6D8>Octavia Sword"
+  name: "<#D5D6D8>Octavia Sword"
   material: DIAMOND_SWORD
   pack:
     generate_model: false
@@ -110,7 +110,7 @@ octavia_sword:
       value: 600 #diamond sword is 1561
 
 dagger:
-  displayname: "<gradient:#FA7CBB:#F14658>Dagger"
+  name: "<gradient:#FA7CBB:#F14658>Dagger"
   material: DIAMOND_SWORD
   pack:
     generate_model: false
@@ -120,7 +120,7 @@ dagger:
       value: 10 #diamond sword is 1561
 
 katana:
-  displayname: "<gradient:#F69D84:#FAD98D>Katana"
+  name: "<gradient:#F69D84:#FAD98D>Katana"
   material: DIAMOND_SWORD
   AttributeModifiers:
     # diamond sword has an attack damage of 7
@@ -135,7 +135,7 @@ katana:
       value: 1000 #diamond sword is 1561
 
 combat_bow:
-  displayname: '<gradient:#F69D84:#FAD98D>Combat Bow'
+  name: '<gradient:#F69D84:#FAD98D>Combat Bow'
   material: BOW
   AttributeModifiers:
     - attribute: ATTACK_DAMAGE

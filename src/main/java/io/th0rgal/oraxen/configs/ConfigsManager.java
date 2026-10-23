@@ -1068,10 +1068,6 @@ public class ConfigsManager {
             MigrationBackups.moveToMigrated(plugin.getDataFolder(), itemFile);
 
         String content = config.saveToString();
-        if (VersionUtil.atOrAbove("1.20.5"))
-            content = content.replace("displayname: ", "itemname: ");
-        else
-            content = content.replace("itemname: ", "displayname: ");
 
         try {
             FileUtils.writeStringToFile(itemFile, content, StandardCharsets.UTF_8);

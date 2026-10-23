@@ -6,7 +6,7 @@
 # Color codes: https://docs.adventure.kyori.net/minimessage.html#format
 
 obsidian_pickaxe:
-  displayname: "<gradient:#4B36B1:#6699FF>Obsidian Pickaxe"
+  name: "<gradient:#4B36B1:#6699FF>Obsidian Pickaxe"
   material: IRON_PICKAXE
   lore:
     - "<#6f737d>» <#D5D6D8>Ludicrous durability"
@@ -20,7 +20,7 @@ obsidian_pickaxe:
       value: 15000 #diamond sword is 1561
 
 bedrock_pickaxe:
-  displayname: "<gradient:#3685EC:#72C1E4>Bedrock Pickaxe"
+  name: "<gradient:#3685EC:#72C1E4>Bedrock Pickaxe"
   material: STONE_PICKAXE
   lore:
     - "<#6f737d>» <#D5D6D8>Mine bedrock blocks"
@@ -35,7 +35,7 @@ bedrock_pickaxe:
       probability: 1
 
 emerald_hammer:
-  displayname: "<gradient:#89E59D:#37C6BA>Emerald Hammer"
+  name: "<gradient:#89E59D:#37C6BA>Emerald Hammer"
   material: DIAMOND_PICKAXE
   lore:
     - "<#6f737d>» <#D5D6D8>Break 3x3 blocks"
@@ -50,7 +50,7 @@ emerald_hammer:
       depth: 1
 
 amethyst_hammer:
-  displayname: "<gradient:#4B36B1:#6699FF>Amethyst Hammer"
+  name: "<gradient:#4B36B1:#6699FF>Amethyst Hammer"
   material: DIAMOND_PICKAXE
   lore:
     - "<#6f737d>» <#D5D6D8>Break 3x3x2 blocks"
@@ -65,7 +65,7 @@ amethyst_hammer:
       depth: 2
 
 onyx_hammer:
-  displayname: "<#6f737d>Onyx Hammer"
+  name: "<#6f737d>Onyx Hammer"
   material: DIAMOND_PICKAXE
   lore:
     - "<#6f737d>» <#D5D6D8>Break 3x3x2 blocks"
@@ -82,7 +82,7 @@ onyx_hammer:
       depth: 2
 
 orax_hammer:
-  displayname: "<gradient:#3685EC:#72C1E4>Orax Hammer"
+  name: "<gradient:#3685EC:#72C1E4>Orax Hammer"
   material: DIAMOND_PICKAXE
   lore:
     - "<#6f737d>» <#D5D6D8>Break 5x5x2 blocks"
@@ -99,7 +99,7 @@ orax_hammer:
       depth: 2
 
 fire_hammer:
-  displayname: "<gradient:#F06966:#FAD6A6>Fire Hammer"
+  name: "<gradient:#F06966:#FAD6A6>Fire Hammer"
   material: DIAMOND_PICKAXE
   lore:
     - "<#6f737d>» <#D5D6D8>Break 3x3 blocks"
@@ -120,7 +120,7 @@ fire_hammer:
       depth: 1
 
 iron_cog:
-  displayname: "<#D5D6D8>Iron Cog"
+  name: "<#D5D6D8>Iron Cog"
   material: PAPER
   lore:
     - "<#6f737d>» <#D5D6D8>Click on a damaged item to repair"
@@ -135,7 +135,7 @@ iron_cog:
       ratio: 0.10
 
 gold_cog:
-  displayname: "<gradient:#F06966:#FAD6A6>Gold Cog"
+  name: "<gradient:#F06966:#FAD6A6>Gold Cog"
   material: PAPER
   lore:
     - "<#6f737d>» <#D5D6D8>Click on a damaged item to repair"
@@ -150,7 +150,7 @@ gold_cog:
       ratio: 0.50
 
 diamond_cog:
-  displayname: "<gradient:#3685EC:#72C1E4>Diamond Cog"
+  name: "<gradient:#3685EC:#72C1E4>Diamond Cog"
   material: PAPER
   lore:
     - "<#6f737d>» <#D5D6D8>Click on a damaged item to repair"
@@ -165,7 +165,7 @@ diamond_cog:
       ratio: 1.0
 
 iron_serpe:
-  displayname: "<#D5D6D8>Iron Serpe"
+  name: "<#D5D6D8>Iron Serpe"
   material: WOODEN_HOE
   pack:
     generate_model: true

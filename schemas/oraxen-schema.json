@@ -7745,16 +7745,32 @@
     }
   },
   "itemProperties": {
+    "name": {
+      "type": "string",
+      "description": "Base item name with MiniMessage formatting",
+      "required": true,
+      "format": "minimessage"
+    },
+    "custom-name": {
+      "type": "string",
+      "description": "Anvil-editable name that overrides the base name",
+      "format": "minimessage"
+    },
     "itemname": {
       "type": "string",
-      "description": "Display name with MiniMessage formatting (1.20.5+)",
-      "required": true,
+      "description": "Legacy base name, migrated to name",
       "format": "minimessage",
-      "minecraftVersion": "1.20.5+"
+      "deprecated": true
     },
     "displayname": {
       "type": "string",
-      "description": "Display name (legacy, use itemname instead)",
+      "description": "Legacy base name, migrated to name",
+      "format": "minimessage",
+      "deprecated": true
+    },
+    "customname": {
+      "type": "string",
+      "description": "Legacy custom name, migrated to custom-name",
       "format": "minimessage",
       "deprecated": true
     },

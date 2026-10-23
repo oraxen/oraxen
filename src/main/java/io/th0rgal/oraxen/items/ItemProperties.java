@@ -48,20 +48,7 @@ public final class ItemProperties {
         this.migrator = migrator;
     }
 
-    public boolean applyBasic(final ItemBuilder item) {
-        boolean configUpdated = false;
-        if (section.contains("displayname")) {
-            if (VersionUtil.atOrAbove("1.20.5"))
-                configUpdated = true;
-            else
-                item.setDisplayName(section.getString("displayname", ""));
-        }
-        if (section.contains("customname")) {
-            if (!VersionUtil.atOrAbove("1.20.5"))
-                configUpdated = true;
-            else
-                item.setDisplayName(section.getString("customname", ""));
-        }
+    public void applyBasic(final ItemBuilder item) {
         // if (section.contains("type"))
         // item.setType(Material.getMaterial(section.getString("type", "PAPER")));
         if (section.contains("lore"))
@@ -74,7 +61,6 @@ public final class ItemProperties {
             item.setColor(Utils.toColor(section.getString("color", "#FFFFFF"), "item \"" + section.getName() + "\""));
         if (section.contains("trim_pattern"))
             item.setTrimPattern(Key.key(section.getString("trim_pattern", "")));
-        return configUpdated;
     }
 
     public void applyMiscAndVanilla(final ItemBuilder item, final ConfigurationSection mergedSection) {

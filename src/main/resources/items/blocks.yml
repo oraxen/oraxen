@@ -7,7 +7,7 @@
 
 
 caveblock:
-  displayname: "<#D5D6D8>Cave Block"
+  name: "<#D5D6D8>Cave Block"
   material: PAPER
   pack:
     generate_model: false # because this is a block, a 2nd model pointing to specified one will be generated anyway
@@ -32,7 +32,7 @@ caveblock:
             remove: 2
 
 amethyst_ore:
-  displayname: '<gradient:#4B36B1:#6699FF>Amethyst Ore'
+  name: '<gradient:#4B36B1:#6699FF>Amethyst Ore'
   material: PAPER
   pack:
     generate_model: true
@@ -70,7 +70,7 @@ amethyst_ore:
             remove: 2
 
 ruby_ore:
-  displayname: '<gradient:#FA7CBB:#F14658>Ruby Ore'
+  name: '<gradient:#FA7CBB:#F14658>Ruby Ore'
   material: PAPER
   pack:
     generate_model: true
@@ -108,7 +108,7 @@ ruby_ore:
 
 
 onyx_ore:
-  displayname: '<#6f737d>Onyx Ore'
+  name: '<#6f737d>Onyx Ore'
   material: PAPER
   pack:
     generate_model: true
@@ -145,7 +145,7 @@ onyx_ore:
             remove: 2
 
 orax_ore:
-  displayname: '<gradient:#3685EC:#72C1E4>Orax Ore'
+  name: '<gradient:#3685EC:#72C1E4>Orax Ore'
   material: PAPER
   pack:
     generate_model: true
