@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.abort;
 
 class LegacyArmorTexturesTest {
     @TempDir
@@ -54,7 +55,11 @@ class LegacyArmorTexturesTest {
         Path external = Files.createDirectories(packFolder.resolve("external"));
         Path original = Files.write(external.resolve("chainmail_layer_1.png"), bundled("chainmail_layer_1.png"));
         Path armorFolder = Files.createDirectories(packFolder.resolve("textures/models/armor"));
-        Files.createSymbolicLink(armorFolder.resolve("chainmail_layer_1.png"), original);
+        try {
+            Files.createSymbolicLink(armorFolder.resolve("chainmail_layer_1.png"), original);
+        } catch (IOException | UnsupportedOperationException e) {
+            abort("This environment cannot create symbolic links. " + e.getMessage());
+        }
         assertEquals(0, LegacyArmorTextures.cleanExtractedDefaults(packFolder));
         assertTrue(Files.exists(original));
 
