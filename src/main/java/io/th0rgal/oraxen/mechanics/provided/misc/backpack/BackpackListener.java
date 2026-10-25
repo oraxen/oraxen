@@ -83,7 +83,7 @@ public class BackpackListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onPickupItem(final EntityPickupItemEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
-        if (!(InventoryUtils.topInventoryForPlayer(player).getHolder() instanceof Gui)) return;
+        if (!(InventoryUtils.topInventoryForPlayer(player).getHolder() instanceof StorageGui)) return;
         closeBackpack(player);
         openBackpack(player);
     }

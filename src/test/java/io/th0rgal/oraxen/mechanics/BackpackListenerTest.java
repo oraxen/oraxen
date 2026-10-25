@@ -18,6 +18,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
@@ -38,10 +39,14 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 import static io.th0rgal.oraxen.mechanics.provided.misc.backpack.BackpackMechanic.BACKPACK_KEY;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.RETURNS_SELF;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -135,6 +140,55 @@ class BackpackListenerTest extends MechanicTestSupport {
         }
     }
 
+    @Test
+    void pickupRefreshReopensWithSavedWithdrawals() {
+        try (BackpackFixture fixture = new BackpackFixture();
+             MockedStatic<InventoryUtils> inventories = mockStatic(InventoryUtils.class)) {
+            inventories.when(() -> InventoryUtils.topInventoryForPlayer(fixture.player)).thenReturn(fixture.contents);
+            ItemMeta meta = fixture.original.getItemMeta();
+            PersistentDataContainer data = meta.getPersistentDataContainer();
+            ItemStack[] initial = {mock(ItemStack.class), mock(ItemStack.class)};
+            AtomicReference<ItemStack[]> saved = new AtomicReference<>(initial);
+            when(data.get(BACKPACK_KEY, DataType.ITEM_STACK_ARRAY)).thenAnswer(invocation -> saved.get().clone());
+            doAnswer(invocation -> {
+                saved.set(((ItemStack[]) invocation.getArgument(2)).clone());
+                return null;
+            }).when(data).set(eq(BACKPACK_KEY), eq(DataType.ITEM_STACK_ARRAY), any(ItemStack[].class));
+            when(fixture.original.isSimilar(fixture.snapshot)).thenReturn(true);
+            fixture.open();
+            verify(fixture.contents).setContents(initial);
+
+            ItemStack[] withdrawn = new ItemStack[27];
+            withdrawn[1] = initial[1];
+            when(fixture.contents.getContents()).thenReturn(withdrawn);
+            doAnswer(invocation -> {
+                fixture.closeBackpack();
+                return null;
+            }).when(fixture.player).closeInventory();
+
+            StorageGui reopened = mock(StorageGui.class);
+            Inventory reopenedContents = mock(Inventory.class);
+            when(reopened.getInventory()).thenReturn(reopenedContents);
+            when(fixture.builder.create()).thenReturn(reopened);
+            doAnswer(invocation -> {
+                fixture.executeOpen(reopened);
+                return null;
+            }).when(reopened).open(fixture.player);
+            EntityPickupItemEvent pickup = new EntityPickupItemEvent(fixture.player, mock(Item.class), 0);
+
+            fixture.listener.onPickupItem(pickup);
+
+            verify(fixture.player).closeInventory();
+            verify(fixture.original).setItemMeta(meta);
+            verify(fixture.inventory).setItem(0, fixture.original);
+            verify(reopened).open(fixture.player);
+            ArgumentCaptor<ItemStack[]> loaded = ArgumentCaptor.forClass(ItemStack[].class);
+            verify(reopenedContents).setContents(loaded.capture());
+            assertArrayEquals(withdrawn, saved.get());
+            assertArrayEquals(withdrawn, loaded.getValue());
+        }
+    }
+
     private static class BackpackFixture implements AutoCloseable {
         final Player player = mock(Player.class);
         final PlayerInventory inventory = mock(PlayerInventory.class);
@@ -145,6 +199,7 @@ class BackpackListenerTest extends MechanicTestSupport {
         final PersistentDataContainer restoredData = mock(PersistentDataContainer.class);
         final Inventory contents = mock(Inventory.class);
         final StorageGui gui = mock(StorageGui.class);
+        final StorageBuilder builder = mock(StorageBuilder.class, RETURNS_SELF);
         final BackpackListener listener;
         final MockedStatic<OraxenItems> items = mockStatic(OraxenItems.class);
         final MockedStatic<Gui> guis = mockStatic(Gui.class);
@@ -171,7 +226,6 @@ class BackpackListenerTest extends MechanicTestSupport {
             when(restored.isSimilar(snapshot)).thenReturn(true);
             when(restored.getItemMeta()).thenReturn(restoredMeta);
             when(restoredMeta.getPersistentDataContainer()).thenReturn(restoredData);
-            StorageBuilder builder = mock(StorageBuilder.class, RETURNS_SELF);
             guis.when(Gui::storage).thenReturn(builder);
             when(builder.create()).thenReturn(gui);
             when(gui.getInventory()).thenReturn(contents);
@@ -185,8 +239,13 @@ class BackpackListenerTest extends MechanicTestSupport {
             when(event.getHand()).thenReturn(EquipmentSlot.HAND);
             when(event.getPlayer()).thenReturn(player);
             listener.onPlayerInteract(event);
+            executeOpen(gui);
+        }
+
+        @SuppressWarnings("unchecked")
+        void executeOpen(StorageGui openedGui) {
             ArgumentCaptor<GuiAction<InventoryOpenEvent>> action = ArgumentCaptor.forClass(GuiAction.class);
-            verify(gui).setOpenGuiAction(action.capture());
+            verify(openedGui).setOpenGuiAction(action.capture());
             InventoryOpenEvent open = mock(InventoryOpenEvent.class);
             when(open.getPlayer()).thenReturn(player);
             action.getValue().execute(open);
