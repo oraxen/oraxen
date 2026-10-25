@@ -100,8 +100,10 @@ pack:
   excluded-file-extensions: [] # File extensions excluded from the final ZIP.
   compression: BEST_COMPRESSION # See Deflater.class.
 
-  obfuscation:
-    type: NONE # NONE keeps paths readable, SIMPLE renames paths, FULL also renames namespaces.
+  protection:
+    size-spoofing: false # Spoof ZIP entry sizes to discourage extraction.
+    obfuscation:
+      type: NONE # NONE keeps paths readable, SIMPLE renames paths, FULL also renames namespaces.
 
   comment: "The content of this texture pack
     \nbelongs to the owner of the Oraxen

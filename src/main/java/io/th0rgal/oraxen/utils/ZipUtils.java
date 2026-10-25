@@ -23,15 +23,17 @@ public class ZipUtils {
     public static void writeZipFile(final File outputFile,
             final List<VirtualFile> fileList) {
 
-        try (final FileOutputStream fos = new FileOutputStream(outputFile);
+        try {
+            try (final FileOutputStream fos = new FileOutputStream(outputFile);
                 final ZipOutputStream zos = new ZipOutputStream(fos, StandardCharsets.UTF_8)) {
-            final int compressionLevel = Deflater.class.getDeclaredField(Settings.COMPRESSION.toString()).getInt(null);
-            zos.setLevel(compressionLevel);
-            zos.setComment(Settings.COMMENT.toString());
-            for (final VirtualFile file : fileList) {
-                addToZip(file.getPath(), file.getInputStream(), zos);
+                final int compressionLevel = Deflater.class.getDeclaredField(Settings.COMPRESSION.toString()).getInt(null);
+                zos.setLevel(compressionLevel);
+                zos.setComment(Settings.COMMENT.toString());
+                for (final VirtualFile file : fileList) {
+                    addToZip(file.getPath(), file.getInputStream(), zos);
+                }
             }
-
+            if (Settings.PACK_SIZE_SPOOFING.toBool()) ZipSizeSpoofer.spoof(outputFile.toPath());
         } catch (final IOException | NoSuchFieldException | IllegalAccessException ex) {
             Logs.logError("Failed to write resource pack zip");
             Logs.debug(ex);

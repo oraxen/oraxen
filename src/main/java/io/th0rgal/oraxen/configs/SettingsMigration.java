@@ -43,7 +43,10 @@ public final class SettingsMigration {
     /** Explicit new values win conflicts. Defaults must not have been inserted yet. */
     public static boolean migrate(YamlConfiguration settings) {
         String before = settings.saveToString();
-        for (String oldPath : List.copyOf(settings.getKeys(true))) {
+        // The intermediate format wins over the original format when both are present.
+        List<String> oldPaths = new java.util.ArrayList<>(settings.getKeys(true));
+        oldPaths.sort(java.util.Comparator.comparing(path -> !path.startsWith("pack.obfuscation")));
+        for (String oldPath : oldPaths) {
             Object value = settings.get(oldPath);
             if (value instanceof ConfigurationSection section && !section.getKeys(false).isEmpty()) continue;
             String newPath = newPath(oldPath);

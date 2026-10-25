@@ -1,3 +1,5 @@
+# Settings paths from 1.220.1 to 1.221.0, plus intermediate format compatibility.
+pack.obfuscation	pack.protection.obfuscation
 # Old settings path	New settings path
 Pack.receive.failed_download.actions.commands.opped_player	pack.receive.failed-download.actions.commands.opped-player
 Pack.generation.auto_generated_models_follow_texture_path	pack.generation.auto-generated-models-follow-texture-path
@@ -131,7 +133,7 @@ Plugin.introduction.console_sent	general.introduction.console-sent
 Plugin.generation.default_assets	configuration.defaults.assets
 ConfigsTools.error_item.material	configuration.items.fallback.material
 ConfigsTools.error_item.injectId	configuration.items.fallback.inject-id
-Pack.generation.obfuscation.type	pack.obfuscation.type
+Pack.generation.obfuscation.type	pack.protection.obfuscation.type
 Pack.receive.invalid_url.actions	pack.receive.invalid-url.actions
 inventory-menu.layout.hats.title	inventory.layout.hats.title
 inventory-menu.layout.items.slot	inventory.layout.items.slot
@@ -179,7 +181,7 @@ Plugin.keep_this_up_to_date	general.auto-update.settings
 Plugin.introduction.enabled	general.introduction.enabled
 Plugin.formatting.subtitles	general.formatting.subtitles
 Pack.generation.compression	pack.compression
-Pack.generation.obfuscation	pack.obfuscation
+Pack.generation.obfuscation	pack.protection.obfuscation
 Pack.upload.polymath.server	pack.upload.polymath.server
 Pack.upload.polymath.secret	pack.upload.polymath.secret
 Pack.upload.lobfile.api-key	pack.upload.lobfile.api-key

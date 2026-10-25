@@ -26,8 +26,8 @@ class SettingsMigrationTest {
     Path temporaryDirectory;
 
     @Test
-    void migratesEveryLeafOfCustomized12210Settings() throws Exception {
-        YamlConfiguration settings = resource("/configs/settings-1.221.0.yml");
+    void migratesEveryLeafOfCustomized12201Settings() throws Exception {
+        YamlConfiguration settings = resource("/configs/settings-1.220.1.yml");
         Map<String, Object> oldLeaves = leaves(settings);
         Map<String, String> paths = migrationPaths();
 
@@ -184,7 +184,7 @@ class SettingsMigrationTest {
 
     @Test
     void secondMigrationLeavesSerializedContentAndSavedFileBytesUnchanged() throws Exception {
-        YamlConfiguration settings = resource("/configs/settings-1.221.0.yml");
+        YamlConfiguration settings = resource("/configs/settings-1.220.1.yml");
         assertTrue(SettingsMigration.migrate(settings));
         Path file = temporaryDirectory.resolve("settings.yml");
         settings.save(file.toFile());
@@ -199,6 +199,41 @@ class SettingsMigrationTest {
         assertArrayEquals(firstBytes, Files.readAllBytes(file));
     }
 
+    @Test
+    void migratesProtectionSettingsWithNewestPathPrecedence() {
+        for (boolean intermediateFirst : List.of(false, true)) {
+            YamlConfiguration settings = new YamlConfiguration();
+            if (intermediateFirst) settings.set("pack.obfuscation.type", "SIMPLE");
+            settings.set("Pack.generation.obfuscation.type", "FULL");
+            settings.set("Pack.generation.obfuscation.custom-option", "preserved");
+            if (!intermediateFirst) settings.set("pack.obfuscation.type", "SIMPLE");
+            settings.setComments("pack.obfuscation.type", List.of("Intermediate choice"));
+
+            assertTrue(SettingsMigration.migrate(settings));
+            assertEquals("SIMPLE", settings.getString("pack.protection.obfuscation.type"));
+            assertEquals("preserved", settings.getString("pack.protection.obfuscation.custom-option"));
+            assertEquals(List.of("Intermediate choice"), settings.getComments("pack.protection.obfuscation.type"));
+            assertFalse(settings.contains("Pack", true));
+            assertFalse(settings.contains("pack.obfuscation", true));
+
+            settings.set("Pack.generation.obfuscation.type", "FULL");
+            settings.set("pack.obfuscation.type", "SIMPLE");
+            settings.set("pack.protection.obfuscation.type", "NONE");
+            settings.set("pack.protection.size-spoofing", true);
+            assertTrue(SettingsMigration.migrate(settings));
+            assertEquals("NONE", settings.getString("pack.protection.obfuscation.type"));
+            assertTrue(settings.getBoolean("pack.protection.size-spoofing"));
+            assertFalse(SettingsMigration.migrate(settings));
+        }
+    }
+
+    @Test
+    void protectionDefaultsDisableSizeSpoofingAndObfuscation() throws Exception {
+        YamlConfiguration defaults = resource("/settings.yml");
+        assertEquals(false, defaults.get(Settings.PACK_SIZE_SPOOFING.getPath()));
+        assertEquals("NONE", defaults.get(Settings.PACK_OBFUSCATION_TYPE.getPath()));
+        assertFalse(defaults.contains("pack.obfuscation", true));
+    }
     private static YamlConfiguration resource(String path) throws Exception {
         try (var input = Objects.requireNonNull(SettingsMigrationTest.class.getResourceAsStream(path));
              var reader = new InputStreamReader(input, StandardCharsets.UTF_8)) {

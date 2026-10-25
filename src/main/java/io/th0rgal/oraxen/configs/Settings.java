@@ -88,7 +88,8 @@ public enum Settings {
     ATLAS_GENERATION_TYPE("pack.generation.atlas.type"),
     GENERATE_MODEL_BASED_ON_TEXTURE_PATH("pack.generation.auto-generated-models-follow-texture-path"),
     COMPRESSION("pack.compression"),
-    PACK_OBFUSCATION_TYPE("pack.obfuscation.type"),
+    PACK_OBFUSCATION_TYPE("pack.protection.obfuscation.type"),
+    PACK_SIZE_SPOOFING("pack.protection.size-spoofing"),
     // 1.21.4+ appearance systems (can be combined)
     APPEARANCE_ITEM_PROPERTIES("pack.generation.model-definitions"),
     APPEARANCE_MODEL_DATA_IDS("pack.generation.model-data.ids"),
