@@ -63,8 +63,10 @@ public class BackpackListener implements Listener {
     public void onPlayerSwapHandItems(final PlayerSwapHandItemsEvent event) {
         Player player = event.getPlayer();
         if (!isBackpack(event.getOffHandItem()) && !isBackpack(event.getMainHandItem())) return;
-        if (!(InventoryUtils.topInventoryForPlayer(player).getHolder() instanceof StorageGui gui)) return;
-        gui.close(player, true);
+        if (!(InventoryUtils.topInventoryForPlayer(player).getHolder() instanceof StorageGui)) return;
+        // The swap event already holds copies with the old backpack contents.
+        event.setCancelled(true);
+        player.closeInventory();
     }
 
     // Prevent dropping backpacks while the backpack GUI is open to avoid duplication
@@ -86,7 +88,7 @@ public class BackpackListener implements Listener {
         openBackpack(player);
     }
 
-    private StorageGui createGUI(BackpackMechanic mechanic, ItemStack backpack) {
+    private StorageGui createGUI(BackpackMechanic mechanic, ItemStack backpack, int backpackSlot) {
         ItemMeta backpackMeta = backpack.getItemMeta();
         if (!isBackpack(backpack) || backpackMeta == null) return null;
         PersistentDataContainer pdc = backpackMeta.getPersistentDataContainer();
@@ -133,8 +135,14 @@ public class BackpackListener implements Listener {
 
         gui.setCloseGuiAction(event -> {
             Player player = (Player) event.getPlayer();
-            pdc.set(BACKPACK_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents());
-            backpack.setItemMeta(backpackMeta);
+            // A cancelled drop can restore a different ItemStack to this slot.
+            ItemStack currentBackpack = player.getInventory().getItem(backpackSlot);
+            if (currentBackpack == null || !currentBackpack.isSimilar(backpack)) return;
+            ItemMeta currentMeta = currentBackpack.getItemMeta();
+            if (currentMeta == null) return;
+            currentMeta.getPersistentDataContainer().set(BACKPACK_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents());
+            currentBackpack.setItemMeta(currentMeta);
+            player.getInventory().setItem(backpackSlot, currentBackpack);
             if (mechanic.hasCloseSound())
                 AdventureUtils.playSound(player.getLocation(), mechanic.getCloseSound(), Sound.Source.MASTER, mechanic.getVolume(), mechanic.getPitch());
         });
@@ -149,7 +157,7 @@ public class BackpackListener implements Listener {
     private void openBackpack(Player player) {
         ItemStack itemInHand = player.getInventory().getItemInMainHand();
         BackpackMechanic mechanic = (BackpackMechanic) factory.getMechanic(OraxenItems.getIdByItem(itemInHand));
-        StorageGui gui = createGUI(mechanic, itemInHand);
+        StorageGui gui = createGUI(mechanic, itemInHand.clone(), player.getInventory().getHeldItemSlot());
         if (gui == null) return;
         gui.open(player);
     }
@@ -157,7 +165,7 @@ public class BackpackListener implements Listener {
     private void closeBackpack(Player player) {
         InventoryHolder holder = InventoryUtils.topInventoryForPlayer(player).getHolder();
         if (!isBackpack(player.getInventory().getItemInMainHand())) return;
-        if (holder instanceof StorageGui gui)
-            gui.close(player, true);
+        if (holder instanceof StorageGui)
+            player.closeInventory();
     }
 }
