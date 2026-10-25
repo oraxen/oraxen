@@ -26,11 +26,16 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
 import static io.th0rgal.oraxen.mechanics.provided.misc.backpack.BackpackMechanic.BACKPACK_KEY;
 
 public class BackpackListener implements Listener {
 
     private final BackpackMechanicFactory factory;
+    private final Map<UUID, StorageGui> openBackpacks = new ConcurrentHashMap<>();
 
     public BackpackListener(BackpackMechanicFactory factory) {
         this.factory = factory;
@@ -46,6 +51,7 @@ public class BackpackListener implements Listener {
     @EventHandler
     public void onPlayerDisconnect(final PlayerQuitEvent event) {
         closeBackpack(event.getPlayer());
+        openBackpacks.remove(event.getPlayer().getUniqueId());
     }
 
     @EventHandler(priority = EventPriority.HIGH)
@@ -83,7 +89,8 @@ public class BackpackListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onPickupItem(final EntityPickupItemEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
-        if (!(InventoryUtils.topInventoryForPlayer(player).getHolder() instanceof StorageGui)) return;
+        StorageGui gui = openBackpacks.get(player.getUniqueId());
+        if (gui == null || InventoryUtils.topInventoryForPlayer(player).getHolder() != gui) return;
         closeBackpack(player);
         openBackpack(player);
     }
@@ -127,6 +134,7 @@ public class BackpackListener implements Listener {
 
         gui.setOpenGuiAction(event -> {
             Player player = (Player) event.getPlayer();
+            openBackpacks.put(player.getUniqueId(), gui);
             ItemStack[] contents = pdc.get(BACKPACK_KEY, DataType.ITEM_STACK_ARRAY);
             if (contents != null) gui.getInventory().setContents(contents);
             if (mechanic.hasOpenSound())
@@ -135,6 +143,7 @@ public class BackpackListener implements Listener {
 
         gui.setCloseGuiAction(event -> {
             Player player = (Player) event.getPlayer();
+            openBackpacks.remove(player.getUniqueId(), gui);
             // A cancelled drop can restore a different ItemStack to this slot.
             ItemStack currentBackpack = player.getInventory().getItem(backpackSlot);
             if (currentBackpack == null || !currentBackpack.isSimilar(backpack)) return;

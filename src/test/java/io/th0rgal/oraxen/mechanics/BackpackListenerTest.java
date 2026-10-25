@@ -39,6 +39,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static io.th0rgal.oraxen.mechanics.provided.misc.backpack.BackpackMechanic.BACKPACK_KEY;
@@ -52,6 +53,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -140,6 +142,41 @@ class BackpackListenerTest extends MechanicTestSupport {
         }
     }
 
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void pickupDoesNotReplaceUnrelatedStorageWhileHoldingBackpack(boolean previouslyOpenedBackpack) {
+        try (BackpackFixture fixture = new BackpackFixture();
+             MockedStatic<InventoryUtils> inventories = mockStatic(InventoryUtils.class)) {
+            if (previouslyOpenedBackpack) fixture.open();
+            Inventory unrelatedStorage = mock(Inventory.class);
+            when(unrelatedStorage.getHolder()).thenReturn(mock(StorageGui.class));
+            inventories.when(() -> InventoryUtils.topInventoryForPlayer(fixture.player)).thenReturn(unrelatedStorage);
+
+            fixture.listener.onPickupItem(new EntityPickupItemEvent(fixture.player, mock(Item.class), 0));
+
+            verify(fixture.player, never()).closeInventory();
+            verify(fixture.builder, times(previouslyOpenedBackpack ? 1 : 0)).create();
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void pickupDoesNotRefreshClosedBackpack(boolean originalSlotMatches) {
+        try (BackpackFixture fixture = new BackpackFixture();
+             MockedStatic<InventoryUtils> inventories = mockStatic(InventoryUtils.class)) {
+            fixture.open();
+            when(fixture.original.isSimilar(fixture.snapshot)).thenReturn(true);
+            if (!originalSlotMatches) when(fixture.inventory.getItem(0)).thenReturn(null);
+            fixture.closeBackpack();
+            inventories.when(() -> InventoryUtils.topInventoryForPlayer(fixture.player)).thenReturn(fixture.contents);
+
+            fixture.listener.onPickupItem(new EntityPickupItemEvent(fixture.player, mock(Item.class), 0));
+
+            verify(fixture.player, never()).closeInventory();
+            verify(fixture.builder, times(1)).create();
+        }
+    }
+
     @Test
     void pickupRefreshReopensWithSavedWithdrawals() {
         try (BackpackFixture fixture = new BackpackFixture();
@@ -214,6 +251,7 @@ class BackpackListenerTest extends MechanicTestSupport {
             when(mechanic.getTitle()).thenReturn("Backpack");
             when(mechanic.getRows()).thenReturn(3);
             when(player.getInventory()).thenReturn(inventory);
+            when(player.getUniqueId()).thenReturn(UUID.randomUUID());
             when(inventory.getItemInMainHand()).thenReturn(original);
             when(inventory.getItem(0)).thenReturn(original);
             when(original.clone()).thenReturn(snapshot);
