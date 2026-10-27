@@ -60,11 +60,17 @@ public class VirtualFile implements Comparable<VirtualFile> {
     }
 
     public void setPath(String newPath) {
-        String newParent = newPath.substring(0, newPath.lastIndexOf("/"));
+        int lastSlash = newPath.lastIndexOf('/');
+        if (lastSlash < 0) {
+            this.parentFolder = "";
+            this.name = newPath;
+            return;
+        }
+        String newParent = newPath.substring(0, lastSlash);
         this.parentFolder = SystemUtils.IS_OS_WINDOWS
                 ? newParent.replace("\\", "/")
                 : newParent;
-        this.name = newPath.substring(newPath.lastIndexOf("/") + 1);
+        this.name = newPath.substring(lastSlash + 1);
     }
 
     @Override
