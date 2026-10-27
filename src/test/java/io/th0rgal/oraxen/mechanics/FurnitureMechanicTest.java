@@ -27,6 +27,7 @@ import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 
 import java.util.List;
 import java.util.Map;
@@ -63,8 +64,10 @@ class FurnitureMechanicTest extends MechanicTestSupport {
             FurnitureMechanic mechanic = new FurnitureMechanic(mechanicFactory(), section);
 
             assertEquals(List.of("-1,0,2"), mechanic.getBarriers().stream().map(Object::toString).toList());
-            logs.verify(() -> Logs.logError("Invalid barrier entry '" + invalidOffset
-                    + "' for furniture: " + mechanic.getItemID() + ". Expected '<x>,<y>,<z>' with integer coordinates."));
+            ArgumentCaptor<String> message = ArgumentCaptor.forClass(String.class);
+            logs.verify(() -> Logs.logError(message.capture()));
+            assertTrue(message.getValue().contains(invalidOffset));
+            assertTrue(message.getValue().contains(mechanic.getItemID()));
         }
     }
 

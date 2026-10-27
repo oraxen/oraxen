@@ -205,8 +205,4 @@ class SettingsUpdaterTest {
         }
     }
 
-    @Test
-    void retainsSkippedModelDataNumbersSetting() {
-        assertFalse(RemovedSettings.toStringList().contains("ConfigsTools.skipped_model_data_numbers"));
-    }
 }

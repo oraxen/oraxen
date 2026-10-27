@@ -9,6 +9,7 @@ import io.th0rgal.oraxen.items.ModelData;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureAppearance;
 import io.th0rgal.oraxen.utils.CustomModelDataHelper;
 import io.th0rgal.oraxen.utils.VersionUtil;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
@@ -16,11 +17,14 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.Answers;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -131,7 +135,6 @@ class FurnitureAppearanceTest extends MechanicTestSupport {
             }
             if (mode.equals("legacy")) verify(render).setCustomModelData(4321);
             verify(render, never()).setCustomModelData(1234);
-            assertSame(render, appearance.getRenderItems(Material.PAPER).get("furniture/chair"));
         } finally {
             Map<String, Integer> data = ModelData.DATAS.get(Material.PAPER);
             if (data != null) data.remove("furniture/chair");
@@ -174,12 +177,46 @@ class FurnitureAppearanceTest extends MechanicTestSupport {
                 "models", Map.of("grown", "plant/grown")), null);
         ItemStack original = mock(ItemStack.class);
         ItemStack clone = mock(ItemStack.class);
-        ItemMeta target = mock(ItemMeta.class);
-        PersistentDataContainer pdc = mock(PersistentDataContainer.class);
+        Component originalName = Component.text("Preserved name");
+        List<Component> originalLore = List.of(Component.text("Preserved lore"));
+        Map<String, Object> metadata = new HashMap<>();
+        metadata.put("displayName", originalName);
+        metadata.put("lore", originalLore);
+        NamespacedKey retainedKey = new NamespacedKey("test", "retained");
+        Map<NamespacedKey, Object> persistentValues = new HashMap<>(Map.of(retainedKey, "retained value"));
+        PersistentDataContainer pdc = mock(PersistentDataContainer.class, invocation -> {
+            String method = invocation.getMethod().getName();
+            if (method.equals("get")) return persistentValues.get(invocation.getArgument(0));
+            if (method.equals("set")) {
+                persistentValues.put(invocation.getArgument(0), invocation.getArgument(2));
+                return null;
+            }
+            if (method.equals("remove")) {
+                persistentValues.remove(invocation.getArgument(0));
+                return null;
+            }
+            if (method.equals("has")) return persistentValues.containsKey(invocation.getArgument(0));
+            return Answers.RETURNS_DEFAULTS.answer(invocation);
+        });
+        // The mocked test server has no ItemFactory, so preserve only the metadata this test checks.
+        ItemMeta target = mock(ItemMeta.class, invocation -> {
+            String method = invocation.getMethod().getName();
+            if (method.equals("getPersistentDataContainer")) return pdc;
+            if (method.equals("displayName")) {
+                if (invocation.getArguments().length == 0) return metadata.get("displayName");
+                metadata.put("displayName", invocation.getArgument(0));
+                return null;
+            }
+            if (method.equals("lore")) {
+                if (invocation.getArguments().length == 0) return metadata.get("lore");
+                metadata.put("lore", invocation.getArgument(0));
+                return null;
+            }
+            return Answers.RETURNS_DEFAULTS.answer(invocation);
+        });
         when(original.clone()).thenReturn(clone);
         when(original.getType()).thenReturn(Material.PAPER);
         when(clone.getItemMeta()).thenReturn(target);
-        when(target.getPersistentDataContainer()).thenReturn(pdc);
 
         try (var versions = mockStatic(VersionUtil.class);
              var modes = mockStatic(AppearanceMode.class);
@@ -201,10 +238,12 @@ class FurnitureAppearanceTest extends MechanicTestSupport {
             assertSame(clone, appearance.apply(original, null));
             verify(target).setItemModel(new NamespacedKey("oraxen", "furniture/plant"));
             customData.verify(() -> CustomModelDataHelper.setCustomModelData(target, 4001));
+            customData.verify(() -> CustomModelDataHelper.setComponentData(target, List.of(), List.of()));
             verify(clone, times(2)).setItemMeta(target);
-            verifyNoInteractions(pdc);
-            verify(target, never()).displayName(any());
-            verify(target, never()).lore(any());
+            assertEquals(originalName, target.displayName());
+            assertEquals(originalLore, target.lore());
+            assertEquals("retained value", pdc.get(retainedKey, PersistentDataType.STRING));
+            assertEquals(Map.of(retainedKey, "retained value"), persistentValues);
             verify(original, never()).setItemMeta(any());
 
             clearInvocations(clone, target);

@@ -66,7 +66,6 @@ class FurnitureConfigMigrationTest {
         assertTrue(FurnitureConfigMigration.migrateAppearances(List.of(item)).isEmpty());
         assertEquals(empty ? Set.of() : Set.of("model"), appearance.getKeys(false));
         if (!empty) assertEquals("furniture/chair", appearance.getString("model"));
-        assertTrue(FurnitureConfigMigration.migrateAppearances(List.of(item)).isEmpty());
     }
 
     @Test

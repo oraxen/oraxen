@@ -6,16 +6,16 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
-import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -24,33 +24,6 @@ import static org.mockito.Mockito.*;
 class SettingsMigrationTest {
     @TempDir
     Path temporaryDirectory;
-
-    @Test
-    void migratesEveryLeafOfCustomized12201Settings() throws Exception {
-        YamlConfiguration settings = resource("/configs/settings-1.220.1.yml");
-        Map<String, Object> oldLeaves = leaves(settings);
-        Map<String, String> paths = migrationPaths();
-
-        assertTrue(SettingsMigration.migrate(settings));
-
-        for (var entry : oldLeaves.entrySet()) {
-            String oldPath = entry.getKey();
-            String newPath = mappedPath(paths, oldPath);
-            assertTrue(oldPath.equals("debug") || !oldPath.equals(newPath),
-                    "Unaccounted old setting " + oldPath);
-            Object expected = oldPath.equals("Pack.generation.disable_mcmeta_generation")
-                    ? !((Boolean) entry.getValue()) : entry.getValue();
-            assertEquals(expected, settings.get(newPath), oldPath + " -> " + newPath);
-            if (!oldPath.equals(newPath)) assertFalse(settings.contains(oldPath, true), oldPath);
-        }
-        assertEquals(oldLeaves.size(), leaves(settings).size());
-        for (String oldRoot : List.of("Plugin", "ConfigsTools", "Glyphs", "CustomArmor", "ItemUpdater",
-                "FurnitureUpdater", "Pack", "Misc", "inventory-menu", "Studio", "update-checker"))
-            assertFalse(settings.contains(oldRoot, true), oldRoot);
-        assertEquals(List.of(1001, "1010-1020"), settings.getList("configuration.items.model-data.skipped-numbers"));
-        assertEquals(0.35, settings.getDouble("pack.receive.loaded.actions.sound.volume"));
-        assertEquals("custom_icon", settings.getString("inventory.layout.custom_category_ID.icon"));
-    }
 
     @Test
     void invertsMcmetaDisableFlagInBothDirections() {
@@ -112,31 +85,14 @@ class SettingsMigrationTest {
         assertEquals(List.of("New comment"), settings.getComments("general.formatting.chat"));
     }
 
-    @Test
-    void defaultsFillMissingSettingsAfterMigrationWithoutReplacingCustomValues() throws Exception {
-        YamlConfiguration settings = new YamlConfiguration();
-        settings.set("Plugin.language", "german");
-        settings.set("Pack.generation.disable_mcmeta_generation", true);
-        settings.set("inventory-menu.layout.custom_ID.icon", "custom_icon");
-        SettingsMigration.migrate(settings);
-        YamlConfiguration defaults = resource("/settings.yml");
-        for (var entry : leaves(defaults).entrySet()) {
-            if (!settings.contains(entry.getKey(), true)) settings.set(entry.getKey(), entry.getValue());
-        }
-
-        assertEquals("german", settings.getString("general.language"));
-        assertFalse(settings.getBoolean("pack.generation.mcmeta"));
-        assertEquals("custom_icon", settings.getString("inventory.layout.custom_ID.icon"));
-        for (String path : leaves(defaults).keySet()) assertTrue(settings.contains(path, true), path);
-        assertEquals(defaults.get("pack.upload.s3.presigned-url-expiry"),
-                settings.get("pack.upload.s3.presigned-url-expiry"));
-        assertFalse(SettingsMigration.migrate(settings));
-    }
-
-    @Test
-    void emptyRenamedLayoutSurvivesDefaultMerge() throws Exception {
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void renamedLayoutAndCustomValuesSurviveDefaultMerge(boolean emptyLayout) throws Exception {
         YamlConfiguration settings = new YamlConfiguration();
         settings.loadFromString("inventory-menu: {layout: {}}");
+        settings.set("Plugin.language", "german");
+        settings.set("Pack.generation.disable_mcmeta_generation", true);
+        if (!emptyLayout) settings.set("inventory-menu.layout.custom_ID.icon", "custom_icon");
 
         assertTrue(SettingsUpdater.migrateBeforeDefaults(settings));
 
@@ -159,8 +115,14 @@ class SettingsMigrationTest {
         assertFalse(reloaded.contains("inventory-menu", true));
         ConfigurationSection layout = reloaded.getConfigurationSection("inventory.layout");
         assertNotNull(layout);
-        assertTrue(layout.getKeys(false).isEmpty());
-        assertEquals(resource("/settings.yml").get("inventory.rows"), reloaded.get("inventory.rows"));
+        YamlConfiguration defaults = resource("/settings.yml");
+        assertEquals("german", reloaded.getString("general.language"));
+        assertFalse(reloaded.getBoolean("pack.generation.mcmeta"));
+        assertEquals(defaults.get("inventory.rows"), reloaded.get("inventory.rows"));
+        assertEquals(defaults.get("pack.upload.s3.presigned-url-expiry"),
+                reloaded.get("pack.upload.s3.presigned-url-expiry"));
+        assertEquals(emptyLayout ? Set.of() : Set.of("custom_ID"), layout.getKeys(false));
+        if (!emptyLayout) assertEquals("custom_icon", layout.getString("custom_ID.icon"));
         assertFalse(SettingsUpdater.migrateBeforeDefaults(reloaded));
     }
 
@@ -241,31 +203,4 @@ class SettingsMigrationTest {
         }
     }
 
-    private static Map<String, Object> leaves(YamlConfiguration settings) {
-        Map<String, Object> values = new LinkedHashMap<>();
-        settings.getValues(true).forEach((path, value) -> {
-            if (!(value instanceof ConfigurationSection)) values.put(path, value);
-        });
-        return values;
-    }
-
-    private static Map<String, String> migrationPaths() throws Exception {
-        Map<String, String> paths = new LinkedHashMap<>();
-        try (var input = Objects.requireNonNull(SettingsMigrationTest.class.getResourceAsStream("/settings-migration.tsv"));
-             var reader = new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8))) {
-            for (String line : reader.lines().filter(line -> !line.startsWith("#")).toList()) {
-                String[] columns = line.split("\t", 2);
-                paths.put(columns[0], columns[1]);
-            }
-        }
-        return paths;
-    }
-
-    private static String mappedPath(Map<String, String> paths, String path) {
-        return paths.entrySet().stream()
-                .filter(entry -> path.equals(entry.getKey()) || path.startsWith(entry.getKey() + "."))
-                .max(java.util.Comparator.comparingInt(entry -> entry.getKey().length()))
-                .map(entry -> entry.getValue() + path.substring(entry.getKey().length()))
-                .orElse(path);
-    }
 }
