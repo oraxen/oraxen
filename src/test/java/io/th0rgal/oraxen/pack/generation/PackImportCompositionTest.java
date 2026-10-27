@@ -105,6 +105,54 @@ class PackImportCompositionTest {
         assertTrue(overlap.has("higherOverlay"));
     }
 
+    @Test void preservesNativeOverlayMetadataAndAssetsWhenMcmetaGenerationIsDisabled() throws Exception {
+        settings.set(Settings.GENERATE_MCMETA.getPath(), false);
+        Settings.invalidateCache();
+        String resource = "assets/test/lang/en_us.json";
+        write("imported", Map.of(
+                "pack.mcmeta", metadata("imported_overlay", 46, 80),
+                resource, "{\"importBase\":\"yes\"}",
+                "imported_overlay/" + resource, "{\"importOverlay\":\"yes\"}"));
+
+        String localMetadata = """
+                {
+                  "pack": {"pack_format": 75, "description": "Custom pack"},
+                  "custom_metadata": {"keep": true},
+                  "overlays": {"custom_property": "keep", "entries": [
+                    {"directory": "user_overlay", "formats": [60, 70], "custom_entry": "keep"}
+                  ]}
+                }
+                """;
+        List<VirtualFile> localFiles = List.of(
+                vfile("pack.mcmeta", localMetadata),
+                vfile(resource, "{\"localBase\":\"yes\"}"),
+                vfile("user_overlay/" + resource, "{\"userOverlay\":\"yes\"}"));
+
+        PackMerger merger = new PackMerger(tempDir.toFile());
+        merger.mergeUploadedPacks();
+        Map<String, String> files = contents(merger.mergeWithHigherPriorityFiles(
+                localFiles, !Settings.GENERATE_MCMETA.toBool()));
+
+        assertEquals("{\"userOverlay\":\"yes\"}", files.get("user_overlay/" + resource));
+        JsonArray compiledEntries = merger.getMergedOverlayEntries();
+        JsonObject importedVersion = active(files, compiledEntries, 50);
+        assertTrue(importedVersion.has("importOverlay"));
+        assertFalse(importedVersion.has("userOverlay"));
+        JsonObject localVersion = active(files, compiledEntries, 65);
+        assertTrue(localVersion.has("importOverlay"));
+        assertTrue(localVersion.has("userOverlay"));
+
+        JsonObject finalMetadata = JsonParser.parseString(localMetadata).getAsJsonObject();
+        PackMcmetaUtils.appendOverlayEntries(finalMetadata, compiledEntries);
+        assertEquals(JsonParser.parseString("{\"keep\":true}"), finalMetadata.getAsJsonObject("custom_metadata"));
+        JsonObject overlays = finalMetadata.getAsJsonObject("overlays");
+        assertEquals("keep", overlays.get("custom_property").getAsString());
+        JsonArray finalEntries = overlays.getAsJsonArray("entries");
+        assertEquals("user_overlay", finalEntries.get(0).getAsJsonObject().get("directory").getAsString());
+        assertEquals("keep", finalEntries.get(0).getAsJsonObject().get("custom_entry").getAsString());
+        assertTrue(finalEntries.size() > 1);
+    }
+
     @Test void distinguishesEmbeddedPacksFromDeclaredOverlaysAndScopesFilters() throws Exception {
         Map<String, String> entries = new LinkedHashMap<>();
         entries.put("wrapper/pack.mcmeta", metadata("overlay", 46, 80));

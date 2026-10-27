@@ -1450,6 +1450,7 @@ public class ResourcePack {
     }
 
     private void mergeUploadedPacks(List<VirtualFile> output) {
+        boolean preserveNativeOverlays = isMcmetaGenerationDisabled();
         PackMerger packMerger = new PackMerger(packFolder);
         packMerger.setConvertLegacyItemModels(multiVersionResolved
                 || (VersionUtil.atOrAbove("1.21.4") && AppearanceMode.shouldGenerateVanillaItemDefinitions()));
@@ -1467,7 +1468,7 @@ public class ResourcePack {
             }
         }
         PackPipeline.mergeNativeFiles(output, !Boolean.FALSE.equals(Settings.MERGE_DUPLICATE_FONTS.getValue()));
-        List<VirtualFile> resolvedFiles = packMerger.mergeWithHigherPriorityFiles(output);
+        List<VirtualFile> resolvedFiles = packMerger.mergeWithHigherPriorityFiles(output, preserveNativeOverlays);
         output.removeIf(file -> file.getPath().startsWith("assets/") || file.getPath().contains("/assets/")
                 || file.getPath().equals("pack.png"));
         output.addAll(resolvedFiles);
@@ -1478,9 +1479,13 @@ public class ResourcePack {
             if (!languages.isEmpty()) metadata.add("language", languages);
             JsonObject filters = packMerger.getMergedFilterMetadata();
             if (!filters.isEmpty()) metadata.add("filter", filters);
-            JsonObject overlays = new JsonObject();
-            overlays.add("entries", packMerger.getMergedOverlayEntries());
-            metadata.add("overlays", overlays);
+            if (preserveNativeOverlays) {
+                PackMcmetaUtils.appendOverlayEntries(metadata, packMerger.getMergedOverlayEntries());
+            } else {
+                JsonObject overlays = new JsonObject();
+                overlays.add("entries", packMerger.getMergedOverlayEntries());
+                metadata.add("overlays", overlays);
+            }
             file.setInputStream(new ByteArrayInputStream(metadata.toString().getBytes(StandardCharsets.UTF_8)));
         }
     }

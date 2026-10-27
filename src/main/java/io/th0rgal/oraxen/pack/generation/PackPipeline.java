@@ -24,6 +24,7 @@ final class PackPipeline {
                     || !file.isJsonObject()) continue;
             JsonObject higher = file.toJsonObject();
             if (higher == null) continue;
+            if (path.contains("/lang/") && !validLocale(higher)) continue;
             JsonObject lower = merged.get(path);
             merged.put(path, lower == null ? higher : PackAssetMerger.mergeJson(path, lower, higher));
         }
@@ -41,6 +42,10 @@ final class PackPipeline {
         }
         files.clear();
         files.addAll(result);
+    }
+
+    private static boolean validLocale(JsonObject locale) {
+        return locale.entrySet().stream().allMatch(entry -> entry.getValue().isJsonPrimitive());
     }
 
     static JsonObject languageWithDefaults(JsonObject defaults, JsonObject locale) {

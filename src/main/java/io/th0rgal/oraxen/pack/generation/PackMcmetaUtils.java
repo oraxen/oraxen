@@ -217,6 +217,31 @@ public class PackMcmetaUtils {
         mcmeta.add("overlays", overlays);
     }
 
+    /**
+     * Appends compiled import overlays after the entries declared by the pack author.
+     * The compiled snapshots include the original overlays, so they keep the composed
+     * import behavior while the author's declarations and entry fields stay unchanged.
+     */
+    public static void appendOverlayEntries(JsonObject mcmeta, JsonArray additionalEntries) {
+        if (additionalEntries == null || additionalEntries.isEmpty()) {
+            return;
+        }
+
+        JsonObject overlays = mcmeta.has("overlays") && mcmeta.get("overlays").isJsonObject()
+                ? mcmeta.getAsJsonObject("overlays").deepCopy()
+                : new JsonObject();
+        JsonArray entries = overlays.has("entries") && overlays.get("entries").isJsonArray()
+                ? overlays.getAsJsonArray("entries").deepCopy()
+                : new JsonArray();
+
+        for (JsonElement entry : additionalEntries) {
+            entries.add(entry.deepCopy());
+        }
+
+        overlays.add("entries", entries);
+        mcmeta.add("overlays", overlays);
+    }
+
     /** Normalize the declaration style for the complete overlay list. */
     public static JsonArray normalizeOverlayEntries(JsonArray entries) {
         JsonArray normalized = entries.deepCopy();

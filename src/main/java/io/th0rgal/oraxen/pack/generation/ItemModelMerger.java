@@ -190,11 +190,21 @@ public final class ItemModelMerger {
     }
 
     public static JsonObject mergeDefinition(JsonObject higher, JsonObject lower) {
-        JsonObject result = lower.deepCopy();
-        higher.entrySet().forEach(e -> result.add(e.getKey(), e.getValue().deepCopy()));
-        if (higher.has("model") && lower.has("model"))
-            result.add("model", mergeModel(higher.getAsJsonObject("model"), lower.getAsJsonObject("model")));
-        return result;
+        try {
+            JsonObject result = lower.deepCopy();
+            higher.entrySet().forEach(e -> result.add(e.getKey(), e.getValue().deepCopy()));
+            if (higher.has("model") && lower.has("model")) {
+                if (!higher.get("model").isJsonObject() || !lower.get("model").isJsonObject()) {
+                    Logs.logWarning("Cannot merge malformed duplicate modern item definitions. Keeping the higher priority definition.");
+                    return higher.deepCopy();
+                }
+                result.add("model", mergeModel(higher.getAsJsonObject("model"), lower.getAsJsonObject("model")));
+            }
+            return result;
+        } catch (RuntimeException exception) {
+            Logs.logWarning("Cannot merge malformed duplicate modern item definitions. Keeping the higher priority definition.");
+            return higher.deepCopy();
+        }
     }
 
     private static boolean selector(JsonObject model) {
@@ -321,29 +331,34 @@ public final class ItemModelMerger {
     }
 
     public static JsonObject mergeLegacy(JsonObject higher, JsonObject lower) {
-        JsonObject result = lower.deepCopy();
-        higher.entrySet().forEach(e -> result.add(e.getKey(), e.getValue().deepCopy()));
-        if (lower.has("textures") && higher.has("textures")) {
-            JsonObject textures = lower.getAsJsonObject("textures").deepCopy();
-            higher.getAsJsonObject("textures").entrySet().forEach(e -> textures.add(e.getKey(), e.getValue().deepCopy()));
-            result.add("textures", textures);
+        try {
+            JsonObject result = lower.deepCopy();
+            higher.entrySet().forEach(e -> result.add(e.getKey(), e.getValue().deepCopy()));
+            if (lower.has("textures") && higher.has("textures")) {
+                JsonObject textures = lower.getAsJsonObject("textures").deepCopy();
+                higher.getAsJsonObject("textures").entrySet().forEach(e -> textures.add(e.getKey(), e.getValue().deepCopy()));
+                result.add("textures", textures);
+            }
+            List<JsonObject> overrides = new ArrayList<>();
+            for (JsonObject source : List.of(lower, higher)) if (source.has("overrides"))
+                for (JsonElement entry : source.getAsJsonArray("overrides"))
+                    if (entry.isJsonObject() && entry.getAsJsonObject().has("predicate")) {
+                        overrides.removeIf(existing -> existing.get("predicate").equals(entry.getAsJsonObject().get("predicate")));
+                        overrides.add(entry.getAsJsonObject().deepCopy());
+                    }
+            overrides.sort(Comparator.comparing(e -> {
+                JsonObject predicate = e.getAsJsonObject("predicate");
+                return predicate.has("custom_model_data") ? predicate.get("custom_model_data").getAsBigDecimal() : java.math.BigDecimal.ZERO;
+            }));
+            if (!overrides.isEmpty()) {
+                JsonArray array = new JsonArray();
+                overrides.forEach(array::add);
+                result.add("overrides", array);
+            }
+            return result;
+        } catch (RuntimeException exception) {
+            Logs.logWarning("Cannot merge malformed duplicate legacy item models. Keeping the higher priority model.");
+            return higher.deepCopy();
         }
-        List<JsonObject> overrides = new ArrayList<>();
-        for (JsonObject source : List.of(lower, higher)) if (source.has("overrides"))
-            for (JsonElement entry : source.getAsJsonArray("overrides"))
-                if (entry.isJsonObject() && entry.getAsJsonObject().has("predicate")) {
-                    overrides.removeIf(existing -> existing.get("predicate").equals(entry.getAsJsonObject().get("predicate")));
-                    overrides.add(entry.getAsJsonObject().deepCopy());
-                }
-        overrides.sort(Comparator.comparing(e -> {
-            JsonObject predicate = e.getAsJsonObject("predicate");
-            return predicate.has("custom_model_data") ? predicate.get("custom_model_data").getAsBigDecimal() : java.math.BigDecimal.ZERO;
-        }));
-        if (!overrides.isEmpty()) {
-            JsonArray array = new JsonArray();
-            overrides.forEach(array::add);
-            result.add("overrides", array);
-        }
-        return result;
     }
 }

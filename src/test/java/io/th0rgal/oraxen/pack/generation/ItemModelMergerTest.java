@@ -349,4 +349,64 @@ class ItemModelMergerTest {
         assertEquals(1, merged.getAsJsonArray("models").get(1).getAsJsonObject().getAsJsonArray("cases").size());
         assertEquals("high_default", merged.getAsJsonArray("models").get(1).getAsJsonObject().getAsJsonObject("fallback").get("model").getAsString());
     }
+
+    @Test
+    void malformedModernDuplicateKeepsHigherPriorityDefinition() {
+        JsonObject higher = json("""
+            {"model":{"type":"minecraft:select","property":"minecraft:custom_model_data",
+             "cases":[{"when":"high","model":{"type":"minecraft:model","model":"high_model"}}],
+             "fallback":{"type":"minecraft:model","model":"high_default"}},"higher":"kept"}
+            """);
+        JsonObject malformedLower = json("""
+            {"model":{"type":"minecraft:select","property":"minecraft:custom_model_data",
+             "cases":[{"model":{"type":"minecraft:model","model":"broken"}}],
+             "fallback":{"type":"minecraft:model","model":"low_default"}},"lower":"discarded"}
+            """);
+
+        try (MockedStatic<Logs> logs = mockStatic(Logs.class)) {
+            assertEquals(higher, ItemModelMerger.mergeDefinition(higher, malformedLower));
+        }
+    }
+
+    @Test
+    void malformedLegacyDuplicateKeepsHigherPriorityModel() {
+        JsonObject higher = json("""
+            {"parent":"item/handheld","overrides":[{"predicate":{"custom_model_data":2},"model":"high_model"}]}
+            """);
+        JsonObject malformedLower = json("""
+            {"parent":"item/generated","overrides":{"invalid":"shape"}}
+            """);
+
+        try (MockedStatic<Logs> logs = mockStatic(Logs.class)) {
+            assertEquals(higher, ItemModelMerger.mergeLegacy(higher, malformedLower));
+        }
+    }
+
+    @Test
+    void malformedHigherPriorityModernModelKeepsTheHigherDefinitionUnchanged() {
+        JsonObject higher = json("""
+            {"model":"broken","higher":"kept"}
+            """);
+        JsonObject lower = json("""
+            {"model":{"type":"minecraft:model","model":"lower_model"},"lower":"discarded"}
+            """);
+
+        try (MockedStatic<Logs> logs = mockStatic(Logs.class)) {
+            assertEquals(higher, ItemModelMerger.mergeDefinition(higher, lower));
+        }
+    }
+
+    @Test
+    void malformedHigherPriorityLegacyModelKeepsTheHigherModelUnchanged() {
+        JsonObject higher = json("""
+            {"parent":"item/handheld","overrides":{"invalid":"shape"}}
+            """);
+        JsonObject lower = json("""
+            {"parent":"item/generated","overrides":[{"predicate":{"custom_model_data":1},"model":"lower_model"}]}
+            """);
+
+        try (MockedStatic<Logs> logs = mockStatic(Logs.class)) {
+            assertEquals(higher, ItemModelMerger.mergeLegacy(higher, lower));
+        }
+    }
 }

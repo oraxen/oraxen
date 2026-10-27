@@ -69,69 +69,162 @@ public final class PackAssetMerger {
     }
 
     private static JsonObject blockstates(JsonObject lower, JsonObject higher) {
-        if (higher.has("multipart")) return higher.get("multipart").isJsonArray() ? higher.deepCopy() : lower.deepCopy();
-        if (!higher.has("variants") || !higher.get("variants").isJsonObject()) return lower.deepCopy();
-        if ((!lower.has("variants") || !lower.get("variants").isJsonObject())
-                && (!lower.has("multipart") || !lower.get("multipart").isJsonArray())) return higher.deepCopy();
+        if (higher.has("multipart") && !higher.get("multipart").isJsonArray()) return lower.deepCopy();
+        if (!higher.has("multipart") && higher.has("variants") && !higher.get("variants").isJsonObject())
+            return lower.deepCopy();
+        if (!hasBlockstateRules(higher)) return lower.deepCopy();
+        if (!hasBlockstateRules(lower)) return higher.deepCopy();
+
         JsonArray parts = new JsonArray();
-        List<JsonObject> exclusions = new ArrayList<>();
-        List<JsonObject> sources = new ArrayList<>();
-        sources.add(higher.getAsJsonObject("variants"));
-        if (lower.has("variants") && lower.get("variants").isJsonObject()) sources.add(lower.getAsJsonObject("variants"));
-        for (JsonObject source : sources) {
-            for (var entry : source.entrySet()) {
-                JsonObject selector = selector(entry.getKey());
-                if (selector == null || !entry.getValue().isJsonObject() && !entry.getValue().isJsonArray()) continue;
-                JsonArray conditions = new JsonArray();
-                if (!selector.isEmpty()) conditions.add(selector);
-                if (addExclusions(conditions, exclusions)) {
-                    JsonObject part = new JsonObject();
-                    if (!conditions.isEmpty()) {
-                        JsonObject when = new JsonObject();
-                        when.add("AND", conditions);
-                        part.add("when", when);
-                    }
-                    part.add("apply", entry.getValue().deepCopy());
-                    parts.add(part);
-                }
-                exclusions.add(selector);
-            }
-        }
-        if (lower.has("multipart") && lower.get("multipart").isJsonArray()) {
-            for (JsonElement value : lower.getAsJsonArray("multipart")) {
-                if (!value.isJsonObject()) continue;
-                JsonObject part = value.getAsJsonObject().deepCopy();
-                JsonArray conditions = new JsonArray();
-                if (part.has("when")) conditions.add(part.get("when").deepCopy());
-                if (addExclusions(conditions, exclusions)) {
-                    JsonObject when = new JsonObject();
-                    when.add("AND", conditions);
-                    part.add("when", when);
-                    parts.add(part);
-                }
-            }
-        }
+
+        List<JsonObject> higherExclusions = new ArrayList<>();
+        List<JsonObject> higherVariantExclusions = new ArrayList<>();
+        addVariants(higher, parts, higherExclusions, higherVariantExclusions);
+        higherExclusions.addAll(higherVariantExclusions);
+        addMultipart(higher, parts, List.of());
+        addMultipartExclusions(higher, higherExclusions);
+
+        List<JsonObject> lowerVariantExclusions = new ArrayList<>();
+        addVariants(lower, parts, higherExclusions, lowerVariantExclusions);
+        addMultipart(lower, parts, higherExclusions);
+
         JsonObject result = new JsonObject();
         result.add("multipart", parts);
         return result;
     }
 
-    /** Adds conditions excluding earlier variants, or returns false if an earlier variant matches every state. */
+    private static boolean hasBlockstateRules(JsonObject blockstate) {
+        if (blockstate.has("variants") && blockstate.get("variants").isJsonObject()) {
+            for (var entry : blockstate.getAsJsonObject("variants").entrySet()) {
+                if (selector(entry.getKey()) != null
+                        && (entry.getValue().isJsonObject() || entry.getValue().isJsonArray())) return true;
+            }
+        }
+        if (blockstate.has("multipart") && blockstate.get("multipart").isJsonArray()) {
+            for (JsonElement value : blockstate.getAsJsonArray("multipart")) {
+                if (value.isJsonObject()) return true;
+            }
+        }
+        return false;
+    }
+
+    private static void addVariants(JsonObject blockstate, JsonArray parts, List<JsonObject> exclusions,
+                                    List<JsonObject> variantExclusions) {
+        if (!blockstate.has("variants") || !blockstate.get("variants").isJsonObject()) return;
+        for (var entry : blockstate.getAsJsonObject("variants").entrySet()) {
+            JsonObject selector = selector(entry.getKey());
+            if (selector == null || !entry.getValue().isJsonObject() && !entry.getValue().isJsonArray()) continue;
+
+            JsonArray conditions = new JsonArray();
+            if (!selector.isEmpty()) conditions.add(selector);
+            List<JsonObject> currentExclusions = new ArrayList<>(exclusions);
+            currentExclusions.addAll(variantExclusions);
+            if (addExclusions(conditions, currentExclusions)) {
+                JsonObject part = new JsonObject();
+                if (!conditions.isEmpty()) {
+                    JsonObject when = new JsonObject();
+                    when.add("AND", conditions);
+                    part.add("when", when);
+                }
+                part.add("apply", entry.getValue().deepCopy());
+                parts.add(part);
+            }
+            variantExclusions.add(selector);
+        }
+    }
+
+    private static void addMultipart(JsonObject blockstate, JsonArray parts, List<JsonObject> exclusions) {
+        if (!blockstate.has("multipart") || !blockstate.get("multipart").isJsonArray()) return;
+        for (JsonElement value : blockstate.getAsJsonArray("multipart")) {
+            if (!value.isJsonObject()) continue;
+            JsonObject part = value.getAsJsonObject().deepCopy();
+            if (!exclusions.isEmpty()) {
+                JsonArray conditions = new JsonArray();
+                if (part.has("when")) conditions.add(part.get("when").deepCopy());
+                if (!addExclusions(conditions, exclusions)) continue;
+                JsonObject when = new JsonObject();
+                when.add("AND", conditions);
+                part.add("when", when);
+            }
+            parts.add(part);
+        }
+    }
+
+    private static void addMultipartExclusions(JsonObject blockstate, List<JsonObject> exclusions) {
+        if (!blockstate.has("multipart") || !blockstate.get("multipart").isJsonArray()) return;
+        for (JsonElement value : blockstate.getAsJsonArray("multipart")) {
+            if (!value.isJsonObject()) continue;
+            JsonObject part = value.getAsJsonObject();
+            JsonObject condition = part.has("when") && part.get("when").isJsonObject()
+                    ? part.getAsJsonObject("when") : part.has("when") ? null : new JsonObject();
+            if (condition != null) exclusions.add(condition);
+        }
+    }
+
+    /** Adds conditions excluding earlier rules, or returns false if an earlier rule matches every state. */
     private static boolean addExclusions(JsonArray conditions, List<JsonObject> exclusions) {
         for (JsonObject exclusion : exclusions) {
-            if (exclusion.isEmpty()) return false;
-            JsonArray alternatives = new JsonArray();
-            exclusion.entrySet().forEach(property -> {
-                JsonObject inverse = new JsonObject();
-                String value = property.getValue().getAsString();
-                inverse.addProperty(property.getKey(), value.startsWith("!") ? value.substring(1) : "!" + value);
-                alternatives.add(inverse);
-            });
-            JsonObject inverse = new JsonObject();
-            inverse.add("OR", alternatives);
+            JsonObject inverse = negateCondition(exclusion);
+            if (inverse == null) return false;
             conditions.add(inverse);
         }
         return true;
+    }
+
+    /** Returns the inverse of a blockstate condition, or null when it can never match. */
+    private static JsonObject negateCondition(JsonObject condition) {
+        if (condition.isEmpty()) return null;
+
+        JsonArray alternatives = new JsonArray();
+        for (var entry : condition.entrySet()) {
+            JsonObject inverse;
+            if (entry.getKey().equals("AND") || entry.getKey().equals("OR")) {
+                if (!entry.getValue().isJsonArray()) return null;
+                inverse = negateGroup(entry.getKey(), entry.getValue().getAsJsonArray());
+            } else {
+                if (!entry.getValue().isJsonPrimitive() || !entry.getValue().getAsJsonPrimitive().isString()) return null;
+                String value = entry.getValue().getAsString();
+                inverse = new JsonObject();
+                inverse.addProperty(entry.getKey(), value.startsWith("!") ? value.substring(1) : "!" + value);
+            }
+            if (inverse == null) continue;
+            if (inverse.isEmpty()) return new JsonObject();
+            alternatives.add(inverse);
+        }
+        if (alternatives.isEmpty()) return null;
+        if (alternatives.size() == 1) return alternatives.get(0).getAsJsonObject();
+        JsonObject inverse = new JsonObject();
+        inverse.add("OR", alternatives);
+        return inverse;
+    }
+
+    private static JsonObject negateGroup(String operator, JsonArray conditions) {
+        JsonArray terms = new JsonArray();
+        boolean and = operator.equals("AND");
+        for (JsonElement value : conditions) {
+            if (!value.isJsonObject()) return null;
+            JsonObject inverse = negateCondition(value.getAsJsonObject());
+            if (and) {
+                if (inverse == null) continue;
+                if (inverse.isEmpty()) return new JsonObject();
+                terms.add(inverse);
+            } else {
+                if (inverse == null) return null;
+                terms.add(inverse);
+            }
+        }
+        if (and) {
+            if (terms.isEmpty()) return null;
+            if (terms.size() == 1) return terms.get(0).getAsJsonObject();
+            JsonObject inverse = new JsonObject();
+            inverse.add("OR", terms);
+            return inverse;
+        }
+        if (terms.isEmpty()) return new JsonObject();
+        if (terms.size() == 1) return terms.get(0).getAsJsonObject();
+        JsonObject inverse = new JsonObject();
+        inverse.add("AND", terms);
+        return inverse;
     }
 
     private static JsonObject selector(String key) {

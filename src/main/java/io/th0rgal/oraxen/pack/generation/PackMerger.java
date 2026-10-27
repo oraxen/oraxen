@@ -179,6 +179,15 @@ public class PackMerger {
 
     /** Compose generated and local resources, including their native overlay replacement rules. */
     public List<VirtualFile> mergeWithHigherPriorityFiles(List<VirtualFile> higherFiles) {
+        return mergeWithHigherPriorityFiles(higherFiles, false);
+    }
+
+    /**
+     * Compose generated and local resources, optionally retaining overlay files declared by
+     * the local pack metadata at their original paths. The compiled snapshots still include
+     * those overlays so imported pack priority and additive-resource composition are unchanged.
+     */
+    public List<VirtualFile> mergeWithHigherPriorityFiles(List<VirtualFile> higherFiles, boolean preserveNativeOverlays) {
         Map<String, byte[]> entries = new TreeMap<>(PATH_ORDER);
         for (VirtualFile file : higherFiles) {
             try (InputStream input = file.getInputStream()) {
@@ -213,8 +222,13 @@ public class PackMerger {
                 exception.printStackTrace();
             }
         }
+        Map<String, byte[]> preservedOverlayFiles = preserveNativeOverlays
+                ? collectDeclaredOverlayFiles(entries)
+                : Collections.emptyMap();
         importEntries(entries, true, false);
-        return buildFiles();
+        List<VirtualFile> result = buildFiles();
+        result.addAll(virtualFiles(preservedOverlayFiles));
+        return result;
     }
 
     private List<VirtualFile> buildFiles() {
@@ -228,6 +242,13 @@ public class PackMerger {
         }
         List<Long> points = new ArrayList<>(boundaries);
         Map<String, byte[]> result = new LinkedHashMap<>(base);
+        Set<String> usedDirectories = new HashSet<>();
+        for (Layer layer : layers) {
+            for (Overlay overlay : layer.overlays) {
+                usedDirectories.add(overlay.declaration.get("directory").getAsString());
+            }
+        }
+        int nextOverlayDirectory = 0;
         for (int index = 0; index < points.size(); index++) {
             long min = points.get(index);
             long max = index + 1 < points.size() ? points.get(index + 1) - 1 : MAX_FORMAT;
@@ -239,15 +260,53 @@ public class PackMerger {
                 if ((PackAssetMerger.isAdditivePath(path) || path.endsWith(".png.mcmeta")) && !snapshot.containsKey(path))
                     snapshot.put(path, emptyResource(path).toString().getBytes(StandardCharsets.UTF_8));
             });
-            String directory = "oraxen_import_" + overlaySnapshots.size();
+            String directory;
+            do {
+                directory = "oraxen_import_" + nextOverlayDirectory++;
+            } while (usedDirectories.contains(directory));
+            usedDirectories.add(directory);
             overlaySnapshots.put(directory, snapshot);
             JsonObject declaration = new JsonObject();
             declaration.addProperty("directory", directory);
             addRange(declaration, min, max);
             mergedOverlayEntries.add(declaration);
-            snapshot.forEach((path, bytes) -> result.put(directory + "/" + path, bytes));
+            String snapshotDirectory = directory;
+            snapshot.forEach((path, bytes) -> result.put(snapshotDirectory + "/" + path, bytes));
         }
         return virtualFiles(result);
+    }
+
+    private static Map<String, byte[]> collectDeclaredOverlayFiles(Map<String, byte[]> entries) {
+        JsonObject metadata = object(entries.get("pack.mcmeta"));
+        if (metadata == null || !metadata.has("overlays") || !metadata.get("overlays").isJsonObject()) {
+            return Collections.emptyMap();
+        }
+
+        JsonElement declarations = metadata.getAsJsonObject("overlays").get("entries");
+        if (declarations == null || !declarations.isJsonArray()) {
+            return Collections.emptyMap();
+        }
+
+        Set<String> directories = new LinkedHashSet<>();
+        for (JsonElement value : declarations.getAsJsonArray()) {
+            if (!value.isJsonObject()) continue;
+            JsonElement directoryValue = value.getAsJsonObject().get("directory");
+            if (directoryValue == null || !directoryValue.isJsonPrimitive()
+                    || !directoryValue.getAsJsonPrimitive().isString()) continue;
+            String directory = directoryValue.getAsString();
+            if (safePath(directory) && !directory.contains("/")) directories.add(directory);
+        }
+
+        Map<String, byte[]> result = new LinkedHashMap<>();
+        for (Map.Entry<String, byte[]> entry : entries.entrySet()) {
+            for (String directory : directories) {
+                if (entry.getKey().startsWith(directory + "/")) {
+                    result.putIfAbsent(entry.getKey(), entry.getValue());
+                    break;
+                }
+            }
+        }
+        return result;
     }
 
     private Map<String, byte[]> resolve(Long version) {
@@ -304,10 +363,14 @@ public class PackMerger {
                 JsonObject high = object(bytes);
                 JsonObject low = object(lower.get(path));
                 if (high != null && low != null) {
-                    if (path.matches("assets/[^/]+/items/.+\\.json"))
-                        bytes = ItemModelMerger.mergeDefinition(high, low).toString().getBytes(StandardCharsets.UTF_8);
-                    else if (path.matches("assets/[^/]+/models/item/.+\\.json"))
-                        bytes = ItemModelMerger.mergeLegacy(high, low).toString().getBytes(StandardCharsets.UTF_8);
+                    try {
+                        if (path.matches("assets/[^/]+/items/.+\\.json"))
+                            bytes = ItemModelMerger.mergeDefinition(high, low).toString().getBytes(StandardCharsets.UTF_8);
+                        else if (path.matches("assets/[^/]+/models/item/.+\\.json"))
+                            bytes = ItemModelMerger.mergeLegacy(high, low).toString().getBytes(StandardCharsets.UTF_8);
+                    } catch (RuntimeException exception) {
+                        Logs.logWarning("Failed to merge duplicate item resource " + path + ". Keeping the higher priority file.");
+                    }
                 }
             }
             lower.put(path, bytes);

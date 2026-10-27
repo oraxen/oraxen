@@ -47,6 +47,20 @@ class PackPipelineTest {
     }
 
     @Test
+    void malformedLowerPriorityLocaleDoesNotPoisonHigherPriorityTranslations() {
+        List<VirtualFile> files = new ArrayList<>(List.of(
+                file("assets/minecraft/lang/en_us.json", "{\"shared\":\"local\"}"),
+                file("assets/minecraft/lang/en_us.json", "{\"imported\":\"yes\",\"broken\":{\"nested\":\"value\"}}")));
+
+        PackPipeline.mergeNativeFiles(files, true);
+
+        assertEquals(1, files.size());
+        assertEquals(json("{\"shared\":\"local\"}"), files.getFirst().toJsonObject());
+        assertTrue(files.getFirst().toJsonObject().entrySet().stream()
+                .allMatch(entry -> entry.getValue().isJsonPrimitive()));
+    }
+
+    @Test
     void soundEventsAppendInPackPriorityOrderAndRespectReplace() {
         List<VirtualFile> files = new ArrayList<>(List.of(
                 file("assets/example/sounds.json", "{\"append\":{\"sounds\":[\"local\"]},\"reset\":{\"replace\":true,\"sounds\":[\"local\"]}}"),
