@@ -182,7 +182,7 @@ public final class PackAssetMerger {
                 if (!entry.getValue().isJsonArray()) return null;
                 inverse = negateGroup(entry.getKey(), entry.getValue().getAsJsonArray());
             } else {
-                if (!entry.getValue().isJsonPrimitive() || !entry.getValue().getAsJsonPrimitive().isString()) return null;
+                if (!entry.getValue().isJsonPrimitive()) return null;
                 String value = entry.getValue().getAsString();
                 inverse = new JsonObject();
                 inverse.addProperty(entry.getKey(), value.startsWith("!") ? value.substring(1) : "!" + value);

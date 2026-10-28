@@ -40,6 +40,50 @@ class PackAssetMergerTest {
     }
 
     @Test
+    void booleanMultipartPropertiesPreserveNonconflictingLowerRules() {
+        JsonObject higher = json("""
+                {"multipart":[
+                  {"when":{"powered":true},"apply":{"model":"test:high_powered"}}
+                ]}
+                """);
+        JsonObject lower = json("""
+                {"multipart":[
+                  {"when":{"powered":false},"apply":{"model":"test:low_unpowered"}},
+                  {"when":{"AND":[{"powered":false},{"facing":"west"}]},"apply":{"model":"test:low_west_unpowered"}}
+                ]}
+                """);
+
+        JsonObject merged = PackAssetMerger.mergeJson(PATH, lower, higher);
+
+        assertEquals(List.of("test:high_powered"), modelsFor(merged, Map.of("powered", "true", "facing", "west")));
+        assertEquals(List.of("test:low_unpowered"), modelsFor(merged, Map.of("powered", "false", "facing", "east")));
+        assertEquals(List.of("test:low_unpowered", "test:low_west_unpowered"),
+                modelsFor(merged, Map.of("powered", "false", "facing", "west")));
+    }
+
+    @Test
+    void numericMultipartPropertiesPreserveNonconflictingLowerRules() {
+        JsonObject higher = json("""
+                {"multipart":[
+                  {"when":{"age":1},"apply":{"model":"test:high_age_one"}}
+                ]}
+                """);
+        JsonObject lower = json("""
+                {"multipart":[
+                  {"when":{"age":2},"apply":{"model":"test:low_age_two"}},
+                  {"when":{"AND":[{"age":2},{"facing":"west"}]},"apply":{"model":"test:low_west_age_two"}}
+                ]}
+                """);
+
+        JsonObject merged = PackAssetMerger.mergeJson(PATH, lower, higher);
+
+        assertEquals(List.of("test:high_age_one"), modelsFor(merged, Map.of("age", "1", "facing", "west")));
+        assertEquals(List.of("test:low_age_two"), modelsFor(merged, Map.of("age", "2", "facing", "east")));
+        assertEquals(List.of("test:low_age_two", "test:low_west_age_two"),
+                modelsFor(merged, Map.of("age", "2", "facing", "west")));
+    }
+
+    @Test
     void higherMultipartConditionExcludesMatchingLowerVariants() {
         JsonObject higher = json("""
                 {"multipart":[

@@ -209,9 +209,9 @@ public class PackMerger {
                     if (high != null && low != null) {
                         try {
                             if (file.getPath().matches("assets/[^/]+/items/.+\\.json"))
-                                entries.put(file.getPath(), ItemModelMerger.mergeDefinition(high, low).toString().getBytes(StandardCharsets.UTF_8));
+                                entries.put(file.getPath(), ItemModelMerger.mergeDefinition(high, low, file.getPath()).toString().getBytes(StandardCharsets.UTF_8));
                             else if (file.getPath().matches("assets/[^/]+/models/item/.+\\.json"))
-                                entries.put(file.getPath(), ItemModelMerger.mergeLegacy(high, low).toString().getBytes(StandardCharsets.UTF_8));
+                                entries.put(file.getPath(), ItemModelMerger.mergeLegacy(high, low, file.getPath()).toString().getBytes(StandardCharsets.UTF_8));
                         } catch (RuntimeException exception) {
                             Logs.logWarning("Failed to merge duplicate item resource " + file.getPath() + ". Keeping the higher priority file.");
                         }
@@ -365,9 +365,9 @@ public class PackMerger {
                 if (high != null && low != null) {
                     try {
                         if (path.matches("assets/[^/]+/items/.+\\.json"))
-                            bytes = ItemModelMerger.mergeDefinition(high, low).toString().getBytes(StandardCharsets.UTF_8);
+                            bytes = ItemModelMerger.mergeDefinition(high, low, path).toString().getBytes(StandardCharsets.UTF_8);
                         else if (path.matches("assets/[^/]+/models/item/.+\\.json"))
-                            bytes = ItemModelMerger.mergeLegacy(high, low).toString().getBytes(StandardCharsets.UTF_8);
+                            bytes = ItemModelMerger.mergeLegacy(high, low, path).toString().getBytes(StandardCharsets.UTF_8);
                     } catch (RuntimeException exception) {
                         Logs.logWarning("Failed to merge duplicate item resource " + path + ". Keeping the higher priority file.");
                     }

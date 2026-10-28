@@ -23,7 +23,7 @@ public final class ItemModelMerger {
                 JsonObject baseline = ownModern != null ? ownModern : object(lower.get(modernPath));
                 JsonObject converted = convertLegacy(object(bytes), name, baseline);
                 if (converted != null) {
-                    if (ownModern != null) converted = mergeDefinition(ownModern, converted);
+                    if (ownModern != null) converted = mergeDefinition(ownModern, converted, modernPath);
                     result.put(modernPath, converted.toString().getBytes(StandardCharsets.UTF_8));
                 }
             } catch (RuntimeException exception) {
@@ -189,20 +189,25 @@ public final class ItemModelMerger {
                 || name.endsWith("_nugget") || name.endsWith("_dye");
     }
 
+    @Deprecated(forRemoval = false)
     public static JsonObject mergeDefinition(JsonObject higher, JsonObject lower) {
+        return mergeDefinition(higher, lower, null);
+    }
+
+    public static JsonObject mergeDefinition(JsonObject higher, JsonObject lower, String resourcePath) {
         try {
             JsonObject result = lower.deepCopy();
             higher.entrySet().forEach(e -> result.add(e.getKey(), e.getValue().deepCopy()));
             if (higher.has("model") && lower.has("model")) {
                 if (!higher.get("model").isJsonObject() || !lower.get("model").isJsonObject()) {
-                    Logs.logWarning("Cannot merge malformed duplicate modern item definitions. Keeping the higher priority definition.");
+                    Logs.logWarning("Cannot merge malformed duplicate modern item definitions" + pathContext(resourcePath) + ". Keeping the higher priority definition.");
                     return higher.deepCopy();
                 }
-                result.add("model", mergeModel(higher.getAsJsonObject("model"), lower.getAsJsonObject("model")));
+                result.add("model", mergeModel(higher.getAsJsonObject("model"), lower.getAsJsonObject("model"), resourcePath));
             }
             return result;
         } catch (RuntimeException exception) {
-            Logs.logWarning("Cannot merge malformed duplicate modern item definitions. Keeping the higher priority definition.");
+            Logs.logWarning("Cannot merge malformed duplicate modern item definitions" + pathContext(resourcePath) + ". Keeping the higher priority definition.");
             return higher.deepCopy();
         }
     }
@@ -223,6 +228,10 @@ public final class ItemModelMerger {
     }
 
     public static JsonObject mergeModel(JsonObject higher, JsonObject lower) {
+        return mergeModel(higher, lower, null);
+    }
+
+    private static JsonObject mergeModel(JsonObject higher, JsonObject lower, String resourcePath) {
         JsonObject result = higher.deepCopy();
         if (!selector(higher)) {
             if (higher.has("entries") || higher.has("cases")) {
@@ -230,27 +239,28 @@ public final class ItemModelMerger {
                 JsonArray branches = new JsonArray();
                 for (JsonElement element : higher.getAsJsonArray(key)) {
                     JsonObject branch = element.getAsJsonObject().deepCopy();
-                    if (branch.has("model")) branch.add("model", mergeModel(branch.getAsJsonObject("model"), lower));
+                    if (branch.has("model")) branch.add("model", mergeModel(branch.getAsJsonObject("model"), lower, resourcePath));
                     branches.add(branch);
                 }
                 result.add(key, branches);
-                if (higher.has("fallback")) result.add("fallback", mergeModel(higher.getAsJsonObject("fallback"), lower));
+                if (higher.has("fallback")) result.add("fallback", mergeModel(higher.getAsJsonObject("fallback"), lower, resourcePath));
                 return result;
             }
             if (higher.has("on_true") && higher.has("on_false")) {
-                result.add("on_true", mergeModel(higher.getAsJsonObject("on_true"), lower));
-                result.add("on_false", mergeModel(higher.getAsJsonObject("on_false"), lower));
+                result.add("on_true", mergeModel(higher.getAsJsonObject("on_true"), lower, resourcePath));
+                result.add("on_false", mergeModel(higher.getAsJsonObject("on_false"), lower, resourcePath));
                 return result;
             }
             if (higher.has("models")) {
                 if (lower.has("models") && higher.getAsJsonArray("models").size() == lower.getAsJsonArray("models").size()) {
                     JsonArray parts = new JsonArray();
                     for (int i = 0; i < higher.getAsJsonArray("models").size(); i++)
-                        parts.add(mergeModel(higher.getAsJsonArray("models").get(i).getAsJsonObject(), lower.getAsJsonArray("models").get(i).getAsJsonObject()));
+                        parts.add(mergeModel(higher.getAsJsonArray("models").get(i).getAsJsonObject(), lower.getAsJsonArray("models").get(i).getAsJsonObject(), resourcePath));
                     result.add("models", parts);
                 } else if (selector(lower) && hasCompatibleSelector(higher, lower)) {
-                    result = mergeNestedSelector(higher, lower);
-                } else Logs.logWarning("Cannot combine imported item rules with this composite model. Keeping the higher priority composite model.");
+                    result = mergeNestedSelector(higher, lower, resourcePath);
+                } else Logs.logWarning("Cannot combine imported item rules with this composite model"
+                        + (resourcePath == null ? "" : " at " + resourcePath) + ". Keeping the higher priority composite model.");
                 return result;
             }
             return selector(lower) ? withFallback(lower, higher) : result;
@@ -285,11 +295,11 @@ public final class ItemModelMerger {
             entries.forEach(merged::add);
             result.add(key, merged);
             if (higher.has("fallback") && lower.has("fallback"))
-                result.add("fallback", mergeModel(higher.getAsJsonObject("fallback"), lower.getAsJsonObject("fallback")));
+                result.add("fallback", mergeModel(higher.getAsJsonObject("fallback"), lower.getAsJsonObject("fallback"), resourcePath));
             else if (lower.has("fallback")) result.add("fallback", lower.get("fallback").deepCopy());
         } else {
             JsonObject fallback = higher.has("fallback") ? higher.getAsJsonObject("fallback") : null;
-            result.add("fallback", fallback != null ? mergeModel(fallback, lower) : lower.deepCopy());
+            result.add("fallback", fallback != null ? mergeModel(fallback, lower, resourcePath) : lower.deepCopy());
         }
         return result;
     }
@@ -306,15 +316,15 @@ public final class ItemModelMerger {
         return false;
     }
 
-    private static JsonObject mergeNestedSelector(JsonObject tree, JsonObject lower) {
-        if (selector(tree) && settings(tree).equals(settings(lower))) return mergeModel(tree, lower);
+    private static JsonObject mergeNestedSelector(JsonObject tree, JsonObject lower, String resourcePath) {
+        if (selector(tree) && settings(tree).equals(settings(lower))) return mergeModel(tree, lower, resourcePath);
         JsonObject result = tree.deepCopy();
         for (Map.Entry<String, JsonElement> entry : tree.entrySet()) {
-            if (entry.getValue().isJsonObject()) result.add(entry.getKey(), mergeNestedSelector(entry.getValue().getAsJsonObject(), lower));
+            if (entry.getValue().isJsonObject()) result.add(entry.getKey(), mergeNestedSelector(entry.getValue().getAsJsonObject(), lower, resourcePath));
             else if (entry.getValue().isJsonArray()) {
                 JsonArray array = new JsonArray();
                 for (JsonElement value : entry.getValue().getAsJsonArray())
-                    array.add(value.isJsonObject() ? mergeNestedSelector(value.getAsJsonObject(), lower) : value.deepCopy());
+                    array.add(value.isJsonObject() ? mergeNestedSelector(value.getAsJsonObject(), lower, resourcePath) : value.deepCopy());
                 result.add(entry.getKey(), array);
             }
         }
@@ -330,7 +340,12 @@ public final class ItemModelMerger {
         return result;
     }
 
+    @Deprecated(forRemoval = false)
     public static JsonObject mergeLegacy(JsonObject higher, JsonObject lower) {
+        return mergeLegacy(higher, lower, null);
+    }
+
+    public static JsonObject mergeLegacy(JsonObject higher, JsonObject lower, String resourcePath) {
         try {
             JsonObject result = lower.deepCopy();
             higher.entrySet().forEach(e -> result.add(e.getKey(), e.getValue().deepCopy()));
@@ -357,8 +372,12 @@ public final class ItemModelMerger {
             }
             return result;
         } catch (RuntimeException exception) {
-            Logs.logWarning("Cannot merge malformed duplicate legacy item models. Keeping the higher priority model.");
+            Logs.logWarning("Cannot merge malformed duplicate legacy item models" + pathContext(resourcePath) + ". Keeping the higher priority model.");
             return higher.deepCopy();
         }
+    }
+
+    private static String pathContext(String resourcePath) {
+        return resourcePath == null ? " because the caller did not provide a resource path" : " at " + resourcePath;
     }
 }

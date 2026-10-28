@@ -61,7 +61,7 @@ public class DuplicationHandler {
                 if (duplicateJsonObjects.size() < 2) continue;
                 JsonObject mainItem = duplicateJsonObjects.getLast().deepCopy();
                 for (int i = duplicateJsonObjects.size() - 2; i >= 0; i--)
-                    mainItem = ItemModelMerger.mergeLegacy(duplicateJsonObjects.get(i), mainItem);
+                    mainItem = ItemModelMerger.mergeLegacy(duplicateJsonObjects.get(i), mainItem, duplicates.getFirst().getPath());
                 // Generate the template new item file
                 VirtualFile first = duplicates.stream().findFirst().get();
                 InputStream newInput = new ByteArrayInputStream(mainItem.toString().getBytes(StandardCharsets.UTF_8));
@@ -226,7 +226,7 @@ public class DuplicationHandler {
 
         JsonObject result = jsonObjects.getLast().deepCopy();
         for (int i = jsonObjects.size() - 2; i >= 0; i--)
-            result = ItemModelMerger.mergeDefinition(jsonObjects.get(i), result);
+            result = ItemModelMerger.mergeDefinition(jsonObjects.get(i), result, duplicates.getFirst().getPath());
         return result;
     }
     private static List<JsonObject> parseJsonObjects(List<VirtualFile> files) {

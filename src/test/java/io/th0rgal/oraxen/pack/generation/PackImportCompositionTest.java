@@ -249,6 +249,29 @@ class PackImportCompositionTest {
             assertEquals(JsonParser.parseString(generatedLegacy), json(files, legacyPath));
             assertEquals("yes", json(files, "assets/test/lang/en_us.json").get("continued").getAsString());
         }
+        logs.verify(() -> Logs.logWarning(org.mockito.ArgumentMatchers.contains(modernPath)), atLeast(2));
+        logs.verify(() -> Logs.logWarning(org.mockito.ArgumentMatchers.contains(legacyPath)), atLeast(2));
+    }
+
+    @Test void importedMalformedItemDuplicatesLogPathsAndKeepHigherPriorityFiles() throws Exception {
+        settings.set(Settings.MERGE_DUPLICATES.getPath(), true);
+        Settings.invalidateCache();
+        String modernPath = "assets/minecraft/items/paper.json";
+        String legacyPath = "assets/minecraft/models/item/paper.json";
+        String higherModern = modernItem("test:higher_modern");
+        String higherLegacy = """
+                {"parent":"minecraft:item/generated","overrides":[
+                  {"predicate":{"custom_model_data":5},"model":"test:higher_legacy"}]}
+                """;
+        write("a", Map.of(modernPath, "{\"model\":\"broken\"}", legacyPath, "{\"overrides\":false}"));
+        write("b", Map.of(modernPath, higherModern, legacyPath, higherLegacy));
+
+        Map<String, String> files = contents(new PackMerger(tempDir.toFile()).mergeUploadedPacks());
+
+        assertEquals(JsonParser.parseString(higherModern), json(files, modernPath));
+        assertEquals(JsonParser.parseString(higherLegacy), json(files, legacyPath));
+        logs.verify(() -> Logs.logWarning(org.mockito.ArgumentMatchers.contains(modernPath)));
+        logs.verify(() -> Logs.logWarning(org.mockito.ArgumentMatchers.contains(legacyPath)));
     }
 
     @Test void mergesGeneratedAndLocalItemRulesBeforeCollapsingPaths() throws Exception {

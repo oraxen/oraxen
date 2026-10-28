@@ -4,6 +4,8 @@ import com.google.gson.*;
 import org.junit.jupiter.api.Test;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.mockito.MockedStatic;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.mockStatic;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -120,7 +122,7 @@ class ItemModelMergerTest {
         JsonObject low = json("""
             {"parent":"item/generated","overrides":[{"predicate":{"custom_model_data":10},"model":"low"}]}
             """);
-        JsonObject merged = ItemModelMerger.mergeLegacy(high, low);
+        JsonObject merged = ItemModelMerger.mergeLegacy(high, low, "assets/minecraft/models/item/paper.json");
         for (String key : new String[]{"parent", "display", "gui_light", "elements"}) assertEquals(high.get(key), merged.get(key));
         assertEquals(10, merged.getAsJsonArray("overrides").get(0).getAsJsonObject().getAsJsonObject("predicate").get("custom_model_data").getAsInt());
     }
@@ -328,7 +330,7 @@ class ItemModelMergerTest {
         java.util.Map<String, byte[]> high = java.util.Map.of("assets/minecraft/models/item/paper.json", legacy.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
         java.util.Map<String, byte[]> converted = ItemModelMerger.convertLegacyLayer(high, lower);
         JsonObject modern = json(new String(converted.get("assets/minecraft/items/paper.json"), java.nio.charset.StandardCharsets.UTF_8));
-        JsonObject merged = ItemModelMerger.mergeDefinition(modern, lowerModern);
+        JsonObject merged = ItemModelMerger.mergeDefinition(modern, lowerModern, "assets/minecraft/items/paper.json");
         assertEquals("high_custom", merged.getAsJsonObject("model").getAsJsonArray("entries").get(0).getAsJsonObject().getAsJsonObject("model").get("model").getAsString());
     }
 
@@ -352,6 +354,7 @@ class ItemModelMergerTest {
 
     @Test
     void malformedModernDuplicateKeepsHigherPriorityDefinition() {
+        String resourcePath = "assets/minecraft/items/paper.json";
         JsonObject higher = json("""
             {"model":{"type":"minecraft:select","property":"minecraft:custom_model_data",
              "cases":[{"when":"high","model":{"type":"minecraft:model","model":"high_model"}}],
@@ -364,12 +367,14 @@ class ItemModelMergerTest {
             """);
 
         try (MockedStatic<Logs> logs = mockStatic(Logs.class)) {
-            assertEquals(higher, ItemModelMerger.mergeDefinition(higher, malformedLower));
+            assertEquals(higher, ItemModelMerger.mergeDefinition(higher, malformedLower, resourcePath));
+            logs.verify(() -> Logs.logWarning(contains(resourcePath)), times(1));
         }
     }
 
     @Test
     void malformedLegacyDuplicateKeepsHigherPriorityModel() {
+        String resourcePath = "assets/minecraft/models/item/paper.json";
         JsonObject higher = json("""
             {"parent":"item/handheld","overrides":[{"predicate":{"custom_model_data":2},"model":"high_model"}]}
             """);
@@ -378,12 +383,14 @@ class ItemModelMergerTest {
             """);
 
         try (MockedStatic<Logs> logs = mockStatic(Logs.class)) {
-            assertEquals(higher, ItemModelMerger.mergeLegacy(higher, malformedLower));
+            assertEquals(higher, ItemModelMerger.mergeLegacy(higher, malformedLower, resourcePath));
+            logs.verify(() -> Logs.logWarning(contains(resourcePath)), times(1));
         }
     }
 
     @Test
     void malformedHigherPriorityModernModelKeepsTheHigherDefinitionUnchanged() {
+        String resourcePath = "assets/minecraft/items/paper.json";
         JsonObject higher = json("""
             {"model":"broken","higher":"kept"}
             """);
@@ -392,12 +399,14 @@ class ItemModelMergerTest {
             """);
 
         try (MockedStatic<Logs> logs = mockStatic(Logs.class)) {
-            assertEquals(higher, ItemModelMerger.mergeDefinition(higher, lower));
+            assertEquals(higher, ItemModelMerger.mergeDefinition(higher, lower, resourcePath));
+            logs.verify(() -> Logs.logWarning(contains(resourcePath)), times(1));
         }
     }
 
     @Test
     void malformedHigherPriorityLegacyModelKeepsTheHigherModelUnchanged() {
+        String resourcePath = "assets/minecraft/models/item/paper.json";
         JsonObject higher = json("""
             {"parent":"item/handheld","overrides":{"invalid":"shape"}}
             """);
@@ -406,7 +415,8 @@ class ItemModelMergerTest {
             """);
 
         try (MockedStatic<Logs> logs = mockStatic(Logs.class)) {
-            assertEquals(higher, ItemModelMerger.mergeLegacy(higher, lower));
+            assertEquals(higher, ItemModelMerger.mergeLegacy(higher, lower, resourcePath));
+            logs.verify(() -> Logs.logWarning(contains(resourcePath)), times(1));
         }
     }
 }
