@@ -214,23 +214,37 @@ class PackImportCompositionTest {
         assertEquals("test:own_modern", itemAt(json(files, "assets/minecraft/items/paper.json").getAsJsonObject("model"), 5));
     }
 
-    @Test void convertsGenericUploadedLegacyOverrideWithVanillaFallback() throws Exception {
+    @Test void convertsGenericUploadedLegacyOverridesWithVanillaFallback() throws Exception {
         settings.set(Settings.MERGE_DUPLICATES.getPath(), true);
         Settings.invalidateCache();
-        write("generic_pack", Map.of("assets/minecraft/models/item/leather_horse_armor.json", """
-                {"parent":"item/generated","textures":{"layer0":"item/leather_horse_armor"},
-                 "overrides":[{"predicate":{"custom_model_data":17},"model":"test:item/custom_horse_armor"}]}
-                """));
+        write("generic_pack", Map.of(
+                "assets/minecraft/models/item/leather_horse_armor.json", """
+                        {"parent":"item/generated","textures":{"layer0":"item/leather_horse_armor"},
+                         "overrides":[{"predicate":{"custom_model_data":17},"model":"test:item/custom_horse_armor"}]}
+                        """,
+                "assets/minecraft/models/item/diamond_horse_armor.json", """
+                        {"parent":"item/generated","textures":{"layer0":"item/diamond_horse_armor"},
+                         "overrides":[{"predicate":{"custom_model_data":18},"model":"test:item/custom_diamond_horse_armor"}]}
+                        """,
+                "assets/minecraft/models/item/totem_of_undying.json", """
+                        {"parent":"item/generated","textures":{"layer0":"item/totem_of_undying"},
+                         "overrides":[{"predicate":{"custom_model_data":19},"model":"test:item/custom_totem"}]}
+                        """));
 
         PackMerger merger = new PackMerger(tempDir.toFile());
         merger.setConvertLegacyItemModels(true);
         Map<String, String> files = contents(merger.mergeUploadedPacks());
-        JsonObject model = json(files, "assets/minecraft/items/leather_horse_armor.json").getAsJsonObject("model");
-
-        assertEquals("test:item/custom_horse_armor", itemAt(model, 17));
-        assertEquals("minecraft:item/leather_horse_armor", itemAt(model, 0));
-        assertEquals(0xFFA06540, model.getAsJsonObject("fallback").getAsJsonArray("tints")
-                .get(0).getAsJsonObject().get("default").getAsInt());
+        for (String[] item : List.of(new String[]{"leather_horse_armor", "17", "test:item/custom_horse_armor"},
+                new String[]{"diamond_horse_armor", "18", "test:item/custom_diamond_horse_armor"},
+                new String[]{"totem_of_undying", "19", "test:item/custom_totem"})) {
+            JsonObject model = json(files, "assets/minecraft/items/" + item[0] + ".json").getAsJsonObject("model");
+            assertEquals(item[2], itemAt(model, Double.parseDouble(item[1])));
+            assertEquals("minecraft:item/" + item[0], itemAt(model, 0));
+        }
+        JsonObject leatherFallback = json(files, "assets/minecraft/items/leather_horse_armor.json")
+                .getAsJsonObject("model").getAsJsonObject("fallback");
+        assertEquals(0xFFA06540, leatherFallback.getAsJsonArray("tints").get(0).getAsJsonObject()
+                .get("default").getAsInt());
     }
 
     @Test void convertsLegacyRulesWhenDuplicateMergingIsDisabled() throws Exception {

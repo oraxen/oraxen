@@ -80,7 +80,7 @@ public class VanillaItemDefinitionGenerator {
 
     private static boolean supportsLegacyConversionFallback(Material material) {
         String name = material.name().toLowerCase(Locale.ROOT);
-        if (name.startsWith("leather_")) return true;
+        if (name.startsWith("leather_") || name.endsWith("_horse_armor")) return true;
         if (Set.of("bow", "crossbow", "fishing_rod", "shield", "trident", "conduit", "decorated_pot",
                 "player_head", "skeleton_skull", "wither_skeleton_skull", "zombie_head", "creeper_head",
                 "dragon_head", "piglin_head").contains(name) || name.endsWith("_spear")) return true;
@@ -93,7 +93,11 @@ public class VanillaItemDefinitionGenerator {
                 "potion", "splash_potion", "lingering_potion", "firework_rocket", "shears",
                 "flint_and_steel", "mace", "apple", "golden_apple", "enchanted_golden_apple", "bread", "carrot",
                 "golden_carrot", "potato", "baked_potato", "poisonous_potato", "beetroot", "dried_kelp",
-                "cookie", "melon_slice", "sweet_berries", "glow_berries", "chorus_fruit", "popped_chorus_fruit").contains(name)) return true;
+                "cookie", "melon_slice", "sweet_berries", "glow_berries", "chorus_fruit", "popped_chorus_fruit",
+                "totem_of_undying", "honey_bottle", "glow_ink_sac", "heart_of_the_sea", "nautilus_shell",
+                "beef", "cooked_beef", "rabbit_stew", "written_book", "armor_stand", "axolotl_bucket",
+                "acacia_boat", "music_disc_13", "angler_pottery_sherd",
+                "rib_armor_trim_smithing_template").contains(name)) return true;
         return name.endsWith("_sword") || name.endsWith("_pickaxe") || name.endsWith("_axe")
                 || name.endsWith("_shovel") || name.endsWith("_hoe") || name.endsWith("_ingot")
                 || name.endsWith("_nugget") || name.endsWith("_dye");

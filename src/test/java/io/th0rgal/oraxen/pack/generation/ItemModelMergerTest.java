@@ -1,5 +1,7 @@
 package io.th0rgal.oraxen.pack.generation;
 
+import java.util.List;
+
 import com.google.gson.*;
 import org.junit.jupiter.api.Test;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -185,6 +187,26 @@ class ItemModelMergerTest {
         assertEquals("minecraft:model", fallback.get("type").getAsString());
         assertEquals("minecraft:item/leather_horse_armor", fallback.get("model").getAsString());
         assertEquals(0xFFA06540, fallback.getAsJsonArray("tints").get(0).getAsJsonObject().get("default").getAsInt());
+    }
+
+    @Test
+    void staticVanillaItemFallbacksUseTheirDefaultModels() {
+        JsonObject legacy = json("""
+            {"overrides":[{"predicate":{"custom_model_data":17},"model":"test:item/custom"}]}
+            """);
+
+        for (String itemName : List.of("diamond_horse_armor", "golden_horse_armor", "iron_horse_armor",
+                "totem_of_undying", "honey_bottle", "glow_ink_sac", "heart_of_the_sea", "nautilus_shell",
+                "beef", "cooked_beef", "rabbit_stew", "written_book", "armor_stand", "axolotl_bucket",
+                "acacia_boat", "music_disc_13", "angler_pottery_sherd", "rib_armor_trim_smithing_template")) {
+            JsonObject converted = ItemModelMerger.convertLegacy(legacy, itemName);
+
+            assertNotNull(converted, itemName);
+            JsonObject fallback = converted.getAsJsonObject("model").getAsJsonObject("fallback");
+            assertEquals("minecraft:model", fallback.get("type").getAsString(), itemName);
+            assertEquals("minecraft:item/" + itemName, fallback.get("model").getAsString(), itemName);
+            assertFalse(fallback.has("tints"), itemName);
+        }
     }
 
     @Test
