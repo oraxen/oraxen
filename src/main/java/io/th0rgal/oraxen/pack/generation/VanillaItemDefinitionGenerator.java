@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 /**
  * Generates vanilla item model definitions (assets/minecraft/items/*.json) for
@@ -66,6 +67,36 @@ public class VanillaItemDefinitionGenerator {
 
     public static JsonObject createVanillaFallback(Material material) {
         return new VanillaItemDefinitionGenerator(material).createVanillaModelReference();
+    }
+
+    /**
+     * Creates a fallback only when this generator can preserve the vanilla item's
+     * normal appearance and item-specific rendering behavior during legacy conversion.
+     */
+    public static JsonObject createLegacyConversionFallback(Material material) {
+        if (!supportsLegacyConversionFallback(material)) return null;
+        return createVanillaFallback(material);
+    }
+
+    private static boolean supportsLegacyConversionFallback(Material material) {
+        String name = material.name().toLowerCase(Locale.ROOT);
+        if (name.startsWith("leather_")) return true;
+        if (Set.of("bow", "crossbow", "fishing_rod", "shield", "trident", "conduit", "decorated_pot",
+                "player_head", "skeleton_skull", "wither_skeleton_skull", "zombie_head", "creeper_head",
+                "dragon_head", "piglin_head").contains(name) || name.endsWith("_spear")) return true;
+        if (Set.of("paper", "stick", "bowl", "string", "feather", "flint", "coal", "charcoal", "diamond", "emerald",
+                "lapis_lazuli", "quartz", "amethyst_shard", "echo_shard", "prismarine_shard", "prismarine_crystals",
+                "redstone", "glowstone_dust", "gunpowder", "sugar", "wheat", "leather", "rabbit_hide", "rabbit_foot",
+                "bone", "bone_meal", "blaze_rod", "blaze_powder", "breeze_rod", "slime_ball", "magma_cream",
+                "ender_pearl", "ender_eye", "ghast_tear", "nether_star", "netherite_scrap", "glass_bottle", "brick",
+                "nether_brick", "clay_ball", "snowball", "egg", "arrow", "spectral_arrow",
+                "potion", "splash_potion", "lingering_potion", "firework_rocket", "shears",
+                "flint_and_steel", "mace", "apple", "golden_apple", "enchanted_golden_apple", "bread", "carrot",
+                "golden_carrot", "potato", "baked_potato", "poisonous_potato", "beetroot", "dried_kelp",
+                "cookie", "melon_slice", "sweet_berries", "glow_berries", "chorus_fruit", "popped_chorus_fruit").contains(name)) return true;
+        return name.endsWith("_sword") || name.endsWith("_pickaxe") || name.endsWith("_axe")
+                || name.endsWith("_shovel") || name.endsWith("_hoe") || name.endsWith("_ingot")
+                || name.endsWith("_nugget") || name.endsWith("_dye");
     }
 
     /**

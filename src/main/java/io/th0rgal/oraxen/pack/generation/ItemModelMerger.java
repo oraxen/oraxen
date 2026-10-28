@@ -13,6 +13,11 @@ public final class ItemModelMerger {
     }
 
     public static Map<String, byte[]> convertLegacyLayer(Map<String, byte[]> active, Map<String, byte[]> lower) {
+        return convertLegacyLayer(active, lower, true);
+    }
+
+    public static Map<String, byte[]> convertLegacyLayer(Map<String, byte[]> active, Map<String, byte[]> lower,
+            boolean mergeLowerModernDefinitions) {
         Map<String, byte[]> result = new LinkedHashMap<>(active);
         active.forEach((path, bytes) -> {
             if (!path.matches("assets/minecraft/models/item/[^/]+\\.json")) return;
@@ -20,7 +25,12 @@ public final class ItemModelMerger {
             String modernPath = "assets/minecraft/items/" + name + ".json";
             try {
                 JsonObject ownModern = object(active.get(modernPath));
-                JsonObject baseline = ownModern != null ? ownModern : object(lower.get(modernPath));
+                JsonObject lowerModern = ownModern == null ? object(lower.get(modernPath)) : null;
+                JsonObject baselineDefinition = ownModern != null ? ownModern
+                        : mergeLowerModernDefinitions ? lowerModern : null;
+                JsonObject baseline = baselineDefinition != null
+                        ? fallbackBaseline(baselineDefinition)
+                        : !mergeLowerModernDefinitions ? lowerModern : null;
                 JsonObject converted = convertLegacy(object(bytes), name, baseline);
                 if (converted != null) {
                     if (ownModern != null) converted = mergeDefinition(ownModern, converted, modernPath);
@@ -34,6 +44,48 @@ public final class ItemModelMerger {
         return result;
     }
 
+    private static JsonObject fallbackBaseline(JsonObject itemDefinition) {
+        if (!itemDefinition.has("model") || !itemDefinition.get("model").isJsonObject()) return null;
+        JsonElement fallback = withoutCustomModelDataSelectors(itemDefinition.get("model"));
+        if (fallback == null || !fallback.isJsonObject()) return null;
+        JsonObject baseline = new JsonObject();
+        baseline.add("model", fallback);
+        return baseline;
+    }
+
+    private static JsonElement withoutCustomModelDataSelectors(JsonElement element) {
+        if (element.isJsonObject()) {
+            JsonObject model = element.getAsJsonObject();
+            if (selector(model)) {
+                JsonElement fallback = model.get("fallback");
+                return fallback != null && fallback.isJsonObject()
+                        ? withoutCustomModelDataSelectors(fallback)
+                        : null;
+            }
+            JsonObject copy = model.deepCopy();
+            for (Map.Entry<String, JsonElement> entry : model.entrySet()) {
+                if (entry.getValue().isJsonObject() || entry.getValue().isJsonArray()) {
+                    JsonElement nested = withoutCustomModelDataSelectors(entry.getValue());
+                    if (nested == null) return null;
+                    copy.add(entry.getKey(), nested);
+                }
+            }
+            return copy;
+        }
+        if (element.isJsonArray()) {
+            JsonArray copy = new JsonArray();
+            for (JsonElement child : element.getAsJsonArray()) {
+                JsonElement nested = child.isJsonObject() || child.isJsonArray()
+                        ? withoutCustomModelDataSelectors(child)
+                        : child.deepCopy();
+                if (nested == null) return null;
+                copy.add(nested);
+            }
+            return copy;
+        }
+        return element.deepCopy();
+    }
+
     private static JsonObject object(byte[] bytes) {
         return bytes == null ? null : JsonParser.parseString(new String(bytes, StandardCharsets.UTF_8)).getAsJsonObject();
     }
@@ -45,11 +97,11 @@ public final class ItemModelMerger {
         else {
             org.bukkit.Material material = org.bukkit.Material.getMaterial(itemName.toUpperCase(Locale.ROOT));
             if (material == null) return null;
-            if (!hasSafeGeneratedFallback(itemName)) {
+            fallback = VanillaItemDefinitionGenerator.createLegacyConversionFallback(material);
+            if (fallback == null) {
                 Logs.logWarning("Cannot convert legacy rules for " + itemName + " without an existing modern item definition. Its vanilla item rendering is not supported by the fallback generator");
                 return null;
             }
-            fallback = VanillaItemDefinitionGenerator.createVanillaFallback(material);
         }
         List<LegacyRule> rules = new ArrayList<>();
         List<String> properties = new ArrayList<>();
@@ -167,26 +219,6 @@ public final class ItemModelMerger {
             }
         }
         return branch;
-    }
-
-    private static boolean hasSafeGeneratedFallback(String name) {
-        if (Set.of("bow", "crossbow", "fishing_rod", "shield", "trident", "conduit", "decorated_pot",
-                "player_head", "skeleton_skull", "wither_skeleton_skull", "zombie_head", "creeper_head",
-                "dragon_head", "piglin_head").contains(name) || name.endsWith("_spear")) return true;
-        // Only synthesize known leaf defaults. Other materials require an existing modern definition.
-        if (Set.of("paper", "stick", "bowl", "string", "feather", "flint", "coal", "charcoal", "diamond", "emerald",
-                "lapis_lazuli", "quartz", "amethyst_shard", "echo_shard", "prismarine_shard", "prismarine_crystals",
-                "redstone", "glowstone_dust", "gunpowder", "sugar", "wheat", "leather", "rabbit_hide", "rabbit_foot",
-                "bone", "bone_meal", "blaze_rod", "blaze_powder", "breeze_rod", "slime_ball", "magma_cream",
-                "ender_pearl", "ender_eye", "ghast_tear", "nether_star", "netherite_scrap", "glass_bottle", "brick",
-                "nether_brick", "clay_ball", "snowball", "egg", "arrow", "spectral_arrow",
-                "potion", "splash_potion", "lingering_potion", "firework_rocket", "shears",
-                "flint_and_steel", "mace", "apple", "golden_apple", "enchanted_golden_apple", "bread", "carrot",
-                "golden_carrot", "potato", "baked_potato", "poisonous_potato", "beetroot", "dried_kelp",
-                "cookie", "melon_slice", "sweet_berries", "glow_berries", "chorus_fruit", "popped_chorus_fruit").contains(name)) return true;
-        return name.endsWith("_sword") || name.endsWith("_pickaxe") || name.endsWith("_axe")
-                || name.endsWith("_shovel") || name.endsWith("_hoe") || name.endsWith("_ingot")
-                || name.endsWith("_nugget") || name.endsWith("_dye");
     }
 
     @Deprecated(forRemoval = false)
@@ -361,10 +393,13 @@ public final class ItemModelMerger {
                         overrides.removeIf(existing -> existing.get("predicate").equals(entry.getAsJsonObject().get("predicate")));
                         overrides.add(entry.getAsJsonObject().deepCopy());
                     }
-            overrides.sort(Comparator.comparing(e -> {
-                JsonObject predicate = e.getAsJsonObject("predicate");
-                return predicate.has("custom_model_data") ? predicate.get("custom_model_data").getAsBigDecimal() : java.math.BigDecimal.ZERO;
-            }));
+            // Sorting by CMD threshold preserves legacy last-matching behavior for
+            // threshold-only rules. Compound and unconditional rules depend on their
+            // source order, so keep that order intact.
+            if (overrides.stream().allMatch(ItemModelMerger::hasOnlyCustomModelDataPredicate)) {
+                overrides.sort(Comparator.comparing(e -> e.getAsJsonObject("predicate")
+                        .get("custom_model_data").getAsBigDecimal()));
+            }
             if (!overrides.isEmpty()) {
                 JsonArray array = new JsonArray();
                 overrides.forEach(array::add);
@@ -375,6 +410,11 @@ public final class ItemModelMerger {
             Logs.logWarning("Cannot merge malformed duplicate legacy item models" + pathContext(resourcePath) + ". Keeping the higher priority model.");
             return higher.deepCopy();
         }
+    }
+
+    private static boolean hasOnlyCustomModelDataPredicate(JsonObject override) {
+        JsonObject predicate = override.getAsJsonObject("predicate");
+        return predicate.size() == 1 && predicate.has("custom_model_data");
     }
 
     private static String pathContext(String resourcePath) {

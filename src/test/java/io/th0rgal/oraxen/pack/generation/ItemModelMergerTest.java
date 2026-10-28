@@ -128,6 +128,24 @@ class ItemModelMergerTest {
     }
 
     @Test
+    void legacyMergeKeepsUnconditionalOverridePositionAndPriority() {
+        JsonObject lower = json("""
+            {"overrides":[{"predicate":{"custom_model_data":5},"model":"lower_specific"}]}
+            """);
+        JsonObject higher = json("""
+            {"overrides":[
+             {"predicate":{"custom_model_data":3},"model":"higher_specific"},
+             {"predicate":{},"model":"higher_unconditional"},
+             {"predicate":{"custom_model_data":8},"model":"higher_later_specific"}]}
+            """);
+
+        JsonObject merged = ItemModelMerger.mergeLegacy(higher, lower, "assets/minecraft/models/item/paper.json");
+
+        assertEquals("higher_unconditional", legacyModel(merged, 5, 0, false, 0));
+        assertEquals("higher_later_specific", legacyModel(merged, 8, 0, false, 0));
+    }
+
+    @Test
     void conversionKeepsCompoundConditionsAndRejectsUnknownPredicates() {
         JsonObject legacy = json("""
             {"overrides":[{"predicate":{"custom_model_data":1.5,"pulling":1,"pull":0.65},"model":"drawn"}]}
@@ -144,6 +162,29 @@ class ItemModelMergerTest {
         try (MockedStatic<Logs> logs = mockStatic(Logs.class)) {
             assertNull(ItemModelMerger.convertLegacy(legacy, "bow"));
         }
+    }
+
+    @Test
+    void leatherHorseArmorConversionUsesTintedVanillaFallback() {
+        JsonObject legacy = json("""
+            {"overrides":[{"predicate":{"custom_model_data":17},"model":"oraxen:item/custom_horse_armor"}]}
+            """);
+
+        JsonObject converted;
+        try (MockedStatic<Logs> logs = mockStatic(Logs.class)) {
+            converted = ItemModelMerger.convertLegacy(legacy, "leather_horse_armor");
+        }
+
+        assertNotNull(converted);
+        JsonObject model = converted.getAsJsonObject("model");
+        JsonObject entry = model.getAsJsonArray("entries").get(0).getAsJsonObject();
+        assertEquals(17, entry.get("threshold").getAsInt());
+        assertEquals("oraxen:item/custom_horse_armor",
+                entry.getAsJsonObject("model").get("model").getAsString());
+        JsonObject fallback = model.getAsJsonObject("fallback");
+        assertEquals("minecraft:model", fallback.get("type").getAsString());
+        assertEquals("minecraft:item/leather_horse_armor", fallback.get("model").getAsString());
+        assertEquals(0xFFA06540, fallback.getAsJsonArray("tints").get(0).getAsJsonObject().get("default").getAsInt());
     }
 
     @Test

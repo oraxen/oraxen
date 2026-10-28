@@ -317,7 +317,8 @@ public class PackMerger {
             if (version != null) for (Overlay overlay : layer.overlays)
                 if (overlay.min <= version && version <= overlay.max) replaceAll(active, overlay.files);
             if (convertLegacyItemModels)
-                active = ItemModelMerger.convertLegacyLayer(active, result);
+                active = ItemModelMerger.convertLegacyLayer(active, result,
+                        Boolean.TRUE.equals(Settings.MERGE_DUPLICATES.toBool()));
             mergeAll(result, active);
         }
         return result;
