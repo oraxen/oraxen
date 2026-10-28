@@ -1,6 +1,8 @@
 package io.th0rgal.oraxen.pack.generation;
 
 import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import com.google.gson.*;
 import org.junit.jupiter.api.Test;
@@ -245,6 +247,95 @@ class ItemModelMergerTest {
             }
             assertEquals("baseline", baseline.getAsJsonObject("model").get("model").getAsString());
         }
+    }
+
+    @Test
+    void missingModernSelectorFallbacksSurviveLegacyConversion() {
+        String modernPath = "assets/minecraft/items/paper.json";
+        String legacyPath = "assets/minecraft/models/item/paper.json";
+        String legacy = """
+                {"overrides":[{"predicate":{"custom_model_data":17},"model":"test:legacy"}]}
+                """;
+        List<JsonObject> modernModels = List.of(
+                json("""
+                    {"type":"minecraft:range_dispatch","property":"minecraft:custom_model_data","index":0,
+                     "entries":[{"threshold":5,"model":{"type":"minecraft:model","model":"test:modern"}}]}
+                    """),
+                json("""
+                    {"type":"minecraft:select","property":"minecraft:custom_model_data","index":0,
+                     "cases":[{"when":"existing","model":{"type":"minecraft:model","model":"test:modern"}}]}
+                    """),
+                json("""
+                    {"type":"minecraft:condition","property":"minecraft:using_item",
+                     "on_true":{"type":"minecraft:range_dispatch","property":"minecraft:custom_model_data","index":0,
+                       "entries":[{"threshold":5,"model":{"type":"minecraft:model","model":"test:modern"}}]},
+                     "on_false":{"type":"minecraft:model","model":"test:idle"}}
+                    """));
+
+        for (JsonObject modernModel : modernModels) {
+            JsonObject modernDefinition = new JsonObject();
+            modernDefinition.add("model", modernModel);
+            for (boolean ownModern : List.of(true, false)) {
+                Map<String, byte[]> active = new LinkedHashMap<>();
+                active.put(legacyPath, legacy.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                Map<String, byte[]> lower = new LinkedHashMap<>();
+                if (ownModern) active.put(modernPath, modernDefinition.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                else lower.put(modernPath, modernDefinition.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+
+                Map<String, byte[]> converted = ItemModelMerger.convertLegacyLayer(active, lower);
+                JsonObject result = json(new String(converted.get(modernPath), java.nio.charset.StandardCharsets.UTF_8));
+                if (!ownModern) result = ItemModelMerger.mergeDefinition(result, modernDefinition, modernPath);
+                JsonObject model = result.getAsJsonObject("model");
+                String context = (ownModern ? "own" : "lower") + " modern " + modernModel.get("type").getAsString();
+
+                assertEquals("<missing>", resolvedModel(model, 0, null, true), context + " unmatched value");
+                assertEquals("test:legacy", resolvedModel(model, 17, null, true), context + " legacy override");
+                if (modernModel.get("type").getAsString().equals("minecraft:select")) {
+                    assertEquals("test:modern", resolvedModel(model, 0, "existing", true), context + " existing case");
+                } else {
+                    assertEquals("test:modern", resolvedModel(model, 5, null, true), context + " existing threshold");
+                }
+                if (modernModel.get("type").getAsString().equals("minecraft:condition"))
+                    assertEquals("test:idle", resolvedModel(model, 0, null, false), context + " false condition branch");
+                assertFalse(result.toString().contains("minecraft:item/paper"), context + " must not synthesize a vanilla fallback");
+            }
+        }
+    }
+
+    private static String resolvedModel(JsonObject model, double customModelData, String selectValue, boolean using) {
+        String type = model.has("type") ? model.get("type").getAsString().replace("minecraft:", "") : "";
+        if (type.equals("model")) return model.get("model").getAsString();
+        if (type.equals("condition"))
+            return resolvedModel(model.getAsJsonObject(using ? "on_true" : "on_false"), customModelData, selectValue, using);
+        if (type.equals("select")) {
+            for (JsonElement element : model.getAsJsonArray("cases")) {
+                JsonObject entry = element.getAsJsonObject();
+                JsonElement when = entry.get("when");
+                boolean matches = when.isJsonArray()
+                        ? when.getAsJsonArray().asList().stream().anyMatch(value -> value.getAsString().equals(selectValue))
+                        : selectValue != null && when.getAsString().equals(selectValue);
+                if (matches) return resolvedModel(entry.getAsJsonObject("model"), customModelData, selectValue, using);
+            }
+            return model.has("fallback")
+                    ? resolvedModel(model.getAsJsonObject("fallback"), customModelData, selectValue, using)
+                    : "<missing>";
+        }
+        if (!type.equals("range_dispatch") || !model.get("property").getAsString().equals("minecraft:custom_model_data"))
+            return "<unsupported>";
+        JsonObject selected = null;
+        double threshold = Double.NEGATIVE_INFINITY;
+        for (JsonElement element : model.getAsJsonArray("entries")) {
+            JsonObject entry = element.getAsJsonObject();
+            double candidate = entry.get("threshold").getAsDouble();
+            if (candidate <= customModelData && candidate >= threshold) {
+                selected = entry.getAsJsonObject("model");
+                threshold = candidate;
+            }
+        }
+        if (selected != null) return resolvedModel(selected, customModelData, selectValue, using);
+        return model.has("fallback")
+                ? resolvedModel(model.getAsJsonObject("fallback"), customModelData, selectValue, using)
+                : "<missing>";
     }
 
     @Test

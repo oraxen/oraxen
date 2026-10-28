@@ -47,7 +47,11 @@ public final class ItemModelMerger {
     private static JsonObject fallbackBaseline(JsonObject itemDefinition) {
         if (!itemDefinition.has("model") || !itemDefinition.get("model").isJsonObject()) return null;
         JsonElement fallback = withoutCustomModelDataSelectors(itemDefinition.get("model"));
-        if (fallback == null || !fallback.isJsonObject()) return null;
+        if (fallback == null || !fallback.isJsonObject()) {
+            // A selector without a fallback resolves to the client's missing-item model.
+            // Keep the full definition so conversion does not replace that behavior with vanilla.
+            return itemDefinition.deepCopy();
+        }
         JsonObject baseline = new JsonObject();
         baseline.add("model", fallback);
         return baseline;
