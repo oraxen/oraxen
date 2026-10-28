@@ -214,6 +214,25 @@ class PackImportCompositionTest {
         assertEquals("test:own_modern", itemAt(json(files, "assets/minecraft/items/paper.json").getAsJsonObject("model"), 5));
     }
 
+    @Test void convertsGenericUploadedLegacyOverrideWithVanillaFallback() throws Exception {
+        settings.set(Settings.MERGE_DUPLICATES.getPath(), true);
+        Settings.invalidateCache();
+        write("generic_pack", Map.of("assets/minecraft/models/item/leather_horse_armor.json", """
+                {"parent":"item/generated","textures":{"layer0":"item/leather_horse_armor"},
+                 "overrides":[{"predicate":{"custom_model_data":17},"model":"test:item/custom_horse_armor"}]}
+                """));
+
+        PackMerger merger = new PackMerger(tempDir.toFile());
+        merger.setConvertLegacyItemModels(true);
+        Map<String, String> files = contents(merger.mergeUploadedPacks());
+        JsonObject model = json(files, "assets/minecraft/items/leather_horse_armor.json").getAsJsonObject("model");
+
+        assertEquals("test:item/custom_horse_armor", itemAt(model, 17));
+        assertEquals("minecraft:item/leather_horse_armor", itemAt(model, 0));
+        assertEquals(0xFFA06540, model.getAsJsonObject("fallback").getAsJsonArray("tints")
+                .get(0).getAsJsonObject().get("default").getAsInt());
+    }
+
     @Test void convertsLegacyRulesWhenDuplicateMergingIsDisabled() throws Exception {
         settings.set(Settings.MERGE_DUPLICATES.getPath(), false);
         Settings.invalidateCache();
