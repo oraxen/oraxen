@@ -582,7 +582,9 @@ class TextShaderGenerator {
         String header = """
                 #version 330
 
+                #if !defined(IS_GUI) && !defined(IS_SEE_THROUGH)
                 #moj_import <minecraft:fog.glsl>
+                #endif
                 #moj_import <minecraft:dynamictransforms.glsl>
                 #moj_import <minecraft:projection.glsl>
                 #moj_import <minecraft:sample_lightmap.glsl>
@@ -618,7 +620,9 @@ class TextShaderGenerator {
         return """
                 #version 330
 
+                #if !defined(IS_GUI) && !defined(IS_SEE_THROUGH)
                 #moj_import <minecraft:fog.glsl>
+                #endif
                 #moj_import <minecraft:dynamictransforms.glsl>
                 #moj_import <minecraft:globals.glsl>
 
