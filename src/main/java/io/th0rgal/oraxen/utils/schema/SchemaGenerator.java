@@ -453,12 +453,19 @@ public class SchemaGenerator {
     private static JsonObject generateItemProperties() {
         JsonObject properties = new JsonObject();
 
-        // itemname / displayname
-        addProperty(properties, "itemname", "string", "Display name with MiniMessage formatting (1.20.5+)", true,
-                "minimessage", "1.20.5+");
-        addProperty(properties, "displayname", "string", "Display name (legacy, use itemname instead)", false,
+        addProperty(properties, "name", "string", "Base item name with MiniMessage formatting", true,
+                "minimessage", null);
+        addProperty(properties, "custom-name", "string", "Anvil-editable name that overrides the base name", false,
+                "minimessage", null);
+        addProperty(properties, "itemname", "string", "Legacy base name, migrated to name", false,
+                "minimessage", null);
+        properties.getAsJsonObject("itemname").addProperty("deprecated", true);
+        addProperty(properties, "displayname", "string", "Legacy base name, migrated to name", false,
                 "minimessage", null);
         properties.getAsJsonObject("displayname").addProperty("deprecated", true);
+        addProperty(properties, "customname", "string", "Legacy custom name, migrated to custom-name", false,
+                "minimessage", null);
+        properties.getAsJsonObject("customname").addProperty("deprecated", true);
 
         // material
         JsonObject material = new JsonObject();
@@ -969,7 +976,7 @@ public class SchemaGenerator {
 
         addMechanicIfAbsent(mechanics, "furniture", "gameplay", "Place item as furniture entity",
                 Map.of(
-                        "barrier", prop("boolean", "Use barrier block for collision", null, false),
+                        "barriers", prop("array", "Barrier block offsets formatted '<x>,<y>,<z>' with integer coordinates", null, null),
                         "lights", prop("array", "Light entries formatted '<x>,<y>,<z> <level>'", null, null),
                         "hardness", prop("number", "Break hardness", 0, null),
                         "farmland_required", prop("boolean", "Requires farmland below", null, false),

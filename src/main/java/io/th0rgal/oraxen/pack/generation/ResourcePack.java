@@ -3,10 +3,14 @@ package io.th0rgal.oraxen.pack.generation;
 import com.google.gson.*;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.api.OraxenFurniture;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.api.events.OraxenPackGeneratedEvent;
 import io.th0rgal.oraxen.configs.AppearanceMode;
 import io.th0rgal.oraxen.configs.ResourcesManager;
 import io.th0rgal.oraxen.configs.Settings;
+import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
+import io.th0rgal.oraxen.compatibilities.provided.modelengine.ModelEngineCompatibility;
 import io.th0rgal.oraxen.glyphs.AnimatedGlyph;
 import io.th0rgal.oraxen.fonts.Font;
 import io.th0rgal.oraxen.fonts.FontManager;
@@ -18,11 +22,14 @@ import io.th0rgal.oraxen.pack.upload.UploadManager;
 import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.customarmor.ComponentArmorModels;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmorType;
+import io.th0rgal.oraxen.utils.customarmor.LegacyArmorTextures;
 import io.th0rgal.oraxen.utils.customarmor.TrimArmorDatapack;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Material;
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.Plugin;
 
 import javax.imageio.ImageIO;
 import java.awt.AlphaComposite;
@@ -36,6 +43,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
 
@@ -51,6 +59,7 @@ public class ResourcePack {
     private final SoundGenerator soundGenerator = new SoundGenerator();
     private PackFileCollector fileCollector;
     private final TextShaderGenerator textShaderGenerator = new TextShaderGenerator();
+    private JsonArray mergedImportOverlayEntries = new JsonArray();
     /** Resolved multi-version flag (may differ from Settings if fallback occurred). */
     private boolean multiVersionResolved = false;
     private final AtomicBoolean generationInProgress = new AtomicBoolean(false);
@@ -69,6 +78,27 @@ public class ResourcePack {
             Logs.logWarning("Resource-pack generation is already in progress, skipping duplicate request");
             return;
         }
+
+        if (Settings.IMPORT_MODEL_ENGINE.toBool()
+                && CompatibilitiesManager.getActiveCompatibility("ModelEngine") instanceof ModelEngineCompatibility compatibility) {
+            var packReady = compatibility.getPackReady();
+            if (!packReady.isDone()) {
+                Logs.logInfo("Awaiting ModelEngine resource pack...");
+                packReady.copy().orTimeout(300, TimeUnit.SECONDS).whenComplete((ignored, exception) -> {
+                    if (shutdownRequested || !OraxenPlugin.get().isEnabled()) return;
+                    if (exception != null) Logs.logWarning("ModelEngine resource pack was not ready within 300 seconds; continuing pack generation");
+                    SchedulerUtil.runTask(() -> {
+                        if (!shutdownRequested) generateWhenReady();
+                    });
+                });
+                return;
+            }
+        }
+
+        generateWhenReady();
+    }
+
+    private void generateWhenReady() {
 
         // Re-evaluate dispatch mode normalization on each generation (covers reload)
         io.th0rgal.oraxen.pack.dispatch.PackSender.resetDispatchNormalization();
@@ -224,7 +254,7 @@ public class ResourcePack {
             return;
         }
         try {
-            soundGenerator.generateSound(output);
+            PackPipeline.processSnapshots(output, soundGenerator::generateSound);
 
             OraxenPackGeneratedEvent event = new OraxenPackGeneratedEvent(output);
             event.callEvent();
@@ -243,6 +273,7 @@ public class ResourcePack {
                     filterGeneratedCoreShadersBelow1214(output, MinecraftVersion.getCurrentVersion());
                     UnprotectedPackWriter.writeConfigured(output, packFolder);
                     PackObfuscator.obfuscate(output);
+                    PackPipeline.sparsifyGeneratedOverlays(output, mergedImportOverlayEntries);
                     if (shutdownRequested) return;
                     ZipUtils.writeZipFile(pack, output);
                     if (shutdownRequested) return;
@@ -330,6 +361,7 @@ public class ResourcePack {
         if (Settings.GENERATE_DEFAULT_ASSETS.toBool())
             extractDefaultFolders(missingDefaultFolders);
         extractRequired();
+        cleanLegacyArmorTextures();
 
         if (!Settings.GENERATE.toBool())
             return false;
@@ -353,6 +385,16 @@ public class ResourcePack {
         updatePackMcmeta();
 
         return true;
+    }
+
+    private void cleanLegacyArmorTextures() {
+        try {
+            int removed = LegacyArmorTextures.cleanExtractedDefaults(packFolder.toPath());
+            if (removed > 0)
+                Logs.logInfo("Removed " + removed + " unchanged legacy armor textures from the pack folder.");
+        } catch (IOException e) {
+            Logs.logWarning("Failed to clean legacy armor textures. " + e.getMessage());
+        }
     }
 
     private void cleanLegacyShaderOverlayDirectories() {
@@ -407,7 +449,7 @@ public class ResourcePack {
     private void applyArmorStandModelOverrides(List<VirtualFile> output) {
         Map<String, org.bukkit.util.Vector> scaleByModelPath = new LinkedHashMap<>();
 
-        for (Map.Entry<String, ItemBuilder> entry : OraxenItems.getEntries()) {
+        for (Map.Entry<String, ItemBuilder> entry : getRenderItems().entrySet()) {
             ItemBuilder item = entry.getValue();
             if (!item.hasOraxenMeta()) continue;
 
@@ -552,8 +594,6 @@ public class ResourcePack {
                         folder.getName().matches("models|textures|lang|font|sounds") ? "assets/minecraft" : "");
             }
 
-        mergeUploadedPacks(output);
-        convertGlobalLang(output);
     }
 
     /**
@@ -562,10 +602,16 @@ public class ResourcePack {
      */
     private void postProcessOutput(List<VirtualFile> output) {
         postProcessOutputAsyncSafe(output);
-        soundGenerator.generateSound(output);
+        PackPipeline.processSnapshots(output, soundGenerator::generateSound);
     }
 
     private void postProcessOutputAsyncSafe(List<VirtualFile> output) {
+        mergeUploadedPacks(output);
+        PackPipeline.processSnapshots(output, this::convertGlobalLang);
+        PackPipeline.processSnapshots(output, this::postProcessSnapshotAsyncSafe);
+    }
+
+    private void postProcessSnapshotAsyncSafe(List<VirtualFile> output) {
         Set<String> malformedTextures = new HashSet<>();
         if (Settings.VERIFY_PACK_FILES.toBool())
             malformedTextures = PackFileCollector.verifyPackFormatting(output);
@@ -577,7 +623,7 @@ public class ResourcePack {
             DuplicationHandler.mergeFontFiles(output);
         if (Settings.MERGE_ITEM_MODELS.toBool())
             DuplicationHandler.mergeBaseItemFiles(output);
-        DuplicationHandler.mergeVanillaItemDefinitions(output, multiVersionResolved);
+        DuplicationHandler.mergeVanillaItemDefinitions(output, multiVersionResolved, false);
 
         List<String> excludedExtensions = Settings.EXCLUDED_FILE_EXTENSIONS.toStringList();
         excludedExtensions.removeIf(f -> f.equals("png") || f.equals("json"));
@@ -609,7 +655,7 @@ public class ResourcePack {
         // Use MultiVersionPackGenerator for multi-version zip and upload
         MultiVersionPackGenerator multiVersionGenerator = new MultiVersionPackGenerator(packFolder,
                 textShaderGenerator.getGeneratedCoreShaderHashes());
-        multiVersionGenerator.generateMultipleVersions(output, switchingFromSinglePack);
+        multiVersionGenerator.generateMultipleVersions(output, switchingFromSinglePack, mergedImportOverlayEntries);
     }
 
     private void filterGeneratedCoreShadersBelow1214(List<VirtualFile> output, MinecraftVersion targetVersion) {
@@ -837,7 +883,7 @@ public class ResourcePack {
     }
 
     private boolean isMcmetaGenerationDisabled() {
-        return Boolean.TRUE.equals(Settings.DISABLE_MCMETA_GENERATION.getValue());
+        return !Boolean.TRUE.equals(Settings.GENERATE_MCMETA.getValue());
     }
 
 
@@ -867,14 +913,14 @@ public class ResourcePack {
     }
 
     private boolean isSuitable(String entryName, Set<String> foldersToExtract) {
+        if (LegacyArmorTextures.isLegacyPackResource(entryName)) return false;
         String name = StringUtils.substringAfter(entryName, "pack/").split("/")[0];
         return foldersToExtract.contains(name);
     }
 
     private void extractRequired() {
         ResourcesManager.browseJar(entry -> {
-            if (entry.getName().startsWith("pack/textures/models/armor/leather_layer_")
-                    || entry.getName().startsWith("pack/textures/required")
+            if (entry.getName().startsWith("pack/textures/required")
                     || entry.getName().startsWith("pack/models/required")) {
                 OraxenPlugin.get().getResourceManager().extractFileIfTrue(entry,
                         !OraxenPlugin.get().getDataFolder().toPath().resolve(entry.getName()).toFile().exists());
@@ -887,9 +933,20 @@ public class ResourcePack {
         resourcesManager.extractFileIfTrue(entry, isSuitable);
     }
 
+    private Map<String, ItemBuilder> getRenderItems() {
+        Map<String, ItemBuilder> items = new LinkedHashMap<>();
+        for (Map.Entry<String, ItemBuilder> entry : OraxenItems.getEntries()) {
+            items.put(entry.getKey(), entry.getValue());
+            FurnitureMechanic furniture = OraxenFurniture.getFurnitureMechanic(entry.getKey());
+            if (furniture != null)
+                items.putAll(furniture.getAppearanceRenderItems(entry.getValue().getType()));
+        }
+        return items;
+    }
+
     private Map<Material, Map<String, ItemBuilder>> extractTexturedItems() {
         final Map<Material, Map<String, ItemBuilder>> texturedItems = new HashMap<>();
-        for (final Map.Entry<String, ItemBuilder> entry : OraxenItems.getEntries()) {
+        for (final Map.Entry<String, ItemBuilder> entry : getRenderItems().entrySet()) {
             final String itemId = entry.getKey();
             final ItemBuilder item = entry.getValue();
             OraxenMeta oraxenMeta = item.getOraxenMeta();
@@ -1395,12 +1452,45 @@ public class ResourcePack {
     }
 
     private void mergeUploadedPacks(List<VirtualFile> output) {
+        mergedImportOverlayEntries = new JsonArray();
+        boolean preserveNativeOverlays = isMcmetaGenerationDisabled();
         PackMerger packMerger = new PackMerger(packFolder);
-        List<VirtualFile> mergedFiles = packMerger.mergeUploadedPacks();
-        PackMcmetaUtils.mergeOverlayEntriesIntoOutput(output, packMerger.getMergedOverlayEntries());
-
-        if (!mergedFiles.isEmpty()) {
-            output.addAll(mergedFiles);
+        packMerger.setConvertLegacyItemModels(multiVersionResolved
+                || (VersionUtil.atOrAbove("1.21.4") && AppearanceMode.shouldGenerateVanillaItemDefinitions()));
+        packMerger.mergeUploadedPacks();
+        if (Settings.IMPORT_MODEL_ENGINE.toBool()) {
+            Plugin modelEngine = Bukkit.getPluginManager().getPlugin("ModelEngine");
+            if (modelEngine != null && modelEngine.isEnabled()) {
+                File modelEnginePack = new File(modelEngine.getDataFolder(), "resource pack.zip");
+                if (!modelEnginePack.isFile()) modelEnginePack = new File(modelEngine.getDataFolder(), "resource pack");
+                if (modelEnginePack.exists()) {
+                    packMerger.mergeModelEnginePack(modelEnginePack);
+                } else {
+                    Logs.logWarning("Could not find ModelEngine resource pack.zip or resource pack folder");
+                }
+            }
+        }
+        PackPipeline.mergeNativeFiles(output, !Boolean.FALSE.equals(Settings.MERGE_DUPLICATE_FONTS.getValue()));
+        List<VirtualFile> resolvedFiles = packMerger.mergeWithHigherPriorityFiles(output, preserveNativeOverlays);
+        mergedImportOverlayEntries = packMerger.getMergedOverlayEntries();
+        output.removeIf(file -> file.getPath().startsWith("assets/") || file.getPath().contains("/assets/")
+                || file.getPath().equals("pack.png"));
+        output.addAll(resolvedFiles);
+        for (VirtualFile file : output) {
+            if (!file.getPath().equals("pack.mcmeta") || !file.isJsonObject()) continue;
+            JsonObject metadata = file.toJsonObject();
+            JsonObject languages = packMerger.getMergedLanguageMetadata();
+            if (!languages.isEmpty()) metadata.add("language", languages);
+            JsonObject filters = packMerger.getMergedFilterMetadata();
+            if (!filters.isEmpty()) metadata.add("filter", filters);
+            if (preserveNativeOverlays) {
+                PackMcmetaUtils.appendOverlayEntries(metadata, mergedImportOverlayEntries);
+            } else {
+                JsonObject overlays = new JsonObject();
+                overlays.add("entries", mergedImportOverlayEntries.deepCopy());
+                metadata.add("overlays", overlays);
+            }
+            file.setInputStream(new ByteArrayInputStream(metadata.toString().getBytes(StandardCharsets.UTF_8)));
         }
     }
 
@@ -1423,17 +1513,12 @@ public class ResourcePack {
             return;
 
         for (String lang : availableLanguageCodes) {
-            File langFile = new File(packFolder, "lang/" + lang + ".json");
             JsonObject langJson = new JsonObject();
 
-            // If the file is in the pack, we want to keep the existing entries over global
-            // ones
-            if (langFile.exists()) {
-                try {
-                    langJson = JsonParser.parseString(Files.readString(langFile.toPath(), StandardCharsets.UTF_8))
-                            .getAsJsonObject();
-                } catch (IOException | IllegalStateException ignored) {
-                }
+            String localePath = "assets/minecraft/lang/" + lang + ".json";
+            for (VirtualFile file : output) {
+                if (file.getPath().equals(localePath) && file.isJsonObject())
+                    langJson = PackAssetMerger.mergeJson("assets/minecraft/lang/locale.json", langJson, file.toJsonObject());
             }
 
             for (Map.Entry<String, JsonElement> entry : globalLang.entrySet()) {

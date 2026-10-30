@@ -23,24 +23,30 @@ public class ZipUtils {
     public static void writeZipFile(final File outputFile,
             final List<VirtualFile> fileList) {
 
-        try (final FileOutputStream fos = new FileOutputStream(outputFile);
+        try {
+            try (final FileOutputStream fos = new FileOutputStream(outputFile);
                 final ZipOutputStream zos = new ZipOutputStream(fos, StandardCharsets.UTF_8)) {
-            final int compressionLevel = Deflater.class.getDeclaredField(Settings.COMPRESSION.toString()).getInt(null);
-            zos.setLevel(compressionLevel);
-            zos.setComment(Settings.COMMENT.toString());
-            for (final VirtualFile file : fileList) {
-                addToZip(file.getPath(), file.getInputStream(), zos);
+                final int compressionLevel = Deflater.class.getDeclaredField(Settings.COMPRESSION.toString()).getInt(null);
+                zos.setLevel(compressionLevel);
+                zos.setComment(Settings.COMMENT.toString());
+                for (final VirtualFile file : fileList) {
+                    addToZip(file.getPath(), file.getInputStream(), zos);
+                }
             }
-
+            if (Settings.PACK_SIZE_SPOOFING.toBool()) ZipSizeSpoofer.spoof(outputFile.toPath());
         } catch (final IOException | NoSuchFieldException | IllegalAccessException ex) {
-            ex.printStackTrace();
+            Logs.logError("Failed to write resource pack zip");
+            Logs.debug(ex);
         }
     }
 
     public static void addToZip(String zipFilePath, final InputStream fis, ZipOutputStream zos) throws IOException {
         final ZipEntry zipEntry = new ZipEntry(zipFilePath);
         zipEntry.setLastModifiedTime(FileTime.fromMillis(0L));
-        DuplicationHandler.checkForDuplicate(zos, zipEntry);
+        if (!DuplicationHandler.tryOpenEntry(zos, zipEntry)) {
+            if (fis != null) fis.close();
+            return;
+        }
 
         if (fis == null) {
             Logs.logWarning("Skipping zip entry with null input stream: " + zipFilePath);
@@ -54,7 +60,8 @@ public class ZipUtils {
         try (InputStream in = fis) {
             in.transferTo(zos);
         } catch (IOException exception) {
-            Logs.logWarning("Failed to write zip entry " + zipFilePath + ": " + exception.getMessage());
+            Logs.logWarning("Failed to write zip entry " + zipFilePath);
+            Logs.debug(exception);
         } finally {
             try {
                 zos.closeEntry();

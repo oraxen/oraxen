@@ -186,6 +186,13 @@ public class FurnitureFactory extends MechanicFactory {
                 MechanicConfigProperty.enumType("type", "Entity type for the furniture",
                         List.of("DISPLAY_ENTITY", "ITEM_FRAME", "GLOW_ITEM_FRAME", "ARMOR_STAND")),
                 MechanicConfigProperty.integer("hardness", "Break hardness (higher = slower to break)", 1, 0),
+                MechanicConfigProperty.object("appearance", "Placed furniture appearance; uses the same options as pack", Map.of(
+                        "model", MechanicConfigProperty.string("model", "Placed furniture model path"),
+                        "generate_model", MechanicConfigProperty.bool("generate_model", "Generate the furniture model from textures", false),
+                        "textures", MechanicConfigProperty.list("textures", "Furniture model textures"),
+                        "parent_model", MechanicConfigProperty.string("parent_model", "Parent for generated furniture models"),
+                        "models", MechanicConfigProperty.object("models", "Named furniture stage model paths", Map.of())
+                )),
                 MechanicConfigProperty.string("item", "Alternative Oraxen item ID to display"),
                 MechanicConfigProperty.string("modelengine_id", "ModelEngine model ID to use"),
                 MechanicConfigProperty.bool("farmland_required", "Whether farmland is required for placement", false),
@@ -197,7 +204,7 @@ public class FurnitureFactory extends MechanicFactory {
                 MechanicConfigProperty.bool("small", "Whether an armor stand furniture uses the small variant", true),
                 MechanicConfigProperty.list("hitboxes", "List of hitbox offsets and dimensions formatted '<x>,<y>,<z> <width>,<height>'"),
                 MechanicConfigProperty.list("seats", "List of seat offsets relative to the furniture center formatted '<x>,<y>,<z>' or '<x>,<y>,<z> <yaw>'"),
-                MechanicConfigProperty.list("barriers", "List of barrier block positions relative to furniture"),
+                MechanicConfigProperty.list("barriers", "List of barrier block offsets relative to furniture formatted '<x>,<y>,<z>' with integer coordinates"),
                 MechanicConfigProperty.list("events", "Click events with actions to run when furniture barriers or hitboxes are clicked"),
                 MechanicConfigProperty.object("properties", "Furniture entity properties; unsupported properties are ignored", Map.of(
                         "display_transform", MechanicConfigProperty.enumType("display_transform", "Display transform mode",

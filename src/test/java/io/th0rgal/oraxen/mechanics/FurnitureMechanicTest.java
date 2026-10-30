@@ -9,6 +9,7 @@ import io.th0rgal.oraxen.items.OraxenMeta;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.ArmorStandProperties;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
 import net.kyori.adventure.text.Component;
@@ -26,6 +27,7 @@ import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 
 import java.util.List;
 import java.util.Map;
@@ -41,6 +43,33 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class FurnitureMechanicTest extends MechanicTestSupport {
+
+    @Test
+    void readsBarrierOffsetsAndDisablesDefaultInteractionHitbox() {
+        ConfigurationSection section = mechanicSection("furniture", "barriers",
+                List.of("0,0,0", " -2, 1, 3 "));
+        FurnitureMechanic mechanic = new FurnitureMechanic(mechanicFactory(), section);
+
+        assertEquals(List.of("0,0,0", "-2,1,3"), mechanic.getBarriers().stream().map(Object::toString).toList());
+        assertTrue(mechanic.hasBarriers());
+        assertFalse(mechanic.hasHitbox());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"origin", "1,2", "1,2,3,4", "1.5,0,0", "1,2,", "2147483648,0,0"})
+    void skipsInvalidBarrierOffsetsWithoutPreventingValidEntries(String invalidOffset) {
+        ConfigurationSection section = mechanicSection("furniture", "barriers",
+                List.of(invalidOffset, "-1,0,2"));
+        try (var logs = mockStatic(Logs.class)) {
+            FurnitureMechanic mechanic = new FurnitureMechanic(mechanicFactory(), section);
+
+            assertEquals(List.of("-1,0,2"), mechanic.getBarriers().stream().map(Object::toString).toList());
+            ArgumentCaptor<String> message = ArgumentCaptor.forClass(String.class);
+            logs.verify(() -> Logs.logError(message.capture()));
+            assertTrue(message.getValue().contains(invalidOffset));
+            assertTrue(message.getValue().contains(mechanic.getItemID()));
+        }
+    }
 
     @Test
     void readsUnifiedDisplayPropertiesAndIgnoresArmorStandOffset() {

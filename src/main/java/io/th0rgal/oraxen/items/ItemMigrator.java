@@ -38,6 +38,10 @@ public final class ItemMigrator {
 
     public ItemMigrator(final ConfigurationSection section, String inheritedFurnitureType) {
         this.section = section;
+        if (migrateNames(section)) {
+            configUpdated = true;
+            blockConfigMigrated = true;
+        }
         migrateUppercaseSections();
         migrateEnchantable();
         migrateInjectId();
@@ -60,14 +64,45 @@ public final class ItemMigrator {
         }
     }
 
+    public static boolean migrateNames(final ConfigurationSection section) {
+        if (section == null)
+            return false;
+
+        boolean updated = migrateName(section, "itemname", "name");
+        updated |= migrateName(section, "displayname", "name");
+        updated |= migrateName(section, "customname", "custom-name");
+        if (updated)
+            OraxenYaml.invalidateKeyCache(section);
+        return updated;
+    }
+
+    private static boolean migrateName(final ConfigurationSection section, final String legacy, final String canonical) {
+        if (!section.isSet(legacy))
+            return false;
+        if (!section.isSet(canonical)) {
+            section.set(canonical, section.get(legacy));
+            section.setComments(canonical, section.getComments(legacy));
+            section.setInlineComments(canonical, section.getInlineComments(legacy));
+        }
+        section.set(legacy, null);
+        return true;
+    }
+
     /**
      * Migrates the item-level sections that historically used capitalized names
      * to their lowercase canonical names.
      */
     public void migrateUppercaseSections() {
-        if (section == null)
-            return;
+        boolean migrated = migrateUppercaseSections(section);
+        configUpdated |= migrated;
+        blockConfigMigrated |= migrated;
+    }
 
+    public static boolean migrateUppercaseSections(final ConfigurationSection section) {
+        if (section == null)
+            return false;
+
+        boolean updated = false;
         for (final String key : section.getKeys(false).toArray(String[]::new)) {
             final String lowercaseKey = key.toLowerCase(Locale.ROOT);
             if (key.equals(lowercaseKey))
@@ -103,10 +138,9 @@ public final class ItemMigrator {
 
             section.set(key, null);
             OraxenYaml.invalidateKeyCache(section);
-            configUpdated = true;
-            // Renaming rewrites the user's item file, so keep a backup like the other migrations.
-            blockConfigMigrated = true;
+            updated = true;
         }
+        return updated;
     }
 
     private static void copyComments(final ConfigurationSection source, final ConfigurationSection target) {
@@ -120,10 +154,6 @@ public final class ItemMigrator {
             if (!inlineComments.isEmpty() && target.getInlineComments(path).isEmpty())
                 target.setInlineComments(path, inlineComments);
         }
-    }
-
-    public void recordLegacyNameMigration(final boolean migrated) {
-        configUpdated |= migrated;
     }
 
     /**

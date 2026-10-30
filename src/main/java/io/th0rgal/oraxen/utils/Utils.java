@@ -59,10 +59,7 @@ public class Utils {
 
     public static float customRound(double value, float step) {
         float roundedValue = Math.round(value / step) * step;
-        float remainder = (float) (value % step);
-
-        if (remainder > step / 2) roundedValue += step;
-        return Float.parseFloat(String.format("%.2f", roundedValue).replace(",", "."));
+        return Math.round(roundedValue * 100f) / 100f;
     }
 
     public static IntegerRange parseToRange(String string) {

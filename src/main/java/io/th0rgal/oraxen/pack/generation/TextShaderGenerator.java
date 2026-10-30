@@ -570,7 +570,7 @@ class TextShaderGenerator {
                 """;
     }
 
-    private String getAnimationVertexShader26_2(TextShaderTarget target, TextShaderFeatures features) {
+    String getAnimationVertexShader26_2(TextShaderTarget target, TextShaderFeatures features) {
         String textShaderConstants = getTextShaderConstants(features);
         VertexShaderConfig config = new VertexShaderConfig(
                 "#if !defined(IS_SEE_THROUGH) && !defined(IS_GUI)\n                        sphericalVertexDistance = fog_spherical_distance(pos);\n                        cylindricalVertexDistance = fog_cylindrical_distance(pos);\n                        #endif",
@@ -582,7 +582,9 @@ class TextShaderGenerator {
         String header = """
                 #version 330
 
+                #if !defined(IS_GUI) && !defined(IS_SEE_THROUGH)
                 #moj_import <minecraft:fog.glsl>
+                #endif
                 #moj_import <minecraft:dynamictransforms.glsl>
                 #moj_import <minecraft:projection.glsl>
                 #moj_import <minecraft:sample_lightmap.glsl>
@@ -614,11 +616,13 @@ class TextShaderGenerator {
         return header + getVertexShaderMainBody(config, false);
     }
 
-    private String getAnimationFragmentShader26_2(TextShaderTarget target) {
+    String getAnimationFragmentShader26_2(TextShaderTarget target) {
         return """
                 #version 330
 
+                #if !defined(IS_GUI) && !defined(IS_SEE_THROUGH)
                 #moj_import <minecraft:fog.glsl>
+                #endif
                 #moj_import <minecraft:dynamictransforms.glsl>
                 #moj_import <minecraft:globals.glsl>
 

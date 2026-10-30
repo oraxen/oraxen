@@ -6,7 +6,7 @@
 # Color codes: https://docs.adventure.kyori.net/minimessage.html#format
 
 example_sword:
-  displayname: "<gradient:#FA7CBB:#F14658><bold>My Custom Sword"
+  name: "<gradient:#FA7CBB:#F14658><bold>My Custom Sword"
   material: WOODEN_SWORD
   injectId: false # allow Oraxen to recognise the item if true or not set
 
@@ -45,7 +45,7 @@ example_sword:
       prevent_renaming: true
 
 example_custom_mechanic:
-  displayname: "<gradient:#FA7CBB:#F14658><bold>My Item With A Custom Mechanic"
+  name: "<gradient:#FA7CBB:#F14658><bold>My Item With A Custom Mechanic"
   material: DIAMOND_SWORD
   mechanics:
     custom:
@@ -59,21 +59,21 @@ example_custom_mechanic:
           - "[console] give <player> cooked_beef 1"
 
 example_efficient_pickaxe:
-  displayname: "<gradient:#59A7EA:#F1D2FF><bold>Turbo Pickaxe"
+  name: "<gradient:#59A7EA:#F1D2FF><bold>Turbo Pickaxe"
   material: DIAMOND_PICKAXE
   mechanics:
     efficiency:
       amount: 3
 
 example_slow_pickaxe:
-  displayname: "<gradient:#59A7EA:#F1D2FF><bold>Slow Pickaxe"
+  name: "<gradient:#59A7EA:#F1D2FF><bold>Slow Pickaxe"
   material: DIAMOND_PICKAXE
   mechanics:
     efficiency:
       amount: -3
 
 example_potion:
-  displayname: "<#6f737d>Wither Potion"
+  name: "<#6f737d>Wither Potion"
   material: SPLASH_POTION
   injectId: false # allow Oraxen to recognise the item if true or not set
   color: 34, 0, 10
@@ -94,7 +94,7 @@ example_potion:
       }
 
 miner_sandwitch:
-  itemname: <gradient:#F69D84:#FAD98D>Miner's sandwitch
+  name: <gradient:#F69D84:#FAD98D>Miner's sandwitch
   material: PAPER
   pack:
     generate_model: true
@@ -123,7 +123,7 @@ miner_sandwitch:
         probability: 1.0
 
 amethyst:
-  displayname: "<gradient:#4B36B1:#6699FF>Amethyst"
+  name: "<gradient:#4B36B1:#6699FF>Amethyst"
   material: PAPER
   pack:
     generate_model: true
@@ -132,7 +132,7 @@ amethyst:
       - default/amethyst.png # .png extension is not mandatory
 
 ruby:
-  displayname: "<gradient:#FA7CBB:#F14658>Ruby"
+  name: "<gradient:#FA7CBB:#F14658>Ruby"
   material: PAPER
   pack:
     generate_model: true
@@ -141,7 +141,7 @@ ruby:
       - default/ruby.png # .png extension is not mandatory
 
 onyx:
-  displayname: "<#6f737d>Onyx"
+  name: "<#6f737d>Onyx"
   material: PAPER
   pack:
     generate_model: true
@@ -150,7 +150,7 @@ onyx:
       - default/onyx.png # .png extension is not mandatory
 
 orax:
-  displayname: "<gradient:#3685EC:#72C1E4>Orax"
+  name: "<gradient:#3685EC:#72C1E4>Orax"
   material: PAPER
   pack:
     generate_model: true
@@ -159,14 +159,14 @@ orax:
       - default/orax.png # .png extension is not mandatory
 
 fire:
-  displayname: "<gradient:#F06966:#FAD6A6>Fire"
+  name: "<gradient:#F06966:#FAD6A6>Fire"
   material: PAPER
   pack:
     generate_model: false
     model: block/fire_floor0 # so we use the already existing fire model
 
 welcome_disk:
-  displayname: "<gradient:#9055FF:#13E2DA>Welcome Disk"
+  name: "<gradient:#9055FF:#13E2DA>Welcome Disk"
   material: PAPER
   components:
     max_stack_size: 1
@@ -184,7 +184,7 @@ welcome_disk:
 # Right-click to open storage. Uses packet-based invisible armor stands for rendering.
 
 leather_backpack:
-  displayname: "<#8B4513>Leather Backpack"
+  name: "<#8B4513>Leather Backpack"
   material: PAPER
   pack:
     generate_model: false
@@ -212,7 +212,7 @@ leather_backpack:
       visible_to_self: true
 
 # edna:
-#  itemname: "<red>Custom Painting"
+#  name: "<red>Custom Painting"
 #  material: PAINTING
 #  components:
 #    painting_variant: oraxen:edna

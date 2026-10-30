@@ -44,6 +44,21 @@ class TextShaderGeneratorTest {
     }
 
     @Test
+    void unifiedTextShaderGuardsFogImportsForGuiAndSeeThroughPipelines() {
+        TextShaderTarget target = TextShaderTarget.forVersion("26.2");
+        TextShaderGenerator.TextShaderFeatures features =
+                new TextShaderGenerator.TextShaderFeatures(false);
+        String guardedFogImport = """
+                #if !defined(IS_GUI) && !defined(IS_SEE_THROUGH)
+                #moj_import <minecraft:fog.glsl>
+                #endif
+                """;
+
+        assertTrue(generator.getAnimationVertexShader26_2(target, features).contains(guardedFogImport));
+        assertTrue(generator.getAnimationFragmentShader26_2(target).contains(guardedFogImport));
+    }
+
+    @Test
     void unifiedTextShaderServersKeepTheirShadersInAnOverlay() {
         for (String version : new String[]{"26.2", "26.3"}) {
             TextShaderTarget target = TextShaderTarget.forVersion(version);

@@ -166,6 +166,8 @@ public class OraxenPlugin extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new CustomPaintingListener(), this);
         Bukkit.getPluginManager().registerEvents(new PackLoadingManager(), this);
         io.th0rgal.oraxen.pack.generation.MultiVersionPackValidator.validateAndLogWarnings();
+        CompatibilitiesManager.addCompatibility("ModelEngine",
+                io.th0rgal.oraxen.compatibilities.provided.modelengine.ModelEngineCompatibility.class, true);
         resourcePack.generate();
         RecipesManager.load(this);
         invManager = new InvManager();

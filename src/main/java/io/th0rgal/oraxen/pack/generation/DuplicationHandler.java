@@ -10,7 +10,6 @@ import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -57,22 +56,12 @@ public class DuplicationHandler {
 
         if (!baseItemsToMerge.isEmpty())
             for (List<VirtualFile> duplicates : baseItemsToMerge.values()) {
-                if (duplicates.isEmpty())
-                    continue;
-
-                JsonObject mainItem = new JsonObject();
-                List<JsonObject> duplicateJsonObjects = duplicates.stream().map(VirtualFile::toJsonElement)
-                        .filter(JsonElement::isJsonObject).map(JsonElement::getAsJsonObject).toList();
-                JsonArray overrides = getItemOverrides(duplicateJsonObjects);
-                JsonObject baseTextures = getItemTextures(duplicateJsonObjects);
-                String parent = getItemParent(duplicateJsonObjects);
-                if (parent != null)
-                    parent = "item/generated";
-
-                mainItem.addProperty("parent", parent);
-                mainItem.add("overrides", overrides);
-                mainItem.add("textures", baseTextures);
-
+                if (duplicates.size() < 2) continue;
+                List<JsonObject> duplicateJsonObjects = parseJsonObjects(duplicates);
+                if (duplicateJsonObjects.size() < 2) continue;
+                JsonObject mainItem = duplicateJsonObjects.getLast().deepCopy();
+                for (int i = duplicateJsonObjects.size() - 2; i >= 0; i--)
+                    mainItem = ItemModelMerger.mergeLegacy(duplicateJsonObjects.get(i), mainItem, duplicates.getFirst().getPath());
                 // Generate the template new item file
                 VirtualFile first = duplicates.stream().findFirst().get();
                 InputStream newInput = new ByteArrayInputStream(mainItem.toString().getBytes(StandardCharsets.UTF_8));
@@ -81,7 +70,7 @@ public class DuplicationHandler {
                 newItem.setPath(newItem.getPath().replace("//", "/"));
                 newItem.setInputStream(newInput);
 
-                // Remove all the old fonts from output
+                // Replace the original duplicate files.
                 output.removeAll(duplicates);
                 output.add(newItem);
             }
@@ -99,6 +88,10 @@ public class DuplicationHandler {
      * Oraxen primarily generates {@code minecraft:select} (strings) on 1.21.4+.
      */
     public static void mergeVanillaItemDefinitions(List<VirtualFile> output, boolean multiVersionMode) {
+        mergeVanillaItemDefinitions(output, multiVersionMode, true);
+    }
+
+    public static void mergeVanillaItemDefinitions(List<VirtualFile> output, boolean multiVersionMode, boolean convertLegacy) {
         boolean serverIs1214Plus = VersionUtil.atOrAbove("1.21.4");
 
         // In multi-version mode, convert legacy predicates to modern item definitions
@@ -113,7 +106,7 @@ public class DuplicationHandler {
 
         // First, convert legacy predicate overrides from external packs to modern item
         // definitions
-        convertLegacyPredicatesToItemDefinitions(output);
+        if (convertLegacy) convertLegacyPredicatesToItemDefinitions(output);
 
         Map<String, List<VirtualFile>> itemDefsToMerge = new HashMap<>();
 
@@ -166,16 +159,11 @@ public class DuplicationHandler {
      * Converts legacy predicate overrides from external packs
      * (assets/minecraft/models/item/*.json)
      * to modern 1.21.4+ vanilla item definitions (assets/minecraft/items/*.json).
-     * Only creates definitions for materials that don't already have one generated
-     * by Oraxen.
+     * Adds converted rules alongside existing modern definitions.
      */
     private static void convertLegacyPredicatesToItemDefinitions(List<VirtualFile> output) {
-        // Find all existing item definitions (to avoid duplicating)
-        Set<String> existingItemDefs = output.stream()
-                .filter(v -> v.getPath().startsWith("assets/minecraft/items/") && v.getPath().endsWith(".json"))
-                .map(v -> FilenameUtils.getBaseName(v.getPath()).toLowerCase(Locale.ROOT))
-                .collect(Collectors.toSet());
-
+        Set<String> modernPaths = output.stream().map(VirtualFile::getPath)
+                .filter(path -> path.startsWith("assets/minecraft/items/")).collect(Collectors.toSet());
         // Find legacy model files that have custom_model_data predicates
         List<VirtualFile> legacyModels = output.stream()
                 .filter(v -> v.getPath().startsWith("assets/minecraft/models/item/") && v.getPath().endsWith(".json"))
@@ -185,10 +173,8 @@ public class DuplicationHandler {
 
         for (VirtualFile legacyModel : legacyModels) {
             String itemName = FilenameUtils.getBaseName(legacyModel.getPath()).toLowerCase(Locale.ROOT);
+            if (modernPaths.contains("assets/minecraft/items/" + itemName + ".json")) continue;
 
-            // Skip if we already have a modern item definition for this material
-            if (existingItemDefs.contains(itemName))
-                continue;
 
             // Check if it's a vanilla base item (by trying to get Material)
             Material material = Material.getMaterial(itemName.toUpperCase(Locale.ROOT));
@@ -208,13 +194,14 @@ public class DuplicationHandler {
             if (overrides == null || overrides.isEmpty())
                 continue;
 
-            // Extract custom_model_data entries
-            List<CmdOverride> cmdOverrides = extractCustomModelDataOverrides(overrides);
-            if (cmdOverrides.isEmpty())
-                continue;
-
-            // Create modern item definition
-            JsonObject itemDef = createItemDefinitionFromOverrides(material, cmdOverrides, legacyJson);
+            for (JsonElement override : overrides) {
+                if (!override.isJsonObject() || !override.getAsJsonObject().has("predicate")) continue;
+                JsonObject predicate = override.getAsJsonObject().getAsJsonObject("predicate");
+                if (predicate.has("custom_model_data") && predicate.keySet().stream().anyMatch(key ->
+                        !Set.of("custom_model_data", "damage", "pull", "pulling", "blocking", "cast").contains(key)))
+                    Logs.logWarning("Cannot convert legacy item rule for " + itemName + " with predicates " + predicate.keySet());
+            }
+            JsonObject itemDef = ItemModelMerger.convertLegacy(legacyJson, itemName);
             if (itemDef == null)
                 continue;
 
@@ -224,7 +211,7 @@ public class DuplicationHandler {
                     itemName + ".json",
                     new ByteArrayInputStream(itemDef.toString().getBytes(StandardCharsets.UTF_8)));
             newDefinitions.add(newDef);
-            existingItemDefs.add(itemName);
+
 
             Logs.logSuccess("Converted legacy predicates for " + itemName + " to modern item definition");
         }
@@ -232,441 +219,22 @@ public class DuplicationHandler {
         output.addAll(newDefinitions);
     }
 
-    /**
-     * Extracts custom_model_data overrides from a legacy overrides array.
-     */
-    private static List<CmdOverride> extractCustomModelDataOverrides(JsonArray overrides) {
-        List<CmdOverride> result = new ArrayList<>();
-        for (JsonElement element : overrides) {
-            if (!element.isJsonObject())
-                continue;
-            JsonObject override = element.getAsJsonObject();
-            if (!override.has("predicate") || !override.has("model"))
-                continue;
-
-            JsonObject predicate = override.getAsJsonObject("predicate");
-            if (!predicate.has("custom_model_data"))
-                continue;
-
-            int cmd = predicate.get("custom_model_data").getAsInt();
-            String model = override.get("model").getAsString();
-            result.add(new CmdOverride(cmd, model));
-        }
-        // Sort by CMD value
-        result.sort(Comparator.comparingInt(CmdOverride::cmd));
-        return result;
-    }
-
-    /**
-     * Creates a modern item definition from legacy CMD overrides.
-     */
-    private static JsonObject createItemDefinitionFromOverrides(Material material, List<CmdOverride> overrides,
-            JsonObject legacyJson) {
-        JsonObject root = new JsonObject();
-
-        // Build range_dispatch
-        JsonObject rangeDispatch = new JsonObject();
-        rangeDispatch.addProperty("type", "minecraft:range_dispatch");
-        rangeDispatch.addProperty("property", "minecraft:custom_model_data");
-        // CustomModelData is an int-array in the item model system; use index 0 by
-        // default
-        rangeDispatch.addProperty("index", 0);
-
-        JsonArray entries = new JsonArray();
-        for (CmdOverride override : overrides) {
-            JsonObject entry = new JsonObject();
-            entry.addProperty("threshold", override.cmd);
-
-            JsonObject model = new JsonObject();
-            model.addProperty("type", "minecraft:model");
-            model.addProperty("model", override.model);
-            entry.add("model", model);
-
-            entries.add(entry);
-        }
-        rangeDispatch.add("entries", entries);
-
-        // Fallback to vanilla model
-        JsonObject fallback = new JsonObject();
-        fallback.addProperty("type", "minecraft:model");
-        fallback.addProperty("model", "minecraft:item/" + material.name().toLowerCase(Locale.ROOT));
-        rangeDispatch.add("fallback", fallback);
-
-        root.add("model", rangeDispatch);
-        return root;
-    }
-
-    /**
-     * Record for CMD override data.
-     */
-    private record CmdOverride(int cmd, String model) {
-    }
-
-    /**
-     * Holds collected range_dispatch data during merging.
-     */
-    private static class RangeDispatchData {
-        final Set<Integer> seenThresholds = new HashSet<>();
-        final List<JsonObject> entries = new ArrayList<>();
-        JsonObject fallback = null;
-    }
-
-    /**
-     * Holds collected select (strings) data during merging.
-     */
-    private static class SelectData {
-        final Set<String> seenWhen = new HashSet<>();
-        final List<JsonObject> cases = new ArrayList<>();
-        Integer index = null;
-        JsonObject fallback = null;
-    }
-
-    /**
-     * Merges range_dispatch entries from multiple item definition files.
-     */
     private static JsonObject mergeItemDefinitionEntries(List<VirtualFile> duplicates) {
         List<JsonObject> jsonObjects = parseJsonObjects(duplicates);
         if (jsonObjects.isEmpty())
             return null;
 
-        JsonObject base = jsonObjects.get(0).deepCopy();
-        // Prefer merging "select" (strings) definitions if present, otherwise fall back to
-        // range_dispatch (floats).
-        SelectData selectData = collectSelectData(jsonObjects);
-        if (!selectData.cases.isEmpty()) {
-            if (selectData.fallback == null) {
-                JsonObject derivedFallback = deriveFallbackFromItemDefinitionPath(duplicates.get(0));
-                if (derivedFallback != null)
-                    selectData.fallback = derivedFallback;
-            }
-            base.add("model", buildSelectModel(selectData));
-            return base;
-        }
-
-        RangeDispatchData rangeData = collectRangeDispatchData(jsonObjects);
-        if (!rangeData.entries.isEmpty()) {
-            if (rangeData.fallback == null) {
-                JsonObject derivedFallback = deriveFallbackFromItemDefinitionPath(duplicates.get(0));
-                if (derivedFallback != null)
-                    rangeData.fallback = derivedFallback;
-            }
-            base.add("model", buildRangeDispatchModel(rangeData));
-        }
-
-        return base;
+        JsonObject result = jsonObjects.getLast().deepCopy();
+        for (int i = jsonObjects.size() - 2; i >= 0; i--)
+            result = ItemModelMerger.mergeDefinition(jsonObjects.get(i), result, duplicates.getFirst().getPath());
+        return result;
     }
-
     private static List<JsonObject> parseJsonObjects(List<VirtualFile> files) {
         return files.stream()
                 .map(VirtualFile::toJsonElement)
                 .filter(e -> e != null && e.isJsonObject())
                 .map(JsonElement::getAsJsonObject)
                 .toList();
-    }
-
-    private static RangeDispatchData collectRangeDispatchData(List<JsonObject> definitions) {
-        RangeDispatchData data = new RangeDispatchData();
-
-        for (JsonObject def : definitions) {
-            JsonObject model = getNestedModel(def);
-            if (model == null || !isCustomModelDataRangeDispatch(model))
-                continue;
-
-            collectEntriesFromModel(model, data);
-            collectFallbackFromModel(model, data);
-        }
-
-        return data;
-    }
-
-    private static SelectData collectSelectData(List<JsonObject> definitions) {
-        SelectData data = new SelectData();
-
-        for (JsonObject def : definitions) {
-            JsonObject model = getNestedModel(def);
-            if (model == null || !isCustomModelDataSelect(model))
-                continue;
-
-            collectCasesFromSelectModel(model, data);
-            collectIndexFromSelectModel(model, data);
-            collectFallbackFromSelectModel(model, data);
-        }
-
-        return data;
-    }
-
-    private static void collectEntriesFromModel(JsonObject model, RangeDispatchData data) {
-        if (!model.has("entries"))
-            return;
-
-        for (JsonElement entryEl : model.getAsJsonArray("entries")) {
-            if (!entryEl.isJsonObject())
-                continue;
-
-            JsonObject entry = entryEl.getAsJsonObject();
-            if (!entry.has("threshold"))
-                continue;
-
-            int threshold = entry.get("threshold").getAsInt();
-            if (!data.seenThresholds.contains(threshold)) {
-                data.seenThresholds.add(threshold);
-                data.entries.add(entry.deepCopy());
-            }
-        }
-    }
-
-    private static void collectFallbackFromModel(JsonObject model, RangeDispatchData data) {
-        if (data.fallback == null && model.has("fallback")) {
-            data.fallback = model.getAsJsonObject("fallback").deepCopy();
-        }
-    }
-
-    private static void collectCasesFromSelectModel(JsonObject model, SelectData data) {
-        if (!model.has("cases"))
-            return;
-        JsonArray cases = model.getAsJsonArray("cases");
-        if (cases == null || cases.isEmpty())
-            return;
-
-        for (JsonElement el : cases) {
-            if (!el.isJsonObject())
-                continue;
-            JsonObject caseObj = el.getAsJsonObject();
-            if (!caseObj.has("when"))
-                continue;
-
-            // Minecraft allows 'when' to be either a single string or an array of strings
-            JsonElement whenElement = caseObj.get("when");
-            List<String> whenValues = new ArrayList<>();
-            if (whenElement.isJsonArray()) {
-                for (JsonElement arrayEl : whenElement.getAsJsonArray()) {
-                    if (arrayEl.isJsonPrimitive() && arrayEl.getAsJsonPrimitive().isString()) {
-                        whenValues.add(arrayEl.getAsString());
-                    }
-                }
-            } else if (whenElement.isJsonPrimitive() && whenElement.getAsJsonPrimitive().isString()) {
-                whenValues.add(whenElement.getAsString());
-            }
-
-            if (whenValues.isEmpty())
-                continue;
-
-            // Use a canonical string representation of the when value(s) for deduplication
-            String whenKey = whenValues.size() == 1 ? whenValues.get(0) : whenValues.toString();
-            if (!data.seenWhen.contains(whenKey)) {
-                data.seenWhen.add(whenKey);
-                data.cases.add(caseObj.deepCopy());
-            }
-        }
-    }
-
-    private static void collectIndexFromSelectModel(JsonObject model, SelectData data) {
-        if (data.index == null && model.has("index")) {
-            try {
-                data.index = model.get("index").getAsInt();
-            } catch (Exception ignored) {
-            }
-        }
-    }
-
-    private static void collectFallbackFromSelectModel(JsonObject model, SelectData data) {
-        if (data.fallback == null && model.has("fallback") && model.get("fallback").isJsonObject()) {
-            data.fallback = model.getAsJsonObject("fallback").deepCopy();
-        }
-    }
-
-    private static JsonObject buildRangeDispatchModel(RangeDispatchData data) {
-        JsonObject rangeDispatch = new JsonObject();
-        rangeDispatch.addProperty("type", "minecraft:range_dispatch");
-        rangeDispatch.addProperty("property", "minecraft:custom_model_data");
-        rangeDispatch.addProperty("index", 0);
-
-        data.entries.sort(Comparator.comparingInt(e -> e.get("threshold").getAsInt()));
-
-        JsonArray sortedArray = new JsonArray();
-        data.entries.forEach(sortedArray::add);
-        rangeDispatch.add("entries", sortedArray);
-
-        if (data.fallback != null) {
-            rangeDispatch.add("fallback", data.fallback);
-        }
-
-        return rangeDispatch;
-    }
-
-    private static JsonObject buildSelectModel(SelectData data) {
-        JsonObject select = new JsonObject();
-        select.addProperty("type", "minecraft:select");
-        select.addProperty("property", "minecraft:custom_model_data");
-        select.addProperty("index", data.index != null ? data.index : 0);
-
-        data.cases.sort(Comparator.comparing(c -> extractWhenSortKey(c)));
-        JsonArray sortedCases = new JsonArray();
-        data.cases.forEach(sortedCases::add);
-        select.add("cases", sortedCases);
-
-        if (data.fallback != null) {
-            select.add("fallback", data.fallback);
-        }
-        return select;
-    }
-
-    /**
-     * Extracts a sortable key from a select case's 'when' field.
-     * Handles both string and array formats that Minecraft allows.
-     */
-    private static String extractWhenSortKey(JsonObject caseObj) {
-        if (!caseObj.has("when"))
-            return "";
-        JsonElement when = caseObj.get("when");
-        if (when.isJsonPrimitive() && when.getAsJsonPrimitive().isString()) {
-            return when.getAsString();
-        } else if (when.isJsonArray()) {
-            // For arrays, join all values for consistent sorting
-            StringBuilder sb = new StringBuilder();
-            for (JsonElement el : when.getAsJsonArray()) {
-                if (el.isJsonPrimitive() && el.getAsJsonPrimitive().isString()) {
-                    if (sb.length() > 0) sb.append(",");
-                    sb.append(el.getAsString());
-                }
-            }
-            return sb.toString();
-        }
-        return "";
-    }
-
-    /**
-     * Derives a vanilla fallback model for an item definition file under
-     * assets/minecraft/items/*.json.
-     * Example: ".../paper.json" ->
-     * {"type":"minecraft:model","model":"minecraft:item/paper"}
-     */
-    private static JsonObject deriveFallbackFromItemDefinitionPath(VirtualFile file) {
-        if (file == null)
-            return null;
-        String path = file.getPath();
-        if (path == null || path.isBlank())
-            return null;
-
-        String name = path.substring(path.lastIndexOf('/') + 1);
-        if (!name.endsWith(".json"))
-            return null;
-        String baseName = name.substring(0, name.length() - ".json".length()).toLowerCase(Locale.ROOT);
-        if (baseName.isBlank())
-            return null;
-
-        JsonObject fallback = new JsonObject();
-        fallback.addProperty("type", "minecraft:model");
-        fallback.addProperty("model", "minecraft:item/" + baseName);
-        return fallback;
-    }
-
-    /**
-     * Gets the model object from an item definition, traversing nested structures.
-     */
-    private static JsonObject getNestedModel(JsonObject definition) {
-        if (!definition.has("model"))
-            return null;
-        JsonElement model = definition.get("model");
-        if (!model.isJsonObject())
-            return null;
-        return model.getAsJsonObject();
-    }
-
-    /**
-     * Checks if a model object is a range_dispatch using custom_model_data.
-     */
-    private static boolean isCustomModelDataRangeDispatch(JsonObject model) {
-        if (!model.has("type"))
-            return false;
-        String type = model.get("type").getAsString();
-        if (!"minecraft:range_dispatch".equals(type))
-            return false;
-        if (!model.has("property"))
-            return false;
-        String property = model.get("property").getAsString();
-        return "minecraft:custom_model_data".equals(property);
-    }
-
-    /**
-     * Checks if a model object is a select using custom_model_data (strings).
-     */
-    private static boolean isCustomModelDataSelect(JsonObject model) {
-        if (!model.has("type"))
-            return false;
-        String type = model.get("type").getAsString();
-        if (!"minecraft:select".equals(type))
-            return false;
-        if (!model.has("property"))
-            return false;
-        String property = model.get("property").getAsString();
-        return "minecraft:custom_model_data".equals(property);
-    }
-
-    private static JsonObject getItemTextures(List<JsonObject> duplicates) {
-        JsonObject newTextures = new JsonObject();
-        for (JsonObject itemJsons : duplicates) {
-            if (itemJsons.has("textures")) {
-                JsonObject oldObject = itemJsons.getAsJsonObject("textures");
-                for (Map.Entry<String, JsonElement> entry : oldObject.entrySet()) {
-                    if (!newTextures.has(entry.getKey())) {
-                        newTextures.add(entry.getKey(), entry.getValue());
-                    }
-                }
-            }
-        }
-        return newTextures;
-    }
-
-    private static String getItemParent(List<JsonObject> duplicates) {
-        for (JsonObject itemJsons : duplicates) {
-            // Check if this itemfile has a different parent model than
-            if (itemJsons.getAsJsonObject().has("parent"))
-                return itemJsons.getAsJsonObject().get("parent").getAsString();
-        }
-        return null;
-    }
-
-    private static JsonArray getItemOverrides(List<JsonObject> duplicates) {
-        JsonArray newProviders = new JsonArray();
-        for (JsonObject itemJsons : duplicates) {
-            JsonArray providers = itemJsons.getAsJsonArray("overrides");
-            Map<JsonObject, String> newOverrides = getNewOverrides(newProviders);
-            if (providers != null)
-                for (JsonElement providerElement : providers) {
-                    if (!providerElement.isJsonObject())
-                        continue;
-                    if (newProviders.contains(providerElement))
-                        continue;
-                    if (!providerElement.getAsJsonObject().has("predicate"))
-                        continue;
-                    if (!providerElement.getAsJsonObject().has("model"))
-                        continue;
-
-                    JsonObject predicate = providerElement.getAsJsonObject().getAsJsonObject("predicate");
-                    if (!newOverrides.containsKey(predicate))
-                        newProviders.add(providerElement);
-                    else
-                        Logs.logWarning("Tried adding " + predicate + " but it was already defined in this item");
-                }
-        }
-        return newProviders;
-    }
-
-    private static Map<JsonObject, String> getNewOverrides(JsonArray newOverrides) {
-        HashMap<JsonObject, String> overrides = new HashMap<>();
-        for (JsonElement element : newOverrides) {
-            if (!element.isJsonObject())
-                continue;
-            if (!element.getAsJsonObject().has("predicate"))
-                continue;
-            if (!element.getAsJsonObject().has("model"))
-                continue;
-            JsonObject predicate = element.getAsJsonObject().get("predicate").getAsJsonObject();
-            String modelPath = element.getAsJsonObject().get("model").getAsString();
-            overrides.put(predicate, modelPath);
-        }
-        return overrides;
     }
 
     // Experimental way of combining 2 fonts instead of making glyphconfigs later
@@ -704,7 +272,7 @@ public class DuplicationHandler {
                 newFont.setPath(newFont.getPath().replace("//", "/"));
                 newFont.setInputStream(newInput);
 
-                // Remove all the old fonts from output
+                // Replace the original duplicate files.
                 output.removeAll(duplicates);
                 output.add(newFont);
                 Logs.logSuccess(
@@ -725,7 +293,7 @@ public class DuplicationHandler {
                 continue;
 
             JsonArray providers = fontelement.getAsJsonObject().getAsJsonArray("providers");
-            List<String> newProviderChars = getNewProviderCharSet(newProviders);
+
             if (providers != null)
                 for (JsonElement providerElement : providers) {
                     if (!providerElement.isJsonObject())
@@ -733,80 +301,63 @@ public class DuplicationHandler {
                     JsonObject provider = providerElement.getAsJsonObject();
                     if (newProviders.contains(providerElement))
                         continue;
-                    if (provider.has("chars")) {
-                        String chars = provider.getAsJsonArray("chars").toString();
-                        if (!newProviderChars.contains(chars))
-                            newProviders.add(provider);
-                        else
-                            Logs.logWarning("Tried adding " + chars + " but it was already defined in this font");
-                    } else
-                        newProviders.add(provider);
+                    newProviders.add(provider.deepCopy());
                 }
         }
         return newProviders;
     }
 
-    private static List<String> getNewProviderCharSet(JsonArray newProvider) {
-        List<String> charList = new ArrayList<>();
-        for (JsonElement element : newProvider) {
-            if (!element.isJsonObject())
-                continue;
-            if (!element.getAsJsonObject().has("chars"))
-                continue;
-            String chars = element.getAsJsonObject().get("chars").getAsJsonArray().toString();
-            charList.add(chars);
-        }
-        return charList;
-    }
-
-    private static final String DUPLICATE_LINE_STRING = "// This file was recognized as a duplicate and was migrated into its relevant config(s)";
-
     /**
      * Check if the file already exists in the zip file
      */
     public static void checkForDuplicate(ZipOutputStream out, ZipEntry entry) {
-        String name = entry.getName();
         try {
-            out.putNextEntry(entry);
-        } catch (IOException e) {
-            File duplicateFile;
-            Path packFolder = OraxenPlugin.get().getDataFolder().toPath().resolve("pack");
-            if (packFolder.resolve(name).toFile().exists())
-                duplicateFile = packFolder.resolve(name).toFile();
-            else
-                duplicateFile = packFolder.resolve(name.replace("assets/minecraft/", "")).toFile();
-            List<String> lines = null;
-            try {
-                if (duplicateFile.getName().endsWith(".json"))
-                    lines = FileUtils.readLines(duplicateFile, StandardCharsets.UTF_8);
-            } catch (IOException ex) {
-                if (Settings.DEBUG.toBool())
-                    ex.printStackTrace();
-            }
-            if (lines != null && lines.get(0).equals(DUPLICATE_LINE_STRING))
-                return;
-
-            Logs.logWarning("Duplicate file detected: <blue>" + name + "</blue> - Attempting to migrate it");
-            if (!Settings.MERGE_DUPLICATES.toBool()) {
-                Logs.logError("Not attempting to migrate duplicate file as <#22b14c>"
-                        + Settings.MERGE_DUPLICATES.getPath() + "</#22b14c> is disabled in settings.yml", true);
-            } else if (attemptToMigrateDuplicate(name)) {
-                Logs.logSuccess("Duplicate file fixed:<blue> " + name);
-                try {
-                    if (lines == null)
-                        lines = FileUtils.readLines(duplicateFile, StandardCharsets.UTF_8);
-                    lines.add(0, DUPLICATE_LINE_STRING);
-                    FileUtils.writeLines(duplicateFile, lines);
-                } catch (Exception ignored) {
-                    Logs.logError("Failed to delete the imported <blue>" + FilenameUtils.getName(name)
-                            + "</blue> after migrating it");
-                }
-                Logs.logSuccess("It is advised to restart your server to ensure that any new conflicts are detected.",
-                        true);
-            }
+            tryOpenEntry(out, entry);
+        } catch (IOException exception) {
+            Logs.logError("Failed to open zip entry " + entry.getName());
+            Logs.debug(exception);
         }
     }
 
+    public static boolean tryOpenEntry(ZipOutputStream out, ZipEntry entry) throws IOException {
+        try {
+            out.putNextEntry(entry);
+            return true;
+        } catch (java.util.zip.ZipException exception) {
+            if (exception.getMessage() != null && exception.getMessage().startsWith("duplicate entry:")) {
+                Logs.logWarning("Skipping duplicate zip entry " + entry.getName());
+                migrateRejectedLocalDuplicate(entry.getName());
+                return false;
+            }
+            throw exception;
+        }
+    }
+
+    private static void migrateRejectedLocalDuplicate(String name) {
+        if (OraxenPlugin.get() == null || !Settings.MERGE_DUPLICATES.toBool() || !name.endsWith(".json")) return;
+        Path pack = OraxenPlugin.get().getDataFolder().toPath().resolve("pack").toAbsolutePath().normalize();
+        Path source = pack.resolve(name).normalize();
+        if (!source.startsWith(pack)) return;
+        if (!Files.isRegularFile(source)) source = pack.resolve(name.replace("assets/minecraft/", "")).normalize();
+        if (!source.startsWith(pack) || !Files.isRegularFile(source)) return;
+        try {
+            migrateLocalDuplicate(source, () -> attemptToMigrateDuplicate(name));
+        } catch (IOException | RuntimeException exception) {
+            Logs.logWarning("Failed to migrate duplicate local resource " + name);
+            Logs.debug(exception);
+        }
+    }
+
+    static boolean migrateLocalDuplicate(Path source, java.util.function.BooleanSupplier migration) throws IOException {
+        List<String> lines = Files.readAllLines(source, StandardCharsets.UTF_8);
+        String marker = "// This file was recognized as a duplicate and was migrated into its relevant config(s)";
+        if (!lines.isEmpty() && lines.getFirst().equals(marker)) return false;
+        JsonElement json = JsonParser.parseString(String.join("\n", lines));
+        if (!json.isJsonObject() || !migration.getAsBoolean()) return false;
+        lines.addFirst(marker);
+        Files.write(source, lines, StandardCharsets.UTF_8);
+        return true;
+    }
     private static boolean attemptToMigrateDuplicate(String name) {
         if (name.matches("assets/minecraft/models/item/.*.json")) {
             Logs.logWarning("Found a duplicate <blue>" + FilenameUtils.getName(name)
@@ -868,10 +419,8 @@ public class DuplicationHandler {
             return false;
         }
 
-        if (!overrides.isEmpty()) {
-            processOverrides(overrides, migratedYaml, materialName);
-        }
-
+        if (overrides.isEmpty()) return false;
+        processOverrides(overrides, migratedYaml, materialName);
         return saveMigratedYaml(migratedYaml, material);
     }
 
@@ -1064,13 +613,13 @@ public class DuplicationHandler {
                 soundYaml.set("sounds", configuredSounds);
             if (changed || migratedConfig)
                 soundYaml.save(soundsFile);
+            return changed || migratedConfig;
         } catch (Exception e) {
             Logs.logError("Failed to migrate sounds.json");
             Logs.debug(e);
             return false;
         }
 
-        return true;
     }
 
     private static File getSoundsFile() throws IOException {

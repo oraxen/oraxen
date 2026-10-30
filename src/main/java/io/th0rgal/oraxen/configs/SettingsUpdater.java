@@ -14,9 +14,7 @@ public class SettingsUpdater {
         YamlConfiguration settings = OraxenPlugin.get().getConfigsManager().getSettings();
         String oldSettings = settings.saveToString();
 
-        settings = updateKeys(settings, UpdatedSettings.toStringMap());
-        settings = migrateDispatchSettings(settings);
-        settings = removeKeys(settings, RemovedSettings.toStringList());
+        migrateBeforeDefaults(settings);
 
         if (settings.saveToString().equals(oldSettings)) return;
 
@@ -30,12 +28,27 @@ public class SettingsUpdater {
         }
     }
 
+    static boolean migrateBeforeDefaults(YamlConfiguration settings) {
+        String before = settings.saveToString();
+        SettingsMigration.migrate(settings);
+        migrateInventoryMenu(settings);
+        if (settings.getBoolean("general.auto-update.settings", true)) {
+            SettingsUpdater updater = new SettingsUpdater();
+            updater.updateKeys(settings, UpdatedSettings.toStringMap());
+            updater.migrateDispatchSettings(settings);
+            updater.removeKeys(settings, RemovedSettings.toStringList());
+            // Historical migrations may leave empty legacy parent sections.
+            SettingsMigration.migrate(settings);
+        }
+        return !before.equals(settings.saveToString());
+    }
+
     public YamlConfiguration updateKeys(YamlConfiguration settings, Map<String, String> newKeyPaths) {
         for (Map.Entry<String, String> entry : newKeyPaths.entrySet()) {
-            String key = entry.getKey();
+            String key = existingPath(settings, entry.getKey());
             if (settings.contains(key)) {
                 Logs.logWarning("Found outdated setting-path " + key + ". This will be updated.");
-                settings.set(entry.getValue(), settings.get(key));
+                mergeMissing(settings, settings.get(key), entry.getValue());
                 settings.set(key, null);
 
             }
@@ -51,16 +64,16 @@ public class SettingsUpdater {
         migrateInventoryMenuValue(settings, legacyMenu, "main_menu_title", "title");
         migrateInventoryMenuValue(settings, legacyMenu, "menu_rows", "rows");
         migrateInventoryMenuValue(settings, legacyMenu, "menu_size", "slots");
-        migrateInventoryMenuValue(settings, legacyMenu, "next_page_icon", "next_page_icon");
-        migrateInventoryMenuValue(settings, legacyMenu, "previous_page_icon", "previous_page_icon");
-        migrateInventoryMenuValue(settings, legacyMenu, "exit_icon", "exit_icon");
+        migrateInventoryMenuValue(settings, legacyMenu, "next_page_icon", "next-page-icon");
+        migrateInventoryMenuValue(settings, legacyMenu, "previous_page_icon", "previous-page-icon");
+        migrateInventoryMenuValue(settings, legacyMenu, "exit_icon", "exit-icon");
 
         ConfigurationSection legacyLayout = legacyMenu.getConfigurationSection("menu_layout");
         if (legacyLayout != null) {
             for (Map.Entry<String, Object> entry : legacyLayout.getValues(true).entrySet()) {
                 if (entry.getValue() instanceof ConfigurationSection) continue;
                 String path = entry.getKey().replaceAll("(^|\\.)displayname$", "$1name");
-                settings.set("inventory-menu.layout." + path, entry.getValue());
+                mergeMissing(settings, entry.getValue(), "inventory.layout." + path);
             }
         }
 
@@ -75,7 +88,7 @@ public class SettingsUpdater {
         for (Map.Entry<String, Object> entry : legacyLayout.getValues(true).entrySet()) {
             if (entry.getValue() instanceof ConfigurationSection) continue;
             String path = entry.getKey().replaceAll("(^|\\.)displayname$", "$1name");
-            settings.set("inventory-menu.layout." + path, entry.getValue());
+            mergeMissing(settings, entry.getValue(), "inventory.layout." + path);
         }
         settings.set("gui_inventory", null);
         return true;
@@ -84,36 +97,51 @@ public class SettingsUpdater {
     private static void migrateInventoryMenuValue(YamlConfiguration settings, ConfigurationSection legacyMenu,
             String oldPath, String newPath) {
         if (legacyMenu.contains(oldPath))
-            settings.set("inventory-menu." + newPath, legacyMenu.get(oldPath));
+            mergeMissing(settings, legacyMenu.get(oldPath), "inventory." + newPath);
     }
 
     public YamlConfiguration migrateDispatchSettings(YamlConfiguration settings) {
-        boolean hasLegacySendPreJoin = settings.contains("Pack.dispatch.send_pre_join");
-        boolean hasLegacySendOnJoin = settings.contains("Pack.dispatch.send_on_join");
-        boolean hasLegacySendPack = settings.contains("Pack.dispatch.send_pack");
+        boolean hasLegacySendPreJoin = settings.contains(existingPath(settings, "Pack.dispatch.send_pre_join"));
+        boolean hasLegacySendOnJoin = settings.contains(existingPath(settings, "Pack.dispatch.send_on_join"));
+        boolean hasLegacySendPack = settings.contains(existingPath(settings, "Pack.dispatch.send_pack"));
 
         if (hasLegacySendPreJoin || hasLegacySendOnJoin || hasLegacySendPack) {
-            boolean sendPreJoin = settings.getBoolean("Pack.dispatch.send_pre_join", false);
+            boolean sendPreJoin = settings.getBoolean(existingPath(settings, "Pack.dispatch.send_pre_join"), false);
             boolean sendOnJoin = hasLegacySendOnJoin
-                    ? settings.getBoolean("Pack.dispatch.send_on_join", false)
-                    : settings.getBoolean("Pack.dispatch.send_pack", false);
+                    ? settings.getBoolean(existingPath(settings, "Pack.dispatch.send_on_join"), false)
+                    : settings.getBoolean(existingPath(settings, "Pack.dispatch.send_pack"), false);
 
             Logs.logWarning("Found outdated pack dispatch send settings. These will be updated.");
-            settings.set("Pack.dispatch.send", sendPreJoin || sendOnJoin);
-            settings.set("Pack.dispatch.mode", sendPreJoin ? "PRE-JOIN" : "JOIN");
+            mergeMissing(settings, sendPreJoin || sendOnJoin, "pack.dispatch.send");
+            mergeMissing(settings, sendPreJoin ? "PRE-JOIN" : "JOIN", "pack.dispatch.mode");
         }
 
-        migrateKey(settings, "Pack.dispatch.stop", "Pack.dispatch.exclude");
-        migrateKey(settings, "Pack.dispatch.disable_movement_on_load", "Pack.dispatch.disable.movement");
-        migrateKey(settings, "Pack.dispatch.disable_damage_on_load", "Pack.dispatch.disable.damage");
+        migrateKey(settings, "Pack.dispatch.stop", "pack.dispatch.exclude");
+        migrateKey(settings, "Pack.dispatch.disable_movement_on_load", "pack.dispatch.disable.movement");
+        migrateKey(settings, "Pack.dispatch.disable_damage_on_load", "pack.dispatch.disable.damage");
 
         return settings;
     }
 
     private void migrateKey(YamlConfiguration settings, String oldPath, String newPath) {
+        oldPath = existingPath(settings, oldPath);
         if (!settings.contains(oldPath)) return;
         Logs.logWarning("Found outdated setting-path " + oldPath + ". This will be updated.");
-        settings.set(newPath, settings.get(oldPath));
+        mergeMissing(settings, settings.get(oldPath), newPath);
+        settings.set(oldPath, null);
+    }
+
+    private static String existingPath(YamlConfiguration settings, String oldPath) {
+        return settings.contains(oldPath, true) ? oldPath : SettingsMigration.newPath(oldPath);
+    }
+
+    private static void mergeMissing(YamlConfiguration settings, Object value, String path) {
+        if (value instanceof ConfigurationSection section) {
+            for (var entry : section.getValues(false).entrySet())
+                mergeMissing(settings, entry.getValue(), path + "." + entry.getKey());
+        } else if (!settings.contains(path, true)) {
+            settings.set(path, value);
+        }
     }
 
     /**
@@ -125,10 +153,11 @@ public class SettingsUpdater {
                     + "Messages containing raw glyph characters the sender lacks permission for are blocked with a no-permission notice.");
 
     public YamlConfiguration removeKeys(YamlConfiguration settings, List<String> keys) {
-        for (String key : keys) {
+        for (String originalKey : keys) {
+            String key = existingPath(settings, originalKey);
             if (settings.contains(key)) {
                 Logs.logWarning("Found outdated setting " + key + ". This will be removed.");
-                String notice = REMOVAL_NOTICES.get(key);
+                String notice = REMOVAL_NOTICES.get(originalKey);
                 if (notice != null) Logs.logWarning(notice);
             }
             settings.set(key, null);

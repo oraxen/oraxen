@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.configs;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.items.ItemMigrator;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -74,16 +75,13 @@ public class ResourcesManager {
     private void extractVersionSpecificItemConfig(ZipEntry entry) {
         if (!entry.getName().startsWith("items/")) return;
         if (!entry.getName().endsWith(".yml")) return;
-        if (!VersionUtil.atOrAbove("1.20.5")) {
-            plugin.saveResource(entry.getName(), true);
-            return;
-        }
-
         try(InputStream inputStream = plugin.getResource(entry.getName())) {
             YamlConfiguration itemYaml = OraxenYaml.loadConfiguration(new InputStreamReader(inputStream));
             for (String itemId : itemYaml.getKeys(false)) {
                 ConfigurationSection itemSection = itemYaml.getConfigurationSection(itemId);
                 if (itemSection == null) continue;
+                ItemMigrator.migrateNames(itemSection);
+                if (!VersionUtil.atOrAbove("1.20.5")) continue;
 
                 ConfigurationSection mechanicSection = itemSection.getConfigurationSection("mechanics");
                 if (mechanicSection == null) continue;
@@ -100,9 +98,7 @@ public class ResourcesManager {
             }
             File itemFile = plugin.getDataFolder().toPath().resolve(entry.getName()).toFile();
 
-            if (VersionUtil.atOrAbove("1.20.5"))
-                FileUtils.writeStringToFile(itemFile, itemYaml.saveToString().replace("displayname", "itemname"), StandardCharsets.UTF_8);
-            else itemYaml.save(itemFile);
+            FileUtils.writeStringToFile(itemFile, itemYaml.saveToString(), StandardCharsets.UTF_8);
         } catch (Exception e) {
             plugin.saveResource(entry.getName(), true);
         }

@@ -423,7 +423,7 @@ public class OraxenFurniture {
 
         ItemStack oldItem = FurnitureMechanic.getFurnitureItem(entity);
         ItemStack newItem = ItemUpdater.updateItem(oldItem);
-        FurnitureMechanic.setFurnitureItem(entity, newItem);
+        FurnitureMechanic.setFurnitureItem(entity, mechanic.applyAppearance(entity, newItem));
 
         // Refresh light based on current toggle state
         mechanic.refreshLight(entity);
