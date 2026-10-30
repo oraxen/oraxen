@@ -4,6 +4,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,7 +22,7 @@ class PackAssetMergerTest {
         JsonObject higher = json("""
                 {"multipart":[
                   {"when":{"facing":"north"},"apply":{"model":"test:high_north"}},
-                  {"when":{"AND":[{"facing":"south"},{"powered":"true"}]},"apply":{"model":"test:high_powered_south"}}
+                  {"when":{"AND":[{"facing":"south"},{"powered":"true"}]},"apply":{"model":"test:high_south"}}
                 ]}
                 """);
         JsonObject lower = json("""
@@ -35,52 +37,31 @@ class PackAssetMergerTest {
 
         assertEquals(List.of("test:high_north"), modelsFor(merged, Map.of("facing", "north", "powered", "false")));
         assertEquals(List.of("test:low_south"), modelsFor(merged, Map.of("facing", "south", "powered", "false")));
-        assertEquals(List.of("test:high_powered_south"), modelsFor(merged, Map.of("facing", "south", "powered", "true")));
+        assertEquals(List.of("test:high_south"), modelsFor(merged, Map.of("facing", "south", "powered", "true")));
         assertEquals(List.of("test:low_west"), modelsFor(merged, Map.of("facing", "west", "powered", "false")));
     }
 
-    @Test
-    void booleanMultipartPropertiesPreserveNonconflictingLowerRules() {
+    @ParameterizedTest
+    @CsvSource({"powered,true,false", "age,1,2"})
+    void primitiveMultipartPropertiesPreserveNonconflictingLowerRules(String property, String high, String low) {
         JsonObject higher = json("""
                 {"multipart":[
-                  {"when":{"powered":true},"apply":{"model":"test:high_powered"}}
+                  {"when":{"%s":%s},"apply":{"model":"test:high"}}
                 ]}
-                """);
+                """.formatted(property, high));
         JsonObject lower = json("""
                 {"multipart":[
-                  {"when":{"powered":false},"apply":{"model":"test:low_unpowered"}},
-                  {"when":{"AND":[{"powered":false},{"facing":"west"}]},"apply":{"model":"test:low_west_unpowered"}}
+                  {"when":{"%s":%s},"apply":{"model":"test:low"}},
+                  {"when":{"AND":[{"%s":%s},{"facing":"west"}]},"apply":{"model":"test:low_west"}}
                 ]}
-                """);
+                """.formatted(property, low, property, low));
 
         JsonObject merged = PackAssetMerger.mergeJson(PATH, lower, higher);
 
-        assertEquals(List.of("test:high_powered"), modelsFor(merged, Map.of("powered", "true", "facing", "west")));
-        assertEquals(List.of("test:low_unpowered"), modelsFor(merged, Map.of("powered", "false", "facing", "east")));
-        assertEquals(List.of("test:low_unpowered", "test:low_west_unpowered"),
-                modelsFor(merged, Map.of("powered", "false", "facing", "west")));
-    }
-
-    @Test
-    void numericMultipartPropertiesPreserveNonconflictingLowerRules() {
-        JsonObject higher = json("""
-                {"multipart":[
-                  {"when":{"age":1},"apply":{"model":"test:high_age_one"}}
-                ]}
-                """);
-        JsonObject lower = json("""
-                {"multipart":[
-                  {"when":{"age":2},"apply":{"model":"test:low_age_two"}},
-                  {"when":{"AND":[{"age":2},{"facing":"west"}]},"apply":{"model":"test:low_west_age_two"}}
-                ]}
-                """);
-
-        JsonObject merged = PackAssetMerger.mergeJson(PATH, lower, higher);
-
-        assertEquals(List.of("test:high_age_one"), modelsFor(merged, Map.of("age", "1", "facing", "west")));
-        assertEquals(List.of("test:low_age_two"), modelsFor(merged, Map.of("age", "2", "facing", "east")));
-        assertEquals(List.of("test:low_age_two", "test:low_west_age_two"),
-                modelsFor(merged, Map.of("age", "2", "facing", "west")));
+        assertEquals(List.of("test:high"), modelsFor(merged, Map.of(property, high, "facing", "west")));
+        assertEquals(List.of("test:low"), modelsFor(merged, Map.of(property, low, "facing", "east")));
+        assertEquals(List.of("test:low", "test:low_west"),
+                modelsFor(merged, Map.of(property, low, "facing", "west")));
     }
 
     @Test

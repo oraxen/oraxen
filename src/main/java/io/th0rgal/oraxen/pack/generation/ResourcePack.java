@@ -1514,7 +1514,7 @@ public class ResourcePack {
             String localePath = "assets/minecraft/lang/" + lang + ".json";
             for (VirtualFile file : output) {
                 if (file.getPath().equals(localePath) && file.isJsonObject())
-                    langJson = PackPipeline.languageWithDefaults(langJson, file.toJsonObject());
+                    langJson = PackAssetMerger.mergeJson("assets/minecraft/lang/locale.json", langJson, file.toJsonObject());
             }
 
             for (Map.Entry<String, JsonElement> entry : globalLang.entrySet()) {

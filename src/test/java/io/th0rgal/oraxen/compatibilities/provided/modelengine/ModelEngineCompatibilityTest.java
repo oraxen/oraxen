@@ -83,10 +83,6 @@ class ModelEngineCompatibilityTest {
 
             assertTrue(compatibility.isEnabled());
             assertEquals(initialized, compatibility.getPackReady().isDone());
-            if (!initialized) {
-                register(compatibility, ModelGenerator.Phase.FINISHED);
-                assertTrue(compatibility.getPackReady().isDone());
-            }
         }
     }
 

@@ -20,7 +20,7 @@ class PackPipelineTest {
                 file("oraxen_import_0/assets/minecraft/lang/en_us.json", "{\"entry\":\"overlay\"}")));
         PackPipeline.processSnapshots(files, snapshot -> {
             assertEquals("assets/minecraft/lang/en_us.json", snapshot.getFirst().getPath());
-            JsonObject result = PackPipeline.languageWithDefaults(json("{\"default\":\"global\"}"),
+            JsonObject result = PackAssetMerger.mergeJson("assets/minecraft/lang/locale.json", json("{\"default\":\"global\"}"),
                     snapshot.getFirst().toJsonObject());
             snapshot.set(0, file(snapshot.getFirst().getPath(), result.toString()));
         });
@@ -38,7 +38,7 @@ class PackPipelineTest {
                 file("assets/example/lang/en_us.json", "{\"other\":\"retained\"}")));
         PackPipeline.mergeNativeFiles(files, true);
         assertEquals(2, files.size());
-        JsonObject locale = PackPipeline.languageWithDefaults(json("{\"shared\":\"global\",\"default\":\"yes\"}"),
+        JsonObject locale = PackAssetMerger.mergeJson("assets/minecraft/lang/locale.json", json("{\"shared\":\"global\",\"default\":\"yes\"}"),
                 files.getFirst().toJsonObject());
         assertEquals("local", locale.get("shared").getAsString());
         assertTrue(locale.has("imported"));
@@ -56,8 +56,6 @@ class PackPipelineTest {
 
         assertEquals(1, files.size());
         assertEquals(json("{\"shared\":\"local\"}"), files.getFirst().toJsonObject());
-        assertTrue(files.getFirst().toJsonObject().entrySet().stream()
-                .allMatch(entry -> entry.getValue().isJsonPrimitive()));
     }
 
     @Test

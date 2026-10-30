@@ -6,14 +6,17 @@ import com.google.gson.JsonObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /** Resource-specific composition in ascending pack priority. */
 public final class PackAssetMerger {
+    private static final Pattern ADDITIVE_PATH = Pattern.compile(
+            "(?:.*/)?assets/[^/]+/(?:(?:lang|font|atlases|blockstates)/.+|sounds)\\.json");
+
     private PackAssetMerger() {}
 
     public static boolean isAdditivePath(String path) {
-        return path.matches("(?:.*/)?assets/[^/]+/(?:lang|font|atlases|blockstates)/.+\\.json")
-                || path.matches("(?:.*/)?assets/[^/]+/sounds\\.json");
+        return ADDITIVE_PATH.matcher(path).matches();
     }
 
     public static JsonObject mergeJson(String path, JsonObject lower, JsonObject higher) {
@@ -37,15 +40,15 @@ public final class PackAssetMerger {
                 if (previous != null && previous.isJsonObject()
                         && !(event.has("replace") && event.get("replace").isJsonPrimitive()
                         && event.get("replace").getAsBoolean())) {
-                    JsonObject appended = previous.getAsJsonObject().deepCopy();
+                    JsonObject appended = previous.getAsJsonObject();
                     JsonArray sounds = new JsonArray();
                     if (appended.has("sounds") && appended.get("sounds").isJsonArray())
-                        appended.getAsJsonArray("sounds").forEach(sound -> sounds.add(sound.deepCopy()));
+                        appended.getAsJsonArray("sounds").forEach(sounds::add);
                     if (event.has("sounds")) event.getAsJsonArray("sounds").forEach(sound -> sounds.add(sound.deepCopy()));
                     appended.add("sounds", sounds);
-                    event = appended;
+                } else {
+                    result.add(entry.getKey(), event.deepCopy());
                 }
-                result.add(entry.getKey(), event.deepCopy());
             });
             return result;
         }
@@ -57,8 +60,12 @@ public final class PackAssetMerger {
         if (higher.has(key) && !higher.get(key).isJsonArray()) return lower.deepCopy();
         if (higher.has(key) && higher.getAsJsonArray(key).asList().stream().anyMatch(value -> !value.isJsonObject()))
             return lower.deepCopy();
-        JsonObject result = lower.deepCopy();
-        higher.entrySet().forEach(entry -> result.add(entry.getKey(), entry.getValue().deepCopy()));
+        JsonObject result = new JsonObject();
+        for (JsonObject source : List.of(lower, higher)) {
+            source.entrySet().forEach(entry -> {
+                if (!entry.getKey().equals(key)) result.add(entry.getKey(), entry.getValue().deepCopy());
+            });
+        }
         JsonArray values = new JsonArray();
         for (JsonObject source : highFirst ? List.of(higher, lower) : List.of(lower, higher)) {
             if (source.has(key) && source.get(key).isJsonArray())

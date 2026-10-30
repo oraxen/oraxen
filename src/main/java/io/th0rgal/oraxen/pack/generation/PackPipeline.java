@@ -48,10 +48,6 @@ final class PackPipeline {
         return locale.entrySet().stream().allMatch(entry -> entry.getValue().isJsonPrimitive());
     }
 
-    static JsonObject languageWithDefaults(JsonObject defaults, JsonObject locale) {
-        return PackAssetMerger.mergeJson("assets/minecraft/lang/locale.json", defaults, locale);
-    }
-
     static void processSnapshots(List<VirtualFile> files, Consumer<List<VirtualFile>> processor) {
         Map<String, List<VirtualFile>> snapshots = new LinkedHashMap<>();
         snapshots.put("", new ArrayList<>());
