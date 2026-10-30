@@ -435,7 +435,7 @@ public class PackMerger {
         return major * MINOR_SCALE + (upper ? MINOR_SCALE - 1 : 0);
     }
 
-    private static long[] range(JsonObject declaration) {
+    static long[] range(JsonObject declaration) {
         try {
             if (declaration.has("min_format") && declaration.has("max_format"))
                 return new long[]{format(declaration.get("min_format"), false), format(declaration.get("max_format"), true)};

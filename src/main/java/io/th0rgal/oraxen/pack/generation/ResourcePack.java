@@ -59,6 +59,7 @@ public class ResourcePack {
     private final SoundGenerator soundGenerator = new SoundGenerator();
     private PackFileCollector fileCollector;
     private final TextShaderGenerator textShaderGenerator = new TextShaderGenerator();
+    private JsonArray mergedImportOverlayEntries = new JsonArray();
     /** Resolved multi-version flag (may differ from Settings if fallback occurred). */
     private boolean multiVersionResolved = false;
     private final AtomicBoolean generationInProgress = new AtomicBoolean(false);
@@ -272,6 +273,7 @@ public class ResourcePack {
                     filterGeneratedCoreShadersBelow1214(output, MinecraftVersion.getCurrentVersion());
                     UnprotectedPackWriter.writeConfigured(output, packFolder);
                     PackObfuscator.obfuscate(output);
+                    PackPipeline.sparsifyGeneratedOverlays(output, mergedImportOverlayEntries);
                     if (shutdownRequested) return;
                     ZipUtils.writeZipFile(pack, output);
                     if (shutdownRequested) return;
@@ -653,7 +655,7 @@ public class ResourcePack {
         // Use MultiVersionPackGenerator for multi-version zip and upload
         MultiVersionPackGenerator multiVersionGenerator = new MultiVersionPackGenerator(packFolder,
                 textShaderGenerator.getGeneratedCoreShaderHashes());
-        multiVersionGenerator.generateMultipleVersions(output, switchingFromSinglePack);
+        multiVersionGenerator.generateMultipleVersions(output, switchingFromSinglePack, mergedImportOverlayEntries);
     }
 
     private void filterGeneratedCoreShadersBelow1214(List<VirtualFile> output, MinecraftVersion targetVersion) {
@@ -1450,6 +1452,7 @@ public class ResourcePack {
     }
 
     private void mergeUploadedPacks(List<VirtualFile> output) {
+        mergedImportOverlayEntries = new JsonArray();
         boolean preserveNativeOverlays = isMcmetaGenerationDisabled();
         PackMerger packMerger = new PackMerger(packFolder);
         packMerger.setConvertLegacyItemModels(multiVersionResolved
@@ -1469,6 +1472,7 @@ public class ResourcePack {
         }
         PackPipeline.mergeNativeFiles(output, !Boolean.FALSE.equals(Settings.MERGE_DUPLICATE_FONTS.getValue()));
         List<VirtualFile> resolvedFiles = packMerger.mergeWithHigherPriorityFiles(output, preserveNativeOverlays);
+        mergedImportOverlayEntries = packMerger.getMergedOverlayEntries();
         output.removeIf(file -> file.getPath().startsWith("assets/") || file.getPath().contains("/assets/")
                 || file.getPath().equals("pack.png"));
         output.addAll(resolvedFiles);
@@ -1480,10 +1484,10 @@ public class ResourcePack {
             JsonObject filters = packMerger.getMergedFilterMetadata();
             if (!filters.isEmpty()) metadata.add("filter", filters);
             if (preserveNativeOverlays) {
-                PackMcmetaUtils.appendOverlayEntries(metadata, packMerger.getMergedOverlayEntries());
+                PackMcmetaUtils.appendOverlayEntries(metadata, mergedImportOverlayEntries);
             } else {
                 JsonObject overlays = new JsonObject();
-                overlays.add("entries", packMerger.getMergedOverlayEntries());
+                overlays.add("entries", mergedImportOverlayEntries.deepCopy());
                 metadata.add("overlays", overlays);
             }
             file.setInputStream(new ByteArrayInputStream(metadata.toString().getBytes(StandardCharsets.UTF_8)));
