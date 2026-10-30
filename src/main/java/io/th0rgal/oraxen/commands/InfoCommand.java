@@ -16,6 +16,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMech
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.CustomModelDataHelper;
 import io.th0rgal.oraxen.utils.ItemUtils;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
@@ -126,7 +127,7 @@ public class InfoCommand {
                 AdventureUtils.sendMessage(sender, AdventureUtils.MINI_MESSAGE
                         .deserialize("<gray>CustomModelData ⏵ <white>" + customModelData));
             }
-            if (meta.hasItemModel()) {
+            if (VersionUtil.atOrAbove("1.21.2") && meta.hasItemModel()) {
                 AdventureUtils.sendMessage(sender, AdventureUtils.MINI_MESSAGE
                         .deserialize("<gray>ItemModel ⏵ <white>" + meta.getItemModel()));
             }
