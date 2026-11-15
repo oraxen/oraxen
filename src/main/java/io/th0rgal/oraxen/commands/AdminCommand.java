@@ -71,7 +71,7 @@ public class AdminCommand {
                     String type = (String) args.get("type");
                     assert type != null;
                     String id = (String) args.getOrDefault("furniture", "");
-                    if (!OraxenFurniture.isFurniture(id))
+                    if (!isValidFurnitureTarget(type, id))
                         AdventureUtils.sendMessage(player, AdventureUtils.MINI_MESSAGE.deserialize("<prefix> <red>Unknown furniture <white>" + id + "<red>."));
                     else {
                         Location loc = (Location) args.getOptional("location").orElse(player.getLocation());
@@ -87,6 +87,10 @@ public class AdminCommand {
                         });
                     }
                 });
+    }
+
+    static boolean isValidFurnitureTarget(String type, String id) {
+        return (type.equals("remove") && id.equals("all")) || OraxenFurniture.isFurniture(id);
     }
 
     private void performEdits(Collection<Location> targets, Consumer<Location> edit) {
