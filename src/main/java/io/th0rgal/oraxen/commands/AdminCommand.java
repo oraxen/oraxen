@@ -78,15 +78,21 @@ public class AdminCommand {
                         int radius = clampRadius(player, (int) args.getOptional("radius").orElse(0));
                         boolean isRandom = (boolean) args.getOptional("random").orElse(false);
                         performEdits(getTargetLocations(loc, radius, isRandom), target -> {
-                            if (type.equals("remove")) {
-                                FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(target.getBlock());
-                                if (mechanic != null && (id.isEmpty() || id.equals("all") || mechanic.getItemID().equals(id)))
-                                    OraxenFurniture.remove(target, null);
-                            }
+                            if (type.equals("remove")) removeFurniture(target, id);
                             if (type.equals("place")) OraxenFurniture.place(id, target, 0f, null);
                         });
                     }
                 });
+    }
+
+    static void removeFurniture(Location target, String id) {
+        if (id.equals("all")) {
+            OraxenFurniture.remove(target, null);
+            return;
+        }
+        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(target.getBlock());
+        if (mechanic != null && (id.isEmpty() || mechanic.getItemID().equals(id)))
+            OraxenFurniture.remove(target, null);
     }
 
     static boolean isValidFurnitureTarget(String type, String id) {
