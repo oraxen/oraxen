@@ -1433,6 +1433,10 @@ public class FurnitureMechanic extends Mechanic {
         events.runPlace(player);
     }
 
+    public void runSitEvents(Player player) {
+        events.runSit(player);
+    }
+
     public boolean runEvents(Player player, Action action) {
         return events.run(player, action);
     }
@@ -1646,7 +1650,12 @@ public class FurnitureMechanic extends Mechanic {
         // Teleport the seat entity to the correct position asynchronously before mounting
         FurniturePacketDispatcher.teleportAsync(bestStand, bestStand.getLocation());
         Entity finalBestStand = bestStand;
-        SchedulerUtil.runForEntity(bestStand, () -> finalBestStand.addPassenger(player), null);
+        String itemID = pdc.get(FURNITURE_KEY, PersistentDataType.STRING);
+        FurnitureMechanic mechanic = itemID != null ? OraxenFurniture.getFurnitureMechanic(itemID) : null;
+        SchedulerUtil.runForEntity(bestStand, () -> {
+            if (finalBestStand.addPassenger(player) && mechanic != null)
+                SchedulerUtil.runForEntity(player, () -> mechanic.runSitEvents(player), null);
+        }, null);
     }
 
     public RestrictedRotation getRestrictedRotation() {

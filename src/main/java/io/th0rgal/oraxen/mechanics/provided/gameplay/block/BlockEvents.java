@@ -61,6 +61,10 @@ public class BlockEvents {
         return runTrigger(player, Trigger.PLACE);
     }
 
+    public boolean runSit(Player player) {
+        return runTrigger(player, Trigger.SIT);
+    }
+
     private boolean runTrigger(Player player, Trigger trigger) {
         boolean ran = false;
         for (BlockEvent event : events) {
@@ -259,7 +263,8 @@ public class BlockEvents {
     private enum Trigger {
         CLICK,
         BREAK,
-        PLACE;
+        PLACE,
+        SIT;
 
         private static Trigger from(Object value, String sourceID, String eventPath) {
             if (value == null) return CLICK;

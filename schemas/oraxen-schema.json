@@ -8604,7 +8604,7 @@
         },
         "events": {
           "type": "array",
-          "description": "Actions for furniture clicks or successful player breaks or placements. Use trigger: click with type: LEFT, RIGHT, or BOTH, trigger: break, or trigger: place. The trigger defaults to click; the legacy click filter remains supported."
+          "description": "Actions for furniture clicks, successful player breaks or placements, or sitting on a seat. Use trigger: click with type: LEFT, RIGHT, or BOTH, trigger: break, trigger: place, or trigger: sit. The trigger defaults to click; the legacy click filter remains supported."
         },
         "properties": {
           "type": "object",

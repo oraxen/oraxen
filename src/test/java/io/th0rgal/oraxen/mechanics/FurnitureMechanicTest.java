@@ -10,18 +10,23 @@ import io.th0rgal.oraxen.items.OraxenMeta;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.ArmorStandProperties;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurniturePacketDispatcher;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
@@ -30,6 +35,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -39,8 +46,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -51,6 +61,74 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class FurnitureMechanicTest extends MechanicTestSupport {
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void sitActionsRunOnlyAfterSuccessfulMount(boolean accepted) {
+        ConfigurationSection section = mechanicSection("furniture", "events", List.of(Map.of(
+                "trigger", "sit", "actions", List.of(Map.of("command", "say seated <player>")))));
+        FurnitureMechanic mechanic = new FurnitureMechanic(mechanicFactory(), section);
+        Player player = mock(Player.class);
+        when(player.getName()).thenReturn("testPlayer");
+        assertFalse(mechanic.runEvents(player, Action.RIGHT_CLICK_BLOCK));
+        assertFalse(mechanic.runEvents(player, Action.LEFT_CLICK_BLOCK));
+        mechanic.runBreakEvents(player);
+        mechanic.runPlaceEvents(player);
+        verify(player, never()).performCommand(any());
+
+        Entity seat = mock(Entity.class);
+        UUID seatId = UUID.randomUUID();
+        World world = mock(World.class);
+        when(seat.getLocation()).thenReturn(new Location(world, 0, 0, 0));
+        when(player.getLocation()).thenReturn(new Location(world, 0, 0, 0));
+        when(seat.addPassenger(player)).thenReturn(accepted);
+        PersistentDataContainer pdc = mock(PersistentDataContainer.class);
+        doReturn(List.of(seatId)).when(pdc).getOrDefault(eq(FurnitureMechanic.SEATS_KEY), any(), any());
+        when(pdc.get(FurnitureMechanic.FURNITURE_KEY, PersistentDataType.STRING)).thenReturn("chair");
+
+        try (var bukkit = mockStatic(Bukkit.class);
+             var furniture = mockStatic(OraxenFurniture.class);
+             var packets = mockStatic(FurniturePacketDispatcher.class);
+             var scheduler = mockStatic(SchedulerUtil.class);
+             var compatibilities = mockStatic(CompatibilitiesManager.class)) {
+            bukkit.when(() -> Bukkit.getEntity(seatId)).thenReturn(seat);
+            furniture.when(() -> OraxenFurniture.getFurnitureMechanic("chair")).thenReturn(mechanic);
+            ArgumentCaptor<Runnable> mount = ArgumentCaptor.forClass(Runnable.class);
+            ArgumentCaptor<Runnable> actions = ArgumentCaptor.forClass(Runnable.class);
+
+            FurnitureMechanic.sitOnSeat(pdc, player);
+            scheduler.verify(() -> SchedulerUtil.runForEntity(eq(seat), mount.capture(), isNull()));
+            verify(player, never()).performCommand(any());
+            mount.getValue().run();
+            verify(seat).addPassenger(player);
+            if (accepted) {
+                scheduler.verify(() -> SchedulerUtil.runForEntity(eq(player), actions.capture(), isNull()));
+                actions.getValue().run();
+                verify(player).performCommand("say seated testPlayer");
+            } else {
+                scheduler.verify(() -> SchedulerUtil.runForEntity(eq(player), any(), isNull()), never());
+                verify(player, never()).performCommand(any());
+            }
+        }
+    }
+
+    @Test
+    void occupiedSeatDoesNotRunSitActions() {
+        Entity seat = mock(Entity.class);
+        Player player = mock(Player.class);
+        when(seat.getPassengers()).thenReturn(List.of(mock(Entity.class)));
+        UUID seatId = UUID.randomUUID();
+        PersistentDataContainer pdc = mock(PersistentDataContainer.class);
+        doReturn(List.of(seatId)).when(pdc).getOrDefault(eq(FurnitureMechanic.SEATS_KEY), any(), any());
+
+        try (var bukkit = mockStatic(Bukkit.class);
+             var scheduler = mockStatic(SchedulerUtil.class)) {
+            bukkit.when(() -> Bukkit.getEntity(seatId)).thenReturn(seat);
+            FurnitureMechanic.sitOnSeat(pdc, player);
+            verify(seat, never()).addPassenger(any());
+            scheduler.verifyNoInteractions();
+        }
+    }
 
     @Test
     void breakActionsKeepFurnitureBreakableAndDoNotRunOnClicks() {
