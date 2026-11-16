@@ -105,7 +105,8 @@ public class RecipesEventsManager implements Listener {
             if (match == null) event.getInventory().setResult(null);
             else if (registration.transform() != null) {
                 try {
-                    event.getInventory().setResult(registration.transform().apply(match.source(), recipe.getResult()));
+                    event.getInventory().setResult(withBackpackContents(registration.transform().apply(match.source(), recipe.getResult()),
+                            event.getInventory().getMatrix()));
                 } catch (IllegalArgumentException | IllegalStateException exception) {
                     event.getInventory().setResult(null);
                 }
@@ -147,7 +148,7 @@ public class RecipesEventsManager implements Listener {
         }
         CraftingRegistration registration = registration(state, recipe);
         if (registration != null && registration.transform() == null && recipe != event.getRecipe())
-            event.setCurrentItem(recipe.getResult().clone());
+            event.setCurrentItem(withBackpackContents(recipe.getResult(), event.getInventory().getMatrix()));
         // One transformed output depends on one source. Vanilla bulk crafting would reuse it.
         if (registration != null && registration.transform() != null) {
             if (event.isShiftClick()) {
@@ -156,7 +157,8 @@ public class RecipesEventsManager implements Listener {
             }
             try {
                 RecipeCrafting.Match match = registration.matcher().match(event.getInventory().getMatrix());
-                event.setCurrentItem(registration.transform().apply(match.source(), recipe.getResult()));
+                event.setCurrentItem(withBackpackContents(registration.transform().apply(match.source(), recipe.getResult()),
+                        event.getInventory().getMatrix()));
             } catch (IllegalArgumentException | IllegalStateException exception) {
                 event.setCancelled(true);
                 event.getInventory().setResult(null);
@@ -171,7 +173,7 @@ public class RecipesEventsManager implements Listener {
     private boolean prepareCrafter(Recipe recipe, ItemStack[] matrix, RecipeState state) {
         recipe = resolveCrafting(recipe, matrix, state);
         CustomRecipe custom = CustomRecipe.fromRecipe(recipe);
-        if (custom != null && state.permissionsPerRecipe().containsKey(custom.getName())) return false;
+        if (custom != null && state.permissionsPerRecipe().containsKey(custom.getKey())) return false;
         if (!matchesRegisteredOraxenIngredients(state, recipe, matrix)) return false;
         return registration(state, recipe) != null || !containsRestrictedCraftingIngredient(matrix);
     }
@@ -214,10 +216,13 @@ public class RecipesEventsManager implements Listener {
     }
 
     private void persistBackpackContents(PrepareItemCraftEvent event) {
-        ItemStack result = event.getInventory().getResult();
-        if (!hasBackpackMechanic(result)) return;
+        event.getInventory().setResult(withBackpackContents(event.getInventory().getResult(), event.getInventory().getMatrix()));
+    }
 
-        for (ItemStack ingredient : event.getInventory().getMatrix()) {
+    private ItemStack withBackpackContents(ItemStack result, ItemStack[] matrix) {
+        if (!hasBackpackMechanic(result)) return result;
+
+        for (ItemStack ingredient : matrix) {
             if (!hasBackpackMechanic(ingredient) || !ingredient.hasItemMeta()) continue;
             ItemMeta ingredientMeta = ingredient.getItemMeta();
             if (ingredientMeta == null) continue;
@@ -227,12 +232,12 @@ public class RecipesEventsManager implements Listener {
 
             ItemStack persistedResult = result.clone();
             ItemMeta resultMeta = persistedResult.getItemMeta();
-            if (resultMeta == null) return;
+            if (resultMeta == null) return result;
             resultMeta.getPersistentDataContainer().set(BACKPACK_KEY, DataType.ITEM_STACK_ARRAY, contents);
             persistedResult.setItemMeta(resultMeta);
-            event.getInventory().setResult(persistedResult);
-            return;
+            return persistedResult;
         }
+        return result;
     }
 
     private boolean hasBackpackMechanic(ItemStack item) {
@@ -318,7 +323,7 @@ public class RecipesEventsManager implements Listener {
     }
 
     public void addPermissionRecipe(CustomRecipe recipe, String permission) {
-        stagingRecipes().permissionsPerRecipe.put(recipe.getName(), permission);
+        stagingRecipes().permissionsPerRecipe.put(recipe.getKey(), permission);
     }
 
     public void beginSmithingReload() {
@@ -505,7 +510,7 @@ public class RecipesEventsManager implements Listener {
     private boolean hasPermission(CommandSender sender, CustomRecipe recipe, RecipeState recipeState) {
         if (recipe == null) return true;
 
-        String permission = recipeState.permissionsPerRecipe().get(recipe.getName());
+        String permission = recipeState.permissionsPerRecipe().get(recipe.getKey());
         return permission == null || sender != null && sender.hasPermission(permission);
     }
 
@@ -518,7 +523,7 @@ public class RecipesEventsManager implements Listener {
     private record SmithingRegistration(String permission, RecipeTransforms.Transform transform,
                                         RecipeChoice template, RecipeChoice base, RecipeChoice addition, ItemStack result, String source) {}
 
-    private record RecipeState(Map<String, String> permissionsPerRecipe,
+    private record RecipeState(Map<NamespacedKey, String> permissionsPerRecipe,
                                Set<CustomRecipe> whitelistedCraftRecipes,
                                List<CustomRecipe> whitelistedCraftRecipesOrdered,
                                Map<String, ShapedOraxenRecipe> shapedOraxenIngredients,
@@ -531,7 +536,7 @@ public class RecipesEventsManager implements Listener {
 
     private static final class StagedRecipeState {
         private final Map<NamespacedKey, CraftingRegistration> craftingRecipes = new LinkedHashMap<>();
-        private final Map<String, String> permissionsPerRecipe = new HashMap<>();
+        private final Map<NamespacedKey, String> permissionsPerRecipe = new HashMap<>();
         private final Set<CustomRecipe> whitelistedCraftRecipes = new HashSet<>();
         private final List<CustomRecipe> whitelistedCraftRecipesOrdered = new ArrayList<>();
         private final Map<String, ShapedOraxenRecipe> shapedOraxenIngredients = new HashMap<>();

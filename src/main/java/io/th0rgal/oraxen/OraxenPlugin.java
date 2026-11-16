@@ -240,6 +240,7 @@ public class OraxenPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        io.th0rgal.oraxen.recipes.RecipeBrewing.clear();
         if (packLoadingManager != null) packLoadingManager.shutdown();
         if (updateChecker != null) updateChecker.stop();
         if (configsManager == null) {

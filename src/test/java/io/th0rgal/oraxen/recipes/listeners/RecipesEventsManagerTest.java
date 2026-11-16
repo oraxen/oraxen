@@ -7,10 +7,38 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.command.CommandSender;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.inventory.CraftingInventory;
+import org.bukkit.inventory.SmithingInventory;
+import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.PrepareSmithingEvent;
+import org.bukkit.event.inventory.SmithItemEvent;
+import io.th0rgal.oraxen.utils.InventoryUtils;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.inventory.ShapelessRecipe;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
+import org.mockito.MockedStatic;
+import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.mechanics.Mechanic;
+import org.bukkit.Bukkit;
+import org.bukkit.inventory.SmithingTransformRecipe;
+import org.bukkit.inventory.CraftingInventory;
+import org.bukkit.inventory.SmithingInventory;
+import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.PrepareSmithingEvent;
+import org.bukkit.event.inventory.SmithItemEvent;
+import io.th0rgal.oraxen.utils.InventoryUtils;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.event.inventory.CraftItemEvent;
+import org.bukkit.persistence.PersistentDataContainer;
+import com.jeff_media.morepersistentdatatypes.DataType;
+
+import static io.th0rgal.oraxen.mechanics.provided.misc.backpack.BackpackMechanic.BACKPACK_KEY;
+import org.mockito.MockedStatic;
 
 import java.util.List;
 
@@ -18,6 +46,22 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class RecipesEventsManagerTest {
+    private MockedStatic<OraxenPlugin> plugin;
+
+    @BeforeEach
+    void initializePlugin() {
+        OraxenPlugin instance = mock(OraxenPlugin.class);
+        when(instance.getName()).thenReturn("Oraxen");
+        when(instance.namespace()).thenReturn("oraxen");
+        plugin = mockStatic(OraxenPlugin.class);
+        plugin.when(OraxenPlugin::get).thenReturn(instance);
+    }
+
+    @AfterEach
+    void closePlugin() {
+        plugin.close();
+    }
+
     @Test
     void matcherPublicationIsAtomicAndRejectsSameMaterialPredicateFailures() {
         RecipesEventsManager manager = new RecipesEventsManager();
@@ -51,9 +95,9 @@ class RecipesEventsManagerTest {
         manager.finishRecipeReload();
         assertTrue(manager.prepareCrafter(firstRecipe, matrix(first)));
         assertTrue(manager.prepareCrafter(secondRecipe, matrix(second)));
-        try (var server = mockStatic(org.bukkit.Bukkit.class)) {
-            server.when(() -> org.bukkit.Bukkit.getRecipe(firstRecipe.getKey())).thenReturn(firstRecipe);
-            server.when(() -> org.bukkit.Bukkit.getRecipe(secondRecipe.getKey())).thenReturn(secondRecipe);
+        try (var server = mockStatic(Bukkit.class)) {
+            server.when(() -> Bukkit.getRecipe(firstRecipe.getKey())).thenReturn(firstRecipe);
+            server.when(() -> Bukkit.getRecipe(secondRecipe.getKey())).thenReturn(secondRecipe);
             assertTrue(manager.prepareCrafter(firstRecipe, matrix(second)));
             assertTrue(manager.prepareCrafter(secondRecipe, matrix(first)));
             assertSame(secondRecipe.getResult(), manager.craftingResult(firstRecipe, matrix(second), firstRecipe.getResult()));
@@ -66,6 +110,8 @@ class RecipesEventsManagerTest {
         ItemStack ingredient = item();
         RecipeChoice choice = choice(ingredient);
         ShapelessRecipe locked = recipe("locked", choice), unlocked = recipe("unlocked", choice);
+        ShapelessRecipe vanilla = recipe("locked", choice);
+        when(vanilla.getKey()).thenReturn(NamespacedKey.minecraft("locked"));
         manager.resetRecipes();
         manager.registerShapelessRecipe(locked.getKey(), List.of(choice), -1, null);
         manager.registerShapelessRecipe(unlocked.getKey(), List.of(choice), -1, null);
@@ -76,6 +122,8 @@ class RecipesEventsManagerTest {
         assertTrue(manager.hasPermission(sender, CustomRecipe.fromRecipe(unlocked)));
         assertFalse(manager.prepareCrafter(locked, matrix(ingredient)));
         assertTrue(manager.prepareCrafter(unlocked, matrix(ingredient)));
+        assertTrue(manager.hasPermission(sender, CustomRecipe.fromRecipe(vanilla)));
+        assertTrue(manager.prepareCrafter(vanilla, matrix(ingredient)));
     }
 
     @Test
@@ -109,6 +157,99 @@ class RecipesEventsManagerTest {
         when(event.isShiftClick()).thenReturn(true);
         manager.onCraftItem(event);
         verify(event).setCancelled(true);
+    }
+
+    @Test
+    void overlappingSmithingRecipesResolveTheMatchingCustomBase() {
+        RecipesEventsManager manager = new RecipesEventsManager();
+        ItemStack template = item(), firstBase = item(), secondBase = item(), addition = item();
+        SmithingTransformRecipe first = mock(SmithingTransformRecipe.class);
+        SmithingTransformRecipe second = mock(SmithingTransformRecipe.class);
+        when(first.getKey()).thenReturn(new NamespacedKey("oraxen", "first"));
+        when(second.getKey()).thenReturn(new NamespacedKey("oraxen", "second"));
+        manager.beginSmithingReload();
+        manager.registerSmithingRecipe(first.getKey(), "first.permission", choice(template), choice(firstBase), choice(addition), null, "base");
+        manager.registerSmithingRecipe(second.getKey(), null, choice(template), choice(secondBase), choice(addition), null, "base");
+        manager.finishSmithingReload();
+        ItemStack result = item();
+        when(second.getResult()).thenReturn(result);
+        RecipeChoice templateChoice = choice(template), baseChoice = choice(secondBase), additionChoice = choice(addition);
+        when(second.getTemplate()).thenReturn(templateChoice);
+        when(second.getBase()).thenReturn(baseChoice);
+        when(second.getAddition()).thenReturn(additionChoice);
+        SmithingInventory inventory = mock(SmithingInventory.class);
+        when(inventory.getRecipe()).thenReturn(first);
+        when(inventory.getInputTemplate()).thenReturn(template);
+        when(inventory.getInputEquipment()).thenReturn(secondBase);
+        when(inventory.getInputMineral()).thenReturn(addition);
+        PrepareSmithingEvent prepare = mock(PrepareSmithingEvent.class);
+        when(prepare.getInventory()).thenReturn(inventory);
+        SmithItemEvent click = mock(SmithItemEvent.class);
+        when(click.getInventory()).thenReturn(inventory);
+        when(click.getWhoClicked()).thenReturn(mock(Player.class));
+        try (MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class);
+             MockedStatic<RecipesEventsManager> managers = mockStatic(RecipesEventsManager.class);
+             MockedStatic<RecipesBuilderEvents> builders = mockStatic(RecipesBuilderEvents.class);
+             MockedStatic<InventoryUtils> inventories = mockStatic(InventoryUtils.class)) {
+            bukkit.when(() -> Bukkit.getRecipe(second.getKey())).thenReturn(second);
+            managers.when(RecipesEventsManager::get).thenReturn(manager);
+            inventories.when(() -> InventoryUtils.playerFromView(prepare)).thenReturn(mock(Player.class));
+            assertSame(second, manager.resolveSmithing(first, template, secondBase, addition));
+            SmithingRecipeEvents listener = new SmithingRecipeEvents();
+            listener.onSmithingRecipe(prepare);
+            verify(prepare).setResult(result);
+            listener.onSmithItem(click);
+            verify(click, never()).setCancelled(true);
+        }
+    }
+
+    @Test
+    void backpackContentsSurviveResolvedAndTransformedCraftClicks() {
+        for (boolean transformed : List.of(false, true)) {
+            RecipesEventsManager manager = new RecipesEventsManager();
+            ItemStack ingredient = item(), rejected = item(), result = item();
+            ItemMeta ingredientMeta = mock(ItemMeta.class);
+            ItemMeta resultMeta = mock(ItemMeta.class);
+            PersistentDataContainer sourceData = mock(PersistentDataContainer.class);
+            PersistentDataContainer resultData = mock(PersistentDataContainer.class);
+            ItemStack[] contents = {item()};
+            when(ingredient.hasItemMeta()).thenReturn(true);
+            when(ingredient.getItemMeta()).thenReturn(ingredientMeta);
+            when(ingredientMeta.getPersistentDataContainer()).thenReturn(sourceData);
+            when(result.getItemMeta()).thenReturn(resultMeta);
+            when(resultMeta.getPersistentDataContainer()).thenReturn(resultData);
+            when(sourceData.get(BACKPACK_KEY,
+                    DataType.ITEM_STACK_ARRAY)).thenReturn(contents);
+            RecipeChoice accepted = choice(ingredient);
+            ShapelessRecipe first = recipe("first_bag", choice(rejected));
+            ShapelessRecipe second = recipe("second_bag", accepted);
+            when(second.getResult()).thenReturn(result);
+            manager.resetRecipes();
+            manager.registerShapelessRecipe(first.getKey(), List.of(choice(rejected)), -1, null);
+            manager.registerShapelessRecipe(second.getKey(), List.of(accepted), transformed ? 0 : -1,
+                    transformed ? RecipeTransforms.keeping(List.of()) : null);
+            manager.finishRecipeReload();
+            MechanicFactory factory = mock(MechanicFactory.class);
+            when(factory.getMechanic("bag")).thenReturn(mock(Mechanic.class));
+            try (MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class);
+                 MockedStatic<OraxenItems> items = mockStatic(OraxenItems.class);
+                 MockedStatic<MechanicsManager> mechanics = mockStatic(MechanicsManager.class)) {
+                bukkit.when(() -> Bukkit.getRecipe(second.getKey())).thenReturn(second);
+                items.when(() -> OraxenItems.getIdByItem(ingredient)).thenReturn("bag");
+                items.when(() -> OraxenItems.getIdByItem(result)).thenReturn("bag");
+                mechanics.when(() -> MechanicsManager.getMechanicFactory("backpack")).thenReturn(factory);
+                CraftingInventory inventory = mock(CraftingInventory.class);
+                when(inventory.getMatrix()).thenReturn(matrix(ingredient));
+                CraftItemEvent event = mock(CraftItemEvent.class);
+                when(event.getRecipe()).thenReturn(first);
+                when(event.getInventory()).thenReturn(inventory);
+                manager.onCraftItem(event);
+                verify(event).setCurrentItem(result);
+                verify(event, never()).setCancelled(true);
+                verify(resultData).set(BACKPACK_KEY,
+                        DataType.ITEM_STACK_ARRAY, contents);
+            }
+        }
     }
 
     private ShapelessRecipe recipe(String name, RecipeChoice choice) {

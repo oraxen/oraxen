@@ -18,7 +18,10 @@ public final class RecipeTransforms {
 
     public static Transform parse(ConfigurationSection recipe) {
         ConfigurationSection section = recipe.getConfigurationSection("transform");
-        if (section == null) return null;
+        if (section == null) {
+            if (recipe.contains("transform")) throw new IllegalArgumentException("transform must be a section");
+            return null;
+        }
         if (!section.isList("keep-components"))
             throw new IllegalArgumentException("transform.keep-components must be a list");
         return keeping(section.getStringList("keep-components"));

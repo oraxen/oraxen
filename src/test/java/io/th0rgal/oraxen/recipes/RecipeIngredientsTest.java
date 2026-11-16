@@ -64,6 +64,16 @@ class RecipeIngredientsTest {
     }
 
     @Test
+    void modernSelectorsWinWhenLegacySpellingsAreAlsoPresent() {
+        assertEquals(Material.DIAMOND, RecipeIngredients.result(Map.of(
+                "minecraft-type", "DIAMOND", "minecraft_type", "EMERALD")).getType());
+        assertTrue(RecipeIngredients.choice(Map.of("minecraft-type", "DIAMOND", "minecraft_type", "EMERALD"))
+                .test(new ItemStack(Material.DIAMOND)));
+        assertFalse(RecipeIngredients.choice(Map.of("minecraft-type", "DIAMOND", "minecraft_type", "EMERALD"))
+                .test(new ItemStack(Material.EMERALD)));
+    }
+
+    @Test
     void alternativesRetainMatchersAfterCloning() {
         RecipeChoice choice = RecipeIngredients.choice(List.of(
                 Map.of("minecraft-type", "DIAMOND"), Map.of("minecraft_type", "EMERALD")));
@@ -107,7 +117,10 @@ class RecipeIngredientsTest {
     @Test
     void backpackMatchingRequiresIdentityButAllowsChangedContents() {
         ItemBuilder builder = mock(ItemBuilder.class);
-        when(builder.build()).thenReturn(new ItemStack(Material.LEATHER_HORSE_ARMOR));
+        ItemStack emptyBackpack = mock(ItemStack.class);
+        when(emptyBackpack.getType()).thenReturn(Material.LEATHER_HORSE_ARMOR);
+        when(emptyBackpack.clone()).thenReturn(emptyBackpack);
+        when(builder.build()).thenReturn(emptyBackpack);
         MechanicFactory factory = mock(MechanicFactory.class);
         when(factory.getMechanic("bag")).thenReturn(mock(Mechanic.class));
         try (MockedStatic<OraxenItems> items = mockStatic(OraxenItems.class);
@@ -120,6 +133,13 @@ class RecipeIngredientsTest {
             ItemStack changedContents = new ItemStack(Material.LEATHER_HORSE_ARMOR);
             items.when(() -> OraxenItems.getIdByItem(changedContents)).thenReturn("bag");
             assertTrue(backpack.test(changedContents));
+            YamlConfiguration definitions = new YamlConfiguration();
+            definitions.set("oraxen:bags", List.of(Map.of("oraxen-item", "bag")));
+            definitions.set("oraxen:nested", List.of("#oraxen:bags"));
+            RecipeIngredients.load(definitions);
+            assertTrue(RecipeIngredients.choice("#oraxen:nested", true).clone().test(changedContents));
+            assertFalse(RecipeIngredients.choice("#oraxen:nested", true).test(new ItemStack(Material.PAPER)));
+            assertFalse(RecipeIngredients.choice("#oraxen:nested", false).test(changedContents));
             assertFalse(backpack.test(new ItemStack(Material.LEATHER_HORSE_ARMOR)));
             assertInstanceOf(RecipeChoice.ExactChoice.class,
                     RecipeIngredients.choice(Map.of("oraxen-item", "bag"), false));

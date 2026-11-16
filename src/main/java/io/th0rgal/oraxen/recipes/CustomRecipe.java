@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.recipes;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.RecipeChoice;
@@ -18,18 +19,21 @@ import java.util.Objects;
 public class CustomRecipe {
 
     private final String name;
+    private final NamespacedKey key;
     private final ItemStack result;
     private final List<ItemStack> ingredients;
     private boolean ordered;
 
     public CustomRecipe(String name, ItemStack result, List<ItemStack> ingredients) {
-        this.name = name;
+        this.key = NamespacedKey.fromString(name.contains(":") ? name : "oraxen:" + name);
+        this.name = key.getKey();
         this.result = result;
         this.ingredients = ingredients;
     }
 
     public CustomRecipe(String name, ItemStack result, List<ItemStack> ingredients, boolean ordered) {
-        this.name = name;
+        this.key = NamespacedKey.fromString(name.contains(":") ? name : "oraxen:" + name);
+        this.name = key.getKey();
         this.result = result;
         this.ingredients = ingredients;
         this.ordered = ordered;
@@ -38,6 +42,10 @@ public class CustomRecipe {
     /*
      *
      */
+
+    public NamespacedKey getKey() {
+        return key;
+    }
 
     public String getName() {
         return name;
@@ -95,13 +103,13 @@ public class CustomRecipe {
                     ingredients.add(getRepresentativeItem(map.get(chars[charIndex])));
                 }
             }
-            return new CustomRecipe(recipe.getKey().getKey(), recipe.getResult(), ingredients, true);
+            return new CustomRecipe(recipe.getKey().toString(), recipe.getResult(), ingredients, true);
         } else if (bukkitRecipe instanceof ShapelessRecipe recipe) {
             List<ItemStack> ingredients = new ArrayList<>(9);
             for (RecipeChoice choice : recipe.getChoiceList()) {
                 ingredients.add(getRepresentativeItem(choice));
             }
-            return new CustomRecipe(recipe.getKey().getKey(), recipe.getResult(), ingredients, false);
+            return new CustomRecipe(recipe.getKey().toString(), recipe.getResult(), ingredients, false);
         } else return null;
     }
 

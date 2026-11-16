@@ -71,6 +71,26 @@ class RecipeRegistrationTest {
     }
 
     @Test
+    void malformedTransformsLeaveThePreviousRecipeActive() {
+        Recipe previous = recipe("malformed_transform");
+        NamespacedKey key = ((Keyed) previous).getKey();
+        for (Object malformed : java.util.List.of(java.util.List.of(), "keep-enchantments", 42)) {
+            try (MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class)) {
+                bukkit.when(() -> Bukkit.getRecipe(key)).thenReturn(previous);
+                RecipeLoader.beginRegistrationPass();
+                YamlConfiguration configuration = new YamlConfiguration();
+                configuration.set("transform", malformed);
+                assertThrows(IllegalArgumentException.class,
+                        () -> io.th0rgal.oraxen.recipes.RecipeTransforms.parse(configuration));
+                RecipeLoader.cancelRegistrationPass();
+                org.junit.jupiter.api.Assertions.assertSame(previous, Bukkit.getRecipe(key));
+                bukkit.verify(() -> Bukkit.removeRecipe(any()), never());
+                bukkit.verify(() -> Bukkit.addRecipe(any()), never());
+            }
+        }
+    }
+
+    @Test
     void duplicateKeysFailBeforeRegistryMutation() {
         Recipe recipe = recipe("duplicate");
         try (MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class)) {

@@ -35,7 +35,12 @@ public final class RecipeIngredients {
     public static Map<String, RecipeChoice> prepare(ConfigurationSection section) {
         Map<String, Object> definitions = section == null ? Map.of() : section.getValues(false);
         Map<String, RecipeChoice> resolved = new LinkedHashMap<>();
-        for (String name : definitions.keySet()) resolveTag(name, definitions, resolved, new HashSet<>());
+        Map<String, RecipeChoice> workbench = new LinkedHashMap<>();
+        for (String name : definitions.keySet()) {
+            resolveTag(name, definitions, resolved, new HashSet<>(), false);
+            resolveTag(name, definitions, workbench, new HashSet<>(), true);
+        }
+        resolved.replaceAll((name, choice) -> new TagChoice(choice, workbench.get(name)));
         return Collections.unmodifiableMap(resolved);
     }
 
@@ -74,7 +79,8 @@ public final class RecipeIngredients {
     public static RecipeChoice choice(Object input, boolean workbench) {
         return parse(input, workbench, name -> {
             RecipeChoice custom = tags.get(name);
-            return custom == null ? vanillaTag(name) : custom.clone();
+            return custom == null ? vanillaTag(name) : custom instanceof TagChoice tag
+                    ? tag.choice(workbench).clone() : custom.clone();
         });
     }
 
@@ -184,8 +190,6 @@ public final class RecipeIngredients {
     }
 
     private static Object selector(Map<String, Object> values, String key) {
-        if (values.containsKey(key) && values.containsKey(key.replace('-', '_')))
-            throw new IllegalArgumentException("Conflicting item selectors for " + key);
         return values.containsKey(key) ? values.get(key) : values.get(key.replace('-', '_'));
     }
 
@@ -211,15 +215,36 @@ public final class RecipeIngredients {
         return Map.of();
     }
 
-    private static RecipeChoice resolveTag(String name, Map<String, Object> definitions, Map<String, RecipeChoice> resolved, Set<String> visiting) {
+    private static RecipeChoice resolveTag(String name, Map<String, Object> definitions, Map<String, RecipeChoice> resolved, Set<String> visiting, boolean workbench) {
         if (resolved.containsKey(name)) return resolved.get(name);
         if (!definitions.containsKey(name)) return vanillaTag(name);
         if (!visiting.add(name)) throw new IllegalArgumentException("Cyclic recipe tag: " + name);
-        RecipeChoice choice = parse(definitions.get(name), false, child -> resolveTag(child, definitions, resolved, visiting));
+        RecipeChoice choice = parse(definitions.get(name), workbench, child -> resolveTag(child, definitions, resolved, visiting, workbench));
         if (choice == null) throw new IllegalArgumentException("Empty recipe tag: " + name);
         visiting.remove(name);
         resolved.put(name, choice);
         return choice;
+    }
+
+    private record TagChoice(RecipeChoice exact, RecipeChoice workbench) implements RecipeChoice {
+        private RecipeChoice choice(boolean crafting) {
+            return crafting ? workbench : exact;
+        }
+
+        @Override
+        public ItemStack getItemStack() {
+            return exact.getItemStack();
+        }
+
+        @Override
+        public boolean test(ItemStack item) {
+            return exact.test(item);
+        }
+
+        @Override
+        public TagChoice clone() {
+            return new TagChoice(exact.clone(), workbench.clone());
+        }
     }
 
     private static RecipeChoice vanillaTag(String name) {
