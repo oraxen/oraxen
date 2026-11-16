@@ -252,6 +252,30 @@ class RecipesEventsManagerTest {
         }
     }
 
+    @Test
+    void retainedRecipesKeepTheirPermissionsAndIngredientMatchers() {
+        RecipesEventsManager manager = new RecipesEventsManager();
+        ItemStack ingredient = item(), rejected = item();
+        RecipeChoice choice = choice(ingredient);
+        ShapelessRecipe recipe = recipe("retained", choice);
+        manager.resetRecipes();
+        manager.beginSmithingReload();
+        manager.registerShapelessRecipe(recipe.getKey(), List.of(choice), -1, null);
+        manager.addPermissionRecipe(CustomRecipe.fromRecipe(recipe), "oraxen.recipe.retained");
+        manager.finishRecipeReload();
+        manager.finishSmithingReload();
+        manager.resetRecipes();
+        manager.beginSmithingReload();
+        manager.retainRecipes(java.util.Set.of(recipe.getKey()));
+        manager.finishRecipeReload();
+        manager.finishSmithingReload();
+        assertFalse(manager.hasPermission(mock(CommandSender.class), CustomRecipe.fromRecipe(recipe)));
+        assertFalse(manager.prepareCrafter(recipe, matrix(rejected)));
+        CommandSender permitted = mock(CommandSender.class);
+        when(permitted.hasPermission("oraxen.recipe.retained")).thenReturn(true);
+        assertTrue(manager.hasPermission(permitted, CustomRecipe.fromRecipe(recipe)));
+    }
+
     private ShapelessRecipe recipe(String name, RecipeChoice choice) {
         ShapelessRecipe recipe = mock(ShapelessRecipe.class);
         when(recipe.getKey()).thenReturn(new NamespacedKey("oraxen", name));

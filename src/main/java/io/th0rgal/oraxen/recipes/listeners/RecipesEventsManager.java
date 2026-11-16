@@ -312,6 +312,22 @@ public class RecipesEventsManager implements Listener {
         stagedRecipes = new StagedRecipeState();
     }
 
+    public void retainRecipes(Set<NamespacedKey> keys) {
+        StagedRecipeState staging = stagingRecipes();
+        recipes.permissionsPerRecipe().forEach((key, value) -> {
+            if (keys.contains(key)) staging.permissionsPerRecipe.put(key, value);
+        });
+        recipes.craftingRecipes().forEach((key, value) -> {
+            if (keys.contains(key)) staging.craftingRecipes.put(key, value);
+        });
+        for (CustomRecipe recipe : recipes.whitelistedCraftRecipesOrdered()) {
+            if (keys.contains(recipe.getKey())) whitelistRecipe(recipe);
+        }
+        smithingRecipes.forEach((key, value) -> {
+            if (keys.contains(key)) stagedSmithingRecipes.put(key, value);
+        });
+    }
+
     public void finishRecipeReload() {
         if (stagedRecipes == null) throw new IllegalStateException("Recipe reload has not begun");
         recipes = stagedRecipes.freeze();

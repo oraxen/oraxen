@@ -91,6 +91,43 @@ class RecipeRegistrationTest {
     }
 
     @Test
+    void resetSettingControlsWhetherDeletedRecipesSurviveReload() {
+        for (boolean reset : new boolean[]{false, true}) {
+            Recipe previous = recipe("deleted_on_reload");
+            NamespacedKey key = ((Keyed) previous).getKey();
+            java.util.Map<NamespacedKey, Recipe> registry = new java.util.HashMap<>();
+            try (MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class)) {
+                bukkit.when(() -> Bukkit.getRecipe(any())).thenAnswer(call -> registry.get(call.getArgument(0)));
+                bukkit.when(() -> Bukkit.removeRecipe(any())).thenAnswer(call -> registry.remove(call.getArgument(0)) != null);
+                bukkit.when(() -> Bukkit.addRecipe(any())).thenAnswer(call -> {
+                    Recipe recipe = call.getArgument(0);
+                    return registry.putIfAbsent(((Keyed) recipe).getKey(), recipe) == null;
+                });
+                RecipeLoader.beginRegistrationPass(true);
+                loader(previous).registerRecipe();
+                RecipeLoader.finishRegistrationPass();
+                RecipeLoader.completeRegistrationPass();
+                Recipe replacement = recipe("deleted_on_reload");
+                RecipeLoader.beginRegistrationPass(reset);
+                loader(replacement).registerRecipe();
+                RecipeLoader.finishRegistrationPass();
+                org.junit.jupiter.api.Assertions.assertSame(replacement, registry.get(key));
+                RecipeLoader.cancelRegistrationPass();
+                org.junit.jupiter.api.Assertions.assertSame(previous, registry.get(key));
+                RecipeLoader.beginRegistrationPass(reset);
+                RecipeLoader.finishRegistrationPass();
+                org.junit.jupiter.api.Assertions.assertEquals(!reset, registry.containsKey(key));
+                RecipeLoader.cancelRegistrationPass();
+                org.junit.jupiter.api.Assertions.assertSame(previous, registry.get(key));
+                RecipeLoader.beginRegistrationPass(reset);
+                RecipeLoader.finishRegistrationPass();
+                RecipeLoader.completeRegistrationPass();
+                org.junit.jupiter.api.Assertions.assertEquals(!reset, registry.containsKey(key));
+            }
+        }
+    }
+
+    @Test
     void duplicateKeysFailBeforeRegistryMutation() {
         Recipe recipe = recipe("duplicate");
         try (MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class)) {

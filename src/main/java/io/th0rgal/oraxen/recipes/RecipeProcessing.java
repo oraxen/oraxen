@@ -31,6 +31,12 @@ public final class RecipeProcessing implements Listener {
         staging.put(((Keyed) recipe).getKey(), choice.clone());
     }
 
+    public static void retainRecipes(java.util.Set<NamespacedKey> keys) {
+        choices.forEach((key, choice) -> {
+            if (keys.contains(key)) staging.put(key, choice);
+        });
+    }
+
     public static void finishReload() {
         choices = java.util.Collections.unmodifiableMap(new LinkedHashMap<>(staging));
         staging = null;

@@ -30,6 +30,7 @@ public abstract class RecipeLoader {
 
     private static final Map<NamespacedKey, Recipe> pendingRecipes = new LinkedHashMap<>();
     private static Set<NamespacedKey> activeKeys = Set.of();
+    private static boolean reset;
     private static boolean staging;
     private static boolean applied;
     private static Map<NamespacedKey, Recipe> previousRecipes = Map.of();
@@ -44,7 +45,12 @@ public abstract class RecipeLoader {
 
     /** Called before each full recipe registration pass so duplicate keys within the pass can be detected. */
     public static void beginRegistrationPass() {
+        beginRegistrationPass(true);
+    }
+
+    public static void beginRegistrationPass(boolean resetRecipes) {
         if (staging) throw new IllegalStateException("Recipe registration pass already active");
+        reset = resetRecipes;
         KEYS_REGISTERED_THIS_PASS.clear();
         pendingRecipes.clear();
         previousTags = RecipeIngredients.tags();
@@ -55,7 +61,7 @@ public abstract class RecipeLoader {
 
     public static void finishRegistrationPass() {
         if (!staging || applied) throw new IllegalStateException("Recipe registration pass has not begun or was already applied");
-        Set<NamespacedKey> touched = new LinkedHashSet<>(activeKeys);
+        Set<NamespacedKey> touched = new LinkedHashSet<>(reset ? activeKeys : Set.of());
         touched.addAll(pendingRecipes.keySet());
         Map<NamespacedKey, Recipe> previous = new LinkedHashMap<>();
         for (NamespacedKey key : touched) {
@@ -75,9 +81,22 @@ public abstract class RecipeLoader {
             });
             throw exception;
         }
+        for (NamespacedKey key : retainedKeys()) {
+            Recipe recipe = Bukkit.getRecipe(key);
+            if (recipe != null) previous.put(key, recipe);
+        }
         previousRecipes = previous;
-        activeKeys = Set.copyOf(pendingRecipes.keySet());
+        Set<NamespacedKey> nextKeys = new LinkedHashSet<>(retainedKeys());
+        nextKeys.addAll(pendingRecipes.keySet());
+        activeKeys = Set.copyOf(nextKeys);
         applied = true;
+    }
+
+    public static Set<NamespacedKey> retainedKeys() {
+        if (reset) return Set.of();
+        Set<NamespacedKey> retained = new LinkedHashSet<>(previousKeys);
+        retained.removeAll(pendingRecipes.keySet());
+        return Set.copyOf(retained);
     }
 
     public static void completeRegistrationPass() {

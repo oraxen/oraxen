@@ -49,7 +49,7 @@ public class RecipesManager {
     }
 
     private static void registerAllConfigRecipesFromFolder(File folder) {
-        RecipeLoader.beginRegistrationPass();
+        RecipeLoader.beginRegistrationPass(Settings.RESET_RECIPES.toBool());
         RecipeBrewing.beginReload();
         RecipeProcessing.beginReload();
         CustomWorkstationRegistry.beginReload();
@@ -83,6 +83,8 @@ public class RecipesManager {
             for (String id : disabled.getStringList("disabled"))
                 if (NamespacedKey.fromString(id) == null) throw new IllegalArgumentException("Invalid disabled recipe " + id);
             RecipeBrewing.validateReload();
+            events.retainRecipes(RecipeLoader.retainedKeys());
+            RecipeProcessing.retainRecipes(RecipeLoader.retainedKeys());
             RecipeLoader.finishRegistrationPass();
             RecipeBrewing.finishReload();
             RecipeProcessing.finishReload();
