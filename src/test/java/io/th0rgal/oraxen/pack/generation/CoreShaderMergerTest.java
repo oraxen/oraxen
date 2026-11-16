@@ -49,6 +49,45 @@ class CoreShaderMergerTest {
                 "assets/minecraft/shaders/core/test.json", bytes(low), bytes(high.replace("[1]", "[2]"))));
     }
 
+    @Test void mergesGeneratedConstantsAndRejectsConflictingInitializers() {
+        String generated = "#version 150\nconst bool ORAXEN_ANIMATED_GLYPHS = true;\n"
+                + "const int ORAXEN_ANIM_CONFIG_COUNT = 1;\n"
+                + "const ivec2 ORAXEN_ANIM_CONFIGS[1] = ivec2[](ivec2(10, 2));\n"
+                + "void main() { float color = 1.0; }";
+        String merged = merge(generated, "#version 150\nvoid main() { float color = 1.0; color *= 0.5; }");
+        assertTrue(merged.contains("const ivec2 ORAXEN_ANIM_CONFIGS[1] = ivec2[](ivec2(10, 2));"));
+        assertTrue(merged.contains("color *= 0.5;"));
+        assertThrows(IllegalArgumentException.class, () -> merge(generated, generated.replace("= true", "= false")));
+    }
+
+    @Test void rejectsUnbracedConditionalsAndUnsafeLocalBindings() {
+        String base = "#version 150\nuniform float scale;\nvoid main() { scaleOutput(); }";
+        for (String body : new String[] {
+                "if (true) scaleOutput(); else otherOutput();",
+                "if (true) {} else otherOutput();",
+                "float a = 1.0, b = 2.0;",
+                "float scale = 1.0;",
+                "if (true) { float scale = 1.0; }"}) {
+            assertThrows(IllegalArgumentException.class, () -> merge(base,
+                    "#version 150\nuniform float scale;\nvoid main() { " + body + " }"), body);
+        }
+        assertThrows(IllegalArgumentException.class, () -> merge(
+                "#version 150\nvoid main() { float a = 1.0; }",
+                "#version 150\nvoid main() { float a = 1.0, b = 2.0; }"));
+    }
+
+    @Test void rejectsReorderedSharedEffectsInsteadOfExecutingThemTwice() {
+        assertThrows(IllegalArgumentException.class, () -> merge(
+                "#version 150\nvoid main() { color *= 0.5; color += 0.1; }",
+                "#version 150\nvoid main() { color += 0.1; color *= 0.5; }"));
+    }
+
+    @Test void boundsMergeWorkBeforeAllocatingStatementMatrix() {
+        String many = "#version 150\nvoid main() {" + "color *= 0.5;".repeat(600) + "}";
+        assertThrows(IllegalArgumentException.class, () -> merge(many, many.replace("0.5", "0.6")));
+        assertThrows(IllegalArgumentException.class, () -> merge(many, " ".repeat(262_145)));
+    }
+
     private static String merge(String low, String high) {
         return new String(CoreShaderMerger.merge("assets/minecraft/shaders/core/test.fsh", bytes(low), bytes(high)), StandardCharsets.UTF_8);
     }

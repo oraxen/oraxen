@@ -75,6 +75,40 @@ class PackImportCompositionTest {
         logs.verify(() -> Logs.logWarning("Failed to merge core shader " + path + ". Keeping the higher priority file."));
     }
 
+    @Test void shaderFailureKeepsWholeHigherPriorityProgramIncludingLinkedStages() throws Exception {
+        String root = "assets/minecraft/shaders/core/";
+        String lowVertex = "#version 150\nout float value;\nvoid main() { value = 1.0; }";
+        String highVertex = "#version 150\nout vec2 value;\nvoid main() { value = vec2(1.0); }";
+        String lowFragment = "#version 150\nin float value;\nvoid main() { lowEffect(); }";
+        String highFragment = "#version 150\nvoid main() { highEffect(); }";
+        String program = "{\"vertex\":\"custom_vertex\",\"fragment\":\"custom_fragment\"}";
+        write("a-low", Map.of(root + "custom_vertex.vsh", lowVertex, root + "custom_fragment.fsh", lowFragment,
+                root + "program.json", program));
+        write("b-high", Map.of(root + "custom_vertex.vsh", highVertex, root + "custom_fragment.fsh", highFragment,
+                root + "program.json", program));
+        settings.set(Settings.MERGE_SHADERS.getPath(), true);
+        Settings.invalidateCache();
+        var files = contents(new PackMerger(tempDir.toFile()).mergeUploadedPacks());
+        assertEquals(highVertex, files.get(root + "custom_vertex.vsh"));
+        assertEquals(highFragment, files.get(root + "custom_fragment.fsh"));
+        assertEquals(program, files.get(root + "program.json"));
+    }
+
+    @Test void mergesDuplicateLocalOverlayShadersBeforePreservingNativeOverlays() throws Exception {
+        settings.set(Settings.MERGE_SHADERS.getPath(), true);
+        Settings.invalidateCache();
+        String path = "modern/assets/minecraft/shaders/core/test.fsh";
+        String low = "#version 150\nvoid main() { lowEffect(); }";
+        String high = "#version 150\nvoid main() { highEffect(); }";
+        PackMerger merger = new PackMerger(tempDir.toFile());
+        var files = contents(merger.mergeWithHigherPriorityFiles(List.of(
+                vfile("pack.mcmeta", metadata("modern", 46, 75)), vfile(path, high), vfile(path, low)), true));
+        assertTrue(files.get(path).contains("lowEffect();"));
+        assertTrue(files.get(path).contains("highEffect();"));
+        String directory = merger.getMergedOverlayEntries().get(0).getAsJsonObject().get("directory").getAsString();
+        assertTrue(files.get(directory + "/assets/minecraft/shaders/core/test.fsh").contains("lowEffect();"));
+    }
+
     @AfterEach
     void cleanup() {
         Settings.invalidateCache();

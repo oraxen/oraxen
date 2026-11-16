@@ -196,6 +196,8 @@ public class PackMerger {
      */
     public List<VirtualFile> mergeWithHigherPriorityFiles(List<VirtualFile> higherFiles, boolean preserveNativeOverlays) {
         Map<String, byte[]> entries = new TreeMap<>(PATH_ORDER);
+        List<Map<String, byte[]>> duplicateShaders = new ArrayList<>();
+        Map<String, Integer> shaderDuplicates = new HashMap<>();
         for (VirtualFile file : higherFiles) {
             try (InputStream input = file.getInputStream()) {
                 if (input == null) continue;
@@ -203,9 +205,12 @@ public class PackMerger {
                 file.setInputStream(new ByteArrayInputStream(bytes));
                 byte[] first = entries.get(file.getPath());
                 if (first == null) entries.put(file.getPath(), bytes);
-                else if (shouldMergeShader(file.getPath()))
-                    entries.put(file.getPath(), mergeShader(file.getPath(), bytes, first));
-                else if (PackAssetMerger.isAdditivePath(file.getPath()) && !validResource(file.getPath(), object(first))
+                else if (Boolean.TRUE.equals(Settings.MERGE_SHADERS.toBool())
+                        && CoreShaderMerger.isCoreShader(shaderResourcePath(file.getPath()))) {
+                    int depth = shaderDuplicates.merge(file.getPath(), 1, Integer::sum) - 1;
+                    while (duplicateShaders.size() <= depth) duplicateShaders.add(new LinkedHashMap<>());
+                    duplicateShaders.get(depth).put(file.getPath(), bytes);
+                } else if (PackAssetMerger.isAdditivePath(file.getPath()) && !validResource(file.getPath(), object(first))
                         && validResource(file.getPath(), object(bytes))) entries.put(file.getPath(), bytes);
                 else if (shouldMergeNative(file.getPath())) {
                     JsonObject high = object(first);
@@ -231,6 +236,16 @@ public class PackMerger {
                 Logs.debug(exception);
             }
         }
+        Map<String, byte[]> declaredOverlayFiles = collectDeclaredOverlayFiles(entries);
+        duplicateShaders.forEach(layer -> layer.keySet().removeIf(path ->
+                !CoreShaderMerger.isCoreShader(path) && !declaredOverlayFiles.containsKey(path)));
+        Map<String, byte[]> shaderEntries = new LinkedHashMap<>();
+        entries.forEach((path, bytes) -> {
+            if (CoreShaderMerger.isCoreShader(path) || declaredOverlayFiles.containsKey(path)) shaderEntries.put(path, bytes);
+        });
+        for (int index = duplicateShaders.size() - 1; index >= 0; index--)
+            mergeShaderGroups(duplicateShaders.get(index), shaderEntries).forEach(shaderEntries::put);
+        shaderEntries.forEach(entries::put);
         Map<String, byte[]> preservedOverlayFiles = preserveNativeOverlays
                 ? collectDeclaredOverlayFiles(entries)
                 : Collections.emptyMap();
@@ -361,11 +376,12 @@ public class PackMerger {
     }
 
     private void mergeAll(Map<String, byte[]> lower, Map<String, byte[]> higher) {
+        Map<String, byte[]> shaders = mergeShaderGroups(lower, higher);
         higher.forEach((path, bytes) -> {
             if (!path.endsWith(".mcmeta")) lower.remove(path + ".mcmeta");
             if (PackAssetMerger.isAdditivePath(path) && !validResource(path, object(bytes))) return;
-            if (shouldMergeShader(path) && lower.containsKey(path)) {
-                bytes = mergeShader(path, lower.get(path), bytes);
+            if (shaders.containsKey(path)) {
+                bytes = shaders.get(path);
             } else if (shouldMergeNative(path)) {
                 JsonObject high = object(bytes);
                 JsonObject low = object(lower.get(path));
@@ -389,24 +405,66 @@ public class PackMerger {
         });
     }
 
-    private static boolean shouldMergeShader(String path) {
-        return Boolean.TRUE.equals(Settings.MERGE_SHADERS.toBool()) && CoreShaderMerger.isCoreShader(path);
+    private static String shaderResourcePath(String path) {
+        int assets = path.indexOf("assets/");
+        return assets < 0 ? path : path.substring(assets);
     }
 
-    private byte[] mergeShader(String path, byte[] low, byte[] high) {
-        if (Arrays.equals(low, high)) return high;
-        try {
-            byte[] merged = CoreShaderMerger.merge(path, low, high);
-            if (!shaderWarningShown) {
-                Logs.logWarning("Shader merging is experimental and limited. Turn of shader merging in the settings or contact the Support team when running into shader issues.");
-                shaderWarningShown = true;
-            }
-            return merged;
-        } catch (RuntimeException exception) {
-            Logs.logWarning("Failed to merge core shader " + path + ". Keeping the higher priority file.");
-            Logs.debug(exception);
-            return high;
+    private Map<String, byte[]> mergeShaderGroups(Map<String, byte[]> lower, Map<String, byte[]> higher) {
+        Map<String, byte[]> merged = new LinkedHashMap<>();
+        if (!Boolean.TRUE.equals(Settings.MERGE_SHADERS.toBool())) return merged;
+        Map<String, Set<String>> groups = new LinkedHashMap<>();
+        for (String path : higher.keySet()) {
+            if (!CoreShaderMerger.isCoreShader(shaderResourcePath(path))) continue;
+            String group = path.substring(0, path.lastIndexOf('.'));
+            groups.computeIfAbsent(group, ignored -> new LinkedHashSet<>()).add(path);
         }
+        // Program files can link vertex and fragment stages with different names.
+        for (Map<String, byte[]> source : List.of(lower, higher)) {
+            for (var entry : source.entrySet()) {
+                String path = entry.getKey();
+                if (!path.endsWith(".json") || !CoreShaderMerger.isCoreShader(shaderResourcePath(path))) continue;
+                JsonObject program = object(entry.getValue());
+                if (program == null) continue;
+                String group = path.substring(0, path.lastIndexOf('.'));
+                Set<String> connected = groups.get(group);
+                if (connected == null) continue;
+                for (String stage : List.of("vertex", "fragment")) {
+                    if (!program.has(stage) || !program.get(stage).isJsonPrimitive()) continue;
+                    String name = program.get(stage).getAsString();
+                    if (name.startsWith("minecraft:")) name = name.substring("minecraft:".length());
+                    String linked = path.substring(0, path.lastIndexOf('/') + 1) + name;
+                    Set<String> other = groups.get(linked);
+                    if (other != null && other != connected) {
+                        connected.addAll(other);
+                        groups.replaceAll((key, value) -> value == other ? connected : value);
+                    }
+                }
+            }
+        }
+        for (Set<String> group : new LinkedHashSet<>(groups.values())) {
+            Map<String, byte[]> candidate = new LinkedHashMap<>();
+            boolean changed = false;
+            try {
+                for (String path : group) {
+                    byte[] low = lower.get(path);
+                    byte[] high = higher.get(path);
+                    if (low == null || Arrays.equals(low, high)) continue;
+                    candidate.put(path, CoreShaderMerger.merge(shaderResourcePath(path), low, high));
+                    changed = true;
+                }
+                merged.putAll(candidate);
+                if (changed && !shaderWarningShown) {
+                    Logs.logWarning("Shader merging is experimental and limited. Turn of shader merging in the settings or contact the Support team when running into shader issues.");
+                    shaderWarningShown = true;
+                }
+            } catch (RuntimeException exception) {
+                String path = group.iterator().next();
+                Logs.logWarning("Failed to merge core shader " + path + ". Keeping the higher priority file.");
+                Logs.debug(exception);
+            }
+        }
+        return merged;
     }
 
     private static boolean shouldMergeNative(String path) {

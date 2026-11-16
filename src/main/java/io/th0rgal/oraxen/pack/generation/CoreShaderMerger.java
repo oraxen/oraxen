@@ -8,9 +8,11 @@ import java.util.regex.*;
 
 /** Conservative composition for core shaders with compatible global declarations. */
 final class CoreShaderMerger {
+    private static final int MAX_SOURCE_BYTES = 262_144;
+    private static final long MAX_STATEMENT_PAIRS = 250_000;
     private static final Pattern MAIN = Pattern.compile("void\\s+main\\s*\\(\\s*(?:void\\s*)?\\)\\s*\\{");
     private static final Pattern FUNCTION = Pattern.compile("(?:\\w+\\s+)+(\\w+)\\s*\\([^;{}]*\\)\\s*\\{");
-    private static final Pattern VARIABLE = Pattern.compile("(?:\\w+\\s+)+(\\w+)\\s*(?:\\[\\s*\\d*\\s*])?\\s*;");
+    private static final Pattern VARIABLE = Pattern.compile("(?:\\w+\\s+)+(\\w+)\\s*(?:\\[\\s*\\d*\\s*])?\\s*(?:=[^;]+)?;");
 
     private CoreShaderMerger() {}
 
@@ -20,6 +22,8 @@ final class CoreShaderMerger {
 
     static byte[] merge(String path, byte[] lower, byte[] higher) {
         if (Arrays.equals(lower, higher)) return higher;
+        if (lower.length > MAX_SOURCE_BYTES || higher.length > MAX_SOURCE_BYTES)
+            throw new IllegalArgumentException("Shader exceeds merge size limit");
         String low = new String(lower, StandardCharsets.UTF_8);
         String high = new String(higher, StandardCharsets.UTF_8);
         return (path.endsWith(".json") ? mergeProgram(low, high) : mergeSource(low, high))
@@ -70,6 +74,15 @@ final class CoreShaderMerger {
         List<String> highStatements = statements(second.main);
         if (Pattern.compile("\\b(?:return|do)\\b").matcher(first.main + second.main).find())
             throw new IllegalArgumentException("Early returns and do-while loops cannot be composed safely");
+        if ((long) lowStatements.size() * highStatements.size() > MAX_STATEMENT_PAIRS)
+            throw new IllegalArgumentException("Shader exceeds merge work limit");
+        List<String> lowOrder = lowStatements.stream().map(CoreShaderMerger::normalize).toList();
+        List<String> highOrder = highStatements.stream().map(CoreShaderMerger::normalize).toList();
+        Set<String> shared = new HashSet<>(lowOrder);
+        shared.retainAll(highOrder);
+        if (!lowOrder.stream().filter(shared::contains).toList().equals(highOrder.stream().filter(shared::contains).toList()))
+            throw new IllegalArgumentException("Conflicting shared statement order");
+        validateLocals(first.main, second.main, declarations.keySet());
         // Keep shared vanilla statements once and retain each pack's additions in order.
         int[][] common = new int[lowStatements.size() + 1][highStatements.size() + 1];
         for (int i = lowStatements.size() - 1; i >= 0; i--)
@@ -88,19 +101,63 @@ final class CoreShaderMerger {
             } else if (common[i + 1][j] >= common[i][j + 1]) merged.add(lowStatements.get(i++));
             else merged.add(highStatements.get(j++));
         }
-        Set<String> locals = new HashSet<>();
-        for (String statement : merged) {
-            Matcher local = Pattern.compile("(?:const\\s+)?\\w+\\s+(\\w+)\\s*(?:=|;|\\[)").matcher(statement);
-            if (local.lookingAt() && !locals.add(local.group(1)))
-                throw new IllegalArgumentException("Conflicting GLSL local " + local.group(1));
-        }
         return first.version + "\n" + String.join("\n", imports) + "\n"
                 + String.join("\n", declarations.values()) + "\nvoid main() {\n"
                 + String.join("\n", merged) + "\n}\n";
     }
 
+    private static void validateLocals(String low, String high, Set<String> globals) {
+        Map<String, String> lowLocals = locals(low);
+        Map<String, String> highLocals = locals(high);
+        for (var side : List.of(lowLocals, highLocals)) {
+            String otherSource = side == lowLocals ? high : low;
+            Map<String, String> otherLocals = side == lowLocals ? highLocals : lowLocals;
+            for (var local : side.entrySet()) {
+                if (globals.contains(local.getKey()))
+                    throw new IllegalArgumentException("Local shadows GLSL global " + local.getKey());
+                if (Pattern.compile("\\b" + Pattern.quote(local.getKey()) + "\\b").matcher(otherSource).find()
+                        && !local.getValue().equals(otherLocals.get(local.getKey())))
+                    throw new IllegalArgumentException("Conflicting GLSL local " + local.getKey());
+            }
+        }
+    }
+
+    private static Map<String, String> locals(String main) {
+        Map<String, String> names = new LinkedHashMap<>();
+        Matcher declarations = Pattern.compile("(?<![\\w.])(?:(?:const|highp|mediump|lowp)\\s+)*"
+                + "(?:bool|int|uint|float|double|[biud]?vec[234]|d?mat[234](?:x[234])?)\\s+(\\w+)\\s*([^;]*);").matcher(main);
+        while (declarations.find()) {
+            String tail = declarations.group(2);
+            int depth = 0;
+            for (char c : tail.toCharArray()) {
+                if (c == '(' || c == '[') depth++;
+                if (c == ')' || c == ']') depth--;
+                if (c == ',' && depth == 0)
+                    throw new IllegalArgumentException("Multiple GLSL local declarators are unsupported");
+            }
+            if (names.putIfAbsent(declarations.group(1), normalize(declarations.group())) != null)
+                throw new IllegalArgumentException("Repeated GLSL local " + declarations.group(1));
+        }
+        return names;
+    }
+
     private static List<String> statements(String main) {
         String body = main.substring(main.indexOf('{') + 1, main.lastIndexOf('}'));
+        Matcher controls = Pattern.compile("\\b(?:if|for|while)\\s*\\(").matcher(body);
+        while (controls.find()) {
+            int end = controls.end();
+            int nesting = 1;
+            while (end < body.length() && nesting > 0) {
+                char c = body.charAt(end++);
+                if (c == '(') nesting++;
+                if (c == ')') nesting--;
+            }
+            while (end < body.length() && Character.isWhitespace(body.charAt(end))) end++;
+            if (nesting != 0 || end == body.length() || body.charAt(end) != '{')
+                throw new IllegalArgumentException("Unbraced GLSL control flow is unsupported");
+        }
+        if (Pattern.compile("\\belse\\s+(?!if\\b|\\s*\\{)\\S").matcher(body).find())
+            throw new IllegalArgumentException("Unbraced GLSL else is unsupported");
         List<String> result = new ArrayList<>();
         int depth = 0;
         int parentheses = 0;
@@ -154,7 +211,11 @@ final class CoreShaderMerger {
                 Matcher variable = VARIABLE.matcher(declaration);
                 String name;
                 if (function.lookingAt()) name = function.group(1);
-                else if (variable.matches()) name = variable.group(1);
+                else if (variable.matches()) {
+                    if (declaration.contains("=") && !declaration.startsWith("const "))
+                        throw new IllegalArgumentException("Non-constant GLSL initializer is unsupported");
+                    name = variable.group(1);
+                }
                 else throw new IllegalArgumentException("Unsupported GLSL declaration");
                 if (declarations.putIfAbsent(name, declaration) != null)
                     throw new IllegalArgumentException("Repeated GLSL declaration " + name);
