@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -135,6 +136,7 @@ public final class PackAssetMerger {
             if (!selector.isEmpty()) conditions.add(selector);
             List<JsonObject> currentExclusions = new ArrayList<>(exclusions);
             currentExclusions.addAll(variantExclusions);
+            currentExclusions.removeIf(exclusion -> disjointSelectors(selector, exclusion));
             if (addExclusions(conditions, currentExclusions)) {
                 JsonObject part = new JsonObject();
                 if (!conditions.isEmpty()) {
@@ -147,6 +149,21 @@ public final class PackAssetMerger {
             }
             variantExclusions.add(selector);
         }
+    }
+
+    private static boolean disjointSelectors(JsonObject first, JsonObject second) {
+        for (var entry : first.entrySet()) {
+            String property = entry.getKey();
+            if (property.equals("AND") || property.equals("OR") || !second.has(property)) continue;
+            JsonElement other = second.get(property);
+            if (!entry.getValue().isJsonPrimitive() || !other.isJsonPrimitive()) continue;
+            String value = entry.getValue().getAsString();
+            String otherValue = other.getAsString();
+            if (value.startsWith("!") || otherValue.startsWith("!")) continue;
+            var values = Arrays.asList(value.split("\\|"));
+            if (Arrays.stream(otherValue.split("\\|")).noneMatch(values::contains)) return true;
+        }
+        return false;
     }
 
     private static void addMultipart(JsonObject blockstate, JsonArray parts, List<JsonObject> exclusions) {

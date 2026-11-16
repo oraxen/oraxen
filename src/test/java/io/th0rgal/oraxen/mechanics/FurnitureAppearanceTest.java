@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.configs.AppearanceMode;
 import io.th0rgal.oraxen.configs.ConfigsManager;
 import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ModelData;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureAppearance;
@@ -56,6 +57,10 @@ class FurnitureAppearanceTest extends MechanicTestSupport {
             when(configs.getSettings()).thenReturn(settings);
             Settings.invalidateCache();
             Map<String, ItemBuilder> renders = appearance.getRenderItems(Material.PAPER);
+            verify(renders.get("furniture/chair")).setCustomTag(
+                    OraxenItems.ITEM_ID, PersistentDataType.STRING, "furniture/chair");
+            verify(renders.get("furniture/chair/grown")).setCustomTag(
+                    OraxenItems.ITEM_ID, PersistentDataType.STRING, "furniture/chair/grown");
             var base = renders.get("furniture/chair").getOraxenMeta();
             var stage = renders.get("furniture/chair/grown").getOraxenMeta();
             assertTrue(base.shouldGenerateModel());

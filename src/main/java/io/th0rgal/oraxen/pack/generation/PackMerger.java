@@ -68,7 +68,7 @@ public class PackMerger {
         try {
             Map<String, byte[]> entries = readEntries(pack);
             importEntries(entries, includeIcon, true);
-        } catch (IOException exception) {
+        } catch (IOException | IllegalArgumentException exception) {
             Logs.logError("Failed to import resource pack " + pack.getName());
             Logs.debug(exception);
         }

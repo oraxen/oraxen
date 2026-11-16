@@ -45,6 +45,26 @@ class PackImportCompositionTest {
         plugins.close();
     }
 
+    @Test void skipsUndecodableZipWithoutLosingOtherPacks() throws Exception {
+        Path uploads = Files.createDirectories(tempDir.resolve("uploads"));
+        Path badZip = uploads.resolve("a-bad.zip");
+        try (ZipOutputStream zip = new ZipOutputStream(Files.newOutputStream(badZip))) {
+            zip.putNextEntry(new ZipEntry("x"));
+            zip.write(1);
+            zip.closeEntry();
+        }
+        byte[] bytes = Files.readAllBytes(badZip);
+        // The local ZIP header stores the UTF-8 filename immediately after its 30 fixed bytes.
+        bytes[30] = (byte) 0xff;
+        Files.write(badZip, bytes);
+        write("b-valid", Map.of("assets/test/lang/en_us.json", "{\"valid\":\"yes\"}"));
+
+        Map<String, String> files = contents(new PackMerger(tempDir.toFile()).mergeUploadedPacks());
+
+        assertEquals("yes", json(files, "assets/test/lang/en_us.json").get("valid").getAsString());
+        logs.verify(() -> Logs.logError("Failed to import resource pack a-bad.zip"));
+    }
+
     @Test void composesNativeResourcesAndRetainsValidLowerFiles() throws Exception {
         write("a", Map.of(
                 "assets/test/lang/en_us.json", "{\"low\":\"low\",\"shared\":\"low\"}",

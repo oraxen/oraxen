@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.pack.generation;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -16,6 +17,48 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class PackAssetMergerTest {
     private static final String PATH = "assets/test/blockstates/test.json";
+
+    @Test
+    void disjointVariantsStayCompact() {
+        JsonObject variants = new JsonObject();
+        for (int instrument = 0; instrument < 31; instrument++) {
+            for (int note = 0; note < 25; note++) {
+                JsonObject model = new JsonObject();
+                model.addProperty("model", "test:note_" + instrument + "_" + note);
+                variants.add("instrument=" + instrument + ",note=" + note, model);
+            }
+        }
+        JsonObject high = new JsonObject();
+        high.add("variants", variants);
+        JsonObject lower = json("""
+                {"variants":{"instrument=31,note=0":{"model":"test:extra"}}}
+                """);
+        JsonObject merged = PackAssetMerger.mergeJson(PATH, lower, high);
+        JsonArray rules = merged.getAsJsonArray("multipart");
+        assertEquals(776, rules.size());
+        for (JsonElement rule : rules) {
+            JsonArray conditions = rule.getAsJsonObject().getAsJsonObject("when").getAsJsonArray("AND");
+            assertEquals(1, conditions.size());
+            assertEquals(2, conditions.get(0).getAsJsonObject().size());
+        }
+    }
+
+    @Test
+    void overlappingAlternativeValuesKeepFirstVariantPriority() {
+        JsonObject higher = json("""
+                {"variants":{
+                  "facing=north|south":{"model":"test:first"},
+                  "facing=south|west":{"model":"test:second"}
+                }}
+                """);
+        JsonObject lower = json("""
+                {"variants":{"":{"model":"test:fallback"}}}
+                """);
+        JsonObject merged = PackAssetMerger.mergeJson(PATH, lower, higher);
+        assertEquals(List.of("test:first"), modelsFor(merged, Map.of("facing", "south")));
+        assertEquals(List.of("test:second"), modelsFor(merged, Map.of("facing", "west")));
+        assertEquals(List.of("test:fallback"), modelsFor(merged, Map.of("facing", "east")));
+    }
 
     @Test
     void higherMultipartRulesOverrideOnlyConflictingLowerMultipartRules() {

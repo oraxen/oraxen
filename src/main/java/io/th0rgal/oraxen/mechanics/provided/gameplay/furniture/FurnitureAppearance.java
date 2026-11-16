@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemProperties;
 import io.th0rgal.oraxen.items.ModelData;
@@ -12,6 +13,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.MemoryConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
 
@@ -91,6 +93,7 @@ public final class FurnitureAppearance {
         }
         ItemBuilder builder = new ItemBuilder(material);
         builder.setOraxenMeta(meta);
+        builder.setCustomTag(OraxenItems.ITEM_ID, PersistentDataType.STRING, variantId);
         new ItemProperties(item, material, meta, Map.of(variantId, modelData)).applyAppearance(builder);
         return builder;
     }
