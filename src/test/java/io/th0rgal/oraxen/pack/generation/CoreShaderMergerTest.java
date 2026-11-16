@@ -85,6 +85,17 @@ class CoreShaderMergerTest {
                 "#version 150\nvoid main() { float a = 1.0, b = 2.0; }"));
     }
 
+    @Test void keepsBracedElseChainsTogetherWhenMergingStatements() {
+        String conditional = "if (enabled) { firstEffect(); } else if (other) { secondEffect(); } else { thirdEffect(); }";
+        String declarations = "#version 150\nuniform bool enabled;\nuniform bool other;\n";
+        String merged = merge(declarations + "void main() { " + conditional + " lowEffect(); }",
+                declarations + "void main() { " + conditional + " highEffect(); }");
+        assertEquals(merged.indexOf(conditional), merged.lastIndexOf(conditional));
+        assertTrue(merged.contains(conditional));
+        assertTrue(merged.contains("lowEffect();"));
+        assertTrue(merged.contains("highEffect();"));
+    }
+
     @Test void rejectsReorderedSharedEffectsInsteadOfExecutingThemTwice() {
         assertThrows(IllegalArgumentException.class, () -> merge(
                 "#version 150\nvoid main() { color *= 0.5; color += 0.1; }",

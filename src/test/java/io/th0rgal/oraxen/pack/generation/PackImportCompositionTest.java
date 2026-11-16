@@ -94,6 +94,33 @@ class PackImportCompositionTest {
         assertEquals(program, files.get(root + "program.json"));
     }
 
+    @Test void inheritedProgramsKeepLinkedStagesTogetherWithQualifiedAndLegacyReferences() throws Exception {
+        String root = "assets/minecraft/shaders/core/";
+        String lowVertex = "#version 150\nout float value;\nvoid main() { value = 1.0; }";
+        String highVertex = "#version 150\nout vec2 value;\nvoid main() { value = vec2(1.0); }";
+        String lowFragment = "#version 150\nin float value;\nvoid main() { if (value < 0.5) { discard; } }";
+        String highFragment = "#version 150\nvoid main() { highEffect(); }";
+        settings.set(Settings.MERGE_SHADERS.getPath(), true);
+        Settings.invalidateCache();
+        for (boolean inherited : List.of(true, false)) {
+            for (String prefix : List.of("", "minecraft:core/")) {
+                String program = "{\"vertex\":\"" + prefix + "custom_vertex\",\"fragment\":\""
+                        + prefix + "custom_fragment\"}";
+                write("a-low", Map.of(root + "custom_vertex.vsh", lowVertex,
+                        root + "custom_fragment.fsh", lowFragment, root + "program.json", program));
+                Map<String, String> high = new LinkedHashMap<>(Map.of(root + "custom_vertex.vsh", highVertex,
+                        root + "custom_fragment.fsh", highFragment));
+                if (!inherited) high.put(root + "program.json", program);
+                else Files.deleteIfExists(tempDir.resolve("uploads/b-high/" + root + "program.json"));
+                write("b-high", high);
+                var files = contents(new PackMerger(tempDir.toFile()).mergeUploadedPacks());
+                assertEquals(highVertex, files.get(root + "custom_vertex.vsh"));
+                assertEquals(highFragment, files.get(root + "custom_fragment.fsh"));
+                assertEquals(program, files.get(root + "program.json"));
+            }
+        }
+    }
+
     @Test void mergesDuplicateLocalOverlayShadersBeforePreservingNativeOverlays() throws Exception {
         settings.set(Settings.MERGE_SHADERS.getPath(), true);
         Settings.invalidateCache();

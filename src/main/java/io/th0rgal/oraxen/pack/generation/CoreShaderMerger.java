@@ -173,8 +173,12 @@ final class CoreShaderMerger {
             if (c == '(') parentheses++;
             if (c == ')') parentheses--;
             if (depth != 0 || parentheses != 0) continue;
-            String tail = body.substring(index + 1).stripLeading();
-            if (c != ';' && (c != '}' || tail.startsWith("else") || tail.startsWith(";"))) continue;
+            if (c != ';' && c != '}') continue;
+            if (c == '}') {
+                int next = index + 1;
+                while (next < body.length() && Character.isWhitespace(body.charAt(next))) next++;
+                if (body.startsWith("else", next) || next < body.length() && body.charAt(next) == ';') continue;
+            }
             result.add(body.substring(start, index + 1).strip());
             start = index + 1;
         }

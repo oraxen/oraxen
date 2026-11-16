@@ -427,13 +427,18 @@ public class PackMerger {
                 JsonObject program = object(entry.getValue());
                 if (program == null) continue;
                 String group = path.substring(0, path.lastIndexOf('.'));
-                Set<String> connected = groups.get(group);
-                if (connected == null) continue;
+                Set<String> connected = groups.computeIfAbsent(group, ignored -> new LinkedHashSet<>());
                 for (String stage : List.of("vertex", "fragment")) {
                     if (!program.has(stage) || !program.get(stage).isJsonPrimitive()) continue;
                     String name = program.get(stage).getAsString();
-                    if (name.startsWith("minecraft:")) name = name.substring("minecraft:".length());
-                    String linked = path.substring(0, path.lastIndexOf('/') + 1) + name;
+                    String linked;
+                    int namespace = name.indexOf(':');
+                    if (namespace >= 0) {
+                        linked = path.substring(0, path.indexOf("assets/")) + "assets/"
+                                + name.substring(0, namespace) + "/shaders/" + name.substring(namespace + 1);
+                    } else {
+                        linked = path.substring(0, path.lastIndexOf('/') + 1) + name;
+                    }
                     Set<String> other = groups.get(linked);
                     if (other != null && other != connected) {
                         connected.addAll(other);
