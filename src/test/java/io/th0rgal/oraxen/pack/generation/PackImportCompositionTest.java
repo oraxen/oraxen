@@ -38,6 +38,43 @@ class PackImportCompositionTest {
         logs = mockStatic(Logs.class);
         Settings.invalidateCache();
     }
+    @Test void coreShadersAreOptInAndWarnOnceAcrossFilesAndSnapshots() throws Exception {
+        String fragment = "assets/minecraft/shaders/core/test.fsh";
+        String vertex = "assets/minecraft/shaders/core/test.vsh";
+        String low = "#version 150\nvoid main() { float low = 1.0; }";
+        String high = "#version 150\nvoid main() { float high = 2.0; }";
+        write("low", Map.of(fragment, low));
+        PackMerger disabled = new PackMerger(tempDir.toFile());
+        disabled.mergeUploadedPacks();
+        var unchanged = contents(disabled.mergeWithHigherPriorityFiles(List.of(vfile(fragment, high))));
+        assertEquals(high, unchanged.get(fragment));
+        logs.verifyNoInteractions();
+
+        settings.set(Settings.MERGE_SHADERS.getPath(), true);
+        Settings.invalidateCache();
+        write("low", Map.of(fragment, low, vertex, low, "pack.mcmeta", metadata("modern", 46, 75),
+                "modern/" + fragment, high));
+        PackMerger enabled = new PackMerger(tempDir.toFile());
+        enabled.mergeUploadedPacks();
+        var merged = contents(enabled.mergeWithHigherPriorityFiles(List.of(vfile(fragment, high), vfile(vertex, high))));
+        assertTrue(merged.get(fragment).contains("float low = 1.0;"));
+        assertTrue(merged.get(fragment).contains("float high = 2.0;"));
+        assertTrue(merged.get(vertex).contains("float low = 1.0;"));
+        logs.verify(() -> Logs.logWarning("Shader merging is experimental and limited. Turn of shader merging in the settings or contact the Support team when running into shader issues."), times(1));
+    }
+
+    @Test void incompatibleCoreShadersKeepHigherPrioritySource() throws Exception {
+        settings.set(Settings.MERGE_SHADERS.getPath(), true);
+        Settings.invalidateCache();
+        String path = "assets/minecraft/shaders/core/test.fsh";
+        write("low", Map.of(path, "#version 150\nuniform float value;\nvoid main() {}"));
+        PackMerger merger = new PackMerger(tempDir.toFile());
+        merger.mergeUploadedPacks();
+        String high = "#version 150\nuniform vec2 value;\nvoid main() {}";
+        assertEquals(high, contents(merger.mergeWithHigherPriorityFiles(List.of(vfile(path, high)))).get(path));
+        logs.verify(() -> Logs.logWarning("Failed to merge core shader " + path + ". Keeping the higher priority file."));
+    }
+
     @AfterEach
     void cleanup() {
         Settings.invalidateCache();

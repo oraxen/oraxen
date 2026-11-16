@@ -115,6 +115,7 @@ pack:
     modelengine: true # Import ModelEngine's resource pack when the plugin is enabled.
     merge:
       fonts: true # Merge duplicate font files; exclude originals from the final pack without deleting them.
+      shaders: false # Experimental. Merge compatible core shader entry points in pack priority order.
       duplicates: true
       item-base-models: false # Attempt to merge item base model JSONs, such as paper.json, without generating item configs.
 
