@@ -30,14 +30,18 @@ public class ShapedBuilder extends WorkbenchBuilder {
 
         for (int i = 1; i < inventory.getSize(); i++) {
             ItemStack item = inventory.getItem(i);
-            if (item == null)
-                shape.append("_");
-            else if (letterByItem.containsKey(item))
-                shape.append(letterByItem.get(item));
-            else {
-                shape.append(letter);
-                letterByItem.put(inventory.getItem(i), letter);
-                letter++;
+            if (item == null || item.getType().isAir()) {
+                shape.append(" ");
+            } else {
+                item = item.clone();
+                item.setAmount(1);
+                if (letterByItem.containsKey(item))
+                    shape.append(letterByItem.get(item));
+                else {
+                    shape.append(letter);
+                    letterByItem.put(item, letter);
+                    letter++;
+                }
             }
 
             if (shape.length() == 3) {

@@ -1,12 +1,14 @@
 package io.th0rgal.oraxen.recipes.loaders;
 
-import io.th0rgal.oraxen.recipes.listeners.RecipesEventsManager;
-import io.th0rgal.oraxen.utils.logs.Logs;
+import io.th0rgal.oraxen.recipes.RecipeCrafting;
+import io.th0rgal.oraxen.recipes.RecipeIngredients;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.inventory.ShapelessRecipe;
+import org.bukkit.inventory.RecipeChoice;
+import org.bukkit.inventory.recipe.CraftingBookCategory;
 
-import java.util.Objects;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ShapelessLoader extends RecipeLoader {
 
@@ -16,23 +18,32 @@ public class ShapelessLoader extends RecipeLoader {
 
     @Override
     public void registerRecipe() {
-        ShapelessRecipe recipe = new ShapelessRecipe(getNamespacedKey(), getValidResult());
-        recipe.setGroup(getGroup());
-        ConfigurationSection ingredientsSection = getSection().getConfigurationSection("ingredients");
-
-        for (String ingredientLetter : Objects.requireNonNull(ingredientsSection).getKeys(false)) {
-            ConfigurationSection itemSection = ingredientsSection.getConfigurationSection(ingredientLetter);
-            if (itemSection == null) continue;
-            RecipeChoice ingredient = getWorkbenchRecipeChoice(itemSection);
-            if (ingredient == null) {
-                Logs.logError("Recipe " + getRecipeName() + " has an invalid or unresolvable ingredient '" + ingredientLetter + "'; skipping recipe.");
-                return;
+        List<RecipeChoice> choices = new ArrayList<>();
+        Object raw = getSection().get("ingredients");
+        if (raw instanceof ConfigurationSection legacy) {
+            for (String name : legacy.getKeys(false)) {
+                Object ingredient = legacy.get(name);
+                RecipeChoice choice = getWorkbenchRecipeChoice(ingredient);
+                int amount = RecipeIngredients.amount(ingredient);
+                if (amount < 1 || amount > 9) throw new IllegalArgumentException("Invalid shapeless ingredient amount");
+                for (int i = 0; i < amount; i++) choices.add(choice);
             }
-            for (int i = 0; i < itemSection.getInt("amount"); i++)
-                recipe.addIngredient(ingredient);
-        }
+        } else if (raw instanceof List<?> ingredients) {
+            for (Object ingredient : ingredients) {
+                if (RecipeIngredients.amount(ingredient) != 1)
+                    throw new IllegalArgumentException("Shapeless ingredient amounts must be one; repeat the entry instead");
+                choices.add(getWorkbenchRecipeChoice(ingredient));
+            }
+        } else throw new IllegalArgumentException("Recipe '" + getRecipeName() + "' requires ingredients");
+        if (choices.isEmpty() || choices.size() > 9)
+            throw new IllegalArgumentException("A shapeless recipe requires between one and nine ingredients");
+        ShapelessRecipe recipe = new ShapelessRecipe(getNamespacedKey(), getValidResult());
+        choices.forEach(recipe::addIngredient);
+        recipe.setGroup(getGroup());
+        if (getSection().isString("category"))
+            recipe.setCategory(CraftingBookCategory.valueOf(getSection().getString("category").toUpperCase(java.util.Locale.ROOT)));
+        RecipeCrafting.registerShapeless(recipe, getSection(), choices);
         addToWhitelistedRecipes(recipe);
-        RecipesEventsManager.get().registerShapelessOraxenRecipe(getRecipeName(), ingredientsSection);
         loadRecipe(recipe);
     }
 }

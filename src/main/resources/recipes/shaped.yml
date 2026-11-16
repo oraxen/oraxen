@@ -2,27 +2,27 @@ bedrock_pickaxe:
   shape:
     - AAA
     - BCB
-    - _D_
+    - " D "
   result:
-    oraxen_item: bedrock_pickaxe
+    oraxen-item: bedrock_pickaxe
   ingredients:
     D:
-      minecraft_type: STICK
+      minecraft-type: STICK
     B:
-      minecraft_type: OBSIDIAN
+      minecraft-type: OBSIDIAN
     C:
-      minecraft_type: NETHER_STAR
+      minecraft-type: NETHER_STAR
     A:
-      minecraft_type: DIAMOND_BLOCK
+      minecraft-type: DIAMOND_BLOCK
 
 obsidian_sword:
   result:
-    oraxen_item: obsidian_sword
+    oraxen-item: obsidian_sword
   ingredients:
     A:
-      minecraft_type: OBSIDIAN
+      minecraft-type: OBSIDIAN
     B:
-      minecraft_type: STICK
+      minecraft-type: STICK
   shape:
     - A
     - A
@@ -30,54 +30,54 @@ obsidian_sword:
 
 obsidian_helmet:
   result:
-    oraxen_item: obsidian_helmet
+    oraxen-item: obsidian_helmet
   ingredients:
     A:
-      minecraft_type: OBSIDIAN
+      minecraft-type: OBSIDIAN
   shape:
     - AAA
-    - A_A
+    - "A A"
 
 obsidian_chestplate:
   result:
-    oraxen_item: obsidian_chestplate
+    oraxen-item: obsidian_chestplate
   ingredients:
     A:
-      minecraft_type: OBSIDIAN
+      minecraft-type: OBSIDIAN
   shape:
-    - A_A
+    - "A A"
     - AAA
     - AAA
 
 obsidian_leggings:
   result:
-    oraxen_item: obsidian_leggings
+    oraxen-item: obsidian_leggings
   ingredients:
     A:
-      minecraft_type: OBSIDIAN
+      minecraft-type: OBSIDIAN
   shape:
     - AAA
-    - A_A
-    - A_A
+    - "A A"
+    - "A A"
 
 obsidian_boots:
   result:
-    oraxen_item: obsidian_boots
+    oraxen-item: obsidian_boots
   ingredients:
     A:
-      minecraft_type: OBSIDIAN
+      minecraft-type: OBSIDIAN
   shape:
-    - A_A
-    - A_A
+    - "A A"
+    - "A A"
 
 glass_sword:
   result:
-    oraxen_item: glass_sword
+    oraxen-item: glass_sword
   ingredients:
     A:
-      minecraft_type: GLASS
+      minecraft-type: GLASS
     B:
-      minecraft_type: STICK
+      minecraft-type: STICK
   shape:
     - A
     - A

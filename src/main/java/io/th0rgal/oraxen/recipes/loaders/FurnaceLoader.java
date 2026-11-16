@@ -1,9 +1,8 @@
 package io.th0rgal.oraxen.recipes.loaders;
 
-import io.th0rgal.oraxen.utils.logs.Logs;
+import io.th0rgal.oraxen.recipes.RecipeProcessing;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.FurnaceRecipe;
-import org.bukkit.inventory.RecipeChoice;
 
 public class FurnaceLoader extends RecipeLoader {
 
@@ -13,17 +12,14 @@ public class FurnaceLoader extends RecipeLoader {
 
     @Override
     public void registerRecipe() {
-        ConfigurationSection inputSection = getSection().getConfigurationSection("input");
-        if (inputSection == null) return;
-        RecipeChoice recipeChoice = getRecipeChoice(inputSection);
-        if (recipeChoice == null) {
-            Logs.logError("Recipe " + getRecipeName() + " has an invalid or unresolvable input ingredient; skipping recipe.");
-            return;
-        }
+        int time = getSection().getInt("cooking-time", getSection().getInt("cookingTime", 200));
+        double experience = getSection().getDouble("experience", 0);
+        if (time <= 0 || !Double.isFinite(experience) || experience < 0)
+            throw new IllegalArgumentException("Recipe '" + getRecipeName() + "' has invalid cooking settings");
         FurnaceRecipe recipe = new FurnaceRecipe(getNamespacedKey(), getValidResult(),
-                recipeChoice, getSection().getInt("experience"), getSection().getInt("cookingTime"));
+                getRequiredChoice("input"), (float) experience, time);
         recipe.setGroup(getGroup());
-        // addToWhitelistedRecipes(recipe); <- no whitelist for furnace recipes
+        RecipeProcessing.register(recipe, recipe.getInputChoice());
         loadRecipe(recipe);
     }
 }

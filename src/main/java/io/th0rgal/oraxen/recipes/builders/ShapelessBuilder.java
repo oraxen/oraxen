@@ -1,10 +1,12 @@
 package io.th0rgal.oraxen.recipes.builders;
 
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.MemoryConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class ShapelessBuilder extends WorkbenchBuilder {
@@ -20,23 +22,22 @@ public class ShapelessBuilder extends WorkbenchBuilder {
 
     @Override
     public void saveRecipe(String name, String permission) {
-        Map<ItemStack, Integer> items = new HashMap<>();
         ItemStack[] content = getInventory().getContents();
-        for (int i = 1; i < content.length; i++)
-            if (content[i] != null)
-                items.put(content[i], items.getOrDefault(content[i], 0) + 1);
 
         ConfigurationSection newCraftSection = getConfig().createSection(name);
         setSerializedItem(newCraftSection.createSection("result"), content[0]);
-        ConfigurationSection ingredients = newCraftSection.createSection("ingredients");
+        List<Map<String, Object>> ingredients = new ArrayList<>();
 
-        int i = 0;
-
-        for (Map.Entry<ItemStack, Integer> item : items.entrySet()) {
-            ConfigurationSection ingredientSection = ingredients.createSection(String.valueOf((char) (64 + ++i)));
-            ingredientSection.set("amount", item.getValue());
-            setSerializedItem(ingredientSection, item.getKey());
+        for (int i = 1; i < content.length; i++) {
+            if (content[i] == null) continue;
+            ItemStack ingredient = content[i].clone();
+            ingredient.setAmount(1);
+            ConfigurationSection ingredientSection = new MemoryConfiguration();
+            setSerializedItem(ingredientSection, ingredient);
+            ingredients.add(ingredientSection.getValues(false));
         }
+
+        newCraftSection.set("ingredients", ingredients);
 
         if (permission != null && !permission.isEmpty())
             newCraftSection.set("permission", permission);

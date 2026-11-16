@@ -63,6 +63,7 @@ class CrafterRecipeEventsTest {
         Block block = mock(Block.class);
         Crafter crafter = mock(Crafter.class);
         CrafterInventory inventory = mock(CrafterInventory.class);
+        when(event.getResult()).thenReturn(mock(ItemStack.class));
         when(event.getBlock()).thenReturn(block);
         when(block.getState()).thenReturn(crafter);
         when(crafter.getInventory()).thenReturn(inventory);

@@ -1,33 +1,40 @@
 package io.th0rgal.oraxen.recipes.loaders;
 
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.api.OraxenItems;
-import io.th0rgal.oraxen.compatibilities.provided.ecoitems.WrappedEcoItem;
-import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
-import io.th0rgal.oraxen.items.ItemBuilder;
-import io.th0rgal.oraxen.items.ItemUpdater;
-import io.th0rgal.oraxen.mechanics.MechanicFactory;
-import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.recipes.CustomRecipe;
+import io.th0rgal.oraxen.recipes.RecipeIngredients;
 import io.th0rgal.oraxen.recipes.listeners.RecipesEventsManager;
-import io.th0rgal.oraxen.utils.OraxenYaml;
-import io.th0rgal.oraxen.utils.PluginUtils;
-import io.th0rgal.oraxen.utils.logs.Logs;
-import net.Indyuce.mmoitems.MMOItems;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Keyed;
-import org.bukkit.Tag;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.RecipeChoice;
+import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.inventory.ShapelessRecipe;
+import org.bukkit.inventory.CookingRecipe;
+import org.bukkit.inventory.StonecuttingRecipe;
+import org.bukkit.inventory.SmithingRecipe;
+import org.bukkit.inventory.SmithingTransformRecipe;
+
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 public abstract class RecipeLoader {
 
     private static final java.util.Set<NamespacedKey> KEYS_REGISTERED_THIS_PASS =
             java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+    private static final Map<NamespacedKey, Recipe> pendingRecipes = new LinkedHashMap<>();
+    private static Set<NamespacedKey> activeKeys = Set.of();
+    private static boolean staging;
+    private static boolean applied;
+    private static Map<NamespacedKey, Recipe> previousRecipes = Map.of();
+    private static Set<NamespacedKey> previousKeys = Set.of();
+    private static Map<String, RecipeChoice> previousTags = Map.of();
 
     private final ConfigurationSection section;
 
@@ -37,7 +44,75 @@ public abstract class RecipeLoader {
 
     /** Called before each full recipe registration pass so duplicate keys within the pass can be detected. */
     public static void beginRegistrationPass() {
+        if (staging) throw new IllegalStateException("Recipe registration pass already active");
         KEYS_REGISTERED_THIS_PASS.clear();
+        pendingRecipes.clear();
+        previousTags = RecipeIngredients.tags();
+        previousKeys = activeKeys;
+        applied = false;
+        staging = true;
+    }
+
+    public static void finishRegistrationPass() {
+        if (!staging || applied) throw new IllegalStateException("Recipe registration pass has not begun or was already applied");
+        Set<NamespacedKey> touched = new LinkedHashSet<>(activeKeys);
+        touched.addAll(pendingRecipes.keySet());
+        Map<NamespacedKey, Recipe> previous = new LinkedHashMap<>();
+        for (NamespacedKey key : touched) {
+            Recipe recipe = Bukkit.getRecipe(key);
+            if (recipe != null) previous.put(key, recipe);
+        }
+        try {
+            touched.forEach(Bukkit::removeRecipe);
+            pendingRecipes.forEach((key, recipe) -> {
+                if (!Bukkit.addRecipe(recipe)) throw new IllegalStateException("Bukkit rejected recipe '" + key + "'");
+            });
+        } catch (RuntimeException exception) {
+            touched.forEach(Bukkit::removeRecipe);
+            previous.forEach((key, recipe) -> {
+                if (!Bukkit.addRecipe(recipe))
+                    exception.addSuppressed(new IllegalStateException("Could not restore recipe '" + key + "'"));
+            });
+            throw exception;
+        }
+        previousRecipes = previous;
+        activeKeys = Set.copyOf(pendingRecipes.keySet());
+        applied = true;
+    }
+
+    public static void completeRegistrationPass() {
+        if (!staging || !applied) throw new IllegalStateException("Recipe registration has not been applied");
+        clearRegistrationPass();
+    }
+
+    public static void cancelRegistrationPass() {
+        if (!staging) return;
+        RuntimeException failure = null;
+        if (applied) {
+            Set<NamespacedKey> touched = new LinkedHashSet<>(activeKeys);
+            touched.addAll(previousKeys);
+            touched.forEach(Bukkit::removeRecipe);
+            for (Map.Entry<NamespacedKey, Recipe> entry : previousRecipes.entrySet()) {
+                if (!Bukkit.addRecipe(entry.getValue())) {
+                    if (failure == null) failure = new IllegalStateException("Could not restore recipes after cancelled reload");
+                    failure.addSuppressed(new IllegalStateException("Could not restore recipe '" + entry.getKey() + "'"));
+                }
+            }
+            activeKeys = previousKeys;
+        }
+        RecipeIngredients.publishTags(previousTags);
+        clearRegistrationPass();
+        if (failure != null) throw failure;
+    }
+
+    private static void clearRegistrationPass() {
+        pendingRecipes.clear();
+        previousRecipes = Map.of();
+        previousKeys = Set.of();
+        previousTags = Map.of();
+        KEYS_REGISTERED_THIS_PASS.clear();
+        applied = false;
+        staging = false;
     }
 
     protected ConfigurationSection getSection() {
@@ -45,143 +120,34 @@ public abstract class RecipeLoader {
     }
 
     protected ItemStack getResult() {
-        ConfigurationSection resultSection = OraxenYaml.getConfigurationSection(getSection(), "result");
-        if (resultSection == null) return null;
-        ItemStack result;
-        int amount = resultSection.getInt("amount", 1);
-
-        if (resultSection.isString("oraxen_item")) {
-            String itemId = resultSection.getString("oraxen_item");
-            ItemBuilder builder = OraxenItems.getItemById(itemId);
-            if (builder == null)
-                throw new IllegalArgumentException("Recipe result references unknown Oraxen item: " + itemId);
-            result = ItemUpdater.updateItem(builder.build());
-        } else if (resultSection.isString("crucible_item"))
-            result = new WrappedCrucibleItem(resultSection.getString("crucible_item")).build();
-        else if (resultSection.isString("mmoitems_id") && resultSection.isString("mmoitems_type")
-                && PluginUtils.isEnabled("MMOItems"))
-            result = MMOItems.plugin.getItem(resultSection.getString("mmoitems_type"), resultSection.getString("mmoitems_id"));
-        else if (resultSection.isString("ecoitem_id"))
-            result = new WrappedEcoItem(resultSection.getString("ecoitem_id")).build();
-        else if (resultSection.isString("minecraft_type")) {
-            Material material = OraxenYaml.getMaterial(resultSection.getString("minecraft_type", "AIR"));
-            if (material == null || material.isAir()) return null;
-            result = new ItemStack(material);
-        } else result = resultSection.getItemStack("minecraft_item");
-
-        if (result != null) result.setAmount(amount);
-        return result;
+        return RecipeIngredients.result(section.get("result"));
     }
 
     protected ItemStack getValidResult() {
         ItemStack result = getResult();
-        if (result == null || result.isEmpty())
-            throw new IllegalArgumentException("Recipe '" + section.getName() + "' result is missing or invalid");
+        if (result == null || result.getType().isAir())
+            throw new IllegalArgumentException("Recipe '" + getRecipeName() + "' has an invalid or missing result");
         return result;
-    }
-
-    protected ItemStack getIndredientItemStack(ConfigurationSection ingredientSection) {
-        if (ingredientSection.isString("oraxen_item")) {
-            String itemId = ingredientSection.getString("oraxen_item");
-            ItemBuilder builder = OraxenItems.getItemById(itemId);
-            if (builder == null)
-                throw new IllegalArgumentException("Recipe " + section.getName() + " references unknown Oraxen ingredient: " + itemId);
-            return ItemUpdater.updateItem(builder.build());
-        }
-
-        if (ingredientSection.isString("crucible_item")) {
-            return new WrappedCrucibleItem(ingredientSection.getString("crucible_item")).build();
-        }
-
-        if (ingredientSection.isString("mmoitems_id") && ingredientSection.isString("mmoitems_type")
-                && PluginUtils.isEnabled("MMOItems")) {
-            return MMOItems.plugin.getItem(ingredientSection.getString("mmoitems_type"), ingredientSection.getString("mmoitems_id"));
-        }
-
-        if (ingredientSection.isString("ecoitem_id")) {
-            return new WrappedEcoItem(ingredientSection.getString("ecoitem_id")).build();
-        }
-
-        if (ingredientSection.isString("minecraft_type")) {
-            Material material = OraxenYaml.getMaterial(ingredientSection.getString("minecraft_type", "AIR"));
-            if (material == null || material.isAir()) return null;
-            return new ItemStack(material);
-        }
-
-        return ingredientSection.getItemStack("minecraft_item");
-    }
-
-    protected RecipeChoice getRecipeChoice(ConfigurationSection ingredientSection) {
-        return getRecipeChoice(ingredientSection, true);
-    }
-
-    protected RecipeChoice getWorkbenchRecipeChoice(ConfigurationSection ingredientSection) {
-        return getRecipeChoice(ingredientSection, false);
-    }
-
-    private RecipeChoice getRecipeChoice(ConfigurationSection ingredientSection, boolean exactOraxenChoice) {
-
-        if (ingredientSection.isString("oraxen_item")) {
-            String itemId = ingredientSection.getString("oraxen_item");
-            ItemBuilder builder = OraxenItems.getItemById(itemId);
-            if (builder == null)
-                throw new IllegalArgumentException("Recipe " + section.getName() + " references unknown Oraxen ingredient: " + itemId);
-            ItemStack ingredient = ItemUpdater.updateItem(builder.build());
-            return exactOraxenChoice || !hasBackpackMechanic(itemId) ? new RecipeChoice.ExactChoice(ingredient) : new RecipeChoice.MaterialChoice(ingredient.getType());
-        }
-
-        if (ingredientSection.isString("crucible_item")) {
-            ItemStack ingredient = new WrappedCrucibleItem(ingredientSection.getString("crucible_item")).build();
-            if (ingredient == null || ingredient.getType().isAir()) return null;
-            return new RecipeChoice.ExactChoice(ingredient);
-        }
-
-        if (ingredientSection.isString("mmoitems_id") && ingredientSection.isString("mmoitems_type")
-                && PluginUtils.isEnabled("MMOItems")) {
-            ItemStack ingredient = MMOItems.plugin.getItem(ingredientSection.getString("mmoitems_type"), ingredientSection.getString("mmoitems_id"));
-            if (ingredient == null || ingredient.getType().isAir()) return null;
-            return new RecipeChoice.ExactChoice(ingredient);
-        }
-
-        if (ingredientSection.isString("ecoitem_id")) {
-            ItemStack ingredient = new WrappedEcoItem(ingredientSection.getString("ecoitem_id")).build();
-            if (ingredient == null || ingredient.getType().isAir()) return null;
-            return new RecipeChoice.ExactChoice(ingredient);
-        }
-
-        if (ingredientSection.isString("minecraft_type")) {
-            Material material = OraxenYaml.getMaterial(ingredientSection.getString("minecraft_type", "AIR"));
-            if (material == null || material.isAir()) return null;
-            return new RecipeChoice.MaterialChoice(material);
-        }
-
-        if (ingredientSection.isString("tag")) {
-            String tagString = ingredientSection.getString("tag", "");
-            NamespacedKey tagId = tagString.contains(":") ? NamespacedKey.fromString(tagString) : NamespacedKey.minecraft(tagString);
-            tagId = tagId != null ? tagId : NamespacedKey.minecraft("oak_logs");
-            Tag<Material> tag = Bukkit.getTag(Tag.REGISTRY_BLOCKS, tagId, Material.class);
-            if (tag == null) tag = Bukkit.getTag(Tag.REGISTRY_ITEMS, tagId, Material.class);
-            if (tag == null) return null;
-            return new RecipeChoice.MaterialChoice(tag);
-        }
-
-        ItemStack itemStack = ingredientSection.getItemStack("minecraft_item");
-        if (itemStack == null) return null;
-        return new RecipeChoice.ExactChoice(itemStack);
-
-    }
-
-    private boolean hasBackpackMechanic(String itemId) {
-        MechanicFactory backpackFactory = MechanicsManager.getMechanicFactory("backpack");
-        return backpackFactory != null && backpackFactory.getMechanic(itemId) != null;
-    }
-
-    protected NamespacedKey getNamespacedKey() {
-        return new NamespacedKey(OraxenPlugin.get(), getRecipeName());
     }
 
     protected String getRecipeName() {
         return section.getName();
+    }
+
+    protected ItemStack getIndredientItemStack(ConfigurationSection ingredientSection) {
+        return RecipeIngredients.result(ingredientSection);
+    }
+
+    protected RecipeChoice getRecipeChoice(Object ingredient) {
+        return RecipeIngredients.choice(ingredient);
+    }
+
+    protected RecipeChoice getWorkbenchRecipeChoice(Object ingredient) {
+        return RecipeIngredients.choice(ingredient, true);
+    }
+
+    protected NamespacedKey getNamespacedKey() {
+        return new NamespacedKey(OraxenPlugin.get(), getRecipeName());
     }
 
     protected String getGroup() {
@@ -191,16 +157,44 @@ public abstract class RecipeLoader {
     public abstract void registerRecipe();
 
     protected void loadRecipe(Recipe recipe) {
-        if (recipe instanceof Keyed keyed
-                && keyed.getKey().getNamespace().equals(OraxenPlugin.get().getName().toLowerCase(java.util.Locale.ROOT))) {
-            if (!KEYS_REGISTERED_THIS_PASS.add(keyed.getKey()))
-                Logs.logWarning("Duplicate recipe name '" + getRecipeName() + "': another recipe with key '"
-                        + keyed.getKey() + "' was already loaded and will be replaced. Rename one of the recipes to keep both.");
+        Recipe registration = serverRecipe(recipe);
+        if (!(registration instanceof Keyed keyed))
+            throw new IllegalArgumentException("Recipe must have a namespaced key");
+        if (!KEYS_REGISTERED_THIS_PASS.add(keyed.getKey()))
+            throw new IllegalArgumentException("Duplicate recipe key '" + keyed.getKey() + "'");
+        if (staging) pendingRecipes.put(keyed.getKey(), registration);
+        else {
             Bukkit.removeRecipe(keyed.getKey());
+            if (!Bukkit.addRecipe(registration))
+                throw new IllegalStateException("Bukkit rejected recipe '" + getRecipeName() + "'");
         }
-        if (!Bukkit.addRecipe(recipe))
-            throw new IllegalStateException("Bukkit rejected recipe '" + getRecipeName() + "'");
         managesPermission(CustomRecipe.fromRecipe(recipe));
+    }
+
+    private static Recipe serverRecipe(Recipe recipe) {
+        if (recipe instanceof ShapedRecipe shaped) {
+            shaped.getChoiceMap().forEach((symbol, choice) -> {
+                if (choice != null) shaped.setIngredient(symbol, RecipeIngredients.serverChoice(choice));
+            });
+        } else if (recipe instanceof ShapelessRecipe shapeless) {
+            ShapelessRecipe copy = new ShapelessRecipe(shapeless.getKey(), shapeless.getResult());
+            copy.setGroup(shapeless.getGroup());
+            copy.setCategory(shapeless.getCategory());
+            shapeless.getChoiceList().forEach(choice -> copy.addIngredient(RecipeIngredients.serverChoice(choice)));
+            return copy;
+        } else if (recipe instanceof CookingRecipe<?> cooking) {
+            cooking.setInputChoice(RecipeIngredients.serverChoice(cooking.getInputChoice()));
+        } else if (recipe instanceof StonecuttingRecipe stonecutting) {
+            stonecutting.setInputChoice(RecipeIngredients.serverChoice(stonecutting.getInputChoice()));
+        } else if (recipe instanceof SmithingTransformRecipe smithing) {
+            return new SmithingTransformRecipe(smithing.getKey(), smithing.getResult(),
+                    RecipeIngredients.serverChoice(smithing.getTemplate()), RecipeIngredients.serverChoice(smithing.getBase()),
+                    RecipeIngredients.serverChoice(smithing.getAddition()));
+        } else if (recipe instanceof SmithingRecipe smithing) {
+            return new SmithingRecipe(smithing.getKey(), smithing.getResult(),
+                    RecipeIngredients.serverChoice(smithing.getBase()), RecipeIngredients.serverChoice(smithing.getAddition()));
+        }
+        return recipe;
     }
 
     private void managesPermission(CustomRecipe recipe) {
@@ -215,15 +209,13 @@ public abstract class RecipeLoader {
     }
 
     protected RecipeChoice getRequiredChoice(String key) {
-        ConfigurationSection ingredient = getSection().getConfigurationSection(key);
-        RecipeChoice choice = ingredient == null ? null : getRecipeChoice(ingredient);
+        RecipeChoice choice = getRecipeChoice(getSection().get(key));
         if (choice == null) throw new IllegalArgumentException("Recipe '" + getRecipeName() + "' has an invalid " + key + " ingredient");
         return choice;
     }
 
     protected int getIngredientAmount(String key) {
-        ConfigurationSection ingredient = getSection().getConfigurationSection(key);
-        return ingredient == null ? 1 : Math.max(1, ingredient.getInt("amount", 1));
+        return RecipeIngredients.amount(getSection().get(key));
     }
 
     protected void addToWhitelistedRecipes(Recipe recipe) {

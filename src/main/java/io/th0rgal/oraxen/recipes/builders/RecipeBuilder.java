@@ -73,11 +73,11 @@ public abstract class RecipeBuilder {
 
         // if our itemstack is made using oraxen and is not modified
         if (OraxenItems.exists(itemStack))
-            section.set("oraxen_item", OraxenItems.getIdByItem(itemStack));
+            section.set("oraxen-item", OraxenItems.getIdByItem(itemStack));
         // if our itemstack is an unmodified vanilla item outside of amount
         else if (itemStack.isSimilar(new ItemStack(itemStack.getType())))
-            section.set("minecraft_type", itemStack.getType().name());
-        else section.set("minecraft_item", itemStack);
+            section.set("minecraft-type", itemStack.getType().name());
+        else section.set("minecraft-item", itemStack);
 
         if (itemStack.getAmount() > 1) section.set("amount", itemStack.getAmount());
     }

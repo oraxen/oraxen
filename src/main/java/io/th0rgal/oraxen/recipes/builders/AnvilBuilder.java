@@ -9,7 +9,7 @@ import org.bukkit.inventory.Inventory;
 public class AnvilBuilder extends WorkstationBuilder {
 
     public AnvilBuilder(Player player) {
-        super(player, "anvil", "experience_cost");
+        super(player, "anvil", "experience-cost");
     }
 
     @Override

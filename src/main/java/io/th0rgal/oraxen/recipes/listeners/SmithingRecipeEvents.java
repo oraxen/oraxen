@@ -42,6 +42,18 @@ public class SmithingRecipeEvents implements Listener {
             Player player = InventoryUtils.playerFromView(event);
             if (player == null || !RecipesEventsManager.get().hasSmithingPermission(player, keyed.getKey()))
                 event.setResult(null);
+            else if (inventory.getRecipe() instanceof SmithingTransformRecipe smithing) {
+                if (!RecipesEventsManager.get().matchesSmithing(keyed.getKey(), template, input, material)
+                        || !smithing.getTemplate().test(template) || !smithing.getBase().test(input)
+                        || !smithing.getAddition().test(material)) event.setResult(null);
+                else {
+                    try {
+                        event.setResult(RecipesEventsManager.get().smithingResult(keyed.getKey(), template, input, material, smithing.getResult()));
+                    } catch (IllegalArgumentException | IllegalStateException exception) {
+                        event.setResult(null);
+                    }
+                }
+            }
             return;
         }
         if (Arrays.stream(inventory.getContents()).anyMatch(ItemUtils::isEmpty)) return;
@@ -70,7 +82,14 @@ public class SmithingRecipeEvents implements Listener {
         if (!(event.getInventory().getRecipe() instanceof Keyed keyed)) return;
         RecipesEventsManager recipes = RecipesEventsManager.get();
         if (recipes.isConfiguredSmithingRecipe(keyed.getKey())
-                && !recipes.hasSmithingPermission(event.getWhoClicked(), keyed.getKey()))
+                && (!recipes.hasSmithingPermission(event.getWhoClicked(), keyed.getKey())
+                || recipes.hasSmithingTransform(keyed.getKey()) && event.isShiftClick()
+                || !recipes.matchesSmithing(keyed.getKey(), event.getInventory().getInputTemplate(),
+                event.getInventory().getInputEquipment(), event.getInventory().getInputMineral())
+                || event.getInventory().getRecipe() instanceof SmithingTransformRecipe smithing
+                && (!smithing.getTemplate().test(event.getInventory().getInputTemplate())
+                || !smithing.getBase().test(event.getInventory().getInputEquipment())
+                || !smithing.getAddition().test(event.getInventory().getInputMineral()))))
             event.setCancelled(true);
     }
 }

@@ -33,6 +33,9 @@ public class TestRegistryAccess implements RegistryAccess {
     @Override
     @SuppressWarnings({"unchecked", "removal"})
     public <T extends Keyed> Registry<T> getRegistry(RegistryKey<T> key) {
+        if (key == RegistryKey.ENCHANTMENT) {
+            return new TestRegistry<>((Class<T>) org.bukkit.enchantments.Enchantment.class);
+        }
         if (key == RegistryKey.GAME_EVENT) {
             return new TestRegistry<>((Class<T>) GameEvent.class);
         }
@@ -42,10 +45,33 @@ public class TestRegistryAccess implements RegistryAccess {
         if (key == RegistryKey.MOB_EFFECT) {
             return new TestRegistry<>((Class<T>) PotionEffectType.class);
         }
+        if (key == RegistryKey.ITEM) return new TestRegistry<>((Class<T>) org.bukkit.inventory.ItemType.Typed.class);
+        if (key == RegistryKey.BLOCK) return new TestRegistry<>((Class<T>) org.bukkit.block.BlockType.Typed.class);
         if (key == RegistryKey.ATTRIBUTE) {
             return new TestRegistry<>((Class<T>) Attribute.class);
         }
         return new TestRegistry<>(null);
+    }
+
+    private static org.bukkit.inventory.ItemStack testStack(org.bukkit.Material material, int amount) {
+        java.util.concurrent.atomic.AtomicInteger count = new java.util.concurrent.atomic.AtomicInteger(amount);
+        java.util.concurrent.atomic.AtomicReference<org.bukkit.inventory.meta.ItemMeta> meta = new java.util.concurrent.atomic.AtomicReference<>();
+        return org.mockito.Mockito.mock(org.bukkit.inventory.ItemStack.class, invocation -> switch (invocation.getMethod().getName()) {
+            case "getType" -> material;
+            case "getAmount" -> count.get();
+            case "setAmount" -> { count.set(invocation.getArgument(0)); yield null; }
+            case "isEmpty" -> count.get() <= 0 || material == org.bukkit.Material.AIR;
+            case "getItemMeta" -> meta.get();
+            case "hasItemMeta" -> meta.get() != null;
+            case "setItemMeta" -> { meta.set(invocation.getArgument(0)); yield true; }
+            case "getEnchantments" -> java.util.Map.of();
+            case "clone" -> {
+                org.bukkit.inventory.ItemStack copy = testStack(material, count.get());
+                copy.setItemMeta(meta.get());
+                yield copy;
+            }
+            default -> org.mockito.Answers.RETURNS_DEFAULTS.answer(invocation);
+        });
     }
 
     private static class TestRegistry<T extends Keyed> implements Registry<T> {
@@ -58,6 +84,13 @@ public class TestRegistryAccess implements RegistryAccess {
         @Override
         @SuppressWarnings("unchecked")
         public T get(NamespacedKey key) {
+            if (type == org.bukkit.enchantments.Enchantment.class) {
+                return (T) org.mockito.Mockito.mock(org.bukkit.enchantments.Enchantment.class, invocation -> switch (invocation.getMethod().getName()) {
+                    case "getKey" -> key;
+                    case "translationKey", "getTranslationKey", "getName" -> key.toString();
+                    default -> org.mockito.Answers.RETURNS_DEFAULTS.answer(invocation);
+                });
+            }
             if (type == GameEvent.class) {
                 return (T) new GameEvent() {
                     @Override
@@ -81,6 +114,9 @@ public class TestRegistryAccess implements RegistryAccess {
             return (T) Proxy.newProxyInstance(proxyType.getClassLoader(), new Class<?>[]{proxyType}, (proxy, method, args) -> switch (method.getName()) {
                 case "getKey" -> key;
                 case "key" -> key;
+                case "asMaterial" -> org.bukkit.Material.matchMaterial(key.getKey());
+                case "isAir" -> key.getKey().endsWith("air");
+                case "createItemStack" -> testStack(org.bukkit.Material.matchMaterial(key.getKey()), args == null || args.length == 0 ? 1 : (Integer) args[0]);
                 case "name" -> key.getKey().toUpperCase().replace('.', '_');
                 case "ordinal", "compareTo" -> 0;
                 case "toString" -> key.toString();
