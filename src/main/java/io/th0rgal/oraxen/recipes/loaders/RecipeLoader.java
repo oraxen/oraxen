@@ -202,7 +202,7 @@ public abstract class RecipeLoader {
             shapeless.getChoiceList().forEach(choice -> copy.addIngredient(RecipeIngredients.serverChoice(choice)));
             return copy;
         } else if (recipe instanceof CookingRecipe<?> cooking) {
-            cooking.setInputChoice(RecipeIngredients.serverChoice(cooking.getInputChoice()));
+            cooking.setInputChoice(RecipeIngredients.cookingChoice(cooking.getInputChoice()));
         } else if (recipe instanceof StonecuttingRecipe stonecutting) {
             stonecutting.setInputChoice(RecipeIngredients.serverChoice(stonecutting.getInputChoice()));
         } else if (recipe instanceof SmithingTransformRecipe smithing) {

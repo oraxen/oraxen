@@ -277,6 +277,20 @@ public final class RecipeIngredients {
         return new RecipeChoice.MaterialChoice(materials);
     }
 
+    public static RecipeChoice cookingChoice(RecipeChoice choice) {
+        if (!(choice instanceof MatchingChoice)) return choice.clone();
+        RecipeChoice snapshot = choice.clone();
+        try {
+            // Native matching runs before the furnace checks its output slot.
+            return (RecipeChoice) RecipeChoice.class.getMethod("predicateChoice", Predicate.class, ItemStack.class)
+                    .invoke(null, (Predicate<ItemStack>) snapshot::test, snapshot.getItemStack());
+        } catch (NoSuchMethodException exception) {
+            throw new IllegalArgumentException("Predicate cooking ingredients require Paper's native predicate recipe support", exception);
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Cannot create a native predicate cooking ingredient", exception);
+        }
+    }
+
     public static void loadTags(ConfigurationSection section) {
         load(section);
     }

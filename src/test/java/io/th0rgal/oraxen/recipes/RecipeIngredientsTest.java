@@ -64,6 +64,20 @@ class RecipeIngredientsTest {
     }
 
     @Test
+    void cookingRefusesBroadFallbackWhenNativePredicatesAreUnavailable() {
+        RecipeChoice predicate = RecipeIngredients.choice(List.of(Map.of("minecraft-type", "IRON_ORE"), Map.of("minecraft-type", "GOLD_ORE")));
+        assertThrows(IllegalArgumentException.class, () -> RecipeIngredients.cookingChoice(predicate));
+    }
+
+    @Test
+    void ordinaryCookingIngredientsKeepTheirNativeChoice() {
+        RecipeChoice material = new RecipeChoice.MaterialChoice(Material.IRON_ORE);
+        RecipeChoice registered = RecipeIngredients.cookingChoice(material);
+        assertTrue(registered.test(new ItemStack(Material.IRON_ORE, 3)));
+        assertFalse(registered.test(new ItemStack(Material.GOLD_ORE)));
+    }
+
+    @Test
     void modernSelectorsWinWhenLegacySpellingsAreAlsoPresent() {
         assertEquals(Material.DIAMOND, RecipeIngredients.result(Map.of(
                 "minecraft-type", "DIAMOND", "minecraft_type", "EMERALD")).getType());
