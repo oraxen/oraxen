@@ -197,7 +197,7 @@ class RecipesEventsManagerTest {
             assertSame(second, manager.resolveSmithing(first, template, secondBase, addition));
             SmithingRecipeEvents listener = new SmithingRecipeEvents();
             listener.onSmithingRecipe(prepare);
-            verify(prepare, never()).setResult(any());
+            verify(prepare).setResult(result);
             listener.onSmithItem(click);
             verify(click, never()).setCancelled(true);
         }

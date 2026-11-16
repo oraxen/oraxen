@@ -24,6 +24,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 import io.th0rgal.oraxen.mechanics.provided.combat.trident.TridentMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureModelData;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.*;
@@ -45,6 +46,8 @@ public class OraxenItems {
             ItemLoader.MODEL_DATAS_BY_ID.clear();
             ModelData.DATAS.clear();
             OraxenPlugin.get().getConfigsManager().assignAllUsedModelDatas();
+            FurnitureModelData.load(
+                    new File(OraxenPlugin.get().getDataFolder(), "furniture-model-data.yml"));
             OraxenPlugin.get().getConfigsManager().parseAllItemTemplates();
             DuplicationHandler.convertOldMigrateItemConfig();
 

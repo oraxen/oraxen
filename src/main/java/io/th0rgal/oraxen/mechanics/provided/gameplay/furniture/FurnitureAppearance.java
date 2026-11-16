@@ -85,7 +85,7 @@ public final class FurnitureAppearance {
 
         ModelData modelData;
         synchronized (ModelData.DATAS) {
-            int customModelData = ModelData.generateId(variantId, material);
+            int customModelData = FurnitureModelData.generateId(variantId, material);
             // Keep these internal variants separate from inventory model identifiers.
             modelData = new ModelData(material, variantId, customModelData);
         }

@@ -18,20 +18,25 @@ import static org.mockito.Mockito.*;
 class SmithingRecipeEventsTest {
     @Test
     void leavesPapersPreparedItemUntouchedWithoutAnExplicitTransform() {
-        checkPreparedResult(false, true);
+        checkPreparedResult(false, true, false);
     }
 
     @Test
     void stillAppliesExplicitTransforms() {
-        checkPreparedResult(true, true);
+        checkPreparedResult(true, true, false);
     }
 
     @Test
     void stillRejectsRecipesWithoutPermission() {
-        checkPreparedResult(false, false);
+        checkPreparedResult(false, false, false);
     }
 
-    private void checkPreparedResult(boolean transform, boolean permitted) {
+    @Test
+    void replacesPapersResultWhenAnotherRecipeMatches() {
+        checkPreparedResult(false, true, true);
+    }
+
+    private void checkPreparedResult(boolean transform, boolean permitted, boolean changed) {
         PrepareSmithingEvent event = mock(PrepareSmithingEvent.class);
         SmithingInventory inventory = mock(SmithingInventory.class);
         Player player = mock(Player.class);
@@ -50,9 +55,14 @@ class SmithingRecipeEventsTest {
         when(inventory.getInputTemplate()).thenReturn(input);
         when(inventory.getInputEquipment()).thenReturn(input);
         when(inventory.getInputMineral()).thenReturn(input);
-        when(inventory.getRecipe()).thenReturn(recipe);
+        SmithingTransformRecipe prepared = recipe;
+        if (changed) {
+            prepared = mock(SmithingTransformRecipe.class);
+            when(prepared.getKey()).thenReturn(NamespacedKey.minecraft("other_smithing"));
+        }
+        when(inventory.getRecipe()).thenReturn(prepared);
         RecipesEventsManager manager = mock(RecipesEventsManager.class);
-        when(manager.resolveSmithing(recipe, input, input, input)).thenReturn(recipe);
+        when(manager.resolveSmithing(prepared, input, input, input)).thenReturn(recipe);
         when(manager.isConfiguredSmithingRecipe(key)).thenReturn(true);
         when(manager.hasSmithingPermission(player, key)).thenReturn(permitted);
         when(manager.matchesSmithing(key, input, input, input)).thenReturn(true);
@@ -67,7 +77,7 @@ class SmithingRecipeEventsTest {
             inventories.when(() -> InventoryUtils.playerFromView(event)).thenReturn(player);
             new SmithingRecipeEvents().onSmithingRecipe(event);
             if (!permitted) verify(event).setResult(null);
-            else if (transform) verify(event).setResult(transformed);
+            else if (transform || changed) verify(event).setResult(transformed);
             else verify(event, never()).setResult(any());
         }
     }

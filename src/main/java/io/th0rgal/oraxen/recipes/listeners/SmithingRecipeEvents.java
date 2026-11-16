@@ -50,7 +50,9 @@ public class SmithingRecipeEvents implements Listener {
                 if (!RecipesEventsManager.get().matchesSmithing(keyed.getKey(), template, input, material)
                         || !smithing.getTemplate().test(template) || !smithing.getBase().test(input)
                         || !smithing.getAddition().test(material)) event.setResult(null);
-                else if (RecipesEventsManager.get().hasSmithingTransform(keyed.getKey())) {
+                else if (RecipesEventsManager.get().hasSmithingTransform(keyed.getKey())
+                        || !(inventory.getRecipe() instanceof Keyed original)
+                        || !original.getKey().equals(keyed.getKey())) {
                     try {
                         event.setResult(RecipesEventsManager.get().smithingResult(keyed.getKey(), template, input, material, smithing.getResult()));
                     } catch (IllegalArgumentException | IllegalStateException exception) {
