@@ -128,17 +128,21 @@ final class CoreShaderMerger {
                 + "(?:bool|int|uint|float|double|[biud]?vec[234]|d?mat[234](?:x[234])?)\\s+(\\w+)\\s*([^;]*);").matcher(main);
         while (declarations.find()) {
             String tail = declarations.group(2);
-            int depth = 0;
-            for (char c : tail.toCharArray()) {
-                if (c == '(' || c == '[') depth++;
-                if (c == ')' || c == ']') depth--;
-                if (c == ',' && depth == 0)
-                    throw new IllegalArgumentException("Multiple GLSL local declarators are unsupported");
-            }
+            rejectMultipleDeclarators(tail);
             if (names.putIfAbsent(declarations.group(1), normalize(declarations.group())) != null)
                 throw new IllegalArgumentException("Repeated GLSL local " + declarations.group(1));
         }
         return names;
+    }
+
+    private static void rejectMultipleDeclarators(String declaration) {
+        int depth = 0;
+        for (char c : declaration.toCharArray()) {
+            if (c == '(' || c == '[') depth++;
+            if (c == ')' || c == ']') depth--;
+            if (c == ',' && depth == 0)
+                throw new IllegalArgumentException("Multiple GLSL declarators are unsupported");
+        }
     }
 
     private static List<String> statements(String main) {
@@ -212,6 +216,7 @@ final class CoreShaderMerger {
                 String name;
                 if (function.lookingAt()) name = function.group(1);
                 else if (variable.matches()) {
+                    rejectMultipleDeclarators(declaration);
                     if (declaration.contains("=") && !declaration.startsWith("const "))
                         throw new IllegalArgumentException("Non-constant GLSL initializer is unsupported");
                     name = variable.group(1);

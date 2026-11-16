@@ -60,6 +60,15 @@ class CoreShaderMergerTest {
         assertThrows(IllegalArgumentException.class, () -> merge(generated, generated.replace("= true", "= false")));
     }
 
+    @Test void rejectsMultipleGlobalDeclaratorsButAllowsConstructorCommas() {
+        String low = "#version 150\nconst float a = 1.0, b = 2.0;\nvoid main() {}";
+        String high = "#version 150\nconst float b = 3.0;\nvoid main() {}";
+        assertThrows(IllegalArgumentException.class, () -> merge(low, high));
+        assertThrows(IllegalArgumentException.class, () -> merge(high, low));
+        String constructor = "#version 150\nconst vec2 pair = vec2(1.0, 2.0);\nvoid main() {}";
+        assertTrue(merge(constructor, high).contains("const vec2 pair = vec2(1.0, 2.0);"));
+    }
+
     @Test void rejectsUnbracedConditionalsAndUnsafeLocalBindings() {
         String base = "#version 150\nuniform float scale;\nvoid main() { scaleOutput(); }";
         for (String body : new String[] {
