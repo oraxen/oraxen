@@ -94,7 +94,7 @@ public class BlockLimitsCommand {
             if (!report.equals(Component.empty())) report = report.append(Component.newline()).append(Component.newline());
             int filled = (int) Math.round((double) usage.used() / usage.max() * BAR_WIDTH);
             String percent = String.format(Locale.ROOT, "%.1f", 100.0 * usage.used() / usage.max());
-            report = report.append(Component.text(usage.title(), NamedTextColor.GOLD))
+            report = report.append(Component.text(usage.title(), NamedTextColor.AQUA))
                     .append(Component.newline())
                     .append(Component.text("|".repeat(filled), NamedTextColor.GREEN))
                     .append(Component.text("|".repeat(BAR_WIDTH - filled), NamedTextColor.DARK_GRAY))
