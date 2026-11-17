@@ -25,9 +25,14 @@ public final class ItemLoader {
     private ItemLoader templateItem;
 
     public ItemLoader(final ConfigurationSection section) {
+        this(section, null);
+    }
+
+    ItemLoader(final ConfigurationSection section, final Map<String, ItemLoader> templates) {
         this.section = section;
         if (section.isString("template"))
-            templateItem = ItemTemplate.getLoaderTemplate(section.getString("template"));
+            templateItem = templates == null ? ItemTemplate.getLoaderTemplate(section.getString("template"))
+                    : templates.get(section.getString("template"));
         migrator = new ItemMigrator(section, resolveInheritedFurnitureType(templateItem));
 
         final ConfigurationSection crucibleSection = OraxenYaml.getConfigurationSection(section, "crucible");

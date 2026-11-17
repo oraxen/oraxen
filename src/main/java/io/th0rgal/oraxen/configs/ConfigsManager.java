@@ -979,6 +979,7 @@ public class ConfigsManager {
     }
 
     public void parseAllItemTemplates() {
+        List<ConfigurationSection> templates = new ArrayList<>();
         for (File file : getItemFiles()) {
             if (file == null || !file.exists())
                 continue;
@@ -996,10 +997,11 @@ public class ConfigsManager {
                 }
                 configUpdated |= migrator.configUpdated();
                 blockConfigMigrated |= migrator.blockConfigMigrated();
-                ItemTemplate.register(itemSection);
+                templates.add(itemSection);
             }
             if (configUpdated) saveUpdatedItemConfig(file, configuration, blockConfigMigrated);
         }
+        ItemTemplate.replaceAll(templates);
     }
 
     private String getItemModelFromConfigurationSection(ConfigurationSection packSection) {
