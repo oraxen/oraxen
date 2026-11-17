@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.commands;
 
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.junit.jupiter.api.Test;
 
@@ -10,6 +11,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 class BlockLimitsCommandTest {
@@ -25,6 +27,17 @@ class BlockLimitsCommandTest {
         assertEquals(2, BlockLimitsCommand.countSlots(slots, factory, 1, 127));
         assertEquals(4, BlockLimitsCommand.countSlots(slots, factory, 0, 775));
         assertEquals(0, BlockLimitsCommand.countSlots(slots, null, 1, 127));
+    }
+
+    @Test
+    void suggestionsOnlyIncludeTypesAvailableOnTheServer() {
+        try (var versions = mockStatic(VersionUtil.class)) {
+            versions.when(() -> VersionUtil.atOrAbove("1.20.4")).thenReturn(false);
+            assertEquals(List.of("note", "chorus", "string"), BlockLimitsCommand.supportedTypes());
+            versions.when(() -> VersionUtil.atOrAbove("1.20.4")).thenReturn(true);
+            assertEquals(List.of("note", "chorus", "string", "stair", "slab", "door", "trapdoor", "grate", "bulb"),
+                    BlockLimitsCommand.supportedTypes());
+        }
     }
 
     @Test

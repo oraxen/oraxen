@@ -30,7 +30,8 @@ public class BlockLimitsCommand {
         return new OraxenCommand("block-limits")
                 .withPermission("oraxen.command.block-limits")
                 .withArguments(new StringArgument("type").setOptional(true)
-                        .replaceSuggestions(ArgumentSuggestions.strings(TYPES)))
+                        .replaceSuggestions(ArgumentSuggestions.strings(info ->
+                                supportedTypes().toArray(String[]::new))))
                 .executes((sender, args) -> {
                     String type = normalizeType(args.getOrDefault("type", "").toString());
                     List<Usage> usages = usages();
@@ -42,6 +43,10 @@ public class BlockLimitsCommand {
                     AdventureUtils.sendMessage(sender, report(usages.stream()
                             .filter(usage -> type.isEmpty() || usage.type().equals(type)).toList()));
                 });
+    }
+
+    static List<String> supportedTypes() {
+        return VersionUtil.atOrAbove("1.20.4") ? TYPES : TYPES.subList(0, 3);
     }
 
     static String normalizeType(String type) {

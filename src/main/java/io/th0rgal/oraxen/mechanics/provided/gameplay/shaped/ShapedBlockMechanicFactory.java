@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @MechanicInfo(
     category = "gameplay",
@@ -36,7 +37,7 @@ public class ShapedBlockMechanicFactory extends MechanicFactory {
     private static ShapedBlockMechanicFactory instance;
 
     // Map of Material -> Mechanic for quick lookup
-    private final Map<Material, ShapedBlockMechanic> mechanicByMaterial = new HashMap<>();
+    private final Map<Material, ShapedBlockMechanic> mechanicByMaterial = new ConcurrentHashMap<>();
 
     // Track which item owns each variation per block type
     private final Map<ShapedBlockType, Map<Integer, String>> usedVariations = new HashMap<>();
