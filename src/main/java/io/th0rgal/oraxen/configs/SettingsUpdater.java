@@ -151,7 +151,8 @@ public class SettingsUpdater {
      */
     private static final Map<String, String> REMOVAL_NOTICES = Map.of(
             "Chat.chat_handler", "The legacy chat handler has been removed; Oraxen now always uses the modern Paper chat handler. "
-                    + "Messages containing raw glyph characters the sender lacks permission for are blocked with a no-permission notice.");
+                    + "Messages containing raw glyph characters the sender lacks permission for are blocked with a no-permission notice.",
+            "utils.hide.tablist.background", "Hiding the tablist background is no longer supported.");
 
     public YamlConfiguration removeKeys(YamlConfiguration settings, List<String> keys) {
         for (String originalKey : keys) {

@@ -126,6 +126,21 @@ class SettingsUpdaterTest {
     }
 
     @Test
+    void removesTablistBackgroundFromOldAndCurrentLayouts() {
+        for (String path : List.of("Misc.hide_tablist_background", "utils.hide.tablist.background")) {
+            YamlConfiguration settings = new YamlConfiguration();
+            settings.set(path, true);
+            settings.set("utils.hide.scoreboard.background", true);
+            try (MockedStatic<Logs> logs = mockStatic(Logs.class)) {
+                assertTrue(SettingsUpdater.migrateBeforeDefaults(settings), path);
+            }
+            assertFalse(settings.contains("utils.hide.tablist", true), path);
+            assertFalse(settings.contains("Misc", true), path);
+            assertTrue(settings.getBoolean("utils.hide.scoreboard.background"), path);
+        }
+    }
+
+    @Test
     void renamesCurrentSettingsWhenAutomaticHistoricalUpdatesAreDisabled() {
         YamlConfiguration settings = new YamlConfiguration();
         settings.set("Plugin.keep_this_up_to_date", false);

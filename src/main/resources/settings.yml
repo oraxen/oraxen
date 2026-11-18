@@ -274,9 +274,6 @@ utils:
       numbers: false # Hide scoreboard numbers using native packets on supported Paper versions.
       background: false # Hide the sidebar scoreboard background for 1.21.2+ clients (1.20.2+ servers).
 
-    tablist:
-      background: false # Not supported. Ignored with a warning.
-
   recipes:
     reset: true # Reset recipes on reload. Useful for testing, but may conflict with other plugins.
     add-to-book: true # Add recipes to players' recipe books when they have permission.

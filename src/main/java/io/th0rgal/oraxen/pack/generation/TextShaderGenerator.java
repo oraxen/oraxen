@@ -206,8 +206,6 @@ class TextShaderGenerator {
     }
 
     void hideScoreboardOrTablistBackgrounds() {
-        if (Settings.HIDE_TABLIST_BACKGROUND.toBool())
-            Logs.logWarning("Hiding the tablist background is not supported and will be ignored.");
         if (!Settings.HIDE_SCOREBOARD_BACKGROUND.toBool()) return;
 
         // Overlays only apply to 1.20.2+ clients; legacy servers keep their pack free of overlay metadata.
