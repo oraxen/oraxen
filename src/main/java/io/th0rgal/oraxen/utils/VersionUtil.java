@@ -67,20 +67,6 @@ public class VersionUtil {
     }
 
     /**
-     * Scoreboard/tablist background hiding tweaks are only supported from 1.21.6 through 1.21.7.
-     * Scoreboard number hiding is unaffected: it is handled per version by
-     * TextShaderGenerator#hideScoreboardNumbers.
-     */
-    public static boolean supportsScoreboardBackgroundHiding() {
-        return supportsScoreboardBackgroundHiding(MinecraftVersion.getCurrentVersion());
-    }
-
-    static boolean supportsScoreboardBackgroundHiding(MinecraftVersion version) {
-        return version.isAtLeast(new MinecraftVersion("1.21.6"))
-                && !version.isAtLeast(new MinecraftVersion("1.21.8"));
-    }
-
-    /**
      * @return true if the server is Paper or false of not
      * @throws IllegalArgumentException if server is null
      */

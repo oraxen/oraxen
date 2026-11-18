@@ -46,6 +46,7 @@ class TextShaderGenerator {
     private boolean baseShadersSkipped = false;
     private TextShaderFeatures textShaderFeatures = null;
     private final List<ShaderOverlay> generatedOverlays = new ArrayList<>();
+    private final List<ShaderOverlay> scoreboardBackgroundOverlays = new ArrayList<>();
     private final Map<String, String> generatedCoreShaderHashes = new HashMap<>();
 
     // Common uniform definitions for shader JSON
@@ -71,6 +72,7 @@ class TextShaderGenerator {
         baseShadersSkipped = false;
         textShaderFeatures = null;
         generatedOverlays.clear();
+        scoreboardBackgroundOverlays.clear();
         generatedCoreShaderHashes.clear();
     }
 
@@ -95,7 +97,12 @@ class TextShaderGenerator {
     }
 
     List<ShaderOverlay> getGeneratedOverlays() {
-        return List.copyOf(generatedOverlays);
+        List<ShaderOverlay> overlays = new ArrayList<>();
+        for (ShaderOverlay overlay : ShaderOverlay.values()) {
+            if (generatedOverlays.contains(overlay) || scoreboardBackgroundOverlays.contains(overlay))
+                overlays.add(overlay);
+        }
+        return List.copyOf(overlays);
     }
 
     Map<String, String> getGeneratedCoreShaderHashes() {
@@ -199,23 +206,80 @@ class TextShaderGenerator {
     }
 
     void hideScoreboardOrTablistBackgrounds() {
-        if (!VersionUtil.supportsScoreboardBackgroundHiding()) return;
-
-        String fileName = "rendertype_gui.vsh";
-        String scoreTabBackground = "";
-        if (Settings.HIDE_SCOREBOARD_BACKGROUND.toBool() || Settings.HIDE_TABLIST_BACKGROUND.toBool())
-            scoreTabBackground = getScoreboardBackground();
-        if (Settings.HIDE_SCOREBOARD_BACKGROUND.toBool())
-            scoreTabBackground = scoreTabBackground.replaceFirst("//SCOREBOARD.a", "vertexColor.a");
         if (Settings.HIDE_TABLIST_BACKGROUND.toBool())
-            scoreTabBackground = scoreTabBackground.replace("//TABLIST.a", "vertexColor.a");
+            Logs.logWarning("Hiding the tablist background is not supported and will be ignored.");
+        if (!Settings.HIDE_SCOREBOARD_BACKGROUND.toBool()) return;
 
-        if (!scoreTabBackground.isEmpty()) {
-            // rendertype_gui.vsh is a version-independent GLSL 150 shader
-            // unrelated to rendertype_text.*, so it is safe to write to the base pack path
-            // even when base text shaders are skipped in multi-version mode.
-            writeGeneratedCoreShader("assets/minecraft/shaders/core/", fileName, scoreTabBackground);
+        // Overlays only apply to 1.20.2+ clients; legacy servers keep their pack free of overlay metadata.
+        if (ShaderOverlay.forPackFormat(TextShaderTarget.current().packFormat()) == null) {
+            Logs.logWarning("Hiding the scoreboard background requires a 1.20.2+ server and 1.21.2+ clients.");
+            return;
         }
+
+        for (ShaderOverlay overlay : ShaderOverlay.values()) {
+            writeGeneratedCoreShader(overlay.directory() + "/assets/minecraft/shaders/core/", "gui.vsh",
+                    getScoreboardBackgroundShader(overlay));
+            if (!scoreboardBackgroundOverlays.contains(overlay)) scoreboardBackgroundOverlays.add(overlay);
+        }
+    }
+
+    /**
+     * Builds core/gui.vsh for one overlay. Clients before 1.21.2 have no gui shader and ignore the file.
+     * Each variant matches the vanilla uniform and attribute interface of its format group.
+     */
+    static String getScoreboardBackgroundShader(ShaderOverlay overlay) {
+        String header = switch (overlay) {
+            case V1_20_2, V1_21_4 -> """
+                    #version 150
+
+                    uniform mat4 ModelViewMat;
+                    uniform mat4 ProjMat;
+
+                    in vec3 Position;
+                    in vec4 Color;
+
+                    out vec4 vertexColor;
+                    """;
+            case V1_21_6, V26, V26_2 -> """
+                    #version 150
+                    #moj_import <minecraft:dynamictransforms.glsl>
+                    #moj_import <minecraft:projection.glsl>
+
+                    in vec3 Position;
+                    in vec4 Color;
+
+                    out vec4 vertexColor;
+                    """;
+            case V26_3 -> """
+                    #version 330
+                    #extension GL_ARB_separate_shader_objects : require
+                    #include <minecraft:dynamictransforms.glsl>
+                    #include <minecraft:projection.glsl>
+
+                    layout(location = 0) in vec3 Position;
+                    layout(location = 1) in vec4 Color;
+
+                    layout(location = 0) out vec4 vertexColor;
+                    """;
+        };
+        // GUI depth depends on draw order since 1.21.6, so match the sidebar's fixed fill colors instead:
+        // black at 30% (body) and 40% (title). Chat, F3 and screen backgrounds use other colors.
+        return header + """
+
+                bool oraxen_isScoreboardBackground(vec4 position, vec4 color) {
+                    bool black = all(lessThan(color.rgb, vec3(0.002)));
+                    bool sidebarAlpha = abs(color.a - 76.0 / 255.0) < 0.002 || abs(color.a - 102.0 / 255.0) < 0.002;
+                    return black && sidebarAlpha && position.x > 0.0 && position.y > -0.8 && position.y < 0.8;
+                }
+
+                void main() {
+                    gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
+                    vertexColor = Color;
+                    if (oraxen_isScoreboardBackground(gl_Position, Color)) {
+                        vertexColor.a = 0.0;
+                    }
+                }
+                """;
     }
 
     // --- Internal methods ---
@@ -1192,78 +1256,5 @@ class TextShaderGenerator {
                     ]
                 }
                 """;
-    }
-
-    private String getScoreboardBackground() {
-        if (VersionUtil.atOrAbove("1.21"))
-            return """
-                    #version 150
-
-                     in vec3 Position;
-                     in vec4 Color;
-
-                     uniform mat4 ModelViewMat;
-                     uniform mat4 ProjMat;
-
-                     out vec4 vertexColor;
-
-                     void main() {
-                     	gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
-
-                     	vertexColor = Color;
-
-                     	//Isolating Scoreboard Display
-                     	// Mojang Changed the Z position in 1.21, idk exact value but its huge
-                     	if(gl_Position.y > -0.5 && gl_Position.y < 0.85 && gl_Position.x > 0.0 && gl_Position.x <= 1.0 && Position.z > 1000.0 && Position.z < 2750.0) {
-                     		//vertexColor = vec4(vec3(0.0,0.0,1.0),1.0); // Debugger
-                     		//SCOREBOARD.a = 0.0;
-                     	}
-                     	else {
-                         	//vertexColor = vec4(vec3(1.0,0.0,0.0),1.0);
-                     	}
-
-                     	// Uncomment this if you want to make LIST invisible
-                     	if(Position.z > 2750.0 && Position.z < 3000.0) {
-                     		//TABLIST.a = 0.0;
-                     	}
-                     }
-
-                    """;
-        else
-            return """
-                    #version 150
-
-                    in vec4 vertexColor;
-
-                    uniform vec4 ColorModulator;
-
-                    out vec4 fragColor;
-
-                    bool isgray(vec4 a) {
-                        return a.r == 0 && a.g == 0 && a.b == 0 && a.a < 0.3 && a.a > 0.29;
-                    }
-
-                    bool isdarkgray(vec4 a) {
-                    	return a.r == 0 && a.g == 0 && a.b == 0 && a.a == 0.4;
-                    }
-
-                    void main() {
-
-                        vec4 color = vertexColor;
-
-                        if (color.a == 0.0) {
-                            discard;
-                        }
-
-                        fragColor = color * ColorModulator;
-
-                    	if(isgray(fragColor)){
-                    		discard;
-                    	}
-                    	if(isdarkgray(fragColor)){
-                    		discard;
-                    	}
-                    }
-                    // Made by Reytz#9806 for minecraft 1.18.2""";
     }
 }

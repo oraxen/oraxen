@@ -557,12 +557,13 @@ public class ResourcePack {
     /** Generates non-item assets: fonts, shaders, scoreboard tweaks, and armor. */
     private void generateMiscAssets() {
         generateFont();
+        // Runs before the pack.mcmeta update because it registers its own overlays.
+        textShaderGenerator.hideScoreboardOrTablistBackgrounds();
         updatePackMcmetaOverlays();
         // No version guard here: hideScoreboardNumbers() dispatches per version
         // (packet listener on Paper 1.20.3+, shaders below, warning on 26.x+).
         if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool())
             textShaderGenerator.hideScoreboardNumbers();
-        textShaderGenerator.hideScoreboardOrTablistBackgrounds();
     }
 
     /** Runs registered pack modifier callbacks. */
