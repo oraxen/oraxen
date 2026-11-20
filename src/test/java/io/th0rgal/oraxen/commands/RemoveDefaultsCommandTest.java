@@ -216,7 +216,8 @@ class RemoveDefaultsCommandTest {
 
     @Test
     void deletesOnlyUnreferencedBundledSounds() throws IOException {
-        Path soundsFolder = Files.createDirectories(tempDir.resolve("pack/sounds"));
+        // The system temp path can contain symlinks such as /var on macOS.
+        Path soundsFolder = Files.createDirectories(tempDir.toRealPath().resolve("pack/sounds"));
         Path unusedBundledSound = Files.write(soundsFolder.resolve("welcome.ogg"), new byte[] {1});
         Path referencedBundledSound = Files.write(soundsFolder.resolve("custom_step.ogg"), new byte[] {2});
         Path customSound = Files.write(soundsFolder.resolve("server_custom.ogg"), new byte[] {3});
