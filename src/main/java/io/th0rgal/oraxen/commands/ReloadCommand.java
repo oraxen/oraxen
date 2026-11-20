@@ -76,8 +76,7 @@ public class ReloadCommand {
     }
 
     public static void reloadRecipes(@Nullable CommandSender sender) {
-        sendReloadMessage(sender, RECIPES_RELOAD);
-        RecipesManager.reload();
+        if (RecipesManager.reload(sender)) sendReloadMessage(sender, RECIPES_RELOAD);
     }
 
     public static void reloadConfigs(@Nullable CommandSender sender) {

@@ -1,16 +1,20 @@
 package io.th0rgal.oraxen.recipes;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.configs.Message;
 import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.recipes.listeners.RecipesBuilderEvents;
 import io.th0rgal.oraxen.recipes.listeners.RecipesEventsManager;
 import io.th0rgal.oraxen.recipes.loaders.*;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,12 +36,22 @@ public class RecipesManager {
     }
 
     public static void reload() {
+        reload(Bukkit.getConsoleSender());
+    }
+
+    public static boolean reload(@Nullable CommandSender sender) {
+        // Folia's recipe updates can reload player advancements off their owning regions.
+        if (VersionUtil.isFoliaServer()) {
+            Message.RECIPE_RELOAD_REQUIRES_RESTART.send(sender != null ? sender : Bukkit.getConsoleSender());
+            return false;
+        }
         if (!SchedulerUtil.isGlobalThread()) {
             SchedulerUtil.runTask(RecipesManager::reload);
-            return;
+            return true;
         }
         loadRecipes();
         RecipesEventsManager.get().registerEvents();
+        return true;
     }
 
     private static void loadRecipes() {
