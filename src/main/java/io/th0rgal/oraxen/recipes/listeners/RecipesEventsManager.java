@@ -15,6 +15,7 @@ import io.th0rgal.oraxen.utils.InventoryUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Keyed;
 import org.bukkit.NamespacedKey;
+import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -184,14 +185,14 @@ public class RecipesEventsManager implements Listener {
     }
 
     public ItemStack craftingResult(Recipe recipe, ItemStack[] matrix, ItemStack result) {
-        return craftingResult(recipe, matrix, result, null);
+        return craftingResult(recipe, matrix, result, null, null);
     }
 
-    ItemStack craftWithCrafter(Recipe recipe, Inventory inventory, ItemStack result) {
-        return craftingResult(recipe, inventory.getContents(), result, inventory);
+    ItemStack craftWithCrafter(Recipe recipe, Block block, Inventory inventory, ItemStack result) {
+        return craftingResult(recipe, inventory.getContents(), result, block, inventory);
     }
 
-    private ItemStack craftingResult(Recipe selected, ItemStack[] matrix, ItemStack result, Inventory crafter) {
+    private ItemStack craftingResult(Recipe selected, ItemStack[] matrix, ItemStack result, Block block, Inventory crafter) {
         RecipeState state = recipes;
         Recipe recipe = resolveCrafting(selected, matrix, state);
         if (!canCraftWithCrafter(recipe, matrix, state)) return null;
@@ -201,7 +202,7 @@ public class RecipesEventsManager implements Listener {
         if (match == null) return null;
         if (recipe != selected || registration.transform() != null) result = registeredResult(recipe, registration, match);
         if (crafter != null && result != null && !result.isEmpty() && match.counted())
-            CountedCrafting.consumeCrafterExtras(crafter, matrix, match);
+            CountedCrafting.consumeCrafterExtras(block, crafter, matrix, match);
         return result;
     }
 

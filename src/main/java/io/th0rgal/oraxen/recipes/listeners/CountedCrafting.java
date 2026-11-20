@@ -1,10 +1,18 @@
 package io.th0rgal.oraxen.recipes.listeners;
 
 import io.th0rgal.oraxen.recipes.RecipeCrafting;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.Statistic;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.Container;
+import org.bukkit.block.data.type.Crafter;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.inventory.InventoryAction;
+import org.bukkit.event.inventory.InventoryMoveItemEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -32,8 +40,11 @@ final class CountedCrafting {
             } catch (IllegalArgumentException | IllegalStateException exception) {
                 break;
             }
-            if (empty(result) || !transfer(event, player, result)) break;
+            if (empty(result)) break;
+            int craftedAmount = result.getAmount();
+            if (!transfer(event, player, result)) break;
             consume(player, matrix, match.amounts());
+            player.incrementStatistic(Statistic.CRAFT_ITEM, result.getType(), craftedAmount);
             crafted = true;
             if (!shift) break;
             match = matcher.match(matrix);
@@ -116,18 +127,41 @@ final class CountedCrafting {
         item.setThrower(player.getUniqueId());
     }
 
-    static void consumeCrafterExtras(Inventory inventory, ItemStack[] matrix, RecipeCrafting.Match match) {
+    static void consumeCrafterExtras(Block crafter, Inventory inventory, ItemStack[] matrix, RecipeCrafting.Match match) {
         // Let the crafter handle the last item and its remainder through the vanilla path.
-        var location = inventory.getLocation();
         for (int slot = 0; slot < matrix.length; slot++) {
             int extra = match.amounts()[slot] - 1;
             if (extra <= 0) continue;
             ItemStack item = matrix[slot];
             inventory.setItem(slot, item.asQuantity(item.getAmount() - extra));
             Material remainder = item.getType().getCraftingRemainingItem();
-            if (remainder != null && location != null && location.getWorld() != null)
-                location.getWorld().dropItemNaturally(location, new ItemStack(remainder, extra));
+            if (remainder != null) dispenseRemainder(crafter, inventory, new ItemStack(remainder, extra));
         }
+    }
+
+    private static void dispenseRemainder(Block crafter, Inventory source, ItemStack remainder) {
+        if (!(crafter.getBlockData() instanceof Crafter data)) return;
+        String orientation = data.getOrientation().name();
+        BlockFace front = BlockFace.valueOf(orientation.substring(0, orientation.indexOf('_')));
+        Block output = crafter.getRelative(front);
+        var location = crafter.getLocation().toCenterLocation().add(front.getDirection().multiply(0.7));
+        if (Bukkit.isOwnedByCurrentRegion(output.getLocation()) && output.getState(false) instanceof Container container) {
+            Inventory destination = container.getInventory();
+            // Only use unrestricted storage slots. Sided and crafter inventories have their own insertion rules.
+            InventoryType type = destination.getType();
+            if (type == InventoryType.CHEST || type == InventoryType.BARREL || type == InventoryType.SHULKER_BOX
+                    || type == InventoryType.HOPPER || type == InventoryType.DROPPER || type == InventoryType.DISPENSER) {
+                InventoryMoveItemEvent move = new InventoryMoveItemEvent(source, remainder, destination, true);
+                Bukkit.getPluginManager().callEvent(move);
+                if (!move.isCancelled()) {
+                    for (ItemStack overflow : destination.addItem(move.getItem()).values())
+                        crafter.getWorld().dropItem(location, overflow);
+                    return;
+                }
+            }
+        }
+        if (!Bukkit.isOwnedByCurrentRegion(location)) location = crafter.getLocation().toCenterLocation();
+        crafter.getWorld().dropItem(location, remainder);
     }
 
     private static boolean empty(ItemStack stack) {

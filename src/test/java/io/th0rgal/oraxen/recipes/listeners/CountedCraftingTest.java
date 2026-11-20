@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.recipes.listeners;
 
 import io.th0rgal.oraxen.recipes.RecipeCrafting;
 import org.bukkit.Material;
+import org.bukkit.Statistic;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.inventory.InventoryAction;
@@ -35,6 +36,7 @@ class CountedCraftingTest {
         ItemStack result = mock(ItemStack.class);
         when(result.getAmount()).thenReturn(1);
         when(result.getMaxStackSize()).thenReturn(64);
+        when(result.getType()).thenReturn(Material.ENCHANTED_BOOK);
         when(result.clone()).thenReturn(result);
         RecipeCrafting.Match match = new RecipeCrafting.Match(null, new int[]{2, 0, 0, 0});
         CountedCrafting.take(event, stacks -> stacks[0].getAmount() >= 2 ? match : null,
@@ -42,6 +44,7 @@ class CountedCraftingTest {
 
         verify(event).setCancelled(true);
         verify(inventory, times(2)).addItem(result);
+        verify(player, times(2)).incrementStatistic(Statistic.CRAFT_ITEM, Material.ENCHANTED_BOOK, 1);
         verify(grid).setMatrix(matrix);
         assertSame(one, matrix[0]);
     }

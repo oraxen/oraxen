@@ -13,7 +13,7 @@ public class CrafterRecipeEvents implements Listener {
         if (!(event.getBlock().getState() instanceof Crafter crafter)) return;
         RecipesEventsManager recipes = RecipesEventsManager.get();
         try {
-            var result = recipes.craftWithCrafter(event.getRecipe(), crafter.getInventory(), event.getResult());
+            var result = recipes.craftWithCrafter(event.getRecipe(), event.getBlock(), crafter.getInventory(), event.getResult());
             if (result == null) event.setCancelled(true);
             else event.setResult(result);
         } catch (IllegalArgumentException | IllegalStateException exception) {
