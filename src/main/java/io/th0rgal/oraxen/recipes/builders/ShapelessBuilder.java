@@ -29,9 +29,8 @@ public class ShapelessBuilder extends WorkbenchBuilder {
         List<Map<String, Object>> ingredients = new ArrayList<>();
 
         for (int i = 1; i < content.length; i++) {
-            if (content[i] == null) continue;
-            ItemStack ingredient = content[i].clone();
-            ingredient.setAmount(1);
+            ItemStack ingredient = content[i];
+            if (ingredient == null || ingredient.isEmpty()) continue;
             ConfigurationSection ingredientSection = new MemoryConfiguration();
             setSerializedItem(ingredientSection, ingredient);
             ingredients.add(ingredientSection.getValues(false));

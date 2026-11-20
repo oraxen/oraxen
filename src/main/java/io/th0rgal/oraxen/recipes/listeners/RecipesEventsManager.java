@@ -147,6 +147,12 @@ public class RecipesEventsManager implements Listener {
             return;
         }
         CraftingRegistration registration = registration(state, recipe);
+        RecipeCrafting.Match match = registration == null ? null : registration.matcher().match(event.getInventory().getMatrix());
+        if (match != null && match.counted()) {
+            CountedCrafting.take(event, registration.matcher(), match, registration.transform() == null,
+                    (matched, matrix) -> withBackpackContents(registeredResult(recipe, registration, matched), matrix));
+            return;
+        }
         if (registration != null && registration.transform() == null && recipe != event.getRecipe())
             event.setCurrentItem(withBackpackContents(recipe.getResult(), event.getInventory().getMatrix()));
         // One transformed output depends on one source. Vanilla bulk crafting would reuse it.
@@ -156,7 +162,6 @@ public class RecipesEventsManager implements Listener {
                 return;
             }
             try {
-                RecipeCrafting.Match match = registration.matcher().match(event.getInventory().getMatrix());
                 event.setCurrentItem(withBackpackContents(registration.transform().apply(match.source(), recipe.getResult()),
                         event.getInventory().getMatrix()));
             } catch (IllegalArgumentException | IllegalStateException exception) {
@@ -167,11 +172,11 @@ public class RecipesEventsManager implements Listener {
     }
 
     public boolean prepareCrafter(Recipe recipe, ItemStack[] matrix) {
-        return prepareCrafter(recipe, matrix, recipes);
+        RecipeState state = recipes;
+        return canCraftWithCrafter(resolveCrafting(recipe, matrix, state), matrix, state);
     }
 
-    private boolean prepareCrafter(Recipe recipe, ItemStack[] matrix, RecipeState state) {
-        recipe = resolveCrafting(recipe, matrix, state);
+    private boolean canCraftWithCrafter(Recipe recipe, ItemStack[] matrix, RecipeState state) {
         CustomRecipe custom = CustomRecipe.fromRecipe(recipe);
         if (custom != null && state.permissionsPerRecipe().containsKey(custom.getKey())) return false;
         if (!matchesRegisteredOraxenIngredients(state, recipe, matrix)) return false;
@@ -179,14 +184,30 @@ public class RecipesEventsManager implements Listener {
     }
 
     public ItemStack craftingResult(Recipe recipe, ItemStack[] matrix, ItemStack result) {
+        return craftingResult(recipe, matrix, result, null);
+    }
+
+    ItemStack craftWithCrafter(Recipe recipe, Inventory inventory, ItemStack result) {
+        return craftingResult(recipe, inventory.getContents(), result, inventory);
+    }
+
+    private ItemStack craftingResult(Recipe selected, ItemStack[] matrix, ItemStack result, Inventory crafter) {
         RecipeState state = recipes;
-        Recipe selected = recipe;
-        recipe = resolveCrafting(recipe, matrix, state);
-        if (!prepareCrafter(recipe, matrix, state)) return null;
+        Recipe recipe = resolveCrafting(selected, matrix, state);
+        if (!canCraftWithCrafter(recipe, matrix, state)) return null;
         CraftingRegistration registration = registration(state, recipe);
-        if (registration == null || registration.transform() == null) return recipe == selected ? result : recipe.getResult().clone();
+        if (registration == null) return result;
         RecipeCrafting.Match match = registration.matcher().match(matrix);
-        return match == null ? null : registration.transform().apply(match.source(), recipe.getResult());
+        if (match == null) return null;
+        if (recipe != selected || registration.transform() != null) result = registeredResult(recipe, registration, match);
+        if (crafter != null && result != null && !result.isEmpty() && match.counted())
+            CountedCrafting.consumeCrafterExtras(crafter, matrix, match);
+        return result;
+    }
+
+    private static ItemStack registeredResult(Recipe recipe, CraftingRegistration registration, RecipeCrafting.Match match) {
+        return registration.transform() == null ? recipe.getResult().clone()
+                : registration.transform().apply(match.source(), recipe.getResult());
     }
 
     private static Recipe resolveCrafting(Recipe selected, ItemStack[] matrix, RecipeState state) {
@@ -433,16 +454,26 @@ public class RecipesEventsManager implements Listener {
 
     public void registerShapedRecipe(NamespacedKey key, List<String> shape, Map<Character, RecipeChoice> choices,
                                      Character source, RecipeTransforms.Transform transform) {
+        registerShapedRecipe(key, shape, choices, Map.of(), source, transform);
+    }
+
+    public void registerShapedRecipe(NamespacedKey key, List<String> shape, Map<Character, RecipeChoice> choices,
+                                     Map<Character, Integer> amounts, Character source, RecipeTransforms.Transform transform) {
         if (transform != null && source == null) throw new IllegalArgumentException("Missing transform source");
         stagingRecipes().craftingRecipes.put(key,
-                new CraftingRegistration(RecipeCrafting.shaped(shape, choices, source), transform));
+                new CraftingRegistration(RecipeCrafting.shaped(shape, choices, amounts, source), transform));
     }
 
     public void registerShapelessRecipe(NamespacedKey key, List<RecipeChoice> choices, int sourceIndex,
                                         RecipeTransforms.Transform transform) {
+        registerShapelessRecipe(key, choices, Collections.nCopies(choices.size(), 1), sourceIndex, transform);
+    }
+
+    public void registerShapelessRecipe(NamespacedKey key, List<RecipeChoice> choices, List<Integer> amounts,
+                                        int sourceIndex, RecipeTransforms.Transform transform) {
         if (transform != null && sourceIndex < 0) throw new IllegalArgumentException("Missing transform source");
         stagingRecipes().craftingRecipes.put(key,
-                new CraftingRegistration(RecipeCrafting.shapeless(choices, sourceIndex), transform));
+                new CraftingRegistration(RecipeCrafting.shapeless(choices, amounts, sourceIndex), transform));
     }
 
     public void whitelistRecipe(CustomRecipe recipe) {

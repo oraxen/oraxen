@@ -18,8 +18,11 @@ public final class RecipeCrafting {
         RecipeTransforms.Transform transform = RecipeTransforms.parse(section);
         Character source = null;
         ConfigurationSection ingredients = section.getConfigurationSection("ingredients");
+        Map<Character, Integer> amounts = new HashMap<>();
         if (ingredients != null) for (String symbol : ingredients.getKeys(false)) {
-            if (!isSource(ingredients.get(symbol))) continue;
+            Object ingredient = ingredients.get(symbol);
+            amounts.put(symbol.charAt(0), RecipeIngredients.amount(ingredient));
+            if (!isSource(ingredient)) continue;
             if (source != null) throw new IllegalArgumentException("Multiple transform sources");
             source = symbol.charAt(0);
         }
@@ -30,14 +33,14 @@ public final class RecipeCrafting {
             source = configured.charAt(0);
         }
         RecipesEventsManager.get().registerShapedRecipe(recipe.getKey(), List.of(recipe.getShape()), choices,
-                source, transform);
+                amounts, source, transform);
     }
 
     public static void registerShapeless(ShapelessRecipe recipe, ConfigurationSection section,
                                          List<RecipeChoice> choices) {
         RecipeTransforms.Transform transform = RecipeTransforms.parse(section);
         int source = -1;
-        int index = 0;
+        List<Integer> amounts = new ArrayList<>();
         Object raw = section.get("ingredients");
         Collection<?> ingredients = raw instanceof ConfigurationSection legacy
                 ? legacy.getValues(false).values() : raw instanceof List<?> list ? list : List.of();
@@ -45,13 +48,15 @@ public final class RecipeCrafting {
             int amount = RecipeIngredients.amount(ingredient);
             if (isSource(ingredient)) {
                 if (source != -1 || amount != 1) throw new IllegalArgumentException("Multiple transform source slots");
-                source = index;
+                source = amounts.size();
             }
-            index += amount;
+            // Legacy keyed ingredients used amount to repeat an ingredient across slots.
+            if (raw instanceof ConfigurationSection) amounts.addAll(Collections.nCopies(amount, 1));
+            else amounts.add(amount);
         }
         if (section.contains("transform.source"))
             throw new IllegalArgumentException("Shapeless transform sources must use source: true on an ingredient");
-        RecipesEventsManager.get().registerShapelessRecipe(recipe.getKey(), choices, source, transform);
+        RecipesEventsManager.get().registerShapelessRecipe(recipe.getKey(), choices, amounts, source, transform);
     }
 
     private static boolean isSource(Object ingredient) {
@@ -62,14 +67,27 @@ public final class RecipeCrafting {
         return Boolean.TRUE.equals(value);
     }
 
-    public record Match(ItemStack source) {}
+    public record Match(ItemStack source, int[] amounts) {
+        public boolean counted() {
+            for (int amount : amounts) if (amount > 1) return true;
+            return false;
+        }
+    }
 
     public interface Matcher {
         Match match(ItemStack[] matrix);
     }
 
     public static Matcher shaped(List<String> shape, Map<Character, RecipeChoice> ingredients, Character source) {
+        return shaped(shape, ingredients, Map.of(), source);
+    }
+
+    public static Matcher shaped(List<String> shape, Map<Character, RecipeChoice> ingredients,
+                                 Map<Character, Integer> amounts, Character source) {
         List<String> rows = trimmedShape(shape);
+        Map<Character, Integer> counts = Map.copyOf(amounts);
+        if (counts.values().stream().anyMatch(amount -> amount < 1))
+            throw new IllegalArgumentException("Crafting ingredient amounts must be positive");
         Map<Character, RecipeChoice> choices = new HashMap<>();
         ingredients.forEach((symbol, choice) -> choices.put(symbol, choice.clone()));
         if (rows.isEmpty() || rows.size() > 3) throw new IllegalArgumentException("Invalid crafting shape");
@@ -92,18 +110,21 @@ public final class RecipeCrafting {
                     for (boolean mirror : new boolean[]{false, true}) {
                         boolean matches = true;
                         ItemStack sourceItem = null;
+                        int[] used = new int[matrix.length];
                         for (int slot = 0; slot < matrix.length; slot++) {
                             int row = slot / size - y, column = slot % size - x;
                             char symbol = row >= 0 && row < rows.size() && column >= 0 && column < width
                                     ? rows.get(row).charAt(mirror ? width - column - 1 : column) : ' ';
                             ItemStack item = matrix[slot];
-                            if (symbol == ' ' ? !empty(item) : empty(item) || !choices.get(symbol).test(item)) {
+                            int amount = symbol == ' ' ? 0 : counts.getOrDefault(symbol, 1);
+                            if (symbol == ' ' ? !empty(item) : !matches(choices.get(symbol), item, amount)) {
                                 matches = false;
                                 break;
                             }
+                            used[slot] = amount;
                             if (source != null && symbol == source) sourceItem = item;
                         }
-                        if (matches) return new Match(sourceItem);
+                        if (matches) return new Match(sourceItem, used);
                     }
                 }
             }
@@ -112,16 +133,24 @@ public final class RecipeCrafting {
     }
 
     public static Matcher shapeless(List<RecipeChoice> ingredients, int sourceIndex) {
+        return shapeless(ingredients, Collections.nCopies(ingredients.size(), 1), sourceIndex);
+    }
+
+    public static Matcher shapeless(List<RecipeChoice> ingredients, List<Integer> amounts, int sourceIndex) {
         List<RecipeChoice> choices = ingredients.stream().map(RecipeChoice::clone).toList();
-        if (choices.isEmpty() || choices.size() > 9 || sourceIndex < -1 || sourceIndex >= choices.size())
+        List<Integer> counts = List.copyOf(amounts);
+        if (choices.isEmpty() || choices.size() > 9 || counts.size() != choices.size()
+                || counts.stream().anyMatch(amount -> amount < 1) || sourceIndex < -1 || sourceIndex >= choices.size())
             throw new IllegalArgumentException("Invalid shapeless ingredients or transform source");
         return matrix -> {
             if (gridSize(matrix) == 0) return null;
-            List<ItemStack> items = Arrays.stream(matrix).filter(item -> !empty(item)).toList();
-            if (items.size() != choices.size()) return null;
+            int occupied = 0;
+            for (ItemStack item : matrix) if (!empty(item)) occupied++;
+            if (occupied != choices.size()) return null;
             int[] assignment = new int[choices.size()];
-            if (!assign(choices, items, 0, new boolean[items.size()], assignment)) return null;
-            return new Match(sourceIndex < 0 ? null : items.get(assignment[sourceIndex]));
+            int[] used = new int[matrix.length];
+            if (!assign(choices, counts, matrix, 0, used, assignment)) return null;
+            return new Match(sourceIndex < 0 ? null : matrix[assignment[sourceIndex]], used);
         };
     }
 
@@ -144,17 +173,22 @@ public final class RecipeCrafting {
         return List.copyOf(rows);
     }
 
-    private static boolean assign(List<RecipeChoice> choices, List<ItemStack> items, int index,
-                                  boolean[] used, int[] assignment) {
+    private static boolean assign(List<RecipeChoice> choices, List<Integer> counts, ItemStack[] matrix,
+                                  int index, int[] used, int[] assignment) {
         if (index == choices.size()) return true;
-        for (int i = 0; i < items.size(); i++) {
-            if (used[i] || !choices.get(index).test(items.get(i))) continue;
-            used[i] = true;
-            assignment[index] = i;
-            if (assign(choices, items, index + 1, used, assignment)) return true;
-            used[i] = false;
+        int amount = counts.get(index);
+        for (int slot = 0; slot < matrix.length; slot++) {
+            if (used[slot] != 0 || !matches(choices.get(index), matrix[slot], amount)) continue;
+            used[slot] = amount;
+            assignment[index] = slot;
+            if (assign(choices, counts, matrix, index + 1, used, assignment)) return true;
+            used[slot] = 0;
         }
         return false;
+    }
+
+    private static boolean matches(RecipeChoice choice, ItemStack item, int amount) {
+        return !empty(item) && (amount == 1 || item.getAmount() >= amount) && choice.test(item);
     }
 
     private static int gridSize(ItemStack[] matrix) {

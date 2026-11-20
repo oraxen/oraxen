@@ -76,6 +76,30 @@ class RecipeCraftingTest {
     }
 
     @Test
+    void shapedRequiresCountInEverySlotOfTheSameSymbol() {
+        ItemStack twoApples = item(), oneApple = item();
+        when(twoApples.getAmount()).thenReturn(2);
+        RecipeCrafting.Matcher matcher = RecipeCrafting.shaped(List.of("AA", "AA"),
+                Map.of('A', choice(stack -> stack == twoApples || stack == oneApple)), Map.of('A', 2), null);
+        ItemStack[] matrix = {null, twoApples, twoApples, null, twoApples, oneApple, null, null, null};
+        assertNull(matcher.match(matrix));
+        matrix[5] = twoApples;
+        assertArrayEquals(new int[]{0, 2, 2, 0, 2, 2, 0, 0, 0}, matcher.match(matrix).amounts());
+    }
+
+    @Test
+    void shapelessAssignsDifferentAmountsOfTheSameIngredientToDifferentSlots() {
+        ItemStack twoPaper = item(), onePaper = item();
+        when(twoPaper.getAmount()).thenReturn(2);
+        RecipeChoice paper = choice(stack -> stack == twoPaper || stack == onePaper);
+        RecipeCrafting.Matcher matcher = RecipeCrafting.shapeless(List.of(paper, paper), List.of(1, 2), -1);
+        ItemStack[] matrix = {twoPaper, null, onePaper, null};
+        assertArrayEquals(new int[]{2, 0, 1, 0}, matcher.match(matrix).amounts());
+        matrix[0] = onePaper;
+        assertNull(matcher.match(matrix));
+    }
+
+    @Test
     void ambiguousRepeatedTransformSourceIsRejected() {
         assertThrows(IllegalArgumentException.class, () -> RecipeCrafting.shaped(List.of("AA"),
                 Map.of('A', choice(stack -> true)), 'A'));

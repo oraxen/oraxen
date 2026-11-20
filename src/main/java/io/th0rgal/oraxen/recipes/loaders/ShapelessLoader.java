@@ -29,11 +29,7 @@ public class ShapelessLoader extends RecipeLoader {
                 for (int i = 0; i < amount; i++) choices.add(choice);
             }
         } else if (raw instanceof List<?> ingredients) {
-            for (Object ingredient : ingredients) {
-                if (RecipeIngredients.amount(ingredient) != 1)
-                    throw new IllegalArgumentException("Shapeless ingredient amounts must be one; repeat the entry instead");
-                choices.add(getWorkbenchRecipeChoice(ingredient));
-            }
+            for (Object ingredient : ingredients) choices.add(getWorkbenchRecipeChoice(ingredient));
         } else throw new IllegalArgumentException("Recipe '" + getRecipeName() + "' requires ingredients");
         if (choices.isEmpty() || choices.size() > 9)
             throw new IllegalArgumentException("A shapeless recipe requires between one and nine ingredients");

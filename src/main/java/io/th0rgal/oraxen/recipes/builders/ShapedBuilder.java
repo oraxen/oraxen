@@ -33,8 +33,6 @@ public class ShapedBuilder extends WorkbenchBuilder {
             if (item == null || item.getType().isAir()) {
                 shape.append(" ");
             } else {
-                item = item.clone();
-                item.setAmount(1);
                 if (letterByItem.containsKey(item))
                     shape.append(letterByItem.get(item));
                 else {
