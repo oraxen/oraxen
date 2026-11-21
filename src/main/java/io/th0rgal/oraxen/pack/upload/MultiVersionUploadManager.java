@@ -74,8 +74,13 @@ public class MultiVersionUploadManager {
         SchedulerUtil.runTaskAsync(() -> {
             try {
                 if (cancelled) return;
-                boolean contentChanged = uploadAllVersions(versionManager);
+                UploadSummary summary = uploadAllVersions(versionManager);
                 if (cancelled) return;
+                if (summary.allCancelled()) {
+                    Logs.logWarning("Multi-version pack upload was cancelled by a plugin");
+                    return;
+                }
+                boolean contentChanged = summary.contentChanged();
                 // Capture the parameter in a local so the lambda cannot observe a
                 // later overwrite of the `this.versionManager` instance field.
                 final PackVersionManager vm = versionManager;
@@ -118,10 +123,9 @@ public class MultiVersionUploadManager {
 
     /**
      * Uploads all pack versions and checks if any content changed since the last upload.
-     *
-     * @return true if at least one pack version had a different SHA1 than the previous upload
+     * Versions whose pre-upload event is cancelled are skipped and keep no upload data.
      */
-    private boolean uploadAllVersions(PackVersionManager versionManager) {
+    private UploadSummary uploadAllVersions(PackVersionManager versionManager) {
         Collection<PackVersion> versions = versionManager.getAllVersions();
         Logs.logInfo("Uploading " + versions.size() + " pack versions...");
 
@@ -129,14 +133,19 @@ public class MultiVersionUploadManager {
         HostingProvider firstProvider = HostingProviderFactory.createHostingProvider(false);
         boolean createProviderPerVersion = firstProvider.requiresNewInstancePerUpload();
         int versionIndex = 0;
+        int cancelledVersions = 0;
         for (PackVersion packVersion : versions) {
-            if (cancelled) return false;
+            if (cancelled) return UploadSummary.ABORTED;
             try {
                 HostingProvider provider = createProviderPerVersion && versionIndex++ > 0
                         ? HostingProviderFactory.createHostingProvider(false)
                         : firstProvider;
-                uploadPackVersion(packVersion, provider);
-                if (cancelled) return false;
+                VersionUploadResult result = uploadPackVersion(packVersion, provider);
+                if (cancelled) return UploadSummary.ABORTED;
+                if (result == VersionUploadResult.CANCELLED) {
+                    cancelledVersions++;
+                    continue;
+                }
                 String sha1Hex = packVersion.getPackSHA1Hex();
                 if (sha1Hex != null) {
                     currentSHA1s.put(packVersion.getMinecraftVersion(), sha1Hex);
@@ -147,6 +156,10 @@ public class MultiVersionUploadManager {
                     Logs.debug(e);
                 }
             }
+        }
+
+        if (!versions.isEmpty() && cancelledVersions == versions.size()) {
+            return new UploadSummary(true, false);
         }
 
         // Compare current SHA1s against previous to detect changes
@@ -160,24 +173,28 @@ public class MultiVersionUploadManager {
             Logs.logInfo("Multi-version pack content " + (anyChanged ? "changed" : "unchanged"));
         }
 
-        return anyChanged;
+        return new UploadSummary(false, anyChanged);
     }
 
-    private void uploadPackVersion(PackVersion packVersion, HostingProvider provider) throws IOException {
-        if (cancelled) return;
-        Logs.logInfo("Uploading pack for Minecraft " + packVersion.getMinecraftVersion() + "...");
+    private VersionUploadResult uploadPackVersion(PackVersion packVersion, HostingProvider provider) throws IOException {
+        if (cancelled) return VersionUploadResult.ABORTED;
 
-        // Fire pre-upload event
-        OraxenPackPreUploadEvent event = new OraxenPackPreUploadEvent();
-        event.callEvent();
-        if (cancelled) return;
+        if (!new OraxenPackPreUploadEvent().callEvent()) {
+            packVersion.setPackURL(null);
+            packVersion.setPackSHA1(null);
+            packVersion.setPackUUID(null);
+            Logs.logWarning("Skipped pack upload for Minecraft " + packVersion.getMinecraftVersion() + ", cancelled by a plugin");
+            return VersionUploadResult.CANCELLED;
+        }
+        if (cancelled) return VersionUploadResult.ABORTED;
+        Logs.logInfo("Uploading pack for Minecraft " + packVersion.getMinecraftVersion() + "...");
 
         // Upload pack (provider calculates SHA-1 internally)
         boolean success = provider.uploadPack(packVersion.getPackFile(), packVersion.getMinecraftVersion());
         if (!success) {
             throw new IOException("Failed to upload pack");
         }
-        if (cancelled) return;
+        if (cancelled) return VersionUploadResult.ABORTED;
 
         // Capture provider state NOW, before the next upload overwrites it.
         String url = provider.getPackURL();
@@ -195,6 +212,13 @@ public class MultiVersionUploadManager {
         SchedulerUtil.runTask(uploadEvent::callEvent);
 
         Logs.logSuccess("  Uploaded: " + packVersion.getMinecraftVersion() + " -> " + url);
+        return VersionUploadResult.UPLOADED;
+    }
+
+    private enum VersionUploadResult { UPLOADED, CANCELLED, ABORTED }
+
+    private record UploadSummary(boolean allCancelled, boolean contentChanged) {
+        static final UploadSummary ABORTED = new UploadSummary(false, false);
     }
 
     /** Immutable snapshot of a {@link HostingProvider}'s state at a point in time. */
