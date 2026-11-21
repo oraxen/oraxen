@@ -13,6 +13,8 @@ import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.RecipeChoice;
+import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.inventory.ShapelessRecipe;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,6 +22,7 @@ import org.mockito.MockedStatic;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -60,6 +63,40 @@ class RecipeIngredientsTest {
             assertTrue(material.test(custom));
             items.when(() -> OraxenItems.getIdByItem(custom)).thenReturn("ticket");
             assertFalse(RecipeIngredients.choice("minecraft:paper").test(custom));
+        }
+    }
+
+    @Test
+    void recipeBookKeepsCustomStacksAndAlternativesWithoutChangingMatching() {
+        ItemStack backpack = mock(ItemStack.class);
+        when(backpack.clone()).thenReturn(backpack);
+        when(backpack.getType()).thenReturn(Material.PAPER);
+        when(backpack.hasItemMeta()).thenReturn(true);
+        ItemBuilder builder = mock(ItemBuilder.class);
+        when(builder.build()).thenReturn(backpack);
+        try (MockedStatic<OraxenItems> items = mockStatic(OraxenItems.class)) {
+            items.when(() -> OraxenItems.getItemById("iron_backpack")).thenReturn(builder);
+            items.when(() -> OraxenItems.getIdByItem(backpack)).thenReturn("iron_backpack");
+            RecipeChoice upgrade = RecipeIngredients.choice(List.of("oraxen:iron_backpack", "minecraft:leather"));
+            ItemStack plainPaper = new ItemStack(Material.PAPER);
+            assertFalse(upgrade.test(plainPaper));
+            assertTrue(upgrade.test(backpack));
+            assertTrue(RecipeIngredients.serverChoice(upgrade).test(plainPaper));
+
+            RecipeChoice gold = new RecipeChoice.MaterialChoice(Material.GOLD_INGOT);
+            ShapedRecipe shaped = new ShapedRecipe(new NamespacedKey("oraxen", "shaped"), backpack)
+                    .shape("   ", " G ", " B ").setIngredient('G', gold).setIngredient('B', upgrade);
+            ShapelessRecipe shapeless = new ShapelessRecipe(new NamespacedKey("oraxen", "shapeless"), backpack)
+                    .addIngredient(upgrade).addIngredient(gold);
+            var shapedDisplay = RecipeIngredients.displayOverrides(shaped);
+            var shapelessDisplay = RecipeIngredients.displayOverrides(shapeless);
+            assertEquals(Set.of(1), shapedDisplay.keySet());
+            assertEquals(Set.of(0), shapelessDisplay.keySet());
+            for (List<ItemStack> alternatives : List.of(shapedDisplay.get(1), shapelessDisplay.get(0))) {
+                assertEquals(List.of(Material.PAPER, Material.LEATHER),
+                        alternatives.stream().map(ItemStack::getType).toList());
+                assertSame(backpack, alternatives.getFirst());
+            }
         }
     }
 

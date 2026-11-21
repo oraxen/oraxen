@@ -19,6 +19,10 @@ import org.bukkit.configuration.MemoryConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.RecipeChoice;
+import org.bukkit.inventory.SmithingTransformRecipe;
+import org.bukkit.inventory.ShapelessRecipe;
+import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.inventory.Recipe;
 
 import java.lang.reflect.Method;
 import java.util.*;
@@ -268,6 +272,44 @@ public final class RecipeIngredients {
         if (choice instanceof RecipeChoice.MaterialChoice materials)
             return materials.getChoices().stream().map(ItemStack::new).toList();
         throw new IllegalArgumentException("Unsupported ingredient choice: " + choice.getClass().getName());
+    }
+
+    /** Display slots for choices whose representatives are lost during Bukkit registration. */
+    public static Map<Integer, List<ItemStack>> displayOverrides(Recipe recipe) {
+        Map<Integer, List<ItemStack>> slots = new LinkedHashMap<>();
+        if (recipe instanceof ShapedRecipe shaped) {
+            Map<Character, RecipeChoice> choices = shaped.getChoiceMap();
+            String[] shape = shaped.getShape();
+            int top = shape.length, bottom = -1, left = shape[0].length(), right = -1;
+            // Minecraft trims empty rows and columns before building the recipe display.
+            for (int row = 0; row < shape.length; row++) {
+                for (int column = 0; column < shape[row].length(); column++) {
+                    if (choices.get(shape[row].charAt(column)) == null) continue;
+                    top = Math.min(top, row);
+                    bottom = row;
+                    left = Math.min(left, column);
+                    right = Math.max(right, column);
+                }
+            }
+            int slot = 0;
+            for (int row = top; row <= bottom; row++)
+                for (int column = left; column <= right; column++)
+                    addDisplay(slots, slot++, choices.get(shape[row].charAt(column)));
+        } else if (recipe instanceof ShapelessRecipe shapeless) {
+            List<RecipeChoice> choices = shapeless.getChoiceList();
+            for (int slot = 0; slot < choices.size(); slot++) addDisplay(slots, slot, choices.get(slot));
+        } else if (recipe instanceof SmithingTransformRecipe smithing) {
+            addDisplay(slots, 0, smithing.getTemplate());
+            addDisplay(slots, 1, smithing.getBase());
+            addDisplay(slots, 2, smithing.getAddition());
+        }
+        return Map.copyOf(slots);
+    }
+
+    private static void addDisplay(Map<Integer, List<ItemStack>> slots, int slot, RecipeChoice choice) {
+        if (!(choice instanceof MatchingChoice matching)) return;
+        List<ItemStack> items = matching.getChoices().stream().distinct().toList();
+        if (items.stream().anyMatch(ItemStack::hasItemMeta)) slots.put(slot, items);
     }
 
     /** Bukkit accepts only its built-in choices. Events must check the original choice. */

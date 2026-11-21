@@ -18,6 +18,7 @@ import net.minecraft.network.protocol.game.ClientboundBundlePacket;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;
+import net.minecraft.network.protocol.game.ClientboundRecipeBookAddPacket;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetObjectivePacket;
 import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket;
@@ -116,6 +117,7 @@ final class PacketHandler {
         try {
             if (packet instanceof ClientboundBundlePacket bundle) return transformBundle(bundle);
             if (packet instanceof ClientboundAddEntityPacket spawn) return transformFurnitureGhastSpawn(spawn);
+            if (packet instanceof ClientboundRecipeBookAddPacket recipes) return RecipeBookDisplays.rewrite(recipes);
             if (packet instanceof ClientboundOpenScreenPacket openScreen) return transformOpenScreen(openScreen);
             if (packet instanceof ClientboundSetTitleTextPacket title) return transformTitle(title);
             if (packet instanceof ClientboundSetSubtitleTextPacket subtitle) return transformSubtitle(subtitle);

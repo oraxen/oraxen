@@ -20,6 +20,7 @@ import org.bukkit.inventory.SmithingTransformRecipe;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -29,6 +30,9 @@ public abstract class RecipeLoader {
             java.util.concurrent.ConcurrentHashMap.newKeySet();
 
     private static final Map<NamespacedKey, Recipe> pendingRecipes = new LinkedHashMap<>();
+    private static final Map<NamespacedKey, Map<Integer, List<ItemStack>>> pendingDisplays = new LinkedHashMap<>();
+    private static volatile Map<NamespacedKey, Map<Integer, List<ItemStack>>> ingredientDisplays = Map.of();
+    private static Map<NamespacedKey, Map<Integer, List<ItemStack>>> previousDisplays = Map.of();
     private static Set<NamespacedKey> activeKeys = Set.of();
     private static boolean reset;
     private static boolean staging;
@@ -54,6 +58,7 @@ public abstract class RecipeLoader {
         KEYS_REGISTERED_THIS_PASS.clear();
         pendingRecipes.clear();
         previousTags = RecipeIngredients.tags();
+        previousDisplays = ingredientDisplays;
         previousKeys = activeKeys;
         applied = false;
         staging = true;
@@ -89,6 +94,12 @@ public abstract class RecipeLoader {
         Set<NamespacedKey> nextKeys = new LinkedHashSet<>(retainedKeys());
         nextKeys.addAll(pendingRecipes.keySet());
         activeKeys = Set.copyOf(nextKeys);
+        Map<NamespacedKey, Map<Integer, List<ItemStack>>> displays = new LinkedHashMap<>();
+        for (NamespacedKey key : retainedKeys()) {
+            if (previousDisplays.containsKey(key)) displays.put(key, previousDisplays.get(key));
+        }
+        displays.putAll(pendingDisplays);
+        ingredientDisplays = Map.copyOf(displays);
         applied = true;
     }
 
@@ -118,6 +129,7 @@ public abstract class RecipeLoader {
                 }
             }
             activeKeys = previousKeys;
+            ingredientDisplays = previousDisplays;
         }
         RecipeIngredients.publishTags(previousTags);
         clearRegistrationPass();
@@ -127,6 +139,8 @@ public abstract class RecipeLoader {
     private static void clearRegistrationPass() {
         pendingRecipes.clear();
         previousRecipes = Map.of();
+        pendingDisplays.clear();
+        previousDisplays = Map.of();
         previousKeys = Set.of();
         previousTags = Map.of();
         KEYS_REGISTERED_THIS_PASS.clear();
@@ -176,18 +190,29 @@ public abstract class RecipeLoader {
     public abstract void registerRecipe();
 
     protected void loadRecipe(Recipe recipe) {
+        Map<Integer, List<ItemStack>> display = RecipeIngredients.displayOverrides(recipe);
         Recipe registration = serverRecipe(recipe);
         if (!(registration instanceof Keyed keyed))
             throw new IllegalArgumentException("Recipe must have a namespaced key");
         if (!KEYS_REGISTERED_THIS_PASS.add(keyed.getKey()))
             throw new IllegalArgumentException("Duplicate recipe key '" + keyed.getKey() + "'");
-        if (staging) pendingRecipes.put(keyed.getKey(), registration);
-        else {
+        if (staging) {
+            pendingRecipes.put(keyed.getKey(), registration);
+            if (!display.isEmpty()) pendingDisplays.put(keyed.getKey(), display);
+        } else {
             Bukkit.removeRecipe(keyed.getKey());
             if (!Bukkit.addRecipe(registration))
                 throw new IllegalStateException("Bukkit rejected recipe '" + getRecipeName() + "'");
+            Map<NamespacedKey, Map<Integer, List<ItemStack>>> displays = new LinkedHashMap<>(ingredientDisplays);
+            if (display.isEmpty()) displays.remove(keyed.getKey());
+            else displays.put(keyed.getKey(), display);
+            ingredientDisplays = Map.copyOf(displays);
         }
         managesPermission(CustomRecipe.fromRecipe(recipe));
+    }
+
+    public static Map<Integer, List<ItemStack>> ingredientDisplays(NamespacedKey key) {
+        return ingredientDisplays.getOrDefault(key, Map.of());
     }
 
     private static Recipe serverRecipe(Recipe recipe) {
