@@ -22,7 +22,7 @@ if ($LASTEXITCODE -ne 0) { throw "Gradle build failed with exit code $LASTEXITCO
 
 $libsDir = Join-Path $projectDir 'build/libs'
 $builtJar = Get-ChildItem -LiteralPath $libsDir -Filter '*.jar' -File |
-    Where-Object { $_.Name -notmatch '-(sources|javadoc)\.jar$' } |
+    Where-Object { $_.Name -notmatch '-(sources|javadoc|plain)\.jar$' } |
     Sort-Object LastWriteTimeUtc -Descending |
     Select-Object -First 1
 if ($null -eq $builtJar) { throw "Built jar was not found in $libsDir" }

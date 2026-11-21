@@ -256,6 +256,10 @@ tasks {
         jvmArgs("-Dcom.mojang.eula.agree=true")
     }
 
+    jar {
+        archiveClassifier.set("plain")
+    }
+
     shadowJar {
         val nmsJava21Jar = project(":nms:java21").tasks.named<Jar>("jar")
         val nmsJava25Jar = project(":nms:java25").tasks.named<Jar>("jar")
