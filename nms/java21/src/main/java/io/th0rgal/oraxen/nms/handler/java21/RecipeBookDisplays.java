@@ -1,10 +1,13 @@
 package io.th0rgal.oraxen.nms.handler.java21;
 
 import io.th0rgal.oraxen.recipes.loaders.RecipeLoader;
+import net.minecraft.network.protocol.game.ClientboundPlaceGhostRecipePacket;
 import net.minecraft.network.protocol.game.ClientboundRecipeBookAddPacket;
+import net.minecraft.network.protocol.game.ClientboundRecipeBookRemovePacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.crafting.display.RecipeDisplay;
 import net.minecraft.world.item.crafting.display.RecipeDisplayEntry;
+import net.minecraft.world.item.crafting.display.RecipeDisplayId;
 import net.minecraft.world.item.crafting.display.ShapedCraftingRecipeDisplay;
 import net.minecraft.world.item.crafting.display.ShapelessCraftingRecipeDisplay;
 import net.minecraft.world.item.crafting.display.SlotDisplay;
@@ -14,18 +17,22 @@ import org.bukkit.craftbukkit.util.CraftNamespacedKey;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 final class RecipeBookDisplays {
-    private RecipeBookDisplays() {}
+    // Ghost packets carry the original display instance, but no recipe ID.
+    private final Map<RecipeDisplayId, Replacement> replacements = new HashMap<>();
 
-    static ClientboundRecipeBookAddPacket rewrite(ClientboundRecipeBookAddPacket packet) {
+    ClientboundRecipeBookAddPacket add(ClientboundRecipeBookAddPacket packet) {
+        if (packet.replace()) replacements.clear();
         var recipes = MinecraftServer.getServer().getRecipeManager();
         List<ClientboundRecipeBookAddPacket.Entry> entries = null;
         for (int i = 0; i < packet.entries().size(); i++) {
             var entry = packet.entries().get(i);
             var contents = entry.contents();
+            replacements.remove(contents.id());
             var info = recipes.getRecipeFromDisplay(contents.id());
             // Display IDs can be reused when the recipe manager is rebuilt.
             if (info == null || info.display() != contents) continue;
@@ -34,6 +41,7 @@ final class RecipeBookDisplays {
 
             RecipeDisplay display = withIngredients(contents.display(), overrides);
             if (display == contents.display()) continue;
+            replacements.put(contents.id(), new Replacement(contents.display(), display));
             var rewritten = new RecipeDisplayEntry(contents.id(), display, contents.group(),
                     contents.category(), contents.craftingRequirements());
             if (entries == null) entries = new ArrayList<>(packet.entries());
@@ -41,6 +49,20 @@ final class RecipeBookDisplays {
         }
         return entries == null ? packet : new ClientboundRecipeBookAddPacket(entries, packet.replace());
     }
+
+    void remove(ClientboundRecipeBookRemovePacket packet) {
+        packet.recipes().forEach(replacements::remove);
+    }
+
+    ClientboundPlaceGhostRecipePacket ghost(ClientboundPlaceGhostRecipePacket packet) {
+        for (Replacement replacement : replacements.values()) {
+            if (replacement.original() == packet.recipeDisplay())
+                return new ClientboundPlaceGhostRecipePacket(packet.containerId(), replacement.display());
+        }
+        return packet;
+    }
+
+    private record Replacement(RecipeDisplay original, RecipeDisplay display) {}
 
     private static RecipeDisplay withIngredients(RecipeDisplay display, Map<Integer, List<ItemStack>> overrides) {
         return switch (display) {

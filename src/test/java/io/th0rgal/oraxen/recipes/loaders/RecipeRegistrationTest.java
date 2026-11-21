@@ -1,15 +1,26 @@
 package io.th0rgal.oraxen.recipes.loaders;
 
+import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.items.ItemBuilder;
+import io.th0rgal.oraxen.recipes.RecipeIngredients;
 import org.bukkit.Bukkit;
 import org.bukkit.Keyed;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
+import org.bukkit.inventory.ShapelessRecipe;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 class RecipeRegistrationTest {
@@ -124,6 +135,52 @@ class RecipeRegistrationTest {
                 RecipeLoader.completeRegistrationPass();
                 org.junit.jupiter.api.Assertions.assertEquals(!reset, registry.containsKey(key));
             }
+        }
+    }
+
+    @Test
+    void ingredientDisplaysFollowTheRegisteredRecipeOnReload() {
+        NamespacedKey key = new NamespacedKey("oraxen", "backpack_upgrade");
+        ItemStack backpack = mock(ItemStack.class);
+        when(backpack.clone()).thenReturn(backpack);
+        when(backpack.getType()).thenReturn(Material.PAPER);
+        when(backpack.hasItemMeta()).thenReturn(true);
+        ItemBuilder builder = mock(ItemBuilder.class);
+        when(builder.build()).thenReturn(backpack);
+        Map<NamespacedKey, Recipe> registry = new HashMap<>();
+        try (MockedStatic<OraxenItems> items = mockStatic(OraxenItems.class);
+             MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class)) {
+            items.when(() -> OraxenItems.getItemById("iron_backpack")).thenReturn(builder);
+            bukkit.when(() -> Bukkit.getRecipe(any())).thenAnswer(call -> registry.get(call.getArgument(0)));
+            bukkit.when(() -> Bukkit.removeRecipe(any())).thenAnswer(call -> registry.remove(call.getArgument(0)) != null);
+            bukkit.when(() -> Bukkit.addRecipe(any())).thenAnswer(call -> {
+                Recipe recipe = call.getArgument(0);
+                return registry.putIfAbsent(((Keyed) recipe).getKey(), recipe) == null;
+            });
+
+            RecipeLoader.beginRegistrationPass();
+            loader(new ShapelessRecipe(key, new ItemStack(Material.GOLD_INGOT))
+                    .addIngredient(RecipeIngredients.choice("oraxen:iron_backpack"))).registerRecipe();
+            RecipeLoader.finishRegistrationPass();
+            RecipeLoader.completeRegistrationPass();
+
+            RecipeLoader.beginRegistrationPass(false);
+            RecipeLoader.finishRegistrationPass();
+            RecipeLoader.completeRegistrationPass();
+            assertSame(backpack, RecipeLoader.ingredientDisplays(key).get(0).getFirst());
+
+            RecipeLoader.beginRegistrationPass(false);
+            loader(new ShapelessRecipe(key, new ItemStack(Material.GOLD_INGOT))
+                    .addIngredient(Material.PAPER)).registerRecipe();
+            RecipeLoader.finishRegistrationPass();
+            assertTrue(RecipeLoader.ingredientDisplays(key).isEmpty());
+            RecipeLoader.cancelRegistrationPass();
+            assertSame(backpack, RecipeLoader.ingredientDisplays(key).get(0).getFirst());
+
+            RecipeLoader.beginRegistrationPass();
+            RecipeLoader.finishRegistrationPass();
+            RecipeLoader.completeRegistrationPass();
+            assertTrue(RecipeLoader.ingredientDisplays(key).isEmpty());
         }
     }
 

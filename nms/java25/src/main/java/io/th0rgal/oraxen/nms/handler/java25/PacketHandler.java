@@ -18,6 +18,8 @@ import net.minecraft.network.protocol.game.ClientboundBundlePacket;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;
+import net.minecraft.network.protocol.game.ClientboundPlaceGhostRecipePacket;
+import net.minecraft.network.protocol.game.ClientboundRecipeBookRemovePacket;
 import net.minecraft.network.protocol.game.ClientboundRecipeBookAddPacket;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetObjectivePacket;
@@ -67,6 +69,7 @@ final class PacketHandler {
         if (pipeline.get(key.asString()) != null) pipeline.remove(key.asString());
         pipeline.addBefore("packet_handler", key.asString(), new ChannelDuplexHandler() {
             private final TridentPacketHandler.Session tridentSession = tridents.session();
+            private final RecipeBookDisplays recipeBook = new RecipeBookDisplays();
             @Override
             public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
                 try {
@@ -74,7 +77,7 @@ final class PacketHandler {
                 } catch (ReflectiveOperationException | LinkageError exception) {
                     Logs.logWarning("Failed to render custom trident.\n" + exception.getMessage());
                 }
-                ctx.write(transform(msg), promise);
+                ctx.write(transform(msg, recipeBook), promise);
             }
         });
     }
@@ -113,11 +116,13 @@ final class PacketHandler {
         furnitureGhasts.remove(entity.getEntityId(), entity.getUniqueId());
     }
 
-    private Object transform(Object packet) {
+    private Object transform(Object packet, RecipeBookDisplays recipeBook) {
         try {
-            if (packet instanceof ClientboundBundlePacket bundle) return transformBundle(bundle);
+            if (packet instanceof ClientboundBundlePacket bundle) return transformBundle(bundle, recipeBook);
             if (packet instanceof ClientboundAddEntityPacket spawn) return transformFurnitureGhastSpawn(spawn);
-            if (packet instanceof ClientboundRecipeBookAddPacket recipes) return RecipeBookDisplays.rewrite(recipes);
+            if (packet instanceof ClientboundRecipeBookAddPacket recipes) return recipeBook.add(recipes);
+            if (packet instanceof ClientboundRecipeBookRemovePacket recipes) recipeBook.remove(recipes);
+            if (packet instanceof ClientboundPlaceGhostRecipePacket ghost) return recipeBook.ghost(ghost);
             if (packet instanceof ClientboundOpenScreenPacket openScreen) return transformOpenScreen(openScreen);
             if (packet instanceof ClientboundSetTitleTextPacket title) return transformTitle(title);
             if (packet instanceof ClientboundSetSubtitleTextPacket subtitle) return transformSubtitle(subtitle);
@@ -131,11 +136,11 @@ final class PacketHandler {
     }
 
     @SuppressWarnings("unchecked")
-    private ClientboundBundlePacket transformBundle(ClientboundBundlePacket bundle) {
+    private ClientboundBundlePacket transformBundle(ClientboundBundlePacket bundle, RecipeBookDisplays recipeBook) {
         List<Packet<? super ClientGamePacketListener>> packets = new ArrayList<>();
         boolean changed = false;
         for (Packet<? super ClientGamePacketListener> subPacket : bundle.subPackets()) {
-            Object transformed = transform(subPacket);
+            Object transformed = transform(subPacket, recipeBook);
             if (transformed != subPacket) changed = true;
             if (transformed instanceof ClientboundBundlePacket expanded) {
                 expanded.subPackets().forEach(packets::add);
