@@ -32,10 +32,11 @@ import net.minecraft.world.scores.criteria.ObjectiveCriteria;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.world.entity.EntityType;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
-import org.bukkit.craftbukkit.entity.CraftShulker;
+import org.bukkit.craftbukkit.entity.CraftEntity;
 import org.bukkit.entity.Entity;
 
 import java.util.ArrayList;
@@ -48,7 +49,7 @@ final class PacketHandler {
 
     private final NamespacedKey key;
     private final TridentPacketHandler tridents = new TridentPacketHandler();
-    private final Map<Integer, Entity> furnitureHitboxes = new ConcurrentHashMap<>();
+    private final Map<Integer, net.minecraft.world.entity.Entity> furnitureHitboxes = new ConcurrentHashMap<>();
     private volatile boolean formatInventoryTitles;
     private volatile boolean formatTitles;
     private volatile boolean hideScoreboardNumbers;
@@ -111,12 +112,13 @@ final class PacketHandler {
     }
 
     void trackFurnitureHitbox(Entity entity) {
-        furnitureHitboxes.put(entity.getEntityId(), entity);
+        // Folia guards getHandle by region, so keep the handle for reads from Netty threads.
+        furnitureHitboxes.put(entity.getEntityId(), ((CraftEntity) entity).getHandle());
     }
 
     void untrackFurnitureHitbox(Entity entity) {
         furnitureHitboxes.computeIfPresent(entity.getEntityId(),
-                (id, tracked) -> tracked.getUniqueId().equals(entity.getUniqueId()) ? null : tracked);
+                (id, tracked) -> tracked.getUUID().equals(entity.getUniqueId()) ? null : tracked);
     }
 
     private Object transform(Object packet, RecipeBookDisplays recipeBook) {
@@ -158,8 +160,8 @@ final class PacketHandler {
     }
 
     private Object transformFurnitureHitboxSpawn(ClientboundAddEntityPacket spawn) {
-        Entity hitbox = furnitureHitboxes.get(spawn.getId());
-        if (hitbox == null || !spawn.getUUID().equals(hitbox.getUniqueId()) || Settings.DEBUG.toBool()) return spawn;
+        var hitbox = furnitureHitboxes.get(spawn.getId());
+        if (hitbox == null || !spawn.getUUID().equals(hitbox.getUUID()) || Settings.DEBUG.toBool()) return spawn;
         // A client can render the spawn before a separate invisibility update arrives.
         // Bundle them so the first rendered frame already has the invisible flag.
         var invisible = SynchedEntityData.DataValue.create(
@@ -172,8 +174,9 @@ final class PacketHandler {
     private Object transformFurnitureHitboxPassengers(ClientboundSetPassengersPacket packet) {
         List<Packet<? super ClientGamePacketListener>> packets = null;
         for (int id : packet.getPassengers()) {
-            if (!(furnitureHitboxes.get(id) instanceof CraftShulker shulker)) continue;
-            List<SynchedEntityData.DataValue<?>> values = shulker.getHandle().getEntityData().getNonDefaultValues();
+            var hitbox = furnitureHitboxes.get(id);
+            if (hitbox == null || hitbox.getType() != EntityType.SHULKER) continue;
+            List<SynchedEntityData.DataValue<?>> values = hitbox.getEntityData().getNonDefaultValues();
             if (values == null) continue;
             if (packets == null) packets = new ArrayList<>(List.of(packet));
             packets.add(new ClientboundSetEntityDataPacket(id, values));
