@@ -73,12 +73,19 @@ public abstract class RecipeLoader {
             Recipe recipe = Bukkit.getRecipe(key);
             if (recipe != null) previous.put(key, recipe);
         }
+        Map<NamespacedKey, Map<Integer, List<ItemStack>>> displays = new LinkedHashMap<>();
+        for (NamespacedKey key : retainedKeys()) {
+            if (previousDisplays.containsKey(key)) displays.put(key, previousDisplays.get(key));
+        }
+        displays.putAll(pendingDisplays);
+        ingredientDisplays = Map.copyOf(displays);
         try {
             touched.forEach(Bukkit::removeRecipe);
             pendingRecipes.forEach((key, recipe) -> {
                 if (!Bukkit.addRecipe(recipe)) throw new IllegalStateException("Bukkit rejected recipe '" + key + "'");
             });
         } catch (RuntimeException exception) {
+            ingredientDisplays = previousDisplays;
             touched.forEach(Bukkit::removeRecipe);
             previous.forEach((key, recipe) -> {
                 if (!Bukkit.addRecipe(recipe))
@@ -94,12 +101,6 @@ public abstract class RecipeLoader {
         Set<NamespacedKey> nextKeys = new LinkedHashSet<>(retainedKeys());
         nextKeys.addAll(pendingRecipes.keySet());
         activeKeys = Set.copyOf(nextKeys);
-        Map<NamespacedKey, Map<Integer, List<ItemStack>>> displays = new LinkedHashMap<>();
-        for (NamespacedKey key : retainedKeys()) {
-            if (previousDisplays.containsKey(key)) displays.put(key, previousDisplays.get(key));
-        }
-        displays.putAll(pendingDisplays);
-        ingredientDisplays = Map.copyOf(displays);
         applied = true;
     }
 
@@ -119,6 +120,7 @@ public abstract class RecipeLoader {
         if (!staging) return;
         RuntimeException failure = null;
         if (applied) {
+            ingredientDisplays = previousDisplays;
             Set<NamespacedKey> touched = new LinkedHashSet<>(activeKeys);
             touched.addAll(previousKeys);
             touched.forEach(Bukkit::removeRecipe);
@@ -129,7 +131,6 @@ public abstract class RecipeLoader {
                 }
             }
             activeKeys = previousKeys;
-            ingredientDisplays = previousDisplays;
         }
         RecipeIngredients.publishTags(previousTags);
         clearRegistrationPass();

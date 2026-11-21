@@ -148,6 +148,8 @@ class RecipeRegistrationTest {
         ItemBuilder builder = mock(ItemBuilder.class);
         when(builder.build()).thenReturn(backpack);
         Map<NamespacedKey, Recipe> registry = new HashMap<>();
+        java.util.concurrent.atomic.AtomicBoolean customDisplay = new java.util.concurrent.atomic.AtomicBoolean(true);
+        java.util.concurrent.atomic.AtomicBoolean rejectReplacement = new java.util.concurrent.atomic.AtomicBoolean();
         try (MockedStatic<OraxenItems> items = mockStatic(OraxenItems.class);
              MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class)) {
             items.when(() -> OraxenItems.getItemById("iron_backpack")).thenReturn(builder);
@@ -155,6 +157,14 @@ class RecipeRegistrationTest {
             bukkit.when(() -> Bukkit.removeRecipe(any())).thenAnswer(call -> registry.remove(call.getArgument(0)) != null);
             bukkit.when(() -> Bukkit.addRecipe(any())).thenAnswer(call -> {
                 Recipe recipe = call.getArgument(0);
+                if (rejectReplacement.getAndSet(false)) {
+                    assertTrue(RecipeLoader.ingredientDisplays(key).isEmpty());
+                    customDisplay.set(true);
+                    return false;
+                }
+                if (customDisplay.get())
+                    assertSame(backpack, RecipeLoader.ingredientDisplays(key).get(0).getFirst());
+                else assertTrue(RecipeLoader.ingredientDisplays(key).isEmpty());
                 return registry.putIfAbsent(((Keyed) recipe).getKey(), recipe) == null;
             });
 
@@ -172,8 +182,18 @@ class RecipeRegistrationTest {
             RecipeLoader.beginRegistrationPass(false);
             loader(new ShapelessRecipe(key, new ItemStack(Material.GOLD_INGOT))
                     .addIngredient(Material.PAPER)).registerRecipe();
+            rejectReplacement.set(true);
+            assertThrows(IllegalStateException.class, RecipeLoader::finishRegistrationPass);
+            assertSame(backpack, RecipeLoader.ingredientDisplays(key).get(0).getFirst());
+            RecipeLoader.cancelRegistrationPass();
+
+            RecipeLoader.beginRegistrationPass(false);
+            loader(new ShapelessRecipe(key, new ItemStack(Material.GOLD_INGOT))
+                    .addIngredient(Material.PAPER)).registerRecipe();
+            customDisplay.set(false);
             RecipeLoader.finishRegistrationPass();
             assertTrue(RecipeLoader.ingredientDisplays(key).isEmpty());
+            customDisplay.set(true);
             RecipeLoader.cancelRegistrationPass();
             assertSame(backpack, RecipeLoader.ingredientDisplays(key).get(0).getFirst());
 
