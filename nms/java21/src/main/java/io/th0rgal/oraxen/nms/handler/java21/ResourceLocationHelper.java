@@ -14,6 +14,7 @@ public final class ResourceLocationHelper {
     private static final Class<?> RESOURCE_LOCATION_CLASS;
     private static final Method PARSE_METHOD;
     private static final Method locationMethod;
+    private static final Method resourceKeyLocationMethod;
 
     static {
         Class<?> clazz = null;
@@ -41,6 +42,12 @@ public final class ResourceLocationHelper {
 
         RESOURCE_LOCATION_CLASS = clazz;
         PARSE_METHOD = parseMethod;
+        try {
+            Class<?> resourceKey = Class.forName("net.minecraft.resources.ResourceKey");
+            resourceKeyLocationMethod = resourceKey.getMethod(clazz.getSimpleName().equals("Identifier") ? "identifier" : "location");
+        } catch (ReflectiveOperationException error) {
+            throw new RuntimeException("Could not find ResourceKey location accessor", error);
+        }
     }
 
     private ResourceLocationHelper() {
@@ -74,6 +81,14 @@ public final class ResourceLocationHelper {
         }
     }
 
+    public static Object resourceKeyLocation(Object key) {
+        try {
+            return resourceKeyLocationMethod.invoke(key);
+        } catch (ReflectiveOperationException error) {
+            throw new RuntimeException("Failed to get resource key location", error);
+        }
+    }
+
     /**
      * Returns the runtime identifier class used by this server.
      */
@@ -88,4 +103,3 @@ public final class ResourceLocationHelper {
         return RESOURCE_LOCATION_CLASS.getSimpleName().equals("Identifier");
     }
 }
-

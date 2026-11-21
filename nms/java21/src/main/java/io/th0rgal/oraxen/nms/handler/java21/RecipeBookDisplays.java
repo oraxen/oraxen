@@ -36,7 +36,8 @@ final class RecipeBookDisplays {
             var info = recipes.getRecipeFromDisplay(contents.id());
             // Display IDs can be reused when the recipe manager is rebuilt.
             if (info == null || info.display() != contents) continue;
-            var overrides = RecipeLoader.ingredientDisplays(CraftNamespacedKey.fromResourceKey(info.parent().id()));
+            var overrides = RecipeLoader.ingredientDisplays(CraftNamespacedKey.fromString(
+                    ResourceLocationHelper.resourceKeyLocation(info.parent().id()).toString()));
             if (overrides.isEmpty()) continue;
 
             RecipeDisplay display = withIngredients(contents.display(), overrides);
