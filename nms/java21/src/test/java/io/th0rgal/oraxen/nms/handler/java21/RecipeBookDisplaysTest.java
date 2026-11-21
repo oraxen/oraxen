@@ -53,7 +53,7 @@ class RecipeBookDisplaysTest {
     @Test
     void resourceKeyLocationResolvesPaper12111IdentifierAccessor() {
         ResourceKey<Recipe<?>> key = ResourceKey.create(Registries.RECIPE, Identifier.parse("oraxen:gold_backpack"));
-        Object location = ResourceLocationHelper.resourceKeyLocation(key);
+        Object location = NmsAccessors.resourceKeyLocation(key);
         assertEquals(Identifier.parse("oraxen:gold_backpack"), location);
         assertEquals(new NamespacedKey("oraxen", "gold_backpack"),
                 CraftNamespacedKey.fromString(location.toString()));
@@ -61,13 +61,13 @@ class RecipeBookDisplaysTest {
 
     @Test
     void resolveResourceKeyLocationMethodHandlesBothSidesOfPaper12111Rename() throws Exception {
-        Method identifierMethod = ResourceLocationHelper.resolveResourceKeyLocationMethod(
+        Method identifierMethod = NmsAccessors.resolveResourceKeyLocationMethod(
                 IdentifierResourceKey.class, Identifier.class);
         assertEquals("identifier", identifierMethod.getName());
         assertEquals(new NamespacedKey("oraxen", "gold_backpack"),
                 CraftNamespacedKey.fromString(identifierMethod.invoke(new IdentifierResourceKey("oraxen:gold_backpack")).toString()));
 
-        Method locationMethod = ResourceLocationHelper.resolveResourceKeyLocationMethod(
+        Method locationMethod = NmsAccessors.resolveResourceKeyLocationMethod(
                 LegacyResourceKey.class, ResourceLocation.class);
         assertEquals("location", locationMethod.getName());
         assertEquals(new NamespacedKey("oraxen", "gold_backpack"),

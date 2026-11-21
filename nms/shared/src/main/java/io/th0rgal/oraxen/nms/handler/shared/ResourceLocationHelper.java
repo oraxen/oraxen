@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.nms.handler.java25;
+package io.th0rgal.oraxen.nms.handler.shared;
 
 import java.lang.reflect.Method;
 
@@ -70,4 +70,3 @@ public final class ResourceLocationHelper {
         return RESOURCE_LOCATION_CLASS.getSimpleName().equals("Identifier");
     }
 }
-

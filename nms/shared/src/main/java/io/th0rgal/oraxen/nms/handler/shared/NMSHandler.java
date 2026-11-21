@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.nms.handler.java21;
+package io.th0rgal.oraxen.nms.handler.shared;
 
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -11,7 +11,6 @@ import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
-import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
@@ -142,7 +141,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             @Override
             public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
                 if (msg instanceof ClientboundUpdateTagsPacket updateTagsPacket) {
-                    Map<ResourceKey<? extends Registry<?>>, TagNetworkSerialization.NetworkPayload> tags = new HashMap<>(updateTagsPacket.getTags());
+                    Map<ResourceKey<? extends Registry<?>>, TagNetworkSerialization.NetworkPayload> tags = new HashMap<>(NmsAccessors.packetTags(updateTagsPacket));
                     if (payload != null
                             && NoteBlockMechanicFactory.isEnabled()
                             && NoteBlockMechanicFactory.getInstance().removeMineableTag())
@@ -174,8 +173,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                 final Deque<PendingBlockChange> pending =
                         pendingBlockChanges.computeIfAbsent(ctx.channel(), ignored -> new ConcurrentLinkedDeque<>());
                 if (msg instanceof ServerboundUseItemOnPacket packet) {
-                    final BlockPos pos = packet.getHitResult().getBlockPos();
-                    pending.addLast(new PendingBlockChange(packet.getSequence(), pos.getX(), pos.getY(), pos.getZ(), true));
+                    final BlockPos pos = NmsAccessors.useItemOnHitResult(packet).getBlockPos();
+                    pending.addLast(new PendingBlockChange(NmsAccessors.useItemOnSequence(packet), pos.getX(), pos.getY(), pos.getZ(), true));
                 } else if (msg instanceof ServerboundPlayerActionPacket packet
                         && packet.getAction() == ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK) {
                     final BlockPos pos = packet.getPos();
@@ -305,40 +304,18 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         CompoundTag oldTag = oldData.copyTag();
         CompoundTag newTag = newData != null ? newData.copyTag() : new CompoundTag();
 
-        for (String key : tagKeys(oldTag)) {
+        for (String key : NmsAccessors.tagKeys(oldTag)) {
             if (vanillaKeys.contains(key))
                 continue;
             Tag value = oldTag.get(key);
             if (value != null)
                 newTag.put(key, value);
             else
-                removeTag(newTag, key);
+                NmsAccessors.removeTag(newTag, key);
         }
 
         newNmsItem.set(type, CustomData.of(newTag));
-        return asBukkitCopy(newNmsItem);
-    }
-
-    @SuppressWarnings("unchecked")
-    private static Set<String> tagKeys(CompoundTag tag) {
-        for (String methodName : List.of("keySet", "getAllKeys")) {
-            try {
-                return (Set<String>) CompoundTag.class.getMethod(methodName).invoke(tag);
-            } catch (NoSuchMethodException ignored) {
-                // CompoundTag renamed this method between 1.21.4 and 1.21.5.
-            } catch (ReflectiveOperationException exception) {
-                throw new IllegalStateException("Could not read custom item data keys", exception);
-            }
-        }
-        throw new IllegalStateException("Could not find a CompoundTag key iterator");
-    }
-
-    private static void removeTag(CompoundTag tag, String key) {
-        try {
-            CompoundTag.class.getMethod("remove", String.class).invoke(tag, key);
-        } catch (ReflectiveOperationException exception) {
-            throw new IllegalStateException("Could not remove custom item data key " + key, exception);
-        }
+        return NmsAccessors.asBukkitCopy(newNmsItem);
     }
 
     @Override
@@ -421,8 +398,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     private Map<Object, IntList> createTagRegistryMap() {
         return BuiltInRegistries.BLOCK.getTags().map(named -> {
             IntArrayList list = new IntArrayList(named.size());
-            Object location = ResourceLocationHelper.location(named.key());
-            if (location.equals(ResourceLocationHelper.location(BlockTags.MINEABLE_WITH_AXE))) {
+            Object location = NmsAccessors.tagLocation(named.key());
+            if (location.equals(NmsAccessors.tagLocation(BlockTags.MINEABLE_WITH_AXE))) {
                 named.stream()
                         .filter(block -> !block.value().getDescriptionId().endsWith("note_block"))
                         .forEach(block -> list.add(BuiltInRegistries.BLOCK.getId(block.value())));
@@ -507,7 +484,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                     Logs.debug(e);
             }
         }
-        return asBukkitCopy(nmsItem);
+        return NmsAccessors.asBukkitCopy(nmsItem);
     }
 
     private void convertConfigToNBT(ConfigurationSection config, net.minecraft.nbt.CompoundTag nbt) {
@@ -633,7 +610,10 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                     case "clear_all_effects" -> consumable.onConsume(new ClearAllStatusEffectsConsumeEffect());
                     case "teleport_randomly" -> {
                         float diameter = parseFloatValue(effectSection.get("diameter"), 16f, "teleport_randomly.diameter");
-                        consumable.onConsume(new TeleportRandomlyConsumeEffect(diameter));
+                        boolean directionalParticles = Optional.ofNullable(effectSection.get("directional_particles"))
+                                .map(value -> Boolean.parseBoolean(value.toString()))
+                                .orElse(true);
+                        consumable.onConsume(NmsAccessors.teleportRandomlyEffect(diameter, directionalParticles));
                     }
                     case "play_sound" -> handlePlaySound(consumable, effectSection, template);
                     default -> Logs.logWarning("Invalid ConsumeEffect-Type " + type);
@@ -665,7 +645,10 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                 case "teleport_randomly" -> {
                     float diameter = parseFloatValue(effectSection.get("diameter"), 16f,
                             "death_protection.teleport_randomly.diameter");
-                    effects.add(new TeleportRandomlyConsumeEffect(diameter));
+                    boolean directionalParticles = Optional.ofNullable(effectSection.get("directional_particles"))
+                            .map(value -> Boolean.parseBoolean(value.toString()))
+                            .orElse(true);
+                    effects.add(NmsAccessors.teleportRandomlyEffect(diameter, directionalParticles));
                 }
                 case "play_sound" -> {
                     String soundId = Optional.ofNullable(effectSection.get("sound"))
@@ -908,16 +891,6 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         }
     }
 
-    private ItemStack asBukkitCopy(net.minecraft.world.item.ItemStack nmsItem) {
-        if (VersionUtil.atOrAbove("26.2")) {
-            // Paper 26.2 made CraftItemStack#asBukkitCopy private. asCraftMirror is still
-            // public and returns a Bukkit ItemStack view, so mirror a copied NMS stack to
-            // preserve the previous copy semantics.
-            return CraftItemStack.asCraftMirror(nmsItem.copy());
-        }
-        return CraftItemStack.asBukkitCopy(nmsItem);
-    }
-
     @Override
     @Nullable
     public Object consumableComponent(final ItemStack itemStack) {
@@ -953,7 +926,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         try {
             net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(itemStack);
             nmsItem.set(DataComponents.CONSUMABLE, (Consumable) consumable);
-            return asBukkitCopy(nmsItem);
+            return NmsAccessors.asBukkitCopy(nmsItem);
         } catch (Exception e) {
             Logs.debug(e);
         }
@@ -967,7 +940,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         try {
             net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(itemStack);
             nmsItem.set(DataComponents.DEATH_PROTECTION, component);
-            return asBukkitCopy(nmsItem);
+            return NmsAccessors.asBukkitCopy(nmsItem);
         } catch (Exception e) {
             Logs.debug(e);
         }
@@ -980,7 +953,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         try {
             net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(itemStack);
             nmsItem.remove(DataComponents.DEATH_PROTECTION);
-            return asBukkitCopy(nmsItem);
+            return NmsAccessors.asBukkitCopy(nmsItem);
         } catch (Exception e) {
             Logs.debug(e);
         }
@@ -997,7 +970,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         if (location == null || location.getWorld() == null) return;
         ServerLevel level = ((CraftWorld) location.getWorld()).getHandle().getLevel();
         net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(itemStack);
-        Optional<Holder<JukeboxSong>> optional = JukeboxSong.fromStack(level.registryAccess(), nmsItem);
+        Optional<Holder<JukeboxSong>> optional = NmsAccessors.jukeboxSong(level, nmsItem);
         if (!optional.isPresent())
             return; // should never happen if the itemstack has the jukeboxPlayable component
         int id = level.registryAccess().lookupOrThrow(Registries.JUKEBOX_SONG).getId(optional.get().value());

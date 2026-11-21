@@ -3,6 +3,8 @@ plugins {
     id("io.papermc.paperweight.userdev") version "2.0.0-beta.21"
 }
 
+apply(from = rootProject.file("nms/shared/sources.gradle.kts"))
+
 // Java 21 NMS handler for Paper/Paper-fork 1.20.x through 1.21.11.
 // Keep this module free of Java 25 bytecode so it can be loaded on Java 21 servers.
 dependencies {

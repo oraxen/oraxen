@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.nms.handler.java25;
+package io.th0rgal.oraxen.nms.handler.shared;
 
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.minecraft.network.syncher.EntityDataAccessor;

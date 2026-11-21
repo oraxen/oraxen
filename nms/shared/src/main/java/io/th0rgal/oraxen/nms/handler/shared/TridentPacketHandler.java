@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.nms.handler.java21;
+package io.th0rgal.oraxen.nms.handler.shared;
 
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;

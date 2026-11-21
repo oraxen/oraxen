@@ -1,11 +1,10 @@
-package io.th0rgal.oraxen.nms.handler.java25;
+package io.th0rgal.oraxen.nms.handler.shared;
 
 import io.th0rgal.oraxen.recipes.loaders.RecipeLoader;
 import net.minecraft.network.protocol.game.ClientboundPlaceGhostRecipePacket;
 import net.minecraft.network.protocol.game.ClientboundRecipeBookAddPacket;
 import net.minecraft.network.protocol.game.ClientboundRecipeBookRemovePacket;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.display.RecipeDisplay;
 import net.minecraft.world.item.crafting.display.RecipeDisplayEntry;
 import net.minecraft.world.item.crafting.display.RecipeDisplayId;
@@ -13,8 +12,6 @@ import net.minecraft.world.item.crafting.display.ShapedCraftingRecipeDisplay;
 import net.minecraft.world.item.crafting.display.ShapelessCraftingRecipeDisplay;
 import net.minecraft.world.item.crafting.display.SlotDisplay;
 import net.minecraft.world.item.crafting.display.SmithingRecipeDisplay;
-import org.bukkit.craftbukkit.inventory.CraftItemStack;
-import org.bukkit.craftbukkit.util.CraftNamespacedKey;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
@@ -37,7 +34,7 @@ final class RecipeBookDisplays {
             var info = recipes.getRecipeFromDisplay(contents.id());
             // Display IDs can be reused when the recipe manager is rebuilt.
             if (info == null || info.display() != contents) continue;
-            var overrides = RecipeLoader.ingredientDisplays(CraftNamespacedKey.fromResourceKey(info.parent().id()));
+            var overrides = RecipeLoader.ingredientDisplays(NmsAccessors.recipeKey(info.parent().id()));
             if (overrides.isEmpty()) continue;
 
             RecipeDisplay display = withIngredients(contents.display(), overrides);
@@ -91,13 +88,9 @@ final class RecipeBookDisplays {
     }
 
     private static SlotDisplay displayItem(ItemStack item) {
-        SlotDisplay display = stackDisplay(item);
+        SlotDisplay display = NmsAccessors.stackDisplay(item);
         var remainder = item.getType().getCraftingRemainingItem();
         return remainder == null ? display : new SlotDisplay.WithRemainder(display,
-                stackDisplay(new ItemStack(remainder)));
-    }
-
-    private static SlotDisplay stackDisplay(ItemStack item) {
-        return new SlotDisplay.ItemStackSlotDisplay(ItemStackTemplate.fromNonEmptyStack(CraftItemStack.asNMSCopy(item)));
+                NmsAccessors.stackDisplay(new ItemStack(remainder)));
     }
 }
