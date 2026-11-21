@@ -473,17 +473,17 @@ public class FurnitureListener implements Listener {
         Entity baseEntity = event.getRightClicked();
         final Player player = event.getPlayer();
         EquipmentSlot hand = event.getHand();
-        boolean ghastHitbox = FurnitureMechanic.isGhastHitbox(baseEntity);
-        if (ghastHitbox) event.setCancelled(true);
+        boolean solidHitbox = FurnitureMechanic.isSolidHitbox(baseEntity);
+        if (solidHitbox) event.setCancelled(true);
 
         if (!AntiGriefLib.canInteract(player, baseEntity.getLocation()))
             return;
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
         if (mechanic == null)
             return;
-        Entity resolvedBaseEntity = baseEntity instanceof Interaction || ghastHitbox
+        Entity resolvedBaseEntity = baseEntity instanceof Interaction || solidHitbox
                 ? mechanic.getBaseEntity(baseEntity) : baseEntity;
-        if (ghastHitbox && (resolvedBaseEntity == null || !Bukkit.isOwnedByCurrentRegion(resolvedBaseEntity))) return;
+        if (solidHitbox && (resolvedBaseEntity == null || !Bukkit.isOwnedByCurrentRegion(resolvedBaseEntity))) return;
         if (!BlockLockerCompatibility.canInteract(player, blockLockerBlock(mechanic, resolvedBaseEntity, baseEntity.getLocation().getBlock()), mechanic)) {
             event.setCancelled(true);
             return;
@@ -545,8 +545,8 @@ public class FurnitureListener implements Listener {
     public void onPlayerAttackFurniture(PrePlayerAttackEntityEvent event) {
         if (!FurnitureFactory.isEnabled()) return;
         Entity entity = event.getAttacked();
-        if (FurnitureMechanic.isGhastHitbox(entity)) {
-            if (!event.isCancelled()) onGhastAttack(event, entity);
+        if (FurnitureMechanic.isSolidHitbox(entity)) {
+            if (!event.isCancelled()) onSolidHitboxAttack(event, entity);
             return;
         }
         if (event.isCancelled() && !(entity instanceof Interaction)) return;
@@ -560,19 +560,19 @@ public class FurnitureListener implements Listener {
         mechanic.runEvents(player, Action.LEFT_CLICK_BLOCK);
     }
 
-    private void onGhastAttack(PrePlayerAttackEntityEvent event, Entity ghast) {
+    private void onSolidHitboxAttack(PrePlayerAttackEntityEvent event, Entity hitbox) {
         event.setCancelled(true);
         Player player = event.getPlayer();
-        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(ghast);
+        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(hitbox);
         if (mechanic == null) {
-            if (AntiGriefLib.canBreak(player, ghast.getLocation())) OraxenFurniture.remove(ghast, player);
+            if (AntiGriefLib.canBreak(player, hitbox.getLocation())) OraxenFurniture.remove(hitbox, player);
             return;
         }
-        Entity baseEntity = mechanic.getBaseEntity(ghast);
+        Entity baseEntity = mechanic.getBaseEntity(hitbox);
         if (baseEntity == null || !Bukkit.isOwnedByCurrentRegion(baseEntity)) return;
         if (!BlockLockerCompatibility.canInteract(player,
-                blockLockerBlock(mechanic, baseEntity, ghast.getLocation().getBlock()), mechanic)) return;
-        if (AntiGriefLib.canInteract(player, ghast.getLocation()))
+                blockLockerBlock(mechanic, baseEntity, hitbox.getLocation().getBlock()), mechanic)) return;
+        if (AntiGriefLib.canInteract(player, hitbox.getLocation()))
             mechanic.runEvents(player, Action.LEFT_CLICK_BLOCK);
         if (!mechanic.isBreakable() || !AntiGriefLib.canBreak(player, baseEntity.getLocation())) return;
         OraxenFurnitureBreakEvent breakEvent = new OraxenFurnitureBreakEvent(mechanic, baseEntity, player,

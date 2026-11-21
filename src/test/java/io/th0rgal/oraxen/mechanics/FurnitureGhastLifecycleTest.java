@@ -71,14 +71,14 @@ class FurnitureGhastLifecycleTest extends MechanicTestSupport {
 
             itemsLoaded.invoke(listener, new OraxenItemsLoadedEvent());
             itemsLoaded.invoke(listener, new OraxenItemsLoadedEvent());
-            verify(handler, times(2)).trackFurnitureGhast(ghast);
+            verify(handler, times(2)).trackFurnitureHitbox(ghast);
             scheduler.verify(() -> SchedulerUtil.runForEntityTimer(eq(ghast), eq(5L), eq(5L), any(), any()), times(1));
 
             EntityRemoveEvent unload = mock(EntityRemoveEvent.class);
             when(unload.getEntity()).thenReturn(ghast);
             when(unload.getCause()).thenReturn(EntityRemoveEvent.Cause.UNLOAD);
             removed.invoke(listener, unload);
-            verify(handler).untrackFurnitureGhast(ghast);
+            verify(handler).untrackFurnitureHitbox(ghast);
             verify(data, never()).remove(any());
 
             Method activate = type.getDeclaredMethod("activate", Entity.class);
@@ -112,7 +112,7 @@ class FurnitureGhastLifecycleTest extends MechanicTestSupport {
             protection.when(() -> AntiGriefLib.canInteract(player, location)).thenReturn(true);
             protection.when(() -> AntiGriefLib.canBreak(eq(player), any())).thenReturn(true);
             locks.when(() -> BlockLockerCompatibility.canInteract(player, block, mechanic)).thenReturn(false);
-            Method attack = FurnitureListener.class.getDeclaredMethod("onGhastAttack",
+            Method attack = FurnitureListener.class.getDeclaredMethod("onSolidHitboxAttack",
                     PrePlayerAttackEntityEvent.class, Entity.class);
             attack.setAccessible(true);
             attack.invoke(listener, event, ghast);

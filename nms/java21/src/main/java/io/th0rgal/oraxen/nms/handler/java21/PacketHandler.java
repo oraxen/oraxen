@@ -46,7 +46,7 @@ final class PacketHandler {
 
     private final NamespacedKey key;
     private final TridentPacketHandler tridents = new TridentPacketHandler();
-    private final Map<Integer, UUID> furnitureGhasts = new ConcurrentHashMap<>();
+    private final Map<Integer, UUID> furnitureHitboxes = new ConcurrentHashMap<>();
     private volatile boolean formatInventoryTitles;
     private volatile boolean formatTitles;
     private volatile boolean hideScoreboardNumbers;
@@ -84,7 +84,7 @@ final class PacketHandler {
 
     void shutdown() {
         tridents.shutdown();
-        furnitureGhasts.clear();
+        furnitureHitboxes.clear();
         ChannelInitializeListenerHolder.removeListener(key);
         for (var player : Bukkit.getOnlinePlayers()) {
             try {
@@ -108,18 +108,18 @@ final class PacketHandler {
         hideScoreboardNumbers = enabled;
     }
 
-    void trackFurnitureGhast(Entity entity) {
-        furnitureGhasts.put(entity.getEntityId(), entity.getUniqueId());
+    void trackFurnitureHitbox(Entity entity) {
+        furnitureHitboxes.put(entity.getEntityId(), entity.getUniqueId());
     }
 
-    void untrackFurnitureGhast(Entity entity) {
-        furnitureGhasts.remove(entity.getEntityId(), entity.getUniqueId());
+    void untrackFurnitureHitbox(Entity entity) {
+        furnitureHitboxes.remove(entity.getEntityId(), entity.getUniqueId());
     }
 
     private Object transform(Object packet, RecipeBookDisplays recipeBook) {
         try {
             if (packet instanceof ClientboundBundlePacket bundle) return transformBundle(bundle, recipeBook);
-            if (packet instanceof ClientboundAddEntityPacket spawn) return transformFurnitureGhastSpawn(spawn);
+            if (packet instanceof ClientboundAddEntityPacket spawn) return transformFurnitureHitboxSpawn(spawn);
             if (packet instanceof ClientboundRecipeBookAddPacket recipes) return recipeBook.add(recipes);
             if (packet instanceof ClientboundRecipeBookRemovePacket recipes) recipeBook.remove(recipes);
             if (packet instanceof ClientboundPlaceGhostRecipePacket ghost) return recipeBook.ghost(ghost);
@@ -153,8 +153,8 @@ final class PacketHandler {
         return changed ? new ClientboundBundlePacket(packets) : bundle;
     }
 
-    private Object transformFurnitureGhastSpawn(ClientboundAddEntityPacket spawn) {
-        if (!spawn.getUUID().equals(furnitureGhasts.get(spawn.getId())) || Settings.DEBUG.toBool()) return spawn;
+    private Object transformFurnitureHitboxSpawn(ClientboundAddEntityPacket spawn) {
+        if (!spawn.getUUID().equals(furnitureHitboxes.get(spawn.getId())) || Settings.DEBUG.toBool()) return spawn;
         // A client can render the spawn before a separate invisibility update arrives.
         // Bundle them so the first rendered frame already has the invisible flag.
         var invisible = SynchedEntityData.DataValue.create(

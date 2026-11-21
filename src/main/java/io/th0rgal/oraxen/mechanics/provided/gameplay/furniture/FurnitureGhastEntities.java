@@ -90,14 +90,14 @@ final class FurnitureGhastEntities implements Listener {
             data.set(BASE_ENTITY_KEY, DataType.UUID, baseId);
             data.set(GHAST_OFFSET_KEY, DataType.asList(PersistentDataType.DOUBLE), List.of(hitbox.x(), hitbox.y(), hitbox.z()));
             data.set(GHAST_ROOT_KEY, DataType.LOCATION, root);
-            NMSHandlers.getHandler().trackFurnitureGhast(entity);
+            NMSHandlers.getHandler().trackFurnitureHitbox(entity);
         });
         if (ghast == null || !ghast.isValid() || !activate(ghast)) return null;
         return ghast;
     }
 
     private static boolean activate(Entity ghast) {
-        NMSHandlers.getHandler().trackFurnitureGhast(ghast);
+        NMSHandlers.getHandler().trackFurnitureHitbox(ghast);
         ghast.setInvisible(!Settings.DEBUG.toBool());
         ghast.setNoPhysics(true);
         NMSHandler handler = NMSHandlers.getHandler();
@@ -134,7 +134,7 @@ final class FurnitureGhastEntities implements Listener {
         for (UUID id : links(base)) {
             Entity ghast = Bukkit.getEntity(id);
             if (ghast != null) SchedulerUtil.runOnOwningThread(ghast, () -> {
-                NMSHandlers.getHandler().untrackFurnitureGhast(ghast);
+                NMSHandlers.getHandler().untrackFurnitureHitbox(ghast);
                 ghast.remove();
             });
         }
@@ -237,7 +237,7 @@ final class FurnitureGhastEntities implements Listener {
     public void onEntityRemove(EntityRemoveEvent event) {
         if (isHitbox(event.getEntity())) {
             activeGhasts.remove(event.getEntity().getEntityId());
-            NMSHandlers.getHandler().untrackFurnitureGhast(event.getEntity());
+            NMSHandlers.getHandler().untrackFurnitureHitbox(event.getEntity());
         }
         if (event.getCause() != EntityRemoveEvent.Cause.UNLOAD) remove(event.getEntity());
     }

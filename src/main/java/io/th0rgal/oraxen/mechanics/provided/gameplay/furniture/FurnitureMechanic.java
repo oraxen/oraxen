@@ -59,6 +59,7 @@ public class FurnitureMechanic extends Mechanic {
     public static final NamespacedKey INTERACTION_KEY = new NamespacedKey(OraxenPlugin.get(), "interaction");
     public static final NamespacedKey INTERACTIONS_KEY = new NamespacedKey(OraxenPlugin.get(), "interactions");
     public static final NamespacedKey GHASTS_KEY = new NamespacedKey(OraxenPlugin.get(), "ghasts");
+    public static final NamespacedKey SHULKERS_KEY = new NamespacedKey(OraxenPlugin.get(), "shulkers");
     public static final NamespacedKey HITBOX_OFFSET_KEY = new NamespacedKey(OraxenPlugin.get(), "hitbox_offset");
     public static final NamespacedKey MODELENGINE_KEY = new NamespacedKey(OraxenPlugin.get(), "modelengine");
     public static final NamespacedKey SEAT_KEY = new NamespacedKey(OraxenPlugin.get(), "seat");
@@ -96,6 +97,7 @@ public class FurnitureMechanic extends Mechanic {
     private final FurnitureHitbox hitbox;
     private final List<FurnitureHitbox> hitboxes;
     private final List<FurnitureGhastHitbox> ghasts;
+    private final List<FurnitureShulkerHitbox> shulkers;
     private final boolean isRotatable;
     private final boolean small;
     private final ArmorStandProperties armorStandProperties;
@@ -228,6 +230,7 @@ public class FurnitureMechanic extends Mechanic {
         hitboxes = parseHitboxes(section);
         hitbox = hitboxes.isEmpty() ? null : hitboxes.get(0);
         ghasts = parseGhasts(section);
+        shulkers = parseShulkers(section);
 
         seats = parseSeats(section);
         hasSeat = !seats.isEmpty();
@@ -349,6 +352,30 @@ public class FurnitureMechanic extends Mechanic {
             if (ghast != null) parsed.add(ghast);
             else Logs.logError("Invalid ghast hitbox '" + entry + "' for furniture '" + getItemID()
                     + "'. Expected '<x>,<y>,<z> <scale>' with a scale between 0.0625 and 1.");
+        }
+        return List.copyOf(parsed);
+    }
+
+    private List<FurnitureShulkerHitbox> parseShulkers(ConfigurationSection section) {
+        if (!section.contains("shulkers")) return List.of();
+        if (!VersionUtil.atOrAbove("1.20.5")) {
+            Logs.logWarning("Shulker hitboxes for furniture '" + getItemID() + "' require Minecraft 1.20.5 or newer.");
+            return List.of();
+        }
+
+        List<?> entries = section.getList("shulkers");
+        if (entries == null) {
+            Logs.logError("Expected a list of shulker hitboxes for furniture '" + getItemID() + "'.");
+            return List.of();
+        }
+
+        List<FurnitureShulkerHitbox> parsed = new ArrayList<>();
+        for (Object entry : entries) {
+            FurnitureShulkerHitbox shulker = FurnitureShulkerHitbox.parse(entry);
+            if (shulker != null) parsed.add(shulker);
+            else Logs.logError("Invalid shulker hitbox '" + entry + "' for furniture '" + getItemID()
+                    + "'. Expected '<x>,<y>,<z> <scale> [peek] [direction]' with a scale between 0.0625 and 3,"
+                    + " a peek between 0 and 100 and a direction of UP, DOWN, NORTH, EAST, SOUTH or WEST.");
         }
         return List.copyOf(parsed);
     }
@@ -665,6 +692,21 @@ public class FurnitureMechanic extends Mechanic {
         return VersionUtil.atOrAbove("1.21.6") && FurnitureGhastEntities.isHitbox(entity);
     }
 
+    boolean hasShulkerHitboxes() {
+        return !shulkers.isEmpty();
+    }
+
+    public static boolean isShulkerHitbox(Entity entity) {
+        return VersionUtil.atOrAbove("1.20.5") && FurnitureShulkerEntities.isHitbox(entity);
+    }
+
+    /**
+     * Whether the entity is a solid ghast or shulker hitbox of a furniture.
+     */
+    public static boolean isSolidHitbox(Entity entity) {
+        return isGhastHitbox(entity) || isShulkerHitbox(entity);
+    }
+
     public boolean hasSeat() {
         return hasSeat;
     }
@@ -940,6 +982,7 @@ public class FurnitureMechanic extends Mechanic {
         }
         
         if (!ghasts.isEmpty()) FurnitureGhastEntities.spawn(entity, location, yaw, getItemID(), ghasts);
+        if (!shulkers.isEmpty()) FurnitureShulkerEntities.spawn(entity, location, yaw, getItemID(), shulkers);
 
         // Apply initial stage model for staged furniture
         // The base item shows the "seed" texture, but we need to swap to stage0's model
@@ -1359,6 +1402,7 @@ public class FurnitureMechanic extends Mechanic {
     private void removeSubEntitiesOfFurniture(Entity baseEntity) {
         removeInitialLight(baseEntity);
         if (VersionUtil.atOrAbove("1.21.6")) FurnitureGhastEntities.remove(baseEntity);
+        if (VersionUtil.atOrAbove("1.20.5")) FurnitureShulkerEntities.remove(baseEntity);
         if (hasSeat) {
             removeFurnitureSeats(baseEntity.getPersistentDataContainer());
             removeFurnitureSeat(baseEntity.getLocation());
@@ -1515,7 +1559,7 @@ public class FurnitureMechanic extends Mechanic {
         // Since ItemDisplay entities have no hitbox it will only be for ITEM_FRAME based ones
         if (getFurnitureEntityType() == entity.getType()) return entity;
         UUID baseEntityUUID = entity.getPersistentDataContainer().get(BASE_ENTITY_KEY, DataType.UUID);
-        if (isGhastHitbox(entity)) return baseEntityUUID == null ? null : Bukkit.getEntity(baseEntityUUID);
+        if (isSolidHitbox(entity)) return baseEntityUUID == null ? null : Bukkit.getEntity(baseEntityUUID);
         // If the baseEntity is null but the entity is a furniture, assume the config has changed the baseEntity type
         // This would cause the above check to fail and assume it is the interaction entity or not a furniture
         if (baseEntityUUID == null && OraxenFurniture.isFurniture(entity) && !OraxenFurniture.isInteractionEntity(entity))
@@ -1673,6 +1717,7 @@ public class FurnitureMechanic extends Mechanic {
         else baseEntity.setRotation(newYaw, baseEntity.getLocation().getPitch());
         updateFurnitureHitboxes(baseEntity, newYaw);
         if (VersionUtil.atOrAbove("1.21.6")) FurnitureGhastEntities.rotate(baseEntity, newYaw);
+        if (VersionUtil.atOrAbove("1.20.5")) FurnitureShulkerEntities.rotate(baseEntity, newYaw);
         updateFurnitureSeats(baseEntity, newYaw);
         if (hasFurnitureLights())
             createFurnitureLights(BlockHelpers.toCenterBlockLocation(baseEntity.getLocation()), newYaw);

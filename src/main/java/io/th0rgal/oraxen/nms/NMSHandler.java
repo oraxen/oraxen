@@ -26,10 +26,10 @@ public interface NMSHandler {
         return false;
     }
 
-    default void trackFurnitureGhast(org.bukkit.entity.Entity entity) {
+    default void trackFurnitureHitbox(org.bukkit.entity.Entity entity) {
     }
 
-    default void untrackFurnitureGhast(org.bukkit.entity.Entity entity) {
+    default void untrackFurnitureHitbox(org.bukkit.entity.Entity entity) {
     }
 
     default void formatInventoryTitles(boolean enabled) {

@@ -91,7 +91,7 @@ public class OraxenFurniture {
         FurnitureMechanic mechanic = getFurnitureMechanic(entity);
         // Commented out as this breaks FurnitureUpdating when type is different
         //return mechanic != null && mechanic.getFurnitureEntityType() == entity.getType();
-        return mechanic != null && entity.getType() != EntityType.INTERACTION && !FurnitureMechanic.isGhastHitbox(entity);
+        return mechanic != null && entity.getType() != EntityType.INTERACTION && !FurnitureMechanic.isSolidHitbox(entity);
     }
 
     public static boolean isInteractionEntity(@NotNull Entity entity) {
@@ -211,7 +211,7 @@ public class OraxenFurniture {
         if (!FurnitureFactory.isEnabled() || baseEntity == null) return false;
         FurnitureMechanic mechanic = getFurnitureMechanic(baseEntity);
         if (mechanic == null) return removeOrphanFurniture(baseEntity);
-        if (FurnitureMechanic.isGhastHitbox(baseEntity)) {
+        if (FurnitureMechanic.isSolidHitbox(baseEntity)) {
             baseEntity = mechanic.getBaseEntity(baseEntity);
             if (baseEntity == null || !Bukkit.isOwnedByCurrentRegion(baseEntity)) return false;
         } else if (OraxenFurniture.isInteractionEntity(baseEntity)) {
@@ -272,7 +272,7 @@ public class OraxenFurniture {
         if (!hasFurnitureEntityMarker(entity)) return false;
 
         Entity baseEntity = resolveBaseEntity(entity);
-        if (baseEntity != null && FurnitureMechanic.isGhastHitbox(entity)
+        if (baseEntity != null && FurnitureMechanic.isSolidHitbox(entity)
                 && !Bukkit.isOwnedByCurrentRegion(baseEntity)) return false;
         if (baseEntity == null) {
             removeOrphanSeat(entity.getPersistentDataContainer());
@@ -308,7 +308,7 @@ public class OraxenFurniture {
             if (baseEntity != null) return baseEntity;
         }
 
-        return entity.getType() == EntityType.INTERACTION || FurnitureMechanic.isGhastHitbox(entity) ? null : entity;
+        return entity.getType() == EntityType.INTERACTION || FurnitureMechanic.isSolidHitbox(entity) ? null : entity;
     }
 
     private static void removeOrphanBarriers(@NotNull Entity baseEntity) {

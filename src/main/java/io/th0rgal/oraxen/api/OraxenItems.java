@@ -74,7 +74,7 @@ public class OraxenItems {
             }
 
             FurnitureFactory furnitureFactory = FurnitureFactory.isEnabled() ? FurnitureFactory.getInstance() : null;
-            if (furnitureFactory != null) furnitureFactory.resetGhastDebugWarning();
+            if (furnitureFactory != null) furnitureFactory.resetHitboxDebugWarnings();
             Map<File, Map<String, ItemBuilder>> loadedMap = OraxenPlugin.get().getConfigsManager().parseItemConfig();
             Map<String, ItemBuilder> loadedItemsById = new HashMap<>();
             Set<String> loadedItems = new HashSet<>();

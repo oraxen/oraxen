@@ -37,6 +37,7 @@ public class FurnitureFactory extends MechanicFactory {
     public final int evolutionCheckDelay;
     private boolean evolvingFurnitures;
     private boolean warnedAboutGhastDebugVisibility;
+    private boolean warnedAboutShulkerDebugVisibility;
     private static EvolutionTask evolutionTask;
     public final boolean customSounds;
     public final boolean detectViabackwards;
@@ -57,6 +58,8 @@ public class FurnitureFactory extends MechanicFactory {
             MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new FurniturePickItemListener());
         if (VersionUtil.atOrAbove("1.21.6"))
             MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new FurnitureGhastEntities());
+        if (VersionUtil.atOrAbove("1.20.5"))
+            MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new FurnitureShulkerEntities());
         evolvingFurnitures = false;
         instance = this;
         FurniturePacketDispatcher.init();
@@ -82,11 +85,16 @@ public class FurnitureFactory extends MechanicFactory {
             warnedAboutGhastDebugVisibility = true;
             Logs.logWarning("Ghast type furniture hitboxes are visible while in debug mode.");
         }
+        if (!warnedAboutShulkerDebugVisibility && mechanic.hasShulkerHitboxes() && Settings.DEBUG.toBool()) {
+            warnedAboutShulkerDebugVisibility = true;
+            Logs.logWarning("Shulker type furniture hitboxes are visible while in debug mode.");
+        }
         return mechanic;
     }
 
-    public void resetGhastDebugWarning() {
+    public void resetHitboxDebugWarnings() {
         warnedAboutGhastDebugVisibility = false;
+        warnedAboutShulkerDebugVisibility = false;
     }
 
     public static boolean isEnabled() {
@@ -217,6 +225,7 @@ public class FurnitureFactory extends MechanicFactory {
                 MechanicConfigProperty.bool("small", "Whether an armor stand furniture uses the small variant", true),
                 MechanicConfigProperty.list("hitboxes", "List of hitbox offsets and dimensions formatted '<x>,<y>,<z> <width>,<height>'"),
                 MechanicConfigProperty.list("ghasts", "List of solid hitboxes formatted '<x>,<y>,<z> <scale>'. Requires Minecraft 1.21.6 or newer"),
+                MechanicConfigProperty.list("shulkers", "List of solid hitboxes formatted '<x>,<y>,<z> <scale> [peek] [direction]'. Requires Minecraft 1.20.5 or newer"),
                 MechanicConfigProperty.list("seats", "List of seat offsets relative to the furniture center formatted '<x>,<y>,<z>' or '<x>,<y>,<z> <yaw>'"),
                 MechanicConfigProperty.list("barriers", "List of barrier block offsets relative to furniture formatted '<x>,<y>,<z>' with integer coordinates"),
                 MechanicConfigProperty.list("events", "Actions for furniture clicks or successful player breaks or placements. Use trigger: click with type: LEFT, RIGHT, or BOTH, trigger: break, or trigger: place. The trigger defaults to click; the legacy click filter remains supported."),

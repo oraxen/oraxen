@@ -96,13 +96,13 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     }
 
     @Override
-    public void trackFurnitureGhast(org.bukkit.entity.Entity entity) {
-        packetHandler.trackFurnitureGhast(entity);
+    public void trackFurnitureHitbox(org.bukkit.entity.Entity entity) {
+        packetHandler.trackFurnitureHitbox(entity);
     }
 
     @Override
-    public void untrackFurnitureGhast(org.bukkit.entity.Entity entity) {
-        packetHandler.untrackFurnitureGhast(entity);
+    public void untrackFurnitureHitbox(org.bukkit.entity.Entity entity) {
+        packetHandler.untrackFurnitureHitbox(entity);
     }
 
     private final PacketHandler packetHandler;

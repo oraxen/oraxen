@@ -103,7 +103,7 @@ public final class WorldEditFurniture implements Listener {
             // Recreated hitboxes and seats have new UUIDs. Keep their new links while
             // restoring storage, evolution, and other data from WorldEdit's snapshot.
             for (NamespacedKey key : List.of(restoreKey, restoredKey, BASE_ENTITY_KEY, INTERACTION_KEY,
-                    INTERACTIONS_KEY, GHASTS_KEY, SEAT_KEY, SEATS_KEY)) {
+                    INTERACTIONS_KEY, GHASTS_KEY, SHULKERS_KEY, SEAT_KEY, SEATS_KEY)) {
                 savedData.remove(key);
                 data.remove(key);
             }
