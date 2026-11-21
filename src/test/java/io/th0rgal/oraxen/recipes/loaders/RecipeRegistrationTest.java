@@ -17,6 +17,7 @@ import org.mockito.MockedStatic;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -148,8 +149,8 @@ class RecipeRegistrationTest {
         ItemBuilder builder = mock(ItemBuilder.class);
         when(builder.build()).thenReturn(backpack);
         Map<NamespacedKey, Recipe> registry = new HashMap<>();
-        java.util.concurrent.atomic.AtomicBoolean customDisplay = new java.util.concurrent.atomic.AtomicBoolean(true);
-        java.util.concurrent.atomic.AtomicBoolean rejectReplacement = new java.util.concurrent.atomic.AtomicBoolean();
+        AtomicBoolean customDisplay = new AtomicBoolean(true);
+        AtomicBoolean rejectReplacement = new AtomicBoolean();
         try (MockedStatic<OraxenItems> items = mockStatic(OraxenItems.class);
              MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class)) {
             items.when(() -> OraxenItems.getItemById("iron_backpack")).thenReturn(builder);
