@@ -8,11 +8,19 @@ plugins {
 dependencies {
     compileOnly(rootProject)
     paperweight.paperDevBundle("1.21.11-R0.1-SNAPSHOT")
+    testImplementation(rootProject)
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("org.mockito:mockito-core:5.11.0")
 }
 
 tasks {
     compileJava {
         options.encoding = Charsets.UTF_8.name()
+    }
+
+    test {
+        useJUnitPlatform()
     }
 
     // Paper 1.21.11 runs Mojang-mapped plugins; publish the plain jar as the NMS artifact.

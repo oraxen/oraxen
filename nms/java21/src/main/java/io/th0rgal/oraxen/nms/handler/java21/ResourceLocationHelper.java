@@ -44,10 +44,16 @@ public final class ResourceLocationHelper {
         PARSE_METHOD = parseMethod;
         try {
             Class<?> resourceKey = Class.forName("net.minecraft.resources.ResourceKey");
-            resourceKeyLocationMethod = resourceKey.getMethod(clazz.getSimpleName().equals("Identifier") ? "identifier" : "location");
+            resourceKeyLocationMethod = resolveResourceKeyLocationMethod(resourceKey, clazz);
         } catch (ReflectiveOperationException error) {
             throw new RuntimeException("Could not find ResourceKey location accessor", error);
         }
+    }
+
+    static Method resolveResourceKeyLocationMethod(Class<?> resourceKeyClass, Class<?> resourceLocationClass)
+            throws NoSuchMethodException {
+        return resourceKeyClass.getMethod(
+                resourceLocationClass.getSimpleName().equals("Identifier") ? "identifier" : "location");
     }
 
     private ResourceLocationHelper() {
