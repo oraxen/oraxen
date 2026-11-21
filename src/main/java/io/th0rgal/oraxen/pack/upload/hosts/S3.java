@@ -27,9 +27,12 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Clock;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.UUID;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /** S3-compatible storage using Signature V4 and content-addressed object keys. */
@@ -43,11 +46,17 @@ public class S3 implements HostingProvider {
     private final String publicUrl;
     private final boolean pathStyle;
     private final long presignedUrlExpiry;
-    private String packUrl;
+    private final Clock clock;
+    private volatile PackLink packLink;
     private String sha1;
     private UUID packUUID;
 
     public S3(ConfigurationSection config) {
+        this(config, Clock.systemUTC());
+    }
+
+    S3(ConfigurationSection config, Clock clock) {
+        this.clock = clock;
         endpoint = getString(config, "endpoint", "");
         accessKey = getString(config, "access-key", "");
         secretKey = getString(config, "secret-key", "");
@@ -77,31 +86,14 @@ public class S3 implements HostingProvider {
             return false;
         }
         try {
-            URI endpointUri = URI.create(endpoint);
-            StaticCredentialsProvider credentials = StaticCredentialsProvider.create(
-                    AwsBasicCredentials.create(accessKey, secretKey));
-            S3Configuration serviceConfig = S3Configuration.builder().pathStyleAccessEnabled(pathStyle)
-                    .chunkedEncodingEnabled(false).build();
             String hash = calculateSHA1(resourcePack);
             String version = packVersion == null || packVersion.isBlank() ? ""
                     : "-" + packVersion.replaceAll("[^A-Za-z0-9._-]", "_");
             String key = (prefix.isEmpty() ? "" : prefix + "/") + "pack" + version + "-" + hash + ".zip";
-            String url;
-            // Compute the URL before uploading so invalid URL settings cannot leave a partial result.
-            if (!publicUrl.isEmpty()) {
-                url = publicUrl + "/" + encodeKey(key);
-            } else {
-                try (S3Presigner presigner = S3Presigner.builder().endpointOverride(endpointUri)
-                        .region(Region.of(region)).credentialsProvider(credentials)
-                        .serviceConfiguration(serviceConfig).build()) {
-                    url = presigner.presignGetObject(GetObjectPresignRequest.builder()
-                            .signatureDuration(Duration.ofSeconds(presignedUrlExpiry))
-                            .getObjectRequest(GetObjectRequest.builder().bucket(bucket).key(key).build())
-                            .build()).url().toExternalForm();
-                }
-            }
-            try (S3Client client = S3Client.builder().endpointOverride(endpointUri)
-                    .region(Region.of(region)).credentialsProvider(credentials).serviceConfiguration(serviceConfig)
+            // Create the link before uploading so invalid URL settings cannot leave a partial result.
+            PackLink link = new PackLink(key, publicUrl.isEmpty() ? null : publicUrl + "/" + encodeKey(key));
+            try (S3Client client = S3Client.builder().endpointOverride(URI.create(endpoint))
+                    .region(Region.of(region)).credentialsProvider(credentials()).serviceConfiguration(serviceConfiguration())
                     .requestChecksumCalculation(RequestChecksumCalculation.WHEN_REQUIRED)
                     .httpClientBuilder(UrlConnectionHttpClient.builder().connectionTimeout(Duration.ofSeconds(5))
                             .socketTimeout(Duration.ofMinutes(5)))
@@ -113,7 +105,7 @@ public class S3 implements HostingProvider {
             // Keep the last successful upload intact if a later upload fails.
             sha1 = hash;
             packUUID = UUID.nameUUIDFromBytes(HashUtils.hexToBytes(hash));
-            packUrl = url;
+            packLink = link;
             return true;
         } catch (S3Exception ex) {
             Logs.logError("S3 resource pack upload failed (HTTP " + ex.statusCode() + ").");
@@ -122,6 +114,61 @@ public class S3 implements HostingProvider {
             Logs.logError("S3 resource pack upload failed (" + ex.getClass().getSimpleName() + ").");
         }
         return false;
+    }
+
+    private StaticCredentialsProvider credentials() {
+        return StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey));
+    }
+
+    private S3Configuration serviceConfiguration() {
+        return S3Configuration.builder().pathStyleAccessEnabled(pathStyle).chunkedEncodingEnabled(false).build();
+    }
+
+    private String presign(String key) {
+        try (S3Presigner presigner = S3Presigner.builder().endpointOverride(URI.create(endpoint))
+                .region(Region.of(region)).credentialsProvider(credentials())
+                .serviceConfiguration(serviceConfiguration()).build()) {
+            return presigner.presignGetObject(GetObjectPresignRequest.builder()
+                    .signatureDuration(Duration.ofSeconds(presignedUrlExpiry))
+                    .getObjectRequest(GetObjectRequest.builder().bucket(bucket).key(key).build())
+                    .build()).url().toExternalForm();
+        }
+    }
+
+    /**
+     * Download link for one uploaded object. A signed link renews when half of its lifetime,
+     * capped at one hour, remains. Players never receive a link that is about to expire.
+     */
+    private final class PackLink implements Supplier<String> {
+        private final String key;
+        private String url;
+        private Instant renewAt;
+
+        private PackLink(String key, String url) {
+            this.key = key;
+            this.url = url;
+            if (url == null) sign();
+        }
+
+        @Override
+        public synchronized String get() {
+            if (renewAt != null && !clock.instant().isBefore(renewAt)) {
+                try {
+                    sign();
+                } catch (IllegalArgumentException | SdkException ex) {
+                    // SDK exception messages may contain signed URLs or credentials; do not log them.
+                    Logs.logError("S3 resource pack download URL renewal failed (" + ex.getClass().getSimpleName() + ").");
+                }
+            }
+            return url;
+        }
+
+        private void sign() {
+            Instant signedAt = clock.instant();
+            url = presign(key);
+            long renewalMargin = Math.min(presignedUrlExpiry / 2, 3600);
+            renewAt = signedAt.plusSeconds(presignedUrlExpiry - renewalMargin);
+        }
     }
 
     private void validateConfiguration() {
@@ -161,7 +208,16 @@ public class S3 implements HostingProvider {
                 .collect(Collectors.joining("/"));
     }
 
-    @Override public String getPackURL() { return packUrl; }
+    @Override public String getPackURL() {
+        PackLink link = packLink;
+        return link == null ? null : link.get();
+    }
+
+    @Override public Supplier<String> getPackURLSource() {
+        PackLink link = packLink;
+        return link == null ? () -> null : link;
+    }
+
     @Override public byte[] getSHA1() { return sha1 == null ? null : HashUtils.hexToBytes(sha1); }
     @Override public String getOriginalSHA1() { return sha1; }
     @Override public UUID getPackUUID() { return packUUID; }

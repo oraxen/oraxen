@@ -25,6 +25,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 /**
  * Manages uploading and distributing multiple pack versions to players.
@@ -197,21 +198,21 @@ public class MultiVersionUploadManager {
         if (cancelled) return VersionUploadResult.ABORTED;
 
         // Capture provider state NOW, before the next upload overwrites it.
-        String url = provider.getPackURL();
+        Supplier<String> urlSource = provider.getPackURLSource();
         byte[] sha1 = provider.getSHA1();
         UUID uuid = provider.getPackUUID();
 
-        packVersion.setPackURL(url);
+        packVersion.setPackURLSource(urlSource);
         packVersion.setPackSHA1(sha1);
         packVersion.setPackUUID(uuid);
 
         // Snapshot the provider so the event exposes this upload's data,
         // not whatever the shared provider holds when the main thread processes it.
-        HostingProvider snapshot = new HostingProviderSnapshot(url, sha1, provider.getOriginalSHA1(), uuid);
+        HostingProvider snapshot = new HostingProviderSnapshot(urlSource, sha1, provider.getOriginalSHA1(), uuid);
         OraxenPackUploadEvent uploadEvent = new OraxenPackUploadEvent(snapshot);
         SchedulerUtil.runTask(uploadEvent::callEvent);
 
-        Logs.logSuccess("  Uploaded: " + packVersion.getMinecraftVersion() + " -> " + url);
+        Logs.logSuccess("  Uploaded: " + packVersion.getMinecraftVersion() + " -> " + urlSource.get());
         return VersionUploadResult.UPLOADED;
     }
 
@@ -223,12 +224,12 @@ public class MultiVersionUploadManager {
 
     /** Immutable snapshot of a {@link HostingProvider}'s state at a point in time. */
     private static final class HostingProviderSnapshot implements HostingProvider {
-        private final String packURL;
+        private final Supplier<String> packURL;
         private final byte[] sha1;
         private final String originalSHA1;
         private final UUID packUUID;
 
-        HostingProviderSnapshot(String packURL, byte[] sha1, String originalSHA1, UUID packUUID) {
+        HostingProviderSnapshot(Supplier<String> packURL, byte[] sha1, String originalSHA1, UUID packUUID) {
             this.packURL = packURL;
             this.sha1 = sha1;
             this.originalSHA1 = originalSHA1;
@@ -238,7 +239,8 @@ public class MultiVersionUploadManager {
         @Override public boolean uploadPack(File resourcePack) {
             throw new UnsupportedOperationException("Snapshot provider is read-only");
         }
-        @Override public String getPackURL() { return packURL; }
+        @Override public String getPackURL() { return packURL.get(); }
+        @Override public Supplier<String> getPackURLSource() { return packURL; }
         @Override public byte[] getSHA1() { return sha1; }
         @Override public String getOriginalSHA1() { return originalSHA1; }
         @Override public UUID getPackUUID() { return packUUID; }

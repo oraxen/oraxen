@@ -166,7 +166,7 @@ pack:
       prefix: "oraxen" # Optional bucket folder; leave empty to use the bucket root.
       path-style: true # Compatible with MinIO, R2, and other S3 APIs; false uses bucket subdomains.
       public-url: "" # Optional public/CDN bucket-root URL, such as https://packs.example.com.
-      presigned-url-expiry: 86400 # Seconds (1–604800) when public-url is empty; reload before expiry.
+      presigned-url-expiry: 86400 # Signed link lifetime in seconds, from 1 to 604800, when public-url is empty. Oraxen renews links before they expire.
 
     self-host:
       host: "0.0.0.0" # Bind address; 0.0.0.0 listens on all interfaces.

@@ -91,6 +91,7 @@ class MultiVersionUploadManagerTest {
         providers.when(() -> HostingProviderFactory.createHostingProvider(anyBoolean())).thenReturn(provider);
         when(provider.uploadPack(any(File.class), anyString())).thenReturn(true);
         when(provider.getPackURL()).thenReturn("https://packs.example/pack.zip");
+        when(provider.getPackURLSource()).thenCallRealMethod();
         when(provider.getSHA1()).thenReturn(new byte[]{1, 2, 3});
         when(provider.getOriginalSHA1()).thenReturn("010203");
         when(provider.getPackUUID()).thenReturn(UUID.randomUUID());
