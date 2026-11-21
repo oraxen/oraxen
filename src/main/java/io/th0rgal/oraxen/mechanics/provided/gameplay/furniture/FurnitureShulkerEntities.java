@@ -33,6 +33,7 @@ import org.bukkit.util.Vector;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.*;
 
@@ -133,9 +134,20 @@ final class FurnitureShulkerEntities implements Listener {
         // Mounting resets the attached face, so apply it after the shulker rides its vehicle.
         shulker.setAttachedFace(FurnitureShulkerHitbox.attachedFace(direction(shulker), yaw));
         applyPeek(shulker);
-        // Moving into another block closes a shulker, which happens when it first follows its vehicle.
-        SchedulerUtil.runForEntityLater(shulker, 2L, () -> applyPeek(shulker));
+        applyPeekAfterTicks(shulker);
         return true;
+    }
+
+    // Moving into another block closes a shulker, which happens when it first follows its vehicle.
+    private static void applyPeekAfterTicks(Shulker shulker) {
+        int ticksLived = shulker.getTicksLived();
+        AtomicReference<SchedulerUtil.ScheduledTask> task = new AtomicReference<>();
+        task.set(SchedulerUtil.runForEntityTimer(shulker, 1L, 1L, () -> {
+            if (shulker.getTicksLived() < ticksLived + 2) return;
+            applyPeek(shulker);
+            SchedulerUtil.ScheduledTask scheduled = task.get();
+            if (scheduled != null) scheduled.cancel();
+        }, null));
     }
 
     private static void applyPeek(Shulker shulker) {
@@ -218,7 +230,7 @@ final class FurnitureShulkerEntities implements Listener {
             Location current = vehicle.getLocation();
             if (!current.getWorld().equals(target.getWorld()) || current.distanceSquared(target) > 1.0E-8)
                 vehicle.teleportAsync(target, PlayerTeleportEvent.TeleportCause.PLUGIN, TeleportFlag.EntityState.RETAIN_PASSENGERS)
-                        .thenAccept(success -> SchedulerUtil.runForEntityLater(shulker, 2L, () -> applyPeek(shulker)));
+                        .thenAccept(success -> SchedulerUtil.runOnOwningThread(shulker, () -> applyPeekAfterTicks(shulker)));
         });
     }
 
@@ -302,13 +314,17 @@ final class FurnitureShulkerEntities implements Listener {
     // Clients reset the attached face when the shulker mounts its vehicle after its metadata arrives.
     @EventHandler
     public void onPlayerTrackEntity(PlayerTrackEntityEvent event) {
-        if (!(event.getEntity() instanceof Shulker shulker) || !isHitbox(shulker)
-                || shulker.getAttachedFace() == BlockFace.DOWN) return;
-        SchedulerUtil.runForEntityLater(shulker, 1L, () -> {
-            BlockFace face = shulker.getAttachedFace();
-            shulker.setAttachedFace(face.getOppositeFace());
-            shulker.setAttachedFace(face);
-        });
+        Entity entity = event.getEntity();
+        List<Entity> hitboxes = isVehicle(entity) ? entity.getPassengers() : List.of(entity);
+        for (Entity hitbox : hitboxes) {
+            if (!(hitbox instanceof Shulker shulker) || !isHitbox(shulker)) continue;
+            SchedulerUtil.runForEntityLater(shulker, 1L, () -> {
+                BlockFace face = shulker.getAttachedFace();
+                if (face == BlockFace.DOWN) return;
+                shulker.setAttachedFace(face.getOppositeFace());
+                shulker.setAttachedFace(face);
+            });
+        }
     }
 
     @EventHandler
