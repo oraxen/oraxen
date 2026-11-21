@@ -358,8 +358,8 @@ public class FurnitureMechanic extends Mechanic {
 
     private List<FurnitureShulkerHitbox> parseShulkers(ConfigurationSection section) {
         if (!section.contains("shulkers")) return List.of();
-        if (!VersionUtil.atOrAbove("1.20.5")) {
-            Logs.logWarning("Shulker hitboxes for furniture '" + getItemID() + "' require Minecraft 1.20.5 or newer.");
+        if (!VersionUtil.atOrAbove("1.21.2")) {
+            Logs.logWarning("Shulker hitboxes for furniture '" + getItemID() + "' require Minecraft 1.21.2 or newer.");
             return List.of();
         }
 
@@ -697,7 +697,7 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public static boolean isShulkerHitbox(Entity entity) {
-        return VersionUtil.atOrAbove("1.20.5") && FurnitureShulkerEntities.isHitbox(entity);
+        return VersionUtil.atOrAbove("1.21.2") && FurnitureShulkerEntities.isHitbox(entity);
     }
 
     /**
@@ -1402,7 +1402,7 @@ public class FurnitureMechanic extends Mechanic {
     private void removeSubEntitiesOfFurniture(Entity baseEntity) {
         removeInitialLight(baseEntity);
         if (VersionUtil.atOrAbove("1.21.6")) FurnitureGhastEntities.remove(baseEntity);
-        if (VersionUtil.atOrAbove("1.20.5")) FurnitureShulkerEntities.remove(baseEntity);
+        if (VersionUtil.atOrAbove("1.21.2")) FurnitureShulkerEntities.remove(baseEntity);
         if (hasSeat) {
             removeFurnitureSeats(baseEntity.getPersistentDataContainer());
             removeFurnitureSeat(baseEntity.getLocation());
@@ -1717,7 +1717,7 @@ public class FurnitureMechanic extends Mechanic {
         else baseEntity.setRotation(newYaw, baseEntity.getLocation().getPitch());
         updateFurnitureHitboxes(baseEntity, newYaw);
         if (VersionUtil.atOrAbove("1.21.6")) FurnitureGhastEntities.rotate(baseEntity, newYaw);
-        if (VersionUtil.atOrAbove("1.20.5")) FurnitureShulkerEntities.rotate(baseEntity, newYaw);
+        if (VersionUtil.atOrAbove("1.21.2")) FurnitureShulkerEntities.rotate(baseEntity, newYaw);
         updateFurnitureSeats(baseEntity, newYaw);
         if (hasFurnitureLights())
             createFurnitureLights(BlockHelpers.toCenterBlockLocation(baseEntity.getLocation()), newYaw);

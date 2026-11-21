@@ -58,7 +58,7 @@ public class FurnitureFactory extends MechanicFactory {
             MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new FurniturePickItemListener());
         if (VersionUtil.atOrAbove("1.21.6"))
             MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new FurnitureGhastEntities());
-        if (VersionUtil.atOrAbove("1.20.5"))
+        if (VersionUtil.atOrAbove("1.21.2"))
             MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new FurnitureShulkerEntities());
         evolvingFurnitures = false;
         instance = this;
@@ -225,7 +225,7 @@ public class FurnitureFactory extends MechanicFactory {
                 MechanicConfigProperty.bool("small", "Whether an armor stand furniture uses the small variant", true),
                 MechanicConfigProperty.list("hitboxes", "List of hitbox offsets and dimensions formatted '<x>,<y>,<z> <width>,<height>'"),
                 MechanicConfigProperty.list("ghasts", "List of solid hitboxes formatted '<x>,<y>,<z> <scale>'. Requires Minecraft 1.21.6 or newer"),
-                MechanicConfigProperty.list("shulkers", "List of solid hitboxes formatted '<x>,<y>,<z> <scale> [peek] [direction]'. Requires Minecraft 1.20.5 or newer"),
+                MechanicConfigProperty.list("shulkers", "List of solid hitboxes formatted '<x>,<y>,<z> <scale> [peek] [direction]'. Requires Minecraft 1.21.2 or newer"),
                 MechanicConfigProperty.list("seats", "List of seat offsets relative to the furniture center formatted '<x>,<y>,<z>' or '<x>,<y>,<z> <yaw>'"),
                 MechanicConfigProperty.list("barriers", "List of barrier block offsets relative to furniture formatted '<x>,<y>,<z>' with integer coordinates"),
                 MechanicConfigProperty.list("events", "Actions for furniture clicks or successful player breaks or placements. Use trigger: click with type: LEFT, RIGHT, or BOTH, trigger: break, or trigger: place. The trigger defaults to click; the legacy click filter remains supported."),
