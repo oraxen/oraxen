@@ -17,6 +17,7 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBundlePacket;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
+import net.minecraft.network.protocol.game.ClientboundSetPassengersPacket;
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;
 import net.minecraft.network.protocol.game.ClientboundPlaceGhostRecipePacket;
 import net.minecraft.network.protocol.game.ClientboundRecipeBookRemovePacket;
@@ -34,6 +35,7 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
+import org.bukkit.craftbukkit.entity.CraftShulker;
 import org.bukkit.entity.Entity;
 
 import java.util.ArrayList;
@@ -46,7 +48,7 @@ final class PacketHandler {
 
     private final NamespacedKey key;
     private final TridentPacketHandler tridents = new TridentPacketHandler();
-    private final Map<Integer, UUID> furnitureHitboxes = new ConcurrentHashMap<>();
+    private final Map<Integer, Entity> furnitureHitboxes = new ConcurrentHashMap<>();
     private volatile boolean formatInventoryTitles;
     private volatile boolean formatTitles;
     private volatile boolean hideScoreboardNumbers;
@@ -109,17 +111,19 @@ final class PacketHandler {
     }
 
     void trackFurnitureHitbox(Entity entity) {
-        furnitureHitboxes.put(entity.getEntityId(), entity.getUniqueId());
+        furnitureHitboxes.put(entity.getEntityId(), entity);
     }
 
     void untrackFurnitureHitbox(Entity entity) {
-        furnitureHitboxes.remove(entity.getEntityId(), entity.getUniqueId());
+        furnitureHitboxes.computeIfPresent(entity.getEntityId(),
+                (id, tracked) -> tracked.getUniqueId().equals(entity.getUniqueId()) ? null : tracked);
     }
 
     private Object transform(Object packet, RecipeBookDisplays recipeBook) {
         try {
             if (packet instanceof ClientboundBundlePacket bundle) return transformBundle(bundle, recipeBook);
             if (packet instanceof ClientboundAddEntityPacket spawn) return transformFurnitureHitboxSpawn(spawn);
+            if (packet instanceof ClientboundSetPassengersPacket passengers) return transformFurnitureHitboxPassengers(passengers);
             if (packet instanceof ClientboundRecipeBookAddPacket recipes) return recipeBook.add(recipes);
             if (packet instanceof ClientboundRecipeBookRemovePacket recipes) recipeBook.remove(recipes);
             if (packet instanceof ClientboundPlaceGhostRecipePacket ghost) return recipeBook.ghost(ghost);
@@ -154,13 +158,27 @@ final class PacketHandler {
     }
 
     private Object transformFurnitureHitboxSpawn(ClientboundAddEntityPacket spawn) {
-        if (!spawn.getUUID().equals(furnitureHitboxes.get(spawn.getId())) || Settings.DEBUG.toBool()) return spawn;
+        Entity hitbox = furnitureHitboxes.get(spawn.getId());
+        if (hitbox == null || !spawn.getUUID().equals(hitbox.getUniqueId()) || Settings.DEBUG.toBool()) return spawn;
         // A client can render the spawn before a separate invisibility update arrives.
         // Bundle them so the first rendered frame already has the invisible flag.
         var invisible = SynchedEntityData.DataValue.create(
                 new EntityDataAccessor<>(0, EntityDataSerializers.BYTE), (byte) 0x20);
         return new ClientboundBundlePacket(List.of(spawn,
                 new ClientboundSetEntityDataPacket(spawn.getId(), List.of(invisible))));
+    }
+
+    // Mounting resets a shulker's attached face on the client, so resend its data after each passenger update.
+    private Object transformFurnitureHitboxPassengers(ClientboundSetPassengersPacket packet) {
+        List<Packet<? super ClientGamePacketListener>> packets = null;
+        for (int id : packet.getPassengers()) {
+            if (!(furnitureHitboxes.get(id) instanceof CraftShulker shulker)) continue;
+            List<SynchedEntityData.DataValue<?>> values = shulker.getHandle().getEntityData().getNonDefaultValues();
+            if (values == null) continue;
+            if (packets == null) packets = new ArrayList<>(List.of(packet));
+            packets.add(new ClientboundSetEntityDataPacket(id, values));
+        }
+        return packets == null ? packet : new ClientboundBundlePacket(packets);
     }
 
     private ClientboundOpenScreenPacket transformOpenScreen(ClientboundOpenScreenPacket packet) {

@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
 import com.jeff_media.morepersistentdatatypes.DataType;
 import io.papermc.paper.entity.TeleportFlag;
-import io.papermc.paper.event.player.PlayerTrackEntityEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.events.OraxenItemsLoadedEvent;
 import io.th0rgal.oraxen.configs.Settings;
@@ -309,22 +308,6 @@ final class FurnitureShulkerEntities implements Listener {
             if (links(base).contains(shulker.getUniqueId())) reposition(shulker, base.getLocation(), shulkerYaw(base));
             else SchedulerUtil.runOnOwningThread(shulker, () -> discard(shulker));
         });
-    }
-
-    // Clients reset the attached face when the shulker mounts its vehicle after its metadata arrives.
-    @EventHandler
-    public void onPlayerTrackEntity(PlayerTrackEntityEvent event) {
-        Entity entity = event.getEntity();
-        List<Entity> hitboxes = isVehicle(entity) ? entity.getPassengers() : List.of(entity);
-        for (Entity hitbox : hitboxes) {
-            if (!(hitbox instanceof Shulker shulker) || !isHitbox(shulker)) continue;
-            SchedulerUtil.runForEntityLater(shulker, 1L, () -> {
-                BlockFace face = shulker.getAttachedFace();
-                if (face == BlockFace.DOWN) return;
-                shulker.setAttachedFace(face.getOppositeFace());
-                shulker.setAttachedFace(face);
-            });
-        }
     }
 
     @EventHandler
