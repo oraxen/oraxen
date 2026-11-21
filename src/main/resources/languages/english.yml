@@ -6,6 +6,7 @@ general:
   cooldown: "<prefix><#facc43>Please wait Another <time> seconds!"
   reload: "<prefix><#55ffa4>Successfully reloaded <reloaded>."
   recipe_reload_requires_restart: "<prefix><#facc43>Restart the Folia server to apply recipe changes. Recipes were not reloaded."
+  registry_reload_requires_restart: "<prefix><#facc43>Restart the Folia server to apply <registry> changes. They were not reloaded."
   pack_uploading: "<prefix><#D5D6D8>Automatic upload of the resource pack is enabled, uploading..."
   pack_not_uploaded: "<prefix><#fa4943>Resourcepack not uploaded"
   pack_uploaded: "<prefix><#55ffa4>Resourcepack uploaded to <#43c9fa><url></#43c9fa> in <delay>ms."

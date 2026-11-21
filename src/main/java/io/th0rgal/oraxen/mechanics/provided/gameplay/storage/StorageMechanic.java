@@ -490,11 +490,15 @@ public class StorageMechanic {
         });
 
         gui.setCloseGuiAction(event -> {
-            if (!canPersistBlockStorage(block, gui)) return;
-            storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents());
-            if (hasCloseSound() && block.getLocation().isChunkLoaded())
-                AdventureUtils.playSound(location, closeSound, Sound.Source.MASTER, volume, pitch);
-            if (frame != null) playOpenAnimation(frame, closeAnimation);
+            ItemStack[] contents = snapshotContents(gui);
+            // The viewer may be closing from another region (teleport, quit); the chunk PDC belongs to the block's region.
+            SchedulerUtil.runAtLocation(location, () -> {
+                if (!canPersistBlockStorage(block, gui)) return;
+                storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, contents);
+                if (hasCloseSound() && block.getLocation().isChunkLoaded())
+                    AdventureUtils.playSound(location, closeSound, Sound.Source.MASTER, volume, pitch);
+                if (frame != null) playOpenAnimation(frame, closeAnimation);
+            });
         });
 
         return gui;

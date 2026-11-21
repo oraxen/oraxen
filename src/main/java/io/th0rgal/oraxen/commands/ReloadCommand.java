@@ -15,6 +15,7 @@ import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
@@ -82,8 +83,8 @@ public class ReloadCommand {
     public static void reloadConfigs(@Nullable CommandSender sender) {
         sendReloadMessage(sender, CONFIGS_RELOAD);
         OraxenPlugin.get().reloadConfigs();
-        OraxenPlugin.get().reloadCustomPaintings();
-        OraxenPlugin.get().reloadCustomJukeboxSongs();
+        reloadCustomPaintings(sender);
+        reloadCustomJukeboxSongs(sender);
         if (OraxenPlugin.get().getStudioSyncService() != null) {
             OraxenPlugin.get().getStudioSyncService().start();
         }
@@ -95,15 +96,31 @@ public class ReloadCommand {
     }
 
     public static void reloadPaintings(@Nullable CommandSender sender) {
-        sendReloadMessage(sender, PAINTINGS_RELOAD);
+        if (!VersionUtil.isFoliaServer()) sendReloadMessage(sender, PAINTINGS_RELOAD);
         OraxenPlugin.get().reloadConfigs();
-        OraxenPlugin.get().reloadCustomPaintings();
+        reloadCustomPaintings(sender);
     }
 
     public static void reloadDiscs(@Nullable CommandSender sender) {
-        sendReloadMessage(sender, DISCS_RELOAD);
+        if (!VersionUtil.isFoliaServer()) sendReloadMessage(sender, DISCS_RELOAD);
         OraxenPlugin.get().reloadConfigs();
-        OraxenPlugin.get().reloadCustomJukeboxSongs();
+        reloadCustomJukeboxSongs(sender);
+    }
+
+    // Region threads read the painting and jukebox song registries without locks, so Folia only registers them at startup.
+    private static void reloadCustomPaintings(@Nullable CommandSender sender) {
+        if (VersionUtil.isFoliaServer()) sendRegistryRestartMessage(sender, "painting");
+        else OraxenPlugin.get().reloadCustomPaintings();
+    }
+
+    private static void reloadCustomJukeboxSongs(@Nullable CommandSender sender) {
+        if (VersionUtil.isFoliaServer()) sendRegistryRestartMessage(sender, "jukebox song");
+        else OraxenPlugin.get().reloadCustomJukeboxSongs();
+    }
+
+    private static void sendRegistryRestartMessage(@Nullable CommandSender sender, String registry) {
+        Message.REGISTRY_RELOAD_REQUIRES_RESTART.send(sender != null ? sender : Bukkit.getConsoleSender(),
+                AdventureUtils.tagResolver("registry", registry));
     }
 
     private static void sendReloadMessage(@Nullable CommandSender sender, String reloaded) {
@@ -117,32 +134,39 @@ public class ReloadCommand {
                 .withArguments(new TextArgument("type").replaceSuggestions(
                         ArgumentSuggestions.strings("items", "pack", "hud", "recipes", "configs", "messages", "paintings", "discs", "all")))
                 .executes((sender, args) -> {
-                    switch (((String) args.get("type")).toUpperCase()) {
-                        case "HUD" -> reloadHud(sender);
-                        case "ITEMS" -> reloadItems(sender);
-                        case "PACK" -> reloadPack(sender);
-                        case "RECIPES" -> reloadRecipes(sender);
-                        case "CONFIGS" -> reloadConfigs(sender);
-                        case "MESSAGES" -> reloadMessages(sender);
-                        case "PAINTINGS" -> reloadPaintings(sender);
-                        case "DISCS" -> reloadDiscs(sender);
-                        default -> {
-                            MechanicsManager.unloadListeners();
-                            MechanicsManager.unregisterTasks();
-                            reloadMessages(sender);
-                            reloadPaintings(sender);
-                            reloadDiscs(sender);
-                            MechanicsManager.registerNativeMechanics();
-                            reloadItems(sender);
-                            reloadPack(sender);
-                            reloadHud(sender);
-                            reloadRecipes(sender);
-                        }
-                    }
-                    for (Player player : Bukkit.getOnlinePlayers()) {
-                        OraxenPlugin.get().getFontManager().sendGlyphTabCompletion(player);
-                    }
+                    String type = (String) args.get("type");
+                    // Reloads rebuild shared registries; keep them off region threads (Folia).
+                    if (SchedulerUtil.isGlobalThread()) reload(sender, type);
+                    else SchedulerUtil.runTask(() -> reload(sender, type));
                 });
+    }
+
+    private static void reload(CommandSender sender, String type) {
+        switch (type.toUpperCase()) {
+            case "HUD" -> reloadHud(sender);
+            case "ITEMS" -> reloadItems(sender);
+            case "PACK" -> reloadPack(sender);
+            case "RECIPES" -> reloadRecipes(sender);
+            case "CONFIGS" -> reloadConfigs(sender);
+            case "MESSAGES" -> reloadMessages(sender);
+            case "PAINTINGS" -> reloadPaintings(sender);
+            case "DISCS" -> reloadDiscs(sender);
+            default -> {
+                MechanicsManager.unloadListeners();
+                MechanicsManager.unregisterTasks();
+                reloadMessages(sender);
+                reloadPaintings(sender);
+                reloadDiscs(sender);
+                MechanicsManager.registerNativeMechanics();
+                reloadItems(sender);
+                reloadPack(sender);
+                reloadHud(sender);
+                reloadRecipes(sender);
+            }
+        }
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            SchedulerUtil.runForEntity(player, () -> OraxenPlugin.get().getFontManager().sendGlyphTabCompletion(player));
+        }
     }
 
 }

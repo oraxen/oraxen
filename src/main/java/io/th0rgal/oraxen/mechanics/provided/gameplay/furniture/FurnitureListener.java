@@ -406,6 +406,11 @@ public class FurnitureListener implements Listener {
         Entity hitEntity = event.getHitEntity();
         Projectile projectile = event.getEntity();
         Player player = projectile.getShooter() instanceof Player ? (Player) projectile.getShooter() : null;
+        if (player != null && !Bukkit.isOwnedByCurrentRegion(player)) {
+            // A shooter owned by another region cannot be checked or credited from this thread (Folia).
+            if (isProjectileHitFurniture(block, hitEntity)) event.setCancelled(true);
+            return;
+        }
         Location location = block != null && block.getType() == Material.BARRIER ? block.getLocation()
                 : hitEntity != null ? hitEntity.getLocation() : null;
         if (location == null || !isProjectileHitFurniture(block, hitEntity)) return;
@@ -447,6 +452,8 @@ public class FurnitureListener implements Listener {
         Player player = projectile.getShooter() instanceof Player ? (Player) projectile.getShooter() : null;
 
         event.setCancelled(true);
+        // A shooter owned by another region cannot be checked or credited from this thread (Folia).
+        if (player != null && !Bukkit.isOwnedByCurrentRegion(player)) return;
         if (mechanic != null && !mechanic.isBreakable()) return;
         if ((mechanic != null && mechanic.hasBarriers()) || !isDamagingProjectile(projectile))
             return;
