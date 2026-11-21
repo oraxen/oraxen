@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
 import com.jeff_media.morepersistentdatatypes.DataType;
 import io.papermc.paper.entity.TeleportFlag;
+import io.papermc.paper.event.player.PlayerTrackEntityEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.events.OraxenItemsLoadedEvent;
 import io.th0rgal.oraxen.configs.Settings;
@@ -38,6 +39,7 @@ import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureM
 final class FurnitureShulkerEntities implements Listener {
 
     private static final NamespacedKey SHULKER_OFFSET_KEY = new NamespacedKey(OraxenPlugin.get(), "shulker_offset");
+    private static final NamespacedKey SHULKER_PEEK_KEY = new NamespacedKey(OraxenPlugin.get(), "shulker_peek");
     private static final NamespacedKey SHULKER_DIRECTION_KEY = new NamespacedKey(OraxenPlugin.get(), "shulker_direction");
     private static final NamespacedKey SHULKER_ROOT_KEY = new NamespacedKey(OraxenPlugin.get(), "shulker_root");
     private static final NamespacedKey SHULKER_YAW_KEY = new NamespacedKey(OraxenPlugin.get(), "shulker_yaw");
@@ -91,13 +93,13 @@ final class FurnitureShulkerEntities implements Listener {
             entity.setInvulnerable(true);
             entity.setPersistent(true);
             entity.setRemoveWhenFarAway(false);
-            entity.setPeek(hitbox.peek() / 100f);
             AttributeInstance scale = entity.getAttribute(AttributeWrapper.SCALE);
             if (scale != null) scale.setBaseValue(hitbox.scale());
             PersistentDataContainer data = entity.getPersistentDataContainer();
             data.set(FURNITURE_KEY, PersistentDataType.STRING, itemId);
             data.set(BASE_ENTITY_KEY, DataType.UUID, baseId);
             data.set(SHULKER_OFFSET_KEY, DataType.asList(PersistentDataType.DOUBLE), List.of(hitbox.x(), hitbox.y(), hitbox.z()));
+            data.set(SHULKER_PEEK_KEY, PersistentDataType.INTEGER, hitbox.peek());
             data.set(SHULKER_DIRECTION_KEY, PersistentDataType.STRING, hitbox.direction().name());
             data.set(SHULKER_ROOT_KEY, DataType.LOCATION, root);
             NMSHandlers.getHandler().trackFurnitureHitbox(entity);
@@ -130,7 +132,15 @@ final class FurnitureShulkerEntities implements Listener {
         }
         // Mounting resets the attached face, so apply it after the shulker rides its vehicle.
         shulker.setAttachedFace(FurnitureShulkerHitbox.attachedFace(direction(shulker), yaw));
+        applyPeek(shulker);
+        // Moving into another block closes a shulker, which happens when it first follows its vehicle.
+        SchedulerUtil.runForEntityLater(shulker, 2L, () -> applyPeek(shulker));
         return true;
+    }
+
+    private static void applyPeek(Shulker shulker) {
+        int peek = shulker.getPersistentDataContainer().getOrDefault(SHULKER_PEEK_KEY, PersistentDataType.INTEGER, 0);
+        if (Math.round(shulker.getPeek() * 100) != peek) shulker.setPeek(peek / 100f);
     }
 
     private static void keepInPeaceful(Shulker shulker) {
@@ -207,7 +217,8 @@ final class FurnitureShulkerEntities implements Listener {
             Entity vehicle = shulker.getVehicle();
             Location current = vehicle.getLocation();
             if (!current.getWorld().equals(target.getWorld()) || current.distanceSquared(target) > 1.0E-8)
-                vehicle.teleportAsync(target, PlayerTeleportEvent.TeleportCause.PLUGIN, TeleportFlag.EntityState.RETAIN_PASSENGERS);
+                vehicle.teleportAsync(target, PlayerTeleportEvent.TeleportCause.PLUGIN, TeleportFlag.EntityState.RETAIN_PASSENGERS)
+                        .thenAccept(success -> SchedulerUtil.runForEntityLater(shulker, 2L, () -> applyPeek(shulker)));
         });
     }
 
@@ -285,6 +296,18 @@ final class FurnitureShulkerEntities implements Listener {
         SchedulerUtil.runOnOwningThread(base, () -> {
             if (links(base).contains(shulker.getUniqueId())) reposition(shulker, base.getLocation(), shulkerYaw(base));
             else SchedulerUtil.runOnOwningThread(shulker, () -> discard(shulker));
+        });
+    }
+
+    // Clients reset the attached face when the shulker mounts its vehicle after its metadata arrives.
+    @EventHandler
+    public void onPlayerTrackEntity(PlayerTrackEntityEvent event) {
+        if (!(event.getEntity() instanceof Shulker shulker) || !isHitbox(shulker)
+                || shulker.getAttachedFace() == BlockFace.DOWN) return;
+        SchedulerUtil.runForEntityLater(shulker, 1L, () -> {
+            BlockFace face = shulker.getAttachedFace();
+            shulker.setAttachedFace(face.getOppositeFace());
+            shulker.setAttachedFace(face);
         });
     }
 
