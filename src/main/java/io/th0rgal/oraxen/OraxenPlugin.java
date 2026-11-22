@@ -262,6 +262,12 @@ public class OraxenPlugin extends JavaPlugin {
         CompatibilitiesManager.disableCompatibilities();
         OraxenCommand.unregisterAll();
         Message.PLUGIN_UNLOADED.log();
+        // The native adapter reaches the NMS handler, so remove the listeners before shutting it down.
+        if (packetAdapter != null) {
+            packetAdapter.removeInventoryListener();
+            packetAdapter.removeTitleListener();
+            packetAdapter.removeScoreboardListener();
+        }
         NMSHandlers.shutdown();
     }
 

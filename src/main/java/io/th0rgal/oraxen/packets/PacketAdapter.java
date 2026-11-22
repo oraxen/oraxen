@@ -41,6 +41,7 @@ public interface PacketAdapter {
     void registerScoreboardListener();
     void registerTitleListener();
     void removeInventoryListener();
+    void removeScoreboardListener();
     void removeTitleListener();
 
     String getLatestMCVersion();
@@ -85,6 +86,10 @@ public interface PacketAdapter {
         @Override
         public void removeInventoryListener() {
 
+        }
+
+        @Override
+        public void removeScoreboardListener() {
         }
 
         @Override

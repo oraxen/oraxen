@@ -568,6 +568,8 @@ public class ResourcePack {
         // (packet listener on Paper 1.20.3+, shaders below, warning on 26.x+).
         if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool())
             textShaderGenerator.hideScoreboardNumbers();
+        else if (OraxenPlugin.get().getPacketAdapter() != null)
+            OraxenPlugin.get().getPacketAdapter().removeScoreboardListener();
     }
 
     /** Runs registered pack modifier callbacks. */

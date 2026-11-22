@@ -50,6 +50,11 @@ public class NativePacketAdapter implements PacketAdapter {
     }
 
     @Override
+    public void removeScoreboardListener() {
+        handler().hideScoreboardNumbers(false);
+    }
+
+    @Override
     public void removeTitleListener() {
         handler().formatTitles(false);
     }
