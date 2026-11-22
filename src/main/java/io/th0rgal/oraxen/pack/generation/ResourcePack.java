@@ -319,6 +319,10 @@ public class ResourcePack {
         }
     }
 
+    public boolean isGenerationInProgress() {
+        return generationInProgress.get();
+    }
+
     public void shutdown() {
         shutdownRequested = true;
         ExecutorService packWorker = activePackWorker;
@@ -622,8 +626,11 @@ public class ResourcePack {
     }
 
     private void postProcessSnapshotAsyncSafe(List<VirtualFile> output, Set<String> malformedTextures) {
-        if (Settings.GENERATE_ATLAS_FILE.toBool())
-            AtlasGenerator.generateAtlasFile(output, malformedTextures);
+        if (Settings.GENERATE_ATLAS_FILE.toBool()) {
+            boolean includeSplitItemAtlas = multiVersionResolved
+                    || PlatformCapabilities.supportsSplitItemAtlas(PlatformCapabilities.currentVersion());
+            AtlasGenerator.generateAtlasFiles(output, malformedTextures, includeSplitItemAtlas);
+        }
 
         if (Settings.MERGE_DUPLICATE_FONTS.toBool())
             DuplicationHandler.mergeFontFiles(output);

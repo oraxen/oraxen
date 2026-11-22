@@ -5,7 +5,9 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockBreaking;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockEvents;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockStateCodec;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.Placeable;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.block.VariationRegistry;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.light.LightMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.utils.OraxenYaml;
@@ -29,8 +31,14 @@ import org.bukkit.persistence.PersistentDataType;
  */
 public class ShapedBlockMechanic extends Mechanic {
 
-    public static final NamespacedKey SHAPED_BLOCK_KEY = new NamespacedKey(OraxenPlugin.get(), "block");
-    private static final NamespacedKey LEGACY_SHAPED_BLOCK_KEY = new NamespacedKey(OraxenPlugin.get(), "shaped_block");
+    @SuppressWarnings("deprecation")
+    public static final NamespacedKey SHAPED_BLOCK_KEY = OraxenPlugin.get() != null
+            ? new NamespacedKey(OraxenPlugin.get(), "block")
+            : new NamespacedKey("oraxen", "block");
+    @SuppressWarnings("deprecation")
+    private static final NamespacedKey LEGACY_SHAPED_BLOCK_KEY = OraxenPlugin.get() != null
+            ? new NamespacedKey(OraxenPlugin.get(), "shaped_block")
+            : new NamespacedKey("oraxen", "shaped_block");
 
     private final ShapedBlockType blockType;
     private final int customVariation;
@@ -57,7 +65,13 @@ public class ShapedBlockMechanic extends Mechanic {
         }
 
         // Parse custom variation (1-4)
-        this.customVariation = section.getInt("custom_variation", 1);
+        this.customVariation = VariationRegistry.resolveOrAllocate(
+                "shaped_" + this.blockType.name().toLowerCase(),
+                getItemID(),
+                section,
+                BlockStateCodec.MIN_SHAPED_VARIATION,
+                BlockStateCodec.MAX_SHAPED_VARIATION
+        );
         if (customVariation < 1 || customVariation > 4) {
             throw new IllegalArgumentException("custom_variation must be between 1 and 4 for shaped blocks");
         }

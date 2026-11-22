@@ -7,6 +7,8 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicConfigProperty;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockStateCodec;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.block.CustomBlockService;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional.DirectionalBlock;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.farmblock.FarmBlockTask;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.logstrip.LogStripListener;
@@ -57,6 +59,8 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     public NoteBlockMechanicFactory(ConfigurationSection section, boolean registerListeners) {
         super(section);
         instance = this;
+        BLOCK_PER_VARIATION.clear();
+        CustomBlockService.clearNoteBlocks();
         variants = new JsonObject();
         variants.add("instrument=harp,powered=false", getModelJson("block/note_block"));
         toolTypes = section.getStringList("tool_types");
@@ -69,24 +73,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     }
 
     public static String getInstrumentName(int id) {
-        return switch ((id % 400) / 25) {
-            case 1 -> "basedrum";
-            case 2 -> "snare";
-            case 3 -> "hat";
-            case 4 -> "bass";
-            case 5 -> "flute";
-            case 6 -> "bell";
-            case 7 -> "guitar";
-            case 8 -> "chime";
-            case 9 -> "xylophone";
-            case 10 -> "iron_xylophone";
-            case 11 -> "cow_bell";
-            case 12 -> "didgeridoo";
-            case 13 -> "bit";
-            case 14 -> "banjo";
-            case 15 -> "pling";
-            default -> "harp";
-        };
+        return BlockStateCodec.getNoteBlockInstrumentName(id);
     }
 
     public static JsonObject getModelJson(String modelName) {
@@ -131,16 +118,15 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     }
 
     public static String getBlockstateVariantName(int id) {
-        id += 26;
-        return getBlockstateVariantName(getInstrumentName(id), id % 25, id >= 400);
+        return BlockStateCodec.formatNoteBlockVariantKey(id);
     }
 
     public static String getBlockstateVariantName(String instrument, int note, boolean powered) {
-        return "instrument=" + instrument + ",note=" + note + ",powered=" + powered;
+        return BlockStateCodec.formatNoteBlockVariantKey(instrument, note, powered);
     }
 
     public static NoteBlockMechanic getBlockMechanic(int customVariation) {
-        return BLOCK_PER_VARIATION.get(customVariation);
+        return CustomBlockService.getNoteBlock(customVariation);
     }
 
     public static boolean isEnabled() {
@@ -239,7 +225,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
                     getModelJson(modelName));
         }
 
-        BLOCK_PER_VARIATION.put(mechanic.getCustomVariation(), mechanic);
+        CustomBlockService.registerNoteBlock(mechanic.getCustomVariation(), mechanic);
         addToImplemented(mechanic);
         return mechanic;
     }
@@ -259,18 +245,8 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
      *
      * @param id The block id.
      */
-    @SuppressWarnings("deprecation")
     public static NoteBlock createNoteBlockData(int id) {
-        /* We have 16 instruments with 25 notes. All of those blocks can be powered.
-         * That's: 16*25*2 = 800 variations. The first 25 variations of PIANO (not powered)
-         * will be reserved for the vanilla behavior. We still have 800-25 = 775 variations
-         */
-        id += 26;
-        NoteBlock noteBlock = (NoteBlock) Bukkit.createBlockData(Material.NOTE_BLOCK);
-        noteBlock.setInstrument(Instrument.getByType((byte) ((id % 400) / 25)));
-        noteBlock.setNote(new Note(id % 25));
-        noteBlock.setPowered(id >= 400);
-        return noteBlock;
+        return BlockStateCodec.encodeNoteBlockVariation(id);
     }
 
     /**

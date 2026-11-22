@@ -270,7 +270,7 @@ public class OraxenPlugin extends JavaPlugin {
         setMultiVersionUploadManager(null);
         setHudManager(null);
         if (studioSyncService != null) {
-            studioSyncService.stop();
+            studioSyncService.shutdown();
         }
         if (resourcePack != null) {
             resourcePack.shutdown();

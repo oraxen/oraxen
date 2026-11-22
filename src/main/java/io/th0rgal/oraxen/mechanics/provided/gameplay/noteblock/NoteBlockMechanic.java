@@ -6,7 +6,9 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockBreaking;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockEvents;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockStateCodec;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.Placeable;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.block.VariationRegistry;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.light.LightMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional.DirectionalBlock;
@@ -28,7 +30,10 @@ import java.util.List;
 
 public class NoteBlockMechanic extends Mechanic {
 
-    public static final NamespacedKey FARMBLOCK_KEY = new NamespacedKey(OraxenPlugin.get(), "farmblock");
+    @SuppressWarnings("deprecation")
+    public static final NamespacedKey FARMBLOCK_KEY = OraxenPlugin.get() != null
+            ? new NamespacedKey(OraxenPlugin.get(), "farmblock")
+            : new NamespacedKey("oraxen", "farmblock");
     private final int customVariation;
     private final BlockBreaking breaking;
     private final Placeable placeable;
@@ -56,7 +61,13 @@ public class NoteBlockMechanic extends Mechanic {
         super(mechanicFactory, section);
 
         model = section.getString("model");
-        customVariation = section.getInt("custom_variation");
+        customVariation = VariationRegistry.resolveOrAllocate(
+                "noteblock",
+                getItemID(),
+                section,
+                BlockStateCodec.MIN_NOTEBLOCK_VARIATION,
+                773
+        );
         breaking = new BlockBreaking(section, getItemID());
         placeable = section.contains("placeable") ? new Placeable(section) : null;
 
