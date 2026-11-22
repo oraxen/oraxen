@@ -5,6 +5,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemDisplay;
+import org.bukkit.util.Transformation;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
@@ -80,7 +81,7 @@ public class DisplayEntityProperties {
             trackingRotation = Display.Billboard.valueOf(configSection.getString("tracking_rotation", Display.Billboard.FIXED.name()));
         } catch (IllegalArgumentException e) {
             Logs.logError("Use of illegal tracking-rotation in " + itemID + " furniture.");
-            Logs.logError("Allowed ones are: " + Arrays.stream(ItemDisplay.ItemDisplayTransform.values()).toList().stream().map(Enum::name));
+            Logs.logError("Allowed ones are: " + Arrays.stream(Display.Billboard.values()).map(Enum::name).toList());
             Logs.logWarning("Set tracking-rotation to FIXED for " + itemID);
             trackingRotation = Display.Billboard.FIXED;
         }
@@ -188,8 +189,11 @@ public class DisplayEntityProperties {
         itemDisplay.setViewRange(Objects.requireNonNullElse(viewRange, 0));
         itemDisplay.setInterpolationDuration(Objects.requireNonNullElse(interpolationDuration, 0));
         itemDisplay.setInterpolationDelay(Objects.requireNonNullElse(interpolationDelay, 0));
-        itemDisplay.getTransformation().getScale().set(Objects.requireNonNullElse(scale, new Vector3f(1,1,1)));
-        itemDisplay.getTransformation().getTranslation().set(Objects.requireNonNullElse(translation, new Vector3f(0,0,0)));
+        Transformation transformation = itemDisplay.getTransformation();
+        float defaultScale = displayTransform == ItemDisplay.ItemDisplayTransform.FIXED ? 0.5f : 1f;
+        transformation.getScale().set(Objects.requireNonNullElse(scale, new Vector3f(defaultScale)));
+        transformation.getTranslation().set(Objects.requireNonNullElse(translation, new Vector3f(0,0,0)));
+        itemDisplay.setTransformation(transformation);
 
         return true;
     }
