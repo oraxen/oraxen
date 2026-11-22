@@ -63,25 +63,25 @@ public final class CustomBlockService {
         SHAPED_BLOCKS.clear();
     }
 
-    public static void registerNoteBlock(int variation, @NotNull NoteBlockMechanic mechanic) {
+    public static @Nullable NoteBlockMechanic registerNoteBlock(int variation, @NotNull NoteBlockMechanic mechanic) {
         if (BlockStateCodec.isValidNoteBlockVariation(variation)) {
             NOTE_BLOCKS.set(variation, mechanic);
         }
-        NoteBlockMechanicFactory.BLOCK_PER_VARIATION.put(variation, mechanic);
+        return NoteBlockMechanicFactory.BLOCK_PER_VARIATION.put(variation, mechanic);
     }
 
-    public static void registerStringBlock(int variation, @NotNull StringBlockMechanic mechanic) {
+    public static @Nullable StringBlockMechanic registerStringBlock(int variation, @NotNull StringBlockMechanic mechanic) {
         if (BlockStateCodec.isValidTripwireVariation(variation)) {
             STRING_BLOCKS.set(variation, mechanic);
         }
-        StringBlockMechanicFactory.BLOCK_PER_VARIATION.put(variation, mechanic);
+        return StringBlockMechanicFactory.BLOCK_PER_VARIATION.put(variation, mechanic);
     }
 
-    public static void registerChorusBlock(int variation, @NotNull ChorusBlockMechanic mechanic) {
+    public static @Nullable ChorusBlockMechanic registerChorusBlock(int variation, @NotNull ChorusBlockMechanic mechanic) {
         if (BlockStateCodec.isValidChorusVariation(variation)) {
             CHORUS_BLOCKS.set(variation, mechanic);
         }
-        ChorusBlockMechanicFactory.BLOCK_PER_VARIATION.put(variation, mechanic);
+        return ChorusBlockMechanicFactory.BLOCK_PER_VARIATION.put(variation, mechanic);
     }
 
     public static void registerShapedBlock(@NotNull Material material, @NotNull ShapedBlockMechanic mechanic) {

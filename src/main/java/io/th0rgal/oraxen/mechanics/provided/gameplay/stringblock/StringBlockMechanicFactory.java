@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicConfigProperty;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockStateCodec;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.CustomBlockService;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingListener;
@@ -166,7 +167,8 @@ public class StringBlockMechanicFactory extends MechanicFactory {
         variants.add(getBlockstateVariantName(mechanic.getCustomVariation()),
                 getModelJson(mechanic.getModel(itemMechanicConfiguration.getParent()
                         .getParent())));
-        CustomBlockService.registerStringBlock(mechanic.getCustomVariation(), mechanic);
+        StringBlockMechanic previous = CustomBlockService.registerStringBlock(mechanic.getCustomVariation(), mechanic);
+        BlockMechanicFactory.logDuplicateVariation(previous, mechanic, mechanic.getCustomVariation());
 
         // Register stackable variations: each stack level gets its own blockstate entry
         // but maps back to the parent mechanic for unified drop/interaction handling
@@ -175,8 +177,9 @@ public class StringBlockMechanicFactory extends MechanicFactory {
                 Logs.logError("Stackable custom_variation " + sv.customVariation() + " of " + mechanic.getItemID() + " must be between 1 and 127!");
                 continue;
             }
-            if (BLOCK_PER_VARIATION.containsKey(sv.customVariation())) {
-                Logs.logError("Stackable custom_variation " + sv.customVariation() + " of " + mechanic.getItemID() + " collides with an existing block!");
+            StringBlockMechanic existing = BLOCK_PER_VARIATION.get(sv.customVariation());
+            if (existing != null) {
+                Logs.logError("Stackable custom_variation " + sv.customVariation() + " of " + mechanic.getItemID() + " is already used by " + existing.getItemID() + "!");
                 continue;
             }
             String stackModel = sv.model() != null ? sv.model()

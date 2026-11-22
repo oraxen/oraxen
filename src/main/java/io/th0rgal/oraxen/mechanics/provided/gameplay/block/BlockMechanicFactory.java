@@ -119,6 +119,18 @@ public class BlockMechanicFactory extends MechanicFactory {
         if (!section.contains(to) && section.contains(from)) section.set(to, section.get(from));
     }
 
+    /**
+     * Logs an error when a block mechanic takes a variation that another item already uses.
+     * A previous mechanic of the same item is a leftover from an items reload, not a conflict.
+     */
+    public static void logDuplicateVariation(@Nullable Mechanic previous, Mechanic mechanic, int variation) {
+        if (previous == null || previous.getItemID().equals(mechanic.getItemID())) return;
+        Logs.logError("The custom_variation " + variation + " of " + mechanic.getItemID()
+                + " is already used by " + previous.getItemID() + "!");
+        Logs.logWarning("Placed " + previous.getItemID() + " blocks will turn into " + mechanic.getItemID()
+                + ". Give each block a unique custom_variation.");
+    }
+
     private String itemId(ConfigurationSection section) {
         ConfigurationSection itemSection = section.getParent() != null ? section.getParent().getParent() : null;
         return itemSection != null ? itemSection.getName() : section.getCurrentPath();

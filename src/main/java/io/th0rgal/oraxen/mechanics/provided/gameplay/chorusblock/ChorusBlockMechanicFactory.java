@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicConfigProperty;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockStateCodec;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.CustomBlockService;
 import io.th0rgal.oraxen.nms.NMSHandlers;
@@ -183,7 +184,8 @@ public class ChorusBlockMechanicFactory extends MechanicFactory {
         }
         variants.add(getBlockstateVariantName(mechanic.getCustomVariation()),
                 getModelJson(mechanic.getModel(itemMechanicConfiguration.getParent().getParent())));
-        CustomBlockService.registerChorusBlock(mechanic.getCustomVariation(), mechanic);
+        ChorusBlockMechanic previous = CustomBlockService.registerChorusBlock(mechanic.getCustomVariation(), mechanic);
+        BlockMechanicFactory.logDuplicateVariation(previous, mechanic, mechanic.getCustomVariation());
         addToImplemented(mechanic);
         return mechanic;
     }

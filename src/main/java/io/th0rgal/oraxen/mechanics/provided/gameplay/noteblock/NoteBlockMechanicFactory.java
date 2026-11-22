@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicConfigProperty;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockStateCodec;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.CustomBlockService;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional.DirectionalBlock;
@@ -230,7 +231,8 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
                     getModelJson(modelName));
         }
 
-        CustomBlockService.registerNoteBlock(mechanic.getCustomVariation(), mechanic);
+        NoteBlockMechanic previous = CustomBlockService.registerNoteBlock(mechanic.getCustomVariation(), mechanic);
+        BlockMechanicFactory.logDuplicateVariation(previous, mechanic, mechanic.getCustomVariation());
         addToImplemented(mechanic);
         return mechanic;
     }
