@@ -23,7 +23,6 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.common.ClientboundUpdateTagsPacket;
@@ -128,9 +127,13 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
         // Players still online after a hot re-enable never pass through the channel initializer again
         for (Player player : org.bukkit.Bukkit.getOnlinePlayers()) {
-            io.netty.channel.Channel channel = ((CraftPlayer) player).getHandle().connection.connection.channel;
-            installHandler(channel, mineableTagKey, this::createMineableTagHandler);
-            installHandler(channel, blockPredictionKey, this::createBlockPredictionHandler);
+            try {
+                io.netty.channel.Channel channel = ((CraftPlayer) player).getHandle().connection.connection.channel;
+                installHandler(channel, mineableTagKey, this::createMineableTagHandler);
+                installHandler(channel, blockPredictionKey, this::createBlockPredictionHandler);
+            } catch (RuntimeException ignored) {
+                // The connection closed concurrently, it no longer needs the handlers
+            }
         }
     }
 
@@ -305,13 +308,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         CompoundTag newTag = newData != null ? newData.copyTag() : new CompoundTag();
 
         for (String key : NmsAccessors.tagKeys(oldTag)) {
-            if (vanillaKeys.contains(key))
-                continue;
-            Tag value = oldTag.get(key);
-            if (value != null)
-                newTag.put(key, value);
-            else
-                NmsAccessors.removeTag(newTag, key);
+            if (!vanillaKeys.contains(key))
+                newTag.put(key, oldTag.get(key));
         }
 
         newNmsItem.set(type, CustomData.of(newTag));
@@ -471,7 +469,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(itemStack);
         for (var entry : components.entrySet()) {
             try {
-                Object location = ResourceLocationHelper.parse("minecraft:" + entry.getKey().toLowerCase());
+                Object location = ResourceLocationHelper.parse("minecraft:" + entry.getKey().toLowerCase(Locale.ROOT));
                 if (location == null) continue;
 
                 DataComponentType componentType = getDataComponentType(location);
@@ -604,7 +602,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                         .map(Object::toString)
                         .orElse("");
 
-                switch (type.toLowerCase()) {
+                switch (type.toLowerCase(Locale.ROOT)) {
                     case "apply_effects" -> handleApplyEffects(consumable, effectSection);
                     case "remove_effects" -> handleRemoveEffects(consumable, effectSection);
                     case "clear_all_effects" -> consumable.onConsume(new ClearAllStatusEffectsConsumeEffect());
@@ -825,17 +823,41 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     // ============ Reflection helpers for ResourceLocation/Identifier compatibility
     // ============
 
+    private static final Method dataComponentTypeLookup = registryLookup(BuiltInRegistries.DATA_COMPONENT_TYPE, "getOptional");
+    private static final Method mobEffectLookup = registryLookup(BuiltInRegistries.MOB_EFFECT, "getOptional");
+    private static final Method soundEventLookup = registryLookup(BuiltInRegistries.SOUND_EVENT, "getOptional");
+    private static final Method entityTypeLookup = registryLookup(BuiltInRegistries.ENTITY_TYPE, "getValue");
+    // SoundEvent constructor takes the location - use reflection since type differs
+    private static final Constructor<?> soundEventConstructor = soundEventConstructor();
+
+    @Nullable
+    private static Method registryLookup(Registry<?> registry, String name) {
+        try {
+            return registry.getClass().getMethod(name, ResourceLocationHelper.getResourceLocationClass());
+        } catch (NoSuchMethodException e) {
+            Logs.debug(e);
+            return null;
+        }
+    }
+
+    @Nullable
+    private static Constructor<?> soundEventConstructor() {
+        try {
+            return SoundEvent.class.getConstructor(ResourceLocationHelper.getResourceLocationClass(), Optional.class);
+        } catch (NoSuchMethodException e) {
+            Logs.debug(e);
+            return null;
+        }
+    }
+
     /**
      * Get DataComponentType by looking up the component location via reflection.
      */
     @SuppressWarnings("unchecked")
     private net.minecraft.core.component.DataComponentType<?> getDataComponentType(Object location) {
         try {
-            java.lang.reflect.Method getOptional = BuiltInRegistries.DATA_COMPONENT_TYPE.getClass()
-                    .getMethod("getOptional", ResourceLocationHelper.getResourceLocationClass());
-            Optional<net.minecraft.core.component.DataComponentType<?>> result = (Optional<net.minecraft.core.component.DataComponentType<?>>) getOptional
-                    .invoke(
-                            BuiltInRegistries.DATA_COMPONENT_TYPE, location);
+            Optional<net.minecraft.core.component.DataComponentType<?>> result = (Optional<net.minecraft.core.component.DataComponentType<?>>) dataComponentTypeLookup
+                    .invoke(BuiltInRegistries.DATA_COMPONENT_TYPE, location);
             return result.orElse(null);
         } catch (Exception e) {
             Logs.logWarning("Failed to get data component type: " + e.getMessage());
@@ -850,9 +872,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     private Optional<MobEffect> getMobEffectOptional(String effectId) {
         try {
             Object location = ResourceLocationHelper.parse(effectId);
-            java.lang.reflect.Method getOptional = BuiltInRegistries.MOB_EFFECT.getClass()
-                    .getMethod("getOptional", ResourceLocationHelper.getResourceLocationClass());
-            return (Optional<MobEffect>) getOptional.invoke(BuiltInRegistries.MOB_EFFECT, location);
+            return (Optional<MobEffect>) mobEffectLookup.invoke(BuiltInRegistries.MOB_EFFECT, location);
         } catch (Exception e) {
             Logs.logWarning("Failed to get mob effect: " + effectId);
             return Optional.empty();
@@ -866,9 +886,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     private Optional<SoundEvent> getSoundEventOptional(String soundId) {
         try {
             Object location = ResourceLocationHelper.parse(soundId);
-            java.lang.reflect.Method getOptional = BuiltInRegistries.SOUND_EVENT.getClass()
-                    .getMethod("getOptional", ResourceLocationHelper.getResourceLocationClass());
-            return (Optional<SoundEvent>) getOptional.invoke(BuiltInRegistries.SOUND_EVENT, location);
+            return (Optional<SoundEvent>) soundEventLookup.invoke(BuiltInRegistries.SOUND_EVENT, location);
         } catch (Exception e) {
             Logs.logWarning("Failed to get sound event: " + soundId);
             return Optional.empty();
@@ -881,10 +899,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     private SoundEvent getSoundEventFromId(String soundId) {
         try {
             Object location = ResourceLocationHelper.parse(soundId);
-            // SoundEvent constructor takes the location - use reflection since type differs
-            java.lang.reflect.Constructor<?> constructor = SoundEvent.class.getConstructor(
-                    ResourceLocationHelper.getResourceLocationClass(), Optional.class);
-            return (SoundEvent) constructor.newInstance(location, Optional.empty());
+            return (SoundEvent) soundEventConstructor.newInstance(location, Optional.empty());
         } catch (Exception e) {
             Logs.logWarning("Failed to create sound event: " + soundId);
             return null;
@@ -983,9 +998,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     private static EntityType<?> getEntityType(String entityId) {
         try {
             Object location = ResourceLocationHelper.parse(entityId);
-            Method getValue = BuiltInRegistries.ENTITY_TYPE.getClass()
-                    .getMethod("getValue", ResourceLocationHelper.getResourceLocationClass());
-            Object entityType = getValue.invoke(BuiltInRegistries.ENTITY_TYPE, location);
+            Object entityType = entityTypeLookup != null ? entityTypeLookup.invoke(BuiltInRegistries.ENTITY_TYPE, location) : null;
             if (entityType instanceof EntityType<?> type) return type;
         } catch (ReflectiveOperationException e) {
             Logs.debug(e);

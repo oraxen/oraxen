@@ -24,6 +24,7 @@ import org.bukkit.inventory.ItemStack;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -35,16 +36,21 @@ import java.util.Set;
 final class NmsAccessors {
 
     private static final boolean is263OrAbove = VersionUtil.uses263PacketAccessors(MinecraftVersion.getCurrentVersion());
+    private static final Method asBukkitMirror = is263OrAbove ? findAsBukkitMirror() : null;
 
     private NmsAccessors() {
     }
 
-    static Set<String> tagKeys(CompoundTag tag) {
-        return tag.keySet();
+    private static Method findAsBukkitMirror() {
+        try {
+            return CraftItemStack.class.getMethod("asBukkitMirror", net.minecraft.world.item.ItemStack.class);
+        } catch (NoSuchMethodException e) {
+            return null;
+        }
     }
 
-    static void removeTag(CompoundTag tag, String key) {
-        tag.remove(key);
+    static Set<String> tagKeys(CompoundTag tag) {
+        return tag.keySet();
     }
 
     @SuppressWarnings("unchecked") // The renamed accessor retains the same Map key/value types.
@@ -130,9 +136,8 @@ final class NmsAccessors {
             // 26.3 removed asCraftMirror and changed asBukkitCopy's parameter type.
             // Mirror a copied stack to preserve independent Bukkit copy semantics.
             try {
-                return ItemStack.class.cast(CraftItemStack.class
-                        .getMethod("asBukkitMirror", net.minecraft.world.item.ItemStack.class)
-                        .invoke(null, nmsItem.copy()));
+                if (asBukkitMirror == null) throw new NoSuchMethodException("CraftItemStack#asBukkitMirror");
+                return ItemStack.class.cast(asBukkitMirror.invoke(null, nmsItem.copy()));
             } catch (ReflectiveOperationException e) {
                 throw new IllegalStateException("Failed to copy 26.3 item stack", e);
             }

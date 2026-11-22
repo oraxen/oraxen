@@ -50,6 +50,8 @@ final class PacketHandler {
     private final NamespacedKey key;
     private final TridentPacketHandler tridents = new TridentPacketHandler();
     private final Map<Integer, net.minecraft.world.entity.Entity> furnitureHitboxes = new ConcurrentHashMap<>();
+    // Objectives only need a scoreboard to be constructed; the rewritten packet never reads it.
+    private final Scoreboard objectiveScoreboard = new Scoreboard();
     private volatile boolean formatInventoryTitles;
     private volatile boolean formatTitles;
     private volatile boolean hideScoreboardNumbers;
@@ -206,7 +208,7 @@ final class PacketHandler {
 
     private ClientboundSetObjectivePacket transformObjective(ClientboundSetObjectivePacket packet) {
         if (!hideScoreboardNumbers || packet.getMethod() == ClientboundSetObjectivePacket.METHOD_REMOVE) return packet;
-        Objective nativeObjective = new Objective(new Scoreboard(), packet.getObjectiveName(), ObjectiveCriteria.DUMMY,
+        Objective nativeObjective = new Objective(objectiveScoreboard, packet.getObjectiveName(), ObjectiveCriteria.DUMMY,
                 packet.getDisplayName(), packet.getRenderType(), false, BlankFormat.INSTANCE);
         return new ClientboundSetObjectivePacket(nativeObjective, packet.getMethod());
     }

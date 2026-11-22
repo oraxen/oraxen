@@ -32,6 +32,7 @@ final class NmsAccessors {
 
     private static final Method tagKeyLocationMethod;
     private static final Method resourceKeyLocationMethod;
+    private static final Method tagKeysMethod = findTagKeysMethod();
 
     static {
         try {
@@ -58,25 +59,24 @@ final class NmsAccessors {
                 resourceLocationClass.getSimpleName().equals("Identifier") ? "identifier" : "location");
     }
 
-    @SuppressWarnings("unchecked")
-    static Set<String> tagKeys(CompoundTag tag) {
+    private static Method findTagKeysMethod() {
         for (String methodName : List.of("keySet", "getAllKeys")) {
             try {
-                return (Set<String>) CompoundTag.class.getMethod(methodName).invoke(tag);
+                return CompoundTag.class.getMethod(methodName);
             } catch (NoSuchMethodException ignored) {
                 // CompoundTag renamed this method between 1.21.4 and 1.21.5.
-            } catch (ReflectiveOperationException exception) {
-                throw new IllegalStateException("Could not read custom item data keys", exception);
             }
         }
-        throw new IllegalStateException("Could not find a CompoundTag key iterator");
+        return null;
     }
 
-    static void removeTag(CompoundTag tag, String key) {
+    @SuppressWarnings("unchecked")
+    static Set<String> tagKeys(CompoundTag tag) {
+        if (tagKeysMethod == null) throw new IllegalStateException("Could not find a CompoundTag key iterator");
         try {
-            CompoundTag.class.getMethod("remove", String.class).invoke(tag, key);
+            return (Set<String>) tagKeysMethod.invoke(tag);
         } catch (ReflectiveOperationException exception) {
-            throw new IllegalStateException("Could not remove custom item data key " + key, exception);
+            throw new IllegalStateException("Could not read custom item data keys", exception);
         }
     }
 
