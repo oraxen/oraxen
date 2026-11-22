@@ -150,7 +150,7 @@ public class AtlasGenerator {
 
         for (TextureRef ref : sorted) {
             JsonObject entry = new JsonObject();
-            if (directoryMode && !forceSingleEntryTextures.contains(ref)) {
+            if (directoryMode && !forceSingleEntryTextures.contains(ref) && ref.path().contains("/")) {
                 String dir = StringUtils.substringBeforeLast(ref.path(), "/");
                 entry.addProperty("type", "directory");
                 entry.addProperty("source", dir);
@@ -179,15 +179,16 @@ public class AtlasGenerator {
             if (!element.isJsonObject()) continue;
             JsonObject obj = element.getAsJsonObject();
             if (!obj.has("source")) continue;
-            String source = obj.get("source").getAsString();
-            if (source.contains("/")) {
-                String parentDir = StringUtils.substringBefore(source, "/");
+            String parentDir = obj.get("source").getAsString();
+            while (parentDir.contains("/")) {
+                parentDir = StringUtils.substringBeforeLast(parentDir, "/");
                 JsonObject parentObject = new JsonObject();
                 parentObject.addProperty("type", "directory");
                 parentObject.addProperty("source", parentDir);
                 parentObject.addProperty("prefix", parentDir + "/");
                 if (atlasContent.contains(parentObject)) {
                     remove.add(element);
+                    break;
                 }
             }
         }
