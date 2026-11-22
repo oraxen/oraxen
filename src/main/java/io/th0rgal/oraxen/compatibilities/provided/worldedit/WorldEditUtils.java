@@ -14,10 +14,10 @@ import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.configs.Settings;
-import io.th0rgal.oraxen.utils.BlockHelpers;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -65,45 +65,32 @@ public class WorldEditUtils {
     }
 
     private static List<Block> getBlocksInSchematic(Clipboard clipboard, Location loc) {
-        return collectBlocksFromClipboard(clipboard, loc);
+        return toRegion(clipboard).getBlocks(loc);
     }
 
     public static List<Block> getBlocksInSchematic(Location loc, File schematic) {
-        World world = loc.getWorld();
-        if (world == null) return new ArrayList<>();
+        WrappedWorldEdit.SchematicRegion region = getSchematicRegion(schematic);
+        return region != null ? region.getBlocks(loc) : new ArrayList<>();
+    }
 
+    @Nullable
+    static WrappedWorldEdit.SchematicRegion getSchematicRegion(File schematic) {
         ClipboardFormat clipboardFormat = ClipboardFormats.findByFile(schematic);
-        if (clipboardFormat == null) return new ArrayList<>();
+        if (clipboardFormat == null) return null;
 
         try (FileInputStream inputStream = new FileInputStream(schematic);
              ClipboardReader reader = clipboardFormat.getReader(inputStream)) {
-            Clipboard clipboard = reader.read();
-            return collectBlocksFromClipboard(clipboard, loc);
+            return toRegion(reader.read());
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            Logs.logWarning("Could not read the schematic " + schematic.getName());
+            Logs.debug(e);
+            return null;
         }
     }
 
-    private static List<Block> collectBlocksFromClipboard(Clipboard clipboard, Location loc) {
-        List<Block> list = new ArrayList<>();
-        World world = loc.getWorld();
-        if (world == null) return list;
-
-        BlockVector3 min = clipboard.getMinimumPoint();
-        BlockVector3 max = clipboard.getMaximumPoint();
-        BlockVector3 origin = clipboard.getOrigin();
-
-        for (int x = min.x(); x <= max.x(); x++) {
-            for (int y = min.y(); y <= max.y(); y++) {
-                for (int z = min.z(); z <= max.z(); z++) {
-                    Location offset = new Location(world, x - origin.x(), y - origin.y(), z - origin.z());
-                    Block block = world.getBlockAt(loc.clone().add(offset));
-                    if (BlockHelpers.isReplaceable(block)) continue;
-                    if (loc.toBlockLocation().equals(block.getLocation().toBlockLocation())) continue;
-                    list.add(block);
-                }
-            }
-        }
-        return list;
+    private static WrappedWorldEdit.SchematicRegion toRegion(Clipboard clipboard) {
+        BlockVector3 min = clipboard.getMinimumPoint().subtract(clipboard.getOrigin());
+        BlockVector3 max = clipboard.getMaximumPoint().subtract(clipboard.getOrigin());
+        return new WrappedWorldEdit.SchematicRegion(min.x(), min.y(), min.z(), max.x(), max.y(), max.z());
     }
 }

@@ -1,9 +1,11 @@
 package io.th0rgal.oraxen.compatibilities.provided.worldedit;
 
+import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.PluginUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -33,5 +35,33 @@ public class WrappedWorldEdit {
     public static List<Block> getBlocksInSchematic(Location loc, File schematic) {
         if (loaded) return WorldEditUtils.getBlocksInSchematic(loc, schematic);
         else return new ArrayList<>();
+    }
+
+    @Nullable
+    public static SchematicRegion getSchematicRegion(File schematic) {
+        return loaded ? WorldEditUtils.getSchematicRegion(schematic) : null;
+    }
+
+    /**
+     * The block offsets a schematic covers around the location it is pasted at.
+     */
+    public record SchematicRegion(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+
+        /**
+         * Returns the blocks the schematic would replace, without the paste location itself.
+         */
+        public List<Block> getBlocks(Location loc) {
+            List<Block> blocks = new ArrayList<>();
+            if (loc.getWorld() == null) return blocks;
+            Block origin = loc.getBlock();
+            for (int x = minX; x <= maxX; x++)
+                for (int y = minY; y <= maxY; y++)
+                    for (int z = minZ; z <= maxZ; z++) {
+                        Block block = origin.getRelative(x, y, z);
+                        if (BlockHelpers.isReplaceable(block) || block.equals(origin)) continue;
+                        blocks.add(block);
+                    }
+            return blocks;
+        }
     }
 }
