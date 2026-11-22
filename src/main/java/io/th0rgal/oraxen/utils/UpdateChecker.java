@@ -26,7 +26,8 @@ import java.util.regex.Pattern;
 public final class UpdateChecker implements Listener {
     private static final URI LATEST_RELEASE = URI.create("https://api.github.com/repos/oraxen/oraxen/releases/latest");
     private static final Pattern INTERVAL = Pattern.compile("(?i)^([1-9]\\d*)([smhd])$");
-    private static final Pattern VERSION = Pattern.compile("(?i)^v?(\\d+(?:\\.\\d+)*)(?:[-+].*)?$");
+    private static final Pattern VERSION = Pattern.compile("(?i)^v?(\\d+(?:\\.\\d+)*)(?:-([^+]+))?(?:\\+.*)?$");
+    private static final Pattern NUMERIC = Pattern.compile("\\d+");
     // GitHub allows 60 unauthenticated requests per hour and IP, shared by every server on that IP
     static final long MIN_INTERVAL = TimeUnit.MINUTES.toMillis(10);
     static final long DEFAULT_INTERVAL = TimeUnit.HOURS.toMillis(24);
@@ -157,7 +158,26 @@ public final class UpdateChecker implements Listener {
                     .compareTo(new java.math.BigInteger(i < currentParts.length ? currentParts[i] : "0"));
             if (difference != 0) return difference;
         }
-        return 0;
+        // A release is newer than any of its pre-releases, such as 1.200.0-beta.1
+        String latestPreRelease = latestMatch.group(2);
+        String currentPreRelease = currentMatch.group(2);
+        if (latestPreRelease == null || currentPreRelease == null)
+            return Boolean.compare(latestPreRelease == null, currentPreRelease == null);
+        return comparePreReleases(latestPreRelease.split("\\."), currentPreRelease.split("\\."));
+    }
+
+    private static int comparePreReleases(String[] latestParts, String[] currentParts) {
+        for (int i = 0; i < Math.min(latestParts.length, currentParts.length); i++) {
+            boolean latestNumeric = NUMERIC.matcher(latestParts[i]).matches();
+            boolean currentNumeric = NUMERIC.matcher(currentParts[i]).matches();
+            int difference;
+            if (latestNumeric && currentNumeric)
+                difference = new java.math.BigInteger(latestParts[i]).compareTo(new java.math.BigInteger(currentParts[i]));
+            else if (latestNumeric != currentNumeric) difference = latestNumeric ? -1 : 1;
+            else difference = latestParts[i].compareToIgnoreCase(currentParts[i]);
+            if (difference != 0) return difference;
+        }
+        return Integer.compare(latestParts.length, currentParts.length);
     }
 
 }
