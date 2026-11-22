@@ -76,7 +76,7 @@ public class UpdateCommand {
         return new OraxenCommand("furniture")
                 .withOptionalArguments(new IntegerArgument("radius"))
                 .executesPlayer((player, args) -> {
-                    int radius = Math.min((int) args.getOptional("radius").orElse(10), MAX_RADIUS);
+                    int radius = Math.clamp((int) args.getOptional("radius").orElse(10), 0, MAX_RADIUS);
                     final Collection<Entity> targets = player.getNearbyEntities(radius, radius, radius).stream().filter(OraxenFurniture::isBaseEntity).toList();
                     // Entity mutation belongs on each entity's owning thread (Folia).
                     for (Entity entity : targets) SchedulerUtil.runForEntity(entity, () -> OraxenFurniture.updateFurniture(entity));

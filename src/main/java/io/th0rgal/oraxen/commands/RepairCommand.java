@@ -24,8 +24,13 @@ public class RepairCommand {
                 .withPermission("oraxen.command.repair")
                 .withArguments(new TextArgument("type").replaceSuggestions(ArgumentSuggestions.strings("hand", "all")))
                 .executes((sender, args) -> {
+                    if (!(sender instanceof Player player)) {
+                        Message.NOT_PLAYER.send(sender);
+                        return;
+                    }
 
-                    if (sender instanceof Player player) if (args.get("type").equals("hand")) {
+                    String type = (String) args.get("type");
+                    if ("hand".equals(type)) {
                         ItemStack item = player.getInventory().getItemInMainHand();
                         if (item.getType() == Material.AIR) {
                             Message.CANNOT_BE_REPAIRED_INVALID.send(sender);
@@ -34,25 +39,26 @@ public class RepairCommand {
                         if (repairPlayerItem(item))
                             Message.CANNOT_BE_REPAIRED.send(sender);
 
+                    } else if (!"all".equals(type)) {
+                        AdventureUtils.sendMessage(sender, AdventureUtils.MINI_MESSAGE.deserialize(
+                                "<prefix> <red>Unknown repair type <white>" + AdventureUtils.MINI_MESSAGE.escapeTags(type) + "<red>. Use <white>hand<red> or <white>all<red>."));
                     } else if (player.hasPermission("oraxen.command.repair.all")) {
                         ItemStack[] items = ArrayUtils.addAll(player.getInventory().getStorageContents(),
                                 player.getInventory().getArmorContents());
-                        int failed = 0;
+                        int repaired = 0;
                         for (ItemStack item : items) {
                             if (item == null || item.getType() == Material.AIR)
                                 continue;
-                            if (repairPlayerItem(item)) {
+                            if (repairPlayerItem(item))
                                 Message.CANNOT_BE_REPAIRED.send(sender);
-                                failed++;
-                            }
+                            else
+                                repaired++;
                         }
                         Message.REPAIRED_ITEMS.send(sender,
-                                AdventureUtils.tagResolver("amount", String.valueOf(items.length - failed)));
+                                AdventureUtils.tagResolver("amount", String.valueOf(repaired)));
                     } else
                         Message.NO_PERMISSION.send(sender,
                                 AdventureUtils.tagResolver("permission", "oraxen.command.repair.all"));
-                    else
-                        Message.NOT_PLAYER.send(sender);
                 });
     }
 
