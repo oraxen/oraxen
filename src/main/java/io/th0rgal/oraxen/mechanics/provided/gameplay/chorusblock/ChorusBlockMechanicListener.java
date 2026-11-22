@@ -404,8 +404,12 @@ public class ChorusBlockMechanicListener implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onExplosionDestroy(EntityExplodeEvent event) {
+        if (VersionUtil.atOrAbove("1.21")) {
+            ExplosionResult result = event.getExplosionResult();
+            if (result != ExplosionResult.DESTROY && result != ExplosionResult.DESTROY_WITH_DECAY) return;
+        }
         List<Block> blockList = event.blockList().stream()
                 .filter(block -> block.getType().equals(Material.CHORUS_PLANT))
                 .toList();
@@ -436,8 +440,12 @@ public class ChorusBlockMechanicListener implements Listener {
         });
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockExplosionDestroy(BlockExplodeEvent event) {
+        if (VersionUtil.atOrAbove("1.21")) {
+            ExplosionResult result = event.getExplosionResult();
+            if (result != ExplosionResult.DESTROY && result != ExplosionResult.DESTROY_WITH_DECAY) return;
+        }
         List<Block> blockList = event.blockList().stream()
                 .filter(block -> block.getType().equals(Material.CHORUS_PLANT))
                 .toList();
