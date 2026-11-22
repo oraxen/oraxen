@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.farming.bottledexp;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
 
 public class BottledExpMechanic extends Mechanic {
 
@@ -25,6 +26,11 @@ public class BottledExpMechanic extends Mechanic {
 
     public int getBottleEquivalent(int level, float xp) {
         return (int) Math.ceil((xp + levelToExp(level)) * ratio / 10.0f);
+    }
+
+    public int getBottleEquivalent(Player player) {
+        // getExp() is the progress towards the next level as a fraction, not a point count.
+        return getBottleEquivalent(player.getLevel(), player.getExp() * player.getExpToLevel());
     }
 
 }

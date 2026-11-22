@@ -16,7 +16,7 @@ public class CommandsMechanicFactory extends MechanicFactory {
     @ConfigProperty(type = PropertyType.STRING, description = "Permission required to use the item")
     public static final String PROP_PERMISSION = "permission";
 
-    @ConfigProperty(type = PropertyType.INTEGER, description = "Cooldown between uses in ticks", defaultValue = "0", min = 0)
+    @ConfigProperty(type = PropertyType.INTEGER, description = "Cooldown between uses in milliseconds", defaultValue = "0", min = 0)
     public static final String PROP_COOLDOWN = "cooldown";
 
     @ConfigProperty(type = PropertyType.BOOLEAN, description = "Whether the item is consumed on use", defaultValue = "false")

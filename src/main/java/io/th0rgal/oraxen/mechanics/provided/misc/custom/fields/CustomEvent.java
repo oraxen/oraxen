@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.utils.actions.ClickAction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class CustomEvent {
 
@@ -15,7 +16,13 @@ public class CustomEvent {
 
     public CustomEvent(String action, boolean oneUsage) {
         String[] actionParams = action.split(":");
-        type = CustomEventType.valueOf(actionParams[0]);
+        String typeName = actionParams.length > 0 ? actionParams[0] : "";
+        try {
+            type = CustomEventType.valueOf(typeName);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Unknown event \"" + typeName + "\". Valid events: "
+                    + Arrays.stream(CustomEventType.values()).map(Enum::name).collect(Collectors.joining(", ")) + ".", e);
+        }
         params.addAll(Arrays.asList(actionParams).subList(1, actionParams.length));
         this.oneUsage = oneUsage;
     }

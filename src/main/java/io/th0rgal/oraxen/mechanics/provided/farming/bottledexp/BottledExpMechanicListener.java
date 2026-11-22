@@ -44,7 +44,7 @@ public class BottledExpMechanicListener implements Listener {
         EquipmentSlot hand = event.getHand();
         if (hand == null) return;
 
-        int bottlesAmount = mechanic.getBottleEquivalent(player.getLevel(), player.getExp());
+        int bottlesAmount = mechanic.getBottleEquivalent(player);
         if (bottlesAmount <= 0) {
             Message.NOT_ENOUGH_EXP.send(player);
             return;

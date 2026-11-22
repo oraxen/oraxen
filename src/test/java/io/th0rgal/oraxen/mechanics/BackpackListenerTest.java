@@ -106,6 +106,23 @@ class BackpackListenerTest extends MechanicTestSupport {
     }
 
     @Test
+    void rightClickWithOtherItemsLeavesTheInteractionAlone() {
+        try (BackpackFixture fixture = new BackpackFixture()) {
+            PlayerInteractEvent event = mock(PlayerInteractEvent.class);
+            when(event.getAction()).thenReturn(Action.RIGHT_CLICK_AIR);
+            when(event.getHand()).thenReturn(EquipmentSlot.HAND);
+            when(event.getPlayer()).thenReturn(fixture.player);
+            when(event.getItem()).thenReturn(mock(ItemStack.class));
+
+            fixture.listener.onPlayerInteract(event);
+
+            verify(event, never()).setUseItemInHand(any());
+            verify(event, never()).setUseInteractedBlock(any());
+            verify(fixture.builder, never()).create();
+        }
+    }
+
+    @Test
     void doesNotOverwriteAnUnrelatedItemInTheOriginalSlot() {
         try (BackpackFixture fixture = new BackpackFixture()) {
             fixture.open();
@@ -276,6 +293,7 @@ class BackpackListenerTest extends MechanicTestSupport {
             when(event.getAction()).thenReturn(Action.RIGHT_CLICK_AIR);
             when(event.getHand()).thenReturn(EquipmentSlot.HAND);
             when(event.getPlayer()).thenReturn(player);
+            when(event.getItem()).thenReturn(original);
             listener.onPlayerInteract(event);
             executeOpen(gui);
         }

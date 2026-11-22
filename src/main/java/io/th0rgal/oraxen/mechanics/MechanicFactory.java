@@ -11,15 +11,15 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class MechanicFactory {
 
-    private final Map<String, Mechanic> mechanicByItem = new HashMap<>();
+    private final Map<String, Mechanic> mechanicByItem = new ConcurrentHashMap<>();
     private final String mechanicId;
     private final ConfigurationSection section;
 
@@ -237,19 +237,19 @@ public abstract class MechanicFactory {
     }
 
     public boolean isNotImplementedIn(String itemID) {
-        return !mechanicByItem.containsKey(itemID);
+        return itemID == null || !mechanicByItem.containsKey(itemID);
     }
 
     public boolean isNotImplementedIn(ItemStack itemStack) {
-        return !mechanicByItem.containsKey(OraxenItems.getIdByItem(itemStack));
+        return isNotImplementedIn(OraxenItems.getIdByItem(itemStack));
     }
 
     public Mechanic getMechanic(String itemID) {
-        return mechanicByItem.get(itemID);
+        return itemID == null ? null : mechanicByItem.get(itemID);
     }
 
     public Mechanic getMechanic(ItemStack itemStack) {
-        return mechanicByItem.get(OraxenItems.getIdByItem(itemStack));
+        return getMechanic(OraxenItems.getIdByItem(itemStack));
     }
 
     public String getMechanicID() {

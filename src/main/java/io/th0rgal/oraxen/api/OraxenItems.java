@@ -24,6 +24,7 @@ import org.bukkit.inventory.meta.components.JukeboxPlayableComponent;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
+import io.th0rgal.oraxen.mechanics.provided.misc.custom.CustomMechanic;
 import io.th0rgal.oraxen.mechanics.provided.combat.trident.TridentMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureModelData;
 import javax.annotation.Nullable;
@@ -45,6 +46,7 @@ public class OraxenItems {
             var tridentFactory = TridentMechanicFactory.get();
             if (tridentFactory != null) tridentFactory.clearMechanics();
             VariationRegistry.resetSessionReservations();
+            CustomMechanic.unregisterListeners();
             ItemLoader.MODEL_DATAS_BY_ID.clear();
             ModelData.DATAS.clear();
             OraxenPlugin.get().getConfigsManager().assignAllUsedModelDatas();
