@@ -23,6 +23,7 @@ public class HudEvents implements Listener {
         final Player player = event.getPlayer();
         final PersistentDataContainer pdc = player.getPersistentDataContainer();
         Hud hud = hudManager.getActiveHud(player);
+        final boolean hasStoredHud = hud != null;
         if (hud == null) hud = hudManager.getDefaultEnabledHuds().stream().findFirst().orElse(null);
         String hudId = hudManager.getHudID(hud);
 
@@ -45,8 +46,7 @@ public class HudEvents implements Listener {
             return;
         }
 
-        pdc.set(hudManager.hudDisplayKey, DataType.STRING, hudManager.getHudID(hud));
-        pdc.set(hudManager.hudToggleKey, DataType.BOOLEAN, true);
+        if (!hasStoredHud) pdc.set(hudManager.hudDisplayKey, DataType.STRING, hudId);
         hudManager.updateHud(player);
     }
 

@@ -26,15 +26,14 @@ public class HudManager {
     public final NamespacedKey hudToggleKey;
     public final NamespacedKey hudDisplayKey;
     private final HudEvents hudEvents;
-    private static HudTask hudTask;
-    private static boolean hudTaskEnabled;
+    private HudTask hudTask;
+    private boolean hudTaskEnabled;
     private final Map<String, Hud> huds;
 
     public HudManager(final ConfigsManager hudManager) {
         final ConfigurationSection hudSection = getHudConfigSection();
         hudUpdateTime = hudManager.getHud().getInt("update_time_in_ticks", 40);
         hudEvents = new HudEvents();
-        hudTaskEnabled = false;
         hudToggleKey = new NamespacedKey(OraxenPlugin.get(), "hud_toggle");
         hudDisplayKey = new NamespacedKey(OraxenPlugin.get(), "hud_display");
         huds = new HashMap<>();
