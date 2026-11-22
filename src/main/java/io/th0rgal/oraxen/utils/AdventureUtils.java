@@ -26,10 +26,18 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
+import java.util.regex.Pattern;
 
 public class AdventureUtils {
 
+    private static final Pattern BACKSLASH_REMOVAL = Pattern.compile(PacketHelpers.BACKSLASH_REMOVAL_REGEX);
+    private static final Pattern BACKSLASH_REMOVAL_KEEP_COLON = Pattern.compile(PacketHelpers.BACKSLASH_REMOVAL_REGEX + "(?!:)");
+
     private AdventureUtils() {
+    }
+
+    static String removeBackslashes(String text) {
+        return BACKSLASH_REMOVAL.matcher(text).replaceAll("");
     }
 
     public static final MiniMessage MINI_MESSAGE_EMPTY = MiniMessage.miniMessage();
@@ -87,8 +95,7 @@ public class AdventureUtils {
      * a later MiniMessage deserialization instead of degrading into literal section-sign codes.
      */
     public static String parseSafePlayerInput(String message) {
-        String miniMessage = MINI_MESSAGE.serialize(LEGACY_SERIALIZER.deserialize(message))
-                .replaceAll("\\\\(?!u)(?!n)(?!\")", "");
+        String miniMessage = removeBackslashes(MINI_MESSAGE.serialize(LEGACY_SERIALIZER.deserialize(message)));
         return MINI_MESSAGE.serialize(SAFE_PLAYER_INPUT_MINI_MESSAGE.deserialize(miniMessage));
     }
 
@@ -197,15 +204,15 @@ public class AdventureUtils {
      * @return The original string, serialized and deserialized through MiniMessage
      */
     public static String parseMiniMessage(String message) {
-        return MINI_MESSAGE.serialize(MINI_MESSAGE.deserialize(message)).replaceAll("\\\\(?!u)(?!n)(?!\")", "");
+        return removeBackslashes(MINI_MESSAGE.serialize(MINI_MESSAGE.deserialize(message)));
     }
 
     public static String parseMiniMessage(String message, @Nullable TagResolver tagResolver) {
-        return MINI_MESSAGE.serialize((tagResolver != null ? MINI_MESSAGE.deserialize(message, tagResolver) : MINI_MESSAGE.deserialize(message))).replaceAll("\\\\(?!u)(?!n)(?!\")", "");
+        return removeBackslashes(MINI_MESSAGE.serialize((tagResolver != null ? MINI_MESSAGE.deserialize(message, tagResolver) : MINI_MESSAGE.deserialize(message))));
     }
 
     public static String parseMiniMessage(String message, Player player) {
-        return MINI_MESSAGE_EMPTY.serialize(MINI_MESSAGE_PLAYER(player).deserialize(message)).replaceAll("\\\\(?!u)(?!n)(?!\")", "");
+        return removeBackslashes(MINI_MESSAGE_EMPTY.serialize(MINI_MESSAGE_PLAYER(player).deserialize(message)));
     }
 
     /**
@@ -213,15 +220,15 @@ public class AdventureUtils {
      * @return The original component, serialized and deserialized through MiniMessage
      */
     public static Component parseMiniMessage(Component message) {
-        return MINI_MESSAGE.deserialize(MINI_MESSAGE.serialize(message).replaceAll("\\\\(?!u)(?!n)(?!\")", ""));
+        return MINI_MESSAGE.deserialize(removeBackslashes(MINI_MESSAGE.serialize(message)));
     }
 
     public static Component parseMiniMessage(Component message, TagResolver tagResolver) {
-        return MINI_MESSAGE.deserialize(MINI_MESSAGE.serialize(message).replaceAll("\\\\(?!u)(?!n)(?!\")", ""), tagResolver);
+        return MINI_MESSAGE.deserialize(removeBackslashes(MINI_MESSAGE.serialize(message)), tagResolver);
     }
 
     public static Component parseMiniMessage(Component message, Player player) {
-        return MINI_MESSAGE_PLAYER(player).deserialize(MINI_MESSAGE_EMPTY.serialize(message).replaceAll("\\\\(?!u)(?!n)(?!\")", ""));
+        return MINI_MESSAGE_PLAYER(player).deserialize(removeBackslashes(MINI_MESSAGE_EMPTY.serialize(message)));
     }
 
     /**
@@ -230,7 +237,7 @@ public class AdventureUtils {
      * @return The parsed string
      */
     public static String parseLegacy(String message) {
-        return MINI_MESSAGE.serialize(LEGACY_SERIALIZER.deserialize(message)).replaceAll("\\\\(?!u)(?!n)(?!\")", "");
+        return removeBackslashes(MINI_MESSAGE.serialize(LEGACY_SERIALIZER.deserialize(message)));
     }
 
     public static Component parseLegacy(Component message) {
@@ -248,20 +255,20 @@ public class AdventureUtils {
      * @return The parsed string
      */
     public static String parseLegacyThroughMiniMessage(String message) {
-        return LEGACY_SERIALIZER.serialize(MINI_MESSAGE.deserialize(MINI_MESSAGE.serialize(LEGACY_SERIALIZER.deserialize(message)).replaceAll("\\\\(?!u)(?!n)(?!\")", "")));
+        return LEGACY_SERIALIZER.serialize(MINI_MESSAGE.deserialize(removeBackslashes(MINI_MESSAGE.serialize(LEGACY_SERIALIZER.deserialize(message)))));
     }
 
     public static String parseLegacyThroughMiniMessage(String message, Player player) {
         MiniMessage mm = player != null ? MINI_MESSAGE_PLAYER(player) : MINI_MESSAGE;
-        return LEGACY_SERIALIZER.serialize(mm.deserialize(mm.serialize(LEGACY_SERIALIZER.deserialize(message)).replaceAll("\\\\(?!u)(?!n)(?!\")", "")));
+        return LEGACY_SERIALIZER.serialize(mm.deserialize(removeBackslashes(mm.serialize(LEGACY_SERIALIZER.deserialize(message)))));
     }
 
     public static String parseLegacyThroughMiniMessage(Component message) {
-        return LEGACY_SERIALIZER.serialize(MINI_MESSAGE.deserialize(LEGACY_SERIALIZER.serialize(message).replaceAll("\\\\(?!u)(?!n)(?!\")", "")));
+        return LEGACY_SERIALIZER.serialize(MINI_MESSAGE.deserialize(removeBackslashes(LEGACY_SERIALIZER.serialize(message))));
     }
 
     public static String parseMiniMessageThroughLegacy(Component message) {
-        return MINI_MESSAGE.serialize(LEGACY_SERIALIZER.deserialize(MINI_MESSAGE.serialize(message).replace("&", "§"))).replaceAll("\\\\(?!u)(?!n)(?!\")", "");
+        return removeBackslashes(MINI_MESSAGE.serialize(LEGACY_SERIALIZER.deserialize(MINI_MESSAGE.serialize(message).replace("&", "§"))));
     }
 
     /**
@@ -269,7 +276,7 @@ public class AdventureUtils {
      * @return The original string, parsed with GsonComponentSerializer
      */
     public static String parseJson(String message) {
-        return GSON_SERIALIZER.serialize(GSON_SERIALIZER.deserialize(message)).replaceAll("\\\\(?!u)(?!n)(?!\")", "");
+        return removeBackslashes(GSON_SERIALIZER.serialize(GSON_SERIALIZER.deserialize(message)));
     }
 
     /**
@@ -277,19 +284,20 @@ public class AdventureUtils {
      * @return The original component, parsed with GsonSerializer
      */
     public static Component parseJson(Component message) {
-        return GSON_SERIALIZER.deserialize(GSON_SERIALIZER.serialize(message).replaceAll("\\\\(?!u)(?!n)(?!\")", ""));
+        return GSON_SERIALIZER.deserialize(removeBackslashes(GSON_SERIALIZER.serialize(message)));
     }
 
     public static String parseJsonThroughMiniMessage(String message) {
-        return GSON_SERIALIZER.serialize(MINI_MESSAGE.deserialize(MINI_MESSAGE.serialize(GSON_SERIALIZER.deserialize(message)).replaceAll("\\\\(?!u)(?!n)(?!\")(?!:)", ""))).replaceAll("\\\\(?!u)(?!n)(?!\")(?!:)", "");
+        String miniMessage = BACKSLASH_REMOVAL_KEEP_COLON.matcher(MINI_MESSAGE.serialize(GSON_SERIALIZER.deserialize(message))).replaceAll("");
+        return BACKSLASH_REMOVAL_KEEP_COLON.matcher(GSON_SERIALIZER.serialize(MINI_MESSAGE.deserialize(miniMessage))).replaceAll("");
     }
 
     public static String parseJsonThroughMiniMessage(String message, Player player) {
         TagResolver resolver = TagResolver.resolver(GlyphTag.getResolverForPlayer(player), ShiftTag.RESOLVER);
-        Component component = GSON_SERIALIZER.deserialize(message.replaceAll("\\\\(?!u)(?!n)(?!\")", ""));
-        component = MINI_MESSAGE.deserialize(MINI_MESSAGE.serialize(component).replaceAll("\\\\(?!u)(?!n)(?!\")", ""), resolver);
+        Component component = GSON_SERIALIZER.deserialize(removeBackslashes(message));
+        component = MINI_MESSAGE.deserialize(removeBackslashes(MINI_MESSAGE.serialize(component)), resolver);
         if (player != null) component = GlobalTranslator.render(component, player.locale());
-        return GSON_SERIALIZER.serialize(component).replaceAll("\\\\(?!u)(?!n)(?!\")", "");
+        return removeBackslashes(GSON_SERIALIZER.serialize(component));
     }
 
     /**

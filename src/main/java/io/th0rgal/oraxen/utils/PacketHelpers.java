@@ -14,7 +14,7 @@ public class PacketHelpers {
     }
 
     public static String toJson(String text) {
-        return AdventureUtils.GSON_SERIALIZER.serialize(AdventureUtils.MINI_MESSAGE.deserialize(text)).replaceAll(BACKSLASH_REMOVAL_REGEX, "");
+        return AdventureUtils.removeBackslashes(AdventureUtils.GSON_SERIALIZER.serialize(AdventureUtils.MINI_MESSAGE.deserialize(text)));
     }
 
     public static String translateJson(String json) {
@@ -31,8 +31,7 @@ public class PacketHelpers {
 
     public static Component translateTitle(Component component) {
         return AdventureUtils.MINI_MESSAGE.deserialize(
-            AdventureUtils.parseMiniMessageThroughLegacy(component)
-                .replaceAll(BACKSLASH_REMOVAL_REGEX, "")
+            AdventureUtils.removeBackslashes(AdventureUtils.parseMiniMessageThroughLegacy(component))
         );
     }
 }
