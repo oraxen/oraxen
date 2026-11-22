@@ -87,10 +87,14 @@ public class ResourcePack {
             if (!packReady.isDone()) {
                 Logs.logInfo("Awaiting ModelEngine resource pack...");
                 packReady.copy().orTimeout(300, TimeUnit.SECONDS).whenComplete((ignored, exception) -> {
-                    if (shutdownRequested || !OraxenPlugin.get().isEnabled()) return;
+                    if (shutdownRequested || !OraxenPlugin.get().isEnabled()) {
+                        finishGeneration();
+                        return;
+                    }
                     if (exception != null) Logs.logWarning("ModelEngine resource pack was not ready within 300 seconds; continuing pack generation");
                     SchedulerUtil.runTask(() -> {
-                        if (!shutdownRequested) generateWhenReady();
+                        if (shutdownRequested) finishGeneration();
+                        else generateWhenReady();
                     });
                 });
                 return;
@@ -227,18 +231,18 @@ public class ResourcePack {
             handleCustomArmor(output);
             applyArmorStandModelOverrides(output);
             Collections.sort(output);
-            submitAsyncPostProcessing(packWorker, output);
+            submitAsyncPostProcessing(packWorker, output, resolveModelEngineFolder());
         } catch (Exception exception) {
             handleGenerationFailure(packWorker, "sync custom armor generation", exception);
         }
     }
 
-    private void submitAsyncPostProcessing(ExecutorService packWorker, List<VirtualFile> output) {
+    private void submitAsyncPostProcessing(ExecutorService packWorker, List<VirtualFile> output, File modelEngineFolder) {
         try {
             packWorker.submit(() -> {
                 try {
                     if (shutdownRequested) return;
-                    postProcessOutputAsyncSafe(output);
+                    postProcessOutputAsyncSafe(output, modelEngineFolder);
                     if (shutdownRequested) return;
                     SchedulerUtil.runTask(() -> finishSinglePackOutputOnMain(packWorker, output));
                 } catch (Exception exception) {
@@ -613,13 +617,14 @@ public class ResourcePack {
      * merges duplicates, filters excluded extensions, and generates sounds.
      */
     private void postProcessOutput(List<VirtualFile> output) {
-        postProcessOutputAsyncSafe(output);
+        postProcessOutputAsyncSafe(output, resolveModelEngineFolder());
         PackPipeline.processSnapshots(output, soundGenerator::generateSound);
     }
 
-    private void postProcessOutputAsyncSafe(List<VirtualFile> output) {
-        mergeUploadedPacks(output);
-        PackPipeline.processSnapshots(output, this::convertGlobalLang);
+    private void postProcessOutputAsyncSafe(List<VirtualFile> output, File modelEngineFolder) {
+        mergeUploadedPacks(output, modelEngineFolder);
+        JsonObject globalLang = loadGlobalLang();
+        PackPipeline.processSnapshots(output, snapshot -> convertGlobalLang(snapshot, globalLang));
         Map<String, Set<String>> malformedFilesByLayer = Settings.VERIFY_PACK_FILES.toBool()
                 ? PackFileCollector.verifyPackFormatting(output)
                 : Collections.emptyMap();
@@ -688,8 +693,10 @@ public class ResourcePack {
     }
 
     private String sha256(VirtualFile file) {
-        try {
-            byte[] content = file.getInputStream().readAllBytes();
+        InputStream stream = file.getInputStream();
+        if (stream == null) return "";
+        try (stream) {
+            byte[] content = stream.readAllBytes();
             file.setInputStream(new ByteArrayInputStream(content));
             return HashUtils.sha256(content);
         } catch (IOException | IllegalStateException e) {
@@ -1464,9 +1471,10 @@ public class ResourcePack {
             addOutputFiles(new VirtualFile(folder, name, new ByteArrayInputStream(outputStream.toByteArray())));
         } catch (IOException e) {
             Logs.logError("Failed to write generated texture: " + folder + "/" + name);
-            if (Settings.DEBUG.toBool())
+            if (Settings.DEBUG.toBool()) {
                 Logs.logWarning("Failed to generate or copy a resource pack texture.");
                 Logs.debug(e);
+            }
         }
     }
 
@@ -1487,23 +1495,26 @@ public class ResourcePack {
         }
     }
 
-    private void mergeUploadedPacks(List<VirtualFile> output) {
+    private static File resolveModelEngineFolder() {
+        if (!Settings.IMPORT_MODEL_ENGINE.toBool()) return null;
+        Plugin modelEngine = Bukkit.getPluginManager().getPlugin("ModelEngine");
+        return modelEngine != null && modelEngine.isEnabled() ? modelEngine.getDataFolder() : null;
+    }
+
+    private void mergeUploadedPacks(List<VirtualFile> output, File modelEngineFolder) {
         mergedImportOverlayEntries = new JsonArray();
         boolean preserveNativeOverlays = isMcmetaGenerationDisabled();
         PackMerger packMerger = new PackMerger(packFolder, packExclusions);
         packMerger.setConvertLegacyItemModels(multiVersionResolved
                 || (VersionUtil.atOrAbove("1.21.4") && AppearanceMode.shouldGenerateVanillaItemDefinitions()));
         packMerger.mergeUploadedPacks();
-        if (Settings.IMPORT_MODEL_ENGINE.toBool()) {
-            Plugin modelEngine = Bukkit.getPluginManager().getPlugin("ModelEngine");
-            if (modelEngine != null && modelEngine.isEnabled()) {
-                File modelEnginePack = new File(modelEngine.getDataFolder(), "resource pack.zip");
-                if (!modelEnginePack.isFile()) modelEnginePack = new File(modelEngine.getDataFolder(), "resource pack");
-                if (modelEnginePack.exists()) {
-                    packMerger.mergeModelEnginePack(modelEnginePack);
-                } else {
-                    Logs.logWarning("Could not find ModelEngine resource pack.zip or resource pack folder");
-                }
+        if (modelEngineFolder != null) {
+            File modelEnginePack = new File(modelEngineFolder, "resource pack.zip");
+            if (!modelEnginePack.isFile()) modelEnginePack = new File(modelEngineFolder, "resource pack");
+            if (modelEnginePack.exists()) {
+                packMerger.mergeModelEnginePack(modelEnginePack);
+            } else {
+                Logs.logWarning("Could not find ModelEngine resource pack.zip or resource pack folder");
             }
         }
         PackPipeline.mergeNativeFiles(output, !Boolean.FALSE.equals(Settings.MERGE_DUPLICATE_FONTS.getValue()));
@@ -1530,24 +1541,25 @@ public class ResourcePack {
         }
     }
 
-    private void convertGlobalLang(List<VirtualFile> output) {
+    private JsonObject loadGlobalLang() {
         if (Settings.DEBUG.toBool()) Logs.logInfo("Converting global lang file to individual language files...");
-        Set<VirtualFile> virtualLangFiles = new HashSet<>();
         File globalLangFile = new File(packFolder, "lang/global.json");
-        JsonObject globalLang = new JsonObject();
-        String content = "";
         if (!globalLangFile.exists())
             OraxenPlugin.get().saveResource("pack/lang/global.json", false);
 
         try {
-            content = Files.readString(globalLangFile.toPath(), StandardCharsets.UTF_8);
-            globalLang = JsonParser.parseString(content).getAsJsonObject();
-        } catch (IOException | IllegalStateException | IllegalArgumentException ignored) {
+            String content = Files.readString(globalLangFile.toPath(), StandardCharsets.UTF_8);
+            return content.isBlank() ? null : JsonParser.parseString(content).getAsJsonObject();
+        } catch (IOException | IllegalStateException | JsonParseException e) {
+            Logs.logWarning("Failed to read " + globalLangFile.getPath() + " as a JSON object, skipping global lang conversion");
+            Logs.debug(e);
+            return null;
         }
+    }
 
-        if (content.isEmpty() || globalLang.isJsonNull())
-            return;
-
+    private void convertGlobalLang(List<VirtualFile> output, JsonObject globalLang) {
+        if (globalLang == null) return;
+        Set<VirtualFile> virtualLangFiles = new HashSet<>();
         for (String lang : availableLanguageCodes) {
             JsonObject langJson = new JsonObject();
 

@@ -18,6 +18,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.MockedStatic;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
@@ -130,9 +131,11 @@ class ModelEnginePackPriorityTest {
 
         List<VirtualFile> output = new ArrayList<>(List.of(
                 file("assets/oraxen/models/generated.json", "{\"source\":\"generated\"}")));
-        var merge = ResourcePack.class.getDeclaredMethod("mergeUploadedPacks", List.class);
+        var resolveModelEngineFolder = ResourcePack.class.getDeclaredMethod("resolveModelEngineFolder");
+        resolveModelEngineFolder.setAccessible(true);
+        var merge = ResourcePack.class.getDeclaredMethod("mergeUploadedPacks", List.class, File.class);
         merge.setAccessible(true);
-        merge.invoke(resourcePack, output);
+        merge.invoke(resourcePack, output, resolveModelEngineFolder.invoke(null));
 
         Map<String, String> files = contents(output);
         boolean liveImported = importEnabled && !emptyLivePack;
