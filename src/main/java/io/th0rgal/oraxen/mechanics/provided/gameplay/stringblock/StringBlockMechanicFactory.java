@@ -101,7 +101,10 @@ public class StringBlockMechanicFactory extends MechanicFactory {
     }
 
     public static void clearInstance(StringBlockMechanicFactory factory) {
-        if (instance == factory) instance = null;
+        if (instance != factory) return;
+        instance = null;
+        BLOCK_PER_VARIATION.clear();
+        CustomBlockService.clearStringBlocks();
     }
 
 

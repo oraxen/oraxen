@@ -146,7 +146,10 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     }
 
     public static void clearInstance(NoteBlockMechanicFactory factory) {
-        if (instance == factory) instance = null;
+        if (instance != factory) return;
+        instance = null;
+        BLOCK_PER_VARIATION.clear();
+        CustomBlockService.clearNoteBlocks();
     }
 
     public boolean removeMineableTag() {
