@@ -18,6 +18,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.MultipleFacing;
 import org.bukkit.entity.*;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -371,7 +372,10 @@ public class ChorusBlockMechanicListener implements Listener {
             return;
 
         BlockData data = ChorusBlockMechanicFactory.createChorusData(mechanic.getCustomVariation());
-        makePlayerPlaceBlock(player, event.getHand(), item, placedAgainst, event.getBlockFace(), data, mechanic);
+        if (makePlayerPlaceBlock(player, event.getHand(), item, placedAgainst, event.getBlockFace(), data, mechanic)) {
+            event.setUseInteractedBlock(Event.Result.DENY);
+            event.setUseItemInHand(Event.Result.DENY);
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -563,7 +567,7 @@ public class ChorusBlockMechanicListener implements Listener {
         }
     }
 
-    private void makePlayerPlaceBlock(final Player player, final EquipmentSlot hand, final ItemStack item,
+    private boolean makePlayerPlaceBlock(final Player player, final EquipmentSlot hand, final ItemStack item,
             final Block placedAgainst, final BlockFace face, final BlockData newData,
             final ChorusBlockMechanic mechanic) {
         final Block target;
@@ -573,9 +577,9 @@ public class ChorusBlockMechanicListener implements Listener {
         else
             target = placedAgainst.getRelative(face);
         if (!BlockHelpers.isReplaceable(target.getType()))
-            return;
+            return false;
         if (!mechanic.canPlaceOn(face, placedAgainst))
-            return;
+            return false;
 
         // Store oldData in case event(s) is cancelled, set the target blockData
         final BlockData oldData = target.getBlockData();
@@ -594,7 +598,7 @@ public class ChorusBlockMechanicListener implements Listener {
         // Call the event and check if it is cancelled, if so reset BlockData
         if (!blockPlaceEvent.callEvent() || !blockPlaceEvent.canBuild()) {
             target.setBlockData(oldData);
-            return;
+            return false;
         }
 
         OraxenBlocks.place(mechanic.getItemID(), target.getLocation());
@@ -603,7 +607,7 @@ public class ChorusBlockMechanicListener implements Listener {
                 item, hand);
         if (!oraxenPlaceEvent.callEvent()) {
             target.setBlockData(oldData);
-            return;
+            return false;
         }
 
         // Handle falling blocks
@@ -630,6 +634,7 @@ public class ChorusBlockMechanicListener implements Listener {
         mechanic.runPlaceEvents(player);
 
         target.getWorld().sendGameEvent(player, GameEvent.BLOCK_PLACE, target.getLocation().toVector());
+        return true;
     }
 
     public static void fixClientsideUpdate(Location loc) {

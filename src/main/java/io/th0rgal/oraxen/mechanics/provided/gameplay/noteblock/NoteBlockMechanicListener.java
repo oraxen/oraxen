@@ -306,7 +306,10 @@ public class NoteBlockMechanicListener implements Listener {
         Block target = BlockHelpers.isReplaceable(placedAgainst.getType())
                 ? placedAgainst
                 : placedAgainst.getRelative(face);
-        makePlayerPlaceBlock(player, event.getHand(), event.getItem(), placedAgainst, face, data);
+        if (placeBlock(player, event.getHand(), event.getItem(), placedAgainst, face, data)) {
+            event.setUseInteractedBlock(Event.Result.DENY);
+            event.setUseItemInHand(Event.Result.DENY);
+        }
         finishAdjacentBlockChange(player, target, placedAgainst.getLocation());
     }
 
@@ -490,15 +493,20 @@ public class NoteBlockMechanicListener implements Listener {
 
     public void makePlayerPlaceBlock(final Player player, final EquipmentSlot hand, final ItemStack item,
                                      final Block placedAgainst, final BlockFace face, final BlockData newData) {
+        placeBlock(player, hand, item, placedAgainst, face, newData);
+    }
+
+    private boolean placeBlock(final Player player, final EquipmentSlot hand, final ItemStack item,
+                               final Block placedAgainst, final BlockFace face, final BlockData newData) {
         final Block target;
         final Material type = placedAgainst.getType();
 
         if (BlockHelpers.isReplaceable(type)) target = placedAgainst;
         else target = placedAgainst.getRelative(face);
-        if (!BlockHelpers.isReplaceable(target.getType())) return;
+        if (!BlockHelpers.isReplaceable(target.getType())) return false;
 
         NoteBlockMechanic targetOraxen = OraxenBlocks.getNoteBlockMechanic(newData);
-        if (targetOraxen != null && !targetOraxen.canPlaceOn(face, placedAgainst)) return;
+        if (targetOraxen != null && !targetOraxen.canPlaceOn(face, placedAgainst)) return false;
 
         final NoteBlockMechanic againstMechanic = OraxenBlocks.getNoteBlockMechanic(placedAgainst);
         // Store oldData incase event(s) is cancelled, set the target blockData
@@ -524,7 +532,7 @@ public class NoteBlockMechanicListener implements Listener {
             // Call the event and check if it is cancelled, if so reset BlockData
             if (!blockPlaceEvent.callEvent() || !blockPlaceEvent.canBuild()) {
                 target.setBlockData(oldData);
-                return;
+                return false;
             }
         }
 
@@ -536,7 +544,7 @@ public class NoteBlockMechanicListener implements Listener {
             OraxenNoteBlockPlaceEvent oraxenPlaceEvent = new OraxenNoteBlockPlaceEvent(targetOraxen, target, player, item, hand);
             if (!oraxenPlaceEvent.callEvent()) {
                 target.setBlockData(oldData);
-                return;
+                return false;
             }
             if (targetOraxen.isStorage()) targetOraxen.getStorage().loadStorageContent(target, item);
 
@@ -556,6 +564,7 @@ public class NoteBlockMechanicListener implements Listener {
             BlockHelpers.correctAllBlockStates(placedAgainst, player, hand, face, item, newData);
         }
         target.getWorld().sendGameEvent(player, GameEvent.BLOCK_PLACE, target.getLocation().toVector());
+        return true;
     }
 
     private void finishAdjacentBlockChange(final Player player, final Block changedBlock, final Location packetBlock) {
