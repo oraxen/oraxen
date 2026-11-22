@@ -82,7 +82,8 @@ public class SaplingMechanic {
     }
 
     public boolean hasSchematic() {
-        return (schematicName != null && getSchematic() != null);
+        File file = getSchematic();
+        return file != null && file.exists();
     }
 
     public String getSchematicName() {
@@ -103,12 +104,13 @@ public class SaplingMechanic {
         return schematicRegion != null ? schematicRegion.getBlocks(location) : new ArrayList<>();
     }
 
-    // Growth checks run for every placed sapling, so the file lookup and parsing happen once per mechanic
+    // Growth checks run for every placed sapling, so the file lookup and parsing happen once per mechanic.
+    // A schematic that cannot be read counts as missing, so saplings never grow into nothing.
     private void loadSchematic() {
         if (schematicLoaded || schematicName == null) return;
         File file = new File(OraxenPlugin.get().getConfigsManager().getSchematicsFolder(), getSchematicName());
-        schematic = file.exists() ? file : null;
-        schematicRegion = schematic != null ? WrappedWorldEdit.getSchematicRegion(schematic) : null;
+        schematicRegion = file.exists() ? WrappedWorldEdit.getSchematicRegion(file) : null;
+        schematic = schematicRegion != null ? file : null;
         schematicLoaded = true;
     }
 
