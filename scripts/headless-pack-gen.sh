@@ -138,7 +138,7 @@ find_oraxen_jar() {
     # Auto-detect from build/libs
     local jar_pattern="$PROJECT_ROOT/build/libs/oraxen-*.jar"
     local jars
-    jars=$(ls $jar_pattern 2>/dev/null | head -1 || true)
+    jars=$(ls -t $jar_pattern 2>/dev/null | grep -Ev -- '-(sources|javadoc|plain)\.jar$' | head -1 || true)
 
     if [[ -n "$jars" ]]; then
         ORAXEN_JAR="$jars"

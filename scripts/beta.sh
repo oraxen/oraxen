@@ -18,7 +18,7 @@ else
   gradle -p "$project_dir" build -Poraxen_compiled=false "-PpluginVersion=${saved_version}-${commit}"
 fi
 
-built_jar="$(find "$project_dir/build/libs" -maxdepth 1 -type f -name '*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar' -print0 | xargs -0 ls -t | head -n 1)"
+built_jar="$(find "$project_dir/build/libs" -maxdepth 1 -type f -name '*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar' ! -name '*-plain.jar' -print0 | xargs -0 ls -t | head -n 1)"
 
 if [[ -z "$built_jar" ]]; then
   echo "Built jar was not found in $project_dir/build/libs" >&2

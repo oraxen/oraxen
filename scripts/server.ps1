@@ -81,7 +81,8 @@ if (-not [System.IO.Path]::GetFullPath($serverDir).StartsWith($serversRoot, [Sys
     throw "Server directory is outside $serversDir"
 }
 
-$requiredJavaVersion = if ($mcVersion.StartsWith('26.')) { '25' } else { '21' }
+$mcMajorVersion = [int][regex]::Match($mcVersion, '^(?:1\.)?([0-9]+)').Groups[1].Value
+$requiredJavaVersion = if ($mcMajorVersion -ge 26) { '25' } else { '21' }
 function Test-JavaVersion([string]$javaCommand, [string]$expectedVersion) {
     if (-not (Test-Path -LiteralPath $javaCommand -PathType Leaf)) { return $false }
     try {
@@ -128,7 +129,7 @@ function Get-OraxenJar {
     }
     if ($LASTEXITCODE -ne 0) { throw "Gradle shadowJar failed with exit code $LASTEXITCODE" }
     $jars = @(Get-ChildItem -LiteralPath $libsDir -Filter 'oraxen-*.jar' -File -ErrorAction SilentlyContinue |
-        Where-Object { $_.Name -notmatch '-(sources|javadoc)\.jar$' } |
+        Where-Object { $_.Name -notmatch '-(sources|javadoc|plain)\.jar$' } |
         Sort-Object LastWriteTimeUtc -Descending)
     if ($jars.Count -eq 0) { throw "Could not find the built Oraxen jar in $libsDir" }
     return $jars[0].FullName
