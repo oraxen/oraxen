@@ -31,6 +31,9 @@ public class StudioWebSocketClient {
     private final AtomicBoolean connected = new AtomicBoolean(false);
     private final AtomicLong refCounter = new AtomicLong(1);
 
+    private final HttpClient httpClient = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(10))
+            .build();
     private volatile WebSocket webSocket;
     private ScheduledExecutorService scheduler;
     private ScheduledFuture<?> heartbeatFuture;
@@ -59,11 +62,7 @@ public class StudioWebSocketClient {
     private void connectNow() {
         if (closed.get()) return;
         try {
-            HttpClient client = HttpClient.newBuilder()
-                    .connectTimeout(Duration.ofSeconds(10))
-                    .build();
-
-            client.newWebSocketBuilder()
+            httpClient.newWebSocketBuilder()
                     .connectTimeout(Duration.ofSeconds(10))
                     .buildAsync(URI.create(realtimeWsUrl), new Listener())
                     .whenComplete((ws, err) -> {
@@ -153,6 +152,7 @@ public class StudioWebSocketClient {
         if (scheduler != null) {
             scheduler.shutdownNow();
         }
+        httpClient.shutdown();
     }
 
     static void dispatchIncomingRealtimeFrame(String rawJson, Runnable onJoinAck, BiConsumer<String, JsonObject> onBroadcast) {
