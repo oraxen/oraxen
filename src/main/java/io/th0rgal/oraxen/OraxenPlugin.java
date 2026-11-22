@@ -174,6 +174,7 @@ public class OraxenPlugin extends JavaPlugin {
         resourcePack.generate();
         RecipesManager.load(this);
         invManager = new InvManager();
+        Bukkit.getPluginManager().registerEvents(invManager, this);
         if (!VersionUtil.atOrAbove("1.21.2"))
             ArmorEquipEvent.registerListener(this);
         studioSyncService = new StudioSyncService(this);
