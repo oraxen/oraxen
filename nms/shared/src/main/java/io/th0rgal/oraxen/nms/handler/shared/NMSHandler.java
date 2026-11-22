@@ -342,7 +342,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         if (result == InteractionResult.FAIL)
             return null;
         if (player.getGameMode() != org.bukkit.GameMode.CREATIVE)
-            itemStack.setAmount(nmsStack.getCount());
+            itemStack.setAmount(placeContext.getItemInHand().getCount());
         World world = player.getWorld();
         BlockPos placedPos = placeContext.getClickedPos();
 
