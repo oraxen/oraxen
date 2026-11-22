@@ -609,20 +609,6 @@ public class ChorusBlockMechanicListener implements Listener {
     }
 
     public static void fixClientsideUpdate(Location loc) {
-        List<Entity> players = Objects.requireNonNull(loc.getWorld()).getNearbyEntities(loc, 20, 20, 20)
-                .stream().filter(entity -> entity.getType() == EntityType.PLAYER).toList();
-
-        for (double x = loc.getX() - 10; x < loc.getX() + 10; x++) {
-            for (double y = loc.getY() - 4; y < loc.getY() + 4; y++) {
-                for (double z = loc.getZ() - 10; z < loc.getZ() + 10; z++) {
-                    Location newLoc = new Location(loc.getWorld(), x, y, z);
-                    if (newLoc.getBlock().getType() == Material.CHORUS_PLANT) {
-                        for (Entity e : players) {
-                            ((Player) e).sendBlockChange(newLoc, newLoc.getBlock().getBlockData());
-                        }
-                    }
-                }
-            }
-        }
+        BlockHelpers.resendNearbyBlocks(loc, Material.CHORUS_PLANT);
     }
 }
