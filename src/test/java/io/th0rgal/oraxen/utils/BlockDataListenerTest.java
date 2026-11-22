@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import org.bukkit.Bukkit;
+import org.bukkit.ExplosionResult;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -59,11 +60,14 @@ class BlockDataListenerTest {
         EntityExplodeEvent event = mock(EntityExplodeEvent.class);
         AtomicBoolean furnitureRemoved = new AtomicBoolean();
         when(event.blockList()).thenReturn(new ArrayList<>(List.of(block)));
+        when(event.getExplosionResult()).thenReturn(ExplosionResult.DESTROY);
         when(block.getLocation()).thenReturn(location);
 
-        try (MockedStatic<OraxenFurniture> furniture = mockStatic(OraxenFurniture.class);
+        try (MockedStatic<VersionUtil> versions = mockStatic(VersionUtil.class);
+             MockedStatic<OraxenFurniture> furniture = mockStatic(OraxenFurniture.class);
              MockedStatic<OraxenBlocks> blocks = mockStatic(OraxenBlocks.class);
              MockedStatic<BlockHelpers> data = mockStatic(BlockHelpers.class)) {
+            versions.when(() -> VersionUtil.atOrAbove("1.21")).thenReturn(true);
             furniture.when(() -> OraxenFurniture.hasFurnitureBlockMarker(block)).thenReturn(true);
             furniture.when(() -> OraxenFurniture.remove(location, null)).thenAnswer(call -> {
                 furnitureRemoved.set(true);
@@ -113,11 +117,14 @@ class BlockDataListenerTest {
         EntityExplodeEvent event = mock(EntityExplodeEvent.class);
         AtomicBoolean blockRemoved = new AtomicBoolean();
         when(event.blockList()).thenReturn(new ArrayList<>(List.of(block)));
+        when(event.getExplosionResult()).thenReturn(ExplosionResult.DESTROY);
         when(block.getLocation()).thenReturn(location);
 
-        try (MockedStatic<OraxenFurniture> furniture = mockStatic(OraxenFurniture.class);
+        try (MockedStatic<VersionUtil> versions = mockStatic(VersionUtil.class);
+             MockedStatic<OraxenFurniture> furniture = mockStatic(OraxenFurniture.class);
              MockedStatic<OraxenBlocks> blocks = mockStatic(OraxenBlocks.class);
              MockedStatic<BlockHelpers> data = mockStatic(BlockHelpers.class)) {
+            versions.when(() -> VersionUtil.atOrAbove("1.21")).thenReturn(true);
             blocks.when(() -> OraxenBlocks.getOraxenBlock(location)).thenReturn(mock(Mechanic.class));
             blocks.when(() -> OraxenBlocks.remove(location, null)).thenAnswer(call -> {
                 blockRemoved.set(true);
@@ -133,6 +140,31 @@ class BlockDataListenerTest {
 
             blocks.verify(() -> OraxenBlocks.remove(location, null));
             data.verify(() -> BlockHelpers.removePDC(block, plugin));
+        }
+    }
+
+    @Test
+    void windChargeExplosionKeepsCustomBlocksAndTheirData() {
+        JavaPlugin plugin = mock(JavaPlugin.class);
+        Block block = mock(Block.class);
+        Location location = mock(Location.class);
+        EntityExplodeEvent event = mock(EntityExplodeEvent.class);
+        when(event.blockList()).thenReturn(new ArrayList<>(List.of(block)));
+        when(event.getExplosionResult()).thenReturn(ExplosionResult.TRIGGER_BLOCK);
+        when(block.getLocation()).thenReturn(location);
+
+        try (MockedStatic<VersionUtil> versions = mockStatic(VersionUtil.class);
+             MockedStatic<OraxenFurniture> furniture = mockStatic(OraxenFurniture.class);
+             MockedStatic<OraxenBlocks> blocks = mockStatic(OraxenBlocks.class);
+             MockedStatic<BlockHelpers> data = mockStatic(BlockHelpers.class)) {
+            versions.when(() -> VersionUtil.atOrAbove("1.21")).thenReturn(true);
+            blocks.when(() -> OraxenBlocks.getOraxenBlock(location)).thenReturn(mock(Mechanic.class));
+            data.when(() -> BlockHelpers.hasPDC(block, plugin)).thenReturn(true);
+
+            new BlockDataListener(plugin).onEntityExplode(event);
+
+            blocks.verify(() -> OraxenBlocks.remove(location, null), never());
+            data.verify(() -> BlockHelpers.removePDC(block, plugin), never());
         }
     }
 }
