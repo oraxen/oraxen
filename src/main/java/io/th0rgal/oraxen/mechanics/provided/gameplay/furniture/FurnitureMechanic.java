@@ -1206,6 +1206,8 @@ public class FurnitureMechanic extends Mechanic {
 
     // Track which legacy fallback warnings have been logged to avoid spam
     private static final Set<String> loggedLegacyWarnings = ConcurrentHashMap.newKeySet();
+    // Base entities that Oraxen removes itself after clearing their barriers and sub-entities
+    private static final Set<UUID> removingBaseEntities = ConcurrentHashMap.newKeySet();
 
     /**
      * Swaps the item model of a furniture entity to a different model key.
@@ -1383,12 +1385,23 @@ public class FurnitureMechanic extends Mechanic {
         removeBaseEntity(baseEntity);
     }
 
+    static boolean isRemovingBaseEntity(Entity baseEntity) {
+        return removingBaseEntities.contains(baseEntity.getUniqueId());
+    }
+
     private void removeBaseEntity(Entity baseEntity) {
         if (baseEntity == null) return;
         UUID baseUuid = baseEntity.getUniqueId();
         int baseEntityId = baseEntity.getEntityId();
         removeSubEntitiesOfFurniture(baseEntity);
-        if (!baseEntity.isDead()) baseEntity.remove();
+        if (!baseEntity.isDead()) {
+            removingBaseEntities.add(baseUuid);
+            try {
+                baseEntity.remove();
+            } finally {
+                removingBaseEntities.remove(baseUuid);
+            }
+        }
         SchedulerUtil.runTask(() -> {
             FurnitureTextEntry entry = FurnitureTextRegistry.byUuid(baseUuid);
             if (entry != null && entry.getBaseEntityId() == baseEntityId)

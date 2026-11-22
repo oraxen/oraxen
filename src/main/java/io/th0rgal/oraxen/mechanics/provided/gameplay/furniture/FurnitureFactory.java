@@ -61,6 +61,9 @@ public class FurnitureFactory extends MechanicFactory {
             MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new FurnitureGhastEntities());
         if (VersionUtil.atOrAbove("1.21.2"))
             MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new FurnitureShulkerEntities());
+        // EntityRemoveEvent is missing from early 1.20.4 builds
+        if (VersionUtil.atOrAbove("1.20.5"))
+            MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new FurniturePaperListener());
         evolvingFurnitures = false;
         instance = this;
         FurniturePacketDispatcher.init();

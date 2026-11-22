@@ -1,39 +1,33 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
-import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
+import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.api.OraxenFurniture;
-import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityRemoveEvent;
 
-import java.util.List;
+import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.BARRIER_KEY;
 
 public class FurniturePaperListener implements Listener {
 
     @EventHandler
-    public void onFurnitureRemoval(EntityRemoveFromWorldEvent event) {
-        Entity entity = event.getEntity();
-        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
-        if (mechanic == null) return;
+    public void onFurnitureRemoval(EntityRemoveEvent event) {
+        if (event.getCause() == EntityRemoveEvent.Cause.UNLOAD) return;
+        Entity baseEntity = event.getEntity();
+        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
+        // Seats also carry the furniture key, but only base entities store their barriers
+        if (mechanic == null || !OraxenFurniture.isBaseEntity(baseEntity)
+                || !baseEntity.getPersistentDataContainer().has(BARRIER_KEY, DataType.asList(BlockLocation.dataType))
+                || FurnitureMechanic.isRemovingBaseEntity(baseEntity)) return;
 
-        Entity baseEntity = mechanic.getBaseEntity(entity);
-        List<Block> barriers = mechanic.getBarriers().stream().map(b -> entity.getLocation().add(b.toLocation(entity.getWorld())).getBlock()).toList();
-        // If the baseEntity does not exist, it means furniture is broken
-        // and interaction entity was left behind, or furniture is outdated
-        SchedulerUtil.runAtLocationLater(entity.getLocation(), 1L, () -> {
-            if (baseEntity == null) {
-                if (!entity.isDead()) entity.remove();
-                barriers.forEach(b -> {
-                    if (b.getType() == Material.BARRIER) {
-                        b.setType(Material.AIR);
-                        BlockHelpers.removePDC(b);
-                    }
-                });
-            }
+        // Something else removed the base entity, for example /kill, so clear the barriers, hitboxes and seats it left.
+        // The entity only counts as removed after this event, so wait a tick.
+        SchedulerUtil.runAtLocationLater(baseEntity.getLocation(), 1L, () -> {
+            if (mechanic.hasBarriers(baseEntity))
+                mechanic.removeSolid(baseEntity, baseEntity.getLocation(), FurnitureMechanic.getFurnitureYaw(baseEntity));
+            else mechanic.removeNonSolidFurniture(baseEntity);
         });
     }
 }
