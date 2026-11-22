@@ -99,6 +99,29 @@ class PackFileCollectorTest {
     }
 
     @Test
+    void reportsMissingTextureOnceWhenOverlaySnapshotsRepeatTheModel() throws IOException {
+        String shared = "assets/example/models/item/shared.json";
+        String layerSpecific = "assets/example/models/item/layer_specific.json";
+        List<VirtualFile> files = new ArrayList<>(List.of(
+                file(shared, "{\"textures\":{\"layer0\":\"example:item/missing\"}}"),
+                file(layerSpecific, "{\"textures\":{\"layer0\":\"example:item/base_only\"}}"),
+                file("assets/example/textures/item/base_only.png", png()),
+                file("oraxen_import_0/" + shared, "{\"textures\":{\"layer0\":\"example:item/missing\"}}"),
+                file("oraxen_import_0/" + layerSpecific, "{\"textures\":{\"layer0\":\"example:item/base_only\"}}"),
+                file("oraxen_import_1/" + shared, "{\"textures\":{\"layer0\":\"example:item/missing\"}}")));
+
+        Map<String, Set<String>> malformedFiles = PackFileCollector.verifyPackFormatting(files);
+
+        assertEquals(Map.of("", Set.of(shared), "oraxen_import_0/", Set.of(shared, layerSpecific),
+                "oraxen_import_1/", Set.of(shared)), malformedFiles);
+        logs.verify(() -> Logs.logWarning(contains("invalid texture-path")), times(2));
+        logs.verify(() -> Logs.logWarning("Found invalid texture-path inside model-file <blue>"
+                + shared + "</blue>: example:item/missing"), times(1));
+        logs.verify(() -> Logs.logWarning("Found invalid texture-path inside model-file <blue>oraxen_import_0/"
+                + layerSpecific + "</blue>: example:item/base_only"), times(1));
+    }
+
+    @Test
     void keepsMalformedTexturePathsScopedToTheirAssetLayer() throws IOException {
         String malformedTexture = "assets/example/textures/item/broken.png";
         List<VirtualFile> files = new ArrayList<>(List.of(

@@ -92,6 +92,7 @@ class PackFileCollector {
         Map<String, Set<String>> mcmeta = new LinkedHashMap<>();
         Map<String, List<VirtualFile>> models = new LinkedHashMap<>();
         Map<String, Set<String>> malformedFiles = new LinkedHashMap<>();
+        Set<String> reportedTextures = new HashSet<>();
         for (VirtualFile virtualFile : output) {
             PackPipeline.AssetPath assetPath = PackPipeline.splitAssetPath(virtualFile.getPath());
             if (assetPath == null) continue;
@@ -151,9 +152,11 @@ class PackFileCollector {
                     if (jsonModel.has("textures")) {
                         for (JsonElement element : jsonModel.getAsJsonObject("textures").entrySet().stream()
                                 .map(Map.Entry::getValue).toList()) {
+                            // Overlay snapshots repeat base models, so report each texture problem once.
                             if (!element.isJsonPrimitive() || !element.getAsJsonPrimitive().isString()) {
-                                Logs.logWarning("Found invalid texture-path inside model-file <blue>"
-                                        + model.getPath() + "</blue>: " + element);
+                                if (reportedTextures.add(path + " " + element))
+                                    Logs.logWarning("Found invalid texture-path inside model-file <blue>"
+                                            + model.getPath() + "</blue>: " + element);
                                 addMalformed(malformedFiles, assetPath, path);
                                 continue;
                             }
@@ -161,9 +164,11 @@ class PackFileCollector {
                             String jsonTexture = element.getAsString();
                             if (isMissingTexture(jsonTexture,
                                     texturePaths.getOrDefault(layer.getKey(), Collections.emptySet()))) {
-                                Logs.logWarning("Found invalid texture-path inside model-file <blue>"
-                                        + model.getPath() + "</blue>: " + jsonTexture);
-                                Logs.logWarning("Verify that you have a texture in said path.", true);
+                                if (reportedTextures.add(path + " " + element)) {
+                                    Logs.logWarning("Found invalid texture-path inside model-file <blue>"
+                                            + model.getPath() + "</blue>: " + jsonTexture);
+                                    Logs.logWarning("Verify that you have a texture in said path.", true);
+                                }
                                 addMalformed(malformedFiles, assetPath, path);
                             }
                         }
