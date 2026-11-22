@@ -11,10 +11,13 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 public class GlyphCommand {
+
+    private static final int EMOJIS_PER_PAGE = 144;
+    private static final int MAX_PAGES = 50;
 
     public OraxenCommand getGlyphCommand() {
         // Accept both the plural and singular permission: 1.218's chained withPermission calls
@@ -28,45 +31,32 @@ public class GlyphCommand {
 
                     List<Glyph> emojis = !onlyShowPermissable ? emojiList
                             : emojiList.stream().filter(glyph -> glyph.hasPermission(player)).toList();
-                    Component pages = Component.empty();
-                    int s;
 
                     if (emojis.isEmpty()) {
                         Message.NO_EMOJIS.send(player);
                         return;
                     }
 
-                    pageLoop:
-                    for (int p = 0; p < 50; p++) {
-                        for (int i = 0; i < 256; i++) {
-                            s = p * 256 + i + 1;
-                            if (emojis.size() < s) break pageLoop;
-                            Glyph emoji = (emojis.get(p * 256 + i));
-                            String[] placeholders = emoji.getPlaceholders();
-                            String finalString = "";
-                            Component permissionMessage = Component.empty();
-                            for (String placeholder : placeholders) {
-                                if (Arrays.toString(placeholders).replace("]", "").endsWith(placeholder)) {
-                                    finalString += placeholder;
-                                } else {
-                                    finalString += (placeholder + "\n");
-                                }
-
-                                if (!onlyShowPermissable) {
-                                    permissionMessage = permissionMessage.append(emoji.hasPermission(player)
-                                            ? Component.text("\nPermitted.", NamedTextColor.GREEN)
-                                            : Component.text("\nNo Permission.", NamedTextColor.RED));
-                                }
+                    List<Component> pages = new ArrayList<>();
+                    int shown = Math.min(emojis.size(), EMOJIS_PER_PAGE * MAX_PAGES);
+                    for (int start = 0; start < shown; start += EMOJIS_PER_PAGE) {
+                        Component page = Component.empty();
+                        for (Glyph emoji : emojis.subList(start, Math.min(start + EMOJIS_PER_PAGE, shown))) {
+                            Component hover = Component.text(String.join("\n", emoji.getPlaceholders()));
+                            if (!onlyShowPermissable) {
+                                hover = hover.append(emoji.hasPermission(player)
+                                        ? Component.text("\nPermitted.", NamedTextColor.GREEN)
+                                        : Component.text("\nNo Permission.", NamedTextColor.RED));
                             }
 
-                            pages = pages.append(AdventureUtils.MINI_MESSAGE.deserialize("<glyph:" + emoji.getName() + ">")
+                            page = page.append(AdventureUtils.MINI_MESSAGE.deserialize("<glyph:" + emoji.getName() + ">")
                                     .clickEvent(ClickEvent.copyToClipboard(emoji.getCharacters()))
-                                    .hoverEvent(HoverEvent.hoverEvent(HoverEvent.Action.SHOW_TEXT,
-                                            Component.text(finalString).append(permissionMessage))));
+                                    .hoverEvent(HoverEvent.showText(hover)));
                         }
+                        pages.add(page);
                     }
 
-                    Book book = Book.book(Component.text("Glyph Book"), Component.text("Oraxen"), List.of(pages));
+                    Book book = Book.book(Component.text("Glyph Book"), Component.text("Oraxen"), pages);
                     AdventureUtils.openBook(player, book);
                 });
     }
