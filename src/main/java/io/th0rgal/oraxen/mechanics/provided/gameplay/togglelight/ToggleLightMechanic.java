@@ -91,7 +91,7 @@ public class ToggleLightMechanic extends Mechanic {
 
     public void updateLight(Block block, int lightLevel) {
         // First remove any existing light blocks around this block
-        removeBlockLight(block);
+        LightMechanic.removeBlockLightAt(block);
         
         if (lightLevel <= 0) {
             return;
@@ -111,15 +111,6 @@ public class ToggleLightMechanic extends Mechanic {
                 Light lightData = (Light) Material.LIGHT.createBlockData();
                 lightData.setLevel(lightLevel);
                 relative.setBlockData(lightData);
-            }
-        }
-    }
-
-    private void removeBlockLight(Block block) {
-        for (BlockFace face : BLOCK_FACES) {
-            Block relative = block.getRelative(face);
-            if (relative.getType() == Material.LIGHT) {
-                relative.setType(Material.AIR);
             }
         }
     }
