@@ -120,8 +120,7 @@ public class EvolutionTask implements Runnable {
             lightBoostTick = currentStage.getLightBoostTick();
         }
         
-        if (currentStage.isRainBoosted() && world.hasStorm() && 
-            world.getHighestBlockAt(entityLoc).getY() > entityLoc.getY()) {
+        if (currentStage.isRainBoosted() && isExposedToRain(world, entityLoc)) {
             rainBoostTick = currentStage.getRainBoostTick();
         }
         
@@ -173,7 +172,7 @@ public class EvolutionTask implements Runnable {
         if (evolution.isLightBoosted() && entityLoc.getBlock().getLightLevel() >= evolution.getMinimumLightLevel())
             lightBoostTick = evolution.getLightBoostTick();
 
-        if (evolution.isRainBoosted() && world.hasStorm() && world.getHighestBlockAt(entityLoc).getY() > entityLoc.getY())
+        if (evolution.isRainBoosted() && isExposedToRain(world, entityLoc))
             rainBoostTick = evolution.getRainBoostTick();
 
         int evolutionStep = pdc.get(EVOLUTION_KEY, PersistentDataType.INTEGER) + delay + lightBoostTick + rainBoostTick;
@@ -190,6 +189,11 @@ public class EvolutionTask implements Runnable {
         } else {
             pdc.set(EVOLUTION_KEY, PersistentDataType.INTEGER, evolutionStep);
         }
+    }
+
+    // The furniture's own barrier at its block counts as open sky
+    static boolean isExposedToRain(World world, Location location) {
+        return world.hasStorm() && world.getHighestBlockYAt(location) <= location.getBlockY();
     }
 
     /**
