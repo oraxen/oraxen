@@ -19,6 +19,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -357,6 +358,13 @@ public class SpearLungeMechanicListener implements Listener {
     public void onItemHeld(PlayerItemHeldEvent event) {
         // Cancel charge if player switches slots
         cancelCharge(event.getPlayer(), false);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onInventoryClick(InventoryClickEvent event) {
+        // Cancel before the click applies, so a spear moved into another inventory is already reverted
+        if (event.getWhoClicked() instanceof Player player)
+            cancelCharge(player, false);
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

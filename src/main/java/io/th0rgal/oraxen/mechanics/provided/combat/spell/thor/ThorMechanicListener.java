@@ -3,8 +3,10 @@ package io.th0rgal.oraxen.mechanics.provided.combat.spell.thor;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.timers.Timer;
 import io.th0rgal.oraxen.protection.AntiGriefLib;
+import org.bukkit.Bukkit;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -52,7 +54,10 @@ public class ThorMechanicListener implements Listener {
         playerTimer.reset();
         mechanic.removeCharge(item);
         for (int i = 0; i < mechanic.getLightningBoltsAmount(); i++) {
-            player.getWorld().strikeLightning(mechanic.getRandomizedLocation(targetBlock));
+            Location strike = mechanic.getRandomizedLocation(targetBlock).clone();
+            // On Folia the target can lie in another region than the player
+            if (Bukkit.isOwnedByCurrentRegion(strike)) strike.getWorld().strikeLightning(strike);
+            else SchedulerUtil.runAtLocation(strike, () -> strike.getWorld().strikeLightning(strike));
         }
 
     }

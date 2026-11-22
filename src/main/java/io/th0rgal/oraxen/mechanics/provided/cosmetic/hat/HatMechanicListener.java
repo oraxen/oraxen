@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.cosmetic.hat;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorEquipEvent;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -69,7 +70,7 @@ public class HatMechanicListener implements Listener {
         final PlayerInventory inventory = player.getInventory();
 
         if (item == null || factory.isNotImplementedIn(itemID)) return;
-        if (inventory.getHelmet() != null) return;
+        if (!ItemUtils.isEmpty(inventory.getHelmet())) return;
         if (!player.isSneaking() && BlockHelpers.isInteractable(event.getClickedBlock())
                 && event.useInteractedBlock() == Event.Result.ALLOW) return;
 
