@@ -554,6 +554,9 @@ public class ChorusBlockMechanicListener implements Listener {
         Block block = event.getBlock();
         block.setBlockData(multipleFacing, false);
         OraxenBlocks.place(mechanic.getItemID(), block.getLocation());
+        ItemStack[] storageContents = fallingBlock.getPersistentDataContainer().get(StorageMechanic.STORAGE_KEY, DataType.ITEM_STACK_ARRAY);
+        if (storageContents != null)
+            BlockHelpers.getPDC(block).set(StorageMechanic.STORAGE_KEY, DataType.ITEM_STACK_ARRAY, storageContents);
 
         if (mechanic.hasLight()) {
             mechanic.getLight().createBlockLight(block);
@@ -612,6 +615,9 @@ public class ChorusBlockMechanicListener implements Listener {
                         target.getLocation().add(0.5, 0, 0.5), FallingBlock.class, entity -> {
                             entity.setBlockData(newData);
                             entity.setDropItem(false);
+                            // The falling block carries shulker contents to where it lands
+                            if (mechanic.isStorage())
+                                mechanic.getStorage().loadStorageContent(entity.getPersistentDataContainer(), item);
                         });
             }
         }

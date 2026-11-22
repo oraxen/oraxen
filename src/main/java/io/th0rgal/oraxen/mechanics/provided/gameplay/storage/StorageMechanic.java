@@ -275,10 +275,20 @@ public class StorageMechanic {
      * @param item  The item the block was placed from
      */
     public void loadStorageContent(Block block, @Nullable ItemStack item) {
+        loadStorageContent(BlockHelpers.getPDC(block), item);
+    }
+
+    /**
+     * Moves the contents a shulker item carries into the given container, for example a falling block.
+     *
+     * @param pdc  The container that holds the storage contents
+     * @param item The item the block was placed from
+     */
+    public void loadStorageContent(PersistentDataContainer pdc, @Nullable ItemStack item) {
         ItemMeta itemMeta = isShulker() && item != null ? item.getItemMeta() : null;
         if (itemMeta == null) return;
         ItemStack[] items = itemMeta.getPersistentDataContainer().get(STORAGE_KEY, DataType.ITEM_STACK_ARRAY);
-        if (items != null) BlockHelpers.getPDC(block).set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, items);
+        if (items != null) pdc.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, items);
     }
 
     public void dropStorageContent(Block block) {
