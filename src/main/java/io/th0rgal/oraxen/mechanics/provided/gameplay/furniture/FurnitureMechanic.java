@@ -809,7 +809,6 @@ public class FurnitureMechanic extends Mechanic {
         if (!location.isWorldLoaded()) return null;
         if (checkSpace && this.notEnoughSpace(yaw, location)) return null;
         assert location.getWorld() != null;
-        assert location.getWorld() != null;
         BlockFace resolvedFacing = facing != null ? facing : BlockFace.NORTH;
 
         Class<? extends Entity> entityClass = getFurnitureEntityClass();

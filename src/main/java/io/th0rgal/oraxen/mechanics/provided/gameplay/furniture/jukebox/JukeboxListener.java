@@ -16,7 +16,6 @@ import io.th0rgal.oraxen.utils.MusicDiscHelpers;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import net.kyori.adventure.text.Component;
 import org.bukkit.GameMode;
-import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -30,7 +29,6 @@ import org.bukkit.persistence.PersistentDataContainer;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Locale;
 
 public class JukeboxListener implements Listener {
 
@@ -89,7 +87,6 @@ public class JukeboxListener implements Listener {
     private boolean insertAndPlayDisc(Entity baseEntity, ItemStack disc, @Nullable Player player) {
         PersistentDataContainer pdc = baseEntity.getPersistentDataContainer();
         FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
-        Location loc = baseEntity.getLocation().toCenterLocation();
 
         if (furnitureMechanic == null || !furnitureMechanic.isJukebox())
             return false;
@@ -182,14 +179,5 @@ public class JukeboxListener implements Listener {
             applyActiveModel(baseEntity, furnitureMechanic, jukebox, false);
         }
         return true;
-    }
-
-    @Nullable
-    private NamespacedKey getSongFromDisc(ItemStack disc) {
-        if (VersionUtil.atOrAbove("1.21") && disc.hasItemMeta() && disc.getItemMeta().hasJukeboxPlayable()) {
-            return disc.getItemMeta().getJukeboxPlayable().getSongKey();
-        } else {
-            return NamespacedKey.minecraft("music_disc." + disc.getType().toString().toLowerCase(Locale.ROOT).split("music_disc_")[1]);
-        }
     }
 }
