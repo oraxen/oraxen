@@ -39,7 +39,8 @@ public class BedrockBreakMechanicManager {
                     world.dropItemNaturally(loc, new ItemStack(Material.BEDROCK));
 
                 block.breakNaturally(true);
-                BlockDurability.damageItemStack(player, EquipmentSlot.HAND, factory.getDurabilityCost());
+                if (factory.getDurabilityCost() > 0)
+                    BlockDurability.damageItemStack(player, EquipmentSlot.HAND, factory.getDurabilityCost());
             }
 
             @Override
