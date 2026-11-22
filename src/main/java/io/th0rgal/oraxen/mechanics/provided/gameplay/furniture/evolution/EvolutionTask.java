@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution;
 
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.BlockLocation;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
@@ -17,6 +18,8 @@ import org.bukkit.entity.Entity;
 import org.bukkit.block.data.type.Light;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+
+import java.util.List;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.EVOLUTION_KEY;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.STAGE_INDEX_KEY;
@@ -120,7 +123,7 @@ public class EvolutionTask implements Runnable {
             lightBoostTick = currentStage.getLightBoostTick();
         }
         
-        if (currentStage.isRainBoosted() && isExposedToRain(world, entityLoc)) {
+        if (currentStage.isRainBoosted() && isExposedToRain(world, entityLoc, mechanic.getBarriers(entity))) {
             rainBoostTick = currentStage.getRainBoostTick();
         }
         
@@ -172,7 +175,7 @@ public class EvolutionTask implements Runnable {
         if (evolution.isLightBoosted() && entityLoc.getBlock().getLightLevel() >= evolution.getMinimumLightLevel())
             lightBoostTick = evolution.getLightBoostTick();
 
-        if (evolution.isRainBoosted() && isExposedToRain(world, entityLoc))
+        if (evolution.isRainBoosted() && isExposedToRain(world, entityLoc, mechanic.getBarriers(entity)))
             rainBoostTick = evolution.getRainBoostTick();
 
         int evolutionStep = pdc.get(EVOLUTION_KEY, PersistentDataType.INTEGER) + delay + lightBoostTick + rainBoostTick;
@@ -190,9 +193,12 @@ public class EvolutionTask implements Runnable {
         }
     }
 
-    // The furniture's own barrier at its block counts as open sky
-    static boolean isExposedToRain(World world, Location location) {
-        return world.hasStorm() && world.getHighestBlockYAt(location) <= location.getBlockY();
+    // The furniture's own barriers above its block do not count as cover
+    static boolean isExposedToRain(World world, Location location, List<BlockLocation> barriers) {
+        if (!world.hasStorm()) return false;
+        int ownTop = barriers.stream().filter(barrier -> barrier.getX() == 0 && barrier.getZ() == 0)
+                .mapToInt(BlockLocation::getY).max().orElse(0);
+        return world.getHighestBlockYAt(location) <= location.getBlockY() + Math.max(ownTop, 0);
     }
 
     static void replaceWithNextStage(Entity entity, FurnitureMechanic mechanic, FurnitureMechanic nextMechanic) {
