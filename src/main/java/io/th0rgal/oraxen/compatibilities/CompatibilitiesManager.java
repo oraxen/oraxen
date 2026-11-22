@@ -47,7 +47,7 @@ public class CompatibilitiesManager {
                 return true;
             }
         } catch (final InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-            Logs.logWarning("Failed to enable compatibility for " + pluginName + ": " + e.getMessage());
+            Logs.logWarning("Failed to enable compatibility for " + pluginName);
             Logs.debug(e);
             return false;
         }
@@ -64,7 +64,8 @@ public class CompatibilitiesManager {
             Message.PLUGIN_UNHOOKS.log(AdventureUtils.tagResolver("plugin", pluginName));
             return true;
         } catch (final Exception e) {
-            Logs.logWarning(e.getMessage());
+            Logs.logWarning("Failed to disable compatibility for " + pluginName);
+            Logs.debug(e);
             return false;
         }
     }
@@ -77,7 +78,8 @@ public class CompatibilitiesManager {
                 return !tryEnable || enableCompatibility(compatibilityPluginName);
             }
         } catch (final Exception e) {
-            Logs.logWarning(e.getMessage());
+            Logs.logWarning("Failed to add compatibility for " + compatibilityPluginName);
+            Logs.debug(e);
             return false;
         }
         return false;

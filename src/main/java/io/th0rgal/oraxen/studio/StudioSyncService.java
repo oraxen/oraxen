@@ -411,8 +411,11 @@ public class StudioSyncService {
                 cancelPairingWatcher();
                 sendMessage(sender, "<prefix><#fa4943>Studio pairing failed: " + e.getMessage());
             }
-        } catch (Exception ignored) {
+        } catch (Exception e) {
             // Transient network error: keep polling until the code expires.
+            if (Settings.DEBUG.toBool())
+                Logs.logWarning("Failed to check the Oraxen Studio pairing status");
+            Logs.debug(e);
         }
     }
 
