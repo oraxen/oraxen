@@ -138,6 +138,9 @@ public class PredicatesGenerator {
         for (final ItemBuilder item : items) {
             OraxenMeta oraxenMeta = item.getOraxenMeta();
             Integer customModelData = oraxenMeta.getCustomModelData();
+            // Overrides without custom_model_data would apply to every vanilla item of this material
+            if (customModelData == null)
+                continue;
 
             // Skip duplicate
             JsonObject baseOverride = getOverride("custom_model_data", customModelData,
@@ -145,8 +148,7 @@ public class PredicatesGenerator {
             if (overrides.contains(baseOverride))
                 continue;
 
-            if (baseOverride.get("predicate").getAsJsonObject().entrySet().size() > 0)
-                overrides.add(baseOverride);
+            overrides.add(baseOverride);
 
             if (oraxenMeta.hasBlockingModel()) {
                 final JsonObject predicate = new JsonObject();
