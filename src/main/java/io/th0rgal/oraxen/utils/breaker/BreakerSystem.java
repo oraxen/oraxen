@@ -270,6 +270,17 @@ public class BreakerSystem implements Listener {
                         if (valueHolder[0]++ < 10) return;
                     }
 
+                    // Drops, durability and the period were resolved for the item held when digging
+                    // started. A different item makes the client restart digging with a new breaker.
+                    final ItemStack tool = player.getInventory().getItemInMainHand();
+                    if (!tool.isSimilar(item)) {
+                        stopBlockBreaker(location);
+                        stopBlockHitSound(location);
+                        resetBlockBreakAnimations(world,
+                                furnitureMechanic != null ? furnitureBarrierLocations : Collections.singletonList(location));
+                        return;
+                    }
+
                     BlockDurability.setSuppressVanillaDamageCancellation(true);
                     boolean canBreak;
                     try {
@@ -279,8 +290,8 @@ public class BreakerSystem implements Listener {
                     }
                     if (canBreak) {
                         // Damage item with properties identified earlier, unless the block mechanic configured durability itself.
-                        if (durabilityAction == null) ItemUtils.damageItem(player, drop, item);
-                        modifier.breakBlock(player, block, item);
+                        if (durabilityAction == null) ItemUtils.damageItem(player, drop, tool);
+                        modifier.breakBlock(player, block, tool);
                     } else stopBlockHitSound(location);
 
                     stopBlockBreaker(location);
