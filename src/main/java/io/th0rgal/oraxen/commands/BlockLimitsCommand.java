@@ -61,9 +61,10 @@ public class BlockLimitsCommand {
     private static List<Usage> usages() {
         boolean enabled = MechanicsManager.isMechanicEnabled("block");
         List<Usage> usages = new ArrayList<>();
-        // Note blocks accept variation IDs 0 through 775, inclusive.
-        usages.add(new Usage("note", "Note blocks", 776, enabled ? countSlots(
-                NoteBlockMechanicFactory.BLOCK_PER_VARIATION, NoteBlockMechanicFactory.getInstance(), 0, 775) : 0));
+        // Note blocks accept variation IDs 0 through 773, inclusive.
+        usages.add(new Usage("note", "Note blocks", NoteBlockMechanicFactory.MAX_BLOCK_VARIATION + 1, enabled ? countSlots(
+                NoteBlockMechanicFactory.BLOCK_PER_VARIATION, NoteBlockMechanicFactory.getInstance(), 0,
+                NoteBlockMechanicFactory.MAX_BLOCK_VARIATION) : 0));
         usages.add(new Usage("chorus", "Chorus blocks", ChorusBlockMechanicFactory.MAX_BLOCK_VARIATION,
                 enabled ? countSlots(ChorusBlockMechanicFactory.BLOCK_PER_VARIATION,
                         ChorusBlockMechanicFactory.getInstance(), 1, ChorusBlockMechanicFactory.MAX_BLOCK_VARIATION) : 0));

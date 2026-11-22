@@ -38,6 +38,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class NoteBlockMechanicFactory extends MechanicFactory {
 
+    // Higher ids wrap around to the block states of 374 and 375
+    public static final int MAX_BLOCK_VARIATION = BlockStateCodec.MAX_NOTEBLOCK_VARIATION;
     // Repopulated on reload (a region/command thread on Folia) while every block
     // event handler reads it from other region threads.
     public static final Map<Integer, NoteBlockMechanic> BLOCK_PER_VARIATION = new ConcurrentHashMap<>();
@@ -207,8 +209,8 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
         enable();
         NoteBlockMechanic mechanic = new NoteBlockMechanic(this, itemMechanicConfiguration);
-        if (!Range.between(0, 775).contains(mechanic.getCustomVariation())) {
-            Logs.logError("The custom_variation of " + mechanic.getItemID() + " is " + mechanic.getCustomVariation() + ", but must be between 0 and 775!");
+        if (!Range.between(0, MAX_BLOCK_VARIATION).contains(mechanic.getCustomVariation())) {
+            Logs.logError("The custom_variation of " + mechanic.getItemID() + " is " + mechanic.getCustomVariation() + ", but must be between 0 and " + MAX_BLOCK_VARIATION + "!");
             Logs.logWarning("The item has failed to build for now to prevent bugs and issues.");
             return null;
         }
@@ -257,7 +259,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     public NoteBlock createNoteBlockData(String itemID) {
         /* We have 16 instruments with 25 notes. All of those blocks can be powered.
          * That's: 16*25*2 = 800 variations. The first 25 variations of PIANO (not powered)
-         * will be reserved for the vanilla behavior. We still have 800-25 = 775 variations
+         * will be reserved for the vanilla behavior. Ids start at 26, which leaves 774 variations
          */
         return createNoteBlockData(((NoteBlockMechanic) getInstance().getMechanic(itemID)).getCustomVariation());
     }
@@ -278,13 +280,13 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
 
     @Override
     public @Nullable String getMechanicDescription() {
-        return "Creates custom blocks using noteblock states (up to 775 variations)";
+        return "Creates custom blocks using noteblock states (up to 774 variations)";
     }
 
     @Override
     public @NotNull List<MechanicConfigProperty> getConfigSchema() {
         return List.of(
-                MechanicConfigProperty.integer("custom_variation", "Unique variation ID (0-775)", 0, 0, 775),
+                MechanicConfigProperty.integer("custom_variation", "Unique variation ID (0-773)", 0, 0, MAX_BLOCK_VARIATION),
                 MechanicConfigProperty.string("model", "Block model path"),
                 MechanicConfigProperty.decimal("hardness", "Block break hardness", 1.0, 0.0),
                 MechanicConfigProperty.integer("light", "Light level emitted (0-15)", 0, 0, 15),

@@ -17,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
 public final class BlockStateCodec {
 
     public static final int MIN_NOTEBLOCK_VARIATION = 0;
-    public static final int MAX_NOTEBLOCK_VARIATION = 775;
+    public static final int MAX_NOTEBLOCK_VARIATION = 773;
     private static final int NOTEBLOCK_OFFSET = 26;
 
     public static final int MIN_TRIPWIRE_VARIATION = 1;
@@ -36,7 +36,7 @@ public final class BlockStateCodec {
     private BlockStateCodec() {
     }
 
-    // ==================== NOTEBLOCK CODEC (0..775) ====================
+    // ==================== NOTEBLOCK CODEC (0..773) ====================
 
     public static boolean isValidNoteBlockVariation(int variation) {
         return variation >= MIN_NOTEBLOCK_VARIATION && variation <= MAX_NOTEBLOCK_VARIATION;
