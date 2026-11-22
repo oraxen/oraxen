@@ -197,6 +197,14 @@ public class ChorusBlockMechanicListener implements Listener {
         ChorusBlockMechanic mechanic = OraxenBlocks.getChorusMechanic(block);
         if (mechanic == null)
             return;
+        // The client also sends an off-hand click because chorus plants have no vanilla use.
+        // The main-hand click handles the block, the off-hand item stays unused on storage and seats.
+        if (event.getHand() != EquipmentSlot.HAND) {
+            if ((mechanic.isStorage() || mechanic.hasSeat())
+                    && !(event.getPlayer().isSneaking() && ItemUtils.hasItemInAnyHand(event.getPlayer())))
+                event.setCancelled(true);
+            return;
+        }
 
         OraxenChorusBlockInteractEvent interactEvent = new OraxenChorusBlockInteractEvent(
                 mechanic, event.getPlayer(), event.getItem(),
