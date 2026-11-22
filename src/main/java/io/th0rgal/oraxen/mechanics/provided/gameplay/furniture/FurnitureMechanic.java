@@ -1536,7 +1536,9 @@ public class FurnitureMechanic extends Mechanic {
     public Entity getBaseEntity(Block block) {
         PersistentDataContainer pdc = BlockHelpers.getPDC(block);
         if (pdc.isEmpty()) return null;
-        final BlockLocation blockLoc = new BlockLocation(Objects.requireNonNull(pdc.get(ROOT_KEY, PersistentDataType.STRING)));
+        String serializedRoot = pdc.get(ROOT_KEY, PersistentDataType.STRING);
+        if (serializedRoot == null) return null;
+        final BlockLocation blockLoc = new BlockLocation(serializedRoot);
         Location originLoc = blockLoc.toLocation(block.getWorld());
 
         if (pdc.has(BASE_ENTITY_KEY, DataType.UUID))
