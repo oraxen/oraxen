@@ -184,8 +184,7 @@ public class EvolutionTask implements Runnable {
             FurnitureMechanic nextMechanic = (FurnitureMechanic) furnitureFactory.getMechanic(evolution.getNextStage());
             if (nextMechanic == null) return;
 
-            OraxenFurniture.remove(entity, null);
-            nextMechanic.place(entity.getLocation(), entity.getLocation().getYaw(), entity.getFacing());
+            replaceWithNextStage(entity, mechanic, nextMechanic);
         } else {
             pdc.set(EVOLUTION_KEY, PersistentDataType.INTEGER, evolutionStep);
         }
@@ -194,6 +193,15 @@ public class EvolutionTask implements Runnable {
     // The furniture's own barrier at its block counts as open sky
     static boolean isExposedToRain(World world, Location location) {
         return world.hasStorm() && world.getHighestBlockYAt(location) <= location.getBlockY();
+    }
+
+    static void replaceWithNextStage(Entity entity, FurnitureMechanic mechanic, FurnitureMechanic nextMechanic) {
+        Location location = entity.getLocation();
+        float yaw = location.getYaw();
+        BlockFace facing = entity.getFacing();
+        if (!OraxenFurniture.remove(entity, null)) return;
+        // Put the current stage back if the next stage cannot be placed, so the plant is not lost
+        if (nextMechanic.place(location, yaw, facing) == null) mechanic.place(location, yaw, facing);
     }
 
     /**
