@@ -204,6 +204,8 @@ public final class ItemComponents {
     @SuppressWarnings("UnstableApiUsage")
     private void parseFoodComponent(final ItemBuilder item, final ConfigurationSection foodSection) {
         final FoodComponent foodComponent = new ItemStack(item.getType()).getItemMeta().getFood();
+        if (!(foodSection.get("nutrition") instanceof Number))
+            Logs.logWarning("Food component of item \"" + section.getName() + "\" has no valid nutrition value, using 0.");
         foodComponent.setNutrition(Math.max(foodSection.getInt("nutrition"), 0));
         foodComponent.setSaturation(Math.max((float) foodSection.getDouble("saturation", 0.0), 0f));
         foodComponent.setCanAlwaysEat(foodSection.getBoolean("can_always_eat", false));

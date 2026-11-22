@@ -608,12 +608,8 @@ public class ItemUpdater implements Listener {
             if (itemMeta instanceof LeatherArmorMeta leatherMeta && oldMeta instanceof LeatherArmorMeta oldLeatherMeta && newMeta instanceof LeatherArmorMeta newLeatherMeta) {
                 // If it is not custom armor, keep color
                 if (oldItem.getType() == Material.LEATHER_HORSE_ARMOR) leatherMeta.setColor(oldLeatherMeta.getColor());
-                // If it is custom armor we use newLeatherMeta color, since the builder would have been altered
-                // in the process of creating the shader images. Then we just save the builder to update the config
-                else {
-                    leatherMeta.setColor(newLeatherMeta.getColor());
-                    newItemBuilder.save();
-                }
+                // If it is custom armor we use newLeatherMeta color
+                else leatherMeta.setColor(newLeatherMeta.getColor());
             }
 
             if (itemMeta instanceof PotionMeta potionMeta && oldMeta instanceof PotionMeta oldPotionMeta) {
@@ -707,9 +703,6 @@ public class ItemUpdater implements Listener {
             if (VersionUtil.atOrAbove("1.20.5") || !newItemBuilder.isUnstackable()) itemPdc.remove(UNSTACKABLE_KEY);
             else itemPdc.set(UNSTACKABLE_KEY, DataType.UUID, UUID.randomUUID());
         });
-
-        nmsHandler.consumableComponent(newItem, Optional.ofNullable(nmsHandler.consumableComponent(newItem))
-                .orElse(nmsHandler.consumableComponent(oldItem)));
 
         if (clearDeathProtection) return nmsHandler.removeDeathProtectionComponent(newItem);
         return deathProtectionComponent != null

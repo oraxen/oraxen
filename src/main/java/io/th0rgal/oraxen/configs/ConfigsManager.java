@@ -1085,9 +1085,8 @@ public class ConfigsManager {
             try {
                 config.save(itemFile);
             } catch (Exception e1) {
-                if (Settings.DEBUG.toBool())
-                    Logs.logError("Failed to save the item configuration using the fallback serializer.");
-                    Logs.debug(e1);
+                Logs.logError("Failed to save the item configuration using the fallback serializer.");
+                Logs.debug(e1);
             }
         }
     }

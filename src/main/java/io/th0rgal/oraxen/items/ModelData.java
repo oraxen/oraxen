@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.items;
 
 import io.th0rgal.oraxen.configs.Settings;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Material;
 
 import java.util.*;
@@ -11,6 +12,10 @@ public class ModelData {
     private final Material type;
     private final int modelData;
     public static final Map<Material, Map<String, Integer>> DATAS = new HashMap<>();
+    private static volatile SkippedModelData skippedModelData;
+
+    private record SkippedModelData(List<String> entries, Set<Integer> numbers) {
+    }
 
     public ModelData(Material type, String model, int modelData) {
         this.type = type;
@@ -41,9 +46,10 @@ public class ModelData {
             return usedModelDatas.get(model);
         }
 
+        Set<Integer> skippedCustomModelData = getSkippedCustomModelData();
         if (usedModelDatas.isEmpty()) {
             int newModelData = STARTING_CMD;
-            while (getSkippedCustomModelData().contains(newModelData)) {
+            while (skippedCustomModelData.contains(newModelData)) {
                 newModelData++;
             }
             usedModelDatas.put(model, newModelData);
@@ -54,7 +60,7 @@ public class ModelData {
         int currentHighestModelData = Collections.max(usedModelDatas.values());
         for (int i = STARTING_CMD; i < currentHighestModelData; i++) {
             if (!usedModelDatas.containsValue(i)) { // if the id is available
-                if (getSkippedCustomModelData().contains(i))
+                if (skippedCustomModelData.contains(i))
                     continue; // if the id should be skipped
                 usedModelDatas.put(model, i);
                 DATAS.put(type, usedModelDatas);
@@ -64,17 +70,13 @@ public class ModelData {
         // if no durability was available between the chosen, let's create a new one
         // bigger
         int newHighestModelData = currentHighestModelData + 1;
-        if (getSkippedCustomModelData().contains(newHighestModelData)) { // if the id should be skipped
-            newHighestModelData = getNextNotSkippedCustomModelData(newHighestModelData);
+        if (skippedCustomModelData.contains(newHighestModelData)) { // if the id should be skipped
+            newHighestModelData = getNextNotSkippedCustomModelData(newHighestModelData, skippedCustomModelData);
         }
 
         usedModelDatas.put(model, newHighestModelData);
         DATAS.put(type, usedModelDatas);
         return newHighestModelData;
-    }
-
-    static int getNextNotSkippedCustomModelData(int i) {
-        return getNextNotSkippedCustomModelData(i, getSkippedCustomModelData());
     }
 
     static int getNextNotSkippedCustomModelData(int i, Set<Integer> skippedCustomModelData) {
@@ -85,18 +87,30 @@ public class ModelData {
         return nextModelData;
     }
 
+    // Parses the setting only when it changed, so a bad entry warns once instead of on every item.
     private static Set<Integer> getSkippedCustomModelData() {
-        Set<Integer> skippedCustomModelData = new HashSet<>();
-        for (String s : Settings.SKIPPED_MODEL_DATA_NUMBERS.toStringList()) {
-            if (s.contains("-")) {
-                String[] s2 = s.split("-");
-                int min = Integer.parseInt(s2[0]);
-                int max = Integer.parseInt(s2[1]);
-                for (int i = min; i <= max; i++)
-                    skippedCustomModelData.add(i);
-            } else
-                skippedCustomModelData.add(Integer.parseInt(s));
+        List<String> entries = Settings.SKIPPED_MODEL_DATA_NUMBERS.toStringList();
+        SkippedModelData cached = skippedModelData;
+        if (cached == null || !cached.entries().equals(entries)) {
+            cached = new SkippedModelData(entries, parseSkippedCustomModelData(entries));
+            skippedModelData = cached;
         }
-        return skippedCustomModelData;
+        return cached.numbers();
+    }
+
+    private static Set<Integer> parseSkippedCustomModelData(List<String> entries) {
+        Set<Integer> skippedCustomModelData = new HashSet<>();
+        for (String entry : entries) {
+            int separator = entry.indexOf('-');
+            try {
+                int min = Integer.parseInt((separator < 0 ? entry : entry.substring(0, separator)).trim());
+                int max = separator < 0 ? min : Integer.parseInt(entry.substring(separator + 1).trim());
+                for (long i = min; i <= max; i++)
+                    skippedCustomModelData.add((int) i);
+            } catch (NumberFormatException e) {
+                Logs.logWarning("Invalid skipped model data number \"" + entry + "\" in settings.yml, ignoring it.");
+            }
+        }
+        return Set.copyOf(skippedCustomModelData);
     }
 }

@@ -1049,8 +1049,6 @@ public class ItemBuilder {
             itemMeta.setUseRemainder(useRemainder);
         if (hasEnchantable())
             itemMeta.setEnchantable(enchantable);
-        if (itemModel != null)
-            itemMeta.setItemModel(itemModel);
         if (isGlider != null)
             itemMeta.setGlider(isGlider);
     }
@@ -1175,10 +1173,12 @@ public class ItemBuilder {
     }
 
     private ItemStack applyConsumableComponent(ItemStack itemStack) {
+        if (consumableComponent == null) return itemStack;
         return NMSHandlers.getHandler().consumableComponent(itemStack, consumableComponent);
     }
 
     private ItemStack applyDeathProtectionComponent(ItemStack itemStack) {
+        if (deathProtectionComponent == null) return itemStack;
         return NMSHandlers.getHandler().deathProtectionComponent(itemStack, deathProtectionComponent);
     }
 
@@ -1242,15 +1242,15 @@ public class ItemBuilder {
                     if (hasEquippableComponent()) {
                         yamlConfiguration.set(itemId + ".components.equippable.slot",
                                 this.equippableComponent.getSlot().name());
-                        yamlConfiguration.set(itemId + ".components.equippable.model",
-                                this.equippableComponent.getModel().toString());
+                        if (this.equippableComponent.getModel() != null)
+                            yamlConfiguration.set(itemId + ".components.equippable.model",
+                                    this.equippableComponent.getModel().toString());
                     }
                     try {
                         yamlConfiguration.save(entry.getKey());
                     } catch (IOException e) {
-                        if (Settings.DEBUG.toBool())
-                            Logs.logError("Failed to save the generated item configuration.");
-                            Logs.debug(e);
+                        Logs.logError("Failed to save the generated item configuration.");
+                        Logs.debug(e);
                     }
                 });
     }
