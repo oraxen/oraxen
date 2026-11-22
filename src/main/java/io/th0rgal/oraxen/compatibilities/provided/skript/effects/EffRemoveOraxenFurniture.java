@@ -10,6 +10,8 @@ import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.util.Kleenean;
 import io.th0rgal.oraxen.api.OraxenFurniture;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.Event;
@@ -48,9 +50,11 @@ public class EffRemoveOraxenFurniture extends Effect {
         
         for (Object obj : objs) {
             if (obj instanceof Entity entity) {
-                OraxenFurniture.remove(entity, null);
-            } else if (obj instanceof Location location) {
-                OraxenFurniture.remove(location, null);
+                SchedulerUtil.runOnOwningThread(entity, () -> OraxenFurniture.remove(entity, null));
+            } else if (obj instanceof Location location && location.isWorldLoaded()) {
+                Location target = location.clone();
+                if (Bukkit.isOwnedByCurrentRegion(target)) OraxenFurniture.remove(target, null);
+                else SchedulerUtil.runAtLocation(target, () -> OraxenFurniture.remove(target, null));
             }
         }
     }

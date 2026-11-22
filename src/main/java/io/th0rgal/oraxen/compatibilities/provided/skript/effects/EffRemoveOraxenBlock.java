@@ -10,6 +10,8 @@ import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.util.Kleenean;
 import io.th0rgal.oraxen.api.OraxenBlocks;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.event.Event;
@@ -54,8 +56,10 @@ public class EffRemoveOraxenBlock extends Effect {
                 location = block.getLocation();
             }
             
-            if (location == null) continue;
-            OraxenBlocks.remove(location, null);
+            if (location == null || !location.isWorldLoaded()) continue;
+            Location target = location.clone();
+            if (Bukkit.isOwnedByCurrentRegion(target)) OraxenBlocks.remove(target, null);
+            else SchedulerUtil.runAtLocation(target, () -> OraxenBlocks.remove(target, null));
         }
     }
 

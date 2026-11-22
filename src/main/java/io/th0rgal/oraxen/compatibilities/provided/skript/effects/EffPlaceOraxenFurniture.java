@@ -10,6 +10,8 @@ import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.util.Kleenean;
 import io.th0rgal.oraxen.api.OraxenFurniture;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Rotation;
 import org.bukkit.block.BlockFace;
@@ -54,8 +56,11 @@ public class EffPlaceOraxenFurniture extends Effect {
         if (locs == null) return;
         
         for (Location location : locs) {
-            if (location == null) continue;
-            OraxenFurniture.place(id, location, Rotation.NONE, BlockFace.UP);
+            if (location == null || !location.isWorldLoaded()) continue;
+            Location target = location.clone();
+            Runnable place = () -> OraxenFurniture.place(id, target, Rotation.NONE, BlockFace.UP);
+            if (Bukkit.isOwnedByCurrentRegion(target)) place.run();
+            else SchedulerUtil.runAtLocation(target, place);
         }
     }
 
