@@ -173,14 +173,14 @@ public final class PaperConfigUpdater {
         return settings;
     }
 
-    private static String tryUpdateSetting(String line, String settingName, List<String> updatedSettings) {
-        // Pattern: "  disable-noteblock-updates: false" -> true
-        Pattern pattern = Pattern.compile("^(\\s*)" + Pattern.quote(settingName) + ":\\s*false\\s*$");
+    static String tryUpdateSetting(String line, String settingName, List<String> updatedSettings) {
+        // Pattern: "  disable-noteblock-updates: false # comment" -> true, keeping the comment
+        Pattern pattern = Pattern.compile("^(\\s*)" + Pattern.quote(settingName) + ":\\s*(?i:false)(\\s+#.*)?\\s*$");
         Matcher matcher = pattern.matcher(line);
 
         if (matcher.matches()) {
             updatedSettings.add(settingName);
-            return matcher.group(1) + settingName + ": true";
+            return matcher.group(1) + settingName + ": true" + (matcher.group(2) != null ? matcher.group(2) : "");
         }
         return null;
     }
