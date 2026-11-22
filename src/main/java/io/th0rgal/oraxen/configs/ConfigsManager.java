@@ -156,6 +156,11 @@ public class ConfigsManager {
         languagesFolder.mkdir();
         migrateLegacyDiscordInvite(languagesFolder);
         String languageFile = "languages/" + settings.getString(Settings.PLUGIN_LANGUAGE.getPath()) + ".yml";
+        if (!new File(plugin.getDataFolder(), languageFile).exists()
+                && plugin.getClass().getClassLoader().getResource(languageFile) == null) {
+            Logs.logWarning("Language file " + languageFile + " does not exist, using languages/english.yml instead.");
+            languageFile = "languages/english.yml";
+        }
         language = validate(tempManager, languageFile, defaultLanguage);
 
         // check itemsFolder
