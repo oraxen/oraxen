@@ -29,6 +29,7 @@ public class RepairMechanicListener implements Listener {
 
         DurabilityMechanicFactory durabilityFactory = DurabilityMechanicFactory.get();
         RepairMechanic repairMechanic = (RepairMechanic) factory.getMechanic(itemID);
+        if (!repairMechanic.canRepair()) return;
 
         ItemStack toRepair = event.getCurrentItem();
         if (toRepair == null) return;

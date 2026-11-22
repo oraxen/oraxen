@@ -18,7 +18,12 @@ public class RepairMechanic extends Mechanic {
             this.fixedAmount = section.getInt("fixed_amount");
     }
 
+    public boolean canRepair() {
+        return ratio != -1 || fixedAmount != -1;
+    }
+
     public int getFinalDamage(int maxDurability, int damage) {
+        if (!canRepair()) return damage;
         int amountToRepair = (ratio != -1) ? (int) (ratio * maxDurability) : fixedAmount;
         return Math.max(damage - amountToRepair, 0);
     }
