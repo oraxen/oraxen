@@ -188,7 +188,8 @@ public class ItemUpdater implements Listener {
         ItemStack itemStack = Optional.ofNullable(entity.getEquipment()).map(EntityEquipment::getItemInMainHand).orElse(null);
 
         if (entity instanceof Player player && player.getGameMode() == GameMode.CREATIVE) return;
-        if (ItemUtils.isEmpty(itemStack) || ItemUtils.isTool(itemStack)) return;
+        // Vanilla wears down tools when they hit mobs, except shears
+        if (ItemUtils.isEmpty(itemStack) || (ItemUtils.isTool(itemStack) && itemStack.getType() != Material.SHEARS)) return;
         if (!(itemStack.getItemMeta() instanceof Damageable damageable) || !damageable.hasMaxDamage()) return;
 
         Optional.ofNullable(OraxenItems.getBuilderByItem(itemStack)).ifPresent(i -> {
