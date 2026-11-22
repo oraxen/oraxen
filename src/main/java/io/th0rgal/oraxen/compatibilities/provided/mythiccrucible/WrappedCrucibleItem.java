@@ -4,7 +4,6 @@ import io.lumine.mythic.bukkit.BukkitAdapter;
 import io.lumine.mythic.bukkit.MythicBukkit;
 import io.lumine.mythic.core.items.MythicItem;
 import io.th0rgal.oraxen.configs.Message;
-import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.PluginUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -28,15 +27,19 @@ public class WrappedCrucibleItem {
 
     @Nullable
     public ItemStack build() {
+        if (!PluginUtils.isEnabled("MythicMobs")) {
+            Message.MYTHICCRUCIBLE_LOADING_ITEM_FAILED.log(AdventureUtils.tagResolver("item", id));
+            Message.MYTHICCRUCIBLE_MISSING_PLUGIN.log();
+            return null;
+        }
         try {
             Optional<MythicItem> maybeItem = MythicBukkit.inst().getItemManager().getItem(id);
             return BukkitAdapter.adapt(maybeItem.orElseThrow().generateItemStack(1));
         } catch (Exception e) {
-            Message.MYTHICCRUCIBLE_LOADING_ITEM_FAILED.log(AdventureUtils.tagResolver("id", id));
+            Message.MYTHICCRUCIBLE_LOADING_ITEM_FAILED.log(AdventureUtils.tagResolver("item", id));
             if (!PluginUtils.isEnabled("MythicCrucible"))
                 Message.MYTHICCRUCIBLE_MISSING_PLUGIN.log();
-            if (Settings.DEBUG.toBool())
-                Logs.logWarning(e.getMessage());
+            Logs.debug(e);
             return null;
         }
     }
