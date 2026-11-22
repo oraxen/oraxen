@@ -65,7 +65,10 @@ class FurnitureGhastLifecycleTest extends MechanicTestSupport {
             bukkit.when(Bukkit::getWorlds).thenReturn(List.of(world));
             handlers.when(NMSHandlers::getHandler).thenReturn(handler);
             scheduler.when(() -> SchedulerUtil.runOnOwningThread(eq(ghast), any(Runnable.class)))
-                    .thenAnswer(call -> { call.<Runnable>getArgument(1).run(); return null; });
+                    .thenAnswer(call -> {
+                        call.<Runnable>getArgument(1).run();
+                        return null;
+                    });
             scheduler.when(() -> SchedulerUtil.runForEntityTimer(eq(ghast), eq(5L), eq(5L), any(), any()))
                     .thenReturn(mock(SchedulerUtil.ScheduledTask.class));
 

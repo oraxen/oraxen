@@ -42,8 +42,10 @@ class RecipeBrewingTest {
             PotionBrewer brewer = mock(PotionBrewer.class);
             bukkit.when(Bukkit::getPotionBrewer).thenReturn(brewer);
             List<NamespacedKey> removed = new ArrayList<>();
-            doAnswer(call -> { removed.add(call.getArgument(0)); return null; })
-                    .when(brewer).removePotionMix(any());
+            doAnswer(call -> {
+                removed.add(call.getArgument(0));
+                return null;
+            }).when(brewer).removePotionMix(any());
             try {
                 BrewingLoader.beginReload();
                 BrewingLoader.register(recipe("first"));
@@ -81,8 +83,10 @@ class RecipeBrewingTest {
                 live.put(mix.getKey(), mix);
                 return null;
             }).when(brewer).addPotionMix(any());
-            doAnswer(call -> { live.remove(call.getArgument(0)); return null; })
-                    .when(brewer).removePotionMix(any());
+            doAnswer(call -> {
+                live.remove(call.getArgument(0));
+                return null;
+            }).when(brewer).removePotionMix(any());
             try {
                 BrewingLoader.beginReload();
                 BrewingLoader.register(recipe("original"));

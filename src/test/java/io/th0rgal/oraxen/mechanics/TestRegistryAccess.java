@@ -59,11 +59,17 @@ public class TestRegistryAccess implements RegistryAccess {
         return org.mockito.Mockito.mock(org.bukkit.inventory.ItemStack.class, invocation -> switch (invocation.getMethod().getName()) {
             case "getType" -> material;
             case "getAmount" -> count.get();
-            case "setAmount" -> { count.set(invocation.getArgument(0)); yield null; }
+            case "setAmount" -> {
+                count.set(invocation.getArgument(0));
+                yield null;
+            }
             case "isEmpty" -> count.get() <= 0 || material == org.bukkit.Material.AIR;
             case "getItemMeta" -> meta.get();
             case "hasItemMeta" -> meta.get() != null;
-            case "setItemMeta" -> { meta.set(invocation.getArgument(0)); yield true; }
+            case "setItemMeta" -> {
+                meta.set(invocation.getArgument(0));
+                yield true;
+            }
             case "getEnchantments" -> java.util.Map.of();
             case "clone" -> {
                 org.bukkit.inventory.ItemStack copy = testStack(material, count.get());
