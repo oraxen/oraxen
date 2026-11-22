@@ -96,11 +96,11 @@ class PackFileCollector {
             PackPipeline.AssetPath assetPath = PackPipeline.splitAssetPath(virtualFile.getPath());
             if (assetPath == null) continue;
             String path = assetPath.path();
-            if (path.matches("assets/.*/models/.*.json"))
+            if (path.matches("assets/.*/models/.*\\.json"))
                 models.computeIfAbsent(assetPath.prefix(), ignored -> new ArrayList<>()).add(virtualFile);
-            else if (path.matches("assets/.*/textures/.*.png.mcmeta"))
+            else if (path.matches("assets/.*/textures/.*\\.png\\.mcmeta"))
                 mcmeta.computeIfAbsent(assetPath.prefix(), ignored -> new HashSet<>()).add(path);
-            else if (path.matches("assets/.*/textures/.*.png")) {
+            else if (path.matches("assets/.*/textures/.*\\.png")) {
                 textures.computeIfAbsent(assetPath.prefix(), ignored -> new ArrayList<>()).add(virtualFile);
                 texturePaths.computeIfAbsent(assetPath.prefix(), ignored -> new HashSet<>()).add(path);
             }
@@ -181,7 +181,7 @@ class PackFileCollector {
                     Logs.logError("Texture-paths must only contain characters [a-z0-9/._-]");
                     addMalformed(malformedFiles, assetPath, path);
                 }
-                if (!path.matches(".*_layer_.*.png")) {
+                if (!path.matches(".*_layer_.*\\.png")) {
                     if (mcmeta.getOrDefault(layer.getKey(), Collections.emptySet()).contains(path + ".mcmeta"))
                         continue;
                     try {
@@ -211,9 +211,10 @@ class PackFileCollector {
                         // Be resilient when validating packs: bad files should not crash pack
                         // generation
                         Logs.logWarning("Failed to validate texture <blue>" + texture.getPath() + "</blue>");
-                        if (Settings.DEBUG.toBool())
+                        if (Settings.DEBUG.toBool()) {
                             Logs.logWarning("Skipping a resource pack texture that could not be processed.");
                             Logs.debug(e);
+                        }
                         addMalformed(malformedFiles, assetPath, path);
                     }
                 }
@@ -264,13 +265,13 @@ class PackFileCollector {
         String relativePath = packFolder.toPath().relativize(file.toPath()).toString();
         if (!relativePath.equals("pack.mcmeta") && exclusions.matches(relativePath)) return;
         try {
+            String parentPath = getZipFilePath(file.getParentFile().getCanonicalPath(), newFolder);
             final InputStream fis;
             if (file.getName().endsWith(".json"))
                 fis = processJsonFile(file);
             else
                 fis = new FileInputStream(file);
 
-            String parentPath = getZipFilePath(file.getParentFile().getCanonicalPath(), newFolder);
             output.add(new VirtualFile(parentPath, file.getName(), fis));
         } catch (IOException e) {
             Logs.logWarning("Skipping a resource pack file after an I/O failure.");

@@ -50,8 +50,11 @@ class PackFileCollectorTest {
         ConfigsManager configs = mock(ConfigsManager.class);
         YamlConfiguration settings = new YamlConfiguration();
         settings.set(Settings.DEBUG.getPath(), false);
+        YamlConfiguration language = new YamlConfiguration();
+        language.set("general.prefix", "");
         when(plugin.getConfigsManager()).thenReturn(configs);
         when(configs.getSettings()).thenReturn(settings);
+        when(configs.getLanguage()).thenReturn(language);
         pluginAccess = mockStatic(OraxenPlugin.class);
         pluginAccess.when(OraxenPlugin::get).thenReturn(plugin);
         logs = mockStatic(Logs.class);
