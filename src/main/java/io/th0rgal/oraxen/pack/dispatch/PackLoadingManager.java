@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.pack.dispatch;
 
 import io.th0rgal.oraxen.configs.Settings;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -21,12 +22,22 @@ public class PackLoadingManager implements Listener {
 
     private final Map<UUID, LoadingPlayer> frozenPlayers = new ConcurrentHashMap<>();
 
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerUpdatesPackStatus(PlayerResourcePackStatusEvent event) {
+        if (!PackSender.isOraxenPackStatus(event)) return;
         Player player = event.getPlayer();
         switch (event.getStatus().name()) {
-            case "ACCEPTED" -> frozenPlayers.computeIfAbsent(player.getUniqueId(), id -> new LoadingPlayer(player))
-                    .updateFlight(Settings.DISABLE_MOVEMENT_ON_LOAD.toBool());
+            case "ACCEPTED" -> {
+                LoadingPlayer loadingPlayer = frozenPlayers.computeIfAbsent(player.getUniqueId(), id -> new LoadingPlayer(player));
+                loadingPlayer.updateFlight(Settings.DISABLE_MOVEMENT_ON_LOAD.toBool());
+                // Release players whose client never reports a final status, such as a stalled download.
+                if (loadingPlayer.timeout == null) {
+                    long timeoutTicks = PackSender.getPreJoinTimeoutMillis() / 50L;
+                    loadingPlayer.timeout = SchedulerUtil.runForEntityLater(player, timeoutTicks, () -> {
+                        if (frozenPlayers.remove(player.getUniqueId(), loadingPlayer)) loadingPlayer.restoreFlight();
+                    }, null);
+                }
+            }
             // DOWNLOADED is intermediate and does not exist on the oldest supported API.
             case "DOWNLOADED" -> { }
             default -> release(player);
@@ -67,7 +78,7 @@ public class PackLoadingManager implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlayerGameModeChange(PlayerGameModeChangeEvent event) {
         LoadingPlayer loadingPlayer = frozenPlayers.get(event.getPlayer().getUniqueId());
         // The new game mode takes ownership of flight permission after this event.
@@ -76,7 +87,9 @@ public class PackLoadingManager implements Listener {
 
     private void release(Player player) {
         LoadingPlayer loadingPlayer = frozenPlayers.remove(player.getUniqueId());
-        if (loadingPlayer != null) loadingPlayer.restoreFlight();
+        if (loadingPlayer == null) return;
+        if (loadingPlayer.timeout != null) loadingPlayer.timeout.cancel();
+        loadingPlayer.restoreFlight();
     }
 
     public void shutdown() {
@@ -87,6 +100,7 @@ public class PackLoadingManager implements Listener {
     private static final class LoadingPlayer {
         private final Player player;
         private boolean temporaryFlight;
+        private SchedulerUtil.ScheduledTask timeout;
 
         private LoadingPlayer(Player player) {
             this.player = player;

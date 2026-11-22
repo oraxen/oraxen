@@ -11,6 +11,7 @@ import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.resource.ResourcePackInfo;
 import net.kyori.adventure.resource.ResourcePackRequest;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerResourcePackStatusEvent;
 
 import java.net.URI;
 import java.util.Locale;
@@ -23,14 +24,14 @@ import java.util.regex.Pattern;
 public abstract class PackSender {
 
     private static final long DEFAULT_PRE_JOIN_TIMEOUT_MILLIS = 30_000L;
-    private static final Pattern TIMEOUT_PATTERN = Pattern.compile("^([0-9]+(?:\\.[0-9]+)?)\\s*(ms|s|m|ticks?|t)?$", Pattern.CASE_INSENSITIVE);
+    private static final Pattern DURATION_PATTERN = Pattern.compile("^([0-9]+(?:\\.[0-9]+)?)\\s*(ms|s|m|ticks?|t)?$", Pattern.CASE_INSENSITIVE);
     private static final ConcurrentHashMap<UUID, UUID> lastSentPackIds = new ConcurrentHashMap<>();
+    private static final DurationSetting preJoinTimeout = new DurationSetting(Settings.SEND_PACK_TIMEOUT, DEFAULT_PRE_JOIN_TIMEOUT_MILLIS);
+    private static final DurationSetting sendDelay = new DurationSetting(Settings.SEND_PACK_DELAY, 0L);
 
     protected final HostingProvider hostingProvider;
     private static final Object dispatchNormalizationLock = new Object();
     private static volatile boolean dispatchModeNormalized = false;
-    private static volatile Object cachedTimeoutSource = null;
-    private static volatile long cachedTimeoutMillis = DEFAULT_PRE_JOIN_TIMEOUT_MILLIS;
 
     protected PackSender(HostingProvider hostingProvider) {
         this.hostingProvider = hostingProvider;
@@ -100,6 +101,15 @@ public abstract class PackSender {
         if (playerId != null) lastSentPackIds.remove(playerId);
     }
 
+    /**
+     * Whether a status event is about the pack Oraxen last sent to the player.
+     * Servers before 1.20.3 do not report pack ids, so every status counts there.
+     */
+    public static boolean isOraxenPackStatus(PlayerResourcePackStatusEvent event) {
+        return !VersionUtil.atOrAbove("1.20.3")
+                || event.getID().equals(lastSentPackIds.get(event.getPlayer().getUniqueId()));
+    }
+
     private static ResourcePackRequest createResourcePackRequest(UUID uuid, String url, byte[] sha1,
                                                                  net.kyori.adventure.text.Component prompt,
                                                                  boolean mandatory) {
@@ -134,24 +144,23 @@ public abstract class PackSender {
     }
 
     public static long getPreJoinTimeoutMillis() {
-        Object value = Settings.SEND_PACK_TIMEOUT.getValue();
-        if (Objects.equals(value, cachedTimeoutSource)) {
-            return cachedTimeoutMillis;
-        }
-
-        long timeoutMillis = parsePreJoinTimeout(value);
-        cachedTimeoutSource = value;
-        cachedTimeoutMillis = timeoutMillis;
-        return timeoutMillis;
+        return preJoinTimeout.millis();
     }
 
-    private static long parsePreJoinTimeout(Object value) {
+    /** Delay before sending the pack on join, in ticks. Plain numbers are seconds. */
+    public static long getSendDelayTicks() {
+        return sendDelay.millis() / 50L;
+    }
+
+    private static long parseDuration(Settings setting, Object value, long fallbackMillis) {
+        if (value == null) return fallbackMillis;
+
         if (value instanceof Number number) {
-            return Math.max(0L, number.longValue() * 1000L);
+            return Math.max(0L, Math.round(number.doubleValue() * 1000D));
         }
 
-        if (value instanceof String rawTimeout) {
-            Matcher matcher = TIMEOUT_PATTERN.matcher(rawTimeout.trim());
+        if (value instanceof String rawDuration) {
+            Matcher matcher = DURATION_PATTERN.matcher(rawDuration.trim());
             if (matcher.matches()) {
                 double amount = Double.parseDouble(matcher.group(1));
                 String unit = matcher.group(2) != null ? matcher.group(2).toLowerCase(Locale.ROOT) : "s";
@@ -165,9 +174,33 @@ public abstract class PackSender {
             }
         }
 
-        Logs.logWarning("Invalid pack.dispatch.timeout '" + value + "'. Falling back to 30s.");
-        return DEFAULT_PRE_JOIN_TIMEOUT_MILLIS;
+        Logs.logWarning("Invalid " + setting.getPath() + " '" + value + "'. Falling back to " + fallbackMillis / 1000L + "s.");
+        return fallbackMillis;
     }
+
+    /** Parses a duration setting once per distinct config value. */
+    private static final class DurationSetting {
+        private final Settings setting;
+        private final long fallbackMillis;
+        private volatile CachedDuration cached;
+
+        private DurationSetting(Settings setting, long fallbackMillis) {
+            this.setting = setting;
+            this.fallbackMillis = fallbackMillis;
+        }
+
+        private long millis() {
+            Object value = setting.getValue();
+            CachedDuration current = cached;
+            if (current != null && Objects.equals(current.source(), value)) return current.millis();
+
+            long millis = parseDuration(setting, value, fallbackMillis);
+            cached = new CachedDuration(value, millis);
+            return millis;
+        }
+    }
+
+    private record CachedDuration(Object source, long millis) {}
 
     private static boolean isDispatchSendEnabled() {
         Object send = Settings.SEND_PACK.getValue();

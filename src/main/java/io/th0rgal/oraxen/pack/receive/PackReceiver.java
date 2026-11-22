@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.pack.receive;
 
 import io.th0rgal.oraxen.configs.Settings;
+import io.th0rgal.oraxen.pack.dispatch.PackSender;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import net.kyori.adventure.resource.ResourcePackStatus;
@@ -51,6 +52,7 @@ public class PackReceiver implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL)
     public void onPlayerUpdatesPackStatus(PlayerResourcePackStatusEvent event) {
+        if (!PackSender.isOraxenPackStatus(event)) return;
         processStatus(event.getPlayer(), event.getStatus());
     }
 
@@ -106,7 +108,7 @@ public class PackReceiver implements Listener {
 
         if (playerToProcess != null) {
             Player scheduledPlayer = playerToProcess;
-            SchedulerUtil.runTask(() -> {
+            SchedulerUtil.runForEntity(scheduledPlayer, () -> {
                 if (scheduledPlayer.isOnline()) {
                     processStatus(scheduledPlayer, bukkitStatus);
                 }
@@ -149,14 +151,13 @@ public class PackReceiver implements Listener {
         }
     }
 
-    private static void sendMessage(Player receiver, String action, Component message) {
-        switch (action) {
-            case "KICK" -> receiver.kick(message);
-            case "CHAT" -> AdventureUtils.sendMessage(receiver, message);
-            case "ACTION_BAR" -> AdventureUtils.sendActionBar(receiver, message);
-            case "TITLE" -> AdventureUtils.showTitle(receiver,
+    private static void sendMessage(Player receiver, PackAction.MessageType type, Component message) {
+        switch (type) {
+            case KICK -> receiver.kick(message);
+            case CHAT -> AdventureUtils.sendMessage(receiver, message);
+            case ACTION_BAR -> AdventureUtils.sendActionBar(receiver, message);
+            case TITLE -> AdventureUtils.showTitle(receiver,
                     Title.title(Component.empty(), message, Title.Times.times(Duration.ofMillis(250), Duration.ofMillis(3500), Duration.ofMillis(250))));
-            default -> throw new IllegalStateException("Unexpected value: " + action);
         }
     }
 

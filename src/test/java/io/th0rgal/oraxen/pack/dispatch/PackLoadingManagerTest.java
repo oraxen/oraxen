@@ -3,6 +3,10 @@ package io.th0rgal.oraxen.pack.dispatch;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.configs.ConfigsManager;
 import io.th0rgal.oraxen.configs.Settings;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
+import io.th0rgal.oraxen.utils.VersionUtil;
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.resource.ResourcePackRequest;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -19,6 +23,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 
 import java.util.UUID;
@@ -26,6 +31,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.anyBoolean;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -40,7 +47,11 @@ class PackLoadingManagerTest {
     private final Player player = mock(Player.class);
     private final AtomicBoolean allowFlight = new AtomicBoolean();
     private final YamlConfiguration settings = new YamlConfiguration();
+    private final UUID playerId = UUID.randomUUID();
+    private final UUID packId = UUID.randomUUID();
     private MockedStatic<OraxenPlugin> pluginAccess;
+    private MockedStatic<VersionUtil> versions;
+    private MockedStatic<SchedulerUtil> scheduler;
 
     @BeforeEach
     void setup() {
@@ -52,8 +63,13 @@ class PackLoadingManagerTest {
         pluginAccess.when(OraxenPlugin::get).thenReturn(plugin);
         settings.set(Settings.DISABLE_MOVEMENT_ON_LOAD.getPath(), true);
         settings.set(Settings.DISABLE_DAMAGE_ON_LOAD.getPath(), true);
+        settings.set(Settings.SEND_PACK_TIMEOUT.getPath(), "30s");
         Settings.invalidateCache();
-        when(player.getUniqueId()).thenReturn(UUID.randomUUID());
+        versions = mockStatic(VersionUtil.class);
+        versions.when(() -> VersionUtil.atOrAbove("1.20.3")).thenReturn(true);
+        scheduler = mockStatic(SchedulerUtil.class);
+        PackSender.sendResourcePack(mock(Audience.class), playerId, packId, mock(ResourcePackRequest.class));
+        when(player.getUniqueId()).thenReturn(playerId);
         when(player.getGameMode()).thenReturn(GameMode.SURVIVAL);
         when(player.getAllowFlight()).thenAnswer(invocation -> allowFlight.get());
         doAnswer(invocation -> {
@@ -64,7 +80,10 @@ class PackLoadingManagerTest {
 
     @AfterEach
     void cleanup() {
+        PackSender.forgetPack(playerId);
         Settings.invalidateCache();
+        scheduler.close();
+        versions.close();
         pluginAccess.close();
     }
 
@@ -188,14 +207,44 @@ class PackLoadingManagerTest {
         assertFalse(allowFlight.get());
     }
 
+    @Test
+    void ignoresStatusesForPacksSentByOtherPlugins() {
+        UUID otherPackId = UUID.randomUUID();
+        status(Status.ACCEPTED, otherPackId);
+        assertFalse(allowFlight.get());
+        status(Status.ACCEPTED);
+        status(Status.SUCCESSFULLY_LOADED, otherPackId);
+        assertTrue(allowFlight.get());
+        PlayerMoveEvent move = move();
+        manager.onPlayerMove(move);
+        assertTrue(move.isCancelled());
+    }
+
+    @Test
+    void releasesPlayerWhenThePackNeverFinishesLoading() {
+        status(Status.ACCEPTED);
+        ArgumentCaptor<Runnable> timeout = ArgumentCaptor.forClass(Runnable.class);
+        scheduler.verify(() -> SchedulerUtil.runForEntityLater(eq(player), eq(600L), timeout.capture(), isNull()));
+        timeout.getValue().run();
+        assertFalse(allowFlight.get());
+        PlayerMoveEvent move = move();
+        manager.onPlayerMove(move);
+        assertFalse(move.isCancelled());
+    }
+
     private PlayerMoveEvent move() {
         return new PlayerMoveEvent(player, new Location(null, 0, 100, 0), new Location(null, 0, 99, 0));
     }
 
     private void status(Status status) {
+        status(status, packId);
+    }
+
+    private void status(Status status, UUID statusPackId) {
         PlayerResourcePackStatusEvent event = mock(PlayerResourcePackStatusEvent.class);
         when(event.getPlayer()).thenReturn(player);
         when(event.getStatus()).thenReturn(status);
+        when(event.getID()).thenReturn(statusPackId);
         manager.onPlayerUpdatesPackStatus(event);
     }
 }

@@ -176,9 +176,9 @@ pack:
   dispatch:
     send: true # Send the pack to players.
     mode: "JOIN" # Valid options: PRE-JOIN and JOIN.
-    timeout: 30s # Time to wait for a PRE-JOIN response before continuing login.
+    timeout: 30s # Time to wait for a pack response before continuing a PRE-JOIN login or lifting the restrictions below.
     exclude: [] # Excluded client versions. Quote rules, such as '< 1.12', '= 1.21.11', or '> 1.21.11'.
-    delay: -1
+    delay: -1 # Time to wait before sending the pack in JOIN mode, such as 5s or 100t. Plain numbers are seconds.
     mandatory: true
 
     disable: # Temporary restrictions while the pack loads.
