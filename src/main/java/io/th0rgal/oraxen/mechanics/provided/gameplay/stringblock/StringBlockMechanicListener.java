@@ -44,7 +44,7 @@ public class StringBlockMechanicListener implements Listener {
 
     public StringBlockMechanicListener() {
         // BreakerSystem no longer requires a packet library, register unconditionally.
-        BreakerSystem.MODIFIERS.add(getHardnessModifier());
+        BreakerSystem.registerModifier(StringBlockMechanicListener.class, getHardnessModifier());
     }
 
     private HardnessModifier getHardnessModifier() {

@@ -46,6 +46,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -64,11 +65,26 @@ public class BreakerSystem implements Listener {
     // Re-populated by mechanic factories on every reload while block-damage
     // handlers iterate it concurrently on region threads (Folia).
     public static final List<HardnessModifier> MODIFIERS = new CopyOnWriteArrayList<>();
+    private static final Map<Class<?>, HardnessModifier> OWNED_MODIFIERS = new HashMap<>();
     // Use thread-safe collections for Folia compatibility (concurrent region thread access)
     private final Set<Location> breakerLocations = ConcurrentHashMap.newKeySet();
     private final Map<Location, SchedulerUtil.ScheduledTask> breakerTasks = new ConcurrentHashMap<>();
     private final Map<Location, SchedulerUtil.ScheduledTask> breakerPlaySound = new ConcurrentHashMap<>();
     private final Map<Location, Player> clientSideBreakSuppressions = new ConcurrentHashMap<>();
+
+    /**
+     * Adds the hardness modifier of the given owner, replacing the one it registered before.
+     */
+    public static synchronized void registerModifier(Class<?> owner, HardnessModifier modifier) {
+        unregisterModifier(owner);
+        OWNED_MODIFIERS.put(owner, modifier);
+        MODIFIERS.add(modifier);
+    }
+
+    public static synchronized void unregisterModifier(Class<?> owner) {
+        HardnessModifier modifier = OWNED_MODIFIERS.remove(owner);
+        if (modifier != null) MODIFIERS.remove(modifier);
+    }
 
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void onBlockDamage(final BlockDamageEvent event) {

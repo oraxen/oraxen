@@ -58,7 +58,7 @@ public class FurnitureListener implements Listener {
 
     public FurnitureListener() {
         // BreakerSystem no longer requires a packet library, register unconditionally.
-        BreakerSystem.MODIFIERS.add(getHardnessModifier());
+        BreakerSystem.registerModifier(FurnitureListener.class, getHardnessModifier());
     }
 
     private HardnessModifier getHardnessModifier() {

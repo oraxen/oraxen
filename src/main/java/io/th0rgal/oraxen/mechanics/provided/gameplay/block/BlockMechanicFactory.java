@@ -7,9 +7,13 @@ import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.chorusblock.ChorusBlockMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.chorusblock.ChorusBlockMechanicListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.shaped.ShapedBlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicListener;
+import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;
@@ -58,6 +62,9 @@ public class BlockMechanicFactory extends MechanicFactory {
         StringBlockMechanicFactory.clearInstance(stringBlockFactory);
         ChorusBlockMechanicFactory.clearInstance(chorusBlockFactory);
         ShapedBlockMechanicFactory.clearInstance(shapedBlockFactory);
+        BreakerSystem.unregisterModifier(NoteBlockMechanicListener.class);
+        BreakerSystem.unregisterModifier(StringBlockMechanicListener.class);
+        BreakerSystem.unregisterModifier(ChorusBlockMechanicListener.class);
     }
 
     @Override

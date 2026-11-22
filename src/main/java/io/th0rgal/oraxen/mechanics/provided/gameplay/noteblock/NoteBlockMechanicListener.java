@@ -45,7 +45,7 @@ public class NoteBlockMechanicListener implements Listener {
     public NoteBlockMechanicListener() {
         // BreakerSystem drives break animations through Paper's BlockDamageEvent and
         // Player#sendBlockDamage, so hardness no longer requires a packet library.
-        BreakerSystem.MODIFIERS.add(getHardnessModifier());
+        BreakerSystem.registerModifier(NoteBlockMechanicListener.class, getHardnessModifier());
     }
 
     private HardnessModifier getHardnessModifier() {

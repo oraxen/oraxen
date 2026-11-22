@@ -13,7 +13,7 @@ import org.bukkit.inventory.ItemStack;
 public class BedrockBreakMechanicManager {
 
     public BedrockBreakMechanicManager(BedrockBreakMechanicFactory factory) {
-        BreakerSystem.MODIFIERS.add(new HardnessModifier() {
+        BreakerSystem.registerModifier(BedrockBreakMechanicManager.class, new HardnessModifier() {
 
             @Override
             public boolean isTriggered(Player player, Block block, ItemStack tool) {

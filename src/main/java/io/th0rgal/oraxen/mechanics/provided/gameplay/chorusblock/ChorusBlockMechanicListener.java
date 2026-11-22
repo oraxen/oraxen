@@ -46,7 +46,7 @@ public class ChorusBlockMechanicListener implements Listener {
 
     public ChorusBlockMechanicListener() {
         // BreakerSystem no longer requires a packet library, register unconditionally.
-        BreakerSystem.MODIFIERS.add(getHardnessModifier());
+        BreakerSystem.registerModifier(ChorusBlockMechanicListener.class, getHardnessModifier());
     }
 
     private HardnessModifier getHardnessModifier() {

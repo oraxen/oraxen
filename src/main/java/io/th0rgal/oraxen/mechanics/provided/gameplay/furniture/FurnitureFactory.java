@@ -17,6 +17,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text.FurnitureTex
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
+import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -69,6 +70,11 @@ public class FurnitureFactory extends MechanicFactory {
 
         if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new FurnitureSoundListener());
         detectViabackwards = OraxenPlugin.get().getConfigsManager().getMechanics().getConfigurationSection("furniture").getBoolean("detect_viabackwards", true);
+    }
+
+    @Override
+    public void onUnregister() {
+        BreakerSystem.unregisterModifier(FurnitureListener.class);
     }
 
     public static boolean setDefaultType(ConfigurationSection mechanicSection) {

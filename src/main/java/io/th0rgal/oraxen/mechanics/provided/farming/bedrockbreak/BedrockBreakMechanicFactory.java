@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.farming.bedrockbreak;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicConfigProperty;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,6 +35,11 @@ public class BedrockBreakMechanicFactory extends MechanicFactory {
 
     public int getDurabilityCost() {
         return durabilityCost;
+    }
+
+    @Override
+    public void onUnregister() {
+        BreakerSystem.unregisterModifier(BedrockBreakMechanicManager.class);
     }
 
     @Override
