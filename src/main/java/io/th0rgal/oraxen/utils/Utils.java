@@ -71,13 +71,13 @@ public class Utils {
         try {
             minAmount = Integer.parseInt(StringUtils.substringBefore(string, ".."));
         } catch (NumberFormatException e) {
-            minAmount = 1;
+            minAmount = integerRange.getLowerBound();
         }
 
         try {
             maxAmount = Integer.parseInt(StringUtils.substringAfter(string, ".."));
         } catch (NumberFormatException e) {
-            maxAmount = Math.max(minAmount, 1);
+            maxAmount = Math.max(minAmount, integerRange.getUpperBound());
         }
 
         minAmount = Math.max(0, minAmount);
