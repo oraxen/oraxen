@@ -20,6 +20,8 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.EVOLUTION_KEY;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.STAGE_INDEX_KEY;
@@ -193,12 +195,18 @@ public class EvolutionTask implements Runnable {
         }
     }
 
-    // The furniture's own barriers above its block do not count as cover
+    // Walks down from the highest block above the furniture and only skips its own barriers
     static boolean isExposedToRain(World world, Location location, List<BlockLocation> barriers) {
         if (!world.hasStorm()) return false;
-        int ownTop = barriers.stream().filter(barrier -> barrier.getX() == 0 && barrier.getZ() == 0)
-                .mapToInt(BlockLocation::getY).max().orElse(0);
-        return world.getHighestBlockYAt(location) <= location.getBlockY() + Math.max(ownTop, 0);
+        int baseY = location.getBlockY();
+        Set<Integer> ownBarrierYs = barriers.stream().filter(barrier -> barrier.getX() == 0 && barrier.getZ() == 0)
+                .map(barrier -> baseY + barrier.getY()).collect(Collectors.toSet());
+        for (int y = world.getHighestBlockYAt(location); y > baseY; y--) {
+            Block block = world.getBlockAt(location.getBlockX(), y, location.getBlockZ());
+            if (ownBarrierYs.contains(y) && block.getType() == Material.BARRIER) continue;
+            if (!block.isPassable() || block.isLiquid()) return false;
+        }
+        return true;
     }
 
     static void replaceWithNextStage(Entity entity, FurnitureMechanic mechanic, FurnitureMechanic nextMechanic) {
