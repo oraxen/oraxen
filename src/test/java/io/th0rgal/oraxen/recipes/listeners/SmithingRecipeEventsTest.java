@@ -1,16 +1,23 @@
 package io.th0rgal.oraxen.recipes.listeners;
 
+import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.mechanics.provided.misc.misc.MiscMechanicFactory;
 import io.th0rgal.oraxen.recipes.builders.SmithingBuilder;
 import io.th0rgal.oraxen.utils.InventoryUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.PrepareSmithingEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.inventory.SmithingInventory;
 import org.bukkit.inventory.SmithingTransformRecipe;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -34,6 +41,57 @@ class SmithingRecipeEventsTest {
     @Test
     void replacesPapersResultWhenAnotherRecipeMatches() {
         checkPreparedResult(false, true, true);
+    }
+
+    @Test
+    void blocksVanillaUpgradesOfCustomItemsWhenTheMiscMechanicIsDisabled() {
+        PrepareSmithingEvent event = mock(PrepareSmithingEvent.class);
+        SmithingInventory inventory = mock(SmithingInventory.class);
+        ItemStack template = item(Material.NETHERITE_UPGRADE_SMITHING_TEMPLATE);
+        ItemStack input = item(Material.DIAMOND_SWORD);
+        ItemStack material = item(Material.NETHERITE_INGOT);
+        ItemStack vanillaBase = item(Material.DIAMOND_SWORD);
+        when(event.getInventory()).thenReturn(inventory);
+        when(inventory.getInputTemplate()).thenReturn(template);
+        when(inventory.getInputEquipment()).thenReturn(input);
+        when(inventory.getInputMineral()).thenReturn(material);
+        when(inventory.getContents()).thenReturn(new ItemStack[]{template, input, material});
+        RecipeChoice matching = mock(RecipeChoice.class);
+        when(matching.test(any())).thenReturn(true);
+        when(matching.getItemStack()).thenReturn(vanillaBase);
+        SmithingTransformRecipe first = mock(SmithingTransformRecipe.class), second = mock(SmithingTransformRecipe.class);
+        for (SmithingTransformRecipe recipe : List.of(first, second)) {
+            when(recipe.getTemplate()).thenReturn(matching);
+            when(recipe.getBase()).thenReturn(matching);
+            when(recipe.getAddition()).thenReturn(matching);
+        }
+        OraxenPlugin plugin = mock(OraxenPlugin.class);
+        when(plugin.getName()).thenReturn("Oraxen");
+        when(plugin.namespace()).thenReturn("oraxen");
+        try (var plugins = mockStatic(OraxenPlugin.class, invocation -> invocation.getMethod().getReturnType() == OraxenPlugin.class
+                     ? plugin : RETURNS_DEFAULTS.answer(invocation));
+             var builders = mockStatic(RecipesBuilderEvents.class);
+             var managers = mockStatic(RecipesEventsManager.class);
+             var items = mockStatic(OraxenItems.class);
+             var factories = mockStatic(MiscMechanicFactory.class);
+             var bukkit = mockStatic(Bukkit.class)) {
+            managers.when(RecipesEventsManager::get).thenReturn(mock(RecipesEventsManager.class));
+            items.when(() -> OraxenItems.exists(input)).thenReturn(true);
+            items.when(() -> OraxenItems.getIdByItem(input)).thenReturn("custom_sword");
+            factories.when(MiscMechanicFactory::get).thenReturn(null);
+            bukkit.when(Bukkit::recipeIterator).thenReturn(List.<Recipe>of(first, second).iterator());
+
+            new SmithingRecipeEvents().onSmithingRecipe(event);
+
+            verify(event).setResult(null);
+        }
+    }
+
+    private static ItemStack item(Material material) {
+        ItemStack item = mock(ItemStack.class);
+        when(item.getType()).thenReturn(material);
+        when(item.getAmount()).thenReturn(1);
+        return item;
     }
 
     private void checkPreparedResult(boolean transform, boolean permitted, boolean changed) {

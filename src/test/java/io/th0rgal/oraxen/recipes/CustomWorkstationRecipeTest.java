@@ -1,6 +1,9 @@
 package io.th0rgal.oraxen.recipes;
 
+import io.th0rgal.oraxen.recipes.loaders.RecipeLoader;
+import io.th0rgal.oraxen.recipes.loaders.WorkstationLoader;
 import org.bukkit.Material;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.RecipeChoice;
 import org.junit.jupiter.api.AfterEach;
@@ -8,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -60,6 +64,28 @@ class CustomWorkstationRecipeTest {
 
         CustomWorkstationRegistry.beginReload();
         CustomWorkstationRegistry.cancelReload();
+
+        assertSame(recipe, CustomWorkstationRegistry.match(CustomWorkstationRecipe.Type.GRINDSTONE,
+                item(Material.DIAMOND, 1), null));
+    }
+
+    @Test
+    void brokenEditKeepsThePreviousRecipeWhenRecipesAreNotReset() {
+        CustomWorkstationRecipe recipe = recipe(null);
+        CustomWorkstationRegistry.beginReload();
+        CustomWorkstationRegistry.register(recipe);
+        CustomWorkstationRegistry.finishReload();
+        RecipeLoader.beginRegistrationPass(false);
+        try {
+            CustomWorkstationRegistry.beginReload();
+            WorkstationLoader broken = new WorkstationLoader(new YamlConfiguration().createSection("test"),
+                    CustomWorkstationRecipe.Type.GRINDSTONE);
+            assertThrows(IllegalArgumentException.class, broken::registerRecipe);
+            broken.retainPreviousVersion();
+            CustomWorkstationRegistry.finishReload();
+        } finally {
+            RecipeLoader.cancelRegistrationPass();
+        }
 
         assertSame(recipe, CustomWorkstationRegistry.match(CustomWorkstationRecipe.Type.GRINDSTONE,
                 item(Material.DIAMOND, 1), null));

@@ -1,12 +1,15 @@
 package io.th0rgal.oraxen.recipes.loaders;
 
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.recipes.RecipeIngredients;
+import io.th0rgal.oraxen.recipes.listeners.RecipesEventsManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Keyed;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
@@ -16,9 +19,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -214,6 +219,48 @@ class RecipeRegistrationTest {
             assertThrows(IllegalArgumentException.class, () -> loader(recipe).registerRecipe());
             bukkit.verifyNoInteractions();
         }
+    }
+
+    @Test
+    void duplicateRecipeNamesKeepTheFirstRecipesIngredientMatcher() {
+        RecipesEventsManager events = new RecipesEventsManager();
+        OraxenPlugin plugin = mock(OraxenPlugin.class);
+        when(plugin.getName()).thenReturn("Oraxen");
+        when(plugin.namespace()).thenReturn("oraxen");
+        ItemStack stone = mock(ItemStack.class), dirt = mock(ItemStack.class);
+        when(stone.getType()).thenReturn(Material.STONE);
+        when(dirt.getType()).thenReturn(Material.DIRT);
+        when(stone.getAmount()).thenReturn(1);
+        when(dirt.getAmount()).thenReturn(1);
+        ShapelessRecipe crafted = mock(ShapelessRecipe.class);
+        when(crafted.getKey()).thenReturn(new NamespacedKey("oraxen", "duplicate"));
+        try (MockedStatic<OraxenPlugin> plugins = mockStatic(OraxenPlugin.class);
+             MockedStatic<RecipesEventsManager> managers = mockStatic(RecipesEventsManager.class, CALLS_REAL_METHODS);
+             MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class)) {
+            plugins.when(OraxenPlugin::get).thenReturn(plugin);
+            managers.when(RecipesEventsManager::get).thenReturn(events);
+            RecipeLoader.beginRegistrationPass();
+            events.resetRecipes();
+            new ShapelessLoader(shapeless("minecraft:stone")).registerRecipe();
+            assertThrows(IllegalArgumentException.class, () -> new ShapelessLoader(shapeless("minecraft:dirt")).registerRecipe());
+            events.finishRecipeReload();
+
+            assertTrue(events.prepareCrafter(crafted, matrix(stone)));
+            assertFalse(events.prepareCrafter(crafted, matrix(dirt)));
+        }
+    }
+
+    private static ConfigurationSection shapeless(String ingredient) {
+        ConfigurationSection section = new YamlConfiguration().createSection("duplicate");
+        section.set("result", "minecraft:diamond");
+        section.set("ingredients", List.of(ingredient));
+        return section;
+    }
+
+    private static ItemStack[] matrix(ItemStack item) {
+        ItemStack[] matrix = new ItemStack[9];
+        matrix[4] = item;
+        return matrix;
     }
 
     private static Recipe recipe(String name) {

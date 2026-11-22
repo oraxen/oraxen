@@ -13,7 +13,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.MemoryConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -21,6 +23,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Function;
 
 public class RecipesManager {
     private static boolean builderEventsRegistered;
@@ -49,20 +52,22 @@ public class RecipesManager {
             SchedulerUtil.runTask(RecipesManager::reload);
             return true;
         }
-        loadRecipes();
-        RecipesEventsManager.get().registerEvents();
+        RecipesEventsManager events = RecipesEventsManager.get();
+        if (loadRecipes()) for (Player player : Bukkit.getOnlinePlayers())
+            SchedulerUtil.runForEntity(player, () -> events.discoverRecipes(player));
+        events.registerEvents();
         return true;
     }
 
-    private static void loadRecipes() {
+    private static boolean loadRecipes() {
         File folder = new File(OraxenPlugin.get().getDataFolder(), "recipes");
         if (!folder.exists() && folder.mkdirs() && Settings.GENERATE_DEFAULT_CONFIGS.toBool())
             OraxenPlugin.get().getResourceManager().extractConfigsInFolder("recipes", "yml");
         createRecipeFiles(folder);
-        registerAllConfigRecipesFromFolder(folder);
+        return registerAllConfigRecipesFromFolder(folder);
     }
 
-    private static void registerAllConfigRecipesFromFolder(File folder) {
+    private static boolean registerAllConfigRecipesFromFolder(File folder) {
         RecipeLoader.beginRegistrationPass(Settings.RESET_RECIPES.toBool());
         RecipeBrewing.beginReload();
         RecipeProcessing.beginReload();
@@ -83,20 +88,25 @@ public class RecipesManager {
             for (File file : files) {
                 if (file.getName().equals("tags.yml") || file.getName().equals("disabled.yml")) continue;
                 YamlConfiguration config = read(file);
+                if (config.getKeys(false).isEmpty()) continue;
+                Function<ConfigurationSection, RecipeLoader> loader = loader(file.getName());
                 for (String name : config.getKeys(false)) {
-                    ConfigurationSection section = config.getConfigurationSection(name);
-                    if (section == null) throw new IllegalArgumentException(file.getName() + "." + name + " must be a recipe section");
+                    RecipeLoader recipe = null;
                     try {
-                        registerRecipeByType(file.getName(), section);
+                        ConfigurationSection section = config.getConfigurationSection(name);
+                        recipe = loader.apply(section != null ? section : new MemoryConfiguration().createSection(name));
+                        if (section == null) throw new IllegalArgumentException("Entry must be a recipe section");
+                        recipe.registerRecipe();
                     } catch (RuntimeException exception) {
-                        throw new IllegalArgumentException("Invalid recipe " + file.getName() + "." + name + ": " + exception.getMessage(), exception);
+                        Logs.logError("Could not load recipe " + file.getName() + "." + name + ": " + exception.getMessage());
+                        Logs.debug(exception);
+                        if (recipe != null) recipe.retainPreviousVersion();
                     }
                 }
             }
             YamlConfiguration disabled = read(new File(folder, "disabled.yml"));
             for (String id : disabled.getStringList("disabled"))
                 if (NamespacedKey.fromString(id) == null) throw new IllegalArgumentException("Invalid disabled recipe " + id);
-            RecipeBrewing.validateReload();
             events.retainRecipes(RecipeLoader.retainedKeys());
             RecipeProcessing.retainRecipes(RecipeLoader.retainedKeys());
             RecipeLoader.finishRegistrationPass();
@@ -121,6 +131,7 @@ public class RecipesManager {
                 events.cancelRecipeReload();
             }
         }
+        return completed;
     }
 
     private static YamlConfiguration read(File file) throws Exception {
@@ -148,21 +159,21 @@ public class RecipesManager {
         }
     }
 
-    private static void registerRecipeByType(String file, ConfigurationSection section) {
-        switch (file) {
-            case "shaped.yml", "shaped-transform.yml" -> new ShapedLoader(section).registerRecipe();
-            case "shapeless.yml", "shapeless-transform.yml" -> new ShapelessLoader(section).registerRecipe();
-            case "furnace.yml" -> new FurnaceLoader(section).registerRecipe();
-            case "blasting.yml" -> new BlastingLoader(section).registerRecipe();
-            case "campfire.yml" -> new CampfireLoader(section).registerRecipe();
-            case "smoking.yml" -> new SmokingLoader(section).registerRecipe();
-            case "stonecutting.yml" -> new StonecuttingLoader(section).registerRecipe();
-            case "smithing.yml" -> new SmithingLoader(section).registerRecipe();
-            case "brewing.yml" -> new BrewingLoader(section).registerRecipe();
-            case "cauldron.yml" -> new WorkstationLoader(section, CustomWorkstationRecipe.Type.CAULDRON).registerRecipe();
-            case "anvil.yml" -> new WorkstationLoader(section, CustomWorkstationRecipe.Type.ANVIL).registerRecipe();
-            case "grindstone.yml" -> new WorkstationLoader(section, CustomWorkstationRecipe.Type.GRINDSTONE).registerRecipe();
+    private static Function<ConfigurationSection, RecipeLoader> loader(String file) {
+        return switch (file) {
+            case "shaped.yml", "shaped-transform.yml" -> ShapedLoader::new;
+            case "shapeless.yml", "shapeless-transform.yml" -> ShapelessLoader::new;
+            case "furnace.yml" -> FurnaceLoader::new;
+            case "blasting.yml" -> BlastingLoader::new;
+            case "campfire.yml" -> CampfireLoader::new;
+            case "smoking.yml" -> SmokingLoader::new;
+            case "stonecutting.yml" -> StonecuttingLoader::new;
+            case "smithing.yml" -> SmithingLoader::new;
+            case "brewing.yml" -> BrewingLoader::new;
+            case "cauldron.yml" -> section -> new WorkstationLoader(section, CustomWorkstationRecipe.Type.CAULDRON);
+            case "anvil.yml" -> section -> new WorkstationLoader(section, CustomWorkstationRecipe.Type.ANVIL);
+            case "grindstone.yml" -> section -> new WorkstationLoader(section, CustomWorkstationRecipe.Type.GRINDSTONE);
             default -> throw new IllegalArgumentException("Unknown recipe file " + file);
-        }
+        };
     }
 }

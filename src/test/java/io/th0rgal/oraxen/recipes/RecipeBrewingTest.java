@@ -1,10 +1,13 @@
 package io.th0rgal.oraxen.recipes;
 
 import io.papermc.paper.potion.PotionMix;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.recipes.loaders.BrewingLoader;
+import io.th0rgal.oraxen.recipes.loaders.RecipeLoader;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.potion.PotionBrewer;
@@ -49,7 +52,6 @@ class RecipeBrewingTest {
             try {
                 BrewingLoader.beginReload();
                 BrewingLoader.register(recipe("first"));
-                BrewingLoader.validateReload();
                 verify(brewer, never()).addPotionMix(any());
                 assertTrue(removed.isEmpty());
                 BrewingLoader.finishReload();
@@ -97,6 +99,40 @@ class RecipeBrewingTest {
                 assertThrows(IllegalArgumentException.class, BrewingLoader::finishReload);
                 assertEquals(List.of(key("original")), new ArrayList<>(live.keySet()));
             } finally {
+                BrewingLoader.clear();
+            }
+        }
+    }
+
+    @Test
+    void brokenEditKeepsThePreviousMixWhenRecipesAreNotReset() {
+        OraxenPlugin plugin = mock(OraxenPlugin.class);
+        when(plugin.getName()).thenReturn("Oraxen");
+        when(plugin.namespace()).thenReturn("oraxen");
+        try (MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class);
+             MockedStatic<OraxenPlugin> plugins = mockStatic(OraxenPlugin.class)) {
+            plugins.when(OraxenPlugin::get).thenReturn(plugin);
+            PotionBrewer brewer = mock(PotionBrewer.class);
+            bukkit.when(Bukkit::getPotionBrewer).thenReturn(brewer);
+            Map<NamespacedKey, PotionMix> live = new LinkedHashMap<>();
+            doAnswer(call -> { live.put(call.<PotionMix>getArgument(0).getKey(), call.getArgument(0)); return null; })
+                    .when(brewer).addPotionMix(any());
+            doAnswer(call -> { live.remove(call.getArgument(0)); return null; })
+                    .when(brewer).removePotionMix(any());
+            try {
+                BrewingLoader.beginReload();
+                BrewingLoader.register(recipe("edited"));
+                BrewingLoader.finishReload();
+                RecipeLoader.beginRegistrationPass(false);
+                BrewingLoader.beginReload();
+                BrewingLoader broken = new BrewingLoader(new YamlConfiguration().createSection("edited"));
+                assertThrows(IllegalArgumentException.class, broken::registerRecipe);
+                broken.retainPreviousVersion();
+                assertDoesNotThrow(new BrewingLoader(new YamlConfiguration().createSection("bad recipe"))::retainPreviousVersion);
+                BrewingLoader.finishReload();
+                assertEquals(List.of(key("edited")), new ArrayList<>(live.keySet()));
+            } finally {
+                RecipeLoader.cancelRegistrationPass();
                 BrewingLoader.clear();
             }
         }

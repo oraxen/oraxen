@@ -16,6 +16,11 @@ public final class CustomWorkstationRegistry {
         if (staging == null) throw new IllegalStateException("Recipe reload has not begun");
         staging.add(recipe);
     }
+    public static void retain(CustomWorkstationRecipe.Type type, String name) {
+        if (staging == null) throw new IllegalStateException("Recipe reload has not begun");
+        for (CustomWorkstationRecipe recipe : recipes)
+            if (recipe.type() == type && recipe.name().equals(name)) staging.add(recipe);
+    }
     public static void finishReload() {
         recipes = staging == null ? List.of() : List.copyOf(staging);
         staging = null;

@@ -33,7 +33,7 @@ public class ShapedLoader extends RecipeLoader {
             Object value = ingredients.get(symbol);
             choices.put(symbol.charAt(0), getWorkbenchRecipeChoice(value));
         }
-        ShapedRecipe recipe = new ShapedRecipe(getNamespacedKey(), getValidResult());
+        ShapedRecipe recipe = new ShapedRecipe(getUniqueKey(), getValidResult());
         recipe.shape(shape);
         for (Map.Entry<Character, RecipeChoice> choice : choices.entrySet())
             recipe.setIngredient(choice.getKey(), choice.getValue());

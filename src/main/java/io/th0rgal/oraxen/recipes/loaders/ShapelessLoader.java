@@ -33,7 +33,7 @@ public class ShapelessLoader extends RecipeLoader {
         } else throw new IllegalArgumentException("Recipe '" + getRecipeName() + "' requires ingredients");
         if (choices.isEmpty() || choices.size() > 9)
             throw new IllegalArgumentException("A shapeless recipe requires between one and nine ingredients");
-        ShapelessRecipe recipe = new ShapelessRecipe(getNamespacedKey(), getValidResult());
+        ShapelessRecipe recipe = new ShapelessRecipe(getUniqueKey(), getValidResult());
         choices.forEach(recipe::addIngredient);
         recipe.setGroup(getGroup());
         if (getSection().isString("category"))

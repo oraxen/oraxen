@@ -12,7 +12,7 @@ public class StonecuttingLoader extends RecipeLoader {
 
     @Override
     public void registerRecipe() {
-        StonecuttingRecipe recipe = new StonecuttingRecipe(getNamespacedKey(), getValidResult(), getRequiredChoice("input"));
+        StonecuttingRecipe recipe = new StonecuttingRecipe(getUniqueKey(), getValidResult(), getRequiredChoice("input"));
         recipe.setGroup(getGroup());
         RecipeProcessing.register(recipe, recipe.getInputChoice());
         loadRecipe(recipe);

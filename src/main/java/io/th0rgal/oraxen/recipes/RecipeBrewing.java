@@ -9,7 +9,6 @@ import java.util.Objects;
 
 public record RecipeBrewing(NamespacedKey key, RecipeChoice container, RecipeChoice ingredient, ItemStack result) {
     public static void beginReload() { BrewingLoader.beginReload(); }
-    public static void validateReload() { BrewingLoader.validateReload(); }
     public static void finishReload() { BrewingLoader.finishReload(); }
     public static void cancelReload() { BrewingLoader.cancelReload(); }
     public static void clear() { BrewingLoader.clear(); }

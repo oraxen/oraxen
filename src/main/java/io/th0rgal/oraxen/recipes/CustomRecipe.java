@@ -65,28 +65,39 @@ public class CustomRecipe {
 
     @Override
     public boolean equals(Object object) {
-        if (object == null) return false;
         if (object == this) return true;
-        if (object instanceof CustomRecipe customRecipe) return result.equals(customRecipe.result) && areEqual(ingredients, customRecipe.ingredients);
-        return false;
+        return object instanceof CustomRecipe customRecipe && ordered == customRecipe.ordered
+                && result.equals(customRecipe.result) && areEqual(ingredients, customRecipe.ingredients);
     }
 
     @Override
     public int hashCode() {
-        return result.hashCode() / 2 + ingredients.hashCode() / 2 + (ordered ? 1 : 0);
+        // Ingredients compare by similarity and, when unordered, in any order, so they stay out of the hash.
+        return Objects.hash(result, ordered);
     }
 
     private boolean areEqual(List<ItemStack> ingredients1, List<ItemStack> ingredients2) {
-        for (int index = 0; index < ingredients1.size(); index++) {
-            ItemStack ingredient1 = ingredients1.get(index);
-            if (ordered) {
+        if (ordered) {
+            if (ingredients1.size() != ingredients2.size()) return false;
+            for (int index = 0; index < ingredients1.size(); index++) {
+                ItemStack ingredient1 = ingredients1.get(index);
                 ItemStack ingredient2 = ingredients2.get(index);
-                if (ingredient1 == null && ingredient2 == null) continue;
-                if (ingredient1 == null || ingredient2 == null) return false;
-                if (!ingredient1.isSimilar(ingredient2)) return false;
-            } else if (ingredient1 != null && ingredients2.stream().noneMatch(ingredient1::isSimilar)) return false;
+                if (ingredient1 == null || ingredient2 == null ? ingredient1 != ingredient2 : !ingredient1.isSimilar(ingredient2))
+                    return false;
+            }
+            return true;
         }
-        return true;
+        List<ItemStack> remaining = new ArrayList<>(ingredients2);
+        remaining.removeIf(Objects::isNull);
+        for (ItemStack ingredient : ingredients1) {
+            if (ingredient == null) continue;
+            int match = -1;
+            for (int index = 0; index < remaining.size() && match < 0; index++)
+                if (ingredient.isSimilar(remaining.get(index))) match = index;
+            if (match < 0) return false;
+            remaining.remove(match);
+        }
+        return remaining.isEmpty();
     }
 
     public static CustomRecipe fromRecipe(Recipe bukkitRecipe) {
