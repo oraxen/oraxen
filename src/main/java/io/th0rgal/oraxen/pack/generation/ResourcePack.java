@@ -307,12 +307,15 @@ public class ResourcePack {
 
     private void uploadGeneratedPack() {
         UploadManager uploadManager = OraxenPlugin.get().getUploadManager();
-        if (uploadManager != null) { // If the uploadManager isnt null, this was triggered by a pack-reload
+        // A non-null uploadManager means a pack-reload. Keep it unless the upload settings changed.
+        if (uploadManager != null && uploadManager.usesCurrentUploadSettings()) {
             uploadManager.uploadAsyncAndSendToPlayers(OraxenPlugin.get().getResourcePack(), true, true);
-        } else { // Otherwise this is was triggered on server-startup
+        } else {
+            boolean isReload = uploadManager != null;
             uploadManager = new UploadManager(OraxenPlugin.get());
+            // Unregisters the previous manager, which stops its self-host server and frees the port.
             OraxenPlugin.get().setUploadManager(uploadManager);
-            uploadManager.uploadAsyncAndSendToPlayers(OraxenPlugin.get().getResourcePack(), false, false);
+            uploadManager.uploadAsyncAndSendToPlayers(OraxenPlugin.get().getResourcePack(), isReload, isReload);
         }
     }
 

@@ -8,6 +8,7 @@ import org.bukkit.configuration.ConfigurationSection;
 
 import java.io.*;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.util.UUID;
@@ -24,6 +25,7 @@ public class SelfHost implements HostingProvider {
     private ExecutorService executor;
     private final String packUrl;
     private volatile HostedPack hostedPack;
+    private boolean stopped;
 
     public SelfHost(ConfigurationSection config) {
         if (config == null) {
@@ -40,6 +42,8 @@ public class SelfHost implements HostingProvider {
 
     @Override
     public synchronized boolean uploadPack(File resourcePack) {
+        // A replaced upload manager may still finish an upload. It must not bind the port again.
+        if (stopped) return false;
         try {
             // Generation overwrites the source ZIP. Hash and serve the same snapshot
             // so downloads cannot observe a later rewrite or a partially written pack.
@@ -86,11 +90,13 @@ public class SelfHost implements HostingProvider {
             httpServer.createContext("/pack.zip", packHandler);
 
             HttpHandler rootHandler = exchange -> {
-                String response = "Oraxen Resource Pack Server\n";
-                response += "Pack URL: " + packUrl + "\n";
-                exchange.sendResponseHeaders(200, response.getBytes().length);
-                exchange.getResponseBody().write(response.getBytes());
-                exchange.getResponseBody().close();
+                try {
+                    byte[] response = ("Oraxen Resource Pack Server\nPack URL: " + packUrl + "\n").getBytes(StandardCharsets.UTF_8);
+                    exchange.sendResponseHeaders(200, response.length);
+                    exchange.getResponseBody().write(response);
+                } finally {
+                    exchange.close();
+                }
             };
             httpServer.createContext("/", rootHandler);
 
@@ -99,12 +105,17 @@ public class SelfHost implements HostingProvider {
             Logs.logSuccess("Self-hosted resource pack server started on " + host + ":" + port);
         } finally {
             if (!started) {
-                stopServer();
+                closeServer();
             }
         }
     }
 
     public synchronized void stopServer() {
+        stopped = true;
+        closeServer();
+    }
+
+    private void closeServer() {
         hostedPack = null;
         if (httpServer != null) {
             httpServer.stop(0);

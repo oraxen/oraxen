@@ -113,8 +113,11 @@ public class MultiVersionUploadManager {
         if (shouldRegister) {
             packSender.register();
             if (sendToPlayers && PackSender.isAnyDispatchEnabled() && contentChanged) {
+                MultiVersionPackSender sender = packSender;
                 for (Player player : Bukkit.getOnlinePlayers()) {
-                    packSender.sendPack(player);
+                    SchedulerUtil.runForEntity(player, () -> {
+                        if (!cancelled) sender.sendPack(player);
+                    });
                 }
             }
         }

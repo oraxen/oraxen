@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.pack.upload;
 
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.events.OraxenPackPreUploadEvent;
 import io.th0rgal.oraxen.api.events.OraxenPackUploadEvent;
 import io.th0rgal.oraxen.configs.Message;
@@ -12,10 +13,13 @@ import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.Plugin;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 public class UploadManager {
@@ -25,15 +29,31 @@ public class UploadManager {
     private static final Object trackingLock = new Object();
     private final Plugin plugin;
     private final boolean enabled;
+    private final Map<String, Object> uploadSettings;
     private final HostingProvider hostingProvider;
-    private PackSender packSender;
+    private volatile PackSender packSender;
     private PackReceiver receiver;
     private volatile boolean cancelled = false;
 
     public UploadManager(final Plugin plugin) {
         this.plugin = plugin;
         enabled = Settings.UPLOAD.toBool();
+        uploadSettings = readUploadSettings();
         hostingProvider = HostingProviderFactory.createHostingProvider(true);
+    }
+
+    /** Whether the pack.upload settings still match the ones this manager was created with. */
+    public boolean usesCurrentUploadSettings() {
+        return uploadSettings.equals(readUploadSettings());
+    }
+
+    private static Map<String, Object> readUploadSettings() {
+        Map<String, Object> values = new HashMap<>();
+        ConfigurationSection section = OraxenPlugin.get().getConfigsManager().getSettings().getConfigurationSection("pack.upload");
+        if (section != null) section.getValues(true).forEach((key, value) -> {
+            if (!(value instanceof ConfigurationSection)) values.put(key, value);
+        });
+        return values;
     }
 
     public HostingProvider getHostingProvider() {
@@ -62,12 +82,13 @@ public class UploadManager {
             boolean contentChanged = updateTrackingState();
             if (cancelled) return;
 
-            updatePackSenderInstance(updatePackSender);
-            if (cancelled) return;
-
-            // Schedule player distribution on the main thread — Bukkit listener
-            // registration (packSender.register()) is not thread-safe.
-            SchedulerUtil.runTask(() -> distributePacksToPlayers(contentChanged));
+            // Bukkit listener registration is not thread-safe, so swap and
+            // register the pack sender on the global region thread.
+            SchedulerUtil.runTask(() -> {
+                if (cancelled) return;
+                updatePackSenderInstance(updatePackSender);
+                distributePacksToPlayers(contentChanged);
+            });
         });
     }
 
@@ -116,12 +137,14 @@ public class UploadManager {
     }
 
     private void distributePacksToPlayers(boolean contentChanged) {
-        if (cancelled) return;
         if (PackSender.isAnyDispatchEnabled()) {
-            packSender.register();
+            PackSender sender = packSender;
+            sender.register();
             if (contentChanged) {
                 for (Player player : Bukkit.getOnlinePlayers())
-                    packSender.sendPack(player);
+                    SchedulerUtil.runForEntity(player, () -> {
+                        if (!cancelled) sender.sendPack(player);
+                    });
             }
         } else if (packSender != null) {
             packSender.unregister();

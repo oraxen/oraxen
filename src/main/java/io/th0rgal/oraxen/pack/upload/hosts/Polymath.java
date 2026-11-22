@@ -98,7 +98,7 @@ public class Polymath implements HostingProvider {
 
     @Override
     public byte[] getSHA1() {
-        return HashUtils.hexToBytes(sha1);
+        return sha1 != null ? HashUtils.hexToBytes(sha1) : null;
     }
 
     @Override
