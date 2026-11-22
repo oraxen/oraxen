@@ -153,14 +153,16 @@ public class ItemUtils {
 
     public static boolean isTool(@NotNull Material material) {
         if (!VersionUtil.atOrAbove("1.20.5"))
-            return Tag.ITEMS_TOOLS.isTagged(material);
+            return Tag.ITEMS_TOOLS.isTagged(material) || material == Material.SHEARS;
         else
             return material.toString().endsWith("_AXE")
                     || material.toString().endsWith("_PICKAXE")
                     || material.toString().endsWith("_SHOVEL")
                     || material.toString().endsWith("_HOE")
                     || material.toString().endsWith("_SWORD")
-                    || material == Material.TRIDENT;
+                    || material == Material.TRIDENT
+                    || material == Material.SHEARS
+                    || material.toString().equals("MACE");
     }
 
     public static boolean isSkull(Material material) {
